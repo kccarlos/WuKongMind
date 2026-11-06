@@ -120,4 +120,30 @@ final class AssistantSourcesTests: XCTestCase {
         XCTAssertTrue(AgentSources.extract(from: answer, run: nil, sessions: [:], parse: parse).isEmpty)
         XCTAssertEqual(AgentSources.annotate(answer, sources: [], parse: parse), answer)
     }
+
+    func testLinksInsideInlineAndFencedCodeAreIgnored() {
+        let answer = """
+        See [Real thread](https://meta.discourse.org/t/real-thread/100/4) and [`sidebar` fix](https://meta.discourse.org/t/real-thread/101).
+        Do not rewrite inline `[Code link](https://meta.discourse.org/t/code-only/200)` or ``[Double](https://meta.discourse.org/t/code-only/201)`` or fenced examples:
+
+        ```markdown
+        [Fence link](https://meta.discourse.org/t/fence-only/300/2)
+        ```
+
+        ~~~
+        [Tilde fence](https://meta.discourse.org/t/fence-only/301)
+        ~~~
+        """
+
+        let sources = AgentSources.extract(from: answer, run: nil, sessions: [:], parse: parse)
+        XCTAssertEqual(sources.map(\.topicID), ["100", "101"])
+
+        let annotated = AgentSources.annotate(answer, sources: sources, parse: parse)
+        XCTAssertTrue(annotated.contains("Real thread [S1](https://meta.discourse.org/t/real-thread/100/4)"))
+        XCTAssertTrue(annotated.contains("`sidebar` fix [S2](https://meta.discourse.org/t/real-thread/101)"))
+        XCTAssertTrue(annotated.contains("`[Code link](https://meta.discourse.org/t/code-only/200)`"))
+        XCTAssertTrue(annotated.contains("``[Double](https://meta.discourse.org/t/code-only/201)``"))
+        XCTAssertTrue(annotated.contains("[Fence link](https://meta.discourse.org/t/fence-only/300/2)"))
+        XCTAssertTrue(annotated.contains("[Tilde fence](https://meta.discourse.org/t/fence-only/301)"))
+    }
 }

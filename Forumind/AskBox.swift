@@ -171,6 +171,10 @@ extension AppModel {
     }
 }
 
+extension EnvironmentValues {
+    @Entry var composerBottomInset: CGFloat = 0
+}
+
 /// The field, its scope button and the controls around it. Hosted at the
 /// bottom of the iPhone drawer; one view so the iPad panel can host it too.
 struct AskBox: View {
@@ -180,6 +184,8 @@ struct AskBox: View {
     let onShowInstructions: () -> Void
     @FocusState private var focused: Bool
     @State private var showsScopeHint = false
+    @State private var keyboardVisible = false
+    @Environment(\.composerBottomInset) private var bottomInset
     @Environment(\.composerFocusChanged) private var composerFocusChanged
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -217,7 +223,7 @@ struct AskBox: View {
         }
         .padding(.horizontal, 12)
         .padding(.top, 8)
-        .padding(.bottom, 10)
+        .padding(.bottom, 10 + (keyboardVisible ? 0 : bottomInset))
         .background {
             Rectangle()
                 .fill(.bar)
@@ -226,9 +232,11 @@ struct AskBox: View {
         }
         .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: scope)
         .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: showsSuggestions)
+        .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: keyboardVisible)
         .sensoryFeedback(.selection, trigger: scope)
         .onChange(of: scope) { showsScopeHint = false }
         .onChange(of: app.askFocusRequest) { focused = true }
+        .dcKeyboardVisible($keyboardVisible)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("askBox")
     }

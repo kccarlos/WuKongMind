@@ -23,9 +23,9 @@ import WebKit
 final class ForumBrowserModel: NSObject, ObservableObject {
     private static let routeMessageName = "dcRouteChanged"
     /// The route observer, with the registry's probe inside it. It posts the
-    /// document's facts once (after the head is parsed), and again only when an
-    /// `html`/`body` class changes (signed-in state lives in the classes); every
-    /// other message carries just the route, and Swift keeps the document's facts.
+    /// document's facts once (after the head is parsed), and again only when a
+    /// `<head>` `<link>`/`<meta>` element or an `html`/`body` class changes;
+    /// every other message carries just the route, and Swift keeps the facts.
     nonisolated static func routeObserverScript(probeExpression: String) -> String {
         """
         (() => {
@@ -69,12 +69,33 @@ final class ForumBrowserModel: NSObject, ObservableObject {
             scheduleRoutePublish();
           });
 
-          const observeTitle = () => {
+          const touchesFacts = node =>
+            node?.nodeType === 1 &&
+            (node.nodeName === "LINK" ||
+              node.nodeName === "META" ||
+              Boolean(node.querySelector?.("link, meta")));
+          const observeHead = () => {
             if (!document.head) return;
-            new MutationObserver(scheduleRoutePublish).observe(document.head, {
+            new MutationObserver(mutations => {
+              for (const mutation of mutations) {
+                if (mutation.type === "attributes") {
+                  if (touchesFacts(mutation.target)) factsPosted = false;
+                } else if (mutation.type === "childList") {
+                  for (const node of mutation.addedNodes) {
+                    if (touchesFacts(node)) factsPosted = false;
+                  }
+                  for (const node of mutation.removedNodes) {
+                    if (touchesFacts(node)) factsPosted = false;
+                  }
+                }
+              }
+              scheduleRoutePublish();
+            }).observe(document.head, {
               childList: true,
               subtree: true,
-              characterData: true
+              characterData: true,
+              attributes: true,
+              attributeFilter: ["href", "content", "rel", "name", "property"]
             });
           };
           const observeAuthentication = () => {
@@ -93,12 +114,12 @@ final class ForumBrowserModel: NSObject, ObservableObject {
           };
           if (document.readyState === "loading") {
             document.addEventListener("DOMContentLoaded", () => {
-              observeTitle();
+              observeHead();
               observeAuthentication();
               scheduleRoutePublish();
             }, { once: true });
           } else {
-            observeTitle();
+            observeHead();
             observeAuthentication();
           }
           scheduleRoutePublish();
@@ -632,9 +653,11 @@ final class ForumBrowserModel: NSObject, ObservableObject {
         }
         if let probe {
             // Facts a previous document posted just before it was replaced can
-            // arrive after didCommit cleared them: only the shown page's own
-            // address may set them.
-            guard Self.isSamePage(url, webView.url, registry: sites) else { return }
+            // arrive while a new load is in flight or after didCommit cleared
+            // them: only the shown page's own address may set them then.
+            if lastFacts == nil || webView.isLoading {
+                guard Self.isSamePage(url, webView.url, registry: sites) else { return }
+            }
             lastFacts = PageFacts(probe: probe, fallbackURL: url)
         } else if lastFacts != nil {
             // Another route of the same document: its facts still hold.
@@ -656,17 +679,21 @@ final class ForumBrowserModel: NSObject, ObservableObject {
         return reported == page
     }
 
-    /// Same origin and the same page: the same path, or the same topic (query
-    /// and fragment ignored). A forum rewrites its own address while the reader
-    /// scrolls (`/t/slug/1` to `/t/slug/1/42`); the document is still the shown one.
+    /// Same origin and the same page: the same loose topic ID when either URL
+    /// carries one, otherwise the same path (query and fragment ignored). A
+    /// forum rewrites its own address while the reader scrolls (`/t/slug/1` to
+    /// `/t/slug/1/42`); the document is still the shown one.
     nonisolated static func isSamePage(_ reported: URL, _ shown: URL?, registry: SiteRegistry) -> Bool {
         guard let shown, let reportedOrigin = webOrigin(of: reported), reportedOrigin == webOrigin(of: shown) else {
             return false
         }
+        let reportedTopic = registry.looseTopicID(in: reported)
+        let shownTopic = registry.looseTopicID(in: shown)
+        if reportedTopic != nil || shownTopic != nil {
+            return reportedTopic == shownTopic
+        }
         func path(_ url: URL) -> String { url.path.isEmpty ? "/" : url.path }
-        if path(reported) == path(shown) { return true }
-        guard let topic = registry.looseTopicID(in: reported) else { return false }
-        return topic == registry.looseTopicID(in: shown)
+        return path(reported) == path(shown)
     }
 
     /// `scheme://host[:port]` of an http(s) URL, default port omitted.

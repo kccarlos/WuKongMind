@@ -496,7 +496,7 @@ struct HistoryView: View {
                             .lineLimit(3)
                     }
                     if canCancel {
-                        AssistantProgressBar(value: record.progress, tint: DCTheme.summaryTint)
+                        WorkProgressBar(recordID: record.id, progress: app.progress, tint: DCTheme.summaryTint)
                             .padding(.top, 3)
                     }
                 }

@@ -19,12 +19,16 @@ private final class ContractStub: URLProtocol {
 
     static let rawPage = """
     alice | 2026-10-20 12:00:00 UTC | #1
+
     Opening post.
 
+    -------------------------
 
     bob | 2026-10-20 12:05:00 UTC | #2
+
     A reply.
 
+    -------------------------
     """
 
     static let topicJSON = """

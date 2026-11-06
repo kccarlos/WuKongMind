@@ -7554,6 +7554,22 @@
         }
       }
     },
+    "Forumind works with %@ sites. It is an independent app and is not affiliated with or endorsed by Civilized Discourse Construction Kit, Inc. Discourse is a trademark of its respective owner." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Forumind 适用于 %@ 网站。它是一款独立 App，与 Civilized Discourse Construction Kit, Inc. 无关联，也未获其认可。Discourse 是其各自所有者的商标。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Forumind 適用於 %@ 網站。它是一款獨立 App，與 Civilized Discourse Construction Kit, Inc. 無關聯，也未獲其認可。Discourse 是其各自所有者的商標。"
+          }
+        }
+      }
+    },
     "Forumind works with %@ sites. Open one to summarize topics, chat about them, or ask the whole forum a question." : {
       "localizations" : {
         "zh-Hans" : {
@@ -7566,22 +7582,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Forumind 適用於 %@ 網站。打開一個，即可摘要話題、針對話題聊天，或向整個論壇提問。"
-          }
-        }
-      }
-    },
-    "Forumind works with Discourse forums. It is an independent app and is not affiliated with or endorsed by Civilized Discourse Construction Kit, Inc. Discourse is a trademark of its respective owner." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Forumind 适用于 Discourse 论坛。它是一款独立 App，与 Civilized Discourse Construction Kit, Inc. 无关联，也未获其认可。Discourse 是其各自所有者的商标。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Forumind 適用於 Discourse 論壇。它是一款獨立 App，與 Civilized Discourse Construction Kit, Inc. 無關聯，也未獲其認可。Discourse 是其各自所有者的商標。"
           }
         }
       }

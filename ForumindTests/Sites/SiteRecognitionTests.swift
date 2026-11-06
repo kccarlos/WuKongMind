@@ -352,4 +352,49 @@ final class RouteObserverWebKitTests: XCTestCase {
         let again = PageFacts(probe: try XCTUnwrap(recorder.facts.last), fallbackURL: facts.url)
         XCTAssertFalse(DiscourseSession().session(from: again).authenticated)
     }
+
+    func testWordPressInPageRouteChangeRefreshesShortlinkFacts() async throws {
+        let browser = ForumBrowserModel(sites: .standard)
+        let initialHTML = """
+        <!doctype html><html><head>
+        <link rel="https://api.w.org/" href="https://blog.example.com/wp-json/">
+        <link rel="shortlink" href="https://blog.example.com/?p=101">
+        <meta property="og:site_name" content="Example Blog">
+        <title>First Post</title>
+        </head><body class="single">
+        <p>First article</p>
+        </body></html>
+        """
+
+        browser.webView.loadHTMLString(
+            initialHTML,
+            baseURL: URL(string: "https://blog.example.com/2026/05/first-post/")!
+        )
+        try await waitUntil("initial post 101") { browser.pageContext.topic?.topicID == "101" && !browser.webView.isLoading }
+        XCTAssertEqual(browser.pageContext.topic?.topicID, "101")
+
+        _ = try await browser.webView.evaluateJavaScript("""
+            document.querySelector('link[rel="shortlink"]').setAttribute('href', 'https://blog.example.com/?p=202');
+            document.title = 'Second Post';
+            history.pushState({}, '', '/2026/05/second-post/');
+        """)
+
+        try await waitUntil("second post 202") {
+            browser.pageContext.url?.path == "/2026/05/second-post" && browser.pageContext.topic?.topicID == "202"
+        }
+        XCTAssertEqual(browser.pageContext.url?.path, "/2026/05/second-post")
+        XCTAssertEqual(browser.pageContext.topic?.topicID, "202")
+
+        _ = try await browser.webView.evaluateJavaScript("""
+            document.querySelector('link[rel="shortlink"]').remove();
+            document.title = 'Category Archive';
+            history.pushState({}, '', '/category/news/');
+        """)
+
+        try await waitUntil("archive home state") {
+            browser.pageContext.url?.path == "/category/news" && browser.pageContext.state == .forumHome
+        }
+        XCTAssertNil(browser.pageContext.topic)
+        XCTAssertEqual(browser.pageContext.state, .forumHome)
+    }
 }

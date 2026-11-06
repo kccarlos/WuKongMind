@@ -121,11 +121,13 @@ struct DiscourseAPI: Sendable {
     func fetchOverview(topicID: String, filter: DiscourseRoutes.TopicFilter? = nil) async throws -> ForumTopicOverview {
         let json = try await topicJSON(topicID: topicID, filter: filter)
         let slug = json["slug"] as? String ?? topicID
+        let title = (json["title"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
+            ?? (json["fancy_title"] as? String).map(DiscourseParsing.oneLineHTML)
+            ?? ""
         return ForumTopicOverview(
             siteURL: siteURL,
             topicID: topicID,
-            title: (json["title"] as? String ?? json["fancy_title"] as? String ?? "")
-                .trimmingCharacters(in: .whitespacesAndNewlines),
+            title: title,
             slug: slug,
             url: DiscourseParsing.topicURL(siteURL: siteURL, topicID: topicID, slug: slug),
             postCount: try DiscourseParsing.postCount(from: json),
@@ -147,9 +149,10 @@ struct DiscourseAPI: Sendable {
         guard let url = DiscourseRoutes.rawPageURL(siteURL: siteURL, topicID: topicID, page: page) else {
             throw AssistantError.invalidResponse
         }
-        guard let content = String(data: try await net.data(url), encoding: .utf8) else {
+        guard let raw = String(data: try await net.data(url), encoding: .utf8) else {
             throw AssistantError.invalidResponse
         }
+        let content = DiscourseParsing.normalizeRawPage(raw)
         return RawForumPage(page: page, content: content, blocks: RawTopicFormat.blocks(in: content))
     }
 }

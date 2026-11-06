@@ -166,6 +166,9 @@ final class AppModel: ObservableObject {
     /// Streaming summary and chat text; observed by the views that show it
     /// only, not by this model (`StreamStore`).
     let streams = StreamStore()
+    /// Live 0…1 progress of running work; observed only by the views that
+    /// draw a progress bar, ring or percentage (`ProgressStore`).
+    let progress = ProgressStore()
     /// Unsent composer text. Not published here: it changes on every
     /// keystroke, so only the Ask box and the composers observe it.
     let drafts = ComposerDrafts()
@@ -284,6 +287,7 @@ final class AppModel: ObservableObject {
     /// token tells a job that was paused and launched again from the old
     /// task still unwinding.
     private var runningTasks: [UUID: (token: UUID, task: Task<Void, Never>)] = [:]
+    private var summaryFeeds: [UUID: SummaryProgressFeed] = [:]
     /// Extra time to finish work after the app leaves the foreground.
     private let backgroundGrace: BackgroundGracing
     /// The grace period, while the app is in the background with work
@@ -1166,6 +1170,7 @@ final class AppModel: ObservableObject {
     /// so it stays queued.
     private func failQueuedWork(siteURL: String, error: Error) {
         for record in activities where record.siteURL == siteURL && record.status == .queued && record.type != .chat {
+            progress.remove(record.id)
             mutateRecord(record.id) {
                 $0.status = .failed
                 $0.statusText = String(localized: "Failed", comment: "Status of AI work that failed")
@@ -1631,7 +1636,10 @@ final class AppModel: ObservableObject {
     }
 
     private func refreshNotificationAuthorization() async {
-        notificationsAuthorized = await notifier.isAuthorized()
+        let authorized = await notifier.isAuthorized()
+        if notificationsAuthorized != authorized {
+            notificationsAuthorized = authorized
+        }
     }
 
     private func startWatchTimer() {
@@ -1739,7 +1747,9 @@ final class AppModel: ObservableObject {
     func cancel(record: WorkRecord) {
         runningTasks[record.id]?.task.cancel()
         runningTasks.removeValue(forKey: record.id)
+        summaryFeeds.removeValue(forKey: record.id)?.cancel()
         streams.remove(record.id)
+        progress.remove(record.id)
         Task {
             await limiter.cancel(workID: record.id)
         }
@@ -2083,10 +2093,12 @@ final class AppModel: ObservableObject {
     /// Advances a seeded running record (DEBUG sample only), the way a real
     /// job would: progress moves forward only.
     func debugAdvanceSample(recordID: UUID, progress: Double, statusText: String? = nil) {
-        guard activities.first(where: { $0.id == recordID })?.status == .running else { return }
-        mutateRecord(recordID) {
-            $0.progress = WorkProgress.advanced(from: $0.progress, to: progress)
-            if let statusText { $0.statusText = statusText }
+        guard let current = activities.first(where: { $0.id == recordID }),
+              current.status == .running
+        else { return }
+        self.progress.advance(recordID, to: progress)
+        if let statusText, statusText != current.statusText {
+            mutateRecord(recordID) { $0.statusText = statusText }
         }
     }
 
@@ -2134,7 +2146,6 @@ final class AppModel: ObservableObject {
         )
         recent.status = .completed
         recent.statusText = "Completed"
-        recent.progress = 1
         recent.completedAt = now
 
         sessions = [
@@ -2237,7 +2248,9 @@ final class AppModel: ObservableObject {
     private func pause(recordID: UUID) {
         runningTasks[recordID]?.task.cancel()
         runningTasks.removeValue(forKey: recordID)
+        summaryFeeds.removeValue(forKey: recordID)?.cancel()
         streams.remove(recordID)
+        progress.remove(recordID)
         Task { await limiter.cancel(workID: recordID) }
         mutateRecord(recordID) {
             $0.status = .queued
@@ -2313,11 +2326,11 @@ final class AppModel: ObservableObject {
         // Recorded so Manage and the saved summary show what actually ran.
         record.provider = context.provider
         record.model = context.configuration.model
+        // A restored record starts over; progress then only moves forward.
+        progress.remove(recordID)
         mutateRecord(recordID) {
             $0.status = .running
             $0.statusText = String(localized: "Reading forum responses…", comment: "Status while downloading a topic's replies")
-            // A restored record starts over; progress then only moves forward.
-            $0.progress = nil
             $0.startedAt = Date()
             $0.provider = context.provider
             $0.model = context.configuration.model
@@ -2361,7 +2374,6 @@ final class AppModel: ObservableObject {
             mutateRecord(recordID) {
                 $0.status = .completed
                 $0.statusText = String(localized: "Completed", comment: "Status of finished AI work")
-                $0.progress = 1
                 $0.completedAt = Date()
             }
         } catch is CancellationError {
@@ -2394,6 +2406,12 @@ final class AppModel: ObservableObject {
                     $0.statusText = String(localized: "Cancelled", comment: "Status of AI work the user cancelled")
                     $0.completedAt = Date()
                 }
+                if record.type == .agent {
+                    mutateAgentRun(for: record) {
+                        $0.result = .cancelled
+                        $0.completedAt = Date()
+                    }
+                }
             }
         } catch {
             mutateRecord(recordID) {
@@ -2415,6 +2433,7 @@ final class AppModel: ObservableObject {
         }
         if isCurrentLaunch(recordID, token: token) {
             streams.remove(recordID)
+            progress.remove(recordID)
         }
         activities = Array(
             activities
@@ -2451,6 +2470,7 @@ final class AppModel: ObservableObject {
         session.updatedAt = now
         sessions[record.topicKey] = session
         save()
+        progress.advance(recordID, to: 1)
     }
 
     /// Keeps a topic's freshly read pages in its existing session (the
@@ -2480,6 +2500,13 @@ final class AppModel: ObservableObject {
             url: record.url,
             title: record.title
         )
+        let tracker = SummaryProgressTracker(
+            cachedPages: session.rawPages.count,
+            inputCharacters: session.source.count,
+            previousSummaryCharacters: session.hasSummary ? session.summary.count : nil
+        )
+        let feed = startSummaryFeed(recordID: recordID, tracker: tracker)
+        defer { stopSummaryFeed(recordID, feed) }
         let fetch = try await fetchTopicPages(of: session, adapter: adapter, recordID: recordID, pace: context.forumRequestPace) { progress in
             await self.updateFetchProgress(recordID: recordID, progress: progress)
         }
@@ -2501,6 +2528,7 @@ final class AppModel: ObservableObject {
             mutateRecord(recordID) {
                 $0.statusText = String(localized: "Saved summary already includes every reply.")
             }
+            feed.finish()
             return
         }
 
@@ -2508,15 +2536,12 @@ final class AppModel: ObservableObject {
             $0.statusText = fetch.newPosts > 0 && session.hasSummary
                 ? String(localized: "Updating summary with \(fetch.newPosts) new posts…", comment: "Status while a saved summary is updated with the topic's new replies")
                 : String(localized: "Generating summary…")
-            // The fetch filled its share of the bar; each summary step fills the rest.
-            $0.progress = WorkProgress.advanced(from: $0.progress, to: WorkProgress.summary(ai: 0))
         }
+        let content = moderated(fetch.content, siteURL: session.siteURL, topicID: session.topicID)
+        feed.setInputCharacters(content.count)
         streams.start(recordID)
-        let progress = summaryProgressOutput(recordID: recordID)
-        defer { progress.cancel() }
-        let feed = SummaryProgressFeed(output: progress, map: WorkProgress.summary(ai:))
         let summary = try await aiService.generateSummary(
-            content: moderated(fetch.content, siteURL: session.siteURL, topicID: session.topicID),
+            content: content,
             configuration: context.configuration,
             provider: context.provider,
             customPrompt: context.topicInstructions,
@@ -2531,6 +2556,7 @@ final class AppModel: ObservableObject {
         )
 
         try ensureLive(recordID)
+        feed.finish()
         session = sessions[record.topicKey] ?? session
         session.summary = summary
         session.summaryPostCount = fetch.totalPosts
@@ -2594,9 +2620,9 @@ final class AppModel: ObservableObject {
 
         mutateRecord(recordID) {
             $0.statusText = String(localized: "Answering follow-up question…")
-            // How long an answer takes is unknowable: indeterminate until done.
-            $0.progress = nil
         }
+        // How long an answer takes is unknowable: indeterminate until done.
+        progress.advance(recordID, to: nil)
         // Cleared or edited while the topic was being read: nothing to ask.
         guard session.history.last(where: { $0.role == .user })?.content == record.question else {
             mutateRecord(recordID) { $0.statusText = String(localized: "Chat changed; answer discarded", comment: "Chat status: the conversation was edited while an answer was being written") }
@@ -2664,8 +2690,8 @@ final class AppModel: ObservableObject {
         storeAgentRun(run)
         mutateRecord(recordID) {
             $0.statusText = String(localized: "Planning…", comment: "Ask the forum: the AI is deciding its first step")
-            $0.progress = WorkProgress.agent(completedSteps: 0, maxSteps: context.agentMaxSteps)
         }
+        progress.advance(recordID, to: WorkProgress.agent(completedSteps: 0, maxSteps: context.agentMaxSteps))
 
         let configuration = context.configuration
         let forumName = forum(for: run.siteURL)?.displayName
@@ -2703,11 +2729,11 @@ final class AppModel: ObservableObject {
             var step = AgentStep(tool: action.tool, arguments: action.arguments, thought: action.thought)
             mutateRecord(recordID) {
                 $0.statusText = String(localized: "Step \(stepsUsed): \(Self.describe(action))", comment: "Ask the forum progress: step number, then the tool being used (a technical name such as search_forum) and its argument")
-                $0.progress = WorkProgress.advanced(
-                    from: $0.progress,
-                    to: WorkProgress.agent(completedSteps: stepsUsed - 1, maxSteps: maxSteps, within: 0.1)
-                )
             }
+            progress.advance(
+                recordID,
+                to: WorkProgress.agent(completedSteps: stepsUsed - 1, maxSteps: maxSteps, within: 0.1)
+            )
 
             if action.tool == AgentPrompt.finalAnswerTool || outOfBudget {
                 let answer = action.arguments["answer"]?.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -2770,12 +2796,7 @@ final class AppModel: ObservableObject {
             step.finishedAt = Date()
             run.steps.append(step)
             storeAgentRun(run)
-            mutateRecord(recordID) {
-                $0.progress = WorkProgress.advanced(
-                    from: $0.progress,
-                    to: WorkProgress.agent(completedSteps: stepsUsed, maxSteps: maxSteps)
-                )
-            }
+            progress.advance(recordID, to: WorkProgress.agent(completedSteps: stepsUsed, maxSteps: maxSteps))
             save()
         }
     }
@@ -2870,11 +2891,15 @@ final class AppModel: ObservableObject {
             mutateRecord(recordID) {
                 $0.statusText = String(localized: "Summarizing \(session.title)…", comment: "Status; the placeholder is a forum topic's title")
             }
-            let progress = summaryProgressOutput(recordID: recordID, keepsStatusText: true)
-            defer { progress.cancel() }
-            let feed = SummaryProgressFeed(output: progress) { stepProgress(0.4 + 0.55 * $0) }
+            let content = moderated(session.source, siteURL: session.siteURL, topicID: session.topicID)
+            let tracker = SummaryProgressTracker(
+                inputCharacters: content.count,
+                previousSummaryCharacters: session.hasSummary ? session.summary.count : nil
+            )
+            let feed = startSummaryFeed(recordID: recordID, tracker: tracker, keepsStatusText: true) { stepProgress(0.4 + 0.55 * $0) }
+            defer { stopSummaryFeed(recordID, feed) }
             let summary = try await aiService.generateSummary(
-                content: moderated(session.source, siteURL: session.siteURL, topicID: session.topicID),
+                content: content,
                 configuration: summarizer.configuration,
                 provider: summarizer.provider,
                 customPrompt: PromptBuilder.effectiveInstructions(
@@ -2887,6 +2912,7 @@ final class AppModel: ObservableObject {
                 onProgress: { feed.handle($0) }
             )
             try ensureLive(recordID)
+            feed.finish()
             session = sessions[session.topicKey] ?? session
             session.summary = summary
             session.summaryPostCount = session.totalPosts
@@ -3065,34 +3091,50 @@ final class AppModel: ObservableObject {
 
     private func updateFetchProgress(recordID: UUID, progress: ForumFetchProgress) {
         // A late page report of a cancelled job must not touch its record.
-        guard isLive(recordID) else { return }
-        mutateRecord(recordID) {
-            $0.statusText = progress.message
-            $0.progress = WorkProgress.advanced(
-                from: $0.progress,
-                to: WorkProgress.fetch(progress.fraction, type: $0.type)
-            )
+        guard isLive(recordID),
+              let record = activities.first(where: { $0.id == recordID })
+        else { return }
+        if let feed = summaryFeeds[recordID] {
+            feed.handle(.fetched(completedPages: progress.completedPages, totalPages: progress.totalPages))
+        } else {
+            self.progress.advance(recordID, to: WorkProgress.fetch(progress.fraction, type: record.type))
+        }
+        if record.statusText != progress.message {
+            mutateRecord(recordID) { $0.statusText = progress.message }
         }
     }
 
     /// Moves a running job's determinate progress forward (never back).
     private func advanceProgress(recordID: UUID, to fraction: Double) {
         guard isLive(recordID) else { return }
-        mutateRecord(recordID) {
-            $0.progress = WorkProgress.advanced(from: $0.progress, to: fraction)
-        }
+        progress.advance(recordID, to: fraction)
     }
 
-    /// Throttled progress writes for a summary step; ignored once the job is
-    /// no longer live. `keepsStatusText` leaves the caller's status (agent steps).
-    private func summaryProgressOutput(recordID: UUID, keepsStatusText: Bool = false) -> ThrottledProgress {
-        ThrottledProgress { [weak self] fraction, statusText in
-            guard let self, self.isLive(recordID) else { return }
-            self.mutateRecord(recordID) {
-                $0.progress = WorkProgress.advanced(from: $0.progress, to: fraction)
-                if let statusText, !keepsStatusText { $0.statusText = statusText }
+    /// Starts a clock-driven summary feed; ticks go only through `ProgressStore`.
+    private func startSummaryFeed(
+        recordID: UUID,
+        tracker: SummaryProgressTracker,
+        keepsStatusText: Bool = false,
+        map: @escaping (Double) -> Double = { $0 }
+    ) -> SummaryProgressFeed {
+        summaryFeeds.removeValue(forKey: recordID)?.cancel()
+        let token = runningTasks[recordID]?.token
+        let output = ThrottledProgress { [weak self] fraction, statusText in
+            guard let self, let token, self.isCurrentLaunch(recordID, token: token), self.isLive(recordID) else { return }
+            self.progress.advance(recordID, to: fraction)
+            if let statusText, !keepsStatusText,
+               self.activities.first(where: { $0.id == recordID })?.statusText != statusText {
+                self.mutateRecord(recordID) { $0.statusText = statusText }
             }
         }
+        let feed = SummaryProgressFeed(tracker: tracker, output: output, map: map)
+        summaryFeeds[recordID] = feed
+        return feed
+    }
+
+    private func stopSummaryFeed(_ recordID: UUID, _ feed: SummaryProgressFeed) {
+        feed.cancel()
+        if summaryFeeds[recordID] === feed { summaryFeeds.removeValue(forKey: recordID) }
     }
 
     private func mutateRecord(_ id: UUID, mutation: (inout WorkRecord) -> Void) {

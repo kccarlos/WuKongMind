@@ -796,23 +796,72 @@ final class StateTransitionTests: XCTestCase {
 
     // MARK: 12. Progress
 
-    /// The fetch fills the summary's first 40%; each summary step reported by
-    /// the provider moves it on with a status, and completion reaches 100%.
+    /// The fetch and each summary step reported by the provider move
+    /// `ProgressStore` on with a status, and completion lands on 100% cleanly
+    /// before clearing live progress.
     func testSummaryReportsItsStepsAsProgress() async throws {
         let harness = makeHarness()
         let app = harness.app
         select(app, .ollama, model: "model-a")
+        var published: [Double] = []
+        let progressToken = app.progress.$values.sink { values in
+            if let value = values.values.first { published.append(value) }
+        }
         XCTAssertTrue(app.enqueueSummary(for: topic("1")))
         try await waitUntil { harness.ai.waiting == 1 }
         let running = try XCTUnwrap(app.activities.first)
         XCTAssertEqual(running.status, .running)
-        XCTAssertEqual(try XCTUnwrap(running.progress), WorkProgress.summary(ai: 0), accuracy: 1e-9)
+        let current = try XCTUnwrap(app.progress.value(for: running.id))
+        XCTAssertGreaterThanOrEqual(current, SummaryProgressTracker.fetchShare(pagesToFetch: 1))
+        XCTAssertLessThan(current, 1)
         XCTAssertEqual(running.statusText, "Summarizing part 1 of 2…")
 
         harness.ai.gated = false
         harness.ai.releaseAll()
         try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
-        XCTAssertEqual(app.activities.first?.progress, 1)
+        XCTAssertEqual(app.activities.first?.status, .completed)
+        XCTAssertEqual(published.last, 1, "completion reports 100% cleanly before clearing")
+        XCTAssertTrue(app.progress.isEmpty)
+        withExtendedLifetime(progressToken) {}
+    }
+
+    /// Pulling a topic stays below 100% while downloading pages (even on the
+    /// last page before `session.apply` and `save()` finish) and reports 100%
+    /// only once the session is saved.
+    func testPullStaysBelow100WhileFetchingAndCompletesAt100() async throws {
+        StateForumStub.postCounts["1"] = 180
+        StateForumStub.gate(path: "/raw/1?page=2")
+        let harness = makeHarness()
+        let app = harness.app
+        let target = topic("1")
+        app.select(topic: target)
+
+        var publishedWhileUnsaved: [Double] = []
+        var published: [Double] = []
+        let progressToken = app.progress.$values.sink { values in
+            guard let value = values.values.first else { return }
+            published.append(value)
+            if app.sessions[target.topicKey]?.totalPosts == nil {
+                publishedWhileUnsaved.append(value)
+            }
+        }
+
+        app.pullTopic()
+        try await waitUntil { StateForumStub.isWaiting }
+        let running = try XCTUnwrap(app.activities.first)
+        XCTAssertEqual(running.status, .running)
+        let midPull = try XCTUnwrap(app.progress.value(for: running.id))
+        XCTAssertGreaterThan(midPull, 0)
+        XCTAssertLessThan(midPull, 1)
+
+        StateForumStub.release()
+        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
+        XCTAssertEqual(app.activities.first?.status, .completed)
+        XCTAssertFalse(publishedWhileUnsaved.isEmpty)
+        XCTAssertTrue(publishedWhileUnsaved.allSatisfy { $0 < 1 }, "pull stays below 100% until session.apply and save finish")
+        XCTAssertEqual(published.last, 1, "completion reports 100% cleanly before clearing")
+        XCTAssertTrue(app.progress.isEmpty)
+        withExtendedLifetime(progressToken) {}
     }
 
     /// A chat answer has no knowable progress: the bar is indeterminate
@@ -830,9 +879,10 @@ final class StateTransitionTests: XCTestCase {
         try await waitUntil { harness.ai.waiting == 1 }
         let running = try XCTUnwrap(app.activities.first)
         XCTAssertEqual(running.statusText, "Answering follow-up question…")
-        XCTAssertNil(running.progress)
+        XCTAssertNil(app.progress.value(for: running.id))
         harness.ai.releaseAll()
         try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
+        XCTAssertTrue(app.progress.isEmpty)
     }
 
     /// The agent's bar is the steps used of its budget.
@@ -847,7 +897,8 @@ final class StateTransitionTests: XCTestCase {
         var seen: [Double] = []
         for step in 1...3 {
             try await waitUntil { planner.calls == step && planner.isWaiting }
-            let progress = try XCTUnwrap(app.activities.first { $0.type == .agent }?.progress)
+            let agentRecord = try XCTUnwrap(app.activities.first { $0.type == .agent })
+            let progress = try XCTUnwrap(app.progress.value(for: agentRecord.id))
             XCTAssertEqual(progress, WorkProgress.agent(completedSteps: step - 1, maxSteps: 9), accuracy: 1e-9)
             seen.append(progress)
             planner.release()
@@ -855,7 +906,225 @@ final class StateTransitionTests: XCTestCase {
         XCTAssertEqual(seen, seen.sorted())
         XCTAssertGreaterThan(seen.last ?? 0, 0)
         app.cancel(record: try XCTUnwrap(app.activities.first { $0.type == .agent }))
+        XCTAssertTrue(app.progress.isEmpty)
         planner.release()
+    }
+
+    /// Many progress ticks and text deltas during a stream cause zero
+    /// `AppModel.objectWillChange` publishes while `ProgressStore` advances
+    /// monotonically and clears when the stream finishes.
+    func testStreamingProgressTicksDoNotPublishAppModelAndClearAtEnd() async throws {
+        let harness = makeHarness()
+        let app = harness.app
+        select(app, .ollama, model: "model-a")
+        _ = await app.notifier.isAuthorized()
+        XCTAssertTrue(app.enqueueSummary(for: topic("1")))
+        try await waitUntil { harness.ai.waiting == 1 }
+        // Let any initial throttle slot from the step transition settle.
+        try await Task.sleep(for: .milliseconds(130))
+
+        let running = try XCTUnwrap(app.activities.first)
+        let recordID = running.id
+        let updatedAtBeforeStream = running.updatedAt
+        let startFraction = try XCTUnwrap(app.progress.value(for: recordID))
+        XCTAssertGreaterThanOrEqual(startFraction, SummaryProgressTracker.fetchShare(pagesToFetch: 1))
+
+        var appPublishes = 0
+        let appToken = app.objectWillChange.sink { appPublishes += 1 }
+        var progressPublishes = 0
+        let progressToken = app.progress.objectWillChange.sink { progressPublishes += 1 }
+
+        // Periodic wait ticks advance ProgressStore without publishing AppModel.
+        try await Task.sleep(for: .milliseconds(360))
+        let afterIdleWait = try XCTUnwrap(app.progress.value(for: recordID))
+        XCTAssertGreaterThan(afterIdleWait, startFraction, "bar creeps during idle waits")
+        XCTAssertEqual(appPublishes, 0, "periodic ticks must not publish AppModel")
+
+        var observedFractions: [Double] = [startFraction, afterIdleWait]
+        for wave in 0..<3 {
+            for tick in 1...15 {
+                let chars = wave * 1_500 + tick * 100
+                harness.ai.emitProgress(.streamed(characters: chars))
+                harness.ai.emitDelta("chunk-\(chars) ")
+            }
+            try await Task.sleep(for: .milliseconds(120))
+            observedFractions.append(try XCTUnwrap(app.progress.value(for: recordID)))
+        }
+
+        XCTAssertEqual(appPublishes, 0, "streaming progress ticks and deltas must not publish AppModel")
+        XCTAssertEqual(app.activities.first?.updatedAt, updatedAtBeforeStream, "streaming ticks must not mutate WorkRecord.updatedAt")
+        XCTAssertGreaterThanOrEqual(progressPublishes, 3, "ProgressStore publishes throttled ticks for progress views")
+        XCTAssertEqual(observedFractions, observedFractions.sorted(), "progress only moves forward")
+        XCTAssertGreaterThan(observedFractions.last ?? 0, startFraction)
+        XCTAssertLessThan(observedFractions.last ?? 1, 1)
+
+        // A step boundary with new statusText still updates WorkRecord once,
+        // and subsequent streaming ticks within that step stay off AppModel.
+        harness.ai.emitProgress(.batchFinished(level: 1, index: 0, count: 2))
+        harness.ai.emitProgress(.finalStarted(combining: true))
+        XCTAssertEqual(app.activities.first?.statusText, "Combining…")
+        XCTAssertGreaterThan(appPublishes, 0)
+
+        try await Task.sleep(for: .milliseconds(130))
+        appPublishes = 0
+        let combiningStart = try XCTUnwrap(app.progress.value(for: recordID))
+        for wave in 0..<2 {
+            for tick in 1...12 {
+                harness.ai.emitProgress(.streamed(characters: wave * 1_200 + tick * 100))
+            }
+            try await Task.sleep(for: .milliseconds(120))
+        }
+        XCTAssertEqual(appPublishes, 0, "streaming ticks in the combining pass must not publish AppModel")
+        XCTAssertGreaterThan(try XCTUnwrap(app.progress.value(for: recordID)), combiningStart)
+
+        harness.ai.gated = false
+        harness.ai.releaseAll()
+        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
+        XCTAssertNil(app.progress.value(for: recordID))
+        XCTAssertTrue(app.progress.isEmpty)
+        try await Task.sleep(for: .milliseconds(150))
+        XCTAssertTrue(app.progress.isEmpty, "no late throttled tick resurrects progress after completion")
+
+        withExtendedLifetime((appToken, progressToken)) {}
+    }
+
+    /// Across queued, running, finish, failure, cancel, pause, and a
+    /// kill-and-restore mid-stream, `WorkRecord` and `ProgressStore` stay in
+    /// sync with no stuck state.
+    func testRecordAndProgressStatesAcrossFinishFailureCancelPauseAndKillRestore() async throws {
+        let grace = FakeBackgroundGrace()
+        let harness = makeHarness(backgroundGrace: grace)
+        let app = harness.app
+        app.restorePendingTasksIfNeeded()
+        select(app, .ollama, model: "model-a")
+
+        // 1. Queued vs running, then finish.
+        for id in ["1", "2", "3"] { XCTAssertTrue(app.enqueueSummary(for: topic(id))) }
+        try await waitUntil { harness.ai.waiting == 2 }
+        let queued = try XCTUnwrap(app.activities.first { $0.topicID == "3" })
+        XCTAssertEqual(queued.status, .queued)
+        XCTAssertEqual(queued.statusText, WorkRecord.waitingStatusText)
+        XCTAssertNil(queued.startedAt)
+        XCTAssertNil(queued.completedAt)
+        XCTAssertNil(app.progress.value(for: queued.id))
+        for running in app.activities where running.status == .running {
+            XCTAssertNotNil(app.progress.value(for: running.id))
+        }
+
+        harness.ai.gated = false
+        harness.ai.releaseAll()
+        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
+        let finished = try XCTUnwrap(app.activities.first { $0.topicID == "1" })
+        XCTAssertEqual(finished.status, .completed)
+        XCTAssertEqual(finished.statusText, "Completed")
+        XCTAssertEqual(finished.error, "")
+        XCTAssertNotNil(finished.startedAt)
+        XCTAssertNotNil(finished.completedAt)
+        XCTAssertTrue(app.progress.isEmpty)
+        XCTAssertEqual(harness.store.load().activities.first { $0.id == finished.id }?.status, .completed)
+
+        // 2. Failure mid-stream.
+        harness.ai.gated = true
+        XCTAssertTrue(app.enqueueSummary(for: topic("4"), regenerate: true))
+        try await waitUntil { harness.ai.waiting == 1 }
+        let failingID = try XCTUnwrap(app.activities.first { $0.topicID == "4" }?.id)
+        let beforeStream = try XCTUnwrap(app.progress.value(for: failingID))
+        harness.ai.emitProgress(.streamed(characters: 900))
+        try await Task.sleep(for: .milliseconds(120))
+        XCTAssertGreaterThan(try XCTUnwrap(app.progress.value(for: failingID)), beforeStream)
+        harness.ai.emitProgress(.streamed(characters: 1_200))
+        harness.ai.summaryError = AssistantError.http(502, "Bad gateway")
+        harness.ai.gated = false
+        harness.ai.releaseAll()
+        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
+        let failed = try XCTUnwrap(app.activities.first { $0.id == failingID })
+        XCTAssertEqual(failed.status, .failed)
+        XCTAssertEqual(failed.statusText, "Failed")
+        XCTAssertFalse(failed.error.isEmpty)
+        XCTAssertNotNil(failed.completedAt)
+        XCTAssertNil(app.progress.value(for: failingID))
+        XCTAssertTrue(app.progress.isEmpty)
+        XCTAssertEqual(harness.store.load().activities.first { $0.id == failingID }?.status, .failed)
+        harness.ai.summaryError = nil
+        app.dismissPresentedError()
+
+        // 3. Cancel mid-stream.
+        harness.ai.gated = true
+        XCTAssertTrue(app.enqueueSummary(for: topic("5"), regenerate: true))
+        try await waitUntil { harness.ai.waiting == 1 }
+        let cancelling = try XCTUnwrap(app.activities.first { $0.topicID == "5" })
+        harness.ai.emitProgress(.streamed(characters: 1_200))
+        XCTAssertNotNil(app.progress.value(for: cancelling.id))
+        app.cancel(record: cancelling)
+        let cancelled = try XCTUnwrap(app.activities.first { $0.id == cancelling.id })
+        XCTAssertEqual(cancelled.status, .cancelled)
+        XCTAssertEqual(cancelled.statusText, "Cancelled")
+        XCTAssertNotNil(cancelled.completedAt)
+        XCTAssertNil(app.progress.value(for: cancelling.id))
+        XCTAssertTrue(app.progress.isEmpty)
+        XCTAssertEqual(harness.store.load().activities.first { $0.id == cancelling.id }?.status, .cancelled)
+        harness.ai.gated = false
+        harness.ai.releaseAll()
+        try await Task.sleep(for: .milliseconds(130))
+        XCTAssertEqual(app.activities.first { $0.id == cancelling.id }?.status, .cancelled)
+        XCTAssertTrue(app.progress.isEmpty)
+
+        // 4. Kill-and-restore mid-stream, and background pause.
+        harness.ai.gated = true
+        XCTAssertTrue(app.enqueueSummary(for: topic("6"), regenerate: true))
+        try await waitUntil { harness.ai.waiting == 1 }
+        let liveID = try XCTUnwrap(app.activities.first { $0.topicID == "6" }?.id)
+        harness.ai.emitProgress(.streamed(characters: 1_500))
+        XCTAssertNotNil(app.progress.value(for: liveID))
+
+        // Backgrounding saves `.running` to disk; if killed now, relaunch must
+        // requeue it with clean indeterminate progress and finish cleanly.
+        app.handleScenePhase(.background)
+        XCTAssertEqual(harness.store.load().activities.first { $0.id == liveID }?.status, .running)
+
+        let relaunchStore = PersistentStore(
+            fileURL: harness.store.directoryURL.appendingPathComponent("state.json"),
+            keys: harness.keys
+        )
+        let relaunchConfiguration = URLSessionConfiguration.ephemeral
+        relaunchConfiguration.protocolClasses = [StateForumStub.self]
+        let relaunchAI = StateAIStub()
+        relaunchAI.gated = false
+        let relaunched = AppModel(
+            store: relaunchStore,
+            forumService: ForumService(
+                session: URLSession(configuration: relaunchConfiguration),
+                pacer: ForumRequestPacer(clock: InstantPacingClock())
+            ),
+            aiService: relaunchAI
+        )
+        relaunched.usesDirectForumRequests = true
+        relaunched.allowAllAIProviders()
+        relaunched.browser.onPageContextChanged = nil
+
+        let restoredBeforeRun = try XCTUnwrap(relaunched.activities.first { $0.id == liveID })
+        XCTAssertEqual(restoredBeforeRun.status, .queued, "killed running work restores as queued, never stuck running")
+        XCTAssertEqual(restoredBeforeRun.statusText, "Restoring interrupted work…")
+        XCTAssertNil(restoredBeforeRun.completedAt)
+        XCTAssertTrue(relaunched.progress.isEmpty, "killed work starts with no stuck progress")
+
+        // Meanwhile on the original instance, expiring background grace pauses
+        // the job and clears its live progress.
+        grace.expire()
+        try await waitUntil { app.activities.first { $0.id == liveID }?.status == .queued }
+        XCTAssertEqual(app.activities.first { $0.id == liveID }?.statusText, "Paused until Forumind is open again")
+        XCTAssertTrue(app.progress.isEmpty, "paused work clears live progress")
+        harness.ai.gated = false
+        harness.ai.releaseAll()
+
+        // And the relaunched app runs the restored job to completion cleanly.
+        relaunched.restorePendingTasksIfNeeded()
+        try await waitUntil { relaunched.activities.allSatisfy(\.status.isTerminal) }
+        let restoredAfterRun = try XCTUnwrap(relaunched.activities.first { $0.id == liveID })
+        XCTAssertEqual(restoredAfterRun.status, .completed)
+        XCTAssertEqual(restoredAfterRun.statusText, "Completed")
+        XCTAssertNotNil(restoredAfterRun.completedAt)
+        XCTAssertTrue(relaunched.progress.isEmpty)
     }
 
     // MARK: 12. Model roles
@@ -1192,6 +1461,35 @@ final class StateTransitionTests: XCTestCase {
         XCTAssertEqual(app.status(of: run), .cancelled)
     }
 
+    /// When a running agent task is cancelled and unwinds with a non-`CancellationError`
+    /// (such as `URLError(.cancelled)`), both the work record and the stored `AgentRun`
+    /// outcome are marked `.cancelled`.
+    func testAgentRunTaskCancelledWithNonCancellationErrorMarksRunCancelled() async throws {
+        struct TaskCancellingPlanner: AgentPlanner {
+            func nextAction(
+                system: String,
+                transcript: [ChatMessage],
+                configuration: ProviderConfiguration,
+                provider: AIProvider
+            ) async throws -> AgentAction {
+                withUnsafeCurrentTask { $0?.cancel() }
+                throw URLError(.cancelled)
+            }
+        }
+        let harness = makeHarness(planner: TaskCancellingPlanner())
+        let app = harness.app
+        select(app, .ollama, model: "model-a")
+        app.startAgentRun(goal: "Cancel via URLSession", siteURL: site)
+        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
+
+        let record = try XCTUnwrap(app.activities.first)
+        let run = try XCTUnwrap(app.agentRuns.first)
+        XCTAssertEqual(record.status, .cancelled)
+        XCTAssertEqual(run.result, .cancelled)
+        XCTAssertNotNil(run.completedAt)
+        XCTAssertEqual(app.status(of: run), .cancelled)
+    }
+
     /// App killed mid-run: the run with a record resumes as queued; one whose
     /// record is gone is closed out instead of spinning.
     func testRelaunchResumesARunWithItsRecordAndClosesOneWithout() throws {
@@ -1486,11 +1784,22 @@ final class StateAIStub: AIService {
     @MainActor var calls: [Call] = []
     @MainActor var gated = true
     @MainActor var failConnection = false
+    @MainActor var summaryError: Error?
     @MainActor private var waiters: [CheckedContinuation<Void, Never>] = []
+    @MainActor private var activeSummaryProgress: (@MainActor (SummaryProgressEvent) -> Void)?
+    @MainActor private var activeSummaryDelta: (@MainActor (String) -> Void)?
     @MainActor var waiting: Int { waiters.count }
 
     init() {
         super.init(session: .shared)
+    }
+
+    @MainActor func emitProgress(_ event: SummaryProgressEvent) {
+        activeSummaryProgress?(event)
+    }
+
+    @MainActor func emitDelta(_ delta: String) {
+        activeSummaryDelta?(delta)
     }
 
     @MainActor func releaseAll() {
@@ -1516,10 +1825,15 @@ final class StateAIStub: AIService {
         onDelta: @escaping @MainActor (String) -> Void,
         onProgress: @escaping @MainActor (SummaryProgressEvent) -> Void = { _ in }
     ) async throws -> String {
+        await MainActor.run {
+            activeSummaryProgress = onProgress
+            activeSummaryDelta = onDelta
+        }
         await onProgress(.batchStarted(level: 1, index: 0, count: 2))
         let call = Call(kind: "summary", provider: provider, configuration: configuration,
                         batchLimit: batchLimit, customPrompt: customPrompt, content: content)
         await arrive(call, delta: "[\(call.label)]", onDelta: onDelta)
+        if let error = await summaryError { throw error }
         return "Summary by \(call.label)"
     }
 

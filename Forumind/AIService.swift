@@ -150,6 +150,7 @@ class AIService {
         onDelta: @escaping @MainActor (String) -> Void,
         onProgress: @escaping @MainActor (SummaryProgressEvent) -> Void
     ) async throws -> [String] {
+        await onProgress(.batchesPlanned(level: level, sizes: chunks.map(\.count)))
         var partials: [String] = []
         for (index, chunk) in chunks.enumerated() {
             try Task.checkCancellation()

@@ -1,3 +1,6 @@
+import SwiftUI
+import UIKit
+import Vision
 import XCTest
 @testable import Forumind
 
@@ -90,6 +93,315 @@ final class CoreTests: XCTestCase {
                 .code(language: nil, content: "unfinished")
             ]
         )
+    }
+
+    func testMarkdownRowExpandsListsAndPreservesSectionAndBlockSpacing() {
+        let sections = [
+            "## First\n\nIntro.\n\n- Alpha\n- Beta\n\n1. One\n2. Two",
+            "## Second\n\nOutro."
+        ]
+        let rows = MarkdownRow.rows(fromSections: sections)
+        XCTAssertEqual(
+            rows,
+            [
+                MarkdownRow(content: .heading(level: 2, text: "First"), topSpacing: 0),
+                MarkdownRow(content: .paragraph("Intro."), topSpacing: 12),
+                MarkdownRow(content: .listItem(number: nil, text: "Alpha"), topSpacing: 12),
+                MarkdownRow(content: .listItem(number: nil, text: "Beta"), topSpacing: 8),
+                MarkdownRow(content: .listItem(number: 1, text: "One"), topSpacing: 12),
+                MarkdownRow(content: .listItem(number: 2, text: "Two"), topSpacing: 8),
+                MarkdownRow(content: .heading(level: 2, text: "Second"), topSpacing: 14),
+                MarkdownRow(content: .paragraph("Outro."), topSpacing: 12)
+            ]
+        )
+
+        // When flattened into ChatThread's LazyVStack(spacing: 8) with top padding 10,
+        // every effective gap (8 + topSpacing) matches 12 / 8 / 14 pt identically.
+        let threadRows = MarkdownRow.rows(fromSections: sections, initialTopSpacing: 4, stackSpacing: 8)
+        XCTAssertEqual(threadRows.map { 8 + $0.topSpacing }, [12, 12, 12, 8, 12, 8, 14, 12])
+    }
+
+    @MainActor
+    func testDrawerLongSummaryLaysOutOnlyVisibleBlocksAcrossSheetDrags() throws {
+        // ~18,000 characters, 281 headings and bullets, 480 #N citations.
+        var lines = ["## Original post"]
+        for section in 1...40 {
+            lines.append("\n## Section \(section)")
+            for point in 1...6 {
+                lines.append("- Readers report that the card works well and pays out quickly after a short wait #\(section * point) #\(section + point + 40)")
+            }
+        }
+        let longSummary = lines.joined(separator: "\n")
+        XCTAssertGreaterThan(longSummary.count, 18_000)
+        let totalRows = MarkdownRow.rows(fromSections: DrawerSummarySections.sections(of: longSummary)).count
+        XCTAssertEqual(totalRows, 281)
+
+        let (app, _) = try makeSummaryTestApp(summary: longSummary, totalPosts: 500)
+        MarkdownLayoutProbe.reset()
+
+        let (window, host) = hostView(
+            AssistantPanel(app: app, onExpand: { _ in }),
+            size: CGSize(width: 377, height: 420)
+        )
+        defer { window.isHidden = true }
+
+        let initialBodies = MarkdownLayoutProbe.blockBodies
+        let initialCitations = MarkdownLayoutProbe.citationLayouts
+        XCTAssertGreaterThan(initialBodies, 0)
+        XCTAssertLessThan(initialBodies, 60, "Only on-screen rows should materialize in medium drawer; got \(initialBodies)/\(totalRows).")
+        XCTAssertLessThan(initialCitations, 120, "Offscreen cited bullets must not lay out; got \(initialCitations).")
+
+        // Simulate 20 drag frames between medium (floating, ~4% narrower) and large.
+        MarkdownLayoutProbe.reset()
+        for step in 1...20 {
+            let fraction = CGFloat(step) / 20
+            let width = 377 + (393 - 377) * fraction
+            let height = 420 + (780 - 420) * fraction
+            window.frame = CGRect(origin: .zero, size: CGSize(width: width, height: height))
+            host.view.frame = window.bounds
+            window.layoutIfNeeded()
+            RunLoop.current.run(until: Date().addingTimeInterval(0.005))
+        }
+        let dragBodies = MarkdownLayoutProbe.blockBodies
+        let dragCitations = MarkdownLayoutProbe.citationLayouts
+        // Eager layout of 240 cited bullets across 20 width steps would run >= 4,800 layouts.
+        XCTAssertLessThan(dragBodies, 60, "Dragging medium->large should only materialize newly exposed rows; got \(dragBodies).")
+        XCTAssertLessThan(dragCitations, 900, "Dragging medium->large must only re-measure visible cited rows; got \(dragCitations).")
+
+        // Single-section 200-bullet list (no intermediate ## headings) also stays lazy.
+        let singleSection = "## Discussion\n" + (1...200).map {
+            "- Detailed point number \($0) explaining what fixed the issue in practice #\($0) #\($0 + 1)"
+        }.joined(separator: "\n")
+        let (singleApp, _) = try makeSummaryTestApp(summary: singleSection, totalPosts: 500)
+        MarkdownLayoutProbe.reset()
+        let (singleWindow, _) = hostView(
+            AssistantPanel(app: singleApp, onExpand: { _ in }),
+            size: CGSize(width: 393, height: 420)
+        )
+        defer { singleWindow.isHidden = true }
+        XCTAssertLessThan(MarkdownLayoutProbe.blockBodies, 60, "A 200-bullet list inside one section must lay out lazily.")
+
+        // Wide portrait iPad drawer (>= 640 pt -> two columns) also stays lazy.
+        let (wideApp, _) = try makeSummaryTestApp(summary: longSummary, totalPosts: 500)
+        MarkdownLayoutProbe.reset()
+        let (wideWindow, _) = hostView(
+            AssistantPanel(app: wideApp, onExpand: { _ in }),
+            size: CGSize(width: 820, height: 460)
+        )
+        defer { wideWindow.isHidden = true }
+        RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+        wideWindow.layoutIfNeeded()
+        XCTAssertGreaterThan(MarkdownLayoutProbe.blockBodies, 0)
+        XCTAssertLessThan(MarkdownLayoutProbe.blockBodies, 110, "Two-column wide drawer summary must lay out lazily; got \(MarkdownLayoutProbe.blockBodies)/\(totalRows).")
+    }
+
+    @MainActor
+    func testChatScrollToBottomAndFollowStreamingOverLongLazySummary() throws {
+        // Mix short bullets at the top with taller multi-sentence cited bullets
+        // deeper down so unmeasured row heights genuinely differ from the initial estimate.
+        var lines = ["## Original post"]
+        for section in 1...40 {
+            lines.append("\n## Section \(section)")
+            for point in 1...6 {
+                if section <= 3 {
+                    lines.append("- Short point #\(point)")
+                } else {
+                    lines.append("- Readers report that the card works well, posts the bonus reliably after statement close, and waives the first-year fee in branch #\(section * point) #\(section + point + 40)")
+                }
+            }
+        }
+        let longSummary = lines.joined(separator: "\n")
+        let ai = HeldChatAIStub()
+        let (app, _) = try makeSummaryTestApp(summary: longSummary, totalPosts: 500, aiService: ai)
+
+        let (window, host) = hostView(
+            AssistantPanel(app: app, onExpand: { _ in }),
+            size: CGSize(width: 393, height: 740)
+        )
+        defer { window.isHidden = true }
+
+        let scrollView = try XCTUnwrap(findScrollView(in: host.view), "Missing chatScroll UIScrollView")
+        XCTAssertLessThan(scrollView.contentOffset.y, 10)
+
+        // Send a user question via AppModel.sendChat(), starting an active chat stream.
+        app.drafts.chat = "What is the consensus?"
+        app.sendChat()
+
+        // Let the scroll animation and post-jump lazy settle complete.
+        RunLoop.current.run(until: Date().addingTimeInterval(0.9))
+        host.view.layoutIfNeeded()
+
+        let distanceAfterSend = scrollView.contentSize.height - (scrollView.contentOffset.y + scrollView.bounds.height)
+        XCTAssertLessThan(distanceAfterSend, 48, "scrollTo(chatBottom) must reach the bottom over lazy rows; distance=\(distanceAfterSend)")
+
+        // Stream a multi-paragraph answer: follow-the-answer must stay at the bottom.
+        let chatRecord = try XCTUnwrap(app.activities.first { $0.type == .chat })
+        for line in 1...8 {
+            app.streams.append("Line \(line) of the streaming chat answer with enough words to wrap onto another line.\n\n", to: chatRecord.id)
+            RunLoop.current.run(until: Date().addingTimeInterval(0.15))
+            host.view.layoutIfNeeded()
+        }
+        let distanceAfterStream = scrollView.contentSize.height - (scrollView.contentOffset.y + scrollView.bounds.height)
+        XCTAssertLessThan(distanceAfterStream, 48, "Streaming chat must follow the answer to the bottom; distance=\(distanceAfterStream)")
+
+        // Reader scrolls up mid-stream: follow-the-answer must pause instead of yanking back down.
+        // A real drag sets `userScrolling` at once. This offset change has no gesture,
+        // so a flush already on its way must land first and the position report
+        // must arrive before the next one.
+        app.streams.flush()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.3))
+        let pausedOffset = max(0, scrollView.contentOffset.y - 300)
+        scrollView.setContentOffset(CGPoint(x: 0, y: pausedOffset), animated: false)
+        scrollView.layoutIfNeeded()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.3))
+        RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+        for line in 9...12 {
+            app.streams.append("Line \(line) arriving while the reader scrolled up.\n\n", to: chatRecord.id)
+            RunLoop.current.run(until: Date().addingTimeInterval(0.15))
+            host.view.layoutIfNeeded()
+        }
+        let distanceWhilePaused = scrollView.contentSize.height - (scrollView.contentOffset.y + scrollView.bounds.height)
+        XCTAssertGreaterThan(distanceWhilePaused, 250, "Streaming while scrolled up must not force-scroll back to the bottom.")
+
+        // Scroll upward in steps through unmeasured lazy summary rows above the viewport:
+        // late row measurement must keep scroll progress monotonic without wild jumps.
+        var previousOffset = scrollView.contentOffset.y
+        for step in 1...12 {
+            let target = max(0, previousOffset - 240)
+            scrollView.setContentOffset(CGPoint(x: 0, y: target), animated: false)
+            window.layoutIfNeeded()
+            RunLoop.current.run(until: Date().addingTimeInterval(0.02))
+            window.layoutIfNeeded()
+            let actual = scrollView.contentOffset.y
+            let drift = abs(actual - target)
+            XCTAssertLessThan(actual, previousOffset, "Scrolling up must move upward even as offscreen rows materialize.")
+            XCTAssertLessThan(drift, 160, "Late row measurement above viewport jumped offset by \(drift) pt at step \(step).")
+            previousOffset = actual
+        }
+
+        ai.finish()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.4))
+
+        // Wide two-column portrait iPad drawer (820 pt) also jumps and follows chat streaming.
+        let wideAI = HeldChatAIStub()
+        let (wideApp, _) = try makeSummaryTestApp(summary: longSummary, totalPosts: 500, aiService: wideAI)
+        let (wideWindow, wideHost) = hostView(
+            AssistantPanel(app: wideApp, onExpand: { _ in }),
+            size: CGSize(width: 820, height: 740)
+        )
+        defer { wideWindow.isHidden = true }
+        let wideScroll = try XCTUnwrap(findScrollView(in: wideHost.view))
+        wideApp.drafts.chat = "Summarize in one sentence"
+        wideApp.sendChat()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.9))
+        wideHost.view.layoutIfNeeded()
+        let wideRecord = try XCTUnwrap(wideApp.activities.first { $0.type == .chat })
+        for line in 1...4 {
+            wideApp.streams.append("Wide column streaming answer paragraph \(line).\n\n", to: wideRecord.id)
+            RunLoop.current.run(until: Date().addingTimeInterval(0.15))
+            wideHost.view.layoutIfNeeded()
+        }
+        let wideDistance = wideScroll.contentSize.height - (wideScroll.contentOffset.y + wideScroll.bounds.height)
+        XCTAssertLessThan(wideDistance, 48, "Two-column drawer chat must follow streaming to the bottom; distance=\(wideDistance)")
+        wideAI.finish()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.2))
+    }
+
+    @MainActor
+    func testExternalMarkdownViewCallersRenderLazilyAndSizeInForm() throws {
+        // Long MarkdownView inside an outer ScrollView + VStack (as in AgentView and TranslationViews).
+        let longMarkdown = (1...180).map { "## Heading \($0)\n\nParagraph \($0) with **bold** and `code`." }.joined(separator: "\n\n")
+        MarkdownLayoutProbe.reset()
+        let (scrollWindow, _) = hostView(
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    MarkdownView(longMarkdown)
+                }
+                .padding(14)
+            },
+            size: CGSize(width: 393, height: 500)
+        )
+        defer { scrollWindow.isHidden = true }
+        XCTAssertGreaterThan(MarkdownLayoutProbe.blockBodies, 0)
+        XCTAssertLessThan(MarkdownLayoutProbe.blockBodies, 60, "MarkdownView inside ScrollView + VStack must render lazily.")
+
+        // SettingsAcknowledgementsPage hosts MarkdownView inside Form -> Section.
+        let (app, _) = try makeSummaryTestApp(summary: "", totalPosts: 1)
+        MarkdownLayoutProbe.reset()
+        let (formWindow, _) = hostView(
+            NavigationStack { SettingsAcknowledgementsPage(app: app) },
+            size: CGSize(width: 393, height: 740)
+        )
+        defer { formWindow.isHidden = true }
+        RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+        formWindow.layoutIfNeeded()
+        XCTAssertGreaterThanOrEqual(MarkdownLayoutProbe.blockBodies, 3, "MarkdownView inside Form must render its acknowledgement blocks.")
+    }
+
+    @MainActor
+    private func makeSummaryTestApp(
+        summary: String,
+        totalPosts: Int,
+        aiService: AIService = AIService()
+    ) throws -> (AppModel, ForumTopic) {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let store = PersistentStore(fileURL: directory.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore())
+        let siteURL = "https://forum.example.com"
+        let url = try XCTUnwrap(URL(string: "\(siteURL)/t/test-topic/42"))
+        let topic = ForumTopic(siteURL: siteURL, topicID: "42", url: url, title: "Test topic")
+        var session = TopicSession(siteURL: siteURL, topicID: "42", url: url, title: "Test topic")
+        session.source = "alice | 2026-10-20 | #1\nPost 1"
+        session.summary = summary
+        session.totalPosts = totalPosts
+        session.summaryPostCount = totalPosts
+        session.summaryUpdatedAt = Date()
+        session.model = "test-model"
+        var snapshot = AppSnapshot()
+        snapshot.sessions = [session]
+        try store.save(snapshot)
+        let app = AppModel(store: store, aiService: aiService)
+        let handler = app.browser.onPageContextChanged
+        app.browser.onPageContextChanged = nil
+        app.allowAllAIProviders()
+        app.selectModel(ModelSelection(provider: .ollama, model: "test-model"), for: .both)
+        let page = PageContext(url: url, site: .discourse, siteURL: siteURL, forumName: "Forum", topic: topic, state: .topic)
+        app.browser.setPageContext(page)
+        handler?(page)
+        return (app, topic)
+    }
+
+    @MainActor
+    private func hostView<V: View>(_ view: V, size: CGSize) -> (UIWindow, UIHostingController<V>) {
+        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(origin: .zero, size: size))
+        window.frame = CGRect(origin: .zero, size: size)
+        let host = UIHostingController(rootView: view)
+        window.rootViewController = host
+        window.makeKeyAndVisible()
+        host.view.frame = window.bounds
+        window.layoutIfNeeded()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+        window.layoutIfNeeded()
+        addTeardownBlock {
+            MainActor.assumeIsolated {
+                window.isHidden = true
+                window.rootViewController = nil
+                window.windowScene = nil
+            }
+        }
+        return (window, host)
+    }
+
+    @MainActor
+    private func findScrollView(in view: UIView) -> UIScrollView? {
+        if let scroll = view as? UIScrollView, scroll.bounds.height > 200 {
+            return scroll
+        }
+        for subview in view.subviews {
+            if let found = findScrollView(in: subview) { return found }
+        }
+        return nil
     }
 
     func testTopicExportPayloadIncludesAllAvailableSectionsByDefault() throws {
@@ -660,6 +972,32 @@ final class CoreTests: XCTestCase {
         )
     }
 
+    func testDiscourseRawPostsSplitOnPostBoundariesNotMidSentence() {
+        let post1 = "alice | 2026-03-01 10:00:00 UTC | #1\n\nOpening question with a complete first sentence."
+        let post2 = "bob | 2026-03-01 10:05:00 UTC | #2\n\nDetailed second post body that must stay together."
+        let post3 = "carol | 2026-03-01 10:10:00 UTC | #3\n\nClosing confirmation."
+        let raw = [post1, post2, post3].joined(separator: "\n\n-------------------------\n\n")
+
+        let batches = PromptBuilder.splitForHierarchicalSummary(raw, limit: 130)
+
+        XCTAssertGreaterThanOrEqual(batches.count, 2)
+        XCTAssertFalse(
+            batches[0].contains("bob |"),
+            "First batch should split at the Discourse post separator before #2, got: \(batches[0])"
+        )
+        XCTAssertTrue(
+            batches[1].hasPrefix("bob | 2026-03-01 10:05:00 UTC | #2"),
+            "Second batch should start cleanly at post #2's header, got: \(batches[1])"
+        )
+        XCTAssertEqual(batches.joined(), raw)
+
+        let normalized = DiscourseParsing.normalizeRawPage(raw + "\n\n-------------------------\n")
+        let normalizedBatches = PromptBuilder.splitForHierarchicalSummary(normalized, limit: 110)
+        XCTAssertGreaterThanOrEqual(normalizedBatches.count, 2)
+        XCTAssertTrue(normalizedBatches[0].hasSuffix(RawTopicFormat.blockSeparator))
+        XCTAssertTrue(normalizedBatches[1].hasPrefix("bob | 2026-03-01 10:05:00 UTC | #2"))
+    }
+
     func testTypedAddressesResolveAgainstTheCurrentForum() {
         let forum = "https://forum.example.com"
         func resolve(_ address: String, _ site: String? = forum) -> String? {
@@ -1223,4 +1561,758 @@ private final class URLProtocolStub: URLProtocol {
     }
 
     override func stopLoading() {}
+}
+
+private final class HeldChatAIStub: AIService, @unchecked Sendable {
+    private var continuation: CheckedContinuation<Void, Never>?
+
+    func finish() {
+        continuation?.resume()
+        continuation = nil
+    }
+
+    override func answer(
+        source: String,
+        summary: String,
+        history: [ChatMessage],
+        contextLimit: Int,
+        customPrompt: String,
+        discussion: DiscussionProfile,
+        configuration: ProviderConfiguration,
+        provider: AIProvider,
+        onDelta: @escaping @MainActor (String) -> Void,
+        summaryIsStale: Bool = false
+    ) async throws -> String {
+        await withCheckedContinuation { continuation = $0 }
+        return "Done."
+    }
+}
+
+// MARK: - Lazy Markdown & Assistant Scroll Regressions
+
+final class LazyMarkdownTests: XCTestCase {
+    override func tearDown() {
+        URLProtocolStub.handler = nil
+        super.tearDown()
+    }
+
+    @MainActor
+    private func hostView<V: View>(_ view: V, size: CGSize) -> (UIWindow, UIHostingController<V>) {
+        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(origin: .zero, size: size))
+        window.frame = CGRect(origin: .zero, size: size)
+        let host = UIHostingController(rootView: view)
+        window.rootViewController = host
+        window.makeKeyAndVisible()
+        host.view.frame = window.bounds
+        window.layoutIfNeeded()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+        window.layoutIfNeeded()
+        addTeardownBlock {
+            MainActor.assumeIsolated {
+                window.isHidden = true
+                window.rootViewController = nil
+                window.windowScene = nil
+            }
+        }
+        return (window, host)
+    }
+
+    @MainActor
+    private func findScrollView(in view: UIView) -> UIScrollView? {
+        if let scroll = view as? UIScrollView, scroll.bounds.height > 200 {
+            return scroll
+        }
+        for subview in view.subviews {
+            if let found = findScrollView(in: subview) { return found }
+        }
+        return nil
+    }
+
+    private func makeLongSummary(prefix: String = "Section") -> String {
+        var lines = ["## Original post"]
+        for section in 1...40 {
+            lines.append("\n## \(prefix) \(section)")
+            for point in 1...6 {
+                lines.append("- Readers report that the card works well, posts the bonus reliably after statement close, and waives the first-year fee #\(section * point) #\(section + point + 40)")
+            }
+        }
+        return lines.joined(separator: "\n")
+    }
+
+    private func makeStubbedForumService(postsCount: Int = 1, bodyText: String = "alice | 2026-10-20 | #1\nPost A1") -> ForumService {
+        URLProtocolStub.handler = { request in
+            let path = request.url?.path ?? ""
+            let body = path.hasSuffix(".json")
+                ? #"{"title":"Topic A","slug":"topic-a","posts_count":\#(postsCount),"highest_post_number":\#(postsCount)}"#
+                : bodyText
+            let response = HTTPURLResponse(
+                url: request.url!,
+                statusCode: 200,
+                httpVersion: "HTTP/1.1",
+                headerFields: ["Content-Type": "application/json"]
+            )!
+            return (response, Data(body.utf8))
+        }
+        let cfg = URLSessionConfiguration.ephemeral
+        cfg.protocolClasses = [URLProtocolStub.self]
+        return ForumService(session: URLSession(configuration: cfg), pacer: ForumRequestPacer(clock: InstantPacingClock()))
+    }
+
+    @MainActor
+    private func makeTwoTopicApp(
+        summaryA: String,
+        historyA: [ChatMessage],
+        summaryB: String,
+        historyB: [ChatMessage],
+        aiService: AIService = AIService(),
+        forumService: ForumService? = nil
+    ) throws -> (AppModel, ForumTopic, ForumTopic, ((PageContext) -> Void)?) {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let store = PersistentStore(fileURL: directory.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore())
+        let siteURL = "https://forum.example.com"
+        let urlA = try XCTUnwrap(URL(string: "\(siteURL)/t/topic-a/42"))
+        let urlB = try XCTUnwrap(URL(string: "\(siteURL)/t/topic-b/43"))
+        let topicA = ForumTopic(siteURL: siteURL, topicID: "42", url: urlA, title: "Topic A")
+        let topicB = ForumTopic(siteURL: siteURL, topicID: "43", url: urlB, title: "Topic B")
+
+        var sessionA = TopicSession(siteURL: siteURL, topicID: "42", url: urlA, title: "Topic A")
+        sessionA.source = "alice | 2026-10-20 | #1\nPost A1"
+        sessionA.summary = summaryA
+        sessionA.totalPosts = 500
+        sessionA.summaryPostCount = 500
+        sessionA.summaryUpdatedAt = Date()
+        sessionA.model = "test-model"
+        sessionA.history = historyA
+
+        var sessionB = TopicSession(siteURL: siteURL, topicID: "43", url: urlB, title: "Topic B")
+        sessionB.source = "bob | 2026-10-20 | #1\nPost B1"
+        sessionB.summary = summaryB
+        sessionB.totalPosts = 500
+        sessionB.summaryPostCount = 500
+        sessionB.summaryUpdatedAt = Date()
+        sessionB.model = "test-model"
+        sessionB.history = historyB
+
+        var snapshot = AppSnapshot()
+        snapshot.forums = [Forum(siteURL: siteURL, kind: .discourse, name: "Forum")]
+        snapshot.sessions = [sessionA, sessionB]
+        try store.save(snapshot)
+
+        let app = if let forumService {
+            AppModel(store: store, forumService: forumService, aiService: aiService)
+        } else {
+            AppModel(store: store, aiService: aiService)
+        }
+        app.usesDirectForumRequests = true
+        let handler = app.browser.onPageContextChanged
+        app.browser.onPageContextChanged = nil
+        app.allowAllAIProviders()
+        app.selectModel(ModelSelection(provider: .ollama, model: "test-model"), for: .both)
+        let pageA = PageContext(url: urlA, site: .discourse, siteURL: siteURL, forumName: "Forum", topic: topicA, state: .topic)
+        app.browser.setPageContext(pageA)
+        handler?(pageA)
+        return (app, topicA, topicB, handler)
+    }
+
+    @MainActor
+    private func ocrStrings(in view: UIView) throws -> String {
+        view.layoutIfNeeded()
+        let renderer = UIGraphicsImageRenderer(bounds: view.bounds)
+        let image = renderer.image { _ in
+            _ = view.drawHierarchy(in: view.bounds, afterScreenUpdates: true)
+        }
+        let cgImage = try XCTUnwrap(image.cgImage)
+        let request = VNRecognizeTextRequest()
+        request.recognitionLevel = .fast
+        request.usesLanguageCorrection = false
+        try VNImageRequestHandler(cgImage: cgImage, options: [:]).perform([request])
+        return (request.results ?? [])
+            .compactMap { $0.topCandidates(1).first?.string }
+            .joined(separator: " | ")
+    }
+
+    // Finding 2: Sending a follow-up chat message or tapping chatScrollToBottom over a long lazy
+    // summary with an offscreen multi-paragraph ChatBubble must reach chatBottom instead of stopping short.
+    @MainActor
+    func testSendChatOverUniformLazySummaryReachesChatBottom() throws {
+        let forumService = makeStubbedForumService()
+        let ai = HeldChatAIStub()
+        let (app, _, _, _) = try makeTwoTopicApp(
+            summaryA: makeLongSummary(),
+            historyA: [
+                ChatMessage(role: .user, content: "First question"),
+                ChatMessage(role: .assistant, content: String(repeating: "Detailed earlier assistant paragraph with citations #1 #2 that wraps across multiple lines.\n\n", count: 30))
+            ],
+            summaryB: "",
+            historyB: [],
+            aiService: ai,
+            forumService: forumService
+        )
+
+        let (window, host) = hostView(
+            AssistantPanel(app: app, onExpand: { _ in }),
+            size: CGSize(width: 393, height: 740)
+        )
+        defer { window.isHidden = true }
+
+        let scrollView = try XCTUnwrap(findScrollView(in: host.view))
+        app.drafts.chat = "Does my follow-up reach the viewport?"
+        app.sendChat()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.8))
+        window.layoutIfNeeded()
+
+        XCTAssertNotNil(app.activities.first { $0.type == .chat && $0.status == .running })
+        let distance = scrollView.contentSize.height - (scrollView.contentOffset.y + scrollView.bounds.height)
+        ai.finish()
+
+        XCTAssertLessThan(
+            distance,
+            48,
+            "After sendChat() from top of a long summary with an offscreen multi-paragraph ChatBubble, jumpToBottom stopped \(distance) pt short of chatBottom (offsetY=\(scrollView.contentOffset.y), contentHeight=\(scrollView.contentSize.height))!"
+        )
+    }
+
+    // Finding 3a: Switching topics with different chat history counts starts at the top of the new topic's summary.
+    @MainActor
+    func testTopicSwitchWithDifferentChatHistoryCountDoesNotJumpToBottomOfSummary() throws {
+        let (app, topicA, topicB, handler) = try makeTwoTopicApp(
+            summaryA: makeLongSummary(prefix: "TopicA"),
+            historyA: [
+                ChatMessage(role: .user, content: "Question on A?"),
+                ChatMessage(role: .assistant, content: "Answer on A.")
+            ],
+            summaryB: makeLongSummary(prefix: "TopicB"),
+            historyB: []
+        )
+
+        let (window, host) = hostView(
+            AssistantPanel(app: app, onExpand: { _ in }),
+            size: CGSize(width: 393, height: 740)
+        )
+        defer { window.isHidden = true }
+
+        let scrollViewA = try XCTUnwrap(findScrollView(in: host.view))
+        scrollViewA.setContentOffset(CGPoint(x: 0, y: 1200), animated: false)
+        window.layoutIfNeeded()
+
+        let pageB = PageContext(
+            url: topicB.url,
+            site: .discourse,
+            siteURL: topicB.siteURL,
+            forumName: "Forum",
+            topic: topicB,
+            state: .topic
+        )
+        app.browser.setPageContext(pageB)
+        handler?(pageB)
+
+        RunLoop.current.run(until: Date().addingTimeInterval(0.6))
+        window.layoutIfNeeded()
+
+        let scrollViewB = try XCTUnwrap(findScrollView(in: host.view))
+        XCTAssertLessThan(
+            scrollViewB.contentOffset.y,
+            20,
+            "Opening Topic B (2 -> 0 messages) must start at the top of its summary; offsetY=\(scrollViewB.contentOffset.y), contentHeight=\(scrollViewB.contentSize.height)"
+        )
+
+        // Now scroll down on Topic B (0 messages) and switch back to Topic A (2 messages).
+        scrollViewB.setContentOffset(CGPoint(x: 0, y: 900), animated: false)
+        window.layoutIfNeeded()
+
+        let pageA = PageContext(
+            url: topicA.url,
+            site: .discourse,
+            siteURL: topicA.siteURL,
+            forumName: "Forum",
+            topic: topicA,
+            state: .topic
+        )
+        app.browser.setPageContext(pageA)
+        handler?(pageA)
+
+        RunLoop.current.run(until: Date().addingTimeInterval(0.6))
+        window.layoutIfNeeded()
+
+        let scrollViewBackToA = try XCTUnwrap(findScrollView(in: host.view))
+        XCTAssertLessThan(
+            scrollViewBackToA.contentOffset.y,
+            20,
+            "Switching from Topic B (0 messages) back to Topic A (2 messages) must start at the top of Topic A's summary, not jump to chatBottom; offsetY=\(scrollViewBackToA.contentOffset.y)"
+        )
+    }
+
+    // Finding 3b: Clearing or editing chat while viewing the top of a summary does not scroll to chatBottom.
+    @MainActor
+    func testClearAndEditChatDoNotJumpReaderFromTopOfSummaryToBottom() throws {
+        let secondQuestion = ChatMessage(role: .user, content: "Question 2")
+        let (app, _, _, _) = try makeTwoTopicApp(
+            summaryA: makeLongSummary(prefix: "SummarySection"),
+            historyA: [
+                ChatMessage(role: .user, content: "Question 1"),
+                ChatMessage(role: .assistant, content: "Answer 1"),
+                secondQuestion,
+                ChatMessage(role: .assistant, content: "Answer 2")
+            ],
+            summaryB: "",
+            historyB: []
+        )
+
+        let (window, host) = hostView(
+            AssistantPanel(app: app, onExpand: { _ in }),
+            size: CGSize(width: 393, height: 740)
+        )
+        defer { window.isHidden = true }
+
+        let scrollView = try XCTUnwrap(findScrollView(in: host.view))
+        scrollView.setContentOffset(.zero, animated: false)
+        window.layoutIfNeeded()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+        XCTAssertEqual(scrollView.contentOffset.y, 0, accuracy: 2)
+
+        app.editChat(messageID: secondQuestion.id)
+        RunLoop.current.run(until: Date().addingTimeInterval(0.6))
+        window.layoutIfNeeded()
+        XCTAssertLessThan(
+            scrollView.contentOffset.y,
+            20,
+            "editChat() while viewing the top of the summary must not scroll to chatBottom; offsetY=\(scrollView.contentOffset.y)"
+        )
+
+        app.clearChat()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.6))
+        window.layoutIfNeeded()
+        XCTAssertLessThan(
+            scrollView.contentOffset.y,
+            20,
+            "clearChat() while viewing the top of the summary must not scroll to chatBottom; offsetY=\(scrollView.contentOffset.y)"
+        )
+    }
+
+    // Finding 4: Smooth upward scroll at <= 2 pt/frame pauses follow-the-answer during streaming.
+    @MainActor
+    func testSlowSmoothUpwardUserScrollPausesFollowWhileStreaming() throws {
+        let forumService = makeStubbedForumService()
+        let ai = HeldChatAIStub()
+        let (app, _, _, _) = try makeTwoTopicApp(
+            summaryA: makeLongSummary(),
+            historyA: [],
+            summaryB: "",
+            historyB: [],
+            aiService: ai,
+            forumService: forumService
+        )
+
+        let (window, host) = hostView(
+            AssistantPanel(app: app, onExpand: { _ in }),
+            size: CGSize(width: 393, height: 740)
+        )
+        defer { window.isHidden = true }
+
+        let scrollView = try XCTUnwrap(findScrollView(in: host.view))
+        app.drafts.chat = "What is the consensus?"
+        app.sendChat()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.7))
+        window.layoutIfNeeded()
+
+        let chatRecord = try XCTUnwrap(app.activities.first { $0.type == .chat })
+        for line in 1...6 {
+            app.streams.append("Streaming paragraph \(line) with enough detail to wrap onto multiple lines in the bubble.\n\n", to: chatRecord.id)
+            RunLoop.current.run(until: Date().addingTimeInterval(0.14))
+            window.layoutIfNeeded()
+        }
+
+        // Simulate 90 frames of smooth upward scrolling at 1.8 pt/frame (~162 pt total, > 3x the 48 pt threshold).
+        for _ in 1...90 {
+            let nextY = max(0, scrollView.contentOffset.y - 1.8)
+            scrollView.setContentOffset(CGPoint(x: 0, y: nextY), animated: false)
+            window.layoutIfNeeded()
+            RunLoop.current.run(until: Date().addingTimeInterval(0.016))
+        }
+        let distanceAfterUserDrag = scrollView.contentSize.height - (scrollView.contentOffset.y + scrollView.bounds.height)
+        XCTAssertGreaterThan(distanceAfterUserDrag, 140, "User scrolled ~162 pt away from bottom")
+
+        app.streams.append("Next token arriving after user dragged upward smoothly.\n\n", to: chatRecord.id)
+        RunLoop.current.run(until: Date().addingTimeInterval(0.15))
+        window.layoutIfNeeded()
+
+        let distanceAfterNextToken = scrollView.contentSize.height - (scrollView.contentOffset.y + scrollView.bounds.height)
+        ai.finish()
+        XCTAssertGreaterThan(
+            distanceAfterNextToken,
+            120,
+            "Smooth upward scroll (1.8 pt/frame for 162 pt) must pause follow-the-answer; instead stream yanked back to distance=\(distanceAfterNextToken)"
+        )
+    }
+
+    // Finding 6: Regenerating or updating a saved summary never displays old summary text after new tokens arrive.
+    @MainActor
+    func testSummaryRetryOverSavedSummaryDoesNotFlashOldSummaryDuringStream() throws {
+        final class ControlledSummaryAI: AIService, @unchecked Sendable {
+            var onStart: (@MainActor (@escaping @MainActor (String) -> Void, CheckedContinuation<Result<String, Error>, Never>) -> Void)?
+
+            override func generateSummary(
+                content: String,
+                configuration: ProviderConfiguration,
+                provider: AIProvider,
+                customPrompt: String,
+                discussion: DiscussionProfile,
+                batchLimit: Int = SummaryBatchLimit.default,
+                onDelta: @escaping @MainActor (String) -> Void,
+                onProgress: @escaping @MainActor (SummaryProgressEvent) -> Void = { _ in }
+            ) async throws -> String {
+                let result: Result<String, Error> = await withCheckedContinuation { cont in
+                    Task { @MainActor in
+                        self.onStart?(onDelta, cont)
+                    }
+                }
+                return try result.get()
+            }
+        }
+
+        let forumService = makeStubbedForumService(postsCount: 10, bodyText: "alice | 2026-10-20 | #1\nUpdated content")
+        let ai = ControlledSummaryAI()
+        var streamDelta: (@MainActor (String) -> Void)?
+        var finishSummary: CheckedContinuation<Result<String, Error>, Never>?
+        ai.onStart = { delta, cont in
+            streamDelta = delta
+            finishSummary = cont
+        }
+
+        let (app, _, _, _) = try makeTwoTopicApp(
+            summaryA: "## LEGACY SAVED SUMMARY\n\nLEGACY POINT ALPHA",
+            historyA: [],
+            summaryB: "",
+            historyB: [],
+            aiService: ai,
+            forumService: forumService
+        )
+
+        let (window, host) = hostView(
+            AssistantPanel(app: app, onExpand: { _ in })
+                .background(Color.white)
+                .environment(\.colorScheme, .light),
+            size: CGSize(width: 393, height: 740)
+        )
+        defer { window.isHidden = true }
+
+        app.startSummary(regenerate: true)
+        for _ in 0..<300 where streamDelta == nil {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.01))
+        }
+        XCTAssertNotNil(streamDelta, "Expected generateSummary continuation to start")
+        let beforeFirstDelta = try ocrStrings(in: host.view)
+        XCTAssertFalse(
+            beforeFirstDelta.uppercased().contains("LEGACY"),
+            "While regenerating a summary before first delta, old summary must not appear under Creating summary: [\(beforeFirstDelta)]"
+        )
+
+        streamDelta?("## FRESH STREAMED SUMMARY\n\nFRESH POINT ZULU")
+        RunLoop.current.run(until: Date().addingTimeInterval(0.03))
+        let thirtyMsAfterNewDelta = try ocrStrings(in: host.view)
+
+        for _ in 0..<200 where app.streams.texts.values.allSatisfy(\.isEmpty) {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.01))
+        }
+        RunLoop.current.run(until: Date().addingTimeInterval(0.32))
+        let afterThrottle = try ocrStrings(in: host.view)
+        XCTAssertTrue(afterThrottle.uppercased().contains("FRESH"), "Expected FRESH after stream flush and section transition; got \(afterThrottle)")
+
+        XCTAssertFalse(
+            thirtyMsAfterNewDelta.uppercased().contains("LEGACY"),
+            "30ms after streaming 'FRESH STREAMED SUMMARY', screen still drew 'LEGACY SAVED SUMMARY': beforeFirstDelta=[\(beforeFirstDelta)] || 30msAfterDelta=[\(thirtyMsAfterNewDelta)] || afterThrottle=[\(afterThrottle)]"
+        )
+        XCTAssertFalse(
+            afterThrottle.uppercased().contains("LEGACY"),
+            "After stream flush, old summary text must not appear: [\(afterThrottle)]"
+        )
+
+        finishSummary?.resume(returning: .success("## FRESH STREAMED SUMMARY\n\nFRESH POINT ZULU"))
+        RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+    }
+
+    // Finding 8: AgentView scrollTo('agentBottom') over lazy MarkdownView reaches the bottom.
+    @MainActor
+    func testAgentViewScrollToBottomOverLongLazyMarkdownAnswerReachesBottom() throws {
+        let (app, _, _, _) = try makeTwoTopicApp(
+            summaryA: "",
+            historyA: [],
+            summaryB: "",
+            historyB: []
+        )
+        let siteURL = "https://forum.example.com"
+        var run = AgentRun(siteURL: siteURL, goal: "Best low-power NAS build?", provider: .ollama, model: "test-model")
+        run.initialAnswer = makeLongSummary(prefix: "AgentSection")
+        run.answer = run.initialAnswer
+        run.followUps = [ChatMessage(role: .user, content: "What about ECC memory support?")]
+        run.steps = [AgentStep(tool: "search_forum", outcome: "5 topics", finishedAt: Date())]
+        var agentWork = WorkRecord(
+            type: .agent,
+            siteURL: siteURL,
+            topicID: "agent:\(run.id.uuidString)",
+            title: run.goal,
+            url: URL(string: siteURL)!,
+            provider: .ollama,
+            model: "test-model"
+        )
+        agentWork.status = .running
+        agentWork.statusText = "Searching forum…"
+
+        app.applyDebugSeed(AssistantDebugSeed(
+            forums: app.forums,
+            sessions: Array(app.sessions.values),
+            activities: [agentWork],
+            agentRuns: [run],
+            watchedTopics: [],
+            currentTopic: app.currentTopic,
+            currentForum: app.forums.first,
+            pageContext: app.pageContext
+        ))
+        app.selectedAgentRunID = run.id
+        app.assistantMode = .agent
+
+        let (window, host) = hostView(
+            AgentView(app: app, showsProviderCard: false, onOpenTopic: { _ in }),
+            size: CGSize(width: 393, height: 740)
+        )
+        defer { window.isHidden = true }
+
+        let scrollView = try XCTUnwrap(findScrollView(in: host.view))
+        run.steps.append(AgentStep(tool: "read_topic", outcome: "Read 42 posts", finishedAt: Date()))
+        app.applyDebugSeed(AssistantDebugSeed(
+            forums: app.forums,
+            sessions: Array(app.sessions.values),
+            activities: [agentWork],
+            agentRuns: [run],
+            watchedTopics: [],
+            currentTopic: app.currentTopic,
+            currentForum: app.forums.first,
+            pageContext: app.pageContext
+        ))
+        app.selectedAgentRunID = run.id
+
+        RunLoop.current.run(until: Date().addingTimeInterval(0.7))
+        window.layoutIfNeeded()
+
+        let distance = scrollView.contentSize.height - (scrollView.contentOffset.y + scrollView.bounds.height)
+        XCTAssertLessThan(
+            distance,
+            60,
+            "AgentView scrollTo('agentBottom') over lazy MarkdownView stopped \(distance) pt short of agentBottom (offsetY=\(scrollView.contentOffset.y), contentHeight=\(scrollView.contentSize.height))!"
+        )
+    }
+
+    // Finding 9: Scrolling upward from the bottom through tall upper rows does not jump.
+    @MainActor
+    func testScrollingUpFromBottomThroughTallUpperRowsHasNoLayoutJump() throws {
+        var lines = ["## Overview"]
+        for section in 1...18 {
+            lines.append("\n## Tall Section \(section)")
+            lines.append("```swift\nlet line1 = \(section)\nlet line2 = \(section * 2)\nlet line3 = \(section * 3)\nlet line4 = \(section * 4)\nlet line5 = \(section * 5)\nlet line6 = \(section * 6)\n```")
+        }
+        for section in 19...40 {
+            lines.append("\n## Short \(section)")
+            lines.append("- Tiny item \(section)")
+        }
+
+        let (app, _, _, _) = try makeTwoTopicApp(
+            summaryA: lines.joined(separator: "\n"),
+            historyA: [
+                ChatMessage(role: .user, content: "Summary question"),
+                ChatMessage(role: .assistant, content: "Short answer.")
+            ],
+            summaryB: "",
+            historyB: []
+        )
+
+        let (window, host) = hostView(
+            AssistantPanel(app: app, onExpand: { _ in }),
+            size: CGSize(width: 393, height: 740)
+        )
+        defer { window.isHidden = true }
+        let scrollView = try XCTUnwrap(findScrollView(in: host.view))
+
+        scrollView.setContentOffset(CGPoint(x: 0, y: max(0, scrollView.contentSize.height - scrollView.bounds.height)), animated: false)
+        window.layoutIfNeeded()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+        scrollView.setContentOffset(CGPoint(x: 0, y: max(0, scrollView.contentSize.height - scrollView.bounds.height)), animated: false)
+        window.layoutIfNeeded()
+
+        var maxJumpOnSingleUpwardStep: CGFloat = 0
+        for _ in 1...80 {
+            guard scrollView.contentOffset.y > 0 else { break }
+            let targetY = max(0, scrollView.contentOffset.y - 160)
+            let beforeHeight = scrollView.contentSize.height
+            scrollView.setContentOffset(CGPoint(x: 0, y: targetY), animated: false)
+            window.layoutIfNeeded()
+            RunLoop.current.run(until: Date().addingTimeInterval(0.01))
+            window.layoutIfNeeded()
+            let heightDelta = abs(scrollView.contentSize.height - beforeHeight)
+            let offsetShift = abs(scrollView.contentOffset.y - targetY)
+            maxJumpOnSingleUpwardStep = max(maxJumpOnSingleUpwardStep, max(heightDelta, offsetShift))
+        }
+
+        XCTAssertLessThan(
+            maxJumpOnSingleUpwardStep,
+            50,
+            "Scrolling up through tall upper rows caused a \(maxJumpOnSingleUpwardStep) pt layout/scroll shift!"
+        )
+    }
+
+    @MainActor
+    func testStreamingSummaryDragInvalidatesOnlyChangedRowAndLaysOutLazily() throws {
+        final class HeldSummaryAI: AIService, @unchecked Sendable {
+            var onStart: (@MainActor (@escaping @MainActor (String) -> Void, CheckedContinuation<Result<String, Error>, Never>) -> Void)?
+
+            override func generateSummary(
+                content: String,
+                configuration: ProviderConfiguration,
+                provider: AIProvider,
+                customPrompt: String,
+                discussion: DiscussionProfile,
+                batchLimit: Int = SummaryBatchLimit.default,
+                onDelta: @escaping @MainActor (String) -> Void,
+                onProgress: @escaping @MainActor (SummaryProgressEvent) -> Void = { _ in }
+            ) async throws -> String {
+                let result: Result<String, Error> = await withCheckedContinuation { cont in
+                    Task { @MainActor in self.onStart?(onDelta, cont) }
+                }
+                return try result.get()
+            }
+        }
+
+        let forumService = makeStubbedForumService(postsCount: 500, bodyText: "alice | 2026-10-20 | #1\nPost 1")
+        let ai = HeldSummaryAI()
+        var streamDelta: (@MainActor (String) -> Void)?
+        var finishSummary: CheckedContinuation<Result<String, Error>, Never>?
+        ai.onStart = { delta, cont in
+            streamDelta = delta
+            finishSummary = cont
+        }
+
+        let (app, _, _, _) = try makeTwoTopicApp(
+            summaryA: "",
+            historyA: [],
+            summaryB: "",
+            historyB: [],
+            aiService: ai,
+            forumService: forumService
+        )
+
+        let (window, host) = hostView(
+            AssistantPanel(app: app, onExpand: { _ in }),
+            size: CGSize(width: 377, height: 780)
+        )
+        defer { window.isHidden = true }
+
+        app.startSummary(regenerate: true)
+        for _ in 0..<300 where streamDelta == nil {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.01))
+        }
+        XCTAssertNotNil(streamDelta)
+        defer {
+            finishSummary?.resume(returning: .success("## Original post"))
+            RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+        }
+
+        // Stream first section (on-screen at large height): 1 heading + 4 bullets.
+        let initialChunk = """
+        ## Original post
+
+        ## Section 1
+        - First bullet with citation #1 #41
+        - Second bullet with citation #2 #42
+        - Third bullet with citation #3 #43
+        - Active bullet streaming
+        """
+        streamDelta?(initialChunk)
+        app.streams.flush()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.16))
+        window.layoutIfNeeded()
+
+        // 1. Appending words to the active last bullet across 3 throttled flushes must only re-evaluate that 1 row per flush,
+        // and growing a word in place inside CitedText (same subview count) must refresh CitationFlowLayout's cache.
+        let scrollView = try XCTUnwrap(findScrollView(in: host.view))
+        MarkdownLayoutProbe.reset()
+        for word in [" wordA", " wordB #4", " wordC #44"] {
+            streamDelta?(word)
+            app.streams.flush()
+            RunLoop.current.run(until: Date().addingTimeInterval(0.15))
+            window.layoutIfNeeded()
+        }
+        XCTAssertEqual(
+            MarkdownLayoutProbe.blockBodies,
+            3,
+            "Each stream flush extending the last bullet must invalidate only the 1 changed row, not all rows; got \(MarkdownLayoutProbe.blockBodies)."
+        )
+
+        streamDelta?(" stub")
+        app.streams.flush()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.15))
+        window.layoutIfNeeded()
+        let heightBeforeInPlaceGrowth = scrollView.contentSize.height
+        streamDelta?("SupercalifragilisticexpialidociousRepeatedToForceAnExtraWrappedLineInCitedText")
+        app.streams.flush()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.15))
+        window.layoutIfNeeded()
+        XCTAssertGreaterThan(
+            scrollView.contentSize.height,
+            heightBeforeInPlaceGrowth + 14,
+            "In-place token growth inside CitedText must update CitationFlowLayout cache and wrap onto a new line."
+        )
+
+        // 2. Reproduce testDragWhileStreaming: stream sections 2..10 (up to 65 rows, < 100) while dragging medium <-> large.
+        var section2 = "\n- Fifth bullet #5 #45\n- Sixth bullet #6 #46\n\n## Section 2"
+        for point in 1...6 {
+            section2 += "\n- Readers report that the card works well and pays out quickly after a short wait #\(2 * point) #\(42 + point)"
+        }
+        streamDelta?(section2)
+        app.streams.flush()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.16))
+        window.frame = CGRect(origin: .zero, size: CGSize(width: 377, height: 420))
+        host.view.frame = window.bounds
+        window.layoutIfNeeded()
+
+        MarkdownLayoutProbe.reset()
+        for step in 0..<32 {
+            let section = 3 + step / 4
+            let phase = step % 4
+            let delta: String
+            if phase == 0 {
+                delta = "\n\n## Section \(section)\n- Readers report that the card works well and pays out quickly #\(section) #\(section + 40)"
+            } else {
+                let p1 = phase * 2 - 1
+                let p2 = phase * 2
+                delta = "\n- Readers report that the card works well and pays out quickly after a short wait #\(section * p1) #\(section + p1 + 40)"
+                    + (p2 <= 5 ? "\n- Readers report that the card works well and pays out quickly after a short wait #\(section * p2) #\(section + p2 + 40)" : "")
+            }
+            streamDelta?(delta)
+            app.streams.flush()
+
+            // Oscillate between medium (377x420) and large (393x780).
+            let progress = step < 16 ? CGFloat(step + 1) / 16 : CGFloat(32 - step) / 16
+            let width = 377 + (393 - 377) * progress
+            let height = 420 + (780 - 420) * progress
+            window.frame = CGRect(origin: .zero, size: CGSize(width: width, height: height))
+            host.view.frame = window.bounds
+            window.layoutIfNeeded()
+            RunLoop.current.run(until: Date().addingTimeInterval(0.14))
+            window.layoutIfNeeded()
+        }
+
+        let streamDragBodies = MarkdownLayoutProbe.blockBodies
+        let streamDragCitations = MarkdownLayoutProbe.citationLayouts
+        XCTAssertLessThan(
+            streamDragBodies,
+            25,
+            "Offscreen streaming rows (sections 3..10) must not materialize while dragging at top; got \(streamDragBodies) blockBodies."
+        )
+        XCTAssertLessThan(
+            streamDragCitations,
+            650,
+            "Dragging medium<->large while streaming < 100 rows must only lay out visible cited rows; got \(streamDragCitations) citationLayouts."
+        )
+    }
 }

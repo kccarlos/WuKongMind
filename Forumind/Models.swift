@@ -1035,7 +1035,6 @@ struct WorkRecord: Codable, Identifiable, Equatable {
     var status: WorkStatus = .queued
     var origin: WorkOrigin = .user
     var statusText = WorkRecord.waitingStatusText
-    var progress: Double?
     var error = ""
     /// Per-run override of the hierarchical-summary batch size; nil uses the
     /// setting current when the task runs (survives task restoration).
@@ -1079,7 +1078,7 @@ struct WorkRecord: Codable, Identifiable, Equatable {
 
     private enum CodingKeys: String, CodingKey {
         case id, type, siteURL, topicID, title, url, question, provider, model, status, origin
-        case statusText, progress, error, batchLimit, createdAt, updatedAt, startedAt, completedAt
+        case statusText, error, batchLimit, createdAt, updatedAt, startedAt, completedAt
     }
 
     init(from decoder: Decoder) throws {
@@ -1096,7 +1095,6 @@ struct WorkRecord: Codable, Identifiable, Equatable {
         status = try container.decode(WorkStatus.self, forKey: .status)
         origin = try container.decodeIfPresent(WorkOrigin.self, forKey: .origin) ?? .user
         statusText = try container.decodeIfPresent(String.self, forKey: .statusText) ?? ""
-        progress = try container.decodeIfPresent(Double.self, forKey: .progress)
         error = try container.decodeIfPresent(String.self, forKey: .error) ?? ""
         batchLimit = try container.decodeIfPresent(Int.self, forKey: .batchLimit)
         createdAt = try container.decode(Date.self, forKey: .createdAt)

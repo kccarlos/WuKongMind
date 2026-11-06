@@ -118,6 +118,10 @@ enum PromptBuilder {
         return trimmed.isEmpty ? global : trimmed
     }
 
+    private static let rawPostSeparator = try! NSRegularExpression(
+        pattern: #"\r?\n\r?\n-{5,}[ \t]*\r?\n\r?\n"#
+    )
+
     static func splitForHierarchicalSummary(
         _ content: String,
         limit: Int = SummaryBatchLimit.default
@@ -130,13 +134,21 @@ enum PromptBuilder {
                 remaining.startIndex,
                 offsetBy: min(limit, remaining.count)
             )
-            if end < remaining.endIndex,
-               let boundary = remaining[..<end].range(
-                of: RawTopicFormat.blockSeparator,
-                options: .backwards
-               )?.upperBound,
-               remaining.distance(from: boundary, to: end) < limit / 3 {
-                end = boundary
+            if end < remaining.endIndex {
+                let window = remaining.startIndex..<end
+                let blockEnd = content.range(
+                    of: RawTopicFormat.blockSeparator,
+                    options: .backwards,
+                    range: window
+                )?.upperBound
+                let hrEnd = rawPostSeparator.matches(
+                    in: content,
+                    range: NSRange(window, in: content)
+                ).last.flatMap { Range($0.range, in: content)?.upperBound }
+                if let boundary = [blockEnd, hrEnd].compactMap({ $0 }).max(),
+                   remaining.distance(from: boundary, to: end) < limit / 3 {
+                    end = boundary
+                }
             }
             chunks.append(String(remaining[..<end]))
             remaining = remaining[end...]

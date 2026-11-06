@@ -40,6 +40,9 @@ final class HTMLTextTests: XCTestCase {
         XCTAssertEqual(
             HTMLText.plainText("<blockquote><p>quoted</p><p>more</p></blockquote><p>reply</p>"),
             "> quoted\n>\n> more\n\nreply")
+        XCTAssertEqual(
+            HTMLText.plainText("<blockquote><p>outer start</p><blockquote><p>inner</p></blockquote><p>outer end</p></blockquote>"),
+            "> outer start\n>\n>> inner\n>\n> outer end")
         XCTAssertEqual(HTMLText.plainText("<blockquote><p>I &lt;3 this -&gt; that</p></blockquote>"), "> I <3 this -> that")
         XCTAssertEqual(HTMLText.plainText(#"<img src="a.png" alt="the card"><img src="b.png">"#), "[image: the card][image]")
         XCTAssertEqual(HTMLText.plainText("a<script>evil()</script><style>p{}</style><!-- hidden -->b"), "ab")

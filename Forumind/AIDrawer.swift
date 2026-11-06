@@ -1,5 +1,6 @@
 import Combine
 import SwiftUI
+import UIKit
 
 // MARK: - iPhone AI drawer
 //
@@ -232,6 +233,7 @@ private struct AIDrawerContent: View {
     @ObservedObject var app: AppModel
     @ObservedObject var router: PresentationRouter
     let onOpenURL: (URL) -> Void
+    @State private var bottomInset: CGFloat = 0
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
@@ -241,6 +243,7 @@ private struct AIDrawerContent: View {
             onExpand: { route in app.router.item = .expanded(route) },
             onOpenURL: onOpenURL
         )
+        .environment(\.composerBottomInset, bottomInset)
         .environment(\.composerFocusChanged, ComposerFocusAction { focused in
             // Never cover the keyboard.
             if focused { setDetent(.large) }
@@ -259,11 +262,22 @@ private struct AIDrawerContent: View {
         #if DEBUG
         .overlay(alignment: .topLeading) { DrawerDebugState(router: router) }
         #endif
+        .ignoresSafeArea(.container, edges: .bottom)
+        .onAppear { bottomInset = Self.windowBottomInset() }
     }
 
     private func setDetent(_ detent: DrawerDetent) {
         guard router.drawerDetent != detent else { return }
         withAnimation(DCMotion.respecting(reduceMotion, DCMotion.smooth)) { router.drawerDetent = detent }
+    }
+
+    private static func windowBottomInset() -> CGFloat {
+        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        let scene = scenes.first { $0.activationState == .foregroundActive } ?? scenes.first
+        guard let window = scene?.keyWindow ?? scene?.windows.first,
+              window.traitCollection.horizontalSizeClass == .compact
+              || window.traitCollection.verticalSizeClass == .compact else { return 0 }
+        return window.safeAreaInsets.bottom
     }
 }
 

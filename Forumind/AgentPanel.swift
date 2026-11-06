@@ -11,6 +11,7 @@ struct AgentView: View {
     let onOpenTopic: (URL) -> Void
     /// nil follows the run: open while it works, closed once it has an answer.
     @State private var stepsExpanded: Bool?
+    @State private var bottomScrollTrigger = 0
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     init(app: AppModel, showsProviderCard: Bool = false, onOpenTopic: @escaping (URL) -> Void) {
@@ -78,6 +79,7 @@ struct AgentView: View {
                     .animation(DCMotion.respecting(reduceMotion), value: run.map { app.status(of: $0) })
                 }
                 .scrollDismissesKeyboard(.interactively)
+                .scrollToBottomEdge(trigger: bottomScrollTrigger, reduceMotion: reduceMotion)
                 .accessibilityIdentifier("agentScroll")
                 .environment(\.openURL, OpenURLAction { url in
                     guard ForumBrowserModel.isBrowsableURL(url) else { return .systemAction }
@@ -88,20 +90,33 @@ struct AgentView: View {
                 .task {
                     if AssistantDebug.has("-dc-scroll-sources") {
                         try? await Task.sleep(for: .milliseconds(600))
-                        proxy.scrollTo("agentSources", anchor: .bottom)
+                        if #available(iOS 18.0, *), run?.followUps.isEmpty != false {
+                            bottomScrollTrigger &+= 1
+                        } else {
+                            await settleScroll(animated: false) { proxy.scrollTo("agentSources", anchor: .bottom) }
+                        }
                     }
                 }
                 #endif
-                .onChange(of: run?.steps.count ?? 0) {
-                    guard isRunning else { return }
-                    withAnimation(DCMotion.respecting(reduceMotion)) {
-                        proxy.scrollTo("agentBottom", anchor: .bottom)
+                .onChange(of: run?.steps.count ?? 0) { oldCount, newCount in
+                    guard isRunning, newCount > oldCount else { return }
+                    if #available(iOS 18.0, *) {
+                        bottomScrollTrigger &+= 1
+                    } else {
+                        Task {
+                            await settleScroll(reduceMotion: reduceMotion) {
+                                proxy.scrollTo("agentBottom", anchor: .bottom)
+                            }
+                        }
                     }
                 }
             }
         }
         .animation(DCMotion.respecting(reduceMotion), value: run?.isFinished)
-        .onChange(of: app.selectedAgentRunID) { stepsExpanded = nil }
+        .onChange(of: app.selectedAgentRunID) {
+            stepsExpanded = nil
+            bottomScrollTrigger = 0
+        }
     }
 
     // MARK: Goal
@@ -315,7 +330,7 @@ struct AgentView: View {
                 }
             }
             if !run.isFinished {
-                AssistantProgressBar(value: activeRecord?.progress, tint: DCTheme.agentTint)
+                WorkProgressBar(recordID: activeRecord?.id, progress: app.progress, tint: DCTheme.agentTint)
             }
         }
         .dcCard(tint: run.isFinished ? .clear : DCTheme.agentTint)
@@ -704,31 +719,5 @@ struct AgentView: View {
         case .failed: DCTheme.danger
         case .cancelled: .secondary
         }
-    }
-}
-
-/// Compact gradient button for "Ask the forum" inside the goal card.
-private struct AgentRunButtonStyle: ButtonStyle {
-    @Environment(\.isEnabled) private var isEnabled
-
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.subheadline.weight(.semibold))
-            .foregroundStyle(.white)
-            .padding(.horizontal, 16)
-            .frame(minHeight: DCTheme.controlHeight)
-            .background(
-                LinearGradient(
-                    colors: [DCTheme.brandBlue, DCTheme.brandPurple],
-                    startPoint: .leading,
-                    endPoint: .trailing
-                )
-                .opacity(isEnabled ? 1 : 0.35),
-                in: RoundedRectangle(cornerRadius: DCTheme.controlCornerRadius, style: .continuous)
-            )
-            .contentShape(.hoverEffect, RoundedRectangle(cornerRadius: DCTheme.controlCornerRadius, style: .continuous))
-            .hoverEffect(.lift)
-            .scaleEffect(configuration.isPressed ? 0.97 : 1)
-            .animation(DCMotion.quick, value: configuration.isPressed)
     }
 }

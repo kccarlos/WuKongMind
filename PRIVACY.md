@@ -4,23 +4,25 @@
 Effective date: October 6, 2026
 
 Forumind is a free, open-source app that helps you read Discourse
-forums with an AI assistant. This policy explains, in plain words, what the
-app does with your information. The short version: **the developer collects
-nothing.** There are no Forumind servers, accounts, analytics,
-advertising, or tracking.
+forums and WordPress sites with an AI assistant. This policy explains, in plain
+words, what the app does with your information. The short version: **the
+developer collects nothing.** There are no Forumind servers, accounts,
+analytics, advertising, or tracking.
 
 ## What the app handles, and where it goes
 
-### Forum pages and your forum login
+### Site pages and your login
 
-The app has a built-in web browser. When you open a forum, the page loads
-directly from that forum, as it would in Safari. If you log in to a forum, the
-forum's login cookies are stored on your device by iOS's web view and are sent
-**only to that forum**, never to another site.
+The app has a built-in web browser. When you open a forum or site, the page
+loads directly from that site, as it would in Safari. If you log in, the site's
+login cookies are stored on your device by iOS's web view and are sent **only
+to that site**, never to another site.
 
 When you ask for a summary, a chat answer, or an Ask the forum search, the app
-reads the forum's posts directly from the forum, using your login if you're
-logged in, so it can read what you can read.
+reads posts and comments directly from that site (including Discourse topic and
+search endpoints, and WordPress `/wp-json/wp/v2/` post, comment, and category
+endpoints), using your login on sites that support it so it can read what you
+can read.
 
 ### Your AI provider
 

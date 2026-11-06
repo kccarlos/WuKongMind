@@ -1,3 +1,5 @@
+import SwiftUI
+import UIKit
 import XCTest
 @testable import Forumind
 
@@ -100,5 +102,79 @@ final class TranslationTests: XCTestCase {
         | <Belt> | 40 |
         """)
         XCTAssertEqual(TranslationText.assemble(segments, translations: [:]), markdown, "untranslated pieces come back as they were")
+    }
+
+    @MainActor
+    func testTranslateButtonCancelledDetachedTaskDoesNotWriteStaleOffersState() throws {
+        final class TextSwitcher: ObservableObject {
+            @Published var text: String
+            init(_ text: String) { self.text = text }
+        }
+        struct Host: View {
+            @ObservedObject var app: AppModel
+            @ObservedObject var switcher: TextSwitcher
+            var body: some View {
+                TranslateButton(app: app, title: "Title", text: switcher.text, compact: false)
+                    .fixedSize()
+            }
+        }
+
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let store = PersistentStore(fileURL: directory.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore())
+        let app = AppModel(store: store)
+        var settings = app.settings
+        settings.readingLanguage = "en"
+        app.settings = settings
+
+        let spanish = String(repeating: "Esta es una discusión muy detallada en español sobre las respuestas del foro y los resultados obtenidos por varios lectores. ", count: 25)
+        XCTAssertTrue(ReadingLanguage.offersTranslation(of: spanish, into: "en", isAvailable: true))
+        let nonTranslatable = "12345"
+        XCTAssertFalse(ReadingLanguage.offersTranslation(of: nonTranslatable, into: "en", isAvailable: true))
+
+        let switcher = TextSwitcher(spanish)
+        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        let size = CGSize(width: 240, height: 80)
+        let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(origin: .zero, size: size))
+        window.frame = CGRect(origin: .zero, size: size)
+        let host = UIHostingController(rootView: Host(app: app, switcher: switcher))
+        window.rootViewController = host
+        window.makeKeyAndVisible()
+        host.view.frame = window.bounds
+        window.layoutIfNeeded()
+        defer {
+            window.isHidden = true
+            window.rootViewController = nil
+            try? FileManager.default.removeItem(at: directory)
+        }
+
+        let deadline1 = Date().addingTimeInterval(1.0)
+        while host.sizeThatFits(in: size).width <= 30, Date() < deadline1 {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.01))
+        }
+        XCTAssertGreaterThan(host.sizeThatFits(in: size).width, 30, "Precondition: Spanish text shows Translate button")
+
+        switcher.text = nonTranslatable
+        let deadline2 = Date().addingTimeInterval(1.0)
+        while host.sizeThatFits(in: size).width >= 5, Date() < deadline2 {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.01))
+        }
+        XCTAssertLessThan(host.sizeThatFits(in: size).width, 5, "Precondition: '12345' hides Translate button")
+
+        // Switch rapidly from long Spanish text (slow NLLanguageRecognizer pass) to
+        // non-translatable or short English text: cancelled work must never overwrite `offers`.
+        for iteration in 1...30 {
+            switcher.text = spanish + " \(iteration)"
+            RunLoop.current.run(until: Date().addingTimeInterval(0.0002))
+            switcher.text = iteration <= 15
+                ? "\(nonTranslatable)-\(iteration)"
+                : "This summary is already in English \(iteration)."
+            RunLoop.current.run(until: Date().addingTimeInterval(0.025))
+            let measured = host.sizeThatFits(in: size)
+            XCTAssertLessThan(
+                measured.width,
+                30,
+                "Cancelled TranslateButton task overwrote offers=true onto iteration \(iteration) (width=\(measured.width))"
+            )
+        }
     }
 }

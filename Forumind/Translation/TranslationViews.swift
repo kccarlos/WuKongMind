@@ -58,12 +58,17 @@ struct TranslateButton: View {
             }
         }
         // Detecting the language is quick but not free: once per text.
-        .task(id: "\(readingLanguage)|\(text.hashValue)") {
-            let text = text
-            let target = readingLanguage
-            offers = await Task.detached(priority: .utility) {
-                ReadingLanguage.offersTranslation(of: text, into: target)
-            }.value
+        .task(id: [readingLanguage, text]) {
+            let text = text, target = readingLanguage
+            guard ReadingLanguage.isTranslationAvailable, text.contains(where: { $0.isLetter }) else {
+                offers = false
+                return
+            }
+            let job = Task.detached(priority: .utility) {
+                Task.isCancelled ? false : ReadingLanguage.offersTranslation(of: text, into: target)
+            }
+            let detected = await withTaskCancellationHandler { await job.value } onCancel: { job.cancel() }
+            if !Task.isCancelled { offers = detected }
         }
     }
 }

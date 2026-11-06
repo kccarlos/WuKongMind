@@ -37,6 +37,7 @@ struct AssistantPanel: View {
     @State private var exporting = false
     /// "Tap a post number to jump to it", shown with the first summary.
     @State private var showsCitationTip = false
+    @State private var renderedSummary: ThrottledParse<DrawerSummarySections.Input, (sections: Int, hasCitations: Bool, rows: [MarkdownRow])>?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     init(
@@ -143,6 +144,7 @@ struct AssistantPanel: View {
         })
         .onChange(of: app.currentTopic?.topicKey) {
             exportOptions = ExportOptions()
+            renderedSummary = nil
         }
         .sheet(isPresented: $showingExportOptions) {
             ExportOptionsSheet(payload: payload, options: $exportOptions)
@@ -555,13 +557,15 @@ struct AssistantPanel: View {
 
     // MARK: Summary
 
+    private var streamedSummary: String? {
+        guard let activeSummary,
+              let streamed = streams.texts[activeSummary.id],
+              !streamed.isEmpty else { return nil }
+        return streamed
+    }
+
     private var visibleSummary: String {
-        if let activeSummary,
-           let streamed = streams.text(for: activeSummary.id),
-           !streamed.isEmpty {
-            return streamed
-        }
-        return app.currentSession?.summary ?? ""
+        activeSummary != nil ? (streamedSummary ?? "") : (app.currentSession?.summary ?? "")
     }
 
     // MARK: Drawer topic (summary + conversation)
@@ -569,55 +573,48 @@ struct AssistantPanel: View {
     /// §4.4: the summary, then the topic's conversation, with the chat input
     /// pinned at the bottom.
     private var drawerThread: some View {
-        ChatThread(app: app, activeChat: activeChat, leading: AnyView(drawerSummary))
-    }
-
-    private var drawerSummary: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            if !app.isProviderReady(for: .assistant) {
-                providerCard
-            }
-            if let record = activePull {
-                WorkProgressCard(record: record) { app.cancel(record: record) }
-                    .transition(.opacity)
-            }
-            if let record = activeSummary {
-                WorkProgressCard(record: record) { app.cancel(record: record) }
-                    .transition(.opacity)
-            }
-            if case .failed(let message) = summaryRun {
-                SummaryFailedCard(message: message, canRetry: activePull == nil) {
-                    app.startSummary(regenerate: true)
-                }
-                .transition(.opacity)
-            }
-            if visibleSummary.isEmpty {
-                if activeSummary != nil {
-                    SummaryPlaceholder()
-                } else if activePull == nil {
-                    drawerSummaryStart
-                }
-            } else {
-                if activeSummary == nil, let session = app.currentSession {
-                    drawerSummaryMeta(session)
-                    if session.hasStaleSummary {
-                        DrawerStaleBanner(session: session) { app.startSummary() }
-                    }
-                }
-                DrawerSummarySections(
-                    text: visibleSummary,
-                    maximumPost: app.currentSession?.totalPosts
-                )
-                .accessibilityIdentifier("summaryContent")
-                if activeSummary == nil {
-                    if showsCitationTip { citationTip }
-                    summarizeControl(prominent: false)
-                }
-            }
+        let streamInput = streamedSummary.map {
+            DrawerSummarySections.Input(text: $0, maximumPost: app.currentSession?.totalPosts)
+        }
+        let parsed: (sections: Int, hasCitations: Bool, rows: [MarkdownRow]) = if streamInput != nil,
+            let renderedSummary,
+            !renderedSummary.output.rows.isEmpty {
+            renderedSummary.output
+        } else if visibleSummary.isEmpty {
+            (0, false, [])
+        } else {
+            DrawerSummarySections.parsed(
+                for: .init(text: visibleSummary, maximumPost: app.currentSession?.totalPosts)
+            )
+        }
+        let isLazy = parsed.hasCitations
+            || parsed.rows.count >= MarkdownView.lazyRowThreshold
+            || (app.currentSession?.history.count ?? 0) >= 16
+        return ChatThread(
+            app: app,
+            topicKey: app.currentTopic?.topicKey ?? "",
+            activeChat: activeChat,
+            isLazy: isLazy
+        ) {
+            drawerSummary(rows: parsed.rows)
         }
         .animation(DCMotion.respecting(reduceMotion), value: activeSummary?.id)
         .animation(DCMotion.respecting(reduceMotion), value: activePull?.id)
         .animation(DCMotion.respecting(reduceMotion), value: summaryRun)
+        .animation(.easeOut(duration: 0.25), value: parsed.sections)
+        .task(id: streamInput) {
+            guard let streamInput else {
+                renderedSummary = nil
+                return
+            }
+            if let updated = await ThrottledParse.refreshed(
+                from: renderedSummary,
+                to: streamInput,
+                parse: DrawerSummarySections.parsed
+            ) {
+                renderedSummary = updated
+            }
+        }
         .onChange(of: app.currentSession?.hasSummary == true, initial: true) {
             // Once, with the first summary that has post numbers.
             let key = PresentationRouter.citationTipKey
@@ -625,6 +622,65 @@ struct AssistantPanel: View {
                   !PostCitations.numbers(in: app.currentSession?.summary ?? "").isEmpty else { return }
             UserDefaults.standard.set(true, forKey: key)
             showsCitationTip = true
+        }
+    }
+
+    @ViewBuilder
+    private func drawerSummary(rows: [MarkdownRow]) -> some View {
+        if !app.isProviderReady(for: .assistant) {
+            providerCard
+                .padding(.top, 4)
+        }
+        if let record = activePull {
+            WorkProgressCard(record: record, progress: app.progress) { app.cancel(record: record) }
+                .padding(.top, 4)
+                .transition(.opacity)
+        }
+        if let record = activeSummary {
+            WorkProgressCard(record: record, progress: app.progress) { app.cancel(record: record) }
+                .padding(.top, 4)
+                .transition(.opacity)
+        }
+        if case .failed(let message) = summaryRun {
+            SummaryFailedCard(message: message, canRetry: activePull == nil) {
+                app.startSummary(regenerate: true)
+            }
+            .padding(.top, 4)
+            .transition(.opacity)
+        }
+        if rows.isEmpty {
+            if activeSummary != nil {
+                SummaryPlaceholder()
+                    .padding(.top, 4)
+                    .transition(.asymmetric(insertion: .opacity, removal: .identity))
+            } else if activePull == nil {
+                drawerSummaryStart
+                    .padding(.top, 4)
+            }
+        } else {
+            if activeSummary == nil, let session = app.currentSession {
+                drawerSummaryMeta(session)
+                    .padding(.top, 4)
+                    .transition(.asymmetric(insertion: .opacity, removal: .identity))
+                if session.hasStaleSummary {
+                    DrawerStaleBanner(session: session) { app.startSummary() }
+                        .padding(.top, 4)
+                        .transition(.asymmetric(insertion: .opacity, removal: .identity))
+                }
+            }
+            DrawerSummarySections(rows: rows)
+                .accessibilityIdentifier("summaryContent")
+                .transition(.identity)
+            if activeSummary == nil {
+                if showsCitationTip {
+                    citationTip
+                        .padding(.top, 4)
+                        .transition(.asymmetric(insertion: .opacity, removal: .identity))
+                }
+                summarizeControl(prominent: false)
+                    .padding(.top, 4)
+                    .transition(.asymmetric(insertion: .opacity, removal: .identity))
+            }
         }
     }
 
@@ -771,24 +827,38 @@ struct AssistantPanel: View {
 // MARK: - Chat
 
 /// The conversation: a collapsed summary card, messages, and a pinned composer.
-private struct ChatThread: View {
+private struct ChatThread<Leading: View>: View {
+    private struct HistoryCountKey: Equatable {
+        let topicKey: String
+        let count: Int
+    }
+
     @ObservedObject var app: AppModel
     @ObservedObject private var streams: StreamStore
+    let topicKey: String
     let activeChat: WorkRecord?
+    let isLazy: Bool
     /// The summary above the conversation, scrolled from the top.
-    let leading: AnyView
+    let leading: Leading
     @State private var atBottom = true
+    @State private var userScrolling = false
+    @State private var scrollTask: Task<Void, Never>?
+    @State private var metricsBox = ScrollMetricsBox()
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     init(
         app: AppModel,
+        topicKey: String,
         activeChat: WorkRecord?,
-        leading: AnyView
+        isLazy: Bool,
+        @ViewBuilder leading: () -> Leading
     ) {
         self.app = app
         _streams = ObservedObject(wrappedValue: app.streams)
+        self.topicKey = topicKey
         self.activeChat = activeChat
-        self.leading = leading
+        self.isLazy = isLazy
+        self.leading = leading()
     }
 
     private var stream: String {
@@ -804,72 +874,109 @@ private struct ChatThread: View {
         VStack(spacing: 0) {
             ScrollViewReader { proxy in
                 ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 12) {
-                        leading
-                        if !history.isEmpty || activeChat != nil {
-                            conversationHeader
-                        }
+                    VStack(alignment: .leading, spacing: 0) {
+                        Color.clear
+                            .frame(height: 0)
+                            .id("chatTop")
 
-                        ForEach(history) { message in
-                            ChatBubble(message: message) {
-                                app.editChat(messageID: message.id)
+                        Group {
+                            if isLazy {
+                                LazyVStack(alignment: .leading, spacing: 8) {
+                                    threadRows
+                                }
+                                .transition(.identity)
+                            } else {
+                                VStack(alignment: .leading, spacing: 8) {
+                                    threadRows
+                                }
+                                .transition(.identity)
                             }
-                            .transition(.asymmetric(
-                                insertion: reduceMotion ? .opacity : .opacity.combined(with: .move(edge: .bottom)),
-                                removal: .opacity
-                            ))
                         }
-
-                        if !stream.isEmpty {
-                            ChatBubble(
-                                message: ChatMessage(role: .assistant, content: stream),
-                                onEdit: nil,
-                                isStreaming: true
-                            )
-                            .id("chatStream")
-                        } else if activeChat != nil {
-                            typingBubble
-                        }
-
-                        if let activeChat {
-                            chatStatus(activeChat)
-                        }
-
-                        if !history.isEmpty, activeChat == nil {
-                            followUpChips
-                        }
+                        .padding(.top, 10)
+                        .padding(.horizontal, 14)
 
                         Color.clear
                             .frame(height: 1)
+                            .padding(.top, 12)
+                            .padding(.bottom, 14)
                             .id("chatBottom")
                             .onAppear { if #unavailable(iOS 18.0) { atBottom = true } }
                             .onDisappear { if #unavailable(iOS 18.0) { atBottom = false } }
                     }
-                    .padding(14)
                     .frame(maxWidth: 860, alignment: .leading)
                     .frame(maxWidth: .infinity)
+                    .onGeometryChange(for: Int.self) { Int($0.size.height.rounded()) } action: { newHeight in
+                        let grew = metricsBox.contentHeight > 0 && newHeight > metricsBox.contentHeight
+                        metricsBox.contentHeight = newHeight
+                        if grew, atBottom, !userScrolling, activeChat != nil {
+                            scrollUnanimated(proxy: proxy)
+                            DispatchQueue.main.async {
+                                if atBottom, !userScrolling { scrollUnanimated(proxy: proxy) }
+                            }
+                        }
+                    }
                     .animation(DCMotion.respecting(reduceMotion), value: history.count)
                     .animation(DCMotion.respecting(reduceMotion), value: activeChat?.id)
                 }
                 .defaultScrollAnchor(.top)
-                .modifier(ScrollBottomTracker(atBottom: $atBottom))
+                .modifier(ChatScrollTracker(onPhaseChange: { scrolling in
+                    userScrolling = scrolling
+                    if scrolling {
+                        scrollTask?.cancel()
+                        scrollTask = nil
+                    }
+                }, onStateChange: { old, new in
+                    metricsBox.nearBottom = new.nearBottom
+                    if new.nearBottom {
+                        if !atBottom { atBottom = true }
+                    } else if atBottom, scrollTask == nil {
+                        let streamGrew = activeChat != nil
+                            && !userScrolling
+                            && old.contentHeight > 0
+                            && (new.contentHeight > old.contentHeight || new.viewportHeight < old.viewportHeight)
+                            && new.offsetY >= old.offsetY - 1
+                        if streamGrew {
+                            DispatchQueue.main.async {
+                                if atBottom, !userScrolling { scrollUnanimated(proxy: proxy) }
+                            }
+                        } else {
+                            atBottom = false
+                        }
+                    }
+                }))
                 .scrollDismissesKeyboard(.interactively)
                 .accessibilityIdentifier("chatScroll")
-                .onChange(of: history.count) {
-                    withAnimation(DCMotion.respecting(reduceMotion)) {
-                        proxy.scrollTo("chatBottom", anchor: .bottom)
+                .onChange(of: topicKey) {
+                    scrollTask?.cancel()
+                    scrollTask = nil
+                    userScrolling = false
+                    metricsBox.contentHeight = 0
+                    atBottom = false
+                    scrollUnanimated("chatTop", anchor: .top, proxy: proxy)
+                    Task { @MainActor in
+                        if atBottom != metricsBox.nearBottom { atBottom = metricsBox.nearBottom }
+                    }
+                }
+                .onChange(of: HistoryCountKey(topicKey: topicKey, count: history.count)) { old, new in
+                    guard old.topicKey == new.topicKey, new.count > old.count else { return }
+                    if history.last?.role == .user {
+                        jumpToBottom(proxy: proxy)
+                    } else if atBottom, !userScrolling {
+                        scrollUnanimated(proxy: proxy)
                     }
                 }
                 .onChange(of: stream) {
                     // Follow the answer only while the reader is at the bottom.
-                    if atBottom { proxy.scrollTo("chatBottom", anchor: .bottom) }
+                    if atBottom, !userScrolling { scrollUnanimated(proxy: proxy) }
+                }
+                .onDisappear {
+                    scrollTask?.cancel()
+                    scrollTask = nil
                 }
                 .overlay(alignment: .bottomTrailing) {
                     if !atBottom, !history.isEmpty {
                         Button {
-                            withAnimation(DCMotion.respecting(reduceMotion)) {
-                                proxy.scrollTo("chatBottom", anchor: .bottom)
-                            }
+                            jumpToBottom(proxy: proxy)
                         } label: {
                             Image(systemName: "arrow.down")
                                 .font(.subheadline.weight(.bold))
@@ -886,8 +993,68 @@ private struct ChatThread: View {
                         .accessibilityIdentifier("chatScrollToBottom")
                     }
                 }
-                .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: atBottom)
+                .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: !atBottom && !history.isEmpty)
             }
+        }
+    }
+
+    private func scrollUnanimated(_ id: String = "chatBottom", anchor: UnitPoint = .bottom, proxy: ScrollViewProxy) {
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) { proxy.scrollTo(id, anchor: anchor) }
+    }
+
+    private func jumpToBottom(proxy: ScrollViewProxy) {
+        scrollTask?.cancel()
+        atBottom = true
+        scrollTask = Task { @MainActor in
+            await settleScroll(reduceMotion: reduceMotion, shouldStop: { userScrolling }) {
+                proxy.scrollTo("chatBottom", anchor: .bottom)
+            }
+            guard !Task.isCancelled else { return }
+            scrollTask = nil
+            if atBottom != metricsBox.nearBottom { atBottom = metricsBox.nearBottom }
+        }
+    }
+
+    @ViewBuilder
+    private var threadRows: some View {
+        leading
+        if !history.isEmpty || activeChat != nil {
+            conversationHeader
+        }
+
+        ForEach(history) { message in
+            ChatBubble(message: message) {
+                app.editChat(messageID: message.id)
+            }
+            .padding(.top, 4)
+            .transition(.asymmetric(
+                insertion: reduceMotion ? .opacity : .opacity.combined(with: .move(edge: .bottom)),
+                removal: .opacity
+            ))
+        }
+
+        if !stream.isEmpty {
+            ChatBubble(
+                message: ChatMessage(role: .assistant, content: stream),
+                onEdit: nil,
+                isStreaming: true
+            )
+            .padding(.top, 4)
+            .id("chatStream")
+        } else if activeChat != nil {
+            typingBubble
+                .padding(.top, 4)
+        }
+
+        if let activeChat {
+            chatStatus(activeChat)
+                .padding(.top, 4)
+        }
+
+        if !history.isEmpty, activeChat == nil {
+            followUpChips
         }
     }
 
@@ -899,7 +1066,7 @@ private struct ChatThread: View {
                 .accessibilityAddTraits(.isHeader)
             Spacer()
         }
-        .padding(.top, 8)
+        .padding(.top, 12)
     }
 
     private var typingBubble: some View {
@@ -942,7 +1109,7 @@ private struct ChatThread: View {
                 }
             }
         }
-        .padding(.top, 2)
+        .padding(.top, 6)
     }
 
     private func suggestionChip(_ title: String, question: String) -> some View {
@@ -961,59 +1128,6 @@ private struct ChatThread: View {
         }
         .buttonStyle(.plain)
         .accessibilityHint("Fills the question box")
-    }
-}
-
-/// Wraps chips onto as many lines as they need.
-struct ChipFlowLayout: Layout {
-    var spacing: CGFloat = 8
-
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        let rows = arrange(width: proposal.width ?? .infinity, subviews: subviews)
-        let height = rows.last.map { $0.y + $0.height } ?? 0
-        let width = rows.map(\.width).max() ?? 0
-        return CGSize(width: proposal.width ?? width, height: height)
-    }
-
-    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
-        let rows = arrange(width: bounds.width, subviews: subviews)
-        for row in rows {
-            var x = bounds.minX
-            for index in row.indices {
-                let size = subviews[index].sizeThatFits(.unspecified)
-                subviews[index].place(
-                    at: CGPoint(x: x, y: bounds.minY + row.y),
-                    proposal: ProposedViewSize(width: min(size.width, bounds.width), height: size.height)
-                )
-                x += min(size.width, bounds.width) + spacing
-            }
-        }
-    }
-
-    private struct Row {
-        var indices: [Int] = []
-        var y: CGFloat = 0
-        var width: CGFloat = 0
-        var height: CGFloat = 0
-    }
-
-    private func arrange(width: CGFloat, subviews: Subviews) -> [Row] {
-        var rows: [Row] = []
-        var current = Row()
-        for index in subviews.indices {
-            let size = subviews[index].sizeThatFits(.unspecified)
-            let itemWidth = min(size.width, width)
-            if !current.indices.isEmpty, current.width + spacing + itemWidth > width {
-                let y = current.y + current.height + spacing
-                rows.append(current)
-                current = Row(y: y)
-            }
-            current.width += (current.indices.isEmpty ? 0 : spacing) + itemWidth
-            current.height = max(current.height, size.height)
-            current.indices.append(index)
-        }
-        if !current.indices.isEmpty { rows.append(current) }
-        return rows
     }
 }
 
@@ -1315,6 +1429,7 @@ private struct SummaryFailedCard: View {
 
 struct WorkProgressCard: View {
     let record: WorkRecord
+    @ObservedObject var progress: ProgressStore
     let cancel: () -> Void
 
     private var tint: Color {
@@ -1326,6 +1441,7 @@ struct WorkProgressCard: View {
     }
 
     var body: some View {
+        let fraction = progress.value(for: record.id)
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .center, spacing: 10) {
                 ProgressView()
@@ -1347,11 +1463,11 @@ struct WorkProgressCard: View {
                     // (queued), so the header never reflows.
                     ZStack(alignment: .trailing) {
                         Text(verbatim: "100%").hidden()
-                        if let progress = record.progress {
-                            Text(progress, format: .percent.precision(.fractionLength(0)))
+                        if let fraction {
+                            Text(fraction, format: .percent.precision(.fractionLength(0)))
                                 .foregroundStyle(tint)
                                 .contentTransition(.numericText(countsDown: false))
-                                .animation(DCMotion.quick, value: progress)
+                                .animation(DCMotion.quick, value: fraction)
                         }
                     }
                     .font(.subheadline.weight(.semibold).monospacedDigit())
@@ -1360,7 +1476,7 @@ struct WorkProgressCard: View {
                     .font(.subheadline.weight(.medium))
                     .buttonStyle(.borderless)
             }
-            AssistantProgressBar(value: record.progress, tint: tint)
+            AssistantProgressBar(value: fraction, tint: tint)
         }
         .dcCard(tint: tint)
         .accessibilityElement(children: .contain)
@@ -1465,22 +1581,40 @@ private struct ChatBubble: View {
     }
 }
 
-/// Tracks whether a scroll view shows its end (iOS 18+; older systems use the
-/// bottom anchor's appear/disappear instead).
-private struct ScrollBottomTracker: ViewModifier {
-    @Binding var atBottom: Bool
+private final class ScrollMetricsBox {
+    var nearBottom = true
+    var contentHeight = 0
+}
+
+private struct ScrollState: Equatable {
+    var nearBottom: Bool
+    var contentHeight: Int
+    var viewportHeight: Int
+    var offsetY: Int
+}
+
+/// Tracks scroll phase and whether the bottom of `ChatThread` is in view
+/// (iOS 18+; older systems use the bottom anchor's appear/disappear instead).
+private struct ChatScrollTracker: ViewModifier {
+    let onPhaseChange: (Bool) -> Void
+    let onStateChange: (ScrollState, ScrollState) -> Void
 
     func body(content: Content) -> some View {
         if #available(iOS 18.0, *) {
-            // Track the distance itself: it changes with every scroll, so the
-            // final position always reaches the action (a Bool can be coalesced
-            // away while a lazy stack re-estimates its height).
-            content.onScrollGeometryChange(for: CGFloat.self) { geometry in
-                (geometry.contentSize.height - geometry.visibleRect.maxY).rounded()
-            } action: { _, distance in
-                let isAtBottom = distance < 48
-                if atBottom != isAtBottom { atBottom = isAtBottom }
-            }
+            content
+                .onScrollPhaseChange { _, phase in
+                    onPhaseChange(phase == .interacting || phase == .decelerating)
+                }
+                .onScrollGeometryChange(for: ScrollState.self) { geometry in
+                    ScrollState(
+                        nearBottom: geometry.contentSize.height - geometry.visibleRect.maxY < 48,
+                        contentHeight: Int(geometry.contentSize.height.rounded()),
+                        viewportHeight: Int(geometry.visibleRect.height.rounded()),
+                        offsetY: Int(geometry.contentOffset.y.rounded())
+                    )
+                } action: { old, new in
+                    onStateChange(old, new)
+                }
         } else {
             content
         }
@@ -1513,14 +1647,13 @@ private struct DrawerStatusRow: View {
             } else if voiceOnly {
                 EmptyView()
             } else if !inAgentMode, let research {
-                row(systemImage: "magnifyingglass", text: research.statusText, progress: research.progress) {
+                DrawerResearchStatus(record: research, progress: app.progress) {
                     showAnswer(for: research)
                 }
             } else if !inAgentMode, let readyAnswer {
                 row(
                     systemImage: "checkmark.circle.fill",
-                    text: String(localized: "Answer ready", comment: "AI drawer status row: an Ask the forum answer finished"),
-                    progress: nil
+                    text: String(localized: "Answer ready", comment: "AI drawer status row: an Ask the forum answer finished")
                 ) {
                     showAnswer(for: readyAnswer)
                 }
@@ -1543,9 +1676,27 @@ private struct DrawerStatusRow: View {
         withAnimation(DCMotion.respecting(reduceMotion)) { app.showAnswer(for: record) }
     }
 
-    private func row(systemImage: String, text: String, progress: Double?, action: @escaping () -> Void) -> some View {
+    private func row(systemImage: String, text: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            DrawerStatusLabel(systemImage: systemImage, text: text, progress: progress)
+            DrawerStatusLabel(systemImage: systemImage, text: text, progress: nil)
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("drawerStatusRow")
+    }
+}
+
+private struct DrawerResearchStatus: View {
+    let record: WorkRecord
+    @ObservedObject var progress: ProgressStore
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            DrawerStatusLabel(
+                systemImage: "magnifyingglass",
+                text: record.statusText,
+                progress: progress.value(for: record.id)
+            )
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("drawerStatusRow")
@@ -1743,35 +1894,50 @@ private struct PulseModifier: ViewModifier {
 /// The summary's sections (split at its `#`/`##` headings) with `#N`
 /// citations as chips. While it streams, each new section fades in and
 /// rises 8 pt (only fades with Reduce Motion), never per character.
-private struct DrawerSummarySections: View {
-    let text: String
-    let maximumPost: Int?
+struct DrawerSummarySections: View {
+    let rows: [MarkdownRow]
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    /// The room the summary has: wide drawers (portrait 11" iPad, 820 pt)
-    /// set it in two columns, so it fits the drawer at medium height.
-    @State private var width: CGFloat = 0
-    static let twoColumnMinimumWidth: CGFloat = 640
 
-    var body: some View {
-        let sections = Self.sections(of: text)
-        let split = width >= Self.twoColumnMinimumWidth && sections.count > 2 ? (sections.count + 1) / 2 : sections.count
-        HStack(alignment: .top, spacing: 24) {
-            column(Array(sections[..<split]))
-            if split < sections.count { column(Array(sections[split...])) }
-        }
-        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
-        .animation(.easeOut(duration: 0.25), value: sections.count)
+    struct Input: Equatable {
+        let text: String
+        let maximumPost: Int?
     }
 
-    private func column(_ sections: [String]) -> some View {
-        VStack(alignment: .leading, spacing: 14) {
-            ForEach(Array(sections.enumerated()), id: \.offset) { _, section in
-                MarkdownView(PostCitations.linked(section, maximum: maximumPost), citations: true)
-                    .textSelection(.enabled)
-                    .transition(reduceMotion ? .opacity : .opacity.combined(with: .offset(y: 8)))
+    private static let linkedCache: NSCache<NSString, NSString> = {
+        let cache = NSCache<NSString, NSString>()
+        cache.countLimit = 128
+        return cache
+    }()
+
+    static func parsed(for input: Input) -> (sections: Int, hasCitations: Bool, rows: [MarkdownRow]) {
+        let prefix = "\(input.maximumPost ?? -1)|"
+        let marker = "](\(PostCitations.scheme):"
+        var hasCitations = false
+        let linked = sections(of: input.text).map { section -> String in
+            let key = (prefix + section) as NSString
+            let value: String
+            if let cached = linkedCache.object(forKey: key) {
+                value = cached as String
+            } else {
+                value = PostCitations.linked(section, maximum: input.maximumPost)
+                linkedCache.setObject(value as NSString, forKey: key)
             }
+            if !hasCitations, value.contains(marker) { hasCitations = true }
+            return value
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        return (linked.count, hasCitations, MarkdownRow.rows(fromSections: linked, initialTopSpacing: 4, stackSpacing: 8))
+    }
+
+    var body: some View {
+        ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
+            MarkdownBlockView(row: row, citations: true)
+                .equatable()
+                .transition(.asymmetric(
+                    insertion: reduceMotion ? .opacity : .opacity.combined(with: .offset(y: 8)),
+                    removal: .identity
+                ))
+        }
+        .textSelection(.enabled)
     }
 
     /// Splits before each level-1/2 heading outside code fences.

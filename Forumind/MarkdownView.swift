@@ -217,26 +217,171 @@ enum MarkdownParser {
     }
 }
 
+/// One lazy-renderable unit of a Markdown document: a standalone block, or a
+/// single item of a list so long lists lay out item by item in a `LazyVStack`.
+struct MarkdownRow: Equatable {
+    enum Content: Equatable {
+        case heading(level: Int, text: String)
+        case paragraph(String)
+        case listItem(number: Int?, text: String)
+        case quote(String)
+        case code(language: String?, content: String)
+        case table(headers: [String], rows: [[String]])
+        case rule
+    }
+
+    let content: Content
+    var topSpacing: CGFloat
+
+    static func rows(
+        from blocks: [MarkdownBlock],
+        initialTopSpacing: CGFloat = 0,
+        stackSpacing: CGFloat = 0
+    ) -> [MarkdownRow] {
+        var rows: [MarkdownRow] = []
+        for block in blocks {
+            let blockSpacing: CGFloat = rows.isEmpty ? initialTopSpacing : 12 - stackSpacing
+            switch block {
+            case .heading(let level, let text):
+                rows.append(MarkdownRow(content: .heading(level: level, text: text), topSpacing: blockSpacing))
+            case .paragraph(let text):
+                rows.append(MarkdownRow(content: .paragraph(text), topSpacing: blockSpacing))
+            case .unorderedList(let items), .orderedList(let items):
+                let ordered = if case .orderedList = block { true } else { false }
+                for (index, item) in items.enumerated() {
+                    rows.append(MarkdownRow(
+                        content: .listItem(number: ordered ? index + 1 : nil, text: item),
+                        topSpacing: index == 0 ? blockSpacing : 8 - stackSpacing
+                    ))
+                }
+            case .quote(let text):
+                rows.append(MarkdownRow(content: .quote(text), topSpacing: blockSpacing))
+            case .code(let language, let content):
+                rows.append(MarkdownRow(content: .code(language: language, content: content), topSpacing: blockSpacing))
+            case .table(let headers, let tableRows):
+                rows.append(MarkdownRow(content: .table(headers: headers, rows: tableRows), topSpacing: blockSpacing))
+            case .rule:
+                rows.append(MarkdownRow(content: .rule, topSpacing: blockSpacing))
+            }
+        }
+        return rows
+    }
+
+    /// Flattens Markdown sections separated by `sectionSpacing` (14 pt).
+    static func rows(
+        fromSections sections: [String],
+        initialTopSpacing: CGFloat = 0,
+        sectionSpacing: CGFloat = 14,
+        stackSpacing: CGFloat = 0
+    ) -> [MarkdownRow] {
+        var result: [MarkdownRow] = []
+        for section in sections {
+            var rows = MarkdownCache.rows(for: section)
+            guard !rows.isEmpty else { continue }
+            for index in rows.indices {
+                rows[index].topSpacing = index == 0
+                    ? (result.isEmpty ? initialTopSpacing : sectionSpacing - stackSpacing)
+                    : rows[index].topSpacing - stackSpacing
+            }
+            result.append(contentsOf: rows)
+        }
+        return result
+    }
+}
+
 /// Parsed documents by source, so re-rendering the same text does not parse
 /// it again (summaries and chat bubbles re-render while other text streams).
 private enum MarkdownCache {
-    private final class Box {
-        let document: MarkdownDocument
-        init(_ document: MarkdownDocument) { self.document = document }
-    }
-
-    private static let cache: NSCache<NSString, Box> = {
-        let cache = NSCache<NSString, Box>()
+    private static let cache: NSCache<NSString, NSArray> = {
+        let cache = NSCache<NSString, NSArray>()
         cache.countLimit = 96
         return cache
     }()
 
-    static func document(for source: String) -> MarkdownDocument {
+    static func rows(for source: String) -> [MarkdownRow] {
         let key = source as NSString
-        if let box = cache.object(forKey: key) { return box.document }
-        let document = MarkdownDocument(source: source)
-        cache.setObject(Box(document), forKey: key)
-        return document
+        if let cached = cache.object(forKey: key) as? [MarkdownRow] { return cached }
+        let rows = MarkdownRow.rows(from: MarkdownParser.parse(source))
+        cache.setObject(rows as NSArray, forKey: key)
+        return rows
+    }
+}
+
+/// Re-parses streaming Markdown at most every `MarkdownView.throttle` seconds,
+/// rendering the first parse immediately and holding the previous output between ticks.
+struct ThrottledParse<Input: Equatable, Output> {
+    var input: Input
+    var output: Output
+    var parsedAt: Date
+
+    static func refreshed(
+        from previous: Self?,
+        to target: Input,
+        parse: (Input) -> Output
+    ) async -> Self? {
+        if let previous {
+            guard previous.input != target else { return previous }
+            let elapsed = Date().timeIntervalSince(previous.parsedAt)
+            if elapsed < MarkdownView.throttle {
+                try? await Task.sleep(for: .seconds(MarkdownView.throttle - elapsed))
+                if Task.isCancelled { return nil }
+            }
+        }
+        return Self(input: target, output: parse(target), parsedAt: Date())
+    }
+}
+
+/// Scrolls with a brief animation, then re-applies without animation across
+/// layout passes while lazy Markdown rows materialize along the way.
+@MainActor
+func settleScroll(
+    animated: Bool = true,
+    reduceMotion: Bool = false,
+    shouldStop: @MainActor () -> Bool = { false },
+    scroll: @MainActor () -> Void
+) async {
+    if animated {
+        withAnimation(.easeOut(duration: reduceMotion ? 0.04 : 0.16)) { scroll() }
+        try? await Task.sleep(for: .milliseconds(reduceMotion ? 50 : 180))
+    }
+    var transaction = Transaction()
+    transaction.disablesAnimations = true
+    for _ in 0..<24 {
+        if Task.isCancelled || shouldStop() { return }
+        withTransaction(transaction) { scroll() }
+        try? await Task.sleep(for: .milliseconds(14))
+    }
+}
+
+@available(iOS 18.0, *)
+private struct BottomEdgeScrollModifier: ViewModifier {
+    let trigger: Int
+    let reduceMotion: Bool
+    @State private var position = ScrollPosition(edge: .top)
+    @State private var scrolling = false
+
+    func body(content: Content) -> some View {
+        content
+            .scrollPosition($position)
+            .onScrollPhaseChange { _, phase in scrolling = phase == .interacting || phase == .decelerating }
+            .task(id: trigger) {
+                guard trigger > 0 else { return }
+                scrolling = false
+                await settleScroll(reduceMotion: reduceMotion, shouldStop: { scrolling }) {
+                    position.scrollTo(edge: .bottom)
+                }
+            }
+    }
+}
+
+extension View {
+    @ViewBuilder
+    func scrollToBottomEdge(trigger: Int, reduceMotion: Bool) -> some View {
+        if #available(iOS 18.0, *) {
+            modifier(BottomEdgeScrollModifier(trigger: trigger, reduceMotion: reduceMotion))
+        } else {
+            self
+        }
     }
 }
 
@@ -248,62 +393,71 @@ struct MarkdownView: View {
     /// `[#N](forumind-post:N)` links render as post-citation chips with a
     /// 44 pt hit area (paragraphs and list items lay out word by word).
     private let citations: Bool
-    @State private var rendered: Rendered?
+    @State private var rendered: ThrottledParse<String, [MarkdownRow]>?
 
-    private struct Rendered {
-        var source: String
-        var document: MarkdownDocument
-        var parsedAt: Date
-    }
-
-    private static let throttle: TimeInterval = 0.12
+    static let throttle: TimeInterval = 0.12
+    /// Short documents stay eager so scroll offsets and nested bubbles have
+    /// exact heights; long documents use `LazyVStack`.
+    static let lazyRowThreshold = 100
 
     init(_ source: String, citations: Bool = false) {
         self.source = source
         self.citations = citations
     }
 
-    private var document: MarkdownDocument {
-        if let rendered, rendered.source == source || !rendered.document.blocks.isEmpty {
-            return rendered.document
+    private var rows: [MarkdownRow] {
+        guard !source.isEmpty else { return [] }
+        if let rendered, rendered.input == source || !rendered.output.isEmpty {
+            return rendered.output
         }
-        return MarkdownCache.document(for: source)
+        return MarkdownCache.rows(for: source)
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            ForEach(Array(document.blocks.enumerated()), id: \.offset) { _, block in
-                MarkdownBlockView(block: block, citations: citations)
-                    .equatable()
+        let currentRows = rows
+        Group {
+            if currentRows.count >= Self.lazyRowThreshold {
+                LazyVStack(alignment: .leading, spacing: 0) {
+                    rowViews(currentRows)
+                }
+            } else {
+                VStack(alignment: .leading, spacing: 0) {
+                    rowViews(currentRows)
+                }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .task(id: source) {
-            await refresh()
+            if let updated = await ThrottledParse.refreshed(from: rendered, to: source, parse: MarkdownCache.rows) {
+                rendered = updated
+            }
         }
     }
 
-    private func refresh() async {
-        if let rendered {
-            guard rendered.source != source else { return }
-            let elapsed = Date().timeIntervalSince(rendered.parsedAt)
-            if elapsed < Self.throttle {
-                try? await Task.sleep(for: .seconds(Self.throttle - elapsed))
-                if Task.isCancelled { return }
-            }
+    private func rowViews(_ rows: [MarkdownRow]) -> some View {
+        ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
+            MarkdownBlockView(row: row, citations: citations)
+                .equatable()
         }
-        rendered = Rendered(
-            source: source,
-            document: MarkdownCache.document(for: source),
-            parsedAt: Date()
-        )
     }
 }
 
-/// One block; Equatable so unchanged blocks skip re-rendering while the
-/// document around them streams.
-private struct MarkdownBlockView: View, Equatable {
-    let block: MarkdownBlock
+#if DEBUG
+enum MarkdownLayoutProbe {
+    nonisolated(unsafe) static var blockBodies = 0
+    nonisolated(unsafe) static var citationLayouts = 0
+
+    static func reset() {
+        blockBodies = 0
+        citationLayouts = 0
+    }
+}
+#endif
+
+/// One block or list item; Equatable so unchanged rows skip re-rendering while
+/// the document around them streams.
+struct MarkdownBlockView: View, Equatable {
+    let row: MarkdownRow
     var citations = false
 
     /// Inline text; with citations in it, word by word around the chips.
@@ -317,7 +471,16 @@ private struct MarkdownBlockView: View, Equatable {
     }
 
     var body: some View {
-        switch block {
+        #if DEBUG
+        let _ = { MarkdownLayoutProbe.blockBodies += 1 }()
+        #endif
+        content
+            .padding(.top, row.topSpacing)
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        switch row.content {
         case .heading(let level, let text):
             VStack(alignment: .leading, spacing: 6) {
                 MarkdownInline.text(text)
@@ -337,10 +500,19 @@ private struct MarkdownBlockView: View, Equatable {
                 .font(.body)
                 .lineSpacing(4)
                 .fixedSize(horizontal: false, vertical: true)
-        case .unorderedList(let items):
-            list(items: items, ordered: false)
-        case .orderedList(let items):
-            list(items: items, ordered: true)
+        case .listItem(let number, let text):
+            let ordered = number != nil
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text(verbatim: number.map { "\($0)." } ?? "•")
+                    .font(ordered ? .body.weight(.semibold).monospacedDigit() : .body.weight(.heavy))
+                    .foregroundStyle(DCTheme.brandBlue)
+                    .frame(minWidth: ordered ? 20 : 12, alignment: ordered ? .trailing : .center)
+                    .accessibilityHidden(!ordered)
+                inline(text)
+                    .font(.body)
+                    .lineSpacing(4)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         case .quote(let text):
             HStack(alignment: .top, spacing: 10) {
                 RoundedRectangle(cornerRadius: 2)
@@ -409,24 +581,6 @@ private struct MarkdownBlockView: View, Equatable {
                 .fill(DCTheme.border)
                 .frame(height: 1)
                 .padding(.vertical, 4)
-        }
-    }
-
-    private func list(items: [String], ordered: Bool) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            ForEach(Array(items.enumerated()), id: \.offset) { index, item in
-                HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    Text(verbatim: ordered ? "\(index + 1)." : "•")
-                        .font(ordered ? .body.weight(.semibold).monospacedDigit() : .body.weight(.heavy))
-                        .foregroundStyle(DCTheme.brandBlue)
-                        .frame(minWidth: ordered ? 20 : 12, alignment: ordered ? .trailing : .center)
-                        .accessibilityHidden(!ordered)
-                    inline(item)
-                        .font(.body)
-                        .lineSpacing(4)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-            }
         }
     }
 
@@ -684,18 +838,36 @@ private struct TrailingSpace: LayoutValueKey {
 private struct CitationFlowLayout: Layout {
     var lineSpacing: CGFloat
 
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        let lines = arrange(width: proposal.width ?? .infinity, subviews: subviews)
+    struct Item {
+        var size: CGSize
+        var space: CGFloat
+    }
+
+    func makeCache(subviews: Subviews) -> [Item] {
+        subviews.map { Item(size: $0.sizeThatFits(.unspecified), space: $0[TrailingSpace.self]) }
+    }
+
+    func updateCache(_ cache: inout [Item], subviews: Subviews) {
+        cache = makeCache(subviews: subviews)
+    }
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout [Item]) -> CGSize {
+        #if DEBUG
+        MarkdownLayoutProbe.citationLayouts += 1
+        #endif
+        if cache.count != subviews.count { cache = makeCache(subviews: subviews) }
+        let lines = arrange(width: proposal.width ?? .infinity, items: cache)
         let width = lines.map(\.width).max() ?? 0
         let height = lines.reduce(0) { $0 + $1.height } + lineSpacing * CGFloat(max(0, lines.count - 1))
         return CGSize(width: proposal.width ?? width, height: height)
     }
 
-    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout [Item]) {
+        if cache.count != subviews.count { cache = makeCache(subviews: subviews) }
         var y = bounds.minY
-        for line in arrange(width: bounds.width, subviews: subviews) {
+        for line in arrange(width: bounds.width, items: cache) {
             for item in line.items {
-                let size = subviews[item.index].sizeThatFits(.unspecified)
+                let size = cache[item.index].size
                 subviews[item.index].place(
                     at: CGPoint(x: bounds.minX + item.x, y: y + (line.height - size.height) / 2),
                     proposal: ProposedViewSize(size)
@@ -711,12 +883,12 @@ private struct CitationFlowLayout: Layout {
         var height: CGFloat = 0
     }
 
-    private func arrange(width: CGFloat, subviews: Subviews) -> [Line] {
+    private func arrange(width: CGFloat, items: [Item]) -> [Line] {
         var lines: [Line] = [Line()]
         var x: CGFloat = 0
-        for index in subviews.indices {
-            let size = subviews[index].sizeThatFits(.unspecified)
-            let space = subviews[index][TrailingSpace.self]
+        for index in items.indices {
+            let size = items[index].size
+            let space = items[index].space
             if x > 0, x + size.width > width {
                 lines.append(Line())
                 x = 0

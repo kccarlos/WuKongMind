@@ -172,10 +172,21 @@ final class LocalizationCatalogTests: XCTestCase {
     }
 
     func testChineseTranslationsResolveFromTheBundle() throws {
-        for (language, expected) in [("zh-Hans", "论坛"), ("zh-Hant", "論壇")] {
+        let footerKey = "Forumind works with %@ sites. It is an independent app and is not affiliated with or endorsed by Civilized Discourse Construction Kit, Inc. Discourse is a trademark of its respective owner."
+        for (language, expected, expectedFooter) in [
+            ("zh-Hans", "论坛", "Forumind 适用于 %@ 网站。它是一款独立 App，与 Civilized Discourse Construction Kit, Inc. 无关联，也未获其认可。Discourse 是其各自所有者的商标。"),
+            ("zh-Hant", "論壇", "Forumind 適用於 %@ 網站。它是一款獨立 App，與 Civilized Discourse Construction Kit, Inc. 無關聯，也未獲其認可。Discourse 是其各自所有者的商標。")
+        ] {
             let path = try XCTUnwrap(Bundle.main.path(forResource: language, ofType: "lproj"))
             let bundle = try XCTUnwrap(Bundle(path: path))
             XCTAssertEqual(bundle.localizedString(forKey: "Forums", value: nil, table: nil), expected)
+            XCTAssertEqual(bundle.localizedString(forKey: footerKey, value: nil, table: nil), expectedFooter)
+        }
+        if AppLanguage.current == "en" {
+            XCTAssertEqual(
+                String(localized: "Forumind works with \(SiteRecognizers.platformNames()) sites. It is an independent app and is not affiliated with or endorsed by Civilized Discourse Construction Kit, Inc. Discourse is a trademark of its respective owner."),
+                "Forumind works with Discourse and WordPress sites. It is an independent app and is not affiliated with or endorsed by Civilized Discourse Construction Kit, Inc. Discourse is a trademark of its respective owner."
+            )
         }
     }
 

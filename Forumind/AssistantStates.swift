@@ -357,6 +357,18 @@ struct AssistantProgressBar: View {
     }
 }
 
+/// Observes `ProgressStore` for one running job so parent screens (`AgentView`,
+/// `HistoryView`) do not redraw on every progress tick.
+struct WorkProgressBar: View {
+    let recordID: UUID?
+    @ObservedObject var progress: ProgressStore
+    var tint: Color = DCTheme.summaryTint
+
+    var body: some View {
+        AssistantProgressBar(value: recordID.flatMap { progress.value(for: $0) }, tint: tint)
+    }
+}
+
 /// Three pulsing dots while an answer is on its way.
 struct TypingIndicator: View {
     var tint: Color = .secondary

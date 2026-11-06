@@ -44,7 +44,7 @@ nonisolated enum HTMLText {
     private static let image = regex(#"<img\b[^>]*>"#)
     private static let lineBreak = regex(#"<br\s*/?>"#)
     private static let listItem = regex(#"<li\b[^>]*>"#)
-    private static let blockquote = regex(#"<blockquote\b[^>]*>([\s\S]*?)</blockquote\s*>"#)
+    private static let blockquote = regex(#"<blockquote\b[^>]*>((?:(?!<blockquote\b)[\s\S])*?)</blockquote\s*>"#)
     private static let blockClose = regex(#"</(p|div|h[1-6]|ul|ol|table|tr|pre|figure|section|article)\s*>"#)
     private static let blockOpen = regex(#"<(p|div|h[1-6]|ul|ol|table|tr|pre|figure|section|article)\b[^>]*>"#)
     private static let cellClose = regex(#"</(td|th)\s*>"#)
@@ -82,17 +82,25 @@ nonisolated enum HTMLText {
         }
         text = replace(lineBreak, in: text, with: "\n")
         text = replace(listItem, in: text, with: "\n- ")
-        text = replace(blockquote, in: text) { match, source in
-            let inner = convert(source.substring(with: match.range(at: 1)))
-            let quoted = tidy(replace(anyTag, in: inner, with: ""))
-                .components(separatedBy: "\n")
-                .map { $0.isEmpty ? ">" : "> \($0)" }
-                .joined(separator: "\n")
-            return "\n\n\(quoted)\n\n"
-        }
         text = replace(blockClose, in: text, with: "\n\n")
         text = replace(blockOpen, in: text, with: "\n\n")
         text = replace(cellClose, in: text, with: " | ")
+        var depth = 0
+        while depth < 10,
+              blockquote.firstMatch(in: text, range: NSRange(location: 0, length: (text as NSString).length)) != nil {
+            text = replace(blockquote, in: text) { match, source in
+                let inner = source.substring(with: match.range(at: 1))
+                let quoted = tidy(replace(anyTag, in: inner, with: ""))
+                    .components(separatedBy: "\n")
+                    .map { line in
+                        if line.isEmpty { return ">" }
+                        return line.hasPrefix(">") ? ">\(line)" : "> \(line)"
+                    }
+                    .joined(separator: "\n")
+                return "\n\n\(quoted)\n\n"
+            }
+            depth += 1
+        }
         return replace(anyTag, in: text, with: "")
     }
 

@@ -31,6 +31,10 @@ final class FixtureWordPressServer: @unchecked Sendable {
     static let chatMarker = "FIXTURE-CHAT-ANSWER"
     static let chatQuestion = "What do readers say about the card?"
 
+    /// When set, a summary streams this long answer a chunk at a time, so a
+    /// performance test has a real stream to measure under.
+    var streamedSummary: (chunks: [String], interval: TimeInterval)?
+
     private let queue = DispatchQueue(label: "fixture-wordpress")
     private let lock = NSLock()
     private var listener: NWListener?
@@ -83,6 +87,10 @@ final class FixtureWordPressServer: @unchecked Sendable {
             if let data { buffer.append(data) }
             if let request = Self.parse(buffer) {
                 self.lock.withLock { self.log.append(request) }
+                if request.path == "/api/chat", let streamed = self.streamedSummary {
+                    self.stream(streamed.chunks, every: streamed.interval, over: connection)
+                    return
+                }
                 connection.send(content: self.response(for: request), completion: .contentProcessed { _ in
                     connection.cancel()
                 })
@@ -90,6 +98,23 @@ final class FixtureWordPressServer: @unchecked Sendable {
                 connection.cancel()
             } else {
                 self.receive(connection, buffer: buffer)
+            }
+        }
+    }
+
+    /// Ollama's stream with real pacing: no Content-Length, one line per chunk.
+    private func stream(_ chunks: [String], every interval: TimeInterval, over connection: NWConnection) {
+        let head = "HTTP/1.1 200 OK\r\nContent-Type: application/x-ndjson\r\nConnection: close\r\n\r\n"
+        connection.send(content: Data(head.utf8), completion: .contentProcessed { _ in })
+        for (index, chunk) in chunks.enumerated() {
+            queue.asyncAfter(deadline: .now() + interval * Double(index)) {
+                let done = index == chunks.count - 1
+                let object: [String: Any] = ["message": ["role": "assistant", "content": chunk], "done": done]
+                var line = (try? JSONSerialization.data(withJSONObject: object)) ?? Data()
+                line.append(0x0A)
+                connection.send(content: line, completion: .contentProcessed { _ in
+                    if done { connection.cancel() }
+                })
             }
         }
     }

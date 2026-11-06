@@ -264,7 +264,7 @@ struct SettingsHelpPage: View {
                 }
             } footer: {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Forumind works with Discourse forums. It is an independent app and is not affiliated with or endorsed by Civilized Discourse Construction Kit, Inc. Discourse is a trademark of its respective owner.")
+                    Text("Forumind works with \(SiteRecognizers.platformNames()) sites. It is an independent app and is not affiliated with or endorsed by Civilized Discourse Construction Kit, Inc. Discourse is a trademark of its respective owner.")
                     Text("WordPress is a trademark of the WordPress Foundation. Forumind is an independent app and is not affiliated with or endorsed by WordPress or the WordPress Foundation.")
                 }
             }

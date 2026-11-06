@@ -133,8 +133,11 @@ enum PostCitations {
     /// The cited post numbers in order of first appearance.
     static func numbers(in text: String, maximum: Int? = nil) -> [Int] {
         var seen: [Int] = []
-        for (_, number) in matches(in: text, maximum: maximum) where !seen.contains(number) {
-            seen.append(number)
+        _ = MarkdownCodeSpans.transform(text) { segment in
+            for (_, number) in matches(in: segment, maximum: maximum) where !seen.contains(number) {
+                seen.append(number)
+            }
+            return segment
         }
         return seen
     }
@@ -142,7 +145,7 @@ enum PostCitations {
     /// Rewrites `#37` as `[#37](forumind-post:37)` outside code. Numbers above
     /// `maximum` (the topic's highest post) stay plain text.
     static func linked(_ markdown: String, maximum: Int? = nil) -> String {
-        transform(markdown) { line in
+        MarkdownCodeSpans.transform(markdown) { line in
             let nsLine = line as NSString
             var result = ""
             var cursor = 0
@@ -158,14 +161,16 @@ enum PostCitations {
     /// The text without citations (read aloud, translated).
     static func stripped(_ markdown: String) -> String {
         guard let pattern else { return markdown }
-        let nsText = markdown as NSString
-        let removed = pattern.stringByReplacingMatches(
-            in: markdown, range: NSRange(location: 0, length: nsText.length), withTemplate: ""
-        )
-        // "fixes it #37 ; three" → "fixes it; three"
-        return removed
-            .replacingOccurrences(of: #"[ \t]+([.,;:!?。，；：！？])"#, with: "$1", options: .regularExpression)
-            .replacingOccurrences(of: #"[ \t]{2,}"#, with: " ", options: .regularExpression)
+        return MarkdownCodeSpans.transform(markdown) { segment in
+            let nsText = segment as NSString
+            let removed = pattern.stringByReplacingMatches(
+                in: segment, range: NSRange(location: 0, length: nsText.length), withTemplate: ""
+            )
+            // "fixes it #37 ; three" → "fixes it; three"
+            return removed
+                .replacingOccurrences(of: #"[ \t]+([.,;:!?。，；：！？])"#, with: "$1", options: .regularExpression)
+                .replacingOccurrences(of: #"[ \t]{2,}"#, with: " ", options: .regularExpression)
+        }
     }
 
     private static func matches(in text: String, maximum: Int?) -> [(NSRange, Int)] {
@@ -177,22 +182,101 @@ enum PostCitations {
             return (match.range, number)
         }
     }
+}
 
-    /// Applies `body` to the text outside fenced code blocks and inline code.
-    private static func transform(_ markdown: String, _ body: (String) -> String) -> String {
-        var inFence = false
+/// Walks Markdown lines while skipping fenced (` ``` ` / `~~~`) and inline
+/// backtick code spans so citation extractors and rewriters leave code alone.
+enum MarkdownCodeSpans {
+    static func mapLines(_ markdown: String, _ body: (String, [NSRange]) -> String) -> String {
+        var activeFence: (char: Character, length: Int)?
         return markdown.components(separatedBy: "\n").map { line in
-            if line.trimmingCharacters(in: .whitespaces).hasPrefix("```") {
-                inFence.toggle()
+            let trimmed = line.drop { $0 == " " || $0 == "\t" }
+            if let fence = activeFence {
+                if let first = trimmed.first, first == fence.char {
+                    let count = trimmed.prefix { $0 == first }.count
+                    let rest = trimmed.dropFirst(count)
+                    if count >= fence.length, rest.allSatisfy({ $0 == " " || $0 == "\t" || $0 == "\r" }) {
+                        activeFence = nil
+                    }
+                }
                 return line
             }
-            if inFence { return line }
-            // Odd pieces between backticks are inline code.
-            return line.components(separatedBy: "`").enumerated()
-                .map { $0.offset.isMultiple(of: 2) ? body($0.element) : $0.element }
-                .joined(separator: "`")
+            if let first = trimmed.first, first == "`" || first == "~" {
+                let count = trimmed.prefix { $0 == first }.count
+                let rest = trimmed.dropFirst(count)
+                if count >= 3, !(first == "`" && rest.contains("`")) {
+                    activeFence = (first, count)
+                    return line
+                }
+            }
+            return body(line, inlineRanges(in: line))
         }
         .joined(separator: "\n")
+    }
+
+    static func transform(_ markdown: String, _ body: (String) -> String) -> String {
+        mapLines(markdown) { line, codeRanges in
+            guard !codeRanges.isEmpty else { return body(line) }
+            let nsLine = line as NSString
+            var result = ""
+            var cursor = 0
+            for code in codeRanges {
+                if code.location > cursor {
+                    result += body(nsLine.substring(with: NSRange(location: cursor, length: code.location - cursor)))
+                }
+                result += nsLine.substring(with: code)
+                cursor = code.location + code.length
+            }
+            if cursor < nsLine.length {
+                result += body(nsLine.substring(from: cursor))
+            }
+            return result
+        }
+    }
+
+    static func inlineRanges(in line: String) -> [NSRange] {
+        let nsLine = line as NSString
+        let length = nsLine.length
+        let backtick: unichar = 0x60
+        var ranges: [NSRange] = []
+        var i = 0
+        while i < length {
+            guard nsLine.character(at: i) == backtick else {
+                i += 1
+                continue
+            }
+            var openEnd = i
+            while openEnd < length, nsLine.character(at: openEnd) == backtick { openEnd += 1 }
+            let runLength = openEnd - i
+            var search = openEnd
+            var closedAt: Int?
+            while search < length {
+                guard nsLine.character(at: search) == backtick else {
+                    search += 1
+                    continue
+                }
+                var closeEnd = search
+                while closeEnd < length, nsLine.character(at: closeEnd) == backtick { closeEnd += 1 }
+                if closeEnd - search == runLength {
+                    closedAt = closeEnd
+                    break
+                }
+                search = closeEnd
+            }
+            if let closeEnd = closedAt {
+                ranges.append(NSRange(location: i, length: closeEnd - i))
+                i = closeEnd
+            } else {
+                i = openEnd
+            }
+        }
+        return ranges
+    }
+
+    static func overlapsEndpoint(_ range: NSRange, codeRanges: [NSRange]) -> Bool {
+        guard range.length > 0 else { return false }
+        let last = range.location + range.length - 1
+        return codeRanges.contains { NSLocationInRange(range.location, $0) || NSLocationInRange(last, $0) }
     }
 }
 

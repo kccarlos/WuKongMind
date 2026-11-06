@@ -101,6 +101,14 @@ final class DrawerHintTests: XCTestCase {
 
     func testStrippedRemovesCitations() {
         XCTAssertEqual(PostCitations.stripped("It fixes it #37 ; three confirm #52 #88."), "It fixes it; three confirm.")
+        let summaryWithCode = "Confirmed in #5; keep `issue #2`, ``run `#4` now`` and:\n```\n#3 comment\n```\n~~~\n#6 tilde\n~~~"
+        XCTAssertEqual(PostCitations.numbers(in: summaryWithCode, maximum: 10), [5])
+        let stripped = PostCitations.stripped(summaryWithCode)
+        XCTAssertTrue(stripped.contains("`issue #2`"))
+        XCTAssertTrue(stripped.contains("``run `#4` now``"))
+        XCTAssertTrue(stripped.contains("#3 comment"))
+        XCTAssertTrue(stripped.contains("#6 tilde"))
+        XCTAssertFalse(stripped.contains("#5"))
     }
 }
 

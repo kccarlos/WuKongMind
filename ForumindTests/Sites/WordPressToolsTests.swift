@@ -280,4 +280,29 @@ final class WordPressToolsTests: XCTestCase {
         let overview = try await adapter.overview(TopicRef(siteURL: WordPressFixtureSite.siteURL, topicID: "1001"), net: site.network())
         XCTAssertEqual(overview.url.absoluteString, "https://example.com/?p=1001")
     }
+
+    func testWordPressAndDiscourseListingsStripInlineHTMLFromTitlesAndExcerpts() {
+        let wpJSON: [String: Any] = [
+            "id": 42,
+            "title": ["rendered": "Review: <em>The Pragmatic Programmer</em> &amp; <code>git</code>"],
+            "link": "https://blog.example.com/2026/05/review/"
+        ]
+        XCTAssertEqual(
+            WordPressParsing.parseArticle(wpJSON)?.title,
+            "Review: The Pragmatic Programmer & git"
+        )
+        XCTAssertEqual(
+            WordPressParsing.listing(wpJSON, siteURL: "https://blog.example.com")?.title,
+            "Review: The Pragmatic Programmer & git"
+        )
+
+        let discourseLatest = Data(#"""
+        {"topic_list":{"topics":[
+          {"id":99,"fancy_title":"Meta&rsquo;s <code>new</code> sidebar","slug":"metas-sidebar","posts_count":4,"excerpt":"See <a class=\"mention\" href=\"/u/bob\">@bob</a>&rsquo;s fix&hellip;"}
+        ]}}
+        """#.utf8)
+        let topics = DiscourseParsing.parseTopicList(discourseLatest, siteURL: "https://meta.discourse.org")
+        XCTAssertEqual(topics.first?.title, "Meta’s new sidebar")
+        XCTAssertEqual(topics.first?.excerpt, "See @bob’s fix…")
+    }
 }

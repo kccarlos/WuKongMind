@@ -669,18 +669,10 @@ struct PhoneAIButton: View {
 /// once the answer is ready and unseen.
 struct ResearchRing: View {
     @ObservedObject var app: AppModel
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         if let research = app.activeResearch {
-            Circle()
-                .trim(from: 0, to: max(0.08, research.progress ?? 0.25))
-                .stroke(DCTheme.brandGradient, style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
-                .rotationEffect(.degrees(-90))
-                .padding(4)
-                .animation(reduceMotion ? nil : .linear(duration: 0.3), value: research.progress)
-                .allowsHitTesting(false)
-                .accessibilityIdentifier("researchRing")
+            ResearchProgressArc(recordID: research.id, progress: app.progress)
         } else if app.readyAnswer != nil {
             Circle()
                 .stroke(DCTheme.brandGradient, lineWidth: 2.5)
@@ -688,6 +680,24 @@ struct ResearchRing: View {
                 .allowsHitTesting(false)
                 .accessibilityIdentifier("answerReadyRing")
         }
+    }
+}
+
+private struct ResearchProgressArc: View {
+    let recordID: UUID
+    @ObservedObject var progress: ProgressStore
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        let fraction = progress.value(for: recordID)
+        Circle()
+            .trim(from: 0, to: max(0.08, fraction ?? 0.25))
+            .stroke(DCTheme.brandGradient, style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
+            .rotationEffect(.degrees(-90))
+            .padding(4)
+            .animation(reduceMotion ? nil : .linear(duration: 0.3), value: fraction)
+            .allowsHitTesting(false)
+            .accessibilityIdentifier("researchRing")
     }
 }
 

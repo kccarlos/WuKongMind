@@ -178,35 +178,43 @@ enum AgentSources {
     /// Markdown view renders the number as a tappable chip.
     static func annotate(_ answer: String, sources: [Source], parse: Parse) -> String {
         guard let linkPattern, !sources.isEmpty else { return answer }
-        let nsAnswer = answer as NSString
-        var result = ""
-        var cursor = 0
-        for match in linkPattern.matches(in: answer, range: NSRange(location: 0, length: nsAnswer.length)) {
-            let title = nsAnswer.substring(with: match.range(at: 1))
-            let urlText = nsAnswer.substring(with: match.range(at: 2))
-            guard let url = URL(string: urlText), let number = source(for: url, in: sources, parse: parse)?.number else { continue }
-            result += nsAnswer.substring(with: NSRange(location: cursor, length: match.range.location - cursor))
-            // A bare "[S1](url)" or a title that is just the URL keeps only the chip.
-            let trimmed = title.trimmingCharacters(in: .whitespaces)
-            if trimmed.range(of: #"^S\d+$"#, options: .regularExpression) == nil, trimmed != urlText {
-                result += "\(trimmed) "
+        return MarkdownCodeSpans.mapLines(answer) { line, codeRanges in
+            let nsLine = line as NSString
+            var result = ""
+            var cursor = 0
+            for match in linkPattern.matches(in: line, range: NSRange(location: 0, length: nsLine.length))
+            where !MarkdownCodeSpans.overlapsEndpoint(match.range, codeRanges: codeRanges) {
+                let title = nsLine.substring(with: match.range(at: 1))
+                let urlText = nsLine.substring(with: match.range(at: 2))
+                guard let url = URL(string: urlText), let number = source(for: url, in: sources, parse: parse)?.number else { continue }
+                result += nsLine.substring(with: NSRange(location: cursor, length: match.range.location - cursor))
+                // A bare "[S1](url)" or a title that is just the URL keeps only the chip.
+                let trimmed = title.trimmingCharacters(in: .whitespaces)
+                if trimmed.range(of: #"^S\d+$"#, options: .regularExpression) == nil, trimmed != urlText {
+                    result += "\(trimmed) "
+                }
+                result += "[S\(number)](\(urlText))"
+                cursor = match.range.location + match.range.length
             }
-            result += "[S\(number)](\(urlText))"
-            cursor = match.range.location + match.range.length
+            return result + nsLine.substring(from: cursor)
         }
-        result += nsAnswer.substring(from: cursor)
-        return result
     }
 
     private static func links(in text: String) -> [(String, URL)] {
         guard let linkPattern else { return [] }
-        let nsText = text as NSString
-        return linkPattern.matches(in: text, range: NSRange(location: 0, length: nsText.length))
-            .compactMap { match in
-                let title = nsText.substring(with: match.range(at: 1))
-                guard let url = URL(string: nsText.substring(with: match.range(at: 2))) else { return nil }
-                return (title, url)
+        var found: [(String, URL)] = []
+        _ = MarkdownCodeSpans.mapLines(text) { line, codeRanges in
+            let nsLine = line as NSString
+            for match in linkPattern.matches(in: line, range: NSRange(location: 0, length: nsLine.length))
+            where !MarkdownCodeSpans.overlapsEndpoint(match.range, codeRanges: codeRanges) {
+                let title = nsLine.substring(with: match.range(at: 1))
+                if let url = URL(string: nsLine.substring(with: match.range(at: 2))) {
+                    found.append((title, url))
+                }
             }
+            return line
+        }
+        return found
     }
 }
 
@@ -432,7 +440,6 @@ extension AppModel {
                                    title: topic.title, url: topic.url, provider: sampleProvider, model: sampleModel)
             value.status = status
             value.statusText = text
-            value.progress = status == .completed ? 1 : nil
             value.createdAt = ago(minutes + 2)
             value.updatedAt = ago(minutes)
             value.completedAt = status.isTerminal ? ago(minutes) : nil
@@ -460,7 +467,7 @@ extension AppModel {
             )
             agentRecord.status = .running
             agentRecord.statusText = text.agentRunningStatus
-            agentRecord.progress = WorkProgress.agent(completedSteps: 3, maxSteps: 8, within: 0.1)
+            progress.set(WorkProgress.agent(completedSteps: 3, maxSteps: 8, within: 0.1), for: agentRecord.id)
             activities.insert(agentRecord, at: 0)
             sampleTickers.append { [weak self] tick in
                 // Reading, then summarizing, the step's topic.
@@ -472,8 +479,8 @@ extension AppModel {
             }
         }
         if AssistantDebug.has("-dc-summary-running") {
-            var summaryRecord = record(.summary, openTopic, 0, status: .running, text: text.summaryRunningStatus)
-            summaryRecord.progress = 0.62
+            let summaryRecord = record(.summary, openTopic, 0, status: .running, text: text.summaryRunningStatus)
+            progress.set(0.62, for: summaryRecord.id)
             activities.insert(summaryRecord, at: 0)
             sampleTickers.append { [weak self] tick in
                 // Parts 4…7 of 7, then the final pass, as a real run reports them.
@@ -488,7 +495,7 @@ extension AppModel {
                 }
                 self?.debugAdvanceSample(
                     recordID: summaryRecord.id,
-                    progress: WorkProgress.summary(ai: tracker.fraction),
+                    progress: min(0.15 + 0.85 * tracker.fraction, SummaryProgressTracker.ceiling),
                     statusText: tracker.statusText
                 )
             }
@@ -547,7 +554,6 @@ extension AppModel {
             )
             readyRecord.status = .completed
             readyRecord.statusText = String(localized: "Answered")
-            readyRecord.progress = 1
             readyRecord.createdAt = ago(3)
             readyRecord.completedAt = ago(1)
             activities.insert(readyRecord, at: 0)

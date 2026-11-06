@@ -176,7 +176,7 @@ extension WordPressParsing {
     /// on the site.
     static func listing(_ json: [String: Any], siteURL: String) -> ForumTopicListing? {
         guard let id = json["id"] as? Int, id > 0 else { return nil }
-        let title = oneLine(rendered(json["title"]))
+        let title = oneLineHTML(rendered(json["title"]))
         var listing = placeholderListing(id: id, siteURL: siteURL)
         if !title.isEmpty { listing.title = title }
         if let link = (json["link"] as? String).flatMap({ URL(string: $0.trimmingCharacters(in: .whitespacesAndNewlines)) }),
@@ -184,7 +184,7 @@ extension WordPressParsing {
             listing.url = link
         }
         listing.lastPostedAt = timestamp(json["date_gmt"] as? String)
-        let excerpt = oneLine(HTMLText.plainText(rendered(json["excerpt"])))
+        let excerpt = oneLineHTML(rendered(json["excerpt"]))
         listing.excerpt = excerpt.isEmpty ? nil : String(excerpt.prefix(300))
         return listing
     }

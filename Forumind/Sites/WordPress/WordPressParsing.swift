@@ -3,7 +3,7 @@ import Foundation
 /// The article of a post or page, as the REST API gave it.
 struct WordPressArticle: Equatable, Sendable {
     var id: Int
-    /// One line, entities decoded; empty when the post has no title.
+    /// One line, HTML stripped and entities decoded; empty when the post has no title.
     var title: String
     var link: String
     var published: Date?
@@ -54,7 +54,7 @@ nonisolated enum WordPressParsing {
         let author = ((embedded?["author"] as? [Any])?.first as? [String: Any])?["name"] as? String
         return WordPressArticle(
             id: id,
-            title: oneLine(rendered(json["title"])),
+            title: oneLineHTML(rendered(json["title"])),
             link: (json["link"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines),
             published: date(gmt: json["date_gmt"] as? String),
             modified: json["modified_gmt"] as? String,
@@ -86,6 +86,11 @@ nonisolated enum WordPressParsing {
     /// Entities decoded once, whitespace runs collapsed.
     static func oneLine(_ value: String) -> String {
         HTMLText.decodeEntities(value).split(whereSeparator: \.isWhitespace).joined(separator: " ")
+    }
+
+    /// HTML stripped, entities decoded once, whitespace runs collapsed.
+    static func oneLineHTML(_ value: String) -> String {
+        HTMLText.plainText(value).split(whereSeparator: \.isWhitespace).joined(separator: " ")
     }
 
     /// `2026-05-14T17:02:05` (GMT, no zone) → `2026-05-14 17:02 UTC`; nil when it is not a date.

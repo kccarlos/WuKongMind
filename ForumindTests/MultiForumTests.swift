@@ -490,6 +490,18 @@ final class MultiForumTests: XCTestCase {
         XCTAssertFalse(adopts("https://meta.discourse.org/latest"))
         XCTAssertFalse(adopts("https://other.example.net/t/new-topic/9"))
         XCTAssertFalse(ForumBrowserModel.isSamePage(URL(string: "https://meta.discourse.org/t/new-topic/9")!, nil, registry: .standard))
+
+        let wpShown = URL(string: "https://blog.example.com/?p=202")!
+        XCTAssertFalse(
+            ForumBrowserModel.isSamePage(URL(string: "https://blog.example.com/?p=101")!, wpShown, registry: .standard),
+            "Two distinct WordPress ?p= post URLs must not be treated as the same page"
+        )
+        XCTAssertFalse(
+            ForumBrowserModel.isSamePage(URL(string: "https://blog.example.com/?p=101")!, URL(string: "https://blog.example.com/")!, registry: .standard)
+        )
+        XCTAssertTrue(
+            ForumBrowserModel.isSamePage(URL(string: "https://blog.example.com/?p=202&utm=1#comments")!, wpShown, registry: .standard)
+        )
     }
 
     /// A post opened while its topic is still loading must not start a second

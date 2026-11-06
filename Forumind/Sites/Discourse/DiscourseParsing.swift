@@ -194,8 +194,13 @@ enum DiscourseParsing {
             return []
         }
         return topics.compactMap {
-            listing(from: $0, siteURL: siteURL, excerpt: $0["excerpt"] as? String)
+            let excerpt = ($0["excerpt"] as? String).map(oneLineHTML).flatMap { $0.isEmpty ? nil : $0 }
+            return listing(from: $0, siteURL: siteURL, excerpt: excerpt)
         }
+    }
+
+    nonisolated static func oneLineHTML(_ html: String) -> String {
+        DiscourseHTML.plainText(html).split(whereSeparator: \.isWhitespace).joined(separator: " ")
     }
 
     /// The topic page, or the site when the ID makes no URL.
@@ -209,8 +214,10 @@ enum DiscourseParsing {
         siteURL: String,
         excerpt: String?
     ) -> ForumTopicListing? {
+        let rawTitle = (topic["title"] as? String).map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            ?? (topic["fancy_title"] as? String).map(oneLineHTML)
         guard let id = topic["id"] as? Int,
-              let title = (topic["title"] as? String ?? topic["fancy_title"] as? String)
+              let title = rawTitle
         else {
             return nil
         }
@@ -218,7 +225,7 @@ enum DiscourseParsing {
         return ForumTopicListing(
             siteURL: siteURL,
             id: id,
-            title: title.trimmingCharacters(in: .whitespacesAndNewlines),
+            title: title,
             slug: slug,
             url: Self.topicURL(siteURL: siteURL, topicID: String(id), slug: slug),
             postsCount: topic["posts_count"] as? Int ?? 0,
@@ -228,6 +235,32 @@ enum DiscourseParsing {
             likeCount: topic["like_count"] as? Int,
             hasAcceptedAnswer: topic["has_accepted_answer"] as? Bool
         )
+    }
+
+    /// Normalizes a Discourse `/raw/{id}` page (`\n\n-------------------------\n\n`
+    /// between posts) into `RawTopicFormat` (`\n\n\n` between posts, no triple
+    /// newlines inside a post body, trailing newline). Non-`/raw` text is
+    /// returned unchanged.
+    nonisolated static func normalizeRawPage(_ raw: String) -> String {
+        let headers = RawTopicFormat.parseHeaders(raw)
+        guard let first = headers.first else { return raw }
+        let text = raw as NSString
+        guard text.substring(to: first.range.location).trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return raw
+        }
+        return headers.enumerated().map { index, header in
+            let headerLine = text.substring(with: header.range)
+            let bodyStart = header.range.location + header.range.length
+            let bodyEnd = index + 1 < headers.count ? headers[index + 1].range.location : text.length
+            let slice = text.substring(with: NSRange(location: bodyStart, length: bodyEnd - bodyStart))
+            let stripped = slice.replacingOccurrences(
+                of: #"(?:\r?\n)+-{5,}[ \t]*\s*\z"#,
+                with: "",
+                options: .regularExpression
+            )
+            return headerLine + "\n" + RawTopicFormat.sanitizedBody(stripped)
+        }
+        .joined(separator: RawTopicFormat.blockSeparator) + "\n"
     }
 
     nonisolated static func postCount(from json: [String: Any]) throws -> Int {
