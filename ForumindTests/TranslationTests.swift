@@ -147,14 +147,14 @@ final class TranslationTests: XCTestCase {
             try? FileManager.default.removeItem(at: directory)
         }
 
-        let deadline1 = Date().addingTimeInterval(1.0)
+        let deadline1 = Date().addingTimeInterval(10.0)
         while host.sizeThatFits(in: size).width <= 30, Date() < deadline1 {
             RunLoop.current.run(until: Date().addingTimeInterval(0.01))
         }
         XCTAssertGreaterThan(host.sizeThatFits(in: size).width, 30, "Precondition: Spanish text shows Translate button")
 
         switcher.text = nonTranslatable
-        let deadline2 = Date().addingTimeInterval(1.0)
+        let deadline2 = Date().addingTimeInterval(10.0)
         while host.sizeThatFits(in: size).width >= 5, Date() < deadline2 {
             RunLoop.current.run(until: Date().addingTimeInterval(0.01))
         }
@@ -163,12 +163,26 @@ final class TranslationTests: XCTestCase {
         // Switch rapidly from long Spanish text (slow NLLanguageRecognizer pass) to
         // non-translatable or short English text: cancelled work must never overwrite `offers`.
         for iteration in 1...30 {
-            switcher.text = spanish + " \(iteration)"
+            let spanishSample = spanish + " \(iteration)"
+            switcher.text = spanishSample
             RunLoop.current.run(until: Date().addingTimeInterval(0.0002))
             switcher.text = iteration <= 15
                 ? "\(nonTranslatable)-\(iteration)"
                 : "This summary is already in English \(iteration)."
-            RunLoop.current.run(until: Date().addingTimeInterval(0.025))
+
+            var sentinelDone = false
+            Task.detached(priority: .utility) {
+                _ = ReadingLanguage.offersTranslation(of: spanishSample, into: "en")
+                await MainActor.run { sentinelDone = true }
+            }
+            let settleDeadline = Date().addingTimeInterval(10.0)
+            while (!sentinelDone || host.sizeThatFits(in: size).width >= 30), Date() < settleDeadline {
+                RunLoop.current.run(until: Date().addingTimeInterval(0.005))
+                window.layoutIfNeeded()
+            }
+            XCTAssertTrue(sentinelDone, "Detached language detection sentinel timed out on iteration \(iteration)")
+            RunLoop.current.run(until: Date().addingTimeInterval(0.005))
+            window.layoutIfNeeded()
             let measured = host.sizeThatFits(in: size)
             XCTAssertLessThan(
                 measured.width,

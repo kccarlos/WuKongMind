@@ -28,14 +28,15 @@ struct TranslateButton: View {
     let title: String
     let text: String
     var compact = false
-    @State private var offers = false
+    @State private var offeredFor: [String]?
     @State private var presented = false
 
     private var readingLanguage: String { ReadingLanguage.resolved(app.settings.readingLanguage) }
+    private var key: [String] { [readingLanguage, text] }
 
     var body: some View {
         Group {
-            if offers {
+            if offeredFor == key {
                 Button {
                     DCHaptics.tap()
                     presented = true
@@ -58,17 +59,17 @@ struct TranslateButton: View {
             }
         }
         // Detecting the language is quick but not free: once per text.
-        .task(id: [readingLanguage, text]) {
-            let text = text, target = readingLanguage
+        .task(id: key) {
+            let key = key, text = text, target = readingLanguage
             guard ReadingLanguage.isTranslationAvailable, text.contains(where: { $0.isLetter }) else {
-                offers = false
+                offeredFor = nil
                 return
             }
             let job = Task.detached(priority: .utility) {
                 Task.isCancelled ? false : ReadingLanguage.offersTranslation(of: text, into: target)
             }
             let detected = await withTaskCancellationHandler { await job.value } onCancel: { job.cancel() }
-            if !Task.isCancelled { offers = detected }
+            if !Task.isCancelled { offeredFor = detected ? key : nil }
         }
     }
 }

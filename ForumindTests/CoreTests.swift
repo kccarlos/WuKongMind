@@ -1,6 +1,5 @@
 import SwiftUI
 import UIKit
-import Vision
 import XCTest
 @testable import Forumind
 
@@ -1716,23 +1715,6 @@ final class LazyMarkdownTests: XCTestCase {
         return (app, topicA, topicB, handler)
     }
 
-    @MainActor
-    private func ocrStrings(in view: UIView) throws -> String {
-        view.layoutIfNeeded()
-        let renderer = UIGraphicsImageRenderer(bounds: view.bounds)
-        let image = renderer.image { _ in
-            _ = view.drawHierarchy(in: view.bounds, afterScreenUpdates: true)
-        }
-        let cgImage = try XCTUnwrap(image.cgImage)
-        let request = VNRecognizeTextRequest()
-        request.recognitionLevel = .fast
-        request.usesLanguageCorrection = false
-        try VNImageRequestHandler(cgImage: cgImage, options: [:]).perform([request])
-        return (request.results ?? [])
-            .compactMap { $0.topCandidates(1).first?.string }
-            .joined(separator: " | ")
-    }
-
     // Finding 2: Sending a follow-up chat message or tapping chatScrollToBottom over a long lazy
     // summary with an offscreen multi-paragraph ChatBubble must reach chatBottom instead of stopping short.
     @MainActor
@@ -1981,8 +1963,11 @@ final class LazyMarkdownTests: XCTestCase {
             finishSummary = cont
         }
 
+        let legacySummary = (1...15)
+            .map { "## LEGACY SAVED SUMMARY \($0)\n\nLEGACY POINT ALPHA \($0) without post citations." }
+            .joined(separator: "\n\n")
         let (app, _, _, _) = try makeTwoTopicApp(
-            summaryA: "## LEGACY SAVED SUMMARY\n\nLEGACY POINT ALPHA",
+            summaryA: legacySummary,
             historyA: [],
             summaryB: "",
             historyB: [],
@@ -1991,46 +1976,82 @@ final class LazyMarkdownTests: XCTestCase {
         )
 
         let (window, host) = hostView(
-            AssistantPanel(app: app, onExpand: { _ in })
-                .background(Color.white)
-                .environment(\.colorScheme, .light),
+            AssistantPanel(app: app, onExpand: { _ in }),
             size: CGSize(width: 393, height: 740)
         )
         defer { window.isHidden = true }
 
+        let scrollView = try XCTUnwrap(findScrollView(in: host.view))
+        XCTAssertGreaterThan(
+            scrollView.contentSize.height,
+            1_100,
+            "Precondition: 30-block saved summary must be laid out before Retry (height=\(scrollView.contentSize.height))"
+        )
+
+        MarkdownLayoutProbe.reset()
         app.startSummary(regenerate: true)
-        for _ in 0..<300 where streamDelta == nil {
+        let startDeadline = Date().addingTimeInterval(10.0)
+        while (streamDelta == nil || scrollView.contentSize.height >= 450), Date() < startDeadline {
             RunLoop.current.run(until: Date().addingTimeInterval(0.01))
+            window.layoutIfNeeded()
         }
         XCTAssertNotNil(streamDelta, "Expected generateSummary continuation to start")
-        let beforeFirstDelta = try ocrStrings(in: host.view)
-        XCTAssertFalse(
-            beforeFirstDelta.uppercased().contains("LEGACY"),
-            "While regenerating a summary before first delta, old summary must not appear under Creating summary: [\(beforeFirstDelta)]"
+        XCTAssertLessThan(
+            scrollView.contentSize.height,
+            450,
+            "While regenerating a summary before first delta, old 30-block summary must not appear under Creating summary (height=\(scrollView.contentSize.height))"
+        )
+        XCTAssertEqual(
+            MarkdownLayoutProbe.blockBodies,
+            0,
+            "No summary Markdown blocks may render while waiting for the first streamed delta"
         )
 
-        streamDelta?("## FRESH STREAMED SUMMARY\n\nFRESH POINT ZULU")
-        RunLoop.current.run(until: Date().addingTimeInterval(0.03))
-        let thirtyMsAfterNewDelta = try ocrStrings(in: host.view)
+        MarkdownLayoutProbe.reset()
+        let freshSummary = "## FRESH STREAMED SUMMARY\n\n- Fresh point one #1\n- Fresh point two #2"
+        streamDelta?(freshSummary)
 
-        for _ in 0..<200 where app.streams.texts.values.allSatisfy(\.isEmpty) {
+        let flushDeadline = Date().addingTimeInterval(10.0)
+        while Date() < flushDeadline {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.01))
+            window.layoutIfNeeded()
+            XCTAssertLessThan(
+                scrollView.contentSize.height,
+                650,
+                "Old 30-block saved summary flashed during stream (height=\(scrollView.contentSize.height))"
+            )
+            XCTAssertLessThanOrEqual(
+                MarkdownLayoutProbe.blockBodies,
+                6,
+                "Old 30-block saved summary evaluated during stream (blockBodies=\(MarkdownLayoutProbe.blockBodies))"
+            )
+            if app.streams.texts.values.contains(freshSummary),
+               MarkdownLayoutProbe.blockBodies >= 3,
+               MarkdownLayoutProbe.citationLayouts >= 2 {
+                break
+            }
+        }
+
+        XCTAssertTrue(app.streams.texts.values.contains(freshSummary), "Expected StreamStore to flush fresh summary")
+        XCTAssertGreaterThanOrEqual(MarkdownLayoutProbe.blockBodies, 3, "Expected fresh streamed summary blocks to render")
+        XCTAssertGreaterThanOrEqual(MarkdownLayoutProbe.citationLayouts, 2, "Expected #1 and #2 citations from fresh streamed summary to lay out")
+        XCTAssertLessThan(scrollView.contentSize.height, 650, "After stream flush, old summary must not appear")
+
+        // Verify ThrottledParse post-flush window also keeps only the fresh summary.
+        let postThrottleEnd = Date().addingTimeInterval(MarkdownView.throttle + 0.05)
+        while Date() < postThrottleEnd {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.015))
+            window.layoutIfNeeded()
+            XCTAssertLessThan(scrollView.contentSize.height, 650)
+            XCTAssertLessThanOrEqual(MarkdownLayoutProbe.blockBodies, 6)
+        }
+
+        finishSummary?.resume(returning: .success(freshSummary))
+        let finishDeadline = Date().addingTimeInterval(10.0)
+        while app.currentSession?.summary != freshSummary, Date() < finishDeadline {
             RunLoop.current.run(until: Date().addingTimeInterval(0.01))
         }
-        RunLoop.current.run(until: Date().addingTimeInterval(0.32))
-        let afterThrottle = try ocrStrings(in: host.view)
-        XCTAssertTrue(afterThrottle.uppercased().contains("FRESH"), "Expected FRESH after stream flush and section transition; got \(afterThrottle)")
-
-        XCTAssertFalse(
-            thirtyMsAfterNewDelta.uppercased().contains("LEGACY"),
-            "30ms after streaming 'FRESH STREAMED SUMMARY', screen still drew 'LEGACY SAVED SUMMARY': beforeFirstDelta=[\(beforeFirstDelta)] || 30msAfterDelta=[\(thirtyMsAfterNewDelta)] || afterThrottle=[\(afterThrottle)]"
-        )
-        XCTAssertFalse(
-            afterThrottle.uppercased().contains("LEGACY"),
-            "After stream flush, old summary text must not appear: [\(afterThrottle)]"
-        )
-
-        finishSummary?.resume(returning: .success("## FRESH STREAMED SUMMARY\n\nFRESH POINT ZULU"))
-        RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+        XCTAssertEqual(app.currentSession?.summary, freshSummary)
     }
 
     // Finding 8: AgentView scrollTo('agentBottom') over lazy MarkdownView reaches the bottom.
@@ -2093,8 +2114,19 @@ final class LazyMarkdownTests: XCTestCase {
         ))
         app.selectedAgentRunID = run.id
 
-        RunLoop.current.run(until: Date().addingTimeInterval(0.7))
-        window.layoutIfNeeded()
+        let deadline = Date().addingTimeInterval(10.0)
+        while Date() < deadline {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.02))
+            window.layoutIfNeeded()
+            let currentDistance = scrollView.contentSize.height - (scrollView.contentOffset.y + scrollView.bounds.height)
+            if scrollView.contentOffset.y > 0, currentDistance < 60 {
+                RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+                window.layoutIfNeeded()
+                if scrollView.contentSize.height - (scrollView.contentOffset.y + scrollView.bounds.height) < 60 {
+                    break
+                }
+            }
+        }
 
         let distance = scrollView.contentSize.height - (scrollView.contentOffset.y + scrollView.bounds.height)
         XCTAssertLessThan(

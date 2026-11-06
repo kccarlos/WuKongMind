@@ -337,6 +337,7 @@ struct ThrottledParse<Input: Equatable, Output> {
 func settleScroll(
     animated: Bool = true,
     reduceMotion: Bool = false,
+    onSettling: @MainActor () -> Void = {},
     shouldStop: @MainActor () -> Bool = { false },
     scroll: @MainActor () -> Void
 ) async {
@@ -344,6 +345,8 @@ func settleScroll(
         withAnimation(.easeOut(duration: reduceMotion ? 0.04 : 0.16)) { scroll() }
         try? await Task.sleep(for: .milliseconds(reduceMotion ? 50 : 180))
     }
+    if Task.isCancelled || shouldStop() { return }
+    onSettling()
     var transaction = Transaction()
     transaction.disablesAnimations = true
     for _ in 0..<24 {
@@ -355,22 +358,65 @@ func settleScroll(
 
 @available(iOS 18.0, *)
 private struct BottomEdgeScrollModifier: ViewModifier {
+    private struct BottomState: Equatable {
+        var contentHeight: Int
+        var nearBottom: Bool
+    }
+
     let trigger: Int
     let reduceMotion: Bool
     @State private var position = ScrollPosition(edge: .top)
     @State private var scrolling = false
+    @State private var following = false
 
     func body(content: Content) -> some View {
         content
             .scrollPosition($position)
-            .onScrollPhaseChange { _, phase in scrolling = phase == .interacting || phase == .decelerating }
+            .onScrollPhaseChange { _, phase in
+                if phase == .interacting || phase == .decelerating {
+                    scrolling = true
+                    following = false
+                } else if scrolling {
+                    scrolling = false
+                }
+            }
+            .onScrollGeometryChange(for: BottomState.self) { geometry in
+                BottomState(
+                    contentHeight: Int(geometry.contentSize.height.rounded()),
+                    nearBottom: geometry.contentSize.height - geometry.visibleRect.maxY < 48
+                )
+            } action: { old, new in
+                guard following, !scrolling, !new.nearBottom else { return }
+                if new.contentHeight > old.contentHeight {
+                    snapToBottom()
+                    DispatchQueue.main.async {
+                        if following, !scrolling { snapToBottom() }
+                    }
+                } else if old.nearBottom {
+                    following = false
+                }
+            }
             .task(id: trigger) {
-                guard trigger > 0 else { return }
+                guard trigger > 0 else {
+                    following = false
+                    return
+                }
                 scrolling = false
-                await settleScroll(reduceMotion: reduceMotion, shouldStop: { scrolling }) {
+                following = false
+                await settleScroll(
+                    reduceMotion: reduceMotion,
+                    onSettling: { following = true },
+                    shouldStop: { scrolling }
+                ) {
                     position.scrollTo(edge: .bottom)
                 }
             }
+    }
+
+    private func snapToBottom() {
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) { position.scrollTo(edge: .bottom) }
     }
 }
 
