@@ -2,11 +2,7 @@ import Foundation
 
 extension DiscourseAdapter {
     var suggestedForums: SuggestedForums {
-        #if DEBUG
-        SuggestedForums(general: Self.generalSuggestions, chinese: Self.chineseSuggestions, sample: Self.sampleSuggestions)
-        #else
         SuggestedForums(general: Self.generalSuggestions, chinese: Self.chineseSuggestions)
-        #endif
     }
 
     /// Offered first in the walkthrough when the app language is Chinese.
@@ -57,27 +53,4 @@ extension DiscourseAdapter {
             description: String(localized: "Home automation setups, integrations, and troubleshooting.", comment: "Description of a suggested forum")
         )
     ]
-
-    #if DEBUG
-    /// Offered instead of the real ones with `-dc-sample` / `-dc-seed-forums`,
-    /// so screenshots show fictional communities (reserved example domains).
-    /// Names in the app's language (SampleContent.swift).
-    static var sampleSuggestions: [SuggestedForum] {
-        let text = SampleContent.current
-        return [
-            SuggestedForum(
-                kind: .discourse,
-                name: text.boardGames.name,
-                siteURL: text.boardGames.siteURL,
-                description: text.boardGamesDescription
-            ),
-            SuggestedForum(
-                kind: .discourse,
-                name: text.gardeners.name,
-                siteURL: text.gardeners.siteURL,
-                description: text.gardenersDescription
-            )
-        ]
-    }
-    #endif
 }

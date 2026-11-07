@@ -17,9 +17,6 @@ Forumind/AppModel.swift|string: "https://meta.discourse.org/t/ui-test-keep/99999
 Forumind/AppModel.swift|string: "https://meta.discourse.org/t/ui-test-topic/999999"
 Forumind/ForumSite.swift|return "\(site.host)\(site.basePath)/t/\(id)"
 Forumind/Podcast/PodcastScript.swift|(#"/t/[\w-]*/?\d"#, "a forum link"),
-Forumind/SampleContent.swift|See the [announcement](https://meta.discourse.org/t/introducing-the-unified-new-view-for-the-topic-list/404728) for screenshots.
-Forumind/SampleContent.swift|截图见[公告帖](https://devs.example.com/t/introducing-the-unified-new-view-for-the-topic-list/404728)。
-Forumind/SampleContent.swift|截圖請見[公告](https://devs.example.com/t/introducing-the-unified-new-view-for-the-topic-list/404728)。
 # Added in S2 (Forum.kind):
 #   - the pre-kind decode default is owner decision 1 (remove once every device ran P0);
 #   - the DEBUG sample seeds name the Discourse kind once per seed function (`let kind`),

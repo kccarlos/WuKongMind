@@ -596,31 +596,45 @@ extension AppModel {
 
     #if DEBUG
     /// `-dc-digest-sample` (with `-dc-sample`): today's digest with two
-    /// finished cards and one waiting, in memory only.
+    /// finished cards and one waiting (`-dc-digest-sample done`: all three
+    /// finished), in memory only.
     func seedDigestSample() {
         let text = SampleContent.current
         var watched = DigestCard(
-            siteURL: text.meta.siteURL, topicID: "404728", title: text.unifiedNewTitle,
-            slug: "introducing-the-unified-new-view-for-the-topic-list",
-            reason: .newReplies(5), postCount: 68, firstNewPost: 64, topPost: 12
+            siteURL: text.meta.siteURL, topicID: "241807", title: text.tipsTitle,
+            slug: "new-user-tips-read-this-before-your-first-post",
+            reason: .newReplies(5), postCount: 88, firstNewPost: 84, topPost: 14
         )
-        watched.summary = text.digestBlurbs.first ?? ""
+        watched.summary = text.digestBlurbs[0]
         watched.state = .done
         watched.source = .topic
         var trending = DigestCard(
-            siteURL: text.makers.siteURL, topicID: "18342", title: text.layerShiftsTitle,
-            slug: "layer-shifts-on-long-prints-after-the-2-4-firmware-update",
-            reason: .trending, postCount: 41, acceptedAnswerPost: 17
+            siteURL: text.openAI.siteURL, topicID: "1088142", title: text.rateLimitErrorsTitle,
+            slug: "rate-limit-errors-only-during-streamed-tool-calls",
+            reason: .trending, postCount: 42, acceptedAnswerPost: 4
         )
-        trending.summary = text.digestBlurbs.last ?? ""
+        trending.summary = text.digestBlurbs[1]
         trending.state = .done
         trending.source = .savedSummary
-        let waiting = DigestCard(
-            siteURL: text.makers.siteURL, topicID: "18391", title: text.stepperHeatTitle,
-            slug: "stepper-drivers-overheating-in-enclosed-printers",
-            reason: .trending, postCount: 23
+        var waiting = DigestCard(
+            siteURL: text.openAI.siteURL, topicID: "1079884", title: text.longThreadsTitle,
+            slug: "best-practices-for-long-running-assistant-threads",
+            reason: .trending, postCount: 32
         )
-        digests = [DailyDigest(day: todayKey, cards: [watched, trending, waiting])]
+        // `-dc-digest-sample done`: all three finished (store screenshots).
+        if AssistantDebug.value("-dc-digest-sample") == "done" {
+            waiting.summary = text.digestBlurbs[2]
+            waiting.state = .done
+            waiting.source = .topic
+        }
+        var digest = DailyDigest(day: todayKey, cards: [watched, trending, waiting])
+        if digest.isComplete {
+            // Made a few minutes before the screenshots' 9:41 status bar.
+            let made = Calendar.current.date(bySettingHour: 9, minute: 30, second: 0, of: Date()) ?? Date()
+            digest.createdAt = made
+            digest.completedAt = made
+        }
+        digests = [digest]
     }
     #endif
 }

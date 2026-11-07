@@ -184,7 +184,11 @@ final class OnboardingUITests: DCUITestCase {
 
         let app = launch(["-dc-sample", "-dc-no-forums", "-dc-onboarding-step", "forums"])
         let addrField = app.textFields["onboardingForumAddress"]
-        for _ in 0..<4 where !addrField.isHittable { app.swipeUp() }
+        let footer = app.buttons["onboardingContinue"]
+        XCTAssertTrue(footer.waitForExistence(timeout: 10))
+        // isHittable passes for a field under the bottom bar: accessibility hit-testing
+        // ignores the bar's background, but a tap lands on it and never focuses the field.
+        for _ in 0..<4 where addrField.frame.maxY > footer.frame.minY - 8 { app.swipeUp() }
         XCTAssertTrue(waitForHittable(addrField, timeout: 10))
         addrField.tap()
         // Submit with the Go key rather than tapping Add: on iPad the keyboard

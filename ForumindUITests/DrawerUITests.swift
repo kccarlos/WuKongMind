@@ -71,18 +71,83 @@ final class DrawerUITests: DCUITestCase {
     }
 
     func testFirstRunHintLayout() throws {
-        try requireNetwork()
         let app = launch(sample + ["-dc-drawer-first-run", "-dc-no-summary"])
         XCTAssertTrue(app.buttons["dockHintText"].waitForExistence(timeout: 20))
-        XCTAssertTrue(app.webViews.staticTexts.matching(label(contains: "What is unified new?")).firstMatch.waitForExistence(timeout: 30))
+        XCTAssertTrue(app.webViews.staticTexts.matching(label(contains: "forum_team")).firstMatch.waitForExistence(timeout: 30))
         captureAuditScreen("base-drawer-nosummary-hint", in: app)
     }
 
-    func testSummaryCitationLayout() {
-        let app = launch(sample + ["-dc-drawer-detent", "large"])
+    func testSummaryCitationLayout() throws {
+        try skipUnlessPhone("Summary citation layout")
+        let app = launch(sample + ["-dc-drawer-detent", "large", "-AppleInterfaceStyle", "Light"])
         XCTAssertTrue(drawerState(in: app).waitForExistence(timeout: 20))
         XCTAssertTrue(app.buttons["citation-1"].firstMatch.waitForExistence(timeout: 10))
         captureAuditScreen("base-drawer-summary-large", in: app)
+        try assertCitationChips(["citation-1", "citation-7", "citation-9", "citation-12"], in: app)
+        // The takeaways cite #1 again; at this size that chip wraps to the start of its line.
+        let window = app.windows.firstMatch
+        let from = window.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.7))
+        from.press(forDuration: 0.05, thenDragTo: from.withOffset(CGVector(dx: 0, dy: -260)),
+                   withVelocity: .slow, thenHoldForDuration: 0.3)
+        try assertCitationChips(["citation-1", "citation-14"], in: app)
+    }
+
+    /// Measures each visible chip with the given ID (the sample cites some posts twice):
+    /// its full stop touches it, and a chip that wrapped starts at the text column.
+    private func assertCitationChips(_ ids: [String], in app: XCUIApplication) throws {
+        let screen = app.windows.firstMatch.frame
+        // Between the drawer's header and its composer: chips scrolled under either are hidden.
+        let top = any(app, "drawerHeader").frame.maxY, bottom = any(app, "askBox").frame.minY
+        let chips = try ids.map { id in
+            (id, try XCTUnwrap(app.buttons.matching(identifier: id).allElementsBoundByIndex.first {
+                $0.frame.minY >= top && $0.frame.maxY <= bottom
+            }, "\(id): expected a visible citation chip"))
+        }
+        let cgImage = try XCTUnwrap(app.screenshot().image.cgImage)
+        let scale = CGFloat(cgImage.width) / screen.width
+        func pixels(in frame: CGRect) throws -> (px: [UInt8], w: Int, h: Int) {
+            let rect = CGRect(x: frame.minX * scale, y: frame.minY * scale,
+                              width: frame.width * scale, height: frame.height * scale).integral
+            let crop = try XCTUnwrap(cgImage.cropping(to: rect))
+            let w = crop.width, h = crop.height
+            var px = [UInt8](repeating: 255, count: w * h * 4)
+            px.withUnsafeMutableBytes { bytes in
+                CGContext(data: bytes.baseAddress, width: w, height: h, bitsPerComponent: 8, bytesPerRow: w * 4,
+                          space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)?
+                    .draw(crop, in: CGRect(x: 0, y: 0, width: w, height: h))
+            }
+            return (px, w, h)
+        }
+        for (name, chip) in chips {
+            let (px, w, h) = try pixels(in: CGRect(x: 10, y: chip.frame.minY, width: chip.frame.maxX + 12 - 10, height: chip.frame.height))
+            func dark(_ i: Int) -> Bool { px[i] < 90 && px[i + 1] < 90 && px[i + 2] < 90 }
+            var pillMinX: Int?, pillMaxX: Int?
+            for y in 0..<h {
+                for x in 0..<w {
+                    let i = (y * w + x) * 4
+                    let r = Int(px[i]), g = Int(px[i + 1]), b = Int(px[i + 2])
+                    if r > 220 && g > 220 && b > 245 && b - r > 8 {
+                        pillMinX = min(pillMinX ?? x, x)
+                        pillMaxX = max(pillMaxX ?? x, x)
+                    }
+                }
+            }
+            let start = try XCTUnwrap(pillMinX, "\(name): expected citation pill"), edge = pillMaxX!
+            // Dark body text before the pill on its line (blue list markers do not count).
+            let textBefore = (h / 4..<(3 * h / 4)).contains { y in (0..<start).contains { dark((y * w + $0) * 4) } }
+            if !textBefore {
+                // Wrapped: bullet (34 pt) or numbered (42 pt) text column, not indented past it.
+                XCTAssertLessThanOrEqual(10 + CGFloat(start) / scale, 43, "\(name): a wrapped citation chip must align with the list text column")
+            }
+            var dotMinX: Int?
+            for y in 0..<h {
+                for x in (edge + 1)..<w where dark((y * w + x) * 4) {
+                    dotMinX = min(dotMinX ?? x, x)
+                }
+            }
+            let gap = CGFloat(try XCTUnwrap(dotMinX, "\(name): expected trailing full stop on same line") - edge - 1) / scale
+            XCTAssertLessThanOrEqual(gap, 2.0, "\(name): full stop must touch its chip without a space (got \(gap) pt)")
+        }
     }
 
     func testLatestMessageControlLeavesChatActionsUncovered() throws {
@@ -109,6 +174,9 @@ final class DrawerUITests: DCUITestCase {
         XCTAssertTrue(drawerState(in: app).waitForExistence(timeout: 20))
         let edit = app.buttons["Edit"].firstMatch
         XCTAssertTrue(reveal(edit, in: app, swipes: 48))
+        // reveal's swipes fling: a tap while the chat still glides misses the button.
+        var last = CGRect.null
+        XCTAssertTrue(wait(timeout: 5) { let frame = edit.frame; defer { last = frame }; return frame == last })
         edit.tap()
         let field = app.textFields["chatInput"]
         XCTAssertTrue(any(app, "chatEditBanner").waitForExistence(timeout: 5))
@@ -150,7 +218,7 @@ final class DrawerUITests: DCUITestCase {
             XCTAssertGreaterThanOrEqual(app.buttons["Send question"].frame.width, 44 * scale)
             if detent == "large" {
                 any(app, "summaryDetails").coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
-                let metadata = app.staticTexts.matching(label(contains: "68 posts")).firstMatch
+                let metadata = app.staticTexts.matching(label(contains: "88 posts")).firstMatch
                 XCTAssertTrue(metadata.waitForExistence(timeout: 5))
                 XCTAssertTrue(metadata.label.contains("Kept"))
                 captureAuditScreen("ax5-summary-details", in: app)
@@ -270,10 +338,15 @@ final class DrawerUITests: DCUITestCase {
         app.textFields["chatInput"].tap()
         XCTAssertTrue(wait(timeout: 5) { drawerState(in: app).label == "detent=large" })
         let keyboard = app.keyboards.firstMatch
-        XCTAssertTrue(wait(timeout: 5) {
+        // With Simulator's hardware keyboard connected the software keyboard sits below the
+        // screen: there is nothing to avoid, so only the overlap check depends on it.
+        let softwareKeyboard = wait(timeout: 5) {
             keyboard.exists && keyboard.frame.height > 150
                 && keyboard.frame.minY < app.windows.firstMatch.frame.maxY - 150
-        }, "Use the software keyboard: \(keyboard.frame)")
+        }
+        if !softwareKeyboard {
+            attachText("Hardware keyboard connected (keyboard \(keyboard.frame)): keyboard overlap not checked", named: "keyboard mode")
+        }
         // The keyboard exposes its target before the keyboard and hint animations settle.
         var previousBarFrame = CGRect.null
         XCTAssertTrue(wait(timeout: 5) {
@@ -283,7 +356,9 @@ final class DrawerUITests: DCUITestCase {
         }, "Keyboard and hint layout must settle")
         // Capture before typeText attaches XCUITest's hardware keyboard.
         check("keyboard")
-        XCTAssertLessThanOrEqual(bar.frame.maxY, keyboard.frame.minY + 1, "Bar background must stop above keyboard")
+        if softwareKeyboard {
+            XCTAssertLessThanOrEqual(bar.frame.maxY, keyboard.frame.minY + 1, "Bar background must stop above keyboard")
+        }
         app.textFields["chatInput"].typeText("A follow-up")
         app.typeKey(XCUIKeyboardKey.escape, modifierFlags: [])
         check("large-after-keyboard")
@@ -430,7 +505,6 @@ final class DrawerUITests: DCUITestCase {
     /// and starts the summary (the DEBUG fake summary).
     func testTheHintRowOpensTheDrawerAndItsButtonSummarizes() throws {
         try skipUnlessPhone("The AI drawer is an iPhone behavior.")
-        try requireNetwork()
         let args = sample + ["-dc-drawer-first-run", "-dc-no-summary", "-dc-fake-summary"]
         var app = launch(args)
         var state = drawerState(in: app)
@@ -462,11 +536,10 @@ final class DrawerUITests: DCUITestCase {
 
     /// §4.6: a topic with the drawer at medium → summarize (the DEBUG fake
     /// summary) → at large, tap `#12` → the page scrolls to post 12 and
-    /// marks it, and the drawer steps down to medium. The sample page is the
-    /// live meta topic 404728 (its posts 1–13 exist).
+    /// marks it, and the drawer steps down to medium. The sample page has
+    /// posts 1–30 (SampleContent.topicPageHTML).
     func testCitationJumpScrollsThePageAndLowersTheDrawer() throws {
         try skipUnlessPhone("The AI drawer is an iPhone behavior.")
-        try requireNetwork()
         let app = launch(sample + ["-dc-no-summary", "-dc-fake-summary", "-dc-browse-debug"])
         let state = drawerState(in: app)
         XCTAssertTrue(waitOrDump(state, timeout: 20, in: app), "The sample did not open the drawer.")
@@ -503,7 +576,6 @@ final class DrawerUITests: DCUITestCase {
     /// Retry writes the summary (`-dc-fake-summary-fails` fails until then).
     func testAFailedSummaryShowsItsErrorAndRetryWritesIt() throws {
         try skipUnlessPhone("The AI drawer is an iPhone behavior.")
-        try requireNetwork()
         let app = launch(sample + ["-dc-no-summary", "-dc-fake-summary", "-dc-fake-summary-fails", "-dc-browse-debug"])
         let state = drawerState(in: app)
         XCTAssertTrue(waitOrDump(state, timeout: 20, in: app), "The sample did not open the drawer.")
@@ -626,7 +698,7 @@ final class DrawerUITests: DCUITestCase {
         let goal = app.staticTexts["agentRunGoal"]
         XCTAssertTrue(goal.waitForExistence(timeout: 10), "Ask the forum did not show a run.")
         if Locale.preferredLanguages.first?.hasPrefix("en") ?? true {
-            XCTAssertTrue(goal.label.contains("layer shifts"), "Not the finished run: \(goal.label)")
+            XCTAssertTrue(goal.label.contains("rate limits"), "Not the finished run: \(goal.label)")
         }
         XCTAssertTrue(waitForGone(row, timeout: 5), "Answer ready stayed after it was shown.")
     }
@@ -718,7 +790,10 @@ final class DrawerUITests: DCUITestCase {
         }
         XCTAssertTrue(waitForHittable(editButton, timeout: 5), "No Edit button on the sample user question.")
 
-        let originalQuestion = "Can I roll it out to staff first?"
+        let originalQuestion = "Why can’t I post more than two links yet?"
+        // The sample chat has two turns; Edit (the first) edits the first question.
+        let users = app.otherElements.matching(identifier: "chatMessage-user").count
+        let replies = app.otherElements.matching(identifier: "chatMessage-assistant").count
         editButton.tap()
 
         // Tapping Edit populates the composer, shows the Cancel banner, and keeps both chat turns intact.
@@ -730,18 +805,28 @@ final class DrawerUITests: DCUITestCase {
         XCTAssertGreaterThanOrEqual(cancel.frame.width, 44)
         XCTAssertGreaterThanOrEqual(cancel.frame.height, 44)
         XCTAssertEqual(chatField.value as? String, originalQuestion)
-        XCTAssertEqual(app.otherElements.matching(identifier: "chatMessage-user").count, 1)
-        XCTAssertEqual(app.otherElements.matching(identifier: "chatMessage-assistant").count, 1)
+        XCTAssertEqual(app.otherElements.matching(identifier: "chatMessage-user").count, users)
+        XCTAssertEqual(app.otherElements.matching(identifier: "chatMessage-assistant").count, replies)
 
         // Cancel leaves history untouched and clears the composer back to its prior draft.
         cancel.tap()
         XCTAssertTrue(waitForGone(banner, timeout: 5))
-        XCTAssertEqual(app.otherElements.matching(identifier: "chatMessage-user").count, 1)
-        XCTAssertEqual(app.otherElements.matching(identifier: "chatMessage-assistant").count, 1)
+        XCTAssertEqual(app.otherElements.matching(identifier: "chatMessage-user").count, users)
+        XCTAssertEqual(app.otherElements.matching(identifier: "chatMessage-assistant").count, replies)
 
         // Edit again and submit: the old question and assistant reply are replaced by the edited turn.
-        for _ in 0..<4 where !(editButton.exists && editButton.isHittable) {
-            if chatScroll.exists { chatScroll.swipeUp() } else { app.swipeUp() }
+        // Cancel keeps the composer focused, so only a short strip above the keyboard shows the
+        // chat and the first question can sit below or above it. Swipes fling past that strip
+        // (and blind swipes down reach the top and drag the drawer closed): step toward the
+        // question with short drags that stop without momentum.
+        let composer = any(app, "askBox")
+        let origin = app.windows.firstMatch.coordinate(withNormalizedOffset: .zero)
+        for _ in 0..<12 where !(editButton.exists && editButton.isHittable) {
+            let mid = (chatScroll.frame.minY + composer.frame.minY) / 2
+            let up = !editButton.exists || editButton.frame.midY > mid
+            let start = origin.withOffset(CGVector(dx: chatScroll.frame.midX, dy: mid + (up ? 50 : -50)))
+            start.press(forDuration: 0.05, thenDragTo: start.withOffset(CGVector(dx: 0, dy: up ? -100 : 100)),
+                        withVelocity: .slow, thenHoldForDuration: 0.2)
         }
         XCTAssertTrue(waitForHittable(editButton, timeout: 5))
         editButton.tap()
@@ -758,7 +843,7 @@ final class DrawerUITests: DCUITestCase {
 
         XCTAssertTrue(waitForGone(banner, timeout: 5))
         XCTAssertEqual(app.otherElements.matching(identifier: "chatMessage-assistant").count, 0, "Old assistant reply must be removed when edited question is submitted.")
-        XCTAssertTrue(app.staticTexts["Can I roll it out to staff first? Or moderators?"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Why can’t I post more than two links yet? Or moderators?"].waitForExistence(timeout: 5))
     }
 
     func testRealKeyboardKeepsChatVStackPinnedAtBottom() throws {

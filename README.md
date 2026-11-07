@@ -7,6 +7,7 @@
 <p align="center">
   <a href="https://apps.apple.com/app/id6816718686"><img src="https://img.shields.io/badge/App_Store-in_review-0D96F6?logo=appstore&logoColor=white" alt="App Store: in review"></a>
   <a href="https://testflight.apple.com/join/XsfttG4P"><img src="https://img.shields.io/badge/TestFlight-public_beta-0D96F6?logo=apple&logoColor=white" alt="TestFlight: public beta"></a>
+  <a href="https://mobile.forumind.top"><img src="https://img.shields.io/badge/website-mobile.forumind.top-0D96F6?logo=safari&logoColor=white" alt="Website"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue" alt="License: Apache-2.0"></a>
   <img src="https://img.shields.io/badge/iOS_%7C_iPadOS-17%2B-000000?logo=apple&logoColor=white" alt="iOS and iPadOS 17 or later">
   <img src="https://img.shields.io/badge/Swift-F05138?logo=swift&logoColor=white" alt="Swift">
@@ -44,9 +45,10 @@ also reads WordPress sites and Hacker News.
 ## Screenshots
 
 <p align="center">
-  <img src="docs/screenshots/iphone-home.png" alt="Home: today's digest, topics to continue reading, and pinned forums" width="230">
-  <img src="docs/screenshots/iphone-summary.png" alt="A summary in the drawer, with post numbers to tap and a box for follow-up questions" width="230">
-  <img src="docs/screenshots/iphone-ask.png" alt="Ask the forum: the question, its steps, and the answer" width="230">
+  <img src="docs/screenshots/iphone-page.png" alt="A Discourse Meta topic with the bottom bar; the ✦ button opens the AI drawer" width="200">
+  <img src="docs/screenshots/iphone-summary.png" alt="A summary in the drawer, with post numbers to tap and a box for follow-up questions" width="200">
+  <img src="docs/screenshots/iphone-ask.png" alt="Ask the forum: the question, its steps, and an answer that cites its sources" width="200">
+  <img src="docs/screenshots/iphone-home.png" alt="Home: today's digest, topics to continue reading, and pinned forums" width="200">
 </p>
 
 ## Features

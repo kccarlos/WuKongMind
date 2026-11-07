@@ -206,18 +206,16 @@ extension AppModel {
         applyBrowseDebugArguments()
         let arguments = ProcessInfo.processInfo.arguments
         if arguments.contains("-dc-seed-forums"), forums.isEmpty {
-            // Discourse Meta plus fictional communities on reserved example
-            // domains (screenshots show no real companies).
-            // Names in the app's language (SampleContent.swift).
+            // The sample's real public forums (SampleContent.swift) and
+            // Hacker News, which the app reads as a forum too.
             let text = SampleContent.current
             let kind = SiteKind.discourse
-            let pinned = [text.meta, text.makers, text.trailRunners].map {
-                Forum(siteURL: $0.siteURL, kind: kind, name: $0.name)
-            }
+            let pinned = [
+                Forum(siteURL: text.meta.siteURL, kind: kind, name: text.meta.name),
+                Forum(siteURL: text.openAI.siteURL, kind: kind, name: text.openAI.name),
+                Forum(siteURL: HackerNewsRecognizer.siteURL, kind: .hackerNews, name: "Hacker News")
+            ]
             pinned.forEach(pin)
-            for sample in [text.homeLab, text.bakers] {
-                recordVisit(siteURL: sample.siteURL, kind: kind, name: sample.name, iconURL: nil)
-            }
             if ForumIconPolicy.loadsRemoteIcons {
                 for forum in forums { refreshForumInfo(siteURL: forum.siteURL) }
             }

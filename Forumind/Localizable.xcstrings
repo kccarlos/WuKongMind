@@ -17152,6 +17152,22 @@
         }
       }
     },
+    "Support" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "支持"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "支援"
+          }
+        }
+      }
+    },
     "Syncing" : {
       "comment" : "Sync status, short value in the Settings row",
       "localizations" : {
@@ -20565,6 +20581,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已追蹤「%@」"
+          }
+        }
+      }
+    },
+    "Website" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "网站"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "網站"
           }
         }
       }

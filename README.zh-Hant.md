@@ -7,6 +7,7 @@
 <p align="center">
   <a href="https://apps.apple.com/app/id6816718686"><img src="https://img.shields.io/badge/App_Store-%E5%AF%A9%E6%A0%B8%E4%B8%AD-0D96F6?logo=appstore&logoColor=white" alt="App Store：審核中"></a>
   <a href="https://testflight.apple.com/join/XsfttG4P"><img src="https://img.shields.io/badge/TestFlight-%E5%85%AC%E9%96%8B%E6%B8%AC%E8%A9%A6-0D96F6?logo=apple&logoColor=white" alt="TestFlight：公開測試"></a>
+  <a href="https://mobile.forumind.top"><img src="https://img.shields.io/badge/網站-mobile.forumind.top-0D96F6?logo=safari&logoColor=white" alt="網站"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue" alt="授權條款：Apache-2.0"></a>
   <img src="https://img.shields.io/badge/iOS_%7C_iPadOS-17%2B-000000?logo=apple&logoColor=white" alt="iOS 與 iPadOS 17 或以上版本">
   <img src="https://img.shields.io/badge/Swift-F05138?logo=swift&logoColor=white" alt="Swift">
@@ -42,9 +43,10 @@ iPhone 與 iPad App，適用於任何以 [Discourse](https://www.discourse.org)
 ## 截圖
 
 <p align="center">
-  <img src="docs/screenshots/iphone-home-zh-Hant.png" alt="首頁：今日摘要、繼續閱讀的話題和釘選的論壇" width="230">
-  <img src="docs/screenshots/iphone-summary.png" alt="抽屜中的摘要（英文介面），樓層號碼可點按，下方可以追問" width="230">
-  <img src="docs/screenshots/iphone-ask.png" alt="問論壇（英文介面）：問題、步驟和回答" width="230">
+  <img src="docs/screenshots/iphone-page-zh-Hant.png" alt="Discourse Meta 上的一個話題和底部列，點 ✦ 按鈕打開 AI 抽屜" width="200">
+  <img src="docs/screenshots/iphone-summary-zh-Hant.png" alt="抽屜中的摘要，樓層號碼可點按，下方可以追問" width="200">
+  <img src="docs/screenshots/iphone-ask-zh-Hant.png" alt="問論壇：問題、步驟和附帶來源的回答" width="200">
+  <img src="docs/screenshots/iphone-home-zh-Hant.png" alt="首頁：今日摘要、繼續閱讀的話題和釘選的論壇" width="200">
 </p>
 
 ## 功能

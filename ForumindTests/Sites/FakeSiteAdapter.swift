@@ -53,11 +53,7 @@ struct FakeSiteAdapter: SiteAdapter {
     }
 
     var suggestedForums: SuggestedForums {
-        #if DEBUG
-        SuggestedForums(general: [], chinese: [], sample: [])
-        #else
         SuggestedForums(general: [], chinese: [])
-        #endif
     }
 
     var agent: AgentSiteProfile {

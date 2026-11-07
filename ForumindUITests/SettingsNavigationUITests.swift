@@ -284,8 +284,8 @@ final class SettingsNavigationUITests: DCUITestCase {
         try skipUnlessPhone("The Assistant header layout checked here is the iPhone one.")
         // The drawer's model pill shows the mode's model and lists the favorites.
         for (mode, model) in [("chat", "claude-sonnet-4-5"), ("agent", "deepseek-v4-flash")] {
-            let app = launch(["-dc-sample", "-dc-topic", "makers", "-dc-assistant-mode", mode,
-                              "-dc-agent-model", "deepseek:deepseek-v4-flash"] + phonePage)
+            let app = launch(["-dc-sample", "-dc-topic", "openai", "-dc-assistant-mode", mode,
+                              "-dc-agent-model", "deepseek:deepseek-v4-flash"])
             let pill = app.buttons["modelPill"]
             XCTAssertTrue(pill.waitForExistence(timeout: 20), "The drawer did not open in \(mode).")
             XCTAssertTrue(pill.label.contains(model), "Got “\(pill.label)” in \(mode).")
@@ -307,8 +307,8 @@ final class SettingsNavigationUITests: DCUITestCase {
     /// model, and the pill's label follows.
     func testModelPillSwitchesTheModel() throws {
         try skipUnlessPhone("The model pill is in the iPhone drawer's header.")
-        let app = launch(["-dc-sample", "-dc-topic", "makers", "-dc-assistant-mode", "chat",
-                          "-dc-agent-model", "deepseek:deepseek-v4-flash"] + phonePage)
+        let app = launch(["-dc-sample", "-dc-topic", "openai", "-dc-assistant-mode", "chat",
+                          "-dc-agent-model", "deepseek:deepseek-v4-flash"])
         let pill = app.buttons["modelPill"]
         XCTAssertTrue(pill.waitForExistence(timeout: 20), "The drawer did not open.")
         XCTAssertTrue(pill.label.contains("claude-sonnet-4-5"), "Got “\(pill.label)”.")
@@ -393,9 +393,8 @@ final class SettingsNavigationUITests: DCUITestCase {
     /// Only the role that can't run shows the setup card: here Ask the
     /// forum's provider has no key while chat works.
     func testSetupCardShowsOnlyForTheRoleThatIsNotReady() throws {
-        let args = ["-dc-sample", "-dc-topic", "makers",
+        let args = ["-dc-sample", "-dc-topic", "openai",
                     "-dc-agent-model", "deepseek:deepseek-v4-flash", "-dc-no-agent-key"]
-            + phonePage
         var app = launch(args + ["-dc-assistant-mode", "agent"])
         let card = any(app, "providerSetupCard")
         XCTAssertTrue(card.waitForExistence(timeout: 20), "Ask the forum should ask for its model.")
@@ -414,13 +413,6 @@ final class SettingsNavigationUITests: DCUITestCase {
         XCTAssertFalse(any(app, "providerSetupCard").exists, "Chat's model is ready.")
     }
 
-    /// iPhone: the AI drawer shows on pages, not over the Forums home (where
-    /// the fictional makers forum's failed load lands), so load a real page
-    /// under the seeded makers topic.
-    private var phonePage: [String] {
-        ["-dc-open", DCUITestCase.forumLatest]
-    }
-
     /// Home › Settings (a sheet) › Help & about › Show onboarding again: the
     /// sheet goes and the walkthrough covers the screen (audit A6).
     func testShowOnboardingAgainFromTheSettingsSheet() throws {
@@ -434,13 +426,16 @@ final class SettingsNavigationUITests: DCUITestCase {
         XCTAssertTrue(reveal(help, in: app))
         help.tap()
         let replay = any(app, "replayOnboarding")
-        XCTAssertTrue(reveal(replay, in: app, swipes: 4))
-        // Revealed under the sheet's navigation bar: drag it into the open.
-        let title = app.staticTexts["Help & about"].firstMatch
-        for _ in 0..<3 where title.exists && replay.frame.minY < title.frame.maxY + 24 {
-            let list = app.collectionViews.containing(.any, identifier: "replayOnboarding").firstMatch
-            let start = list.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.4))
-            start.press(forDuration: 0.05, thenDragTo: start.withOffset(CGVector(dx: 0, dy: 90)))
+        let bar = app.navigationBars["Help & about"]
+        XCTAssertTrue(bar.waitForExistence(timeout: 5))
+        // Step toward the row with short drags that stop without momentum: a swipe flings
+        // past it in the short landscape sheet, and it must end clear of the navigation bar.
+        let origin = bar.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 1))
+        for _ in 0..<10 where !(replay.exists && replay.isHittable && replay.frame.minY >= bar.frame.maxY + 24) {
+            let up = !replay.exists || replay.frame.minY >= bar.frame.maxY + 24
+            let start = origin.withOffset(CGVector(dx: 0, dy: up ? 300 : 120))
+            start.press(forDuration: 0.05, thenDragTo: start.withOffset(CGVector(dx: 0, dy: up ? -160 : 90)),
+                        withVelocity: .slow, thenHoldForDuration: 0.2)
         }
         XCTAssertTrue(waitForHittable(replay))
         replay.tap()

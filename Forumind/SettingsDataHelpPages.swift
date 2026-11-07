@@ -259,6 +259,12 @@ struct SettingsHelpPage: View {
                     SettingsRowLabel(page: .acknowledgements)
                 }
                 .accessibilityIdentifier("settingsRow-acknowledgements")
+                Link(destination: AppVersion.websiteURL) {
+                    Label("Website", systemImage: "globe")
+                }
+                Link(destination: AppVersion.supportURL) {
+                    Label("Support", systemImage: "lifepreserver")
+                }
                 Link(destination: AppVersion.repositoryURL) {
                     Label("Source code on GitHub", systemImage: "chevron.left.forwardslash.chevron.right")
                 }

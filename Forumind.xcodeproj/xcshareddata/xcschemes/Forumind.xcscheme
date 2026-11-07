@@ -14,7 +14,7 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "C5A093719F5141E2CF356D1D"
+               BlueprintIdentifier = "F551A2855F54312D5842572A"
                BuildableName = "Forumind.app"
                BlueprintName = "Forumind"
                ReferencedContainer = "container:Forumind.xcodeproj">
@@ -30,7 +30,7 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "C5A093719F5141E2CF356D1D"
+            BlueprintIdentifier = "F551A2855F54312D5842572A"
             BuildableName = "Forumind.app"
             BlueprintName = "Forumind"
             ReferencedContainer = "container:Forumind.xcodeproj">
@@ -41,7 +41,7 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "3241A611DB975FC9ED001D19"
+               BlueprintIdentifier = "A647FF6CD44B417A543C2590"
                BuildableName = "ForumindTests.xctest"
                BlueprintName = "ForumindTests"
                ReferencedContainer = "container:Forumind.xcodeproj">
@@ -51,7 +51,7 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "0785C249B840C72380FD833D"
+               BlueprintIdentifier = "89D19773B38B8765EC381EA8"
                BuildableName = "ForumindUITests.xctest"
                BlueprintName = "ForumindUITests"
                ReferencedContainer = "container:Forumind.xcodeproj">
@@ -73,7 +73,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "C5A093719F5141E2CF356D1D"
+            BlueprintIdentifier = "F551A2855F54312D5842572A"
             BuildableName = "Forumind.app"
             BlueprintName = "Forumind"
             ReferencedContainer = "container:Forumind.xcodeproj">
@@ -90,7 +90,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "C5A093719F5141E2CF356D1D"
+            BlueprintIdentifier = "F551A2855F54312D5842572A"
             BuildableName = "Forumind.app"
             BlueprintName = "Forumind"
             ReferencedContainer = "container:Forumind.xcodeproj">

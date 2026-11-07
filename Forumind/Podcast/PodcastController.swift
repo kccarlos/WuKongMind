@@ -366,6 +366,14 @@ final class PodcastController: ObservableObject {
         if activity.isRunning { activity = .idle }
     }
 
+    /// A running generation starts over from its current chapter (the
+    /// moderation rules changed under it).
+    func restartGeneration() {
+        guard task != nil, let digestID = episode?.digestID else { return }
+        pauseGeneration()
+        startRun(digestID: digestID)
+    }
+
     private func startRun(digestID: UUID) {
         if task != nil { pauseGeneration() }
         let id = UUID()

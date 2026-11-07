@@ -30,10 +30,14 @@ open Forumind.xcodeproj
 Don't edit build settings in Xcode's UI: the next generator run overwrites
 them. Change the script instead.
 
-## Privacy page
+## Website
 
-The site's privacy page is generated from `PRIVACY.md`: edit `PRIVACY.md`, then run
-`scripts/site/render_privacy.py` and commit both (CI fails if the page is stale).
+`mobile-site/` (https://mobile.forumind.top) has no build step: the English pages are
+edited by hand, with each element's Chinese in `data-zh` (inner HTML) or `data-zh-<attr>`.
+`scripts/site/render_site.py` writes the rest: the privacy body from `PRIVACY.md`, the
+supported-site list from `scripts/site/sites.json`, every page under `mobile-site/zh/`,
+the canonical and hreflang lines, and `sitemap.xml`. Run it after any edit and commit
+the result; CI (`scripts/ci/check-site.sh`) fails when a generated file is stale.
 
 ## Signing
 
@@ -237,9 +241,9 @@ They never overwrite real saved data, and Release builds ignore them.
 
 | Argument | Effect |
 | --- | --- |
-| `-dc-sample` | Loads offline sample data from three forums: Discourse Meta and two fictional ones on reserved example domains (required by the rest of this table). The Assistant opens by itself on iPhone. In Simplified or Traditional Chinese (`-AppleLanguages "(zh-Hans)"`), the forums, topics, summaries, chats and answers are Chinese and all three forums are fictional (use `-dc-forums-home`); see `Forumind/SampleContent.swift`. |
+| `-dc-sample` | Loads offline sample data (required by the rest of this table): Discourse Meta and the OpenAI Developer Community (real public forums, the same as in the Chrome extension's screenshots) with invented topics, posts, usernames, summaries, chats and answers, plus Hacker News as a recent forum. The Assistant opens by itself on iPhone. In Simplified or Traditional Chinese (`-AppleLanguages "(zh-Hans)"`) the same forums carry Chinese topics and text; see `Forumind/SampleContent.swift`. |
 | `-dc-page-state <state>` | `loading`, `notForum`, `maybe`, `forumHome`, or `topic` (default). |
-| `-dc-topic meta\|makers` | Which sample topic is open: Discourse Meta, or the fictional Maker Space Community. Default: `meta`, but `makers` with `-dc-assistant-mode agent`, so Ask the forum shows the run from the open forum. With `-dc-topic meta` in agent mode, the run on Discourse Meta is shown. |
+| `-dc-topic meta\|openai` | Which sample topic is open: on Discourse Meta, or on the OpenAI Developer Community. Default: `meta`, but `openai` with `-dc-assistant-mode agent`, so Ask the forum shows the run from the open forum. With `-dc-topic meta` in agent mode, the run on Discourse Meta is shown. |
 | `-dc-assistant-mode <mode>` | `summary`, `chat`, or `agent`. |
 | `-dc-open-history` | Opens History. |
 | `-dc-history-segment <segment>` | History segment: `all`, `summaries`, `asks`, `watching`. |
@@ -249,17 +253,18 @@ They never overwrite real saved data, and Release builds ignore them.
 | `-dc-no-summary` | The open topic has no summary yet. |
 | `-dc-summary-running`, `-dc-chat-streaming`, `-dc-agent-running` | Work in progress. |
 | `-dc-chat-typing` | With `-dc-chat-streaming`: typing dots, no text yet. |
-| `-dc-stale-summary` | The `makers` sample topic's summary is behind the topic (stale notice). |
-| `-dc-digest-sample` | Today's daily digest with two finished cards (a watched topic and a solved trending one) and one waiting; nothing is generated or saved. Use with `-dc-forums-home`. |
+| `-dc-stale-summary` | The `openai` sample topic's summary is behind the topic (stale notice). |
+| `-dc-digest-sample` | Today's daily digest with two finished cards (a watched topic and a solved trending one) and one waiting (`-dc-digest-sample done`: all three finished); nothing is generated or saved. Use with `-dc-forums-home`. |
 | `-dc-scroll-sources` | Ask the forum: scrolls to the answer's sources. |
 | `-dc-focus-chat` | Raises the keyboard in the chat composer. |
 | `-dc-script <action>-after:<seconds>` | Changes state mid-use: `switch-provider` (the current mode's model), `delete-key` (of the current mode's provider), `remove-forum`, `unpin-forum`, `clear-all`, `reset-settings`. |
 
-With `-dc-page-state topic` or `forumHome`, the browser also loads the real
-forum page behind the Assistant, unless `-dc-forums-home` is also passed: then
-nothing is loaded and Home stays up (fully offline). The fictional
-forums (`-dc-topic makers`) live on reserved example domains that don't
-resolve, so use them with `-dc-forums-home`. Sample forums always show letter
+With `-dc-page-state topic` (the default), the browser shows the sample's
+own topic page at the topic's real address: a small Discourse-style page
+drawn from `SampleContent` (letter avatars, invented usernames, posts 1–30
+so citation jumps land), never loaded from the network, so no real person
+appears. With `forumHome` it loads the real forum page. `-dc-forums-home`
+loads nothing and keeps Home up. Sample forums always show letter
 monograms, never the forums' own icons. With
 `-dc-apple-intelligence on-device` or `pcc`, the sample summaries, chats, and
 runs are labeled as Apple Intelligence runs and it is the selected provider.
@@ -274,7 +279,7 @@ runs are labeled as Apple Intelligence runs and it is the selected provider.
 
 | Argument | Effect |
 | --- | --- |
-| `-dc-seed-forums` | Pins three forums (Discourse Meta and two fictional ones) and adds two fictional recent ones (icons are fetched live unless `-dc-no-forum-icons`). With it or `-dc-sample`, the suggested forums are fictional too, so screenshots show no real companies. |
+| `-dc-seed-forums` | Pins three forums: Discourse Meta, the OpenAI Developer Community and Hacker News (icons are fetched live unless `-dc-no-forum-icons`). |
 | `-dc-no-forum-icons` | Shows letter monograms instead of the forums' own icons (implied by `-dc-sample`). |
 | `-dc-forums-home` | Starts on Home. |
 | `-dc-no-forums` | With `-dc-sample`: no forums (Home as a new user sees it). |
@@ -487,32 +492,35 @@ The App Store screenshots are rendered from raw simulator captures: a brand
 panel with a headline, a subline and the capture in a device frame, in
 English (`en-US`), Simplified Chinese (`zh-Hans`) and Traditional Chinese
 (`zh-Hant`). See [APP_STORE.md](APP_STORE.md#screenshots) for the captions
-and the capture list. To retake the captures:
+and the capture list. To retake the captures, run:
 
-1. Build a DEBUG app for the simulator (for example the unit-test command
-   above) and use iPhone 17 Pro Max for 6.9" and iPad Pro 13-inch (M5) for
-   13".
-2. Before each capture, uninstall the app for a clean state and set the
-   status bar:
-   `xcrun simctl status_bar <udid> override --time 9:41 --batteryState charged --batteryLevel 100 --cellularBars 4 --wifiBars 3`.
-3. Launch with the language arguments (`-AppleLanguages "(en)" -AppleLocale en_US`,
-   `"(zh-Hans)" zh_CN`, or `"(zh-Hant)" zh_TW`) and the capture's
-   sample-data arguments (only sample data: fictional forums, no real
-   people). Common: `-dc-skip-onboarding -dc-sample -dc-forums-home -dc-apple-intelligence on-device`.
+```sh
+brew install pngquant   # once; keeps the committed PNGs small
+scripts/brand/capture_store_screenshots.sh            # every language, or e.g. en-US
+```
 
-   | Capture | Arguments |
-   | --- | --- |
-   | `iphone-69-1-home` | `-dc-skip-onboarding -dc-seed-forums -dc-no-forum-icons -dc-forums-home` (no `-dc-sample`) |
-   | `iphone-69-2-summary`, `ipad-13-1-home-summary` | common + `-dc-assistant-mode summary` |
-   | `iphone-69-3-chat`, `ipad-13-2-chat` | common + `-dc-topic makers -dc-assistant-mode chat` |
-   | `iphone-69-4-agent`, `ipad-13-3-agent` | common + `-dc-assistant-mode agent` (English iPhone also `-dc-scroll-sources`) |
-   | `iphone-69-5-privacy` | `-dc-sample -dc-onboarding-step privacy` |
-   | `ipad-13-4-history` | common + `-dc-open-history` |
-   | `ipad-13-5-sync` | common + `-dc-panel-settings sync -dc-sync-status upToDate` |
+It builds the app for testing and runs `ForumindUITests/StoreScreenshotTests`
+on an iPhone 17 Pro Max (6.9") and an iPad Pro 13-inch (M5) simulator in each
+language (`IPHONE_SIM` / `IPAD_SIM` pick other simulators of those sizes (an empty one skips that device),
+`DERIVED_DATA` the build folder). Before each language it uninstalls the app
+for a clean state and sets the status bar to 9:41 and light appearance. The
+test launches the sample (`-dc-sample -dc-apple-intelligence on-device`, plus
+`-AppleLanguages`/`-AppleLocale` from `TEST_RUNNER_DC_SHOT_LANGUAGE`), waits
+for each screen, then until two screenshots a second apart are identical (animations, streaming text and drawer moves have settled), and writes it to `TEST_RUNNER_DC_SCREENSHOT_DIR`; it skips
+when that is not set, so normal test runs never take screenshots. The script
+copies the results into `appstore/screenshots-raw/<locale>/` and the README
+images into `docs/screenshots/`.
 
-4. Wait for the screen to settle (about 6 s), then
-   `xcrun simctl io <udid> screenshot appstore/screenshots-raw/<locale>/<name>.png`,
-   keeping the existing file names.
+| Capture | Arguments (with the sample) |
+| --- | --- |
+| `iphone-69-1-home` | `-dc-forums-home -dc-digest-sample done` |
+| `iphone-69-2-summary`, `ipad-13-1-home-summary` | `-dc-assistant-mode summary` (drawer at medium over the sample page; on iPad the panel) |
+| `iphone-69-3-chat`, `ipad-13-2-chat` | `-dc-assistant-mode chat` (iPhone: `-dc-drawer-detent large`) |
+| `iphone-69-4-agent`, `ipad-13-3-agent` | `-dc-assistant-mode agent` (iPhone: `-dc-drawer-detent large`) |
+| `iphone-69-5-privacy` | `-dc-onboarding-step privacy` |
+| `ipad-13-4-manage` | `-dc-open-history` |
+| `ipad-13-5-sync` | `-dc-panel-settings sync -dc-sync-status upToDate` |
+| `iphone-page` (README only) | `-dc-drawer-first-run -dc-no-summary`: the page with the bar's ✦ button and the hint row |
 
 Then re-render every language and check:
 
@@ -527,21 +535,16 @@ on black (`strip-<locale>-<device>-<white|black>.png`).
 
 ## README images
 
-The README screenshots in `docs/screenshots/` are plain simulator captures
-of the DEBUG sample data, taken from a UI test (`DCUITestCase.launch` with
-`-dc-sample -dc-page-state topic -dc-drawer-detent large` for the drawer,
-`-dc-sample -dc-forums-home -dc-digest-sample` for Home, and `capture(_:)`
-with `TEST_RUNNER_DC_SCREENSHOT_DIR`), scaled to 720 px high. The drawer captures use
-the Discourse Meta sample topic: the fictional forums never load a page, so
-the app stays on Home. Large height keeps the live page behind it hidden.
+The README screenshots in `docs/screenshots/` come from the same run as the
+App Store captures (`scripts/brand/capture_store_screenshots.sh`): the
+iPhone home, summary, Ask the forum and page captures, scaled to 720 px high
+and quantized, as `iphone-<name>.png` in English and
+`iphone-<name>-zh-Hans.png` / `-zh-Hant.png` for the Chinese READMEs.
 
 The README banner (`docs/brand/forumind-banner.png`, 1280 × 640, also the
 GitHub social preview) and its Chinese versions are rendered from the brand
 code and three captures it reads from `appstore/screenshots-raw/<locale>/`
-(see `BannerScreens` in `render_banner.swift`). The current banners use the
-README captures, copied under those names into a scratch folder passed as the
-root (`render_banner <root>`), so the App Store captures stay untouched.
-With the App Store captures, run:
+(see `BannerScreens` in `render_banner.swift`), so after new captures run:
 
 ```sh
 brew install pngquant   # once; keeps the committed PNGs small

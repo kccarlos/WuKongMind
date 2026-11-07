@@ -14,15 +14,15 @@ final class TodayUITests: DCUITestCase {
 
         // One card per topic: finished ones with their post-level links, the
         // waiting one with its progress state.
-        let watched = any(app, "digestCard-404728")
+        let watched = any(app, "digestCard-241807")
         XCTAssertTrue(watched.waitForExistence(timeout: 10), "The Today page did not show the watched topic's card.")
-        XCTAssertTrue(any(app, "digestLink-first-404728").exists, "A watched topic links to its first new reply.")
-        XCTAssertTrue(any(app, "digestLink-top-404728").exists)
-        let solved = any(app, "digestCard-18342")
+        XCTAssertTrue(any(app, "digestLink-first-241807").exists, "A watched topic links to its first new reply.")
+        XCTAssertTrue(any(app, "digestLink-top-241807").exists)
+        let solved = any(app, "digestCard-1088142")
         XCTAssertTrue(reveal(solved, in: app))
-        XCTAssertTrue(any(app, "digestLink-solution-18342").exists, "A solved topic links to its accepted answer.")
-        XCTAssertFalse(any(app, "digestLink-first-18342").exists, "A trending topic has no new-reply link.")
-        let waiting = any(app, "digestCard-18391")
+        XCTAssertTrue(any(app, "digestLink-solution-1088142").exists, "A solved topic links to its accepted answer.")
+        XCTAssertFalse(any(app, "digestLink-first-1088142").exists, "A trending topic has no new-reply link.")
+        let waiting = any(app, "digestCard-1079884")
         XCTAssertTrue(reveal(waiting, in: app))
         XCTAssertTrue(app.staticTexts["Waiting to be summarized"].exists || !isEnglish(app))
 

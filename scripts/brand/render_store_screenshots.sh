@@ -16,3 +16,13 @@ xcrun swiftc -parse-as-library -O \
   "$repo_root/scripts/brand/render_store_screenshots.swift" \
   -o "$work/render_store_screenshots"
 "$work/render_store_screenshots" "$repo_root" "$@"
+
+# Keep the committed PNGs small (opaque palette PNGs: no alpha, which App
+# Store Connect rejects). brew install pngquant.
+if command -v pngquant >/dev/null; then
+  for file in "$repo_root"/appstore/screenshots/*/iphone*.png "$repo_root"/appstore/screenshots/*/ipad*.png; do
+    pngquant --quality=80-98 --speed 1 --strip --force --skip-if-larger --ext .png -- "$file" || true
+  done
+else
+  echo "pngquant not found; the screenshots are not compressed (brew install pngquant)" >&2
+fi

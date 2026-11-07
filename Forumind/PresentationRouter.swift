@@ -238,6 +238,9 @@ final class PresentationRouter: ObservableObject {
     /// How long a dismissed sheet takes to leave for good before a cover can
     /// be presented in its place.
     static var settleDelay: Duration = .milliseconds(450)
+    /// How long a replay waits for the sheet's dismissal to report before
+    /// showing the walkthrough anyway.
+    static var dismissalFallback: Duration = .seconds(2)
     /// Ask the forum answers finished after this show "Answer ready" in the
     /// drawer's status row until the reader opens Ask the forum.
     @Published var answersSeenAt = Date()
@@ -429,7 +432,7 @@ extension AppModel {
         router.onboardingReplay = .waitingForSheet
         // The sheet's dismissal moves it on; in case it never reports.
         Task { @MainActor [weak self] in
-            try? await Task.sleep(for: .seconds(2))
+            try? await Task.sleep(for: PresentationRouter.dismissalFallback)
             guard let self, self.router.onboardingReplay == .waitingForSheet else { return }
             self.router.onboardingReplay = .showing
         }

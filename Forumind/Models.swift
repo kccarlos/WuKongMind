@@ -884,6 +884,24 @@ struct AgentRun: Codable, Identifiable, Equatable {
 
     var isFinished: Bool { result != nil }
 
+    /// Starts the live turn again from scratch (the moderation rules changed
+    /// mid-turn): only the questions stay in the transcript, so nothing read
+    /// under the old rules reaches the planner again. A follow-up restarts as
+    /// that follow-up and keeps the answers already given; the first turn
+    /// also drops its steps and topic reads.
+    mutating func restartTurn() {
+        transcript = transcript.filter(AgentPrompt.isQuestion)
+        if let asked = followUps.last(where: { $0.role == .user })?.createdAt {
+            steps.removeAll { $0.startedAt >= asked }
+        } else {
+            steps = []
+            topicIDs = []
+            answer = ""
+            initialAnswer = ""
+        }
+        error = ""
+    }
+
     init(id: UUID = UUID(), siteURL: String, goal: String, provider: AIProvider, model: String, origin: AgentRunOrigin = .typed) {
         self.id = id
         self.origin = origin

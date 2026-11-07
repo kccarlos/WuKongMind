@@ -184,7 +184,7 @@ final class AppModel: ObservableObject {
     @Published private(set) var errorQueue: [PresentedError] = []
     /// The developer's moderation list (last good copy; see Moderation.swift).
     @Published var remoteModeration: RemoteModerationList? = RemoteModerationCache.load() {
-        didSet { applyModerationRules() }
+        didSet { remoteModerationDidChange() }
     }
     @Published var settingsStatus = ""
     /// Models each provider offers, from the last successful load.
@@ -276,9 +276,6 @@ final class AppModel: ObservableObject {
     }
 
     nonisolated static var suggestedForums: [SuggestedForum] {
-        #if DEBUG
-        if ForumDirectory.usesSampleSuggestions { return SiteRegistry.standard.adapters.flatMap(\.suggestedForums.sample) }
-        #endif
         return SiteRegistry.standard.adapters.flatMap(\.suggestedForums.general)
     }
 
@@ -2526,6 +2523,33 @@ final class AppModel: ObservableObject {
         store.flush()
     }
 
+    /// The developer's list changed (a daily refresh). Output made under
+    /// the old rules is dropped by each job's rules guard; the work the user
+    /// asked for then runs again under the new rules instead of ending as
+    /// cancelled. A block the user makes cancels instead (`block`), and Ask
+    /// the forum runs still stop: they keep earlier observations, which a
+    /// list without block dates cannot recheck.
+    func remoteModerationDidChange() {
+        let old = browser.moderationRules
+        applyModerationRules()
+        guard browser.moderationRules != old else { return }
+        for record in activities where !record.status.isTerminal {
+            // A resumed Ask the forum run would replay what it read to its
+            // planner, and the list has no block date to filter that by: its
+            // turn starts again from scratch (a paused one when it resumes).
+            if record.type == .agent { mutateAgentRun(for: record) { $0.restartTurn() } }
+            guard runningTasks[record.id] != nil else { continue }
+            pause(recordID: record.id)
+            mutateRecord(record.id) { $0.statusText = WorkRecord.waitingStatusText }
+            launch(recordID: record.id)
+        }
+        if digestTask != nil {
+            pauseDigest()
+            makeTodaysDigest()
+        }
+        podcast.restartGeneration()
+    }
+
     private func pause(recordID: UUID) {
         runningTasks[recordID]?.task.cancel()
         runningTasks.removeValue(forKey: recordID)
@@ -2869,7 +2893,7 @@ final class AppModel: ObservableObject {
     /// It streams the sample summary (with `#N` citations) one section at a
     /// time, then saves it as the open topic's summary.
     private func runFakeSummary(recordID: UUID, record: WorkRecord) async throws {
-        let text = SampleContent.current.metaSummary
+        let text = SampleContent.current.tipsSummary
         let sections = text.components(separatedBy: "\n\n## ")
         streams.start(recordID)
         try await Task.sleep(for: .seconds(1.2))
@@ -2996,7 +3020,7 @@ final class AppModel: ObservableObject {
         let isFollowUp = !run.followUps.isEmpty && run.followUps.last?.role == .user
         var stepsUsed: Int
         if isFollowUp {
-            if let followUpIndex = run.transcript.lastIndex(where: { $0.role == .user && $0.content.hasPrefix("FOLLOW-UP from the user") }) {
+            if let followUpIndex = run.transcript.lastIndex(where: AgentPrompt.isFollowUp) {
                 stepsUsed = run.transcript[(followUpIndex + 1)...].filter { $0.role == .assistant }.count
             } else {
                 stepsUsed = 0

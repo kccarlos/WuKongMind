@@ -39,11 +39,7 @@ struct WordPressAdapter: SiteAdapter {
 
     /// None: the app offers no WordPress sites to add.
     var suggestedForums: SuggestedForums {
-        #if DEBUG
-        SuggestedForums(general: [], chinese: [], sample: [])
-        #else
         SuggestedForums(general: [], chinese: [])
-        #endif
     }
 
     func siteURLCandidates(fromAddress address: String) -> [String] {

@@ -34,37 +34,250 @@ final class CoreTests: XCTestCase {
 
     @MainActor
     func testCitationPunctuationTouchesChipAndStaysOnItsLine() throws {
-        let content = MarkdownBlockView(row: MarkdownRow(
-            content: .paragraph("[#1](forumind-post:1) ."), topSpacing: 0), citations: true)
-            .environment(\.dynamicTypeSize, .large)
-            .environment(\.colorScheme, .light)
-            .foregroundStyle(Color.black)
-            .frame(width: 120, alignment: .leading)
-            .background(Color.white)
-        let image = try XCTUnwrap(ImageRenderer(content: content).cgImage)
-        let width = image.width, height = image.height
-        var pixels = [UInt8](repeating: 255, count: width * height * 4)
-        pixels.withUnsafeMutableBytes { bytes in
-            let context = CGContext(data: bytes.baseAddress, width: width, height: height,
-                bitsPerComponent: 8, bytesPerRow: width * 4, space: CGColorSpaceCreateDeviceRGB(),
-                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
-            context?.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
+        func render<V: View>(_ view: V, dynamicTypeSize: DynamicTypeSize, width: CGFloat, height: CGFloat) -> UIImage {
+            let content = view
+                .environment(\.dynamicTypeSize, dynamicTypeSize)
+                .environment(\.colorScheme, .light)
+                .foregroundStyle(Color.black)
+                .frame(width: width, alignment: .leading)
+                .background(Color.white)
+            let window = UIWindow(frame: CGRect(x: 0, y: 0, width: width, height: height))
+            let host = UIHostingController(rootView: content)
+            if dynamicTypeSize.isAccessibilitySize {
+                host.traitOverrides.preferredContentSizeCategory = .accessibilityExtraExtraExtraLarge
+            }
+            window.rootViewController = host
+            window.makeKeyAndVisible()
+            host.view.frame = window.bounds
+            window.layoutIfNeeded()
+            RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+            let format = UIGraphicsImageRendererFormat()
+            format.scale = 2
+            let image = UIGraphicsImageRenderer(bounds: host.view.bounds, format: format).image { ctx in
+                host.view.layer.render(in: ctx.cgContext)
+            }
+            window.isHidden = true
+            return image
         }
-        var chipEdge: Int?, punctuationStart: Int?
-        for y in 0..<height {
-            for x in 0..<width {
-                let offset = (y * width + x) * 4
-                let r = Int(pixels[offset]), g = Int(pixels[offset + 1]), b = Int(pixels[offset + 2])
-                if r > 220, g > 220, b > 245, b - r > 8 { chipEdge = max(chipEdge ?? x, x) }
-                if r < 70, g < 70, b < 70 { punctuationStart = min(punctuationStart ?? x, x) }
+
+        struct PillMetric {
+            var pillMinX: CGFloat
+            var pillMaxX: CGFloat
+            var pillMinY: CGFloat
+            var pillMaxY: CGFloat
+            var gapBefore: CGFloat?
+            var prevWasPill: Bool
+            var gapAfter: CGFloat?
+            var dotMaxY: CGFloat?
+        }
+
+        func measurePills(in uiImage: UIImage) throws -> [PillMetric] {
+            let cgImage = try XCTUnwrap(uiImage.cgImage)
+            let scale = uiImage.scale
+            let w = cgImage.width, h = cgImage.height
+            var px = [UInt8](repeating: 255, count: w * h * 4)
+            px.withUnsafeMutableBytes { bytes in
+                let ctx = CGContext(
+                    data: bytes.baseAddress, width: w, height: h,
+                    bitsPerComponent: 8, bytesPerRow: w * 4,
+                    space: CGColorSpaceCreateDeviceRGB(),
+                    bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+                )
+                ctx?.draw(cgImage, in: CGRect(x: 0, y: 0, width: w, height: h))
+            }
+            func isPill(_ x: Int, _ y: Int) -> Bool {
+                let i = (y * w + x) * 4
+                let r = Int(px[i]), g = Int(px[i + 1]), b = Int(px[i + 2])
+                return r > 220 && g > 220 && b > 245 && b - r > 8
+            }
+            func isInk(_ x: Int, _ y: Int) -> Bool {
+                let i = (y * w + x) * 4
+                let r = Int(px[i]), g = Int(px[i + 1]), b = Int(px[i + 2])
+                return r < 90 && g < 90 && b < 90
+            }
+
+            var metrics: [PillMetric] = []
+            var y = 0
+            while y < h {
+                guard (0..<w).contains(where: { isPill($0, y) }) else {
+                    y += 1
+                    continue
+                }
+                let bandTop = y
+                while y < h, (0..<w).contains(where: { isPill($0, y) }) { y += 1 }
+                let bandBottom = y - 1
+                guard bandBottom - bandTop >= Int(14 * scale), bandBottom - bandTop <= Int(70 * scale) else { continue }
+
+                // Find contiguous horizontal pill segments in this row band.
+                var x = 0
+                while x < w {
+                    guard (bandTop...bandBottom).contains(where: { isPill(x, $0) }) else {
+                        x += 1
+                        continue
+                    }
+                    let minX = x
+                    while x < w, (bandTop...bandBottom).contains(where: { isPill(x, $0) }) { x += 1 }
+                    let maxX = x - 1
+                    guard maxX - minX >= Int(20 * scale), maxX - minX <= Int(120 * scale) else { continue }
+
+                    var prevMaxX: Int?
+                    var prevWasPill = false
+                    let searchLeft = max(0, minX - Int(24 * scale))
+                    for by in bandTop...bandBottom {
+                        for sx in searchLeft..<minX where isInk(sx, by) || isPill(sx, by) {
+                            if prevMaxX == nil || sx >= prevMaxX! {
+                                prevMaxX = sx
+                                if isPill(sx, by) { prevWasPill = true }
+                            }
+                        }
+                    }
+
+                    // Search for trailing punctuation ink immediately to the right of the pill
+                    // (including up to 8 pt below bandBottom to detect AX5 baseline drop).
+                    var dotMinX: Int?
+                    var dotMaxY: Int?
+                    let searchRight = min(w, maxX + 1 + Int(14 * scale))
+                    let dotSearchBottom = min(h - 1, bandBottom + Int(8 * scale))
+                    if maxX + 1 < searchRight {
+                        // Stop at the first blank vertical column after the first ink blob so we only measure the punctuation mark.
+                        var foundDotInk = false
+                        for sx in (maxX + 1)..<searchRight {
+                            var colHasInk = false
+                            for by in bandTop...dotSearchBottom where isInk(sx, by) {
+                                colHasInk = true
+                                dotMinX = min(dotMinX ?? sx, sx)
+                                dotMaxY = max(dotMaxY ?? by, by)
+                            }
+                            if colHasInk {
+                                foundDotInk = true
+                            } else if foundDotInk {
+                                break
+                            }
+                        }
+                    }
+
+                    metrics.append(PillMetric(
+                        pillMinX: CGFloat(minX) / scale,
+                        pillMaxX: CGFloat(maxX) / scale,
+                        pillMinY: CGFloat(bandTop) / scale,
+                        pillMaxY: CGFloat(bandBottom) / scale,
+                        gapBefore: prevMaxX.map { CGFloat(minX - $0 - 1) / scale },
+                        prevWasPill: prevWasPill,
+                        gapAfter: dotMinX.map { CGFloat($0 - maxX - 1) / scale },
+                        dotMaxY: dotMaxY.map { CGFloat($0) / scale }
+                    ))
+                }
+            }
+            return metrics
+        }
+
+        for (name, summary, dts) in [
+            ("en-large", SampleContent.english.tipsSummary, DynamicTypeSize.large),
+            ("en-ax5", SampleContent.english.tipsSummary, DynamicTypeSize.accessibility5),
+            ("zh-large", SampleContent.simplifiedChinese.tipsSummary, DynamicTypeSize.large),
+            ("zh-ax5", SampleContent.simplifiedChinese.tipsSummary, DynamicTypeSize.accessibility5)
+        ] {
+            let rows = DrawerSummarySections.parsed(for: .init(text: summary, maximumPost: 88)).rows
+            let image = render(
+                VStack(alignment: .leading, spacing: 8) {
+                    DrawerSummarySections(rows: rows, layout: .singleColumn)
+                }
+                .padding(.horizontal, 14),
+                dynamicTypeSize: dts,
+                width: 390,
+                height: dts.isAccessibilitySize ? 4400 : 1100
+            )
+            let pills = try measurePills(in: image)
+            XCTAssertEqual(pills.count, 8, "\(name): expected all 8 sample summary citations (#1, #2, #7, #3, #12, #9, #1, #14)")
+            // Citations at indices 0 (#1), 2 (#7), 4 (#12), 5 (#9), 6 (#1), 7 (#14) have a trailing full stop.
+            for idx in [0, 2, 4, 5, 6, 7] where idx < pills.count {
+                let pill = pills[idx]
+                let gapAfter = try XCTUnwrap(pill.gapAfter, "\(name) pill[\(idx)]: trailing full stop must stay on the same line right after its chip")
+                XCTAssertLessThanOrEqual(gapAfter, 2.0, "\(name) pill[\(idx)]: full stop must touch the chip without a space (got \(gapAfter) pt)")
+                if let dotMaxY = pill.dotMaxY {
+                    XCTAssertLessThanOrEqual(dotMaxY, pill.pillMaxY + 1.5, "\(name) pill[\(idx)]: full stop must not drop below the chip pill")
+                }
+                if !dts.isAccessibilitySize {
+                    if let gapBefore = pill.gapBefore {
+                        let maxGapBefore: CGFloat = pill.prevWasPill ? 10.0 : 6.5
+                        XCTAssertLessThanOrEqual(gapBefore, maxGapBefore, "\(name) pill[\(idx)]: chip must not have extra leading touch-padding gap before it (got \(gapBefore) pt)")
+                    } else {
+                        // Wrapped to the start of a bullet (x=34) or numbered (x=42) line.
+                        let expectedStart: CGFloat = idx >= 6 ? 43.0 : 35.0
+                        XCTAssertLessThanOrEqual(pill.pillMinX, expectedStart, "\(name) pill[\(idx)]: wrapped chip at line start must align with text column, not indent (got x=\(pill.pillMinX) pt)")
+                    }
+                }
             }
         }
-        let gap = try XCTUnwrap(punctuationStart) - XCTUnwrap(chipEdge)
-        XCTAssertLessThanOrEqual(gap, 4, "The chip's touch padding must not look like a space before the full stop")
-        let attachment = XCTAttachment(image: UIImage(cgImage: image))
-        attachment.name = "Citation punctuation"
-        attachment.lifetime = .keepAlways
-        add(attachment)
+
+        // Line-wrap boundary: when a line ends right at a cited full stop (including compound punctuation),
+        // the punctuation must never wrap onto a line below its chip.
+        for (name, sample, dts, wrapWidth) in [
+            ("wrap-en", "counts match [#3](forumind-post:3) [#7](forumind-post:7).", DynamicTypeSize.large, CGFloat(175)),
+            ("wrap-zh", "计数对得上了 [#3](forumind-post:3) [#7](forumind-post:7)。", DynamicTypeSize.large, CGFloat(175)),
+            ("wrap-zh-paren", "（见 [#7](forumind-post:7)）。", DynamicTypeSize.large, CGFloat(100))
+        ] {
+            let image = render(
+                MarkdownBlockView(row: MarkdownRow(content: .paragraph(sample), topSpacing: 0), citations: true),
+                dynamicTypeSize: dts,
+                width: wrapWidth,
+                height: 160
+            )
+            let pills = try measurePills(in: image)
+            let lastPill = try XCTUnwrap(pills.last, "\(name): expected citation pill")
+            let gapAfter = try XCTUnwrap(lastPill.gapAfter, "\(name): full stop must stay on the same line as its chip")
+            XCTAssertLessThanOrEqual(gapAfter, 2.0, "\(name): full stop must touch its chip")
+            // Verify there is no orphan ink below the last pill's line band.
+            let cgImage = try XCTUnwrap(image.cgImage)
+            let scale = image.scale
+            let w = cgImage.width, h = cgImage.height
+            var px = [UInt8](repeating: 255, count: w * h * 4)
+            px.withUnsafeMutableBytes { bytes in
+                let ctx = CGContext(
+                    data: bytes.baseAddress, width: w, height: h,
+                    bitsPerComponent: 8, bytesPerRow: w * 4,
+                    space: CGColorSpaceCreateDeviceRGB(),
+                    bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+                )
+                ctx?.draw(cgImage, in: CGRect(x: 0, y: 0, width: w, height: h))
+            }
+            let belowStart = min(h, Int((lastPill.pillMaxY + 4) * scale))
+            var orphanInkBelow = false
+            for y in belowStart..<h {
+                for x in 0..<w {
+                    let i = (y * w + x) * 4
+                    if px[i] < 90 && px[i + 1] < 90 && px[i + 2] < 90 {
+                        orphanInkBelow = true
+                    }
+                }
+            }
+            XCTAssertFalse(orphanInkBelow, "\(name): full stop must never drop onto its own line below the chip")
+        }
+
+        // Chat answer bubbles in English and Chinese at default and AX5 sizes.
+        for (name, reply, dts) in [
+            ("chat-en-large", "Enable it for staff first #12. See also #3 #7.", DynamicTypeSize.large),
+            ("chat-en-ax5", "Enable it for staff first #12. See also #3 #7.", DynamicTypeSize.accessibility5),
+            ("chat-zh-large", "先为工作人员开启 #12。另见 #3 #7。", DynamicTypeSize.large),
+            ("chat-zh-ax5", "先为工作人员开启 #12。另见 #3 #7。", DynamicTypeSize.accessibility5)
+        ] {
+            let image = render(
+                ChatBubble(
+                    message: ChatMessage(role: .assistant, content: reply),
+                    maximumPost: 68
+                )
+                .padding(.horizontal, 14),
+                dynamicTypeSize: dts,
+                width: 390,
+                height: dts.isAccessibilitySize ? 900 : 300
+            )
+            let pills = try measurePills(in: image)
+            XCTAssertEqual(pills.count, 3, "\(name): expected 3 chat citations")
+            for idx in [0, 2] where idx < pills.count {
+                let gapAfter = try XCTUnwrap(pills[idx].gapAfter, "\(name) pill[\(idx)]: full stop must stay with its chip in chat")
+                XCTAssertLessThanOrEqual(gapAfter, 2.0, "\(name) pill[\(idx)]: full stop in chat must touch the chip (got \(gapAfter) pt)")
+            }
+        }
     }
 
     @MainActor

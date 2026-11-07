@@ -100,10 +100,9 @@ final class IPadLayoutUITests: DCUITestCase {
     }
 
     /// §4.5 in the panel: summarize (the DEBUG fake summary), tap `#12` → the
-    /// page scrolls to post 12 and marks it. Needs the live meta topic.
+    /// page scrolls to post 12 and marks it.
     func testCitationInThePanelJumpsThePage() throws {
         try skipUnlessPad("iPad layout")
-        try requireNetwork()
         let app = launch(sample + ["-dc-no-summary", "-dc-fake-summary", "-dc-browse-debug"], orientation: .landscapeLeft)
         XCTAssertTrue(waitOrDump(any(app, "aiPanel"), timeout: 20, in: app))
         let summarize = app.buttons["createSummary"].firstMatch

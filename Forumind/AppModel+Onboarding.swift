@@ -310,6 +310,8 @@ enum AppVersion {
     }
 
     static let repositoryURL = URL(string: "https://github.com/kccarlos/forumind")!
+    static let websiteURL = URL(string: "https://mobile.forumind.top")!
+    static let supportURL = URL(string: "https://mobile.forumind.top/support/")!
 }
 
 extension AppModel {

@@ -3410,10 +3410,16 @@ final class AIContextValidityTests: XCTestCase {
         return app
     }
 
-    func waitUntil(_ condition: @escaping () -> Bool) async throws {
-        let deadline = Date().addingTimeInterval(10)
+    /// Polls until `condition` holds. The bound only catches a hang: public
+    /// CI ran this suite 30 times slower than a Mac (one test took 24 s), so
+    /// it sits far above any healthy run. A timeout names the waiting line.
+    func waitUntil(file: StaticString = #filePath, line: UInt = #line, _ condition: @escaping () -> Bool) async throws {
+        let deadline = Date().addingTimeInterval(60)
         while !condition() {
-            if Date() > deadline { XCTFail("Timed out waiting for work"); throw CancellationError() }
+            if Date() > deadline {
+                XCTFail("Timed out waiting for work", file: file, line: line)
+                throw CancellationError()
+            }
             try await Task.sleep(for: .milliseconds(20))
         }
     }
@@ -3592,6 +3598,92 @@ final class AIContextValidityTests: XCTestCase {
         XCTAssertFalse(ai.sources.last?.contains("Post 2") == true, "Raw source is correctly moderated")
         XCTAssertFalse(ai.histories.last?.contains("Post 2") == true, "Previous AI answer quoting blocked post two was sent back in next chat history")
         XCTAssertTrue(app.sessions[topic.topicKey]?.history.first(where: { $0.role == .assistant })?.content.contains("Post 2") == true, "Saved answers stay visible")
+    }
+
+    /// The developer's list refreshes while a chat is answered: the chat is
+    /// asked again under the new list instead of ending as "Cancelled".
+    func testRemoteListArrivingMidChatAnswersUnderTheNewList() async throws {
+        StateForumStub.reset()
+        let ai = StateAIStub()
+        let app = try makeApp(ai: ai)
+        let topic = ForumTopic(siteURL: siteURL, topicID: "1", url: URL(string: siteURL + "/t/topic-1/1")!, title: "Topic 1")
+        deliverPage?(PageContext(url: topic.url, site: .discourse, siteURL: siteURL, forumName: "Forum", topic: topic, state: .topic))
+        app.drafts.chat = "Quote the replies"
+        app.sendChat()
+        try await waitUntil { ai.waiting == 1 }
+        XCTAssertTrue(ai.calls.last?.content.contains("Post 2") == true)
+        app.remoteModeration = RemoteModerationList(posts: [.init(site: siteURL, topic: 1, post: 2)])
+        ai.gated = false
+        ai.releaseAll()
+        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
+        XCTAssertEqual(app.activities.first { $0.type == .chat }?.status, .completed, "A list refresh must not cancel the user's chat")
+        XCTAssertEqual(app.sessions[topic.topicKey]?.history.last?.role, .assistant)
+        XCTAssertFalse(ai.calls.last?.content.contains("Post 2") == true, "The answer kept was asked under the new list")
+    }
+
+    /// The developer's list refreshes while Ask the forum runs: the run starts
+    /// again from scratch under the new list (a resume would replay what it
+    /// read before) and answers, instead of ending as "Cancelled".
+    func testRemoteListArrivingMidAgentRunRestartsItFromScratch() async throws {
+        StateForumStub.reset()
+        let ai = StateAIStub()
+        ai.echoContentInSummary = true
+        let planner = ScriptedAgentPlanner(actions: [
+            AgentAction(thought: "", tool: "read_topic", arguments: ["topic_id": "1"]),
+            AgentAction(thought: "", tool: "summarize_topic", arguments: ["topic_id": "1"]),
+            AgentAction(thought: "", tool: "read_topic", arguments: ["topic_id": "1"]),
+            AgentAction(thought: "", tool: AgentPrompt.finalAnswerTool, arguments: ["answer": "Done"])
+        ])
+        let app = try makeApp(ai: ai, planner: planner)
+        var outcomes: [AgentRunOutcome] = []
+        let goal = "Read topic one"
+        let runID = try app.startAgentRun(goal: goal, siteURL: siteURL) { outcomes.append($0) }
+        try await waitUntil { ai.waiting == 1 }
+        XCTAssertTrue(planner.transcripts[1].map(\.content).joined().contains("Post 2"), "The first run read post two")
+        let restartIndex = planner.transcripts.count
+        app.remoteModeration = RemoteModerationList(posts: [.init(site: siteURL, topic: 1, post: 2)])
+        ai.gated = false
+        ai.releaseAll()
+        try await waitUntil { !outcomes.isEmpty && app.activities.allSatisfy(\.status.isTerminal) }
+        XCTAssertEqual(outcomes.map(\.status), [.completed], "A list refresh must not cancel the run")
+        XCTAssertEqual(outcomes.first?.answer, "Done")
+        let run = try XCTUnwrap(app.agentRuns.first { $0.id == runID })
+        XCTAssertEqual(run.steps.map(\.tool), ["read_topic", AgentPrompt.finalAnswerTool], "Only the restarted run's steps are kept")
+        let restarted = Array(planner.transcripts[restartIndex...])
+        XCTAssertEqual(restarted.first?.map(\.content), [AgentPrompt.goalMessage(goal).content], "The restarted run begins at step 0 with only the goal")
+        XCTAssertFalse(restarted.flatMap { $0 }.map(\.content).joined(separator: "\n").contains("Post 2"), "The restarted run's planner saw a post the new list hides")
+    }
+
+    /// A follow-up the list interrupts restarts as that follow-up: the
+    /// earlier answer stays, the planner gets only the questions.
+    func testRemoteListArrivingMidFollowUpRestartsThatFollowUp() async throws {
+        StateForumStub.reset()
+        let ai = StateAIStub()
+        ai.echoContentInSummary = true
+        let planner = ScriptedAgentPlanner(actions: [
+            AgentAction(thought: "", tool: "read_topic", arguments: ["topic_id": "1"]),
+            AgentAction(thought: "", tool: AgentPrompt.finalAnswerTool, arguments: ["answer": "Initial"]),
+            AgentAction(thought: "", tool: "summarize_topic", arguments: ["topic_id": "1"]),
+            AgentAction(thought: "", tool: AgentPrompt.finalAnswerTool, arguments: ["answer": "Follow-up answer"])
+        ])
+        let app = try makeApp(ai: ai, planner: planner)
+        let goal = "Read topic one"
+        let runID = try await app.performAgentRun(goal: goal, siteURL: siteURL).runID
+        app.continueAgentRun(id: runID, question: "Anything else?")
+        try await waitUntil { ai.waiting == 1 }
+        let restartIndex = planner.transcripts.count
+        app.remoteModeration = RemoteModerationList(posts: [.init(site: siteURL, topic: 1, post: 2)])
+        ai.gated = false
+        ai.releaseAll()
+        try await waitUntil { app.agentRuns.first { $0.id == runID }?.isFinished == true && app.activities.allSatisfy(\.status.isTerminal) }
+        let run = try XCTUnwrap(app.agentRuns.first { $0.id == runID })
+        XCTAssertEqual(run.result, .completed)
+        XCTAssertEqual(run.initialAnswer, "Initial")
+        XCTAssertEqual(run.followUps.map(\.content), ["Anything else?", "Follow-up answer"])
+        XCTAssertEqual(run.steps.map(\.tool), ["read_topic", AgentPrompt.finalAnswerTool, AgentPrompt.finalAnswerTool], "The first turn's steps stay; the interrupted turn's are dropped")
+        let restarted = Array(planner.transcripts[restartIndex...])
+        XCTAssertEqual(restarted.first?.map(\.content), [AgentPrompt.goalMessage(goal).content, AgentPrompt.followUpMessage("Anything else?").content])
+        XCTAssertFalse(restarted.flatMap { $0 }.map(\.content).joined(separator: "\n").contains("Post 2"))
     }
 
     func testSyncedConsentWithdrawalDoesNotLeaveDigestCardWorkingForever() async throws {

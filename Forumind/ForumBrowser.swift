@@ -402,6 +402,15 @@ final class ForumBrowserModel: NSObject, ObservableObject {
         webView.load(URLRequest(url: url))
     }
 
+    #if DEBUG
+    /// `-dc-sample`: shows the sample's own topic page at `url` (no network).
+    func loadSamplePage(_ html: String, at url: URL) {
+        hideForumsHome()
+        currentURL = url
+        webView.loadHTMLString(html, baseURL: url)
+    }
+    #endif
+
     /// Suspends while a navigation is in flight (queued, provisional or loading),
     /// at most `timeout`. A page still loading has no document to scroll yet, and
     /// a second `load` issued over it can be folded into the first one: WebKit

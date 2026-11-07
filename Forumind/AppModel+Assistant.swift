@@ -247,7 +247,7 @@ struct AssistantDebugSeed {
 ///
 /// - `-dc-sample`                      multi-forum sample data (required for the others)
 /// - `-dc-page-state <state>`          loading | notForum | maybe | forumHome | topic (default)
-/// - `-dc-topic meta|makers`           which sample topic is open (default meta)
+/// - `-dc-topic meta|openai`           which sample topic is open (default meta)
 /// - `-dc-assistant-mode <mode>`       summary | chat | agent
 /// - `-dc-open-history`                opens History
 /// - `-dc-no-provider`                 leaves the AI provider unconfigured
@@ -266,7 +266,7 @@ struct AssistantDebugSeed {
 /// - `-dc-scroll-sources`              Agent: scrolls to the answer's sources
 /// - `-dc-history-segment <segment>`   History: all | summaries | asks | watching
 /// - `-dc-chat-typing`                 with `-dc-chat-streaming`: no text yet (typing dots)
-/// - `-dc-stale-summary`               the makers topic's summary is behind (stale notice)
+/// - `-dc-stale-summary`               the openai topic's summary is behind (stale notice)
 /// - `-dc-forums-home`                 keeps the Forums home up (no sample page load)
 /// - with `-dc-apple-intelligence on-device|pcc`, sample runs are labeled Apple Intelligence
 enum AssistantDebug {
@@ -303,15 +303,16 @@ extension AppModel {
             siteURL: text.meta.siteURL, kind: kind, name: text.meta.name,
             isPinned: true, pinOrder: 0, lastVisitedAt: ago(2)
         )
-        // Fictional communities on reserved example domains (screenshots
-        // show no real companies or people).
-        let makers = Forum(
-            siteURL: text.makers.siteURL, kind: kind, name: text.makers.name,
+        // Real public forums, as in the extension's screenshots; the topics,
+        // posts and usernames are invented (SampleContent.swift).
+        let openAI = Forum(
+            siteURL: text.openAI.siteURL, kind: kind, name: text.openAI.name,
             isPinned: true, pinOrder: 1, lastVisitedAt: ago(30)
         )
-        let homeLab = Forum(
-            siteURL: text.homeLab.siteURL, kind: kind, name: text.homeLab.name,
-            lastVisitedAt: ago(60 * 26)
+        // Visited, not pinned (Home's Recent; no sample topics there).
+        let hackerNews = Forum(
+            siteURL: HackerNewsRecognizer.siteURL, kind: .hackerNews, name: "Hacker News",
+            lastVisitedAt: ago(60 * 3)
         )
 
         func topic(_ forum: Forum, _ id: String, _ slug: String, _ title: String) -> ForumTopic {
@@ -345,39 +346,36 @@ extension AppModel {
             return value
         }
 
-        let unifiedNew = topic(meta, "404728", "introducing-the-unified-new-view-for-the-topic-list",
-                               text.unifiedNewTitle)
-        let markdownEndpoints = topic(meta, "413006", "discourse-core-now-includes-markdown-endpoints-for-topic-lists-and-views",
-                                      text.markdownEndpointsTitle)
-        let sidebar = topic(meta, "413150", "experimental-user-sidebar-navigation", text.sidebarTitle)
-        let layerShifts = topic(makers, "18342",
-                                "layer-shifts-on-long-prints-after-the-2-4-firmware-update",
-                                text.layerShiftsTitle)
-        let stepperHeat = topic(makers, "18391", "stepper-drivers-overheating-in-enclosed-printers",
-                                text.stepperHeatTitle)
-        let slicerPresets = topic(makers, "18377", "sharing-slicer-presets-between-machines",
-                                  text.slicerPresetsTitle)
-        let fanAfterPrint = topic(makers, "18402", "cooling-fan-keeps-running-after-a-print-finishes",
-                                  text.fanAfterPrintTitle)
-        let lowPowerNAS = topic(homeLab, "7713", "low-power-nas-build-for-2026", text.lowPowerNASTitle)
+        // The extension's topic IDs, so both products link the same addresses.
+        let tips = topic(meta, "241807", "new-user-tips-read-this-before-your-first-post", text.tipsTitle)
+        let notifications = topic(meta, "229140", "category-specific-notification-defaults", text.notificationsTitle)
+        let workingOn = topic(meta, "187233", "what-are-you-working-on-2026-edition", text.workingOnTitle)
+        let streaming = topic(openAI, "1093417", "streaming-function-calls-with-the-responses-api", text.streamingTitle)
+        let rateLimitErrors = topic(openAI, "1088142", "rate-limit-errors-only-during-streamed-tool-calls",
+                                    text.rateLimitErrorsTitle)
+        let backoffGuide = topic(openAI, "1071920", "guide-exponential-backoff-with-retry-after", text.backoffGuideTitle)
+        let batching = topic(openAI, "1080655", "batching-several-tool-calls-in-one-turn", text.batchingTitle)
+        let higherLimit = topic(openAI, "1064310", "how-to-request-a-higher-rate-limit", text.higherLimitTitle)
+        let longThreads = topic(openAI, "1079884", "best-practices-for-long-running-assistant-threads",
+                                text.longThreadsTitle)
 
         var sessions = [
-            session(unifiedNew, posts: 68, summary: text.metaSummary, chat: text.metaChat, kept: true, updated: 6),
-            session(markdownEndpoints, posts: 12, summary: text.markdownEndpointsSummary, updated: 12),
-            session(sidebar, posts: 7, summary: text.sidebarSummary, updated: 60 * 5),
-            session(layerShifts, posts: 35, summarized: AssistantDebug.has("-dc-stale-summary") ? 29 : nil, summary: text.streamSummary, chat: text.streamChat, kept: true, updated: 45),
-            session(stepperHeat, posts: 2, summary: text.stepperHeatSummary, updated: 60 * 2),
-            session(slicerPresets, posts: 5, summary: text.slicerPresetsSummary, updated: 60 * 3),
-            session(lowPowerNAS, posts: 78, summary: text.lowPowerNASSummary, updated: 60 * 26)
+            session(tips, posts: 88, summary: text.tipsSummary, chat: text.tipsChat, kept: true, updated: 6),
+            session(notifications, posts: 20, summary: text.notificationsSummary, updated: 60 * 9),
+            session(workingOn, posts: 3_412, summary: text.workingOnSummary, updated: 60 * 26),
+            session(streaming, posts: 13, summarized: AssistantDebug.has("-dc-stale-summary") ? 10 : nil,
+                    summary: text.streamingSummary, chat: text.streamingChat, kept: true, updated: 45),
+            session(rateLimitErrors, posts: 42, summary: text.rateLimitErrorsSummary, updated: 60 * 2),
+            session(longThreads, posts: 32, summary: text.longThreadsSummary, updated: 60 * 5)
         ]
 
-        // Ask the forum shows the featured run, which is on the makers forum,
+        // Ask the forum shows the featured run, which is on the OpenAI forum,
         // so agent mode opens that forum's topic unless `-dc-topic` says
         // otherwise (then the run on the open forum is shown instead): the
         // forum in the header is always the forum the answer comes from.
         let isAgentMode = AssistantDebug.value("-dc-assistant-mode")?.lowercased() == AssistantMode.agent.rawValue.lowercased()
-        let topicChoice = AssistantDebug.value("-dc-topic") ?? (isAgentMode ? "makers" : "meta")
-        let openTopic = topicChoice == "makers" ? layerShifts : unifiedNew
+        let topicChoice = AssistantDebug.value("-dc-topic") ?? (isAgentMode ? "openai" : "meta")
+        let openTopic = topicChoice == "openai" ? streaming : tips
         if AssistantDebug.has("-dc-no-summary"),
            let index = sessions.firstIndex(where: { $0.topicKey == openTopic.topicKey }) {
             sessions[index].summary = ""
@@ -387,7 +385,7 @@ extension AppModel {
 
         // Agent runs: a finished run with a sourced answer, and an older one.
         var run = AgentRun(
-            siteURL: makers.siteURL,
+            siteURL: openAI.siteURL,
             goal: text.agentGoal,
             provider: sampleAgent.provider,
             model: sampleAgent.model
@@ -396,32 +394,30 @@ extension AppModel {
         run.updatedAt = ago(18)
         run.completedAt = ago(18)
         run.result = .completed
-        run.topicIDs = [layerShifts.topicID, stepperHeat.topicID, fanAfterPrint.topicID]
+        let sources = [rateLimitErrors, backoffGuide, batching, higherLimit]
+        run.topicIDs = sources.map(\.topicID)
+        func read(_ topic: ForumTopic, posts: Int, thought: Int, at minutes: Double) -> AgentStep {
+            AgentStep(tool: "read_topic", arguments: ["topic_id": topic.topicID],
+                      thought: text.agentThoughts[thought], outcome: String(localized: "Read \(posts) posts"),
+                      topicID: topic.topicID, topicKey: topic.topicKey,
+                      startedAt: ago(minutes), finishedAt: ago(minutes - 0.1))
+        }
         run.steps = [
             AgentStep(tool: "search_forum", arguments: ["query": text.agentSearchQuery],
-                      thought: text.agentThoughts[0], outcome: String(localized: "\(8) topics"),
+                      thought: text.agentThoughts[0], outcome: String(localized: "\(6) topics"),
                       startedAt: ago(20), finishedAt: ago(20)),
-            AgentStep(tool: "read_topic", arguments: ["topic_id": layerShifts.topicID],
-                      thought: text.agentThoughts[1], outcome: String(localized: "Read \(35) posts"),
-                      topicID: layerShifts.topicID, topicKey: layerShifts.topicKey,
-                      startedAt: ago(19.5), finishedAt: ago(19.4)),
-            AgentStep(tool: "read_topic", arguments: ["topic_id": stepperHeat.topicID],
-                      thought: text.agentThoughts[2], outcome: String(localized: "Read \(2) posts"),
-                      topicID: stepperHeat.topicID, topicKey: stepperHeat.topicKey,
-                      startedAt: ago(19.2), finishedAt: ago(19.1)),
+            read(rateLimitErrors, posts: 42, thought: 1, at: 19.6),
+            read(backoffGuide, posts: 18, thought: 2, at: 19.3),
             AgentStep(tool: "search_forum", arguments: ["query": text.agentSecondSearchQuery],
-                      thought: text.agentThoughts[3], outcome: String(localized: "\(5) topics"),
+                      thought: text.agentThoughts[3], outcome: String(localized: "\(4) topics"),
                       startedAt: ago(19), finishedAt: ago(19)),
-            AgentStep(tool: "read_topic", arguments: ["topic_id": fanAfterPrint.topicID],
-                      thought: text.agentThoughts[4], outcome: String(localized: "Read \(1) posts"),
-                      topicID: fanAfterPrint.topicID, topicKey: fanAfterPrint.topicKey,
-                      startedAt: ago(18.8), finishedAt: ago(18.7)),
-            AgentStep(tool: AgentPrompt.finalAnswerTool, thought: text.agentThoughts[5], outcome: String(localized: "Answered"),
+            read(batching, posts: 27, thought: 4, at: 18.8),
+            read(higherLimit, posts: 9, thought: 5, at: 18.5),
+            AgentStep(tool: AgentPrompt.finalAnswerTool, thought: text.agentThoughts[6], outcome: String(localized: "Answered"),
                       startedAt: ago(18.2), finishedAt: ago(18))
         ]
-        run.answer = text.agentAnswer(
-            layerShifts.url.absoluteString, stepperHeat.url.absoluteString, fanAfterPrint.url.absoluteString
-        )
+        let urls = sources.map(\.url.absoluteString)
+        run.answer = text.agentAnswer(urls[0], urls[1], urls[2], urls[3])
         run.initialAnswer = run.answer
         run.followUps = [
             ChatMessage(role: .user, content: text.agentFollowUpQuestion, createdAt: ago(17)),
@@ -442,7 +438,7 @@ extension AppModel {
             AgentStep(tool: "search_forum", arguments: ["query": text.olderSearchQuery], outcome: String(localized: "\(3) topics")),
             AgentStep(tool: AgentPrompt.finalAnswerTool, outcome: String(localized: "Answered"))
         ]
-        olderRun.topicIDs = [unifiedNew.topicID]
+        olderRun.topicIDs = [tips.topicID]
 
         var activities: [WorkRecord] = []
         func record(_ type: WorkType, _ topic: ForumTopic, _ minutes: Double, status: WorkStatus = .completed, text: String = String(localized: "Completed")) -> WorkRecord {
@@ -455,9 +451,9 @@ extension AppModel {
             value.completedAt = status.isTerminal ? ago(minutes) : nil
             return value
         }
-        activities.append(record(.summary, unifiedNew, 6, text: String(localized: "Summarized \(68) posts")))
-        activities.append(record(.chat, layerShifts, 45, text: String(localized: "Answered")))
-        activities.append(record(.summary, stepperHeat, 120, status: .failed, text: String(localized: "Failed")))
+        activities.append(record(.summary, tips, 6, text: String(localized: "Summarized \(88) posts")))
+        activities.append(record(.chat, streaming, 45, text: String(localized: "Answered")))
+        activities.append(record(.summary, longThreads, 120, status: .failed, text: String(localized: "Failed")))
 
         // Running samples advance like real jobs (every half second).
         var sampleTickers: [@MainActor (Int) -> Void] = []
@@ -472,8 +468,8 @@ extension AppModel {
             currentRun.steps[3].finishedAt = nil
             currentRun.steps[3].outcome = ""
             var agentRecord = WorkRecord(
-                type: .agent, siteURL: makers.siteURL, topicID: "agent:" + run.id.uuidString,
-                title: run.goal, url: sampleHome(makers)!, provider: sampleAgent.provider, model: sampleAgent.model
+                type: .agent, siteURL: openAI.siteURL, topicID: "agent:" + run.id.uuidString,
+                title: run.goal, url: sampleHome(openAI)!, provider: sampleAgent.provider, model: sampleAgent.model
             )
             agentRecord.status = .running
             agentRecord.statusText = text.agentRunningStatus
@@ -521,21 +517,21 @@ extension AppModel {
             streams.set(AssistantDebug.has("-dc-chat-typing") ? "" : text.chatStreamingAnswer, for: chatRecord.id)
         }
 
-        var watchedMeta = WatchedTopic(siteURL: meta.siteURL, topicID: unifiedNew.topicID, url: unifiedNew.url,
-                                       title: unifiedNew.title, knownPostCount: 68)
+        var watchedMeta = WatchedTopic(siteURL: meta.siteURL, topicID: tips.topicID, url: tips.url,
+                                       title: tips.title, knownPostCount: 88)
         watchedMeta.newReplies = 3
         watchedMeta.lastCheckedAt = ago(8)
-        var watchedStream = WatchedTopic(siteURL: makers.siteURL, topicID: layerShifts.topicID, url: layerShifts.url,
-                                         title: layerShifts.title, knownPostCount: 35)
+        var watchedStream = WatchedTopic(siteURL: openAI.siteURL, topicID: streaming.topicID, url: streaming.url,
+                                         title: streaming.title, knownPostCount: 13)
         watchedStream.lastCheckedAt = ago(40)
-        var watchedNAS = WatchedTopic(siteURL: homeLab.siteURL, topicID: lowPowerNAS.topicID, url: lowPowerNAS.url,
-                                         title: lowPowerNAS.title, knownPostCount: 78)
-        watchedNAS.newReplies = 1
-        watchedNAS.lastCheckedAt = ago(90)
+        var watchedWorkingOn = WatchedTopic(siteURL: meta.siteURL, topicID: workingOn.topicID, url: workingOn.url,
+                                            title: workingOn.title, knownPostCount: 3_412)
+        watchedWorkingOn.newReplies = 1
+        watchedWorkingOn.lastCheckedAt = ago(90)
 
         // Page state.
         let state = AssistantDebug.value("-dc-page-state").flatMap(PageContext.State.init(rawValue:)) ?? .topic
-        let openForum = openTopic.siteURL == makers.siteURL ? makers : meta
+        let openForum = openTopic.siteURL == openAI.siteURL ? openAI : meta
         var context: PageContext
         var selected: ForumTopic?
         switch state {
@@ -556,11 +552,11 @@ extension AppModel {
 
         // The run on the open forum is the selected one (below); the other
         // one finished a minute ago and is unseen.
-        let readyRun = openForum.siteURL == makers.siteURL ? olderRun : currentRun
+        let readyRun = openForum.siteURL == openAI.siteURL ? olderRun : currentRun
         if AssistantDebug.has("-dc-answer-ready"), !AssistantDebug.has("-dc-agent-running") {
             var readyRecord = WorkRecord(
                 type: .agent, siteURL: readyRun.siteURL, topicID: "agent:" + readyRun.id.uuidString,
-                title: readyRun.goal, url: sampleHome(makers)!, provider: sampleAgent.provider, model: sampleAgent.model
+                title: readyRun.goal, url: sampleHome(openAI)!, provider: sampleAgent.provider, model: sampleAgent.model
             )
             readyRecord.status = .completed
             readyRecord.statusText = String(localized: "Answered")
@@ -570,11 +566,11 @@ extension AppModel {
         }
 
         applyDebugSeed(AssistantDebugSeed(
-            forums: [meta, makers, homeLab],
+            forums: [meta, openAI, hackerNews],
             sessions: sessions,
             activities: activities,
             agentRuns: [currentRun, olderRun],
-            watchedTopics: [watchedMeta, watchedStream, watchedNAS],
+            watchedTopics: [watchedMeta, watchedStream, watchedWorkingOn],
             currentTopic: selected,
             currentForum: openForum,
             pageContext: context
@@ -585,8 +581,18 @@ extension AppModel {
         browser.ignoresNavigationFailures = true
         browser.homeSiteURL = openForum.siteURL
         // `-dc-forums-home` keeps the Forums home up: no page load at all.
+        // A topic shows the sample's own page at the topic's address (invented
+        // posts and usernames, nothing loaded), so no real person appears.
         if let url = context.url, state != .maybe, !AssistantDebug.has("-dc-forums-home") {
-            browser.load(url)
+            if state == .topic {
+                let isOpenAI = openForum.siteURL == openAI.siteURL
+                browser.loadSamplePage(text.topicPageHTML(
+                    forum: isOpenAI ? text.openAI : text.meta, title: openTopic.title,
+                    page: isOpenAI ? text.streamingPage : text.tipsPage
+                ), at: url)
+            } else {
+                browser.load(url)
+            }
         }
 
         settings.hasCompletedOnboarding = true
@@ -629,7 +635,7 @@ extension AppModel {
         if AssistantDebug.has("-dc-open-history") { panelRoute = .history }
         if AssistantDebug.has("-dc-answer-ready") { router.answersSeenAt = ago(5) }
         // The run on the open forum: the featured one, or the older run.
-        selectedAgentRunID = (openForum.siteURL == makers.siteURL ? currentRun : olderRun).id
+        selectedAgentRunID = (openForum.siteURL == openAI.siteURL ? currentRun : olderRun).id
         if !sampleTickers.isEmpty {
             let tickers = sampleTickers
             Task { @MainActor in

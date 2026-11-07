@@ -111,14 +111,6 @@ struct AddForumRequest: Equatable {
 struct ForumDirectory: Equatable {
     var forums: [Forum] = []
 
-    #if DEBUG
-    /// The DEBUG sample suggestions replace the real ones (`SuggestedForums.sample`).
-    static var usesSampleSuggestions: Bool {
-        let arguments = ProcessInfo.processInfo.arguments
-        return arguments.contains("-dc-sample") || arguments.contains("-dc-seed-forums")
-    }
-    #endif
-
     var pinned: [Forum] {
         forums.filter(\.isPinned).sorted { $0.pinOrder < $1.pinOrder }
     }
@@ -220,9 +212,4 @@ struct SuggestedForums {
     var general: [SuggestedForum]
     /// Offered first in the walkthrough when the app language is Chinese.
     var chinese: [SuggestedForum]
-    #if DEBUG
-    /// Fictional communities on reserved example domains, offered instead with
-    /// `-dc-sample` / `-dc-seed-forums` (names in the app's language, SampleContent.swift).
-    var sample: [SuggestedForum] = []
-    #endif
 }

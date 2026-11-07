@@ -68,19 +68,19 @@ struct Slide {
 
 enum Captions {
     static let catchUp: [String: Caption] = [
-        "en-US": Caption(headline: "Catch up\nin seconds", subline: "AI summaries of long forum threads"),
-        "zh-Hans": Caption(headline: "长篇讨论\n秒懂重点", subline: "AI 总结冗长的论坛讨论"),
-        "zh-Hant": Caption(headline: "長篇討論\n秒懂重點", subline: "AI 摘要冗長的論壇討論"),
+        "en-US": Caption(headline: "Catch up\nin seconds", subline: "The main points of a long thread"),
+        "zh-Hans": Caption(headline: "长篇讨论\n秒懂重点", subline: "一键爬楼看要点"),
+        "zh-Hant": Caption(headline: "長篇討論\n秒懂重點", subline: "一鍵爬文看重點"),
     ]
     static let ask: [String: Caption] = [
-        "en-US": Caption(headline: "Ask the\nwhole forum", subline: "Answers with links to the posts"),
-        "zh-Hans": Caption(headline: "问遍\n整个论坛", subline: "回答附带原帖链接"),
-        "zh-Hant": Caption(headline: "問遍\n整個論壇", subline: "回答附上原文連結"),
+        "en-US": Caption(headline: "Ask the\nwhole forum", subline: "Answers that cite the posts they used"),
+        "zh-Hans": Caption(headline: "问遍\n整个论坛", subline: "一步步搜索阅读，回答附带来源"),
+        "zh-Hant": Caption(headline: "問遍\n整個論壇", subline: "一步步搜尋閱讀，回答附帶來源"),
     ]
     static let chat: [String: Caption] = [
-        "en-US": Caption(headline: "Chat with\nany topic", subline: "Ask follow-ups about any thread"),
-        "zh-Hans": Caption(headline: "任何话题\n随时追问", subline: "针对任何讨论串追问细节"),
-        "zh-Hant": Caption(headline: "任何話題\n隨時追問", subline: "針對任何討論串追問細節"),
+        "en-US": Caption(headline: "Chat with\nany topic", subline: "Ask follow-up questions about the thread"),
+        "zh-Hans": Caption(headline: "任何话题\n随时追问", subline: "接着追问，告诉你是哪一层楼说的"),
+        "zh-Hant": Caption(headline: "任何話題\n隨時追問", subline: "接著追問，告訴你是哪一樓說的"),
     ]
 
     static let iPhone: [Slide] = [
@@ -92,9 +92,9 @@ enum Captions {
               backdrop: .panorama(2 / 3, 1), captions: chat),
         Slide(raw: "iphone-69-1-home.png", output: "iphone-69-4-forums.png",
               backdrop: .panorama(1, 0.4), captions: [
-                  "en-US": Caption(headline: "Every forum\nin one app", subline: "Pin favorites, share from your browser"),
-                  "zh-Hans": Caption(headline: "所有论坛\n一个 App", subline: "置顶常用论坛，从浏览器一键分享"),
-                  "zh-Hant": Caption(headline: "所有論壇\n一個 App", subline: "釘選常用論壇，從瀏覽器一鍵分享"),
+                  "en-US": Caption(headline: "Every forum\nin one app", subline: "Today’s digest and your pinned forums"),
+                  "zh-Hans": Caption(headline: "所有论坛\n一个 App", subline: "今日摘要和置顶的论坛"),
+                  "zh-Hant": Caption(headline: "所有論壇\n一個 App", subline: "今日摘要和釘選的論壇"),
               ]),
         // The walkthrough's privacy page. Ad blocking is optional and off by
         // default, so the caption must not promise an ad-free browser.

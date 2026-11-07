@@ -715,13 +715,21 @@ struct CitationHoverAction {
 /// 4 pt apart. VoiceOver reads the paragraph as one element, then the chips.
 private struct CitedText: View {
     let source: String
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @ScaledMetric(relativeTo: .body) private var wordSpacing = 4
+    @ScaledMetric(relativeTo: .body) private var widePull: CGFloat = 1.25
+    @ScaledMetric(relativeTo: .footnote) private var narrowPull: CGFloat = 1
 
     private enum Token {
         case text(AttributedString, spaceAfter: Bool)
         /// A chip and the punctuation right after it ("#37."), which never
         /// wraps onto the next line alone.
         case citation(Int, suffix: AttributedString?, spaceAfter: Bool)
+    }
+
+    private func suffixSpacing(for suffix: AttributedString?) -> CGFloat {
+        guard let first = suffix?.characters.first else { return 0 }
+        return first.isWide ? -widePull : -narrowPull
     }
 
     var body: some View {
@@ -735,12 +743,16 @@ private struct CitedText: View {
                         .layoutValue(key: TrailingSpace.self, value: spaceAfter ? wordSpacing : 0)
                         .accessibilityHidden(true)
                 case .citation(let number, let suffix, let spaceAfter):
-                    HStack(spacing: 1) {
+                    HStack(spacing: suffixSpacing(for: suffix)) {
                         CitationChip(number: number, trailingPunctuation: suffix != nil)
                         if let suffix {
-                            Text(suffix).fixedSize().accessibilityHidden(true)
+                            Text(suffix)
+                                .fixedSize()
+                                .offset(y: dynamicTypeSize.isAccessibilitySize ? -6 : 0)
+                                .accessibilityHidden(true)
                         }
                     }
+                    .frame(minWidth: 46, alignment: .leading)
                     .layoutValue(key: TrailingSpace.self, value: suffix == nil || spaceAfter ? wordSpacing : 0)
                 }
             }
@@ -781,8 +793,11 @@ private struct CitedText: View {
             while index < run.range.upperBound {
                 let character = characters[index]
                 let next = characters.index(after: index)
-                let breaksAfter = character.isWhitespace || character.isWide
-                    || (next < run.range.upperBound && characters[next].isWide)
+                let breaksAfter = character.isWhitespace
+                    || (!character.isOpeningPunctuation && (
+                        character.isWide
+                        || (next < run.range.upperBound && characters[next].isWide)
+                    ))
                 if breaksAfter {
                     append(AttributedString(value[start..<next]), to: &tokens)
                     start = next
@@ -800,20 +815,36 @@ private struct CitedText: View {
         let text = String(chunk.characters)
         let trimmed = text.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else {
-            // A lone space: belongs to the word before.
-            if case .text(let previous, _) = tokens.last {
+            // A lone space: belongs to the word or punctuated chip before.
+            switch tokens.last {
+            case .text(let previous, _):
                 tokens[tokens.count - 1] = .text(previous, spaceAfter: true)
+            case .citation(let number, let suffix?, _):
+                tokens[tokens.count - 1] = .citation(number, suffix: suffix, spaceAfter: true)
+            default:
+                break
             }
             return
         }
-        // Punctuation after a chip ("#37 ." from the model, or "#37."): glued.
-        if case .citation(let number, nil, _) = tokens.last,
-           trimmed.unicodeScalars.allSatisfy(CharacterSet.punctuationCharacters.contains),
+        // Punctuation after a chip ("#37 ." from the model, "#37.", or "#37）。"): glued.
+        if trimmed.unicodeScalars.allSatisfy(\.isTrailingPunctuation),
            let range = chunk.range(of: trimmed) {
-            tokens[tokens.count - 1] = .citation(
-                number, suffix: AttributedString(chunk[range]), spaceAfter: text.last?.isWhitespace == true
-            )
-            return
+            let piece = AttributedString(chunk[range])
+            let hasSpace = text.last?.isWhitespace == true
+            switch tokens.last {
+            case .citation(let number, let existing, _):
+                var combined = existing ?? AttributedString()
+                combined.append(piece)
+                tokens[tokens.count - 1] = .citation(number, suffix: combined, spaceAfter: hasSpace)
+                return
+            case .text(let previous, false):
+                var combined = previous
+                combined.append(piece)
+                tokens[tokens.count - 1] = .text(combined, spaceAfter: hasSpace)
+                return
+            default:
+                break
+            }
         }
         var word = chunk
         if text.last?.isWhitespace == true, let range = word.range(of: trimmed) {
@@ -834,6 +865,19 @@ private extension Character {
         default: return false
         }
     }
+
+    var isOpeningPunctuation: Bool {
+        guard let category = unicodeScalars.first?.properties.generalCategory else { return false }
+        return category == .openPunctuation || category == .initialPunctuation
+    }
+}
+
+private extension Unicode.Scalar {
+    var isTrailingPunctuation: Bool {
+        CharacterSet.punctuationCharacters.contains(self)
+            && properties.generalCategory != .openPunctuation
+            && properties.generalCategory != .initialPunctuation
+    }
 }
 
 /// `#37`: tap to scroll the page to post 37 (AppModel.jumpToCitation).
@@ -852,6 +896,7 @@ struct CitationChip: View {
         } label: {
             Text(verbatim: "#\(number)")
                 .font(.footnote.weight(.bold).monospacedDigit())
+                .fixedSize()
                 .foregroundStyle(isActive ? Color.white : DCTheme.citationText)
                 .padding(.horizontal, 8)
                 .frame(minWidth: 36, minHeight: 28)
@@ -863,9 +908,11 @@ struct CitationChip: View {
                 // never overlap, and 44 pt high to tap
                 // without taking more room between the lines. 46 pt: the
                 // drawer's floating sheet is drawn about 4 % smaller at medium.
-                .frame(minWidth: 46, alignment: trailingPunctuation ? .trailing : .center)
+                .frame(minWidth: trailingPunctuation ? 36 : 46)
+                .padding(.horizontal, trailingPunctuation ? 5 : 0)
                 .padding(.vertical, 9)
                 .contentShape(Rectangle())
+                .padding(.horizontal, trailingPunctuation ? -5 : 0)
                 .padding(.vertical, -9)
         }
         .buttonStyle(.plain)

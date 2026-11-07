@@ -191,8 +191,11 @@ folder in CI:
   first. The site in `mobile-site/` (deployed by `pages.yml`) carries a copy
   at `https://mobile.forumind.top/privacy/`; to use it, update
   `privacy_url.txt` in every locale and `privacyURL` in
-  `Forumind/Moderation.swift`, and run `scripts/site/render_privacy.py` after editing `PRIVACY.md` (the site copy is generated).
-- Support URL: `https://github.com/kccarlos/forumind/issues`.
+  `Forumind/Moderation.swift`, and run `scripts/site/render_site.py` after editing `PRIVACY.md` (the site copy is generated).
+- Marketing URL (recommended): `https://mobile.forumind.top`.
+- Support URL (recommended): `https://mobile.forumind.top/support/`. The
+  repository's issues page, `https://github.com/kccarlos/forumind/issues`,
+  is the fallback.
 - Screenshots: `appstore/screenshots/<locale>/`, five for 6.9" iPhone
   (1320 × 2868) and five for 13" iPad (2064 × 2752) in each language. App
   Store Connect scales them for smaller devices. They are generated; see
@@ -228,9 +231,13 @@ for each store language:
 
 - Raw captures: `appstore/screenshots-raw/<locale>/` with `<locale>` one of
   `en-US`, `zh-Hans`, `zh-Hant` (iPhone 17 Pro Max and iPad Pro 13-inch,
-  status bar at 9:41, sample data only; the Chinese sets are taken with the
-  app in that language, which switches the sample data to Chinese,
-  fictional forums). They sit outside `appstore/screenshots/` because
+  status bar at 9:41, sample data only). As in the Chrome extension's store
+  images, they show real public forums (Discourse Meta, and the OpenAI
+  Developer Community for Ask the forum) with the extension's topics; every
+  post, username, summary and answer is invented, and the page behind the
+  drawer is the sample's own (letter avatars), so no real person appears. The
+  Chinese sets show the same forums with Chinese text and the app in that
+  language. Taken by `scripts/brand/capture_store_screenshots.sh`. They sit outside `appstore/screenshots/` because
   fastlane treats every folder there as a language and would upload them.
   How to retake them: [DEVELOPMENT.md](DEVELOPMENT.md#app-store-screenshots).
 - Output: `appstore/screenshots/<locale>/`, opaque sRGB PNGs at the exact
@@ -249,41 +256,44 @@ for each store language:
 
 Captions are defined per locale in `Captions` in
 `scripts/brand/render_store_screenshots.swift`. Captures (same in every
-language): iPhone 1 summary, 2 Ask the forum, 3 chat, 4 Forums home,
-5 the walkthrough's privacy page; iPad 1 Forums home + summary, 2 Ask the
-forum, 3 chat, 4 Manage, 5 Settings › iCloud Sync.
+language): iPhone 1 summary (the drawer over the topic page), 2 Ask the
+forum, 3 chat, 4 Home (Today's digest and pinned forums), 5 the
+walkthrough's privacy page; iPad 1 summary in the panel beside the page,
+2 Ask the forum, 3 chat, 4 History, 5 Settings › iCloud Sync.
 
 **English (en-US)**
 
 | # | Headline | iPhone subline | iPad subline |
 | --- | --- | --- | --- |
-| 1 | Catch up in seconds | AI summaries of long forum threads | same |
-| 2 | Ask the whole forum | Answers with links to the posts | same |
-| 3 | Chat with any topic | Ask follow-ups about any thread | same |
-| 4 | Every forum in one app | Pin favorites, share from your browser | Summaries, chats, and watched topics |
+| 1 | Catch up in seconds | The main points of a long thread | same |
+| 2 | Ask the whole forum | Answers that cite the posts they used | same |
+| 3 | Chat with any topic | Ask follow-up questions about the thread | same |
+| 4 | Every forum in one app | Today’s digest and your pinned forums | Summaries, chats, and watched topics |
 | 5 | Private by design (iPhone) / Private & in sync (iPad) | No accounts, no tracking. Optional ad blocking. | No accounts. End-to-end encrypted sync. |
 
 **Simplified Chinese (zh-Hans)**
 
 | # | Headline | iPhone subline | iPad subline |
 | --- | --- | --- | --- |
-| 1 | 长篇讨论 / 秒懂重点 | AI 总结冗长的论坛讨论 | same |
-| 2 | 问遍 / 整个论坛 | 回答附带原帖链接 | same |
-| 3 | 任何话题 / 随时追问 | 针对任何讨论串追问细节 | same |
-| 4 | 所有论坛 / 一个 App | 置顶常用论坛，从浏览器一键分享 | 摘要、聊天、关注的话题，集中管理 |
+| 1 | 长篇讨论 / 秒懂重点 | 一键爬楼看要点 | same |
+| 2 | 问遍 / 整个论坛 | 一步步搜索阅读，回答附带来源 | same |
+| 3 | 任何话题 / 随时追问 | 接着追问，告诉你是哪一层楼说的 | same |
+| 4 | 所有论坛 / 一个 App | 今日摘要和置顶的论坛 | 摘要、聊天、关注的话题，集中管理 |
 | 5 | 隐私 / 从设计开始 (iPhone), 隐私安全 / 跨设备同步 (iPad) | 无需账户，不做跟踪，广告拦截可选 | 无需账户，端到端加密同步 |
 
 **Traditional Chinese (zh-Hant)**
 
 | # | Headline | iPhone subline | iPad subline |
 | --- | --- | --- | --- |
-| 1 | 長篇討論 / 秒懂重點 | AI 摘要冗長的論壇討論 | same |
-| 2 | 問遍 / 整個論壇 | 回答附上原文連結 | same |
-| 3 | 任何話題 / 隨時追問 | 針對任何討論串追問細節 | same |
-| 4 | 所有論壇 / 一個 App | 釘選常用論壇，從瀏覽器一鍵分享 | 摘要、聊天、追蹤的話題，集中管理 |
+| 1 | 長篇討論 / 秒懂重點 | 一鍵爬文看重點 | same |
+| 2 | 問遍 / 整個論壇 | 一步步搜尋閱讀，回答附帶來源 | same |
+| 3 | 任何話題 / 隨時追問 | 接著追問，告訴你是哪一樓說的 | same |
+| 4 | 所有論壇 / 一個 App | 今日摘要和釘選的論壇 | 摘要、聊天、追蹤的話題，集中管理 |
 | 5 | 隱私 / 從設計開始 (iPhone), 隱私安全 / 跨裝置同步 (iPad) | 無需帳號，不做追蹤，廣告阻擋可選 | 無需帳號，端對端加密同步 |
 
-Keep the headlines to two short lines (they must read at about 300 px wide
+The sublines follow the Chrome extension's store captions
+(`store-assets/LISTING.md` in its repository), so the two read as one
+product. Keep the headlines to two short lines (they must read at about 300 px wide
 in search results; in Chinese, at most five characters per line on iPhone),
 make every claim true of the screen shown, and don't put trademarks in the
 headlines. Ad and tracker blocking is optional and off by default, so no

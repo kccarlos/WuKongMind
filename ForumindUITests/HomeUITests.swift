@@ -9,7 +9,7 @@ final class HomeUITests: DCUITestCase {
             let app = launch(["-dc-sample", "-dc-forums-home", "-UIPreferredContentSizeCategoryName", category.rawValue],
                              orientation: isPhone ? .portrait : .landscapeLeft)
             openHome(in: app)
-            let last = app.buttons["pinnedForum-community.example.org"]
+            let last = app.buttons["pinnedForum-community.openai.com"]
             XCTAssertTrue(reveal(last, in: app))
             let add = app.buttons["homeAddForum"]
             XCTAssertTrue(reveal(add, in: app))
@@ -246,7 +246,7 @@ final class HomeUITests: DCUITestCase {
     func testHomeDigestStripAndAccessibilityLayout() throws {
         var app = launch(["-dc-sample", "-dc-forums-home", "-dc-digest-sample"], orientation: .portrait)
         openHome(in: app)
-        let card = app.buttons["homeDigestCard-404728"]
+        let card = app.buttons["homeDigestCard-241807"]
         XCTAssertTrue(card.waitForExistence(timeout: 10))
         capture("base_phone_home-digest")
         let baseCardMinX = card.frame.minX
@@ -257,7 +257,7 @@ final class HomeUITests: DCUITestCase {
         app = launch(["-UIPreferredContentSizeCategoryName", ax5, "-dc-sample", "-dc-forums-home", "-dc-digest-sample"], orientation: .portrait)
         openHome(in: app)
         let axHeader = any(app, "homeHeader")
-        let axCard = app.buttons["homeDigestCard-404728"]
+        let axCard = app.buttons["homeDigestCard-241807"]
         XCTAssertTrue(axCard.waitForExistence(timeout: 10))
         capture("ax5_phone_home-digest")
         let axCardWidth = axCard.frame.width

@@ -316,14 +316,26 @@ enum AgentPrompt {
         )
     }
 
+    private static let goalPrefix = "GOAL:\n"
+    private static let followUpPrefix = "FOLLOW-UP from the user"
+
     static func goalMessage(_ goal: String) -> ChatMessage {
-        ChatMessage(role: .user, content: "GOAL:\n\(goal)")
+        ChatMessage(role: .user, content: goalPrefix + goal)
+    }
+
+    /// The user's goal or a follow-up question, not something the run made.
+    static func isQuestion(_ message: ChatMessage) -> Bool {
+        message.role == .user && (message.content.hasPrefix(goalPrefix) || isFollowUp(message))
+    }
+
+    static func isFollowUp(_ message: ChatMessage) -> Bool {
+        message.role == .user && message.content.hasPrefix(followUpPrefix)
     }
 
     static func followUpMessage(_ question: String) -> ChatMessage {
         ChatMessage(
             role: .user,
-            content: "FOLLOW-UP from the user (use tools if you need more information, "
+            content: followUpPrefix + " (use tools if you need more information, "
                 + "then answer with \(finalAnswerTool)):\n\(question)"
         )
     }

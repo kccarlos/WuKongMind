@@ -146,8 +146,15 @@ final class OnboardingReplayTests: XCTestCase {
     func testFromASettingsSheetTheSheetGoesFirst() async throws {
         let app = try model()
         let delay = PresentationRouter.settleDelay
+        let fallback = PresentationRouter.dismissalFallback
         PresentationRouter.settleDelay = .milliseconds(10)
-        defer { PresentationRouter.settleDelay = delay }
+        // Out of reach: only the dismissal can bring the walkthrough, however
+        // long the runner takes to schedule it.
+        PresentationRouter.dismissalFallback = .seconds(600)
+        defer {
+            PresentationRouter.settleDelay = delay
+            PresentationRouter.dismissalFallback = fallback
+        }
         app.router.item = .expanded(.settings)
         XCTAssertEqual(app.rootPresentation, .expanded(.settings))
         app.replayOnboarding()
@@ -162,9 +169,10 @@ final class OnboardingReplayTests: XCTestCase {
         defer { observation.cancel() }
         app.rootSheetDismissed()
         XCTAssertNil(app.rootPresentation, "a beat for the sheet to leave for good")
-        // Observe the transition rather than racing a fixed sleep under simulator load.
-        // Stay below the two-second fallback so the dismissal callback is still tested.
-        await fulfillment(of: [shown], timeout: 1.8)
+        // A generous bound: a slow runner can stall the main thread for
+        // seconds, and with the fallback out of reach a pass still proves
+        // the dismissal path.
+        await fulfillment(of: [shown], timeout: 60)
         XCTAssertEqual(app.rootPresentation, .onboarding)
         app.dismissRootPresentation(.onboarding)
         XCTAssertEqual(app.router.onboardingReplay, .none)
