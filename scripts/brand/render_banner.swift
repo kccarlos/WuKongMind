@@ -53,18 +53,18 @@ struct BannerLocale {
     static let all: [BannerLocale] = [
         BannerLocale(
             folder: "en-US", output: "forumind-banner.png",
-            headline: "Catch up on any\nDiscourse forum\nin seconds",
+            headline: "Read the thread\nwithout reading\nit all",
             subline: "AI summaries, chat and answers with sources\niPhone & iPad · Free & open source"
         ),
         BannerLocale(
             folder: "zh-Hans", output: "forumind-banner-zh-Hans.png",
-            headline: "秒懂任何\nDiscourse 论坛",
+            headline: "几百楼的长帖，\n不用爬楼也能读懂",
             subline: "AI 摘要、聊天，以及附带来源的回答\niPhone 与 iPad · 免费开源",
             headlineFont: "PingFangSC-Semibold", sublineFont: "PingFangSC-Medium"
         ),
         BannerLocale(
             folder: "zh-Hant", output: "forumind-banner-zh-Hant.png",
-            headline: "秒懂任何\nDiscourse 論壇",
+            headline: "幾百樓的長帖，\n不用爬樓也能讀懂",
             subline: "AI 摘要、聊天，以及附上來源的回答\niPhone 與 iPad · 免費、開放原始碼",
             headlineFont: "PingFangTC-Semibold", sublineFont: "PingFangTC-Medium"
         ),

@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="docs/brand/forumind-banner-zh-Hans.png" alt="Forumind：秒懂任何 Discourse 论坛。AI 摘要、聊天，以及附带来源的回答，支持 iPhone 与 iPad。" width="100%">
+  <img src="docs/brand/forumind-banner-zh-Hans.png" alt="Forumind：几百楼的长帖，不用爬楼也能读懂。AI 摘要、聊天，以及附带来源的回答，支持 iPhone 与 iPad。" width="100%">
 </p>
 
-<h3 align="center">为任何 Discourse 论坛打造的论坛浏览器，身边还有一位 AI 助手。</h3>
+<h3 align="center">为 Discourse 论坛、WordPress 网站和 Hacker News 打造的论坛浏览器，身边还有一位 AI 助手。</h3>
 
 <p align="center">
   <a href="https://apps.apple.com/app/id6816718686"><img src="https://img.shields.io/badge/App_Store-%E5%AE%A1%E6%A0%B8%E4%B8%AD-0D96F6?logo=appstore&logoColor=white" alt="App Store：审核中"></a>
@@ -18,22 +18,23 @@
   <a href="README.md">English</a> · <b>简体中文</b> · <a href="README.zh-Hant.md">繁體中文</a>
 </p>
 
-**几秒读懂任何 Discourse 论坛。** 总结长篇话题、追问细节，还能让 AI
+**轻松读完长篇讨论。** 总结长篇话题、追问细节，还能让 AI
 替你搜索整个论坛，并附上它引用的帖子链接。Forumind 是一款免费开源的
 iPhone 与 iPad App，适用于任何基于 [Discourse](https://www.discourse.org)
-搭建的论坛，例如 [meta.discourse.org](https://meta.discourse.org)，或你自己的社区。
+搭建的论坛，例如 [meta.discourse.org](https://meta.discourse.org) 或你自己的社区，
+也能阅读 WordPress 网站和 Hacker News。
 
 > **App Store：** Forumind 已提交审核，正在审核中。Apple 审核通过后，
 > [App Store 链接](https://apps.apple.com/app/id6816718686)即可使用。在此之前，
 > 你可以**[通过 TestFlight 加入公开测试](https://testflight.apple.com/join/XsfttG4P)**，或[自行构建](#从源代码构建)。
 
-**想在电脑浏览器上使用？** 也可以试试 Chrome 扩展版本：[DiscourseCopilot](https://github.com/kccarlos/DiscourseCopilot)。
+**想在电脑浏览器上使用？** 也可以试试 [Chrome 与 Edge 扩展](https://forumind.top/)。
 
 ## 为什么选择 Forumind
 
 - **少读一点，多懂一些。** 不必逐条阅读，也能掌握 500 条回复的话题重点。
 - **直接问，不用翻。** 向论坛提问，得到附带编号来源的回答，点一下就能查看原帖。
-- **任何 Discourse 论坛。** 公开或私有、大型或小型，包括你自己的社区。
+- **任何 Discourse 论坛，还有 WordPress 和 Hacker News。** 公开或私有、大型或小型，包括你自己的社区。
 - **AI 由你选。** 免密钥的 Apple 智能、你自己的 AI 提供方，或你自己电脑上的模型。
 - **隐私从设计开始。** 没有 Forumind 服务器、账户、分析、广告或跟踪。
 - **免费开源。** 采用 Apache-2.0 许可，使用 SwiftUI 为 iPhone 与 iPad 打造。
@@ -41,13 +42,9 @@ iPhone 与 iPad App，适用于任何基于 [Discourse](https://www.discourse.or
 ## 截图
 
 <p align="center">
-  <img src="docs/screenshots/store/zh-Hans/iphone-69-1-summary.png" alt="长篇讨论秒懂重点：长篇论坛话题的 AI 摘要" width="190">
-  <img src="docs/screenshots/store/zh-Hans/iphone-69-2-ask.png" alt="问遍整个论坛：回答附带原帖链接" width="190">
-  <img src="docs/screenshots/store/zh-Hans/iphone-69-3-chat.png" alt="任何话题随时追问：针对讨论串追问细节" width="190">
-  <img src="docs/screenshots/store/zh-Hans/iphone-69-4-forums.png" alt="所有论坛一个 App：置顶的论坛与从浏览器分享" width="190">
-</p>
-<p align="center">
-  <img src="docs/screenshots/store/zh-Hans/ipad-13-1-summary.png" alt="在 iPad 上，论坛和助手并排显示" width="560">
+  <img src="docs/screenshots/iphone-home-zh-Hans.png" alt="首页：今日摘要、继续阅读的话题和置顶的论坛" width="230">
+  <img src="docs/screenshots/iphone-summary.png" alt="抽屉中的摘要（英文界面），楼层号可点按，下方可以追问" width="230">
+  <img src="docs/screenshots/iphone-ask.png" alt="问论坛（英文界面）：问题、步骤和回答" width="230">
 </p>
 
 ## 功能
@@ -59,6 +56,7 @@ iPhone 与 iPad App，适用于任何基于 [Discourse](https://www.discourse.or
 - **聊天。** 针对正在阅读的话题提问：“大家最后怎么决定的？”或“有没有变通办法？”
 - **问论坛。** 提出问题，助手会搜索论坛、阅读最相关的话题，并给出附带编号
   来源的回答，点一下即可打开。
+- **翻译。** 在设备上翻译屏幕上的帖子或摘要（需要 iOS 18 或更高版本）。
 
 ### 所有论坛集中一处
 
@@ -67,7 +65,11 @@ iPhone 与 iPad App，适用于任何基于 [Discourse](https://www.discourse.or
 - **从 Safari 或 Chrome 分享。** 把任何论坛页面分享到 Forumind，即可打开、
   生成摘要、聊天或问论坛。
 - **关注话题。** 话题有新回复时收到通知。
-- **iPhone 与 iPad。** 在 iPad 上，论坛和助手并排显示。
+- **每日摘要与播客。** 今日页面汇集你关注的话题和置顶论坛的热门话题，
+  还能变成两位主持人对谈的简短播客，用设备自带的语音朗读，有 Google 密钥时也可用 Google 的语音。
+- **实时语音。** 用 Google Gemini Live 和你自己的密钥，开口询问正在阅读的页面。
+  使用前会先征求同意，因为你的声音和页面内容会发送给 Google。
+- **iPhone 与 iPad。** 在 iPhone 上，助手以抽屉形式出现在页面上方；在较宽的 iPad 窗口中，两者并排显示。
 
 ### 每项工作都有合适的 AI
 
@@ -104,6 +106,15 @@ App 内登录）。可以用 Forumind 阅读的热门 Discourse 社区举例：
 所有者所有，Forumind 与这些社区没有隶属关系。知道应该列在这里的 Discourse 论坛？
 欢迎[提交 issue](https://github.com/kccarlos/forumind/issues)。
 
+**WordPress 网站**也可以使用：打开一篇博客文章，或按地址添加网站，Forumind
+会通过站点公开的 REST API 读取文章和读者评论（站点允许时也支持评论搜索）。
+关闭了 REST API 的站点，或使用不带 `/wp-json/` 的 `?p=` 简单固定链接的站点，
+不受支持。Forumind 与 WordPress 或 WordPress 基金会没有隶属关系。
+
+**[Hacker News](https://news.ycombinator.com)** 也受支持：添加它的地址，或打开
+`item?id=N` 故事链接，即可阅读故事和嵌套评论、生成摘要、聊天、搜索，或把它加入
+每日摘要和播客。阅读使用公开的 Algolia API；不能登录、发帖或投票。
+
 ## 选择你的 AI
 
 **Apple 智能** 是最简单的选择：在支持的设备上，App 会使用 Apple 的设备端
@@ -133,8 +144,8 @@ App 内登录）。可以用 Forumind 阅读的热门 Discourse 社区举例：
 **两个模型，各司其职。** 设置 › AI 模型 中有一个用于 **摘要与聊天** 的默认
 模型，还有一个用于 **问论坛** 的默认模型。摘要和聊天需要阅读大量文字，快速、
 低成本的模型就很合适；问论坛需要规划搜索并对读到的内容进行推理，更强的模型
-更值得。两者一开始都是你在设置过程中选择的模型；更改其中一个，或从助手的
-菜单中切换，另一个保持不变。密钥属于 AI 提供方，因此同一提供方的两个模型
+更值得。两者一开始都是你在设置过程中选择的模型；更改其中一个，或用助手顶部的
+模型按钮切换，另一个保持不变。密钥属于 AI 提供方，因此同一提供方的两个模型
 共用一个密钥。
 
 ## 获取 Forumind
@@ -171,7 +182,8 @@ open Forumind.xcodeproj
 1. **选择你的 AI。** 首次启动时会引导你完成。你也可以跳过，稍后在设置中选择。
 2. **选择你的论坛。** 置顶推荐的论坛，或按地址添加（`meta.discourse.org`，
    或子目录论坛，例如 `example.com/forum`）。
-3. **打开一个话题，点按“助手”。** 选择 **摘要**、**聊天** 或 **问论坛**。
+3. **打开一个话题，点按底部栏中的 ✦ 按钮**（在较宽的 iPad 窗口中，助手已经在页面旁边）。
+   阅读摘要、继续追问，或把提问框从 **此话题** 切换到 **整个论坛** 来问论坛。
 
 如果论坛需要登录，请在 App 的内置浏览器中登录。App 读取论坛的方式与浏览器
 相同，所以你能看到的内容，它也能读取。
@@ -189,7 +201,7 @@ open Forumind.xcodeproj
 - **你的密钥保存在你的钥匙串中**（如果你同步密钥，也会保存在 iCloud 钥匙串中）。
 - **你的记录只属于你：** 保存在你的设备上；开启同步后，以端到端加密的方式
   保存在你自己的 iCloud 账户中，其他人都无法读取。
-- **每个论坛的登录只属于该论坛。** Cookie 只会发送给它所属的论坛。
+- **每个论坛的登录只属于该论坛。** Cookie 只会发送给它所属的论坛。Hacker News 通过 Algolia 的公开 API 读取，不需要登录。
 
 完整说明：[隐私政策](PRIVACY.md)（英文）。
 
@@ -205,15 +217,17 @@ App 免费。使用 Apple 智能和本地模型不产生任何费用。其他 AI
 <details>
 <summary><b>这是 Discourse 官方出品的吗？</b></summary>
 
-不是。Forumind 是一款面向 Discourse 论坛的独立开源 App，与 Civilized
-Discourse Construction Kit, Inc. 或任何论坛均无关联，也未获得其认可。
+不是。Forumind 是一款独立的开源 App，与 Civilized Discourse Construction
+Kit, Inc.、WordPress、Hacker News 或任何论坛均无关联，也未获得其认可。
 </details>
 
 <details>
-<summary><b>哪些论坛可以用？</b></summary>
+<summary><b>哪些网站可以用？</b></summary>
 
-任何运行 Discourse 的论坛，无论公开还是私有（在 App 内登录即可）。如果页面
-不是 Discourse 论坛，App 会告诉你。
+任何运行 Discourse 的论坛，无论公开还是私有（在 App 内登录即可）；如果页面
+不是受支持的网站，App 会告诉你。WordPress 网站通过站点公开的 REST API
+（`/wp-json/`）读取，关闭了该接口的站点不受支持。Hacker News 支持阅读，
+不能登录、发帖或投票。
 </details>
 
 <details>
@@ -240,7 +254,7 @@ Discourse Construction Kit, Inc. 或任何论坛均无关联，也未获得其�
 <summary><b>可以在桌面浏览器上使用吗？</b></summary>
 
 也有
-[Chrome 扩展](https://github.com/kccarlos/DiscourseCopilot)可用。
+[Chrome 与 Edge 扩展](https://forumind.top/)可用。
 </details>
 
 ## 开发者文档

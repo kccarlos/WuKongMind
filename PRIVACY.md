@@ -1,10 +1,10 @@
 # Privacy Policy
 
 **Forumind for iPhone and iPad**
-Effective date: October 6, 2026
+Effective date: November 7, 2026
 
 Forumind is a free, open-source app that helps you read Discourse
-forums and WordPress sites with an AI assistant. This policy explains, in plain
+forums, WordPress sites and Hacker News with an AI assistant. This policy explains, in plain
 words, what the app does with your information. The short version: **the
 developer collects nothing.** There are no Forumind servers, accounts,
 analytics, advertising, or tracking.
@@ -23,6 +23,10 @@ reads posts and comments directly from that site (including Discourse topic and
 search endpoints, and WordPress `/wp-json/wp/v2/` post, comment, and category
 endpoints), using your login on sites that support it so it can read what you
 can read.
+
+Hacker News is the exception: its stories, comments and searches are read
+from Algolia's public Hacker News API (`hn.algolia.com`), without any login.
+Algolia receives those requests, like any website you visit.
 
 ### Your AI provider
 
@@ -187,7 +191,8 @@ day the app downloads the developer's public list of removed content
 (<https://github.com/kccarlos/forumind/tree/main/moderation>) from GitHub;
 this is a plain request for a public file and sends nothing about you.
 
-If you report content (**⋯ › Report or block**), your email app opens with a
+If you report content or block a user (**⋯ › Report or block**), your
+email app opens with a
 report to the developer that includes the forum, topic or post link, the
 reason, and any details you add. It's sent only if you send it, from your
 own email account, and is used only to review the report.

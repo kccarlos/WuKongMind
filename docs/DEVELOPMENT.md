@@ -30,6 +30,11 @@ open Forumind.xcodeproj
 Don't edit build settings in Xcode's UI: the next generator run overwrites
 them. Change the script instead.
 
+## Privacy page
+
+The site's privacy page is generated from `PRIVACY.md`: edit `PRIVACY.md`, then run
+`scripts/site/render_privacy.py` and commit both (CI fails if the page is stale).
+
 ## Signing
 
 The project is generated **without a signing team**, so it builds for the
@@ -522,11 +527,21 @@ on black (`strip-<locale>-<device>-<white|black>.png`).
 
 ## README images
 
+The README screenshots in `docs/screenshots/` are plain simulator captures
+of the DEBUG sample data, taken from a UI test (`DCUITestCase.launch` with
+`-dc-sample -dc-page-state topic -dc-drawer-detent large` for the drawer,
+`-dc-sample -dc-forums-home -dc-digest-sample` for Home, and `capture(_:)`
+with `TEST_RUNNER_DC_SCREENSHOT_DIR`), scaled to 720 px high. The drawer captures use
+the Discourse Meta sample topic: the fictional forums never load a page, so
+the app stays on Home. Large height keeps the live page behind it hidden.
+
 The README banner (`docs/brand/forumind-banner.png`, 1280 × 640, also the
-GitHub social preview) and its Chinese versions, plus the small screenshot
-copies in `docs/screenshots/store/<locale>/`, are rendered from the brand
-code and the App Store screenshots. After re-rendering the store
-screenshots, run:
+GitHub social preview) and its Chinese versions are rendered from the brand
+code and three captures it reads from `appstore/screenshots-raw/<locale>/`
+(see `BannerScreens` in `render_banner.swift`). The current banners use the
+README captures, copied under those names into a scratch folder passed as the
+root (`render_banner <root>`), so the App Store captures stay untouched.
+With the App Store captures, run:
 
 ```sh
 brew install pngquant   # once; keeps the committed PNGs small

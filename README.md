@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="docs/brand/forumind-banner.png" alt="Forumind: catch up on any Discourse forum in seconds. AI summaries, chat and answers with sources, on iPhone and iPad." width="100%">
+  <img src="docs/brand/forumind-banner.png" alt="Forumind: read the thread without reading it all. AI summaries, chat and answers with sources, on iPhone and iPad." width="100%">
 </p>
 
-<h3 align="center">A forum browser with an AI assistant beside it, for any Discourse forum.</h3>
+<h3 align="center">A forum browser with an AI assistant beside it, for Discourse forums, WordPress sites and Hacker News.</h3>
 
 <p align="center">
   <a href="https://apps.apple.com/app/id6816718686"><img src="https://img.shields.io/badge/App_Store-in_review-0D96F6?logo=appstore&logoColor=white" alt="App Store: in review"></a>
@@ -18,24 +18,25 @@
   <b>English</b> · <a href="README.zh-Hans.md">简体中文</a> · <a href="README.zh-Hant.md">繁體中文</a>
 </p>
 
-**Catch up on any Discourse forum in seconds.** Summarize long topics, ask
-follow-up questions, and let AI search the whole forum for you, with links to
-the posts it used. Forumind is a free, open-source app for iPhone and iPad
-that works with any forum built on [Discourse](https://www.discourse.org),
-like [meta.discourse.org](https://meta.discourse.org), or your own community.
+**Catch up on long forum threads.** Summarize long topics, ask follow-up
+questions, and let AI search the whole forum for you, with links to the posts
+it used. Forumind is a free, open-source app for iPhone and iPad that works
+with any forum built on [Discourse](https://www.discourse.org), like
+[meta.discourse.org](https://meta.discourse.org) or your own community, and
+also reads WordPress sites and Hacker News.
 
 > **App Store:** Forumind has been submitted and is in review. The
 > [App Store link](https://apps.apple.com/app/id6816718686) goes live once
 > Apple approves it. Until then, **[join the public beta on TestFlight](https://testflight.apple.com/join/XsfttG4P)**
 > on your iPhone or iPad, or [build it yourself](#build-from-source).
 
-**Prefer your desktop browser?** Forumind's sibling is a Chrome extension: [DiscourseCopilot](https://github.com/kccarlos/DiscourseCopilot).
+**Prefer your desktop browser?** Forumind's sibling is a [Chrome and Edge extension](https://forumind.top/).
 
 ## Why Forumind
 
 - **Read less, know more.** Get the main points of a 500-reply topic without reading every post.
 - **Ask, don't dig.** Ask the forum a question and get an answer with numbered sources you can tap.
-- **Any Discourse forum.** Public or private, big or small, including your own community.
+- **Any Discourse forum, plus WordPress and Hacker News.** Public or private, big or small, including your own community.
 - **Your AI, your choice.** Apple Intelligence with no key, your own provider, or a model on your own computer.
 - **Private by design.** No Forumind servers, accounts, analytics, ads, or tracking.
 - **Free and open source.** Apache-2.0, built with SwiftUI for iPhone and iPad.
@@ -43,13 +44,9 @@ like [meta.discourse.org](https://meta.discourse.org), or your own community.
 ## Screenshots
 
 <p align="center">
-  <img src="docs/screenshots/store/en-US/iphone-69-1-summary.png" alt="Catch up in seconds: an AI summary of a long forum topic" width="190">
-  <img src="docs/screenshots/store/en-US/iphone-69-2-ask.png" alt="Ask the whole forum: an answer with links to the posts" width="190">
-  <img src="docs/screenshots/store/en-US/iphone-69-3-chat.png" alt="Chat with any topic: follow-up questions about a thread" width="190">
-  <img src="docs/screenshots/store/en-US/iphone-69-4-forums.png" alt="Every forum in one app: pinned forums and sharing from the browser" width="190">
-</p>
-<p align="center">
-  <img src="docs/screenshots/store/en-US/ipad-13-1-summary.png" alt="On iPad, the forum and the Assistant sit side by side" width="560">
+  <img src="docs/screenshots/iphone-home.png" alt="Home: today's digest, topics to continue reading, and pinned forums" width="230">
+  <img src="docs/screenshots/iphone-summary.png" alt="A summary in the drawer, with post numbers to tap and a box for follow-up questions" width="230">
+  <img src="docs/screenshots/iphone-ask.png" alt="Ask the forum: the question, its steps, and the answer" width="230">
 </p>
 
 ## Features
@@ -57,20 +54,30 @@ like [meta.discourse.org](https://meta.discourse.org), or your own community.
 ### Understand any topic
 
 - **Summaries.** The original post, what people are saying, and tips from
-  the thread. Later, **Check for new replies** reads only what's new.
+  the thread, with post numbers you can tap. Later, **Check for new replies**
+  reads only what's new.
 - **Chat.** Ask about the topic you're reading: "What did people decide?" or
   "Is there a workaround?"
 - **Ask the forum.** Ask a question and the assistant searches the forum,
   reads the best topics, and answers with numbered sources you can tap.
+- **Translate.** Translate the posts on screen, or a summary, on your device
+  (iOS 18 or later).
 
 ### All your forums in one place
 
 - **Any Discourse forum.** Open a forum and the app recognizes it. Pin your
-  favorites on the **Forums** home; forums you visit show up under Recent.
+  favorites on **Home**; forums you visit show up under Recent.
+- **Daily digest and podcast.** The Today page collects your watched topics
+  and the top topics on pinned forums. Turn it into a short two-host podcast,
+  read by your device's voices or, with a Google key, Google's.
+- **Live voice.** Talk to the app about the page you're reading, with Google
+  Gemini Live and your own key. It asks first, because your voice and the
+  page go to Google.
 - **Share from Safari or Chrome.** Share any forum page to Forumind to open
   it, summarize it, chat about it, or ask the forum.
 - **Watch topics.** Get a notification when a topic has new replies.
-- **iPhone and iPad.** On iPad the forum and the Assistant sit side by side.
+- **iPhone and iPad.** On iPhone the assistant opens in a drawer over the
+  page; on a wide iPad window the two sit side by side.
 
 ### The right AI for each job
 
@@ -158,7 +165,7 @@ for **Summaries & chat** and one for **Ask the forum**. Summaries and chat
 read a lot of text, so a fast, low-cost model works well there; Ask the forum
 plans searches and reasons over what it reads, so a stronger model pays off.
 Both start as the model you pick during setup; change either one, or switch
-from the Assistant's menu, and the other stays as it is. Keys belong to a
+with the model button at the top of the assistant, and the other stays as it is. Keys belong to a
 provider, so two models from the same provider share one key.
 
 ## Get Forumind
@@ -197,8 +204,10 @@ your signing team first; see [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md#signing).
    and choose later in Settings.
 2. **Pick your forums.** Pin a suggested forum or add one by address
    (`meta.discourse.org`, or a subfolder forum like `example.com/forum`).
-3. **Open a topic and tap Assistant.** Choose **Summary**, **Chat**, or
-   **Ask the forum**.
+3. **Open a topic and tap the ✦ button** in the bar at the bottom (on a wide
+   iPad window the assistant is already beside the page). Read the summary,
+   ask a follow-up, or switch the ask box from **This topic** to the whole
+   forum to ask the forum.
 
 If a forum needs you to log in, log in inside the app's browser. The app
 reads the forum the way the browser does, so it can read what you can read.
@@ -220,7 +229,8 @@ signed with a paid team; see
 - **Your history stays yours:** on your device and, with sync, end-to-end
   encrypted in your own iCloud account, where nobody else can read it.
 - **Each forum's login stays with that forum.** Cookies are sent only to the
-  forum they belong to.
+  forum they belong to. Hacker News is read through Algolia's public API,
+  without a login.
 
 Full details: [Privacy Policy](PRIVACY.md).
 
@@ -236,16 +246,19 @@ Other AI providers may charge for usage, usually a small amount per summary.
 <details>
 <summary><b>Is this made by Discourse?</b></summary>
 
-No. Forumind is an independent open-source app for Discourse forums. It
-is not affiliated with or endorsed by Civilized Discourse Construction Kit,
-Inc. or any forum.
+No. Forumind is an independent open-source app. It is not affiliated with
+or endorsed by Civilized Discourse Construction Kit, Inc., WordPress, Hacker
+News or any forum.
 </details>
 
 <details>
-<summary><b>Which forums work?</b></summary>
+<summary><b>Which sites work?</b></summary>
 
-Any forum running Discourse, public or private (log in inside the app). The
-app tells you when a page isn't a Discourse forum.
+Any forum running Discourse, public or private (log in inside the app); the
+app tells you when a page isn't a supported site. WordPress sites work
+through the site's public REST API (`/wp-json/`); sites that turn it off are
+not supported. Hacker News is supported for reading: no sign-in, posting or
+voting.
 </details>
 
 <details>
@@ -273,7 +286,7 @@ when you switch to another app; it resumes when you come back.
 <summary><b>Can I use it on a desktop browser?</b></summary>
 
 Also available as a
-[Chrome extension](https://github.com/kccarlos/DiscourseCopilot).
+[Chrome and Edge extension](https://forumind.top/).
 </details>
 
 ## For developers

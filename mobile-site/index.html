@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Forumind for iPhone and iPad: AI reading companion for forums and blogs</title>
+<meta name="description" content="Summaries that cite the post, answers with sources, a daily digest you can listen to, and live voice. For Discourse forums, WordPress sites and Hacker News.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#111113" media="(prefers-color-scheme: dark)">
+<link rel="canonical" href="https://mobile.forumind.top/">
+<meta property="og:url" content="https://mobile.forumind.top/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Forumind for iPhone and iPad">
+<meta property="og:description" content="An AI reading companion for forums and blogs. Summaries that cite the post, answers with sources, and a daily digest you can listen to.">
+<meta property="og:image" content="https://mobile.forumind.top/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Forumind on an iPhone, with a summary drawer open over a forum thread.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Forumind for iPhone and iPad">
+<meta name="twitter:description" content="An AI reading companion for forums and blogs.">
+<meta name="twitter:image" content="https://mobile.forumind.top/assets/og.png">
+<link rel="icon" href="assets/icon-64.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<svg class="sprite" aria-hidden="true">
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 2c.7 5.800 3.200 8.900 9 10-5.800 1.100-8.300 4.200-9 10-.7-5.800-3.200-8.900-9-10 5.800-1.100 8.300-4.200 9-10Z" fill="currentColor"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.500" fill="none" stroke="currentColor" stroke-width="2.200"/><path d="m16 16 4.500 4.500" stroke="currentColor" stroke-width="2.200" stroke-linecap="round"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7V3Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M10 12h5M10 16h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.500 4.500 4.500L19 7" fill="none" stroke="currentColor" stroke-width="2.800" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.500v15a1 1 0 0 0 1.500.86l12.500-7.500a1 1 0 0 0 0-1.720L8.500 3.640A1 1 0 0 0 7 4.500Z" fill="currentColor"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="4" width="4.500" height="16" rx="1.200" fill="currentColor"/><rect x="13.500" y="4" width="4.500" height="16" rx="1.200" fill="currentColor"/></symbol>
+  <symbol id="i-speak" viewBox="0 0 24 24"><path d="M4 9.500v5h3.500L13 19V5L7.500 9.500H4Z" fill="currentColor"/><path d="M16 9a4.200 4.200 0 0 1 0 6M18.500 6.500a8 8 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-translate" viewBox="0 0 24 24"><path d="M3 6h10M8 3.500V6m3 0c-.8 4.500-3.500 8-7 10m1.800-6.500c1 2.400 3 4.500 5.700 5.800" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="m12.500 21 4-10 4 10m-6.500-3.500h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="19" cy="12" r="2" fill="currentColor"/></symbol>
+  <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="12" rx="3" fill="currentColor"/><path d="M5.500 11.500a6.500 6.500 0 0 0 13 0M12 18v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 19V6m-6 6 6-6 6 6" fill="none" stroke="currentColor" stroke-width="2.600" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><path d="M12 15V3.500m-4 3.500 4-4 4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 10.500H6v10h12v-10h-2" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5h16v12H10l-5 4v-4H4V5Z" fill="currentColor"/></symbol>
+  <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 19a5 5 0 0 1-.6-9.960A6 6 0 0 1 18 10.200 4.500 4.500 0 0 1 17.500 19H7Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><rect x="7" y="2.500" width="10" height="19" rx="2.500" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+  <symbol id="i-tablet" viewBox="0 0 24 24"><rect x="3.500" y="4" width="17" height="16" rx="2.500" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="m6 9.500 6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.800" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-signal" viewBox="0 0 24 14"><rect x="0" y="9" width="4" height="5" rx="1" fill="currentColor"/><rect x="6" y="6" width="4" height="8" rx="1" fill="currentColor"/><rect x="12" y="3" width="4" height="11" rx="1" fill="currentColor"/><rect x="18" y="0" width="4" height="14" rx="1" fill="currentColor"/></symbol>
+  <symbol id="i-battery" viewBox="0 0 30 14"><rect x=".5" y=".5" width="25" height="13" rx="3.500" fill="none" stroke="currentColor" opacity=".5"/><rect x="2" y="2" width="22" height="10" rx="2" fill="currentColor"/><path d="M27 5v4c1 0 2-.8 2-2s-1-2-2-2Z" fill="currentColor" opacity=".5"/></symbol>
+</svg>
+
+<a class="skip" href="#top" data-zh="跳到正文">Skip to content</a>
+
+<header class="bar">
+  <a class="brand" href="#top"><img src="assets/icon-64.png" alt="" width="28" height="28"><span>Forumind</span></a>
+  <nav aria-label="Sections" data-zh-label="页面章节">
+    <a href="#read" data-zh="读帖">Read</a>
+    <a href="#ask" data-zh="提问">Ask</a>
+    <a href="#listen" data-zh="收听">Listen</a>
+  </nav>
+  <button id="lang" type="button" lang="zh-Hans">中文</button>
+</header>
+
+<main id="top">
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-copy">
+    <p class="eyebrow" data-zh="Forumind iPhone 与 iPad 版">Forumind for iPhone and iPad</p>
+    <h1 data-zh="几百楼的长帖，<br>不用爬楼也能读懂">Read the thread without reading it all</h1>
+    <p class="lead" data-zh="论坛和博客的 AI 阅读伴侣。摘要标注楼层号，回答附带来源，每日摘要还能当播客听。">An AI reading companion for forums and blogs. Summaries that cite the post, answers with sources, and a daily digest you can listen to.</p>
+    <div class="cta">
+      <a class="btn store" href="https://testflight.apple.com/join/XsfttG4P">Join the beta on TestFlight</a>
+    </div>
+    <p class="fine" data-zh="支持 Discourse 论坛、WordPress 网站和 Hacker News。App 免费且开源。">Works with Discourse forums, WordPress sites and Hacker News. The app is free and open source.</p>
+  </div>
+
+  <div class="phone st hero-phone" data-steps="500,500,700,600,2600" data-hold="3000" role="img"
+       aria-label="An iPhone showing a forum thread. A drawer rises over it and a summary streams in, with post numbers beside each point."
+       data-zh-label="iPhone 上打开一个论坛长帖，抽屉从底部升起，摘要逐字出现，每个要点旁都标着楼层号。">
+    <div class="screen fx">
+      <div class="island"></div>
+      <div class="status"><span>9:41</span><span class="status-r"><svg><use href="#i-signal"/></svg><svg class="batt"><use href="#i-battery"/></svg></span></div>
+      <div class="page">
+        <p class="forum"><span class="av">M</span><span data-zh="创客空间社区">Maker Space Community</span></p>
+        <p class="topic" data-zh="2.4 固件更新后，长时间打印出现错层">Layer shifts on long prints after the 2.4 firmware update</p>
+        <div class="post"><p class="who"><b>maya</b><span>#1</span></p><p data-zh="更新到 2.4 之后，长时间打印到一半就错层。短的打印件完全没问题。">Since the 2.4 update my long prints shift partway up. Short prints are fine.</p></div>
+        <div class="post"><p class="who"><b>tomek</b><span>#2</span></p><p data-zh="我这边也一样，大概六小时之后开始。">Same here, starting after about six hours.</p></div>
+      </div>
+      <div class="pagebar"><span class="av">M</span><span class="addr">community.example.org</span><span class="aibtn"><svg><use href="#i-spark"/></svg></span></div>
+      <div class="sheet hero-sheet">
+        <i class="grab"></i>
+        <div class="sheethead"><b data-zh="摘要">Summary</b><span class="pill" data-zh="Apple 智能">Apple Intelligence</span><svg><use href="#i-speak"/></svg><svg><use href="#i-more"/></svg></div>
+        <p class="progress" data-zh="正在总结第 41–60 楼（共 68 楼）…">Summarizing posts 41–60 of 68…</p>
+        <p class="chips" data-at="4"><span data-zh="设备端">On-device</span><span data-zh="68 楼">68 posts</span></p>
+        <p class="aiwarn" data-at="4"><svg><use href="#i-spark"/></svg><span data-zh="AI 生成，可能有误">AI-generated, may be wrong</span></p>
+        <div class="sum" data-at="4" data-stream>
+          <h4 data-zh="原帖概要">Original post</h4>
+          <p data-zh="自从 <b>2.4 固件更新</b>以后，打印超过六小时左右的模型会在中途错层 <span class='cite'>#1</span>">Since the <b>2.4 firmware update</b>, prints longer than about six hours show layer shifts <span class="cite">#1</span></p>
+          <h4 data-zh="大家怎么说">What people are saying</h4>
+          <ul>
+            <li data-zh="把<b>空驶速度</b>降低 20–30% <span class='cite'>#14</span>">Lower the <b>travel speed</b> by 20–30% <span class="cite">#14</span></li>
+            <li data-zh="重新张紧皮带，然后重新校准 <span class='cite'>#23</span>">Re-tension the belts, then recalibrate <span class="cite">#23</span></li>
+            <li data-zh="回退到 2.3 对部分人有效 <span class='cite'>#9</span>">Rolling back to 2.3 helps some <span class="cite">#9</span></li>
+          </ul>
+          <h4 data-zh="帖子里的建议">Tips from the thread</h4>
+          <p data-zh="维护者在收集打印日志，暂无修复时间 <span class='cite'>#41</span>">Maintainers are collecting print logs; no fix date yet <span class="cite">#41</span></p>
+        </div>
+        <div class="askbox sheetask"><span class="scopepill"><span data-zh="此话题">This topic</span><svg><use href="#i-chev"/></svg></span><span class="fieldp" data-zh="继续追问…">Ask a follow-up…</span><b><svg><use href="#i-up"/></svg></b></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Read: citations -->
+<section class="split" id="read">
+  <div class="copy">
+    <p class="kicker read" data-zh="读帖">Read</p>
+    <h2 data-zh="每句话都有楼层号">Every point has a post number</h2>
+    <p data-zh="点一下 <span class='cite big'>#14</span>，抽屉退到一旁，页面直接跳到那一楼并高亮。摘要说得对不对，你自己一眼就能核对。">Tap <span class="cite big">#14</span> and the drawer steps aside, the thread jumps to that post and lights it up. You can check the summary against what people actually wrote.</p>
+  </div>
+  <div class="phone st" data-steps="700,600,500,1400" data-hold="3000" role="img"
+       aria-label="The citation #14 is tapped in a summary. The drawer lowers, the thread scrolls to post 14 and the post is highlighted."
+       data-zh-label="在摘要里点按 #14，抽屉下降，页面滚动到第 14 楼，该楼被高亮。">
+    <div class="screen fx">
+      <div class="island"></div>
+      <div class="status"><span>9:41</span><span class="status-r"><svg><use href="#i-signal"/></svg><svg class="batt"><use href="#i-battery"/></svg></span></div>
+      <div class="page clip">
+        <div class="scroller">
+          <div class="post"><p class="who"><b>maya</b><span>#1</span></p><p data-zh="更新到 2.4 之后，长时间打印到一半就错层。短的打印件完全没问题。">Since the 2.4 update my long prints shift partway up. Short prints are fine.</p></div>
+          <div class="post"><p class="who"><b>tomek</b><span>#2</span></p><p data-zh="我这边也一样，大概六小时之后开始。">Same here, starting after about six hours.</p></div>
+          <div class="post"><p class="who"><b>jun</b><span>#6</span></p><p data-zh="皮带检查过了，还是会错层。">Checked the belts, still shifting.</p></div>
+          <div class="post"><p class="who"><b>rosa</b><span>#9</span></p><p data-zh="回退到 2.3 对我有用，不过朋友那台没用。">Rolling back to 2.3 helped me, but not a friend.</p></div>
+          <div class="post target"><p class="who"><b>ari</b><span>#14</span></p><p data-zh="把空驶速度降了 25%，连打两个长件都没再错层。">Dropped the travel speed by 25%. Two long prints since, no shifts.</p></div>
+          <div class="post"><p class="who"><b>maya</b><span>#15</span></p><p data-zh="试了，确实管用，谢谢。">Tried it, it works. Thanks.</p></div>
+          <div class="post"><p class="who"><b>tomek</b><span>#16</span></p><p data-zh="我也降了速度，昨晚的长件打完了。">Lowered my speed too. Last night’s long print finished.</p></div>
+        </div>
+      </div>
+      <div class="sheet jump-sheet">
+        <i class="grab"></i>
+        <div class="sheethead"><b data-zh="摘要">Summary</b><span class="pill" data-zh="Apple 智能">Apple Intelligence</span><svg><use href="#i-more"/></svg></div>
+        <div class="sum">
+          <h4 data-zh="大家怎么说">What people are saying</h4>
+          <ul>
+            <li data-zh="把<b>空驶速度</b>降低 20–30% <span class='cite hit'>#14</span>">Lower the <b>travel speed</b> by 20–30% <span class="cite hit">#14</span></li>
+            <li data-zh="重新张紧皮带，然后重新校准 <span class='cite'>#23</span>">Re-tension the belts, then recalibrate <span class="cite">#23</span></li>
+            <li data-zh="回退到 2.3 对部分人有效 <span class='cite'>#9</span>">Rolling back to 2.3 helps some <span class="cite">#9</span></li>
+          </ul>
+          <h4 data-zh="帖子里的建议">Tips from the thread</h4>
+          <p data-zh="维护者在收集打印日志，暂无修复时间 <span class='cite'>#41</span>">Maintainers are collecting print logs; no fix date yet <span class="cite">#41</span></p>
+        </div>
+        <div class="askbox sheetask"><span class="scopepill"><span data-zh="此话题">This topic</span><svg><use href="#i-chev"/></svg></span><span class="fieldp" data-zh="继续追问…">Ask a follow-up…</span><b><svg><use href="#i-up"/></svg></b></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Read: translation -->
+<section class="wide">
+  <div class="copy center">
+    <h2 data-zh="外语帖子，就地翻译">Posts in another language, translated in place</h2>
+    <p data-zh="翻译屏幕上的帖子，或者翻译摘要。在设备上完成，需要 iOS 18。">Translate the posts on screen, or a summary. It runs on your device and needs iOS 18.</p>
+  </div>
+  <div class="tcard st" data-steps="1400,600" data-hold="3200" role="img"
+       aria-label="A post written in German changes into your reading language, with a note that it was translated on this device."
+       data-zh-label="一条德语帖子变成你的阅读语言，并标注是在本设备上翻译的。">
+    <div class="fx">
+      <p class="who"><b>lena</b><span>#31</span></p>
+      <div class="swap">
+        <p class="orig" lang="de">Seit dem Update auf 2.4 verschieben sich bei mir die Schichten nach etwa sechs Stunden. Mit niedrigerer Geschwindigkeit ist es weg.</p>
+        <p class="done" data-zh="更新到 2.4 之后，我这边打印大约六小时就会错层。把速度调低之后就没事了。">Since the 2.4 update my layers shift after about six hours. With a lower speed it’s gone.</p>
+      </div>
+      <p class="tnote"><svg><use href="#i-translate"/></svg><span class="tnote-a" data-zh="已在本设备上翻译">Translated on this device</span><span class="tbtn" data-zh="显示原文">Show original</span></p>
+    </div>
+  </div>
+</section>
+
+<!-- Ask: chat -->
+<section class="wide chat" id="ask">
+  <div class="copy">
+    <p class="kicker ask" data-zh="提问">Ask</p>
+    <h2 data-zh="摘要没说的，接着问">Ask what the summary left out</h2>
+  </div>
+  <div class="talk st" data-steps="500,900,800,1000,1000,1200" data-hold="2600" role="img"
+       aria-label="A chat about the thread. The reader asks which workaround works most often, then whether the maintainers replied. The answers come from the thread."
+       data-zh-label="就这个帖子聊天。读者问哪种办法最管用、维护者有没有回复，回答都来自帖子内容。">
+    <div class="fx">
+      <p class="me" data-at="1" data-zh="哪种解决办法最管用？">Which workaround works most often?</p>
+      <p class="ai" data-at="2" data-stream data-zh="降低空驶速度是最多人确认有效的办法。">Lowering the travel speed is the one most people confirm.</p>
+      <p class="me" data-at="3" data-zh="固件维护者那边有回复吗？">Did anyone hear back from the firmware maintainers?</p>
+      <p class="ai" data-at="4" data-stream data-zh="有。一位维护者请大家提供打印日志，并表示修复正在测试中。帖子里目前还没有发布日期。">Yes. A maintainer asked for print logs and said a fix is being tested. There is no release date in the thread yet.</p>
+      <div class="askbox"><span class="scopepill sw"><span class="ph-a" data-zh="此话题">This topic</span><span class="ph-b" data-zh="整个论坛">Whole forum</span><svg><use href="#i-chev"/></svg></span><span class="fieldp sw"><span class="ph-a" data-zh="继续追问…">Ask a follow-up…</span><span class="ph-b" data-zh="向论坛提任何问题…">Ask the forum anything…</span></span><b><svg><use href="#i-up"/></svg></b></div>
+    </div>
+  </div>
+  <p class="under" data-zh="想问的不止这一帖？把范围切到“整个论坛”。聊天回答里的楼层号 #N 也能点按，直接跳到那一楼。">Bigger question? Switch the scope to Whole forum. Post numbers like #14 in chat answers are tappable too, and jump to that post.</p>
+</section>
+
+<!-- Ask: Ask the forum -->
+<section class="band agent">
+  <div class="copy">
+    <h2 data-zh="问论坛：让 AI 替你搜遍全站">Ask the forum, and it does the searching</h2>
+    <p data-zh="它自己搜索、读帖，再回答，每一步都看得见。回答里的 S1、S2 都能点开，直达它用到的帖子。它只读取，从不发帖。">It searches, reads the topics that match, then answers, and you can watch each step. Tap S1 or S2 to open the post it used. It only reads; it never posts.</p>
+  </div>
+  <div class="run st" data-steps="400,700,700,700,700,700,900,1800" data-hold="3200" role="img"
+       aria-label="An Ask the forum run. Five steps appear one by one: two searches and three topics read. Then an answer with sources S1, S2 and S3."
+       data-zh-label="问论坛的运行过程：五个步骤依次出现，两次搜索和三次读帖，然后给出带 S1、S2、S3 来源的回答。">
+    <ol class="steps fx">
+      <li class="goal" data-at="1" data-zh="2.4 固件更新后出现错层，大家都怎么说？">What are people saying about layer shifts after the 2.4 firmware update?</li>
+      <li data-at="2"><svg><use href="#i-search"/></svg><span data-zh="已搜索“错层 固件 2.4”">Searched “layer shift firmware 2.4”</span></li>
+      <li data-at="3"><svg><use href="#i-doc"/></svg><span data-zh="已读《2.4 固件更新后，长时间打印出现错层》">Read Layer shifts on long prints</span></li>
+      <li data-at="4"><svg><use href="#i-doc"/></svg><span data-zh="已读《封闭式打印机的步进驱动过热》">Read Stepper drivers overheating</span></li>
+      <li data-at="5"><svg><use href="#i-search"/></svg><span data-zh="已搜索“错层 空驶速度 解决办法”">Searched “layer shift travel speed workaround”</span></li>
+      <li data-at="6"><svg><use href="#i-doc"/></svg><span data-zh="已读《打印结束后散热风扇一直不停》">Read Cooling fan keeps running</span></li>
+    </ol>
+    <div class="answer fx" data-at="7">
+      <div class="ans-text" data-at="8" data-stream>
+        <p data-zh="错层主要出现在<b>打印超过六小时</b>的模型上 <span class='src'>S1</span>。确认最多的办法是<b>降低空驶速度</b>。有几条回复认为和驱动过热有关 <span class='src'>S2</span>，打印后风扇不停则是另一个问题 <span class='src'>S3</span>。">People report the shifts mostly on <b>prints longer than six hours</b> <span class="src">S1</span>. The most confirmed workaround is to <b>lower the travel speed</b>. A few replies link it to overheating drivers <span class="src">S2</span>; the fan that keeps running looks like a separate bug <span class="src">S3</span>.</p>
+      </div>
+      <p class="srchead" data-zh="来源">Sources</p>
+      <ul class="srcs">
+        <li><span class="src">S1</span><span data-zh="2.4 更新后的错层问题">Layer shifts after 2.4</span></li>
+        <li><span class="src">S2</span><span data-zh="步进驱动过热">Stepper drivers overheating</span></li>
+        <li><span class="src">S3</span><span data-zh="散热风扇不停">Cooling fan</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- Listen: digest to podcast -->
+<section class="split flip" id="listen">
+  <div class="copy">
+    <p class="kicker listen" data-zh="收听">Listen</p>
+    <h2 data-zh="今日摘要，一键变播客">Today’s digest becomes a podcast</h2>
+    <p data-zh="你关注的话题和置顶论坛的热门话题，汇成一份今日摘要。再点一下，两位主持人把它讲给你听。可以用本设备的声音，也可以用你自己的密钥换 Google 的声音。">Your watched topics and the top topics on pinned forums, in one digest. One more tap and two hosts talk it through, in your device’s voices, or Google’s with your own key.</p>
+  </div>
+  <div class="today st" data-steps="400,500,500,1100,700,600" data-hold="3200" role="img"
+       aria-label="Three digest cards stack up, and a podcast player for today grows out of the stack and starts playing."
+       data-zh-label="三张今日摘要卡片叠在一起，今日播客的播放器从中出现并开始播放。">
+    <div class="fx">
+      <div class="dstack">
+        <article class="dc dc3 pop" data-at="3"><p class="dcf" data-zh="家庭实验室论坛">Home Lab Forum</p><h4 data-zh="2026 年低功耗 NAS 装机分享">Low-power NAS build for 2026</h4></article>
+        <article class="dc dc2 pop" data-at="2"><p class="dcf" data-zh="创客空间社区">Maker Space Community</p><h4 data-zh="封闭式打印机的步进驱动过热">Stepper drivers overheating in enclosed printers</h4></article>
+        <article class="dc dc1 pop" data-at="1"><p class="dcf"><span data-zh="创客空间社区">Maker Space Community</span><span class="newr" data-zh="12 条新回复">12 new replies</span></p><h4 data-zh="2.4 固件更新后，长时间打印出现错层">Layer shifts on long prints after the 2.4 firmware update</h4><p data-zh="有人把问题追到 2.4 固件调低的步进电流上，被采纳的回复给出了改回旧值的办法。">Owners traced the shifts to a lower stepper current in 2.4. The accepted answer restores the old value.</p></article>
+      </div>
+      <div class="player">
+        <div class="pl-top"><span class="cover"><svg><use href="#i-spark"/></svg></span><div><b data-zh="收听今天">Listen to today</b><small data-zh="3 个话题 · 两位主持人">3 topics · two hosts</small></div></div>
+        <div class="scrub"><i></i></div>
+        <div class="pl-bot"><span class="pp"><svg class="ic-pause"><use href="#i-pause"/></svg><svg class="ic-play"><use href="#i-play"/></svg></span><span class="bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Listen: live voice -->
+<section class="voice" aria-labelledby="voice-title">
+  <h2 id="voice-title" data-zh="开口问，它开口答">Talk to the thread</h2>
+  <div class="vstage st" data-steps="600,1500,1200,600,2600" data-hold="1800" role="img"
+       aria-label="A live voice conversation. The reader asks which workaround works most often, a waveform moves, and Forumind answers aloud."
+       data-zh-label="实时语音对话。读者开口提问，声波跳动，Forumind 用语音回答。">
+    <div class="fx">
+      <p class="vstate"><span class="v-l" data-zh="正在听">Listening</span><span class="v-t" data-zh="正在思考…">Thinking…</span><span class="v-s" data-zh="正在说话">Speaking</span></p>
+      <div class="wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <p class="vme" data-at="1" data-zh="“哪种解决办法最管用？”">“Which workaround works most often?”</p>
+      <p class="vai" data-at="4" data-zh="“降低空驶速度是最多人确认有效的办法。”">“Lowering the travel speed is the one most people confirm.”</p>
+    </div>
+  </div>
+  <p class="vnote" data-zh="实时语音使用 Google Gemini 和你自己的密钥。开始前会先征得你同意，你的语音和当前页面会发送给 Google。">Live voice uses Google Gemini with your own key. It asks first, because your voice and the page go to Google.</p>
+</section>
+
+<!-- Listen: read aloud -->
+<section class="strip">
+  <div class="aloud st" data-steps="900,3800" data-hold="1000" role="img"
+       aria-label="The Read aloud button on a summary changes to pause while sound bars move."
+       data-zh-label="摘要上的朗读按钮变成暂停，同时声音条跳动。">
+    <span class="pp fx"><svg class="ic-pause"><use href="#i-pause"/></svg><svg class="ic-play"><use href="#i-speak"/></svg></span>
+    <span class="bars fx"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+  </div>
+  <div>
+    <h3 data-zh="或者，只听这一篇">Or hear just this one</h3>
+    <p data-zh="任何摘要或每日摘要卡片都能朗读。">Read aloud works on any summary or digest card.</p>
+  </div>
+</section>
+
+<!-- Everywhere: watch and share -->
+<section class="duo" id="everywhere">
+  <article class="tile tile-watch">
+    <div class="tile-copy">
+      <p class="kicker" data-zh="随时随地">Wherever you are</p>
+      <h2 data-zh="关注的话题，有新回复就告诉你">Hear about new replies</h2>
+      <p data-zh="关注一个话题，有新回复时收到通知。">Watch a topic and get a notification when it has new replies.</p>
+    </div>
+    <div class="lock st" data-steps="800,1400" data-hold="3400" role="img"
+         aria-label="An iPhone lock screen. Notifications from Forumind appear: new replies in a watched topic, and today’s digest is ready to make."
+         data-zh-label="iPhone 锁屏上出现 Forumind 通知：关注的话题有新回复，今日摘要可以生成了。">
+      <div class="fx">
+        <p class="clock">9:41</p>
+        <div class="note" data-at="1"><img src="assets/icon-64.png" alt=""><div><b data-zh="2.4 固件更新后，长时间打印出现错层">Layer shifts on long prints after the 2.4 firmware update</b><span data-zh="12 条新回复（关注的话题）">12 new replies in a watched topic.</span></div></div>
+        <div class="note" data-at="2"><img src="assets/icon-64.png" alt=""><div><b data-zh="今日摘要可以生成了">Today’s digest is ready to make</b><span data-zh="3 个话题正在等你，打开 Forumind 即可总结。">3 topics are waiting. Open Forumind to summarize them.</span></div></div>
+      </div>
+    </div>
+  </article>
+  <article class="tile tile-share">
+    <div class="tile-copy">
+      <h2 data-zh="在 Safari 或 Chrome 里看到好帖？分享过来">Send a page over from Safari or Chrome</h2>
+      <p data-zh="分享论坛页面，选择总结、聊聊、问论坛，或者直接打开。">Share a forum page to summarize it, chat about it, ask the forum, or just open it.</p>
+    </div>
+    <div class="share st" data-steps="600,1600" data-hold="3400" role="img"
+         aria-label="A share sheet rises over a web page, offering Summarize, Chat about it, Ask the forum and Just open."
+         data-zh-label="网页上升起共享面板，提供总结、聊聊这个、问论坛和直接打开四个选项。">
+      <div class="fx">
+        <div class="sheet-s">
+          <p class="s-title" data-zh="2.4 固件更新后，长时间打印出现错层">Layer shifts on long prints after the 2.4 firmware update</p>
+          <p class="s-host" data-zh="已检测到 Discourse 网站 · 创客空间社区">Discourse site detected · Maker Space Community</p>
+          <p class="act main" data-at="2"><svg><use href="#i-spark"/></svg><b data-zh="总结">Summarize</b><span data-zh="这个话题的要点">Key points of this topic</span></p>
+          <p class="act" data-at="2"><svg><use href="#i-chat"/></svg><b data-zh="聊聊这个">Chat about it</b><span data-zh="就此页面提问">Ask questions about this page</span></p>
+          <p class="act" data-at="2"><svg><use href="#i-search"/></svg><b data-zh="问论坛">Ask the forum</b><span data-zh="在整个论坛中研究">Research across the whole forum</span></p>
+        </div>
+      </div>
+    </div>
+  </article>
+</section>
+
+<!-- Everywhere: iPad -->
+<section class="pad">
+  <div class="copy center">
+    <h2 data-zh="在 iPad 上，页面和 AI 并排">On iPad, the page and the AI sit side by side</h2>
+    <p data-zh="一边读帖，一边看摘要。点 #14，左边的页面直接跳过去，摘要还留在原地。">Read on the left, ask on the right. Tap #14 and the page jumps while the summary stays put.</p>
+  </div>
+  <div class="padwrap">
+    <div class="ipad st" data-steps="700,2200,700,500" data-hold="3200" role="img"
+         aria-label="An iPad in split layout, with a forum thread on the left and the summary panel on the right. Tapping a citation highlights the post on the left."
+         data-zh-label="iPad 分栏布局：左边是论坛帖子，右边是摘要面板。点按楼层号后，左边对应的帖子被高亮。">
+      <div class="screen fx">
+        <div class="tbar"><span class="av">M</span><span class="addr">community.example.org</span><svg><use href="#i-mic"/></svg><svg><use href="#i-more"/></svg></div>
+        <div class="cols">
+          <div class="page clip">
+            <div class="scroller pad-scroll">
+              <p class="topic" data-zh="2.4 固件更新后，长时间打印出现错层">Layer shifts on long prints after the 2.4 firmware update</p>
+              <div class="post"><p class="who"><b>maya</b><span>#1</span></p><p data-zh="更新到 2.4 之后，长时间打印到一半就错层。短的打印件完全没问题。">Since the 2.4 update my long prints shift partway up. Short prints are fine.</p></div>
+              <div class="post"><p class="who"><b>tomek</b><span>#2</span></p><p data-zh="我这边也一样，大概六小时之后开始。">Same here, starting after about six hours.</p></div>
+              <div class="post"><p class="who"><b>jun</b><span>#6</span></p><p data-zh="皮带检查过了，还是会错层。">Checked the belts, still shifting.</p></div>
+              <div class="post"><p class="who"><b>rosa</b><span>#9</span></p><p data-zh="回退到 2.3 对我有用，不过朋友那台没用。">Rolling back to 2.3 helped me, but not a friend.</p></div>
+              <div class="post target"><p class="who"><b>ari</b><span>#14</span></p><p data-zh="把空驶速度降了 25%，连打两个长件都没再错层。">Dropped the travel speed by 25%. Two long prints since, no shifts.</p></div>
+              <div class="post"><p class="who"><b>maya</b><span>#15</span></p><p data-zh="试了，确实管用，谢谢。">Tried it, it works. Thanks.</p></div>
+              <div class="post"><p class="who"><b>jun</b><span>#23</span></p><p data-zh="重新张紧皮带之后校准了一遍，好了一些。">Re-tensioned the belts and recalibrated. Better.</p></div>
+              <div class="post"><p class="who"><b>rosa</b><span>#27</span></p><p data-zh="我也降了速度，昨晚的长件打完了。">Lowered my speed too. Last night’s long print finished.</p></div>
+              <div class="post"><p class="who"><b>ari</b><span>#33</span></p><p data-zh="有没有人试过同时换皮带？">Has anyone tried new belts as well?</p></div>
+              <div class="post"><p class="who"><b>lena</b><span>#36</span></p><p data-zh="换了，没什么区别，还是速度的问题。">I did. No difference, it comes down to speed.</p></div>
+              <div class="post"><p class="who"><b>tomek</b><span>#41</span></p><p data-zh="维护者请大家提供打印日志。">The maintainers are asking for print logs.</p></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="sheethead"><b data-zh="摘要">Summary</b><span class="pill" data-zh="Apple 智能">Apple Intelligence</span><svg><use href="#i-speak"/></svg><svg><use href="#i-more"/></svg></div>
+            <div class="sum" data-at="1" data-stream>
+              <h4 data-zh="原帖概要">Original post</h4>
+              <p data-zh="自从 <b>2.4 固件更新</b>以后，打印超过六小时左右的模型会在中途错层 <span class='cite'>#1</span>">Since the <b>2.4 firmware update</b>, prints longer than about six hours show layer shifts <span class="cite">#1</span></p>
+              <h4 data-zh="大家怎么说">What people are saying</h4>
+              <ul>
+                <li data-zh="把<b>空驶速度</b>降低 20–30% <span class='cite hit'>#14</span>">Lower the <b>travel speed</b> by 20–30% <span class="cite hit">#14</span></li>
+                <li data-zh="重新张紧皮带，然后重新校准 <span class='cite'>#23</span>">Re-tension the belts, then recalibrate <span class="cite">#23</span></li>
+                <li data-zh="回退到 2.3 对部分人有效 <span class='cite'>#9</span>">Rolling back to 2.3 helps some <span class="cite">#9</span></li>
+              </ul>
+              <h4 data-zh="帖子里的建议">Tips from the thread</h4>
+              <p data-zh="维护者在收集打印日志，暂无修复时间 <span class='cite'>#41</span>">Maintainers are collecting print logs; no fix date yet <span class="cite">#41</span></p>
+            </div>
+            <div class="pchat" data-at="1">
+              <p class="me" data-zh="固件维护者那边有回复吗？">Did anyone hear back from the firmware maintainers?</p>
+              <p class="ai" data-zh="有。一位维护者请大家提供打印日志，并表示修复正在测试中。">Yes. A maintainer asked for print logs and said a fix is being tested.</p>
+            </div>
+            <div class="askbox mini"><span class="scopepill"><span data-zh="此话题">This topic</span><svg><use href="#i-chev"/></svg></span><span class="fieldp" data-zh="继续追问…">Ask a follow-up…</span><b><svg><use href="#i-up"/></svg></b></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="sync">
+    <div class="syncline st" data-steps="0" data-hold="4000" aria-hidden="true">
+      <svg><use href="#i-phone"/></svg><i class="dot"></i><svg class="cl"><use href="#i-cloud"/></svg><i class="dot two"></i><svg><use href="#i-tablet"/></svg>
+    </div>
+    <p data-zh="论坛、摘要、聊天和设置通过你自己的 iCloud 账户在 iPhone 和 iPad 之间同步，并采用端到端加密。">Forums, summaries, chats and settings follow you between iPhone and iPad, end-to-end encrypted in your own iCloud account.</p>
+  </div>
+</section>
+
+<!-- Yours: models -->
+<section class="split" id="yours">
+  <div class="copy">
+    <p class="kicker" data-zh="由你决定">Yours</p>
+    <h2 data-zh="模型你来选">Bring your own model</h2>
+    <p data-zh="在支持的设备上，Apple 智能不用账户也不用密钥。也可以用自己的 API 密钥接入云服务，或者连接你自己电脑上的 Ollama 或 LM Studio。">Apple Intelligence on supported devices, with no account and no key. Your own API key for a hosted provider. Or Ollama or LM Studio, running on your own computer.</p>
+    <p data-zh="摘要和聊天用一个模型，问论坛用另一个，互不影响。">Keep one model for summaries and chat, and another for Ask the forum.</p>
+  </div>
+  <div class="models st" data-steps="1600,1600" data-hold="2600" role="img"
+       aria-label="A settings list of models. The check mark moves from OpenRouter to Ollama to Apple Intelligence."
+       data-zh-label="模型设置列表，勾选标记从 OpenRouter 移到 Ollama，再移到 Apple 智能。">
+    <div class="group fx">
+      <p class="m"><b data-zh="Apple 智能">Apple Intelligence</b><span data-zh="内置">Built in</span></p>
+      <p class="m"><b>Ollama</b><span data-zh="在你的电脑上">On your computer</span></p>
+      <p class="m"><b>LM Studio</b><span data-zh="在你的电脑上">On your computer</span></p>
+      <p class="m"><b>OpenRouter</b><span data-zh="已添加密钥">Key added</span></p>
+      <p class="m"><b>OpenAI</b><span data-zh="API 密钥">API key</span></p>
+      <p class="m"><b>Anthropic</b><span data-zh="API 密钥">API key</span></p>
+      <p class="m"><b>Google Gemini</b><span data-zh="API 密钥">API key</span></p>
+      <i class="mark"><svg><use href="#i-check"/></svg></i>
+    </div>
+  </div>
+</section>
+
+<!-- Yours: control -->
+<section class="control">
+  <div class="copy">
+    <h2 data-zh="你的数据，你说了算">You stay in charge of your data</h2>
+    <ul class="plain">
+      <li data-zh="<b>没有 Forumind 服务器。</b>App 直接与论坛和你选择的 AI 通信。">
+        <b>No Forumind servers.</b> The app talks straight to the forum and the AI you chose.</li>
+      <li data-zh="<b>无需账户。</b>没有分析，没有广告，没有跟踪。">
+        <b>No account.</b> No analytics, no ads, no tracking.</li>
+      <li data-zh="<b>先问再发。</b>第一次把论坛内容发给某家 AI 提供方之前，App 会先征得你同意。">
+        <b>It asks first.</b> Before forum content first goes to an AI provider, the app shows what is sent and waits for your answer.</li>
+      <li data-zh="<b>屏蔽和举报。</b>可以屏蔽用户，也可以举报帖子、话题、用户，以及 AI 生成的摘要、回答、每日摘要、播客和语音回答。被屏蔽的帖子和账号不会进入发给 AI 的请求。">
+        <b>Block and report.</b> Block a user, or report a post, a topic, a user, or AI output: a summary, an answer, a daily digest, a podcast or a voice answer. Blocked posts and accounts stay out of AI requests.</li>
+    </ul>
+  </div>
+  <div class="consent st" data-steps="500,500,1000" data-hold="3600" role="img"
+       aria-label="A consent page titled Send forum content to OpenRouter, listing what is sent, with Allow and Don’t Allow buttons."
+       data-zh-label="征求同意的页面，标题是“将论坛内容发送给 OpenRouter？”，列出发送内容，并有“允许”和“不允许”两个按钮。">
+    <div class="fx">
+      <h4 data-at="1" data-zh="将论坛内容发送给 OpenRouter？">Send forum content to OpenRouter?</h4>
+      <p class="ok" data-at="1" data-zh="直接从本设备发送，不经过 Forumind 服务器。">Straight from this device. No Forumind server.</p>
+      <p class="sub" data-at="2" data-zh="Forumind 会发送什么">What Forumind sends</p>
+      <ul data-at="2">
+        <li data-zh="你总结或提问的帖子和页面，包括你登录论坛后看到的页面">Posts and pages you summarize or ask about, including pages you see while signed in to a forum</li>
+        <li data-zh="你的问题和聊天消息">Your questions and chat messages</li>
+        <li data-zh="你的 API 密钥，只发送给 OpenRouter">Your API key, only to OpenRouter</li>
+      </ul>
+      <p class="yes" data-at="3" data-zh="允许">Allow</p>
+      <p class="no" data-at="3" data-zh="不允许">Don’t Allow</p>
+    </div>
+  </div>
+</section>
+
+<!-- Sites and call to action. -->
+<section class="end">
+  <img src="assets/icon-180.png" alt="" width="96" height="96">
+  <h2 data-zh="打开你常逛的论坛，<br>从这里开始">Start with the forum you already read</h2>
+  <p data-zh="支持 Discourse 论坛（公开或需要登录的都可以）、WordPress 网站和 Hacker News（只读，不能登录、发帖或投票）。适用于 iPhone 和 iPad，iOS 17 或更高版本。">Works with Discourse forums, public or private, WordPress sites and Hacker News (read only: no sign-in, posting or voting). For iPhone and iPad, on iOS 17 or later.</p>
+  <a class="btn store" href="https://testflight.apple.com/join/XsfttG4P">Join the beta on TestFlight</a>
+</section>
+
+</main>
+
+<footer>
+  <nav aria-label="Footer" data-zh-label="页脚">
+    <a data-link="privacy" href="privacy/" data-zh="隐私政策">Privacy</a>
+    <a data-link="support" href="support/" data-zh="帮助支持">Support</a>
+    <a href="https://forumind.top/" data-zh="Chrome 与 Edge 扩展">Chrome and Edge extension</a>
+  </nav>
+  <p data-zh="演示使用虚构社区的示例内容，界面可能与 App 略有不同。AI 生成的内容可能有误。部分功能需要你自己的 AI 提供方，提供方可能按用量收费。">Demos use sample content from made-up communities, and the app may look slightly different. AI output can be wrong. Some features need your own AI provider, which may charge for usage.</p>
+  <p data-zh="Forumind 是一款独立 App，与 Discourse、WordPress、Hacker News 及其所有者没有任何关联，也未获其认可。相关商标归各自所有者所有。">Forumind is an independent app, not affiliated with or endorsed by Discourse, WordPress, Hacker News or their owners. Trademarks belong to their owners.</p>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

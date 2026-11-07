@@ -188,9 +188,10 @@ folder in CI:
 - Privacy Policy URL:
   `https://github.com/kccarlos/forumind/blob/main/PRIVACY.md`.
   It must be reachable without logging in, so the repository must be public
-  first. A GitHub Pages URL (for example
-  `https://kccarlos.github.io/forumind/privacy`) looks nicer if
-  you enable Pages later; update `privacy_url.txt` in every locale if you do.
+  first. The site in `mobile-site/` (deployed by `pages.yml`) carries a copy
+  at `https://mobile.forumind.top/privacy/`; to use it, update
+  `privacy_url.txt` in every locale and `privacyURL` in
+  `Forumind/Moderation.swift`, and run `scripts/site/render_privacy.py` after editing `PRIVACY.md` (the site copy is generated).
 - Support URL: `https://github.com/kccarlos/forumind/issues`.
 - Screenshots: `appstore/screenshots/<locale>/`, five for 6.9" iPhone
   (1320 × 2868) and five for 13" iPad (2064 × 2752) in each language. App

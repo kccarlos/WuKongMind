@@ -36,6 +36,9 @@ jobs:
       - name: App Store metadata
         # Length limits, keywords, URLs, and screenshot sizes in appstore/.
         run: scripts/ci/check-appstore-metadata.sh
+      - name: Privacy page matches PRIVACY.md
+        # mobile-site/privacy/ is generated; fails when it is out of date.
+        run: scripts/ci/check-privacy-page.sh
       - name: Fastfile syntax
         run: ruby -c fastlane/Fastfile
       - name: Ad-blocking converter tests

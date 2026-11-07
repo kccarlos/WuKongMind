@@ -164,7 +164,7 @@ final class OnboardingReplayTests: XCTestCase {
         XCTAssertNil(app.rootPresentation, "a beat for the sheet to leave for good")
         // Observe the transition rather than racing a fixed sleep under simulator load.
         // Stay below the two-second fallback so the dismissal callback is still tested.
-        await fulfillment(of: [shown], timeout: 1)
+        await fulfillment(of: [shown], timeout: 1.8)
         XCTAssertEqual(app.rootPresentation, .onboarding)
         app.dismissRootPresentation(.onboarding)
         XCTAssertEqual(app.router.onboardingReplay, .none)

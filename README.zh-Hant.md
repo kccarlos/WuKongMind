@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="docs/brand/forumind-banner-zh-Hant.png" alt="Forumind：秒懂任何 Discourse 論壇。AI 摘要、聊天，以及附上來源的回答，支援 iPhone 與 iPad。" width="100%">
+  <img src="docs/brand/forumind-banner-zh-Hant.png" alt="Forumind：幾百樓的長帖，不用爬樓也能讀懂。AI 摘要、聊天，以及附上來源的回答，支援 iPhone 與 iPad。" width="100%">
 </p>
 
-<h3 align="center">為任何 Discourse 論壇打造的論壇瀏覽器，身旁還有一位 AI 助理。</h3>
+<h3 align="center">為 Discourse 論壇、WordPress 網站和 Hacker News 打造的論壇瀏覽器，身旁還有一位 AI 助理。</h3>
 
 <p align="center">
   <a href="https://apps.apple.com/app/id6816718686"><img src="https://img.shields.io/badge/App_Store-%E5%AF%A9%E6%A0%B8%E4%B8%AD-0D96F6?logo=appstore&logoColor=white" alt="App Store：審核中"></a>
@@ -18,22 +18,23 @@
   <a href="README.md">English</a> · <a href="README.zh-Hans.md">简体中文</a> · <b>繁體中文</b>
 </p>
 
-**幾秒讀懂任何 Discourse 論壇。** 摘要長篇話題、追問細節，還能讓 AI
+**輕鬆讀完長篇討論。** 摘要長篇話題、追問細節，還能讓 AI
 替你搜尋整個論壇，並附上它引用的貼文連結。Forumind 是一款免費、開放原始碼的
 iPhone 與 iPad App，適用於任何以 [Discourse](https://www.discourse.org)
-架設的論壇，例如 [meta.discourse.org](https://meta.discourse.org)，或你自己的社群。
+架設的論壇，例如 [meta.discourse.org](https://meta.discourse.org) 或你自己的社群，
+也能閱讀 WordPress 網站和 Hacker News。
 
 > **App Store：** Forumind 已送交審核，目前審核中。Apple 核准後，
 > [App Store 連結](https://apps.apple.com/app/id6816718686)即可使用。在此之前，
 > 你可以**[透過 TestFlight 加入公開測試](https://testflight.apple.com/join/XsfttG4P)**，或[自行建置](#從原始碼建置)。
 
-**想在電腦瀏覽器上使用？** 也可以試試 Chrome 擴充功能版本：[DiscourseCopilot](https://github.com/kccarlos/DiscourseCopilot)。
+**想在電腦瀏覽器上使用？** 也可以試試 [Chrome 與 Edge 擴充功能](https://forumind.top/)。
 
 ## 為什麼選擇 Forumind
 
 - **少讀一點，多懂一些。** 不必逐篇閱讀，也能掌握 500 則回覆的話題重點。
 - **直接問，不用翻。** 向論壇提問，得到附上編號來源的回答，點一下就能查看原文。
-- **任何 Discourse 論壇。** 公開或私人、大型或小型，包括你自己的社群。
+- **任何 Discourse 論壇，還有 WordPress 和 Hacker News。** 公開或私人、大型或小型，包括你自己的社群。
 - **AI 由你選。** 免金鑰的 Apple Intelligence、你自己的 AI 供應商，或你自己電腦上的模型。
 - **隱私從設計開始。** 沒有 Forumind 伺服器、帳號、分析、廣告或追蹤。
 - **免費、開放原始碼。** 採用 Apache-2.0 授權，以 SwiftUI 為 iPhone 與 iPad 打造。
@@ -41,13 +42,9 @@ iPhone 與 iPad App，適用於任何以 [Discourse](https://www.discourse.org)
 ## 截圖
 
 <p align="center">
-  <img src="docs/screenshots/store/zh-Hant/iphone-69-1-summary.png" alt="長篇討論秒懂重點：長篇論壇話題的 AI 摘要" width="190">
-  <img src="docs/screenshots/store/zh-Hant/iphone-69-2-ask.png" alt="問遍整個論壇：回答附上原文連結" width="190">
-  <img src="docs/screenshots/store/zh-Hant/iphone-69-3-chat.png" alt="任何話題隨時追問：針對討論串追問細節" width="190">
-  <img src="docs/screenshots/store/zh-Hant/iphone-69-4-forums.png" alt="所有論壇一個 App：釘選的論壇與從瀏覽器分享" width="190">
-</p>
-<p align="center">
-  <img src="docs/screenshots/store/zh-Hant/ipad-13-1-summary.png" alt="在 iPad 上，論壇和助理並排顯示" width="560">
+  <img src="docs/screenshots/iphone-home-zh-Hant.png" alt="首頁：今日摘要、繼續閱讀的話題和釘選的論壇" width="230">
+  <img src="docs/screenshots/iphone-summary.png" alt="抽屜中的摘要（英文介面），樓層號碼可點按，下方可以追問" width="230">
+  <img src="docs/screenshots/iphone-ask.png" alt="問論壇（英文介面）：問題、步驟和回答" width="230">
 </p>
 
 ## 功能
@@ -59,6 +56,7 @@ iPhone 與 iPad App，適用於任何以 [Discourse](https://www.discourse.org)
 - **聊天。** 針對正在閱讀的話題提問：「大家最後怎麼決定？」或「有沒有替代做法？」
 - **問論壇。** 提出問題，助理會搜尋論壇、閱讀最相關的話題，並給出附上編號
   來源的回答，點一下即可開啟。
+- **翻譯。** 在裝置上翻譯畫面上的貼文或摘要（需要 iOS 18 或以上版本）。
 
 ### 所有論壇集中一處
 
@@ -67,7 +65,11 @@ iPhone 與 iPad App，適用於任何以 [Discourse](https://www.discourse.org)
 - **從 Safari 或 Chrome 分享。** 把任何論壇頁面分享到 Forumind，即可開啟、
   產生摘要、聊天或問論壇。
 - **追蹤話題。** 話題有新回覆時收到通知。
-- **iPhone 與 iPad。** 在 iPad 上，論壇和助理並排顯示。
+- **每日摘要與 Podcast。** 今日頁面彙整你追蹤的話題和釘選論壇的熱門話題，
+  還能變成兩位主持人對談的簡短 Podcast，用裝置內建的語音朗讀，有 Google 金鑰時也可用 Google 的語音。
+- **即時語音。** 用 Google Gemini Live 和你自己的金鑰，開口詢問正在閱讀的頁面。
+  使用前會先徵求同意，因為你的聲音和頁面內容會傳送給 Google。
+- **iPhone 與 iPad。** 在 iPhone 上，助理以抽屜形式出現在頁面上方；在較寬的 iPad 視窗中，兩者並排顯示。
 
 ### 每項工作都有合適的 AI
 
@@ -104,6 +106,15 @@ App 內登入）。可以用 Forumind 閱讀的熱門 Discourse 社群舉例：
 所有者所有，Forumind 與這些社群沒有隸屬關係。知道應該列在這裡的 Discourse 論壇？
 歡迎[提交 issue](https://github.com/kccarlos/forumind/issues)。
 
+**WordPress 網站**也可以使用：開啟一篇部落格文章，或依網址加入網站，Forumind
+會透過網站公開的 REST API 讀取文章和讀者留言（網站允許時也支援留言搜尋）。
+關閉 REST API 的網站，或使用不含 `/wp-json/` 的 `?p=` 簡易永久連結的網站，
+不受支援。Forumind 與 WordPress 或 WordPress 基金會沒有隸屬關係。
+
+**[Hacker News](https://news.ycombinator.com)** 也受支援：加入它的網址，或開啟
+`item?id=N` 文章連結，即可閱讀文章和巢狀留言、產生摘要、聊天、搜尋，或把它加入
+每日摘要和 Podcast。閱讀使用公開的 Algolia API；不能登入、發文或投票。
+
 ## 選擇你的 AI
 
 **Apple Intelligence** 是最簡單的選擇：在支援的裝置上，App 會使用 Apple 的
@@ -134,8 +145,8 @@ App 內登入）。可以用 Forumind 閱讀的熱門 Discourse 社群舉例：
 **兩個模型，各司其職。** 設定 › AI 模型 中有一個用於 **摘要與聊天** 的預設
 模型，還有一個用於 **問論壇** 的預設模型。摘要和聊天需要閱讀大量文字，快速、
 低成本的模型就很合適；問論壇需要規劃搜尋並對讀到的內容進行推理，更強的模型
-更值得。兩者一開始都是你在設定過程中選擇的模型；變更其中一個，或從助理的
-選單中切換，另一個維持不變。金鑰屬於 AI 供應商，因此同一供應商的兩個模型
+更值得。兩者一開始都是你在設定過程中選擇的模型；變更其中一個，或用助理頂端的
+模型按鈕切換，另一個維持不變。金鑰屬於 AI 供應商，因此同一供應商的兩個模型
 共用一組金鑰。
 
 ## 取得 Forumind
@@ -172,7 +183,8 @@ open Forumind.xcodeproj
 1. **選擇你的 AI。** 首次啟動時會引導你完成。你也可以略過，稍後在設定中選擇。
 2. **選擇你的論壇。** 釘選推薦的論壇，或依位址加入（`meta.discourse.org`，
    或子目錄論壇，例如 `example.com/forum`）。
-3. **開啟一個話題，點一下「助理」。** 選擇 **摘要**、**聊天** 或 **問論壇**。
+3. **開啟一個話題，點一下底部列中的 ✦ 按鈕**（在較寬的 iPad 視窗中，助理已經在頁面旁邊）。
+   閱讀摘要、繼續追問，或把提問框從 **這個話題** 切換到 **整個論壇** 來問論壇。
 
 如果論壇需要登入，請在 App 的內建瀏覽器中登入。App 讀取論壇的方式與瀏覽器
 相同，所以你看得到的內容，它也讀得到。
@@ -190,7 +202,7 @@ open Forumind.xcodeproj
 - **你的金鑰保存在你的鑰匙圈中**（如果你同步金鑰，也會保存在 iCloud 鑰匙圈中）。
 - **你的紀錄只屬於你：** 儲存在你的裝置上；開啟同步後，以端對端加密的方式
   儲存在你自己的 iCloud 帳號中，其他人都無法讀取。
-- **每個論壇的登入只屬於該論壇。** Cookie 只會傳送給它所屬的論壇。
+- **每個論壇的登入只屬於該論壇。** Cookie 只會傳送給它所屬的論壇。Hacker News 透過 Algolia 的公開 API 讀取，不需要登入。
 
 完整說明：[隱私權政策](PRIVACY.md)（英文）。
 
@@ -206,15 +218,17 @@ App 免費。使用 Apple Intelligence 和本機模型不需任何費用。其�
 <details>
 <summary><b>這是 Discourse 官方推出的嗎？</b></summary>
 
-不是。Forumind 是一款為 Discourse 論壇打造的獨立開放原始碼 App，與 Civilized
-Discourse Construction Kit, Inc. 或任何論壇皆無關聯，也未獲得其背書。
+不是。Forumind 是一款獨立的開放原始碼 App，與 Civilized Discourse Construction
+Kit, Inc.、WordPress、Hacker News 或任何論壇皆無關聯，也未獲得其背書。
 </details>
 
 <details>
-<summary><b>哪些論壇可以用？</b></summary>
+<summary><b>哪些網站可以用？</b></summary>
 
-任何執行 Discourse 的論壇，無論公開或私人（在 App 內登入即可）。如果頁面
-不是 Discourse 論壇，App 會告訴你。
+任何執行 Discourse 的論壇，無論公開或私人（在 App 內登入即可）；如果頁面
+不是受支援的網站，App 會告訴你。WordPress 網站透過網站公開的 REST API
+（`/wp-json/`）讀取，關閉該介面的網站不受支援。Hacker News 支援閱讀，
+不能登入、發文或投票。
 </details>
 
 <details>
@@ -241,7 +255,7 @@ Discourse Construction Kit, Inc. 或任何論壇皆無關聯，也未獲得其�
 <summary><b>可以在桌面瀏覽器上使用嗎？</b></summary>
 
 也有
-[Chrome 擴充功能](https://github.com/kccarlos/DiscourseCopilot)可以使用。
+[Chrome 與 Edge 擴充功能](https://forumind.top/)可以使用。
 </details>
 
 ## 開發者文件

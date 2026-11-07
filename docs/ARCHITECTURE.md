@@ -41,8 +41,8 @@ All app code is in `Forumind/`; files are grouped here by role.
 | File | Role |
 | --- | --- |
 | `ForumindApp.swift` | App entry, `AppDelegate` (background refresh, notifications), scene setup. |
-| `ContentView.swift` | Root view: browser, Assistant panel, Browse/Assistant switch, sheets. |
-| `WorkspaceLayout.swift` | Side-by-side layout on wide windows (iPad landscape, large Stage Manager windows), resizable panel, keyboard commands. Narrow windows get a Browse / Assistant switch. |
+| `ContentView.swift` | Root view: browser, Assistant panel (drawer or split), sheets. |
+| `WorkspaceLayout.swift` | Side-by-side layout on wide windows (iPad landscape, large Stage Manager windows), resizable panel, keyboard commands. Narrower windows (under 850 pt, every iPhone) get the drawer layout. |
 | `DesignSystem.swift`, `ForumComponents.swift`, `AssistantStates.swift`, `MarkdownView.swift` | Shared styles, forum rows/tiles/switcher, Assistant empty/loading/not-a-forum states, and a small Markdown renderer. |
 
 ### Browser and forum identity

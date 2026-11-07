@@ -1,10 +1,10 @@
 # Terms of Use
 
 **Forumind for iPhone and iPad**
-Effective date: October 6, 2026
+Effective date: November 7, 2026
 
-Forumind is a free, open-source app for reading Discourse forums with an AI
-assistant. By using the app you agree to these terms. If you don't agree,
+Forumind is a free, open-source app for reading Discourse forums, WordPress sites and
+Hacker News with an AI assistant. By using the app you agree to these terms. If you don't agree,
 don't use the app.
 
 ## Forums belong to their communities

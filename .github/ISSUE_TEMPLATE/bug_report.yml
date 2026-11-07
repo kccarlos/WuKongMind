@@ -19,13 +19,13 @@ body:
       label: Steps to reproduce
       placeholder: |
         1. Open https://meta.discourse.org/t/...
-        2. Tap Assistant > Summary
+        2. Tap the ✦ button in the bar
         3. ...
   - type: input
     id: forum
     attributes:
-      label: Forum address
-      description: A public forum where it happens, if it's forum-specific.
+      label: Site address
+      description: A public forum or site where it happens, if it's site-specific.
       placeholder: meta.discourse.org
   - type: dropdown
     id: provider
@@ -36,6 +36,7 @@ body:
         - OpenAI
         - Anthropic
         - Google Gemini
+        - Google Vertex AI
         - OpenRouter
         - Groq
         - xAI
@@ -55,7 +56,7 @@ body:
     id: version
     attributes:
       label: App version
-      description: Settings > About (for example 1.0.0 (42)), or "built from source at <commit>".
+      description: Settings › Help & about (for example 1.0.0 (42)), or "built from source at <commit>".
     validations:
       required: true
   - type: textarea
