@@ -3242,7 +3242,7 @@ final class AppModel: ObservableObject {
             sessions[session.topicKey] = session
             return (
                 String(localized: "Summarized \(session.totalPosts ?? 0) posts", comment: "Ask the forum step outcome: number of posts summarized in a topic"),
-                "Summary of \(session.title) (\(session.url.absoluteString)):\n\n\(summary)"
+                "Summary of \(moderatedTopicTitle(session.title, siteURL: session.siteURL, topicID: session.topicID)) (\(session.url.absoluteString)):\n\n\(summary)"
             )
 
         case .savedSummaries:
@@ -3254,7 +3254,8 @@ final class AppModel: ObservableObject {
                 .sorted { $0.updatedAt > $1.updatedAt }
             guard !saved.isEmpty else { return (String(localized: "None found", comment: "Ask the forum step outcome: no saved summaries matched"), "No saved summaries match.") }
             let text = saved.prefix(query.isEmpty ? 40 : 6).map { session in
-                var line = "- id \(session.topicID): \(session.title) — "
+                let title = moderatedTopicTitle(session.title, siteURL: session.siteURL, topicID: session.topicID)
+                var line = "- id \(session.topicID): \(title) — "
                     + "\(session.summaryPostCount ?? session.totalPosts ?? 0) posts — "
                     + session.url.absoluteString
                 if !query.isEmpty { line += "\n\(session.summary.prefix(3_000))" }
@@ -3317,6 +3318,10 @@ final class AppModel: ObservableObject {
                 && !isSearchHitPostHidden(hit, siteURL: siteURL, rules: rules)
                 && !(hit.blurb.map(rules.hidesText) ?? false)
                 && !rules.hidesText(hit.topic.title)
+        }.map { hit in
+            var copy = hit
+            copy.topic.title = moderatedTopicTitle(hit.topic.title, siteURL: siteURL, topicID: hit.topic.topicID, openingPoster: hit.topic.author)
+            return copy
         }
         let hadHitsByTopic = Set(result.hits.map(\.topic.topicID))
         let keptHitsByTopic = Dictionary(grouping: hits, by: \.topic.topicID)
@@ -3326,6 +3331,7 @@ final class AppModel: ObservableObject {
                 return nil
             }
             var copy = topic
+            copy.title = moderatedTopicTitle(topic.title, siteURL: siteURL, topicID: topic.topicID, openingPoster: topic.author)
             if hadHitsByTopic.contains(topic.topicID) {
                 copy.excerpt = keptHitsByTopic[topic.topicID]?.first?.blurb
             } else if isPostOneHidden(siteURL: siteURL, topicID: topic.topicID, rules: rules) {
@@ -3350,19 +3356,6 @@ final class AppModel: ObservableObject {
                 || rules.hidesUser(block.author, siteURL: siteURL)
         }
         return rules.hasHiddenPosts(siteURL: siteURL, topicID: topicID)
-    }
-
-    private func isPostOneHidden(siteURL: String, topicID: String, rules: ModerationRules) -> Bool {
-        if rules.hidesPost(1, siteURL: siteURL, topicID: topicID) { return true }
-        let key = TopicIdentity.key(siteURL: siteURL, topicID: topicID)
-        if let poster = topicOverviews[key]?.facts?.openingPoster, rules.hidesUser(poster, siteURL: siteURL) {
-            return true
-        }
-        if let author = sessions[key]?.rawPages.first?.blocks.first(where: { $0.number == 1 })?.author,
-           rules.hidesUser(author, siteURL: siteURL) {
-            return true
-        }
-        return false
     }
 
     private func formatAgentTopicRead(
@@ -3392,7 +3385,8 @@ final class AppModel: ObservableObject {
         let query = (action.arguments["query"] ?? action.arguments["q"] ?? "")
             .trimmingCharacters(in: .whitespacesAndNewlines)
         let fullModerated = moderated(session.source, siteURL: session.siteURL, topicID: session.topicID)
-        let headerBase = "Topic: \(session.title)\nURL: \(session.url.absoluteString)"
+        let title = moderatedTopicTitle(session.title, siteURL: session.siteURL, topicID: session.topicID)
+        let headerBase = (title.isEmpty ? "" : "Topic: \(title)\n") + "URL: \(session.url.absoluteString)"
             + " \(profile.postLinkHint(session.url))"
 
         if !query.isEmpty {

@@ -25,6 +25,35 @@ extension AppModel {
         ModerationFilter.filter(source, siteURL: siteURL, topicID: topicID, rules: moderationRules)
     }
 
+    func isPostOneHidden(siteURL: String, topicID: String, rules: ModerationRules) -> Bool {
+        if rules.hidesPost(1, siteURL: siteURL, topicID: topicID) { return true }
+        let key = TopicIdentity.key(siteURL: siteURL, topicID: topicID)
+        if let poster = topicOverviews[key]?.facts?.openingPoster, rules.hidesUser(poster, siteURL: siteURL) {
+            return true
+        }
+        if let author = sessions[key]?.rawPages.first?.blocks.first(where: { $0.number == 1 })?.author,
+           rules.hidesUser(author, siteURL: siteURL) {
+            return true
+        }
+        if let poster = digestPrefetch?.topics[key]?.openingPoster,
+           rules.hidesUser(poster, siteURL: siteURL) { return true }
+        if let author = topicOverviews[key]?.facts?.posts.first(where: { $0.number == 1 })?.username
+            ?? sessions[key].flatMap({ RawTopicFormat.parseHeaders($0.source).first(where: { $0.number == 1 })?.author }),
+           rules.hidesUser(author, siteURL: siteURL) { return true }
+        return false
+    }
+
+    func isTopicTitleHidden(_ title: String, siteURL: String, topicID: String, openingPoster: String? = nil) -> Bool {
+        let rules = moderationRules
+        guard !rules.isEmpty else { return false }
+        return rules.hidesTopicTitle(title, siteURL: siteURL, topicID: topicID, openingPoster: openingPoster)
+            || isPostOneHidden(siteURL: siteURL, topicID: topicID, rules: rules)
+    }
+
+    func moderatedTopicTitle(_ title: String, siteURL: String, topicID: String, openingPoster: String? = nil) -> String {
+        isTopicTitleHidden(title, siteURL: siteURL, topicID: topicID, openingPoster: openingPoster) ? "" : title
+    }
+
     /// The open topic's cached posts with blocked users and filtered words removed.
     var currentModeratedSource: String {
         guard let session = currentSession, !session.source.isEmpty else { return "" }

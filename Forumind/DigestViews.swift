@@ -44,9 +44,12 @@ struct TodayPage: View {
     var body: some View {
         ScrollViewReader { proxy in
             List {
-                header
-                    .listRowBackground(Color.clear)
-                    .listRowInsets(EdgeInsets(top: DCTheme.spacingS, leading: 4, bottom: 0, trailing: 4))
+                Section {} header: {
+                    header
+                        .textCase(nil)
+                        .foregroundStyle(.primary)
+                        .listRowInsets(EdgeInsets(top: DCTheme.spacingS, leading: 4, bottom: DCTheme.spacingXS, trailing: 4))
+                }
                 if let today = app.todaysDigest {
                     if today.cards.contains(where: { $0.state == .done }) {
                         PodcastTodaySection(app: app, podcast: podcast, digest: today) {

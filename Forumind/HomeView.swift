@@ -112,15 +112,22 @@ private struct HomeList: View {
     private var header: some View {
         HStack(alignment: .bottom, spacing: DCTheme.spacingS) {
             VStack(alignment: .leading, spacing: 2) {
-                Text(Date().formatted(.dateTime.weekday(.wide).month(.wide).day()).uppercased())
+                Text(Date().formatted(
+                    dynamicTypeSize.isAccessibilitySize
+                        ? .dateTime.weekday(.abbreviated).month(.abbreviated).day()
+                        : .dateTime.weekday(.wide).month(.wide).day()
+                ).uppercased())
                     .font(.footnote.weight(.semibold))
                     .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
                 Text("Home", comment: "Title of the Home screen")
                     .font(.largeTitle.weight(.heavy))
                     .foregroundStyle(DCTheme.brandInk)
             }
             .accessibilityElement(children: .combine)
             .accessibilityAddTraits(.isHeader)
+            .accessibilityIdentifier("homeHeader")
             Spacer(minLength: 0)
             headerButton("clock.arrow.circlepath", Text("History", comment: "Home button: the history of summaries, chats and Ask the forum runs"), id: "homeHistory", action: actions.openHistory)
             headerButton("gearshape", Text("Settings"), id: "homeSettings", action: actions.openSettings)
@@ -185,20 +192,10 @@ private struct HomeList: View {
                         .foregroundStyle(.secondary)
                 }
                 .padding(.vertical, DCTheme.spacingXS)
-            } else {
-                pinnedGrid
-                    .listRowBackground(Color.clear)
-                    .listRowInsets(EdgeInsets(top: DCTheme.spacingXS, leading: 0, bottom: DCTheme.spacingXS, trailing: 0))
             }
-            Button(action: actions.addForum) {
-                Label {
-                    Text("Add a forum by address…")
-                } icon: {
-                    Image(systemName: "plus.circle.fill")
-                        .foregroundStyle(Color.accentColor)
-                }
-            }
-            .accessibilityIdentifier("homeAddForum")
+            pinnedGrid
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets(top: DCTheme.spacingXS, leading: 0, bottom: DCTheme.spacingXS, trailing: 0))
         } header: {
             HStack {
                 Text("Forums", comment: "Home section: the pinned forums")
@@ -242,6 +239,17 @@ private struct HomeList: View {
                 .accessibilityAction(named: "Unpin") { app.unpin(forum) }
                 .accessibilityAction(named: "Ask the forum") { app.askForum(forum) }
             }
+            Button(action: actions.addForum) {
+                ForumTileLabel(title: String(localized: "Add a forum by address…")) { size in
+                    Image(systemName: "plus")
+                        .font(.system(size: size * 0.5, weight: .semibold))
+                        .foregroundStyle(Color.accentColor)
+                        .frame(width: size, height: size)
+                }
+            }
+            .buttonStyle(TilePressStyle())
+            .accessibilityLabel("Add a forum by address…")
+            .accessibilityIdentifier("homeAddForum")
         }
     }
 
@@ -550,9 +558,20 @@ private struct TodayModule: View {
     @ObservedObject var app: AppModel
     @ObservedObject var podcast: PodcastController
     let onOpen: (URL, DigestCard) -> Void
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    private func shownCards(for state: TodayModuleState) -> [DigestCard] {
+        switch state {
+        case .digestReady, .digestInProgress:
+            return app.todaysDigest?.cards.filter { $0.state == .done } ?? []
+        default:
+            return []
+        }
+    }
 
     var body: some View {
         let state = app.todayModuleState
+        let shown = shownCards(for: state)
         Section {
             switch state {
             case .podcastReady, .podcastInProgress:
@@ -564,12 +583,6 @@ private struct TodayModule: View {
             case .digestReady, .digestInProgress:
                 if let digest = app.todaysDigest {
                     digestHeader(digest, state: state)
-                    let shown = digest.cards.filter { $0.state == .done }
-                    if !shown.isEmpty {
-                        DigestStrip(app: app, cards: shown, onOpen: onOpen)
-                            .listRowBackground(Color.clear)
-                            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: DCTheme.spacingXS, trailing: 0))
-                    }
                 } else {
                     // Preparing (or offline) before there are cards.
                     progressRow(state: state, digest: nil)
@@ -601,6 +614,11 @@ private struct TodayModule: View {
                     actionID: nil
                 )
             }
+        } footer: {
+            if !shown.isEmpty {
+                DigestStrip(app: app, cards: shown, onOpen: onOpen)
+                    .listRowInsets(EdgeInsets(top: DCTheme.spacingS, leading: 0, bottom: DCTheme.spacingXS, trailing: 0))
+            }
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("homeToday")
@@ -617,8 +635,9 @@ private struct TodayModule: View {
     private func digestHeader(_ digest: DailyDigest, state: TodayModuleState) -> some View {
         HStack(spacing: DCTheme.spacingM) {
             Button(action: openToday) {
-                HStack(spacing: DCTheme.spacingM) {
+                HStack(alignment: dynamicTypeSize.isAccessibilitySize ? .top : .center, spacing: DCTheme.spacingM) {
                     DigestIcon(size: 30)
+                        .padding(.top, dynamicTypeSize.isAccessibilitySize ? 6 : 0)
                     VStack(alignment: .leading, spacing: 1) {
                         Text("Today", comment: "Home Today module title")
                             .font(.headline)
@@ -644,7 +663,9 @@ private struct TodayModule: View {
                     .buttonBorderShape(.capsule)
                     .fixedSize()
             } else if case .digestInProgress(offline: false) = state {
-                ProgressView().controlSize(.small)
+                ProgressView()
+                    .controlSize(.small)
+                    .padding(.trailing, DCTheme.spacingXS)
             }
         }
         .padding(.vertical, 2)
@@ -652,8 +673,9 @@ private struct TodayModule: View {
 
     private func progressRow(state: TodayModuleState, digest: DailyDigest?) -> some View {
         Button(action: openToday) {
-            HStack(spacing: DCTheme.spacingM) {
+            HStack(alignment: dynamicTypeSize.isAccessibilitySize ? .top : .center, spacing: DCTheme.spacingM) {
                 DigestIcon(size: 30)
+                    .padding(.top, dynamicTypeSize.isAccessibilitySize ? 6 : 0)
                 VStack(alignment: .leading, spacing: 1) {
                     Text("Today", comment: "Home Today module title")
                         .font(.headline)
@@ -663,7 +685,11 @@ private struct TodayModule: View {
                         .foregroundStyle(.secondary)
                 }
                 Spacer(minLength: 0)
-                if case .digestInProgress(offline: false) = state { ProgressView().controlSize(.small) }
+                if case .digestInProgress(offline: false) = state {
+                    ProgressView()
+                        .controlSize(.small)
+                        .padding(.trailing, DCTheme.spacingXS)
+                }
             }
             .contentShape(Rectangle())
         }
@@ -838,6 +864,10 @@ private struct DigestStrip: View {
     let onOpen: (URL, DigestCard) -> Void
     @ScaledMetric(relativeTo: .body) private var cardWidth: CGFloat = 272
 
+    private var resolvedCardWidth: CGFloat {
+        min(cardWidth, 300)
+    }
+
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             LazyHStack(alignment: .top, spacing: DCTheme.spacingM) {
@@ -848,7 +878,7 @@ private struct DigestStrip: View {
                         .transition(.opacity.combined(with: .offset(y: 8)))
                 }
             }
-            .padding(.horizontal, DCTheme.spacingL)
+            .padding(.trailing, DCTheme.spacingL)
             .padding(.vertical, 2)
         }
         .scrollClipDisabled()
@@ -857,13 +887,14 @@ private struct DigestStrip: View {
     private func cardView(_ card: DigestCard) -> some View {
         let forum = app.forumInfo(siteURL: card.siteURL)
         return VStack(alignment: .leading, spacing: DCTheme.spacingS) {
-            HStack(spacing: DCTheme.spacingS) {
+            SettingsIconRow(spacing: DCTheme.spacingS) {
                 ForumIcon(forum: forum, size: 22)
+            } title: {
                 Text(forum.displayName)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
-                Spacer(minLength: DCTheme.spacingXS)
+            } trailing: {
                 reason(card)
             }
             Text(card.title)
@@ -879,7 +910,7 @@ private struct DigestStrip: View {
             Spacer(minLength: 0)
         }
         .padding(14)
-        .frame(width: cardWidth, alignment: .topLeading)
+        .frame(width: resolvedCardWidth, alignment: .topLeading)
         .frame(minHeight: 150, alignment: .topLeading)
         .background(DCTheme.surface, in: RoundedRectangle(cornerRadius: DCTheme.cardCornerRadius, style: .continuous))
         .overlay {

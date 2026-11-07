@@ -23,7 +23,8 @@ struct SiteRegistry: Sendable {
     static let adapterFactories: [SiteKind: @Sendable () -> any SiteAdapter] = {
         var factories: [SiteKind: @Sendable () -> any SiteAdapter] = [
             .discourse: { DiscourseAdapter() },
-            .wordpress: { WordPressAdapter() }
+            .wordpress: { WordPressAdapter() },
+            .hackerNews: { HackerNewsAdapter() }
         ]
         #if FORUMIND_LABS
         // factories[.reddit] = { RedditAdapter() }      // P2

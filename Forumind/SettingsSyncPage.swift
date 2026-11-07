@@ -173,13 +173,15 @@ struct SettingsSyncPage: View {
                         }
                     }
                     .accessibilityIdentifier("syncLastSynced")
-                    Button {
-                        sync.syncNow()
-                    } label: {
-                        Label(status == .syncing ? "Syncing…" : "Sync now", systemImage: "arrow.triangle.2.circlepath")
+                    if presentation.action != .syncNow {
+                        Button {
+                            sync.syncNow()
+                        } label: {
+                            Label(status == .syncing ? "Syncing…" : "Sync now", systemImage: "arrow.triangle.2.circlepath")
+                        }
+                        .disabled(status == .syncing)
+                        .accessibilityIdentifier("syncNow")
                     }
-                    .disabled(status == .syncing)
-                    .accessibilityIdentifier("syncNow")
                 }
             } footer: {
                 Text("End-to-end encrypted in your own iCloud account. No server of ours in between.")

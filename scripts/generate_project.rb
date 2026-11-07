@@ -69,7 +69,8 @@ shared_source_names = [
   "BrandMarkShapes.swift",
   "ForumSite.swift",
   "IncomingLink.swift",
-  "SharedPage.swift"
+  "SharedPage.swift",
+  "Sites/HackerNews/HackerNewsRecognizer.swift"
 ]
 shared_source_prefix = "Sites/Recognition/"
 shared_source_references = []

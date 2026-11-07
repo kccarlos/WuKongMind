@@ -84,7 +84,7 @@ struct TermsGateView: View {
                 .padding(.vertical, DCTheme.spacingM)
                 .frame(maxWidth: 520)
                 .frame(maxWidth: .infinity)
-                .background(.bar)
+                .dcStickyFooter()
                 .accessibilityIdentifier("termsContinue")
             }
         }
@@ -197,33 +197,52 @@ struct ReportSheet: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(3)
             }
-            HStack(spacing: DCTheme.spacingM) {
-                Button {
-                    composing = target(.post(number: post.number, username: post.username))
-                } label: {
-                    Label("Report post", systemImage: "flag")
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: DCTheme.spacingM) {
+                    postActionButtons(post, blocked: blocked, postBlocked: postBlocked)
+                        .lineLimit(1)
+                        .fixedSize(horizontal: true, vertical: false)
                 }
-                .accessibilityIdentifier("reportPost\(post.number)")
-                Button(role: .destructive) {
-                    blockPost(post)
-                } label: {
-                    Label(postBlocked ? "Post blocked" : "Block post", systemImage: "eye.slash")
+                VStack(alignment: .leading, spacing: DCTheme.spacingS) {
+                    postActionButtons(post, blocked: blocked, postBlocked: postBlocked)
                 }
-                .disabled(postBlocked)
-                .accessibilityIdentifier("blockPost\(post.number)")
-                Button(role: .destructive) {
-                    blockingTarget = post
-                } label: {
-                    Label(blocked ? "Blocked" : "Block user", systemImage: "hand.raised")
-                }
-                .disabled(blocked)
-                .accessibilityIdentifier("blockUser\(post.number)")
             }
             .buttonStyle(.borderless)
-            .font(.subheadline)
+            .font(.footnote.weight(.medium))
             .padding(.top, DCTheme.spacingXS)
         }
         .padding(.vertical, DCTheme.spacingXS)
+    }
+
+    @ViewBuilder
+    private func postActionButtons(_ post: VisiblePost, blocked: Bool, postBlocked: Bool) -> some View {
+        Button {
+            composing = target(.post(number: post.number, username: post.username))
+        } label: {
+            postActionLabel("Report post", systemImage: "flag")
+        }
+        .accessibilityIdentifier("reportPost\(post.number)")
+        Button(role: .destructive) {
+            blockPost(post)
+        } label: {
+            postActionLabel(postBlocked ? "Post blocked" : "Block post", systemImage: "eye.slash")
+        }
+        .disabled(postBlocked)
+        .accessibilityIdentifier("blockPost\(post.number)")
+        Button(role: .destructive) {
+            blockingTarget = post
+        } label: {
+            postActionLabel(blocked ? "Blocked" : "Block user", systemImage: "hand.raised")
+        }
+        .disabled(blocked)
+        .accessibilityIdentifier("blockUser\(post.number)")
+    }
+
+    private func postActionLabel(_ title: LocalizedStringKey, systemImage: String) -> some View {
+        HStack(spacing: 5) {
+            Image(systemName: systemImage)
+            Text(title)
+        }
     }
 
     private func target(_ kind: ReportTarget.Kind) -> ReportTarget {

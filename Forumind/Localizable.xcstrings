@@ -2977,13 +2977,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "App 语言（%@）"
+            "value" : "应用语言（%@）"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "App 語言（%@）"
+            "value" : "應用語言（%@）"
           }
         }
       }

@@ -98,6 +98,11 @@ private struct SiteFixture {
     let linksCarryPostNumbers: Bool
     /// Post numbers `postLookup` finds in the fixture.
     var lookupNumbers = [5, 10]
+    var postCount = 2
+    var openingAuthor = "alice"
+    var replyAuthor = "bob"
+    var openingText = "Opening post"
+    var replyText = "A reply."
     /// A fresh network (and request log) for one test.
     let network: () -> SiteNetwork
     let requests: () -> [String]
@@ -170,7 +175,20 @@ private func wordpressFixture() -> SiteFixture {
     )
 }
 
-private func allFixtures() -> [SiteFixture] { [discourseFixture(), fakeFixture(), wordpressFixture()] }
+private func hackerNewsFixture() -> SiteFixture {
+    let fixture = HackerNewsFixture()
+    return SiteFixture(
+        name: "hackernews", adapter: HackerNewsAdapter(), siteURL: HackerNewsFixture.site,
+        basePath: "", topicID: "1", slug: "", firstReadRequests: 1, cachedReadRequests: 1,
+        linksCarryPostNumbers: false, lookupNumbers: [2, 3], postCount: 4,
+        openingAuthor: "pg", replyAuthor: "sama", openingText: "Y Combinator",
+        replyText: "the rising star of venture capital",
+        network: { fixture.resetRequests(); return fixture.network() },
+        requests: { fixture.requests.map { $0.url!.absoluteString } }
+    )
+}
+
+private func allFixtures() -> [SiteFixture] { [discourseFixture(), fakeFixture(), wordpressFixture(), hackerNewsFixture()] }
 
 // MARK: Tests
 
@@ -200,9 +218,9 @@ final class SiteContractTests: XCTestCase {
         XCTAssertNil(SiteRegistry(adapters: []).adapter(for: .discourse))
     }
 
-    func testStandardRegistryHoldsDiscourseThenWordPress() {
+    func testStandardRegistryHoldsDiscourseThenWordPressThenHackerNews() {
         let registry = SiteRegistry.standard
-        XCTAssertEqual(registry.adapters.map(\.kind), [.discourse, .wordpress])
+        XCTAssertEqual(registry.adapters.map(\.kind), [.discourse, .wordpress, .hackerNews])
         XCTAssertEqual(
             registry.allAgentToolNames,
             ["search_forum", "list_latest", "search_comments", "read_topic", "summarize_topic",
@@ -297,7 +315,7 @@ final class SiteContractTests: XCTestCase {
             let result = try await fixture.adapter.readTopic(
                 readRequest(fixture), net: net, progress: { _ in }, onPage: nil
             )
-            XCTAssertEqual(result.totalPosts, 2, fixture.name)
+            XCTAssertEqual(result.totalPosts, fixture.postCount, fixture.name)
             XCTAssertFalse(result.unchanged, fixture.name)
             XCTAssertEqual(result.content, RawTopicFormat.join(result.rawPages.map(\.content)), fixture.name)
             var previous = 0
@@ -327,14 +345,14 @@ final class SiteContractTests: XCTestCase {
             let result = try await fixture.adapter.readTopic(
                 readRequest(fixture), net: fixture.network(), progress: { _ in }, onPage: nil
             )
-            let rules = ModerationRules(blockedUsers: [fixture.siteURL: ["bob"]])
+            let rules = ModerationRules(blockedUsers: [fixture.siteURL: [fixture.replyAuthor]])
             let filtered = ModerationFilter.filter(
                 result.content, siteURL: fixture.siteURL, topicID: fixture.topicID, rules: rules
             )
-            XCTAssertTrue(filtered.contains("alice | "), fixture.name)
-            XCTAssertFalse(filtered.contains("bob | "), fixture.name)
-            XCTAssertFalse(filtered.contains("A reply."), fixture.name)
-            XCTAssertTrue(filtered.contains("Opening post"), fixture.name)
+            XCTAssertTrue(filtered.contains("\(fixture.openingAuthor) | "), fixture.name)
+            XCTAssertFalse(filtered.contains("\(fixture.replyAuthor) | "), fixture.name)
+            XCTAssertFalse(filtered.contains(fixture.replyText), fixture.name)
+            XCTAssertTrue(filtered.contains(fixture.openingText), fixture.name)
         }
     }
 
@@ -374,7 +392,7 @@ final class SiteContractTests: XCTestCase {
             let overview = try await fixture.adapter.overview(
                 TopicRef(siteURL: fixture.siteURL, topicID: fixture.topicID), net: fixture.network()
             )
-            XCTAssertEqual(overview.postCount, 2, fixture.name)
+            XCTAssertEqual(overview.postCount, fixture.postCount, fixture.name)
             XCTAssertFalse(overview.title.isEmpty, fixture.name)
         }
     }

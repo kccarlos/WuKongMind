@@ -101,6 +101,35 @@ final class DailyDigestTests: XCTestCase {
         XCTAssertEqual(makeHarness().app.url(for: cards[0], atPost: 4).absoluteString, "\(site)/t/fresh/2/4")
     }
 
+    func testTrendingModerationUsesListingAndCachedOpeningAuthorsAcrossSites() throws {
+        for siteURL in [site, "https://wordpress.example.org", "https://news.ycombinator.com"] {
+            var fromListing = listing(siteURL, 1)
+            fromListing.author = "alice"
+            let fromOverview = listing(siteURL, 2)
+            let hiddenPost = listing(siteURL, 3)
+            let visible = listing(siteURL, 4)
+            let key = TopicIdentity.key(siteURL: siteURL, topicID: "2")
+            let overview = ForumTopicOverview(
+                siteURL: siteURL, topicID: "2", title: fromOverview.title, slug: "",
+                url: fromOverview.url, postCount: 2,
+                facts: TopicFacts(postsCount: 2, posts: [.init(id: 20, number: 1, username: "alice")])
+            )
+            // Prefetched before a block, then persisted and loaded after it.
+            let encoded = try JSONEncoder().encode(DigestTopicFacts(overview: overview))
+            let cached = try JSONDecoder().decode(DigestTopicFacts.self, from: encoded)
+            let rules = ModerationRules(blockedUsers: [siteURL: ["alice"]], hiddenPosts: ["\(siteURL)|3": [1]])
+            let cards = DigestPlanner.plan(
+                watched: [], baselines: [:],
+                trending: [(siteURL, [fromListing, fromOverview, hiddenPost, visible])],
+                facts: [key: cached], options: .init(), rules: rules, slug: slug
+            )
+            XCTAssertEqual(cards.map(\.topicID), ["4"], siteURL)
+        }
+        // Previously saved prefetches have no author key.
+        let legacy = try JSONDecoder().decode(DigestTopicFacts.self, from: Data(#"{"title":"Old","slug":"old","postCount":2}"#.utf8))
+        XCTAssertNil(legacy.openingPoster)
+    }
+
     // MARK: Background prefetch
 
     func testPrefetchStopsAtTheRequestCap() async throws {

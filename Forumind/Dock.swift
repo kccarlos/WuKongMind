@@ -209,10 +209,12 @@ private struct DockSurface: ViewModifier {
         let shape = RoundedRectangle(cornerRadius: DCTheme.cardCornerRadius, style: .continuous)
         if #available(iOS 26.0, *) {
             content
+                .background(DCTheme.surface.opacity(0.95), in: shape)
                 .glassEffect(.regular, in: shape)
                 .glassEffectID("dock", in: namespace)
         } else {
             content
+                .background(DCTheme.surface.opacity(0.95), in: shape)
                 .background(.regularMaterial, in: shape)
                 .overlay { shape.stroke(DCTheme.border) }
                 .shadow(color: .black.opacity(0.12), radius: 10, y: 4)
@@ -453,6 +455,8 @@ private struct DockHintRow: View {
             .accessibilityIdentifier("dockHintAction")
             .padding(.trailing, DCTheme.spacingXS)
         }
+        .background(Color(uiColor: .systemBackground), in:
+            RoundedRectangle(cornerRadius: DCTheme.cardCornerRadius, style: .continuous))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("dockHintRow")
     }

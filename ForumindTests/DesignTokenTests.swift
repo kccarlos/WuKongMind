@@ -174,4 +174,248 @@ final class DesignTokenTests: XCTestCase {
             "Selected HistoryView filter chip in dark mode did not render DCTheme.brandBlue (\(String(format: "#%02X%02X%02X", wantR, wantG, wantB)))."
         )
     }
+
+    @MainActor
+    func testVoiceDockSurfaceAndConsentFooterBackgrounds() throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let app = AppModel(
+            store: PersistentStore(fileURL: dir.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore()),
+            backgroundScheduler: FakeTaskScheduler(),
+            podcastDirectory: dir.appendingPathComponent("Podcasts", isDirectory: true)
+        )
+        app.usesDirectForumRequests = true
+        app.browser.onPageContextChanged = nil
+        app.voice.toggle()
+
+        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+
+        // 1. Voice dock over a black backdrop in light mode must stay opaque enough to prevent bleed-through.
+        let dockSize = CGSize(width: 390, height: 120)
+        let dockWindow = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(origin: .zero, size: dockSize))
+        dockWindow.frame = CGRect(origin: .zero, size: dockSize)
+        dockWindow.overrideUserInterfaceStyle = .light
+        let dockRoot = ZStack {
+            Color.black
+            DockLayer(app: app, browser: app.browser, voice: app.voice, router: app.router, podcast: app.podcast, showsHome: true)
+                .padding(.horizontal, 16)
+        }
+        .environment(\.colorScheme, .light)
+        let dockHost = UIHostingController(rootView: dockRoot)
+        dockHost.overrideUserInterfaceStyle = .light
+        dockWindow.rootViewController = dockHost
+        dockWindow.makeKeyAndVisible()
+        dockHost.view.frame = dockWindow.bounds
+        dockWindow.layoutIfNeeded()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.08))
+        dockWindow.layoutIfNeeded()
+
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        format.preferredRange = .standard
+        let dockImage = UIGraphicsImageRenderer(size: dockSize, format: format).image { ctx in
+            if !dockWindow.drawHierarchy(in: dockWindow.bounds, afterScreenUpdates: true) {
+                dockWindow.layer.render(in: ctx.cgContext)
+            }
+        }
+        dockWindow.isHidden = true
+        dockWindow.rootViewController = nil
+        dockWindow.windowScene = nil
+
+        guard let dockCG = dockImage.cgImage,
+              let dockData = dockCG.dataProvider?.data,
+              let dockPtr = CFDataGetBytePtr(dockData)
+        else {
+            XCTFail("Failed to capture VoiceDock bitmap.")
+            return
+        }
+        let dockBpp = dockCG.bitsPerPixel / 8
+        let dockBpr = dockCG.bytesPerRow
+        var maxDockChannel = 0
+        for y in 30..<90 {
+            for x in 180..<260 {
+                let offset = y * dockBpr + x * dockBpp
+                let avg = (Int(dockPtr[offset]) + Int(dockPtr[offset + 1]) + Int(dockPtr[offset + 2])) / 3
+                if avg > maxDockChannel { maxDockChannel = avg }
+            }
+        }
+
+        // 2. Consent sheet sticky footer in light mode must match the sheet background instead of drawing a grey band.
+        let sheetSize = CGSize(width: 390, height: 844)
+        let sheetWindow = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(origin: .zero, size: sheetSize))
+        sheetWindow.frame = CGRect(origin: .zero, size: sheetSize)
+        sheetWindow.overrideUserInterfaceStyle = .light
+        let sheetHost = UIHostingController(
+            rootView: VoiceConsentSheet(provider: .aiStudio, settings: VoiceSettings(), onAgree: {}, onCancel: {})
+                .environment(\.colorScheme, .light)
+        )
+        sheetHost.overrideUserInterfaceStyle = .light
+        sheetWindow.rootViewController = sheetHost
+        sheetWindow.makeKeyAndVisible()
+        sheetHost.view.frame = sheetWindow.bounds
+        sheetWindow.layoutIfNeeded()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.08))
+        sheetWindow.layoutIfNeeded()
+
+        let sheetImage = UIGraphicsImageRenderer(size: sheetSize, format: format).image { ctx in
+            if !sheetWindow.drawHierarchy(in: sheetWindow.bounds, afterScreenUpdates: true) {
+                sheetWindow.layer.render(in: ctx.cgContext)
+            }
+        }
+        sheetWindow.isHidden = true
+        sheetWindow.rootViewController = nil
+        sheetWindow.windowScene = nil
+
+        guard let sheetCG = sheetImage.cgImage,
+              let sheetData = sheetCG.dataProvider?.data,
+              let sheetPtr = CFDataGetBytePtr(sheetData)
+        else {
+            XCTFail("Failed to capture VoiceConsentSheet bitmap.")
+            return
+        }
+        let sheetBpp = sheetCG.bitsPerPixel / 8
+        let sheetBpr = sheetCG.bytesPerRow
+        let bodyOffset = 200 * sheetBpr + 8 * sheetBpp
+        let footerOffset = 790 * sheetBpr + 8 * sheetBpp
+        let bodyGray = (Int(sheetPtr[bodyOffset]) + Int(sheetPtr[bodyOffset + 1]) + Int(sheetPtr[bodyOffset + 2])) / 3
+        let footerGray = (Int(sheetPtr[footerOffset]) + Int(sheetPtr[footerOffset + 1]) + Int(sheetPtr[footerOffset + 2])) / 3
+
+        XCTAssertGreaterThanOrEqual(maxDockChannel, 230, "VoiceDock background let underlying dark content bleed through (max brightness \(maxDockChannel)).")
+        XCTAssertLessThanOrEqual(abs(bodyGray - footerGray), 3, "Consent sheet footer drew a contrasting grey band (\(footerGray)) against the sheet background (\(bodyGray)).")
+    }
+
+    @MainActor
+    func testHistoryNavigationBarPocketSummaryMetaSwitchTintAndTranslationSheetBackground() throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let app = AppModel(
+            store: PersistentStore(fileURL: dir.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore()),
+            backgroundScheduler: FakeTaskScheduler(),
+            podcastDirectory: dir.appendingPathComponent("Podcasts", isDirectory: true)
+        )
+        app.usesDirectForumRequests = true
+        app.browser.onPageContextChanged = nil
+        app.seedAssistantSample()
+
+        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+
+        func firstScrollView(in view: UIView) -> UIScrollView? {
+            if let scroll = view as? UIScrollView { return scroll }
+            for sub in view.subviews {
+                if let found = firstScrollView(in: sub) { return found }
+            }
+            return nil
+        }
+
+        func allScrollViews(in view: UIView) -> [UIScrollView] {
+            var result: [UIScrollView] = []
+            if let scroll = view as? UIScrollView { result.append(scroll) }
+            for sub in view.subviews { result.append(contentsOf: allScrollViews(in: sub)) }
+            return result
+        }
+
+        func firstSwitch(in view: UIView) -> UISwitch? {
+            if let toggle = view as? UISwitch { return toggle }
+            for sub in view.subviews {
+                if let found = firstSwitch(in: sub) { return found }
+            }
+            return nil
+        }
+
+        // 1. Finding 5: HistoryView's primary top UIScrollView must span the full width so UINavigationBar's top pocket does not clip behind Done.
+        let historySize = CGSize(width: 393, height: 852)
+        let historyWindow = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(origin: .zero, size: historySize))
+        historyWindow.frame = CGRect(origin: .zero, size: historySize)
+        let historyHost = UIHostingController(rootView: ExpandedPanel(app: app, route: .history))
+        historyWindow.rootViewController = historyHost
+        historyWindow.makeKeyAndVisible()
+        historyHost.view.frame = historyWindow.bounds
+        historyWindow.layoutIfNeeded()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.08))
+        historyWindow.layoutIfNeeded()
+        let topScrollWidth = firstScrollView(in: historyHost.view)?.frame.width ?? 0
+        historyWindow.isHidden = true
+        historyWindow.rootViewController = nil
+        historyWindow.windowScene = nil
+        XCTAssertGreaterThanOrEqual(topScrollWidth, 390, "HistoryView's first UIScrollView is narrower than the sheet (\(topScrollWidth)pt), causing UINavigationBar's scroll pocket to clip behind Done.")
+
+        // 2. Finding 27: AssistantPanel summaryMeta at narrow split width (380pt) must fit all four pills without horizontal overflow clipping "Kept".
+        let panelSize = CGSize(width: 380, height: 640)
+        let panelWindow = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(origin: .zero, size: panelSize))
+        panelWindow.frame = CGRect(origin: .zero, size: panelSize)
+        let panelHost = UIHostingController(rootView: AssistantPanel(app: app, onExpand: { _ in }))
+        panelWindow.rootViewController = panelHost
+        panelWindow.makeKeyAndVisible()
+        panelHost.view.frame = panelWindow.bounds
+        panelWindow.layoutIfNeeded()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.08))
+        panelWindow.layoutIfNeeded()
+        let overflowingHorizontalScrolls = allScrollViews(in: panelHost.view).filter { scroll in
+            let frameInPanel = scroll.convert(scroll.bounds, to: panelHost.view)
+            return frameInPanel.minY < 250 && scroll.bounds.height < 50 && scroll.contentSize.width > scroll.bounds.width + 1
+        }
+        panelWindow.isHidden = true
+        panelWindow.rootViewController = nil
+        panelWindow.windowScene = nil
+        XCTAssertTrue(overflowingHorizontalScrolls.isEmpty, "Summary meta chips overflowed horizontally at 380pt panel width, clipping Kept.")
+
+        // 3. Finding 7: Toggles inside Settings/form sheets use DCTheme.brandBlue instead of system green.
+        let settingsWindow = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(origin: .zero, size: historySize))
+        settingsWindow.frame = CGRect(origin: .zero, size: historySize)
+        let settingsHost = UIHostingController(rootView: NavigationStack { SettingsDestination(app: app, page: .sync) })
+        settingsWindow.rootViewController = settingsHost
+        settingsWindow.makeKeyAndVisible()
+        settingsHost.view.frame = settingsWindow.bounds
+        settingsWindow.layoutIfNeeded()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.08))
+        settingsWindow.layoutIfNeeded()
+        let toggleSwitch = firstSwitch(in: settingsHost.view)
+        let switchTint = toggleSwitch?.onTintColor
+        settingsWindow.isHidden = true
+        settingsWindow.rootViewController = nil
+        settingsWindow.windowScene = nil
+        XCTAssertNotNil(toggleSwitch, "Expected a UISwitch in SettingsSyncPage.")
+        XCTAssertNotNil(switchTint, "Settings toggle should set an explicit brand onTintColor instead of system green.")
+
+        // 4. Finding 8: PostsTranslationSheet uses DCTheme.pageBackground instead of pure white.
+        let translateWindow = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(origin: .zero, size: historySize))
+        translateWindow.frame = CGRect(origin: .zero, size: historySize)
+        translateWindow.overrideUserInterfaceStyle = .light
+        let translateHost = UIHostingController(rootView: PostsTranslationSheet(app: app).environment(\.colorScheme, .light))
+        translateHost.overrideUserInterfaceStyle = .light
+        translateWindow.rootViewController = translateHost
+        translateWindow.makeKeyAndVisible()
+        translateHost.view.frame = translateWindow.bounds
+        translateWindow.layoutIfNeeded()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+        translateWindow.layoutIfNeeded()
+
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        format.preferredRange = .standard
+        let translateImage = UIGraphicsImageRenderer(size: historySize, format: format).image { ctx in
+            if !translateWindow.drawHierarchy(in: translateWindow.bounds, afterScreenUpdates: true) {
+                translateWindow.layer.render(in: ctx.cgContext)
+            }
+        }
+        translateWindow.isHidden = true
+        translateWindow.rootViewController = nil
+        translateWindow.windowScene = nil
+
+        if let cg = translateImage.cgImage,
+           let data = cg.dataProvider?.data,
+           let ptr = CFDataGetBytePtr(data) {
+            let offset = 200 * cg.bytesPerRow + 20 * (cg.bitsPerPixel / 8)
+            let r = Int(ptr[offset])
+            let g = Int(ptr[offset + 1])
+            let b = Int(ptr[offset + 2])
+            XCTAssertLessThan(r, 252, "PostsTranslationSheet background was pure white (\(r), \(g), \(b)) instead of DCTheme.pageBackground.")
+        } else {
+            XCTFail("Failed to capture PostsTranslationSheet bitmap.")
+        }
+    }
 }

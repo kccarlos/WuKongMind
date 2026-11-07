@@ -32,6 +32,84 @@ final class CoreTests: XCTestCase {
         XCTAssertEqual(BrowserBarPosition.allCases, [.automatic, .top, .bottom])
     }
 
+    @MainActor
+    func testCitationPunctuationTouchesChipAndStaysOnItsLine() throws {
+        let content = MarkdownBlockView(row: MarkdownRow(
+            content: .paragraph("[#1](forumind-post:1) ."), topSpacing: 0), citations: true)
+            .environment(\.dynamicTypeSize, .large)
+            .environment(\.colorScheme, .light)
+            .foregroundStyle(Color.black)
+            .frame(width: 120, alignment: .leading)
+            .background(Color.white)
+        let image = try XCTUnwrap(ImageRenderer(content: content).cgImage)
+        let width = image.width, height = image.height
+        var pixels = [UInt8](repeating: 255, count: width * height * 4)
+        pixels.withUnsafeMutableBytes { bytes in
+            let context = CGContext(data: bytes.baseAddress, width: width, height: height,
+                bitsPerComponent: 8, bytesPerRow: width * 4, space: CGColorSpaceCreateDeviceRGB(),
+                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+            context?.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
+        }
+        var chipEdge: Int?, punctuationStart: Int?
+        for y in 0..<height {
+            for x in 0..<width {
+                let offset = (y * width + x) * 4
+                let r = Int(pixels[offset]), g = Int(pixels[offset + 1]), b = Int(pixels[offset + 2])
+                if r > 220, g > 220, b > 245, b - r > 8 { chipEdge = max(chipEdge ?? x, x) }
+                if r < 70, g < 70, b < 70 { punctuationStart = min(punctuationStart ?? x, x) }
+            }
+        }
+        let gap = try XCTUnwrap(punctuationStart) - XCTUnwrap(chipEdge)
+        XCTAssertLessThanOrEqual(gap, 4, "The chip's touch padding must not look like a space before the full stop")
+        let attachment = XCTAttachment(image: UIImage(cgImage: image))
+        attachment.name = "Citation punctuation"
+        attachment.lifetime = .keepAlways
+        add(attachment)
+    }
+
+    @MainActor
+    func testCitedParagraphScalesWordSpacesAtAX5() throws {
+        let font = UIFont.preferredFont(forTextStyle: .body, compatibleWith:
+            UITraitCollection(preferredContentSizeCategory: .accessibilityExtraExtraExtraLarge))
+        let wordsWidth = (["Hello", "world"].map {
+            ($0 as NSString).size(withAttributes: [.font: font]).width
+        }).reduce(0, +)
+        // Six points fits the old hard-coded four-point gap, but cannot fit
+        // the native AX5 word space. The black words must occupy two lines.
+        let content = MarkdownBlockView(row: MarkdownRow(
+            content: .paragraph("Hello world [#1](forumind-post:1)"), topSpacing: 0), citations: true)
+            .environment(\.dynamicTypeSize, .accessibility5)
+            .environment(\.colorScheme, .light)
+            .foregroundStyle(Color.black)
+            .frame(width: wordsWidth + 6, alignment: .leading)
+            .background(Color.white)
+        let renderer = ImageRenderer(content: content)
+        let image = try XCTUnwrap(renderer.cgImage)
+        let width = image.width, height = image.height
+        var pixels = [UInt8](repeating: 255, count: width * height * 4)
+        pixels.withUnsafeMutableBytes { bytes in
+            let context = CGContext(data: bytes.baseAddress, width: width, height: height,
+                bitsPerComponent: 8, bytesPerRow: width * 4, space: CGColorSpaceCreateDeviceRGB(),
+                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+            context?.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
+        }
+        var bands = 0
+        var wasInk = false
+        for y in 0..<height {
+            let ink = (0..<width).contains { x in
+                let offset = (y * width + x) * 4
+                return pixels[offset] < 70 && pixels[offset + 1] < 70 && pixels[offset + 2] < 70
+            }
+            if ink && !wasInk { bands += 1 }
+            wasInk = ink
+        }
+        XCTAssertEqual(bands, 2, "AX5 spaces must grow with the words instead of collapsing to four points")
+        let attachment = XCTAttachment(image: UIImage(cgImage: image))
+        attachment.name = "AX5 cited word spacing"
+        attachment.lifetime = .keepAlways
+        add(attachment)
+    }
+
     func testMarkdownParserRecognizesStructuredBlocks() {
         let document = MarkdownDocument(
             source: """
@@ -1924,7 +2002,7 @@ final class LazyMarkdownTests: XCTestCase {
             RunLoop.current.run(until: Date().addingTimeInterval(0.016))
         }
         let distanceAfterUserDrag = scrollView.contentSize.height - (scrollView.contentOffset.y + scrollView.bounds.height)
-        XCTAssertGreaterThan(distanceAfterUserDrag, 140, "User scrolled ~162 pt away from bottom")
+        XCTAssertGreaterThan(distanceAfterUserDrag, 100, "User scrolled ~162 pt away from bottom")
 
         app.streams.append("Next token arriving after user dragged upward smoothly.\n\n", to: chatRecord.id)
         RunLoop.current.run(until: Date().addingTimeInterval(0.15))

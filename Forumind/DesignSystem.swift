@@ -65,6 +65,11 @@ enum DCTheme {
     static func postHighlightStrokeWidth(highContrast: Bool) -> CGFloat { highContrast ? 3 : 2 }
     /// A post citation chip's number (on `postHighlightBackground`).
     static let citationText = Color(light: 0x2A45B8, dark: 0xA9BAFF)
+
+    @MainActor
+    static func applyAppearance() {
+        UISwitch.appearance().onTintColor = UIColor(brandBlue)
+    }
 }
 
 extension Color {
@@ -175,11 +180,12 @@ struct DCIconButtonStyle: ButtonStyle {
 
 struct DCActionButtonStyle: ButtonStyle {
     let prominent: Bool
+    var minHeight: CGFloat = DCTheme.controlHeight
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.subheadline.weight(.semibold))
-            .frame(minHeight: DCTheme.controlHeight)
+            .frame(minHeight: minHeight)
             .padding(.horizontal, 14)
             .foregroundStyle(prominent ? Color.white : Color.accentColor)
             .background(
@@ -382,5 +388,22 @@ extension View {
     /// pinned bottom bar away while typing so it doesn't ride the keyboard.
     func dcKeyboardVisible(_ isVisible: Binding<Bool>) -> some View {
         modifier(KeyboardVisibilityModifier(isVisible: isVisible))
+    }
+
+    /// Sticky bottom action bar background that matches the sheet/page surface
+    /// with a soft top fade instead of drawing a contrasting grey `.bar` band.
+    func dcStickyFooter() -> some View {
+        background {
+            Rectangle()
+                .fill(Color(uiColor: .systemBackground))
+                .mask(
+                    LinearGradient(
+                        stops: [.init(color: .clear, location: 0), .init(color: .black, location: 0.15)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .ignoresSafeArea()
+        }
     }
 }

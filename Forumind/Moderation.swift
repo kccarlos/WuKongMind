@@ -131,6 +131,12 @@ struct ModerationRules: Equatable {
         hiddenPosts["\(siteURL)|\(topicID)"]?.contains(number) == true
     }
 
+    /// A title belongs to the opening post, so it follows the same blocks.
+    func hidesTopicTitle(_ title: String, siteURL: String, topicID: String, openingPoster: String? = nil) -> Bool {
+        hidesText(title) || hidesPost(1, siteURL: siteURL, topicID: topicID)
+            || (openingPoster.map { hidesUser($0, siteURL: siteURL) } ?? false)
+    }
+
     func hasHiddenPosts(siteURL: String, topicID: String) -> Bool {
         !(hiddenPosts["\(siteURL)|\(topicID)"]?.isEmpty ?? true)
     }

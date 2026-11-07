@@ -21,6 +21,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
+        DCTheme.applyAppearance()
         UNUserNotificationCenter.current().delegate = WatchNotifier.shared
         WatchBackgroundRefresh.register()
         DigestBackgroundPrefetch.register()

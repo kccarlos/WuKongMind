@@ -77,6 +77,7 @@ struct PodcastTodaySection: View {
             if podcast.episode?.digestID == digest.id { onStart?() }
         } label: {
             Label("Play", systemImage: "play.fill")
+                .labelStyle(.titleAndIcon)
                 .fixedSize(horizontal: singleLine, vertical: false)
                 .frame(maxWidth: .infinity)
         }
@@ -89,10 +90,11 @@ struct PodcastTodaySection: View {
             if podcast.episode?.digestID == digest.id { onStart?() }
         } label: {
             Label("Make Podcast", systemImage: "waveform")
+                .labelStyle(.titleAndIcon)
                 .fixedSize(horizontal: singleLine, vertical: false)
                 .frame(maxWidth: .infinity)
         }
-        .buttonStyle(DCActionButtonStyle(prominent: false))
+        .buttonStyle(DCActionButtonStyle(prominent: false, minHeight: 50))
         .disabled(!podcast.canMake)
         .accessibilityIdentifier("makePodcast")
     }

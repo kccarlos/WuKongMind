@@ -80,6 +80,41 @@ final class ModerationTests: XCTestCase {
         XCTAssertTrue(list.words.isEmpty)
     }
 
+    func testTopicTitlesFollowCurrentRulesAcrossAllSitesAndCachedSources() {
+        for siteURL in [site, "https://wordpress.example.org", "https://news.ycombinator.com"] {
+            let key = TopicIdentity.key(siteURL: siteURL, topicID: "1")
+            let url = URL(string: siteURL + "/?p=1")!
+            let title = "Opening title"
+            var session = TopicSession(siteURL: siteURL, topicID: "1", url: url, title: title)
+            session.source = "alice | 2026-01-01 10:00:00 UTC | #1\nOpening text"
+            session.openedByUserAt = Date()
+            let app = makeApp(sessions: [session])
+            XCTAssertEqual(app.moderatedTopicTitle(title, siteURL: siteURL, topicID: "1"), title)
+            // Some adapters supply only the post list, rather than openingPoster.
+            app.topicOverviews[key] = ForumTopicOverview(
+                siteURL: siteURL, topicID: "1", title: title, slug: "", url: url, postCount: 2,
+                facts: TopicFacts(postsCount: 2, posts: [.init(id: 1, number: 1, username: "bob")])
+            )
+            app.block("bob", on: siteURL)
+            XCTAssertEqual(app.moderatedTopicTitle(title, siteURL: siteURL, topicID: "1"), "")
+            app.topicOverviews[key] = nil
+            XCTAssertEqual(app.moderatedTopicTitle(title, siteURL: siteURL, topicID: "1"), title)
+            app.block("alice", on: siteURL)
+            XCTAssertEqual(app.moderatedTopicTitle(title, siteURL: siteURL, topicID: "1"), "")
+            // A cached digest title also stays out of the podcast's intro.
+            let card = DigestCard(siteURL: siteURL, topicID: "1", title: title, reason: .trending, postCount: 2)
+            XCTAssertEqual(app.sanitizedDigestCard(card).title, "")
+            app.settings.blockedUsers = []
+            XCTAssertEqual(app.moderatedTopicTitle(title, siteURL: siteURL, topicID: "1"), title)
+            app.blockPost(1, topicID: "1", on: siteURL)
+            XCTAssertEqual(app.moderatedTopicTitle(title, siteURL: siteURL, topicID: "1"), "")
+            app.settings.blockedPosts = []
+            _ = app.addFilteredWord("opening")
+            XCTAssertEqual(app.moderatedTopicTitle(title, siteURL: siteURL, topicID: "1"), "")
+            app.settings.filteredWords = []
+        }
+    }
+
     // MARK: Browser script config
 
     func testScriptConfigCoversTheCurrentForumOnly() {
@@ -706,6 +741,7 @@ final class ModerationTests: XCTestCase {
 
         XCTAssertFalse(transcript.contains("WP_BLOCKED_COMMENT_SECRET"))
         XCTAssertFalse(transcript.contains("WP_BLOCKED_ARTICLE_EXCERPT"))
+        XCTAssertFalse(transcript.contains("WP_BLOCKED_ARTICLE_TITLE"))
     }
 
     func testBlockedFirstNewPostAndBlockedUserAcceptedPostExcludedFromDigestAndPodcast() async throws {
@@ -790,6 +826,15 @@ final class ModerationTests: XCTestCase {
         let store = PersistentStore(fileURL: directory.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore())
         var seeded = AppSnapshot()
         seeded.ensureForum(site)
+        // Seeded, not `app.watch`: that asks for notification permission, and
+        // on a fresh simulator nothing answers the dialog.
+        seeded.watchedTopics = [WatchedTopic(
+            siteURL: site,
+            topicID: "1",
+            url: URL(string: "\(site)/t/topic-1/1")!,
+            title: "Topic 1",
+            knownPostCount: 1
+        )]
         try store.save(seeded)
         addTeardownBlock { try? FileManager.default.removeItem(at: directory) }
 
@@ -840,7 +885,6 @@ final class ModerationTests: XCTestCase {
         let agentObservation = planner.transcripts.flatMap { $0 }.map(\.content).joined(separator: "\n")
 
         // 4. Daily Digest does not condense the pre-block summary.
-        await app.watch(siteURL: site, topicID: "1", url: t1.url, title: t1.title, knownPostCount: 1)
         StateForumStub.postCounts["1"] = 2
         app.makeTodaysDigest()
         let deadline3 = Date().addingTimeInterval(5)
@@ -911,7 +955,7 @@ final class ModerationTests: XCTestCase {
         XCTAssertFalse(app.browser.currentURL?.absoluteString.contains("username_filters=mallory") == true)
     }
 
-    private func makeApp() -> AppModel {
+    private func makeApp(sessions: [TopicSession] = []) -> AppModel {
         let directory = FileManager.default.temporaryDirectory
             .appendingPathComponent("moderation-\(UUID().uuidString)", isDirectory: true)
         try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -919,8 +963,10 @@ final class ModerationTests: XCTestCase {
             fileURL: directory.appendingPathComponent("state.json"),
             keys: InMemoryProviderKeyStore()
         )
+        try? store.save(AppSnapshot(sessions: sessions))
         let app = AppModel(store: store)
         app.browser.onPageContextChanged = nil
+        addTeardownBlock { try? FileManager.default.removeItem(at: directory) }
         return app
     }
 }

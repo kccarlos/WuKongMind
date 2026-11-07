@@ -94,7 +94,7 @@ struct AIDataConsentPage: View {
                 .padding(.vertical, DCTheme.spacingM)
                 .frame(maxWidth: DCTheme.contentMaxWidth)
                 .frame(maxWidth: .infinity)
-                .background(.bar)
+                .dcStickyFooter()
             }
             .toolbar {
                 if let onCancel {

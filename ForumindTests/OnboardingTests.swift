@@ -1,3 +1,4 @@
+import Combine
 import XCTest
 @testable import Forumind
 
@@ -154,9 +155,16 @@ final class OnboardingReplayTests: XCTestCase {
         XCTAssertNil(app.rootPresentation, "nothing while the sheet leaves")
         app.replayOnboarding()
         XCTAssertEqual(app.router.onboardingReplay, .waitingForSheet, "a second tap changes nothing")
+        let shown = expectation(description: "Onboarding follows the sheet dismissal")
+        let observation = app.router.$onboardingReplay
+            .filter { $0 == .showing }.prefix(1)
+            .sink { _ in shown.fulfill() }
+        defer { observation.cancel() }
         app.rootSheetDismissed()
         XCTAssertNil(app.rootPresentation, "a beat for the sheet to leave for good")
-        try await Task.sleep(for: .milliseconds(200))
+        // Observe the transition rather than racing a fixed sleep under simulator load.
+        // Stay below the two-second fallback so the dismissal callback is still tested.
+        await fulfillment(of: [shown], timeout: 1)
         XCTAssertEqual(app.rootPresentation, .onboarding)
         app.dismissRootPresentation(.onboarding)
         XCTAssertEqual(app.router.onboardingReplay, .none)

@@ -6,11 +6,12 @@ import SwiftUI
 /// Scrolling, width-limited column shared by the pages.
 struct OnboardingPage<Content: View>: View {
     var alignment: HorizontalAlignment = .leading
+    var spacing: CGFloat = DCTheme.spacingXL
     @ViewBuilder var content: () -> Content
 
     var body: some View {
         ScrollView {
-            VStack(alignment: alignment, spacing: DCTheme.spacingXL) {
+            VStack(alignment: alignment, spacing: spacing) {
                 content()
             }
             .padding(.horizontal, DCTheme.spacingXL)
@@ -810,14 +811,13 @@ struct OnboardingDonePage: View {
     @State private var appeared = false
 
     var body: some View {
-        OnboardingPage(alignment: .center) {
-            Spacer(minLength: 0)
+        OnboardingPage(alignment: .center, spacing: DCTheme.spacingM) {
             Circle()
                 .fill(DCTheme.brandGradient)
-                .frame(width: 76, height: 76)
+                .frame(width: 60, height: 60)
                 .overlay {
                     Image(systemName: "checkmark")
-                        .font(.system(size: 34, weight: .bold))
+                        .font(.system(size: 28, weight: .bold))
                         .foregroundStyle(.white)
                 }
                 .shadow(color: Color(hex: 0x4A6BFF, opacity: 0.3), radius: 20, y: 10)
@@ -912,7 +912,7 @@ struct OnboardingDonePage: View {
             }
             Spacer(minLength: 0)
         }
-        .padding(.vertical, 10)
+        .padding(.vertical, 7)
         .accessibilityElement(children: .combine)
     }
 }
@@ -944,7 +944,7 @@ private struct OnboardingDoneSyncRow: View {
             }
             Spacer(minLength: 0)
         }
-        .padding(.vertical, 10)
+        .padding(.vertical, 7)
         .accessibilityElement(children: .combine)
     }
 }

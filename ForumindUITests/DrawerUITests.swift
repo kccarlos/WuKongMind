@@ -1,3 +1,4 @@
+import UIKit
 import XCTest
 
 /// The iPhone AI drawer on sample data (`-dc-sample`, a topic page): every
@@ -8,6 +9,315 @@ import XCTest
 /// triggers the presentation.
 final class DrawerUITests: DCUITestCase {
     private let sample = ["-dc-sample", "-dc-page-state", "topic"]
+
+    private func captureAuditScreen(_ name: String, in app: XCUIApplication) {
+        let attachment = XCTAttachment(screenshot: app.screenshot())
+        attachment.name = name
+        attachment.lifetime = .keepAlways
+        add(attachment)
+    }
+
+    func testNativeAssistantMenuKeepsReportReachable() throws {
+        try skipUnlessPhone("Drawer variants")
+        let app = launch(sample)
+        XCTAssertTrue(drawerState(in: app).waitForExistence(timeout: 20))
+        captureAuditScreen("drawer-summary-medium", in: app)
+        app.buttons["assistantMoreMenu"].tap()
+        let report = app.buttons["Report This Summary…"].firstMatch
+        XCTAssertTrue(report.waitForExistence(timeout: 5))
+        captureAuditScreen("more-menu", in: app)
+        let menu = app.collectionViews.firstMatch
+        XCTAssertTrue(menu.waitForExistence(timeout: 5))
+        let start = menu.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.25))
+        let end = menu.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+        start.press(forDuration: 0.1, thenDragTo: end)
+        XCTAssertTrue(waitForHittable(report), "Native menus must scroll to their final actions")
+        captureAuditScreen("more-menu-scrolled", in: app)
+    }
+
+    func testFirstRunHintHasAnOpaqueReadingSurface() throws {
+        try skipUnlessPhone("Drawer hint surface")
+        let server = FixtureWordPressServer()
+        server.pageStyle = "background: #00ff00; min-height: 5000px"
+        try server.start()
+        defer { server.stop() }
+        let app = launch(["-dc-sample", "-dc-open", server.postURL, "-dc-drawer-first-run",
+                          "-dc-no-summary", "-AppleInterfaceStyle", "Light"])
+        XCTAssertTrue(app.webViews.staticTexts["Sample Cards"].waitForExistence(timeout: 20))
+        let hint = any(app, "dockHintRow")
+        XCTAssertTrue(hint.waitForExistence(timeout: 10))
+        let screenshot = app.screenshot()
+        captureAuditScreen("base-hint-over-colored-page", in: app)
+        let image = try XCTUnwrap(screenshot.image.cgImage)
+        let scale = CGFloat(image.width) / app.windows.firstMatch.frame.width
+        let frame = hint.frame
+        let strip = CGRect(x: frame.minX + frame.width * 0.25, y: frame.minY + 5,
+                           width: frame.width * 0.5, height: 3)
+        let crop = try XCTUnwrap(image.cropping(to: CGRect(
+            x: strip.minX * scale, y: strip.minY * scale,
+            width: strip.width * scale, height: strip.height * scale).integral))
+        var pixels = [UInt8](repeating: 0, count: crop.width * crop.height * 4)
+        pixels.withUnsafeMutableBytes { bytes in
+            let context = CGContext(data: bytes.baseAddress, width: crop.width, height: crop.height,
+                bitsPerComponent: 8, bytesPerRow: crop.width * 4,
+                space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+            context?.draw(crop, in: CGRect(x: 0, y: 0, width: crop.width, height: crop.height))
+        }
+        let greenLeak = (0..<(crop.width * crop.height)).map {
+            max(0, Int(pixels[$0 * 4 + 1]) - Int(pixels[$0 * 4]))
+        }.reduce(0, +)
+        XCTAssertLessThan(Double(greenLeak) / Double(crop.width * crop.height), 5,
+                          "Page colors and text must not bleed into the first-run hint")
+    }
+
+    func testFirstRunHintLayout() throws {
+        try requireNetwork()
+        let app = launch(sample + ["-dc-drawer-first-run", "-dc-no-summary"])
+        XCTAssertTrue(app.buttons["dockHintText"].waitForExistence(timeout: 20))
+        XCTAssertTrue(app.webViews.staticTexts.matching(label(contains: "What is unified new?")).firstMatch.waitForExistence(timeout: 30))
+        captureAuditScreen("base-drawer-nosummary-hint", in: app)
+    }
+
+    func testSummaryCitationLayout() {
+        let app = launch(sample + ["-dc-drawer-detent", "large"])
+        XCTAssertTrue(drawerState(in: app).waitForExistence(timeout: 20))
+        XCTAssertTrue(app.buttons["citation-1"].firstMatch.waitForExistence(timeout: 10))
+        captureAuditScreen("base-drawer-summary-large", in: app)
+    }
+
+    func testLatestMessageControlLeavesChatActionsUncovered() throws {
+        try skipUnlessPhone("Drawer chat layout")
+        continueAfterFailure = true
+        let app = launch(sample + ["-dc-assistant-mode", "chat", "-dc-drawer-detent", "large"])
+        let jump = app.buttons["chatScrollToBottom"]
+        XCTAssertTrue(jump.waitForExistence(timeout: 20))
+        let scroll = any(app, "chatScroll")
+        XCTAssertGreaterThanOrEqual(jump.frame.minY, scroll.frame.maxY - 1,
+            "The latest-message control must reserve space outside the message viewport")
+        let edit = app.buttons["Edit"].firstMatch
+        XCTAssertTrue(reveal(edit, in: app))
+        if jump.exists {
+            XCTAssertFalse(jump.frame.intersects(edit.frame), "Edit must remain uncovered")
+        }
+        captureAuditScreen("base-chat-edit-action", in: app)
+    }
+
+    func testAccessibilityChatEditingKeepsQuestionReadable() throws {
+        try skipUnlessPhone("Drawer accessibility editing")
+        let app = launch(sample + ["-dc-assistant-mode", "chat", "-dc-drawer-detent", "large",
+            "-UIPreferredContentSizeCategoryName", UIContentSizeCategory.accessibilityExtraExtraExtraLarge.rawValue])
+        XCTAssertTrue(drawerState(in: app).waitForExistence(timeout: 20))
+        let edit = app.buttons["Edit"].firstMatch
+        XCTAssertTrue(reveal(edit, in: app, swipes: 48))
+        edit.tap()
+        let field = app.textFields["chatInput"]
+        XCTAssertTrue(any(app, "chatEditBanner").waitForExistence(timeout: 5))
+        XCTAssertGreaterThanOrEqual(field.frame.width, 180)
+        let title = app.staticTexts["Editing question"].firstMatch
+        let font = UIFont.preferredFont(forTextStyle: .caption1, compatibleWith:
+            UITraitCollection(preferredContentSizeCategory: .accessibilityExtraExtraExtraLarge))
+        let titleWidth = (title.label as NSString).size(withAttributes: [.font: font]).width
+        XCTAssertTrue(title.frame.width >= titleWidth - 2 || title.frame.height >= font.lineHeight * 2 - 2,
+                      "The editing banner must show its full title")
+        let wordWidth = ("question" as NSString).size(withAttributes: [.font: font]).width
+        XCTAssertGreaterThanOrEqual(title.frame.width, wordWidth - 2, "Editing words must fit without hyphenation")
+        XCTAssertTrue(app.buttons["cancelChatEdit"].isHittable)
+        XCTAssertTrue(app.buttons["assistantMoreMenu"].isHittable)
+        captureAuditScreen("ax5-chat-edit", in: app)
+    }
+
+    func testAccessibilityDrawerKeepsTitleAndComposerReadable() throws {
+        try skipUnlessPhone("Drawer accessibility layout")
+        for detent in ["medium", "large"] {
+            let app = launch(sample + ["-dc-drawer-detent", detent,
+                "-UIPreferredContentSizeCategoryName", UIContentSizeCategory.accessibilityExtraExtraExtraLarge.rawValue])
+            XCTAssertTrue(drawerState(in: app).waitForExistence(timeout: 20))
+            XCTAssertTrue(wait(timeout: 5) { drawerState(in: app).label == "detent=\(detent)" })
+            let title = any(app, "drawerTitle")
+            let field = app.textFields["chatInput"]
+            XCTAssertTrue(field.waitForExistence(timeout: 5))
+            let shot = XCTAttachment(screenshot: app.screenshot())
+            shot.name = "ax5-drawer-summary-\(detent)"
+            shot.lifetime = .keepAlways
+            add(shot)
+            let font = UIFont.preferredFont(forTextStyle: .headline, compatibleWith:
+                UITraitCollection(preferredContentSizeCategory: .accessibilityExtraExtraExtraLarge))
+            let titleWidth = (title.label as NSString).size(withAttributes: [.font: font]).width
+            // The system's floating medium sheet scales its content down slightly.
+            let scale: CGFloat = detent == "medium" ? 0.94 : 1
+            XCTAssertGreaterThanOrEqual(title.frame.width, titleWidth * scale - 2, "Header title must fit without truncation")
+            XCTAssertGreaterThanOrEqual(field.frame.width, 180, "AX5 field must keep room to read and edit a question")
+            XCTAssertGreaterThanOrEqual(app.buttons["Send question"].frame.width, 44 * scale)
+            if detent == "large" {
+                any(app, "summaryDetails").coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+                let metadata = app.staticTexts.matching(label(contains: "68 posts")).firstMatch
+                XCTAssertTrue(metadata.waitForExistence(timeout: 5))
+                XCTAssertTrue(metadata.label.contains("Kept"))
+                captureAuditScreen("ax5-summary-details", in: app)
+                app.buttons["assistantMoreMenu"].tap()
+                let model = app.buttons.matching(label(contains: "claude-sonnet-4-5")).firstMatch
+                XCTAssertTrue(model.waitForExistence(timeout: 5), "Model selection stays available in More at accessibility sizes")
+                captureAuditScreen("ax5-model-overflow", in: app)
+            }
+        }
+    }
+
+    func testAskControlsStayInsideBarAcrossDetentsAndKeyboard() throws {
+        try skipUnlessPhone("Drawer geometry")
+        continueAfterFailure = true
+        let server = FixtureWordPressServer()
+        try server.start()
+        defer { server.stop() }
+        server.streamedSummary = (["## Summary\n" + String(repeating: "Readers compare the options and explain their experiences. #1\n\n", count: 30)], 0.001)
+        let app = launch(["-dc-open", server.postURL, "-dc-fixture-model", server.baseURL,
+                          "-dc-voice-fake", "-AppleInterfaceStyle", "Light",
+                          "-UIPreferredContentSizeCategoryName", UIContentSizeCategory.large.rawValue])
+        showAssistant(in: app)
+        let summarize = app.buttons["createSummary"].firstMatch
+        XCTAssertTrue(waitOrDump(summarize, timeout: 30, in: app))
+        summarize.tap()
+        let retry = app.buttons["retrySummary"].firstMatch
+        XCTAssertTrue(wait(timeout: 30) { retry.exists && retry.isEnabled })
+        XCTAssertTrue(any(app, "askSuggestions").exists)
+        let bar = any(app, "askBox")
+        XCTAssertTrue(waitOrDump(bar, timeout: 20, in: app))
+        var iconInk: [String: Set<Int>] = [:]
+        func ink(in frame: CGRect, screenshot: XCUIScreenshot) -> Set<Int> {
+            guard let image = screenshot.image.cgImage else { return [] }
+            let scale = CGFloat(image.width) / app.windows.firstMatch.frame.width
+            let rect = CGRect(x: frame.minX * scale, y: frame.minY * scale,
+                              width: frame.width * scale, height: frame.height * scale).integral
+            guard let crop = image.cropping(to: rect) else { return [] }
+            var pixels = [UInt8](repeating: 0, count: 44 * 44 * 4)
+            pixels.withUnsafeMutableBytes { bytes in
+                let context = CGContext(data: bytes.baseAddress, width: 44, height: 44,
+                                        bitsPerComponent: 8, bytesPerRow: 44 * 4,
+                                        space: CGColorSpaceCreateDeviceRGB(),
+                                        bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+                context?.draw(crop, in: CGRect(x: 0, y: 0, width: 44, height: 44))
+            }
+            return Set((0..<(44 * 44)).filter {
+                pixels[$0 * 4] < 180 && pixels[$0 * 4 + 1] < 180
+                    && pixels[$0 * 4 + 2] < 180 && pixels[$0 * 4 + 3] > 240
+            })
+        }
+        func find(_ node: XCUIElementSnapshot, _ id: String, _ type: XCUIElement.ElementType) -> XCUIElementSnapshot? {
+            if node.identifier == id, node.elementType == type { return node }
+            return node.children.lazy.compactMap { find($0, id, type) }.first
+        }
+        func check(_ stage: String) {
+            // One snapshot: separate frame queries during a drag observe different instants.
+            guard let snapshot = try? bar.snapshot(),
+                  let field = find(snapshot, "chatInput", .textField)?.frame else {
+                XCTFail("\(stage): missing bar or field")
+                return
+            }
+            let bounds = snapshot.frame
+            let screenshot = app.screenshot()
+            var frames = "\(stage): bar=\(bounds), field=\(field)"
+            for id in ["chatInstructions", "voiceButton"] {
+                guard let icon = find(snapshot, id, .button)?.frame else {
+                    XCTFail("\(stage): missing \(id)")
+                    continue
+                }
+                XCTAssertTrue(bounds.insetBy(dx: -1, dy: -1).contains(icon), "\(stage): \(id) \(icon) outside bar \(bounds)")
+                XCTAssertEqual(icon.maxY - field.maxY, 11, accuracy: 2, "\(stage): \(id) drifted from field bottom")
+                // AX geometry alone cannot detect a glyph painted in the wrong layer.
+                // Compare its ink inside the expected slot while the bar is visible.
+                if stage != "closing" {
+                    let current = ink(in: icon, screenshot: screenshot)
+                    XCTAssertGreaterThan(current.count, 15, "\(stage): \(id) is not drawn in its bar slot")
+                    XCTAssertLessThan(current.count, 300, "\(stage): expected an icon on the light bar background")
+                    if let reference = iconInk[id] {
+                        let matched = current.filter { point in
+                            (-2...2).contains { dy in
+                                (-2...2).contains { dx in reference.contains(point + dy * 44 + dx) }
+                            }
+                        }.count
+                        XCTAssertGreaterThan(Double(matched) / Double(max(current.count, 1)), 0.65,
+                                             "\(stage): \(id)'s rendered glyph drifted")
+                    } else {
+                        iconInk[id] = current
+                    }
+                }
+                frames += ", \(id)=\(icon)"
+            }
+            attachText(frames, named: stage)
+            let shot = XCTAttachment(screenshot: screenshot)
+            shot.name = stage
+            shot.lifetime = .keepAlways
+            add(shot)
+        }
+        func sampleMotion(_ stage: String, gesture: () -> Void) {
+            var sampled = false
+            let timer = Timer(timeInterval: 0.9, repeats: false) { _ in
+                if bar.exists {
+                    check(stage)
+                    sampled = true
+                }
+            }
+            RunLoop.main.add(timer, forMode: .common)
+            gesture()
+            timer.invalidate()
+            XCTAssertTrue(sampled, "Read bar-relative frames during \(stage)")
+        }
+        check("medium")
+        sampleMotion("expanding") { dragDrawer(in: app, to: 0.08) }
+        check("large")
+        dragDrawer(in: app, to: 0.54)
+        check("medium-again")
+        // Focus from medium: sheet expansion and keyboard avoidance happen together.
+        app.textFields["chatInput"].tap()
+        XCTAssertTrue(wait(timeout: 5) { drawerState(in: app).label == "detent=large" })
+        let keyboard = app.keyboards.firstMatch
+        XCTAssertTrue(wait(timeout: 5) {
+            keyboard.exists && keyboard.frame.height > 150
+                && keyboard.frame.minY < app.windows.firstMatch.frame.maxY - 150
+        }, "Use the software keyboard: \(keyboard.frame)")
+        // The keyboard exposes its target before the keyboard and hint animations settle.
+        var previousBarFrame = CGRect.null
+        XCTAssertTrue(wait(timeout: 5) {
+            let frame = bar.frame
+            defer { previousBarFrame = frame }
+            return frame == previousBarFrame
+        }, "Keyboard and hint layout must settle")
+        // Capture before typeText attaches XCUITest's hardware keyboard.
+        check("keyboard")
+        XCTAssertLessThanOrEqual(bar.frame.maxY, keyboard.frame.minY + 1, "Bar background must stop above keyboard")
+        app.textFields["chatInput"].typeText("A follow-up")
+        app.typeKey(XCUIKeyboardKey.escape, modifierFlags: [])
+        check("large-after-keyboard")
+        dragDrawer(in: app, to: 0.54)
+        check("lowered")
+        let header = any(app, "drawerHeader")
+        let start = header.coordinate(withNormalizedOffset: CGVector(dx: 0.08, dy: 0.5))
+        let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: 0.90))
+        sampleMotion("closing") {
+            start.press(forDuration: 0.1, thenDragTo: end, withVelocity: .slow, thenHoldForDuration: 3)
+        }
+        XCTAssertTrue(waitForGone(bar, timeout: 5))
+        XCTAssertFalse(app.buttons["chatInstructions"].exists, "Instructions must leave with the bar")
+    }
+
+    func testAskScopeLeavesRoomForQuestion() throws {
+        let app = launch(sample + ["-dc-voice-fake"])
+        let field = app.textFields["chatInput"]
+        XCTAssertTrue(waitOrDump(field, timeout: 20, in: app))
+        XCTAssertGreaterThanOrEqual(field.frame.width, 90, "The scope must leave room for a readable question")
+    }
+
+    func testTypingFollowUpKeepsSummaryPosition() throws {
+        let app = launch(sample)
+        XCTAssertTrue(waitOrDump(any(app, "askBox"), timeout: 20, in: app))
+        dragDrawer(in: app, to: 0.08)
+        let marker = app.buttons["retrySummary"].firstMatch
+        XCTAssertTrue(marker.waitForExistence(timeout: 5))
+        let field = app.textFields["chatInput"]
+        field.tap()
+        let before = marker.frame.minY
+        field.typeText("Follow-up with more details")
+        XCTAssertEqual(marker.frame.minY, before, accuracy: 2, "Typing must not scroll the summary")
+    }
 
     /// A Settings page request (Start a Voice Chat without voice set up).
     func testSettingsRequestShowsOverTheDrawer() throws {
@@ -225,7 +535,8 @@ final class DrawerUITests: DCUITestCase {
 
         let first = app.buttons["citation-3"].firstMatch
         let second = app.buttons["citation-7"].firstMatch
-        XCTAssertTrue(first.waitForExistence(timeout: 10), "The sample summary has no #3 citation.")
+        // Lazy summary rows can be outside the medium viewport.
+        XCTAssertTrue(reveal(first, in: app), "The sample summary has no #3 citation.")
         XCTAssertGreaterThanOrEqual(first.frame.width, 44, "A citation chip must be 44 pt wide to tap.")
         if second.exists, abs(second.frame.midY - first.frame.midY) < 4 {
             XCTAssertGreaterThanOrEqual(second.frame.minX - first.frame.maxX, 4, "Citation chips need 4 pt between them.")

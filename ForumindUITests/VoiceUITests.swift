@@ -25,11 +25,13 @@ final class VoiceUITests: DCUITestCase {
             XCTAssertTrue(app.staticTexts["Talk to Forumind"].exists)
             XCTAssertTrue(any(app, "voiceTrySaying").exists, "The first-start page lists examples.")
         }
+        capture("base_phone_voice-consent")
         agree.tap()
 
         // The bar connects, listens and shows the model's greeting.
         let bar = any(app, "voiceBar")
         XCTAssertTrue(bar.waitForExistence(timeout: 10), "The voice Dock did not appear.")
+        XCTAssertTrue(any(app, "voiceBarState").isEnabled, "Voice state header must not be dimmed by a disabled button style.")
         // The Dock replaces the bar (iPhone): one floating layer.
         if isPhone { XCTAssertFalse(app.buttons["aiButton"].exists, "The bar shows under the Dock.") }
         let transcript = any(app, "voiceTranscript")
@@ -44,6 +46,7 @@ final class VoiceUITests: DCUITestCase {
         field.tap()
         field.typeText("next post\n")
         XCTAssertTrue(wait(timeout: 5) { any(app, "voiceTranscript").label.contains("next post") }, "The typed turn got no reply.")
+        capture("base_phone_voice-transcript")
 
         // Mute, then end.
         let mute = app.buttons["voiceMute"]
@@ -54,6 +57,7 @@ final class VoiceUITests: DCUITestCase {
         end.tap()
         let close = app.buttons["voiceBarClose"]
         XCTAssertTrue(close.waitForExistence(timeout: 5), "An ended session keeps its bar until closed.")
+        capture("base_phone_voice-ended")
         close.tap()
         XCTAssertTrue(waitForGone(bar, timeout: 5))
         // Ending returns the bar.

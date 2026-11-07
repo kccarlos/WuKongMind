@@ -333,7 +333,11 @@ final class ForumPacingTests: XCTestCase {
 
         let topic = ForumTopic(siteURL: site, topicID: "7", url: URL(string: "\(site)/t/topic/7")!, title: "Topic")
         XCTAssertTrue(app.enqueueSummary(for: topic))
-        try await waitUntil { PacingURLStub.times.count == 1 }  // topic JSON; page 1 waits
+        // The stub records the request before its JSON has been decoded and progress delivered.
+        try await waitUntil {
+            PacingURLStub.times.count == 1
+                && app.activities.first?.statusText == "Reading response page 1 of 3…"
+        }
         let record = try XCTUnwrap(app.activities.first)
         XCTAssertEqual(record.status, .running)
         XCTAssertEqual(record.statusText, "Reading response page 1 of 3…")

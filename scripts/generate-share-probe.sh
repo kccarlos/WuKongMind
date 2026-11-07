@@ -41,6 +41,7 @@ var ExtensionPreprocessingJS = new PageFactsProbe();
 SWIFT
 
 swiftc -o "$work/gen" -module-name Gen \
-  Forumind/ForumSite.swift Forumind/Sites/Recognition/*.swift "$work/main.swift" 2>"$work/err" ||
+  Forumind/ForumSite.swift Forumind/Sites/Recognition/*.swift \
+  Forumind/Sites/HackerNews/HackerNewsRecognizer.swift "$work/main.swift" 2>"$work/err" ||
   { cat "$work/err" >&2; exit 1; }
 "$work/gen" >ForumindShare/PageFactsProbe.js

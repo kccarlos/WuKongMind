@@ -35,6 +35,7 @@ struct AssistantPanel: View {
     /// "Tap a post number to jump to it", shown with the first summary.
     @State private var showsCitationTip = false
     @State private var renderedSummary: ThrottledParse<DrawerSummarySections.Input, (sections: Int, hasCitations: Bool, rows: [MarkdownRow])>?
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     init(
@@ -185,42 +186,55 @@ struct AssistantPanel: View {
 
     // MARK: Drawer header
 
-    /// The drawer's one row: its title (Summary, or Ask the forum while the
+    /// The drawer's title (Summary, or Ask the forum while the
     /// Ask box asks the whole forum), the model pill, Translate, Read aloud
     /// and the drawer's ··· menu. The system grabber sits above it.
     private var drawerHeader: some View {
-        HStack(spacing: 4) {
-            if app.panelRoute == .topic {
+        let layout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
+            : AnyLayout(HStackLayout(spacing: 4))
+        return layout {
+            HStack(spacing: 4) {
                 Text(drawerTitle)
                     .font(.headline)
-                    .lineLimit(1)
+                    .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
+                    .fixedSize(horizontal: false, vertical: true)
                     .contentTransition(.opacity)
                     .accessibilityAddTraits(.isHeader)
                     .accessibilityIdentifier("drawerTitle")
-                Spacer(minLength: 4)
-                drawerModelPill
-                if bodyKind == .summary, let session = app.currentSession, session.hasSummary {
-                    let text = PostCitations.stripped(session.summary)
-                    TranslateButton(app: app, title: session.title, text: text, compact: true)
-                        .buttonStyle(DCIconButtonStyle())
-                    ReadAloudButton(podcast: app.podcast, id: "summary-\(session.topicKey)", title: session.title, text: text, compact: true)
-                        .buttonStyle(DCIconButtonStyle())
+                if dynamicTypeSize.isAccessibilitySize {
+                    Spacer(minLength: 0)
+                    drawerHeaderActions
                 }
-                drawerMoreMenu
-            } else {
-                Text(drawerTitle)
-                    .font(.headline)
-                    .lineLimit(1)
-                    .accessibilityAddTraits(.isHeader)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 4) }
+            if !dynamicTypeSize.isAccessibilitySize {
+                drawerModelPill
+                drawerHeaderActions
             }
         }
         .padding(.leading, 16)
         .padding(.trailing, 8)
         .padding(.top, 14)
         .frame(minHeight: DCTheme.controlHeight + 14)
+        .fixedSize(horizontal: false, vertical: true)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("drawerHeader")
+    }
+
+    private var drawerHeaderActions: some View {
+        HStack(spacing: 4) {
+            if bodyKind == .summary, let session = app.currentSession, session.hasSummary {
+                let text = PostCitations.stripped(session.summary)
+                TranslateButton(app: app, title: session.title, text: text, compact: true)
+                    .buttonStyle(DCIconButtonStyle())
+                    .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+                ReadAloudButton(podcast: app.podcast, id: "summary-\(session.topicKey)", title: session.title, text: text, compact: true)
+                    .buttonStyle(DCIconButtonStyle())
+                    .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+            }
+            drawerMoreMenu
+        }
     }
 
     private var drawerTitle: String {
@@ -250,25 +264,30 @@ struct AssistantPanel: View {
                         .accessibilityHidden(true)
                 }
                 Text(verbatim: ready ? model : readiness.title)
-                    .lineLimit(1)
+                    .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? .infinity : nil, alignment: .leading)
+                    .multilineTextAlignment(.leading)
                     .truncationMode(.middle)
                     .contentTransition(.opacity)
                 Image(systemName: "chevron.up.chevron.down")
+                    .font(dynamicTypeSize.isAccessibilitySize ? .system(size: 12, weight: .semibold) : .footnote.weight(.semibold))
                     .imageScale(.small)
                     .accessibilityHidden(true)
             }
-            .font(.footnote.weight(.semibold))
+            .frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? .infinity : nil, alignment: .leading)
+            .font(dynamicTypeSize.isAccessibilitySize ? .caption2.weight(.semibold) : .footnote.weight(.semibold))
             .foregroundStyle(ready ? tint : DCTheme.newRepliesBadgeText)
-            .padding(.horizontal, 12)
-            .frame(height: 36)
-            .background(ready ? tint.opacity(0.12) : DCTheme.newRepliesBadgeBackground, in: Capsule())
+            .padding(.horizontal, dynamicTypeSize.isAccessibilitySize ? 8 : 12)
+            .frame(minHeight: 36)
+            .background(ready ? tint.opacity(0.12) : DCTheme.newRepliesBadgeBackground, in: RoundedRectangle(cornerRadius: dynamicTypeSize.isAccessibilitySize ? 14 : 18))
             .frame(minHeight: DCTheme.controlHeight)
             .contentShape(Rectangle())
             .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: model)
             .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: role)
         }
         .menuOrder(.fixed)
-        .frame(maxWidth: 190)
+        .frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? .infinity : 190)
         // A new model for the same role; a scope change has its own haptic.
         .sensoryFeedback(.impact(weight: .light), trigger: PillState(role: role, selection: selection)) { old, new in
             old.role == new.role && old.selection != new.selection
@@ -288,6 +307,7 @@ struct AssistantPanel: View {
     /// History (Manage for now), then Clear Chat.
     private var drawerMoreMenu: some View {
         Menu {
+            if dynamicTypeSize.isAccessibilitySize { drawerModelPill }
             Section {
                 Button {
                     UIPasteboard.general.string = exportText
@@ -381,7 +401,7 @@ struct AssistantPanel: View {
             }
         } label: {
             Image(systemName: "ellipsis.circle")
-                .font(.body.weight(.medium))
+                .font(dynamicTypeSize.isAccessibilitySize ? .system(size: 24, weight: .medium) : .body.weight(.medium))
                 // Watch Topic lives in this menu: the button answers the tap.
                 .dcStateBounce(app.currentTopic.map { app.isWatched(topicKey: $0.topicKey) })
         }
@@ -709,49 +729,80 @@ struct AssistantPanel: View {
     }
 
     /// Meta chips: model, post count, age, Kept.
+    @ViewBuilder
     private func summaryMeta(_ session: TopicSession) -> some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 6) {
+        if dynamicTypeSize.isAccessibilitySize {
+            VStack(alignment: .leading, spacing: 6) {
                 if !session.model.isEmpty {
-                    DCPill(text: AppleIntelligenceBackend.displayModel(session.model), systemImage: "cpu", tint: .secondary)
+                    Text(verbatim: AppleIntelligenceBackend.displayModel(session.model))
                 }
-                if let count = session.summaryPostCount ?? session.totalPosts, count > 0 {
-                    DCPill(text: String(localized: "\(count) posts"), systemImage: "text.bubble", tint: DCTheme.summaryTint)
-                }
-                if let date = session.summaryUpdatedAt {
-                    DCPill(
-                        // Abbreviated ("6 min. ago") so the row fits a phone card.
-                        text: date.formatted(.relative(presentation: .named, unitsStyle: .abbreviated)),
-                        systemImage: "clock",
-                        tint: .secondary
-                    )
-                }
-                if session.kept {
-                    DCPill(
-                        text: String(localized: "Kept", comment: "Badge: the user chose to keep this summary (not cleared automatically)"),
-                        systemImage: "pin.fill",
-                        tint: DCTheme.warning
-                    )
-                }
+                let count = session.summaryPostCount ?? session.totalPosts
+                let details = [
+                    count.flatMap { $0 > 0 ? String(localized: "\($0) posts") : nil },
+                    session.summaryUpdatedAt.map { $0.formatted(.relative(presentation: .named, unitsStyle: .abbreviated)) },
+                    session.kept ? String(localized: "Kept") : nil
+                ].compactMap { $0 }
+                Text(verbatim: details.joined(separator: " · "))
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+        } else {
+            summaryMetaRow(session)
+                .minimumScaleFactor(0.85)
+                .accessibilityElement(children: .combine)
+        }
+    }
+
+    private func summaryMetaRow(_ session: TopicSession) -> some View {
+        HStack(spacing: 5) {
+            if !session.model.isEmpty {
+                DCPill(text: AppleIntelligenceBackend.displayModel(session.model), systemImage: "cpu", tint: .secondary)
+                    .truncationMode(.middle)
+            }
+            if let count = session.summaryPostCount ?? session.totalPosts, count > 0 {
+                DCPill(text: String(localized: "\(count) posts"), systemImage: "text.bubble", tint: DCTheme.summaryTint)
+                    .layoutPriority(1)
+            }
+            if let date = session.summaryUpdatedAt {
+                DCPill(
+                    // Abbreviated ("6 min. ago") so the row fits a phone card.
+                    text: date.formatted(.relative(presentation: .named, unitsStyle: .abbreviated)),
+                    systemImage: "clock",
+                    tint: .secondary
+                )
+                .layoutPriority(1)
+            }
+            if session.kept {
+                DCPill(
+                    text: String(localized: "Kept", comment: "Badge: the user chose to keep this summary (not cleared automatically)"),
+                    systemImage: "pin.fill",
+                    tint: DCTheme.warning
+                )
+                .layoutPriority(1)
             }
         }
-        .accessibilityElement(children: .combine)
     }
 
     /// Model, post count, age, Kept; then the AI label and Retry.
     private func drawerSummaryMeta(_ session: TopicSession) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            summaryMeta(session)
-            HStack(spacing: 8) {
-                Label {
-                    Text("AI-generated, may be wrong", comment: "Label under an AI summary in the AI drawer")
-                } icon: {
-                    Image(systemName: "sparkles")
+            if !dynamicTypeSize.isAccessibilitySize { summaryMeta(session) }
+            let layout = dynamicTypeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(alignment: .leading, spacing: 0))
+                : AnyLayout(HStackLayout(spacing: 8))
+            layout {
+                if dynamicTypeSize.isAccessibilitySize {
+                    DisclosureGroup {
+                        summaryMeta(session)
+                    } label: {
+                        summaryNotice
+                    }
+                    .accessibilityIdentifier("summaryDetails")
+                } else {
+                    summaryNotice
                 }
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .accessibilityIdentifier("aiGeneratedLabel")
-                Spacer(minLength: 0)
+                if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 0) }
                 Button {
                     DCHaptics.tap()
                     app.startSummary(regenerate: true)
@@ -767,6 +818,18 @@ struct AssistantPanel: View {
                 .accessibilityIdentifier("retrySummary")
             }
         }
+    }
+
+    private var summaryNotice: some View {
+        Label {
+            Text("AI-generated, may be wrong", comment: "Label under an AI summary in the AI drawer")
+        } icon: {
+            Image(systemName: "sparkles")
+        }
+        .font(.caption)
+        .foregroundStyle(Color.secondary)
+        .fixedSize(horizontal: false, vertical: true)
+        .accessibilityIdentifier("aiGeneratedLabel")
     }
 
     private var citationTip: some View {
@@ -859,6 +922,7 @@ private struct ChatThread<Leading: View>: View {
     @State private var scrollTask: Task<Void, Never>?
     @State private var metricsBox = ScrollMetricsBox()
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     init(
         app: AppModel,
@@ -885,8 +949,8 @@ private struct ChatThread<Leading: View>: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            ScrollViewReader { proxy in
+        ScrollViewReader { proxy in
+            VStack(spacing: 0) {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
                         Color.clear
@@ -1002,28 +1066,28 @@ private struct ChatThread<Leading: View>: View {
                     scrollTask?.cancel()
                     scrollTask = nil
                 }
-                .overlay(alignment: .bottomTrailing) {
-                    if !atBottom, !history.isEmpty {
-                        Button {
-                            jumpToBottom(proxy: proxy)
-                        } label: {
-                            Image(systemName: "arrow.down")
-                                .font(.subheadline.weight(.bold))
-                                .foregroundStyle(DCTheme.chatTint)
-                                .frame(width: 40, height: 40)
-                                .background(.regularMaterial, in: Circle())
-                                .overlay { Circle().stroke(DCTheme.border) }
-                                .shadow(color: .black.opacity(0.12), radius: 6, y: 2)
-                        }
-                        .buttonStyle(.plain)
-                        .padding(14)
-                        .transition(.scale(scale: 0.7).combined(with: .opacity))
-                        .accessibilityLabel("Scroll to latest message")
-                        .accessibilityIdentifier("chatScrollToBottom")
+                if !atBottom, !history.isEmpty {
+                    Button {
+                        jumpToBottom(proxy: proxy)
+                    } label: {
+                        Image(systemName: "arrow.down")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundStyle(DCTheme.chatTint)
+                            .frame(width: 44, height: 44)
+                            .background(.regularMaterial, in: Circle())
+                            .overlay { Circle().stroke(DCTheme.border) }
+                            .shadow(color: .black.opacity(0.12), radius: 6, y: 2)
                     }
+                    .buttonStyle(.plain)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 4)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+                    .transition(.scale(scale: 0.7).combined(with: .opacity))
+                    .accessibilityLabel("Scroll to latest message")
+                    .accessibilityIdentifier("chatScrollToBottom")
                 }
-                .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: !atBottom && !history.isEmpty)
             }
+            .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: !atBottom && !history.isEmpty)
         }
     }
 
@@ -1669,6 +1733,7 @@ struct DrawerStatusRow: View {
     /// Over History or Settings: only voice.
     var voiceOnly = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var voiceStatusText: String? {
         if let session = voice.session, voice.isActive {
@@ -1763,6 +1828,7 @@ private struct DrawerCardsChip: View {
     @ObservedObject var app: AppModel
     @ObservedObject var router: PresentationRouter
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     private var cursor: BrowseCursor { app.browseCursor }
 
@@ -1939,6 +2005,7 @@ private struct DrawerStatusLabel: View {
 /// pulse (static with Reduce Motion).
 private struct SummaryPlaceholder: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -1985,6 +2052,7 @@ struct DrawerSummarySections: View {
     let rows: [MarkdownRow]
     var layout: LayoutMode = .automatic
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     struct Input: Equatable {
         let text: String

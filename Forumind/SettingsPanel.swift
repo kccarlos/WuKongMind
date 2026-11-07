@@ -66,6 +66,7 @@ struct SettingsRootView: View {
             }
         }
         .formStyle(.grouped)
+        .tint(DCTheme.brandBlue)
         .navigationTitle("Settings")
         .navigationDestination(for: SettingsPage.self) { page in
             SettingsDestination(app: app, page: page)
@@ -98,8 +99,9 @@ struct SettingsRootView: View {
     }
 
     private var providerRow: some View {
-        HStack(spacing: DCTheme.spacingM) {
+        SettingsIconRow {
             SettingsIcon(page: .provider)
+        } title: {
             VStack(alignment: .leading, spacing: 2) {
                 Text("AI models")
                 Text(providerSummary)
@@ -108,7 +110,7 @@ struct SettingsRootView: View {
                     .lineLimit(1)
                     .truncationMode(.middle)
             }
-            Spacer(minLength: DCTheme.spacingS)
+        } trailing: {
             SettingsStatusPill(ready: app.isProviderReady)
         }
     }
@@ -131,18 +133,21 @@ struct SettingsRootView: View {
                 UIApplication.shared.open(url)
             }
         } label: {
-            HStack(spacing: DCTheme.spacingM) {
+            SettingsIconRow {
                 SettingsIcon(symbol: "globe", tint: Color(light: 0x1C7CD6, dark: 0x4AA3FF))
+            } title: {
                 // Explicit colors: a Form button would tint `.primary`.
                 Text("Language")
                     .foregroundStyle(Color.primary)
-                Spacer(minLength: DCTheme.spacingS)
-                Text(AppLanguage.displayName)
-                    .foregroundStyle(Color.secondary)
-                    .lineLimit(1)
-                Image(systemName: "arrow.up.forward")
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(Color(uiColor: .tertiaryLabel))
+            } trailing: {
+                HStack(spacing: DCTheme.spacingS) {
+                    Text(AppLanguage.displayName)
+                        .foregroundStyle(Color.secondary)
+                        .lineLimit(1)
+                    Image(systemName: "arrow.up.forward")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(Color(uiColor: .tertiaryLabel))
+                }
             }
             .contentShape(Rectangle())
         }
@@ -162,20 +167,52 @@ struct SettingsRootView: View {
 /// `ReadingLanguage.choices` (names from the system).
 struct ReadingLanguagePicker: View {
     @ObservedObject var app: AppModel
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    private var selectedLabel: String {
+        let code = app.settings.readingLanguage
+        if code.isEmpty {
+            return String(localized: "App language (\(AppLanguage.displayName))", comment: "Reading language option; the placeholder is the app's language name")
+        }
+        return ReadingLanguage.displayName(code)
+    }
 
     var body: some View {
-        Picker(selection: $app.settings.readingLanguage) {
-            Text("App language (\(AppLanguage.displayName))", comment: "Reading language option; the placeholder is the app's language name").tag("")
-            ForEach(ReadingLanguage.choices, id: \.self) { code in
-                Text(verbatim: ReadingLanguage.displayName(code)).tag(code)
-            }
-        } label: {
-            HStack(spacing: DCTheme.spacingM) {
-                SettingsIcon(symbol: "translate", tint: Color(light: 0x2F9E6B, dark: 0x4CC38A))
-                Text("Reading language")
+        SettingsIconRow {
+            SettingsIcon(symbol: "translate", tint: Color(light: 0x2F9E6B, dark: 0x4CC38A))
+        } title: {
+            Text("Reading language")
+                .foregroundStyle(Color.primary)
+                .fixedSize(horizontal: !dynamicTypeSize.isAccessibilitySize, vertical: false)
+        } trailing: {
+            HStack(spacing: 3) {
+                Text(verbatim: selectedLabel)
+                    .font(.footnote)
+                    .foregroundStyle(Color.secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(Color(uiColor: .tertiaryLabel))
             }
         }
-        .accessibilityIdentifier("settingsRow-readingLanguage")
+        .contentShape(Rectangle())
+        .overlay {
+            Menu {
+                Picker("Reading language", selection: $app.settings.readingLanguage) {
+                    Text("App language (\(AppLanguage.displayName))", comment: "Reading language option; the placeholder is the app's language name").tag("")
+                    ForEach(ReadingLanguage.choices, id: \.self) { code in
+                        Text(verbatim: ReadingLanguage.displayName(code)).tag(code)
+                    }
+                }
+            } label: {
+                Color.clear
+                    .contentShape(Rectangle())
+            }
+            .accessibilityLabel(Text("Reading language"))
+            .accessibilityValue(selectedLabel)
+            .accessibilityIdentifier("settingsRow-readingLanguage")
+        }
     }
 }
 
@@ -202,6 +239,7 @@ struct SettingsDestination: View {
             case .acknowledgements: SettingsAcknowledgementsPage(app: app)
             }
         }
+        .tint(DCTheme.brandBlue)
         .navigationTitle(page.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.visible, for: .navigationBar)
@@ -226,15 +264,46 @@ struct SettingsIcon: View {
     @ScaledMetric(relativeTo: .body) private var size: CGFloat = 29
 
     var body: some View {
-        RoundedRectangle(cornerRadius: size * 0.24, style: .continuous)
+        let side = min(size, 34)
+        RoundedRectangle(cornerRadius: side * 0.24, style: .continuous)
             .fill(tint.gradient)
-            .frame(width: size, height: size)
+            .frame(width: side, height: side)
             .overlay {
                 Image(systemName: symbol)
-                    .font(.system(size: size * 0.52, weight: .semibold))
+                    .font(.system(size: side * 0.52, weight: .semibold))
                     .foregroundStyle(.white)
             }
             .accessibilityHidden(true)
+    }
+}
+
+/// A Settings row with a leading icon, a title/subtitle stack, and a
+/// trailing value or status badge. At accessibility text sizes the icon is
+/// omitted and the trailing view stacks under the title so the title keeps
+/// the full row width.
+struct SettingsIconRow<Icon: View, Title: View, Trailing: View>: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    var spacing: CGFloat = DCTheme.spacingM
+    @ViewBuilder var icon: () -> Icon
+    @ViewBuilder var title: () -> Title
+    @ViewBuilder var trailing: () -> Trailing
+
+    var body: some View {
+        if dynamicTypeSize.isAccessibilitySize {
+            VStack(alignment: .leading, spacing: DCTheme.spacingXS) {
+                title()
+                trailing()
+            }
+        } else {
+            HStack(spacing: 4) {
+                HStack(spacing: spacing) {
+                    icon()
+                    title()
+                }
+                Spacer(minLength: 0)
+                trailing()
+            }
+        }
     }
 }
 
@@ -244,10 +313,11 @@ struct SettingsRowLabel: View {
     var value: String?
 
     var body: some View {
-        HStack(spacing: DCTheme.spacingM) {
+        SettingsIconRow {
             SettingsIcon(page: page)
+        } title: {
             Text(title ?? page.title)
-            Spacer(minLength: DCTheme.spacingS)
+        } trailing: {
             if let value {
                 Text(value)
                     .foregroundStyle(.secondary)

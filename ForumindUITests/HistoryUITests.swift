@@ -21,8 +21,18 @@ final class HistoryUITests: DCUITestCase {
         XCTAssertTrue(all.waitForExistence(timeout: 10), "History did not open.")
         XCTAssertTrue(app.buttons["historySegment-summaries"].exists)
         XCTAssertTrue(app.buttons["historySegment-asks"].exists)
-        XCTAssertTrue(app.buttons["historySegment-watching"].exists)
-        XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Forum:")).firstMatch.exists || !isEnglish)
+        let watching = app.buttons["historySegment-watching"]
+        XCTAssertTrue(watching.exists)
+        let forumFilter = app.buttons.matching(NSPredicate(format: "identifier == 'historyForumFilter' OR label BEGINSWITH %@", "Forum:")).firstMatch
+        XCTAssertTrue(forumFilter.exists || !isEnglish)
+        capture("base_phone_hist-all")
+        if isPhone, isEnglish, forumFilter.exists {
+            XCTAssertLessThanOrEqual(
+                watching.frame.maxX,
+                forumFilter.frame.minX,
+                "The Watching segment chip was clipped off the right edge of the filter bar."
+            )
+        }
 
         // Asks: the sample's Whole forum runs, no saved summaries.
         let asks = app.buttons["historySegment-asks"]
@@ -38,7 +48,6 @@ final class HistoryUITests: DCUITestCase {
         XCTAssertFalse(any(app, "agentRunRow").exists)
 
         // Watching shows neither.
-        let watching = app.buttons["historySegment-watching"]
         if !watching.isHittable { app.buttons["historySegment-summaries"].swipeLeft() }
         watching.tap()
         XCTAssertTrue(wait(timeout: 10) { self.summaryRows(app).count == 0 })

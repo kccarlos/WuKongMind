@@ -244,7 +244,9 @@ final class PodcastController: ObservableObject {
             kind = selected
         }
         let hosts = app.settings.podcast.hosts
-        let chapters = PodcastScript.plan(for: digest, hosts: hosts)
+        var safeDigest = digest
+        safeDigest.cards = digest.cards.map { app.sanitizedDigestCard($0) }
+        let chapters = PodcastScript.plan(for: safeDigest, hosts: hosts)
         guard !chapters.isEmpty else { return }
         let made = PodcastEpisode(
             digestID: digest.id,

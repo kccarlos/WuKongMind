@@ -1,6 +1,6 @@
 # Adding a site
 
-Forumind reads Discourse and WordPress. Everything that knows a platform lives
+Forumind reads Discourse, WordPress and Hacker News. Everything that knows a platform lives
 in `Forumind/Sites/` behind the `SiteAdapter` protocol, so supporting another
 platform means adding one folder there and two list entries, not changing the
 app. This page is the checklist. For how the pieces fit together see
@@ -50,6 +50,33 @@ What differs from Discourse, and the rule each difference follows:
   `wp-login.php`, `wp-admin/admin-ajax.php`) join Discourse's; the union is a
   golden in `SiteGoldenTests`.
 
+### Hacker News as a third adapter
+
+`Sites/HackerNews/` reads stories and nested comments from Algolia's item
+JSON, and searches/lists stories and comments through its search API. An item
+URL's `?id=N` is the story id; comment fragments are item ids, not post numbers.
+The story is #1, followed by comments in tree order, with parent numbers and
+item ids retained in the model text, including across logical 100-post pages.
+The adapter uses the usual summary, chat, agent, digest, podcast and voice paths.
+There is no login, page bridge, posting, voting or suggested site entry.
+
+Stories, jobs and polls are readable submissions. A confirmed topic needs both
+`#hnmain` and `tr.athing.submission`; comment permalinks, poll options and missing
+items must not offer topic actions. URL-only identity accepts HTTP shares so a
+redirect to HTTPS keeps the pending action, while recognition and API access
+remain HTTPS-only. Regenerate the share probe after changing these markers.
+
+A public API on a separate origin uses a separately scoped `SiteNetwork` with
+the same service and pace, without the forum's cookies or page loader. Never
+broaden the original network's origin guard to permit third-party requests.
+
+For expected HTML, validate the site's page structure before any challenge
+heuristics: a successful page may discuss “Cloudflare”, “Just a moment” or
+`cf-chl-`. This is the extension's `ae3b61b` rule. Forumind's transport already
+accepts 2xx bodies without keyword classification; the adapter checks `hnmain`
+when validating the site, and JSON decoding rejects non-JSON challenge bodies.
+A genuine challenge document without the site's markup still fails validation.
+
 ## The rules
 
 - An adapter is a value: pure functions plus network calls through the
@@ -60,6 +87,13 @@ What differs from Discourse, and the rule each difference follows:
 - Only `Forumind/Sites/` may name a platform (see "The layering guard").
 - Output must follow the shared raw text shape below, so summaries, chat,
   moderation and exports need no per-site code.
+- Preserve author evidence in `TopicFacts.posts` and, when available, the
+  listing's `author`. Titles belong to post #1 and must follow its blocks in
+  AI context as well as in the body text. Digest prefetches retain the opening
+  author, rather than a saved moderation decision, so later blocks apply to
+  cached data. An empty moderated topic must never trigger an AI request.
+- Unit tests must not request system permissions. Seed watched topics in the
+  snapshot and use fake voice audio; a permission dialog stalls a fresh simulator.
 
 ## The protocol
 

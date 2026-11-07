@@ -533,10 +533,12 @@ struct RouterHost: ViewModifier {
         content
             .sheet(item: binding(fullScreen: false), onDismiss: { app.rootSheetDismissed() }) { presentation in
                 view(for: presentation)
+                    .tint(DCTheme.brandBlue)
                     .modifier(RootAlertModifier(app: app, active: active, presentation: presentation))
             }
             .fullScreenCover(item: binding(fullScreen: true)) { presentation in
                 view(for: presentation)
+                    .tint(DCTheme.brandBlue)
                     .modifier(RootAlertModifier(app: app, active: active, presentation: presentation))
             }
             .modifier(RootAlertModifier(app: app, active: active, presentation: nil))

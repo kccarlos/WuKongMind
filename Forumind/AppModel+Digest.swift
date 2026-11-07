@@ -184,7 +184,8 @@ extension AppModel {
                 if let list = found.topics {
                     let rules = browser.moderationRules
                     prefetch.trending[forum.siteURL] = list.filter {
-                        !rules.hidesText($0.title) && !($0.excerpt.map(rules.hidesText) ?? false)
+                        !rules.hidesTopicTitle($0.title, siteURL: $0.siteURL, topicID: $0.topicID, openingPoster: $0.author)
+                            && !($0.excerpt.map(rules.hidesText) ?? false)
                     }
                 }
                 checkpoint()
@@ -456,6 +457,9 @@ extension AppModel {
     ///    replies kept within the context limit) and summarized through the
     ///    summary pipeline with the digest's instructions.
     func summarizeDigestCard(_ card: DigestCard, digestID: UUID, context: RunSettings) async throws -> DigestCard {
+        guard card.isWatched || !isTopicTitleHidden(card.title, siteURL: card.siteURL, topicID: card.topicID) else {
+            throw AssistantError.emptyResponse
+        }
         var card = sanitizedDigestCard(card)
         let generationRules = browser.moderationRules
         let earlier = digests
@@ -517,11 +521,20 @@ extension AppModel {
             card.acceptedAnswerPost = updatedFacts.acceptedAnswerPost
             card.topPost = updatedFacts.topPost
         }
+        let openingPoster = fetch.facts?.openingPoster
+            ?? fetch.facts?.posts.first(where: { $0.number == 1 })?.username
+            ?? RawTopicFormat.parseHeaders(fetch.content).first(where: { $0.number == 1 })?.author
+        guard card.isWatched || !isTopicTitleHidden(card.title, siteURL: card.siteURL, topicID: card.topicID, openingPoster: openingPoster) else {
+            throw AssistantError.emptyResponse
+        }
         card = sanitizedDigestCard(card, facts: fetch.facts, rawContent: fetch.content)
         let content = PromptBuilder.boundedForumContext(
             moderated(fetch.content, siteURL: card.siteURL, topicID: card.topicID),
             limit: context.contextLimit
         )
+        guard !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            throw AssistantError.emptyResponse
+        }
         let text = try await aiService.generateSummary(
             content: content,
             configuration: context.configuration,
@@ -550,6 +563,8 @@ extension AppModel {
         let headers = rawContent.map(RawTopicFormat.parseHeaders)
             ?? (session?.source.isEmpty == false ? RawTopicFormat.parseHeaders(session!.source) : [])
         var copy = card
+        copy.title = moderatedTopicTitle(copy.title, siteURL: card.siteURL, topicID: card.topicID,
+                                        openingPoster: effectiveFacts?.openingPoster ?? headers.first(where: { $0.number == 1 })?.author)
         copy.sanitize(rules: rules) { number in
             if let post = effectiveFacts?.posts.first(where: { $0.number == number }),
                rules.hidesUser(post.username, siteURL: card.siteURL) {

@@ -114,6 +114,11 @@ Sites that turn the REST API off, or use plain `?p=` permalinks without
 `/wp-json/`, are not supported. Forumind is not affiliated with WordPress or
 the WordPress Foundation.
 
+**[Hacker News](https://news.ycombinator.com)** is supported too: add its
+address or open an `item?id=N` story link to read the story and nested
+comments, summarize, chat, search, or include it in your digest and podcast.
+Reading uses the public Algolia API; sign-in, posting and voting are unavailable.
+
 The app suggests a few of these when you set it up; add any other forum by its
 address. Forum names belong to their owners; Forumind isn't affiliated with
 these communities. Know a Discourse forum that should be listed?

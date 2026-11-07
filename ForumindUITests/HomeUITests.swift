@@ -4,6 +4,28 @@ import XCTest
 /// Home (spec §7.1): the sections in order, the Today page pushed over it,
 /// forum tiles, pinning a suggestion, Add forum, and Home with no forums.
 final class HomeUITests: DCUITestCase {
+    func testAddForumIsLastTileAtStandardAndAccessibilitySizes() throws {
+        for category in [UIContentSizeCategory.accessibilityExtraExtraExtraLarge, .large] {
+            let app = launch(["-dc-sample", "-dc-forums-home", "-UIPreferredContentSizeCategoryName", category.rawValue],
+                             orientation: isPhone ? .portrait : .landscapeLeft)
+            openHome(in: app)
+            let last = app.buttons["pinnedForum-community.example.org"]
+            XCTAssertTrue(reveal(last, in: app))
+            let add = app.buttons["homeAddForum"]
+            XCTAssertTrue(reveal(add, in: app))
+            XCTAssertEqual(add.frame.width, last.frame.width, accuracy: 1, "Add forum must have a tile's width")
+            XCTAssertEqual(add.frame.height, last.frame.height, accuracy: 1, "Add forum must have a tile's height")
+            XCTAssertTrue(add.frame.minY > last.frame.minY + 1 || add.frame.minX > last.frame.minX + 1, "Add forum goes last")
+            let shot = XCTAttachment(screenshot: app.screenshot())
+            shot.name = "forum-grid-\(category.rawValue)"
+            shot.lifetime = .keepAlways
+            self.add(shot)
+            add.tap()
+            XCTAssertTrue(any(app, "addForumAddress").waitForExistence(timeout: 5))
+            app.terminate()
+        }
+    }
+
     /// On the sample with no forums (nothing is saved): pin a suggestion,
     /// find it under Forums and in the switcher, then unpin it from the
     /// tile's menu.
@@ -219,5 +241,33 @@ final class HomeUITests: DCUITestCase {
             80,
             "At AX5 Dynamic Type, DockPodcastRow stayed single-line (height \(podcastHeight) pt) instead of wrapping to two lines."
         )
+    }
+
+    func testHomeDigestStripAndAccessibilityLayout() throws {
+        var app = launch(["-dc-sample", "-dc-forums-home", "-dc-digest-sample"], orientation: .portrait)
+        openHome(in: app)
+        let card = app.buttons["homeDigestCard-404728"]
+        XCTAssertTrue(card.waitForExistence(timeout: 10))
+        capture("base_phone_home-digest")
+        let baseCardMinX = card.frame.minX
+        let baseHeaderMinX = any(app, "homeHeader").frame.minX
+        app.terminate()
+
+        let ax5 = UIContentSizeCategory.accessibilityExtraExtraExtraLarge.rawValue
+        app = launch(["-UIPreferredContentSizeCategoryName", ax5, "-dc-sample", "-dc-forums-home", "-dc-digest-sample"], orientation: .portrait)
+        openHome(in: app)
+        let axHeader = any(app, "homeHeader")
+        let axCard = app.buttons["homeDigestCard-404728"]
+        XCTAssertTrue(axCard.waitForExistence(timeout: 10))
+        capture("ax5_phone_home-digest")
+        let axCardWidth = axCard.frame.width
+        let headerHeight = axHeader.frame.height
+
+        // Home is centered and inset further on iPad. Its header has a 4 pt
+        // inset from the cards; compare within the list, not to the screen edge.
+        XCTAssertEqual(baseCardMinX, baseHeaderMinX - 4, accuracy: 1, "DigestStrip first card should align with the Today section leading margin instead of double-indenting.")
+        XCTAssertEqual(axCard.frame.minX, axHeader.frame.minX - 4, accuracy: 1, "DigestStrip should keep its leading alignment at AX5.")
+        XCTAssertLessThan(headerHeight, 175, "Date header wrapped across multiple lines at AX5 (height \(headerHeight)).")
+        XCTAssertLessThanOrEqual(axCardWidth, 310, "Digest card overflowed screen width at AX5 (width \(axCardWidth)).")
     }
 }

@@ -82,6 +82,8 @@ struct TranslationSheet: View {
                     ContentUnavailableView("Translation needs iOS 18", systemImage: "translate")
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(DCTheme.pageBackground)
             .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -90,6 +92,7 @@ struct TranslationSheet: View {
                 }
             }
         }
+        .dcFormSheet()
     }
 
     private struct DismissButton: View {
@@ -281,40 +284,47 @@ struct PostsTranslationSheet: View {
     private var target: String { ReadingLanguage.resolved(app.settings.readingLanguage) }
 
     var body: some View {
-        if let sources {
-            // Posts already in the reading language are left out.
-            let foreign = ReadingLanguage.needingTranslation(sources, into: target)
-            if foreign.isEmpty {
-                NavigationStack {
-                    Group {
-                        if sources.isEmpty {
-                            ContentUnavailableView("No posts are on screen", systemImage: "text.bubble")
-                        } else {
-                            ContentUnavailableView(
-                                String(localized: "These posts are already in \(ReadingLanguage.displayName(target)).", comment: "Translate Posts on Screen; the placeholder is a language name"),
-                                systemImage: "checkmark.bubble"
-                            )
+        Group {
+            if let sources {
+                // Posts already in the reading language are left out.
+                let foreign = ReadingLanguage.needingTranslation(sources, into: target)
+                if foreign.isEmpty {
+                    NavigationStack {
+                        Group {
+                            if sources.isEmpty {
+                                ContentUnavailableView("No posts are on screen", systemImage: "text.bubble")
+                            } else {
+                                ContentUnavailableView(
+                                    String(localized: "These posts are already in \(ReadingLanguage.displayName(target)).", comment: "Translate Posts on Screen; the placeholder is a language name"),
+                                    systemImage: "checkmark.bubble"
+                                )
+                            }
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(DCTheme.pageBackground)
+                        .navigationTitle(String(localized: "Translate posts"))
+                        .navigationBarTitleDisplayMode(.inline)
+                        .toolbar {
+                            ToolbarItem(placement: .confirmationAction) {
+                                Button("Done") { dismiss() }
+                                    .accessibilityIdentifier("translationDone")
+                            }
                         }
                     }
-                    .navigationTitle(String(localized: "Translate posts"))
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
-                        ToolbarItem(placement: .confirmationAction) {
-                            Button("Done") { dismiss() }
-                                .accessibilityIdentifier("translationDone")
-                        }
-                    }
+                } else {
+                    TranslationSheet(title: String(localized: "Translate posts"), sources: foreign, target: target)
                 }
             } else {
-                TranslationSheet(title: String(localized: "Translate posts"), sources: foreign, target: target)
-            }
-        } else {
-            ProgressView()
-                .task {
-                    sources = await app.postsToTranslate().map { post in
-                        TranslationSource(id: "\(post.number)", heading: "#\(post.number) · \(post.username)", text: post.text)
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(DCTheme.pageBackground)
+                    .task {
+                        sources = await app.postsToTranslate().map { post in
+                            TranslationSource(id: "\(post.number)", heading: "#\(post.number) · \(post.username)", text: post.text)
+                        }
                     }
-                }
+            }
         }
+        .dcFormSheet()
     }
 }

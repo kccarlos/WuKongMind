@@ -371,4 +371,17 @@ class DCUITestCase: XCTestCase {
         attachTree(app)
         return false
     }
+
+    /// Screenshot attached to the result; also written to
+    /// `$DC_SCREENSHOT_DIR` (pass `TEST_RUNNER_DC_SCREENSHOT_DIR`) when set.
+    func capture(_ name: String) {
+        let shot = XCUIScreen.main.screenshot()
+        let attachment = XCTAttachment(screenshot: shot)
+        attachment.name = name
+        attachment.lifetime = .keepAlways
+        add(attachment)
+        if let directory = ProcessInfo.processInfo.environment["DC_SCREENSHOT_DIR"] {
+            try? shot.pngRepresentation.write(to: URL(fileURLWithPath: directory).appendingPathComponent("\(name).png"))
+        }
+    }
 }

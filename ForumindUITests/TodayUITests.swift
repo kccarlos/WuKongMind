@@ -47,9 +47,12 @@ final class TodayUITests: DCUITestCase {
 
         let start = any(app, "podcastStart")
         XCTAssertTrue(start.waitForExistence(timeout: 10), "The Today page has no podcast section.")
-        XCTAssertTrue(app.buttons["makePodcast"].exists, "Make Podcast is offered.")
+        let make = app.buttons["makePodcast"]
+        XCTAssertTrue(make.exists, "Make Podcast is offered.")
         let play = app.buttons["podcastPlay"]
         XCTAssertTrue(waitForHittable(play))
+        capture("base_phone_today-page")
+        XCTAssertLessThanOrEqual(abs(play.frame.height - make.frame.height), 1, "Play and Make Podcast buttons must have matching height (\(play.frame.height) vs \(make.frame.height)).")
         play.tap()
 
         // The Now Playing row replaces Make / Play; it opens the player.

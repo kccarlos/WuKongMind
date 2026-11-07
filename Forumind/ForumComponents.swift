@@ -105,24 +105,47 @@ struct ForumIcon: View {
 struct ForumTile: View {
     let forum: Forum
     var isCurrent = false
+
+    var body: some View {
+        ForumTileLabel(title: forum.displayName, detail: forum.host, isCurrent: isCurrent) { size in
+            ForumIcon(forum: forum, size: size)
+                .shadow(color: .black.opacity(0.08), radius: 4, y: 2)
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(forum.displayName)
+        .accessibilityValue(isCurrent ? String(localized: "\(forum.host), current forum", comment: "Accessibility value of a pinned forum tile; the placeholder is the forum's host") : forum.host)
+        .accessibilityAddTraits(.isButton)
+    }
+}
+
+/// Shared sizing and surface for forum tiles and the final Add forum tile.
+struct ForumTileLabel<Icon: View>: View {
+    let title: String
+    var detail: String? = nil
+    var isCurrent = false
+    let icon: (CGFloat) -> Icon
     @ScaledMetric(relativeTo: .body) private var iconSize: CGFloat = DCTheme.forumTileIcon
 
     var body: some View {
         VStack(spacing: DCTheme.spacingS) {
-            ForumIcon(forum: forum, size: min(iconSize, 88))
-                .shadow(color: .black.opacity(0.08), radius: 4, y: 2)
+            icon(min(iconSize, 88))
             VStack(spacing: 1) {
-                Text(forum.displayName)
+                Text(verbatim: title)
                     .font(.footnote.weight(.semibold))
                     .foregroundStyle(.primary)
-                    .lineLimit(2)
+                    .lineLimit(2, reservesSpace: true)
                     .multilineTextAlignment(.center)
-                Text(forum.host)
+                // Reserve the same subtitle line even when a long host scales down.
+                Text(verbatim: " ")
+                    .frame(maxWidth: .infinity)
+                    .overlay {
+                        Text(verbatim: detail ?? "")
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                            .truncationMode(.tail)
+                    }
                     .font(.caption2)
                     .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-                    .truncationMode(.tail)
             }
             .frame(maxWidth: .infinity)
         }
@@ -138,10 +161,6 @@ struct ForumTile: View {
                 .strokeBorder(isCurrent ? Color.accentColor.opacity(0.55) : DCTheme.border, lineWidth: isCurrent ? 1.5 : 1)
         }
         .contentShape(RoundedRectangle(cornerRadius: DCTheme.cardCornerRadius, style: .continuous))
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(forum.displayName)
-        .accessibilityValue(isCurrent ? String(localized: "\(forum.host), current forum", comment: "Accessibility value of a pinned forum tile; the placeholder is the forum's host") : forum.host)
-        .accessibilityAddTraits(.isButton)
     }
 }
 

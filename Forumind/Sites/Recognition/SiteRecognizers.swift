@@ -6,7 +6,7 @@ import Foundation
 /// `SiteRegistry.standard` is derived from it, in the same order.
 enum SiteRecognizers {
     static let standard: [any SiteRecognizer] = {
-        var list: [any SiteRecognizer] = [DiscourseRecognizer(), WordPressRecognizer()]
+        var list: [any SiteRecognizer] = [DiscourseRecognizer(), WordPressRecognizer(), HackerNewsRecognizer()]
         #if FORUMIND_LABS
         // list.append(RedditRecognizer())      // P2
         #endif

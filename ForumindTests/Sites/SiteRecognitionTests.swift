@@ -242,6 +242,7 @@ final class SiteRecognitionTests: XCTestCase {
         var standardKeys = PageFactKeys.common
         standardKeys.formUnion(DiscourseRecognizer().factKeys)
         standardKeys.formUnion(WordPressRecognizer().factKeys)
+        standardKeys.formUnion(HackerNewsRecognizer().factKeys)
         XCTAssertEqual(SiteRegistry.standard.factKeys, standardKeys)
 
         let script = registry.probeExpression

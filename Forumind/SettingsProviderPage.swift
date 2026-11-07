@@ -5,6 +5,7 @@ import SwiftUI
 /// address with its state.
 struct SettingsProviderPage: View {
     @ObservedObject var app: AppModel
+    @State private var choosing: FavoriteModel?
 
     var body: some View {
         Form {
@@ -41,7 +42,7 @@ struct SettingsProviderPage: View {
                 Text("Use a fast, low-cost model for summaries and chat, and a stronger reasoning model for Ask the forum.")
             }
 
-            FavoriteModelsSection(app: app)
+            FavoriteModelsSection(app: app, choosing: $choosing)
 
             Section {
                 ForEach(providers) { provider in
@@ -63,6 +64,46 @@ struct SettingsProviderPage: View {
         .onDisappear {
             app.saveSettings()
         }
+        // Settings is already a routed presentation; its nested presenters
+        // stay local (PresentationRouter), so the Settings stack stays mounted.
+        .sheet(item: $choosing) { favorite in
+            NavigationStack {
+                Form {
+                    Section {
+                        ForEach(ModelRole.allCases) { role in
+                            Button(String(localized: "Use for \(role.title)", comment: "Favorite model menu: use it for a role. The placeholder is Summaries & chat, or Ask the forum.")) {
+                                DCHaptics.tap()
+                                app.activateFavorite(favorite, for: role)
+                                choosing = nil
+                            }
+                        }
+                        Button("Use for both") {
+                            DCHaptics.tap()
+                            app.selectModel(favorite.selection, for: .both)
+                            choosing = nil
+                        }
+                        Button("Remove from favorites", role: .destructive) {
+                            app.removeFavorite(favorite)
+                            choosing = nil
+                        }
+                    } header: {
+                        Text(favorite.title)
+                            .textCase(nil)
+                    }
+                }
+                .navigationTitle("Favorite models")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Done") { choosing = nil }
+                            .accessibilityIdentifier("favoriteModelActionsDone")
+                    }
+                }
+            }
+            .presentationDetents([.medium, .large])
+            .dcFormSheet()
+            .accessibilityIdentifier("favoriteModelActionsSheet")
+        }
     }
 
     /// Providers a role uses first, then the rest in the usual order.
@@ -78,8 +119,9 @@ struct ModelRoleRow: View {
     let role: ModelRole
 
     var body: some View {
-        HStack(spacing: DCTheme.spacingM) {
+        SettingsIconRow {
             SettingsIcon(symbol: role.systemImage, tint: role == .agent ? DCTheme.agentTint : DCTheme.summaryTint)
+        } title: {
             VStack(alignment: .leading, spacing: 2) {
                 Text(role.title)
                 Text(app.providerSummary(for: role))
@@ -88,7 +130,7 @@ struct ModelRoleRow: View {
                     .lineLimit(1)
                     .truncationMode(.middle)
             }
-            Spacer(minLength: DCTheme.spacingS)
+        } trailing: {
             SettingsStatusPill(ready: app.isProviderReady(for: role))
         }
         .accessibilityElement(children: .combine)
@@ -102,8 +144,9 @@ private struct ProviderRow: View {
     let provider: AIProvider
 
     var body: some View {
-        HStack(spacing: DCTheme.spacingM) {
+        SettingsIconRow {
             ProviderBadge(provider: provider, size: 29)
+        } title: {
             VStack(alignment: .leading, spacing: 2) {
                 Text(provider.displayName)
                 let roles = app.settings.roles(using: provider)
@@ -114,7 +157,7 @@ private struct ProviderRow: View {
                         .lineLimit(1)
                 }
             }
-            Spacer(minLength: DCTheme.spacingS)
+        } trailing: {
             Text(state.text)
                 .font(.footnote.weight(state.tint == nil ? .regular : .semibold))
                 .foregroundStyle(state.tint ?? .secondary)
@@ -146,7 +189,7 @@ private struct ProviderRow: View {
 /// one leaves the roles as they are.
 private struct FavoriteModelsSection: View {
     @ObservedObject var app: AppModel
-    @State private var choosing: FavoriteModel?
+    @Binding var choosing: FavoriteModel?
 
     /// Roles whose model isn't starred yet, one button per distinct model.
     private var unstarred: [ModelRole] {
@@ -193,21 +236,6 @@ private struct FavoriteModelsSection: View {
                 Text("Tap to use for one model, or hold to use for both. Swipe left to remove.")
             }
         }
-        .confirmationDialog(
-            choosing?.title ?? "",
-            isPresented: Binding(get: { choosing != nil }, set: { if !$0 { choosing = nil } }),
-            titleVisibility: .visible,
-            presenting: choosing
-        ) { favorite in
-            ForEach(ModelRole.allCases) { role in
-                Button(String(localized: "Use for \(role.title)", comment: "Favorite model menu: use it for a role. The placeholder is Summaries & chat, or Ask the forum.")) {
-                    DCHaptics.tap()
-                    app.activateFavorite(favorite, for: role)
-                }
-            }
-            Button("Use for both") { useForBoth(favorite) }
-            Button("Remove from favorites", role: .destructive) { app.removeFavorite(favorite) }
-        }
     }
 
     @ViewBuilder
@@ -246,11 +274,12 @@ private struct FavoriteModelRow: View {
     private var readiness: ModelReadiness { app.readiness(of: favorite.selection) }
 
     var body: some View {
-        HStack(spacing: DCTheme.spacingM) {
+        SettingsIconRow {
             Image(systemName: "star.fill")
                 .foregroundStyle(DCTheme.warning)
                 .imageScale(.small)
                 .accessibilityHidden(true)
+        } title: {
             VStack(alignment: .leading, spacing: 2) {
                 Text(favorite.title)
                     .foregroundStyle(hidden ? .secondary : .primary)
@@ -267,7 +296,7 @@ private struct FavoriteModelRow: View {
                         .lineLimit(1)
                 }
             }
-            Spacer(minLength: DCTheme.spacingS)
+        } trailing: {
             if !hidden {
                 Text(readiness.title)
                     .font(.caption.weight(.bold))
@@ -458,8 +487,9 @@ struct ModelRolePage: View {
     }
 
     private var header: some View {
-        HStack(spacing: DCTheme.spacingM) {
+        SettingsIconRow {
             ProviderBadge(provider: provider, size: 48)
+        } title: {
             VStack(alignment: .leading, spacing: 3) {
                 Text(provider.displayName).font(.headline)
                 Text(modelSummary)
@@ -468,7 +498,7 @@ struct ModelRolePage: View {
                     .lineLimit(1)
                     .truncationMode(.middle)
             }
-            Spacer(minLength: DCTheme.spacingS)
+        } trailing: {
             SettingsStatusPill(ready: app.isProviderReady(for: role))
         }
         .padding(.vertical, DCTheme.spacingXS)
@@ -590,21 +620,25 @@ struct ProviderSettingsPage: View {
                             testState = await app.testAndSaveProvider(provider)
                         }
                     } label: {
-                        HStack {
+                        HStack(spacing: DCTheme.spacingS) {
                             if testState == .testing { ProgressView().tint(.white) }
                             Text("Test & Save")
                         }
-                        .frame(maxWidth: .infinity)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity, minHeight: 52)
+                        .contentShape(Rectangle())
                     }
-                    .buttonStyle(DCActionButtonStyle(prominent: true))
+                    .buttonStyle(.plain)
                     .disabled(testState == .testing)
                     .accessibilityIdentifier("testProvider")
                     .listRowInsets(EdgeInsets())
-                    .listRowBackground(Color.clear)
+                    .listRowBackground(DCTheme.brandBlue.opacity(testState == .testing ? 0.7 : 1))
+                } footer: {
                     if testState != .idle && testState != .testing {
                         ProviderTestStatusView(state: testState)
-                            .frame(maxWidth: .infinity)
-                            .listRowBackground(Color.clear)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.top, DCTheme.spacingXS)
                     }
                 }
             }

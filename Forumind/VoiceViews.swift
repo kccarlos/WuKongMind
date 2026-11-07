@@ -109,7 +109,7 @@ struct VoiceConsentSheet: View {
                 .padding(.vertical, DCTheme.spacingM)
                 .frame(maxWidth: DCTheme.contentMaxWidth)
                 .frame(maxWidth: .infinity)
-                .background(.bar)
+                .dcStickyFooter()
             }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -227,8 +227,8 @@ struct VoiceSessionBar: View {
             VStack(alignment: .leading, spacing: 2) {
                 if !transcript.isEmpty {
                     Text(transcript)
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
+                        .font(.subheadline)
+                        .foregroundStyle(.primary)
                         .lineLimit(2)
                         .padding(.horizontal, DCTheme.spacingM)
                         .padding(.top, DCTheme.spacingS)
@@ -276,8 +276,8 @@ struct VoiceSessionBar: View {
                             .accessibilityIdentifier("voiceBarState")
                         if !session.state.isOver {
                             Text(timeLine)
-                                .font(.caption.monospacedDigit())
-                                .foregroundStyle(.secondary)
+                                .font(.footnote.monospacedDigit())
+                                .foregroundStyle(DCTheme.brandInk.opacity(0.78))
                                 .accessibilityIdentifier("voiceTimeLine")
                         }
                     }
@@ -292,7 +292,7 @@ struct VoiceSessionBar: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .disabled(voice.audioEngine == nil)
+            .allowsHitTesting(voice.audioEngine != nil)
             .accessibilityHint(Text("Shows the audio health", comment: "Accessibility hint of the voice bar's state"))
             .padding(.leading, DCTheme.spacingM)
 
@@ -443,7 +443,7 @@ struct VoiceSessionBar: View {
     private var stateTint: Color {
         switch session.state {
         case .failed: DCTheme.warning
-        case .ended: .secondary
+        case .ended: DCTheme.brandBlue
         case .speaking: DCTheme.brandPurple
         default: DCTheme.brandBlue
         }

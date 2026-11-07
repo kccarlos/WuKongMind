@@ -17,6 +17,7 @@ struct AIDrawerModifier: ViewModifier {
     @ObservedObject var router: PresentationRouter
     let onOpenURL: (URL) -> Void
     let onForumAdded: (Forum) -> Void
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     init(
         app: AppModel,
@@ -61,6 +62,11 @@ struct AIDrawerModifier: ViewModifier {
                     Set(DrawerDetent.allCases.map(\.presentationDetent)),
                     selection: $router.drawerDetentSelection
                 )
+                // Start with room for accessibility text. Medium remains
+                // available when the reader lowers the drawer to see a post.
+                .onChange(of: dynamicTypeSize, initial: true) {
+                    if dynamicTypeSize.isAccessibilitySize { router.drawerDetent = .large }
+                }
                 .presentationBackgroundInteraction(.enabled(upThrough: .medium))
                 .presentationDragIndicator(.visible)
                 .onAppear {

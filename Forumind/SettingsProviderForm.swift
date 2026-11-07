@@ -141,6 +141,7 @@ struct APIKeyField: View {
     var showsStatus = true
     /// Draws the rounded field surface around the text field only.
     var carded = false
+    @FocusState private var isFocused: Bool
 
     private var bindings: ProviderBindings { ProviderBindings(app: app, provider: provider) }
 
@@ -160,24 +161,36 @@ struct APIKeyField: View {
     }
 
     private var field: some View {
-            HStack(spacing: DCTheme.spacingS) {
+        let hasSavedKey = !bindings.configuration.apiKey.isEmpty
+        return HStack(spacing: DCTheme.spacingS) {
+            ZStack(alignment: .leading) {
                 SecureField("Paste your API key", text: bindings.binding(\.apiKey))
                     .textContentType(.password)
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.never)
                     .submitLabel(.done)
+                    .focused($isFocused)
+                    .opacity(hasSavedKey && !isFocused ? 0.01 : 1)
                     .accessibilityIdentifier("apiKeyField")
-                PasteButton(payloadType: String.self) { strings in
-                    guard let first = strings.first else { return }
-                    let key = first.trimmingCharacters(in: .whitespacesAndNewlines)
-                    Task { @MainActor in bindings.binding(\.apiKey).wrappedValue = key }
+                if hasSavedKey && !isFocused {
+                    Text(verbatim: "••••••••••••••••")
+                        .font(.body)
+                        .foregroundStyle(.primary)
+                        .allowsHitTesting(false)
+                        .accessibilityIdentifier("apiKeyMaskedBullets")
                 }
-                .labelStyle(.iconOnly)
-                .buttonBorderShape(.roundedRectangle)
-                .controlSize(.small)
-                .tint(DCTheme.brandBlue)
-                .accessibilityIdentifier("pasteAPIKey")
             }
+            PasteButton(payloadType: String.self) { strings in
+                guard let first = strings.first else { return }
+                let key = first.trimmingCharacters(in: .whitespacesAndNewlines)
+                Task { @MainActor in bindings.binding(\.apiKey).wrappedValue = key }
+            }
+            .labelStyle(.iconOnly)
+            .buttonBorderShape(.roundedRectangle)
+            .controlSize(.small)
+            .tint(DCTheme.brandBlue)
+            .accessibilityIdentifier("pasteAPIKey")
+        }
     }
 }
 

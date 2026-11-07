@@ -339,8 +339,11 @@ extension View {
     func dcFormSheet() -> some View {
         if #available(iOS 18.0, *) {
             presentationSizing(.form)
+                .presentationBackground(DCTheme.pageBackground)
+                .tint(DCTheme.brandBlue)
         } else {
-            self
+            presentationBackground(DCTheme.pageBackground)
+                .tint(DCTheme.brandBlue)
         }
     }
 }

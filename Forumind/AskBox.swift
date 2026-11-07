@@ -205,6 +205,7 @@ struct AskBox: View {
     @FocusState private var focused: Bool
     @State private var showsScopeHint = false
     @State private var keyboardVisible = false
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.composerBottomInset) private var bottomInset
     @Environment(\.composerFocusChanged) private var composerFocusChanged
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -234,14 +235,24 @@ struct AskBox: View {
                 editingBar
                     .transition(.opacity)
             }
-            HStack(alignment: .bottom, spacing: 6) {
-                scopeButton
-                if scope == .topic {
-                    instructionsButton
-                        .transition(.opacity)
+            let layout = dynamicTypeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6))
+                : AnyLayout(HStackLayout(alignment: .bottom, spacing: 6))
+            layout {
+                HStack(spacing: 6) {
+                    scopeButton
+                    if scope == .topic {
+                        instructionsButton
+                            .transition(.opacity)
+                    }
+                    if dynamicTypeSize.isAccessibilitySize {
+                        Spacer(minLength: 0)
+                        if app.showsVoiceButton { VoiceBarButton(voice: app.voice) }
+                    }
                 }
                 field
-                if app.showsVoiceButton {
+                    .frame(maxWidth: .infinity)
+                if !dynamicTypeSize.isAccessibilitySize, app.showsVoiceButton {
                     VoiceBarButton(voice: app.voice)
                 }
             }
@@ -253,8 +264,11 @@ struct AskBox: View {
             Rectangle()
                 .fill(.bar)
                 .overlay(alignment: .top) { Divider() }
-                .ignoresSafeArea(edges: .bottom)
+                .ignoresSafeArea(.container, edges: .bottom)
         }
+        // Keep the drawn icons and divider in the same layer subtree as the
+        // field and menus while the sheet and keyboard change geometry.
+        .compositingGroup()
         .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: scope)
         .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: showsSuggestions)
         .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: isEditingChat)
@@ -323,7 +337,8 @@ struct AskBox: View {
         } label: {
             HStack(spacing: 4) {
                 Text(verbatim: scopeTitle)
-                    .lineLimit(1)
+                    .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
+                    .fixedSize(horizontal: false, vertical: true)
                     .contentTransition(.opacity)
                 Image(systemName: "chevron.down")
                     .font(.caption2.weight(.bold))
@@ -331,13 +346,13 @@ struct AskBox: View {
             .font(.footnote.weight(.semibold))
             .foregroundStyle(tint)
             .padding(.horizontal, 12)
-            .frame(height: 40)
+            .frame(minHeight: 40)
             .background(tint.opacity(0.12), in: Capsule())
             .frame(minHeight: DCTheme.controlHeight)
             .contentShape(Rectangle())
         }
-        .frame(maxWidth: 140, alignment: .leading)
-        .fixedSize(horizontal: false, vertical: true)
+        .frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? .infinity : 140, alignment: .leading)
+        .fixedSize(horizontal: !dynamicTypeSize.isAccessibilitySize, vertical: true)
         .accessibilityLabel(Text("Ask: \(scopeTitle)", comment: "Accessibility label of the Ask box's scope button; the placeholder is This topic or a forum name"))
         .accessibilityHint(Text("Switches between this topic and the whole forum", comment: "Accessibility hint of the Ask box's scope button"))
         .accessibilityIdentifier("askScopeButton")
@@ -366,15 +381,20 @@ struct AskBox: View {
     }
 
     private var editingBar: some View {
-        HStack(spacing: 8) {
+        let layout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 0))
+            : AnyLayout(HStackLayout(spacing: 8))
+        return layout {
             Label {
                 Text("Editing question", comment: "Chat composer banner while editing a previously sent question")
+                    .fixedSize(horizontal: false, vertical: true)
             } icon: {
                 Image(systemName: "pencil")
             }
             .font(.caption.weight(.semibold))
             .foregroundStyle(tint)
-            Spacer(minLength: 8)
+            .frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? .infinity : nil, alignment: .leading)
+            if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 8) }
             Button {
                 DCHaptics.tap()
                 app.cancelEditChat()
@@ -387,6 +407,7 @@ struct AskBox: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? .infinity : nil, alignment: .trailing)
             .accessibilityIdentifier("cancelChatEdit")
         }
         .padding(.leading, 12)
@@ -402,6 +423,7 @@ struct AskBox: View {
                 .foregroundStyle(app.currentSession?.hasInstructions == true ? tint : .secondary)
         }
         .buttonStyle(DCIconButtonStyle())
+        .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
         .accessibilityLabel("Instructions and context")
         .accessibilityIdentifier("chatInstructions")
         .disabled(app.currentTopic == nil)
@@ -555,6 +577,7 @@ struct AskBox: View {
                 }
             }
             #endif
+            .frame(maxWidth: .infinity)
             .accessibilityIdentifier(fieldIdentifier)
             .onSubmit {
                 if app.canSendAsk { send() }
@@ -576,7 +599,7 @@ struct AskBox: View {
             send()
         } label: {
             Image(systemName: "arrow.up")
-                .font(.subheadline.weight(.bold))
+                .font(.system(size: 16, weight: .bold))
                 .foregroundStyle(.white)
                 .frame(width: 32, height: 32)
                 .background(canSend ? AnyShapeStyle(tint) : AnyShapeStyle(Color.secondary.opacity(0.35)), in: Circle())

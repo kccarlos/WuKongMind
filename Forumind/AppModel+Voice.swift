@@ -90,7 +90,8 @@ extension AppModel: VoiceNavigator {
         let session = sessions[ref.topicKey]
         return VoiceTopicBrief(
             topicKey: ref.topicKey,
-            title: ref.title ?? overview?.title ?? "",
+            title: moderatedTopicTitle(ref.title ?? overview?.title ?? "", siteURL: ref.siteURL,
+                                       topicID: ref.topicID, openingPoster: facts?.openingPoster),
             forumName: pageContext.forumName,
             opening: opening,
             openingPoster: openingPoster,

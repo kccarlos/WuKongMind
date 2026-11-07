@@ -204,37 +204,29 @@ struct HistoryView: View {
     // MARK: Filters
 
     private func filterBar(_ feed: HistoryFeed) -> some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 4) {
             if dynamicTypeSize.isAccessibilitySize {
                 segmentMenu(feed)
-                    .padding(.leading, 14)
-                    .padding(.vertical, 10)
-                Spacer(minLength: 0)
             } else {
-                ScrollViewReader { proxy in
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 6) {
-                            ForEach(Segment.allCases) { item in
-                                segmentChip(item, count: feed.count(item)).id(item)
-                            }
-                        }
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 10)
-                    }
-                    // Keep the selected segment visible on a narrow phone.
-                    .onAppear { proxy.scrollTo(segment, anchor: .center) }
-                    .onChange(of: segment) {
-                        withAnimation(DCMotion.respecting(reduceMotion, DCMotion.quick)) {
-                            proxy.scrollTo(segment, anchor: .center)
-                        }
-                    }
-                }
+                segmentChipsRow(feed)
             }
+            Spacer(minLength: 0)
             forumMenu
-                .padding(.trailing, 10)
+                .fixedSize()
+                .layoutPriority(1)
         }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 10)
         .background(DCTheme.toolbar)
         .sensoryFeedback(.selection, trigger: segment)
+    }
+
+    private func segmentChipsRow(_ feed: HistoryFeed) -> some View {
+        HStack(spacing: 3) {
+            ForEach(Segment.allCases) { item in
+                segmentChip(item, count: feed.count(item)).id(item)
+            }
+        }
     }
 
     private func segmentMenu(_ feed: HistoryFeed) -> some View {
@@ -286,19 +278,22 @@ struct HistoryView: View {
         return Button {
             withAnimation(DCMotion.respecting(reduceMotion, DCMotion.quick)) { segment = item }
         } label: {
-            HStack(spacing: 5) {
+            HStack(spacing: 3) {
                 Text(item.title)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
                 if item != .all, count > 0 {
                     Text("\(count)")
                         .font(.caption2.weight(.bold).monospacedDigit())
                         .padding(.horizontal, 5)
                         .padding(.vertical, 1)
                         .background(selected ? Self.selectedChipForeground.opacity(0.22) : Color.primary.opacity(0.08), in: Capsule())
+                        .fixedSize(horizontal: true, vertical: false)
                 }
             }
-            .font(.footnote.weight(.semibold))
+            .font(.caption.weight(.semibold))
             .foregroundStyle(selected ? Self.selectedChipForeground : Color.primary)
-            .padding(.horizontal, 12)
+            .padding(.horizontal, 6)
             .padding(.vertical, 7)
             .background(selected ? AnyShapeStyle(DCTheme.brandBlue) : AnyShapeStyle(Color.primary.opacity(0.06)), in: Capsule())
             .contentShape(Capsule())
@@ -347,7 +342,7 @@ struct HistoryView: View {
                     .accessibilityHidden(true)
             }
             .foregroundStyle(forumFilter == nil ? Color.secondary : DCTheme.brandBlue)
-            .frame(minWidth: DCTheme.controlHeight, minHeight: DCTheme.controlHeight)
+            .frame(minWidth: 32, minHeight: DCTheme.controlHeight)
             .contentShape(Rectangle())
         }
         .accessibilityLabel(

@@ -25,6 +25,7 @@ struct OnboardingFlow: View {
     var onFinish: () -> Void = {}
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.verticalSizeClass) private var verticalSizeClass
 
@@ -122,6 +123,10 @@ struct OnboardingFlow: View {
 
     // MARK: Chrome
 
+    private var usesCompactChrome: Bool {
+        verticalSizeClass == .compact || dynamicTypeSize.isAccessibilitySize
+    }
+
     private var topBar: some View {
         HStack {
             Button {
@@ -151,40 +156,31 @@ struct OnboardingFlow: View {
             .accessibilityHint("Skips the rest of the walkthrough")
             .accessibilityIdentifier("onboardingSkipAll")
         }
+        .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
         .padding(.horizontal, DCTheme.spacingS)
-        .padding(.top, DCTheme.spacingS)
+        .padding(.top, usesCompactChrome ? 2 : DCTheme.spacingS)
     }
 
     private var bottomBar: some View {
         VStack(spacing: DCTheme.spacingS) {
             if step == .done {
                 doneButtons
-            } else {
-                Button {
-                    advance()
-                } label: {
-                    Text(primaryTitle)
+            } else if usesCompactChrome && step.allowsSkip {
+                HStack(spacing: DCTheme.spacingM) {
+                    skipStepButton
+                    continueButton
                 }
-                .buttonStyle(DCPrimaryButtonStyle())
-                .disabled((step == .privacy && !termsAgreed) || (step == .provider && providerState == .testing))
-                .accessibilityIdentifier("onboardingContinue")
-
+            } else {
+                continueButton
                 if step.allowsSkip {
-                    Button("Skip for now") {
-                        DCHaptics.tap()
-                        focused = false
-                        go(to: step.next)
-                    }
-                    .font(.subheadline.weight(.medium))
-                    .frame(minWidth: DCTheme.controlHeight, minHeight: DCTheme.controlHeight)
-                    .contentShape(Rectangle())
-                    .accessibilityIdentifier("onboardingSkipStep")
+                    skipStepButton
                 }
             }
         }
+        .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
         .padding(.horizontal, DCTheme.spacingXL)
-        .padding(.top, DCTheme.spacingM)
-        .padding(.bottom, DCTheme.spacingM)
+        .padding(.top, usesCompactChrome ? DCTheme.spacingXS : DCTheme.spacingM)
+        .padding(.bottom, usesCompactChrome ? DCTheme.spacingXS : DCTheme.spacingM)
         .frame(maxWidth: 520)
         .frame(maxWidth: .infinity)
         .background {
@@ -192,13 +188,38 @@ struct OnboardingFlow: View {
                 .fill(.bar)
                 .mask(
                     LinearGradient(
-                        stops: [.init(color: .clear, location: 0), .init(color: .black, location: 0.25)],
+                        stops: [.init(color: .clear, location: 0), .init(color: .black, location: 0.12)],
                         startPoint: .top,
                         endPoint: .bottom
                     )
                 )
                 .ignoresSafeArea()
         }
+    }
+
+    private var continueButton: some View {
+        Button {
+            advance()
+        } label: {
+            Text(primaryTitle)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+        }
+        .buttonStyle(DCPrimaryButtonStyle())
+        .disabled((step == .privacy && !termsAgreed) || (step == .provider && providerState == .testing))
+        .accessibilityIdentifier("onboardingContinue")
+    }
+
+    private var skipStepButton: some View {
+        Button("Skip for now") {
+            DCHaptics.tap()
+            focused = false
+            go(to: step.next)
+        }
+        .font(.subheadline.weight(.medium))
+        .frame(minWidth: DCTheme.controlHeight, minHeight: DCTheme.controlHeight)
+        .contentShape(Rectangle())
+        .accessibilityIdentifier("onboardingSkipStep")
     }
 
     private var primaryTitle: String {

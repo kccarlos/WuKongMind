@@ -98,6 +98,8 @@ jobs:
             -scheme "$SCHEME" \
             -destination "$DESTINATION" \
             -only-testing:ForumindTests \
+            -test-timeouts-enabled YES \
+            -maximum-test-execution-time-allowance 300 \
             -derivedDataPath DerivedData \
             -resultBundlePath TestResults.xcresult \
             CODE_SIGNING_ALLOWED=NO \

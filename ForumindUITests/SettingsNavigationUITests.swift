@@ -166,6 +166,118 @@ final class SettingsNavigationUITests: DCUITestCase {
         XCTAssertTrue(app.navigationBars["AI models"].waitForExistence(timeout: 10))
     }
 
+    func testAIModelsRowsStayReadableAtAccessibilitySize() throws {
+        let ax5 = UIContentSizeCategory.accessibilityExtraExtraExtraLarge.rawValue
+        let app = launch(["-UIPreferredContentSizeCategoryName", ax5, "-dc-sample", "-dc-forums-home", "-dc-show-settings", "provider"])
+        XCTAssertTrue(app.navigationBars["AI models"].waitForExistence(timeout: 20))
+        let assistant = any(app, "modelRole-assistant")
+        let agent = any(app, "modelRole-agent")
+        XCTAssertTrue(assistant.waitForExistence(timeout: 5))
+        XCTAssertTrue(agent.waitForExistence(timeout: 5))
+        capture("ax5_phone_settings-provider")
+        XCTAssertLessThan(assistant.frame.height, 340, "Summaries & chat row collapsed into a narrow multi-screen column at AX5.")
+        XCTAssertLessThanOrEqual(agent.frame.maxY, app.windows.firstMatch.frame.maxY, "Both model role rows should fit on screen at AX5.")
+    }
+
+    func testProviderSettingsTestAndSaveButtonKeepsFullRowHeight() throws {
+        let app = launch(["-dc-sample", "-dc-forums-home", "-dc-show-settings", "provider"])
+        XCTAssertTrue(app.navigationBars["AI models"].waitForExistence(timeout: 20))
+
+        let openRouter = app.buttons["providerRow-openrouter"]
+        XCTAssertTrue(reveal(openRouter, in: app))
+        openRouter.tap()
+        let testButton = app.buttons["testProvider"]
+        XCTAssertTrue(testButton.waitForExistence(timeout: 5))
+        capture("base_phone_provider-openrouter")
+        XCTAssertGreaterThanOrEqual(testButton.frame.height, 50, "Test & Save button height was clipped below standard Form row height.")
+        testButton.tap()
+        let failure = any(app, "providerTestFailure")
+        XCTAssertTrue(failure.waitForExistence(timeout: 5))
+        XCTAssertGreaterThanOrEqual(testButton.frame.height, 50, "Test & Save button must keep its full 52pt row height when test status is shown.")
+    }
+
+    func testSettingsReadingLanguageSyncErrorReportAndSavedAPIKeyLayout() throws {
+        let app = launch(["-dc-sample", "-dc-forums-home", "-dc-show-settings", "root"])
+        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 20))
+        let readingLanguage = any(app, "settingsRow-readingLanguage")
+        XCTAssertTrue(reveal(readingLanguage, in: app))
+        capture("base_phone_settings-root")
+        XCTAssertLessThanOrEqual(readingLanguage.frame.height, 56, "Reading language row wrapped onto a second indented line at standard Dynamic Type.")
+
+        let providerRow = app.buttons["settingsRow-provider"]
+        XCTAssertTrue(reveal(providerRow, in: app, swipes: 3))
+        providerRow.tap()
+        XCTAssertTrue(app.navigationBars["AI models"].waitForExistence(timeout: 10))
+        let anthropic = app.buttons["providerRow-anthropic"]
+        XCTAssertTrue(reveal(anthropic, in: app))
+        anthropic.tap()
+        let pasteButton = app.buttons["pasteAPIKey"]
+        XCTAssertTrue(pasteButton.waitForExistence(timeout: 5))
+        capture("base_phone_provider-anthropic")
+        let maskedBullets = any(app, "apiKeyMaskedBullets")
+        XCTAssertTrue(maskedBullets.exists, "Saved API key row should show masked bullets instead of a blank space.")
+        XCTAssertLessThanOrEqual(maskedBullets.frame.maxX, pasteButton.frame.minX)
+
+        let syncApp = launch(["-dc-sample", "-dc-forums-home", "-dc-sync-status", "error", "-dc-show-settings", "sync"])
+        XCTAssertTrue(syncApp.navigationBars["iCloud Sync"].waitForExistence(timeout: 20))
+        capture("base_phone_sync-error")
+        let syncNowButtons = syncApp.buttons.matching(NSPredicate(format: "label == 'Sync now'"))
+        XCTAssertEqual(syncNowButtons.count, 1, "iCloud Sync error state should not show two duplicate Sync now buttons.")
+
+        let reportApp = launch(["-dc-sample", "-dc-drawer-first-run"])
+        let menu = reportApp.buttons["forumSwitcher"]
+        XCTAssertTrue(waitForBarItem(menu, timeout: 20))
+        let reportItem = reportApp.buttons["Report or block…"]
+        let reportPost = reportApp.buttons["reportPost1"]
+        let blockPost = reportApp.buttons["blockPost1"]
+        let blockUser = reportApp.buttons["blockUser1"]
+        for _ in 0..<4 where !reportPost.exists {
+            RunLoop.current.run(until: Date().addingTimeInterval(3))
+            _ = wait(timeout: 15) {
+                tapBarItem(menu)
+                if reportItem.waitForExistence(timeout: 3) { return true }
+                dismissMenu(in: reportApp)
+                return false
+            }
+            reportItem.tap()
+            if reportPost.waitForExistence(timeout: 6) { break }
+            if reportApp.buttons["Done"].firstMatch.exists {
+                reportApp.buttons["Done"].firstMatch.tap()
+            }
+        }
+        XCTAssertTrue(reportPost.waitForExistence(timeout: 10))
+        XCTAssertTrue(blockPost.exists)
+        XCTAssertTrue(blockUser.exists)
+        capture("base_phone_report-block-sheet")
+        XCTAssertLessThanOrEqual(abs(blockPost.frame.height - reportPost.frame.height), 4, "Block post button wrapped to two lines while Report post stayed on one.")
+        XCTAssertLessThanOrEqual(abs(blockUser.frame.height - reportPost.frame.height), 4, "Block user button wrapped to two lines while Report post stayed on one.")
+        XCTAssertLessThanOrEqual(abs(blockPost.frame.minY - reportPost.frame.minY), 4, "Post action buttons should sit on one line at standard Dynamic Type.")
+
+        let zhApp = launch(["-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_Hans", "-dc-sample", "-dc-forums-home", "-dc-show-settings", "root"])
+        XCTAssertTrue(any(zhApp, "settingsRow-readingLanguage").waitForExistence(timeout: 20))
+        _ = reveal(any(zhApp, "settingsRow-readingLanguage"), in: zhApp)
+        capture("zh_phone_settings-root")
+
+        let addForumApp = launch(["-dc-sample", "-dc-forums-home", "-dc-add-forum"])
+        XCTAssertTrue(addForumApp.textFields["addForumAddress"].waitForExistence(timeout: 20))
+        capture("base_phone_addforum")
+
+        let translateApp = launch(["-dc-sample", "-dc-test-present", "translate-posts", "-dc-test-present-after", "2"])
+        XCTAssertTrue(translateApp.navigationBars["Translate posts"].waitForExistence(timeout: 20))
+        capture("base_phone_present-translate-posts")
+
+        let summaryApp = launch(["-dc-sample", "-dc-drawer-detent", "large"])
+        XCTAssertTrue(any(summaryApp, "summaryContent").waitForExistence(timeout: 20))
+        capture("base_phone_summary-meta-kept")
+
+        let darkHistApp = launch(["-AppleInterfaceStyle", "Dark", "-dc-sample", "-dc-forums-home"])
+        let homeHistory = darkHistApp.buttons["homeHistory"]
+        XCTAssertTrue(homeHistory.waitForExistence(timeout: 20))
+        homeHistory.tap()
+        XCTAssertTrue(darkHistApp.navigationBars["History"].waitForExistence(timeout: 10))
+        capture("dark_phone_hist-all")
+    }
+
     /// The Assistant's model switcher names the current mode's role: Chat
     /// (and Summary) switch the summaries & chat model, Ask the forum its own.
     func testAssistantModelSwitcherFollowsTheMode() throws {
@@ -214,6 +326,27 @@ final class SettingsNavigationUITests: DCUITestCase {
         // AI models… opens Settings › AI models over the drawer (router).
         app.buttons["modelMenuSettings"].tap()
         XCTAssertTrue(app.navigationBars["AI models"].waitForExistence(timeout: 10), "AI models… did not open Settings › AI models.")
+    }
+
+    func testFavoriteActionsPresentAsSheet() throws {
+        let app = launch(["-dc-sample", "-dc-show-settings", "provider",
+                          "-dc-agent-model", "deepseek:deepseek-v4-flash"])
+        let favorite = any(app, "favoriteModel-anthropic:claude-sonnet-4-5")
+        XCTAssertTrue(reveal(favorite, in: app))
+        favorite.tap()
+        let sheet = any(app, "favoriteModelActionsSheet")
+        XCTAssertTrue(waitOrDump(sheet, timeout: 5, in: app), "Favorite actions must use a sheet")
+        XCTAssertTrue(app.buttons["Use for Summaries & chat"].exists)
+        XCTAssertTrue(app.buttons["Use for Ask the forum"].exists)
+        XCTAssertTrue(app.buttons["Use for both"].exists)
+        XCTAssertTrue(app.buttons["Remove from favorites"].exists)
+        let shot = XCTAttachment(screenshot: app.screenshot())
+        shot.name = "favorite-model-actions-sheet"
+        shot.lifetime = .keepAlways
+        add(shot)
+        app.buttons["favoriteModelActionsDone"].tap()
+        XCTAssertTrue(waitForGone(sheet, timeout: 5))
+        XCTAssertTrue(favorite.exists)
     }
 
     /// Settings › AI models favorites (ModelSettings): tap = pick the role,
@@ -286,19 +419,6 @@ final class SettingsNavigationUITests: DCUITestCase {
     /// under the seeded makers topic.
     private var phonePage: [String] {
         ["-dc-open", DCUITestCase.forumLatest]
-    }
-
-    /// Screenshot attached to the result; also written to
-    /// `$DC_SCREENSHOT_DIR` (pass `TEST_RUNNER_DC_SCREENSHOT_DIR`) when set.
-    private func capture(_ name: String) {
-        let shot = XCUIScreen.main.screenshot()
-        let attachment = XCTAttachment(screenshot: shot)
-        attachment.name = name
-        attachment.lifetime = .keepAlways
-        add(attachment)
-        if let directory = ProcessInfo.processInfo.environment["DC_SCREENSHOT_DIR"] {
-            try? shot.pngRepresentation.write(to: URL(fileURLWithPath: directory).appendingPathComponent("\(name).png"))
-        }
     }
 
     /// Home › Settings (a sheet) › Help & about › Show onboarding again: the

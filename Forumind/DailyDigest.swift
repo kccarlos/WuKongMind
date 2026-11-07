@@ -140,13 +140,15 @@ struct DigestTopicFacts: Codable, Equatable {
     var postCount: Int
     var acceptedAnswerPost: Int?
     var topPost: Int?
+    var openingPoster: String?
 
-    init(title: String, slug: String, postCount: Int, acceptedAnswerPost: Int? = nil, topPost: Int? = nil) {
+    init(title: String, slug: String, postCount: Int, acceptedAnswerPost: Int? = nil, topPost: Int? = nil, openingPoster: String? = nil) {
         self.title = title
         self.slug = slug
         self.postCount = postCount
         self.acceptedAnswerPost = acceptedAnswerPost
         self.topPost = topPost
+        self.openingPoster = openingPoster
     }
 
     init(overview: ForumTopicOverview, rules: ModerationRules = .none) {
@@ -168,7 +170,8 @@ struct DigestTopicFacts: Codable, Equatable {
             slug: overview.slug,
             postCount: overview.postCount,
             acceptedAnswerPost: accepted,
-            topPost: overview.facts.flatMap { Self.topPost($0, siteURL: overview.siteURL, topicID: overview.topicID, rules: rules) }
+            topPost: overview.facts.flatMap { Self.topPost($0, siteURL: overview.siteURL, topicID: overview.topicID, rules: rules) },
+            openingPoster: overview.facts?.openingPoster ?? overview.facts?.posts.first(where: { $0.number == 1 })?.username
         )
     }
 
@@ -294,11 +297,14 @@ enum DigestPlanner {
             // Watched topics and pinned announcements are left out first, so
             // a forum doesn't lose its turn to them.
             let lists = trending.map { list in
-                list.topics.filter {
-                    $0.isPinned != true
-                        && !rules.hidesText($0.title)
-                        && !($0.excerpt.map(rules.hidesText) ?? false)
-                        && !used.contains(TopicIdentity.key(siteURL: $0.siteURL, topicID: $0.topicID))
+                list.topics.filter { topic in
+                    topic.isPinned != true
+                        && !rules.hidesTopicTitle(topic.title, siteURL: topic.siteURL, topicID: topic.topicID, openingPoster: topic.author)
+                        && !(facts[TopicIdentity.key(siteURL: topic.siteURL, topicID: topic.topicID)].map {
+                            rules.hidesTopicTitle($0.title, siteURL: list.siteURL, topicID: topic.topicID, openingPoster: $0.openingPoster)
+                        } ?? false)
+                        && !(topic.excerpt.map(rules.hidesText) ?? false)
+                        && !used.contains(TopicIdentity.key(siteURL: topic.siteURL, topicID: topic.topicID))
                 }
             }
             var position = 0

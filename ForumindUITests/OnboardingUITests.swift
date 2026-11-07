@@ -187,8 +187,10 @@ final class OnboardingUITests: DCUITestCase {
         for _ in 0..<4 where !addrField.isHittable { app.swipeUp() }
         XCTAssertTrue(waitForHittable(addrField, timeout: 10))
         addrField.tap()
-        addrField.typeText(server.baseURL)
-        app.buttons["onboardingAddForum"].tap()
+        // Submit with the Go key rather than tapping Add: on iPad the keyboard
+        // dismisses and re-presents while typing, shifting the card under the
+        // button, so a tap can land on the pre-shift position.
+        addrField.typeText(server.baseURL + "\n")
 
         let addedPredicate = NSPredicate(format: "identifier BEGINSWITH 'onboardingForum-127.0.0.1'")
         let addedRow = app.buttons.matching(addedPredicate).firstMatch
@@ -219,6 +221,51 @@ final class OnboardingUITests: DCUITestCase {
             app.descendants(matching: .any).matching(pinnedPredicate).firstMatch.exists,
             "Unchecking an added custom forum on Step 3 and tapping 'Skip for now' still left it pinned on Home."
         )
+    }
+
+    func testOnboardingFooterStaysCompactAndDonePageHasBreathingRoom() throws {
+        try skipUnlessPhone("Checks iPhone onboarding footer proportions and step 6 spacing.")
+
+        // 1. Step 6 at base size (Finding 11): all cards stay clear of Browse forums.
+        var app = launch(["-dc-sample", "-dc-no-forums", "-dc-onboarding-step", "done"], orientation: .portrait)
+        let browse = app.buttons["onboardingBrowseForums"]
+        let shareHowTo = app.buttons["onboardingShareHowTo"]
+        XCTAssertTrue(browse.waitForExistence(timeout: 10))
+        XCTAssertTrue(shareHowTo.waitForExistence(timeout: 5))
+        capture("base_phone_onb6")
+        let doneShareMaxY = shareHowTo.frame.maxY
+        let doneBrowseMinY = browse.frame.minY
+        app.terminate()
+
+        // 2. Step 2 and Step 6 at AX5 (Finding 25).
+        let ax5 = UIContentSizeCategory.accessibilityExtraExtraExtraLarge.rawValue
+        app = launch(["-UIPreferredContentSizeCategoryName", ax5, "-dc-sample", "-dc-onboarding-step", "provider"], orientation: .portrait)
+        let axContinue = app.buttons["onboardingContinue"]
+        XCTAssertTrue(axContinue.waitForExistence(timeout: 10))
+        capture("ax5_phone_onb2")
+        let axStep2ContinueMinY = axContinue.frame.minY
+        let portraitHeight = app.windows.firstMatch.frame.height
+        app.terminate()
+
+        app = launch(["-UIPreferredContentSizeCategoryName", ax5, "-dc-sample", "-dc-no-forums", "-dc-onboarding-step", "done"], orientation: .portrait)
+        let axBrowse = app.buttons["onboardingBrowseForums"]
+        XCTAssertTrue(axBrowse.waitForExistence(timeout: 10))
+        capture("ax5_phone_onb6")
+        let axDoneBrowseHeight = axBrowse.frame.height
+        app.terminate()
+
+        // 3. Step 2 in landscape (Finding 25).
+        app = launch(["-dc-sample", "-dc-onboarding-step", "provider"], orientation: .landscapeLeft)
+        let landContinue = app.buttons["onboardingContinue"]
+        XCTAssertTrue(landContinue.waitForExistence(timeout: 10))
+        capture("land_phone_onb2")
+        let landContinueMinY = landContinue.frame.minY
+        let landHeight = app.windows.firstMatch.frame.height
+
+        XCTAssertLessThanOrEqual(doneShareMaxY, doneBrowseMinY - 12, "Step 6 cards collided with the Browse forums button (\(doneShareMaxY) vs \(doneBrowseMinY)).")
+        XCTAssertGreaterThan(axStep2ContinueMinY, portraitHeight * 0.80, "Onboarding AX5 footer covered too much of the screen (minY \(axStep2ContinueMinY) of \(portraitHeight)).")
+        XCTAssertLessThanOrEqual(axDoneBrowseHeight, 72, "Browse forums wrapped into a multi-line block at AX5 (\(axDoneBrowseHeight) pt).")
+        XCTAssertGreaterThan(landContinueMinY, landHeight * 0.75, "Onboarding landscape footer covered too much of the screen (minY \(landContinueMinY) of \(landHeight)).")
     }
 
     /// The progress dots read "Step N of 6: <title>".

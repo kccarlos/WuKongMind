@@ -715,6 +715,7 @@ struct CitationHoverAction {
 /// 4 pt apart. VoiceOver reads the paragraph as one element, then the chips.
 private struct CitedText: View {
     let source: String
+    @ScaledMetric(relativeTo: .body) private var wordSpacing = 4
 
     private enum Token {
         case text(AttributedString, spaceAfter: Bool)
@@ -731,16 +732,16 @@ private struct CitedText: View {
                 case .text(let text, let spaceAfter):
                     Text(text)
                         .fixedSize()
-                        .layoutValue(key: TrailingSpace.self, value: spaceAfter ? 4 : 0)
+                        .layoutValue(key: TrailingSpace.self, value: spaceAfter ? wordSpacing : 0)
                         .accessibilityHidden(true)
                 case .citation(let number, let suffix, let spaceAfter):
                     HStack(spacing: 1) {
-                        CitationChip(number: number)
+                        CitationChip(number: number, trailingPunctuation: suffix != nil)
                         if let suffix {
                             Text(suffix).fixedSize().accessibilityHidden(true)
                         }
                     }
-                    .layoutValue(key: TrailingSpace.self, value: suffix == nil || spaceAfter ? 4 : 0)
+                    .layoutValue(key: TrailingSpace.self, value: suffix == nil || spaceAfter ? wordSpacing : 0)
                 }
             }
         }
@@ -838,6 +839,7 @@ private extension Character {
 /// `#37`: tap to scroll the page to post 37 (AppModel.jumpToCitation).
 struct CitationChip: View {
     let number: Int
+    var trailingPunctuation = false
     @Environment(\.openURL) private var openURL
     @Environment(\.activeCitation) private var activeCitation
     @Environment(\.citationHover) private var citationHover
@@ -857,11 +859,11 @@ struct CitationChip: View {
                     isActive ? AnyShapeStyle(DCTheme.brandBlue) : AnyShapeStyle(DCTheme.postHighlightBackground),
                     in: RoundedRectangle(cornerRadius: 7, style: .continuous)
                 )
-                // At least 44 pt wide in the line (the chip centred in it), so
-                // neighbouring hit areas never overlap, and 44 pt high to tap
+                // At least 44 pt wide in the line so neighbouring hit areas
+                // never overlap, and 44 pt high to tap
                 // without taking more room between the lines. 46 pt: the
                 // drawer's floating sheet is drawn about 4 % smaller at medium.
-                .frame(minWidth: 46)
+                .frame(minWidth: 46, alignment: trailingPunctuation ? .trailing : .center)
                 .padding(.vertical, 9)
                 .contentShape(Rectangle())
                 .padding(.vertical, -9)

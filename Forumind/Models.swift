@@ -992,6 +992,8 @@ struct ForumTopicListing: Codable, Equatable, Identifiable {
     var isPinned: Bool?
     var likeCount: Int?
     var hasAcceptedAnswer: Bool?
+    /// Opening author, when supplied by the listing.
+    var author: String? = nil
 
     var topicID: String { String(id) }
 }

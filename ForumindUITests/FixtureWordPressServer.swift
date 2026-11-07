@@ -31,6 +31,8 @@ final class FixtureWordPressServer: @unchecked Sendable {
     static let chatMarker = "FIXTURE-CHAT-ANSWER"
     static let chatQuestion = "What do readers say about the card?"
 
+    var pageStyle = ""
+
     /// When set, a summary streams this long answer a chunk at a time, so a
     /// performance test has a real stream to measure under.
     var streamedSummary: (chunks: [String], interval: TimeInterval)?
@@ -195,7 +197,7 @@ final class FixtureWordPressServer: @unchecked Sendable {
         <meta property="og:site_name" content="Fixture Blog">
         <link rel="https://api.w.org/" href="\(baseURL)/wp-json/">
         <link rel="shortlink" href="\(baseURL)/?p=\(Self.postID)">
-        </head><body class="post-template-default single single-post postid-\(Self.postID)">
+        </head><body class="post-template-default single single-post postid-\(Self.postID)" style="\(pageStyle)">
         <h1>Sample Cards</h1><p>The opening article of the fixture blog. Readers leave comments below.</p>
         </body></html>
         """
