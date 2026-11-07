@@ -304,6 +304,28 @@ final class DailyDigestTests: XCTestCase {
         XCTAssertEqual(app.todaysDigest?.cards, [])
     }
 
+    func testReplacingDigestRegeneratesSummariesFromBeforeTheLatestBlock() async throws {
+        StateForumStub.lists["forum.example.com/top.json"] = topicList([21])
+        let harness = makeHarness(snapshot: AppSnapshot(forums: [pinned(site)]))
+        harness.ai.gated = false
+        harness.ai.echoContentInSummary = true
+        let app = harness.app
+        connect(app)
+        app.makeTodaysDigest()
+        try await waitUntil { app.todaysDigest?.isComplete == true && app.digestActivity == .idle }
+        let original = try XCTUnwrap(app.todaysDigest)
+        XCTAssertTrue(original.cards[0].summary.contains("Post 2"))
+
+        app.blockPost(2, topicID: "21", on: site)
+        app.makeTodaysDigest(replacing: true)
+        try await waitUntil { app.todaysDigest?.id != original.id && app.todaysDigest?.isComplete == true && app.digestActivity == .idle }
+
+        XCTAssertEqual(harness.ai.calls.count, 2)
+        XCTAssertEqual(app.todaysDigest?.cards.first?.source, .topic)
+        XCTAssertFalse(app.todaysDigest?.cards.first?.summary.contains("Post 2") == true)
+        XCTAssertFalse(harness.ai.calls.last?.content.contains("Post 2") == true)
+    }
+
     func testWithoutAProviderNothingStarts() async throws {
         StateForumStub.lists["forum.example.com/top.json"] = topicList([31])
         var snapshot = AppSnapshot(forums: [pinned(site)])

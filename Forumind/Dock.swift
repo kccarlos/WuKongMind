@@ -85,14 +85,38 @@ enum DockText {
         )
     }
 
+    /// "Today · Welcome · 3:12 left".
+    static func podcastLine(label: String, secondsLeft: Double) -> String {
+        String(
+            localized: "Today · \(label) · \(PodcastClock.format(secondsLeft)) left",
+            comment: "AI drawer status row while the Today podcast plays its Welcome or Wrap-up chapter: chapter label, time left"
+        )
+    }
+
     @MainActor
     static func podcastLine(player: PodcastPlayer, episode: PodcastEpisode) -> String {
         let timeline = PodcastTimeline(durations: episode.entries.map { $0.isReady ? $0.duration : nil })
-        return podcastLine(
-            chapter: player.chapterIndex,
-            count: episode.entries.count,
-            secondsLeft: max(0, timeline.total - timeline.elapsed(player.position))
-        )
+        let secondsLeft = max(0, timeline.total - timeline.elapsed(player.position))
+        guard episode.entries.indices.contains(player.chapterIndex) else {
+            return podcastLine(chapter: player.chapterIndex, count: episode.entries.count, secondsLeft: secondsLeft)
+        }
+        let entry = episode.entries[player.chapterIndex]
+        switch entry.chapter.kind {
+        case .intro:
+            return podcastLine(
+                label: String(localized: "Welcome", comment: "Podcast: the intro chapter's title"),
+                secondsLeft: secondsLeft
+            )
+        case .outro:
+            return podcastLine(
+                label: String(localized: "Wrap-up", comment: "Now Playing: the closing chapter"),
+                secondsLeft: secondsLeft
+            )
+        case .topic:
+            let topics = episode.entries.filter { $0.chapter.kind == .topic }
+            let topicIndex = topics.firstIndex { $0.id == entry.id } ?? 0
+            return podcastLine(chapter: topicIndex, count: topics.count, secondsLeft: secondsLeft)
+        }
     }
 }
 
@@ -268,6 +292,73 @@ struct DockLayer: View {
     }
 }
 
+/// Keeps active live-voice controls and, off Today itself, the podcast mini
+/// row accessible on pages pushed over Home (`HomeDestinations`), where
+/// `BrowserContent` sits underneath the navigation stack.
+struct HomeRouteDockModifier: ViewModifier {
+    @ObservedObject var app: AppModel
+    @ObservedObject private var voice: VoiceController
+    @ObservedObject private var router: PresentationRouter
+    @ObservedObject private var podcast: PodcastController
+    @ObservedObject private var player: PodcastPlayer
+    let route: HomeRoute
+    @Namespace private var namespace
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    init(app: AppModel, route: HomeRoute) {
+        self.app = app
+        _voice = ObservedObject(wrappedValue: app.voice)
+        _router = ObservedObject(wrappedValue: app.router)
+        _podcast = ObservedObject(wrappedValue: app.podcast)
+        _player = ObservedObject(wrappedValue: app.podcast.player)
+        self.route = route
+    }
+
+    private var showsVoice: Bool {
+        !router.drawerPhase.isPresented && voice.showsBar
+    }
+
+    private var showsPodcast: Bool {
+        !router.drawerPhase.isPresented
+            && !voice.showsBar
+            && route != .today
+            && podcast.isPlayingEpisode
+            && !player.isSuspendedForVoice
+            && podcast.episode != nil
+    }
+
+    private var floatsTrailing: Bool { router.splitLayout == true }
+
+    private var transition: AnyTransition {
+        reduceMotion ? .opacity : .opacity.combined(with: .scale(scale: 0.96, anchor: .bottom))
+    }
+
+    func body(content: Content) -> some View {
+        content.safeAreaInset(edge: .bottom, spacing: 0) {
+            if showsVoice || showsPodcast {
+                DockContainer {
+                    if showsVoice {
+                        VoiceDock(voice: voice, player: player)
+                            .modifier(DockSurface(namespace: namespace))
+                            .transition(transition)
+                    } else if showsPodcast, let episode = podcast.episode {
+                        DockPodcastRow(app: app, player: player, episode: episode)
+                            .modifier(DockSurface(namespace: namespace))
+                            .transition(transition)
+                    }
+                }
+                .frame(maxWidth: floatsTrailing ? 420 : DCTheme.contentMaxWidth)
+                .frame(maxWidth: .infinity, alignment: floatsTrailing ? .trailing : .center)
+                .padding(.horizontal, DCTheme.spacingM)
+                .padding(.top, DCTheme.spacingXS)
+                .padding(.bottom, DCTheme.spacingS)
+                .animation(DCMotion.respecting(reduceMotion, .spring(duration: 0.38, bounce: 0.14)), value: showsVoice)
+                .animation(DCMotion.respecting(reduceMotion, .spring(duration: 0.38, bounce: 0.14)), value: showsPodcast)
+            }
+        }
+    }
+}
+
 // MARK: - Rows
 
 private struct DockAnswerReadyRow: View {
@@ -304,6 +395,7 @@ private struct DockAnswerReadyRow: View {
 private struct DockHintRow: View {
     @ObservedObject var app: AppModel
     let hint: DrawerHint.Row
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         HStack(spacing: 0) {
@@ -319,11 +411,13 @@ private struct DockHintRow: View {
                     }
                     Text(verbatim: hint.text)
                         .font(.subheadline.weight(.medium))
-                        .lineLimit(1)
+                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
+                        .fixedSize(horizontal: false, vertical: true)
                         .foregroundStyle(.primary)
                     Spacer(minLength: 0)
                 }
                 .padding(.leading, DCTheme.spacingM)
+                .padding(.vertical, dynamicTypeSize.isAccessibilitySize ? DCTheme.spacingS : 0)
                 .frame(maxWidth: .infinity, minHeight: 48)
                 .contentShape(Rectangle())
             }
@@ -369,6 +463,7 @@ private struct DockPodcastRow: View {
     @ObservedObject var app: AppModel
     @ObservedObject var player: PodcastPlayer
     let episode: PodcastEpisode
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         HStack(spacing: 0) {
@@ -381,11 +476,13 @@ private struct DockPodcastRow: View {
                         .accessibilityHidden(true)
                     Text(verbatim: DockText.podcastLine(player: player, episode: episode))
                         .font(.subheadline.weight(.medium))
-                        .lineLimit(1)
+                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
+                        .fixedSize(horizontal: false, vertical: true)
                         .foregroundStyle(.primary)
                     Spacer(minLength: 0)
                 }
                 .padding(.leading, DCTheme.spacingM)
+                .padding(.vertical, dynamicTypeSize.isAccessibilitySize ? DCTheme.spacingS : 0)
                 .frame(maxWidth: .infinity, minHeight: 48)
                 .contentShape(Rectangle())
             }

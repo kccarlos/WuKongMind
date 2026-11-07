@@ -242,6 +242,8 @@ struct AppSettings: Codable, Equatable {
     var forumRequestPace: ForumRequestPace = .default
     /// Users whose posts are hidden, per forum (see Moderation.swift).
     var blockedUsers: [BlockedUser] = []
+    /// Posts hidden per forum topic (see Moderation.swift).
+    var blockedPosts: [BlockedPost] = []
     /// Words and phrases whose posts are hidden on every forum.
     var filteredWords: [String] = []
     /// The Terms of Use version accepted on this device (0: none yet).
@@ -306,6 +308,7 @@ struct AppSettings: Codable, Equatable {
         case syncAPIKeys
         case forumRequestPace
         case blockedUsers
+        case blockedPosts
         case filteredWords
         case acceptedTermsVersion
         case dailyDigestEnabled
@@ -385,6 +388,7 @@ struct AppSettings: Codable, Equatable {
         syncAPIKeys = try container.decodeIfPresent(Bool.self, forKey: .syncAPIKeys) ?? true
         forumRequestPace = try container.decodeIfPresent(ForumRequestPace.self, forKey: .forumRequestPace) ?? .default
         blockedUsers = try container.decodeIfPresent([BlockedUser].self, forKey: .blockedUsers) ?? []
+        blockedPosts = try container.decodeIfPresent([BlockedPost].self, forKey: .blockedPosts) ?? []
         filteredWords = try container.decodeIfPresent([String].self, forKey: .filteredWords) ?? []
         acceptedTermsVersion = try container.decodeIfPresent(Int.self, forKey: .acceptedTermsVersion) ?? 0
         dailyDigestEnabled = try container.decodeIfPresent(Bool.self, forKey: .dailyDigestEnabled) ?? false
@@ -602,11 +606,41 @@ struct ExportOptions: Equatable {
 }
 
 struct TopicExportPayload: Equatable {
+    private static let dayFormat = Date.ISO8601FormatStyle(timeZone: TimeZone(secondsFromGMT: 0)!)
+        .year().month().day()
+
     let summary: String
     let source: String
     let title: String
     let url: URL?
     let history: [ChatMessage]
+    var summaryUpdatedAt: Date? = nil
+    var summaryPostCount: Int? = nil
+    var totalPosts: Int? = nil
+
+    var summaryMetadataLine: String? {
+        let coverage: String?
+        if let covered = summaryPostCount, covered > 0, let total = totalPosts, total > 0 {
+            let totalLabel = String(localized: "\(total) posts", comment: "Exported summary metadata: post count")
+            coverage = String(localized: "\(covered) of \(totalLabel)", comment: "Exported summary metadata: post coverage (summarized count of total posts)")
+        } else if let count = summaryPostCount ?? totalPosts, count > 0 {
+            coverage = String(localized: "\(count) posts", comment: "Exported summary metadata: post count")
+        } else {
+            coverage = nil
+        }
+        return Self.formatSummaryLine(date: summaryUpdatedAt, coverage: coverage)
+    }
+
+    private static func formatSummaryLine(date: Date?, coverage: String?) -> String? {
+        if let date {
+            let day = date.formatted(dayFormat)
+            if let coverage {
+                return String(localized: "Summarized \(day) · \(coverage)", comment: "Exported summary metadata: date summarized and post coverage")
+            }
+            return String(localized: "Summarized \(day)", comment: "Exported summary metadata: date summarized")
+        }
+        return coverage
+    }
 
     var hasTitleAndURL: Bool {
         !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -637,7 +671,8 @@ struct TopicExportPayload: Equatable {
         }
         if !options.excludeSummary,
            !summary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            sections.append(String(localized: "Summary:\n\(summary)", comment: "Exported text: heading followed by the AI summary"))
+            let body = summaryMetadataLine.map { "\($0)\n\(summary)" } ?? summary
+            sections.append(String(localized: "Summary:\n\(body)", comment: "Exported text: heading followed by the AI summary"))
         }
         if !options.excludePostAndResponses, !source.isEmpty {
             sections.append(String(localized: "Full post:\n\(source)", comment: "Exported text: heading followed by the forum post and its replies"))

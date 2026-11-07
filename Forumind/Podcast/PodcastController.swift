@@ -53,8 +53,10 @@ final class PodcastController: ObservableObject {
     /// Today's episode (nil until one is made).
     @Published private(set) var episode: PodcastEpisode?
     @Published private(set) var activity: PodcastActivity = .idle
-    /// Why the last run stopped (shown on the Today page).
+    /// Why the last run stopped.
     @Published private(set) var lastError: String?
+    /// Why Today's episode stopped (shown in NowPlayingView, without read-aloud failures).
+    @Published private(set) var episodeError: String?
     /// Asks the user to agree before the first Google-voiced episode.
     @Published var consentProvider: VoiceProvider?
     /// The read-aloud being made or played (its id), for the buttons.
@@ -166,6 +168,19 @@ final class PodcastController: ObservableObject {
         )
     }
 
+    static var missingGoogleKeyMessage: String {
+        String(
+            localized: "Add a Google Gemini or Vertex AI key in Settings › AI models to use Google’s voices.",
+            comment: "Podcast error: Google voices are selected, and neither a Google Gemini nor a Vertex AI key is saved. Settings › AI models names the app's own Settings pages."
+        )
+    }
+
+    private func presentMissingGoogleKeyError() {
+        let message = Self.missingGoogleKeyMessage
+        lastError = message
+        app?.presentError(message, action: .openAIModels)
+    }
+
     // MARK: Making
 
     /// The Today page's Make (and Play, with `play`). Continues an
@@ -175,26 +190,53 @@ final class PodcastController: ObservableObject {
         guard let app, let digest = app.todaysDigest else { return }
         refresh()
         if var existing = episode {
-            if play { playEpisode() }
             // Already being made: carry on (a restart would make the chapter
             // in progress again, another paid call).
-            guard task == nil else { return }
+            guard task == nil else {
+                if play { playEpisode() }
+                return
+            }
             if !existing.isComplete || existing.entries.contains(where: { $0.state == .failed }) {
-                guard interactive || !existing.entries.contains(where: { $0.state == .failed }) else { return }
+                guard interactive || !existing.entries.contains(where: { $0.state == .failed }) else {
+                    if play { playEpisode() }
+                    return
+                }
+                switch engineSelection(interactive: interactive) {
+                case .needsKey:
+                    if interactive { presentMissingGoogleKeyError() }
+                    return
+                case .needsConsent(let provider):
+                    guard interactive else { return }
+                    pending = .make(play: play)
+                    consentProvider = provider
+                    return
+                case .engine(let selected):
+                    existing.engine = selected
+                    if selected.provider != nil, existing.voices == nil {
+                        existing.voices = app.settings.podcast.voices
+                    }
+                }
                 for index in existing.entries.indices where existing.entries[index].state == .failed {
                     existing.entries[index].state = .pending
                     existing.entries[index].error = ""
                 }
                 episode = existing
                 store.save(existing)
+                if play { playEpisode() }
                 startRun(digestID: digest.id)
+                return
             }
+            if play { playEpisode() }
             return
         }
         guard canMake else { return }
         let kind: PodcastEngineKind
         switch engineSelection(interactive: interactive) {
+        case .needsKey:
+            if interactive { presentMissingGoogleKeyError() }
+            return
         case .needsConsent(let provider):
+            guard interactive else { return }
             pending = .make(play: play)
             consentProvider = provider
             return
@@ -220,6 +262,7 @@ final class PodcastController: ObservableObject {
         episode = made
         store.save(made)
         lastError = nil
+        episodeError = nil
         if play { playEpisode() }
         startRun(digestID: digest.id)
     }
@@ -227,6 +270,10 @@ final class PodcastController: ObservableObject {
     /// Today's episode made again from scratch (Make Podcast Again).
     func remake() {
         guard let episode else { return }
+        if engineSelection(interactive: true) == .needsKey {
+            presentMissingGoogleKeyError()
+            return
+        }
         deleteEpisodes([episode.digestID])
         make(play: false)
     }
@@ -257,6 +304,8 @@ final class PodcastController: ObservableObject {
     func revokeConsent(_ provider: VoiceProvider) {
         guard let app else { return }
         app.settings.podcastConsent[provider.rawValue] = nil
+        pauseGeneration()
+        cancelReadAloud()
         app.saveSettings()
     }
 
@@ -285,7 +334,15 @@ final class PodcastController: ObservableObject {
         #endif
         refresh()
         if let episode {
-            if !episode.isComplete { startRun(digestID: episode.digestID) }
+            if !episode.isComplete {
+                if app.settings.podcast.engine == .google {
+                    if case .engine = engineSelection(interactive: false) {
+                        startRun(digestID: episode.digestID)
+                    }
+                } else {
+                    startRun(digestID: episode.digestID)
+                }
+            }
         } else if app.settings.podcastDailyEnabled, app.todaysDigest?.isComplete == true {
             make(play: false, interactive: false)
         }
@@ -343,22 +400,40 @@ final class PodcastController: ObservableObject {
 
             entry.state = .working
             mutate(index, digestID: digestID) { $0 = entry }
-            if !entry.chapter.isScripted {
+            let blockedAt = entry.chapter.siteURL.flatMap { app.latestBlockDate(on: $0) }
+            let predatesBlock = blockedAt.map { current.createdAt <= $0 } ?? false
+            if !entry.chapter.isScripted || predatesBlock {
                 activity = .scripting(entry.id)
-                guard let card = app.digests.first(where: { $0.id == digestID })?.cards.first(where: { $0.topicKey == entry.chapter.id }) else {
+                guard let digest = app.digests.first(where: { $0.id == digestID }),
+                      var card = digest.cards.first(where: { $0.topicKey == entry.chapter.id }) else {
                     entry.state = .failed
                     mutate(index, digestID: digestID) { $0 = entry }
                     continue
                 }
+                let rules = app.browser.moderationRules
                 do {
-                    entry.chapter = try await script(card: card, index: topicIndex, count: topicCount, previousTitle: previousTitle, hosts: current.hosts, minutes: current.minutesPerChapter, language: current.language, context: context)
+                    if !app.canUseSummaryAsContext(card.summary, title: card.title, siteURL: card.siteURL, updatedAt: digest.createdAt) {
+                        card = try await app.summarizeDigestCard(card, digestID: digestID, context: context)
+                    }
+                    guard rules == app.browser.moderationRules else { throw CancellationError() }
+                    entry.chapter = PodcastChapter(card: card)
+                    do {
+                        entry.chapter = try await script(card: card, index: topicIndex, count: topicCount, previousTitle: previousTitle, hosts: current.hosts, minutes: current.minutesPerChapter, language: current.language, context: context)
+                    } catch {
+                        if error is CancellationError || NetworkFailure.isUnreachable(error) { throw error }
+                        entry.chapter.turns = PodcastScript.fallbackTurns(for: card)
+                    }
+                    guard rules == app.browser.moderationRules else { throw CancellationError() }
                 } catch {
                     guard isCurrent(runID) else { return }
                     if NetworkFailure.isUnreachable(error) {
                         stopUnreachable(index, digestID: digestID)
                         return
                     }
-                    entry.chapter.turns = PodcastScript.fallbackTurns(for: card)
+                    entry.state = .failed
+                    entry.error = error.localizedDescription
+                    mutate(index, digestID: digestID) { $0 = entry }
+                    continue
                 }
                 guard isCurrent(runID) else { return }
                 mutate(index, digestID: digestID) { $0 = entry }
@@ -386,6 +461,7 @@ final class PodcastController: ObservableObject {
                 // A refused key or model fails every chapter the same way.
                 if case PodcastSpeechError.http(let status, _) = error, (400..<500).contains(status), status != 429 {
                     lastError = error.localizedDescription
+                    episodeError = error.localizedDescription
                     markRemainingFailed(after: index, digestID: digestID, error: error.localizedDescription)
                     return
                 }
@@ -453,27 +529,30 @@ final class PodcastController: ObservableObject {
             return chapter
         }
         let limit = context.provider == .appleIntelligence ? 1_500 : 4_000
+        let sanitizedCard = app.sanitizedDigestCard(card)
         var topicText = ""
-        if let session = app.sessions[card.topicKey] {
-            let raw = session.source.isEmpty ? session.rawPages.map(\.content).joined(separator: "\n") : session.source
+        if let session = app.sessions[sanitizedCard.topicKey] {
+            let raw = session.source.isEmpty ? RawTopicFormat.join(session.rawPages.map(\.content)) : session.source
             if !raw.isEmpty {
                 topicText = String(PromptBuilder.boundedForumContext(
-                    app.moderated(raw, siteURL: card.siteURL, topicID: card.topicID),
+                    app.moderated(raw, siteURL: sanitizedCard.siteURL, topicID: sanitizedCard.topicID),
                     limit: limit,
                     minimum: 500
                 ).prefix(limit + 200))
             }
         }
         let prompt = PodcastPrompt.Chapter(
-            card: card, forumName: app.forumInfo(siteURL: card.siteURL).displayName,
+            card: sanitizedCard, forumName: app.forumInfo(siteURL: sanitizedCard.siteURL).displayName,
             index: index, count: count, previousTitle: previousTitle, topicText: topicText
         )
         let system = PodcastPrompt.system(hosts: hosts, chapter: prompt, minutes: minutes, languageName: Self.languageName(language), language: language)
         let content = PodcastPrompt.content(for: prompt)
         var messages = [ChatMessage(role: .user, content: content)]
         var lastFailure: PodcastScriptError?
+        let rules = app.browser.moderationRules
         for _ in 0..<2 {
             try Task.checkCancellation()
+            guard rules == app.browser.moderationRules else { throw CancellationError() }
             let answer = try await app.aiService.complete(
                 system: system,
                 messages: messages,
@@ -481,6 +560,7 @@ final class PodcastController: ObservableObject {
                 provider: context.provider,
                 maxTokens: 2_048
             )
+            guard rules == app.browser.moderationRules else { throw CancellationError() }
             do {
                 return try PodcastScriptParser.chapter(from: answer, for: card, grounding: content)
             } catch let failure as PodcastScriptError {
@@ -594,6 +674,9 @@ final class PodcastController: ObservableObject {
         guard let app else { return }
         let kind: PodcastEngineKind
         switch engineSelection(interactive: true) {
+        case .needsKey:
+            presentMissingGoogleKeyError()
+            return
         case .needsConsent(let provider):
             pending = .read(id: id, title: title, text: text)
             consentProvider = provider
@@ -613,9 +696,17 @@ final class PodcastController: ObservableObject {
         )
         player.load(playlist, chapter: 0, autoplay: true)
         let voices = PodcastVoices(a: app.settings.podcast.voiceA, b: app.settings.podcast.voiceA)
-        let engine = engine(kind, voices: voices, language: AppLanguage.current)
+        let preferredLanguage = ReadingLanguage.resolved(app.settings.readingLanguage)
+        let language: String
+        if let detected = ReadingLanguage.detect(chunks.joined(separator: " ")),
+           !ReadingLanguage.sameLanguage(detected, preferredLanguage) {
+            language = detected
+        } else {
+            language = preferredLanguage
+        }
+        let engine = engine(kind, voices: voices, language: language)
         let folder = store.readAloudDirectory
-        let key = Self.cacheKey("\(kind.rawValue)|\(voices.a)|\(text)")
+        let key = Self.cacheKey("\(kind.rawValue)|\(voices.a)|\(language)|\(text)")
         readTask = Task { @MainActor [weak self] in
             try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
             for (index, chunk) in chunks.enumerated() {
@@ -634,6 +725,7 @@ final class PodcastController: ObservableObject {
                     guard !Task.isCancelled else { return }
                     try? FileManager.default.removeItem(at: url)
                     self.lastError = error.localizedDescription
+                    self.app?.presentError(error.localizedDescription)
                     // Nothing half-loaded stays: the next tap tries again.
                     self.player.unload(forgettingPosition: true)
                     self.readAloudID = nil

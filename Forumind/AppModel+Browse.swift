@@ -23,8 +23,11 @@ extension AppModel {
 
     /// Loads the current forum's home through its adapter; false with none.
     @discardableResult
-    func loadHome() -> Bool {
-        browser.loadHome(adapter: browser.homeSiteURL.flatMap { adapter(for: $0) })
+    func loadHome(silentOnFailure: Bool = false) -> Bool {
+        browser.loadHome(
+            adapter: browser.homeSiteURL.flatMap { adapter(for: $0) },
+            silentOnFailure: silentOnFailure
+        )
     }
 
     /// The current forum's sign-in page; nil with no forum or a site that has none.
@@ -37,6 +40,20 @@ extension AppModel {
     @discardableResult
     func loadLogin() -> Bool {
         guard let url = loginURL else { return false }
+        browser.load(url)
+        return true
+    }
+
+    /// The signed-in user's account page on the current forum; nil with no forum or a site that has none.
+    var accountURL: URL? {
+        guard let siteURL = browser.homeSiteURL else { return nil }
+        return adapter(for: siteURL)?.capabilities.accountURL?(siteURL, browser.signedInUsername)
+    }
+
+    /// Loads the signed-in user's account page on the current forum; false when there is none.
+    @discardableResult
+    func loadAccount() -> Bool {
+        guard let url = accountURL else { return false }
         browser.load(url)
         return true
     }

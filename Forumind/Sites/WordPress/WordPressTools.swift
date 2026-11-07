@@ -9,6 +9,7 @@ extension WordPressAPI {
     static let commentsPerSearch = 10
     static let latestCount = 30
     static let listFields = "id,title,link,date_gmt,excerpt"
+    private static let authoredListFields = listFields + ",author,_embedded,_links"
 
     // MARK: Posts
 
@@ -18,13 +19,13 @@ extension WordPressAPI {
             URLQueryItem(name: "search", value: text),
             URLQueryItem(name: "per_page", value: String(Self.postsPerSearch)),
             URLQueryItem(name: "page", value: String(options.page)),
-            URLQueryItem(name: "_fields", value: Self.listFields)
+            URLQueryItem(name: "_fields", value: Self.authoredListFields)
         ]
         query += Self.dateFilters(options)
         if let category = options.category {
             query.append(URLQueryItem(name: "categories", value: try await categoryID(matching: category)))
         }
-        return SiteQueryResult(topics: try await listings(query: query))
+        return try await postResults(query: query)
     }
 
     /// The newest posts (about 30).
@@ -33,9 +34,10 @@ extension WordPressAPI {
             URLQueryItem(name: "per_page", value: String(Self.latestCount)),
             URLQueryItem(name: "orderby", value: "date"),
             URLQueryItem(name: "order", value: "desc"),
-            URLQueryItem(name: "_fields", value: Self.listFields)
+            URLQueryItem(name: "_fields", value: Self.authoredListFields)
         ]
-        return SiteQueryResult(topics: Array(try await listings(query: query).prefix(Self.latestCount)))
+        let result = try await postResults(query: query)
+        return SiteQueryResult(topics: Array(result.topics.prefix(Self.latestCount)), hits: Array(result.hits.prefix(Self.latestCount)))
     }
 
     /// The id of the category a name or slug refers to: an exact name or slug,
@@ -131,6 +133,22 @@ extension WordPressAPI {
     }
 
     // MARK: Requests
+
+    /// Article hits retain the embedded author so shared moderation can filter
+    /// them without requiring a previously cached article.
+    private func postResults(query: [URLQueryItem]) async throws -> SiteQueryResult {
+        let list = try await jsonList("/posts", query + [URLQueryItem(name: "_embed", value: "author")])
+        let hits = list.compactMap { entry -> ForumSearchHit? in
+            guard let json = entry as? [String: Any],
+                  var topic = WordPressParsing.listing(json, siteURL: net.siteURL) else { return nil }
+            let author = WordPressParsing.parseArticle(json)?.author
+            // A site may omit embedded authors; unverified excerpts stay out.
+            if author == nil { topic.excerpt = nil }
+            return ForumSearchHit(topic: topic, postNumber: 1, username: author,
+                                  blurb: topic.excerpt, postedAt: topic.lastPostedAt, url: topic.url)
+        }
+        return SiteQueryResult(topics: hits.map(\.topic), hits: hits)
+    }
 
     func listings(query: [URLQueryItem]) async throws -> [ForumTopicListing] {
         try await jsonList("/posts", query).compactMap { entry in

@@ -16,12 +16,17 @@ final class VoiceController: ObservableObject {
     /// Called once a session is over, the consent was declined, or a
     /// session couldn't start (the podcast's "Ask about this" resumes then).
     var onFinished: (() -> Void)?
+    #if DEBUG
+    /// Unit tests: uses `SilentVoiceAudio` and `ScriptedLiveTransport`.
+    var useScriptedSession = false
+    #endif
 
     private weak var app: AppModel?
     /// The device's audio; made on the first session (it asks for the
     /// microphone then, not at launch).
     private var engine: VoiceAudioIO?
     private var stateSubscription: AnyCancellable?
+    private var lastStartedAt: ContinuousClock.Instant?
 
     init(app: AppModel) {
         self.app = app
@@ -32,6 +37,19 @@ final class VoiceController: ObservableObject {
 
     var isActive: Bool { session.map { !$0.state.isOver } ?? false }
 
+    /// Status line while a failed start or ended session stays up (`showsBar && !isActive`).
+    var inactiveBarMessage: String? {
+        if let failure = startFailure { return failure.message }
+        guard let session, session.state.isOver else { return nil }
+        return VoiceSessionBar.stateText(session)
+    }
+
+    var inactiveBarIsWarning: Bool {
+        if startFailure != nil { return true }
+        if case .failed? = session?.state { return true }
+        return false
+    }
+
     /// The audio engine, when it is the real one (for the Health row).
     var audioEngine: VoiceAudioEngine? { engine as? VoiceAudioEngine }
 
@@ -39,8 +57,13 @@ final class VoiceController: ObservableObject {
 
     /// The microphone in the browser bar: start, or end a running session.
     func toggle() {
-        if isActive {
-            session?.stop()
+        if let session, isActive {
+            if !session.state.isActive,
+               let lastStartedAt,
+               ContinuousClock.now - lastStartedAt < .milliseconds(400) {
+                return
+            }
+            session.stop()
         } else {
             start()
         }
@@ -62,7 +85,7 @@ final class VoiceController: ObservableObject {
         let audio = makeAudio()
         let result: Result<VoiceSession, VoiceSession.Failure>
         #if DEBUG
-        if VoiceDebug.isFake {
+        if VoiceDebug.isFake || useScriptedSession {
             result = app.makeVoiceSession(audio: audio, transport: { ScriptedLiveTransport() })
         } else {
             result = app.makeVoiceSession(audio: audio)
@@ -75,6 +98,7 @@ final class VoiceController: ObservableObject {
             show(failure)
         case .success(let session):
             self.session = session
+            lastStartedAt = ContinuousClock.now
             stateSubscription = session.$state.sink { [weak self] state in
                 if state.isOver { self?.sessionEnded() }
             }
@@ -101,6 +125,16 @@ final class VoiceController: ObservableObject {
         session?.stop()
     }
 
+    var canReportCurrentAnswer: Bool {
+        guard let session else { return false }
+        return app?.aiOutputReport(for: session) != nil
+    }
+
+    func reportCurrentAnswer() {
+        guard let app, let session, let target = app.aiOutputReport(for: session) else { return }
+        app.report(target)
+    }
+
     /// Closes the bar of a session that is over.
     func dismiss() {
         guard !isActive else { return }
@@ -115,7 +149,7 @@ final class VoiceController: ObservableObject {
         if let engine { return engine }
         let audio: VoiceAudioIO
         #if DEBUG
-        audio = VoiceDebug.isFake ? SilentVoiceAudio() : VoiceAudioEngine()
+        audio = (VoiceDebug.isFake || useScriptedSession) ? SilentVoiceAudio() : VoiceAudioEngine()
         #else
         audio = VoiceAudioEngine()
         #endif

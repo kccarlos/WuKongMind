@@ -30,30 +30,43 @@ enum DigestStyle {
 /// over Home (`HomeRoute.today`) on iPhone and iPad.
 struct TodayPage: View {
     @ObservedObject var app: AppModel
+    @ObservedObject private var podcast: PodcastController
     /// Opens a topic or post in the browser (Home and this page close).
     let onOpen: (URL, DigestCard) -> Void
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+    init(app: AppModel, onOpen: @escaping (URL, DigestCard) -> Void) {
+        self.app = app
+        self._podcast = ObservedObject(wrappedValue: app.podcast)
+        self.onOpen = onOpen
+    }
+
     var body: some View {
-        List {
-            header
-                .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets(top: DCTheme.spacingS, leading: 4, bottom: 0, trailing: 4))
-            if let today = app.todaysDigest {
-                if today.cards.contains(where: { $0.state == .done }) {
-                    PodcastTodaySection(app: app, podcast: app.podcast, digest: today)
+        ScrollViewReader { proxy in
+            List {
+                header
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets(top: DCTheme.spacingS, leading: 4, bottom: 0, trailing: 4))
+                if let today = app.todaysDigest {
+                    if today.cards.contains(where: { $0.state == .done }) {
+                        PodcastTodaySection(app: app, podcast: podcast, digest: today) {
+                            withAnimation(DCMotion.respecting(reduceMotion, DCMotion.smooth)) {
+                                proxy.scrollTo("todayPodcast", anchor: .top)
+                            }
+                        }
+                    }
+                    todaySections(today)
+                } else {
+                    startSection
                 }
-                todaySections(today)
-            } else {
-                startSection
+                earlierSection
             }
-            earlierSection
+            .listStyle(.insetGrouped)
+            .listSectionSpacing(.compact)
+            .scrollContentBackground(.hidden)
+            .background(DCTheme.pageBackground)
+            .animation(DCMotion.respecting(reduceMotion, DCMotion.smooth), value: app.todaysDigest)
         }
-        .listStyle(.insetGrouped)
-        .listSectionSpacing(.compact)
-        .scrollContentBackground(.hidden)
-        .background(DCTheme.pageBackground)
-        .animation(DCMotion.respecting(reduceMotion, DCMotion.smooth), value: app.todaysDigest)
         .navigationTitle("Today")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.visible, for: .navigationBar)
@@ -67,13 +80,30 @@ struct TodayPage: View {
                             Label("Make Again", systemImage: "arrow.clockwise")
                         }
                     }
-                    if app.podcast.episode?.digestID == app.todaysDigest?.id, app.podcast.episode != nil,
-                       !app.podcast.activity.isRunning, app.podcast.canMake {
+                    if podcast.episode?.digestID == app.todaysDigest?.id, podcast.episode != nil,
+                       !podcast.activity.isRunning, podcast.canMake {
                         Button {
-                            app.podcast.remake()
+                            podcast.remake()
                         } label: {
                             Label("Make Podcast Again", systemImage: "waveform")
                         }
+                    }
+                    if let digest = app.todaysDigest, let target = app.aiOutputReport(for: digest) {
+                        Button {
+                            app.report(target)
+                        } label: {
+                            Label("Report Digest…", systemImage: "flag")
+                        }
+                        .accessibilityIdentifier("reportDigest")
+                    }
+                    if let episode = podcast.episode, episode.digestID == app.todaysDigest?.id,
+                       let target = app.aiOutputReport(for: episode) {
+                        Button {
+                            app.report(target)
+                        } label: {
+                            Label("Report Podcast…", systemImage: "flag")
+                        }
+                        .accessibilityIdentifier("reportPodcast")
                     }
                     Button {
                         app.homePath.append(.digestSettings)
@@ -152,6 +182,7 @@ struct TodayPage: View {
                     DigestCardView(
                         app: app,
                         card: card,
+                        digest: today,
                         onOpen: { url in onOpen(url, card) },
                         onRetry: { app.retryDigestCard(card) }
                     )
@@ -356,7 +387,7 @@ struct DigestHistoryPage: View {
     var body: some View {
         List {
             ForEach(digest.cards) { card in
-                DigestCardView(app: app, card: card, onOpen: { url in onOpen(url, card) }, onRetry: nil)
+                DigestCardView(app: app, card: card, digest: digest, onOpen: { url in onOpen(url, card) }, onRetry: nil)
                     .listRowBackground(Color.clear)
                     .listRowSeparator(.hidden)
                     .listRowInsets(EdgeInsets(top: DCTheme.spacingXS, leading: 0, bottom: DCTheme.spacingXS, trailing: 0))
@@ -367,6 +398,18 @@ struct DigestHistoryPage: View {
         .background(DCTheme.pageBackground)
         .navigationTitle(digest.createdAt.formatted(.dateTime.month(.abbreviated).day()))
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if let target = app.aiOutputReport(for: digest) {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        app.report(target)
+                    } label: {
+                        Label("Report Digest…", systemImage: "flag")
+                    }
+                    .accessibilityIdentifier("reportDigest")
+                }
+            }
+        }
     }
 }
 
@@ -377,6 +420,7 @@ struct DigestHistoryPage: View {
 struct DigestCardView: View {
     @ObservedObject var app: AppModel
     let card: DigestCard
+    var digest: DailyDigest? = nil
     let onOpen: (URL) -> Void
     /// nil for earlier digests (read only).
     let onRetry: (() -> Void)?
@@ -400,6 +444,18 @@ struct DigestCardView: View {
                     TranslateButton(app: app, title: card.title, text: "## \(card.title)\n\n\(card.summary)", compact: true)
                         .font(.subheadline)
                         .buttonStyle(.borderless)
+                    if let target = app.aiOutputReport(for: card, digest: digest) {
+                        Button {
+                            DCHaptics.tap()
+                            app.report(target)
+                        } label: {
+                            Image(systemName: "flag")
+                        }
+                        .font(.subheadline)
+                        .buttonStyle(.borderless)
+                        .accessibilityLabel(Text("Report digest", comment: "Title of the form that reports an AI daily digest"))
+                        .accessibilityIdentifier("reportDigestCard-\(card.topicID)")
+                    }
                 }
                 reasonPill
             }
@@ -488,6 +544,7 @@ struct DigestCardView: View {
     }
 
     private var links: [Link] {
+        let card = app.sanitizedDigestCard(self.card)
         var result: [Link] = []
         if let first = card.firstNewPost, card.newReplies > 0 {
             result.append(Link(id: "first", title: String(localized: "First new reply", comment: "Digest card link: opens the topic at the first reply since the last digest"),

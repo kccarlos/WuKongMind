@@ -12,6 +12,7 @@ struct AIDataConsentPage: View {
     let provider: AIProvider
     let onAllow: () -> Void
     let onDecline: () -> Void
+    var onCancel: (() -> Void)? = nil
 
     private var policy: AIProviderPolicy? { AIProviderPolicy.policy(for: provider) }
 
@@ -95,6 +96,14 @@ struct AIDataConsentPage: View {
                 .frame(maxWidth: .infinity)
                 .background(.bar)
             }
+            .toolbar {
+                if let onCancel {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel", action: onCancel)
+                            .accessibilityIdentifier("aiConsentCancel")
+                    }
+                }
+            }
         }
         .presentationDetents([.large])
         .interactiveDismissDisabled()
@@ -147,9 +156,10 @@ struct AIDataFlowSection: View {
     private var agent: AIProvider { app.selection(for: .agent).provider }
 
     /// Third-party providers in use or with a decision, in list order.
-    private var providers: [AIProvider] {
+    var providers: [AIProvider] {
         AIProvider.allCases.filter {
-            $0.requiresDataConsent && ($0 == assistant || $0 == agent || app.settings.aiConsent[$0.rawValue] != nil)
+            app.settings.requiresAIConsent(for: $0)
+                && ($0 == assistant || $0 == agent || app.settings.aiConsent[$0.rawValue] != nil)
         }
     }
 
@@ -206,7 +216,8 @@ struct AIDataFlowSection: View {
                 AIDataConsentPage(
                     provider: provider,
                     onAllow: { app.answerAIConsent(provider, allow: true); allowing = nil },
-                    onDecline: { app.answerAIConsent(provider, allow: false); allowing = nil }
+                    onDecline: { app.answerAIConsent(provider, allow: false); allowing = nil },
+                    onCancel: { allowing = nil }
                 )
             }
         }
@@ -261,7 +272,7 @@ struct AIDataFlowSection: View {
         if provider.isAppleIntelligence {
             return String(localized: "Stays with Apple Intelligence (on this device or Private Cloud Compute)", comment: "Settings › Data & privacy: Apple Intelligence keeps the data with Apple")
         }
-        if provider.isLocalServer {
+        if provider.isLocalServer, !app.settings.requiresAIConsent(for: provider) {
             return String(localized: "Forum posts you open → \(provider.displayName), on your computer", comment: "Settings › Data & privacy: a local model server; the placeholder is its name")
         }
         return String(localized: "Forum posts you open → \(provider.displayName)", comment: "Settings › Data & privacy: where AI features send data; the placeholder is an AI provider's name")

@@ -19,7 +19,7 @@ struct SettingsProviderPage: View {
                 }
                 if !app.rolesShareModel {
                     // One button per direction: "Use X for both".
-                    ForEach(ModelRole.allCases) { role in
+                    ForEach(ModelRole.allCases.filter { app.isProviderSelectable(app.selection(for: $0).provider) }) { role in
                         Button {
                             DCHaptics.tap()
                             app.useSameModel(as: role)
@@ -153,7 +153,8 @@ private struct FavoriteModelsSection: View {
         var seen: [ModelSelection] = []
         return ModelRole.allCases.filter { role in
             let selection = app.selection(for: role)
-            guard FavoriteModel(selection: selection) != nil, !app.isFavorite(selection),
+            guard app.isProviderSelectable(selection.provider),
+                  FavoriteModel(selection: selection) != nil, !app.isFavorite(selection),
                   !seen.contains(selection) else { return false }
             seen.append(selection)
             return true
@@ -285,33 +286,48 @@ struct ModelRolePage: View {
     @ObservedObject var app: AppModel
     let role: ModelRole
     @State private var testState: ProviderTestState = .idle
+    @State private var allowing: AIProvider?
 
     private var scope: ModelScope { .role(role) }
     private var selection: ModelSelection { app.selection(for: role) }
     private var provider: AIProvider { selection.provider }
     private var guide: ProviderGuide { ProviderGuide.guide(for: provider) }
-    private var providerBinding: Binding<AIProvider> {
-        let app = app
-        let role = role
-        return Binding(get: { app.selection(for: role).provider }, set: { app.selectProvider($0, for: .role(role)) })
-    }
 
     var body: some View {
         Form {
             Section {
                 header
+                if app.readiness(of: selection) == .aiConsentDeclined {
+                    Button(ModelSetupAction.allow(provider).title) {
+                        allowing = provider
+                    }
+                    .accessibilityIdentifier("allowProviderConsent")
+                }
             } footer: {
-                Text(role.hint)
+                if app.readiness(of: selection) == .aiConsentDeclined,
+                   let message = AssistantError.aiConsentDeclined(provider).errorDescription {
+                    Text(message)
+                } else {
+                    Text(role.hint)
+                }
             }
 
             Section {
-                Picker("Provider", selection: providerBinding) {
-                    ForEach(AIProvider.allCases) { provider in
-                        Text(provider.displayName).tag(provider)
+                ProviderMenu(app: app, scope: scope, identifier: "providerPicker") {
+                    HStack {
+                        Text("Provider")
+                            .foregroundStyle(.primary)
+                        Spacer(minLength: 8)
+                        Text(provider.displayName)
+                            .foregroundStyle(.secondary)
+                        Image(systemName: "chevron.up.chevron.down")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.tertiary)
                     }
+                    .frame(maxWidth: .infinity, minHeight: 32)
+                    .contentShape(Rectangle())
                 }
-                .pickerStyle(.menu)
-                .accessibilityIdentifier("providerPicker")
+                .buttonStyle(.plain)
                 NavigationLink {
                     ProviderSettingsPage(app: app, provider: provider)
                 } label: {
@@ -343,19 +359,21 @@ struct ModelRolePage: View {
                 } else {
                     ModelField(app: app, scope: scope)
                 }
-                // Apple Intelligence is starred like any other provider.
-                Button {
-                    DCHaptics.tap()
-                    if app.isFavorite(selection) {
-                        app.removeFavorite(matching: selection)
-                    } else {
-                        app.addCurrentFavorite(for: role)
+                // Apple Intelligence is starred like any other provider when supported.
+                if app.isProviderSelectable(provider) || app.isFavorite(selection) {
+                    Button {
+                        DCHaptics.tap()
+                        if app.isFavorite(selection) {
+                            app.removeFavorite(matching: selection)
+                        } else {
+                            app.addCurrentFavorite(for: role)
+                        }
+                    } label: {
+                        Label(app.isFavorite(selection) ? "Remove from favorites" : "Add to favorites", systemImage: app.isFavorite(selection) ? "star.fill" : "star")
                     }
-                } label: {
-                    Label(app.isFavorite(selection) ? "Remove from favorites" : "Add to favorites", systemImage: app.isFavorite(selection) ? "star.fill" : "star")
+                    .disabled(FavoriteModel(selection: selection) == nil)
+                    .accessibilityIdentifier("toggleFavoriteModel")
                 }
-                .disabled(FavoriteModel(selection: selection) == nil)
-                .accessibilityIdentifier("toggleFavoriteModel")
             } header: {
                 Text("Model")
             } footer: {
@@ -366,7 +384,7 @@ struct ModelRolePage: View {
                 }
             }
 
-            if !app.settings.favoriteModels.isEmpty {
+            if !app.visibleFavorites.isEmpty {
                 Section {
                     ForEach(app.visibleFavorites) { favorite in
                         Button {
@@ -422,6 +440,21 @@ struct ModelRolePage: View {
         .navigationBarTitleDisplayMode(.inline)
         .onChange(of: selection) { testState = .idle }
         .onDisappear { app.saveSettings() }
+        .sheet(item: $allowing) { provider in
+            AIDataConsentPage(
+                provider: provider,
+                onAllow: {
+                    app.answerAIConsent(provider, allow: true)
+                    testState = .idle
+                    allowing = nil
+                },
+                onDecline: {
+                    app.answerAIConsent(provider, allow: false)
+                    allowing = nil
+                },
+                onCancel: { allowing = nil }
+            )
+        }
     }
 
     private var header: some View {
@@ -460,6 +493,7 @@ struct ProviderSettingsPage: View {
     @ObservedObject var app: AppModel
     let provider: AIProvider
     @State private var testState: ProviderTestState = .idle
+    @State private var allowing: AIProvider?
 
     private var bindings: ProviderBindings { ProviderBindings(app: app, provider: provider) }
     private var guide: ProviderGuide { ProviderGuide.guide(for: provider) }
@@ -496,8 +530,19 @@ struct ProviderSettingsPage: View {
                 if !provider.requiresAPIKey {
                     guideLink
                 }
+                if case .declined = app.aiConsentState(for: provider) {
+                    Button(ModelSetupAction.allow(provider).title) {
+                        allowing = provider
+                    }
+                    .accessibilityIdentifier("allowProviderConsent")
+                }
             } footer: {
-                Text(guide.blurb)
+                if case .declined = app.aiConsentState(for: provider),
+                   let message = AssistantError.aiConsentDeclined(provider).errorDescription {
+                    Text(message)
+                } else {
+                    Text(guide.blurb)
+                }
             }
 
             if provider.isAppleIntelligence {
@@ -570,5 +615,20 @@ struct ProviderSettingsPage: View {
         .navigationBarTitleDisplayMode(.inline)
         .onChange(of: bindings.configuration) { testState = .idle }
         .onDisappear { app.saveSettings() }
+        .sheet(item: $allowing) { provider in
+            AIDataConsentPage(
+                provider: provider,
+                onAllow: {
+                    app.answerAIConsent(provider, allow: true)
+                    testState = .idle
+                    allowing = nil
+                },
+                onDecline: {
+                    app.answerAIConsent(provider, allow: false)
+                    allowing = nil
+                },
+                onCancel: { allowing = nil }
+            )
+        }
     }
 }

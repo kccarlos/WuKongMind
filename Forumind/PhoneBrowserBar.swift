@@ -371,14 +371,22 @@ struct PhoneTitleCapsule: View {
         .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: answerPost)
     }
 
+    private var canSearch: Bool { app.searchPageURL(query: "a") != nil }
+
+    private var homePrompt: Text {
+        canSearch
+            ? Text("Search or enter a forum address", comment: "iPhone bar on Home: placeholder of the search and address field")
+            : Text("Enter a forum address")
+    }
+
     @ViewBuilder
     private var titleLabel: some View {
         if showsHome {
             HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass")
+                Image(systemName: canSearch ? "magnifyingglass" : "globe")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.secondary)
-                Text("Search or enter a forum address", comment: "iPhone bar on Home: placeholder of the search and address field")
+                homePrompt
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
@@ -435,7 +443,7 @@ struct PhoneTitleCapsule: View {
     }
 
     private var accessibilityTitle: Text {
-        if showsHome { return Text("Search or enter a forum address", comment: "iPhone bar on Home: placeholder of the search and address field") }
+        if showsHome { return homePrompt }
         return Text(verbatim: "\(browser.pageTitle), \(BrowserAddress.display(browser.currentURL))")
     }
 
@@ -826,7 +834,7 @@ struct ForumMenuButton: View {
             if let forum {
                 Menu {
                     // A site without a sign-in page offers neither the entry nor its help.
-                    if browser.isAuthenticated || app.loginURL != nil {
+                    if browser.isAuthenticated ? app.accountURL != nil : app.loginURL != nil {
                         Button(action: openAccount) {
                             if browser.isAuthenticated {
                                 Label("Open account", systemImage: "person.crop.circle")
@@ -873,7 +881,7 @@ struct ForumMenuButton: View {
                     }
                 }
             }
-            if self.topic != nil, ReadingLanguage.isTranslationAvailable {
+            if self.topic != nil, browser.canTranslatePostsOnScreen {
                 Button(action: actions.translatePosts) {
                     Label("Translate", systemImage: "translate")
                 }
@@ -907,9 +915,9 @@ struct ForumMenuButton: View {
         withAnimation(DCMotion.respecting(reduceMotion)) { app.goHome() }
     }
 
-    /// Signed in: the forum's home; otherwise its sign-in page.
+    /// Signed in: the user's account page; otherwise the forum's sign-in page.
     private func openAccount() {
-        let opened = browser.isAuthenticated ? app.loadHome() : app.loadLogin()
+        let opened = browser.isAuthenticated ? app.loadAccount() : app.loadLogin()
         if !opened { actions.showForumsHome() }
     }
 }

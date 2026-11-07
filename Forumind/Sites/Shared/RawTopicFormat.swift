@@ -90,4 +90,88 @@ enum RawTopicFormat {
     static func join(_ pageContents: [String]) -> String {
         pageContents.joined(separator: blockSeparator)
     }
+
+    private static let rawPostSeparator = try! NSRegularExpression(
+        pattern: #"\r?\n\r?\n-{5,}[ \t]*\r?\n\r?\n"#
+    )
+
+    /// Splits a raw topic text into its individual post blocks (`header\nbody`),
+    /// handling both normalized `RawTopicFormat` (`\n\n\n`) and legacy Discourse
+    /// `/raw` (`-----`) separators.
+    static func postBlocks(_ text: String) -> [String] {
+        let headers = parseHeaders(text)
+        let string = text as NSString
+        if let first = headers.first,
+           string.substring(to: first.range.location).trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return headers.enumerated().map { index, header in
+                let end = index + 1 < headers.count ? headers[index + 1].range.location : string.length
+                let slice = string.substring(with: NSRange(location: header.range.location, length: end - header.range.location))
+                return slice.replacingOccurrences(
+                    of: #"(?:\r?\n)+-{5,}[ \t]*\s*\z"#,
+                    with: "",
+                    options: .regularExpression
+                ).trimmingCharacters(in: .whitespacesAndNewlines)
+            }.filter { !$0.isEmpty }
+        }
+        let normalized = rawPostSeparator.stringByReplacingMatches(
+            in: text,
+            range: NSRange(location: 0, length: string.length),
+            withTemplate: blockSeparator
+        )
+        return normalized
+            .components(separatedBy: blockSeparator)
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+    }
+
+    /// Number of `RawForumPage`-sized pages in `text` (at least 1).
+    static func pageCount(of text: String, pageSize: Int = RawForumPage.size) -> Int {
+        let count = postBlocks(text).count
+        guard count > 0, pageSize > 0 else { return 1 }
+        return max(1, (count + pageSize - 1) / pageSize)
+    }
+
+    /// The text of 1-based `page` from `pages` when present, or sliced from `fallbackText` in chunks of `pageSize` posts.
+    static func pageText(
+        _ page: Int,
+        pages: [RawForumPage],
+        fallbackText: String,
+        pageSize: Int = RawForumPage.size
+    ) -> String {
+        let sorted = pages.sorted { $0.page < $1.page }
+        if page >= 1, page <= sorted.count {
+            return sorted[page - 1].content
+        }
+        let blocks = postBlocks(fallbackText)
+        let start = max(0, (page - 1) * pageSize)
+        guard start < blocks.count else { return "" }
+        let end = min(blocks.count, start + pageSize)
+        return blocks[start..<end].joined(separator: blockSeparator) + "\n"
+    }
+
+    /// Filters post blocks in `text` by whitespace-separated terms in `query`.
+    /// Returns the opening post (`#1` / first block), matching reply blocks, and whether the opening post itself matched.
+    static func matchingBlocks(
+        in text: String,
+        query: String,
+        openingPost: String? = nil
+    ) -> (opening: String?, matches: [String], openingMatched: Bool) {
+        let terms = query.lowercased().split(whereSeparator: \.isWhitespace).map(String.init)
+        let blocks = postBlocks(text)
+        let op = openingPost ?? blocks.first
+        guard !terms.isEmpty else { return (op, [], false) }
+        func matchesQuery(_ block: String) -> Bool {
+            let lower = block.lowercased()
+            return terms.contains { lower.contains($0) }
+        }
+        let replyBlocks: [String]
+        if let first = blocks.first, first == op {
+            replyBlocks = Array(blocks.dropFirst())
+        } else {
+            replyBlocks = blocks.filter { $0 != op }
+        }
+        let matchingReplies = replyBlocks.filter(matchesQuery)
+        let opMatched = op.map(matchesQuery) ?? false
+        return (op, matchingReplies, opMatched)
+    }
 }

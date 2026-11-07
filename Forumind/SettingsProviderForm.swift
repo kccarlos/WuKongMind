@@ -93,6 +93,7 @@ struct ProviderBadge: View {
 struct ProviderMenu<Label: View>: View {
     @ObservedObject var app: AppModel
     let scope: ModelScope
+    var identifier = "providerMenu"
     @ViewBuilder var label: () -> Label
 
     var body: some View {
@@ -109,7 +110,7 @@ struct ProviderMenu<Label: View>: View {
         } label: {
             label()
         }
-        .accessibilityIdentifier("providerMenu")
+        .accessibilityIdentifier(identifier)
     }
 
     private func item(_ provider: AIProvider) -> some View {
@@ -120,24 +121,16 @@ struct ProviderMenu<Label: View>: View {
             if provider == app.selection(for: scope.primaryRole).provider {
                 SwiftUI.Label {
                     Text(provider.displayName)
-                    Text(subtitle(provider))
+                    Text(app.providerMenuSubtitle(for: provider))
                 } icon: {
                     Image(systemName: "checkmark")
                 }
             } else {
                 Text(provider.displayName)
-                Text(subtitle(provider))
+                Text(app.providerMenuSubtitle(for: provider))
             }
         }
-    }
-
-    /// Apple Intelligence shows its live status; others their "good to know".
-    private func subtitle(_ provider: AIProvider) -> String {
-        guard provider.isAppleIntelligence else { return ProviderGuide.guide(for: provider).blurb }
-        return String(
-            localized: "\(app.appleIntelligenceStatus.title) · No API key needed · Private",
-            comment: "Provider menu subtitle for Apple Intelligence: its status, then two short facts"
-        )
+        .disabled(!app.isProviderSelectable(provider))
     }
 }
 
@@ -402,8 +395,9 @@ extension AppModel {
             DCHaptics.warning()
             return .failure(message)
         case .stale:
-            // The provider, key, or address changed while testing.
-            return .idle
+            // Keep `.testing` if a newer test is actively running; otherwise reset to `.idle`.
+            let stillTesting = role.map { isTestingConnection(for: $0) } ?? isTestingConnection(for: provider)
+            return stillTesting ? .testing : .idle
         }
     }
 }

@@ -146,4 +146,24 @@ final class AssistantSourcesTests: XCTestCase {
         XCTAssertTrue(annotated.contains("[Fence link](https://meta.discourse.org/t/fence-only/300/2)"))
         XCTAssertTrue(annotated.contains("[Tilde fence](https://meta.discourse.org/t/fence-only/301)"))
     }
+
+    func testFollowUpCitationsAreExtractedAndAnnotatedInStableOrder() {
+        var run = AgentRun(siteURL: site, goal: "Goal", provider: .openAI, model: "m")
+        run.initialAnswer = "Initial [Unified new](https://meta.discourse.org/t/unified-new/404728)."
+        let followUpAnswer = "Follow-up cites [Sidebar](https://meta.discourse.org/t/sidebar/413150/3) and [Unified new](https://meta.discourse.org/t/unified-new/404728)."
+        run.answer = followUpAnswer
+        run.followUps = [
+            ChatMessage(role: .user, content: "What about [ignored user link](https://meta.discourse.org/t/ignored/999)?"),
+            ChatMessage(role: .assistant, content: followUpAnswer)
+        ]
+
+        let sources = AgentSources.extract(from: run.initialAnswer, run: run, sessions: [:], parse: parse)
+        XCTAssertEqual(sources.map(\.number), [1, 2])
+        XCTAssertEqual(sources.map(\.topicID), ["404728", "413150"])
+        XCTAssertTrue(sources.allSatisfy(\.cited))
+
+        let annotatedFollowUp = AgentSources.annotate(followUpAnswer, sources: sources, parse: parse)
+        XCTAssertTrue(annotatedFollowUp.contains("Sidebar [S2](https://meta.discourse.org/t/sidebar/413150/3)"))
+        XCTAssertTrue(annotatedFollowUp.contains("Unified new [S1](https://meta.discourse.org/t/unified-new/404728)"))
+    }
 }

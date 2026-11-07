@@ -19,6 +19,8 @@ enum WorkspaceMetrics {
     static let browserMinimumWidth: CGFloat = 460
     /// Keyboard nudge for the resize handle (VoiceOver adjust).
     static let panelWidthStep: CGFloat = 40
+    /// Minimum narrow-iPad window width that lays out medium-drawer summaries in two columns.
+    static let twoColumnSummaryMinimumWidth: CGFloat = 640
     static let dividerWidth: CGFloat = 1
     static let handleHitWidth: CGFloat = 16
 
@@ -47,6 +49,16 @@ enum WorkspaceMetrics {
     static func panelWidth(preferred: CGFloat?, containerWidth: CGFloat) -> CGFloat {
         let wanted = preferred ?? containerWidth * 0.4
         return min(maximumPanelWidth(containerWidth: containerWidth), max(DCTheme.panelMinimumWidth, wanted))
+    }
+
+    /// VoiceOver adjustable action width (`+step` on increment, `-step` on decrement).
+    static func adjustedPanelWidth(current: CGFloat, delta: CGFloat, containerWidth: CGFloat) -> CGFloat {
+        panelWidth(preferred: current + delta, containerWidth: containerWidth)
+    }
+
+    /// Narrow iPad windows (`640..<850` pt) use two columns for the medium-height drawer summary.
+    static func usesTwoColumnSummary(windowWidth: CGFloat, isSplit: Bool) -> Bool {
+        !isSplit && windowWidth >= twoColumnSummaryMinimumWidth
     }
 }
 

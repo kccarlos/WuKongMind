@@ -113,20 +113,29 @@ struct ContentView: View {
     private func updateLayout(forWidth width: CGFloat) {
         guard width > 0 else { return }
         let next = WorkspaceMetrics.nextIsSplit(current: router.splitLayout, width: width)
-        guard next != router.splitLayout else { return }
+        let wideSummary = WorkspaceMetrics.usesTwoColumnSummary(windowWidth: width, isSplit: next)
+        guard next != router.splitLayout || wideSummary != router.usesWideDrawerSummary else { return }
         var transaction = Transaction(animation: nil)
         transaction.disablesAnimations = true
+        let changedSplit = next != router.splitLayout
         withTransaction(transaction) {
-            router.splitLayout = next
-            if next {
-                // The drawer was the reader's AI view (or a hand-off asked
-                // for it before the first width was known): keep it as the
-                // panel, and leave no drawer request armed.
-                router.splitPanelMode = router.wantsDrawer ? .shown : .auto
-                router.closeDrawer()
+            if router.usesWideDrawerSummary != wideSummary {
+                router.usesWideDrawerSummary = wideSummary
+            }
+            if changedSplit {
+                router.splitLayout = next
+                if next {
+                    // The drawer was the reader's AI view (or a hand-off asked
+                    // for it before the first width was known): keep it as the
+                    // panel, and leave no drawer request armed.
+                    router.splitPanelMode = router.wantsDrawer ? .shown : .auto
+                    router.closeDrawer()
+                }
             }
         }
-        app.syncDrawer()
+        if changedSplit {
+            app.syncDrawer()
+        }
     }
 
     private var actions: BrowserActions {

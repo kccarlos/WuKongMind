@@ -31,9 +31,6 @@ struct AssistantPanel: View {
     let onExpand: (ExpandedPanelRoute) -> Void
     /// Opens a forum URL in the Browse workspace (the agent's step log uses it).
     let onOpenURL: ((URL) -> Void)?
-    @State private var exportOptions = ExportOptions()
-    @State private var showingExportOptions = false
-    @State private var showingInstructions = false
     @State private var exporting = false
     /// "Tap a post number to jump to it", shown with the first summary.
     @State private var showsCitationTip = false
@@ -64,23 +61,16 @@ struct AssistantPanel: View {
     private var activePull: WorkRecord? { activeRecords.first { $0.type == .pull } }
     private var activeChat: WorkRecord? { activeRecords.first { $0.type == .chat } }
 
-    private var payload: TopicExportPayload {
-        let session = app.currentSession
-        return TopicExportPayload(
-            summary: session?.summary ?? "",
-            source: session?.source ?? "",
-            title: session?.title ?? app.currentTopic?.title ?? "",
-            url: session?.url ?? app.currentTopic?.url,
-            history: session?.history ?? []
-        )
+    var payload: TopicExportPayload {
+        app.currentExportPayload
     }
 
     private var exportText: String {
-        payload.text(options: exportOptions)
+        payload.text(options: app.exportOptions)
     }
 
     private var exportDisabled: Bool {
-        activePull != nil || !payload.hasContent(options: exportOptions)
+        activePull != nil || !payload.hasContent(options: app.exportOptions)
     }
 
     /// What the body shows; the key drives the cross-fade between states.
@@ -117,7 +107,7 @@ struct AssistantPanel: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 // §5: one field for the topic and the whole forum.
                 if bodyKind == .summary || bodyKind == .agent {
-                    AskBox(app: app) { showingInstructions = true }
+                    AskBox(app: app) { app.router.item = .instructions }
                 }
             } else {
                 routeContent
@@ -143,14 +133,8 @@ struct AssistantPanel: View {
             return .handled
         })
         .onChange(of: app.currentTopic?.topicKey) {
-            exportOptions = ExportOptions()
+            app.exportOptions = ExportOptions()
             renderedSummary = nil
-        }
-        .sheet(isPresented: $showingExportOptions) {
-            ExportOptionsSheet(payload: payload, options: $exportOptions)
-        }
-        .sheet(isPresented: $showingInstructions) {
-            InstructionsSheet(app: app)
         }
         .fileExporter(
             isPresented: $exporting,
@@ -329,7 +313,7 @@ struct AssistantPanel: View {
                 .disabled(exportDisabled)
 
                 Button {
-                    showingExportOptions = true
+                    app.router.item = .exportOptions
                 } label: {
                     Label("Export Options…", systemImage: "slider.horizontal.3")
                 }
@@ -343,7 +327,7 @@ struct AssistantPanel: View {
                     Label("Post & Responses", systemImage: "text.bubble")
                 }
                 .accessibilityIdentifier("viewPost")
-                .disabled(app.currentSession?.source.isEmpty ?? true)
+                .disabled(app.currentModeratedSource.isEmpty)
 
                 Button {
                     app.pullTopic()
@@ -354,7 +338,7 @@ struct AssistantPanel: View {
                 .disabled(app.currentTopic == nil || activeSummary != nil || activePull != nil)
 
                 Button {
-                    showingInstructions = true
+                    app.router.item = .instructions
                 } label: {
                     Label("Instructions & Context", systemImage: "text.quote")
                 }
@@ -382,7 +366,7 @@ struct AssistantPanel: View {
             }
 
             if app.assistantMode != .agent {
-                Section { reportAIOutputButton }
+                Section { reportAIOutputButtons }
             }
 
             if !(app.currentSession?.history.isEmpty ?? true) {
@@ -406,22 +390,45 @@ struct AssistantPanel: View {
         .accessibilityIdentifier("assistantMoreMenu")
     }
 
-    /// Report This Summary… (or, in chat, the latest answer): App Review
-    /// 1.2. Disabled until there is AI text to report.
-    private var reportAIOutputButton: some View {
-        let chat = app.assistantMode == .chat
-        let target = app.currentAIOutputReport(feature: chat ? .chatAnswer : .summary)
-        return Button {
-            if let target { app.report(target) }
-        } label: {
-            if chat {
-                Label(String(localized: "Report This Answer…", comment: "Assistant menu: report the AI's latest chat answer"), systemImage: "flag")
-            } else {
-                Label(String(localized: "Report This Summary…", comment: "Assistant menu: report the AI summary"), systemImage: "flag")
+    /// Reportable AI outputs offered in the assistant `···` menu.
+    var reportTargets: [ReportTarget] { app.currentTopicAIOutputReports }
+
+    /// Report This Summary… and/or Report This Answer…: App Review 1.2.
+    /// Disabled until there is AI text to report.
+    @ViewBuilder
+    private var reportAIOutputButtons: some View {
+        let targets = reportTargets
+        if targets.isEmpty {
+            Button {} label: {
+                if app.assistantMode == .chat {
+                    Label(String(localized: "Report This Answer…", comment: "Assistant menu: report the AI's latest chat answer"), systemImage: "flag")
+                } else {
+                    Label(String(localized: "Report This Summary…", comment: "Assistant menu: report the AI summary"), systemImage: "flag")
+                }
+            }
+            .disabled(true)
+            .accessibilityIdentifier("reportAIOutput")
+        } else {
+            ForEach(targets) { target in
+                let isChatAnswer = if case .aiOutput(let output) = target.kind {
+                    output.feature == .chatAnswer
+                } else {
+                    false
+                }
+                Button {
+                    app.report(target)
+                } label: {
+                    if isChatAnswer {
+                        Label(String(localized: "Report This Answer…", comment: "Assistant menu: report the AI's latest chat answer"), systemImage: "flag")
+                    } else {
+                        Label(String(localized: "Report This Summary…", comment: "Assistant menu: report the AI summary"), systemImage: "flag")
+                    }
+                }
+                .accessibilityIdentifier(
+                    targets.count > 1 && isChatAnswer ? "reportAIChatAnswer" : "reportAIOutput"
+                )
             }
         }
-        .disabled(target == nil)
-        .accessibilityIdentifier("reportAIOutput")
     }
 
     /// The pill's menu (ModelMenu, ModelForum): the role, what it is used
@@ -445,7 +452,7 @@ struct AssistantPanel: View {
         } header: {
             Text(role.title.localizedUppercase)
         }
-        if !app.rolesShareModel {
+        if !app.rolesShareModel, app.isProviderSelectable(current.provider) {
             Button {
                 app.useSameModel(as: role)
             } label: {
@@ -573,8 +580,9 @@ struct AssistantPanel: View {
     /// §4.4: the summary, then the topic's conversation, with the chat input
     /// pinned at the bottom.
     private var drawerThread: some View {
+        let hiddenPosts = app.currentHiddenPosts
         let streamInput = streamedSummary.map {
-            DrawerSummarySections.Input(text: $0, maximumPost: app.currentSession?.totalPosts)
+            DrawerSummarySections.Input(text: $0, maximumPost: app.currentSession?.totalPosts, hiddenPosts: hiddenPosts)
         }
         let parsed: (sections: Int, hasCitations: Bool, rows: [MarkdownRow]) = if streamInput != nil,
             let renderedSummary,
@@ -584,12 +592,11 @@ struct AssistantPanel: View {
             (0, false, [])
         } else {
             DrawerSummarySections.parsed(
-                for: .init(text: visibleSummary, maximumPost: app.currentSession?.totalPosts)
+                for: .init(text: visibleSummary, maximumPost: app.currentSession?.totalPosts, hiddenPosts: hiddenPosts)
             )
         }
         let isLazy = parsed.hasCitations
             || parsed.rows.count >= MarkdownView.lazyRowThreshold
-            || (app.currentSession?.history.count ?? 0) >= 16
         return ChatThread(
             app: app,
             topicKey: app.currentTopic?.topicKey ?? "",
@@ -619,7 +626,7 @@ struct AssistantPanel: View {
             // Once, with the first summary that has post numbers.
             let key = PresentationRouter.citationTipKey
             guard app.currentSession?.hasSummary == true, !UserDefaults.standard.bool(forKey: key),
-                  !PostCitations.numbers(in: app.currentSession?.summary ?? "").isEmpty else { return }
+                  !PostCitations.numbers(in: app.currentSession?.summary ?? "", hidden: hiddenPosts).isEmpty else { return }
             UserDefaults.standard.set(true, forKey: key)
             showsCitationTip = true
         }
@@ -664,11 +671,17 @@ struct AssistantPanel: View {
                     .transition(.asymmetric(insertion: .opacity, removal: .identity))
                 if session.hasStaleSummary {
                     DrawerStaleBanner(session: session) { app.startSummary() }
+                        .disabled(activeSummary != nil || activePull != nil)
                         .padding(.top, 4)
                         .transition(.asymmetric(insertion: .opacity, removal: .identity))
                 }
             }
-            DrawerSummarySections(rows: rows)
+            DrawerSummarySections(
+                rows: rows,
+                layout: app.router.usesWideDrawerSummary && app.router.drawerDetent == .medium
+                    ? .twoColumns
+                    : .singleColumn
+            )
                 .accessibilityIdentifier("summaryContent")
                 .transition(.identity)
             if activeSummary == nil {
@@ -749,7 +762,7 @@ struct AssistantPanel: View {
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.borderless)
-                .disabled(activePull != nil)
+                .disabled(activeSummary != nil || activePull != nil)
                 .accessibilityHint(Text("Writes the summary again", comment: "Accessibility hint of the summary's Retry button"))
                 .accessibilityIdentifier("retrySummary")
             }
@@ -788,7 +801,7 @@ struct AssistantPanel: View {
             Section("Context per batch") {
                 ForEach(SummaryBatchLimit.presets, id: \.self) { limit in
                     Button {
-                        app.startSummary(batchLimit: limit)
+                        app.startSummary(batchLimit: limit, regenerate: app.currentSession?.hasSummary == true)
                     } label: {
                         if limit == app.settings.summaryBatchLimit {
                             Label(SummaryBatchLimit.label(limit), systemImage: "checkmark")
@@ -831,6 +844,7 @@ private struct ChatThread<Leading: View>: View {
     private struct HistoryCountKey: Equatable {
         let topicKey: String
         let count: Int
+        let lastID: UUID?
     }
 
     @ObservedObject var app: AppModel
@@ -879,15 +893,22 @@ private struct ChatThread<Leading: View>: View {
                             .frame(height: 0)
                             .id("chatTop")
 
-                        Group {
+                        VStack(alignment: .leading, spacing: 8) {
                             if isLazy {
                                 LazyVStack(alignment: .leading, spacing: 8) {
-                                    threadRows
+                                    leading
                                 }
                                 .transition(.identity)
                             } else {
                                 VStack(alignment: .leading, spacing: 8) {
-                                    threadRows
+                                    leading
+                                }
+                                .transition(.identity)
+                            }
+
+                            if !history.isEmpty || activeChat != nil {
+                                VStack(alignment: .leading, spacing: 8) {
+                                    conversationRows
                                 }
                                 .transition(.identity)
                             }
@@ -922,24 +943,32 @@ private struct ChatThread<Leading: View>: View {
                 .modifier(ChatScrollTracker(onPhaseChange: { scrolling in
                     userScrolling = scrolling
                     if scrolling {
+                        metricsBox.pinningBottom = false
                         scrollTask?.cancel()
                         scrollTask = nil
                     }
                 }, onStateChange: { old, new in
                     metricsBox.nearBottom = new.nearBottom
                     if new.nearBottom {
+                        metricsBox.pinningBottom = false
                         if !atBottom { atBottom = true }
+                    } else if atBottom, scrollTask != nil, new.offsetY < old.offsetY - 1 {
+                        scrollTask?.cancel()
+                        scrollTask = nil
+                        atBottom = false
                     } else if atBottom, scrollTask == nil {
-                        let streamGrew = activeChat != nil
-                            && !userScrolling
+                        let streamGrew = !userScrolling
                             && old.contentHeight > 0
-                            && (new.contentHeight > old.contentHeight || new.viewportHeight < old.viewportHeight)
+                            && ((activeChat != nil && new.contentHeight > old.contentHeight) || new.viewportHeight < old.viewportHeight)
                             && new.offsetY >= old.offsetY - 1
                         if streamGrew {
+                            metricsBox.pinningBottom = true
+                            scrollUnanimated(proxy: proxy)
                             DispatchQueue.main.async {
+                                metricsBox.pinningBottom = false
                                 if atBottom, !userScrolling { scrollUnanimated(proxy: proxy) }
                             }
-                        } else {
+                        } else if !metricsBox.pinningBottom {
                             atBottom = false
                         }
                     }
@@ -957,11 +986,11 @@ private struct ChatThread<Leading: View>: View {
                         if atBottom != metricsBox.nearBottom { atBottom = metricsBox.nearBottom }
                     }
                 }
-                .onChange(of: HistoryCountKey(topicKey: topicKey, count: history.count)) { old, new in
-                    guard old.topicKey == new.topicKey, new.count > old.count else { return }
-                    if history.last?.role == .user {
+                .onChange(of: HistoryCountKey(topicKey: topicKey, count: history.count, lastID: history.last?.id)) { old, new in
+                    guard old.topicKey == new.topicKey else { return }
+                    if new.lastID != old.lastID, history.last?.role == .user {
                         jumpToBottom(proxy: proxy)
-                    } else if atBottom, !userScrolling {
+                    } else if new.count > old.count, atBottom, !userScrolling {
                         scrollUnanimated(proxy: proxy)
                     }
                 }
@@ -1018,14 +1047,14 @@ private struct ChatThread<Leading: View>: View {
     }
 
     @ViewBuilder
-    private var threadRows: some View {
-        leading
+    private var conversationRows: some View {
         if !history.isEmpty || activeChat != nil {
             conversationHeader
         }
 
+        let hiddenPosts = app.currentHiddenPosts
         ForEach(history) { message in
-            ChatBubble(message: message) {
+            ChatBubble(message: message, maximumPost: app.currentSession?.totalPosts, hiddenPosts: hiddenPosts) {
                 app.editChat(messageID: message.id)
             }
             .padding(.top, 4)
@@ -1038,6 +1067,8 @@ private struct ChatThread<Leading: View>: View {
         if !stream.isEmpty {
             ChatBubble(
                 message: ChatMessage(role: .assistant, content: stream),
+                maximumPost: app.currentSession?.totalPosts,
+                hiddenPosts: hiddenPosts,
                 onEdit: nil,
                 isStreaming: true
             )
@@ -1053,7 +1084,7 @@ private struct ChatThread<Leading: View>: View {
                 .padding(.top, 4)
         }
 
-        if !history.isEmpty, activeChat == nil {
+        if !history.isEmpty, activeChat == nil, app.activeChatEdit == nil {
             followUpChips
         }
     }
@@ -1115,7 +1146,7 @@ private struct ChatThread<Leading: View>: View {
     private func suggestionChip(_ title: String, question: String) -> some View {
         Button {
             DCHaptics.tap()
-            app.drafts.chat = question
+            app.applyChatSuggestion(question)
         } label: {
             Label(title, systemImage: "sparkle")
                 .labelStyle(.titleAndIcon)
@@ -1132,7 +1163,7 @@ private struct ChatThread<Leading: View>: View {
 }
 
 /// Per-topic instructions plus the chat context budget.
-private struct InstructionsSheet: View {
+struct InstructionsSheet: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var app: AppModel
     @State private var draft = ""
@@ -1226,7 +1257,7 @@ private struct ContextLimitControl: View {
 
 // MARK: - Export
 
-private struct ExportOptionsSheet: View {
+struct ExportOptionsSheet: View {
     @Environment(\.dismiss) private var dismiss
     let payload: TopicExportPayload
     @Binding var options: ExportOptions
@@ -1272,8 +1303,8 @@ struct PostPreviewView: View {
     @ObservedObject var app: AppModel
     @State private var isExpanded = false
 
-    private var source: String {
-        app.currentSession?.source ?? ""
+    var source: String {
+        app.currentModeratedSource
     }
 
     var body: some View {
@@ -1516,9 +1547,11 @@ struct ChatBubbleShape: Shape {
     }
 }
 
-private struct ChatBubble: View {
+struct ChatBubble: View {
     let message: ChatMessage
-    let onEdit: (() -> Void)?
+    var maximumPost: Int? = nil
+    var hiddenPosts: Set<Int> = []
+    var onEdit: (() -> Void)? = nil
     var isStreaming = false
 
     private var isUser: Bool { message.role == .user }
@@ -1534,7 +1567,8 @@ private struct ChatBubble: View {
                         .textSelection(.enabled)
                         .fixedSize(horizontal: false, vertical: true)
                 } else {
-                    MarkdownView(message.content)
+                    let linked = DrawerSummarySections.link(message.content, maximum: maximumPost, hidden: hiddenPosts)
+                    MarkdownView(linked, citations: linked.contains("](\(PostCitations.scheme):"))
                         .textSelection(.enabled)
                 }
                 if isUser, let onEdit {
@@ -1584,6 +1618,7 @@ private struct ChatBubble: View {
 private final class ScrollMetricsBox {
     var nearBottom = true
     var contentHeight = 0
+    var pinningBottom = false
 }
 
 private struct ScrollState: Equatable {
@@ -1626,7 +1661,7 @@ private struct ChatScrollTracker: ViewModifier {
 /// The drawer's optional 44 pt row under the grabber, only while something
 /// runs: voice, research progress, "Answer ready", or the Today podcast; and
 /// the result cards as a chip (the strip would be under the drawer).
-private struct DrawerStatusRow: View {
+struct DrawerStatusRow: View {
     @ObservedObject var app: AppModel
     @ObservedObject var podcast: PodcastController
     @ObservedObject var router: PresentationRouter
@@ -1634,6 +1669,13 @@ private struct DrawerStatusRow: View {
     /// Over History or Settings: only voice.
     var voiceOnly = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var voiceStatusText: String? {
+        if let session = voice.session, voice.isActive {
+            return "\(VoiceSessionBar.stateText(session)) · \(DockText.clock(session.connectedSeconds))"
+        }
+        return voice.inactiveBarMessage
+    }
 
     private var inAgentMode: Bool { app.assistantMode == .agent }
 
@@ -1643,7 +1685,16 @@ private struct DrawerStatusRow: View {
     var body: some View {
         VStack(spacing: 0) {
             if let session = voice.session, voice.isActive {
-                DrawerVoiceStatus(session: session) { voice.end() }
+                DrawerVoiceStatus(session: session) {
+                    voice.end()
+                    voice.dismiss()
+                }
+            } else if let message = voice.inactiveBarMessage {
+                DrawerVoiceInactiveStatus(
+                    message: message,
+                    isWarning: voice.inactiveBarIsWarning,
+                    dismiss: voice.dismiss
+                )
             } else if voiceOnly {
                 EmptyView()
             } else if !inAgentMode, let research {
@@ -1666,6 +1717,9 @@ private struct DrawerStatusRow: View {
             if !voiceOnly, app.isAIViewShown, app.browseCursor.showsInDrawer {
                 DrawerCardsChip(app: app, router: router)
             }
+        }
+        .onAppear {
+            if inAgentMode, !voiceOnly { router.answersSeenAt = Date() }
         }
         .onChange(of: app.assistantMode) {
             if inAgentMode { router.answersSeenAt = Date() }
@@ -1820,6 +1874,33 @@ private struct DrawerVoiceStatus: View {
     }
 }
 
+/// Voice failure or ended status while the drawer or split panel is up.
+private struct DrawerVoiceInactiveStatus: View {
+    let message: String
+    let isWarning: Bool
+    let dismiss: () -> Void
+
+    var body: some View {
+        HStack(spacing: DCTheme.spacingS) {
+            Image(systemName: isWarning ? "exclamationmark.triangle.fill" : "waveform")
+                .foregroundStyle(isWarning ? DCTheme.warning : .secondary)
+                .accessibilityHidden(true)
+            Text(verbatim: message)
+                .font(.footnote)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("voiceBarState")
+            Spacer(minLength: 0)
+            VoiceBarCloseButton(action: dismiss)
+        }
+        .padding(.leading, 16)
+        .padding(.vertical, 6)
+        .padding(.top, 6)
+        .frame(minHeight: 44)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("drawerStatusRow")
+    }
+}
+
 private struct DrawerStatusLabel: View {
     let systemImage: String
     let text: String
@@ -1895,12 +1976,20 @@ private struct PulseModifier: ViewModifier {
 /// citations as chips. While it streams, each new section fades in and
 /// rises 8 pt (only fades with Reduce Motion), never per character.
 struct DrawerSummarySections: View {
+    enum LayoutMode: Equatable {
+        case automatic
+        case singleColumn
+        case twoColumns
+    }
+
     let rows: [MarkdownRow]
+    var layout: LayoutMode = .automatic
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     struct Input: Equatable {
         let text: String
         let maximumPost: Int?
+        var hiddenPosts: Set<Int> = []
     }
 
     private static let linkedCache: NSCache<NSString, NSString> = {
@@ -1909,19 +1998,22 @@ struct DrawerSummarySections: View {
         return cache
     }()
 
+    static func link(_ text: String, maximum: Int?, hidden: Set<Int> = []) -> String {
+        let hiddenKey = hidden.isEmpty ? "" : hidden.sorted().map(String.init).joined(separator: ",")
+        let key = ("\(maximum ?? -1)|\(hiddenKey)|" + text) as NSString
+        if let cached = linkedCache.object(forKey: key) {
+            return cached as String
+        }
+        let value = PostCitations.linked(text, maximum: maximum, hidden: hidden)
+        linkedCache.setObject(value as NSString, forKey: key)
+        return value
+    }
+
     static func parsed(for input: Input) -> (sections: Int, hasCitations: Bool, rows: [MarkdownRow]) {
-        let prefix = "\(input.maximumPost ?? -1)|"
         let marker = "](\(PostCitations.scheme):"
         var hasCitations = false
         let linked = sections(of: input.text).map { section -> String in
-            let key = (prefix + section) as NSString
-            let value: String
-            if let cached = linkedCache.object(forKey: key) {
-                value = cached as String
-            } else {
-                value = PostCitations.linked(section, maximum: input.maximumPost)
-                linkedCache.setObject(value as NSString, forKey: key)
-            }
+            let value = link(section, maximum: input.maximumPost, hidden: input.hiddenPosts)
             if !hasCitations, value.contains(marker) { hasCitations = true }
             return value
         }
@@ -1929,7 +2021,28 @@ struct DrawerSummarySections: View {
     }
 
     var body: some View {
-        ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
+        switch layout {
+        case .singleColumn:
+            rowList(rows)
+        case .twoColumns, .automatic:
+            let columns = Self.columnRows(from: rows)
+            if let right = columns.right {
+                SummaryTwoColumnLayout(
+                    minimumWidth: layout == .twoColumns ? 0 : WorkspaceMetrics.twoColumnSummaryMinimumWidth
+                ) {
+                    VStack(alignment: .leading, spacing: 8) { rowList(columns.left) }
+                    VStack(alignment: .leading, spacing: 8) { rowList(right) }
+                }
+                .textSelection(.enabled)
+            } else {
+                rowList(rows)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func rowList(_ items: [MarkdownRow]) -> some View {
+        ForEach(Array(items.enumerated()), id: \.offset) { _, row in
             MarkdownBlockView(row: row, citations: true)
                 .equatable()
                 .transition(.asymmetric(
@@ -1938,6 +2051,25 @@ struct DrawerSummarySections: View {
                 ))
         }
         .textSelection(.enabled)
+    }
+
+    private static func columnRows(from rows: [MarkdownRow]) -> (left: [MarkdownRow], right: [MarkdownRow]?) {
+        var groups: [[MarkdownRow]] = []
+        for row in rows {
+            if case .heading(let level, _) = row.content, level <= 2, !groups.isEmpty {
+                groups.append([row])
+            } else if groups.isEmpty {
+                groups.append([row])
+            } else {
+                groups[groups.count - 1].append(row)
+            }
+        }
+        guard groups.count >= 2 else { return (rows, nil) }
+        let split = (groups.count + 1) / 2
+        let left = Array(groups[..<split].joined())
+        var right = Array(groups[split...].joined())
+        if !right.isEmpty { right[0].topSpacing = 4 }
+        return (left, right)
     }
 
     /// Splits before each level-1/2 heading outside code fences.
@@ -1955,6 +2087,40 @@ struct DrawerSummarySections: View {
         }
         return sections.map { $0.joined(separator: "\n") }
             .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+    }
+}
+
+private struct SummaryTwoColumnLayout: Layout {
+    let minimumWidth: CGFloat
+    var horizontalSpacing: CGFloat = 20
+    var verticalFallbackSpacing: CGFloat = 10
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        guard subviews.count == 2 else { return .zero }
+        if let width = proposal.width, width.isFinite, width >= minimumWidth {
+            let colWidth = max(0, (width - horizontalSpacing) / 2)
+            let left = subviews[0].sizeThatFits(.init(width: colWidth, height: proposal.height))
+            let right = subviews[1].sizeThatFits(.init(width: colWidth, height: proposal.height))
+            return CGSize(width: width, height: max(left.height, right.height))
+        }
+        let left = subviews[0].sizeThatFits(proposal)
+        let right = subviews[1].sizeThatFits(proposal)
+        return CGSize(width: max(left.width, right.width), height: left.height + verticalFallbackSpacing + right.height)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        guard subviews.count == 2 else { return }
+        if bounds.width >= minimumWidth {
+            let colWidth = max(0, (bounds.width - horizontalSpacing) / 2)
+            let colProposal = ProposedViewSize(width: colWidth, height: nil)
+            subviews[0].place(at: CGPoint(x: bounds.minX, y: bounds.minY), anchor: .topLeading, proposal: colProposal)
+            subviews[1].place(at: CGPoint(x: bounds.minX + colWidth + horizontalSpacing, y: bounds.minY), anchor: .topLeading, proposal: colProposal)
+        } else {
+            let rowProposal = ProposedViewSize(width: bounds.width, height: nil)
+            let left = subviews[0].sizeThatFits(rowProposal)
+            subviews[0].place(at: CGPoint(x: bounds.minX, y: bounds.minY), anchor: .topLeading, proposal: rowProposal)
+            subviews[1].place(at: CGPoint(x: bounds.minX, y: bounds.minY + left.height + verticalFallbackSpacing), anchor: .topLeading, proposal: rowProposal)
+        }
     }
 }
 

@@ -26,6 +26,21 @@ struct BlockedUser: Codable, Hashable, Identifiable {
     }
 }
 
+/// A post blocked on one forum topic.
+struct BlockedPost: Codable, Hashable, Identifiable {
+    /// Site URL as `ForumSite.normalizeSiteURL` returns it.
+    var siteURL: String
+    var topicID: String
+    var postNumber: Int
+    var blockedAt = Date()
+
+    var id: String { "\(siteURL)|\(topicID)|\(postNumber)" }
+
+    func matches(siteURL: String, topicID: String, postNumber: Int) -> Bool {
+        self.siteURL == siteURL && self.topicID == topicID && self.postNumber == postNumber
+    }
+}
+
 enum ModerationTerms {
     /// Bump when the terms change materially; everyone accepts again.
     static let currentVersion = 1
@@ -65,6 +80,9 @@ struct ModerationRules: Equatable {
         for user in settings.blockedUsers {
             blockedUsers[user.siteURL, default: []].insert(user.username.lowercased())
         }
+        for post in settings.blockedPosts {
+            hiddenPosts["\(post.siteURL)|\(post.topicID)", default: []].insert(post.postNumber)
+        }
         filteredWords = Self.normalizedWords(settings.filteredWords + (remote?.words ?? []))
         for entry in remote?.users ?? [] {
             let name = entry.username.lowercased()
@@ -89,7 +107,18 @@ struct ModerationRules: Equatable {
 
     func hidesUser(_ username: String, siteURL: String) -> Bool {
         let name = username.lowercased()
-        return globallyHiddenUsers.contains(name) || blockedUsers[siteURL]?.contains(name) == true
+        if globallyHiddenUsers.contains(name) || blockedUsers[siteURL]?.contains(name) == true {
+            return true
+        }
+        let token = RawTopicFormat.authorToken(username).lowercased()
+        if token != name, globallyHiddenUsers.contains(token) || blockedUsers[siteURL]?.contains(token) == true {
+            return true
+        }
+        let spaced = name.replacingOccurrences(of: "_", with: " ")
+        if spaced != name, globallyHiddenUsers.contains(spaced) || blockedUsers[siteURL]?.contains(spaced) == true {
+            return true
+        }
+        return false
     }
 
     func hidesText(_ text: String) -> Bool {
@@ -100,6 +129,10 @@ struct ModerationRules: Equatable {
 
     func hidesPost(_ number: Int, siteURL: String, topicID: String) -> Bool {
         hiddenPosts["\(siteURL)|\(topicID)"]?.contains(number) == true
+    }
+
+    func hasHiddenPosts(siteURL: String, topicID: String) -> Bool {
+        !(hiddenPosts["\(siteURL)|\(topicID)"]?.isEmpty ?? true)
     }
 
     var isEmpty: Bool {
@@ -228,6 +261,9 @@ struct AIOutput: Equatable {
         case summary
         case chatAnswer = "chat answer"
         case askAnswer = "Ask the forum answer"
+        case digest = "daily digest"
+        case podcast
+        case voiceAnswer = "voice answer"
     }
 
     var feature: Feature

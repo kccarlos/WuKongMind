@@ -82,7 +82,7 @@ enum DrawerHint {
     static func action(_ input: Input) -> Action? {
         guard input.pageState == .topic else { return nil }
         if !input.providerReady { return input.consentDeclined ? .allowAI : .setUpAI }
-        guard input.mode == .summary, !input.summaryRunning else { return nil }
+        guard input.mode != .agent, !input.summaryRunning else { return nil }
         if !input.hasSummary { return .summarize }
         if let total = input.totalPosts, let covered = input.summaryPostCount, total > covered {
             return .checkNew(total - covered)
@@ -131,10 +131,10 @@ enum PostCitations {
     }
 
     /// The cited post numbers in order of first appearance.
-    static func numbers(in text: String, maximum: Int? = nil) -> [Int] {
+    static func numbers(in text: String, maximum: Int? = nil, hidden: Set<Int> = []) -> [Int] {
         var seen: [Int] = []
         _ = MarkdownCodeSpans.transform(text) { segment in
-            for (_, number) in matches(in: segment, maximum: maximum) where !seen.contains(number) {
+            for (_, number) in matches(in: segment, maximum: maximum, hidden: hidden) where !seen.contains(number) {
                 seen.append(number)
             }
             return segment
@@ -143,13 +143,13 @@ enum PostCitations {
     }
 
     /// Rewrites `#37` as `[#37](forumind-post:37)` outside code. Numbers above
-    /// `maximum` (the topic's highest post) stay plain text.
-    static func linked(_ markdown: String, maximum: Int? = nil) -> String {
+    /// `maximum` (the topic's highest post) or in `hidden` stay plain text.
+    static func linked(_ markdown: String, maximum: Int? = nil, hidden: Set<Int> = []) -> String {
         MarkdownCodeSpans.transform(markdown) { line in
             let nsLine = line as NSString
             var result = ""
             var cursor = 0
-            for (range, number) in matches(in: line, maximum: maximum) {
+            for (range, number) in matches(in: line, maximum: maximum, hidden: hidden) {
                 result += nsLine.substring(with: NSRange(location: cursor, length: range.location - cursor))
                 result += "[#\(number)](\(scheme):\(number))"
                 cursor = range.location + range.length
@@ -173,12 +173,13 @@ enum PostCitations {
         }
     }
 
-    private static func matches(in text: String, maximum: Int?) -> [(NSRange, Int)] {
+    private static func matches(in text: String, maximum: Int?, hidden: Set<Int> = []) -> [(NSRange, Int)] {
         guard let pattern else { return [] }
         let nsText = text as NSString
         return pattern.matches(in: text, range: NSRange(location: 0, length: nsText.length)).compactMap { match in
             guard let number = Int(nsText.substring(with: match.range(at: 1))), number >= 1 else { return nil }
             if let maximum, maximum > 0, number > maximum { return nil }
+            if hidden.contains(number) { return nil }
             return (match.range, number)
         }
     }

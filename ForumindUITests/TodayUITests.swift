@@ -149,6 +149,99 @@ final class TodayUITests: DCUITestCase {
         XCTAssertTrue(wait(timeout: 5) { rowToggle.label == "Pause" }, "Space did not play: \(rowToggle.label)")
     }
 
+    func testLiveVoiceAndPodcastControlsStayAccessibleAcrossTodayAndDigestSettings() throws {
+        var app = launch(
+            ["-dc-sample", "-dc-forums-home", "-dc-digest-sample", "-dc-voice-fake"],
+            orientation: .portrait
+        )
+        openHome(in: app)
+        let mic = app.buttons.matching(identifier: "voiceButton").firstMatch
+        XCTAssertTrue(waitForBarItem(mic, timeout: 10))
+        tapBarItem(mic)
+        let agree = app.buttons["voiceConsentAgree"]
+        if agree.waitForExistence(timeout: 10) { agree.tap() }
+        XCTAssertTrue(any(app, "voiceBar").waitForExistence(timeout: 10))
+
+        openToday(in: app)
+        XCTAssertTrue(
+            waitForHittable(app.buttons["voiceEnd"], timeout: 5),
+            "Live voice session has no End control on Today page in portrait."
+        )
+        XCTAssertTrue(
+            app.buttons["voiceMute"].isHittable,
+            "Live voice session has no Mute control on Today page in portrait."
+        )
+
+        XCUIDevice.shared.orientation = .landscapeLeft
+        RunLoop.current.run(until: Date().addingTimeInterval(1.2))
+        let end = app.buttons["voiceEnd"]
+        if isPhone {
+            // XCUITest reports this rotated button as not hittable on iPhone,
+            // though it is on screen. A real tap at its position proves it works.
+            XCTAssertTrue(end.waitForExistence(timeout: 5))
+            end.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        } else {
+            XCTAssertTrue(
+                waitForHittable(end, timeout: 5),
+                "Live voice session has no End control on Today page in iPad landscape."
+            )
+            end.tap()
+        }
+        XCTAssertTrue(waitForGone(app.buttons["voiceEnd"], timeout: 5))
+        app.terminate()
+
+        XCUIDevice.shared.orientation = .portrait
+        app = launch(
+            ["-dc-sample", "-dc-forums-home", "-dc-digest-sample", "-dc-podcast-fake"],
+            orientation: .portrait
+        )
+        openToday(in: app)
+        let play = app.buttons["podcastPlay"]
+        XCTAssertTrue(waitForHittable(play, timeout: 10))
+        play.tap()
+        XCTAssertTrue(app.buttons["podcastNowPlayingRow"].waitForExistence(timeout: 10))
+
+        let menu = app.buttons["todayMenu"]
+        XCTAssertTrue(waitForHittable(menu, timeout: 5))
+        menu.tap()
+        let digestSettings = app.buttons["Digest Settings"]
+        XCTAssertTrue(digestSettings.waitForExistence(timeout: 5))
+        digestSettings.tap()
+        XCTAssertTrue(app.navigationBars["Daily digest & podcast"].waitForExistence(timeout: 10))
+
+        XCTAssertTrue(
+            any(app, "dockPodcastRow").waitForExistence(timeout: 5) && waitForHittable(app.buttons["dockPodcastToggle"], timeout: 5),
+            "Active podcast has no mini-player controls on Digest Settings pushed over Today."
+        )
+    }
+
+    func testTodayPageMenuUpdatesOnPodcastFinish() throws {
+        let app = launch(
+            ["-dc-sample", "-dc-forums-home", "-dc-digest-sample", "-dc-podcast-fake"],
+            orientation: .portrait
+        )
+        try XCTSkipUnless(isEnglish(app), "reads English menu labels")
+        openToday(in: app)
+
+        let make = app.buttons["makePodcast"]
+        XCTAssertTrue(waitForHittable(make, timeout: 10))
+        make.tap()
+        let nowPlayingRow = app.buttons["podcastNowPlayingRow"]
+        XCTAssertTrue(nowPlayingRow.waitForExistence(timeout: 10))
+        RunLoop.current.run(until: Date().addingTimeInterval(1.5))
+
+        let menu = app.buttons["todayMenu"]
+        XCTAssertTrue(waitForHittable(menu, timeout: 5))
+        menu.tap()
+        let reportPodcastOffered = app.buttons["reportPodcast"].waitForExistence(timeout: 2)
+        let remakePodcastOffered = app.buttons["Make Podcast Again"].exists
+
+        XCTAssertTrue(
+            reportPodcastOffered && remakePodcastOffered,
+            "TodayPage's ⋯ menu omitted Report Podcast… (\(reportPodcastOffered)) and Make Podcast Again (\(remakePodcastOffered)) after generating podcast"
+        )
+    }
+
     private func isEnglish(_ app: XCUIApplication) -> Bool {
         Locale.preferredLanguages.first?.hasPrefix("en") ?? true
     }

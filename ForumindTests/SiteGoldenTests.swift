@@ -511,7 +511,7 @@ Rules:
 Tools:
 - search_forum — Search this forum's posts. Supports Discourse syntax: #category, order:latest, after:YYYY-MM-DD, in:title, topic:<id>. Returns up to 20 topics with id, title, post count, last activity, and the matching posts as #N @author: excerpt. Arguments: query: Search text.
 - list_latest — List the forum's most recently active topics (about 30). Arguments: no arguments.
-- read_topic — Pull a topic's posts and return them (long topics are trimmed to the beginning and the newest replies). Counts toward the topic-read budget the first time a topic is read. Arguments: topic_id: Numeric topic id.
+- read_topic — Pull a topic's posts and return them (long topics are trimmed to the beginning and the newest replies). Counts toward the topic-read budget the first time a topic is read. Arguments: topic_id: Numeric topic id; page (optional): Optional part of a long topic, in pages of 100 posts; query (optional): Optional keywords to filter matching posts within this topic.
 - summarize_topic — Create (or refresh) the app's saved summary of a topic and return it. Use for long topics instead of reading every post. Counts as a topic read. Arguments: topic_id: Numeric topic id.
 - saved_summaries — List the user's saved topic summaries. With a query, returns the matching summaries' text; without one, only titles and ids. Arguments: query (optional): Optional filter text.
 - watch_topic — Add a topic to the user's watch list so the app reports new replies. Only when the goal asks to follow or monitor something. Arguments: topic_id: Numeric topic id.
@@ -542,7 +542,7 @@ Rules:
 Tools:
 - search_forum — Search this forum's posts. Supports Discourse syntax: #category, order:latest, after:YYYY-MM-DD, in:title, topic:<id>. Returns up to 20 topics with id, title, post count, last activity, and the matching posts as #N @author: excerpt. Arguments: query: Search text.
 - list_latest — List the forum's most recently active topics (about 30). Arguments: no arguments.
-- read_topic — Pull a topic's posts and return them (long topics are trimmed to the beginning and the newest replies). Counts toward the topic-read budget the first time a topic is read. Arguments: topic_id: Numeric topic id.
+- read_topic — Pull a topic's posts and return them (long topics are trimmed to the beginning and the newest replies). Counts toward the topic-read budget the first time a topic is read. Arguments: topic_id: Numeric topic id; page (optional): Optional part of a long topic, in pages of 100 posts; query (optional): Optional keywords to filter matching posts within this topic.
 - summarize_topic — Create (or refresh) the app's saved summary of a topic and return it. Use for long topics instead of reading every post. Counts as a topic read. Arguments: topic_id: Numeric topic id.
 - saved_summaries — List the user's saved topic summaries. With a query, returns the matching summaries' text; without one, only titles and ids. Arguments: query (optional): Optional filter text.
 - watch_topic — Add a topic to the user's watch list so the app reports new replies. Only when the goal asks to follow or monitor something. Arguments: topic_id: Numeric topic id.
@@ -557,7 +557,7 @@ search_forum approval=false (query: Search text)
   Search this forum's posts. Supports Discourse syntax: #category, order:latest, after:YYYY-MM-DD, in:title, topic:<id>. Returns up to 20 topics with id, title, post count, last activity, and the matching posts as #N @author: excerpt.
 list_latest approval=false ()
   List the forum's most recently active topics (about 30).
-read_topic approval=false (topic_id: Numeric topic id)
+read_topic approval=false (topic_id: Numeric topic id; page?: Optional part of a long topic, in pages of 100 posts; query?: Optional keywords to filter matching posts within this topic)
   Pull a topic's posts and return them (long topics are trimmed to the beginning and the newest replies). Counts toward the topic-read budget the first time a topic is read.
 summarize_topic approval=false (topic_id: Numeric topic id)
   Create (or refresh) the app's saved summary of a topic and return it. Use for long topics instead of reading every post. Counts as a topic read.

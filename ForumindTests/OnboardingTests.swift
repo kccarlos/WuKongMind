@@ -75,7 +75,10 @@ final class OnboardingTests: XCTestCase {
     }
 
     func testSettingsRootVoiceTodaySummary() {
-        XCTAssertEqual(SettingsRootSummary.voiceToday(seconds: 4 * 60 + 20, dailyLimitMinutes: 30), "Voice today 4 of 30 min")
+        XCTAssertEqual(SettingsRootSummary.voiceToday(seconds: 45, dailyLimitMinutes: 30), "Voice today 1 of 30 min")
+        XCTAssertEqual(SettingsVoicePage.minutes(45), "1 min")
+        XCTAssertEqual(SettingsRootSummary.voiceToday(seconds: 4 * 60 + 20, dailyLimitMinutes: 30), "Voice today 5 of 30 min")
+        XCTAssertEqual(SettingsVoicePage.minutes(4 * 60 + 20), "5 min")
         XCTAssertEqual(SettingsRootSummary.voiceToday(seconds: 0, dailyLimitMinutes: 0), "Voice today 0 min")
     }
 

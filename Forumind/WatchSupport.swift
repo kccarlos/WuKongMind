@@ -10,7 +10,7 @@ final class WatchNotifier: NSObject, UNUserNotificationCenterDelegate {
     static let shared = WatchNotifier()
     static let openURLNotification = Notification.Name(AppIdentity.identifier("openURL"))
     static let openTodayNotification = Notification.Name(AppIdentity.identifier("openToday"))
-    private static let urlKey = "url"
+    static let urlKey = "url"
     private static let routeKey = "route"
     private static let todayRoute = "today"
     /// A digest notification was tapped before the app model observed it
@@ -77,21 +77,29 @@ final class WatchNotifier: NSObject, UNUserNotificationCenterDelegate {
         [.banner, .sound]
     }
 
+    // Not the `async` form: its generated thunk calls the system's completion
+    // handler off the main thread, and UIKit aborts on that.
     func userNotificationCenter(
         _ center: UNUserNotificationCenter,
-        didReceive response: UNNotificationResponse
-    ) async {
-        if response.notification.request.content.userInfo[Self.routeKey] as? String == Self.todayRoute {
-            await MainActor.run { Self.pendingTodayOpen = true }
-            NotificationCenter.default.post(name: Self.openTodayNotification, object: nil)
-            return
+        didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping () -> Void
+    ) {
+        Self.open(userInfo: response.notification.request.content.userInfo, then: completionHandler)
+    }
+
+    /// Routes a tapped notification, then calls `done` on the main thread.
+    static func open(userInfo: [AnyHashable: Any], then done: @escaping () -> Void) {
+        let route = userInfo[routeKey] as? String
+        let url = (userInfo[urlKey] as? String).flatMap(URL.init(string:))
+        Task { @MainActor in
+            if route == todayRoute {
+                pendingTodayOpen = true
+                NotificationCenter.default.post(name: openTodayNotification, object: nil)
+            } else if let url {
+                NotificationCenter.default.post(name: openURLNotification, object: url)
+            }
+            done()
         }
-        guard let urlString = response.notification.request.content.userInfo[Self.urlKey] as? String,
-              let url = URL(string: urlString)
-        else {
-            return
-        }
-        NotificationCenter.default.post(name: Self.openURLNotification, object: url)
     }
 }
 

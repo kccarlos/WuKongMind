@@ -157,19 +157,31 @@ enum PromptBuilder {
     }
 
     /// Keeps the beginning and the newest replies within `limit` characters
-    /// (clamped to `minimum`…200,000; hosted providers use the 10,000 floor,
+    /// (clamped to `minimum`…1,000,000; hosted providers use the 5,000 floor,
     /// Apple Intelligence's small context window a lower one).
-    static func boundedForumContext(_ content: String, limit: Int, minimum: Int = 10_000) -> String {
-        let normalizedLimit = min(200_000, max(minimum, limit))
+    static func boundedForumContext(
+        _ content: String,
+        limit: Int,
+        minimum: Int = 5_000,
+        totalPages: Int? = nil
+    ) -> String {
+        let normalizedLimit = min(1_000_000, max(minimum, limit))
         guard content.count > normalizedLimit else { return content }
         let firstCount = normalizedLimit / 2
         let lastCount = normalizedLimit - firstCount
         let startEnd = content.index(content.startIndex, offsetBy: firstCount)
         let endStart = content.index(content.endIndex, offsetBy: -lastCount)
+        let marker: String
+        if let totalPages, totalPages > 1 {
+            let pages = totalPages > 2 ? "page=2 to \(totalPages)" : "page=2"
+            marker = "[Older middle replies omitted to fit the selected context limit; pass \(pages) or query=\"<keywords>\" to read other parts.]"
+        } else {
+            marker = "[Older middle replies omitted to fit the selected context limit.]"
+        }
         return """
         \(content[..<startEnd])
 
-        [Older middle replies omitted to fit the selected context limit.]
+        \(marker)
 
         \(content[endStart...])
         """

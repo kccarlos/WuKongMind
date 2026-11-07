@@ -231,6 +231,130 @@ final class IncomingLinkTests: XCTestCase {
         for record in app.activities where !record.status.isTerminal { app.cancel(record: record) }
     }
 
+    @MainActor
+    func testShareExtensionBeforeOnboardingOrTermsDoesNotStartAIWork() throws {
+        // 1. Before onboarding completes (`!hasCompletedOnboarding`): share handoff must not auto-run.
+        let unonboarded = makeReadyApp()
+        unonboarded.settings.hasCompletedOnboarding = false
+        XCTAssertFalse(unonboarded.acceptsSystemWork)
+        let firstShare = IncomingLinkRequest(url: topicURL, action: .summary)
+        XCTAssertTrue(SharedInbox.enqueue(firstShare))
+        unonboarded.handleDeepLink(IncomingLink.url(for: firstShare))
+        deliverTopicPage(to: unonboarded)
+        defer {
+            for record in unonboarded.activities where !record.status.isTerminal { unonboarded.cancel(record: record) }
+        }
+        XCTAssertFalse(
+            unonboarded.activities.contains { $0.type == .summary },
+            "Share deep link started AI summary before onboarding completed."
+        )
+
+        // 2. After onboarding, before Terms of Use are accepted (`needsTermsAcceptance`): inbox drain must not auto-run.
+        let unaccepted = makeReadyApp()
+        unaccepted.settings.acceptedTermsVersion = 0
+        XCTAssertFalse(unaccepted.acceptsSystemWork)
+        let termsShare = IncomingLinkRequest(url: topicURL, action: .summary)
+        XCTAssertTrue(SharedInbox.enqueue(termsShare))
+        unaccepted.drainSharedInbox()
+        deliverTopicPage(to: unaccepted)
+        defer {
+            for record in unaccepted.activities where !record.status.isTerminal { unaccepted.cancel(record: record) }
+        }
+        XCTAssertFalse(
+            unaccepted.activities.contains { $0.type == .summary },
+            "Share inbox started AI summary before Terms of Use were accepted."
+        )
+
+        let chatShare = IncomingLinkRequest(url: topicURL, action: .chat)
+        XCTAssertTrue(SharedInbox.enqueue(chatShare))
+        unaccepted.drainSharedInbox()
+        deliverTopicPage(to: unaccepted)
+        XCTAssertFalse(
+            unaccepted.activities.contains { $0.type == .pull },
+            "Share inbox started topic pull before Terms of Use were accepted."
+        )
+
+        // 3. Without a configured provider, providerSetup waits until both onboarding and Terms are accepted.
+        let unconfigured = AppModel(
+            store: PersistentStore(
+                fileURL: inboxDirectory.appendingPathComponent("unconfigured-state.json")
+            )
+        )
+        unconfigured.settings.hasCompletedOnboarding = true
+        unconfigured.settings.acceptedTermsVersion = 0
+        let unconfiguredShare = IncomingLinkRequest(url: topicURL, action: .summary)
+        unconfigured.handle(unconfiguredShare)
+        deliverTopicPage(to: unconfigured)
+        unconfigured.presentProviderSetupIfNeeded()
+        XCTAssertEqual(unconfigured.needsProviderSetup, .assistant)
+        XCTAssertNil(unconfigured.router.item, "Provider setup sheet must wait while Terms gate is active.")
+        unconfigured.acceptTerms()
+        unconfigured.presentProviderSetupIfNeeded()
+        XCTAssertEqual(unconfigured.router.item, .providerSetup(.assistant))
+    }
+
+    @MainActor
+    func testWordPressSlugShareAndLinkDropOpenAssistantAndStartWork() throws {
+        let app = makeReadyApp()
+        app.settings.hasCompletedOnboarding = true
+        app.settings.acceptedTermsVersion = ModerationTerms.currentVersion
+        defer {
+            for record in app.activities where !record.status.isTerminal { app.cancel(record: record) }
+        }
+
+        let wpSiteURL = "https://blog.example.com"
+        let sharedURL = URL(string: "https://blog.example.com/2026/05/hello-world")!
+        let canonicalURL = URL(string: "https://blog.example.com/2026/05/hello-world/")!
+        let request = IncomingLinkRequest(url: sharedURL, action: .summary, title: "Hello World")
+        XCTAssertTrue(SharedInbox.enqueue(request))
+
+        app.handleDeepLink(IncomingLink.url(for: request))
+
+        // A late report from the previously open page must neither trigger nor cancel the share.
+        deliverTopicPage(to: app)
+        XCTAssertEqual(app.assistantRequest, 0)
+
+        let wpTopic = ForumTopic(siteURL: wpSiteURL, topicID: "1001", url: canonicalURL, title: "Hello World")
+        let wpContext = PageContext(
+            url: canonicalURL,
+            site: .wordpress,
+            siteURL: wpSiteURL,
+            forumName: "Example Blog",
+            topic: wpTopic,
+            state: .topic
+        )
+        app.browser.setPageContext(wpContext)
+        app.browser.onPageContextChanged?(wpContext)
+
+        XCTAssertEqual(app.assistantRequest, 1, "WordPress slug permalink share never opened the Assistant.")
+        XCTAssertEqual(app.assistantMode, .summary)
+        XCTAssertTrue(
+            app.activities.contains { $0.type == .summary && $0.topicKey == "blog.example.com/t/1001" },
+            "WordPress slug permalink share never started the summary."
+        )
+
+        // iPad panel link drop (`app.openShared(url:action:"summary")`) on another WordPress slug post.
+        let droppedURL = URL(string: "https://blog.example.com/2026/05/second-post/")!
+        app.openShared(url: droppedURL, action: "summary")
+        let secondTopic = ForumTopic(siteURL: wpSiteURL, topicID: "1002", url: droppedURL, title: "Second Post")
+        let secondContext = PageContext(
+            url: droppedURL,
+            site: .wordpress,
+            siteURL: wpSiteURL,
+            forumName: "Example Blog",
+            topic: secondTopic,
+            state: .topic
+        )
+        app.browser.setPageContext(secondContext)
+        app.browser.onPageContextChanged?(secondContext)
+
+        XCTAssertEqual(app.assistantRequest, 2, "WordPress slug link drop never opened the Assistant.")
+        XCTAssertTrue(
+            app.activities.contains { $0.type == .summary && $0.topicKey == "blog.example.com/t/1002" },
+            "WordPress slug link drop never started the summary."
+        )
+    }
+
     private let topicURL = URL(string: "https://forum.example.com/t/topic/42")!
 
     @MainActor
@@ -240,6 +364,8 @@ final class IncomingLinkTests: XCTestCase {
                 fileURL: inboxDirectory.appendingPathComponent("state.json")
             )
         )
+        app.settings.hasCompletedOnboarding = true
+        app.settings.acceptedTermsVersion = ModerationTerms.currentVersion
         app.selectModel(ModelSelection(provider: .ollama, model: "llama3.2"), for: .both)
         XCTAssertTrue(app.isProviderReady)
         return app
@@ -272,5 +398,24 @@ final class IncomingLinkTests: XCTestCase {
             title: "Topic",
             createdAt: createdAt
         )
+    }
+}
+
+/// A tap on a notification delivers its route and finishes on the main thread:
+/// UIKit aborts if the system's completion handler runs anywhere else.
+final class NotificationTapTests: XCTestCase {
+    func testTappingAWatchedTopicNotificationFinishesOnTheMainThread() {
+        let url = URL(string: "https://forum.example.com/t/topic/42")!
+        let delivered = expectation(forNotification: WatchNotifier.openURLNotification, object: nil) {
+            $0.object as? URL == url
+        }
+        let finished = expectation(description: "completion handler")
+        DispatchQueue.global().async {
+            WatchNotifier.open(userInfo: [WatchNotifier.urlKey: url.absoluteString]) {
+                XCTAssertTrue(Thread.isMainThread)
+                finished.fulfill()
+            }
+        }
+        wait(for: [delivered, finished], timeout: 5)
     }
 }

@@ -85,7 +85,7 @@ struct NowPlayingView: View {
                 titles(episode)
                 NowPlayingScrubber(player: player, episode: episode)
                 controls(episode)
-                if let error = podcast.lastError ?? player.failure {
+                if let error = podcast.episodeError ?? player.failure {
                     Label(error, systemImage: "exclamationmark.triangle.fill")
                         .font(.caption)
                         .foregroundStyle(DCTheme.danger)
@@ -135,6 +135,15 @@ struct NowPlayingView: View {
                     }
                     .disabled(!podcast.canMake && podcast.episode == nil)
                     .accessibilityIdentifier("makePodcast")
+                }
+                if let target = app.aiOutputReport(for: episode, chapter: podcast.currentChapter) {
+                    Button {
+                        dismiss()
+                        app.report(target)
+                    } label: {
+                        Label("Report Podcast…", systemImage: "flag")
+                    }
+                    .accessibilityIdentifier("reportPodcast")
                 }
             } label: {
                 Image(systemName: "ellipsis")

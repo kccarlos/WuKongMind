@@ -158,6 +158,98 @@ final class AIDataConsentTests: XCTestCase {
         XCTAssertEqual(ai.calls.count, 1)
     }
 
+    func testRemoteAndLANOllamaOrLMStudioRequireConsentWhileLocalAddressesStayExempt() async throws {
+        // 1. Local addresses stay exempt.
+        for localURL in ["", "http://localhost:11434", "http://127.0.0.1:1234/v1", "http://[::1]:11434", "http://[0:0:0:0:0:0:0:1]:11434", "localhost:11434"] {
+            XCTAssertTrue(AIProvider.isLocalBaseURL(localURL), "Expected \(localURL) to be treated as local")
+            XCTAssertFalse(AIProvider.ollama.requiresDataConsent(baseURL: localURL))
+            XCTAssertFalse(AIProvider.lmStudio.requiresDataConsent(baseURL: localURL))
+        }
+
+        // 2. Private LAN addresses, .local mDNS hosts, and remote hosts require consent.
+        for remoteURL in [
+            "http://192.168.1.50:11434",
+            "http://10.0.0.8:1234/v1",
+            "http://172.16.0.5:11434",
+            "http://mac-studio.local:11434",
+            "https://ollama.example.com",
+            "192.168.1.50:11434"
+        ] {
+            XCTAssertFalse(AIProvider.isLocalBaseURL(remoteURL), "Expected \(remoteURL) to be treated as remote")
+            XCTAssertTrue(AIProvider.ollama.requiresDataConsent(baseURL: remoteURL))
+            XCTAssertTrue(AIProvider.lmStudio.requiresDataConsent(baseURL: remoteURL))
+        }
+
+        // 3. AIService backstop blocks remote Ollama/LM Studio until allowed, while allowing localhost.
+        let app = makeApp(aiService: AIService(session: ConsentAIRequestStub.session()))
+        var ollamaConfig = app.settings.configuration(for: .ollama)
+        ollamaConfig.model = "llama"
+        ollamaConfig.baseURL = "http://192.168.1.50:11434"
+        app.setConfiguration(ollamaConfig, for: .ollama)
+        app.selectModel(ModelSelection(provider: .ollama, model: "llama"), for: .both)
+
+        XCTAssertTrue(app.settings.requiresAIConsent(for: .ollama))
+        XCTAssertEqual(app.aiConsentState(for: .ollama), .undecided)
+        XCTAssertTrue(AIDataFlowSection(app: app).providers.contains(.ollama))
+
+        do {
+            _ = try await app.aiService.complete(system: "S", messages: [ChatMessage(role: .user, content: "Q")], configuration: ollamaConfig, provider: .ollama)
+            XCTFail("Remote Ollama went out without consent")
+        } catch AssistantError.aiConsentRequired(.ollama) {
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+        XCTAssertEqual(ConsentAIRequestStub.count, 0)
+
+        // 4. Granting and withdrawing consent works for remote Ollama/LM Studio.
+        app.answerAIConsent(.ollama, allow: true)
+        guard case .allowed = app.aiConsentState(for: .ollama) else { return XCTFail("Expected .allowed for remote Ollama") }
+        let ok = try await app.aiService.complete(system: "S", messages: [ChatMessage(role: .user, content: "Q")], configuration: ollamaConfig, provider: .ollama)
+        XCTAssertEqual(ok, "OK")
+        XCTAssertEqual(ConsentAIRequestStub.count, 1)
+
+        app.withdrawAIConsent(.ollama)
+        guard case .declined = app.aiConsentState(for: .ollama) else { return XCTFail("Expected .declined after withdrawal") }
+
+        // Switching back to localhost makes consent .notNeeded again.
+        ollamaConfig.baseURL = "http://127.0.0.1:11434"
+        app.setConfiguration(ollamaConfig, for: .ollama)
+        XCTAssertEqual(app.aiConsentState(for: .ollama), .notNeeded)
+    }
+
+    func testRemoteOllamaConsentChecksOutgoingBaseURLAndSnapshottedRun() async throws {
+        let app = makeApp(aiService: AIService(session: ConsentAIRequestStub.session()))
+        let remoteConfig = ProviderConfiguration(model: "llama3", baseURL: "https://remote-ollama.example.com", apiKey: "")
+        var bypassedDirect = false
+        do {
+            _ = try await app.aiService.complete(
+                system: "System",
+                messages: [ChatMessage(role: .user, content: "Private forum post")],
+                configuration: remoteConfig,
+                provider: .ollama
+            )
+            bypassedDirect = true
+        } catch AssistantError.aiConsentRequired(.ollama) {
+            bypassedDirect = false
+        }
+
+        ConsentAIRequestStub.reset()
+        app.setConfiguration(remoteConfig, for: .ollama)
+        app.selectModel(ModelSelection(provider: .ollama, model: "llama3"), for: .both)
+        XCTAssertTrue(app.enqueueSummary(for: topic("1")))
+        try await waitUntil { app.aiConsent.asking == .ollama }
+        XCTAssertEqual(ConsentAIRequestStub.count, 0)
+
+        let localConfig = ProviderConfiguration(model: "llama3", baseURL: "http://localhost:11434", apiKey: "")
+        app.setConfiguration(localConfig, for: .ollama)
+        app.aiConsent.resolve(.ollama)
+        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
+
+        XCTAssertFalse(bypassedDirect)
+        XCTAssertEqual(ConsentAIRequestStub.count, 0)
+        XCTAssertEqual(app.activities.first?.status, .failed)
+    }
+
     /// Withdraw: running work on that provider is cancelled and new work is
     /// blocked again.
     func testWithdrawCancelsRunningWorkAndBlocksAgain() async throws {
@@ -176,6 +268,71 @@ final class AIDataConsentTests: XCTestCase {
         try await waitUntil { app.activities.first { $0.topicID == "2" }?.status == .failed }
         XCTAssertEqual(ai.calls.count, 1)
         XCTAssertNil(app.aiConsent.asking)
+    }
+
+    func testWithdrawAIConsentStopsCrossRoleAgentSummarizerPodcastAndSwitchedDigest() async throws {
+        let planner = ScriptedAgentPlanner(actions: [
+            AgentAction(thought: "Summarize topic 1", tool: "summarize_topic", arguments: ["topic_id": "1"]),
+            AgentAction(thought: "Done", tool: AgentPrompt.finalAnswerTool, arguments: ["answer": "Done"])
+        ])
+        let watched = WatchedTopic(siteURL: site, topicID: "2", url: topic("2").url, title: "Topic 2", knownPostCount: 1)
+        let (app, ai) = makeHarness(snapshot: AppSnapshot(watchedTopics: [watched]), planner: planner)
+
+        var openAIConfig = app.settings.configuration(for: .openAI)
+        openAIConfig.apiKey = "sk-test"
+        app.setConfiguration(openAIConfig, for: .openAI)
+        app.settings.aiConsent[AIProvider.openAI.rawValue] = .allowed(Date())
+        app.selectModel(ModelSelection(provider: .openAI, model: "gpt-test"), for: .role(.assistant))
+        app.selectModel(ModelSelection(provider: .ollama, model: "llama-local"), for: .role(.agent))
+
+        // 1. Cross-role Agent run: planner uses local Ollama, summarize_topic uses OpenAI.
+        _ = try app.startAgentRun(goal: "Summarize 1", siteURL: site) { _ in }
+        try await waitUntil { ai.waiting == 1 }
+        XCTAssertEqual(ai.calls.last?.provider, .openAI)
+
+        // 2. Podcast generation running while OpenAI consent is withdrawn.
+        var doneCard = DigestCard(siteURL: site, topicID: "9", title: "Topic 9", reason: .trending, postCount: 4)
+        doneCard.state = .done
+        doneCard.summary = "Summary of topic 9 with 4 posts."
+        app.digests = [DailyDigest(day: DailyDigest.dayKey(for: Date()), completedAt: Date(), cards: [doneCard])]
+        let speech = GatedConsentSpeechEngine()
+        app.podcast.makeEngine = { _, _, _ in speech }
+        app.settings.podcast.engine = .onDevice
+        app.podcast.make(play: false)
+        try await waitUntil { speech.waiting || app.podcast.activity.isRunning }
+        defer {
+            speech.release()
+            app.podcast.pauseGeneration()
+        }
+
+        // 3. Digest started on OpenAI, then user switches Assistant role to local Ollama while digest is in flight.
+        StateForumStub.postCounts["2"] = 3
+        let (appDigest, aiDigest) = makeHarness(snapshot: AppSnapshot(watchedTopics: [watched]))
+        appDigest.setConfiguration(openAIConfig, for: .openAI)
+        appDigest.settings.aiConsent[AIProvider.openAI.rawValue] = .allowed(Date())
+        appDigest.selectModel(ModelSelection(provider: .openAI, model: "gpt-test"), for: .role(.assistant))
+        appDigest.makeTodaysDigest()
+        try await waitUntil { aiDigest.waiting == 1 }
+        XCTAssertTrue(appDigest.digestActivity.isRunning)
+        appDigest.selectModel(ModelSelection(provider: .ollama, model: "llama-local"), for: .role(.assistant))
+
+        // Withdraw OpenAI consent:
+        app.withdrawAIConsent(.openAI)
+        appDigest.withdrawAIConsent(.openAI)
+
+        let digestStillRunning = appDigest.digestActivity.isRunning
+        let podcastStillRunning = app.podcast.activity.isRunning
+
+        ai.gated = false
+        ai.releaseAll()
+        aiDigest.gated = false
+        aiDigest.releaseAll()
+        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
+
+        let savedProvider = app.sessions[TopicIdentity.key(siteURL: site, topicID: "1")]?.provider
+        XCTAssertNotEqual(savedProvider, .openAI)
+        XCTAssertFalse(digestStillRunning)
+        XCTAssertFalse(podcastStillRunning)
     }
 
     /// Work the app starts by itself (watched-topic refreshes, the digest)
@@ -215,6 +372,68 @@ final class AIDataConsentTests: XCTestCase {
         try await Task.sleep(for: .milliseconds(200))
         XCTAssertEqual(app.activities.first?.status, .cancelled)
         XCTAssertTrue(ai.calls.isEmpty)
+    }
+
+    func testCancelledWaiterDeclinedTestConnectionVoiceWithdrawalAndResetSettings() async throws {
+        let (app, ai) = makeHarness()
+
+        // 1. Cancelling the only waiting task removes the provider from AIConsentGate's queue.
+        let gate = AIConsentGate()
+        let waitTask = Task { await gate.wait(for: .openAI) }
+        try await waitUntil { gate.asking == .openAI }
+        waitTask.cancel()
+        _ = await waitTask.value
+        try? await Task.sleep(for: .milliseconds(50))
+        XCTAssertNil(gate.asking, "Cancelled waiter left provider stuck in queue.")
+        XCTAssertTrue(gate.queue.isEmpty)
+
+        // Explicit `ask(_:)` stays queued until `resolve(_:)` (Cancel/Close without recording `.declined`).
+        gate.ask(.anthropic)
+        XCTAssertEqual(gate.asking, .anthropic)
+        gate.resolve(.anthropic)
+        XCTAssertNil(gate.asking)
+
+        // 2. Declining AI consent blocks `testAndSaveProvider` from hitting the network or reporting `.success`.
+        app.settings.aiConsent[AIProvider.openAI.rawValue] = .declined(Date())
+        select(app, .openAI, model: "gpt-test", key: "sk-valid")
+        XCTAssertFalse(app.isProviderReady(for: .assistant))
+        ai.gated = false
+        let declinedTestState = await app.testAndSaveProvider(scope: .role(.assistant))
+        XCTAssertEqual(declinedTestState, .failure(AssistantError.aiConsentDeclined(.openAI).localizedDescription))
+        XCTAssertTrue(ai.calls.isEmpty)
+
+        // Undecided consent still permits connection testing (e.g. during onboarding before the consent step).
+        app.settings.aiConsent[AIProvider.openAI.rawValue] = nil
+        let undecidedTestState = await app.testAndSaveProvider(scope: .role(.assistant))
+        XCTAssertEqual(undecidedTestState, .success)
+
+        // 3. Withdrawing Voice consent or disabling `voiceEnabled` stops an active Voice session immediately.
+        var geminiConfig = app.settings.configuration(for: .gemini)
+        geminiConfig.apiKey = "gemini-key"
+        app.setConfiguration(geminiConfig, for: .gemini)
+        app.settings.voice.provider = .aiStudio
+        app.grantVoiceConsent(.aiStudio)
+        app.voice.start()
+        XCTAssertTrue(app.voice.isActive)
+        app.revokeVoiceConsent(.aiStudio)
+        XCTAssertFalse(app.voice.isActive, "Withdrawing Voice consent must stop the active microphone session.")
+        app.voice.dismiss()
+
+        app.grantVoiceConsent(.aiStudio)
+        app.voice.start()
+        XCTAssertTrue(app.voice.isActive)
+        app.settings.voiceEnabled = false
+        XCTAssertFalse(app.voice.isActive, "Turning Voice off must stop the active microphone session.")
+        app.voice.dismiss()
+
+        // 4. `resetSettings()` preserves `voiceConsent` and `podcastConsent` alongside `aiConsent`.
+        app.grantVoiceConsent(.aiStudio)
+        app.settings.podcastConsent[VoiceProvider.aiStudio.rawValue] = Date()
+        app.settings.aiConsent[AIProvider.openAI.rawValue] = .allowed(Date())
+        app.resetSettings()
+        XCTAssertNotNil(app.settings.aiConsent[AIProvider.openAI.rawValue])
+        XCTAssertNotNil(app.settings.voiceConsent[VoiceProvider.aiStudio.rawValue])
+        XCTAssertNotNil(app.settings.podcastConsent[VoiceProvider.aiStudio.rawValue])
     }
 
     // MARK: Sync
@@ -282,7 +501,7 @@ final class AIDataConsentTests: XCTestCase {
 
     // MARK: Helpers
 
-    private func makeApp(aiService: AIService, snapshot: AppSnapshot? = nil) -> AppModel {
+    private func makeApp(aiService: AIService, snapshot: AppSnapshot? = nil, planner: (any AgentPlanner)? = nil) -> AppModel {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
         let store = PersistentStore(fileURL: directory.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore())
         var seeded = snapshot ?? AppSnapshot()
@@ -293,7 +512,8 @@ final class AIDataConsentTests: XCTestCase {
         let app = AppModel(
             store: store,
             forumService: ForumService(session: URLSession(configuration: configuration), pacer: ForumRequestPacer(clock: InstantPacingClock())),
-            aiService: aiService
+            aiService: aiService,
+            planner: planner
         )
         app.usesDirectForumRequests = true
         app.browser.onPageContextChanged = nil
@@ -302,9 +522,9 @@ final class AIDataConsentTests: XCTestCase {
         return app
     }
 
-    private func makeHarness(snapshot: AppSnapshot? = nil) -> (AppModel, StateAIStub) {
+    private func makeHarness(snapshot: AppSnapshot? = nil, planner: (any AgentPlanner)? = nil) -> (AppModel, StateAIStub) {
         let ai = StateAIStub()
-        let app = makeApp(aiService: ai, snapshot: snapshot)
+        let app = makeApp(aiService: ai, snapshot: snapshot, planner: planner)
         addTeardownBlock { @MainActor in
             for record in app.activities where !record.status.isTerminal { app.cancel(record: record) }
             ai.gated = false
@@ -357,7 +577,7 @@ final class ConsentAIRequestStub: URLProtocol {
 
     override func startLoading() {
         Self.lock.withLock { Self.seen += 1 }
-        let body = "data: {\"choices\":[{\"delta\":{\"content\":\"OK\"}}]}\n\ndata: [DONE]\n\n"
+        let body = "data: {\"choices\":[{\"delta\":{\"content\":\"OK\"}}],\"message\":{\"content\":\"OK\"}}\n\ndata: [DONE]\n\n"
         let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: ["Content-Type": "text/event-stream"])!
         client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
         client?.urlProtocol(self, didLoad: Data(body.utf8))
@@ -367,6 +587,32 @@ final class ConsentAIRequestStub: URLProtocol {
     override func stopLoading() {}
 }
 
+private final class GatedConsentSpeechEngine: PodcastSpeechEngine, @unchecked Sendable {
+    let fileExtension = "wav"
+    private let lock = NSLock()
+    private var continuation: CheckedContinuation<Void, Never>?
+
+    var waiting: Bool { lock.withLock { continuation != nil } }
+
+    func release() {
+        let pending = lock.withLock { () -> CheckedContinuation<Void, Never>? in
+            let current = continuation
+            continuation = nil
+            return current
+        }
+        pending?.resume()
+    }
+
+    func synthesize(_ turns: [PodcastTurn], to destination: URL) async throws -> TimeInterval {
+        await withCheckedContinuation { cont in
+            lock.withLock { continuation = cont }
+        }
+        try Task.checkCancellation()
+        try Data("RIFF".utf8).write(to: destination)
+        return 1.0
+    }
+}
+
 // MARK: - Helpers for tests about other things
 
 extension AIService {
@@ -374,7 +620,7 @@ extension AIService {
     /// the wire format, not of consent).
     static func allowingAll(session: URLSession) -> AIService {
         let service = AIService(session: session)
-        service.consentCheck = { _ in }
+        service.consentCheck = { _, _ in }
         return service
     }
 }

@@ -104,6 +104,9 @@ extension ForumBrowserModel {
 
     /// Posts in the viewport now, not hidden by moderation.
     func postsOnScreen() async -> [VisiblePost] {
+        #if DEBUG
+        if let visiblePostsOverride { return visiblePostsOverride }
+        #endif
         guard let json = await callBridge("return JSON.stringify(b.visible());"),
               let posts = try? JSONDecoder().decode([VisiblePost].self, from: Data(json.utf8))
         else {

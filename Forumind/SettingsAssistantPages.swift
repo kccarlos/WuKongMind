@@ -327,18 +327,30 @@ struct SettingsWatchedPage: View {
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(app.watchedTopics) { watched in
-                        HStack(spacing: DCTheme.spacingM) {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(watched.title).lineLimit(2)
-                                Text(app.forum(for: watched.siteURL)?.displayName ?? ForumSite.host(of: watched.siteURL))
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                        Button {
+                            DCHaptics.tap()
+                            app.openWatched(watched)
+                        } label: {
+                            HStack(spacing: DCTheme.spacingM) {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(watched.title)
+                                        .foregroundStyle(.primary)
+                                        .lineLimit(2)
+                                    Text(app.forum(for: watched.siteURL)?.displayName ?? ForumSite.host(of: watched.siteURL))
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                Spacer(minLength: DCTheme.spacingS)
+                                if watched.newReplies > 0 {
+                                    DCPill(text: String(localized: "\(watched.newReplies) new", comment: "Badge: number of new replies in a watched topic"), tint: DCTheme.brandBlue)
+                                }
+                                Image(systemName: "arrow.up.right")
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(.tertiary)
                             }
-                            Spacer(minLength: DCTheme.spacingS)
-                            if watched.newReplies > 0 {
-                                DCPill(text: String(localized: "\(watched.newReplies) new", comment: "Badge: number of new replies in a watched topic"), tint: DCTheme.brandBlue)
-                            }
+                            .contentShape(Rectangle())
                         }
+                        .accessibilityIdentifier("settingsWatchedRow-\(watched.topicID)")
                         .swipeActions {
                             Button("Unwatch", role: .destructive) {
                                 withAnimation { app.unwatch(topicKey: watched.topicKey) }
@@ -351,13 +363,19 @@ struct SettingsWatchedPage: View {
                     Text("Watching · \(app.watchedTopics.count)", comment: "Settings › Watched topics section header with the number of watched topics")
                     Spacer()
                     if !app.watchedTopics.isEmpty {
-                        Button("Check now") {
-                            DCHaptics.tap()
-                            Task { await app.checkWatchedTopics(reason: .manual) }
+                        if app.isCheckingWatches {
+                            ProgressView()
+                                .controlSize(.small)
+                                .accessibilityIdentifier("checkingWatchedTopics")
+                        } else {
+                            Button("Check now") {
+                                DCHaptics.tap()
+                                Task { await app.checkWatchedTopics(reason: .manual) }
+                            }
+                            .font(.footnote.weight(.semibold))
+                            .textCase(nil)
+                            .accessibilityIdentifier("checkWatchedTopics")
                         }
-                        .font(.footnote.weight(.semibold))
-                        .textCase(nil)
-                        .accessibilityIdentifier("checkWatchedTopics")
                     }
                 }
             } footer: {

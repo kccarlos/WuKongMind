@@ -192,26 +192,34 @@ enum PodcastEngineKind: String, Codable, Equatable {
 
 enum PodcastEngineSelection: Equatable {
     case engine(PodcastEngineKind)
+    /// Google voices were asked for, and neither Google key is saved.
+    case needsKey
     /// Google voices were asked for, and this provider's consent is missing.
     case needsConsent(VoiceProvider)
 }
 
 enum PodcastEngineSelector {
     /// - `providers`: the Google providers with a key, preferred first.
-    /// - `interactive`: the user tapped Make or Play. The daily podcast made
-    ///   on open never asks: without consent it uses the device's voices.
+    /// - `interactive`: the user tapped Make, Play or Listen. An unattended
+    ///   daily run never prompts: Automatic uses the device's voices, while
+    ///   an explicit Google choice waits for a key and consent.
     static func select(
         choice: PodcastEngineChoice,
         providers: [VoiceProvider],
         settings: AppSettings,
         interactive: Bool
     ) -> PodcastEngineSelection {
-        guard choice != .onDevice, let provider = providers.first else { return .engine(.onDevice) }
+        if choice == .onDevice { return .engine(.onDevice) }
+        guard let provider = providers.first else {
+            return choice == .google ? .needsKey : .engine(.onDevice)
+        }
         if PodcastConsent.isGranted(provider, in: settings) { return .engine(PodcastEngineKind(provider)) }
         if let agreed = providers.first(where: { PodcastConsent.isGranted($0, in: settings) }) {
             return .engine(PodcastEngineKind(agreed))
         }
-        guard interactive else { return .engine(.onDevice) }
+        if !interactive {
+            return choice == .google ? .needsConsent(provider) : .engine(.onDevice)
+        }
         return .needsConsent(provider)
     }
 }

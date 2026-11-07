@@ -2102,6 +2102,23 @@
         }
       }
     },
+    "Add a Google Gemini or Vertex AI key in Settings › AI models to use Google’s voices." : {
+      "comment" : "Podcast error: Google voices are selected, and neither a Google Gemini nor a Vertex AI key is saved. Settings › AI models names the app's own Settings pages.",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请在“设置 › AI 模型”中添加 Google Gemini 或 Vertex AI 密钥以使用 Google 的声音。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請在「設定 › AI 模型」中加入 Google Gemini 或 Vertex AI 金鑰以使用 Google 的聲音。"
+          }
+        }
+      }
+    },
     "Add a Google Gemini or Vertex AI key in Settings › AI models to use voice." : {
       "comment" : "Voice session error. Settings › AI models names the app's own Settings pages.",
       "localizations" : {
@@ -3888,6 +3905,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "倒退 15 秒"
+          }
+        }
+      }
+    },
+    "Back to Home" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "返回首页"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "返回首頁"
           }
         }
       }
@@ -6600,6 +6633,23 @@
         }
       }
     },
+    "Editing question" : {
+      "comment" : "Chat composer banner while editing a previously sent question",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在编辑问题"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在編輯問題"
+          }
+        }
+      }
+    },
     "End voice" : {
       "localizations" : {
         "zh-Hans" : {
@@ -7331,6 +7381,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "論壇選單"
+          }
+        }
+      }
+    },
+    "Forum overview" : {
+      "comment" : "Button: returns from Ask the forum to the forum home overview",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "论坛概览"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "論壇概覽"
           }
         }
       }
@@ -8078,6 +8145,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Google 文字轉語音失敗（%lld）：%@"
+          }
+        }
+      }
+    },
+    "Google’s voices need a Google Gemini or Vertex AI key." : {
+      "comment" : "Today page: Google voices are chosen without a saved key",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Google 的声音需要 Google Gemini 或 Vertex AI 密钥。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Google 的聲音需要 Google Gemini 或 Vertex AI 金鑰。"
           }
         }
       }
@@ -9773,6 +9857,29 @@
         }
       }
     },
+    "Model “%@” isn’t available from %@." : {
+      "comment" : "Error when Test Connection finds the server reachable but the chosen model ID is not in its model list; arguments are model name and provider name",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Model “%1$@” isn’t available from %2$@."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%2$@ 未提供模型“%1$@”。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%2$@ 未提供模型「%1$@」。"
+          }
+        }
+      }
+    },
     "Model: %@" : {
       "comment" : "Accessibility label of the AI drawer's model pill; the placeholder is the model name",
       "localizations" : {
@@ -10364,18 +10471,18 @@
         }
       }
     },
-    "No one is blocked. To block someone, open a topic, then ⋯ › Report or block." : {
+    "No one is blocked. To block someone, open a topic, then open the forum menu or ⋯ › Report or block." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "没有屏蔽任何人。要屏蔽某人，请打开一个话题，然后选择 ⋯ › 举报或屏蔽。"
+            "value" : "没有屏蔽任何人。要屏蔽某人，请打开一个话题，然后打开论坛菜单或 ⋯ › 举报或屏蔽。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "沒有封鎖任何人。要封鎖某人，請打開一個話題，然後選擇 ⋯ › 檢舉或封鎖。"
+            "value" : "沒有封鎖任何人。要封鎖某人，請打開一個話題，然後打開論壇選單或 ⋯ › 檢舉或封鎖。"
           }
         }
       }
@@ -10762,6 +10869,23 @@
         }
       }
     },
+    "Not supported on this device" : {
+      "comment" : "Provider menu: Apple Intelligence is unavailable because this device does not support it",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此设备不支持"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此裝置不支援"
+          }
+        }
+      }
+    },
     "Not sure? Apple Intelligence works right away. If you already pay for a provider, you can use it instead." : {
       "localizations" : {
         "zh-Hans" : {
@@ -11125,19 +11249,19 @@
         }
       }
     },
-    "On any topic, open ⋯ › Report or block to report a post or user, or to hide everything a user posts. Reports are reviewed within 24 hours and offending content is removed from the app." : {
-      "comment" : "Terms of Use summary row; ⋯ is the browser's More menu",
+    "On any topic, open the forum menu or ⋯ › Report or block to report a post or user, or to hide everything a user posts. Reports are reviewed within 24 hours and offending content is removed from the app." : {
+      "comment" : "Terms of Use summary row; forum menu on iPhone, ⋯ More menu on iPad",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在任何话题中，打开 ⋯ › 举报或屏蔽，即可举报帖子或用户，或隐藏某个用户发布的全部内容。举报会在 24 小时内处理，违规内容会从 App 中移除。"
+            "value" : "在任何话题中，打开论坛菜单或 ⋯ › 举报或屏蔽，即可举报帖子或用户，或隐藏某个用户发布的全部内容。举报会在 24 小时内处理，违规内容会从 App 中移除。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在任何話題中，打開 ⋯ › 檢舉或封鎖，即可檢舉貼文或使用者，或隱藏某位使用者發佈的全部內容。檢舉會在 24 小時內處理，違規內容會從 App 中移除。"
+            "value" : "在任何話題中，打開論壇選單或 ⋯ › 檢舉或封鎖，即可檢舉貼文或使用者，或隱藏某位使用者發佈的全部內容。檢舉會在 24 小時內處理，違規內容會從 App 中移除。"
           }
         }
       }
@@ -13099,38 +13223,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "僅取得貼文和回覆"
-          }
-        }
-      }
-    },
-    "Pull the post and responses or create a summary before asking a follow-up question." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请先获取帖子和回复或生成摘要，再提出追问。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "請先取得貼文和回覆或產生摘要，再提出追問。"
-          }
-        }
-      }
-    },
-    "Pull the post and responses or create a summary before chatting." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请先获取帖子和回复或生成摘要，再开始聊天。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "請先取得貼文和回覆或產生摘要，再開始聊天。"
           }
         }
       }
@@ -18411,6 +18503,29 @@
         }
       }
     },
+    "Today · %@ · %@ left" : {
+      "comment" : "AI drawer status row while the Today podcast plays its Welcome or Wrap-up chapter: chapter label, time left",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today · %1$@ · %2$@ left"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今日 · %1$@ · 剩余 %2$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今日 · %1$@ · 剩下 %2$@"
+          }
+        }
+      }
+    },
     "Today · Topic %lld of %lld · %@ left" : {
       "comment" : "AI drawer status row while the Today podcast plays: chapter, chapter count, time left",
       "localizations" : {
@@ -20047,6 +20162,29 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "語音使用 Google Gemini。金鑰已就緒。"
+          }
+        }
+      }
+    },
+    "Voice uses Google Vertex AI. Key ready." : {
+      "comment" : "Voice first start on Vertex AI: the provider and that its key and project are set up",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voice uses Google Vertex AI. Key ready."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "语音使用 Google Vertex AI。密钥已就绪。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "語音使用 Google Vertex AI。金鑰已就緒。"
           }
         }
       }
@@ -22602,6 +22740,252 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "WordPress 是 WordPress Foundation 的商標。Forumind 是一款獨立 App，與 WordPress 或 WordPress Foundation 無關聯，也未獲其認可。"
+          }
+        }
+      }
+    },
+    "%lld of %@" : {
+      "comment" : "Exported summary metadata: post coverage (summarized count of total posts)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld of %2$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld / %2$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld / %2$@"
+          }
+        }
+      }
+    },
+    "Block post" : {
+      "comment" : "Moderation sheet button: block a specific post",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "屏蔽帖子"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "封鎖貼文"
+          }
+        }
+      }
+    },
+    "Post #%lld is blocked." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已屏蔽 #%lld 帖子。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已封鎖 #%lld 貼文。"
+          }
+        }
+      }
+    },
+    "Post blocked" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已屏蔽帖子"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已封鎖貼文"
+          }
+        }
+      }
+    },
+    "Read %lld matching posts" : {
+      "comment" : "Ask the forum step outcome: number of posts matching a query in a topic",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Read %lld matching post"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Read %lld matching posts"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "已读取 %lld 条匹配帖子"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "已讀取 %lld 則符合貼文"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Read 0 matching posts" : {
+      "comment" : "Ask the forum step outcome: number of posts matching a query in a topic",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已读取 0 条匹配帖子"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已讀取 0 則符合貼文"
+          }
+        }
+      }
+    },
+    "Read page %lld of %lld" : {
+      "comment" : "Ask the forum step outcome: page read in a topic",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Read page %1$lld of %2$lld"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已读取第 %1$lld 页（共 %2$lld 页）"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已讀取第 %1$lld 頁（共 %2$lld 頁）"
+          }
+        }
+      }
+    },
+    "Report Digest…" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "举报每日摘要…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "檢舉每日摘要…"
+          }
+        }
+      }
+    },
+    "Report Podcast…" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "举报播客…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "檢舉 Podcast…"
+          }
+        }
+      }
+    },
+    "Report digest" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "举报每日摘要"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "檢舉每日摘要"
+          }
+        }
+      }
+    },
+    "Report podcast" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "举报播客"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "檢舉 Podcast"
+          }
+        }
+      }
+    },
+    "Summarized %@ · %@" : {
+      "comment" : "Exported summary metadata: date summarized and post coverage",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Summarized %1$@ · %2$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已摘要 %1$@ · %2$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已摘要 %1$@ · %2$@"
           }
         }
       }

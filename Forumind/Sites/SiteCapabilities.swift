@@ -15,6 +15,8 @@ struct SiteCapabilities: Sendable {
     var pageBridge: PageBridgeProfile?
     /// The site's sign-in page.
     var loginURL: (@Sendable (_ siteURL: String) -> URL?)?
+    /// The signed-in user's account page.
+    var accountURL: (@Sendable (_ siteURL: String, _ username: String?) -> URL?)? = nil
     /// The site's own search page for typed words.
     var searchPageURL: (@Sendable (_ siteURL: String, _ query: String) -> URL?)?
     /// The browser reads signed-in state and username from page facts.

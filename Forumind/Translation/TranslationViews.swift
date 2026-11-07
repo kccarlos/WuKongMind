@@ -29,7 +29,6 @@ struct TranslateButton: View {
     let text: String
     var compact = false
     @State private var offeredFor: [String]?
-    @State private var presented = false
 
     private var readingLanguage: String { ReadingLanguage.resolved(app.settings.readingLanguage) }
     private var key: [String] { [readingLanguage, text] }
@@ -39,7 +38,7 @@ struct TranslateButton: View {
             if offeredFor == key {
                 Button {
                     DCHaptics.tap()
-                    presented = true
+                    app.router.item = .translateText(title: title, text: text, target: readingLanguage)
                 } label: {
                     if compact {
                         Image(systemName: "translate")
@@ -49,13 +48,6 @@ struct TranslateButton: View {
                 }
                 .accessibilityLabel(Text("Translate", comment: "Button: translates the text into the reading language on the device"))
                 .accessibilityIdentifier("translate")
-                .sheet(isPresented: $presented) {
-                    TranslationSheet(
-                        title: title,
-                        sources: [TranslationSource(id: "text", text: text)],
-                        target: readingLanguage
-                    )
-                }
             }
         }
         // Detecting the language is quick but not free: once per text.
@@ -283,6 +275,7 @@ private struct TranslationContent: View {
 /// them. The page is left as it is.
 struct PostsTranslationSheet: View {
     @ObservedObject var app: AppModel
+    @Environment(\.dismiss) private var dismiss
     @State private var sources: [TranslationSource]?
 
     private var target: String { ReadingLanguage.resolved(app.settings.readingLanguage) }
@@ -305,6 +298,12 @@ struct PostsTranslationSheet: View {
                     }
                     .navigationTitle(String(localized: "Translate posts"))
                     .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button("Done") { dismiss() }
+                                .accessibilityIdentifier("translationDone")
+                        }
+                    }
                 }
             } else {
                 TranslationSheet(title: String(localized: "Translate posts"), sources: foreign, target: target)

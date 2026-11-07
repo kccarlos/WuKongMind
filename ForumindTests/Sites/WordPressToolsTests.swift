@@ -76,6 +76,10 @@ final class WordPressToolsTests: XCTestCase {
 
     func testSearchForumSendsDateAndCategoryFilters() async throws {
         let site = WordPressFixtureSite()
+        var posts = site.posts
+        posts[0]["_embedded"] = ["author": [["name": "alice"]]]
+        posts[0]["author"] = 1
+        site.posts = posts
         let result = try await adapter.run(
             .search(text: "cards", scope: .forum, options: options(category: "credit-cards", after: "2026-01-01", before: "2026-06-30")),
             net: site.network()
@@ -87,12 +91,23 @@ final class WordPressToolsTests: XCTestCase {
         XCTAssertNil(listing.postsCount)
         XCTAssertEqual(listing.lastPostedAt, "2026-05-14 16:00 UTC")
         XCTAssertEqual(listing.excerpt, "Opening post: the card is offering 10x & more…")
+        XCTAssertEqual(result.hits.first?.username, "alice")
+        XCTAssertEqual(result.hits.first?.postNumber, 1)
 
         XCTAssertEqual(site.requestLines, [
             "/wp-json/wp/v2/categories?_fields=id,name,slug&per_page=10&search=credit-cards",
-            "/wp-json/wp/v2/posts?_fields=id,title,link,date_gmt,excerpt&after=2026-01-01T00:00:00&before=2026-06-30T00:00:00"
+            "/wp-json/wp/v2/posts?_embed=author&_fields=id,title,link,date_gmt,excerpt,author,_embedded,_links&after=2026-01-01T00:00:00&before=2026-06-30T00:00:00"
                 + "&categories=7&page=1&per_page=20&search=cards"
         ])
+    }
+
+    func testSearchWithUnverifiedAuthorWithholdsArticleExcerpt() async throws {
+        let site = WordPressFixtureSite()
+        let result = try await adapter.run(.search(text: "cards", scope: .forum), net: site.network())
+        XCTAssertEqual(result.topics.map(\.id), [1001])
+        XCTAssertNil(result.topics.first?.excerpt)
+        XCTAssertNil(result.hits.first?.blurb)
+        XCTAssertNil(result.hits.first?.username)
     }
 
     func testACategoryNameMatchesExactlyElseTheFirstResult() async throws {
@@ -209,7 +224,7 @@ final class WordPressToolsTests: XCTestCase {
         XCTAssertEqual(result.topics.count, 30)
         XCTAssertEqual(result.topics.first?.id, 2035)
         XCTAssertEqual(result.topics.last?.id, 2006)
-        XCTAssertEqual(site.requestLines, ["/wp-json/wp/v2/posts?_fields=id,title,link,date_gmt,excerpt&order=desc&orderby=date&per_page=30"])
+        XCTAssertEqual(site.requestLines, ["/wp-json/wp/v2/posts?_embed=author&_fields=id,title,link,date_gmt,excerpt,author,_embedded,_links&order=desc&orderby=date&per_page=30"])
     }
 
     func testSearchInsideOneTopicIsNotOffered() async {

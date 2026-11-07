@@ -332,21 +332,29 @@ extension AppModel {
 
     /// Saved summaries, chats, agent runs, and watched topics for a forum.
     func savedItemCount(forSiteURL siteURL: String) -> Int {
-        sessions.values.filter { $0.siteURL == siteURL }.count
+        sessions.values.filter { $0.siteURL == siteURL && ($0.hasSummary || !$0.history.isEmpty) }.count
             + agentRuns.filter { $0.siteURL == siteURL }.count
             + watchedTopics.filter { $0.siteURL == siteURL }.count
     }
 
     var totalSavedItemCount: Int {
-        sessions.count + agentRuns.count + watchedTopics.count
+        sessions.values.filter { $0.hasSummary || !$0.history.isEmpty }.count
+            + agentRuns.count
+            + watchedTopics.count
     }
 
     /// Site URLs that have saved data, including forums no longer in the list.
     var siteURLsWithSavedData: [String] {
         var seen = Set<String>()
-        let all = sessions.values.map(\.siteURL) + agentRuns.map(\.siteURL)
-            + watchedTopics.map(\.siteURL) + activities.map(\.siteURL)
+        let all = sessions.values.filter { $0.hasSummary || !$0.history.isEmpty }.map(\.siteURL)
+            + agentRuns.map(\.siteURL)
+            + watchedTopics.map(\.siteURL)
         return all.filter { !$0.isEmpty && seen.insert($0).inserted }
+    }
+
+    /// Whether Clear All Saved Data has any saved items, digests, sessions, or activity to clear.
+    var hasAnySavedData: Bool {
+        !siteURLsWithSavedData.isEmpty || !digests.isEmpty || !activities.isEmpty || !sessions.isEmpty
     }
 
     /// Deletes a forum's saved summaries, chats, activity, agent runs,
@@ -375,7 +383,11 @@ extension AppModel {
     }
 
     func clearAllSavedData() {
-        for siteURL in siteURLsWithSavedData {
+        var seen = Set<String>()
+        let allSites = (sessions.values.map(\.siteURL) + agentRuns.map(\.siteURL)
+            + watchedTopics.map(\.siteURL) + activities.map(\.siteURL))
+            .filter { !$0.isEmpty && seen.insert($0).inserted }
+        for siteURL in allSites {
             clearSavedData(forSiteURL: siteURL)
         }
         deleteAllDigests()

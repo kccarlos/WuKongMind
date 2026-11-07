@@ -736,6 +736,8 @@ final class StateTransitionTests: XCTestCase {
     func testSharedLinksLatestWinsAndSettledOtherTopicsClearTheWait() async throws {
         let harness = makeHarness()
         let app = harness.app
+        app.settings.hasCompletedOnboarding = true
+        app.acceptTerms()
         select(app, .ollama, model: "model-a")
         app.panelRoute = .history
 
@@ -1760,6 +1762,1211 @@ final class StateTransitionTests: XCTestCase {
             try await Task.sleep(for: .milliseconds(20))
         }
     }
+
+    // MARK: - Flow Fixes
+
+    func testAskBoxSendsOnUnpulledTopicAndChatDeepLinkByFetchingPagesOnDemand() async throws {
+        let harness = makeHarness()
+        let app = harness.app
+        select(app, .ollama, model: "model-a")
+        harness.ai.gated = false
+
+        // 1. Opening a topic without summarizing or pulling first still lets AskBox send,
+        // fetching the topic's pages on demand.
+        harness.deliver(topicPage(topic("42")))
+        XCTAssertEqual(app.currentTopic?.topicID, "42")
+        XCTAssertEqual(app.currentSession?.source, "")
+        XCTAssertEqual(app.askScope, .topic)
+
+        app.drafts.chat = AskBox.suggestions[0].1
+        XCTAssertTrue(app.canSendAsk)
+        app.sendAsk()
+        try await waitUntil { !app.activities.isEmpty && app.activities.allSatisfy(\.status.isTerminal) }
+        XCTAssertEqual(app.activities.first?.status, .completed)
+        XCTAssertFalse(app.currentSession?.source.isEmpty ?? true)
+        XCTAssertEqual(app.currentSession?.history.map(\.role), [.user, .assistant])
+
+        // 2. Deep link `forumind://open?url=...&action=chat` opens in .chat mode with empty
+        // source and also allows sending immediately.
+        let deepLink = URL(string: "forumind://open?url=https%3A%2F%2Fforum.example.com%2Ft%2Ftopic-99%2F99&action=chat")!
+        app.handleDeepLink(deepLink)
+        harness.deliver(topicPage(topic("99")))
+        XCTAssertEqual(app.assistantMode, .chat)
+        XCTAssertEqual(app.currentSession?.source, "")
+        app.drafts.chat = "What is the consensus?"
+        XCTAssertTrue(app.canSendAsk)
+        app.sendAsk()
+        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
+        XCTAssertEqual(app.currentSession?.history.map(\.role), [.user, .assistant])
+    }
+
+    func testHistoryOpenDismissesModalExitsHomeResetsModeAndSyncsForumScope() async throws {
+        var runA = AgentRun(siteURL: site, goal: "Question on Forum A", provider: .ollama, model: "model-a")
+        runA.result = .completed
+        runA.answer = "Answer on Forum A"
+        let watched = WatchedTopic(
+            siteURL: site,
+            topicID: "11",
+            url: topic("11").url,
+            title: "Topic 11",
+            knownPostCount: 2
+        )
+        var seeded = AppSnapshot()
+        seeded.ensureForum(other)
+        seeded.agentRuns = [runA]
+        seeded.watchedTopics = [watched]
+        let harness = makeHarness(snapshot: seeded)
+        let app = harness.app
+        select(app, .ollama, model: "model-a")
+        harness.ai.gated = false
+
+        harness.deliver(topicPage(topic("11")))
+        app.startSummary()
+        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
+        let savedSession = try XCTUnwrap(app.sessions[topic("11").topicKey])
+        let savedRecord = try XCTUnwrap(app.activities.first)
+
+        // 1. From Forums Home, modal History sheet (.expanded(.history)) dismisses on Open,
+        // exits Forums Home, and opens the AI view on Ask runs.
+        app.showForumsHome()
+        XCTAssertTrue(app.browser.showsForumsHome)
+        app.openPanelRoute(.history)
+        XCTAssertEqual(app.router.item, .expanded(.history))
+
+        app.openAgentRun(id: runA.id)
+        XCTAssertNil(app.router.item)
+        XCTAssertFalse(app.browser.showsForumsHome)
+        XCTAssertTrue(app.router.wantsDrawer)
+        XCTAssertEqual(app.assistantMode, .agent)
+
+        // Modal History sheet also dismisses on Open for saved sessions, records, and watched topics.
+        app.openPanelRoute(.history)
+        XCTAssertEqual(app.router.item, .expanded(.history))
+        app.open(session: savedSession)
+        XCTAssertNil(app.router.item)
+
+        app.openPanelRoute(.history)
+        XCTAssertEqual(app.router.item, .expanded(.history))
+        app.open(record: savedRecord)
+        XCTAssertNil(app.router.item)
+
+        app.openPanelRoute(.history)
+        XCTAssertEqual(app.router.item, .expanded(.history))
+        app.openWatched(watched)
+        XCTAssertNil(app.router.item)
+
+        // 2. Opening a saved Summary/Chat from in-panel/in-drawer History while in .agent mode
+        // resets assistantMode to .summary and steps a .large drawer down to .medium.
+        app.router.presentDrawer()
+        app.router.drawerAppeared()
+        app.router.drawerDetent = .large
+        app.assistantMode = .agent
+        app.panelRoute = .history
+        app.open(session: savedSession)
+        XCTAssertEqual(app.panelRoute, .topic)
+        XCTAssertEqual(app.assistantMode, .summary)
+        XCTAssertEqual(app.router.drawerDetent, .medium)
+
+        // 3. While browsing Forum B (`other`), opening `runA` from Forum A synchronizes `agentForum`
+        // with `selectedAgentRun` and `askFollowUpRun`.
+        harness.deliver(topicPage(topic("22", site: other)))
+        app.agentSiteURL = nil
+        app.openAgentRun(id: runA.id)
+        XCTAssertEqual(app.selectedAgentRun?.siteURL, site)
+        XCTAssertEqual(app.agentForum?.siteURL, site)
+        XCTAssertEqual(app.askFollowUpRun?.siteURL, site)
+    }
+
+    func testEditAndClearChatCancelActiveStreamFocusComposerAndAllowResend() async throws {
+        let harness = makeHarness()
+        let app = harness.app
+        select(app, .ollama, model: "model-a")
+
+        harness.deliver(topicPage(topic("30")))
+        harness.ai.gated = false
+        app.pullTopic()
+        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
+
+        // 1. Editing a chat question while the assistant is streaming does NOT delete
+        // history or kill the stream yet; cancelling restores the composer and lets the
+        // running answer finish cleanly.
+        harness.ai.gated = true
+        app.drafts.chat = "First draft question"
+        let focusBefore = app.askFocusRequest
+        app.sendAsk()
+        try await waitUntil { harness.ai.waiting == 1 }
+
+        let activeRecord = try XCTUnwrap(app.activities.first { $0.type == .chat && !$0.status.isTerminal })
+        let firstMsg = try XCTUnwrap(app.currentSession?.history.first { $0.role == .user })
+        XCTAssertFalse((app.streams.text(for: activeRecord.id) ?? "").isEmpty)
+
+        app.drafts.chat = "Unsent follow-up note"
+        app.editChat(messageID: firstMsg.id)
+
+        XCTAssertEqual(app.currentSession?.history.map(\.content), ["First draft question"])
+        XCTAssertEqual(app.drafts.chat, "First draft question")
+        XCTAssertEqual(app.activeChatEdit?.messageID, firstMsg.id)
+        XCTAssertEqual(app.askFocusRequest, focusBefore + 1)
+        XCTAssertTrue(app.hasActiveWork(topicKey: topic("30").topicKey, type: .chat))
+        XCTAssertFalse((app.streams.text(for: activeRecord.id) ?? "").isEmpty)
+
+        // Cancel restores the previous composer draft without deleting history or stopping the answer.
+        app.cancelEditChat()
+        XCTAssertNil(app.activeChatEdit)
+        XCTAssertEqual(app.drafts.chat, "Unsent follow-up note")
+        XCTAssertEqual(app.currentSession?.history.map(\.content), ["First draft question"])
+        XCTAssertTrue(app.hasActiveWork(topicKey: topic("30").topicKey, type: .chat))
+
+        harness.ai.gated = false
+        harness.ai.releaseAll()
+        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
+        XCTAssertEqual(app.currentSession?.history.count, 2, "The first answer finished after cancelling edit.")
+
+        // Ask a second question so history is [Q1, A1, Q2] with Q2 actively streaming.
+        harness.ai.gated = true
+        app.drafts.chat = "Second question"
+        app.sendAsk()
+        try await waitUntil { harness.ai.waiting == 1 }
+        let streamingSecond = try XCTUnwrap(app.activities.first { $0.type == .chat && !$0.status.isTerminal })
+        XCTAssertEqual(app.currentSession?.history.count, 3)
+
+        // 2. Edit Q1 while Q2's answer is running: history stays [Q1, A1, Q2] until submit;
+        // submitting removes Q1 and everything that followed it, cancels Q2's stream safely,
+        // and starts the edited question.
+        app.editChat(messageID: firstMsg.id)
+        XCTAssertEqual(app.currentSession?.history.count, 3, "Edit must not remove turns before submit.")
+        app.drafts.chat = "Edited first question"
+        XCTAssertTrue(app.canSendAsk, "Submitting an edit is allowed even while an answer is running.")
+
+        app.sendAsk()
+        XCTAssertNil(app.activeChatEdit)
+        XCTAssertEqual(app.currentSession?.history.map(\.content), ["Edited first question"])
+        XCTAssertNil(app.streams.text(for: streamingSecond.id))
+        XCTAssertEqual(app.activities.first(where: { $0.id == streamingSecond.id })?.status, .cancelled)
+
+        // Releasing the cancelled stream must not append a stale answer; the new chat job runs.
+        try await waitUntil { harness.ai.calls.count == 3 }
+        harness.ai.releaseFirst()
+        try await waitUntil { harness.ai.waiting == 1 }
+        try await Task.sleep(for: .milliseconds(30))
+        let replacementRecord = try XCTUnwrap(app.activities.first { $0.type == .chat && !$0.status.isTerminal })
+        XCTAssertNotEqual(replacementRecord.id, streamingSecond.id)
+        XCTAssertEqual(app.currentSession?.history.map(\.content), ["Edited first question"])
+
+        // 3. clearChat() cancels both any pending edit and active chat stream.
+        let editedMsg = try XCTUnwrap(app.currentSession?.history.first)
+        app.editChat(messageID: editedMsg.id)
+        XCTAssertNotNil(app.activeChatEdit)
+        app.clearChat()
+        XCTAssertNil(app.activeChatEdit)
+        XCTAssertTrue(app.currentSession?.history.isEmpty == true)
+        XCTAssertFalse(app.hasActiveWork(topicKey: topic("30").topicKey, type: .chat))
+        XCTAssertNil(app.streams.text(for: replacementRecord.id))
+
+        harness.ai.gated = false
+        harness.ai.releaseAll()
+        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
+    }
+
+    func testForumHomeRecentRunResetsAcrossForumHomesAndAllowsOverviewReturn() async throws {
+        let run = finishedRun()
+        var seeded = AppSnapshot()
+        seeded.agentRuns = [run]
+        let harness = makeHarness(snapshot: seeded)
+        let app = harness.app
+        select(app, .ollama, model: "model-a")
+
+        let home1 = PageContext(
+            url: URL(string: site)!,
+            site: .discourse,
+            siteURL: site,
+            forumName: "Stub Forum",
+            topic: nil,
+            state: .forumHome
+        )
+        harness.deliver(home1)
+        XCTAssertEqual(app.assistantPageState, .forumHome)
+        XCTAssertEqual(app.assistantMode, .summary)
+        XCTAssertNil(app.currentTopic)
+
+        // User taps a recent run in ForumHomeState, then can return directly to Forum overview.
+        app.openAgentRun(id: run.id)
+        XCTAssertEqual(app.assistantMode, .agent)
+        XCTAssertNil(app.currentTopic)
+        app.showForumOverview()
+        XCTAssertEqual(app.assistantMode, .summary)
+        XCTAssertNil(app.agentSiteURL)
+
+        // Re-opening the recent run and navigating to another forum's home page also resets out of .agent.
+        app.openAgentRun(id: run.id)
+        XCTAssertEqual(app.assistantMode, .agent)
+
+        // Navigating to another forum's home page resets out of .agent so Forum B's ForumHomeState shows.
+        let home2 = PageContext(
+            url: URL(string: other)!,
+            site: .discourse,
+            siteURL: other,
+            forumName: "Other Forum",
+            topic: nil,
+            state: .forumHome
+        )
+        harness.deliver(home2)
+        XCTAssertEqual(app.assistantPageState, .forumHome)
+        XCTAssertEqual(app.assistantMode, .summary)
+        XCTAssertNil(app.agentSiteURL)
+    }
+
+    func testBatchLimitPresetRegeneratesSummaryAndRapidStartSummaryIsIdempotent() async throws {
+        let harness = makeHarness()
+        let app = harness.app
+        select(app, .ollama, model: "model-a")
+        harness.ai.gated = false
+
+        // 1. Summarize topic 12, then run with an explicit per-run batchLimit on the already-summarized topic.
+        harness.deliver(topicPage(topic("12")))
+        app.startSummary()
+        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
+        XCTAssertEqual(harness.ai.calls.filter { $0.kind == "summary" }.count, 1)
+
+        app.startSummary(batchLimit: SummaryBatchLimit.presets[0])
+        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
+        let summaryCalls = harness.ai.calls.filter { $0.kind == "summary" }
+        XCTAssertEqual(summaryCalls.count, 2)
+        XCTAssertEqual(summaryCalls.last?.batchLimit, SummaryBatchLimit.presets[0])
+
+        // 2. Rapid repeated startSummary calls are idempotent and keep panelRoute on .topic.
+        harness.ai.gated = true
+        XCTAssertEqual(app.panelRoute, .topic)
+        app.startSummary(regenerate: true)
+        app.startSummary(regenerate: true)
+        XCTAssertEqual(app.panelRoute, .topic)
+        XCTAssertEqual(app.activities.filter { !$0.status.isTerminal }.count, 1)
+
+        harness.ai.gated = false
+        harness.ai.releaseAll()
+        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
+    }
+
+    func testAnswerReadyDoesNotFireForAlreadyViewedAgentRun() async throws {
+        let planner = RolePlanner(actions: [
+            AgentAction(thought: "Done 1", tool: AgentPrompt.finalAnswerTool, arguments: ["answer": "Read while open"]),
+            AgentAction(thought: "Done 2", tool: AgentPrompt.finalAnswerTool, arguments: ["answer": "Read before closing"])
+        ])
+        let harness = makeHarness(planner: planner)
+        let app = harness.app
+        select(app, .ollama, model: "model-a")
+        harness.deliver(topicPage(topic("18")))
+        app.router.presentDrawer()
+        app.router.drawerAppeared()
+        XCTAssertTrue(app.isAIViewShown)
+
+        // 1. User switches to Whole forum, watches the run finish in AgentPanel, then switches back to This topic.
+        app.setAskScope(.forum)
+        try await Task.sleep(for: .milliseconds(20))
+        app.startAgentRun(goal: "What is new?", siteURL: site)
+        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
+        XCTAssertEqual(app.assistantMode, .agent)
+        XCTAssertNil(app.readyAnswer)
+
+        app.setAskScope(.topic)
+        XCTAssertNil(app.readyAnswer)
+
+        // 2. User starts another Whole forum run, watches it finish while drawer is open, then closes the drawer.
+        app.setAskScope(.forum)
+        try await Task.sleep(for: .milliseconds(20))
+        app.startAgentRun(goal: "Second question", siteURL: site)
+        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
+        app.router.closeDrawer()
+        app.router.drawerDismissed()
+        app.aiViewVisibilityChanged()
+        XCTAssertNil(app.readyAnswer)
+    }
+
+    func testSavedDataCountsOnlySavedItemsExcludesEmptyForumsAndEnablesClearAllWithDigests() async throws {
+        let harness = makeHarness()
+        let app = harness.app
+        select(app, .ollama, model: "model-a")
+        harness.ai.gated = false
+
+        // 1. Merely opening a topic in the browser must not count as a saved item or saved-data forum.
+        harness.deliver(topicPage(topic("50")))
+        XCTAssertEqual(app.savedItemCount(forSiteURL: site), 0)
+        XCTAssertFalse(app.siteURLsWithSavedData.contains(site))
+
+        // 2. Summarizing makes it 1 saved item; deleting the session in History removes the forum from saved-data rows
+        // even though terminal WorkRecords remain in `activities` (no "0 saved items" row).
+        app.startSummary()
+        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
+        XCTAssertEqual(app.savedItemCount(forSiteURL: site), 1)
+        XCTAssertEqual(app.siteURLsWithSavedData, [site])
+
+        app.deleteSession(topicKey: topic("50").topicKey)
+        XCTAssertEqual(app.savedItemCount(forSiteURL: site), 0)
+        XCTAssertFalse(app.siteURLsWithSavedData.contains(site))
+
+        // 3. Having a Daily Digest keeps saved data clearable via Clear All Saved Data even when no per-forum rows remain.
+        app.clearAllSavedData()
+        XCTAssertFalse(app.hasAnySavedData)
+        var card = DigestCard(
+            siteURL: site,
+            topicID: "77",
+            title: "Trending 77",
+            slug: "trending-77",
+            reason: .trending,
+            postCount: 10
+        )
+        card.summary = "Digest summary"
+        card.state = .done
+        var digest = DailyDigest(day: DailyDigest.dayKey(for: Date()), cards: [card])
+        digest.completedAt = Date()
+        app.digests = [digest]
+        XCTAssertTrue(app.siteURLsWithSavedData.isEmpty)
+        XCTAssertTrue(app.hasAnySavedData)
+
+        app.clearAllSavedData()
+        XCTAssertNil(app.todaysDigest)
+        XCTAssertFalse(app.hasAnySavedData)
+    }
+
+    func testProviderConnectionValidatesRoleModelAndPreservesActiveTestingStateOnRace() async throws {
+        let harness = makeHarness()
+        let app = harness.app
+
+        // 1. Role-scoped Test & save must test the role's chosen model (e.g., Vertex AI custom model), not defaultModel.
+        harness.ai.gated = false
+        var vertexConfig = app.settings.configuration(for: .vertexAI)
+        vertexConfig.apiKey = "vertex-key-1"
+        app.setConfiguration(vertexConfig, for: .vertexAI)
+        app.settings.assistantModel = ModelSelection(provider: .vertexAI, model: "gemini-2.5-pro")
+        let vertexState = await app.testAndSaveProvider(scope: .role(.assistant))
+        XCTAssertEqual(vertexState, .success)
+        XCTAssertEqual(harness.ai.calls.last?.configuration.model, "gemini-2.5-pro")
+
+        // 2. AIService.testConnection rejects an unavailable model ID when /models succeeds, while provider-only checks pass.
+        let protocolConfig = URLSessionConfiguration.ephemeral
+        protocolConfig.protocolClasses = [ProviderModelsStubProtocol.self]
+        let service = AIService(session: URLSession(configuration: protocolConfig))
+        var roleConfig = ProviderConfiguration(model: "nonexistent-model-xyz", baseURL: "https://api.openai.com/v1", apiKey: "sk-test")
+        do {
+            try await service.testConnection(configuration: roleConfig, provider: .openAI)
+            XCTFail("Testing connection with an unavailable model ID must fail")
+        } catch AssistantError.missingConfiguration(let message) {
+            XCTAssertTrue(message.contains("nonexistent-model-xyz"))
+        }
+        roleConfig.model = ""
+        try await service.testConnection(configuration: roleConfig, provider: .openAI)
+
+        // 3. When a stale Test & save finishes after a newer Test & save has already started, it keeps `.testing` instead of clearing to `.idle`.
+        harness.ai.gated = true
+        select(app, .openAI, model: "gpt-4o-mini", key: "key-old")
+        let firstTask = Task { await app.testAndSaveProvider(scope: .role(.assistant)) }
+        try await waitUntil { harness.ai.waiting == 1 }
+
+        var updatedOpenAI = app.settings.configuration(for: .openAI)
+        updatedOpenAI.apiKey = "key-new"
+        app.setConfiguration(updatedOpenAI, for: .openAI)
+
+        let secondTask = Task { await app.testAndSaveProvider(scope: .role(.assistant)) }
+        try await waitUntil { harness.ai.waiting == 2 }
+
+        harness.ai.releaseFirst()
+        let firstState = await firstTask.value
+        XCTAssertEqual(firstState, .testing, "Superseded test finishing while a newer test is active must keep .testing")
+
+        harness.ai.releaseAll()
+        let secondState = await secondTask.value
+        XCTAssertEqual(secondState, .success)
+
+        // 4. Changing the role's model ID mid-test makes the in-flight role connection check stale.
+        let modelEditTask = Task { await app.testConnection(for: .assistant) }
+        try await waitUntil { harness.ai.waiting == 1 }
+        app.settings.assistantModel = ModelSelection(provider: .openAI, model: "gpt-4.1")
+        harness.ai.releaseAll()
+        let modelEditResult = await modelEditTask.value
+        XCTAssertEqual(modelEditResult, .stale)
+    }
+
+    func testSplitResizeWithModalOpenDefersSplitPanelAndSyncsDrawerOnModalDismiss() {
+        let harness = makeHarness()
+        let app = harness.app
+        app.settings.hasCompletedOnboarding = true
+        app.acceptTerms()
+        app.browser.load(URL(string: "about:blank")!)
+        harness.deliver(topicPage(topic("70")))
+
+        // Compact window has the AI drawer open, then opens Settings over it:
+        app.router.splitLayout = false
+        app.router.openDrawer(at: .medium)
+        app.router.presentDrawer()
+        app.router.drawerAppeared()
+        app.router.item = .expanded(.settings)
+        XCTAssertNotNil(app.rootPresentation)
+        XCTAssertEqual(app.router.drawerPhase, .shown)
+
+        // Window widens into Split View while Settings is still presented (`ContentView.updateLayout`):
+        app.router.splitLayout = true
+        app.router.splitPanelMode = app.router.wantsDrawer ? .shown : .auto
+        app.router.closeDrawer()
+        app.syncDrawer()
+        XCTAssertEqual(app.router.drawerPhase, .shown, "Live modal hosted inside the drawer is kept until dismissed")
+        XCTAssertFalse(app.showsSplitPanel(forWidth: 1_032))
+
+        // Render WorkspaceView at Split View width: AssistantPanel must NOT mount beside WKWebView while the compact drawer is .shown.
+        let actions = BrowserActions(
+            showLoginInfo: {}, addForum: {}, report: { _ in }, translatePosts: {},
+            openAssistant: {}, openPanel: { _ in }, openForum: { _ in }, showForumsHome: {},
+            openDigestLink: { _, _ in }, openHistory: {}, openSettings: {}, showShareHowTo: {}
+        )
+        let host = UIHostingController(
+            rootView: WorkspaceView(
+                app: app,
+                browser: app.browser,
+                router: app.router,
+                width: 1_032,
+                actions: actions,
+                addressFocusRequest: 0,
+                onOpenURL: { _ in }
+            )
+        )
+        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(x: 0, y: 0, width: 1_032, height: 768))
+        window.frame = CGRect(x: 0, y: 0, width: 1_032, height: 768)
+        window.rootViewController = host
+        window.makeKeyAndVisible()
+        defer {
+            window.isHidden = true
+            window.rootViewController = nil
+            app.browser.webView.stopLoading()
+        }
+        host.view.layoutIfNeeded()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+        host.view.layoutIfNeeded()
+
+        XCTAssertGreaterThan(
+            app.browser.webView.bounds.width,
+            1_000,
+            "SplitWorkspace must keep full-width web view and not mount AssistantPanel while the compact AI drawer is still .shown"
+        )
+
+        // Dismissing Settings immediately starts dismissing the drawer, and once dismissed (.closed), SplitWorkspace mounts AssistantPanel.
+        app.dismissRootPresentation(.expanded(.settings))
+        XCTAssertEqual(app.router.drawerPhase, .dismissing)
+        XCTAssertFalse(app.isAIViewShown, "Neither drawer nor split panel is shown while drawer is still dismissing")
+
+        app.router.drawerDismissed()
+        XCTAssertEqual(app.router.drawerPhase, .closed)
+        XCTAssertTrue(app.isAIViewShown)
+        XCTAssertTrue(app.showsSplitPanel(forWidth: 1_032))
+        RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+        host.view.layoutIfNeeded()
+        XCTAssertLessThan(
+            app.browser.webView.bounds.width,
+            700,
+            "SplitWorkspace mounts AssistantPanel beside WKWebView once the compact drawer reaches .closed"
+        )
+    }
+
+    func testSettingsWatchedOpenDismissesSettingsAndDailyPodcastRequiresDailyDigest() async throws {
+        var watched = WatchedTopic(siteURL: site, topicID: "88", url: topic("88").url, title: "Watched 88", knownPostCount: 2)
+        watched.newReplies = 3
+        let harness = makeHarness(snapshot: AppSnapshot(watchedTopics: [watched]))
+        let app = harness.app
+        app.settings.hasCompletedOnboarding = true
+        app.acceptTerms()
+
+        // 1. Manual watch check publishes `isCheckingWatches` while in flight, and opening a watched topic dismisses Settings.
+        StateForumStub.postCounts = ["88": 5]
+        StateForumStub.gate(path: "/t/88.json")
+        let check = Task { await app.checkWatchedTopics(reason: .manual) }
+        try await waitUntil { StateForumStub.isWaiting }
+        XCTAssertTrue(app.isCheckingWatches)
+        StateForumStub.release()
+        await check.value
+        XCTAssertFalse(app.isCheckingWatches)
+
+        app.router.item = .expanded(.settings)
+        app.openWatched(watched)
+        XCTAssertNil(app.router.item, "Opening a watched topic from Settings › Watched topics must dismiss Settings")
+        XCTAssertEqual(app.watchedTopics.first?.newReplies, 0)
+        defer { app.browser.webView.stopLoading() }
+
+        // 2. When Make a digest every day is OFF, Make the podcast every day is disabled and off in UI.
+        app.settings.dailyDigestEnabled = false
+        app.settings.podcastDailyEnabled = true
+        let host = UIHostingController(rootView: Form { SettingsPodcastSections(app: app, podcast: app.podcast) })
+        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(x: 0, y: 0, width: 393, height: 600))
+        window.frame = CGRect(x: 0, y: 0, width: 393, height: 600)
+        window.rootViewController = host
+        window.makeKeyAndVisible()
+        defer {
+            window.isHidden = true
+            window.rootViewController = nil
+        }
+        host.view.layoutIfNeeded()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+        host.view.layoutIfNeeded()
+
+        let toggle = findSwitch(in: host.view)
+        XCTAssertNotNil(toggle)
+        XCTAssertEqual(toggle?.isEnabled, false, "Make the podcast every day must be disabled when Make a digest every day is off")
+        XCTAssertEqual(toggle?.isOn, false, "Make the podcast every day must appear off when Make a digest every day is off")
+    }
+
+    func testResumedAgentRunPreservesStepsUsedAndSkipsOrphanedVoiceRuns() async throws {
+        let planner = RolePlanner(actions: [
+            AgentAction(thought: "Step 1", tool: "saved_summaries", arguments: [:]),
+            AgentAction(thought: "Step 2", tool: "saved_summaries", arguments: [:]),
+            AgentAction(thought: "Fallback answer", tool: "saved_summaries", arguments: [:])
+        ])
+        var settings = AppSettings()
+        settings.assistantModel = ModelSelection(provider: .ollama, model: "m")
+        settings.agentModel = ModelSelection(provider: .ollama, model: "m")
+        settings.agentMaxSteps = 3
+
+        let typedID = UUID()
+        var typedRun = AgentRun(id: typedID, siteURL: site, goal: "Typed", provider: .ollama, model: "m", origin: .typed)
+        typedRun.steps = [
+            AgentStep(tool: "saved_summaries", outcome: "1"),
+            AgentStep(tool: "saved_summaries", outcome: "2")
+        ]
+        typedRun.transcript = [
+            AgentPrompt.goalMessage("Typed"),
+            ChatMessage(role: .assistant, content: #"{"tool":"saved_summaries"}"#),
+            AgentPrompt.observation(tool: "saved_summaries", result: "none", isError: false)
+        ]
+
+        let voiceID = UUID()
+        let voiceRun = AgentRun(id: voiceID, siteURL: site, goal: "Voice", provider: .ollama, model: "m", origin: .voice)
+
+        let followUpID = UUID()
+        var followUpRun = AgentRun(id: followUpID, siteURL: site, goal: "Completed first", provider: .ollama, model: "m", origin: .typed)
+        followUpRun.initialAnswer = "Initial answer"
+        followUpRun.answer = "Initial answer"
+        followUpRun.followUps = [ChatMessage(role: .user, content: "Follow-up")]
+        followUpRun.result = nil
+
+        var typedRecord = WorkRecord(
+            type: .agent, siteURL: site,
+            topicID: "agent:\(typedID.uuidString)", title: "Typed",
+            url: URL(string: site)!, provider: .ollama, model: "m"
+        )
+        typedRecord.status = .running
+        var voiceRecord = WorkRecord(
+            type: .agent, siteURL: site,
+            topicID: "agent:\(voiceID.uuidString)", title: "Voice",
+            url: URL(string: site)!, provider: .ollama, model: "m"
+        )
+        voiceRecord.status = .running
+
+        let harness = makeHarness(
+            snapshot: AppSnapshot(
+                settings: settings,
+                activities: [typedRecord, voiceRecord],
+                agentRuns: [typedRun, voiceRun, followUpRun]
+            ),
+            planner: planner
+        )
+        let app = harness.app
+
+        // Voice run and its work record are cancelled on relaunch, not re-queued.
+        XCTAssertEqual(app.activities.first(where: { $0.id == voiceRecord.id })?.status, .cancelled)
+        XCTAssertEqual(app.agentRuns.first(where: { $0.id == voiceID })?.result, .cancelled)
+
+        // Completed run with an un-restorable follow-up keeps its completed result.
+        let reconciledFollowUp = try XCTUnwrap(app.agentRuns.first(where: { $0.id == followUpID }))
+        XCTAssertEqual(reconciledFollowUp.result, .completed)
+        XCTAssertEqual(reconciledFollowUp.error, "")
+
+        // Resuming the typed run with 2 completed steps and maxSteps = 3 allows only 1 more tool step before stopping at the budget.
+        app.restorePendingTasksIfNeeded()
+        try await waitUntil { app.agentRuns.first(where: { $0.id == typedID })?.isFinished == true }
+        let finishedTyped = try XCTUnwrap(app.agentRuns.first(where: { $0.id == typedID }))
+        XCTAssertEqual(finishedTyped.steps.count, 4, "Resumed run must count already-completed steps against agentMaxSteps")
+        XCTAssertEqual(finishedTyped.steps.last?.outcome, "Stopped at the step budget")
+        XCTAssertEqual(planner.calls, 2)
+    }
+
+    func testFailedChatCoalescesConsecutiveUserRolesInAnthropicPayload() async throws {
+        ChatPayloadInspectorStub.reset()
+        let anthropicSessionConfig = URLSessionConfiguration.ephemeral
+        anthropicSessionConfig.protocolClasses = [ChatPayloadInspectorStub.self]
+        let forumSessionConfig = URLSessionConfiguration.ephemeral
+        forumSessionConfig.protocolClasses = [StateForumStub.self]
+        let dir2 = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        addTeardownBlock { try? FileManager.default.removeItem(at: dir2) }
+        let store2 = PersistentStore(fileURL: dir2.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore())
+        var snap2 = AppSnapshot()
+        snap2.ensureForum(site)
+        try? store2.save(snap2)
+        let app2 = AppModel(
+            store: store2,
+            forumService: ForumService(session: URLSession(configuration: forumSessionConfig), pacer: ForumRequestPacer(clock: InstantPacingClock())),
+            aiService: AIService(session: URLSession(configuration: anthropicSessionConfig))
+        )
+        app2.usesDirectForumRequests = true
+        let handler2 = app2.browser.onPageContextChanged
+        app2.browser.onPageContextChanged = nil
+        app2.settings.hasCompletedOnboarding = true
+        app2.acceptTerms()
+        app2.allowAllAIProviders()
+        let anthropicConfig = ProviderConfiguration(model: "claude-sonnet-4-6", baseURL: "https://api.example.com/v1", apiKey: "sk-ant")
+        app2.setConfiguration(anthropicConfig, for: .anthropic)
+        app2.selectModel(ModelSelection(provider: .anthropic, model: "claude-sonnet-4-6"), for: .both)
+
+        let t1 = ForumTopic(siteURL: site, topicID: "1", url: URL(string: "\(site)/t/topic-1/1")!, title: "Topic 1")
+        let ctx = PageContext(url: t1.url, site: .discourse, siteURL: site, forumName: "Stub", topic: t1, state: .topic)
+        app2.browser.setPageContext(ctx)
+        handler2?(ctx)
+
+        ChatPayloadInspectorStub.failNext = true
+        app2.drafts.chat = "First question (fails)"
+        app2.sendChat()
+        try await waitUntil { app2.activities.allSatisfy(\.status.isTerminal) }
+        XCTAssertEqual(app2.activities.first?.status, .failed)
+
+        ChatPayloadInspectorStub.failNext = false
+        app2.drafts.chat = "Second question (after reconnect)"
+        app2.sendChat()
+        try await waitUntil { app2.activities.allSatisfy(\.status.isTerminal) }
+
+        let roles = ChatPayloadInspectorStub.lastRecordedRoles
+        XCTAssertFalse(roles.isEmpty)
+        XCTAssertNotEqual(
+            roles,
+            ["user", "user"],
+            "Failed chat left orphan .user turn in session.history, sending consecutive user messages \(roles) to Anthropic /v1/messages"
+        )
+    }
+
+    func testChatEditInteractionsWithOpenAgentRunScopeSwitchSuggestionChipAndReports() async throws {
+        let planner = RolePlanner(actions: [
+            AgentAction(thought: "Answer", tool: "final_answer", arguments: ["answer": "Agent reply"])
+        ])
+        let h = makeHarness(planner: planner)
+        let app = h.app
+        h.ai.gated = false
+        var ollamaConfig = app.settings.configuration(for: .ollama)
+        ollamaConfig.model = "model-a"
+        app.setConfiguration(ollamaConfig, for: .ollama)
+        var lmConfig = app.settings.configuration(for: .lmStudio)
+        lmConfig.model = "model-b"
+        app.setConfiguration(lmConfig, for: .lmStudio)
+        app.selectModel(ModelSelection(provider: .ollama, model: "model-a"), for: .both)
+
+        let t1 = ForumTopic(siteURL: site, topicID: "1", url: URL(string: "\(site)/t/topic-1/1")!, title: "Topic 1")
+        h.deliver(PageContext(url: t1.url, site: .discourse, siteURL: site, forumName: "Stub", topic: t1, state: .topic))
+
+        // Build 2 chat turns: Turn 1 on ollama/model-a, Turn 2 on lmStudio/model-b.
+        app.drafts.chat = "Q1"
+        app.sendChat()
+        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
+
+        app.selectModel(ModelSelection(provider: .lmStudio, model: "model-b"), for: .role(.assistant))
+        app.drafts.chat = "Q2"
+        app.sendChat()
+        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
+        XCTAssertEqual(app.sessions[t1.topicKey]?.history.count, 4)
+
+        // Subcase A (Finding 11): Edit Q2 -> Q2', gate AI, cancel Q2', then report the latest chat answer (which is now A1 by model-a).
+        let q2ID = try XCTUnwrap(app.sessions[t1.topicKey]?.history[2].id)
+        app.editChat(messageID: q2ID)
+        h.ai.gated = true
+        app.drafts.chat = "Q2 edited"
+        app.sendChat()
+        try await waitUntil { h.ai.waiting == 1 }
+        if let active = app.activities.first(where: { !$0.status.isTerminal }) {
+            app.cancel(record: active)
+        }
+        h.ai.gated = false
+        h.ai.releaseAll()
+
+        let chatReport = try XCTUnwrap(app.currentAIOutputReport(feature: .chatAnswer))
+        var reportedChatModel = ""
+        if case .aiOutput(let output) = chatReport.kind {
+            reportedChatModel = output.model
+        }
+
+        // Rebuild Turn 2 so history has [Q1, A1, Q2, A2] again:
+        app.drafts.chat = "Q2"
+        app.sendChat()
+        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
+
+        // Subcase B (Finding 11): Run initial Agent on ollama/model-a, then switch Agent role to lmStudio/model-b for follow-up, and inspect report!
+        app.selectModel(ModelSelection(provider: .ollama, model: "model-a"), for: .role(.agent))
+        _ = try await app.performAgentRun(goal: "Initial forum goal", siteURL: site)
+        let runID = try XCTUnwrap(app.agentRuns.first?.id)
+        planner.restart()
+        app.selectModel(ModelSelection(provider: .lmStudio, model: "model-b"), for: .role(.agent))
+        app.continueAgentRun(id: runID, question: "Follow-up forum question?")
+        try await waitUntil { app.agentRuns.first(where: { $0.id == runID })?.isFinished == true }
+        let updatedRun = try XCTUnwrap(app.agentRuns.first(where: { $0.id == runID }))
+        let agentFollowUpReport = app.aiOutputReport(for: updatedRun, answer: "Agent reply")
+        var reportedAgentQuestion = ""
+        var reportedAgentModel = ""
+        if case .aiOutput(let output) = agentFollowUpReport.kind {
+            reportedAgentQuestion = output.question ?? ""
+            reportedAgentModel = output.model
+        }
+
+        // Subcase C (Finding 9): Carrying ask text when destination draft is non-empty restores previousDraft!
+        let q1ID = try XCTUnwrap(app.sessions[t1.topicKey]?.history.first?.id)
+        app.assistantMode = .chat
+        app.drafts.chat = "Unsent topic thought"
+        app.drafts.followUp = "Unsent forum follow-up"
+        app.editChat(messageID: q1ID)
+        XCTAssertEqual(app.drafts.chat, "Q1")
+        app.setAskScope(.forum)
+        app.setAskScope(.topic)
+        let editStateAfterBlockedCarry = app.chatEdit
+        let draftAfterBlockedCarry = app.drafts.chat
+
+        // Subcase D (Finding 9): openAgentRun clears chatEdit when moving out of .chat!
+        app.drafts.followUp = ""
+        app.drafts.chat = ""
+        app.editChat(messageID: q1ID)
+        app.drafts.chat = ""
+        app.openAgentRun(id: runID)
+        let chatEditStillArmedInAgent = app.chatEdit
+        app.drafts.followUp = "Question typed in Whole forum"
+        app.setAskScope(.topic)
+        app.sendChat()
+        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
+        let historyAfterOpenAgentRun = app.sessions[t1.topicKey]?.history.map(\.content) ?? []
+
+        // Subcase E (Finding 9): applyChatSuggestion while editing Q1 cancels edit and appends Turn 4 instead of truncating!
+        let countBeforeChip = app.sessions[t1.topicKey]?.history.count ?? 0
+        app.editChat(messageID: q1ID)
+        app.applyChatSuggestion(AskBox.suggestions[0].1)
+        XCTAssertEqual(app.chatEdit, .none)
+        app.sendChat()
+        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
+        let countAfterChip = app.sessions[t1.topicKey]?.history.count ?? 0
+
+        XCTAssertTrue(
+            reportedChatModel.contains("model-a"),
+            "After editing & cancelling Turn 2, reporting A1 attributed it to '\(reportedChatModel)' instead of Turn 1's 'Ollama · model-a'"
+        )
+        XCTAssertEqual(
+            reportedAgentQuestion,
+            "Follow-up forum question?",
+            "Reporting an Agent follow-up answer recorded run.goal ('\(reportedAgentQuestion)') instead of the follow-up question"
+        )
+        XCTAssertTrue(
+            reportedAgentModel.contains("model-b"),
+            "Reporting an Agent follow-up answer recorded initial model '\(reportedAgentModel)' instead of follow-up model 'LM Studio · model-b'"
+        )
+        XCTAssertEqual(editStateAfterBlockedCarry, .none)
+        XCTAssertEqual(
+            draftAfterBlockedCarry,
+            "Unsent topic thought",
+            "Scope round-trip with non-empty forum draft must restore previousDraft ('Unsent topic thought')"
+        )
+        XCTAssertEqual(
+            chatEditStillArmedInAgent,
+            .none,
+            "openAgentRun left chatEdit armed in Agent mode (history=\(historyAfterOpenAgentRun))"
+        )
+        XCTAssertEqual(countAfterChip, countBeforeChip + 2, "Suggestion chip must append a turn rather than truncating history")
+    }
+
+    func testAnswerAIConsentDismissesModalWhenRequirementTurnsFalse() async throws {
+        let app = makeHarness().app
+        app.settings.hasCompletedOnboarding = true
+        app.acceptTerms()
+        app.settings.aiConsent = [:]
+        let remoteConfig = ProviderConfiguration(model: "llama3", baseURL: "https://remote-ollama.example.com", apiKey: "")
+        app.setConfiguration(remoteConfig, for: .ollama)
+        app.selectModel(ModelSelection(provider: .ollama, model: "llama3"), for: .both)
+
+        app.aiConsent.ask(.ollama)
+        XCTAssertEqual(app.rootPresentation, .aiConsent(.ollama))
+
+        let localConfig = ProviderConfiguration(model: "llama3", baseURL: "http://localhost:11434", apiKey: "")
+        app.setConfiguration(localConfig, for: .ollama)
+
+        app.answerAIConsent(.ollama, allow: false)
+        app.answerAIConsent(.ollama, allow: true)
+
+        XCTAssertNil(
+            app.aiConsent.asking,
+            "answerAIConsent must resolve aiConsent even if requiresAIConsent became false while presented"
+        )
+    }
+
+    func testOnboardingDeclinedConsentAllowsRetestAndResetsToUndecided() async throws {
+        let h1 = makeHarness()
+        let app1 = h1.app
+        h1.ai.gated = false
+        app1.settings.hasCompletedOnboarding = false
+        app1.settings.aiConsent = [:]
+        var geminiConfig = app1.settings.configuration(for: .gemini)
+        geminiConfig.apiKey = "gemini-key"
+        app1.setConfiguration(geminiConfig, for: .gemini)
+        app1.selectModel(ModelSelection(provider: .gemini, model: "gemini-2.5-flash"), for: .both)
+
+        app1.aiConsent.ask(.gemini)
+        app1.answerAIConsent(.gemini, allow: false)
+        XCTAssertFalse(app1.isProviderReady)
+        let checkResultDuringOnboarding = await app1.testAndSaveProvider(scope: .both)
+        var hintDuringOnboarding = ""
+        if case .failure(let message) = checkResultDuringOnboarding {
+            hintDuringOnboarding = message
+        }
+
+        XCTAssertFalse(
+            !app1.settings.hasCompletedOnboarding && hintDuringOnboarding.contains("Settings"),
+            "Declining consent during onboarding locks out Test & Continue with '\(hintDuringOnboarding)' while Settings is unreachable"
+        )
+        XCTAssertEqual(app1.aiConsentState(for: .gemini), .undecided)
+    }
+
+    func testAgentFollowUpKillPreservesStepsUsedAgainstBudget() async throws {
+        let planner = RolePlanner(actions: [
+            AgentAction(thought: "Step", tool: "saved_summaries", arguments: [:])
+        ])
+        var settings = AppSettings()
+        settings.hasCompletedOnboarding = true
+        settings.acceptedTermsVersion = ModerationTerms.currentVersion
+        settings.assistantModel = ModelSelection(provider: .ollama, model: "m")
+        settings.agentModel = ModelSelection(provider: .ollama, model: "m")
+        settings.agentMaxSteps = 3
+
+        let runID = UUID()
+        var followUpRun = AgentRun(id: runID, siteURL: site, goal: "Initial goal", provider: .ollama, model: "m", origin: .typed)
+        followUpRun.initialAnswer = "Initial answer"
+        followUpRun.answer = "Initial answer"
+        followUpRun.steps = [
+            AgentStep(tool: "saved_summaries", outcome: "init-1"),
+            AgentStep(tool: "saved_summaries", outcome: "followup-1"),
+            AgentStep(tool: "saved_summaries", outcome: "followup-2")
+        ]
+        followUpRun.followUps = [ChatMessage(role: .user, content: "Follow-up question")]
+        followUpRun.transcript = [
+            AgentPrompt.goalMessage("Initial goal"),
+            ChatMessage(role: .assistant, content: #"{"tool":"final_answer","arguments":{"answer":"Initial answer"}}"#),
+            AgentPrompt.followUpMessage("Follow-up question"),
+            ChatMessage(role: .assistant, content: #"{"tool":"saved_summaries"}"#),
+            AgentPrompt.observation(tool: "saved_summaries", result: "1", isError: false),
+            ChatMessage(role: .assistant, content: #"{"tool":"saved_summaries"}"#),
+            AgentPrompt.observation(tool: "saved_summaries", result: "2", isError: false)
+        ]
+        followUpRun.result = nil
+
+        var record = WorkRecord(
+            type: .agent, siteURL: site,
+            topicID: "agent:\(runID.uuidString)", title: "Follow-up question",
+            url: URL(string: site)!, provider: .ollama, model: "m"
+        )
+        record.status = .running
+
+        let h = makeHarness(
+            snapshot: AppSnapshot(settings: settings, activities: [record], agentRuns: [followUpRun]),
+            planner: planner
+        )
+        h.app.restorePendingTasksIfNeeded()
+        try await waitUntil { h.app.agentRuns.first(where: { $0.id == runID })?.isFinished == true }
+        let resumed = try XCTUnwrap(h.app.agentRuns.first(where: { $0.id == runID }))
+
+        XCTAssertLessThanOrEqual(
+            resumed.steps.count,
+            5,
+            "Kill & relaunch mid-Agent follow-up reset stepsUsed to 0, running \(planner.calls) additional planner calls instead of 2 (steps.count=\(resumed.steps.count))"
+        )
+    }
+
+    func testNowPlayingSheetPresentsMissingGoogleKeyAlertAndPodcastConsent() async throws {
+        let h = makeHarness()
+        let app = h.app
+        h.ai.gated = false
+        app.settings.hasCompletedOnboarding = true
+        app.acceptTerms()
+        app.allowAllAIProviders()
+        app.selectModel(ModelSelection(provider: .ollama, model: "llama-local"), for: .both)
+        let gatedSpeech = GatedSpeechEngine()
+        app.podcast.makeEngine = { _, _, _ in gatedSpeech }
+
+        var card1 = DigestCard(siteURL: site, topicID: "1", title: "Topic 1", reason: .trending, postCount: 4)
+        card1.state = .done
+        card1.summary = "Topic 1 has 4 posts."
+        app.digests = [DailyDigest(day: DailyDigest.dayKey(for: Date()), completedAt: Date(), cards: [card1])]
+
+        app.settings.podcast.engine = .onDevice
+        app.podcast.make(play: false)
+        try await waitUntil { gatedSpeech.attempts == 1 && gatedSpeech.waiting }
+        app.podcast.pauseGeneration()
+        gatedSpeech.gated = false
+        gatedSpeech.release()
+        XCTAssertEqual(app.podcast.episode?.isComplete, false)
+
+        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        let rootHost = UIHostingController(rootView: Color.clear.modifier(RouterHost(app: app, active: true)))
+        let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(x: 0, y: 0, width: 393, height: 852))
+        window.frame = CGRect(x: 0, y: 0, width: 393, height: 852)
+        window.rootViewController = rootHost
+        window.makeKeyAndVisible()
+        defer {
+            window.isHidden = true
+            window.rootViewController = nil
+        }
+        rootHost.view.layoutIfNeeded()
+        app.router.item = .nowPlaying
+        for _ in 0..<25 {
+            try await Task.sleep(for: .milliseconds(30))
+            rootHost.view.layoutIfNeeded()
+        }
+        let nowPlayingSheetVC = try XCTUnwrap(rootHost.presentedViewController, "NowPlaying sheet is presented")
+
+        app.settings.podcast.engine = .google
+        app.podcast.make(play: false)
+        for _ in 0..<25 {
+            try await Task.sleep(for: .milliseconds(30))
+            rootHost.view.layoutIfNeeded()
+            nowPlayingSheetVC.view.layoutIfNeeded()
+        }
+        let alertVisibleOverSheet = (nowPlayingSheetVC is UIAlertController) || (nowPlayingSheetVC.presentedViewController is UIAlertController)
+        app.dismissRootAlert()
+        for _ in 0..<30 where nowPlayingSheetVC.presentedViewController != nil {
+            try await Task.sleep(for: .milliseconds(30))
+            rootHost.view.layoutIfNeeded()
+        }
+        app.router.item = nil
+        for _ in 0..<30 where rootHost.presentedViewController != nil {
+            try await Task.sleep(for: .milliseconds(30))
+            rootHost.view.layoutIfNeeded()
+        }
+        window.isHidden = true
+        window.rootViewController = nil
+
+        app.router.item = .nowPlaying
+        var geminiConfig = app.settings.configuration(for: .gemini)
+        geminiConfig.apiKey = "gemini-key"
+        app.setConfiguration(geminiConfig, for: .gemini)
+        app.settings.podcastConsent = [:]
+        app.podcast.make(play: false)
+        let activePresentationWhileNowPlayingOpen = app.rootPresentation
+
+        XCTAssertTrue(
+            alertVisibleOverSheet,
+            "Missing Google API key alert attached to RouterHost behind presented NowPlayingView sheet was dropped by UIKit"
+        )
+        XCTAssertEqual(
+            activePresentationWhileNowPlayingOpen,
+            .podcastConsent(.aiStudio),
+            "Tapping Make Podcast inside NowPlayingView must present .podcastConsent(.aiStudio) over .nowPlaying"
+        )
+    }
+
+    func testTodayPageAutoPodcastAndChatThreadScrollStability() async throws {
+        // Part A (Finding 12): TodayPage scroll is not hijacked when unattended daily podcast auto-starts (`digestCompleted`)
+        let h = makeHarness()
+        let app = h.app
+        h.ai.gated = false
+        app.settings.hasCompletedOnboarding = true
+        app.acceptTerms()
+        app.allowAllAIProviders()
+        app.selectModel(ModelSelection(provider: .ollama, model: "llama-local"), for: .both)
+        app.settings.dailyDigestEnabled = true
+        app.settings.podcastDailyEnabled = true
+        let fakeSpeech = FakeSpeechEngine()
+        app.podcast.makeEngine = { _, _, _ in fakeSpeech }
+        app.settings.podcast.engine = .onDevice
+
+        let cards: [DigestCard] = (1...12).map { idx in
+            var c = DigestCard(siteURL: site, topicID: "\(idx)", title: "Digest Topic \(idx) With Long Title", reason: .trending, postCount: 10)
+            c.state = .done
+            c.summary = String(repeating: "Detailed digest summary text for card \(idx). ", count: 8)
+            return c
+        }
+        let today = DailyDigest(day: DailyDigest.dayKey(for: Date()), completedAt: Date(), cards: cards)
+        app.digests = [today]
+
+        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        let todayHost = UIHostingController(rootView: NavigationStack { TodayPage(app: app, onOpen: { _, _ in }) })
+        let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(x: 0, y: 0, width: 393, height: 852))
+        window.frame = CGRect(x: 0, y: 0, width: 393, height: 852)
+        window.rootViewController = todayHost
+        window.makeKeyAndVisible()
+        defer {
+            window.isHidden = true
+            window.rootViewController = nil
+        }
+        todayHost.view.layoutIfNeeded()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.25))
+
+        let todayScroll = try XCTUnwrap(findScrollView(in: todayHost.view, minContentHeight: 1_200))
+        todayScroll.setContentOffset(CGPoint(x: 0, y: 900), animated: false)
+        todayHost.view.layoutIfNeeded()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+        let offsetBeforeAutoPodcast = todayScroll.contentOffset.y
+        XCTAssertGreaterThan(offsetBeforeAutoPodcast, 700)
+
+        app.podcast.digestCompleted(today.id)
+        try await waitUntil { app.podcast.episode?.isComplete == true && !app.podcast.activity.isRunning }
+        for _ in 0..<15 {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.02))
+            todayHost.view.layoutIfNeeded()
+        }
+        let offsetWhileReadingBeforeUnrelatedAppChange = todayScroll.contentOffset.y
+        XCTAssertGreaterThan(offsetWhileReadingBeforeUnrelatedAppChange, 700)
+        app.settings.dailyDigestEnabled.toggle()
+        for _ in 0..<30 {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.03))
+            todayHost.view.layoutIfNeeded()
+        }
+        let offsetAfterDelayedHijack = todayScroll.contentOffset.y
+        app.podcast.pauseGeneration()
+
+        // Part B (Finding 15): ChatThread (< 16 messages) when keyboard rises (`viewportHeight` shrinks while `activeChat == nil`)
+        let t1 = ForumTopic(siteURL: site, topicID: "1", url: URL(string: "\(site)/t/topic-1/1")!, title: "Topic 1")
+        var session = TopicSession(siteURL: site, topicID: "1", url: t1.url, title: "Topic 1")
+        session.totalPosts = 20
+        session.history = (1...5).flatMap { turn in
+            [
+                ChatMessage(role: .user, content: "User question number \(turn) about the topic details?"),
+                ChatMessage(role: .assistant, content: String(repeating: "Assistant detailed answer paragraph for turn \(turn). ", count: 6))
+            ]
+        }
+        let hChat = makeHarness(snapshot: AppSnapshot(sessions: [session]))
+        let chatApp = hChat.app
+        chatApp.settings.hasCompletedOnboarding = true
+        chatApp.acceptTerms()
+        chatApp.allowAllAIProviders()
+        chatApp.selectModel(ModelSelection(provider: .ollama, model: "llama-local"), for: .both)
+        hChat.deliver(PageContext(url: t1.url, site: .discourse, siteURL: site, forumName: "Stub", topic: t1, state: .topic))
+        chatApp.assistantMode = .chat
+
+        let chatHost = UIHostingController(rootView: AssistantPanel(app: chatApp, onExpand: { _ in }))
+        window.rootViewController = chatHost
+        window.frame = CGRect(x: 0, y: 0, width: 393, height: 852)
+        chatHost.view.layoutIfNeeded()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.25))
+
+        let chatScroll = try XCTUnwrap(findScrollView(in: chatHost.view, minContentHeight: 700))
+        let bottomOffsetBeforeKeyboard = max(0, chatScroll.contentSize.height - chatScroll.bounds.height)
+        chatScroll.setContentOffset(CGPoint(x: 0, y: bottomOffsetBeforeKeyboard), animated: false)
+        chatHost.view.layoutIfNeeded()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.15))
+        let distanceFromBottomBeforeKeyboard = chatScroll.contentSize.height - (chatScroll.contentOffset.y + chatScroll.bounds.height)
+        XCTAssertLessThan(distanceFromBottomBeforeKeyboard, 20, "Reader starts at bottom")
+
+        window.frame = CGRect(x: 0, y: 0, width: 393, height: 532)
+        chatHost.view.layoutIfNeeded()
+        for _ in 0..<15 {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.03))
+            chatHost.view.layoutIfNeeded()
+        }
+        let distanceFromBottomAfterKeyboard = chatScroll.contentSize.height - (chatScroll.contentOffset.y + chatScroll.bounds.height)
+
+        XCTAssertGreaterThan(
+            offsetAfterDelayedHijack,
+            600,
+            "TodayPage must not yank scroll back to top after unattended podcast finishes"
+        )
+        XCTAssertLessThan(
+            distanceFromBottomAfterKeyboard,
+            48,
+            "When viewport shrank by keyboard height with activeChat == nil in 10-message VStack, ChatThread must keep latest reply pinned to bottom"
+        )
+    }
+
+    func testChatThread15To16TransitionWhileScrolledUpPreservesOffset() async throws {
+        let t1 = ForumTopic(siteURL: site, topicID: "1", url: URL(string: "\(site)/t/topic-1/1")!, title: "Topic 1")
+        var session = TopicSession(siteURL: site, topicID: "1", url: t1.url, title: "Topic 1")
+        session.totalPosts = 20
+        session.history = (1...7).flatMap { turn in
+            [
+                ChatMessage(role: .user, content: "User question number \(turn) about the topic details?"),
+                ChatMessage(role: .assistant, content: String(repeating: "Assistant detailed answer paragraph for turn \(turn). ", count: 8))
+            ]
+        }
+        let h = makeHarness(snapshot: AppSnapshot(sessions: [session]))
+        let app = h.app
+        app.settings.hasCompletedOnboarding = true
+        app.acceptTerms()
+        app.allowAllAIProviders()
+        app.selectModel(ModelSelection(provider: .ollama, model: "llama-local"), for: .both)
+        h.deliver(PageContext(url: t1.url, site: .discourse, siteURL: site, forumName: "Stub", topic: t1, state: .topic))
+        app.assistantMode = .chat
+
+        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        let host = UIHostingController(rootView: AssistantPanel(app: app, onExpand: { _ in }))
+        let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(x: 0, y: 0, width: 393, height: 852))
+        window.frame = CGRect(x: 0, y: 0, width: 393, height: 852)
+        window.rootViewController = host
+        window.makeKeyAndVisible()
+        defer {
+            window.isHidden = true
+            window.rootViewController = nil
+        }
+        host.view.layoutIfNeeded()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.25))
+
+        app.drafts.chat = "Eighth question crossing 15 to 16?"
+        app.sendChat()
+        try await waitUntil { h.ai.waiting == 1 }
+        for _ in 0..<25 {
+            try await Task.sleep(for: .milliseconds(30))
+            host.view.layoutIfNeeded()
+        }
+
+        let scroll = try XCTUnwrap(findScrollView(in: host.view, minContentHeight: 900))
+        scroll.setContentOffset(CGPoint(x: 0, y: 350), animated: false)
+        for _ in 0..<10 {
+            try await Task.sleep(for: .milliseconds(30))
+            host.view.layoutIfNeeded()
+        }
+        let offsetBefore16 = scroll.contentOffset.y
+        XCTAssertEqual(offsetBefore16, 350, accuracy: 5)
+
+        h.ai.gated = false
+        h.ai.releaseAll()
+        try await waitUntil { app.sessions["forum.example.com/t/1"]?.history.count == 16 }
+        for _ in 0..<20 {
+            try await Task.sleep(for: .milliseconds(30))
+            host.view.layoutIfNeeded()
+        }
+        let offsetAfter16 = scroll.contentOffset.y
+        XCTAssertEqual(
+            offsetAfter16,
+            offsetBefore16,
+            accuracy: 40,
+            "Crossing 15 -> 16 messages in ChatThread shifted reader's scroll offset from y=\(Int(offsetBefore16)) to y=\(Int(offsetAfter16))"
+        )
+    }
+
+    private func findScrollView(in view: UIView, minContentHeight: CGFloat) -> UIScrollView? {
+        var candidates: [UIScrollView] = []
+        func walk(_ v: UIView) {
+            if let sv = v as? UIScrollView, sv.bounds.height > 150, sv.contentSize.height >= minContentHeight {
+                candidates.append(sv)
+            }
+            for sub in v.subviews { walk(sub) }
+        }
+        walk(view)
+        return candidates.max(by: { $0.contentSize.height < $1.contentSize.height })
+    }
+
+    private func findSwitch(in view: UIView) -> UISwitch? {
+        if let control = view as? UISwitch { return control }
+        for subview in view.subviews {
+            if let found = findSwitch(in: subview) { return found }
+        }
+        return nil
+    }
+}
+
+private final class ProviderModelsStubProtocol: URLProtocol {
+    override class func canInit(with request: URLRequest) -> Bool { true }
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+    override func startLoading() {
+        let body = #"{"data":[{"id":"gpt-4o-mini"},{"id":"gpt-4.1"}]}"#
+        let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: nil)!
+        client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+        client?.urlProtocol(self, didLoad: Data(body.utf8))
+        client?.urlProtocolDidFinishLoading(self)
+    }
+    override func stopLoading() {}
 }
 
 // MARK: - Stubs
@@ -1777,6 +2984,7 @@ final class StateAIStub: AIService {
         var contextLimit: Int?
         var customPrompt = ""
         var content = ""
+        var summary = ""
 
         var label: String { "\(provider.rawValue)/\(configuration.model)" }
     }
@@ -1784,6 +2992,7 @@ final class StateAIStub: AIService {
     @MainActor var calls: [Call] = []
     @MainActor var gated = true
     @MainActor var failConnection = false
+    @MainActor var echoContentInSummary = false
     @MainActor var summaryError: Error?
     @MainActor private var waiters: [CheckedContinuation<Void, Never>] = []
     @MainActor private var activeSummaryProgress: (@MainActor (SummaryProgressEvent) -> Void)?
@@ -1800,6 +3009,11 @@ final class StateAIStub: AIService {
 
     @MainActor func emitDelta(_ delta: String) {
         activeSummaryDelta?(delta)
+    }
+
+    @MainActor func releaseFirst() {
+        guard !waiters.isEmpty else { return }
+        waiters.removeFirst().resume()
     }
 
     @MainActor func releaseAll() {
@@ -1834,6 +3048,7 @@ final class StateAIStub: AIService {
                         batchLimit: batchLimit, customPrompt: customPrompt, content: content)
         await arrive(call, delta: "[\(call.label)]", onDelta: onDelta)
         if let error = await summaryError { throw error }
+        if await echoContentInSummary { return "Summary by \(call.label): \(content)" }
         return "Summary by \(call.label)"
     }
 
@@ -1850,7 +3065,7 @@ final class StateAIStub: AIService {
         summaryIsStale: Bool = false
     ) async throws -> String {
         let call = Call(kind: "chat", provider: provider, configuration: configuration,
-                        contextLimit: contextLimit, customPrompt: customPrompt)
+                        contextLimit: contextLimit, customPrompt: customPrompt, content: source, summary: summary)
         await arrive(call, delta: "[\(call.label)]", onDelta: onDelta)
         return "Answer by \(call.label)"
     }
@@ -1863,6 +3078,18 @@ final class StateAIStub: AIService {
     override func discoverModels(configuration: ProviderConfiguration, provider: AIProvider) async throws -> [String] {
         await arrive(Call(kind: "models", provider: provider, configuration: configuration))
         return ["\(provider.rawValue)-model"]
+    }
+
+    override func complete(
+        system: String,
+        messages: [ChatMessage],
+        configuration: ProviderConfiguration,
+        provider: AIProvider,
+        maxTokens: Int = 512
+    ) async throws -> String {
+        let call = Call(kind: "complete", provider: provider, configuration: configuration)
+        await arrive(call)
+        return "Completed by \(call.label)"
     }
 }
 
@@ -2088,5 +3315,383 @@ final class FakeBackgroundGrace: BackgroundGracing {
     /// The system's time is up.
     func expire() {
         expiration?()
+    }
+}
+
+private final class ChatPayloadInspectorStub: URLProtocol {
+    private static let lock = NSLock()
+    nonisolated(unsafe) static var failNext = false
+    nonisolated(unsafe) static var lastRecordedRoles: [String] = []
+
+    static func reset() {
+        lock.withLock {
+            failNext = false
+            lastRecordedRoles = []
+        }
+    }
+
+    override class func canInit(with request: URLRequest) -> Bool {
+        request.url?.path.hasSuffix("/messages") == true
+    }
+
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+
+    override func startLoading() {
+        var bodyData = request.httpBody
+        if bodyData == nil, let stream = request.httpBodyStream {
+            stream.open()
+            var buffer = [UInt8](repeating: 0, count: 4096)
+            var data = Data()
+            while stream.hasBytesAvailable {
+                let read = stream.read(&buffer, maxLength: buffer.count)
+                if read > 0 { data.append(buffer, count: read) } else { break }
+            }
+            stream.close()
+            bodyData = data
+        }
+        if let bodyData,
+           let json = try? JSONSerialization.jsonObject(with: bodyData) as? [String: Any],
+           let messages = json["messages"] as? [[String: Any]] {
+            let roles = messages.compactMap { $0["role"] as? String }
+            Self.lock.withLock { Self.lastRecordedRoles = roles }
+        }
+
+        let shouldFail = Self.lock.withLock { Self.failNext }
+        if shouldFail {
+            let response = HTTPURLResponse(url: request.url!, statusCode: 500, httpVersion: "HTTP/1.1", headerFields: nil)!
+            client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+            client?.urlProtocol(self, didLoad: Data(#"{"error":{"message":"Server overload"}}"#.utf8))
+            client?.urlProtocolDidFinishLoading(self)
+            return
+        }
+
+        let sse = "data: {\"type\":\"content_block_delta\",\"delta\":{\"text\":\"Recovered answer\"}}\n\ndata: [DONE]\n\n"
+        let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: ["Content-Type": "text/event-stream"])!
+        client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+        client?.urlProtocol(self, didLoad: Data(sse.utf8))
+        client?.urlProtocolDidFinishLoading(self)
+    }
+
+    override func stopLoading() {}
+}
+
+
+// Requests must respect consent and moderation even when saved or in flight.
+@MainActor
+final class AIContextValidityTests: XCTestCase {
+    let siteURL = "https://forum.example.com"
+    var deliverPage: ((PageContext) -> Void)?
+
+    func makeApp(ai: AIService, snapshot: AppSnapshot? = nil, service: ForumService? = nil, planner: AgentPlanner? = nil) throws -> AppModel {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let store = PersistentStore(fileURL: directory.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore())
+        var seeded = snapshot ?? AppSnapshot()
+        if snapshot == nil { seeded.ensureForum(siteURL) }
+        try store.save(seeded)
+        addTeardownBlock { try? FileManager.default.removeItem(at: directory) }
+        let cfg = URLSessionConfiguration.ephemeral
+        cfg.protocolClasses = [StateForumStub.self]
+        let app = AppModel(store: store, forumService: service ?? ForumService(session: URLSession(configuration: cfg), pacer: ForumRequestPacer(clock: InstantPacingClock())), aiService: ai, planner: planner)
+        app.usesDirectForumRequests = true
+        app.settings.hasCompletedOnboarding = true
+        app.acceptTerms()
+        app.allowAllAIProviders()
+        app.selectModel(ModelSelection(provider: .ollama, model: "test-model"), for: .both)
+        let handler = app.browser.onPageContextChanged
+        app.browser.onPageContextChanged = nil
+        deliverPage = { app.browser.setPageContext($0); handler?($0) }
+        addTeardownBlock { @MainActor in
+            for record in app.activities where !record.status.isTerminal { app.cancel(record: record) }
+            app.pauseDigest()
+            app.podcast.pauseGeneration()
+            if let ai = ai as? StateAIStub { ai.gated = false; ai.releaseAll() }
+            StateForumStub.release()
+        }
+        return app
+    }
+
+    func waitUntil(_ condition: @escaping () -> Bool) async throws {
+        let deadline = Date().addingTimeInterval(10)
+        while !condition() {
+            if Date() > deadline { XCTFail("Timed out waiting for work"); throw CancellationError() }
+            try await Task.sleep(for: .milliseconds(20))
+        }
+    }
+
+    func testBlockWhileSummaryInFlightDoesNotCertifyBlockedOutput() async throws {
+        StateForumStub.reset()
+        let ai = StateAIStub()
+        ai.echoContentInSummary = true
+        let planner = ScriptedAgentPlanner(actions: [
+            AgentAction(thought: "", tool: "saved_summaries", arguments: ["query": "Topic"]),
+            AgentAction(thought: "", tool: AgentPrompt.finalAnswerTool, arguments: ["answer": "Done"])
+        ])
+        let topic = ForumTopic(siteURL: siteURL, topicID: "1", url: URL(string: siteURL + "/t/topic-1/1")!, title: "Topic 1")
+        var earlier = TopicSession(siteURL: siteURL, topicID: topic.topicID, url: topic.url, title: topic.title)
+        earlier.summary = "Earlier saved summary"
+        let app = try makeApp(ai: ai, snapshot: AppSnapshot(sessions: [earlier], forums: [Forum(siteURL: siteURL, kind: .discourse, name: "Forum")]), planner: planner)
+        XCTAssertTrue(app.enqueueSummary(for: topic, regenerate: true))
+        try await waitUntil { ai.waiting == 1 }
+        XCTAssertTrue(ai.calls[0].content.contains("Post 2"))
+        app.blockPost(2, topicID: "1", on: siteURL)
+        ai.gated = false
+        ai.releaseAll()
+        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
+        let saved = try XCTUnwrap(app.sessions[topic.topicKey])
+        XCTAssertEqual(saved.summary, earlier.summary, "An obsolete response must not replace saved reader text")
+        XCTAssertFalse(app.canUseSummaryAsContext(saved))
+        _ = try await app.performAgentRun(goal: "Read saved summaries", siteURL: siteURL)
+        let observation = planner.transcripts.flatMap { $0 }.map(\.content).joined(separator: "\n")
+        XCTAssertFalse(observation.contains("Post 2"), "Post blocked during summary generation reached the planner via saved_summaries; canUse=\(app.canUseSummaryAsContext(saved))")
+    }
+
+    func testAgentSummaryCompletedAfterBlockIsDiscarded() async throws {
+        StateForumStub.reset()
+        let ai = StateAIStub()
+        ai.echoContentInSummary = true
+        let planner = ScriptedAgentPlanner(actions: [
+            AgentAction(thought: "", tool: "summarize_topic", arguments: ["topic_id": "1"]),
+            AgentAction(thought: "", tool: AgentPrompt.finalAnswerTool, arguments: ["answer": "Done"])
+        ])
+        let app = try makeApp(ai: ai, planner: planner)
+        app.startAgentRun(goal: "Summarize topic one", siteURL: siteURL)
+        try await waitUntil { ai.waiting == 1 }
+        XCTAssertTrue(ai.calls[0].content.contains("Post 2"))
+        app.blockPost(2, topicID: "1", on: siteURL)
+        ai.gated = false
+        ai.releaseAll()
+        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
+        XCTAssertEqual(app.activities.first?.status, .cancelled)
+        XCTAssertFalse(app.sessions[TopicIdentity.key(siteURL: siteURL, topicID: "1")]?.hasSummary == true)
+        XCTAssertFalse(planner.transcripts.flatMap { $0 }.map(\.content).joined().contains("Post 2"))
+    }
+
+    func testBlockedSavedSummaryInPriorAgentTranscriptDoesNotReachFollowUpPlanner() async throws {
+        StateForumStub.reset()
+        let ai = StateAIStub()
+        ai.gated = false
+        ai.echoContentInSummary = true
+        let planner = ScriptedAgentPlanner(actions: [
+            AgentAction(thought: "", tool: "saved_summaries", arguments: ["query": "Topic"]),
+            AgentAction(thought: "", tool: AgentPrompt.finalAnswerTool, arguments: ["answer": "Initial answer"]),
+            AgentAction(thought: "", tool: AgentPrompt.finalAnswerTool, arguments: ["answer": "Follow-up answer"])
+        ])
+        let app = try makeApp(ai: ai, planner: planner)
+        let topic = ForumTopic(siteURL: siteURL, topicID: "1", url: URL(string: siteURL + "/t/topic-1/1")!, title: "Topic 1")
+        XCTAssertTrue(app.enqueueSummary(for: topic))
+        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
+        let initial = try await app.performAgentRun(goal: "Read saved Topic summaries", siteURL: siteURL)
+        let runID = initial.runID
+        XCTAssertTrue(planner.transcripts.last?.map(\.content).joined().contains("Post 2") == true)
+        app.blockPost(2, topicID: "1", on: siteURL)
+        XCTAssertFalse(app.canUseSummaryAsContext(try XCTUnwrap(app.sessions[topic.topicKey])))
+        app.continueAgentRun(id: runID, question: "Anything else?")
+        try await waitUntil { app.agentRuns.first(where: { $0.id == runID })?.isFinished == true }
+        let replayed = planner.transcripts.last?.map(\.content).joined(separator: "\n") ?? ""
+        XCTAssertTrue(app.agentRuns.first(where: { $0.id == runID })?.transcript.map(\.content).joined().contains("Post 2") == true, "The saved transcript stays visible")
+        XCTAssertFalse(replayed.contains("Post 2"), "Agent follow-up replayed the pre-block saved_summaries observation despite rejecting the saved summary itself")
+    }
+
+    func testPodcastDoesNotSendPreBlockDigestSummary() async throws {
+        StateForumStub.reset()
+        let ai = CapturingPodcastPromptAI()
+        let app = try makeApp(ai: ai)
+        var card = DigestCard(siteURL: siteURL, topicID: "1", title: "Topic 1", reason: .trending, postCount: 2)
+        card.state = .done
+        card.summary = "BLOCKED_POST_TWO_SECRET from post two."
+        app.digests = [DailyDigest(day: DailyDigest.dayKey(for: Date()), completedAt: Date(), cards: [card])]
+        app.blockPost(2, topicID: "1", on: siteURL)
+        app.settings.podcast.engine = .onDevice
+        app.podcast.makeEngine = { _, _, _ in SilentSpeechEngine() }
+        app.podcast.make(play: false)
+        try await waitUntil { !ai.prompts.isEmpty && !app.podcast.activity.isRunning }
+        XCTAssertFalse(app.podcast.episode?.entries.map { $0.chapter.spokenText }.joined().contains("BLOCKED_POST_TWO_SECRET") == true, "Fallback speech also uses the regenerated card")
+        XCTAssertEqual(app.todaysDigest?.cards.first?.summary, card.summary, "Saved text remains visible")
+        XCTAssertFalse(ai.prompts.joined().contains("BLOCKED_POST_TWO_SECRET"), "Podcast complete() sent pre-block digest summary to script model")
+    }
+
+    func testResumedPodcastRegeneratesPreBlockScriptBeforeSpeech() async throws {
+        StateForumStub.reset()
+        let ai = CapturingPodcastPromptAI()
+        let app = try makeApp(ai: ai)
+        var card = DigestCard(siteURL: siteURL, topicID: "1", title: "Topic 1", reason: .trending, postCount: 2)
+        card.state = .done
+        card.summary = "BLOCKED_POST_TWO_SECRET"
+        let digest = DailyDigest(day: DailyDigest.dayKey(for: Date()), completedAt: Date(), cards: [card])
+        app.digests = [digest]
+        var chapter = PodcastChapter(card: card)
+        chapter.turns = PodcastScript.fallbackTurns(for: card)
+        app.podcast.store.save(PodcastEpisode(
+            digestID: digest.id, day: digest.day, title: "Podcast", language: "en", hosts: app.settings.podcast.hosts,
+            engine: .onDevice, minutesPerChapter: 1, entries: [PodcastEpisode.Entry(chapter: chapter)]
+        ))
+        app.blockPost(2, topicID: "1", on: siteURL)
+        app.settings.podcast.engine = .onDevice
+        app.podcast.makeEngine = { _, _, _ in SilentSpeechEngine() }
+        app.podcast.make(play: false)
+        try await waitUntil { !ai.prompts.isEmpty && !app.podcast.activity.isRunning }
+        XCTAssertFalse(ai.prompts.joined().contains("BLOCKED_POST_TWO_SECRET"))
+        XCTAssertFalse(app.podcast.episode?.entries.map { $0.chapter.spokenText }.joined().contains("BLOCKED_POST_TWO_SECRET") == true)
+    }
+
+    func testWithdrawCancelsCrossRoleSummaryAfterAssistantSwitch() async throws {
+        StateForumStub.reset()
+        let ai = CancellableSummaryAI()
+        let planner = ScriptedAgentPlanner(actions: [
+            AgentAction(thought: "", tool: "summarize_topic", arguments: ["topic_id": "1"]),
+            AgentAction(thought: "", tool: AgentPrompt.finalAnswerTool, arguments: ["answer": "Done"])
+        ])
+        let app = try makeApp(ai: ai, planner: planner)
+        var configuration = app.settings.configuration(for: .openAI)
+        configuration.apiKey = "test-key"
+        app.setConfiguration(configuration, for: .openAI)
+        app.selectModel(ModelSelection(provider: .openAI, model: "test-model"), for: .role(.assistant))
+        app.startAgentRun(goal: "Summarize topic one", siteURL: siteURL)
+        try await waitUntil { ai.waiting == 1 }
+        XCTAssertEqual(ai.provider, .openAI)
+        app.selectModel(ModelSelection(provider: .lmStudio, model: "local-model"), for: .role(.assistant))
+        app.withdrawAIConsent(.openAI)
+        XCTAssertEqual(app.activities.first?.status, .cancelled, "Cross-role OpenAI summary still running after withdrawal because live assistant role has switched")
+        try await Task.sleep(for: .milliseconds(100))
+        XCTAssertTrue(ai.cancelled, "In-flight summarizer task received no cancellation after consent withdrawal")
+        ai.release()
+        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
+    }
+
+    func testBlockedContentInPreviousChatAnswerDoesNotReachNextChat() async throws {
+        try await assertPriorChatAnswerIsExcluded(synced: false)
+    }
+
+    func testSyncedBlockExcludesPreviousChatAnswerFromNextRequest() async throws {
+        try await assertPriorChatAnswerIsExcluded(synced: true)
+    }
+
+    private func assertPriorChatAnswerIsExcluded(synced: Bool) async throws {
+        StateForumStub.reset()
+        let ai = EchoingChatContextAI()
+        let app = try makeApp(ai: ai)
+        let topic = ForumTopic(siteURL: siteURL, topicID: "1", url: URL(string: siteURL + "/t/topic-1/1")!, title: "Topic 1")
+        deliverPage?(PageContext(url: topic.url, site: .discourse, siteURL: siteURL, forumName: "Forum", topic: topic, state: .topic))
+        app.drafts.chat = "Quote the replies"
+        app.sendChat()
+        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
+        XCTAssertTrue(app.sessions[topic.topicKey]?.history.last?.content.contains("Post 2") == true)
+        if synced {
+            var remote = app.settings
+            // Another device blocked it in the answer's second; sync drops fractions.
+            let blockedAt = SyncCoding.stamp(try XCTUnwrap(app.sessions[topic.topicKey]?.history.last).createdAt)
+            remote.blockedPosts.append(BlockedPost(siteURL: siteURL, topicID: "1", postNumber: 2, blockedAt: blockedAt))
+            let skipped = app.applyRemote(SyncChanges(settings: SyncSettingsChange(expected: app.settings.persistable, units: try SyncSchema.settingsUnits(remote))))
+            XCTAssertTrue(skipped.isEmpty)
+        } else {
+            app.blockPost(2, topicID: "1", on: siteURL)
+        }
+        app.drafts.chat = "What else?"
+        app.sendChat()
+        try await waitUntil { ai.histories.count == 2 && app.activities.allSatisfy(\.status.isTerminal) }
+        XCTAssertFalse(ai.sources.last?.contains("Post 2") == true, "Raw source is correctly moderated")
+        XCTAssertFalse(ai.histories.last?.contains("Post 2") == true, "Previous AI answer quoting blocked post two was sent back in next chat history")
+        XCTAssertTrue(app.sessions[topic.topicKey]?.history.first(where: { $0.role == .assistant })?.content.contains("Post 2") == true, "Saved answers stay visible")
+    }
+
+    func testSyncedConsentWithdrawalDoesNotLeaveDigestCardWorkingForever() async throws {
+        StateForumStub.reset()
+        let ai = StateAIStub()
+        let topicURL = URL(string: siteURL + "/t/topic-1/1")!
+        let watched = WatchedTopic(siteURL: siteURL, topicID: "1", url: topicURL, title: "Topic 1", knownPostCount: 1)
+        let app = try makeApp(ai: ai, snapshot: AppSnapshot(watchedTopics: [watched], forums: [Forum(siteURL: siteURL, kind: .discourse, name: "Forum")]))
+        var configuration = app.settings.configuration(for: .openAI)
+        configuration.apiKey = "test-key"
+        app.setConfiguration(configuration, for: .openAI)
+        app.selectModel(ModelSelection(provider: .openAI, model: "test-model"), for: .role(.assistant))
+        app.makeTodaysDigest()
+        try await waitUntil { ai.waiting == 1 }
+        // Exercise the actual remote-settings apply path, as another device's withdrawal would.
+        var remote = app.settings
+        remote.aiConsent[AIProvider.openAI.rawValue] = .declined(Date())
+        let skipped = app.applyRemote(SyncChanges(settings: SyncSettingsChange(expected: app.settings.persistable, units: try SyncSchema.settingsUnits(remote))))
+        XCTAssertTrue(skipped.isEmpty)
+        guard case .declined = app.aiConsentState(for: .openAI) else { return XCTFail("Remote withdrawal did not apply") }
+        ai.gated = false
+        ai.releaseAll()
+        try await waitUntil { !app.digestActivity.isRunning }
+        let afterWithdrawal = app.todaysDigest?.cards.first?.state
+        app.settings.aiConsent[AIProvider.openAI.rawValue] = .allowed(Date())
+        app.makeTodaysDigest()
+        try await Task.sleep(for: .milliseconds(200))
+        XCTAssertEqual(afterWithdrawal, .failed, "The failed card offers retry after consent withdrawal")
+        XCTAssertNotEqual(app.todaysDigest?.cards.first?.state, .working, "Re-allow and resume still leave the card working, with no digest task")
+        app.retryDigestCard(try XCTUnwrap(app.todaysDigest?.cards.first))
+        try await waitUntil { app.todaysDigest?.cards.first?.state == .done && !app.digestActivity.isRunning }
+    }
+
+    func testWordPressBlockedAuthorWithoutCachedArticleDoesNotReachPlanner() async throws {
+        let wp = WordPressFixtureSite(commentCount: 0)
+        var posts = wp.posts
+        posts[0]["_embedded"] = ["author": [["name": "alice"]]]
+        posts[0]["author"] = 1
+        wp.posts = posts
+        let site = WordPressFixtureSite.siteURL
+        let ai = StateAIStub()
+        ai.gated = false
+        let planner = ScriptedAgentPlanner(actions: [
+            AgentAction(thought: "", tool: "search_forum", arguments: ["query": "Opening post"]),
+            AgentAction(thought: "", tool: AgentPrompt.finalAnswerTool, arguments: ["answer": "Done"])
+        ])
+        let app = try makeApp(ai: ai, snapshot: AppSnapshot(forums: [Forum(siteURL: site, kind: .wordpress, name: "Blog")]), service: wp.service(), planner: planner)
+        // The listing and article identify the same author, without a cached read.
+        let article = try XCTUnwrap(WordPressParsing.parseArticle(WordPressFixtureSite.fixtureObject("article-1001")))
+        XCTAssertEqual(article.author, "alice")
+        app.block("alice", on: site)
+        _ = try await app.performAgentRun(goal: "Find the opening post", siteURL: site)
+        let observation = planner.transcripts.flatMap { $0 }.map(\.content).joined(separator: "\n")
+        XCTAssertFalse(observation.contains("Opening post: the card is offering"), "Blocked author alice's article excerpt reached planner without cached author metadata")
+    }
+}
+
+private final class CapturingPodcastPromptAI: AIService {
+    override func generateSummary(content: String, configuration: ProviderConfiguration, provider: AIProvider, customPrompt: String, discussion: DiscussionProfile, batchLimit: Int = SummaryBatchLimit.default, onDelta: @escaping @MainActor (String) -> Void, onProgress: @escaping @MainActor (SummaryProgressEvent) -> Void = { _ in }) async throws -> String {
+        return "Fresh digest: " + content
+    }
+    @MainActor var prompts: [String] = []
+    override func complete(system: String, messages: [ChatMessage], configuration: ProviderConfiguration, provider: AIProvider, maxTokens: Int = 512) async throws -> String {
+        await MainActor.run { prompts.append(messages.map(\.content).joined(separator: "\n")) }
+        throw AssistantError.http(400, "Prompt captured; no network request")
+    }
+}
+
+private final class EchoingChatContextAI: AIService {
+    @MainActor var histories: [String] = []
+    @MainActor var sources: [String] = []
+    override func answer(source: String, summary: String, history: [ChatMessage], contextLimit: Int, customPrompt: String, discussion: DiscussionProfile, configuration: ProviderConfiguration, provider: AIProvider, onDelta: @escaping @MainActor (String) -> Void, summaryIsStale: Bool = false) async throws -> String {
+        await MainActor.run {
+            histories.append(history.map(\.content).joined(separator: "\n"))
+            sources.append(source)
+        }
+        return "Quoted replies: " + source
+    }
+}
+
+private final class CancellableSummaryAI: AIService {
+    @MainActor var provider: AIProvider?
+    @MainActor var waiting = 0
+    @MainActor var cancelled = false
+    @MainActor private var continuation: CheckedContinuation<Void, Never>?
+    @MainActor func release() { continuation?.resume(); continuation = nil }
+    override func generateSummary(content: String, configuration: ProviderConfiguration, provider: AIProvider, customPrompt: String, discussion: DiscussionProfile, batchLimit: Int = SummaryBatchLimit.default, onDelta: @escaping @MainActor (String) -> Void, onProgress: @escaping @MainActor (SummaryProgressEvent) -> Void = { _ in }) async throws -> String {
+        await withTaskCancellationHandler {
+            await MainActor.run { self.provider = provider }
+            await hold()
+        } onCancel: {
+            Task { @MainActor in self.cancelled = true; self.release() }
+        }
+        try Task.checkCancellation()
+        return "Summary"
+    }
+    @MainActor private func hold() async {
+        await withCheckedContinuation { continuation in
+            self.continuation = continuation
+            waiting += 1
+        }
     }
 }

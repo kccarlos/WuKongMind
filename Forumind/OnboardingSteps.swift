@@ -388,7 +388,7 @@ struct OnboardingForumsPage: View {
         addedName = nil
         Task {
             do {
-                let forum = try await app.addForum(fromAddress: trimmed, pin: true)
+                let forum = try await app.addForum(fromAddress: trimmed, pin: false)
                 selected.insert(forum.siteURL)
                 addedName = forum.displayName
                 address = ""
@@ -465,8 +465,13 @@ struct OnboardingDailyPage: View {
                     symbol: "headphones", tint: DCTheme.agentTint,
                     title: String(localized: "Podcast every day", comment: "Walkthrough toggle"),
                     detail: String(localized: "Two hosts talk through the digest.", comment: "Walkthrough toggle"),
-                    isOn: $app.settings.podcastDailyEnabled, id: "onboardingPodcastDaily"
+                    isOn: Binding(
+                        get: { app.settings.dailyDigestEnabled && app.settings.podcastDailyEnabled },
+                        set: { app.settings.podcastDailyEnabled = $0 }
+                    ),
+                    id: "onboardingPodcastDaily"
                 )
+                .disabled(!app.settings.dailyDigestEnabled)
             }
             .dcCard()
             Label {
@@ -847,7 +852,7 @@ struct OnboardingDonePage: View {
                     order: 2,
                     done: app.settings.dailyDigestEnabled,
                     title: app.settings.dailyDigestEnabled ? String(localized: "Daily digest on", comment: "Walkthrough checklist") : String(localized: "Daily digest off", comment: "Walkthrough checklist"),
-                    detail: app.settings.podcastDailyEnabled ? String(localized: "With a daily podcast", comment: "Walkthrough checklist") : String(localized: "Change it in Settings › Daily digest & podcast.", comment: "Walkthrough checklist")
+                    detail: (app.settings.dailyDigestEnabled && app.settings.podcastDailyEnabled) ? String(localized: "With a daily podcast", comment: "Walkthrough checklist") : String(localized: "Change it in Settings › Daily digest & podcast.", comment: "Walkthrough checklist")
                 )
                 Divider().padding(.leading, 48)
                 OnboardingDoneSyncRow(app: app, order: 3)

@@ -38,20 +38,23 @@ struct HomeDestinations: ViewModifier {
 
     func body(content: Content) -> some View {
         content.navigationDestination(for: HomeRoute.self) { route in
-            switch route {
-            case .today:
-                TodayPage(app: app, onOpen: onOpenDigestLink)
-            case .digest(let id):
-                if let digest = app.digests.first(where: { $0.id == id }) {
-                    DigestHistoryPage(app: app, digest: digest, onOpen: onOpenDigestLink)
+            Group {
+                switch route {
+                case .today:
+                    TodayPage(app: app, onOpen: onOpenDigestLink)
+                case .digest(let id):
+                    if let digest = app.digests.first(where: { $0.id == id }) {
+                        DigestHistoryPage(app: app, digest: digest, onOpen: onOpenDigestLink)
+                            .toolbar(.visible, for: .navigationBar)
+                    }
+                case .digestSettings:
+                    SettingsDigestPage(app: app)
+                        .navigationTitle(SettingsPage.digest.title)
+                        .navigationBarTitleDisplayMode(.inline)
                         .toolbar(.visible, for: .navigationBar)
                 }
-            case .digestSettings:
-                SettingsDigestPage(app: app)
-                    .navigationTitle(SettingsPage.digest.title)
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar(.visible, for: .navigationBar)
             }
+            .modifier(HomeRouteDockModifier(app: app, route: route))
         }
     }
 }
@@ -65,7 +68,6 @@ private struct HomeList: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @ScaledMetric(relativeTo: .body) private var tileWidth: CGFloat = 104
     @State private var forumToRemove: Forum?
-    @State private var showingPinnedEditor = false
     @State private var addingSuggested: Set<String> = []
 
     private var hasForums: Bool { !app.forums.isEmpty }
@@ -101,9 +103,6 @@ private struct HomeList: View {
         .background(DCTheme.pageBackground)
         .animation(DCMotion.respecting(reduceMotion, DCMotion.smooth), value: app.forums)
         .animation(DCMotion.respecting(reduceMotion, DCMotion.smooth), value: app.todayModuleState)
-        .sheet(isPresented: $showingPinnedEditor) {
-            PinnedForumsEditor(app: app)
-        }
         .task { podcast.refresh() }
         .accessibilityIdentifier("home")
     }
@@ -136,7 +135,8 @@ private struct HomeList: View {
         } label: {
             Image(systemName: symbol)
                 .font(.title3.weight(.medium))
-                .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
+                .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+                .frame(minWidth: DCTheme.controlHeight, minHeight: DCTheme.controlHeight)
                 .contentShape(Circle())
         }
         .buttonStyle(.plain)
@@ -204,7 +204,7 @@ private struct HomeList: View {
                 Text("Forums", comment: "Home section: the pinned forums")
                 Spacer()
                 if app.pinnedForums.count > 1 {
-                    Button("Edit") { showingPinnedEditor = true }
+                    Button("Edit") { app.router.item = .pinnedForums }
                         .font(.subheadline.weight(.semibold))
                         .textCase(nil)
                         .accessibilityLabel("Edit pinned forums")
@@ -253,7 +253,7 @@ private struct HomeList: View {
             Label("Unpin", systemImage: "pin.slash")
         }
         if app.pinnedForums.count > 1 {
-            Button { showingPinnedEditor = true } label: {
+            Button { app.router.item = .pinnedForums } label: {
                 Label("Reorder Pinned…", systemImage: "arrow.up.arrow.down")
             }
         }

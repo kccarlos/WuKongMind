@@ -704,6 +704,15 @@ struct ForumHomeState: View {
                     }
                     .focused($focused)
                     .onChange(of: focused) { composerFocusChanged(focused) }
+                    .onChange(of: drafts.goal) { oldValue, newValue in
+                        guard focused,
+                              newValue.count == oldValue.count + 1,
+                              newValue.filter({ $0 == "\n" }).count == oldValue.filter({ $0 == "\n" }).count + 1
+                        else { return }
+                        drafts.goal = oldValue
+                        ask()
+                    }
+                    .onSubmit(ask)
                     .submitLabel(.send)
                     .accessibilityIdentifier("forumHomeGoalInput")
 

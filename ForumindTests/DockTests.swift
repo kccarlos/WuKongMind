@@ -97,6 +97,100 @@ final class DockTests: XCTestCase {
         XCTAssertEqual(levels.output(at: 100.1), 0.8, accuracy: 0.001)
         XCTAssertEqual(levels.output(at: 101), 0)
     }
+
+    @MainActor
+    func testVoiceDrawerFailureVisibilityDoubleTapVertexConsentAndPodcastChapterLine() throws {
+        // 1. Voice failure / ended state while AI drawer is open shows in DrawerStatusRow, and clears when closing the drawer.
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        addTeardownBlock { try? FileManager.default.removeItem(at: directory) }
+        let store = PersistentStore(fileURL: directory.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore())
+        let app = AppModel(store: store)
+        app.browser.onPageContextChanged = nil
+        addTeardownBlock { @MainActor in app.browser.webView.stopLoading() }
+        app.browser.load(URL(string: "https://forum.example/t/topic/1")!)
+        app.router.splitLayout = false
+        XCTAssertTrue(app.showAIView())
+        app.router.presentDrawer()
+        app.router.drawerAppeared()
+        XCTAssertTrue(app.isAIViewShown)
+
+        app.voice.start()
+        XCTAssertEqual(app.voice.startFailure, .noKey)
+        let statusRow = DrawerStatusRow(app: app, podcast: app.podcast, router: app.router, voice: app.voice)
+        XCTAssertEqual(statusRow.voiceStatusText, VoiceSession.Failure.noKey.message)
+
+        app.toggleAIView()
+        app.router.drawerDismissed()
+        app.aiViewVisibilityChanged()
+        XCTAssertFalse(app.voice.showsBar, "Stale voice failure must not ambush the browser bar after closing the drawer.")
+        XCTAssertEqual(app.bottomLayer, .bar)
+
+        // 2. Fast double-tap on `VoiceBarButton` (`voice.toggle()`) is idempotent instead of killing the new session.
+        var gemini = app.settings.configuration(for: .gemini)
+        gemini.apiKey = "test-gemini-key"
+        app.settings.setConfiguration(gemini, for: .gemini)
+        app.grantVoiceConsent(.aiStudio)
+        app.voice.useScriptedSession = true
+
+        app.voice.toggle()
+        app.voice.toggle()
+        XCTAssertTrue(app.voice.isActive, "Second rapid tap on microphone must not abort the starting session.")
+        app.voice.end()
+        XCTAssertFalse(app.voice.isActive)
+        app.voice.dismiss()
+
+        // 3. `VoiceConsentSheet` reflects Vertex AI and warns when the Google Cloud project ID is missing.
+        let missingProject = VoiceConsentSheet(provider: .vertex, settings: VoiceSettings(), vertexBaseURL: "", onAgree: {}, onCancel: {})
+        XCTAssertFalse(missingProject.statusLine.isReady)
+        XCTAssertEqual(missingProject.statusLine.text, VoiceSession.Failure.noVertexProject.message)
+
+        var withProjectSettings = VoiceSettings()
+        withProjectSettings.vertexProject = "my-gcp-project"
+        let readyVertex = VoiceConsentSheet(provider: .vertex, settings: withProjectSettings, vertexBaseURL: "", onAgree: {}, onCancel: {})
+        XCTAssertTrue(readyVertex.statusLine.isReady)
+        XCTAssertEqual(readyVertex.statusLine.text, "Voice uses Google Vertex AI. Key ready.")
+
+        let readyGemini = VoiceConsentSheet(provider: .aiStudio, settings: VoiceSettings(), vertexBaseURL: "", onAgree: {}, onCancel: {})
+        XCTAssertTrue(readyGemini.statusLine.isReady)
+        XCTAssertEqual(readyGemini.statusLine.text, "Voice uses Google Gemini. Key ready.")
+
+        // 4. `DockText.podcastLine` labels Welcome / Wrap-up and counts only topic chapters (matching NowPlayingView).
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: "dock-podcast-\(UUID().uuidString)"))
+        let audio = FakePodcastAudio()
+        let player = PodcastPlayer(audio: audio, session: FakePodcastSession(), positions: PodcastPositionStore(defaults: defaults))
+        let entries: [PodcastEpisode.Entry] = [
+            .init(chapter: .intro(title: "Welcome"), audioFile: "0.wav", duration: 10, state: .ready),
+            .init(chapter: .init(id: "t1", kind: .topic, title: "First"), audioFile: "1.wav", duration: 30, state: .ready),
+            .init(chapter: .init(id: "t2", kind: .topic, title: "Second"), audioFile: "2.wav", duration: 20, state: .ready),
+            .init(chapter: .outro(title: "See you tomorrow"), audioFile: "3.wav", duration: 10, state: .ready)
+        ]
+        let episode = PodcastEpisode(
+            digestID: UUID(),
+            day: "2026-11-06",
+            title: "Today",
+            language: "en",
+            hosts: PodcastHosts(a: "A", b: "B"),
+            engine: .onDevice,
+            voices: nil,
+            minutesPerChapter: 1,
+            entries: entries
+        )
+        let playlist = PodcastPlaylist(
+            id: episode.digestID.uuidString,
+            title: "Today",
+            items: entries.enumerated().map { idx, entry in
+                .init(id: entry.id, title: entry.chapter.title, url: URL(fileURLWithPath: "/tmp/\(idx).wav"), duration: entry.duration)
+            }
+        )
+        player.load(playlist, autoplay: true)
+        XCTAssertEqual(DockText.podcastLine(player: player, episode: episode), "Today · Welcome · 1:10 left")
+        player.nextChapter()
+        XCTAssertEqual(DockText.podcastLine(player: player, episode: episode), "Today · Topic 1 of 2 · 1:00 left")
+        player.nextChapter()
+        XCTAssertEqual(DockText.podcastLine(player: player, episode: episode), "Today · Topic 2 of 2 · 0:30 left")
+        player.nextChapter()
+        XCTAssertEqual(DockText.podcastLine(player: player, episode: episode), "Today · Wrap-up · 0:10 left")
+    }
 }
 
 /// One layout-aware "show the AI view" for every entry point, and Answer
@@ -140,6 +234,32 @@ final class AIViewIntentTests: XCTestCase {
             XCTAssertFalse(app.router.wantsDrawer, "no drawer request left for later")
             XCTAssertEqual(app.router.splitPanelMode, .auto)
         }
+    }
+
+    func testSplitPanelToggleDisabledOnHomeWhenNoPageLoaded() throws {
+        let app = try model()
+        app.router.splitLayout = true
+        XCTAssertTrue(app.browser.showsForumsHome)
+        XCTAssertNil(app.browser.currentURL)
+        XCTAssertNil(app.currentTopic)
+
+        app.toggleAIView()
+        XCTAssertEqual(app.router.splitPanelMode, .auto, "toggleAIView on Home with no loaded page must not open an endless loading panel.")
+        XCTAssertFalse(app.isAIViewShown)
+
+        // Once a topic has been opened and the reader returns to Home, the split panel toggles over Home.
+        let url = URL(string: "\(site)/t/topic/1")!
+        let topic = ForumTopic(siteURL: site, topicID: "1", url: url, title: "Topic")
+        let context = PageContext(url: url, site: .discourse, siteURL: site, forumName: "Example", topic: topic, state: .topic)
+        app.browser.load(url)
+        app.browser.setPageContext(context)
+        app.select(topic: topic)
+        app.showForumsHome()
+        XCTAssertTrue(app.browser.showsForumsHome)
+
+        app.toggleAIView()
+        XCTAssertEqual(app.router.splitPanelMode, .shown)
+        XCTAssertTrue(app.isAIViewShown)
     }
 
     func testDrawerLayoutOpensTheDrawerSplitLayoutShowsThePanel() throws {

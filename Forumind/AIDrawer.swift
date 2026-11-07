@@ -79,6 +79,17 @@ extension AppModel {
         router.usesDrawer && !browser.showsForumsHome
     }
 
+    /// Whether the split layout's AI panel has content to show: always on a web
+    /// page, and over Home once a page or topic has been opened, History is up,
+    /// or Ask the forum has a target forum.
+    var isSplitPanelAvailable: Bool {
+        if !browser.showsForumsHome { return true }
+        if panelRoute != .topic { return true }
+        if assistantMode == .agent, agentForum != nil { return true }
+        if assistantPageState == .loading, !browser.isLoading { return false }
+        return browser.currentURL != nil || currentTopic != nil
+    }
+
     /// The AI view comes forward: in the drawer layout the drawer at medium,
     /// in the split layout the panel. Every entry point goes through here
     /// (the AI button, the hint row, Answer ready, ⌘ shortcuts, hand-offs).
@@ -101,7 +112,9 @@ extension AppModel {
         if router.usesDrawer {
             if router.wantsDrawer { router.closeDrawer() } else { showAIView() }
         } else {
-            router.splitPanelMode = router.splitPanelMode.toggled(onHome: browser.showsForumsHome)
+            let currentlyVisible = isSplitPanelAvailable && router.splitPanelMode.isVisible(onHome: browser.showsForumsHome)
+            if !currentlyVisible, !isSplitPanelAvailable { return }
+            router.splitPanelMode = currentlyVisible ? .hidden : .shown
         }
     }
 
@@ -118,10 +131,20 @@ extension AppModel {
         }
     }
 
+    /// Whether `SplitWorkspace` mounts its inline `AssistantPanel`. Waits
+    /// until any compact drawer sheet has finished closing (`drawerPhase == .closed`)
+    /// so `AIDrawerContent` and `AssistantPanel` are never mounted at once.
+    func showsSplitPanel(forWidth width: CGFloat? = nil) -> Bool {
+        let isSplit = router.splitLayout ?? width.map { ContentView.usesSplitLayout(width: $0) } ?? false
+        return isSplit
+            && router.drawerPhase == .closed
+            && isSplitPanelAvailable
+            && router.splitPanelMode.isVisible(onHome: browser.showsForumsHome)
+    }
+
     /// The drawer or the split panel is up.
     var isAIViewShown: Bool {
-        router.drawerPhase.isPresented
-            || (router.splitLayout == true && router.splitPanelMode.isVisible(onHome: browser.showsForumsHome))
+        router.drawerPhase.isPresented || showsSplitPanel()
     }
 
     /// The AI view went away (the drawer closed, the panel hid, the window
@@ -129,6 +152,12 @@ extension AppModel {
     /// History or Settings it last showed. Not while a dropped drawer is
     /// tried again (still wanted).
     func aiViewVisibilityChanged() {
+        if isAIViewShown, assistantMode == .agent, panelRoute == .topic {
+            router.answersSeenAt = Date()
+        }
+        if !isAIViewShown, !router.wantsDrawer, !voice.isActive {
+            voice.dismiss()
+        }
         guard !isAIViewShown, !router.wantsDrawer, panelRoute != .topic else { return }
         panelRoute = .topic
     }
@@ -149,7 +178,6 @@ extension AppModel {
         }
         guard showAIView() else { return }
         if let run { selectedAgentRunID = run.id }
-        assistantMode = .agent
         showSelectedAgentRun()
         panelRoute = .topic
         router.answersSeenAt = Date()
@@ -176,6 +204,9 @@ extension AppModel {
 struct AIDrawerCoordinator: ViewModifier {
     @ObservedObject var app: AppModel
     @ObservedObject var router: PresentationRouter
+    /// What the last Home check saw. `onReceive` replays when `body` rebuilds
+    /// its publisher, which must not reset a panel the reader just hid.
+    @State private var lastOnHome: Bool?
 
     init(app: AppModel) {
         self.app = app
@@ -207,6 +238,8 @@ struct AIDrawerCoordinator: ViewModifier {
                     .removeDuplicates()
             ) { _ in
                 Task { @MainActor in
+                    guard app.browser.showsForumsHome != lastOnHome else { return }
+                    lastOnHome = app.browser.showsForumsHome
                     // Leaving for Home closes the drawer; leaving Home pops
                     // the pages pushed over it. The split panel goes back to
                     // collapsed on Home, shown on pages (a hide or show by

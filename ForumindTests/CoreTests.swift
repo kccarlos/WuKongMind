@@ -679,6 +679,16 @@ final class CoreTests: XCTestCase {
         XCTAssertTrue(bounded.hasPrefix(String(repeating: "A", count: 5_000)))
         XCTAssertTrue(bounded.hasSuffix(String(repeating: "Z", count: 5_000)))
         XCTAssertTrue(bounded.contains("middle replies omitted"))
+
+        // Values across the 5k...1M slider range are honored without secret clamping at 10k or 200k.
+        let fiveK = PromptBuilder.boundedForumContext(source, limit: 5_000)
+        XCTAssertTrue(fiveK.hasPrefix(String(repeating: "A", count: 2_500)))
+        XCTAssertFalse(fiveK.hasPrefix(String(repeating: "A", count: 2_501)))
+
+        let longSource = String(repeating: "B", count: 350_000)
+        let fiveHundredK = PromptBuilder.boundedForumContext(longSource, limit: 500_000)
+        XCTAssertEqual(fiveHundredK.count, 350_000)
+        XCTAssertFalse(fiveHundredK.contains("middle replies omitted"))
     }
 
     func testLongSourceIsSplitWithoutLosingContent() {
@@ -2346,5 +2356,140 @@ final class LazyMarkdownTests: XCTestCase {
             650,
             "Dragging medium<->large while streaming < 100 rows must only lay out visible cited rows; got \(streamDragCitations) citationLayouts."
         )
+    }
+
+    @MainActor
+    func testExportIncludesTimeSummarizedAndPostCoverageOnOnePlainLine() throws {
+        var components = DateComponents()
+        components.calendar = Calendar(identifier: .iso8601)
+        components.timeZone = TimeZone(secondsFromGMT: 0)
+        components.year = 2026
+        components.month = 11
+        components.day = 6
+        components.hour = 14
+        let summaryDate = try XCTUnwrap(components.date)
+
+        let payload = TopicExportPayload(
+            summary: "## Overview\n- Key takeaway #1",
+            source: "alice | 2026-11-06 | #1\nPost 1",
+            title: "Sample Topic",
+            url: URL(string: "https://forum.example.com/t/sample/42"),
+            history: [],
+            summaryUpdatedAt: summaryDate,
+            summaryPostCount: 120,
+            totalPosts: 340
+        )
+        XCTAssertEqual(payload.summaryMetadataLine, "Summarized 2026-11-06 · 120 of 340 posts")
+        let exported = payload.text(options: ExportOptions(excludePostAndResponses: true))
+        XCTAssertTrue(
+            exported.contains("Summary:\nSummarized 2026-11-06 · 120 of 340 posts\n## Overview\n- Key takeaway #1"),
+            exported
+        )
+
+        // Also verify AppModel's currentExportPayload populates summaryUpdatedAt, summaryPostCount, and totalPosts.
+        let (app, _, _, _) = try makeTwoTopicApp(summaryA: "Summary A", historyA: [], summaryB: "", historyB: [])
+        let panelPayload = AssistantPanel(app: app, onExpand: { _ in }).payload
+        XCTAssertEqual(panelPayload.summaryPostCount, 500)
+        XCTAssertEqual(panelPayload.totalPosts, 500)
+        XCTAssertNotNil(panelPayload.summaryUpdatedAt)
+        XCTAssertTrue(panelPayload.summaryMetadataLine?.hasSuffix("· 500 of 500 posts") ?? false)
+    }
+
+    @MainActor
+    func testDiscourseAgentReadTopicSupportsPageAndQueryWithoutRefetching() async throws {
+        let page1Posts = (1...100).map { n in
+            "user\(n) | 2026-10-20 10:00:00 UTC | #\(n)\n\n"
+                + (n == 1 ? "Opening post about router firmware." : "Reply \(n) with padding \(String(repeating: "x", count: 140)).")
+        }.joined(separator: RawTopicFormat.blockSeparator)
+        let page2Posts = (101...120).map { n in
+            "user\(n) | 2026-10-20 11:00:00 UTC | #\(n)\n\n"
+                + (n == 105 ? "The secret needle workaround is setting MTU to 1492." : "Reply \(n) on page two \(String(repeating: "y", count: 140)).")
+        }.joined(separator: RawTopicFormat.blockSeparator)
+
+        var rawPage1Fetches = 0
+        var rawPage2Fetches = 0
+        URLProtocolStub.handler = { request in
+            let path = request.url?.path ?? ""
+            let page = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)?
+                .queryItems?.first(where: { $0.name == "page" })?.value ?? "1"
+            let body: String
+            if path.hasSuffix("/t/42.json") {
+                body = #"{"title":"Router Firmware","slug":"router-firmware","posts_count":120,"highest_post_number":120}"#
+            } else if path.hasSuffix("/raw/42") {
+                if page == "2" {
+                    rawPage2Fetches += 1
+                    body = page2Posts
+                } else {
+                    rawPage1Fetches += 1
+                    body = page1Posts
+                }
+            } else {
+                body = "{}"
+            }
+            let response = HTTPURLResponse(
+                url: request.url!,
+                statusCode: 200,
+                httpVersion: "HTTP/1.1",
+                headerFields: ["Content-Type": path.hasSuffix(".json") ? "application/json" : "text/plain"]
+            )!
+            return (response, Data(body.utf8))
+        }
+
+        let cfg = URLSessionConfiguration.ephemeral
+        cfg.protocolClasses = [URLProtocolStub.self]
+        let forumService = ForumService(session: URLSession(configuration: cfg), pacer: ForumRequestPacer(clock: InstantPacingClock()))
+
+        let planner = ScriptedAgentPlanner(actions: [
+            AgentAction(thought: "", tool: "read_topic", arguments: ["topic_id": "42"]),
+            AgentAction(thought: "", tool: "read_topic", arguments: ["topic_id": "42", "page": "2"]),
+            AgentAction(thought: "", tool: "read_topic", arguments: ["topic_id": "42", "query": "needle workaround"]),
+            AgentAction(thought: "", tool: "read_topic", arguments: ["topic_id": "42", "page": "0"]),
+            AgentAction(thought: "", tool: "read_topic", arguments: ["topic_id": "42", "page": "3"]),
+            AgentAction(thought: "", tool: AgentPrompt.finalAnswerTool, arguments: ["answer": "Set MTU to 1492."])
+        ])
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let store = PersistentStore(fileURL: directory.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore())
+        try store.save(AppSnapshot(forums: [Forum(siteURL: "https://forum.example.com", kind: .discourse, name: "Forum")]))
+        addTeardownBlock { try? FileManager.default.removeItem(at: directory) }
+
+        let ai = StateAIStub()
+        ai.gated = false
+        let app = AppModel(store: store, forumService: forumService, aiService: ai, planner: planner)
+        app.usesDirectForumRequests = true
+        app.allowAllAIProviders()
+        app.selectModel(ModelSelection(provider: .ollama, model: "test-model"), for: .both)
+        app.browser.onPageContextChanged = nil
+        app.settings.agentReadLimit = 10_000
+        app.settings.agentMaxTopicReads = 1
+
+        app.startAgentRun(goal: "How to fix router MTU?", siteURL: "https://forum.example.com")
+        let deadline = Date().addingTimeInterval(15)
+        while !(app.agentRuns.first?.isFinished ?? false), Date() < deadline {
+            try await Task.sleep(for: .milliseconds(20))
+        }
+        let run = try XCTUnwrap(app.agentRuns.first)
+        XCTAssertEqual(run.result, .completed, run.error)
+        XCTAssertEqual(run.topicIDs, ["42"], "Paging/querying an already-read topic does not consume extra topic-read budget.")
+        XCTAssertEqual(rawPage1Fetches, 1)
+        XCTAssertEqual(rawPage2Fetches, 1)
+
+        let firstObs = try XCTUnwrap(planner.transcripts[1].last?.content)
+        XCTAssertTrue(firstObs.contains("pass page=2 or query=\"<keywords>\" to read other parts."), firstObs)
+
+        let page2Obs = try XCTUnwrap(planner.transcripts[2].last?.content)
+        XCTAssertTrue(page2Obs.contains("Showing: page 2 of 2"), page2Obs)
+        XCTAssertTrue(page2Obs.contains("#105\nThe secret needle workaround"), page2Obs)
+        XCTAssertFalse(page2Obs.contains("Opening post about router firmware."), page2Obs)
+
+        let queryObs = try XCTUnwrap(planner.transcripts[3].last?.content)
+        XCTAssertTrue(queryObs.contains("Showing: 1 matching post for \"needle workaround\" (of 120 posts)"), queryObs)
+        XCTAssertTrue(queryObs.contains("Opening post about router firmware."), "Includes opening post #1 for context")
+        XCTAssertTrue(queryObs.contains("#105\nThe secret needle workaround"), queryObs)
+
+        let zeroPageObs = try XCTUnwrap(planner.transcripts[4].last?.content)
+        XCTAssertEqual(zeroPageObs, "ERROR from read_topic:\nInvalid argument \"page\": use a positive integer.")
+
+        let outOfRangeObs = try XCTUnwrap(planner.transcripts[5].last?.content)
+        XCTAssertEqual(outOfRangeObs, "ERROR from read_topic:\nInvalid argument \"page\": use a number from 1 to 2.")
     }
 }

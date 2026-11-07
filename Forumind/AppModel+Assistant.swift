@@ -155,15 +155,25 @@ enum AgentSources {
         parse: Parse
     ) -> [Source] {
         var sources: [Source] = []
-        for (title, url) in links(in: answer) where source(for: url, in: sources, parse: parse) == nil {
-            sources.append(Source(
-                number: sources.count + 1,
-                title: title,
-                url: url,
-                topicID: parse(url)?.topicID,
-                postNumber: parse(url)?.postNumber,
-                cited: true
-            ))
+        var answers: [String] = []
+        if let initial = run?.initialAnswer, !initial.isEmpty {
+            answers.append(initial)
+        }
+        answers.append(answer)
+        if let followUps = run?.followUps {
+            answers.append(contentsOf: followUps.filter { $0.role == .assistant }.map(\.content))
+        }
+        for text in answers {
+            for (title, url) in links(in: text) where source(for: url, in: sources, parse: parse) == nil {
+                sources.append(Source(
+                    number: sources.count + 1,
+                    title: title,
+                    url: url,
+                    topicID: parse(url)?.topicID,
+                    postNumber: parse(url)?.postNumber,
+                    cited: true
+                ))
+            }
         }
         for step in run?.steps ?? [] {
             guard let topicKey = step.topicKey, let session = sessions[topicKey] else { continue }
@@ -572,6 +582,7 @@ extension AppModel {
 
         // Keep the seeded page state: later page loads must not replace it.
         browser.onPageContextChanged = { _ in }
+        browser.ignoresNavigationFailures = true
         browser.homeSiteURL = openForum.siteURL
         // `-dc-forums-home` keeps the Forums home up: no page load at all.
         if let url = context.url, state != .maybe, !AssistantDebug.has("-dc-forums-home") {
@@ -583,9 +594,15 @@ extension AppModel {
         sampleSettings.setModel(ModelSelection(provider: sampleProvider, model: sampleModel), for: .assistant)
         sampleSettings.setModel(sampleAgent, for: .agent)
         // In memory only: never sent anywhere unless the user starts work.
-        if sampleProvider == .anthropic {
+        if AssistantDebug.has("-dc-no-provider") {
+            for provider in AIProvider.allCases where provider.requiresAPIKey {
+                var configuration = sampleSettings.configuration(for: provider)
+                configuration.apiKey = ""
+                sampleSettings.setConfiguration(configuration, for: provider)
+            }
+        } else if sampleProvider == .anthropic {
             var configuration = sampleSettings.configuration(for: .anthropic)
-            configuration.apiKey = AssistantDebug.has("-dc-no-provider") ? "" : "sample-key"
+            configuration.apiKey = "sample-key"
             sampleSettings.setConfiguration(configuration, for: .anthropic)
         }
         if sampleAgent.provider != sampleProvider, sampleAgent.provider.requiresAPIKey {

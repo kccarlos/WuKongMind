@@ -155,6 +155,17 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     /// launch): that load's start doesn't dismiss it. Ends when the load
     /// finishes or fails, or with the next explicit load.
     private var holdsHomeOverLoad = false
+    /// Whether the active provisional navigation started from the Forums home;
+    /// restored if provisional navigation fails so a failed tap from Home never
+    /// dumps the reader onto an unrelated earlier page.
+    private var loadStartedFromForumsHome = false
+    /// Suppresses the error alert for the automatic background restore at launch.
+    private var suppressLoadError = false
+    #if DEBUG
+    /// Sample launches seed fake domains whose loads are not meant to alert.
+    var ignoresNavigationFailures = false
+    var visiblePostsOverride: [VisiblePost]?
+    #endif
     /// The page's web content process quit repeatedly; auto-reload paused
     /// and the page shows a small Reload banner.
     @Published private(set) var showsCrashNotice = false
@@ -181,6 +192,7 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     /// Returns to the page under Home (no-op without one).
     func hideForumsHome() {
         holdsHomeOverLoad = false
+        loadStartedFromForumsHome = false
         if isForumsHomeRequested { isForumsHomeRequested = false }
     }
 
@@ -194,6 +206,8 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     static let ruleLookupWait: Duration = .milliseconds(300)
     /// Called whenever `pageContext` changes, apart from its position fields.
     var onPageContextChanged: ((PageContext) -> Void)?
+    /// Called when a main-frame navigation fails (excluding cancellations).
+    var onNavigationFailed: ((Error) -> Void)?
     /// Called when only the position fields of `pageContext` change (posts on
     /// screen, highlights, the topic's facts): cheap, and often while scrolling.
     var onPagePositionChanged: ((PageContext) -> Void)?
@@ -350,17 +364,20 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     /// Returns false (and does nothing) when there is no current forum or
     /// adapter; the UI then shows the Forums home.
     @discardableResult
-    func loadHome(adapter: (any SiteAdapter)?) -> Bool {
+    func loadHome(adapter: (any SiteAdapter)?, silentOnFailure: Bool = false) -> Bool {
         guard let homeSiteURL, let url = adapter?.links.homeURL(siteURL: homeSiteURL) else {
             return false
         }
-        load(url)
+        load(url, silentOnFailure: silentOnFailure)
         return true
     }
 
-    func load(_ url: URL) {
+    func load(_ url: URL, silentOnFailure: Bool = false) {
         guard Self.isBrowsableURL(url) else { return }
+        let startedFromHome = showsForumsHome || loadStartedFromForumsHome
         hideForumsHome()
+        loadStartedFromForumsHome = startedFromHome
+        suppressLoadError = silentOnFailure
         // The first load (the restored forum at launch) would otherwise leave
         // `currentURL` nil until WebKit reports the navigation, so the Forums
         // home flashes in and fades out on every launch. Navigation updates
@@ -453,7 +470,9 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     }
 
     func goBack() {
-        if webView.canGoBack { webView.goBack() }
+        guard webView.canGoBack else { return }
+        suppressLoadError = false
+        webView.goBack()
     }
 
     /// Back also leaves the Forums home when it covers a page.
@@ -475,15 +494,21 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     var forwardHistory: [WKBackForwardListItem] { webView.backForwardList.forwardList }
 
     func go(to item: WKBackForwardListItem) {
+        let startedFromHome = showsForumsHome || loadStartedFromForumsHome
         hideForumsHome()
+        loadStartedFromForumsHome = startedFromHome
+        suppressLoadError = false
         webView.go(to: item)
     }
 
     func goForward() {
-        if webView.canGoForward { webView.goForward() }
+        guard webView.canGoForward else { return }
+        suppressLoadError = false
+        webView.goForward()
     }
 
     func reload() {
+        suppressLoadError = false
         webView.reload()
     }
 
@@ -888,6 +913,11 @@ final class ForumBrowserModel: NSObject, ObservableObject {
         pageContext.site.flatMap(sites.adapter(for:))?.capabilities.pageBridge
     }
 
+    /// Whether visible-post translation is available on the current page.
+    var canTranslatePostsOnScreen: Bool {
+        !isForumsHomeRequested && pageContext.topic != nil && pageBridge != nil && ReadingLanguage.isTranslationAvailable
+    }
+
     func applyModerationToPage() {
         guard pageBridge != nil else { return }
         let config = ModerationScript.config(rules: moderationRules, siteURL: pageContext.siteURL)
@@ -992,13 +1022,19 @@ extension ForumBrowserModel: WKNavigationDelegate {
     func webView(_ webView: WKWebView, didStartProvisionalNavigation: WKNavigation!) {
         Task { @MainActor in
             self.expandChrome()
-            if !self.holdsHomeOverLoad { self.hideForumsHome() }
+            if !self.holdsHomeOverLoad {
+                let startedFromHome = self.loadStartedFromForumsHome
+                self.hideForumsHome()
+                self.loadStartedFromForumsHome = startedFromHome
+            }
             self.updateNavigationState()
         }
     }
 
     func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
         Task { @MainActor in
+            self.loadStartedFromForumsHome = false
+            self.suppressLoadError = false
             // A new document: the facts of the last one no longer apply.
             self.lastFacts = nil
             // The committed page (after redirects) decides the lists.
@@ -1010,6 +1046,8 @@ extension ForumBrowserModel: WKNavigationDelegate {
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         Task { @MainActor in
             self.holdsHomeOverLoad = false
+            self.loadStartedFromForumsHome = false
+            self.suppressLoadError = false
             if self.showsCrashNotice { self.showsCrashNotice = false }
             self.updateNavigationState()
             self.applyModerationToPage()
@@ -1032,8 +1070,18 @@ extension ForumBrowserModel: WKNavigationDelegate {
         withError error: Error
     ) {
         Task { @MainActor in
+            let heldHome = self.holdsHomeOverLoad
+            let silent = self.suppressLoadError
             self.holdsHomeOverLoad = false
+            self.suppressLoadError = false
             self.updateNavigationState()
+            guard !Self.isIgnorableNavigationError(error) else { return }
+            #if DEBUG
+            if self.ignoresNavigationFailures { return }
+            #endif
+            if !silent, !heldHome {
+                self.onNavigationFailed?(error)
+            }
         }
     }
 
@@ -1043,11 +1091,41 @@ extension ForumBrowserModel: WKNavigationDelegate {
         withError error: Error
     ) {
         Task { @MainActor in
+            let heldHome = self.holdsHomeOverLoad
+            let silent = self.suppressLoadError
             self.holdsHomeOverLoad = false
             // The page did not change: back to its lists.
             self.contentBlocker.prepare(forTopURL: webView.url)
-            self.updateNavigationState()
+            let ignored = Self.isIgnorableNavigationError(error)
+            if !ignored {
+                self.suppressLoadError = false
+                var ignoresFailure = false
+                #if DEBUG
+                ignoresFailure = self.ignoresNavigationFailures
+                #endif
+                if !ignoresFailure, self.loadStartedFromForumsHome {
+                    self.loadStartedFromForumsHome = false
+                    self.isForumsHomeRequested = true
+                }
+                self.updateNavigationState()
+                if !ignoresFailure, !silent, !heldHome {
+                    self.onNavigationFailed?(error)
+                }
+            } else {
+                self.updateNavigationState()
+            }
         }
+    }
+
+    nonisolated private static func isIgnorableNavigationError(_ error: Error) -> Bool {
+        let nsError = error as NSError
+        if nsError.domain == NSURLErrorDomain, nsError.code == NSURLErrorCancelled {
+            return true
+        }
+        if nsError.domain == "WebKitErrorDomain", nsError.code == 102 || nsError.code == 204 {
+            return true
+        }
+        return false
     }
 }
 

@@ -80,7 +80,8 @@ struct OnboardingFlow: View {
                 AIDataConsentPage(
                     provider: provider,
                     onAllow: { answerConsent(provider, allow: true) },
-                    onDecline: { answerConsent(provider, allow: false) }
+                    onDecline: { answerConsent(provider, allow: false) },
+                    onCancel: { consentProvider = nil }
                 )
                 .transition(.move(edge: .bottom))
             } else if showingShareHowTo {
@@ -219,12 +220,13 @@ struct OnboardingFlow: View {
             }
             .buttonStyle(DCPrimaryButtonStyle())
             .accessibilityIdentifier("onboardingReturn")
-            Button("Browse all forums") {
+            browseAllForumsButton
+        } else if isReplay {
+            Button("Back to Home") {
                 finish { app.showForumsHome() }
             }
-            .font(.subheadline.weight(.semibold))
-            .frame(minHeight: 40)
-            .accessibilityIdentifier("onboardingBrowseForums")
+            .buttonStyle(DCPrimaryButtonStyle())
+            .accessibilityIdentifier("onboardingReturn")
         } else if let first = firstPinnedForum {
             Button {
                 finish { app.openForum(first) }
@@ -233,12 +235,7 @@ struct OnboardingFlow: View {
             }
             .buttonStyle(DCPrimaryButtonStyle())
             .accessibilityIdentifier("onboardingOpenForum")
-            Button("Browse all forums") {
-                finish { app.showForumsHome() }
-            }
-            .font(.subheadline.weight(.semibold))
-            .frame(minHeight: 40)
-            .accessibilityIdentifier("onboardingBrowseForums")
+            browseAllForumsButton
         } else {
             Button("Browse forums") {
                 finish { app.showForumsHome() }
@@ -248,9 +245,25 @@ struct OnboardingFlow: View {
         }
     }
 
+    private var browseAllForumsButton: some View {
+        Button {
+            finish { app.showForumsHome() }
+        } label: {
+            Text("Browse all forums")
+                .font(.subheadline.weight(.semibold))
+                .frame(minWidth: DCTheme.controlHeight, minHeight: DCTheme.controlHeight)
+                .contentShape(Rectangle())
+        }
+        .accessibilityIdentifier("onboardingBrowseForums")
+    }
+
+    private var isReplay: Bool {
+        app.settings.hasCompletedOnboarding
+    }
+
     /// Replaying the walkthrough (already completed) while a page is open.
     private var isReplayOverPage: Bool {
-        app.settings.hasCompletedOnboarding && app.browser.currentURL != nil
+        isReplay && app.browser.currentURL != nil && !app.browser.showsForumsHome
     }
 
     private var firstPinnedForum: Forum? {
@@ -328,7 +341,7 @@ struct OnboardingFlow: View {
         let selection = app.selection(for: .assistant)
         app.selectModel(selection, for: .both)
         if !app.isFavorite(selection) { app.addCurrentFavorite(for: .assistant) }
-        if selection.provider.requiresDataConsent, app.aiConsentState(for: selection.provider) == .undecided {
+        if app.aiConsentState(for: selection.provider) == .undecided {
             consentProvider = selection.provider
         } else {
             go(to: .forums)

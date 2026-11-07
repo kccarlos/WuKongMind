@@ -86,7 +86,7 @@ struct SettingsDataPage: View {
                 } label: {
                     Text("Clear All Saved Data…")
                 }
-                .disabled(forumsWithData.isEmpty)
+                .disabled(!app.hasAnySavedData)
                 .accessibilityIdentifier("clearAllData")
                 Button(role: .destructive) {
                     confirmingReset = true

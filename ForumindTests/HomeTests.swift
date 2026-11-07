@@ -266,6 +266,103 @@ final class HomeTests: XCTestCase {
         XCTAssertEqual(app.homePath, [])
     }
 
+    func testFailedNavigationFromHomePreservesHomeAndPresentsError() async throws {
+        let app = makeApp()
+        app.browser.showForumsHome()
+        XCTAssertTrue(app.browser.showsForumsHome)
+        XCTAssertNil(app.browser.currentURL)
+
+        // First load from Home to an unreachable server: returns to Home and surfaces an error.
+        let unreachable = URL(string: "http://127.0.0.1:1/latest")!
+        app.browser.load(unreachable)
+
+        let firstDeadline = ContinuousClock.now + .seconds(8)
+        while (app.browser.isLoading || !app.browser.showsForumsHome || app.presentedError == nil),
+              ContinuousClock.now < firstDeadline {
+            try await Task.sleep(for: .milliseconds(50))
+        }
+        XCTAssertTrue(app.browser.showsForumsHome)
+        XCTAssertNil(app.browser.currentURL)
+        XCTAssertNotNil(app.presentedError, "Failed first navigation from Home gave no error.")
+        app.dismissPresentedError()
+        XCTAssertNil(app.presentedError)
+
+        // Subsequent load from Home when Forum A was already loaded: keeps Home up instead of
+        // dumping the user onto Forum A, and surfaces an error.
+        let forumA = URL(string: "http://127.0.0.1:18991/t/previous-topic/1")!
+        app.browser.webView.loadHTMLString(
+            "<html><head><title>Previous Forum A</title></head><body>Old page</body></html>",
+            baseURL: forumA
+        )
+        let settleA = ContinuousClock.now + .seconds(5)
+        while app.browser.currentURL != forumA, ContinuousClock.now < settleA {
+            try await Task.sleep(for: .milliseconds(50))
+        }
+        XCTAssertEqual(app.browser.currentURL, forumA)
+
+        app.browser.showForumsHome()
+        XCTAssertTrue(app.browser.showsForumsHome)
+
+        app.browser.load(unreachable)
+        let secondDeadline = ContinuousClock.now + .seconds(8)
+        while app.browser.isLoading, ContinuousClock.now < secondDeadline {
+            try await Task.sleep(for: .milliseconds(50))
+        }
+        try await Task.sleep(for: .milliseconds(200))
+
+        XCTAssertTrue(app.browser.showsForumsHome, "Failed load from Home dumped the user onto Forum A.")
+        XCTAssertNotNil(app.presentedError, "Failed subsequent navigation from Home gave no error.")
+    }
+
+    func testCitationJumpWhileOnHomeDismissesHomeAndShowsTopic() async throws {
+        let app = makeApp()
+        let site = "http://127.0.0.1:18992"
+        let topicURL = URL(string: "\(site)/t/layer-shifts/42")!
+        let html = """
+        <html><head><meta name="generator" content="Discourse 3.3.0"><title>Layer Shifts</title></head>
+        <body><article data-post-number="1" id="post_1"><p>First post</p></article>
+        <article data-post-number="2" id="post_2"><p>Second post</p></article></body></html>
+        """
+        app.browser.webView.loadHTMLString(html, baseURL: topicURL)
+        let settle = ContinuousClock.now + .seconds(5)
+        while app.pageContext.state != .topic, ContinuousClock.now < settle {
+            try await Task.sleep(for: .milliseconds(50))
+        }
+        XCTAssertEqual(app.pageContext.state, .topic)
+
+        app.showsTodayPage = true
+        XCTAssertTrue(app.browser.showsForumsHome)
+        XCTAssertTrue(app.showsTodayPage)
+
+        app.jumpToCitation(2)
+        let jumpDeadline = ContinuousClock.now + .seconds(5)
+        while app.browser.pendingJump != nil, ContinuousClock.now < jumpDeadline {
+            try await Task.sleep(for: .milliseconds(50))
+        }
+        XCTAssertFalse(
+            app.browser.showsForumsHome,
+            "Tapping a citation while Home covered an already-loaded topic scrolled the hidden webView without dismissing Home."
+        )
+        XCTAssertFalse(app.showsTodayPage)
+
+        app.browser.showForumsHome()
+        XCTAssertTrue(app.browser.showsForumsHome)
+        app.topicOverviews[TopicIdentity.key(siteURL: site, topicID: "42")] = ForumTopicOverview(
+            siteURL: site,
+            topicID: "42",
+            title: "Layer Shifts",
+            slug: "layer-shifts",
+            url: topicURL,
+            postCount: 2,
+            facts: nil
+        )
+        _ = await app.goToPost(1)
+        XCTAssertFalse(
+            app.browser.showsForumsHome,
+            "Jumping to a post while Home covered an already-loaded topic did not dismiss Home."
+        )
+    }
+
     private func makeApp() -> AppModel {
         let app = AppModel(
             store: PersistentStore(

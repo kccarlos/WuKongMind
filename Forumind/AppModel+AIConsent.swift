@@ -29,22 +29,27 @@ extension AppModel {
     /// shows for work the app started by itself.
     func authorizeSending(
         to provider: AIProvider,
+        baseURL: String? = nil,
         mayAsk: Bool,
         whileAsking: () -> Void = {}
     ) async throws {
-        if aiConsentState(for: provider) == .undecided, mayAsk {
+        let effectiveBaseURL = baseURL ?? settings.configuration(for: provider).baseURL
+        if settings.aiConsentState(for: provider, baseURL: effectiveBaseURL) == .undecided, mayAsk {
             whileAsking()
             await aiConsent.wait(for: provider)
             try Task.checkCancellation()
         }
         // The answer (or no answer: the page was closed) is in the settings.
-        try settings.requireAIConsent(for: provider)
+        try settings.requireAIConsent(for: provider, baseURL: effectiveBaseURL)
     }
 
     /// Allow or Don't Allow on the consent page. Requests waiting on it go
     /// on (or fail with the blocked state); a second tap changes nothing.
     func answerAIConsent(_ provider: AIProvider, allow: Bool) {
-        guard provider.requiresDataConsent else { return }
+        guard settings.requiresAIConsent(for: provider) else {
+            aiConsent.resolve(provider)
+            return
+        }
         switch (allow, aiConsentState(for: provider)) {
         case (true, .allowed), (false, .declined):
             break
@@ -63,12 +68,13 @@ extension AppModel {
     /// after the person says stop. The digest stops too; the podcast's next
     /// chapter fails at the backstop.
     func withdrawAIConsent(_ provider: AIProvider) {
-        guard provider.requiresDataConsent else { return }
+        guard settings.requiresAIConsent(for: provider) || settings.aiConsent[provider.rawValue] != nil else { return }
         settings.aiConsent[provider.rawValue] = .declined(Date())
-        for record in activities where !record.status.isTerminal && record.provider == provider {
+        for record in activities where !record.status.isTerminal && (record.provider == provider || record.type == .agent) {
             cancel(record: record)
         }
-        if selection(for: .assistant).provider == provider { pauseDigest() }
+        pauseDigest()
+        podcast.pauseGeneration()
         save()
     }
 }

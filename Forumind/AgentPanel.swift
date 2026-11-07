@@ -136,7 +136,7 @@ struct AgentView: View {
             ForEach(app.agentRuns) { previous in
                 Button {
                     withAnimation(DCMotion.respecting(reduceMotion)) {
-                        app.selectedAgentRunID = previous.id
+                        app.openAgentRun(id: previous.id)
                     }
                 } label: {
                     Label(
@@ -190,10 +190,26 @@ struct AgentView: View {
     /// to the answer.
     @ViewBuilder
     private var askBoxHeader: some View {
+        let onForumHome = app.currentTopic == nil && app.assistantPageState == .forumHome
         let hasRuns = !app.agentRuns.isEmpty
-        if hasRuns {
+        if hasRuns || onForumHome {
             HStack(spacing: 8) {
-                historyMenu
+                if onForumHome {
+                    Button {
+                        withAnimation(DCMotion.respecting(reduceMotion)) { app.showForumOverview() }
+                    } label: {
+                        Label(String(localized: "Forum overview", comment: "Button: returns from Ask the forum to the forum home overview"), systemImage: "chevron.left")
+                            .font(.footnote.weight(.semibold))
+                            .frame(minHeight: DCTheme.controlHeight)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.borderless)
+                    .tint(DCTheme.agentTint)
+                    .accessibilityIdentifier("agentForumOverview")
+                }
+                if hasRuns {
+                    historyMenu
+                }
                 Spacer(minLength: 4)
                 if run != nil {
                     Button {
@@ -549,7 +565,7 @@ struct AgentView: View {
                         Label("Share", systemImage: "square.and.arrow.up")
                     }
                     Button {
-                        app.report(app.aiOutputReport(for: run, answer: answer))
+                        app.report(app.aiOutputReport(for: run, answer: answer, isInitial: true))
                     } label: {
                         Label(String(localized: "Report This Answer…", comment: "Assistant menu: report the AI's latest chat answer"), systemImage: "flag")
                     }
@@ -582,7 +598,7 @@ struct AgentView: View {
             if !run.followUps.isEmpty {
                 VStack(alignment: .leading, spacing: 10) {
                     ForEach(run.followUps) { message in
-                        followUpRow(message)
+                        followUpRow(message, run: run, sources: sources)
                     }
                 }
                 .padding(.top, 4)
@@ -656,7 +672,7 @@ struct AgentView: View {
         return host
     }
 
-    private func followUpRow(_ message: ChatMessage) -> some View {
+    private func followUpRow(_ message: ChatMessage, run: AgentRun, sources: [AgentSources.Source]) -> some View {
         Group {
             if message.role == .user {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
@@ -669,10 +685,40 @@ struct AgentView: View {
                 }
                 .padding(.top, 6)
             } else {
-                MarkdownView(message.content)
-                    .textSelection(.enabled)
-                    .padding(12)
-                    .background(Color.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                VStack(alignment: .leading, spacing: 8) {
+                    MarkdownView(AgentSources.annotate(message.content, sources: sources, parse: app.linkParser(for: run)))
+                        .textSelection(.enabled)
+                    HStack(spacing: 4) {
+                        Spacer(minLength: 0)
+                        if run.isFinished {
+                            TranslateButton(app: app, title: String(localized: "Answer"), text: message.content, compact: true)
+                                .buttonStyle(DCIconButtonStyle())
+                        }
+                        Menu {
+                            Button {
+                                UIPasteboard.general.string = message.content
+                                DCHaptics.success()
+                            } label: {
+                                Label("Copy answer", systemImage: "doc.on.doc")
+                            }
+                            ShareLink(item: message.content) {
+                                Label("Share", systemImage: "square.and.arrow.up")
+                            }
+                            Button {
+                                app.report(app.aiOutputReport(for: run, answer: message.content))
+                            } label: {
+                                Label(String(localized: "Report This Answer…", comment: "Assistant menu: report the AI's latest chat answer"), systemImage: "flag")
+                            }
+                            .disabled(message.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        } label: {
+                            Image(systemName: "ellipsis.circle")
+                        }
+                        .buttonStyle(DCIconButtonStyle())
+                        .accessibilityLabel("Answer actions")
+                    }
+                }
+                .padding(12)
+                .background(Color.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
         }
     }

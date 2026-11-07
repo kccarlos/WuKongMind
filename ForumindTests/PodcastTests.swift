@@ -1,3 +1,4 @@
+import SwiftUI
 import XCTest
 @testable import Forumind
 
@@ -267,20 +268,86 @@ final class PodcastTests: XCTestCase {
 
     func testGoogleVoicesNeedAKeyAndConsentOtherwiseTheDeviceSpeaks() {
         var settings = AppSettings()
-        // No key: the device's voices, whatever the choice.
+        // No key: Automatic uses the device's voices; explicit Google voices need a key.
         XCTAssertEqual(PodcastEngineSelector.select(choice: .automatic, providers: [], settings: settings, interactive: true), .engine(.onDevice))
-        XCTAssertEqual(PodcastEngineSelector.select(choice: .google, providers: [], settings: settings, interactive: true), .engine(.onDevice))
-        // A key but no consent: a tap asks, the daily run never does.
+        XCTAssertEqual(PodcastEngineSelector.select(choice: .automatic, providers: [], settings: settings, interactive: false), .engine(.onDevice))
+        XCTAssertEqual(PodcastEngineSelector.select(choice: .google, providers: [], settings: settings, interactive: true), .needsKey)
+        XCTAssertEqual(PodcastEngineSelector.select(choice: .google, providers: [], settings: settings, interactive: false), .needsKey)
+        // A key but no consent: a tap asks; Automatic's daily run uses the device's voices while explicit Google waits for consent.
         XCTAssertEqual(PodcastEngineSelector.select(choice: .automatic, providers: [.aiStudio], settings: settings, interactive: true), .needsConsent(.aiStudio))
         XCTAssertEqual(PodcastEngineSelector.select(choice: .automatic, providers: [.aiStudio], settings: settings, interactive: false), .engine(.onDevice))
+        XCTAssertEqual(PodcastEngineSelector.select(choice: .google, providers: [.aiStudio], settings: settings, interactive: true), .needsConsent(.aiStudio))
+        XCTAssertEqual(PodcastEngineSelector.select(choice: .google, providers: [.aiStudio], settings: settings, interactive: false), .needsConsent(.aiStudio))
         // Agreed: Google, on the provider agreed to.
         settings.podcastConsent["vertex"] = Date()
         XCTAssertEqual(PodcastEngineSelector.select(choice: .automatic, providers: [.aiStudio, .vertex], settings: settings, interactive: false), .engine(.vertex))
+        XCTAssertEqual(PodcastEngineSelector.select(choice: .google, providers: [.aiStudio, .vertex], settings: settings, interactive: false), .engine(.vertex))
         XCTAssertEqual(PodcastEngineSelector.select(choice: .onDevice, providers: [.vertex], settings: settings, interactive: true), .engine(.onDevice))
         // Voice consent is separate: it doesn't cover the podcast.
         var voiceOnly = AppSettings()
         voiceOnly.voiceConsent["aistudio"] = Date()
         XCTAssertEqual(PodcastEngineSelector.select(choice: .automatic, providers: [.aiStudio], settings: voiceOnly, interactive: false), .engine(.onDevice))
+        XCTAssertEqual(PodcastEngineSelector.select(choice: .google, providers: [.aiStudio], settings: voiceOnly, interactive: false), .needsConsent(.aiStudio))
+    }
+
+    func testGoogleVoicesWithoutAKeyTellTheUserAndOpenSetupInsteadOfDeviceFallback() async throws {
+        let harness = makeHarness()
+        let app = harness.app
+        connect(app)
+        let digest = completeDigest(cards: 1)
+        app.digests = [digest]
+        let engine = FakeSpeechEngine()
+        var chosenKinds: [PodcastEngineKind] = []
+        app.podcast.makeEngine = { kind, _, _ in
+            chosenKinds.append(kind)
+            return engine
+        }
+        harness.ai.answers = [#"{"turns":[{"speaker":"A","text":"Hi."},{"speaker":"B","text":"Hello."}]}"#]
+
+        app.settings.podcast.engine = .google
+        app.settings.podcastDailyEnabled = true
+
+        // Unattended daily run neither speaks with device voices nor raises a modal alert.
+        app.podcast.digestCompleted(digest.id)
+        try await Task.sleep(for: .milliseconds(60))
+        XCTAssertNil(app.podcast.episode)
+        XCTAssertTrue(chosenKinds.isEmpty)
+        XCTAssertNil(app.presentedError)
+
+        // Interactive Make Podcast tells the user a Google key is needed and offers AI models setup.
+        app.podcast.make()
+        XCTAssertNil(app.podcast.episode)
+        XCTAssertTrue(chosenKinds.isEmpty)
+        XCTAssertEqual(app.presentedError, PodcastController.missingGoogleKeyMessage)
+        XCTAssertEqual(app.presentedErrorAction, .openAIModels)
+
+        let action = try XCTUnwrap(app.presentedErrorAction)
+        app.performErrorAction(action, after: .zero)
+        try await waitUntil { app.requestedSettingsPage == .provider }
+        XCTAssertNil(app.presentedError)
+        app.requestedSettingsPage = nil
+
+        // Interactive Read aloud also refuses device fallback and offers AI models setup.
+        app.podcast.readAloud(id: "summary-google", title: "Topic", text: "A short summary to speak.")
+        XCTAssertNil(app.podcast.readAloudID)
+        XCTAssertNil(app.podcast.player.playlist)
+        XCTAssertTrue(chosenKinds.isEmpty)
+        XCTAssertEqual(app.presentedError, PodcastController.missingGoogleKeyMessage)
+        XCTAssertEqual(app.presentedErrorAction, .openAIModels)
+        app.dismissPresentedError()
+
+        // If an on-device episode already exists and the user switches to Google voices without a key,
+        // Remake keeps the existing episode instead of deleting it and prompts for the key.
+        app.settings.podcast.engine = .onDevice
+        app.podcast.make()
+        try await waitUntil { app.podcast.episode?.isComplete == true }
+        chosenKinds.removeAll()
+        app.settings.podcast.engine = .google
+        app.podcast.remake()
+        XCTAssertNotNil(app.podcast.episode, "Remake without a Google key must not delete the existing episode.")
+        XCTAssertTrue(chosenKinds.isEmpty)
+        XCTAssertEqual(app.presentedError, PodcastController.missingGoogleKeyMessage)
+        XCTAssertEqual(app.presentedErrorAction, .openAIModels)
     }
 
     func testTwoDistinctSystemVoicesAreChosenForTheAppLanguage() {
@@ -688,6 +755,50 @@ final class PodcastTests: XCTestCase {
         try await waitUntil { engine.attempts == 2 }
     }
 
+    func testReadAloudUsesReadingLanguageAndDetectedTextLanguage() {
+        let harness = makeHarness()
+        let app = harness.app
+        app.settings.podcast.engine = .onDevice
+        var capturedLanguages: [String] = []
+        app.podcast.makeEngine = { _, _, language in
+            capturedLanguages.append(language)
+            return FakeSpeechEngine()
+        }
+
+        // Explicit reading language (Simplified Chinese while UI is English).
+        app.settings.readingLanguage = "zh-Hans"
+        app.podcast.readAloud(id: "zh-setting", title: "测试标题", text: "这是一个关于论坛帖子的中文总结。")
+        app.podcast.cancelReadAloud()
+        app.podcast.player.unload(forgettingPosition: true)
+
+        // Explicit regional reading language ("pt-BR") is preserved even when NaturalLanguage detects base "pt" or nil.
+        app.settings.readingLanguage = "pt-BR"
+        app.podcast.readAloud(id: "pt-setting", title: "Resumo", text: "Este é um resumo completo sobre o tópico do fórum.")
+        app.podcast.cancelReadAloud()
+        app.podcast.player.unload(forgettingPosition: true)
+
+        // Default reading language ("") still detects unambiguous Chinese text instead of passing English UI locale.
+        app.settings.readingLanguage = ""
+        app.podcast.readAloud(id: "zh-detected", title: "中文总结", text: "这是一个关于论坛帖子的中文总结，详细说明了固件升级后的解决方法。")
+        app.podcast.cancelReadAloud()
+        app.podcast.player.unload(forgettingPosition: true)
+
+        XCTAssertEqual(capturedLanguages, ["zh-Hans", "pt-BR", "zh-Hans"])
+    }
+
+    func testFailedReadAloudPresentsRootErrorAlert() async throws {
+        let harness = makeHarness()
+        let app = harness.app
+        let engine = FailingSpeechEngine()
+        app.podcast.makeEngine = { _, _, _ in engine }
+        app.settings.podcast.engine = .onDevice
+
+        app.podcast.readAloud(id: "summary-err", title: "Topic", text: "A short summary to speak aloud.")
+        try await waitUntil { app.podcast.player.playlist == nil }
+        XCTAssertNotNil(app.presentedError, "Failed Read aloud must present an error alert instead of failing silently")
+        XCTAssertNil(app.podcast.episodeError, "Read aloud failure must not leak into Today's Now Playing episode error")
+    }
+
     func testEpisodesGoWithTheirDigestAndAfterSevenDays() throws {
         let folder = temporaryFolder()
         let store = PodcastStore(directory: folder)
@@ -763,6 +874,89 @@ final class PodcastTests: XCTestCase {
         var digest = DailyDigest(day: DailyDigest.dayKey(for: Date()), cards: (1...cards).map { card("\($0 + 100)") })
         digest.completedAt = Date()
         return digest
+    }
+
+    func testSwitchingUnfinishedPodcastToGoogleChecksKeyBeforePlayingAndUpdatesEngine() async throws {
+        let folder = temporaryFolder()
+        let store = PersistentStore(fileURL: folder.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore())
+        var seeded = AppSnapshot()
+        seeded.ensureForum(site)
+        try? store.save(seeded)
+        let ai = PodcastAIStub()
+        ai.answers = [#"{"title":"Topic 1","turns":[{"speaker":"A","text":"One."},{"speaker":"B","text":"Two."}]}"#]
+        let fakeAudio = FakePodcastAudio()
+        let fakePlayer = PodcastPlayer(audio: fakeAudio, session: FakePodcastSession(), nowPlaying: SystemPodcastNowPlaying())
+        let podcastDir = folder.appendingPathComponent("Podcasts", isDirectory: true)
+        let app = AppModel(
+            store: store,
+            aiService: ai,
+            backgroundScheduler: FakeTaskScheduler(),
+            podcastDirectory: podcastDir
+        )
+        let fakePodcast = PodcastController(app: app, store: PodcastStore(directory: podcastDir), player: fakePlayer)
+        var engineKindsRequested: [PodcastEngineKind] = []
+        let gatedSpeech = GatedSpeechEngine()
+        fakePodcast.makeEngine = { kind, _, _ in
+            engineKindsRequested.append(kind)
+            return gatedSpeech
+        }
+
+        connect(app)
+        app.allowAllAIProviders()
+        app.digests = [completeDigest(cards: 1)]
+
+        app.settings.podcast.engine = .onDevice
+        fakePodcast.make(play: false)
+        try await waitUntil { gatedSpeech.attempts == 1 && gatedSpeech.waiting }
+        gatedSpeech.release()
+        try await waitUntil { fakePodcast.episode?.entries.first?.state == .ready && gatedSpeech.attempts == 2 && gatedSpeech.waiting }
+        fakePodcast.pauseGeneration()
+        gatedSpeech.gated = false
+        gatedSpeech.release()
+        XCTAssertEqual(fakePodcast.episode?.isComplete, false)
+
+        // Subcase A: User switches setting to Google voices WITHOUT adding a Google key, then taps Play/Make (`make(play: true)`):
+        app.settings.podcast.engine = .google
+        fakePodcast.make(play: true)
+        let playedWhileMissingKey = fakeAudio.isPlaying
+        let missingKeyErrorPresented = app.presentedError != nil
+        fakePlayer.unload()
+
+        // Subcase B: User now adds a Gemini API key and grants consent, then taps Make Podcast (`make(play: false)`):
+        var geminiConfig = app.settings.configuration(for: .gemini)
+        geminiConfig.apiKey = "gemini-key"
+        app.setConfiguration(geminiConfig, for: .gemini)
+        app.settings.podcastConsent[VoiceProvider.aiStudio.rawValue] = Date()
+        engineKindsRequested.removeAll()
+        fakePodcast.make(play: false)
+        try await waitUntil { fakePodcast.episode?.isComplete == true }
+
+        XCTAssertFalse(
+            playedWhileMissingKey && missingKeyErrorPresented,
+            "make(play: true) must not start playing partial on-device audio when Google engine fails key check"
+        )
+        XCTAssertEqual(
+            engineKindsRequested.last,
+            .aiStudio,
+            "Switching from .onDevice to .google on an unfinished episode must synthesize remaining chapters with .aiStudio"
+        )
+        XCTAssertEqual(fakePodcast.episode?.engine, .aiStudio)
+    }
+
+    func testTodayPageObservesPodcastControllerForMenuActions() throws {
+        let harness = makeHarness()
+        let app = harness.app
+        let page = TodayPage(app: app, onOpen: { _, _ in })
+        let observedObjects = Mirror(reflecting: page).children.compactMap { child -> String? in
+            let typeName = String(describing: type(of: child.value))
+            guard typeName.contains("ObservedObject") else { return nil }
+            return "\(child.label ?? ""): \(typeName)"
+        }
+        let observesPodcast = observedObjects.contains { $0.contains("PodcastController") }
+        XCTAssertTrue(
+            observesPodcast,
+            "TodayPage must observe PodcastController via @ObservedObject so toolbar menu and section react to episode completion"
+        )
     }
 
     private static func playlist(durations: [TimeInterval?]) -> PodcastPlaylist {

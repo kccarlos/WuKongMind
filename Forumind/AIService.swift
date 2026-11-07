@@ -8,8 +8,10 @@ class AIService {
     /// The AI data consent backstop (`AIDataConsent.swift`), checked before
     /// every request that sends forum content to a third-party provider. It
     /// never asks; until `AppModel` installs its check, nothing goes.
-    var consentCheck: @MainActor (AIProvider) throws -> Void = { provider in
-        if provider.requiresDataConsent { throw AssistantError.aiConsentRequired(provider) }
+    var consentCheck: @MainActor (AIProvider, ProviderConfiguration) throws -> Void = { provider, configuration in
+        if provider.requiresDataConsent(baseURL: configuration.baseURL) {
+            throw AssistantError.aiConsentRequired(provider)
+        }
     }
 
     init(
@@ -316,7 +318,20 @@ class AIService {
             try validate(response: response, data: data)
             return
         }
-        _ = try await discoverModels(configuration: configuration, provider: provider)
+        let models = try await discoverModels(configuration: configuration, provider: provider)
+        let chosen = configuration.model.trimmingCharacters(in: .whitespacesAndNewlines)
+        if provider != .appleIntelligence, !chosen.isEmpty, !models.isEmpty {
+            let matches = models.contains(chosen)
+                || (provider == .ollama && models.contains("\(chosen):latest"))
+            if !matches {
+                throw AssistantError.missingConfiguration(
+                    String(
+                        localized: "Model “\(chosen)” isn’t available from \(provider.displayName).",
+                        comment: "Error when Test Connection finds the server reachable but the chosen model ID is not in its model list; arguments are model name and provider name"
+                    )
+                )
+            }
+        }
     }
 
     /// `{base}/publishers/google/models/{model}:{method}`; the base is the
@@ -350,7 +365,7 @@ class AIService {
             )
         }
         // Every third-party request that carries forum content comes here.
-        try await consentCheck(provider)
+        try await consentCheck(provider, configuration)
         try validate(configuration: configuration, provider: provider)
         var tokenBudgets: [Int] = [
             maxTokens,
@@ -413,6 +428,18 @@ class AIService {
         }
     }
 
+    private static func coalesced(_ messages: [ChatMessage]) -> [ChatMessage] {
+        var result: [ChatMessage] = []
+        for message in messages {
+            if let last = result.last, last.role == message.role {
+                result[result.count - 1].content = last.content + "\n\n" + message.content
+            } else {
+                result.append(message)
+            }
+        }
+        return result
+    }
+
     private func makeRequest(
         system: String,
         messages: [ChatMessage],
@@ -420,6 +447,7 @@ class AIService {
         provider: AIProvider,
         maxTokens: Int
     ) throws -> URLRequest {
+        let messages = Self.coalesced(messages)
         let base = normalizedBaseURL(configuration.baseURL)
         let url: URL
         var body: [String: Any]

@@ -126,6 +126,15 @@ enum DiscourseRoutes {
         ForumSite.url(siteURL: siteURL, path: "/login")
     }
 
+    static func accountURL(siteURL: String, username: String? = nil) -> URL? {
+        if let name = username?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !name.isEmpty,
+           let encoded = name.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) {
+            return ForumSite.url(siteURL: siteURL, path: "/u/\(encoded)")
+        }
+        return ForumSite.url(siteURL: siteURL, path: "/my/summary")
+    }
+
     static func basicInfoURL(siteURL: String) -> URL? {
         ForumSite.url(siteURL: siteURL, path: "/site/basic-info.json")
     }

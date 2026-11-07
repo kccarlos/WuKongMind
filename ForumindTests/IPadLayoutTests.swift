@@ -1,3 +1,5 @@
+import SwiftUI
+import UIKit
 import XCTest
 @testable import Forumind
 
@@ -93,5 +95,49 @@ final class IPadLayoutTests: XCTestCase {
         browser.retryAfterCrash()
         XCTAssertFalse(browser.showsCrashNotice)
         browser.webView.stopLoading()
+    }
+
+    func testVoiceOverAdjustsPanelWidthInExpectedDirectionAndNarrowIPadUsesTwoColumnSummary() {
+        // 1. VoiceOver adjustable action widens on `.increment` (+40) and shrinks on `.decrement` (-40).
+        let containerWidth: CGFloat = 1_032
+        let initial = WorkspaceMetrics.panelWidth(preferred: nil, containerWidth: containerWidth)
+        let incremented = WorkspaceMetrics.adjustedPanelWidth(
+            current: initial,
+            delta: WorkspaceMetrics.panelWidthStep,
+            containerWidth: containerWidth
+        )
+        let decremented = WorkspaceMetrics.adjustedPanelWidth(
+            current: initial,
+            delta: -WorkspaceMetrics.panelWidthStep,
+            containerWidth: containerWidth
+        )
+        XCTAssertEqual(incremented, initial + WorkspaceMetrics.panelWidthStep, accuracy: 0.1)
+        XCTAssertEqual(decremented, initial - WorkspaceMetrics.panelWidthStep, accuracy: 0.1)
+        XCTAssertTrue(WorkspaceMetrics.usesTwoColumnSummary(windowWidth: 834, isSplit: false))
+        XCTAssertTrue(WorkspaceMetrics.usesTwoColumnSummary(windowWidth: 820, isSplit: false))
+        XCTAssertFalse(WorkspaceMetrics.usesTwoColumnSummary(windowWidth: 507, isSplit: false))
+        XCTAssertFalse(WorkspaceMetrics.usesTwoColumnSummary(windowWidth: 1_032, isSplit: true))
+
+        // 2. Narrow iPad portrait (`834pt`, Spec §10 & Decision #5) lays out summary sections in two columns at medium height,
+        // while narrow phone width (`393pt`) keeps a single vertical column.
+        let oneParsed = DrawerSummarySections.parsed(
+            for: .init(text: "## Original post\nFirst section body text.", maximumPost: 20)
+        )
+        let twoParsed = DrawerSummarySections.parsed(
+            for: .init(text: "## Original post\nFirst section body text.\n\n## What people are saying\nSecond section body text.", maximumPost: 20)
+        )
+        let oneWide = UIHostingController(rootView: VStack(alignment: .leading, spacing: 0) { DrawerSummarySections(rows: oneParsed.rows) })
+        let twoWide = UIHostingController(rootView: VStack(alignment: .leading, spacing: 0) { DrawerSummarySections(rows: twoParsed.rows) })
+        let oneWideSize = oneWide.sizeThatFits(in: CGSize(width: 834, height: UIView.layoutFittingCompressedSize.height))
+        let twoWideSize = twoWide.sizeThatFits(in: CGSize(width: 834, height: UIView.layoutFittingCompressedSize.height))
+        XCTAssertLessThan(twoWideSize.height, oneWideSize.height * 1.4,
+                          "At 834pt narrow iPad width, two equal summary sections should sit side-by-side (\(twoWideSize.height)pt vs \(oneWideSize.height)pt)")
+
+        let onePhone = UIHostingController(rootView: VStack(alignment: .leading, spacing: 0) { DrawerSummarySections(rows: oneParsed.rows) })
+        let twoPhone = UIHostingController(rootView: VStack(alignment: .leading, spacing: 0) { DrawerSummarySections(rows: twoParsed.rows) })
+        let onePhoneSize = onePhone.sizeThatFits(in: CGSize(width: 393, height: UIView.layoutFittingCompressedSize.height))
+        let twoPhoneSize = twoPhone.sizeThatFits(in: CGSize(width: 393, height: UIView.layoutFittingCompressedSize.height))
+        XCTAssertGreaterThan(twoPhoneSize.height, onePhoneSize.height * 1.7,
+                             "At 393pt iPhone width, two summary sections stay stacked in 1 column (\(twoPhoneSize.height)pt vs \(onePhoneSize.height)pt)")
     }
 }

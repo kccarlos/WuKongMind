@@ -110,6 +110,112 @@ final class DrawerHintTests: XCTestCase {
         XCTAssertTrue(stripped.contains("#6 tilde"))
         XCTAssertFalse(stripped.contains("#5"))
     }
+
+    @MainActor
+    func testTopicChatModePreservesNewRepliesHintAndReportTargets() throws {
+        // 1. DrawerHint and split-panel dot treat `.chat` the same as `.summary` (unified topic view).
+        XCTAssertEqual(
+            action(.topic) { $0.mode = .chat; $0.hasSummary = true; $0.totalPosts = 20; $0.summaryPostCount = 14 },
+            .checkNew(6)
+        )
+        XCTAssertEqual(
+            row(.topic, tip: true) { $0.mode = .chat },
+            DrawerHint.Row(action: .summarize, isTip: true)
+        )
+        var staleChat = DrawerHint.Input(pageState: .topic, mode: .chat, hasSummary: true, totalPosts: 20, summaryPostCount: 14)
+        XCTAssertTrue(DrawerHint.showsSplitNewRepliesDot(staleChat, panelShown: false))
+        staleChat.mode = .agent
+        XCTAssertFalse(DrawerHint.showsSplitNewRepliesDot(staleChat, panelShown: false))
+
+        // 2. Topic `···` report targets cover all present AI outputs regardless of `.summary` vs `.chat`.
+        let site = "https://forum.example.com"
+        let topicA = ForumTopic(siteURL: site, topicID: "10", url: URL(string: "\(site)/t/a/10")!, title: "Chat Only")
+        var chatOnly = TopicSession(siteURL: site, topicID: "10", url: topicA.url, title: topicA.title)
+        chatOnly.history = [
+            ChatMessage(role: .user, content: "What happened?"),
+            ChatMessage(role: .assistant, content: "The AI answered this.")
+        ]
+
+        let topicB = ForumTopic(siteURL: site, topicID: "11", url: URL(string: "\(site)/t/b/11")!, title: "Summary Only")
+        var summaryOnly = TopicSession(siteURL: site, topicID: "11", url: topicB.url, title: topicB.title)
+        summaryOnly.summary = "The AI summarized this."
+
+        let topicC = ForumTopic(siteURL: site, topicID: "12", url: URL(string: "\(site)/t/c/12")!, title: "Both")
+        var both = TopicSession(siteURL: site, topicID: "12", url: topicC.url, title: topicC.title)
+        both.summary = "Summary text."
+        both.history = [ChatMessage(role: .assistant, content: "Answer text.")]
+
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let store = PersistentStore(fileURL: directory.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore())
+        try store.save(AppSnapshot(sessions: [chatOnly, summaryOnly, both]))
+
+        let app = AppModel(store: store)
+        app.browser.onPageContextChanged = nil
+        let panel = AssistantPanel(app: app, onExpand: { _ in })
+
+        func features(_ targets: [ReportTarget]) -> [AIOutput.Feature] {
+            targets.compactMap { target in
+                if case .aiOutput(let output) = target.kind { return output.feature }
+                return nil
+            }
+        }
+
+        // Topic with chat answer only, while assistantMode == .summary: chat answer must still be reportable.
+        app.select(topic: topicA)
+        app.assistantMode = .summary
+        XCTAssertEqual(features(panel.reportTargets), [.chatAnswer])
+
+        // Topic with summary only, while assistantMode == .chat: summary must still be reportable.
+        app.select(topic: topicB)
+        app.assistantMode = .chat
+        XCTAssertEqual(features(panel.reportTargets), [.summary])
+
+        // Topic with both summary and chat answer: both must be reportable in `.summary` and `.chat`, none in `.agent`.
+        app.select(topic: topicC)
+        app.assistantMode = .summary
+        XCTAssertEqual(features(panel.reportTargets), [.summary, .chatAnswer])
+        app.assistantMode = .chat
+        XCTAssertEqual(features(panel.reportTargets), [.summary, .chatAnswer])
+        app.assistantMode = .agent
+        XCTAssertEqual(features(panel.reportTargets), [])
+    }
+
+    @MainActor
+    func testFollowUpChatAnswersLinkPostCitationsAndJumpToPost() throws {
+        let linked = DrawerSummarySections.link("See #12 and #37; ignore `#5` and #500.", maximum: 100)
+        XCTAssertTrue(linked.contains("[#12](forumind-post:12)"), linked)
+        XCTAssertTrue(linked.contains("[#37](forumind-post:37)"), linked)
+        XCTAssertTrue(linked.contains("`#5`"), linked)
+        XCTAssertTrue(linked.contains("#500."), "Post numbers above maximumPost stay plain text.")
+        XCTAssertEqual(DrawerSummarySections.link("See #12 and #37; ignore `#5` and #500.", maximum: 100), linked, "Cached lookup returns identical linked markdown.")
+
+        let site = "https://forum.example.com"
+        let topic = ForumTopic(siteURL: site, topicID: "42", url: URL(string: "\(site)/t/topic-slug/42")!, title: "Topic")
+        var session = TopicSession(siteURL: site, topicID: "42", url: topic.url, title: topic.title)
+        session.totalPosts = 50
+        session.history = [
+            ChatMessage(role: .user, content: "Which reply fixed it?"),
+            ChatMessage(role: .assistant, content: "Reply #37 fixed it.")
+        ]
+
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let store = PersistentStore(fileURL: directory.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore())
+        try store.save(AppSnapshot(sessions: [session], forums: [Forum(siteURL: site, kind: .discourse, name: "Forum")]))
+
+        let app = AppModel(store: store)
+        app.browser.onPageContextChanged = nil
+        app.select(topic: topic)
+
+        let bubble = ChatBubble(message: session.history[1], maximumPost: session.totalPosts)
+        XCTAssertEqual(bubble.maximumPost, 50)
+
+        let citationURL = try XCTUnwrap(PostCitations.url(post: 37))
+        let postNumber = try XCTUnwrap(PostCitations.postNumber(from: citationURL))
+        app.jumpToCitation(postNumber)
+        XCTAssertEqual(app.citationJump?.number, 37)
+    }
 }
 
 /// The drawer's presentation phases (PresentationRouter.swift): which host

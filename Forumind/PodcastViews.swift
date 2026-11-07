@@ -12,13 +12,16 @@ struct PodcastTodaySection: View {
     @ObservedObject var app: AppModel
     @ObservedObject var podcast: PodcastController
     let digest: DailyDigest
+    var onStart: (() -> Void)? = nil
 
     var body: some View {
         Section {
             if let episode = podcast.episode, episode.digestID == digest.id {
                 PodcastNowPlayingRow(app: app, podcast: podcast, episode: episode)
+                    .id("todayPodcast")
             } else {
                 startCard
+                    .id("todayPodcast")
             }
         }
         .onAppear { podcast.refresh() }
@@ -39,13 +42,27 @@ struct PodcastTodaySection: View {
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             ViewThatFits(in: .horizontal) {
-                HStack(spacing: DCTheme.spacingS) { buttons }
-                VStack(spacing: DCTheme.spacingS) { buttons }
+                HStack(spacing: DCTheme.spacingS) { buttons(singleLine: true) }
+                VStack(spacing: DCTheme.spacingS) { buttons(singleLine: false) }
             }
             Text(costNote)
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
+            if podcast.engineSelection(interactive: true) == .needsKey {
+                Button {
+                    DCHaptics.tap()
+                    app.requestedSettingsPage = .provider
+                } label: {
+                    Label("Add a Google Gemini or Vertex AI key", systemImage: "key")
+                        .font(.footnote.weight(.semibold))
+                        .frame(minHeight: DCTheme.controlHeight)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(DCTheme.brandBlue)
+                .accessibilityIdentifier("podcastSetupGoogleKey")
+            }
         }
         .padding(.vertical, DCTheme.spacingXS)
         .accessibilityElement(children: .contain)
@@ -53,12 +70,14 @@ struct PodcastTodaySection: View {
     }
 
     @ViewBuilder
-    private var buttons: some View {
+    private func buttons(singleLine: Bool) -> some View {
         Button {
             DCHaptics.tap()
             podcast.make(play: true)
+            if podcast.episode?.digestID == digest.id { onStart?() }
         } label: {
             Label("Play", systemImage: "play.fill")
+                .fixedSize(horizontal: singleLine, vertical: false)
                 .frame(maxWidth: .infinity)
         }
         .buttonStyle(DCPrimaryButtonStyle())
@@ -67,8 +86,10 @@ struct PodcastTodaySection: View {
         Button {
             DCHaptics.tap()
             podcast.make(play: false)
+            if podcast.episode?.digestID == digest.id { onStart?() }
         } label: {
             Label("Make Podcast", systemImage: "waveform")
+                .fixedSize(horizontal: singleLine, vertical: false)
                 .frame(maxWidth: .infinity)
         }
         .buttonStyle(DCActionButtonStyle(prominent: false))
@@ -85,6 +106,8 @@ struct PodcastTodaySection: View {
         switch podcast.engineSelection(interactive: true) {
         case .engine(.aiStudio), .engine(.vertex), .needsConsent:
             voices = String(localized: "Google’s voices read it with your key.", comment: "Today page: the podcast is spoken by Gemini text-to-speech, billed to the user's key")
+        case .needsKey:
+            voices = String(localized: "Google’s voices need a Google Gemini or Vertex AI key.", comment: "Today page: Google voices are chosen without a saved key")
         case .engine(.onDevice), .engine(.fake):
             voices = String(localized: "This device’s voices read it, free and offline.", comment: "Today page: the podcast is spoken by the built-in voices")
         }
@@ -270,7 +293,12 @@ struct SettingsPodcastSections: View {
 
     var body: some View {
         Section {
-            Toggle(isOn: $app.settings.podcastDailyEnabled) {
+            Toggle(
+                isOn: Binding(
+                    get: { app.settings.dailyDigestEnabled && app.settings.podcastDailyEnabled },
+                    set: { app.settings.podcastDailyEnabled = $0 }
+                )
+            ) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Make the podcast every day")
                     Text("Right after the digest is made when you open Forumind: one request per chapter to your AI provider, then the voices.")
@@ -279,6 +307,7 @@ struct SettingsPodcastSections: View {
                 }
             }
             .tint(DCTheme.brandBlue)
+            .disabled(!app.settings.dailyDigestEnabled)
             .accessibilityIdentifier("podcastDailyEnabled")
             Picker("Voices", selection: $app.settings.podcast.engine) {
                 ForEach(PodcastEngineChoice.allCases) { choice in
@@ -286,6 +315,16 @@ struct SettingsPodcastSections: View {
                 }
             }
             .accessibilityIdentifier("podcastEngine")
+            if app.settings.podcast.engine == .google, podcast.googleProviders.isEmpty {
+                NavigationLink {
+                    SettingsProviderPage(app: app)
+                        .navigationTitle(SettingsPage.provider.title)
+                        .navigationBarTitleDisplayMode(.inline)
+                } label: {
+                    Label("Add a Google Gemini or Vertex AI key", systemImage: "key")
+                }
+                .accessibilityIdentifier("podcastAddGoogleKey")
+            }
             Picker("Length per topic", selection: $app.settings.podcast.minutesPerChapter) {
                 ForEach(PodcastSettings.minuteChoices, id: \.self) { minutes in
                     Text(SettingsVoicePage.duration(minutes * 60)).tag(minutes)

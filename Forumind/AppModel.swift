@@ -144,6 +144,13 @@ enum WatchCheckReason {
     case background
 }
 
+/// Pending edit of a previously sent user turn in a topic's chat. Nothing is
+/// deleted from `session.history` until the edited question is submitted.
+enum ChatEditState: Equatable {
+    case none
+    case editing(topicKey: String, messageID: UUID, previousDraft: String)
+}
+
 @MainActor
 final class AppModel: ObservableObject {
     /// Edits apply at once: work that has not started yet uses them, work
@@ -195,6 +202,8 @@ final class AppModel: ObservableObject {
     @Published var agentComposesNewQuestion = false
     /// Bumped to focus the Ask box (⌘2, ⌘3).
     @Published var askFocusRequest = 0
+    /// In-progress edit of an existing user turn in chat (`editChat`).
+    @Published private(set) var chatEdit: ChatEditState = .none
     @Published private(set) var notificationsAuthorized = false
     /// The user's forums (pinned and recent); see the API list above.
     @Published private(set) var forums: [Forum] {
@@ -207,6 +216,9 @@ final class AppModel: ObservableObject {
     }
     /// The forum of the current page, or the last forum shown.
     @Published private(set) var currentSiteURL: String?
+    /// Last site URL delivered by `handlePageContext` so forum-home switches
+    /// can exit a previous forum's `.agent` mode.
+    private var lastPageSiteURL: String?
     /// Where Add forum is: detecting the platform of an address, then the
     /// outcome. One detection per address at a time.
     @Published private(set) var addForumPhase = AddForumPhase.idle
@@ -238,6 +250,22 @@ final class AppModel: ObservableObject {
     /// A Settings page an outside request wants shown (Start a Voice Chat
     /// without voice set up); RootView presents it and resets it.
     @Published var requestedSettingsPage: SettingsPage?
+    /// Export toggles shared between AssistantPanel and RouterHost's ExportOptionsSheet.
+    @Published var exportOptions = ExportOptions()
+
+    var currentExportPayload: TopicExportPayload {
+        let session = currentSession
+        return TopicExportPayload(
+            summary: session?.summary ?? "",
+            source: currentModeratedSource,
+            title: session?.title ?? currentTopic?.title ?? "",
+            url: session?.url ?? currentTopic?.url,
+            history: session?.history ?? [],
+            summaryUpdatedAt: session?.summaryUpdatedAt,
+            summaryPostCount: session?.summaryPostCount,
+            totalPosts: session?.totalPosts
+        )
+    }
 
     private static var loadsOnlySamplePage: Bool {
         #if DEBUG
@@ -307,8 +335,10 @@ final class AppModel: ObservableObject {
     /// Per provider: bumped when its key or address changes, or a newer
     /// test or model load starts, so an older result is dropped.
     private var connectionTestGeneration: [AIProvider: Int] = [:]
+    private var activeConnectionTestGeneration: [AIProvider: Int] = [:]
+    private var activeRoleConnectionTests: [ModelRole: (provider: AIProvider, generation: Int, selection: ModelSelection)] = [:]
     private var modelDiscoveryGeneration: [AIProvider: Int] = [:]
-    private var isCheckingWatches = false
+    @Published private(set) var isCheckingWatches = false
     /// A forum the user removed while its page is still open: the page must
     /// not add it straight back as a recent forum.
     private var suppressedAutoAddSiteURL: String?
@@ -427,6 +457,7 @@ final class AppModel: ObservableObject {
             },
             uniquingKeysWith: { first, second in first.updatedAt >= second.updatedAt ? first : second }
         )
+        let voiceRunIDs = Set(loadedRuns.filter { $0.origin == .voice }.map(\.id))
         activities = snapshot.activities
             .filter {
                 !$0.status.isTerminal
@@ -435,8 +466,16 @@ final class AppModel: ObservableObject {
             .map {
                 guard !$0.status.isTerminal else { return $0 }
                 var interrupted = $0
-                interrupted.status = .queued
-                interrupted.statusText = String(localized: "Restoring interrupted work…", comment: "Status of AI work that was interrupted when the app quit and is starting again")
+                if interrupted.type == .agent,
+                   let runID = UUID(uuidString: String(interrupted.topicID.dropFirst(Self.agentTopicPrefix.count))),
+                   voiceRunIDs.contains(runID) {
+                    interrupted.status = .cancelled
+                    interrupted.statusText = String(localized: "Cancelled", comment: "Status of AI work the user cancelled")
+                    interrupted.completedAt = now
+                } else {
+                    interrupted.status = .queued
+                    interrupted.statusText = String(localized: "Restoring interrupted work…", comment: "Status of AI work that was interrupted when the app quit and is starting again")
+                }
                 return interrupted
             }
             .sorted { $0.createdAt > $1.createdAt }
@@ -453,9 +492,14 @@ final class AppModel: ObservableObject {
             guard !run.isFinished else { return run }
             var updated = run
             if !restorableRunIDs.contains(run.id) {
-                updated.result = .cancelled
-                updated.error = String(localized: "Interrupted before the run could finish.", comment: "Ask the forum: a research run stopped when the app quit")
-                updated.completedAt = now
+                if !updated.initialAnswer.isEmpty {
+                    updated.result = .completed
+                    updated.completedAt = updated.completedAt ?? now
+                } else {
+                    updated.result = .cancelled
+                    updated.error = String(localized: "Interrupted before the run could finish.", comment: "Ask the forum: a research run stopped when the app quit")
+                    updated.completedAt = now
+                }
             }
             return updated
         }
@@ -466,6 +510,10 @@ final class AppModel: ObservableObject {
         }
         self.browser.onPageContextChanged = { [weak self] context in
             self?.handlePageContext(context)
+        }
+        self.browser.onNavigationFailed = { [weak self] error in
+            guard let self, self.browser.onPageContextChanged != nil else { return }
+            self.presentError(error.localizedDescription)
         }
         self.browser.onPagePositionChanged = { [weak self] context in
             self?.handlePagePosition(context)
@@ -483,7 +531,7 @@ final class AppModel: ObservableObject {
         // (DEBUG samples load only their own page: a restored forum's load
         // failing late would replace it with the Forums home.)
         if self.browser.webView.url == nil, !Self.loadsOnlySamplePage {
-            self.loadHome()
+            self.loadHome(silentOnFailure: true)
         }
         openURLObserver = NotificationCenter.default.addObserver(
             forName: WatchNotifier.openURLNotification,
@@ -539,6 +587,7 @@ final class AppModel: ObservableObject {
         if AssistantDebug.isActive, AssistantDebug.has("-dc-no-forums") {
             directory = ForumDirectory(forums: [])
             currentSiteURL = nil
+            self.browser.homeSiteURL = nil
         }
         applyStateDebugScript()
         // A scripted voice run starts from the consent sheet.
@@ -549,9 +598,9 @@ final class AppModel: ObservableObject {
         pruneSessions()
         self.cloudSync.attach(self)
         // The consent backstop before every third-party AI request.
-        aiService.consentCheck = { [weak self] provider in
+        aiService.consentCheck = { [weak self] provider, configuration in
             guard let self else { throw AssistantError.aiConsentRequired(provider) }
-            try self.settings.requireAIConsent(for: provider)
+            try self.settings.requireAIConsent(for: provider, baseURL: configuration.baseURL)
         }
         // Launch: bring Spotlight up to date (only the difference, or
         // everything once after a new index version).
@@ -598,11 +647,13 @@ final class AppModel: ObservableObject {
 
     /// Hand-off from the share extension or a deep link. A request is handled
     /// once even when it arrives both ways (inbox and URL). `autoRun: false`
-    /// opens the page and Assistant without starting a summary or pull.
+    /// opens the page and Assistant without starting a summary or pull; before
+    /// onboarding and the Terms of Use are done (`acceptsSystemWork`), AI work
+    /// never starts automatically either.
     func handle(_ request: IncomingLinkRequest, autoRun: Bool = true) {
         guard handledShareIDs.insert(request.id).inserted else { return }
         noteExternalEntry()
-        openShared(url: request.url, action: request.action.rawValue, autoRun: autoRun)
+        openShared(url: request.url, action: request.action.rawValue, autoRun: autoRun && acceptsSystemWork)
     }
 
     /// Delivers the newest request the share extension queued in the App Group
@@ -614,13 +665,36 @@ final class AppModel: ObservableObject {
 
     /// The error the root alert shows.
     var presentedError: String? { errorQueue.first?.message }
+    var presentedErrorAction: ErrorAction? { errorQueue.first?.action }
 
     /// Queues an error for the root alert; a message already waiting is not
     /// queued twice. For what the user just did: work the app started by
     /// itself reports in Activity instead.
-    func presentError(_ message: String) {
-        guard !errorQueue.contains(where: { $0.message == message }) else { return }
-        errorQueue.append(PresentedError(message: message))
+    func presentError(_ message: String, action: ErrorAction? = nil) {
+        if let index = errorQueue.firstIndex(where: { $0.message == message }) {
+            if errorQueue[index].action == nil, let action {
+                errorQueue[index].action = action
+            }
+            return
+        }
+        errorQueue.append(PresentedError(message: message, action: action))
+    }
+
+    /// Runs the root error alert's follow-up action after dismissing the alert.
+    func performErrorAction(_ action: ErrorAction, after delay: Duration? = nil) {
+        let wait = delay ?? PresentationRouter.settleDelay
+        dismissPresentedError()
+        if router.item != nil { router.item = nil }
+        Task { @MainActor [weak self] in
+            if wait > .zero {
+                try? await Task.sleep(for: wait)
+            }
+            guard let self else { return }
+            switch action {
+            case .openAIModels:
+                self.requestedSettingsPage = .provider
+            }
+        }
     }
 
     /// The root alert's OK: the next error (if any) shows.
@@ -673,6 +747,19 @@ final class AppModel: ObservableObject {
 
     private func handlePageContext(_ context: PageContext) {
         objectWillChange.send()
+        let previousSiteURL = lastPageSiteURL
+        if let siteURL = context.siteURL {
+            lastPageSiteURL = siteURL
+        }
+        if context.topic == nil,
+           context.state == .forumHome,
+           assistantMode == .agent,
+           let previousSiteURL,
+           let newSiteURL = context.siteURL,
+           previousSiteURL != newSiteURL {
+            assistantMode = .summary
+            agentSiteURL = nil
+        }
         if let suppressed = suppressedAutoAddSiteURL {
             // A forum removed while its page is open stays removed until the
             // browser settles on another forum or a non-forum page.
@@ -733,9 +820,22 @@ final class AppModel: ObservableObject {
         return nil
     }
 
+    nonisolated private static func sameSharedPage(_ lhs: URL, _ rhs: URL) -> Bool {
+        if PageContext.samePage(lhs, rhs) { return true }
+        func normalized(_ url: URL) -> String {
+            var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+            components?.fragment = nil
+            if let path = components?.path, path.count > 1, path.hasSuffix("/") {
+                components?.path = String(path.dropLast())
+            }
+            return components?.string ?? url.absoluteString
+        }
+        return normalized(lhs) == normalized(rhs)
+    }
+
     private func completePendingShare(with context: PageContext) {
         guard var pending = pendingShare, let url = context.url else { return }
-        if !pending.sawSharedPage, PageContext.samePage(url, pending.url) {
+        if !pending.sawSharedPage, Self.sameSharedPage(url, pending.url) {
             pending.sawSharedPage = true
             pendingShare = pending
         }
@@ -749,7 +849,14 @@ final class AppModel: ObservableObject {
         case .forumHome, .topic:
             break
         }
-        let topicMatches = pending.topicID != nil && context.topic?.topicID == pending.topicID
+        let topicMatches: Bool
+        if let expectedID = pending.topicID {
+            topicMatches = context.topic?.topicID == expectedID
+        } else {
+            topicMatches = context.state == .topic
+                && context.topic != nil
+                && (Self.sameSharedPage(url, pending.url) || pending.sawSharedPage)
+        }
         switch pending.action {
         case .open:
             pendingShare = nil
@@ -768,7 +875,7 @@ final class AppModel: ObservableObject {
                 // report from the page before it must not cancel the share);
                 // after that, the user went elsewhere, and visiting the
                 // shared topic later must not start work by surprise.
-                if !browser.isLoading, !PageContext.samePage(url, pending.url),
+                if !browser.isLoading, !Self.sameSharedPage(url, pending.url),
                    context.state == .forumHome || pending.sawSharedPage {
                     pendingShare = nil
                 }
@@ -782,9 +889,10 @@ final class AppModel: ObservableObject {
                 needsProviderSetup = .assistant
                 return
             }
-            // A deep link that did not come from the share extension only
+            // A deep link that did not come from the share extension — or a
+            // hand-off before onboarding and the Terms of Use are done — only
             // opens the Assistant; the user starts the work.
-            guard pending.autoRun else { return }
+            guard pending.autoRun, acceptsSystemWork else { return }
             if pending.action == .summary {
                 // The same topic shared again while its summary runs: show it.
                 if let topicKey = currentTopic?.topicKey,
@@ -807,6 +915,9 @@ final class AppModel: ObservableObject {
             return
         }
         #endif
+        if case .editing(let editTopicKey, _, _) = chatEdit, editTopicKey != topic?.topicKey {
+            cancelEditChat()
+        }
         currentTopic = topic
         topicActivityDidChange(topic)
         guard let topic else { return }
@@ -840,11 +951,11 @@ final class AppModel: ObservableObject {
         if activities.contains(where: {
             $0.topicKey == topic.topicKey && $0.type == .summary && !$0.status.isTerminal
         }) {
-            panelRoute = .history
             return
         }
         router.summarizeTipSeen()
-        enqueueSummary(for: topic, batchLimit: batchLimit, regenerate: regenerate)
+        let shouldRegenerate = regenerate || (batchLimit != nil && currentSession?.hasSummary == true)
+        enqueueSummary(for: topic, batchLimit: batchLimit, regenerate: shouldRegenerate)
     }
 
     /// Queues a summary task for any topic (used by watched-topic refreshes,
@@ -1157,7 +1268,7 @@ final class AppModel: ObservableObject {
                 ?? Self.startForum(in: forums))?.siteURL
         }
         if agentSiteURL == siteURL { agentSiteURL = nil }
-        if browser.homeSiteURL == siteURL, pageContext.siteURL != siteURL {
+        if browser.homeSiteURL == siteURL, (pageContext.siteURL != siteURL || browser.showsForumsHome) {
             browser.homeSiteURL = currentSiteURL
         }
         save()
@@ -1364,9 +1475,31 @@ final class AppModel: ObservableObject {
     }
 
     func openAgentRun(id: UUID) {
+        dismissHistoryIfNeeded()
+        if let run = agentRuns.first(where: { $0.id == id }) {
+            agentSiteURL = run.siteURL
+            if browser.showsForumsHome {
+                lastPageSiteURL = run.siteURL
+                let forum = forumInfo(siteURL: run.siteURL)
+                if isCurrent(forum), browser.currentURL != nil {
+                    browser.hideForumsHome()
+                } else if sites.adapter(for: forum.kind) != nil {
+                    openForum(forum)
+                } else if let url = adapter(for: run.siteURL)?.links.homeURL(siteURL: run.siteURL) ?? URL(string: run.siteURL) {
+                    browser.load(url)
+                }
+            }
+        }
         selectedAgentRunID = id
-        assistantMode = .agent
+        showSelectedAgentRun()
         panelRoute = .topic
+        showAIView()
+    }
+
+    func showForumOverview() {
+        guard currentTopic == nil, assistantPageState == .forumHome else { return }
+        assistantMode = .summary
+        agentSiteURL = nil
     }
 
     var selectedAgentRun: AgentRun? {
@@ -1466,9 +1599,12 @@ final class AppModel: ObservableObject {
     }
 
     func openWatched(_ watched: WatchedTopic) {
+        dismissHistoryIfNeeded()
+        dismissSettingsIfNeeded()
         markWatchedSeen(topicKey: watched.topicKey)
         browser.load(watched.url)
         panelRoute = .topic
+        stepDownDrawerIfShown()
     }
 
     /// Checks every watched topic (on every forum) for new replies. In the
@@ -1700,26 +1836,54 @@ final class AppModel: ObservableObject {
         launch(recordID: record.id)
     }
 
+    /// The user turn currently being edited on the open topic, if it still exists.
+    var activeChatEdit: (topicKey: String, messageID: UUID, index: Int)? {
+        guard case .editing(let topicKey, let messageID, _) = chatEdit,
+              currentTopic?.topicKey == topicKey,
+              let history = sessions[topicKey]?.history,
+              let index = history.firstIndex(where: { $0.id == messageID && $0.role == .user })
+        else {
+            return nil
+        }
+        return (topicKey, messageID, index)
+    }
+
     func sendChat() {
         let question = drafts.chat.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !question.isEmpty, let topic = currentTopic,
-              var session = sessions[topic.topicKey],
-              !session.source.isEmpty
-        else {
-            presentError(String(localized: "Pull the post and responses or create a summary before asking a follow-up question."))
+        guard !question.isEmpty else { return }
+        guard let topic = currentTopic else {
+            presentError(AssistantError.noTopic.localizedDescription)
             return
         }
-        if activities.contains(where: {
+        let edit = activeChatEdit
+        let hasRunningChat = activities.contains {
             $0.topicKey == topic.topicKey && $0.type == .chat && !$0.status.isTerminal
-        }) {
+        }
+        if edit == nil, hasRunningChat {
             presentError(String(localized: "Wait for the current answer or cancel it in Manage."))
             return
         }
-        guard activeTaskCount < 50 else {
+        guard (edit != nil && hasRunningChat) || activeTaskCount < 50 else {
             presentError(String(localized: "The task queue is full. Cancel or wait for an existing task."))
             return
         }
+        if edit != nil {
+            cancelActiveChat(topicKey: topic.topicKey)
+            chatEdit = .none
+        } else if case .editing(let editTopicKey, _, _) = chatEdit, editTopicKey == topic.topicKey {
+            chatEdit = .none
+        }
 
+        var session = sessions[topic.topicKey] ?? TopicSession(
+            siteURL: topic.siteURL,
+            topicID: topic.topicID,
+            url: topic.url,
+            title: topic.title
+        )
+        if let edit,
+           let index = session.history.firstIndex(where: { $0.id == edit.messageID && $0.role == .user }) {
+            session.history.removeSubrange(index...)
+        }
         let userMessage = ChatMessage(role: .user, content: question)
         session.history.append(userMessage)
         session.history = Array(session.history.suffix(100))
@@ -1790,13 +1954,39 @@ final class AppModel: ObservableObject {
             openAgentRun(id: runID)
             return
         }
+        dismissHistoryIfNeeded()
+        assistantMode = .summary
         browser.load(record.url)
         panelRoute = .topic
+        stepDownDrawerIfShown()
     }
 
     func open(session: TopicSession) {
+        dismissHistoryIfNeeded()
+        assistantMode = .summary
         browser.load(session.url)
         panelRoute = .topic
+        stepDownDrawerIfShown()
+    }
+
+    private func dismissHistoryIfNeeded() {
+        if router.item == .expanded(.history) {
+            router.item = nil
+        }
+    }
+
+    private func dismissSettingsIfNeeded() {
+        if requestedSettingsPage != nil { requestedSettingsPage = nil }
+        if router.item == .expanded(.settings) { router.item = nil }
+        #if DEBUG
+        if case .debugSettings = router.item { router.item = nil }
+        #endif
+    }
+
+    private func stepDownDrawerIfShown() {
+        if router.usesDrawer, router.drawerPhase.isPresented, router.drawerDetent == .large {
+            router.drawerDetent = .medium
+        }
     }
 
     func setKept(_ kept: Bool, topicKey: String) {
@@ -1814,12 +2004,28 @@ final class AppModel: ObservableObject {
             presentError(String(localized: "Cancel this topic’s active tasks before deleting it."))
             return
         }
+        if case .editing(let editTopicKey, _, _) = chatEdit, editTopicKey == topicKey {
+            cancelEditChat()
+        }
         sessions.removeValue(forKey: topicKey)
         save()
     }
 
+    private func cancelActiveChat(topicKey: String) {
+        for record in activities where record.topicKey == topicKey && record.type == .chat && !record.status.isTerminal {
+            cancel(record: record)
+        }
+    }
+
     func clearChat() {
-        guard let topicKey = currentTopic?.topicKey, var session = sessions[topicKey] else {
+        guard let topicKey = currentTopic?.topicKey else {
+            return
+        }
+        if case .editing(let editTopicKey, _, _) = chatEdit, editTopicKey == topicKey {
+            cancelEditChat()
+        }
+        cancelActiveChat(topicKey: topicKey)
+        guard var session = sessions[topicKey] else {
             return
         }
         session.history = []
@@ -1831,18 +2037,41 @@ final class AppModel: ObservableObject {
 
     func editChat(messageID: UUID) {
         guard let topicKey = currentTopic?.topicKey,
-              var session = sessions[topicKey],
+              let session = sessions[topicKey],
               let index = session.history.firstIndex(where: { $0.id == messageID }),
               session.history[index].role == .user
         else {
             return
         }
-        drafts.chat = session.history[index].content
-        session.history = Array(session.history[..<index])
-        session.chatUpdatedAt = session.history.isEmpty ? nil : Date()
-        session.updatedAt = Date()
-        sessions[topicKey] = session
-        save()
+        if assistantMode == .agent {
+            assistantMode = .chat
+        }
+        let content = session.history[index].content
+        if case .editing(let editTopicKey, let existingID, let previousDraft) = chatEdit,
+           editTopicKey == topicKey {
+            if existingID == messageID, drafts.chat == content {
+                askFocusRequest += 1
+                return
+            }
+            chatEdit = .editing(topicKey: topicKey, messageID: messageID, previousDraft: previousDraft)
+        } else {
+            chatEdit = .editing(topicKey: topicKey, messageID: messageID, previousDraft: drafts.chat)
+        }
+        drafts.chat = content
+        askFocusRequest += 1
+    }
+
+    func cancelEditChat() {
+        guard case .editing(_, _, let previousDraft) = chatEdit else { return }
+        chatEdit = .none
+        drafts.chat = previousDraft
+    }
+
+    /// Exits chat edit mode without overwriting drafts (used when `carryingAskText`
+    /// transfers the composer text out of `This topic`).
+    func abandonEditChatWithoutRestoringDraft() {
+        guard chatEdit != .none else { return }
+        chatEdit = .none
     }
 
     /// Persists settings (API keys to the key store, the rest to the
@@ -1903,8 +2132,13 @@ final class AppModel: ObservableObject {
         contentBlockingSettingsDidChange(from: old)
         digestSettingsDidChange(from: old)
         systemSettingsDidChange(from: old)
-        if old.blockedUsers != settings.blockedUsers || old.filteredWords != settings.filteredWords {
+        if old.blockedUsers != settings.blockedUsers
+            || old.blockedPosts != settings.blockedPosts
+            || old.filteredWords != settings.filteredWords {
             applyModerationRules()
+        }
+        if old.voiceEnabled, !settings.voiceEnabled {
+            voice.end()
         }
         saveSettings()
     }
@@ -1925,9 +2159,12 @@ final class AppModel: ObservableObject {
         // Moderation is the user's safety choice, not a preference to reset.
         fresh.acceptedTermsVersion = settings.acceptedTermsVersion
         fresh.blockedUsers = settings.blockedUsers
+        fresh.blockedPosts = settings.blockedPosts
         fresh.filteredWords = settings.filteredWords
         // So is what the person agreed to send where.
         fresh.aiConsent = settings.aiConsent
+        fresh.voiceConsent = settings.voiceConsent
+        fresh.podcastConsent = settings.podcastConsent
         settings = fresh
         discoveredModels = [:]
         settingsStatus = ""
@@ -1970,30 +2207,74 @@ final class AppModel: ObservableObject {
     /// test of it) is `.stale` and leaves the status alone.
     @discardableResult
     func testConnection(provider: AIProvider) async -> ProviderCheckResult {
+        var configuration = settings.configuration(for: provider)
+        if provider != .vertexAI { configuration.model = "" }
+        return await runConnectionTest(configuration: configuration, provider: provider)
+    }
+
+    /// Tests the provider and model a role uses. Stale also when the role's
+    /// selection changed meanwhile.
+    @discardableResult
+    func testConnection(for role: ModelRole = .assistant) async -> ProviderCheckResult {
+        let selection = settings.model(for: role)
+        let configuration = settings.configuration(for: role)
+        return await runConnectionTest(
+            configuration: configuration,
+            provider: selection.provider,
+            role: (role, selection),
+            isStillCurrent: { settings.model(for: role) == selection }
+        )
+    }
+
+    func isTestingConnection(for provider: AIProvider) -> Bool {
+        guard let active = activeConnectionTestGeneration[provider] else { return false }
+        return active == connectionTestGeneration[provider]
+    }
+
+    func isTestingConnection(for role: ModelRole) -> Bool {
+        guard let active = activeRoleConnectionTests[role] else { return false }
+        return active.selection == settings.model(for: role) && isTestingConnection(for: active.provider)
+    }
+
+    private func runConnectionTest(
+        configuration: ProviderConfiguration,
+        provider: AIProvider,
+        role: (ModelRole, ModelSelection)? = nil,
+        isStillCurrent: () -> Bool = { true }
+    ) async -> ProviderCheckResult {
         connectionTestGeneration[provider, default: 0] &+= 1
-        let generation = connectionTestGeneration[provider]
-        let configuration = settings.configuration(for: provider)
+        let generation = connectionTestGeneration[provider, default: 0]
+        if case .declined = aiConsentState(for: provider) {
+            if !settings.hasCompletedOnboarding {
+                settings.aiConsent.removeValue(forKey: provider.rawValue)
+            } else {
+                settingsStatus = String(localized: "Connection failed")
+                return .failure(AssistantError.aiConsentDeclined(provider).localizedDescription)
+            }
+        }
+        activeConnectionTestGeneration[provider] = generation
+        if let (targetRole, selection) = role {
+            activeRoleConnectionTests[targetRole] = (provider, generation, selection)
+        }
+        defer {
+            if activeConnectionTestGeneration[provider] == generation {
+                activeConnectionTestGeneration[provider] = nil
+            }
+            if let (targetRole, _) = role, activeRoleConnectionTests[targetRole]?.generation == generation {
+                activeRoleConnectionTests[targetRole] = nil
+            }
+        }
         settingsStatus = String(localized: "Testing connection…")
         do {
             try await aiService.testConnection(configuration: configuration, provider: provider)
-            guard generation == connectionTestGeneration[provider] else { return .stale }
+            guard generation == connectionTestGeneration[provider], isStillCurrent() else { return .stale }
             settingsStatus = String(localized: "Connection successful")
             return .success
         } catch {
-            guard generation == connectionTestGeneration[provider] else { return .stale }
+            guard generation == connectionTestGeneration[provider], isStillCurrent() else { return .stale }
             settingsStatus = String(localized: "Connection failed")
             return .failure(error.localizedDescription)
         }
-    }
-
-    /// Tests the provider a role uses. Stale also when the role switched to
-    /// another provider meanwhile.
-    @discardableResult
-    func testConnection(for role: ModelRole = .assistant) async -> ProviderCheckResult {
-        let provider = settings.model(for: role).provider
-        let result = await testConnection(provider: provider)
-        guard settings.model(for: role).provider == provider else { return .stale }
-        return result
     }
 
     func configurationBinding(for provider: AIProvider) -> ProviderConfiguration {
@@ -2351,7 +2632,11 @@ final class AppModel: ObservableObject {
                 try context.requireReadyProvider()
                 // Work the user started waits for the consent page; work the
                 // app started by itself never shows it.
-                try await authorizeSending(to: context.provider, mayAsk: record.origin == .user) {
+                try await authorizeSending(
+                    to: context.provider,
+                    baseURL: context.configuration.baseURL,
+                    mayAsk: record.origin == .user
+                ) {
                     mutateRecord(recordID) {
                         $0.statusText = String(localized: "Waiting for your OK to send forum content to \(context.provider.displayName)…", comment: "Status of AI work while the AI data consent page is up; the placeholder is an AI provider's name")
                     }
@@ -2371,10 +2656,19 @@ final class AppModel: ObservableObject {
             // Finished after it was cancelled (a provider that ignores
             // cancellation): it stays cancelled.
             try ensureLive(recordID)
+            let completedAt = Date()
             mutateRecord(recordID) {
                 $0.status = .completed
                 $0.statusText = String(localized: "Completed", comment: "Status of finished AI work")
-                $0.completedAt = Date()
+                $0.completedAt = completedAt
+            }
+            if record.type == .agent,
+               isAIViewShown,
+               assistantMode == .agent,
+               panelRoute == .topic,
+               !agentComposesNewQuestion,
+               agentRunID(for: record) == selectedAgentRunID {
+                router.answersSeenAt = max(router.answersSeenAt, completedAt)
             }
         } catch is CancellationError {
             // A paused job is back in the queue (or already running again):
@@ -2523,7 +2817,7 @@ final class AppModel: ObservableObject {
 
         if fetch.unchanged,
            record.regenerate != true,
-           session.hasSummary,
+           canUseSummaryAsContext(session),
            session.summaryPostCount == fetch.totalPosts {
             mutateRecord(recordID) {
                 $0.statusText = String(localized: "Saved summary already includes every reply.")
@@ -2537,6 +2831,7 @@ final class AppModel: ObservableObject {
                 ? String(localized: "Updating summary with \(fetch.newPosts) new posts…", comment: "Status while a saved summary is updated with the topic's new replies")
                 : String(localized: "Generating summary…")
         }
+        let rules = browser.moderationRules
         let content = moderated(fetch.content, siteURL: session.siteURL, topicID: session.topicID)
         feed.setInputCharacters(content.count)
         streams.start(recordID)
@@ -2556,14 +2851,16 @@ final class AppModel: ObservableObject {
         )
 
         try ensureLive(recordID)
+        guard rules == browser.moderationRules else { throw CancellationError() }
         feed.finish()
         session = sessions[record.topicKey] ?? session
         session.summary = summary
         session.summaryPostCount = fetch.totalPosts
         session.provider = context.provider
         session.model = context.configuration.model
-        session.summaryUpdatedAt = Date()
-        session.updatedAt = Date()
+        let finishedAt = Date()
+        session.summaryUpdatedAt = finishedAt
+        session.updatedAt = finishedAt
         sessions[record.topicKey] = session
     }
 
@@ -2597,14 +2894,13 @@ final class AppModel: ObservableObject {
     #endif
 
     private func runChat(recordID: UUID, record: WorkRecord, context: RunSettings) async throws {
-        guard var session = sessions[record.topicKey],
-              !session.source.isEmpty
-        else {
-            throw AssistantError.missingConfiguration(
-                String(localized: "Pull the post and responses or create a summary before chatting.")
-            )
-        }
         guard let adapter = adapter(for: record.siteURL) else { throw AssistantError.noForum }
+        var session = sessions[record.topicKey] ?? TopicSession(
+            siteURL: record.siteURL,
+            topicID: record.topicID,
+            url: record.url,
+            title: record.title
+        )
 
         let fetch = try await fetchTopicPages(of: session, adapter: adapter, recordID: recordID, pace: context.forumRequestPace) { progress in
             await self.updateFetchProgress(recordID: recordID, progress: progress)
@@ -2629,10 +2925,15 @@ final class AppModel: ObservableObject {
             return
         }
         streams.start(recordID)
+        let useSummary = canUseSummaryAsContext(session)
+        let rules = browser.moderationRules
+        let blockedAt = latestBlockDate(on: session.siteURL)
         let answer = try await aiService.answer(
             source: moderated(session.source, siteURL: session.siteURL, topicID: session.topicID),
-            summary: session.summary,
-            history: session.history,
+            summary: useSummary ? session.summary : "",
+            history: session.history.filter { message in
+                message.role != .assistant || blockedAt.map { message.createdAt > $0 } ?? true
+            },
             contextLimit: context.contextLimit,
             customPrompt: context.topicInstructions,
             discussion: adapter.discussion,
@@ -2642,10 +2943,11 @@ final class AppModel: ObservableObject {
                 guard self.isLive(recordID) else { return }
                 self.streams.append(delta, to: recordID)
             },
-            summaryIsStale: session.hasStaleSummary
+            summaryIsStale: useSummary && session.hasStaleSummary
         )
 
         try ensureLive(recordID)
+        guard rules == browser.moderationRules else { throw CancellationError() }
         session = sessions[record.topicKey] ?? session
         // The chat was cleared, or the question edited, while it was being
         // answered: the answer no longer belongs to the conversation.
@@ -2691,7 +2993,18 @@ final class AppModel: ObservableObject {
         mutateRecord(recordID) {
             $0.statusText = String(localized: "Planning…", comment: "Ask the forum: the AI is deciding its first step")
         }
-        progress.advance(recordID, to: WorkProgress.agent(completedSteps: 0, maxSteps: context.agentMaxSteps))
+        let isFollowUp = !run.followUps.isEmpty && run.followUps.last?.role == .user
+        var stepsUsed: Int
+        if isFollowUp {
+            if let followUpIndex = run.transcript.lastIndex(where: { $0.role == .user && $0.content.hasPrefix("FOLLOW-UP from the user") }) {
+                stepsUsed = run.transcript[(followUpIndex + 1)...].filter { $0.role == .assistant }.count
+            } else {
+                stepsUsed = 0
+            }
+        } else {
+            stepsUsed = run.steps.count
+        }
+        progress.advance(recordID, to: WorkProgress.agent(completedSteps: stepsUsed, maxSteps: context.agentMaxSteps))
 
         let configuration = context.configuration
         let forumName = forum(for: run.siteURL)?.displayName
@@ -2704,8 +3017,6 @@ final class AppModel: ObservableObject {
             maxTopicReads: context.agentMaxTopicReads,
             customInstructions: context.globalInstructions
         )
-        let isFollowUp = !run.followUps.isEmpty && run.followUps.last?.role == .user
-        var stepsUsed = 0
 
         while true {
             try ensureLive(recordID)
@@ -2717,13 +3028,21 @@ final class AppModel: ObservableObject {
             if outOfBudget {
                 run.transcript.append(AgentPrompt.outOfBudgetMessage())
             }
+            let rules = browser.moderationRules
+            let blockedAt = latestBlockDate(on: run.siteURL)
             let action = try await planner.nextAction(
                 system: system,
-                transcript: run.transcript,
+                transcript: run.transcript.filter { message in
+                    guard let blockedAt, message.createdAt <= blockedAt else { return true }
+                    return message.role == .user
+                        && !message.content.hasPrefix("OBSERVATION from ")
+                        && !message.content.hasPrefix("ERROR from ")
+                },
                 configuration: configuration,
                 provider: context.provider
             )
             try ensureLive(recordID)
+            guard rules == browser.moderationRules else { throw CancellationError() }
             stepsUsed += 1
             run.transcript.append(ChatMessage(role: .assistant, content: Self.encode(action)))
             var step = AgentStep(tool: action.tool, arguments: action.arguments, thought: action.thought)
@@ -2768,6 +3087,7 @@ final class AppModel: ObservableObject {
                         WorkProgress.agent(completedSteps: completedSteps, maxSteps: maxSteps, within: within)
                     }
                 )
+                guard rules == browser.moderationRules else { throw CancellationError() }
                 step.outcome = outcome
                 step.topicID = action.arguments["topic_id"]
                 if let topicID = try? requiredTopicID(action) {
@@ -2863,14 +3183,8 @@ final class AppModel: ObservableObject {
                 progress: { stepProgress(0.1 + 0.8 * $0) }
             )
             run.remember([(session.url, session.topicID)], links: adapter.links)
-            let bounded = PromptBuilder.boundedForumContext(
-                moderated(session.source, siteURL: session.siteURL, topicID: session.topicID),
-                limit: context.agentReadLimit
-            )
-            return (
-                String(localized: "Read \(session.totalPosts ?? 0) posts", comment: "Ask the forum step outcome: number of posts read in a topic"),
-                "Topic: \(session.title)\nURL: \(session.url.absoluteString)"
-                    + " \(profile.postLinkHint(session.url))\n\n\(bounded)"
+            return try await formatAgentTopicRead(
+                action, session: session, adapter: adapter, profile: profile, context: context
             )
 
         case .summarizeTopic:
@@ -2881,6 +3195,7 @@ final class AppModel: ObservableObject {
             try RunSettings.requireReady(provider: summarizer.provider, configuration: summarizer.configuration)
             try await authorizeSending(
                 to: summarizer.provider,
+                baseURL: summarizer.configuration.baseURL,
                 mayAsk: activities.first(where: { $0.id == recordID })?.origin == .user
             )
             try ensureLive(recordID)
@@ -2891,6 +3206,7 @@ final class AppModel: ObservableObject {
             mutateRecord(recordID) {
                 $0.statusText = String(localized: "Summarizing \(session.title)…", comment: "Status; the placeholder is a forum topic's title")
             }
+            let rules = browser.moderationRules
             let content = moderated(session.source, siteURL: session.siteURL, topicID: session.topicID)
             let tracker = SummaryProgressTracker(
                 inputCharacters: content.count,
@@ -2912,14 +3228,17 @@ final class AppModel: ObservableObject {
                 onProgress: { feed.handle($0) }
             )
             try ensureLive(recordID)
+            guard rules == browser.moderationRules else { throw CancellationError() }
+            try settings.requireAIConsent(for: summarizer.provider, baseURL: summarizer.configuration.baseURL)
             feed.finish()
             session = sessions[session.topicKey] ?? session
             session.summary = summary
             session.summaryPostCount = session.totalPosts
             session.provider = summarizer.provider
             session.model = summarizer.configuration.model
-            session.summaryUpdatedAt = Date()
-            session.updatedAt = Date()
+            let finishedAt = Date()
+            session.summaryUpdatedAt = finishedAt
+            session.updatedAt = finishedAt
             sessions[session.topicKey] = session
             return (
                 String(localized: "Summarized \(session.totalPosts ?? 0) posts", comment: "Ask the forum step outcome: number of posts summarized in a topic"),
@@ -2929,7 +3248,7 @@ final class AppModel: ObservableObject {
         case .savedSummaries:
             let query = action.arguments["query"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
             let saved = sessions.values
-                .filter { $0.hasSummary && $0.siteURL == siteURL }
+                .filter { $0.siteURL == siteURL && canUseSummaryAsContext($0) }
                 .filter { query.isEmpty || $0.title.localizedCaseInsensitiveContains(query)
                     || $0.summary.localizedCaseInsensitiveContains(query) }
                 .sorted { $0.updatedAt > $1.updatedAt }
@@ -2987,7 +3306,192 @@ final class AppModel: ObservableObject {
         pace: ForumRequestPace
     ) async throws -> SiteQueryResult {
         let query = try adapter.agent.query(tool, action.arguments)
-        return try await adapter.run(query, net: await network(for: siteURL, pace: pace))
+        let raw = try await adapter.run(query, net: await network(for: siteURL, pace: pace))
+        return moderatedSiteQueryResult(raw, siteURL: siteURL)
+    }
+
+    func moderatedSiteQueryResult(_ result: SiteQueryResult, siteURL: String) -> SiteQueryResult {
+        let rules = browser.moderationRules
+        let hits = result.hits.filter { hit in
+            !(hit.username.map { rules.hidesUser($0, siteURL: siteURL) } ?? false)
+                && !isSearchHitPostHidden(hit, siteURL: siteURL, rules: rules)
+                && !(hit.blurb.map(rules.hidesText) ?? false)
+                && !rules.hidesText(hit.topic.title)
+        }
+        let hadHitsByTopic = Set(result.hits.map(\.topic.topicID))
+        let keptHitsByTopic = Dictionary(grouping: hits, by: \.topic.topicID)
+        let topics = result.topics.compactMap { topic -> ForumTopicListing? in
+            guard !rules.hidesText(topic.title) else { return nil }
+            if hadHitsByTopic.contains(topic.topicID), keptHitsByTopic[topic.topicID] == nil {
+                return nil
+            }
+            var copy = topic
+            if hadHitsByTopic.contains(topic.topicID) {
+                copy.excerpt = keptHitsByTopic[topic.topicID]?.first?.blurb
+            } else if isPostOneHidden(siteURL: siteURL, topicID: topic.topicID, rules: rules) {
+                copy.excerpt = nil
+            } else if let excerpt = copy.excerpt, rules.hidesText(excerpt) {
+                copy.excerpt = nil
+            }
+            return copy
+        }
+        return SiteQueryResult(topics: topics, hits: hits)
+    }
+
+    private func isSearchHitPostHidden(_ hit: ForumSearchHit, siteURL: String, rules: ModerationRules) -> Bool {
+        let topicID = hit.topic.topicID
+        if let number = hit.postNumber {
+            return rules.hidesPost(number, siteURL: siteURL, topicID: topicID)
+        }
+        let key = TopicIdentity.key(siteURL: siteURL, topicID: topicID)
+        if let fragment = hit.url.fragment, !fragment.isEmpty,
+           let block = sessions[key]?.rawPages.lazy.flatMap(\.blocks).first(where: { $0.anchor == fragment }) {
+            return rules.hidesPost(block.number, siteURL: siteURL, topicID: topicID)
+                || rules.hidesUser(block.author, siteURL: siteURL)
+        }
+        return rules.hasHiddenPosts(siteURL: siteURL, topicID: topicID)
+    }
+
+    private func isPostOneHidden(siteURL: String, topicID: String, rules: ModerationRules) -> Bool {
+        if rules.hidesPost(1, siteURL: siteURL, topicID: topicID) { return true }
+        let key = TopicIdentity.key(siteURL: siteURL, topicID: topicID)
+        if let poster = topicOverviews[key]?.facts?.openingPoster, rules.hidesUser(poster, siteURL: siteURL) {
+            return true
+        }
+        if let author = sessions[key]?.rawPages.first?.blocks.first(where: { $0.number == 1 })?.author,
+           rules.hidesUser(author, siteURL: siteURL) {
+            return true
+        }
+        return false
+    }
+
+    private func formatAgentTopicRead(
+        _ action: AgentAction,
+        session: TopicSession,
+        adapter: any SiteAdapter,
+        profile: AgentSiteProfile,
+        context: RunSettings
+    ) async throws -> (String, String) {
+        let totalPages = max(
+            1,
+            session.rawPages.isEmpty
+                ? RawTopicFormat.pageCount(of: session.source)
+                : session.rawPages.count
+        )
+        let rawPage = action.arguments["page"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let pageNumber: Int?
+        if !rawPage.isEmpty {
+            guard let parsed = Int(rawPage), (1...totalPages).contains(parsed) else {
+                throw AgentError.invalidArgument("page", reason: "use a number from 1 to \(totalPages).")
+            }
+            pageNumber = parsed
+        } else {
+            pageNumber = nil
+        }
+
+        let query = (action.arguments["query"] ?? action.arguments["q"] ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let fullModerated = moderated(session.source, siteURL: session.siteURL, topicID: session.topicID)
+        let headerBase = "Topic: \(session.title)\nURL: \(session.url.absoluteString)"
+            + " \(profile.postLinkHint(session.url))"
+
+        if !query.isEmpty {
+            let targetModerated: String
+            if let page = pageNumber {
+                let rawPageText = RawTopicFormat.pageText(page, pages: session.rawPages, fallbackText: session.source)
+                targetModerated = moderated(rawPageText, siteURL: session.siteURL, topicID: session.topicID)
+            } else {
+                targetModerated = fullModerated
+            }
+            let openingPost = RawTopicFormat.postBlocks(fullModerated).first
+            var (op, matches, opMatched) = RawTopicFormat.matchingBlocks(
+                in: targetModerated,
+                query: query,
+                openingPost: openingPost
+            )
+            if matches.isEmpty, pageNumber == nil, totalPages > 1 {
+                let net = await network(for: session.siteURL, pace: context.forumRequestPace)
+                if let searchResult = try? await adapter.run(.search(text: query, scope: .topic(id: session.topicID)), net: net) {
+                    let moderatedSearch = moderatedSiteQueryResult(searchResult, siteURL: session.siteURL)
+                    var seen: Set<Int> = []
+                    let hits = moderatedSearch.hits.filter { hit in
+                        guard hit.topic.topicID == session.topicID,
+                              let num = hit.postNumber, num > 1,
+                              seen.insert(num).inserted
+                        else { return false }
+                        return true
+                    }.prefix(20)
+                    let numbers = hits.compactMap(\.postNumber)
+                    if !numbers.isEmpty {
+                        let rules = browser.moderationRules
+                        if let lookup = adapter.capabilities.postLookup,
+                           let facts = (try? await adapter.overview(TopicRef(siteURL: session.siteURL, topicID: session.topicID), net: net))?.facts,
+                           let fetched = try? await lookup.posts(
+                               Array(numbers),
+                               in: TopicRef(siteURL: session.siteURL, topicID: session.topicID),
+                               facts: facts,
+                               net: net
+                           ),
+                           !fetched.isEmpty {
+                            matches = fetched.compactMap { post in
+                                guard post.number > 1,
+                                      !rules.hidesUser(post.username, siteURL: session.siteURL),
+                                      !rules.hidesPost(post.number, siteURL: session.siteURL, topicID: session.topicID),
+                                      !rules.hidesText(post.text)
+                                else { return nil }
+                                return "\(RawTopicFormat.authorToken(post.username)) | #\(post.number)\n\(RawTopicFormat.sanitizedBody(post.text))"
+                            }
+                        } else {
+                            matches = hits.compactMap { hit in
+                                guard let number = hit.postNumber,
+                                      let blurb = hit.blurb, !blurb.isEmpty
+                                else { return nil }
+                                let author = RawTopicFormat.authorToken(hit.username ?? "unknown")
+                                return "\(author) | #\(number)\n\(RawTopicFormat.sanitizedBody(blurb))"
+                            }
+                        }
+                    }
+                }
+            }
+            if !matches.isEmpty {
+                let combined = ([op].compactMap { $0 } + matches).joined(separator: RawTopicFormat.blockSeparator)
+                let bounded = PromptBuilder.boundedForumContext(combined, limit: context.agentReadLimit)
+                let noun = matches.count == 1 ? "matching post" : "matching posts"
+                let suffix = pageNumber.map { " on page \($0) of \(totalPages)" }
+                    ?? (session.totalPosts.map { " (of \($0) posts)" } ?? "")
+                return (
+                    String(localized: "Read \(matches.count) matching posts", comment: "Ask the forum step outcome: number of posts matching a query in a topic"),
+                    "\(headerBase)\nShowing: \(matches.count) \(noun) for \"\(query)\"\(suffix)\n\n\(bounded)"
+                )
+            } else if !opMatched {
+                let body = op.map { PromptBuilder.boundedForumContext($0, limit: context.agentReadLimit) } ?? ""
+                let suffix = pageNumber.map { " on page \($0) of \(totalPages)" } ?? ""
+                return (
+                    String(localized: "Read 0 matching posts", comment: "Ask the forum step outcome: number of posts matching a query in a topic"),
+                    "\(headerBase)\nShowing: 0 matching posts for \"\(query)\"\(suffix)\n\n\(body)"
+                )
+            }
+        }
+
+        if let page = pageNumber {
+            let rawPageText = RawTopicFormat.pageText(page, pages: session.rawPages, fallbackText: session.source)
+            let pageModerated = moderated(rawPageText, siteURL: session.siteURL, topicID: session.topicID)
+            let bounded = PromptBuilder.boundedForumContext(pageModerated, limit: context.agentReadLimit)
+            return (
+                String(localized: "Read page \(page) of \(totalPages)", comment: "Ask the forum step outcome: page read in a topic"),
+                "\(headerBase)\nShowing: page \(page) of \(totalPages)\n\n\(bounded)"
+            )
+        }
+
+        let bounded = PromptBuilder.boundedForumContext(
+            fullModerated,
+            limit: context.agentReadLimit,
+            totalPages: totalPages
+        )
+        return (
+            String(localized: "Read \(session.totalPosts ?? 0) posts", comment: "Ask the forum step outcome: number of posts read in a topic"),
+            "\(headerBase)\n\n\(bounded)"
+        )
     }
 
     private func requiredTopicID(_ action: AgentAction) throws -> String {
@@ -3010,7 +3514,15 @@ final class AppModel: ObservableObject {
         progress: @escaping @Sendable (_ fetched: Double) -> Double
     ) async throws -> TopicSession {
         let topicID = try requiredTopicID(action)
-        if !run.topicIDs.contains(topicID) {
+        if action.tool == AgentToolName.readTopic.rawValue,
+           let rawPage = action.arguments["page"]?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !rawPage.isEmpty {
+            guard let parsed = Int(rawPage), parsed >= 1 else {
+                throw AgentError.invalidArgument("page", reason: "use a positive integer.")
+            }
+        }
+        let alreadyRead = run.topicIDs.contains(topicID)
+        if !alreadyRead {
             let limit = min(context.agentMaxTopicReads, settings.agentMaxTopicReads)
             guard run.topicIDs.count < limit else {
                 throw AgentError.topicBudgetExhausted(limit)
@@ -3018,6 +3530,9 @@ final class AppModel: ObservableObject {
         }
         let siteURL = run.siteURL
         let topicKey = TopicIdentity.key(siteURL: siteURL, topicID: topicID)
+        if alreadyRead, let existing = sessions[topicKey], !existing.source.isEmpty {
+            return existing
+        }
         var session: TopicSession
         if let existing = sessions[topicKey] {
             session = existing
@@ -3206,7 +3721,13 @@ final class AppModel: ObservableObject {
         watchedTopics: [WatchedTopic],
         forums: [Forum]
     ) {
-        if self.sessions != sessions { self.sessions = sessions }
+        if self.sessions != sessions {
+            self.sessions = sessions
+            if case .editing(let editTopicKey, let messageID, _) = chatEdit,
+               sessions[editTopicKey]?.history.contains(where: { $0.id == messageID && $0.role == .user }) != true {
+                chatEdit = .none
+            }
+        }
         if self.agentRuns != agentRuns {
             self.agentRuns = agentRuns
             reconcileAgentSelection()
@@ -3221,7 +3742,7 @@ final class AppModel: ObservableObject {
             if let current = currentSiteURL, forum(for: current) == nil {
                 currentSiteURL = (pageContext.siteURL.flatMap { forum(for: $0) } ?? Self.startForum(in: forums))?.siteURL
                 if agentSiteURL == current { agentSiteURL = nil }
-                if browser.homeSiteURL == current, pageContext.siteURL != current {
+                if browser.homeSiteURL == current, (pageContext.siteURL != current || browser.showsForumsHome) {
                     browser.homeSiteURL = currentSiteURL
                 }
             }

@@ -215,7 +215,11 @@ enum AgentPrompt {
                 description: "Pull a \(topic)'s posts and return them (long \(topic)s are trimmed "
                     + "to the beginning and the newest replies). Counts toward the \(topic)-read "
                     + "budget the first time a \(topic) is read.",
-                parameters: [.init(name: "topic_id", description: "Numeric \(topic) id", required: true)]
+                parameters: [
+                    .init(name: "topic_id", description: "Numeric \(topic) id", required: true),
+                    .init(name: "page", description: "Optional part of a long \(topic), in pages of \(RawForumPage.size) posts", required: false),
+                    .init(name: "query", description: "Optional keywords to filter matching posts within this \(topic)", required: false)
+                ]
             ),
             AgentToolSpec(
                 name: AgentToolName.summarizeTopic.rawValue,

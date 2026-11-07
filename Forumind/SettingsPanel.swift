@@ -274,7 +274,7 @@ struct SettingsStatusPill: View {
 enum SettingsRootSummary {
     /// "Voice today 4 of 30 min"; without a daily limit (0) just the minutes.
     static func voiceToday(seconds: TimeInterval, dailyLimitMinutes: Int) -> String {
-        let used = Int(seconds / 60)
+        let used = Int((max(0, seconds) / 60).rounded(.up))
         if dailyLimitMinutes > 0 {
             return String(localized: "Voice today \(used) of \(dailyLimitMinutes) min", comment: "Settings header: voice minutes used today of the daily limit")
         }

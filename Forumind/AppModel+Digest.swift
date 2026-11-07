@@ -152,7 +152,7 @@ extension AppModel {
                     TopicRef(siteURL: siteURL, topicID: topicID),
                     net: await network(siteURL)
                 )
-                prefetch.topics[topicKey] = DigestTopicFacts(overview: overview)
+                prefetch.topics[topicKey] = DigestTopicFacts(overview: overview, rules: browser.moderationRules)
             } catch {
                 if Task.isCancelled { return false }
                 prefetch.failedCount += 1
@@ -181,7 +181,12 @@ extension AppModel {
                 prefetch.requestCount += found.requests
                 prefetch.failedCount += found.failures
                 if Task.isCancelled { break }
-                if let list = found.topics { prefetch.trending[forum.siteURL] = list }
+                if let list = found.topics {
+                    let rules = browser.moderationRules
+                    prefetch.trending[forum.siteURL] = list.filter {
+                        !rules.hidesText($0.title) && !($0.excerpt.map(rules.hidesText) ?? false)
+                    }
+                }
                 checkpoint()
             }
         }
@@ -213,6 +218,7 @@ extension AppModel {
             trending: trending,
             facts: facts,
             options: DigestPlanner.Options(settings: settings),
+            rules: browser.moderationRules,
             slug: { slug(of: $0.url, siteURL: $0.siteURL) }
         )
         return (cards, DigestPlanner.postCounts(watched: watchedTopics, facts: facts))
@@ -367,10 +373,12 @@ extension AppModel {
             return nil
         }
         // Made again: cards whose topic has no new posts keep their summary.
-        let replaced = todaysDigest?.cards ?? []
+        let replacedDigest = todaysDigest
+        let replaced = replacedDigest?.cards ?? []
         let cards = plan.cards.map { card -> DigestCard in
             guard let old = replaced.first(where: {
                 $0.topicKey == card.topicKey && $0.state == .done && $0.postCount == card.postCount
+                    && canUseSummaryAsContext($0.summary, title: $0.title, siteURL: $0.siteURL, updatedAt: replacedDigest?.createdAt)
             }) else {
                 return card
             }
@@ -410,6 +418,7 @@ extension AppModel {
                 // Paused or replaced meanwhile: `pauseDigest` already put the
                 // card back to waiting.
                 guard isCurrentDigestRun(runID) else { return }
+                try settings.requireAIConsent(for: context.provider, baseURL: context.configuration.baseURL)
                 card.state = .done
             } catch {
                 guard isCurrentDigestRun(runID) else { return }
@@ -446,12 +455,18 @@ extension AppModel {
     /// 3. the topic read (cached pages reused, the beginning and the newest
     ///    replies kept within the context limit) and summarized through the
     ///    summary pipeline with the digest's instructions.
-    private func summarizeDigestCard(_ card: DigestCard, digestID: UUID, context: RunSettings) async throws -> DigestCard {
-        var card = card
+    func summarizeDigestCard(_ card: DigestCard, digestID: UUID, context: RunSettings) async throws -> DigestCard {
+        var card = sanitizedDigestCard(card)
+        let generationRules = browser.moderationRules
         let earlier = digests
             .filter { $0.id != digestID }
-            .flatMap(\.cards)
-            .first { $0.topicKey == card.topicKey && $0.state == .done && $0.postCount == card.postCount && !$0.summary.isEmpty }
+            .compactMap { digest in
+                digest.cards.first {
+                    $0.topicKey == card.topicKey && $0.state == .done && $0.postCount == card.postCount
+                        && canUseSummaryAsContext($0.summary, title: $0.title, siteURL: $0.siteURL, updatedAt: digest.createdAt)
+                }
+            }
+            .first
         if let earlier {
             card.summary = earlier.summary
             card.source = .earlierDigest
@@ -459,7 +474,7 @@ extension AppModel {
         }
 
         guard let adapter = adapter(for: card.siteURL) else { throw AssistantError.noForum }
-        if let session = sessions[card.topicKey], session.hasSummary,
+        if let session = sessions[card.topicKey], canUseSummaryAsContext(session),
            let covered = session.summaryPostCount, covered >= card.postCount {
             let text = try await aiService.generateSummary(
                 content: session.summary,
@@ -470,6 +485,7 @@ extension AppModel {
                 batchLimit: context.batchLimit,
                 onDelta: { _ in }
             )
+            guard generationRules == browser.moderationRules else { throw CancellationError() }
             card.summary = DigestPrompt.cleaned(text)
             card.source = .savedSummary
             return card
@@ -491,10 +507,17 @@ extension AppModel {
         // saved summary then shows as behind when new replies came in).
         storeFetchedPages(fetch, topicKey: card.topicKey)
         card.postCount = fetch.totalPosts
+        let rules = browser.moderationRules
         if let facts = fetch.facts {
-            card.acceptedAnswerPost = facts.acceptedAnswer?.postNumber ?? card.acceptedAnswerPost
-            card.topPost = DigestTopicFacts.topPost(facts) ?? card.topPost
+            let overview = ForumTopicOverview(
+                siteURL: card.siteURL, topicID: card.topicID, title: card.title,
+                slug: card.slug ?? "", url: url(for: card), postCount: fetch.totalPosts, facts: facts
+            )
+            let updatedFacts = DigestTopicFacts(overview: overview, rules: rules)
+            card.acceptedAnswerPost = updatedFacts.acceptedAnswerPost
+            card.topPost = updatedFacts.topPost
         }
+        card = sanitizedDigestCard(card, facts: fetch.facts, rawContent: fetch.content)
         let content = PromptBuilder.boundedForumContext(
             moderated(fetch.content, siteURL: card.siteURL, topicID: card.topicID),
             limit: context.contextLimit
@@ -508,9 +531,41 @@ extension AppModel {
             batchLimit: context.batchLimit,
             onDelta: { _ in }
         )
+        guard generationRules == browser.moderationRules else { throw CancellationError() }
         card.summary = DigestPrompt.cleaned(text)
         card.source = .topic
         return card
+    }
+
+    func sanitizedDigestCard(
+        _ card: DigestCard,
+        facts: TopicFacts? = nil,
+        rawContent: String? = nil
+    ) -> DigestCard {
+        let rules = browser.moderationRules
+        guard !rules.isEmpty else { return card }
+        let effectiveFacts = facts ?? topicOverviews[card.topicKey]?.facts
+        let session = sessions[card.topicKey]
+        let blocks = session?.rawPages.flatMap(\.blocks) ?? []
+        let headers = rawContent.map(RawTopicFormat.parseHeaders)
+            ?? (session?.source.isEmpty == false ? RawTopicFormat.parseHeaders(session!.source) : [])
+        var copy = card
+        copy.sanitize(rules: rules) { number in
+            if let post = effectiveFacts?.posts.first(where: { $0.number == number }),
+               rules.hidesUser(post.username, siteURL: card.siteURL) {
+                return true
+            }
+            if let block = blocks.first(where: { $0.number == number }),
+               rules.hidesUser(block.author, siteURL: card.siteURL) {
+                return true
+            }
+            if let header = headers.first(where: { $0.number == number }),
+               rules.hidesUser(header.author, siteURL: card.siteURL) {
+                return true
+            }
+            return false
+        }
+        return copy
     }
 
     private func mutateDigestCard(_ cardID: String, in digestID: UUID, mutation: (inout DigestCard) -> Void) {

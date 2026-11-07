@@ -93,6 +93,9 @@ private struct RootView: View {
             .onChange(of: app.settings.hasCompletedOnboarding) {
                 app.presentProviderSetupIfNeeded()
             }
+            .onChange(of: app.settings.acceptedTermsVersion) {
+                app.presentProviderSetupIfNeeded()
+            }
             .onChange(of: app.needsProviderSetup) { app.presentProviderSetupIfNeeded() }
             // App Intents (Siri, Shortcuts, the Action button) wait for the
             // UI, so their sheets and panes can show.

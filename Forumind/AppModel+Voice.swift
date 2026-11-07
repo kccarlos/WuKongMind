@@ -26,11 +26,7 @@ extension AppModel: VoiceNavigator {
     /// hidden ones: the voice `read` tool and Translate Posts on Screen.
     func postsOnScreenWithText(limit: Int) async -> [BrowsePostText] {
         guard let ref = currentTopicRef else { return [] }
-        let rules = browser.moderationRules
-        let posts = await browser.postsOnScreen().filter {
-            !rules.hidesUser($0.username, siteURL: ref.siteURL)
-                && !rules.hidesPost($0.number, siteURL: ref.siteURL, topicID: ref.topicID)
-        }
+        let posts = await postsOnScreen()
         var texts: [BrowsePostText] = []
         for post in posts.prefix(limit) {
             if case .shown(let text) = await postText(post.number, in: ref, facts: topicOverviews[ref.topicKey]?.facts) {
@@ -71,15 +67,25 @@ extension AppModel: VoiceNavigator {
         }
         let rules = browser.moderationRules
         let top = (facts?.posts ?? [])
-            .filter { ($0.likeCount ?? 0) > 0 && !rules.hidesUser($0.username, siteURL: ref.siteURL) }
+            .filter {
+                ($0.likeCount ?? 0) > 0
+                    && !rules.hidesUser($0.username, siteURL: ref.siteURL)
+                    && !rules.hidesPost($0.number, siteURL: ref.siteURL, topicID: ref.topicID)
+            }
             .sorted { ($0.likeCount ?? 0) > ($1.likeCount ?? 0) }
             .prefix(5)
             .map { VoiceTopicBrief.Post(number: $0.number, username: $0.username, likes: $0.likeCount) }
-        let solution = facts?.acceptedAnswer.map { answer in
-            VoiceTopicBrief.Post(
-                number: answer.postNumber,
-                username: answer.username ?? facts?.posts.first { $0.number == answer.postNumber }?.username ?? "someone"
-            )
+        let solution = facts?.acceptedAnswer.flatMap { answer -> VoiceTopicBrief.Post? in
+            guard !rules.hidesPost(answer.postNumber, siteURL: ref.siteURL, topicID: ref.topicID) else { return nil }
+            let username = answer.username ?? facts?.posts.first { $0.number == answer.postNumber }?.username ?? "someone"
+            guard !rules.hidesUser(username, siteURL: ref.siteURL) else { return nil }
+            return VoiceTopicBrief.Post(number: answer.postNumber, username: username)
+        }
+        let openingPoster = facts?.openingPoster.flatMap { poster -> String? in
+            guard !rules.hidesUser(poster, siteURL: ref.siteURL),
+                  !rules.hidesPost(1, siteURL: ref.siteURL, topicID: ref.topicID)
+            else { return nil }
+            return poster
         }
         let session = sessions[ref.topicKey]
         return VoiceTopicBrief(
@@ -87,28 +93,37 @@ extension AppModel: VoiceNavigator {
             title: ref.title ?? overview?.title ?? "",
             forumName: pageContext.forumName,
             opening: opening,
-            openingPoster: facts?.openingPoster,
+            openingPoster: openingPoster,
             postCount: facts?.postsCount ?? overview?.postCount,
             solution: solution,
             topPosts: Array(top),
-            summary: session?.hasSummary == true ? session?.summary : nil
+            summary: session.flatMap { canUseSummaryAsContext($0) ? $0.summary : nil }
         )
     }
 
     func postsOnScreen() async -> [VisiblePost] {
-        await browser.postsOnScreen()
+        let posts = await browser.postsOnScreen()
+        let rules = browser.moderationRules
+        guard !rules.isEmpty else { return posts }
+        let siteURL = currentTopicRef?.siteURL ?? pageContext.siteURL ?? ""
+        let topicID = currentTopicRef?.topicID ?? ""
+        return posts.filter {
+            !rules.hidesUser($0.username, siteURL: siteURL)
+                && (topicID.isEmpty || !rules.hidesPost($0.number, siteURL: siteURL, topicID: topicID))
+                && !rules.hidesText($0.excerpt)
+        }
     }
 
     /// Queues the topic's summary in the existing pipeline and waits for it
     /// (at most two minutes).
     func quickSummary(topicKey: String) async -> String? {
-        if let saved = sessions[topicKey], saved.hasSummary { return saved.summary }
+        if let saved = sessions[topicKey], canUseSummaryAsContext(saved) { return saved.summary }
         guard let topic = pageContext.topic, topic.topicKey == topicKey else { return nil }
         enqueueSummary(for: topic)
         for _ in 0..<120 {
             try? await Task.sleep(for: .seconds(1))
             if Task.isCancelled { return nil }
-            if let session = sessions[topicKey], session.hasSummary { return session.summary }
+            if let session = sessions[topicKey], canUseSummaryAsContext(session) { return session.summary }
             if !activities.contains(where: { $0.topicKey == topicKey && $0.type == .summary && !$0.status.isTerminal }) {
                 return nil
             }
@@ -144,6 +159,7 @@ extension AppModel: VoiceNavigator {
 
     func revokeVoiceConsent(_ provider: VoiceProvider) {
         settings.voiceConsent[provider.rawValue] = nil
+        voice.end()
         saveSettings()
     }
 

@@ -58,12 +58,55 @@ enum AIConsentState: Equatable {
 extension AIProvider {
     /// Sends forum content to a third party (not Apple Intelligence, not a
     /// server on the user's own computer).
-    var requiresDataConsent: Bool { !isAppleIntelligence && !isLocalServer }
+    var requiresDataConsent: Bool { requiresDataConsent(baseURL: defaultBaseURL) }
+
+    /// Whether sending forum content to `self` at `baseURL` needs AI data
+    /// consent. Local servers (`.ollama`, `.lmStudio`) are exempt only when
+    /// `baseURL` points to this machine (`localhost`, `127.0.0.1`, `::1`);
+    /// remote and private LAN addresses require consent like cloud providers.
+    func requiresDataConsent(baseURL: String) -> Bool {
+        if isAppleIntelligence { return false }
+        if isLocalServer { return !Self.isLocalBaseURL(baseURL) }
+        return true
+    }
+
+    /// True only when `baseURL` resolves to a loopback address on the same
+    /// machine (`localhost`, `127.0.0.1`, `::1`), or is empty (falling back
+    /// to the local default). Private LAN addresses (`192.168.x.x`, `10.x.x.x`,
+    /// `172.16.x.x`, `.local`) are treated as remote.
+    static func isLocalBaseURL(_ baseURL: String) -> Bool {
+        let trimmed = baseURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty { return true }
+        let candidate = trimmed.contains("://") ? trimmed : "http://\(trimmed)"
+        guard let components = URLComponents(string: candidate),
+              let rawHost = components.host,
+              !rawHost.isEmpty
+        else {
+            return false
+        }
+        let host = rawHost
+            .trimmingCharacters(in: CharacterSet(charactersIn: "[]"))
+            .lowercased()
+        switch host {
+        case "localhost", "127.0.0.1", "::1", "0:0:0:0:0:0:0:1":
+            return true
+        default:
+            return false
+        }
+    }
 }
 
 extension AppSettings {
+    func requiresAIConsent(for provider: AIProvider) -> Bool {
+        provider.requiresDataConsent(baseURL: configuration(for: provider).baseURL)
+    }
+
     func aiConsentState(for provider: AIProvider) -> AIConsentState {
-        guard provider.requiresDataConsent else { return .notNeeded }
+        aiConsentState(for: provider, baseURL: configuration(for: provider).baseURL)
+    }
+
+    func aiConsentState(for provider: AIProvider, baseURL: String) -> AIConsentState {
+        guard provider.requiresDataConsent(baseURL: baseURL) else { return .notNeeded }
         switch aiConsent[provider.rawValue] {
         case nil: return .undecided
         case .allowed(let date): return .allowed(date)
@@ -72,8 +115,9 @@ extension AppSettings {
     }
 
     /// The backstop's check: throws unless requests to `provider` may go.
-    func requireAIConsent(for provider: AIProvider) throws {
-        switch aiConsentState(for: provider) {
+    func requireAIConsent(for provider: AIProvider, baseURL: String? = nil) throws {
+        let state = baseURL.map { aiConsentState(for: provider, baseURL: $0) } ?? aiConsentState(for: provider)
+        switch state {
         case .notNeeded, .allowed: return
         case .undecided: throw AssistantError.aiConsentRequired(provider)
         case .declined: throw AssistantError.aiConsentDeclined(provider)
@@ -138,6 +182,7 @@ struct AIProviderPolicy: Equatable {
 final class AIConsentGate: ObservableObject {
     /// Providers waiting for an answer, in the order they were asked.
     @Published private(set) var queue: [AIProvider] = []
+    private var asked: Set<AIProvider> = []
     private var waiters: [UUID: (provider: AIProvider, continuation: CheckedContinuation<Void, Never>)] = [:]
 
     /// The provider whose page is up.
@@ -146,6 +191,11 @@ final class AIConsentGate: ObservableObject {
     /// Shows the page for `provider` (an "Allow…" button); asking again
     /// while it is queued does nothing.
     func ask(_ provider: AIProvider) {
+        asked.insert(provider)
+        enqueue(provider)
+    }
+
+    private func enqueue(_ provider: AIProvider) {
         if !queue.contains(provider) { queue.append(provider) }
     }
 
@@ -161,7 +211,7 @@ final class AIConsentGate: ObservableObject {
                     return
                 }
                 waiters[id] = (provider, continuation)
-                ask(provider)
+                enqueue(provider)
             }
         } onCancel: {
             Task { @MainActor [weak self] in self?.release(id) }
@@ -171,6 +221,7 @@ final class AIConsentGate: ObservableObject {
     /// The page for `provider` was answered or closed: every request
     /// waiting on it goes on. A second answer finds nothing to do.
     func resolve(_ provider: AIProvider) {
+        asked.remove(provider)
         queue.removeAll { $0 == provider }
         for (id, waiter) in waiters where waiter.provider == provider {
             waiters.removeValue(forKey: id)
@@ -179,6 +230,11 @@ final class AIConsentGate: ObservableObject {
     }
 
     private func release(_ id: UUID) {
-        waiters.removeValue(forKey: id)?.continuation.resume()
+        guard let waiter = waiters.removeValue(forKey: id) else { return }
+        waiter.continuation.resume()
+        let provider = waiter.provider
+        if !asked.contains(provider), !waiters.values.contains(where: { $0.provider == provider }) {
+            queue.removeAll { $0 == provider }
+        }
     }
 }

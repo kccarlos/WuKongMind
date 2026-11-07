@@ -99,6 +99,9 @@ extension AppModel {
     /// This topic or Whole forum (on the forum chosen last).
     func setAskScope(_ scope: AskScope) {
         guard scope != askScope else { return }
+        if scope == .forum || !agentComposesNewQuestion {
+            router.answersSeenAt = Date()
+        }
         carryingAskText {
             assistantMode = scope == .forum ? .agent : .chat
         }
@@ -123,7 +126,17 @@ extension AppModel {
 
     /// Back to the selected run from a new question.
     func showSelectedAgentRun() {
-        carryingAskText { agentComposesNewQuestion = false }
+        carryingAskText {
+            assistantMode = .agent
+            agentComposesNewQuestion = false
+        }
+    }
+
+    func applyChatSuggestion(_ question: String) {
+        if activeChatEdit != nil {
+            cancelEditChat()
+        }
+        drafts.chat = question
     }
 
     /// Runs `change`; when it moves the box to another draft, the typed text
@@ -135,7 +148,15 @@ extension AppModel {
         guard from != to else { return }
         let source = Self.draftKeyPath(from)
         let destination = Self.draftKeyPath(to)
-        guard !drafts[keyPath: source].isEmpty, drafts[keyPath: destination].isEmpty else { return }
+        guard !drafts[keyPath: source].isEmpty, drafts[keyPath: destination].isEmpty else {
+            if from == .chat, to != .chat {
+                cancelEditChat()
+            }
+            return
+        }
+        if from == .chat, to != .chat {
+            abandonEditChatWithoutRestoringDraft()
+        }
         drafts[keyPath: destination] = drafts[keyPath: source]
         drafts[keyPath: source] = ""
     }
@@ -146,8 +167,7 @@ extension AppModel {
         switch askDraftTarget {
         case .chat:
             guard let topicKey = currentTopic?.topicKey else { return false }
-            return !hasActiveWork(topicKey: topicKey, type: .chat)
-                && !(currentSession?.source.isEmpty ?? true)
+            return activeChatEdit != nil || !hasActiveWork(topicKey: topicKey, type: .chat)
         case .goal:
             return !askWaitsForRun && agentForum != nil
         case .followUp:
@@ -200,6 +220,7 @@ struct AskBox: View {
     private var tint: Color { scope == .topic ? DCTheme.summaryTint : DCTheme.agentTint }
 
     var body: some View {
+        let isEditingChat = scope == .topic && app.activeChatEdit != nil
         VStack(alignment: .leading, spacing: 8) {
             if showsSuggestions {
                 suggestionRow
@@ -207,6 +228,10 @@ struct AskBox: View {
             }
             if showsScopeHint {
                 scopeHint
+                    .transition(.opacity)
+            }
+            if isEditingChat {
+                editingBar
                     .transition(.opacity)
             }
             HStack(alignment: .bottom, spacing: 6) {
@@ -232,6 +257,7 @@ struct AskBox: View {
         }
         .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: scope)
         .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: showsSuggestions)
+        .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: isEditingChat)
         .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: keyboardVisible)
         .sensoryFeedback(.selection, trigger: scope)
         .onChange(of: scope) { showsScopeHint = false }
@@ -254,6 +280,14 @@ struct AskBox: View {
     private var scopeButton: some View {
         Menu {
             Section {
+                if app.currentTopic == nil, app.assistantPageState == .forumHome {
+                    Button {
+                        app.showForumOverview()
+                    } label: {
+                        scopeItem(String(localized: "Forum overview", comment: "Button: returns from Ask the forum to the forum home overview"),
+                                  systemImage: "rectangle.grid.1x2", checked: false)
+                    }
+                }
                 Button {
                     app.setAskScope(.topic)
                 } label: {
@@ -331,6 +365,35 @@ struct AskBox: View {
         .accessibilityIdentifier("askScopeHint")
     }
 
+    private var editingBar: some View {
+        HStack(spacing: 8) {
+            Label {
+                Text("Editing question", comment: "Chat composer banner while editing a previously sent question")
+            } icon: {
+                Image(systemName: "pencil")
+            }
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(tint)
+            Spacer(minLength: 8)
+            Button {
+                DCHaptics.tap()
+                app.cancelEditChat()
+            } label: {
+                Text("Cancel")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 10)
+                    .frame(minWidth: DCTheme.controlHeight, minHeight: DCTheme.controlHeight)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("cancelChatEdit")
+        }
+        .padding(.leading, 12)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("chatEditBanner")
+    }
+
     // MARK: This topic
 
     private var instructionsButton: some View {
@@ -379,7 +442,7 @@ struct AskBox: View {
                 ForEach(Self.suggestions, id: \.0) { suggestion in
                     Button {
                         DCHaptics.tap()
-                        app.drafts.chat = suggestion.1
+                        app.applyChatSuggestion(suggestion.1)
                         focused = true
                     } label: {
                         Label(suggestion.0, systemImage: "sparkle")

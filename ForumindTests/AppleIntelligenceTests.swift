@@ -128,7 +128,9 @@ final class AppleIntelligenceTests: XCTestCase {
     }
 
     /// Apple Intelligence becoming unavailable affects only the role that
-    /// uses it; its stored model is the same "Automatic" on every device.
+    /// uses it; on an unsupported device the provider menu marks it "Not
+    /// supported on this device", refuses selection, and degrades synced
+    /// settings cleanly without disturbing the other role.
     @MainActor
     func testUnavailableAppleIntelligenceOnlyAffectsItsRole() throws {
         let fake = FakeAppleIntelligence()
@@ -139,16 +141,56 @@ final class AppleIntelligenceTests: XCTestCase {
         XCTAssertEqual(app.providerSummary(for: .agent), "Apple Intelligence · On-device")
         XCTAssertTrue(app.isProviderReady)
         fake.status = .unavailable(.modelNotReady)
+        XCTAssertTrue(app.isProviderSelectable(.appleIntelligence), "A supported device downloading the model still allows selecting it.")
         XCTAssertFalse(app.isProviderReady(for: .agent))
         XCTAssertTrue(app.isProviderReady(for: .assistant))
         XCTAssertEqual(app.settings.assistantModel.provider, .ollama)
 
-        // Swapped: summaries on Apple Intelligence, Ask the forum elsewhere.
+        // Swapped while modelNotReady (supported device): summaries on Apple Intelligence, Ask the forum elsewhere.
         app.useSameModel(as: .assistant)
         app.selectProvider(.appleIntelligence, for: .role(.assistant))
         XCTAssertFalse(app.isProviderReady(for: .assistant))
         XCTAssertTrue(app.isProviderReady(for: .agent))
         XCTAssertEqual(app.settings.assistantModel.provider, .appleIntelligence)
+
+        // Unsupported device (.deviceNotEligible / .requiresNewerOS):
+        // menu shows "Not supported on this device" and blocks new selection,
+        // while synced settings from another device degrade cleanly.
+        app.useSameModel(as: .agent) // both on Ollama
+        for unsupportedReason in [AppleIntelligenceUnavailableReason.deviceNotEligible, .requiresNewerOS] {
+            fake.status = .unavailable(unsupportedReason)
+            XCTAssertFalse(app.isProviderSelectable(.appleIntelligence))
+            XCTAssertEqual(app.providerMenuSubtitle(for: .appleIntelligence), "Not supported on this device")
+
+            // Attempting to select or star Apple Intelligence on an unsupported device is a no-op.
+            app.selectProvider(.appleIntelligence, for: .role(.assistant))
+            XCTAssertEqual(app.settings.assistantModel.provider, .ollama)
+            app.activateFavorite(FavoriteModel(provider: .appleIntelligence, model: "Automatic"), for: .assistant)
+            XCTAssertEqual(app.settings.assistantModel.provider, .ollama)
+
+            // Synced settings arriving from a Mac or supported iPhone keep the stored selection,
+            // mark only that role not ready, hide the synced favorite locally, and allow switching away.
+            var synced = app.settings
+            synced.assistantModel = ModelSelection(provider: .appleIntelligence, model: "Automatic")
+            synced.favoriteModels = [
+                FavoriteModel(provider: .appleIntelligence, model: "Automatic"),
+                FavoriteModel(provider: .ollama, model: "llama3.2")
+            ]
+            app.settings = synced
+            XCTAssertEqual(app.settings.assistantModel.provider, .appleIntelligence)
+            XCTAssertEqual(app.readiness(of: app.selection(for: .assistant)), .appleIntelligence(unsupportedReason))
+            XCTAssertFalse(app.isProviderReady(for: .assistant))
+            XCTAssertTrue(app.isProviderReady(for: .agent))
+            XCTAssertEqual(app.readyAlternatives(for: .assistant), [FavoriteModel(provider: .ollama, model: "llama3.2")])
+            XCTAssertEqual(app.visibleFavorites, [FavoriteModel(provider: .ollama, model: "llama3.2")])
+
+            // Cannot copy unsupported Apple Intelligence onto the working role, but can copy Ollama onto both.
+            app.useSameModel(as: .assistant)
+            XCTAssertEqual(app.settings.agentModel.provider, .ollama)
+            app.useSameModel(as: .agent)
+            XCTAssertEqual(app.settings.assistantModel.provider, .ollama)
+            XCTAssertTrue(app.isProviderReady)
+        }
     }
 
     // MARK: Default provider

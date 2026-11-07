@@ -18,6 +18,7 @@ struct DiscourseAdapter: SiteAdapter {
                 moderationInstaller: DiscourseDOM.moderationInstaller
             ),
             loginURL: { DiscourseRoutes.loginURL(siteURL: $0) },
+            accountURL: { DiscourseRoutes.accountURL(siteURL: $0, username: $1) },
             searchPageURL: { DiscourseRoutes.searchPageURL(siteURL: $0, query: $1) },
             session: DiscourseSession(),
             firstPartyPathPatterns: Self.firstPartyPathPatterns

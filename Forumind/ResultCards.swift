@@ -56,40 +56,60 @@ struct ResultCardsOverlay: View {
         )
     }
 
+    @ViewBuilder
+    private func cardItems(stackedVertically: Bool) -> some View {
+        ForEach(Array(cursor.items.enumerated()), id: \.element.id) { index, item in
+            ResultCard(
+                number: index + 1,
+                count: cursor.items.count,
+                item: item,
+                isCurrent: cursor.index == index,
+                tint: tint,
+                stackedVertically: stackedVertically
+            ) {
+                Task { await app.openCard(index, includeContent: false) }
+            }
+            .id(index)
+            .modifier(ResultCardReveal(
+                order: index,
+                isNew: !revealed.contains(item.id),
+                reduceMotion: reduceMotion
+            ) { revealed.insert(item.id) })
+        }
+    }
+
     private var strip: some View {
         VStack(alignment: .leading, spacing: DCTheme.spacingXS) {
             header
-            ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(spacing: DCTheme.spacingS) {
-                    ForEach(Array(cursor.items.enumerated()), id: \.element.id) { index, item in
-                        ResultCard(
-                            number: index + 1,
-                            count: cursor.items.count,
-                            item: item,
-                            isCurrent: cursor.index == index,
-                            tint: tint
-                        ) {
-                            Task { await app.openCard(index, includeContent: false) }
-                        }
-                        .id(index)
-                        .modifier(ResultCardReveal(
-                            order: index,
-                            isNew: !revealed.contains(item.id),
-                            reduceMotion: reduceMotion
-                        ) { revealed.insert(item.id) })
+            if dynamicTypeSize.isAccessibilitySize {
+                ScrollView(.vertical, showsIndicators: true) {
+                    VStack(spacing: DCTheme.spacingS) {
+                        cardItems(stackedVertically: true)
                     }
+                    .scrollTargetLayout()
+                    .padding(.horizontal, DCTheme.spacingS)
+                    .padding(.bottom, DCTheme.spacingS)
                 }
-                .scrollTargetLayout()
-                .padding(.horizontal, DCTheme.spacingS)
-                .padding(.bottom, DCTheme.spacingS)
+                .scrollPosition(id: stripPosition, anchor: .top)
+                .frame(maxHeight: 320)
+                .modifier(NoScrollEdgeEffect())
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    LazyHStack(spacing: DCTheme.spacingS) {
+                        cardItems(stackedVertically: false)
+                    }
+                    .scrollTargetLayout()
+                    .padding(.horizontal, DCTheme.spacingS)
+                    .padding(.bottom, DCTheme.spacingS)
+                }
+                // The strip follows the current card (next, previous, voice); a
+                // swipe that settles on another card opens it and the page jumps.
+                .scrollPosition(id: stripPosition, anchor: .center)
+                .scrollTargetBehavior(.viewAligned)
+                // Only as tall as a card (an overlay offers the whole page).
+                .fixedSize(horizontal: false, vertical: true)
+                .modifier(NoScrollEdgeEffect())
             }
-            // The strip follows the current card (next, previous, voice); a
-            // swipe that settles on another card opens it and the page jumps.
-            .scrollPosition(id: stripPosition, anchor: .center)
-            .scrollTargetBehavior(.viewAligned)
-            // Only as tall as a card (an overlay offers the whole page).
-            .fixedSize(horizontal: false, vertical: true)
-            .modifier(NoScrollEdgeEffect())
             if voice.isActive {
                 Text("Say “next” or swipe", comment: "Result cards while voice runs: how to move to the next card")
                     .font(.caption)
@@ -110,6 +130,7 @@ struct ResultCardsOverlay: View {
         // Swipe down to dismiss (the cards scroll sideways).
         .simultaneousGesture(
             DragGesture(minimumDistance: 24).onEnded { value in
+                guard !dynamicTypeSize.isAccessibilitySize else { return }
                 let vertical = value.translation.height
                 if vertical > 40, abs(vertical) > abs(value.translation.width) {
                     app.dismissResultCards()
@@ -309,6 +330,7 @@ private struct ResultCard: View {
     let item: BrowseItem
     let isCurrent: Bool
     let tint: Color
+    var stackedVertically = false
     let action: () -> Void
     // Plain (not vibrant) secondary text: over the material the vibrant
     // style all but disappears.
@@ -324,6 +346,12 @@ private struct ResultCard: View {
         }
     }
 
+    private var accessibilityDetail: String {
+        item.excerpt.isEmpty ? detail : "\(detail) · \(item.excerpt)"
+    }
+
+    private var maxLines: Int { stackedVertically ? 2 : 1 }
+
     var body: some View {
         Button(action: action) {
             VStack(alignment: .leading, spacing: 3) {
@@ -336,20 +364,21 @@ private struct ResultCard: View {
                     Text(item.title.isEmpty ? detail : item.title)
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(.primary)
-                        .lineLimit(1)
+                        .lineLimit(maxLines)
                 }
                 Text(detail)
                     .font(.caption)
                     .foregroundStyle(Color(uiColor: .secondaryLabel))
-                    .lineLimit(1)
+                    .lineLimit(maxLines)
                 if !item.excerpt.isEmpty {
                     Text(item.excerpt)
                         .font(.caption)
                         .foregroundStyle(Color(uiColor: .secondaryLabel))
-                        .lineLimit(1)
+                        .lineLimit(maxLines)
                 }
             }
-            .frame(width: 240, alignment: .leading)
+            .frame(width: stackedVertically ? nil : 240, alignment: .leading)
+            .frame(maxWidth: stackedVertically ? .infinity : nil, alignment: .leading)
             .padding(.horizontal, DCTheme.spacingM)
             .padding(.vertical, DCTheme.spacingS)
             .background(
@@ -366,7 +395,7 @@ private struct ResultCard: View {
         .hoverEffect(.highlight)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(Text(verbatim: "\(number). \(item.title)"))
-        .accessibilityValue(Text("\(number) of \(count). \(detail)", comment: "Result card VoiceOver value: its place in the list, then its details"))
+        .accessibilityValue(Text("\(number) of \(count). \(accessibilityDetail)", comment: "Result card VoiceOver value: its place in the list, then its details"))
         .accessibilityAddTraits(isCurrent ? .isSelected : [])
         .accessibilityHint(Text("Opens it in the browser", comment: "Accessibility hint of a result card over the page"))
         .accessibilityIdentifier("resultCard-\(number)")

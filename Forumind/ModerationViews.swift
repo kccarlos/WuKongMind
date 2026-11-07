@@ -43,7 +43,7 @@ struct TermsPoints: View {
             symbol: "flag.fill",
             tint: DCTheme.brandPurple,
             title: String(localized: "Report and block", comment: "Terms of Use summary row title"),
-            detail: String(localized: "On any topic, open ⋯ › Report or block to report a post or user, or to hide everything a user posts. Reports are reviewed within 24 hours and offending content is removed from the app.", comment: "Terms of Use summary row; ⋯ is the browser's More menu")
+            detail: String(localized: "On any topic, open the forum menu or ⋯ › Report or block to report a post or user, or to hide everything a user posts. Reports are reviewed within 24 hours and offending content is removed from the app.", comment: "Terms of Use summary row; forum menu on iPhone, ⋯ More menu on iPad")
         )
         OnboardingFeatureRow(
             symbol: "line.3.horizontal.decrease.circle.fill",
@@ -187,6 +187,7 @@ struct ReportSheet: View {
 
     private func postRow(_ post: VisiblePost) -> some View {
         let blocked = app.isBlocked(post.username, on: topic.siteURL)
+        let postBlocked = app.isPostBlocked(post.number, topicID: topic.topicID, on: topic.siteURL)
         return VStack(alignment: .leading, spacing: DCTheme.spacingXS) {
             Text("@\(post.username) · #\(post.number)", comment: "Report sheet row: username and post number")
                 .font(.subheadline.weight(.semibold))
@@ -203,6 +204,13 @@ struct ReportSheet: View {
                     Label("Report post", systemImage: "flag")
                 }
                 .accessibilityIdentifier("reportPost\(post.number)")
+                Button(role: .destructive) {
+                    blockPost(post)
+                } label: {
+                    Label(postBlocked ? "Post blocked" : "Block post", systemImage: "eye.slash")
+                }
+                .disabled(postBlocked)
+                .accessibilityIdentifier("blockPost\(post.number)")
                 Button(role: .destructive) {
                     blockingTarget = post
                 } label: {
@@ -226,6 +234,12 @@ struct ReportSheet: View {
             topicURL: topic.url,
             kind: kind
         )
+    }
+
+    private func blockPost(_ post: VisiblePost) {
+        app.blockPost(post.number, topicID: topic.topicID, on: topic.siteURL)
+        posts.removeAll { $0.number == post.number }
+        status = String(localized: "Post #\(post.number) is blocked.", comment: "Report sheet status; the placeholder is a post number")
     }
 
     private func block(_ post: VisiblePost) {
@@ -312,9 +326,16 @@ struct ReportForm: View {
         case .post: String(localized: "Report post")
         case .user: String(localized: "Report user")
         case .aiOutput(let output):
-            output.feature == .summary
-                ? String(localized: "Report summary", comment: "Title of the form that reports an AI summary")
-                : String(localized: "Report answer", comment: "Title of the form that reports an AI answer")
+            switch output.feature {
+            case .summary:
+                String(localized: "Report summary", comment: "Title of the form that reports an AI summary")
+            case .chatAnswer, .askAnswer, .voiceAnswer:
+                String(localized: "Report answer", comment: "Title of the form that reports an AI answer")
+            case .digest:
+                String(localized: "Report digest", comment: "Title of the form that reports an AI daily digest")
+            case .podcast:
+                String(localized: "Report podcast", comment: "Title of the form that reports an AI podcast")
+            }
         }
     }
 }
@@ -489,7 +510,7 @@ struct BlockedUsersPage: View {
         Form {
             Section {
                 if app.settings.blockedUsers.isEmpty {
-                    Text("No one is blocked. To block someone, open a topic, then ⋯ › Report or block.")
+                    Text("No one is blocked. To block someone, open a topic, then open the forum menu or ⋯ › Report or block.")
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(app.settings.blockedUsers.sorted { $0.blockedAt > $1.blockedAt }) { user in

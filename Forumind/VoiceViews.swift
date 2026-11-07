@@ -35,8 +35,23 @@ struct VoiceBarButton: View {
 struct VoiceConsentSheet: View {
     let provider: VoiceProvider
     let settings: VoiceSettings
+    var vertexBaseURL = ""
     let onAgree: () -> Void
     let onCancel: () -> Void
+
+    var statusLine: (text: String, isReady: Bool) {
+        switch provider {
+        case .aiStudio:
+            return (String(localized: "Voice uses Google Gemini. Key ready.", comment: "Voice first start: the provider and that its key is set up"), true)
+        case .vertex:
+            let project = GeminiLive.Endpoint.vertexProject(fromBaseURL: vertexBaseURL)
+                ?? settings.vertexProject.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !project.isEmpty else {
+                return (VoiceSession.Failure.noVertexProject.message, false)
+            }
+            return (String(localized: "Voice uses Google Vertex AI. Key ready.", comment: "Voice first start on Vertex AI: the provider and that its key and project are set up"), true)
+        }
+    }
 
     var body: some View {
         NavigationStack {
@@ -62,10 +77,12 @@ struct VoiceConsentSheet: View {
                     }
                     .font(.subheadline)
                     .accessibilityIdentifier("voiceTrySaying")
+                    let status = statusLine
                     Label {
-                        Text("Voice uses Google Gemini. Key ready.", comment: "Voice first start: the provider and that its key is set up")
+                        Text(verbatim: status.text)
                     } icon: {
-                        Image(systemName: "checkmark.seal.fill").foregroundStyle(DCTheme.success)
+                        Image(systemName: status.isReady ? "checkmark.seal.fill" : "exclamationmark.triangle.fill")
+                            .foregroundStyle(status.isReady ? DCTheme.success : DCTheme.warning)
                     }
                     .font(.subheadline.weight(.semibold))
                     VoiceDisclosure(provider: provider, settings: settings)
@@ -278,6 +295,18 @@ struct VoiceSessionBar: View {
             .disabled(voice.audioEngine == nil)
             .accessibilityHint(Text("Shows the audio health", comment: "Accessibility hint of the voice bar's state"))
             .padding(.leading, DCTheme.spacingM)
+
+            if !session.lastModelText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                Button {
+                    DCHaptics.tap()
+                    voice.reportCurrentAnswer()
+                } label: {
+                    Image(systemName: "flag")
+                }
+                .buttonStyle(DCIconButtonStyle())
+                .accessibilityLabel(Text("Report answer", comment: "Title of the form that reports an AI answer"))
+                .accessibilityIdentifier("voiceReport")
+            }
 
             if session.state.isOver {
                 VoiceBarCloseButton(action: voice.dismiss)
@@ -516,7 +545,7 @@ private struct VoiceBarFrame<Content: View>: View {
     }
 }
 
-private struct VoiceBarCloseButton: View {
+struct VoiceBarCloseButton: View {
     let action: () -> Void
 
     var body: some View {

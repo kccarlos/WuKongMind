@@ -1,3 +1,5 @@
+import SwiftUI
+import UIKit
 import XCTest
 @testable import Forumind
 
@@ -75,6 +77,7 @@ final class CapabilityGatingTests: XCTestCase {
         browser.scriptSpy = { scripts.append($0) }
         browser.setPageContext(context(fakeTopic))
         XCTAssertNil(browser.pageBridge)
+        XCTAssertFalse(browser.canTranslatePostsOnScreen)
 
         browser.applyModerationToPage()
         _ = await browser.highlight([1])
@@ -94,6 +97,7 @@ final class CapabilityGatingTests: XCTestCase {
         browser.scriptSpy = { scripts.append($0) }
         browser.setPageContext(context(fakeTopic))
         XCTAssertNotNil(browser.pageBridge)
+        XCTAssertEqual(browser.canTranslatePostsOnScreen, ReadingLanguage.isTranslationAvailable)
 
         browser.applyModerationToPage()
         _ = await browser.visiblePosts()
@@ -109,6 +113,48 @@ final class CapabilityGatingTests: XCTestCase {
         XCTAssertNil(browser.pageBridge)
     }
 
+    func testPostsTranslationEmptyStateProvidesDoneToolbarButton() async throws {
+        let app = makeApp()
+        let size = CGSize(width: 393, height: 852)
+        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(origin: .zero, size: size))
+        window.frame = CGRect(origin: .zero, size: size)
+        let host = UIHostingController(rootView: PostsTranslationSheet(app: app))
+        window.rootViewController = host
+        window.makeKeyAndVisible()
+        host.view.frame = window.bounds
+        window.layoutIfNeeded()
+        defer {
+            window.isHidden = true
+            window.rootViewController = nil
+            window.windowScene = nil
+        }
+
+        func findNav(_ vc: UIViewController) -> UINavigationController? {
+            if let nav = vc as? UINavigationController { return nav }
+            for child in vc.children {
+                if let nav = findNav(child) { return nav }
+            }
+            return nil
+        }
+
+        func barItemCount(_ nav: UINavigationController) -> Int {
+            guard let item = nav.topViewController?.navigationItem else { return 0 }
+            return (item.rightBarButtonItems?.count ?? 0) + item.trailingItemGroups.reduce(0) { $0 + $1.barButtonItems.count }
+        }
+
+        let deadline = Date().addingTimeInterval(3)
+        while Date() < deadline {
+            try await Task.sleep(for: .milliseconds(25))
+            RunLoop.current.run(until: Date().addingTimeInterval(0.02))
+            window.layoutIfNeeded()
+            if let nav = findNav(host), barItemCount(nav) > 0 { break }
+        }
+
+        let nav = try XCTUnwrap(findNav(host))
+        XCTAssertGreaterThan(barItemCount(nav), 0)
+    }
+
     // MARK: loginURL / searchPageURL
 
     func testSignInAndSearchEntriesFollowTheCapability() {
@@ -116,10 +162,19 @@ final class CapabilityGatingTests: XCTestCase {
         app.browser.homeSiteURL = fakeSite
         XCTAssertNil(app.loginURL)
         XCTAssertFalse(app.loadLogin())
+        XCTAssertNil(app.accountURL)
+        XCTAssertFalse(app.loadAccount())
         XCTAssertNil(app.searchPageURL(query: "fees"))
 
         app.browser.homeSiteURL = "https://meta.example.com"
         XCTAssertEqual(app.loginURL?.absoluteString, "https://meta.example.com/login")
+        XCTAssertEqual(app.accountURL?.absoluteString, "https://meta.example.com/my/summary")
+        XCTAssertEqual(
+            DiscourseAdapter().capabilities.accountURL?("https://meta.example.com", "alice")?.absoluteString,
+            "https://meta.example.com/u/alice"
+        )
+        XCTAssertTrue(app.loadAccount())
+        XCTAssertEqual(app.browser.currentURL?.absoluteString, "https://meta.example.com/my/summary")
         XCTAssertEqual(app.searchPageURL(query: "fees")?.absoluteString, "https://meta.example.com/search?q=fees")
     }
 

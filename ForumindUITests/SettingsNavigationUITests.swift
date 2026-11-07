@@ -345,6 +345,93 @@ final class SettingsNavigationUITests: DCUITestCase {
         XCTAssertGreaterThanOrEqual(pin.frame.width, 44, "Pin")
     }
 
+    func testWatchedRowOpensTopicPodcastRequiresDigestAndBlockedUsersMentionsForumMenu() throws {
+        let app = launch(["-dc-sample", "-dc-show-settings", "root", "-dc-test-present"])
+        XCTAssertTrue(any(app, "settingsRoot").waitForExistence(timeout: 15))
+
+        // 1. Daily digest & podcast: turning off Make a digest every day disables Make the podcast every day.
+        let digestRow = app.buttons["settingsRow-digest"]
+        XCTAssertTrue(revealRow(digestRow, in: app))
+        digestRow.tap()
+        let digestSwitch = app.switches["digestEnabled"]
+        XCTAssertTrue(digestSwitch.waitForExistence(timeout: 8))
+        let podcastSwitch = app.switches["podcastDailyEnabled"]
+        XCTAssertTrue(reveal(podcastSwitch, in: app, swipes: 4))
+        if (podcastSwitch.value as? String) != "1" {
+            podcastSwitch.switches.firstMatch.tap()
+        }
+        if (digestSwitch.value as? String) == "1" {
+            digestSwitch.switches.firstMatch.tap()
+        }
+        XCTAssertFalse(podcastSwitch.isEnabled, "Make the podcast every day must be disabled when Make a digest every day is off")
+        XCTAssertEqual(podcastSwitch.value as? String, "0")
+        tapNavigationBack(in: app)
+
+        // 2. Data & privacy › Blocked users mentions the forum menu as well as ⋯.
+        let dataRow = app.buttons["settingsRow-data"]
+        XCTAssertTrue(revealRow(dataRow, in: app))
+        dataRow.tap()
+        let blockedRow = app.buttons["blockedUsersRow"]
+        XCTAssertTrue(reveal(blockedRow, in: app, swipes: 6))
+        blockedRow.tap()
+        let copy = app.staticTexts.matching(NSPredicate(format: "label CONTAINS 'the forum menu or ⋯'")).firstMatch
+        XCTAssertTrue(copy.waitForExistence(timeout: 5))
+        tapNavigationBack(in: app)
+        tapNavigationBack(in: app)
+
+        // 3. Watched topics: tapping a watched topic row dismisses Settings to open the topic.
+        let watchedRow = app.buttons["settingsRow-watched"]
+        XCTAssertTrue(revealRow(watchedRow, in: app))
+        watchedRow.tap()
+        let firstWatched = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'settingsWatchedRow-'")).firstMatch
+        XCTAssertTrue(reveal(firstWatched, in: app, swipes: 4))
+        firstWatched.tap()
+        XCTAssertTrue(waitForGone(any(app, "settingsRoot"), timeout: 8), "Tapping a watched topic row must dismiss Settings.")
+    }
+
+    func testUnsupportedAppleIntelligenceMenuAndGoogleVoicesMissingKeySetup() throws {
+        // 1. Unsupported device: provider menu shows Apple Intelligence as "Not supported on this device" and disabled.
+        var app = launch(["-dc-sample", "-dc-show-settings", "provider", "-dc-apple-intelligence", "unsupported"])
+        XCTAssertTrue(app.navigationBars["AI models"].waitForExistence(timeout: 20))
+        let assistantRow = any(app, "modelRole-assistant")
+        XCTAssertTrue(assistantRow.waitForExistence(timeout: 5))
+        assistantRow.tap()
+        XCTAssertTrue(app.navigationBars["Summaries & chat"].waitForExistence(timeout: 10))
+        let picker = app.buttons["providerPicker"]
+        XCTAssertTrue(picker.waitForExistence(timeout: 5))
+        picker.tap()
+
+        let appleOption = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Apple Intelligence")).firstMatch
+        XCTAssertTrue(waitOrDump(appleOption, timeout: 5, in: app), "Apple Intelligence should remain visible in the provider menu.")
+        XCTAssertTrue(appleOption.label.contains("Not supported on this device"), "Got “\(appleOption.label)”.")
+        XCTAssertFalse(appleOption.isEnabled, "Apple Intelligence must not be selectable on an unsupported device.")
+        app.terminate()
+
+        // 2. Google voices without a Google key: Settings › Daily digest & podcast offers key setup.
+        app = launch(["-dc-sample", "-dc-no-provider", "-dc-show-settings", "digest", "-dc-test-present"])
+        XCTAssertTrue(app.navigationBars["Daily digest & podcast"].waitForExistence(timeout: 20))
+        let voicesPicker = any(app, "podcastEngine")
+        XCTAssertTrue(reveal(voicesPicker, in: app, swipes: 4))
+        let voicesMenuButton = voicesPicker.buttons.firstMatch
+        (voicesMenuButton.exists ? voicesMenuButton : voicesPicker).tap()
+        let googleVoices = app.buttons["Google voices"].firstMatch
+        XCTAssertTrue(waitOrDump(googleVoices, timeout: 5, in: app))
+        googleVoices.tap()
+
+        let addKey = app.buttons["podcastAddGoogleKey"]
+        XCTAssertTrue(reveal(addKey, in: app, swipes: 4), "Choosing Google voices with no key should offer key setup.")
+        addKey.tap()
+        XCTAssertTrue(app.navigationBars["AI models"].waitForExistence(timeout: 10))
+        tapNavigationBack(in: app)
+        XCTAssertTrue(app.navigationBars["Daily digest & podcast"].waitForExistence(timeout: 10))
+
+        // Restore Automatic so persisted state stays clean for other UI tests.
+        XCTAssertTrue(reveal(voicesPicker, in: app, swipes: 4))
+        (voicesMenuButton.exists ? voicesMenuButton : voicesPicker).tap()
+        let automatic = app.buttons["Automatic"].firstMatch
+        if automatic.waitForExistence(timeout: 5) { automatic.tap() }
+    }
+
     /// A root row, scrolled into view by dragging the Settings list itself
     /// (on iPad the sheet is smaller than the window, so a swipe across the
     /// app can miss it or overshoot).

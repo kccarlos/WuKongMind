@@ -186,4 +186,38 @@ final class WordPressAgentRunTests: XCTestCase {
         XCTAssertTrue(refused.hasPrefix("ERROR from search_comments:\nUnknown tool \"search_comments\". Available: search_forum, list_latest, read_topic"), refused)
         XCTAssertTrue(harness.wordpress.requests.isEmpty)
     }
+
+    func testReadTopicSupportsPageAndQueryWithoutRefetching() async throws {
+        let harness = makeHarness(actions: [
+            call("read_topic", ["topic_id": "1001"]),
+            call("read_topic", ["topic_id": "1001", "page": "2"]),
+            call("read_topic", ["topic_id": "1001", "query": "user145"]),
+            call("read_topic", ["topic_id": "1001", "page": "5"]),
+            answer("Done.")
+        ])
+        harness.app.settings.agentReadLimit = 10_000
+        let run = try await finish(harness)
+        XCTAssertEqual(run.result, .completed, run.error)
+        XCTAssertEqual(run.topicIDs, ["1001"], "Paging and querying an already-read topic keeps topic-read count at 1.")
+
+        let initialRead = try XCTUnwrap(harness.planner.transcripts[1].last?.content)
+        XCTAssertTrue(initialRead.contains("pass page=2 to 3 or query=\"<keywords>\" to read other parts."), initialRead)
+
+        let page2 = try XCTUnwrap(harness.planner.transcripts[2].last?.content)
+        XCTAssertTrue(page2.contains("Showing: page 2 of 3"), page2)
+        XCTAssertTrue(page2.contains("#150\nComment number 149 "), page2)
+        XCTAssertFalse(page2.contains("#251\nComment number 250 "), page2)
+
+        let queried = try XCTUnwrap(harness.planner.transcripts[3].last?.content)
+        XCTAssertTrue(queried.contains("Showing: 1 matching post for \"user145\" (of 251 posts)"), queried)
+        XCTAssertTrue(queried.contains("Article: (Update) Sample Cards & Notes – Part 1"), "Keeps opening article #1")
+        XCTAssertTrue(queried.contains("#146\nComment number 145 "), queried)
+        XCTAssertFalse(queried.contains("#147\nComment number 146 "), queried)
+
+        let invalidPage = try XCTUnwrap(harness.planner.transcripts[4].last?.content)
+        XCTAssertEqual(
+            invalidPage,
+            "ERROR from read_topic:\nInvalid argument \"page\": use a number from 1 to 3."
+        )
+    }
 }

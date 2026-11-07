@@ -9,6 +9,19 @@ import XCTest
 final class IPadLayoutUITests: DCUITestCase {
     private let sample = ["-dc-sample", "-dc-page-state", "topic"]
 
+    /// The simulator's test keyboard attaches only for each key press, so the
+    /// system sometimes takes ⌘, and opens the iOS Settings app. Comes back
+    /// and presses again; any other failure is left for the caller's assert.
+    private func pressSettingsShortcut(_ app: XCUIApplication) {
+        let systemSettings = XCUIApplication(bundleIdentifier: "com.apple.Preferences")
+        for _ in 0..<3 {
+            app.typeKey(",", modifierFlags: .command)
+            if any(app, "settingsRoot").waitForExistence(timeout: 3) { return }
+            guard systemSettings.state == .runningForeground else { return }
+            app.activate()
+        }
+    }
+
     // MARK: Width decides the layout
 
     /// Landscape (≥ 850 pt) is page + AI panel under the split bar; portrait
@@ -65,14 +78,25 @@ final class IPadLayoutUITests: DCUITestCase {
         XCTAssertFalse(any(app, "aiPanel").exists, "Home should be full width.")
         app.terminate()
 
-        app = launch(sample, orientation: .landscapeLeft)
+        // Keep ordinary model updates arriving after launch. The split panel
+        // opens automatically; skip the sample's delayed show requests so
+        // only the reader's toggle controls it during the assertion.
+        app = launch(sample + ["-dc-summary-running", "-dc-drawer-first-run"], orientation: .landscapeLeft)
         let panel = any(app, "aiPanel")
         XCTAssertTrue(waitOrDump(panel, timeout: 20, in: app))
         let toggle = app.buttons["aiPanelToggle"]
         toggle.tap()
-        XCTAssertTrue(waitForGone(panel, timeout: 5), "The toggle should hide the panel.")
+        let didHide = waitForGone(panel, timeout: 5)
+        if !didHide {
+            snapshot("panel-hide-failure")
+            attachTree(app)
+        }
+        XCTAssertTrue(didHide, "The toggle should hide the panel.")
+        XCTAssertFalse(wait(timeout: 2) { panel.exists }, "Summary updates should leave the panel hidden.")
+        snapshot("panel-hidden-during-summary")
         toggle.tap()
         XCTAssertTrue(panel.waitForExistence(timeout: 5), "The toggle should show the panel again.")
+        snapshot("panel-shown-again")
     }
 
     /// §4.5 in the panel: summarize (the DEBUG fake summary), tap `#12` → the
@@ -190,7 +214,7 @@ final class IPadLayoutUITests: DCUITestCase {
         app.buttons["backToTopic"].tap()
         XCTAssertTrue(title.waitForExistence(timeout: 5))
 
-        app.typeKey(",", modifierFlags: .command)
+        pressSettingsShortcut(app)
         XCTAssertTrue(any(app, "settingsRoot").waitForExistence(timeout: 5), "⌘, should open Settings.")
         snapshot("keyboard-settings")
         app.typeKey(".", modifierFlags: .command)
@@ -208,7 +232,7 @@ final class IPadLayoutUITests: DCUITestCase {
         app.typeKey("h", modifierFlags: [.command, .shift])
         XCTAssertTrue(any(app, "home").waitForExistence(timeout: 5), "⌘⇧H should show the Forums home.")
         // On Home ⌘, and ⇧⌘Y open their sheets (no panel there).
-        app.typeKey(",", modifierFlags: .command)
+        pressSettingsShortcut(app)
         XCTAssertTrue(any(app, "settingsRoot").waitForExistence(timeout: 5), "⌘, should open Settings on Home.")
         app.typeKey(".", modifierFlags: .command)
         XCTAssertTrue(waitForGone(any(app, "settingsRoot"), timeout: 5))
@@ -244,6 +268,73 @@ final class IPadLayoutUITests: DCUITestCase {
         snapshot("remove-dialog")
         confirm.tap()
         XCTAssertTrue(waitForGone(any(app, identifier), timeout: 5), "\(identifier) was not removed.")
+    }
+
+    /// Sheets opened from Home (`PinnedForumsEditor`) and the assistant panel
+    /// (`InstructionsSheet`) must route through `PresentationRouter` instead
+    /// of competing local `.sheet` modifiers that drop routed presentations and
+    /// leave `router.item` permanently jammed.
+    func testSheetsDoNotJamPresentationRouter() throws {
+        try skipUnlessPad("iPad layout")
+        let app = launch(["-dc-sample", "-dc-forums-home"], orientation: .landscapeLeft)
+        XCTAssertTrue(waitOrDump(any(app, "home"), timeout: 20, in: app))
+
+        // Warm up the simulator hardware keyboard path.
+        app.buttons["homeSettings"].tap()
+        XCTAssertTrue(any(app, "settingsRoot").waitForExistence(timeout: 5))
+        app.typeKey(".", modifierFlags: .command)
+        XCTAssertTrue(waitForGone(any(app, "settingsRoot"), timeout: 5))
+
+        let editPinned = app.buttons["editPinnedForums"]
+        XCTAssertTrue(waitForHittable(editPinned, timeout: 5))
+        editPinned.tap()
+        let pinnedDone = app.navigationBars["Pinned Forums"].buttons["Done"]
+        XCTAssertTrue(pinnedDone.waitForExistence(timeout: 5))
+
+        // Trigger ⌘, (`openPanelRoute(.settings)`) while Pinned Forums is up:
+        // routed through PresentationRouter, Settings replaces Pinned Forums
+        // instead of stalling behind a competing local `.sheet` and jamming `router.item`.
+        pressSettingsShortcut(app)
+        XCTAssertTrue(
+            any(app, "settingsRoot").waitForExistence(timeout: 5),
+            "⌘, was blocked while Pinned Forums sheet was open."
+        )
+        app.typeKey(".", modifierFlags: .command)
+        XCTAssertTrue(waitForGone(any(app, "settingsRoot"), timeout: 5))
+
+        app.buttons["homeSettings"].tap()
+        XCTAssertTrue(
+            any(app, "settingsRoot").waitForExistence(timeout: 5),
+            "Settings did not open from homeSettings after closing; PresentationRouter is jammed."
+        )
+        app.typeKey(".", modifierFlags: .command)
+        XCTAssertTrue(waitForGone(any(app, "settingsRoot"), timeout: 5))
+
+        // Same check for InstructionsSheet in the split assistant panel.
+        let continueRow = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "identifier BEGINSWITH 'continueReading-'")).firstMatch
+        XCTAssertTrue(waitForHittable(continueRow, timeout: 5))
+        continueRow.tap()
+
+        let instructions = app.buttons["chatInstructions"].firstMatch
+        XCTAssertTrue(waitForHittable(instructions, timeout: 10))
+        instructions.tap()
+        let instructionsCancel = app.navigationBars["Instructions"].buttons["Cancel"]
+        XCTAssertTrue(instructionsCancel.waitForExistence(timeout: 5))
+
+        pressSettingsShortcut(app)
+        XCTAssertTrue(
+            any(app, "settingsRoot").waitForExistence(timeout: 5),
+            "⌘, was blocked while Instructions sheet was open."
+        )
+        app.typeKey(".", modifierFlags: .command)
+        XCTAssertTrue(waitForGone(any(app, "settingsRoot"), timeout: 5))
+
+        pressSettingsShortcut(app)
+        XCTAssertTrue(
+            any(app, "settingsRoot").waitForExistence(timeout: 5),
+            "Settings did not open after closing; PresentationRouter is jammed."
+        )
     }
 
     // MARK: Helpers

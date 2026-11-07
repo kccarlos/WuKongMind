@@ -68,7 +68,7 @@ struct SplitMoreMenu: View {
             }
             if let topic = browser.pageContext.topic, !browser.showsForumsHome {
                 Section {
-                    if ReadingLanguage.isTranslationAvailable {
+                    if browser.canTranslatePostsOnScreen {
                         Button(action: actions.translatePosts) {
                             Label("Translate Posts on Screen", systemImage: "translate")
                         }
@@ -95,9 +95,18 @@ struct SplitMoreMenu: View {
 /// new-replies dot (the split layout has no hint row).
 struct SplitPanelToggle: View {
     @ObservedObject var app: AppModel
+    @ObservedObject private var browser: ForumBrowserModel
     let isShown: Bool
     let action: () -> Void
 
+    init(app: AppModel, isShown: Bool, action: @escaping () -> Void) {
+        self.app = app
+        _browser = ObservedObject(wrappedValue: app.browser)
+        self.isShown = isShown
+        self.action = action
+    }
+
+    private var isAvailable: Bool { app.isSplitPanelAvailable }
     private var showsNewRepliesDot: Bool { app.showsNewRepliesDot }
 
     /// "Hidden, New replies, Ask the forum is searching": what the ring and
@@ -122,9 +131,14 @@ struct SplitPanelToggle: View {
         } label: {
             Image(systemName: "sidebar.trailing")
                 .symbolVariant(isShown ? .fill : .none)
-                .foregroundStyle(isShown ? AnyShapeStyle(DCTheme.brandGradient) : AnyShapeStyle(.primary))
+                .foregroundStyle(
+                    isShown
+                        ? AnyShapeStyle(DCTheme.brandGradient)
+                        : (isAvailable ? AnyShapeStyle(.primary) : AnyShapeStyle(.tertiary))
+                )
         }
         .buttonStyle(DCIconButtonStyle())
+        .disabled(!isAvailable)
         .overlay { ResearchRing(app: app) }
         .overlay(alignment: .topTrailing) {
             if showsNewRepliesDot { NewRepliesDot() }
@@ -157,7 +171,7 @@ struct WorkspaceView: View {
     private var isSplit: Bool { router.splitLayout ?? ContentView.usesSplitLayout(width: width) }
 
     private var panelVisible: Bool {
-        isSplit && router.splitPanelMode.isVisible(onHome: browser.showsForumsHome)
+        app.showsSplitPanel(forWidth: width)
     }
 
     private var panelWidth: CGFloat {
@@ -217,7 +231,7 @@ struct WorkspaceView: View {
             // Forums home) can loop UICollectionView self-sizing.
             onReset: { storedWidth = 0 },
             onAdjust: { delta in
-                storedWidth = Double(WorkspaceMetrics.panelWidth(preferred: current - delta, containerWidth: width))
+                storedWidth = Double(WorkspaceMetrics.adjustedPanelWidth(current: current, delta: delta, containerWidth: width))
             }
         )
         AssistantPanel(

@@ -17,11 +17,18 @@ import UIKit
 // - `PresentationRouter` explicit routes, the walkthrough replay and the
 //                        drawer's state (open, detent, host location)
 
+/// Optional follow-up action offered by the root error alert.
+enum ErrorAction: Equatable {
+    /// Opens Settings › AI models so the user can add or update an API key.
+    case openAIModels
+}
+
 /// An error waiting for the root alert (`AppModel.errorQueue`); its own id,
 /// so the same message coming back later shows again.
 struct PresentedError: Identifiable, Equatable {
     let id = UUID()
     let message: String
+    var action: ErrorAction? = nil
 }
 
 /// A sheet or full-screen cover presented from the root.
@@ -36,6 +43,10 @@ enum RootPresentation: Identifiable, Equatable {
     /// Report This Summary… / Report This Answer… (Moderation.swift).
     case reportAIOutput(ReportTarget)
     case translatePosts
+    case translateText(title: String, text: String, target: String)
+    case pinnedForums
+    case instructions
+    case exportOptions
     case addForum
     /// "Share from Safari or Chrome" (Home card).
     case shareHowTo
@@ -62,6 +73,10 @@ enum RootPresentation: Identifiable, Equatable {
         case .report(let topic): "report-\(topic.id)"
         case .reportAIOutput(let target): "reportAIOutput-\(target.id)"
         case .translatePosts: "translatePosts"
+        case .translateText(let title, let text, let target): "translateText-\(target)-\(title.hashValue)-\(text.hashValue)"
+        case .pinnedForums: "pinnedForums"
+        case .instructions: "instructions"
+        case .exportOptions: "exportOptions"
         case .addForum: "addForum"
         case .shareHowTo: "shareHowTo"
         case .nowPlaying: "nowPlaying"
@@ -191,6 +206,8 @@ final class PresentationRouter: ObservableObject {
     @Published var splitLayout: Bool?
     /// Whether the split layout's AI panel shows.
     @Published var splitPanelMode: SplitPanelMode = .auto
+    /// Whether a narrow-window drawer is wide enough for a two-column medium summary.
+    @Published var usesWideDrawerSummary = false
 
     /// The bottom bar and the AI drawer: iPhone, and iPad windows narrower
     /// than the split threshold.
@@ -365,10 +382,10 @@ extension AppModel {
         // A request is waiting for it: it goes over a routed sheet, which
         // comes back once it is answered.
         if let provider = aiConsent.asking { return .aiConsent(provider) }
-        if let item = router.item { return item }
-        if let page = requestedSettingsPage { return .settings(page) }
         if let provider = voice.consentProvider { return .voiceConsent(provider) }
         if let provider = podcast.consentProvider { return .podcastConsent(provider) }
+        if let item = router.item { return item }
+        if let page = requestedSettingsPage { return .settings(page) }
         return nil
     }
 
@@ -394,6 +411,7 @@ extension AppModel {
         default:
             if router.item == presentation { router.item = nil }
         }
+        syncDrawer()
     }
 
     /// Settings › Help › Show onboarding again. Settings (as a sheet or a
@@ -421,6 +439,7 @@ extension AppModel {
     /// dismissal for a moment after it reports (iPad form sheets), and a
     /// cover asked for then is dropped without a word, so it waits a beat.
     func rootSheetDismissed() {
+        syncDrawer()
         guard router.onboardingReplay == .waitingForSheet else { return }
         Task { @MainActor [weak self] in
             try? await Task.sleep(for: PresentationRouter.settleDelay)
@@ -446,9 +465,9 @@ extension AppModel {
         dismissPresentedError()
     }
 
-    /// A shared link needs an AI provider first; not over the walkthrough.
+    /// A shared link needs an AI provider first; not over the walkthrough or Terms gate.
     func presentProviderSetupIfNeeded() {
-        guard let role = needsProviderSetup, settings.hasCompletedOnboarding, !router.replayingOnboarding else { return }
+        guard let role = needsProviderSetup, acceptsSystemWork, !router.replayingOnboarding else { return }
         if isProviderReady(for: role) {
             needsProviderSetup = nil
         } else if readiness(of: selection(for: role)) == .aiConsentDeclined {
@@ -510,35 +529,17 @@ struct RouterHost: ViewModifier {
         )
     }
 
-    private var alertBinding: Binding<Bool> {
-        Binding(
-            get: { active && app.rootAlert != nil },
-            set: { if !$0, active { app.dismissRootAlert() } }
-        )
-    }
-
     func body(content: Content) -> some View {
-        let alert = app.rootAlert
         content
             .sheet(item: binding(fullScreen: false), onDismiss: { app.rootSheetDismissed() }) { presentation in
                 view(for: presentation)
+                    .modifier(RootAlertModifier(app: app, active: active, presentation: presentation))
             }
             .fullScreenCover(item: binding(fullScreen: true)) { presentation in
                 view(for: presentation)
+                    .modifier(RootAlertModifier(app: app, active: active, presentation: presentation))
             }
-            .alert(
-                alertTitle(alert),
-                isPresented: alertBinding,
-                presenting: alert
-            ) { alert in
-                Button(role: .cancel) {
-                    app.dismissRootAlert()
-                } label: {
-                    alertButton(alert)
-                }
-            } message: { alert in
-                alertMessage(alert)
-            }
+            .modifier(RootAlertModifier(app: app, active: active, presentation: nil))
     }
 
     // MARK: Views
@@ -576,6 +577,18 @@ struct RouterHost: ViewModifier {
             AIOutputReportSheet(target: target)
         case .translatePosts:
             PostsTranslationSheet(app: app)
+        case .translateText(let title, let text, let target):
+            TranslationSheet(
+                title: title,
+                sources: [TranslationSource(id: "text", text: text)],
+                target: target
+            )
+        case .pinnedForums:
+            PinnedForumsEditor(app: app)
+        case .instructions:
+            InstructionsSheet(app: app)
+        case .exportOptions:
+            ExportOptionsSheet(payload: app.currentExportPayload, options: $app.exportOptions)
         case .shareHowTo:
             ShareHowToSheet(onDone: { router.item = nil })
         case .addForum:
@@ -587,6 +600,7 @@ struct RouterHost: ViewModifier {
             VoiceConsentSheet(
                 provider: provider,
                 settings: app.settings.voice,
+                vertexBaseURL: app.settings.configuration(for: .vertexAI).baseURL,
                 onAgree: { voice.agree(provider) },
                 onCancel: { voice.declineConsent() }
             )
@@ -601,7 +615,8 @@ struct RouterHost: ViewModifier {
             AIDataConsentPage(
                 provider: provider,
                 onAllow: { app.answerAIConsent(provider, allow: true) },
-                onDecline: { app.answerAIConsent(provider, allow: false) }
+                onDecline: { app.answerAIConsent(provider, allow: false) },
+                onCancel: { app.aiConsent.resolve(provider) }
             )
         #if DEBUG
         case .debugSettings(let page):
@@ -628,6 +643,50 @@ struct RouterHost: ViewModifier {
         if let step = OnboardingDebug.initialStep, !router.replayingOnboarding { return step }
         #endif
         return .welcome
+    }
+}
+
+private struct RootAlertModifier: ViewModifier {
+    @ObservedObject var app: AppModel
+    let active: Bool
+    let presentation: RootPresentation?
+
+    private var activeAlert: RootAlert? {
+        guard active, app.rootPresentation == presentation else { return nil }
+        return app.rootAlert
+    }
+
+    private var alertBinding: Binding<Bool> {
+        Binding(
+            get: { activeAlert != nil },
+            set: { if !$0, active, app.rootPresentation == presentation { app.dismissRootAlert() } }
+        )
+    }
+
+    func body(content: Content) -> some View {
+        let alert = activeAlert
+        content.alert(
+            alertTitle(alert),
+            isPresented: alertBinding,
+            presenting: alert
+        ) { alert in
+            if case .error(let error) = alert, let action = error.action {
+                Button("AI models…") {
+                    app.performErrorAction(action)
+                }
+                Button("Cancel", role: .cancel) {
+                    app.dismissRootAlert()
+                }
+            } else {
+                Button(role: .cancel) {
+                    app.dismissRootAlert()
+                } label: {
+                    alertButton(alert)
+                }
+            }
+        } message: { alert in
+            alertMessage(alert)
+        }
     }
 
     private func alertTitle(_ alert: RootAlert?) -> Text {
@@ -711,6 +770,7 @@ extension AppModel {
         case "cover": router.item = .debugSettings(nil)
         case "error": presentError("Test error")
         case "report": router.item = currentTopic.map(RootPresentation.report)
+        case "translate-posts": router.item = .translatePosts
         case "pending-drawer":
             // A root sheet up while the drawer is wanted; the UI test closes
             // the sheet, the drawer comes back and an error shows over it.

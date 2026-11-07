@@ -126,6 +126,101 @@ final class OnboardingUITests: DCUITestCase {
         XCTAssertTrue(waitForGone(any(app, "onboarding"), timeout: 10))
     }
 
+    func testReplayFromHomeReturnsToHomeAndBrowseAllMeetsHitTarget() throws {
+        let server = FixtureWordPressServer()
+        try server.start()
+        defer { server.stop() }
+
+        var app = launch(["-dc-sample", "-dc-onboarding-step", "done"])
+        let browseAll = app.buttons["onboardingBrowseForums"]
+        XCTAssertTrue(waitForHittable(browseAll, timeout: 15))
+        XCTAssertGreaterThanOrEqual(browseAll.frame.height, 44, "'Browse all forums' hit target must be at least 44 pt tall.")
+        browseAll.tap()
+        XCTAssertTrue(waitForGone(any(app, "onboarding"), timeout: 10))
+        app.terminate()
+
+        app = launch(["-dc-sample", "-dc-open", server.postURL])
+        showBrowser(in: app)
+        XCTAssertTrue(waitOrDump(address(containing: "127.0.0.1", in: app), timeout: 15, in: app))
+        openForumsHomeFromSwitcher(in: app)
+        XCTAssertTrue(any(app, "home").waitForExistence(timeout: 10))
+
+        app.buttons["homeSettings"].tap()
+        XCTAssertTrue(any(app, "settingsRoot").waitForExistence(timeout: 10))
+        let helpRow = app.buttons.matching(label(contains: "Help")).firstMatch
+        XCTAssertTrue(reveal(helpRow, in: app, swipes: 4))
+        helpRow.tap()
+        let replay = any(app, "replayOnboarding")
+        XCTAssertTrue(reveal(replay, in: app, swipes: 4))
+        let title = app.staticTexts["Help & about"].firstMatch
+        for _ in 0..<3 where title.exists && replay.frame.minY < title.frame.maxY + 24 {
+            let list = app.collectionViews.containing(.any, identifier: "replayOnboarding").firstMatch
+            let start = list.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.4))
+            start.press(forDuration: 0.05, thenDragTo: start.withOffset(CGVector(dx: 0, dy: 90)))
+        }
+        XCTAssertTrue(waitForHittable(replay, timeout: 5))
+        replay.tap()
+
+        let continueBtn = app.buttons["onboardingContinue"]
+        XCTAssertTrue(waitForHittable(continueBtn, timeout: 10))
+        continueBtn.tap()
+        let skipAll = app.buttons["onboardingSkipAll"]
+        XCTAssertTrue(waitForHittable(skipAll, timeout: 10))
+        skipAll.tap()
+        XCTAssertTrue(waitForHittable(continueBtn, timeout: 10))
+        continueBtn.tap()
+
+        let returnButton = app.buttons["onboardingReturn"]
+        XCTAssertTrue(waitForHittable(returnButton, timeout: 10))
+        XCTAssertEqual(returnButton.label, "Back to Home")
+        returnButton.tap()
+        XCTAssertTrue(any(app, "home").waitForExistence(timeout: 10))
+    }
+
+    func testUncheckingAddedForumAndSkippingLeavesItUnpinned() throws {
+        let server = FixtureWordPressServer()
+        try server.start()
+        defer { server.stop() }
+
+        let app = launch(["-dc-sample", "-dc-no-forums", "-dc-onboarding-step", "forums"])
+        let addrField = app.textFields["onboardingForumAddress"]
+        for _ in 0..<4 where !addrField.isHittable { app.swipeUp() }
+        XCTAssertTrue(waitForHittable(addrField, timeout: 10))
+        addrField.tap()
+        addrField.typeText(server.baseURL)
+        app.buttons["onboardingAddForum"].tap()
+
+        let addedPredicate = NSPredicate(format: "identifier BEGINSWITH 'onboardingForum-127.0.0.1'")
+        let addedRow = app.buttons.matching(addedPredicate).firstMatch
+        for _ in 0..<4 where !addedRow.isHittable { app.swipeDown() }
+        XCTAssertTrue(addedRow.waitForExistence(timeout: 10))
+        XCTAssertEqual(addedRow.value as? String, "Pinned")
+        addedRow.tap()
+        XCTAssertTrue(wait(timeout: 3) { (addedRow.value as? String) == "Not pinned" })
+
+        let skipStep = app.buttons["onboardingSkipStep"]
+        XCTAssertTrue(waitForHittable(skipStep, timeout: 5))
+        skipStep.tap()
+        XCTAssertTrue(waitForHittable(skipStep, timeout: 5))
+        skipStep.tap()
+
+        acceptTerms(app)
+        let continueBtn = app.buttons["onboardingContinue"]
+        XCTAssertTrue(waitForHittable(continueBtn, timeout: 5))
+        continueBtn.tap()
+
+        let browse = app.buttons["onboardingBrowseForums"]
+        XCTAssertTrue(waitForHittable(browse, timeout: 10))
+        browse.tap()
+        XCTAssertTrue(any(app, "home").waitForExistence(timeout: 10))
+
+        let pinnedPredicate = NSPredicate(format: "identifier BEGINSWITH 'pinnedForum-127.0.0.1'")
+        XCTAssertFalse(
+            app.descendants(matching: .any).matching(pinnedPredicate).firstMatch.exists,
+            "Unchecking an added custom forum on Step 3 and tapping 'Skip for now' still left it pinned on Home."
+        )
+    }
+
     /// The progress dots read "Step N of 6: <title>".
     private func assertStep(
         _ number: Int,

@@ -1,3 +1,4 @@
+import UIKit
 import XCTest
 
 /// History (spec §9.2): reachable from Home and from the drawer's menu, the
@@ -55,5 +56,43 @@ final class HistoryUITests: DCUITestCase {
         XCTAssertTrue(history.waitForExistence(timeout: 10), "The drawer menu has no History.")
         history.tap()
         XCTAssertTrue(app.buttons["historySegment-all"].waitForExistence(timeout: 10), "History did not open.")
+    }
+
+    func testHistoryFilterCollapsesToMenuAtAccessibilitySize() throws {
+        let app = launch(
+            [
+                "-UIPreferredContentSizeCategoryName",
+                UIContentSizeCategory.accessibilityExtraExtraExtraLarge.rawValue,
+                "-dc-sample",
+                "-dc-forums-home",
+                "-dc-force-width", "375"
+            ],
+            orientation: .portrait
+        )
+        XCTAssertTrue(any(app, "home").waitForExistence(timeout: 15))
+        let history = app.buttons["homeHistory"]
+        XCTAssertTrue(waitForHittable(history, timeout: 10))
+        history.tap()
+
+        XCTAssertTrue(any(app, "historyView").waitForExistence(timeout: 10))
+        let segmentMenu = app.buttons["historySegmentMenu"]
+        XCTAssertTrue(
+            segmentMenu.waitForExistence(timeout: 5),
+            "At AX5 Dynamic Type, HistoryView segment control did not collapse into a menu."
+        )
+        XCTAssertFalse(
+            app.buttons["historySegment-summaries"].exists,
+            "At AX5 Dynamic Type, HistoryView still renders horizontal segment chips."
+        )
+
+        segmentMenu.tap()
+        let asksOption = app.buttons["historySegmentOption-asks"].exists
+            ? app.buttons["historySegmentOption-asks"]
+            : app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Asks'")).firstMatch
+        XCTAssertTrue(asksOption.waitForExistence(timeout: 5))
+        asksOption.tap()
+
+        XCTAssertTrue(reveal(any(app, "agentRunRow"), in: app), "Selecting Asks from the AX5 menu did not filter to Ask runs.")
+        XCTAssertEqual(summaryRows(app).count, 0)
     }
 }

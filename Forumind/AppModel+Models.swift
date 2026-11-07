@@ -169,8 +169,35 @@ extension AppModel {
         saveSettings()
     }
 
+    /// Whether this device can ever run Apple Intelligence (not an older OS
+    /// or unsupported hardware).
+    var isAppleIntelligenceSupportedOnDevice: Bool {
+        !ModelFavorites.hidesAppleIntelligence(appleIntelligenceStatus)
+    }
+
+    /// Whether `provider` can be chosen in the provider menus on this device.
+    func isProviderSelectable(_ provider: AIProvider) -> Bool {
+        !provider.isAppleIntelligence || isAppleIntelligenceSupportedOnDevice
+    }
+
+    /// Subtitle under `provider` in the provider menus.
+    func providerMenuSubtitle(for provider: AIProvider) -> String {
+        guard provider.isAppleIntelligence else { return ProviderGuide.guide(for: provider).blurb }
+        guard isAppleIntelligenceSupportedOnDevice else {
+            return String(
+                localized: "Not supported on this device",
+                comment: "Provider menu: Apple Intelligence is unavailable because this device does not support it"
+            )
+        }
+        return String(
+            localized: "\(appleIntelligenceStatus.title) · No API key needed · Private",
+            comment: "Provider menu subtitle for Apple Intelligence: its status, then two short facts"
+        )
+    }
+
     /// Switches the scope to `provider` with its suggested model.
     func selectProvider(_ provider: AIProvider, for scope: ModelScope) {
+        guard isProviderSelectable(provider) else { return }
         // With `.both`, a role still on another provider moves too.
         guard scope.roles.contains(where: { selection(for: $0).provider != provider }) else { return }
         selectModel(
@@ -190,6 +217,7 @@ extension AppModel {
 
     /// Switches one role to a favorite; the other role is left as it is.
     func activateFavorite(_ favorite: FavoriteModel, for role: ModelRole) {
+        guard isProviderSelectable(favorite.provider) else { return }
         selectModel(ModelSelection(provider: favorite.provider, model: favorite.model), for: .role(role))
     }
 
@@ -200,7 +228,9 @@ extension AppModel {
     /// Stars the role's current model (up to 30 favorites). Apple
     /// Intelligence is starred like any other provider.
     func addCurrentFavorite(for role: ModelRole) {
-        guard let favorite = FavoriteModel(selection: selection(for: role)),
+        let current = selection(for: role)
+        guard isProviderSelectable(current.provider),
+              let favorite = FavoriteModel(selection: current),
               let starred = ModelFavorites.adding(favorite, to: settings.favoriteModels)
         else { return }
         settings.favoriteModels = starred
@@ -252,7 +282,9 @@ extension AppModel {
 
     /// Gives `role.other` the same provider and model as `role`.
     func useSameModel(as role: ModelRole) {
-        selectModel(selection(for: role), for: .role(role.other))
+        let chosen = selection(for: role)
+        guard isProviderSelectable(chosen.provider) else { return }
+        selectModel(chosen, for: .role(role.other))
     }
 }
 

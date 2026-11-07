@@ -92,4 +92,86 @@ final class DesignTokenTests: XCTestCase {
         XCTAssertEqual(white(.light), 1, accuracy: 0.01)
         XCTAssertEqual(white(.dark), 0, accuracy: 0.01)
     }
+
+    @MainActor
+    func testHistoryFilterSelectedChipUsesDarkBrandBlueToken() throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let app = AppModel(
+            store: PersistentStore(fileURL: dir.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore()),
+            backgroundScheduler: FakeTaskScheduler(),
+            podcastDirectory: dir.appendingPathComponent("Podcasts", isDirectory: true)
+        )
+        app.usesDirectForumRequests = true
+        app.browser.onPageContextChanged = nil
+
+        let size = CGSize(width: 390, height: 220)
+        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(origin: .zero, size: size))
+        window.frame = CGRect(origin: .zero, size: size)
+        window.overrideUserInterfaceStyle = .dark
+        let host = UIHostingController(rootView: HistoryView(app: app).environment(\.colorScheme, .dark))
+        host.overrideUserInterfaceStyle = .dark
+        window.rootViewController = host
+        window.makeKeyAndVisible()
+        defer {
+            window.isHidden = true
+            window.rootViewController = nil
+            window.windowScene = nil
+        }
+        host.view.frame = window.bounds
+        window.layoutIfNeeded()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+        window.layoutIfNeeded()
+
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        format.preferredRange = .standard
+        let image = UIGraphicsImageRenderer(size: CGSize(width: 200, height: 140), format: format).image { ctx in
+            if !window.drawHierarchy(in: window.bounds, afterScreenUpdates: true) {
+                window.layer.render(in: ctx.cgContext)
+            }
+        }
+        guard let cgImage = image.cgImage,
+              let data = cgImage.dataProvider?.data,
+              let ptr = CFDataGetBytePtr(data)
+        else {
+            XCTFail("Failed to capture HistoryView filter bar bitmap.")
+            return
+        }
+
+        let darkBrand = UIColor(DCTheme.brandBlue).resolvedColor(with: Mode.dark.traits)
+        var tr: CGFloat = 0, tg: CGFloat = 0, tb: CGFloat = 0, ta: CGFloat = 0
+        darkBrand.getRed(&tr, green: &tg, blue: &tb, alpha: &ta)
+        let wantR = Int((tr * 255).rounded())
+        let wantG = Int((tg * 255).rounded())
+        let wantB = Int((tb * 255).rounded())
+
+        let bpp = cgImage.bitsPerPixel / 8
+        let bpr = cgImage.bytesPerRow
+        var foundDarkBrandBlue = false
+        for y in 0..<cgImage.height {
+            for x in 0..<cgImage.width {
+                let offset = y * bpr + x * bpp
+                let b0 = Int(ptr[offset])
+                let b1 = Int(ptr[offset + 1])
+                let b2 = Int(ptr[offset + 2])
+                // Match either RGB or BGR byte order within ±16 tolerance.
+                let rgbMatch = abs(b0 - wantR) <= 16 && abs(b1 - wantG) <= 16 && abs(b2 - wantB) <= 16
+                let bgrMatch = abs(b2 - wantR) <= 16 && abs(b1 - wantG) <= 16 && abs(b0 - wantB) <= 16
+                if rgbMatch || bgrMatch {
+                    foundDarkBrandBlue = true
+                    break
+                }
+            }
+            if foundDarkBrandBlue { break }
+        }
+
+        XCTAssertTrue(
+            foundDarkBrandBlue,
+            "Selected HistoryView filter chip in dark mode did not render DCTheme.brandBlue (\(String(format: "#%02X%02X%02X", wantR, wantG, wantB)))."
+        )
+    }
 }

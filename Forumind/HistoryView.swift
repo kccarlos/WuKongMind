@@ -101,6 +101,14 @@ struct HistoryView: View {
     /// nil shows every forum.
     @State private var forumFilter: String?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    private static let selectedChipForeground = Color(
+        light: 0xFFFFFF,
+        dark: 0x0B0E1A,
+        highContrastLight: 0xFFFFFF,
+        highContrastDark: 0x000000
+    )
 
     typealias Segment = HistoryFeed.Segment
 
@@ -154,11 +162,11 @@ struct HistoryView: View {
                 }
             }
             .listStyle(.insetGrouped)
+            .accessibilityIdentifier("historyView")
             .animation(DCMotion.respecting(reduceMotion), value: segment)
             .animation(DCMotion.respecting(reduceMotion), value: forumFilter)
         }
         .background(DCTheme.pageBackground)
-        .accessibilityIdentifier("historyView")
         // The filtered forum was removed or its data cleared: back to All.
         .onChange(of: app.manageForums.map(\.siteURL)) { _, siteURLs in
             if let forumFilter, !siteURLs.contains(forumFilter) { self.forumFilter = nil }
@@ -197,21 +205,28 @@ struct HistoryView: View {
 
     private func filterBar(_ feed: HistoryFeed) -> some View {
         HStack(spacing: 8) {
-            ScrollViewReader { proxy in
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 6) {
-                        ForEach(Segment.allCases) { item in
-                            segmentChip(item, count: feed.count(item)).id(item)
-                        }
-                    }
-                    .padding(.horizontal, 14)
+            if dynamicTypeSize.isAccessibilitySize {
+                segmentMenu(feed)
+                    .padding(.leading, 14)
                     .padding(.vertical, 10)
-                }
-                // Keep the selected segment visible on a narrow phone.
-                .onAppear { proxy.scrollTo(segment, anchor: .center) }
-                .onChange(of: segment) {
-                    withAnimation(DCMotion.respecting(reduceMotion, DCMotion.quick)) {
-                        proxy.scrollTo(segment, anchor: .center)
+                Spacer(minLength: 0)
+            } else {
+                ScrollViewReader { proxy in
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 6) {
+                            ForEach(Segment.allCases) { item in
+                                segmentChip(item, count: feed.count(item)).id(item)
+                            }
+                        }
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 10)
+                    }
+                    // Keep the selected segment visible on a narrow phone.
+                    .onAppear { proxy.scrollTo(segment, anchor: .center) }
+                    .onChange(of: segment) {
+                        withAnimation(DCMotion.respecting(reduceMotion, DCMotion.quick)) {
+                            proxy.scrollTo(segment, anchor: .center)
+                        }
                     }
                 }
             }
@@ -220,6 +235,50 @@ struct HistoryView: View {
         }
         .background(DCTheme.toolbar)
         .sensoryFeedback(.selection, trigger: segment)
+    }
+
+    private func segmentMenu(_ feed: HistoryFeed) -> some View {
+        let selectedCount = feed.count(segment)
+        return Menu {
+            ForEach(Segment.allCases) { item in
+                let count = feed.count(item)
+                let label = item != .all && count > 0 ? "\(item.title) (\(count))" : item.title
+                Button {
+                    withAnimation(DCMotion.respecting(reduceMotion, DCMotion.quick)) { segment = item }
+                } label: {
+                    Label {
+                        Text(verbatim: label)
+                    } icon: {
+                        Image(systemName: segment == item ? "checkmark" : item.systemImage)
+                    }
+                }
+                .accessibilityIdentifier("historySegmentOption-\(item.rawValue)")
+            }
+        } label: {
+            HStack(spacing: 6) {
+                Text(segment.title)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+                if segment != .all, selectedCount > 0 {
+                    Text("\(selectedCount)")
+                        .font(.caption2.weight(.bold).monospacedDigit())
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 1)
+                        .background(Self.selectedChipForeground.opacity(0.22), in: Capsule())
+                }
+                Image(systemName: "chevron.down")
+                    .font(.caption2.weight(.bold))
+                    .accessibilityHidden(true)
+            }
+            .font(.footnote.weight(.semibold))
+            .foregroundStyle(Self.selectedChipForeground)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .frame(minHeight: DCTheme.controlHeight)
+            .background(DCTheme.brandBlue, in: RoundedRectangle(cornerRadius: DCTheme.controlCornerRadius, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: DCTheme.controlCornerRadius, style: .continuous))
+        }
+        .accessibilityIdentifier("historySegmentMenu")
     }
 
     private func segmentChip(_ item: Segment, count: Int) -> some View {
@@ -234,14 +293,14 @@ struct HistoryView: View {
                         .font(.caption2.weight(.bold).monospacedDigit())
                         .padding(.horizontal, 5)
                         .padding(.vertical, 1)
-                        .background(selected ? Color.white.opacity(0.25) : Color.primary.opacity(0.08), in: Capsule())
+                        .background(selected ? Self.selectedChipForeground.opacity(0.22) : Color.primary.opacity(0.08), in: Capsule())
                 }
             }
             .font(.footnote.weight(.semibold))
-            .foregroundStyle(selected ? Color.white : Color.primary)
+            .foregroundStyle(selected ? Self.selectedChipForeground : Color.primary)
             .padding(.horizontal, 12)
             .padding(.vertical, 7)
-            .background(selected ? AnyShapeStyle(Color(hex: 0x3A5BE0)) : AnyShapeStyle(Color.primary.opacity(0.06)), in: Capsule())
+            .background(selected ? AnyShapeStyle(DCTheme.brandBlue) : AnyShapeStyle(Color.primary.opacity(0.06)), in: Capsule())
             .contentShape(Capsule())
         }
         .buttonStyle(.plain)
@@ -285,6 +344,7 @@ struct HistoryView: View {
                 }
                 Image(systemName: "chevron.down")
                     .font(.caption2.weight(.bold))
+                    .accessibilityHidden(true)
             }
             .foregroundStyle(forumFilter == nil ? Color.secondary : DCTheme.brandBlue)
             .frame(minWidth: DCTheme.controlHeight, minHeight: DCTheme.controlHeight)
