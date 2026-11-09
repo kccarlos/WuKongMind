@@ -10,11 +10,13 @@ on:
   push:
     branches: [main]
     tags: ['v*']
-    # Docs and store texts don't change the app; metadata goes up manually.
+    # Docs, store texts and the website don't change the app; metadata goes up manually.
     paths-ignore:
       - '**.md'
       - 'docs/**'
       - 'appstore/**'
+      - 'mobile-site/**'
+      - 'scripts/site/**'
       - '.github/ISSUE_TEMPLATE/**'
   workflow_dispatch:
     inputs:

@@ -2,7 +2,7 @@
   <img src="docs/brand/forumind-banner.png" alt="Forumind: read the thread without reading it all. AI summaries, chat and answers with sources, on iPhone and iPad." width="100%">
 </p>
 
-<h3 align="center">A forum browser with an AI assistant beside it, for Discourse forums, WordPress sites and Hacker News.</h3>
+<h3 align="center">A forum browser with an AI assistant beside it, for Discourse forums.</h3>
 
 <p align="center">
   <a href="https://apps.apple.com/app/id6816718686"><img src="https://img.shields.io/badge/App_Store-in_review-0D96F6?logo=appstore&logoColor=white" alt="App Store: in review"></a>
@@ -23,13 +23,19 @@
 questions, and let AI search the whole forum for you, with links to the posts
 it used. Forumind is a free, open-source app for iPhone and iPad that works
 with any forum built on [Discourse](https://www.discourse.org), like
-[meta.discourse.org](https://meta.discourse.org) or your own community, and
-also reads WordPress sites and Hacker News.
+[meta.discourse.org](https://meta.discourse.org) or your own community.
 
-> **App Store:** Forumind has been submitted and is in review. The
+> **App Store:** Forumind 1.0 is in App Store review. The
 > [App Store link](https://apps.apple.com/app/id6816718686) goes live once
-> Apple approves it. Until then, **[join the public beta on TestFlight](https://testflight.apple.com/join/XsfttG4P)**
-> on your iPhone or iPad, or [build it yourself](#build-from-source).
+> Apple approves it.
+>
+> **Two versions.** Development continues while 1.0 is in review. Newer
+> features, such as WordPress and Hacker News support, the daily digest and
+> podcast, live voice and translation, are only in the
+> **[TestFlight public beta](https://testflight.apple.com/join/XsfttG4P)** and
+> are marked **(beta)** below. They are not in the version in App Store review
+> and will be described to App Review when they are submitted. You can also
+> [build it yourself](#build-from-source).
 
 **Prefer your desktop browser?** Forumind's sibling is a [Chrome and Edge extension](https://forumind.top/).
 
@@ -37,12 +43,14 @@ also reads WordPress sites and Hacker News.
 
 - **Read less, know more.** Get the main points of a 500-reply topic without reading every post.
 - **Ask, don't dig.** Ask the forum a question and get an answer with numbered sources you can tap.
-- **Any Discourse forum, plus WordPress and Hacker News.** Public or private, big or small, including your own community.
+- **Any Discourse forum.** Public or private, big or small, including your own community.
 - **Your AI, your choice.** Apple Intelligence with no key, your own provider, or a model on your own computer.
 - **Private by design.** No Forumind servers, accounts, analytics, ads, or tracking.
 - **Free and open source.** Apache-2.0, built with SwiftUI for iPhone and iPad.
 
 ## Screenshots
+
+Screenshots show the current TestFlight beta, whose design is newer than the version in App Store review.
 
 <p align="center">
   <img src="docs/screenshots/iphone-page.png" alt="A Discourse Meta topic with the bottom bar; the ✦ button opens the AI drawer" width="200">
@@ -62,24 +70,23 @@ also reads WordPress sites and Hacker News.
   "Is there a workaround?"
 - **Ask the forum.** Ask a question and the assistant searches the forum,
   reads the best topics, and answers with numbered sources you can tap.
-- **Translate.** Translate the posts on screen, or a summary, on your device
+- **Translate (beta).** Translate the posts on screen, or a summary, on your device
   (iOS 18 or later).
 
 ### All your forums in one place
 
 - **Any Discourse forum.** Open a forum and the app recognizes it. Pin your
   favorites on **Home**; forums you visit show up under Recent.
-- **Daily digest and podcast.** The Today page collects your watched topics
+- **Daily digest and podcast (beta).** The Today page collects your watched topics
   and the top topics on pinned forums. Turn it into a short two-host podcast,
   read by your device's voices or, with a Google key, Google's.
-- **Live voice.** Talk to the app about the page you're reading, with Google
+- **Live voice (beta).** Talk to the app about the page you're reading, with Google
   Gemini Live and your own key. It asks first, because your voice and the
   page go to Google.
 - **Share from Safari or Chrome.** Share any forum page to Forumind to open
   it, summarize it, chat about it, or ask the forum.
 - **Watch topics.** Get a notification when a topic has new replies.
-- **iPhone and iPad.** On iPhone the assistant opens in a drawer over the
-  page; on a wide iPad window the two sit side by side.
+- **iPhone and iPad.** On iPad the forum and the assistant sit side by side.
 
 ### The right AI for each job
 
@@ -116,14 +123,14 @@ with:
 | Apps, smart home, and hardware | [Home Assistant Community](https://community.home-assistant.io), [Obsidian Forum](https://forum.obsidian.md), [Level1Techs Forums](https://forum.level1techs.com) |
 | Chinese-language communities | [美卡论坛 USCardForum](https://www.uscardforum.com), [LINUX DO](https://linux.do) |
 
-**WordPress sites** work too: open a blog post, or add the site by its
+**WordPress sites (beta)** work too in the TestFlight beta: open a blog post, or add the site by its
 address, and Forumind reads the article and its reader comments through the
 site's public REST API (comment search included, where the site allows it).
 Sites that turn the REST API off, or use plain `?p=` permalinks without
 `/wp-json/`, are not supported. Forumind is not affiliated with WordPress or
 the WordPress Foundation.
 
-**[Hacker News](https://news.ycombinator.com)** is supported too: add its
+**[Hacker News](https://news.ycombinator.com) (beta)** is supported in the TestFlight beta: add its
 address or open an `item?id=N` story link to read the story and nested
 comments, summarize, chat, search, or include it in your digest and podcast.
 Reading uses the public Algolia API; sign-in, posting and voting are unavailable.
@@ -179,7 +186,7 @@ Forumind is in App Store review. Once Apple approves it, it will be here:
 
 ### TestFlight public beta
 
-Try the latest build now: open **[https://testflight.apple.com/join/XsfttG4P](https://testflight.apple.com/join/XsfttG4P)** on your
+The beta has the features marked **(beta)** above, which are not yet in the App Store version. Try it now: open **[https://testflight.apple.com/join/XsfttG4P](https://testflight.apple.com/join/XsfttG4P)** on your
 iPhone or iPad, install Apple's TestFlight app if asked, and tap **Accept**.
 New builds arrive in TestFlight automatically. Send feedback from TestFlight
 (take a screenshot, or open Forumind in TestFlight › Send Beta Feedback) or
@@ -257,9 +264,9 @@ News or any forum.
 <summary><b>Which sites work?</b></summary>
 
 Any forum running Discourse, public or private (log in inside the app); the
-app tells you when a page isn't a supported site. WordPress sites work
-through the site's public REST API (`/wp-json/`); sites that turn it off are
-not supported. Hacker News is supported for reading: no sign-in, posting or
+app tells you when a page isn't a supported site. In the TestFlight beta,
+WordPress sites also work through the site's public REST API (`/wp-json/`); sites that turn it off are
+not supported. The beta also reads Hacker News: no sign-in, posting or
 voting.
 </details>
 

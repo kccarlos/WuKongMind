@@ -2,7 +2,7 @@
   <img src="docs/brand/forumind-banner-zh-Hant.png" alt="Forumind：幾百樓的長帖，不用爬樓也能讀懂。AI 摘要、聊天，以及附上來源的回答，支援 iPhone 與 iPad。" width="100%">
 </p>
 
-<h3 align="center">為 Discourse 論壇、WordPress 網站和 Hacker News 打造的論壇瀏覽器，身旁還有一位 AI 助理。</h3>
+<h3 align="center">為 Discourse 論壇打造的論壇瀏覽器，身旁還有一位 AI 助理。</h3>
 
 <p align="center">
   <a href="https://apps.apple.com/app/id6816718686"><img src="https://img.shields.io/badge/App_Store-%E5%AF%A9%E6%A0%B8%E4%B8%AD-0D96F6?logo=appstore&logoColor=white" alt="App Store：審核中"></a>
@@ -22,12 +22,16 @@
 **輕鬆讀完長篇討論。** 摘要長篇話題、追問細節，還能讓 AI
 替你搜尋整個論壇，並附上它引用的貼文連結。Forumind 是一款免費、開放原始碼的
 iPhone 與 iPad App，適用於任何以 [Discourse](https://www.discourse.org)
-架設的論壇，例如 [meta.discourse.org](https://meta.discourse.org) 或你自己的社群，
-也能閱讀 WordPress 網站和 Hacker News。
+架設的論壇，例如 [meta.discourse.org](https://meta.discourse.org) 或你自己的社群。
 
-> **App Store：** Forumind 已送交審核，目前審核中。Apple 核准後，
-> [App Store 連結](https://apps.apple.com/app/id6816718686)即可使用。在此之前，
-> 你可以**[透過 TestFlight 加入公開測試](https://testflight.apple.com/join/XsfttG4P)**，或[自行建置](#從原始碼建置)。
+> **App Store：** Forumind 1.0 正在 App Store 審核中。Apple 核准後，
+> [App Store 連結](https://apps.apple.com/app/id6816718686)即可使用。
+>
+> **兩個版本。** 1.0 審核期間開發仍持續進行。較新的功能，例如 WordPress 和
+> Hacker News 支援、每日摘要與 Podcast、即時語音和翻譯，目前只在
+> **[TestFlight 公開測試版](https://testflight.apple.com/join/XsfttG4P)**中提供，
+> 下文標為 **（測試版）**。送審版本不包含這些功能，送交審核時會向 App Review
+> 說明。你也可以[自行建置](#從原始碼建置)。
 
 **想在電腦瀏覽器上使用？** 也可以試試 [Chrome 與 Edge 擴充功能](https://forumind.top/)。
 
@@ -35,12 +39,14 @@ iPhone 與 iPad App，適用於任何以 [Discourse](https://www.discourse.org)
 
 - **少讀一點，多懂一些。** 不必逐篇閱讀，也能掌握 500 則回覆的話題重點。
 - **直接問，不用翻。** 向論壇提問，得到附上編號來源的回答，點一下就能查看原文。
-- **任何 Discourse 論壇，還有 WordPress 和 Hacker News。** 公開或私人、大型或小型，包括你自己的社群。
+- **任何 Discourse 論壇。** 公開或私人、大型或小型，包括你自己的社群。
 - **AI 由你選。** 免金鑰的 Apple Intelligence、你自己的 AI 供應商，或你自己電腦上的模型。
 - **隱私從設計開始。** 沒有 Forumind 伺服器、帳號、分析、廣告或追蹤。
 - **免費、開放原始碼。** 採用 Apache-2.0 授權，以 SwiftUI 為 iPhone 與 iPad 打造。
 
 ## 截圖
+
+截圖來自目前的 TestFlight 測試版，介面比送審版本新。
 
 <p align="center">
   <img src="docs/screenshots/iphone-page-zh-Hant.png" alt="Discourse Meta 上的一個話題和底部列，點 ✦ 按鈕打開 AI 抽屜" width="200">
@@ -58,7 +64,7 @@ iPhone 與 iPad App，適用於任何以 [Discourse](https://www.discourse.org)
 - **聊天。** 針對正在閱讀的話題提問：「大家最後怎麼決定？」或「有沒有替代做法？」
 - **問論壇。** 提出問題，助理會搜尋論壇、閱讀最相關的話題，並給出附上編號
   來源的回答，點一下即可開啟。
-- **翻譯。** 在裝置上翻譯畫面上的貼文或摘要（需要 iOS 18 或以上版本）。
+- **翻譯（測試版）。** 在裝置上翻譯畫面上的貼文或摘要（需要 iOS 18 或以上版本）。
 
 ### 所有論壇集中一處
 
@@ -67,11 +73,11 @@ iPhone 與 iPad App，適用於任何以 [Discourse](https://www.discourse.org)
 - **從 Safari 或 Chrome 分享。** 把任何論壇頁面分享到 Forumind，即可開啟、
   產生摘要、聊天或問論壇。
 - **追蹤話題。** 話題有新回覆時收到通知。
-- **每日摘要與 Podcast。** 今日頁面彙整你追蹤的話題和釘選論壇的熱門話題，
+- **每日摘要與 Podcast（測試版）。** 今日頁面彙整你追蹤的話題和釘選論壇的熱門話題，
   還能變成兩位主持人對談的簡短 Podcast，用裝置內建的語音朗讀，有 Google 金鑰時也可用 Google 的語音。
-- **即時語音。** 用 Google Gemini Live 和你自己的金鑰，開口詢問正在閱讀的頁面。
+- **即時語音（測試版）。** 用 Google Gemini Live 和你自己的金鑰，開口詢問正在閱讀的頁面。
   使用前會先徵求同意，因為你的聲音和頁面內容會傳送給 Google。
-- **iPhone 與 iPad。** 在 iPhone 上，助理以抽屜形式出現在頁面上方；在較寬的 iPad 視窗中，兩者並排顯示。
+- **iPhone 與 iPad。** 在 iPad 上，論壇和助理並排顯示。
 
 ### 每項工作都有合適的 AI
 
@@ -108,12 +114,12 @@ App 內登入）。可以用 Forumind 閱讀的熱門 Discourse 社群舉例：
 所有者所有，Forumind 與這些社群沒有隸屬關係。知道應該列在這裡的 Discourse 論壇？
 歡迎[提交 issue](https://github.com/kccarlos/forumind/issues)。
 
-**WordPress 網站**也可以使用：開啟一篇部落格文章，或依網址加入網站，Forumind
+**WordPress 網站（測試版）**在 TestFlight 測試版中也可以使用：開啟一篇部落格文章，或依網址加入網站，Forumind
 會透過網站公開的 REST API 讀取文章和讀者留言（網站允許時也支援留言搜尋）。
 關閉 REST API 的網站，或使用不含 `/wp-json/` 的 `?p=` 簡易永久連結的網站，
 不受支援。Forumind 與 WordPress 或 WordPress 基金會沒有隸屬關係。
 
-**[Hacker News](https://news.ycombinator.com)** 也受支援：加入它的網址，或開啟
+**[Hacker News](https://news.ycombinator.com)（測試版）** 在 TestFlight 測試版中受支援：加入它的網址，或開啟
 `item?id=N` 文章連結，即可閱讀文章和巢狀留言、產生摘要、聊天、搜尋，或把它加入
 每日摘要和 Podcast。閱讀使用公開的 Algolia API；不能登入、發文或投票。
 
@@ -160,7 +166,7 @@ Forumind 正在接受 App Store 審核。Apple 核准後，可在這裡下載：
 
 ### TestFlight 公開測試
 
-現在就可以試用最新版本：在 iPhone 或 iPad 上打開 **[https://testflight.apple.com/join/XsfttG4P](https://testflight.apple.com/join/XsfttG4P)**，
+測試版包含上文標為 **（測試版）** 的功能，這些功能尚未進入 App Store 版本。現在就可以試用：在 iPhone 或 iPad 上打開 **[https://testflight.apple.com/join/XsfttG4P](https://testflight.apple.com/join/XsfttG4P)**，
 依照提示安裝 Apple 的 TestFlight App，然後點一下**接受**。新版本會自動推送到
 TestFlight。你可以在 TestFlight 中回饋（截圖，或在 TestFlight 中打開
 Forumind › 傳送 Beta 版回饋），也可以[提交 issue](https://github.com/kccarlos/forumind/issues)。
@@ -228,8 +234,8 @@ Kit, Inc.、WordPress、Hacker News 或任何論壇皆無關聯，也未獲得�
 <summary><b>哪些網站可以用？</b></summary>
 
 任何執行 Discourse 的論壇，無論公開或私人（在 App 內登入即可）；如果頁面
-不是受支援的網站，App 會告訴你。WordPress 網站透過網站公開的 REST API
-（`/wp-json/`）讀取，關閉該介面的網站不受支援。Hacker News 支援閱讀，
+不是受支援的網站，App 會告訴你。TestFlight 測試版還能透過網站公開的 REST API
+（`/wp-json/`）讀取 WordPress 網站，關閉該介面的網站不受支援；測試版也能閱讀 Hacker News，
 不能登入、發文或投票。
 </details>
 

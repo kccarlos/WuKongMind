@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Forumind iPhone 与 iPad 版：论坛和博客的 AI 阅读伴侣</title>
-<meta name="description" content="Forumind 一键读完长帖的每一楼，再给出标注楼层号的摘要、附带来源的回答，以及能当播客听的每日摘要。支持 Discourse 论坛、WordPress 网站和 Hacker News。">
+<title>Forumind iPhone 与 iPad 版：论坛的 AI 阅读伴侣</title>
+<meta name="description" content="Forumind 一键读完长帖的每一楼，再给出标注楼层号的摘要和附带来源的回答。支持 Discourse 论坛。">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#111113" media="(prefers-color-scheme: dark)">
@@ -20,13 +20,13 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Forumind">
 <meta property="og:title" content="Forumind iPhone 与 iPad 版">
-<meta property="og:description" content="论坛和博客的 AI 阅读伴侣。读完整个帖子，标注楼层号，回答附带来源。">
+<meta property="og:description" content="论坛的 AI 阅读伴侣。读完整个帖子，标注楼层号，回答附带来源。">
 <meta property="og:image" content="https://mobile.forumind.top/assets/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="iPhone 上的 Forumind，论坛帖子上方打开了摘要抽屉。">
 <meta name="twitter:card" content="summary_large_image">
-<script type="application/ld+json">{"@context": "https://schema.org", "@type": "MobileApplication", "name": "Forumind", "url": "https://mobile.forumind.top/zh/", "inLanguage": ["en", "zh-Hans", "zh-Hant"], "description": "论坛和博客的 AI 阅读伴侣，适用于 iPhone 和 iPad。支持 Discourse 论坛、WordPress 网站和 Hacker News。", "image": "https://mobile.forumind.top/assets/og.png", "operatingSystem": "iOS 17 or later, iPadOS 17 or later", "applicationCategory": "Productivity", "isAccessibleForFree": true, "license": "https://www.apache.org/licenses/LICENSE-2.0", "downloadUrl": "https://testflight.apple.com/join/XsfttG4P"}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "MobileApplication", "name": "Forumind", "url": "https://mobile.forumind.top/zh/", "inLanguage": ["en", "zh-Hans", "zh-Hant"], "description": "论坛的 AI 阅读伴侣，适用于 iPhone 和 iPad。支持 Discourse 论坛。", "image": "https://mobile.forumind.top/assets/og.png", "operatingSystem": "iOS 17 or later, iPadOS 17 or later", "applicationCategory": "Productivity", "isAccessibleForFree": true, "license": "https://www.apache.org/licenses/LICENSE-2.0", "downloadUrl": "https://testflight.apple.com/join/XsfttG4P"}</script>
 <script>if (!matchMedia('(prefers-reduced-motion: reduce)').matches && 'IntersectionObserver' in window) document.documentElement.classList.add('anim');</script>
 <link rel="icon" href="../assets/icon-64.png" type="image/png">
 <link rel="apple-touch-icon" href="../assets/icon-180.png">
@@ -77,11 +77,11 @@
   <div class="hero-copy">
     <p class="eyebrow">Forumind iPhone 与 iPad 版</p>
     <h1>几百楼的长帖，<br>不用爬楼也能读懂</h1>
-    <p class="lead">论坛和博客的 AI 阅读伴侣。摘要标注楼层号，回答附带来源，每日摘要还能当播客听。</p>
+    <p class="lead">论坛的 AI 阅读伴侣。摘要标注楼层号，回答附带来源。</p>
     <div class="cta">
       <a class="btn store" href="https://testflight.apple.com/join/XsfttG4P">通过 TestFlight 加入测试版</a>
     </div>
-    <p class="fine">支持 Discourse 论坛、WordPress 网站和 Hacker News（<a href="sites/">查看网站列表</a>）。App 免费且开源。</p>
+    <p class="fine">Forumind 1.0 正在 App Store 审核中，支持 Discourse 论坛（<a href="sites/">查看网站列表</a>）。本页展示的是 TestFlight 测试版：标有“测试版”的功能，包括 WordPress 和 Hacker News 支持、翻译、每日摘要与播客、朗读和实时语音，送审版本里还没有。App 免费且开源。</p>
   </div>
 
   <div class="phone st hero-phone" data-steps="500,500,700,600,2600" data-hold="3000" role="img" aria-label="iPhone 上打开一个论坛长帖，抽屉从底部升起，摘要逐字出现，每个要点旁都标着楼层号。">
@@ -199,7 +199,7 @@
 <!-- Read: translation -->
 <section class="wide">
   <div class="copy center">
-    <h2>外语帖子，就地翻译</h2>
+    <h2>外语帖子，就地翻译 <span class='badge beta'>测试版</span></h2>
     <p>翻译屏幕上的帖子，或者翻译摘要。在设备上完成，需要 iOS 18。</p>
   </div>
   <div class="tcard st" data-steps="1400,600" data-hold="3200" role="img" aria-label="一条德语帖子变成你的阅读语言，并标注是在本设备上翻译的。">
@@ -274,7 +274,7 @@
       </ul>
     </div>
   </div>
-  <p class="under">Discourse 和 WordPress 网站用的是网站自己的搜索，Hacker News 用的是 Algolia 的 HN Search。默认每个问题最多 15 步、读 8 个话题，两者都可以在设置里调整。</p>
+  <p class="under">Discourse 论坛用的是论坛自己的搜索；测试版中，WordPress 网站用网站自己的搜索，Hacker News 用 Algolia 的 HN Search。默认每个问题最多 15 步、读 8 个话题，两者都可以在设置里调整。</p>
 </section>
 
 <!-- Listen: digest to podcast -->
@@ -284,7 +284,7 @@
 </header>
 <section class="split flip">
   <div class="copy">
-    <h2>今日摘要，一键变播客</h2>
+    <h2>今日摘要，一键变播客 <span class='badge beta'>测试版</span></h2>
     <p>你关注的话题和置顶论坛的热门话题，汇成一份今日摘要。再点一下，两位主持人把它讲给你听。可以用本设备的声音，也可以用你自己的密钥换 Google 的声音。</p>
   </div>
   <div class="today st" data-steps="400,500,500,1100,700,600" data-hold="3200" role="img" aria-label="三张今日摘要卡片叠在一起，今日播客的播放器从中出现并开始播放。">
@@ -305,7 +305,7 @@
 
 <!-- Listen: live voice -->
 <section class="voice" aria-labelledby="voice-title">
-  <h2 id="voice-title">开口问，它开口答</h2>
+  <h2 id="voice-title">开口问，它开口答 <span class='badge beta'>测试版</span></h2>
   <div class="vstage st" data-steps="600,1500,1200,600,2600" data-hold="1800" role="img" aria-label="实时语音对话。读者开口提问，声波跳动，Forumind 用语音回答。">
     <div class="fx">
       <p class="vstate"><span class="v-l">正在听</span><span class="v-t">正在思考…</span><span class="v-s">正在说话</span></p>
@@ -324,7 +324,7 @@
     <span class="bars fx"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
   </div>
   <div>
-    <h3>或者，只听这一篇</h3>
+    <h3>或者，只听这一篇 <span class='badge beta'>测试版</span></h3>
     <p>任何摘要或每日摘要卡片都能朗读。</p>
   </div>
 </section>
@@ -547,7 +547,7 @@
 <section class="teaser">
   <div class="copy center">
     <h2>你常逛的论坛，大概率能用</h2>
-    <p>任何 Discourse 论坛，公开的或需要登录的；开放 REST API 的 WordPress 网站；还有 Hacker News。这里是一些例子：</p>
+    <p>任何 Discourse 论坛，公开的或需要登录的。测试版还支持开放 REST API 的 WordPress 网站和 Hacker News。这里是一些例子：</p>
   </div>
   <!-- teaser:begin -->
 <ul class="tsites">
@@ -573,7 +573,7 @@
 <section class="end">
   <img src="../assets/icon-180.png" alt="" width="96" height="96">
   <h2>打开你常逛的论坛，<br>从这里开始</h2>
-  <p>支持 Discourse 论坛（公开或需要登录的都可以）、WordPress 网站和 Hacker News（只读，不能登录、发帖或投票）。适用于 iPhone 和 iPad，iOS 17 或更高版本。</p>
+  <p>支持 Discourse 论坛（公开或需要登录的都可以）。TestFlight 测试版还支持 WordPress 网站和 Hacker News（只读，不能登录、发帖或投票）。适用于 iPhone 和 iPad，iOS 17 或更高版本。</p>
   <a class="btn store" href="https://testflight.apple.com/join/XsfttG4P">通过 TestFlight 加入测试版</a>
 </section>
 
