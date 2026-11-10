@@ -20,5 +20,7 @@ report is passed on to the forum's own moderators when appropriate.
 
 - `users`: hides everything the user posts on that forum; leave out `site` to
   hide the username on every forum.
-- `posts`: hides one post (topic ID and post number).
+- `posts`: hides one post: the topic ID and, on Discourse, the post number; on
+  Hacker News and WordPress, the comment's own ID (the HN item ID or the
+  WordPress comment ID).
 - `words`: hides posts containing the word or phrase, on every forum.

@@ -127,8 +127,6 @@ def render_sites(sites):
             return " ".join([s["keywords"][lang], name[lang], s["host"]]).lower()
 
         login = ('<span class="badge"%s>Login</span>' % attr("data-zh", "需登录")) if s["requiresLogin"] else ""
-        if s["platform"] != "Discourse":  # not in the version in App Store review yet
-            login += '<span class="badge beta"%s>Beta</span>' % attr("data-zh", "测试版")
         cards.append(
             '<li class="site" data-categories="%s"%s%s>\n'
             '<a href="%s" rel="noopener"><span class="av" style="--hue: %d" aria-hidden="true">%s</span>'

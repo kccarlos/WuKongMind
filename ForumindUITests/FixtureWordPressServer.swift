@@ -32,6 +32,7 @@ final class FixtureWordPressServer: @unchecked Sendable {
     static let chatQuestion = "What do readers say about the card?"
 
     var pageStyle = ""
+    var pageComments = ""
 
     /// When set, a summary streams this long answer a chunk at a time, so a
     /// performance test has a real stream to measure under.
@@ -199,6 +200,7 @@ final class FixtureWordPressServer: @unchecked Sendable {
         <link rel="shortlink" href="\(baseURL)/?p=\(Self.postID)">
         </head><body class="post-template-default single single-post postid-\(Self.postID)" style="\(pageStyle)">
         <h1>Sample Cards</h1><p>The opening article of the fixture blog. Readers leave comments below.</p>
+        \(pageComments)
         </body></html>
         """
     }

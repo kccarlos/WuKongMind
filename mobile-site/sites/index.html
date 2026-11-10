@@ -36,6 +36,9 @@
 <header class="bar">
   <a class="brand" href="../"><img src="../assets/icon-64.png" alt="" width="28" height="28"><span>Forumind</span></a>
   <nav aria-label="Pages" data-zh-aria-label="页面">
+    <a href="../#read" data-zh="读帖">Read</a>
+    <a href="../#ask" data-zh="提问">Ask</a>
+    <a href="../#listen" data-zh="收听">Listen</a>
     <a href="../sites/" data-zh="网站">Sites</a>
     <a href="../privacy/" data-zh="隐私">Privacy</a>
     <a href="../support/" data-zh="支持">Support</a>
@@ -46,15 +49,15 @@
 <main id="top" class="doc wide-doc">
 <article>
 <h1 data-zh="支持的网站">Supported sites</h1>
-<p class="lede" data-zh="Forumind 能读任何 Discourse 论坛（公开的或需要登录的）。TestFlight 测试版还能读开放 REST API（&lt;code&gt;/wp-json/&lt;/code&gt;）的 WordPress 网站和 Hacker News（只读），这些网站标有“测试版”。下面是一些例子，按名称或域名搜索，或按分类筛选。">Forumind reads any Discourse forum, public or private. The TestFlight beta also reads WordPress sites with an open REST API (<code>/wp-json/</code>) and Hacker News (read only); those sites are marked Beta. Here are some examples: search by name or domain, or filter by category.</p>
+<p class="lede" data-zh="Forumind 能读任何 Discourse 论坛（公开的或需要登录的）、开放 REST API（&lt;code&gt;/wp-json/&lt;/code&gt;）的 WordPress 网站，以及 Hacker News（只读）。下面是一些例子，按名称或域名搜索，或按分类筛选。">Forumind reads any Discourse forum, public or private, WordPress sites with an open REST API (<code>/wp-json/</code>), and Hacker News (read only). Here are some examples: search by name or domain, or filter by category.</p>
 <!-- sites:begin -->
 <div class="filters" hidden>
 <div class="chips" role="group" aria-label="Filter by category" data-zh-aria-label="按分类筛选">
-<button type="button" class="chip" data-filter="all" aria-pressed="true" data-zh="全部 (32)">All (32)</button>
-<button type="button" class="chip" data-filter="finance" aria-pressed="false" data-zh="美卡、里程与羊毛 (7)">Credit Cards &amp; Miles (7)</button>
+<button type="button" class="chip" data-filter="all" aria-pressed="true" data-zh="全部 (30)">All (30)</button>
+<button type="button" class="chip" data-filter="finance" aria-pressed="false" data-zh="美卡、里程与羊毛 (6)">Credit Cards &amp; Miles (6)</button>
 <button type="button" class="chip" data-filter="ai" aria-pressed="false" data-zh="AI 与开发者 (10)">AI &amp; Developers (10)</button>
-<button type="button" class="chip" data-filter="tech" aria-pressed="false" data-zh="技术、Linux 与自托管 (21)">Tech, Linux &amp; Self-Host (21)</button>
-<button type="button" class="chip" data-filter="wordpress" aria-pressed="false" data-zh="WordPress 博客 (7)">WordPress Blogs (7)</button>
+<button type="button" class="chip" data-filter="tech" aria-pressed="false" data-zh="技术、Linux 与自托管 (20)">Tech, Linux &amp; Self-Host (20)</button>
+<button type="button" class="chip" data-filter="wordpress" aria-pressed="false" data-zh="WordPress 博客 (5)">WordPress Blogs (5)</button>
 </div>
 <input type="search" id="site-search" placeholder="Search a site or domain" aria-label="Search supported sites" data-zh-placeholder="搜索网站名或域名" data-zh-aria-label="搜索支持的网站">
 </div>
@@ -67,12 +70,7 @@
 <li class="site" data-categories="finance wordpress" data-keywords="doctor of credit doc bank bonus credit card data points wordpress comments doctor of credit (doc) www.doctorofcredit.com" data-zh-data-keywords="doctor of credit doc 北美 银行 开户 信用卡 优惠 评论 dp wordpress doctor of credit (doc) www.doctorofcredit.com">
 <a href="https://www.doctorofcredit.com" rel="noopener"><span class="av" style="--hue: 150" aria-hidden="true">DoC</span><span class="site-name" data-zh="Doctor of Credit (DoC)">Doctor of Credit (DoC)</span><span class="site-host">www.doctorofcredit.com</span></a>
 <p class="site-desc" data-zh="北美银行开户与信用卡优惠博客，一键汇总评论区数百条真实 DP。">Summarize hundreds of reader comment DPs on bank bonuses and card deals.</p>
-<p class="badges"><span class="badge">WordPress</span><span class="badge beta" data-zh="测试版">Beta</span></p>
-</li>
-<li class="site" data-categories="finance wordpress" data-keywords="us credit card guide uscreditcardguide card reviews approval comments dp wordpress us credit card guide www.uscreditcardguide.com" data-zh-data-keywords="us credit card guide 美卡指南 评论 留言 总结 dp wordpress 美卡指南 us credit card guide www.uscreditcardguide.com">
-<a href="https://www.uscreditcardguide.com" rel="noopener"><span class="av" style="--hue: 210" aria-hidden="true">CG</span><span class="site-name" data-zh="美卡指南 US Credit Card Guide">US Credit Card Guide</span><span class="site-host">www.uscreditcardguide.com</span></a>
-<p class="site-desc" data-zh="总结美卡指南评测文章底部上百条读者原生评论与最新申请 DP。">Summarize card guides and hundreds of reader approval comments.</p>
-<p class="badges"><span class="badge">WordPress</span><span class="badge beta" data-zh="测试版">Beta</span></p>
+<p class="badges"><span class="badge">WordPress</span></p>
 </li>
 <li class="site" data-categories="ai tech" data-keywords="linux do linux.do ai tech community discourse linux do linux.do" data-zh-data-keywords="linux do linux.do 社区 l站 ai 教程 福利 linux do 社区 linux.do">
 <a href="https://linux.do" rel="noopener"><span class="av" style="--hue: 32" aria-hidden="true">L</span><span class="site-name" data-zh="LINUX DO 社区">LINUX DO</span><span class="site-host">linux.do</span></a>
@@ -112,27 +110,22 @@
 <li class="site" data-categories="finance wordpress" data-keywords="frequent miler award travel miles points wordpress comments frequent miler frequentmiler.com" data-zh-data-keywords="frequent miler 常旅客 里程 转点 wordpress frequent miler frequentmiler.com">
 <a href="https://frequentmiler.com" rel="noopener"><span class="av" style="--hue: 200" aria-hidden="true">FM</span><span class="site-name" data-zh="Frequent Miler">Frequent Miler</span><span class="site-host">frequentmiler.com</span></a>
 <p class="site-desc" data-zh="常旅客里程甜点、转点活动与读者评论区真实 DP。">Award travel sweet spots, transfer bonuses, and reader comment DPs.</p>
-<p class="badges"><span class="badge">WordPress</span><span class="badge beta" data-zh="测试版">Beta</span></p>
+<p class="badges"><span class="badge">WordPress</span></p>
 </li>
 <li class="site" data-categories="finance wordpress" data-keywords="one mile at a time omaat airline hotel loyalty wordpress comments one mile at a time (omaat) onemileatatime.com" data-zh-data-keywords="one mile at a time omaat 航空 酒店 常旅客 wordpress one mile at a time (omaat) onemileatatime.com">
 <a href="https://onemileatatime.com" rel="noopener"><span class="av" style="--hue: 190" aria-hidden="true">OM</span><span class="site-name" data-zh="One Mile at a Time (OMAAT)">One Mile at a Time (OMAAT)</span><span class="site-host">onemileatatime.com</span></a>
 <p class="site-desc" data-zh="航空与酒店常旅客新闻、两舱评测与读者评论区。">Airline &amp; hotel loyalty news, flight reviews, and reader comments.</p>
-<p class="badges"><span class="badge">WordPress</span><span class="badge beta" data-zh="测试版">Beta</span></p>
+<p class="badges"><span class="badge">WordPress</span></p>
 </li>
 <li class="site" data-categories="finance wordpress" data-keywords="view from the wing travel loyalty wordpress comments view from the wing viewfromthewing.com" data-zh-data-keywords="view from the wing 常旅客 旅行 wordpress view from the wing viewfromthewing.com">
 <a href="https://viewfromthewing.com" rel="noopener"><span class="av" style="--hue: 235" aria-hidden="true">VW</span><span class="site-name" data-zh="View from the Wing">View from the Wing</span><span class="site-host">viewfromthewing.com</span></a>
 <p class="site-desc" data-zh="常旅客深度分析与旅行行业评论。">Frequent flyer analysis and travel commentary with native WP comments.</p>
-<p class="badges"><span class="badge">WordPress</span><span class="badge beta" data-zh="测试版">Beta</span></p>
+<p class="badges"><span class="badge">WordPress</span></p>
 </li>
 <li class="site" data-categories="finance wordpress" data-keywords="miles to memories deals rewards credit card wordpress comments miles to memories milestomemories.com" data-zh-data-keywords="miles to memories 信用卡 返现 促销 wordpress miles to memories milestomemories.com">
 <a href="https://milestomemories.com" rel="noopener"><span class="av" style="--hue: 135" aria-hidden="true">MM</span><span class="site-name" data-zh="Miles to Memories">Miles to Memories</span><span class="site-host">milestomemories.com</span></a>
 <p class="site-desc" data-zh="信用卡返现、促销活动与旅行省钱技巧评论区。">Deals, credit card rewards, buyer groups, and travel comment threads.</p>
-<p class="badges"><span class="badge">WordPress</span><span class="badge beta" data-zh="测试版">Beta</span></p>
-</li>
-<li class="site" data-categories="tech wordpress" data-keywords="9to5mac 9to5google apple google news comments wordpress 9to5mac &amp; 9to5google 9to5mac.com · 9to5google.com" data-zh-data-keywords="9to5mac 9to5google 苹果 科技 新闻 评论 wordpress 9to5mac &amp; 9to5google 9to5mac.com · 9to5google.com">
-<a href="https://9to5mac.com" rel="noopener"><span class="av" style="--hue: 265" aria-hidden="true">95</span><span class="site-name" data-zh="9to5Mac &amp;amp; 9to5Google">9to5Mac &amp; 9to5Google</span><span class="site-host">9to5mac.com · 9to5google.com</span></a>
-<p class="site-desc" data-zh="Apple 与 Google 科技新闻博客，快速总结文章底部上百条读者评论。">Apple &amp; Google news articles with hundreds of reader comments.</p>
-<p class="badges"><span class="badge">WordPress</span><span class="badge beta" data-zh="测试版">Beta</span></p>
+<p class="badges"><span class="badge">WordPress</span></p>
 </li>
 <li class="site" data-categories="tech" data-keywords="shuiyuan sjtu university campus discourse forum sjtu shuiyuan shuiyuan.sjtu.edu.cn" data-zh-data-keywords="shuiyuan sjtu 上海交大 水源社区 高校 论坛 上海交大水源社区 (shuiyuan) shuiyuan.sjtu.edu.cn">
 <a href="https://shuiyuan.sjtu.edu.cn" rel="noopener"><span class="av" style="--hue: 212" aria-hidden="true">SY</span><span class="site-name" data-zh="上海交大水源社区 (Shuiyuan)">SJTU Shuiyuan</span><span class="site-host">shuiyuan.sjtu.edu.cn</span></a>
@@ -217,7 +210,7 @@
 <li class="site" data-categories="tech" data-keywords="hacker news hn ycombinator startups programming comments hacker news news.ycombinator.com" data-zh-data-keywords="hacker news hn ycombinator 黑客新闻 创业 编程 评论 hacker news news.ycombinator.com">
 <a href="https://news.ycombinator.com" rel="noopener"><span class="av" style="--hue: 24" aria-hidden="true">Y</span><span class="site-name" data-zh="Hacker News">Hacker News</span><span class="site-host">news.ycombinator.com</span></a>
 <p class="site-desc" data-zh="热门文章和长评论串，只读：不能登录、发帖或投票。">Stories and long comment threads, read only: no sign-in, posting or voting.</p>
-<p class="badges"><span class="badge">Hacker News</span><span class="badge beta" data-zh="测试版">Beta</span></p>
+<p class="badges"><span class="badge">Hacker News</span></p>
 </li>
 </ul>
 <p class="empty" id="sites-empty" role="status" hidden data-zh="列表中没有匹配的网站。在 Forumind 中打开任何 Discourse 论坛或 WordPress 网站，App 会告诉你能不能用。">No site in this list matches. Open any Discourse forum or WordPress site in Forumind, and it tells you whether the site works.</p>
@@ -238,7 +231,7 @@
     <a href="../privacy/" data-zh="隐私政策">Privacy</a>
     <a href="../support/" data-zh="帮助支持">Support</a>
   </nav>
-  <p data-zh="Forumind 是一款独立 App，与 Discourse、WordPress、Hacker News 及其所有者没有任何关联，也未获其认可。">Forumind is an independent app, not affiliated with or endorsed by Discourse, WordPress, Hacker News or their owners.</p>
+  <p data-zh="Forumind 是一款独立 App，与 Discourse、WordPress、Hacker News（Y Combinator）及其所有者没有任何关联，也未获其认可。">Forumind is an independent app, not affiliated with or endorsed by Discourse, WordPress, Hacker News (Y Combinator) or their owners.</p>
 </footer>
 
 <script src="../app.js"></script>

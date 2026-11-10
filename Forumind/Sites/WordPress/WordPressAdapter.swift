@@ -9,15 +9,24 @@ struct WordPressAdapter: SiteAdapter {
     var recognizer: any SiteRecognizer { WordPressRecognizer() }
     var links: any SiteLinks { WordPressLinks() }
 
-    /// No topic filters, page bridge, sign-in page or session reader. Search
+    /// No topic filters, sign-in page or session reader. Search
     /// is WordPress's own `?s=` page, on every install. A post's text by
     /// number is page arithmetic; the digest reads recent comments and the newest posts.
     var capabilities: SiteCapabilities {
         SiteCapabilities(
+            postIdentity: .native(anchorPrefix: "comment-"),
             activeTopics: WordPressActiveTopics(),
             postLookup: WordPressPostLookup(),
             topicFilters: nil,
-            pageBridge: nil,
+            pageBridge: .comments(
+                object: "__forumindWPModeration",
+                rows: ".comment[id^=comment-], .wpd-comment[id^=wpd-comm-]",
+                author: ".comment-author .fn, .wp-block-comment-author-name, .wpd-comment-author, article > footer > cite", body: ".comment-content, .wp-block-comment-content, .wpd-comment-text, .comment-body",
+                number: "Number((row.id.match(/^(?:comment-|wpd-comm-)([0-9]+)/) || [])[1])",
+                contents: "Array.from(row.children).filter(child => !child.matches('ol, ul, .children, .comment[id^=comment-], .wpd-comment'))",
+                authorText: "Array.from(element.childNodes).filter(node => !node.matches?.('.wpd-user-nicename')).map(node => node.textContent).join('')",
+                hiddenPosts: "config.posts[(document.body.className.match(/(?:postid|page-id)-(\\d+)/) || [])[1]] || []"
+            ),
             loginURL: nil,
             searchPageURL: { ForumSite.url(siteURL: $0, path: "/", query: [URLQueryItem(name: "s", value: $1)]) },
             session: nil,

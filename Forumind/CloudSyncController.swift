@@ -158,7 +158,7 @@ final class CloudSyncController: ObservableObject, CloudSyncTransportDelegate {
             )
         }
         #endif
-        guard store.usesDefaultLocation, !isRunningTests else {
+        guard store.usesDefaultLocation, !AppModel.isRunningTests else {
             return CloudSyncController(transport: nil, files: nil, defaults: nil, schedulesAutomatically: false)
         }
         #if CLOUDKIT_ENABLED
@@ -172,10 +172,6 @@ final class CloudSyncController: ObservableObject, CloudSyncTransportDelegate {
         #else
         return CloudSyncController(transport: nil, files: files, defaults: .standard)
         #endif
-    }
-
-    private static var isRunningTests: Bool {
-        NSClassFromString("XCTestCase") != nil
     }
 
     /// Called at the end of `AppModel.init`; starts syncing when enabled.

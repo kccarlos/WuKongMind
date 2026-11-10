@@ -115,9 +115,9 @@ enum PostCitations {
     static let scheme = "forumind-post"
 
     /// `#37`, not inside a word, a URL or `##`. ASCII only before it, so
-    /// `确认#37` still counts.
+    /// `确认#37` still counts. Brackets can group citations; `](...` marks an existing link.
     private static let pattern = try? NSRegularExpression(
-        pattern: #"(?<![A-Za-z0-9_&/#\[])#(\d{1,5})(?![\d\]])"#
+        pattern: #"(?<![A-Za-z0-9_&/#])#(\d{1,5})(?!\d)(?![^\[\]\n]*\]\()"#
     )
 
     static func url(post number: Int) -> URL? {
@@ -162,9 +162,23 @@ enum PostCitations {
     static func stripped(_ markdown: String) -> String {
         guard let pattern else { return markdown }
         return MarkdownCodeSpans.transform(markdown) { segment in
+            // Only discard groups that held citations, including their enclosing emphasis.
+            let group = #"(?:\[[\s,、，;；#0-9]+\]|\([\s,、，;；#0-9]+\)|（[\s,、，;；#0-9]+）|【[\s,、，;；#0-9]+】)"#
+            let groups = try? NSRegularExpression(pattern: "([*_]{1,3})" + group + #"\1|"# + group)
             let nsText = segment as NSString
+            let citations = pattern.matches(in: segment, range: NSRange(location: 0, length: nsText.length))
+            var text = segment
+            for match in (groups?.matches(in: segment, range: NSRange(location: 0, length: nsText.length)) ?? []).reversed() {
+                let candidate = nsText.substring(with: match.range)
+                let remaining = pattern.stringByReplacingMatches(in: candidate,
+                    range: NSRange(location: 0, length: (candidate as NSString).length), withTemplate: "")
+                guard remaining != candidate,
+                      remaining.allSatisfy({ "[]()（）【】*_,、，;；".contains($0) || $0.isWhitespace }),
+                      citations.contains(where: { NSIntersectionRange($0.range, match.range).length > 0 }) else { continue }
+                text = (text as NSString).replacingCharacters(in: match.range, with: "")
+            }
             let removed = pattern.stringByReplacingMatches(
-                in: segment, range: NSRange(location: 0, length: nsText.length), withTemplate: ""
+                in: text, range: NSRange(location: 0, length: (text as NSString).length), withTemplate: ""
             )
             // "fixes it #37 ; three" → "fixes it; three"
             return removed

@@ -31,6 +31,7 @@ struct BlockedPost: Codable, Hashable, Identifiable {
     /// Site URL as `ForumSite.normalizeSiteURL` returns it.
     var siteURL: String
     var topicID: String
+    /// Adapter moderation identity: native comment ID on comment sites.
     var postNumber: Int
     var blockedAt = Date()
 
@@ -46,7 +47,7 @@ enum ModerationTerms {
     static let currentVersion = 1
     static let url = URL(string: "https://github.com/kccarlos/forumind/blob/main/TERMS.md")!
     /// The app's privacy policy (Settings › Data & privacy).
-    static let privacyURL = URL(string: "https://github.com/kccarlos/forumind/blob/main/PRIVACY.md")!
+    static let privacyURL = URL(string: "https://mobile.forumind.top/privacy/")!
     /// Receives content reports. Reports are reviewed within 24 hours.
     static let reportEmail = "kccarlos.opensource@gmail.com"
 }
@@ -59,7 +60,7 @@ struct ModerationRules: Equatable {
     var filteredWords: [String] = []
     /// Lowercased usernames hidden on every forum by the developer's list.
     var globallyHiddenUsers: Set<String> = []
-    /// Post numbers hidden per "siteURL|topicID".
+    /// Adapter moderation identities hidden per "siteURL|topicID".
     var hiddenPosts: [String: Set<Int>] = [:]
 
     static let none = ModerationRules()
@@ -360,7 +361,7 @@ enum ModerationReport {
         reason: ReportReason?,
         note: String,
         blocked: Bool,
-        links: (any SiteLinks)?,
+        adapter: (any SiteAdapter)?,
         appVersion: String = AppVersion.text()
     ) -> String {
         var lines: [String] = []
@@ -373,8 +374,9 @@ enum ModerationReport {
         case .topic:
             break
         case .post(let number, let username):
-            if let url = target.topicURL, let links {
-                lines.append("Post URL: \(links.postURL(topicURL: url, number: number, anchor: nil).absoluteString)")
+            if let url = target.topicURL, let adapter {
+                let anchor: String? = if case .native(let prefix) = adapter.capabilities.postIdentity { prefix + "\(number)" } else { nil }
+                lines.append("Post URL: \(adapter.links.postURL(topicURL: url, number: number, anchor: anchor).absoluteString)")
             }
             lines.append("Post: #\(number) by @\(username)")
         case .user(let username):
@@ -402,11 +404,11 @@ enum ModerationReport {
         return lines.joined(separator: "\n")
     }
 
-    /// `links` are the target forum's (nil without an adapter: no post link).
-    static func draft(for target: ReportTarget, reason: ReportReason?, note: String, blocked: Bool, links: (any SiteLinks)?) -> MailDraft {
+    /// No post link without the target forum's adapter.
+    static func draft(for target: ReportTarget, reason: ReportReason?, note: String, blocked: Bool, adapter: (any SiteAdapter)?) -> MailDraft {
         MailDraft(
             subject: subject(for: target, blocked: blocked),
-            body: body(for: target, reason: reason, note: note, blocked: blocked, links: links)
+            body: body(for: target, reason: reason, note: note, blocked: blocked, adapter: adapter)
         )
     }
 
@@ -456,7 +458,7 @@ enum ModerationScript {
     /// Calls `window.__forumindModeration.update(config)`. The site's installer
     /// (`PageBridgeProfile.moderationInstaller`) runs on every page as a user
     /// script, so the interface is there; a page without one is left alone.
-    static func source(config: Config) -> String {
-        "if (window.__forumindModeration) window.__forumindModeration.update(\(json(config)));"
+    static func source(config: Config, object: String = "__forumindModeration") -> String {
+        "if (window.\(object)) window.\(object).update(\(json(config)));"
     }
 }

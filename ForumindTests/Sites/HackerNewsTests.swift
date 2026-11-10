@@ -74,7 +74,7 @@ final class HackerNewsTests: XCTestCase {
         XCTAssertEqual(match?.match.topicID, "1")
         XCTAssertEqual(a.siteURLCandidates(fromAddress: "news.ycombinator.com/item?id=1"), [HackerNewsFixture.site])
         XCTAssertTrue(a.siteURLCandidates(fromAddress: "example.com").isEmpty)
-        XCTAssertNil(a.capabilities.pageBridge)
+        XCTAssertNotNil(a.capabilities.pageBridge)
         XCTAssertNil(a.capabilities.loginURL)
         XCTAssertNil(a.capabilities.session)
         XCTAssertNil(a.capabilities.topicFilters)

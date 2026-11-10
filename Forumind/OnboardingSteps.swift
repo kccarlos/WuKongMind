@@ -166,7 +166,7 @@ struct OnboardingProviderPage: View {
             VStack(spacing: DCTheme.spacingS) {
                 choice(.gemini, recommended: true,
                        detail: String(localized: "Fast. Voice and podcast voices need it.", comment: "Walkthrough: why Google Gemini is recommended"))
-                if app.appleIntelligenceStatus.isAvailable {
+                if app.isAppleIntelligenceSupportedOnDevice {
                     choice(.appleIntelligence, recommended: false,
                            detail: String(localized: "Built in and private. No key.", comment: "Walkthrough: Apple Intelligence"))
                 }
@@ -570,6 +570,7 @@ struct ShareHowToGuide: View {
             }
             ShareActionsIllustration()
                 .padding(.leading, 40)
+            ShareStepRow(number: 4, symbol: "arrow.up.forward.app", text: "Open Forumind. Your page is waiting there, and what you picked starts.")
             Text("You only need to turn it on once. After that it appears in every app’s share sheet.")
                 .font(.footnote)
                 .foregroundStyle(.secondary)

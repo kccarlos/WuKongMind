@@ -9,8 +9,11 @@ struct HackerNewsAdapter: SiteAdapter {
     var discussion: DiscussionProfile { HackerNewsAgent.discussion }
     var suggestedForums: SuggestedForums { SuggestedForums(general: [], chinese: []) }
     var capabilities: SiteCapabilities {
-        SiteCapabilities(activeTopics: HackerNewsActiveTopics(), postLookup: HackerNewsPostLookup(), topicFilters: nil,
-                         pageBridge: nil, loginURL: nil, searchPageURL: { _, query in
+        SiteCapabilities(postIdentity: .native(anchorPrefix: ""), activeTopics: HackerNewsActiveTopics(), postLookup: HackerNewsPostLookup(), topicFilters: nil,
+                         pageBridge: .comments(
+                            object: "__forumindHNModeration", rows: "tr.athing.comtr", author: "a.hnuser, .comhead a[href^=\"user?id=\"]", body: ".commtext",
+                            number: "Number(row.id)", hiddenPosts: "Object.values(config.posts).flat()"
+                         ), loginURL: nil, searchPageURL: { _, query in
             var parts = URLComponents(string: "https://hn.algolia.com/")!
             parts.queryItems = [.init(name: "q", value: query)]
             return parts.url

@@ -1,1 +1,1 @@
-First release of Forumind. Summaries, chat, and Ask the forum for any Discourse forum, with Apple Intelligence or the AI provider you choose, optional ad and tracker blocking, and iCloud sync between iPhone and iPad.
+First release of Forumind. Summaries, chat and Ask the forum for Discourse, WordPress and Hacker News. A daily digest and podcast, live voice, on-device translation, Siri and Shortcuts, Apple Intelligence or your own AI provider, and iCloud sync.

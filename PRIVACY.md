@@ -232,7 +232,7 @@ new effective date. The history of changes is visible in the repository.
 
 ## Contact
 
-Questions or concerns: open an issue at
-<https://github.com/kccarlos/forumind/issues>. To report something
-privately, use
+Questions or concerns: email <kccarlos.opensource@gmail.com>, or open an
+issue at <https://github.com/kccarlos/forumind/issues>. To report a
+security problem privately, use
 <https://github.com/kccarlos/forumind/security/advisories/new>.

@@ -5,7 +5,6 @@ final class ShareSheetModel: ObservableObject {
     enum Phase: Equatable {
         case loading
         case ready(SharedPage)
-        case handingOff(SharedPage, IncomingLinkRequest.Action)
         case saved(SharedPage)
         case failed(SharedPage)
         case unsupported
@@ -17,7 +16,7 @@ final class ShareSheetModel: ObservableObject {
 
     var page: SharedPage? {
         switch phase {
-        case .ready(let page), .handingOff(let page, _), .saved(let page), .failed(let page):
+        case .ready(let page), .saved(let page), .failed(let page):
             return page
         case .loading, .unsupported:
             return nil
@@ -57,7 +56,7 @@ struct ShareSheetView: View {
                             title: "Couldn't hand off this page",
                             detail: "Open Forumind and paste the link in the address bar."
                         )
-                    case .loading, .ready, .handingOff:
+                    case .loading, .ready:
                         actions
                     }
                 }
@@ -88,21 +87,16 @@ struct ShareSheetView: View {
         return false
     }
 
-    private var busyAction: IncomingLinkRequest.Action? {
-        if case .handingOff(_, let action) = model.phase { return action }
-        return nil
-    }
-
     private var actions: some View {
         VStack(spacing: 10) {
             ForEach(ShareAction.all) { action in
                 Button {
                     model.onChoose(action.kind)
                 } label: {
-                    ShareActionLabel(action: action, isBusy: busyAction == action.kind)
+                    ShareActionLabel(action: action)
                 }
                 .buttonStyle(ShareActionButtonStyle(prominent: action.kind == .summary))
-                .disabled(model.page == nil || busyAction != nil)
+                .disabled(model.page == nil)
                 .accessibilityIdentifier("share.\(action.kind.rawValue)")
             }
         }
@@ -264,7 +258,6 @@ private struct ShareAction: Identifiable {
 
 private struct ShareActionLabel: View {
     let action: ShareAction
-    let isBusy: Bool
     @ScaledMetric(relativeTo: .body) private var iconSize: CGFloat = 38
 
     var body: some View {
@@ -291,14 +284,10 @@ private struct ShareActionLabel: View {
 
             Spacer(minLength: 8)
 
-            if isBusy {
-                ProgressView()
-            } else {
-                Image(systemName: "chevron.right")
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(.tertiary)
-                    .accessibilityHidden(true)
-            }
+            Image(systemName: "chevron.right")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.tertiary)
+                .accessibilityHidden(true)
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 12)

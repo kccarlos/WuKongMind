@@ -55,34 +55,6 @@
     }
   },
   {
-    "id": "uscreditcardguide",
-    "url": "https://www.uscreditcardguide.com",
-    "host": "www.uscreditcardguide.com",
-    "avatar": "CG",
-    "hue": 210,
-    "categories": [
-      "finance",
-      "wordpress"
-    ],
-    "platform": "WordPress",
-    "requiresLogin": false,
-    "keywords": {
-      "en": "us credit card guide uscreditcardguide card reviews approval comments dp wordpress",
-      "zh-CN": "us credit card guide 美卡指南 评论 留言 总结 dp wordpress",
-      "zh-TW": "us credit card guide 美卡指南 評論 留言 摘要 dp wordpress"
-    },
-    "name": {
-      "en": "US Credit Card Guide",
-      "zh-CN": "美卡指南 US Credit Card Guide",
-      "zh-TW": "美卡指南 US Credit Card Guide"
-    },
-    "desc": {
-      "en": "Summarize card guides and hundreds of reader approval comments.",
-      "zh-CN": "总结美卡指南评测文章底部上百条读者原生评论与最新申请 DP。",
-      "zh-TW": "摘要美卡指南評測文章底部上百則讀者原生留言與最新申請 DP。"
-    }
-  },
-  {
     "id": "linuxdo",
     "url": "https://linux.do",
     "host": "linux.do",
@@ -382,34 +354,6 @@
       "en": "Deals, credit card rewards, buyer groups, and travel comment threads.",
       "zh-CN": "信用卡返现、促销活动与旅行省钱技巧评论区。",
       "zh-TW": "信用卡回饋、促銷活動與旅行省錢技巧留言區。"
-    }
-  },
-  {
-    "id": "9to5mac",
-    "url": "https://9to5mac.com",
-    "host": "9to5mac.com · 9to5google.com",
-    "avatar": "95",
-    "hue": 265,
-    "categories": [
-      "tech",
-      "wordpress"
-    ],
-    "platform": "WordPress",
-    "requiresLogin": false,
-    "keywords": {
-      "en": "9to5mac 9to5google apple google news comments wordpress",
-      "zh-CN": "9to5mac 9to5google 苹果 科技 新闻 评论 wordpress",
-      "zh-TW": "9to5mac 9to5google 蘋果 科技 新聞 留言 wordpress"
-    },
-    "name": {
-      "en": "9to5Mac & 9to5Google",
-      "zh-CN": "9to5Mac & 9to5Google",
-      "zh-TW": "9to5Mac & 9to5Google"
-    },
-    "desc": {
-      "en": "Apple & Google news articles with hundreds of reader comments.",
-      "zh-CN": "Apple 与 Google 科技新闻博客，快速总结文章底部上百条读者评论。",
-      "zh-TW": "Apple 與 Google 科技新聞部落格，快速摘要文章底部上百則讀者留言。"
     }
   },
   {

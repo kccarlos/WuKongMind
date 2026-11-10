@@ -472,7 +472,7 @@ final class AIDataConsentTests: XCTestCase {
 
         let target = try XCTUnwrap(app.currentAIOutputReport(feature: .summary))
         XCTAssertNil(app.currentAIOutputReport(feature: .chatAnswer), "no chat answer yet")
-        let draft = ModerationReport.draft(for: target, reason: .inaccurate, note: "Wrong", blocked: false, links: nil)
+        let draft = ModerationReport.draft(for: target, reason: .inaccurate, note: "Wrong", blocked: false, adapter: nil)
         XCTAssertEqual(draft.subject, "Forumind report: AI summary on forum.example.com")
         XCTAssertTrue(draft.body.contains("Topic URL: \(topic.url.absoluteString)"))
         XCTAssertTrue(draft.body.contains("Model: Google Gemini · gemini-flash"))
@@ -491,7 +491,7 @@ final class AIDataConsentTests: XCTestCase {
         let run = AgentRun(siteURL: site, goal: "Which printer?", provider: .anthropic, model: "claude-test")
         let long = String(repeating: "a", count: AIOutput.reportTextLimit + 50)
         let target = app.aiOutputReport(for: run, answer: long)
-        let body = ModerationReport.body(for: target, reason: .other, note: "", blocked: false, links: nil)
+        let body = ModerationReport.body(for: target, reason: .other, note: "", blocked: false, adapter: nil)
         XCTAssertTrue(body.contains("Question: Which printer?"))
         XCTAssertTrue(body.contains("AI output: Ask the forum answer"))
         XCTAssertTrue(body.contains("Model: Anthropic · claude-test"))

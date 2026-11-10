@@ -119,10 +119,15 @@ extension AppModel: SystemEntryRouting {
     }
 
     /// The unit-test host: XCTest is loaded, or about to be (the test
-    /// runner sets the configuration path before launch).
+    /// runner sets the configuration path before launch). Tests run Debug
+    /// builds; a Release build never checks its environment.
     nonisolated static var isRunningTests: Bool {
+        #if DEBUG
         NSClassFromString("XCTestCase") != nil
             || ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+        #else
+        false
+        #endif
     }
 
     /// What Spotlight should hold now; nil while the switch is off.

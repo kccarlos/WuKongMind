@@ -753,6 +753,9 @@ private struct CitedText: View {
                         }
                     }
                     .frame(minWidth: 46, alignment: .leading)
+                    // The expanded target overlaps adjacent text, including
+                    // the next line. Words must not intercept a chip tap.
+                    .zIndex(1)
                     .layoutValue(key: TrailingSpace.self, value: suffix == nil || spaceAfter ? wordSpacing : 0)
                 }
             }

@@ -2,23 +2,15 @@ import Foundation
 
 /// Developer switches for voice.
 enum VoiceDebug {
-    private static let textInputKey = "voice.debug.textInput"
-
     /// "Type instead of speak" in the voice bar: typed turns go to the
     /// model as `realtimeInput.text`, so tool routing can be checked without
-    /// talking. Always on in DEBUG builds; elsewhere behind the hidden
-    /// developer switch in Settings › Help › About (per device).
+    /// talking. Debug builds only.
     static var showsTextInput: Bool {
         #if DEBUG
         true
         #else
-        UserDefaults.standard.bool(forKey: textInputKey)
+        false
         #endif
-    }
-
-    static var textInputSwitch: Bool {
-        get { UserDefaults.standard.bool(forKey: textInputKey) }
-        set { UserDefaults.standard.set(newValue, forKey: textInputKey) }
     }
 
     /// `-dc-voice-fake`: a scripted session with no network, microphone or

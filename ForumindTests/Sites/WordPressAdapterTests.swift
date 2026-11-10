@@ -505,7 +505,7 @@ final class WordPressAdapterTests: XCTestCase {
     func testCapabilitiesAreNilOrWorking() throws {
         let capabilities = adapter.capabilities
         XCTAssertNil(capabilities.topicFilters)
-        XCTAssertNil(capabilities.pageBridge)
+        XCTAssertNotNil(capabilities.pageBridge)
         XCTAssertNil(capabilities.loginURL)
         XCTAssertNil(capabilities.session)
         XCTAssertEqual(

@@ -3370,16 +3370,21 @@ final class AppModel: ObservableObject {
 
     private func isSearchHitPostHidden(_ hit: ForumSearchHit, siteURL: String, rules: ModerationRules) -> Bool {
         let topicID = hit.topic.topicID
+        let key = TopicIdentity.key(siteURL: siteURL, topicID: topicID)
+        let block = hit.url.fragment.flatMap { anchor in
+            sessions[key]?.rawPages.lazy.flatMap(\.blocks).first { $0.anchor == anchor }
+        }
+        if let block, rules.hidesUser(block.author, siteURL: siteURL) { return true }
+        if let anchor = hit.url.fragment,
+           let id = adapter(for: siteURL)?.capabilities.postIdentity.id(anchor: anchor) {
+            return rules.hidesPost(id, siteURL: siteURL, topicID: topicID)
+        }
+        let rules = topicModerationRules(siteURL: siteURL, topicID: topicID, rules: rules)
         if let number = hit.postNumber {
             return rules.hidesPost(number, siteURL: siteURL, topicID: topicID)
         }
-        let key = TopicIdentity.key(siteURL: siteURL, topicID: topicID)
-        if let fragment = hit.url.fragment, !fragment.isEmpty,
-           let block = sessions[key]?.rawPages.lazy.flatMap(\.blocks).first(where: { $0.anchor == fragment }) {
-            return rules.hidesPost(block.number, siteURL: siteURL, topicID: topicID)
-                || rules.hidesUser(block.author, siteURL: siteURL)
-        }
-        return rules.hasHiddenPosts(siteURL: siteURL, topicID: topicID)
+        if let block { return rules.hidesPost(block.number, siteURL: siteURL, topicID: topicID) }
+        return browser.moderationRules.hasHiddenPosts(siteURL: siteURL, topicID: topicID)
     }
 
     private func formatAgentTopicRead(
@@ -3441,7 +3446,7 @@ final class AppModel: ObservableObject {
                     }.prefix(20)
                     let numbers = hits.compactMap(\.postNumber)
                     if !numbers.isEmpty {
-                        let rules = browser.moderationRules
+                        let rules = aiModerationRules
                         if let lookup = adapter.capabilities.postLookup,
                            let facts = (try? await adapter.overview(TopicRef(siteURL: session.siteURL, topicID: session.topicID), net: net))?.facts,
                            let fetched = try? await lookup.posts(
@@ -3454,7 +3459,7 @@ final class AppModel: ObservableObject {
                             matches = fetched.compactMap { post in
                                 guard post.number > 1,
                                       !rules.hidesUser(post.username, siteURL: session.siteURL),
-                                      !rules.hidesPost(post.number, siteURL: session.siteURL, topicID: session.topicID),
+                                      !browser.moderationRules.hidesPost(adapter.capabilities.postIdentity.id(number: post.number, nativeID: post.id), siteURL: session.siteURL, topicID: session.topicID),
                                       !rules.hidesText(post.text)
                                 else { return nil }
                                 return "\(RawTopicFormat.authorToken(post.username)) | #\(post.number)\n\(RawTopicFormat.sanitizedBody(post.text))"

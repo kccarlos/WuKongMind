@@ -8222,6 +8222,22 @@
         }
       }
     },
+    "Hacker News is operated by Y Combinator. Forumind is not affiliated with or endorsed by Y Combinator or Hacker News." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hacker News 由 Y Combinator 运营。Forumind 与 Y Combinator 或 Hacker News 没有任何关联，也未获其认可。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hacker News 由 Y Combinator 營運。Forumind 與 Y Combinator 或 Hacker News 沒有任何關聯，也未獲其認可。"
+          }
+        }
+      }
+    },
     "Harassment or bullying" : {
       "comment" : "Content report reason",
       "localizations" : {
@@ -11479,6 +11495,22 @@
         }
       }
     },
+    "Open Forumind. Your page is waiting there, and what you picked starts." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开 Forumind。页面已经在那里等你，你选的操作会自动开始。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打開 Forumind。頁面已經在那裡等你，你選的操作會自動開始。"
+          }
+        }
+      }
+    },
     "Open Location" : {
       "localizations" : {
         "zh-Hans" : {
@@ -12932,6 +12964,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已封鎖使用者的貼文會在瀏覽器中隱藏，也不會用於摘要、聊天和「問論壇」。"
+          }
+        }
+      }
+    },
+    "Posts in this topic" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Posts in this topic"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本主题中的帖子"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本主題中的貼文"
           }
         }
       }

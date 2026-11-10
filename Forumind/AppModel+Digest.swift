@@ -152,7 +152,7 @@ extension AppModel {
                     TopicRef(siteURL: siteURL, topicID: topicID),
                     net: await network(siteURL)
                 )
-                prefetch.topics[topicKey] = DigestTopicFacts(overview: overview, rules: browser.moderationRules)
+                prefetch.topics[topicKey] = DigestTopicFacts(overview: overview, rules: topicModerationRules(siteURL: overview.siteURL, topicID: overview.topicID, facts: overview.facts))
             } catch {
                 if Task.isCancelled { return false }
                 prefetch.failedCount += 1
@@ -184,7 +184,7 @@ extension AppModel {
                 if let list = found.topics {
                     let rules = browser.moderationRules
                     prefetch.trending[forum.siteURL] = list.filter {
-                        !rules.hidesTopicTitle($0.title, siteURL: $0.siteURL, topicID: $0.topicID, openingPoster: $0.author)
+                        !isTopicTitleHidden($0.title, siteURL: $0.siteURL, topicID: $0.topicID, openingPoster: $0.author)
                             && !($0.excerpt.map(rules.hidesText) ?? false)
                     }
                 }
@@ -219,7 +219,7 @@ extension AppModel {
             trending: trending,
             facts: facts,
             options: DigestPlanner.Options(settings: settings),
-            rules: browser.moderationRules,
+            rules: aiModerationRules,
             slug: { slug(of: $0.url, siteURL: $0.siteURL) }
         )
         return (cards, DigestPlanner.postCounts(watched: watchedTopics, facts: facts))
@@ -511,7 +511,7 @@ extension AppModel {
         // saved summary then shows as behind when new replies came in).
         storeFetchedPages(fetch, topicKey: card.topicKey)
         card.postCount = fetch.totalPosts
-        let rules = browser.moderationRules
+        let rules = topicModerationRules(siteURL: card.siteURL, topicID: card.topicID, blocks: fetch.rawPages.flatMap(\.blocks), facts: fetch.facts)
         if let facts = fetch.facts {
             let overview = ForumTopicOverview(
                 siteURL: card.siteURL, topicID: card.topicID, title: card.title,
@@ -527,9 +527,9 @@ extension AppModel {
         guard card.isWatched || !isTopicTitleHidden(card.title, siteURL: card.siteURL, topicID: card.topicID, openingPoster: openingPoster) else {
             throw AssistantError.emptyResponse
         }
-        card = sanitizedDigestCard(card, facts: fetch.facts, rawContent: fetch.content)
+        card = sanitizedDigestCard(card, facts: fetch.facts, rawContent: fetch.content, blocks: fetch.rawPages.flatMap(\.blocks))
         let content = PromptBuilder.boundedForumContext(
-            moderated(fetch.content, siteURL: card.siteURL, topicID: card.topicID),
+            moderated(fetch.content, siteURL: card.siteURL, topicID: card.topicID, blocks: fetch.rawPages.flatMap(\.blocks), facts: fetch.facts),
             limit: context.contextLimit
         )
         guard !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
@@ -553,13 +553,14 @@ extension AppModel {
     func sanitizedDigestCard(
         _ card: DigestCard,
         facts: TopicFacts? = nil,
-        rawContent: String? = nil
+        rawContent: String? = nil,
+        blocks: [PostBlock]? = nil
     ) -> DigestCard {
-        let rules = browser.moderationRules
+        let rules = topicModerationRules(siteURL: card.siteURL, topicID: card.topicID, blocks: blocks, facts: facts)
         guard !rules.isEmpty else { return card }
         let effectiveFacts = facts ?? topicOverviews[card.topicKey]?.facts
         let session = sessions[card.topicKey]
-        let blocks = session?.rawPages.flatMap(\.blocks) ?? []
+        let blocks = blocks ?? session?.rawPages.flatMap(\.blocks) ?? []
         let headers = rawContent.map(RawTopicFormat.parseHeaders)
             ?? (session?.source.isEmpty == false ? RawTopicFormat.parseHeaders(session!.source) : [])
         var copy = card

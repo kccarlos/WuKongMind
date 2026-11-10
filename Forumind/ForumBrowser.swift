@@ -271,14 +271,16 @@ final class ForumBrowserModel: NSObject, ObservableObject {
                     forMainFrameOnly: true
                 )
             )
-            configuration.userContentController.addUserScript(
-                WKUserScript(
-                    source: bridge.bridgeInstaller,
-                    injectionTime: .atDocumentStart,
-                    forMainFrameOnly: true,
-                    in: BrowseScript.world
+            if let installer = bridge.bridgeInstaller {
+                configuration.userContentController.addUserScript(
+                    WKUserScript(
+                        source: installer,
+                        injectionTime: .atDocumentStart,
+                        forMainFrameOnly: true,
+                        in: BrowseScript.world
+                    )
                 )
-            )
+            }
         }
 
         webView = WKWebView(frame: .zero, configuration: configuration)
@@ -924,13 +926,13 @@ final class ForumBrowserModel: NSObject, ObservableObject {
 
     /// Whether visible-post translation is available on the current page.
     var canTranslatePostsOnScreen: Bool {
-        !isForumsHomeRequested && pageContext.topic != nil && pageBridge != nil && ReadingLanguage.isTranslationAvailable
+        !isForumsHomeRequested && pageContext.topic != nil && pageBridge?.bridgeInstaller != nil && ReadingLanguage.isTranslationAvailable
     }
 
     func applyModerationToPage() {
-        guard pageBridge != nil else { return }
+        guard let pageBridge else { return }
         let config = ModerationScript.config(rules: moderationRules, siteURL: pageContext.siteURL)
-        let script = ModerationScript.source(config: config)
+        let script = ModerationScript.source(config: config, object: pageBridge.moderationObject)
         #if DEBUG
         scriptSpy?(script)
         #endif
@@ -940,8 +942,9 @@ final class ForumBrowserModel: NSObject, ObservableObject {
 
     /// Posts on screen now (not hidden), newest layout first; for reporting.
     func visiblePosts() async -> [VisiblePost] {
-        guard pageBridge != nil else { return [] }
-        let script = "window.__forumindModeration ? JSON.stringify(window.__forumindModeration.posts()) : '[]'"
+        guard let pageBridge else { return [] }
+        let object = "window.\(pageBridge.moderationObject)"
+        let script = "\(object) ? JSON.stringify(\(object).posts()) : '[]'"
         #if DEBUG
         scriptSpy?(script)
         #endif
@@ -1061,8 +1064,8 @@ extension ForumBrowserModel: WKNavigationDelegate {
             self.updateNavigationState()
             self.applyModerationToPage()
             // A full load starts a fresh bridge: mark the landing post again.
-            self.applyPendingHighlight()
             await self.probeCurrentPage()
+            self.applyPendingHighlight(afterLoad: true)
             #if DEBUG
             // `-dc-scroll-page <points>`: scrolls each loaded page (screenshots).
             if let value = OnboardingDebug.value(after: "-dc-scroll-page"), let offset = Double(value) {

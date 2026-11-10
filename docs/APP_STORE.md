@@ -185,13 +185,9 @@ folder in CI:
 | `copyright.txt`, `primary_category.txt`, `secondary_category.txt` (top level, all languages) | |
 
 - Category: **Productivity** (primary), **Reference** (secondary).
-- Privacy Policy URL:
-  `https://github.com/kccarlos/forumind/blob/main/PRIVACY.md`.
-  It must be reachable without logging in, so the repository must be public
-  first. The site in `mobile-site/` (deployed by `pages.yml`) carries a copy
-  at `https://mobile.forumind.top/privacy/`; to use it, update
-  `privacy_url.txt` in every locale and `privacyURL` in
-  `Forumind/Moderation.swift`, and run `scripts/site/render_site.py` after editing `PRIVACY.md` (the site copy is generated).
+- Privacy Policy URL: `https://mobile.forumind.top/privacy/`, generated from
+  `PRIVACY.md` by `scripts/site/render_site.py` and deployed by `pages.yml`.
+  The app links to the same page (`privacyURL` in `Forumind/Moderation.swift`).
 - Marketing URL (recommended): `https://mobile.forumind.top`.
 - Support URL (recommended): `https://mobile.forumind.top/support/`. The
   repository's issues page, `https://github.com/kccarlos/forumind/issues`,

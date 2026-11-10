@@ -93,6 +93,49 @@ final class DrawerHintTests: XCTestCase {
         XCTAssertEqual(PostCitations.numbers(in: "确认#37，还有 #2 和 #37"), [37, 2])
     }
 
+    func testGroupedCitationsAndChinesePunctuation() {
+        for (text, numbers) in [("[#17 #81]", [17, 81]), ("[#165 #251 #690]", [165, 251, 690]),
+                                ("（#3、#5）", [3, 5]), ("确认#3，#5。", [3, 5])] {
+            XCTAssertEqual(PostCitations.numbers(in: text), numbers)
+            let linked = PostCitations.linked(text)
+            XCTAssertEqual(MarkdownInline.attributed(linked).runs.compactMap { $0.link.flatMap(PostCitations.postNumber) }, numbers)
+            for number in numbers {
+                XCTAssertTrue(linked.contains("[#\(number)](forumind-post:\(number))"))
+                XCTAssertFalse(PostCitations.stripped(text).contains("#\(number)"))
+            }
+            XCTAssertEqual(PostCitations.linked(linked), linked)
+            XCTAssertEqual(PostCitations.numbers(in: linked), [])
+            XCTAssertEqual(PostCitations.stripped(linked), linked)
+        }
+    }
+
+    func testCitationLinkLabelsArePreserved() {
+        for text in ["[#3 by alice](https://example.com/3)", "[#2 #3](url)", "[see #3](u)", "[see #3 and #4](u)"] {
+            XCTAssertEqual(PostCitations.linked(text), text)
+            XCTAssertEqual(PostCitations.stripped(text), text)
+            XCTAssertEqual(PostCitations.numbers(in: text), [])
+        }
+    }
+
+    func testStrippedRemovesEmptyCitationGroups() {
+        for (text, expected) in [("Readers agree [#17 #81].", "Readers agree."),
+                                 ("[#17, #81]", ""), ("x[#4]", "x"),
+                                 ("Agree (#3, #5).", "Agree."), ("确认（#3、#5）。", "确认。"),
+                                 ("【#3；#5】", ""), ("[see #3]", "[see ]")] {
+            XCTAssertEqual(PostCitations.stripped(text), expected)
+        }
+    }
+
+    func testStrippedPreservesUnrelatedBracketsAndRemovesCitationEmphasis() {
+        for (text, expected) in [("- [ ] buy milk #3", "- [ ] buy milk "),
+                                 ("call foo() now", "call foo() now"),
+                                 ("array[] here #3", "array[] here "),
+                                 ("*[#3 #4]*", ""), ("**[#3 #4]**", ""),
+                                 ("- [ ] buy milk", "- [ ] buy milk")] {
+            XCTAssertEqual(PostCitations.stripped(text), expected)
+        }
+    }
+
     func testCitationURLsRoundTrip() throws {
         let url = try XCTUnwrap(PostCitations.url(post: 37))
         XCTAssertEqual(PostCitations.postNumber(from: url), 37)

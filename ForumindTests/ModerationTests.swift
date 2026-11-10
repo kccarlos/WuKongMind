@@ -1,4 +1,5 @@
 import XCTest
+import WebKit
 @testable import Forumind
 
 /// Guideline 1.2 moderation: blocking, word filters, the developer's list,
@@ -143,7 +144,7 @@ final class ModerationTests: XCTestCase {
         )
         let subject = ModerationReport.subject(for: target, blocked: false)
         XCTAssertEqual(subject, "Forumind report: post #3 by @bob on forum.example.com")
-        let body = ModerationReport.body(for: target, reason: .harassment, note: " rude ", blocked: false, links: DiscourseLinks(), appVersion: "1.0 (1)")
+        let body = ModerationReport.body(for: target, reason: .harassment, note: " rude ", blocked: false, adapter: DiscourseAdapter(), appVersion: "1.0 (1)")
         XCTAssertTrue(body.contains("Post URL: https://forum.example.com/t/a-topic/42/3"))
         XCTAssertTrue(body.contains("Reason: harassment"))
         XCTAssertTrue(body.contains("Details:\nrude"))
@@ -164,6 +165,20 @@ final class ModerationTests: XCTestCase {
             DiscourseLinks().postURL(topicURL: url("https://f.example/forum/t/slug/42/17/"), number: 5, anchor: nil).absoluteString,
             "https://f.example/forum/t/slug/42/5"
         )
+    }
+
+    func testReportEmailLinksToNativeComment() throws {
+        let cases: [(any SiteAdapter, String, String)] = [
+            (HackerNewsAdapter(), "https://news.ycombinator.com/item?id=42", "https://news.ycombinator.com/item?id=42#101"),
+            (WordPressAdapter(), "https://wp.example/?p=42", "https://wp.example/?p=42#comment-101")
+        ]
+        for (adapter, topicURL, expected) in cases {
+            let target = ReportTarget(siteURL: "https://example.com", forumName: "Example",
+                topicTitle: "Topic", topicURL: try XCTUnwrap(URL(string: topicURL)),
+                kind: .post(number: 101, username: "alice"))
+            let draft = ModerationReport.draft(for: target, reason: nil, note: "", blocked: false, adapter: adapter)
+            XCTAssertTrue(draft.body.contains("Post URL: \(expected)"), draft.body)
+        }
     }
 
     // MARK: Settings and sync
@@ -732,8 +747,9 @@ final class ModerationTests: XCTestCase {
         app.selectModel(ModelSelection(provider: .ollama, model: "llama-local"), for: .both)
         app.browser.onPageContextChanged = nil
 
-        app.blockPost(2, topicID: "42", on: wpSite)
-        app.blockPost(1, topicID: "42", on: wpSite)
+        // Blocks use the native comment ID; zero identifies the article.
+        app.blockPost(102, topicID: "42", on: wpSite)
+        app.blockPost(0, topicID: "42", on: wpSite)
         app.block("mallory", on: wpSite)
 
         _ = try await app.performAgentRun(goal: "Find secrets", siteURL: wpSite)
@@ -993,4 +1009,816 @@ private final class ModerationURLStub: URLProtocol {
     }
 
     override func stopLoading() {}
+}
+
+@MainActor
+final class CommentPageModerationTests: XCTestCase {
+    func testHackerNewsCommentsCanBeReportedAndHidden() async throws {
+        try await check(adapter: HackerNewsAdapter(), url: "https://news.ycombinator.com/item?id=42", html: """
+        <table><tbody>
+        <tr class="athing comtr" id="101"><td><a class="hnuser">Alice</a><span class="commtext">Helpful reply</span></td></tr>
+        <tr class="athing comtr" id="102"><td><a class="hnuser">Bob</a><span class="commtext">BUY spam</span></td></tr>
+        <tr class="athing comtr" id="103"><td><a class="hnuser">Carol</a><span class="commtext">Another reply</span></td></tr>
+        </tbody></table>
+        """)
+    }
+
+    func testWordPressCommentsCanBeReportedAndHiddenWithoutHidingReplies() async throws {
+        try await check(adapter: WordPressAdapter(), url: "https://blog.example/post/", html: """
+        <body class="single postid-42"><ol><li class="comment" id="comment-101"><article id="div-comment-101">
+        <div class="comment-author"><b class="fn">Alice</b></div><div class="comment-content">Helpful reply</div></article>
+        <ol class="children"><li class="comment" id="comment-103"><article class="comment" id="div-comment-103">
+        <div class="comment-author"><b class="fn">Carol</b></div><div class="comment-content">Another reply</div></article></li></ol></li></ol>
+        <article class="comment" id="comment-102"><div class="comment-author"><span class="fn">Bob</span></div><div class="comment-content">BUY spam</div></article>
+        """, ids: [101, 103, 102])
+    }
+
+    private func check(adapter: any SiteAdapter, url: String, html: String, ids: [Int] = [101, 102, 103]) async throws {
+        XCTAssertNotNil(adapter.capabilities.pageBridge)
+        let browser = ForumBrowserModel()
+        // Recognition is tested separately; these minimal pages exercise only the bridges.
+        browser.webView.navigationDelegate = nil
+        browser.webView.configuration.userContentController.removeScriptMessageHandler(forName: "dcRouteChanged")
+        let pageURL = try XCTUnwrap(URL(string: url))
+        let siteURL = "\(pageURL.scheme!)://\(pageURL.host!)"
+        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let host = UIViewController()
+        window.rootViewController = host
+        window.makeKeyAndVisible()
+        browser.webView.frame = host.view.bounds
+        host.view.addSubview(browser.webView)
+        defer {
+            browser.webView.stopLoading()
+            browser.webView.removeFromSuperview()
+            window.isHidden = true
+            window.rootViewController = nil
+            window.windowScene = nil
+        }
+        browser.webView.loadHTMLString(html, baseURL: URL(string: url))
+        for _ in 0..<100 {
+            if (try? await browser.webView.evaluateJavaScript("document.readyState === 'complete' && !!document.querySelector('[id$=\"101\"]')")) as? Bool == true { break }
+            try await Task.sleep(for: .milliseconds(50))
+        }
+        browser.setPageContext(PageContext(url: URL(string: url), site: adapter.kind, siteURL: siteURL,
+            topic: ForumTopic(siteURL: url, topicID: "42", url: URL(string: url)!, title: "Fixture"), state: .topic))
+        let posts = await browser.visiblePosts()
+        XCTAssertEqual(posts.map(\.number), ids)
+        XCTAssertEqual(posts.first?.username, "Alice")
+        XCTAssertEqual(posts.first?.excerpt, "Helpful reply")
+        XCTAssertFalse(browser.canTranslatePostsOnScreen)
+        let scroll = await browser.scrollToPost(2, anchor: adapter.kind == .hackerNews ? "101" : "comment-101")
+        XCTAssertEqual(scroll, .shown)
+        let missing = await browser.scrollToPost(99, anchor: "999999")
+        XCTAssertEqual(missing, .missing)
+        // Use the same entry point as the report sheet and settings.
+        browser.moderationRules = ModerationRules(blockedUsers: [siteURL: ["alice"]], filteredWords: ["spam"])
+        browser.applyModerationToPage()
+        try await Task.sleep(for: .milliseconds(100))
+        let remaining = await browser.visiblePosts()
+        XCTAssertEqual(remaining.map(\.number), [103])
+        let hidden = try await browser.webView.evaluateJavaScript("[101, 102].filter(id => (document.getElementById(String(id)) || document.getElementById('comment-' + id)).querySelector('.commtext, .comment-content').getBoundingClientRect().height === 0).length") as? Int
+        XCTAssertEqual(hidden, 2)
+        let hiddenJump = await browser.scrollToPost(2, anchor: adapter.kind == .hackerNews ? "101" : "comment-101")
+        XCTAssertEqual(hiddenJump, .hidden)
+        // New comments loaded into the page inherit the active filter.
+        _ = try await browser.webView.evaluateJavaScript("""
+        const original = document.getElementById('102') || document.getElementById('comment-102');
+        const copy = original.cloneNode(true);
+        copy.id = original.id.replace('102', '104');
+        copy.removeAttribute('data-forumind-hidden');
+        original.parentNode.appendChild(copy);
+        true;
+        """)
+        let newCommentHidden = "(document.getElementById('104') || document.getElementById('comment-104')).getBoundingClientRect().height === 0"
+        for _ in 0..<60 {
+            if (try await browser.webView.evaluateJavaScript(newCommentHidden)) as? Bool == true { break }
+            try await Task.sleep(for: .milliseconds(50))
+        }
+        let dynamicHidden = try await browser.webView.evaluateJavaScript(newCommentHidden) as? Bool
+        XCTAssertEqual(dynamicHidden, true)
+        _ = try await browser.webView.evaluateJavaScript("copy.remove(); true;")
+        browser.moderationRules = ModerationRules()
+        browser.applyModerationToPage()
+        try await Task.sleep(for: .milliseconds(100))
+        let restored = await browser.visiblePosts()
+        XCTAssertEqual(restored.map(\.number), ids)
+        // Reporting a single comment uses its native DOM id, not its list position.
+        browser.moderationRules = ModerationRules(hiddenPosts: [siteURL + "|42": [103]])
+        browser.applyModerationToPage()
+        try await Task.sleep(for: .milliseconds(100))
+        let individuallyHidden = await browser.visiblePosts()
+        XCTAssertEqual(individuallyHidden.map(\.number), ids.filter { $0 != 103 })
+        // Page and public-list IDs must also filter the sequential AI text.
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = PersistentStore(fileURL: directory.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore())
+        let blocks = ids.enumerated().map { index, id in
+            PostBlock(number: index + 2, author: "author", date: nil,
+                      anchor: adapter.kind == .wordpress ? "comment-\(id)" : String(id), score: nil)
+        }
+        let opening = PostBlock(number: 1, author: "author", date: nil,
+                                anchor: adapter.kind == .wordpress ? "" : "42", score: nil)
+        let raw = RawTopicFormat.render([(opening, "Opening text")] + blocks.map { ($0, "Comment \($0.anchor)") })
+        var session = TopicSession(siteURL: siteURL, topicID: "42", url: pageURL, title: "Fixture")
+        session.source = raw
+        session.openedByUserAt = Date()
+        session.rawPages = [RawForumPage(page: 1, content: raw, blocks: [opening] + blocks)]
+        var snapshot = AppSnapshot(sessions: [session])
+        snapshot.ensureForum(siteURL, kind: adapter.kind)
+        try store.save(snapshot)
+        let app = AppModel(store: store)
+        app.browser.onPageContextChanged = nil
+        XCTAssertEqual(app.postAnchor(2, topicKey: session.topicKey), blocks[0].anchor)
+        app.settings.blockedPosts = [BlockedPost(siteURL: siteURL, topicID: "42", postNumber: 103)]
+        let filtered = app.moderated(raw, siteURL: siteURL, topicID: "42")
+        XCTAssertFalse(filtered.contains("Comment \(blocks[ids.firstIndex(of: 103)!].anchor)"))
+        XCTAssertTrue(filtered.contains("Comment \(blocks[0].anchor)"))
+        let sources = blocks.map { block in
+            AgentSources.Source(number: block.number, title: "Fixture",
+                url: adapter.links.postURL(topicURL: pageURL, number: block.number, anchor: block.anchor),
+                topicID: "42", postNumber: nil, cited: true)
+        }
+        XCTAssertEqual(app.sourceItems(sources, siteURL: siteURL).count, 2)
+        // Comment-search URLs carry the same IDs even before anchors are cached.
+        let listing = ForumTopicListing(siteURL: siteURL, id: 42, title: "Fixture", slug: "", url: pageURL)
+        let hits = sources.map { ForumSearchHit(topic: listing, postNumber: nil, username: "author", blurb: "Reply", url: $0.url) }
+        let search = app.moderatedSiteQueryResult(SiteQueryResult(hits: hits), siteURL: siteURL)
+        XCTAssertEqual(search.hits.map(\.url), sources.filter { $0.url.fragment != blocks[ids.firstIndex(of: 103)!].anchor }.map(\.url))
+        // The report sheet records the page's native number without remapping it.
+        app.settings.blockedPosts = []
+        app.blockPost(103, topicID: "42", on: siteURL)
+        XCTAssertEqual(app.settings.blockedPosts.map(\.postNumber), [103])
+        XCTAssertEqual(app.moderated(raw, siteURL: siteURL, topicID: "42"), filtered)
+        // The public moderation list uses exactly the same native IDs.
+        app.settings.blockedPosts = []
+        app.remoteModeration = RemoteModerationList(posts: [.init(site: siteURL, topic: 42, post: 103)])
+        XCTAssertEqual(app.moderated(raw, siteURL: siteURL, topicID: "42"), filtered)
+        app.remoteModeration = nil
+        // An unrelated native ID must never hide a comment by list position.
+        app.settings.blockedPosts = [BlockedPost(siteURL: siteURL, topicID: "42", postNumber: 2)]
+        XCTAssertEqual(app.moderated(raw, siteURL: siteURL, topicID: "42"), raw)
+        // The report sheet passes the native ID and hides the same DOM row.
+        app.settings.blockedPosts = []
+        app.blockPost(101, topicID: "42", on: siteURL)
+        XCTAssertEqual(app.settings.blockedPosts.map(\.postNumber), [101])
+        browser.moderationRules = app.moderationRules
+        browser.applyModerationToPage()
+        try await Task.sleep(for: .milliseconds(100))
+        let citationHidden = await browser.visiblePosts()
+        XCTAssertEqual(citationHidden.map(\.number), ids.filter { $0 != 101 })
+        // Facts alone suffice when the raw-page anchors are not cached.
+        let facts = TopicFacts(postsCount: blocks.count + 1, posts: [.init(id: 42, number: 1, username: "author")] + blocks.enumerated().map { index, block in
+            .init(id: ids[index], number: block.number, username: block.author)
+        })
+        session.rawPages = []
+        app.replaceSyncedData(sessions: [session.topicKey: session], agentRuns: [], watchedTopics: [], forums: app.forums)
+        app.topicOverviews[session.topicKey] = ForumTopicOverview(siteURL: siteURL, topicID: "42",
+            title: "Fixture", slug: "", url: pageURL, postCount: blocks.count + 1, facts: facts)
+        XCTAssertEqual(app.postAnchor(2, topicKey: session.topicKey), blocks[0].anchor)
+        XCTAssertEqual(app.postAnchor(1, topicKey: session.topicKey), adapter.kind == .wordpress ? nil : "42")
+        let plan = BrowseNavigation.plan(adapter: adapter, siteURL: siteURL, topicID: "42", slug: nil,
+            landing: .post(2), facts: facts, anchor: { app.postAnchor($0, topicKey: session.topicKey) })
+        XCTAssertEqual(plan?.url.fragment, blocks[0].anchor)
+        XCTAssertFalse(app.moderated(raw, siteURL: siteURL, topicID: "42").contains("Comment \(blocks[0].anchor)"))
+        app.settings.blockedPosts = []
+        app.blockPost(101, topicID: "42", on: siteURL)
+        XCTAssertEqual(app.settings.blockedPosts.map(\.postNumber), [101])
+        // A fresh fetch can be filtered before a session or overview is stored.
+        app.replaceSyncedData(sessions: [:], agentRuns: [], watchedTopics: [], forums: app.forums)
+        app.topicOverviews = [:]
+        XCTAssertFalse(app.moderated(raw, siteURL: siteURL, topicID: "42", blocks: blocks)
+            .contains("Comment \(blocks[0].anchor)"))
+        // The opening post has its own stable identity and cannot collide
+        // with the native ID of a comment.
+        app.settings.blockedPosts = []
+        app.blockPost(adapter.kind == .wordpress ? 0 : 42, topicID: "42", on: siteURL)
+        let openingHidden = app.moderated(raw, siteURL: siteURL, topicID: "42", blocks: [opening] + blocks)
+        XCTAssertFalse(openingHidden.contains("Opening text"))
+        XCTAssertTrue(openingHidden.contains("Comment \(blocks[0].anchor)"))
+        // Off-screen comments are not offered in the report sheet.
+        _ = try await browser.webView.evaluateJavaScript("document.body.style.paddingTop = '2000px'; window.scrollTo(0, 0); true;")
+        let offscreen = await browser.visiblePosts()
+        XCTAssertTrue(offscreen.isEmpty)
+    }
+}
+
+/// Independent review of the HN/WordPress page bridges. Markup is trimmed
+/// verbatim from real pages (wp-themes.com Twenty Twenty-Four and Twenty Twenty
+/// previews of "Hello world!", 2026-11-09); the nested reply follows WordPress
+/// core `blocks/comment-template.php` (children as `<ol>` inside the `<li>`).
+@MainActor
+final class CommentBridgeReviewTests: XCTestCase {
+    private static let tt4 = """
+    <body class="wp-singular post-template-default single single-post postid-1 single-format-standard wp-embed-responsive wp-theme-twentytwentyfour">
+    <ol class="wp-block-comment-template"><li id="comment-37977" class="comment even thread-even depth-1">
+    <div class="wp-block-group is-layout-flow wp-block-group-is-layout-flow">
+      <div class="wp-block-group is-nowrap is-layout-flex wp-block-group-is-layout-flex">
+        <div class="wp-block-group is-layout-flow wp-block-group-is-layout-flow">
+          <div class="wp-block-comment-author-name"><a rel="external nofollow ugc" href="https://wordpress.org/" target="_self" >A WordPress Commenter</a></div>
+          <div class="wp-block-comment-date"><time datetime="2008-06-04T22:04:01+00:00"><a href="?p=1#comment-37977">June 4, 2008</a></time></div>
+        </div>
+      </div>
+      <div class="wp-block-comment-content"><p>Hi, this is a comment.</p></div>
+    </div>
+    <ol><li id="comment-40000" class="comment odd alt depth-2">
+    <div class="wp-block-group is-layout-flow wp-block-group-is-layout-flow">
+      <div class="wp-block-comment-author-name"><a href="https://example.org/">Unrelated Replier</a></div>
+      <div class="wp-block-comment-content"><p>An unrelated reply.</p></div>
+    </div>
+    </li></ol>
+    </li><li id="comment-509" class="comment odd alt thread-odd thread-alt depth-1">
+    <div class="wp-block-group is-layout-flow wp-block-group-is-layout-flow">
+      <div class="wp-block-comment-author-name"><a rel="external nofollow ugc" href="http://josephscott.org/" target="_self" >Joseph Scott</a></div>
+      <div class="wp-block-comment-content"><p>Need a comment with a real Gravatar.</p></div>
+    </div>
+    </li></ol></body>
+    """
+
+    private static let twentyTwenty = """
+    <body class="post-template-default single single-post postid-1 single-format-standard wp-embed-responsive">
+    <div class="comments-inner section-inner thin max-percentage">
+    <div id="comment-37977" class="comment even thread-even depth-1">
+      <article id="div-comment-37977" class="comment-body">
+        <footer class="comment-meta"><div class="comment-author vcard"><a href="https://wordpress.org/" rel="external nofollow" class="url"><span class="fn">A WordPress Commenter</span><span class="screen-reader-text says">says:</span></a></div></footer>
+        <div class="comment-content entry-content"><p>Hi, this is a comment.</p></div>
+      </article>
+    </div>
+    <div id="comment-509" class="comment odd alt thread-odd thread-alt depth-1">
+      <article id="div-comment-509" class="comment-body">
+        <footer class="comment-meta"><div class="comment-author vcard"><a href="http://josephscott.org/" rel="external nofollow" class="url"><span class="fn">Joseph Scott</span><span class="screen-reader-text says">says:</span></a></div></footer>
+        <div class="comment-content entry-content"><p>Need a comment with a real Gravatar.</p></div>
+      </article>
+    </div>
+    </div></body>
+    """
+
+    // MARK: WordPress block theme (default theme family since WP 5.9)
+
+    func testBlockThemeReportSheetShowsRealAuthorsAndText() async throws {
+        let browser = try await load(WordPressAdapter(), url: "https://wp-themes.com/twentytwentyfour/?p=1", topicID: "1", html: Self.tt4)
+        defer { teardown(browser) }
+        let posts = await browser.visiblePosts()
+        XCTAssertEqual(posts.map(\.number), [37977, 40000, 509])
+        XCTAssertEqual(posts.map(\.username), ["A WordPress Commenter", "Unrelated Replier", "Joseph Scott"])
+        XCTAssertEqual(posts.first?.excerpt.contains("Hi, this is a comment."), true)
+    }
+
+    func testBlockThemeBlockedUserIsHidden() async throws {
+        let browser = try await load(WordPressAdapter(), url: "https://wp-themes.com/twentytwentyfour/?p=1", topicID: "1", html: Self.tt4)
+        defer { teardown(browser) }
+        try await apply(ModerationRules(blockedUsers: ["https://wp-themes.com": ["joseph scott"]]), to: browser)
+        let visible = await browser.visiblePosts()
+        XCTAssertEqual(visible.map(\.number), [37977, 40000])
+    }
+
+    func testBlockThemeFilteredWordIsHidden() async throws {
+        let browser = try await load(WordPressAdapter(), url: "https://wp-themes.com/twentytwentyfour/?p=1", topicID: "1", html: Self.tt4)
+        defer { teardown(browser) }
+        try await apply(ModerationRules(filteredWords: ["gravatar"]), to: browser)
+        let visible = await browser.visiblePosts()
+        XCTAssertEqual(visible.map(\.number), [37977, 40000])
+    }
+
+    func testBlockThemeBlockingParentKeepsUnrelatedReply() async throws {
+        let browser = try await load(WordPressAdapter(), url: "https://wp-themes.com/twentytwentyfour/?p=1", topicID: "1", html: Self.tt4)
+        defer { teardown(browser) }
+        try await apply(ModerationRules(hiddenPosts: ["https://wp-themes.com|1": [37977]]), to: browser)
+        let visible = await browser.visiblePosts()
+        XCTAssertEqual(visible.map(\.number), [40000, 509])
+    }
+
+    /// The report sheet offers "Block user" with the name it read: "anonymous".
+    func testBlockThemeBlockingOfferedNameHidesOnlyThatAuthor() async throws {
+        let browser = try await load(WordPressAdapter(), url: "https://wp-themes.com/twentytwentyfour/?p=1", topicID: "1", html: Self.tt4)
+        defer { teardown(browser) }
+        let offeredPosts = await browser.visiblePosts()
+        let offered = try XCTUnwrap(offeredPosts.last?.username)
+        try await apply(ModerationRules(blockedUsers: ["https://wp-themes.com": [offered.lowercased()]]), to: browser)
+        let visible = await browser.visiblePosts()
+        XCTAssertEqual(visible.map(\.number), [37977, 40000])
+    }
+
+    // MARK: Twenty Twenty (`'style' => 'div'`)
+
+    func testTwentyTwentyCommentsAreListedAndHidden() async throws {
+        let browser = try await load(WordPressAdapter(), url: "https://wp-themes.com/twentytwenty/?p=1", topicID: "1", html: Self.twentyTwenty)
+        defer { teardown(browser) }
+        let posts = await browser.visiblePosts()
+        XCTAssertEqual(posts.map(\.number), [37977, 509])
+        try await apply(ModerationRules(blockedUsers: ["https://wp-themes.com": ["joseph scott"]]), to: browser)
+        let visible = await browser.visiblePosts()
+        XCTAssertEqual(visible.map(\.number), [37977])
+    }
+
+    // MARK: Hacker News permalink pages
+
+    /// HN item ids are global: comment 103 blocked while reading story 42 also
+    /// appears on `item?id=101` (its parent's page).
+    func testHackerNewsBlockedCommentStaysHiddenOnParentPermalinkPage() async throws {
+        let html = """
+        <table><tbody>
+        <tr class="athing comtr" id="101"><td><a class="hnuser">alice</a><div class="commtext c00">Parent</div></td></tr>
+        <tr class="athing comtr" id="103"><td><a class="hnuser">carol</a><div class="commtext c00">Blocked reply</div></td></tr>
+        </tbody></table>
+        """
+        let browser = try await load(HackerNewsAdapter(), url: "https://news.ycombinator.com/item?id=101", topicID: "101", html: html)
+        defer { teardown(browser) }
+        try await apply(ModerationRules(hiddenPosts: ["https://news.ycombinator.com|42": [103]]), to: browser)
+        let visible = await browser.visiblePosts()
+        XCTAssertEqual(visible.map(\.number), [101])
+    }
+
+    // MARK: Cached blocks versus fresh facts
+
+    /// HN numbers are preorder: a new reply shifts later comments. Callers that
+    /// pass fresh facts (digest prefetch, voice brief, postText) still get the
+    /// cached session's blocks, which win.
+    func testFreshFactsAreNotOverriddenByStaleCachedBlocks() throws {
+        let site = "https://news.ycombinator.com"
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = PersistentStore(fileURL: directory.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore())
+        let url = URL(string: "\(site)/item?id=42")!
+        let stale = [PostBlock(number: 1, author: "op", date: nil, anchor: "42", score: nil),
+                     PostBlock(number: 2, author: "a", date: nil, anchor: "101", score: nil),
+                     PostBlock(number: 3, author: "b", date: nil, anchor: "102", score: nil)]
+        var session = TopicSession(siteURL: site, topicID: "42", url: url, title: "Story")
+        session.source = "cached"
+        session.openedByUserAt = Date()
+        session.rawPages = [RawForumPage(page: 1, content: "cached", blocks: stale)]
+        var snapshot = AppSnapshot(sessions: [session])
+        snapshot.ensureForum(site, kind: .hackerNews)
+        try store.save(snapshot)
+        let app = AppModel(store: store)
+        app.browser.onPageContextChanged = nil
+        app.settings.blockedPosts = [BlockedPost(siteURL: site, topicID: "42", postNumber: 101)]
+        XCTAssertEqual(app.sessions[session.topicKey]?.rawPages.flatMap(\.blocks).map(\.anchor), ["42", "101", "102"])
+        // Fresh: a new reply to the story arrived before 101, so 101 is now #3.
+        let fresh = TopicFacts(postsCount: 3, posts: [.init(id: 42, number: 1, username: "op"),
+                                                      .init(id: 102, number: 2, username: "b"),
+                                                      .init(id: 101, number: 3, username: "a")])
+        let rules = app.topicModerationRules(siteURL: site, topicID: "42", facts: fresh)
+        XCTAssertEqual(rules.hiddenPosts["\(site)|42"], [3])
+    }
+
+    func testUnnamedCommentNeverOffersOrMatchesAnonymousFallback() async throws {
+        let html = """
+        <body class="postid-1"><ol>
+        <li class="comment" id="comment-10"><div class="comment-content">No author</div>
+          <ol><li class="comment" id="comment-11"><div class="comment-author"><b class="fn">alice</b></div>
+          <div class="comment-content">Reply</div></li></ol>
+        </li></ol></body>
+        """
+        let browser = try await load(WordPressAdapter(), url: "https://wp.example/?p=1", topicID: "1", html: html)
+        defer { teardown(browser) }
+        let posts = await browser.visiblePosts()
+        XCTAssertFalse(posts.contains { $0.number == 10 })
+        try await apply(ModerationRules(blockedUsers: ["https://wp.example": ["anonymous", "alice"]]), to: browser)
+        let parentVisible = try await browser.webView.evaluateJavaScript("document.querySelector('#comment-10 > .comment-content').getBoundingClientRect().height > 0")
+        XCTAssertEqual(parentVisible as? Bool, true)
+    }
+
+    func testCommentBridgesSkipIdleScansAndRestoreAfterRulesRemoved() async throws {
+        for adapter: any SiteAdapter in [HackerNewsAdapter(), WordPressAdapter()] {
+            let isHN = adapter.kind == .hackerNews
+            let html = isHN
+                ? "<table><tr class='athing comtr' id='10'><td><a class='hnuser'>alice</a><div class='commtext'>Body</div></td></tr></table>"
+                : "<body class='postid-1'><div class='comment' id='comment-10'><div class='comment-author'><b class='fn'>alice</b></div><div class='comment-content'>Body</div></div></body>"
+            let site = isHN ? "https://news.ycombinator.com" : "https://wp.example"
+            let browser = try await load(adapter, url: site + (isHN ? "/item?id=1" : "/?p=1"), topicID: "1", html: html)
+            defer { teardown(browser) }
+            try await apply(ModerationRules(blockedUsers: [site: ["alice"]]), to: browser)
+            let hidden = await browser.visiblePosts()
+            XCTAssertTrue(hidden.isEmpty)
+            try await apply(.none, to: browser)
+            let restored = await browser.visiblePosts()
+            XCTAssertEqual(restored.map(\.number), [10])
+            _ = try await browser.webView.evaluateJavaScript("""
+            window.reviewScans = 0;
+            const originalQuery = document.querySelectorAll.bind(document);
+            document.querySelectorAll = function(selector) { window.reviewScans++; return originalQuery(selector); };
+            document.body.appendChild(document.createElement('div'));
+            true;
+            """)
+            try await Task.sleep(for: .milliseconds(150))
+            let scans = try await browser.webView.evaluateJavaScript("window.reviewScans")
+            XCTAssertEqual(scans as? Int, 0)
+            // Text-node edits do not trigger scans; inserted children do.
+            try await apply(ModerationRules(filteredWords: ["unmatched"]), to: browser)
+            _ = try await browser.webView.evaluateJavaScript("""
+            window.reviewScans = 0;
+            document.querySelector('.commtext, .comment-content').firstChild.data = 'Edited body';
+            true;
+            """)
+            try await Task.sleep(for: .milliseconds(150))
+            let textScans = try await browser.webView.evaluateJavaScript("window.reviewScans")
+            XCTAssertEqual(textScans as? Int, 0)
+            _ = try await browser.webView.evaluateJavaScript("document.body.appendChild(document.createElement('div')); true;")
+            try await Task.sleep(for: .milliseconds(150))
+            let childScans = try await browser.webView.evaluateJavaScript("window.reviewScans")
+            XCTAssertGreaterThan(childScans as? Int ?? 0, 0)
+        }
+    }
+
+    func testHackerNewsIdentityMapsSiteWideBlocksWithoutCrossSiteLeakage() {
+        let site = "https://news.ycombinator.com"
+        let rules = ModerationRules(hiddenPosts: [site + "|42": [103], "https://other.example|42": [101]])
+        let mapped = HackerNewsAdapter().capabilities.postIdentity.aiRules(rules, siteURL: site, topicID: "101",
+            blocks: [], facts: TopicFacts(postsCount: 2, posts: [.init(id: 101, number: 1, username: "a"), .init(id: 103, number: 2, username: "b")]))
+        XCTAssertEqual(mapped.hiddenPosts[site + "|101"], [2])
+    }
+
+    // MARK: Round 2
+
+    func testPartialFactsOverrideOnlyTheirListedPostNumbers() {
+        let site = "https://wp.example"
+        let rules = ModerationRules(hiddenPosts: [site + "|42": [101]])
+        let blocks = [PostBlock(number: 2, author: "alice", date: nil, anchor: "comment-101", score: nil),
+                      PostBlock(number: 3, author: "alice", date: nil, anchor: "comment-101", score: nil)]
+        let facts = TopicFacts(postsCount: 3, posts: [.init(id: 102, number: 2, username: "bob")])
+        let mapped = WordPressAdapter().capabilities.postIdentity.aiRules(rules, siteURL: site,
+            topicID: "42", blocks: blocks, facts: facts)
+        XCTAssertEqual(mapped.hiddenPosts[site + "|42"], [3])
+    }
+
+    /// Walker_Comment::start_lvl adds no wrapper for `'style' => 'div'`
+    /// (Twenty Twenty): a reply's `<div id="comment-N">` is a direct child of
+    /// its parent's row, after the parent's `<article>`.
+    func testTwentyTwentyNestedReplyStaysVisibleWhenParentIsHidden() async throws {
+        let html = """
+        <body class="single postid-1"><div class="comments-inner">
+        <div id="comment-37977" class="comment even thread-even depth-1 parent">
+          <article id="div-comment-37977" class="comment-body">
+            <footer class="comment-meta"><div class="comment-author vcard"><span class="fn">A WordPress Commenter</span></div></footer>
+            <div class="comment-content entry-content"><p>Hi, this is a comment.</p></div>
+          </article>
+          <div id="comment-40000" class="comment odd alt depth-2">
+            <article id="div-comment-40000" class="comment-body">
+              <footer class="comment-meta"><div class="comment-author vcard"><span class="fn">Unrelated Replier</span></div></footer>
+              <div class="comment-content entry-content"><p>An unrelated reply.</p></div>
+            </article>
+          </div>
+        </div>
+        </div></body>
+        """
+        let browser = try await load(WordPressAdapter(), url: "https://wp-themes.com/twentytwenty/?p=1", topicID: "1", html: html)
+        defer { teardown(browser) }
+        let all = await browser.visiblePosts()
+        XCTAssertEqual(all.map(\.username), ["A WordPress Commenter", "Unrelated Replier"])
+        try await apply(ModerationRules(hiddenPosts: ["https://wp-themes.com|1": [37977]]), to: browser)
+        let byPost = await browser.visiblePosts()
+        XCTAssertEqual(byPost.map(\.number), [40000])
+        try await apply(ModerationRules(blockedUsers: ["https://wp-themes.com": ["a wordpress commenter"]]), to: browser)
+        let byUser = await browser.visiblePosts()
+        XCTAssertEqual(byUser.map(\.number), [40000])
+    }
+
+    /// Blocks for another site must not reach the HN page bridge.
+    func testHackerNewsPageIgnoresOtherSitesBlocks() async throws {
+        let html = """
+        <table><tbody>
+        <tr class="athing comtr" id="101"><td><a class="hnuser">alice</a><div class="commtext c00">Parent</div></td></tr>
+        <tr class="athing comtr" id="103"><td><a class="hnuser">carol</a><div class="commtext c00">Reply</div></td></tr>
+        </tbody></table>
+        """
+        let browser = try await load(HackerNewsAdapter(), url: "https://news.ycombinator.com/item?id=42", topicID: "42", html: html)
+        defer { teardown(browser) }
+        try await apply(ModerationRules(hiddenPosts: ["https://other.example|42": [103], "https://news.ycombinator.com.evil.example|42": [101]]), to: browser)
+        let visible = await browser.visiblePosts()
+        XCTAssertEqual(visible.map(\.number), [101, 103])
+    }
+
+    /// WordPress facts carry counts only (`WordPressAPI` builds `TopicFacts`
+    /// without posts). The digest passes both the fetched blocks and those facts.
+    func testWordPressFetchedBlocksStillFilterWhenFactsHaveNoPosts() throws {
+        let site = "https://wp.example"
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = PersistentStore(fileURL: directory.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore())
+        var snapshot = AppSnapshot()
+        snapshot.ensureForum(site, kind: .wordpress)
+        try store.save(snapshot)
+        let app = AppModel(store: store)
+        app.browser.onPageContextChanged = nil
+        let blocks = [PostBlock(number: 1, author: "author", date: nil, anchor: "", score: nil),
+                      PostBlock(number: 2, author: "alice", date: nil, anchor: "comment-101", score: nil),
+                      PostBlock(number: 3, author: "bob", date: nil, anchor: "comment-102", score: nil)]
+        let raw = RawTopicFormat.render(zip(blocks, ["Opening text", "Blocked comment", "Kept comment"]).map { ($0, $1) })
+        app.settings.blockedPosts = [BlockedPost(siteURL: site, topicID: "42", postNumber: 101)]
+        let facts = TopicFacts(postsCount: 3, highestPostNumber: 3, openingPoster: "author")
+        XCTAssertFalse(app.moderated(raw, siteURL: site, topicID: "42", blocks: blocks).contains("Blocked comment"))
+        let digest = app.moderated(raw, siteURL: site, topicID: "42", blocks: blocks, facts: facts)
+        XCTAssertFalse(digest.contains("Blocked comment"))
+        XCTAssertTrue(digest.contains("Kept comment"))
+    }
+
+    // MARK: Helpers
+
+    private var windows: [ObjectIdentifier: UIWindow] = [:]
+
+    func testReportFallbackUsesCachedNativeIdentitiesExcerptsAndModeration() async throws {
+        let site = "https://wp.example"
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = PersistentStore(fileURL: directory.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore())
+        let topic = ForumTopic(siteURL: site, topicID: "42", url: URL(string: site + "/?p=42")!, title: "Post")
+        let blocks = [PostBlock(number: 1, author: "editor", date: nil, anchor: "", score: nil),
+                      PostBlock(number: 2, author: "Reader_Name", date: nil, anchor: "comment-101", score: nil)]
+        var session = TopicSession(siteURL: site, topicID: "42", url: topic.url, title: topic.title)
+        let content = RawTopicFormat.render(zip(blocks, ["Article", "Comment excerpt"]).map { ($0, $1) })
+        session.rawPages = [RawForumPage(page: 1, content: content, blocks: blocks)]
+        session.source = content
+        session.openedByUserAt = Date()
+        var snapshot = AppSnapshot(sessions: [session])
+        snapshot.ensureForum(site, kind: .wordpress)
+        try store.save(snapshot)
+        let app = AppModel(store: store)
+        app.browser.onPageContextChanged = nil
+        let posts = await app.reportablePosts(for: topic)
+        XCTAssertEqual(posts, [VisiblePost(number: 101, username: "Reader_Name", excerpt: "Comment excerpt")])
+        app.block("Reader_Name", on: site)
+        let hidden = await app.reportablePosts(for: topic)
+        XCTAssertTrue(hidden.isEmpty)
+        XCTAssertFalse(app.moderated(content, siteURL: site, topicID: "42").contains("Comment excerpt"))
+        app.unblock(try XCTUnwrap(app.settings.blockedUsers.first))
+        app.topicOverviews[topic.topicKey] = ForumTopicOverview(siteURL: site, topicID: "42", title: "Post", slug: "", url: topic.url,
+            postCount: 3, facts: TopicFacts(postsCount: 3, posts: [.init(id: 101, number: 2, username: "Reader Name"), .init(id: 102, number: 3, username: "Other")]))
+        let withFacts = await app.reportablePosts(for: topic)
+        XCTAssertEqual(withFacts.map(\.number), [101, 102])
+        XCTAssertEqual(withFacts.first?.username, "Reader Name")
+        XCTAssertEqual(withFacts.first?.excerpt, "Comment excerpt")
+        var blank = AppSnapshot()
+        blank.ensureForum(site, kind: .wordpress)
+        try store.save(blank)
+        let empty = AppModel(store: store)
+        empty.topicOverviews[topic.topicKey] = app.topicOverviews[topic.topicKey]
+        let factsOnly = await empty.reportablePosts(for: topic)
+        XCTAssertEqual(factsOnly.map(\.number), [101, 102])
+    }
+
+    func testHackerNewsReportFallbackUsesItemIDsFromFacts() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = PersistentStore(fileURL: directory.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore())
+        let app = AppModel(store: store)
+        app.browser.onPageContextChanged = nil
+        let site = "https://news.ycombinator.com"
+        let topic = ForumTopic(siteURL: site, topicID: "42", url: URL(string: site + "/item?id=42")!, title: "Story")
+        app.topicOverviews[topic.topicKey] = ForumTopicOverview(siteURL: site, topicID: "42", title: "Story", slug: "", url: topic.url,
+            postCount: 2, facts: TopicFacts(postsCount: 2, posts: [.init(id: 42, number: 1, username: "op"), .init(id: 103, number: 2, username: "reader")]))
+        let posts = await app.reportablePosts(for: topic)
+        XCTAssertEqual(posts.map(\.number), [42, 103])
+        app.blockPost(103, topicID: "42", on: site)
+        let hidden = await app.reportablePosts(for: topic)
+        XCTAssertEqual(hidden.map(\.number), [42])
+    }
+
+    func testColdReportFallbackReadsOnlyOnePageAndOffersRESTCommentIDs() async throws {
+        let fixture = WordPressFixtureSite(commentCount: 250)
+        let site = WordPressFixtureSite.siteURL
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = PersistentStore(fileURL: directory.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore())
+        var snapshot = AppSnapshot()
+        snapshot.ensureForum(site, kind: .wordpress)
+        try store.save(snapshot)
+        let app = AppModel(store: store, forumService: fixture.service())
+        app.usesDirectForumRequests = true
+        app.browser.onPageContextChanged = nil
+        let topic = ForumTopic(siteURL: site, topicID: "1001", url: URL(string: site + "/?p=1001")!, title: "Post")
+        let posts = await app.reportablePosts(for: topic)
+        XCTAssertEqual(posts.count, RawForumPage.size - 1)
+        XCTAssertEqual(posts.first?.number, 5001)
+        XCTAssertEqual(posts.first?.username, "user1")
+        XCTAssertTrue(posts.first?.excerpt.contains("Comment number 1") == true)
+        XCTAssertEqual(fixture.requests.filter { $0.path.hasSuffix("/comments") }.count, 1)
+        app.blockPost(5001, topicID: "1001", on: site)
+        let after = await app.reportablePosts(for: topic)
+        XCTAssertFalse(after.contains { $0.number == 5001 })
+        XCTAssertTrue(after.contains { $0.number == 5002 })
+    }
+
+    func testCachedAuthorTokenAlsoHidesThePageDisplayName() async throws {
+        let browser = try await load(WordPressAdapter(), url: "https://wp.example/?p=1", topicID: "1", html: Self.tt4)
+        defer { teardown(browser) }
+        try await apply(ModerationRules(blockedUsers: ["https://wp.example": ["joseph_scott"]]), to: browser)
+        let posts = await browser.visiblePosts()
+        XCTAssertEqual(posts.map(\.number), [37977, 40000])
+    }
+
+    func testWPDiscuzInsertedAfterLoadIsModeratedAndRestored() async throws {
+        let browser = try await load(WordPressAdapter(), url: "https://wp.example/?p=268566", topicID: "268566", html: "<body class='postid-268566'></body>")
+        defer { teardown(browser) }
+        try await apply(ModerationRules(blockedUsers: ["https://wp.example": ["rim"]]), to: browser)
+        let html = try liveFixture("moderation-doc-live")
+        let encoded = String(data: try JSONEncoder().encode(html), encoding: .utf8)!
+        _ = try await browser.webView.evaluateJavaScript("document.body.innerHTML = \(encoded); true;")
+        try await Task.sleep(for: .milliseconds(200))
+        let posts = await browser.visiblePosts()
+        XCTAssertEqual(posts.map(\.number), [2452127])
+        try await apply(.none, to: browser)
+        let restored = await browser.visiblePosts()
+        XCTAssertEqual(restored.map(\.number), [2452119, 2452127])
+    }
+
+    func testPendingAnchorScrollOnStoryPageFlashesOnce() async throws {
+        let url = HackerNewsLinks().postURL(topicURL: URL(string: "https://news.ycombinator.com/item?id=268566")!, number: 3, anchor: "50431178")
+        let browser = try await load(HackerNewsAdapter(), url: url.absoluteString, topicID: "268566", html: liveFixture("moderation-hn-live"))
+        defer { teardown(browser) }
+        _ = try await browser.webView.evaluateJavaScript("""
+        document.body.insertAdjacentHTML('afterbegin', '<div style=height:4000px></div>');
+        document.body.insertAdjacentHTML('beforeend', '<div style=height:4000px></div>');
+        window.scrollTo(0, 0);
+        window.citationFlashes = 0;
+        const target = document.getElementById('50431178').querySelector('.commtext');
+        target.animate = () => { window.citationFlashes++; };
+        true;
+        """)
+        let readyContext = browser.pageContext
+        browser.setPageContext(PageContext(url: url, state: .maybe))
+        browser.highlightAfterLoad([3], topicID: "268566", anchor: "50431178")
+        browser.applyPendingHighlight()
+        XCTAssertNotNil(browser.pendingHighlight, "Keep the landing anchor until the loaded page has been recognized")
+        browser.setPageContext(readyContext)
+        browser.applyPendingHighlight(afterLoad: true)
+        browser.applyPendingHighlight(afterLoad: true)
+        for _ in 0..<40 {
+            if (try await browser.webView.evaluateJavaScript("window.citationFlashes") as? Int) == 1 { break }
+            try await Task.sleep(for: .milliseconds(50))
+        }
+        let flashes = try await browser.webView.evaluateJavaScript("window.citationFlashes") as? Int
+        let offset = try await browser.webView.evaluateJavaScript("window.scrollY") as? Double
+        XCTAssertEqual(flashes, 1)
+        XCTAssertGreaterThan(offset ?? 0, 0)
+        XCTAssertNil(browser.pendingHighlight)
+    }
+
+    func testFirstPostScrollsToTopWithoutNavigation() async throws {
+        for (adapter, url, html): (any SiteAdapter, String, String) in [
+            (HackerNewsAdapter(), "https://news.ycombinator.com/item?id=268566",
+             "<table><tr class='athing submission' id='268566'><td>Story</td></tr></table>"),
+            (WordPressAdapter(), "https://wp.example/?p=268566", "<article><h1>Article</h1></article>")
+        ] {
+            let browser = try await load(adapter, url: url, topicID: "268566", html: html + "<div style='height:6000px'></div>")
+            defer { teardown(browser) }
+            _ = try await browser.webView.evaluateJavaScript("window.scrollTo(0, 2000); true;")
+            let before = try await browser.webView.evaluateJavaScript("window.scrollY") as? Double
+            XCTAssertGreaterThan(before ?? 0, 0)
+            let destination = browser.webView.url
+            let outcome = await browser.scrollToPost(1, anchor: adapter.kind == .hackerNews ? "268566" : "")
+            XCTAssertEqual(outcome, .shown)
+            var after: Double?
+            for _ in 0..<40 {
+                after = try await browser.webView.evaluateJavaScript("window.scrollY") as? Double
+                if after == 0 { break }
+                try await Task.sleep(for: .milliseconds(50))
+            }
+            XCTAssertEqual(after, 0)
+            XCTAssertEqual(browser.webView.url, destination)
+        }
+    }
+
+    func testUnrenderedCommentIsMissing() async throws {
+        let browser = try await load(HackerNewsAdapter(), url: "https://news.ycombinator.com/item?id=268566", topicID: "268566", html: liveFixture("moderation-hn-live"))
+        defer { teardown(browser) }
+        _ = try await browser.webView.evaluateJavaScript("document.getElementById('50431178').style.display = 'none'; true;")
+        let outcome = await browser.scrollToPost(3, anchor: "50431178")
+        XCTAssertEqual(outcome, .missing)
+    }
+
+    private func liveFixture(_ name: String) throws -> String {
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+        return try String(contentsOf: root.appendingPathComponent("Fixtures/\(name).html"), encoding: .utf8)
+    }
+
+    func testLiveCommentMarkupOffersStableIDsAndAuthorsAndKeepsRepliesWhenBlocking() async throws {
+        for (adapter, fixture, ids, names): (any SiteAdapter, String, [Int], [String]) in [
+            (HackerNewsAdapter(), "moderation-hn-live", [50430766, 50431178], ["postalcoder", "wolttam"]),
+            (WordPressAdapter(), "moderation-doc-live", [2452119, 2452127], ["Rim", "raj"]),
+            (WordPressAdapter(), "moderation-fm-live", [2505565, 2505577], ["Grant", "Pierre"]),
+            (WordPressAdapter(), "moderation-mtm-live", [1873623], ["Chuck"]),
+            (WordPressAdapter(), "moderation-vftw-live", [6020534], ["Alec"]),
+            (WordPressAdapter(), "moderation-9to5-live", [341940], ["jimw338"]),
+            (WordPressAdapter(), "moderation-omaat-live", [5535629, 5535667, 5535668], ["Maryland", "panthers fan", "Maryland"])
+        ] {
+            let site = adapter.kind == .hackerNews ? "https://news.ycombinator.com" : "https://wp.example"
+            let browser = try await load(adapter, url: site + (adapter.kind == .hackerNews ? "/item?id=268566" : "/?p=268566"), topicID: "268566", html: liveFixture(fixture))
+            defer { teardown(browser) }
+            let posts = await browser.visiblePosts()
+            XCTAssertEqual(posts.map(\.number), ids, fixture)
+            XCTAssertEqual(posts.map(\.username), names, fixture)
+            XCTAssertTrue(posts.allSatisfy { !$0.excerpt.isEmpty }, fixture)
+            let anchor = adapter.kind == .hackerNews ? String(ids[0]) : "comment-\(ids[0])"
+            _ = try await browser.webView.evaluateJavaScript("document.body.insertAdjacentHTML('afterbegin', '<div data-spacer style=height:4000px></div>'); document.body.insertAdjacentHTML('beforeend', '<div data-spacer style=height:4000px></div>'); window.scrollTo(0, 0); true;")
+            let jumped = await browser.scrollToPost(2, anchor: anchor)
+            XCTAssertEqual(jumped, .shown, fixture)
+            var offset = 0.0
+            for _ in 0..<40 {
+                offset = (try await browser.webView.evaluateJavaScript("window.scrollY") as? Double) ?? 0
+                if offset > 0 { break }
+                try await Task.sleep(for: .milliseconds(50))
+            }
+            XCTAssertGreaterThan(offset, 0, fixture)
+            let visible = await browser.visiblePosts()
+            XCTAssertTrue(visible.contains { $0.number == ids[0] }, fixture)
+            XCTAssertFalse(browser.canTranslatePostsOnScreen)
+            _ = try await browser.webView.evaluateJavaScript("document.querySelectorAll('[data-spacer]').forEach(e => e.remove()); window.scrollTo(0, 0); true;")
+            if fixture == "moderation-9to5-live" {
+                XCTAssertTrue(posts.first?.excerpt.contains("I found this description") == true)
+            }
+            try await apply(ModerationRules(blockedUsers: [site: [names[0].lowercased()]]), to: browser)
+            let remaining = await browser.visiblePosts()
+            XCTAssertEqual(remaining.map(\.number), zip(ids, names).filter { $0.1 != names[0] }.map { $0.0 }, fixture)
+            try await apply(.none, to: browser)
+            let restored = await browser.visiblePosts()
+            XCTAssertEqual(restored.map(\.number), ids, fixture)
+        }
+    }
+
+    private func load(_ adapter: any SiteAdapter, url: String, topicID: String, html: String) async throws -> ForumBrowserModel {
+        let browser = ForumBrowserModel()
+        browser.webView.navigationDelegate = nil
+        browser.webView.configuration.userContentController.removeScriptMessageHandler(forName: "dcRouteChanged")
+        let pageURL = try XCTUnwrap(URL(string: url))
+        let siteURL = "\(pageURL.scheme!)://\(pageURL.host!)"
+        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let host = UIViewController()
+        window.rootViewController = host
+        window.makeKeyAndVisible()
+        browser.webView.frame = host.view.bounds
+        host.view.addSubview(browser.webView)
+        windows[ObjectIdentifier(browser)] = window
+        browser.webView.loadHTMLString(html, baseURL: pageURL)
+        for _ in 0..<100 {
+            if (try? await browser.webView.evaluateJavaScript("document.readyState === 'complete'")) as? Bool == true { break }
+            try await Task.sleep(for: .milliseconds(50))
+        }
+        // Let the first layout and the installers' first pass finish.
+        try await Task.sleep(for: .milliseconds(500))
+        browser.setPageContext(PageContext(url: pageURL, site: adapter.kind, siteURL: siteURL,
+            topic: ForumTopic(siteURL: siteURL, topicID: topicID, url: pageURL, title: "Fixture"), state: .topic))
+        return browser
+    }
+
+    private func apply(_ rules: ModerationRules, to browser: ForumBrowserModel) async throws {
+        browser.moderationRules = rules
+        browser.applyModerationToPage()
+        try await Task.sleep(for: .milliseconds(150))
+    }
+
+    private func teardown(_ browser: ForumBrowserModel) {
+        browser.webView.stopLoading()
+        browser.webView.removeFromSuperview()
+        if let window = windows.removeValue(forKey: ObjectIdentifier(browser)) {
+            window.isHidden = true
+            window.rootViewController = nil
+            window.windowScene = nil
+        }
+    }
+}
+
+// A comment with no author name must never be offered for blocking by name.
+extension CommentBridgeReviewTests {
+    func testFallbackOffersNoAnonymousFromCachedPages() async throws {
+        let site = "https://wp.example"
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = PersistentStore(fileURL: directory.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore())
+        let topic = ForumTopic(siteURL: site, topicID: "42", url: URL(string: site + "/?p=42")!, title: "Post")
+            // What WordPressParsing.page writes for a comment with an empty author_name.
+        let blocks = [PostBlock(number: 1, author: "editor", date: nil, anchor: "", score: nil),
+                      PostBlock(number: 2, author: RawTopicFormat.authorToken(""), date: nil, anchor: "comment-101", score: nil),
+                      PostBlock(number: 3, author: "named", date: nil, anchor: "comment-102", score: nil)]
+        var session = TopicSession(siteURL: site, topicID: "42", url: topic.url, title: topic.title)
+        let content = RawTopicFormat.render(zip(blocks, ["Article", "Nameless comment", "Named comment"]).map { ($0, $1) })
+        session.rawPages = [RawForumPage(page: 1, content: content, blocks: blocks)]
+        session.source = content
+        session.openedByUserAt = Date()
+        var snapshot = AppSnapshot(sessions: [session])
+        snapshot.ensureForum(site, kind: .wordpress)
+        try store.save(snapshot)
+        let app = AppModel(store: store)
+        app.browser.onPageContextChanged = nil
+        let posts = await app.reportablePosts(for: topic)
+        XCTAssertFalse(posts.contains { $0.username.lowercased() == "anonymous" }, "offered: \(posts)")
+    }
+
+    func testColdFallbackOffersNoAnonymous() async throws {
+        let fixture = WordPressFixtureSite(comments: [WordPressFixtureSite.comment(1, author: ""), WordPressFixtureSite.comment(2)])
+        let site = WordPressFixtureSite.siteURL
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = PersistentStore(fileURL: directory.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore())
+        var snapshot = AppSnapshot()
+        snapshot.ensureForum(site, kind: .wordpress)
+        try store.save(snapshot)
+        let app = AppModel(store: store, forumService: fixture.service())
+        app.usesDirectForumRequests = true
+        app.browser.onPageContextChanged = nil
+        let topic = ForumTopic(siteURL: site, topicID: "1001", url: URL(string: site + "/?p=1001")!, title: "Post")
+        let posts = await app.reportablePosts(for: topic)
+        XCTAssertEqual(posts.map(\.number), [5002], "offered: \(posts)")
+    }
 }

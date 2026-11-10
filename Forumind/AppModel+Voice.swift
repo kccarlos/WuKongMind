@@ -65,7 +65,7 @@ extension AppModel: VoiceNavigator {
         if let facts, case .shown(let text) = await postText(1, in: ref, facts: facts) {
             opening = text.text
         }
-        let rules = browser.moderationRules
+        let rules = topicModerationRules(siteURL: ref.siteURL, topicID: ref.topicID, facts: facts)
         let top = (facts?.posts ?? [])
             .filter {
                 ($0.likeCount ?? 0) > 0
@@ -104,7 +104,7 @@ extension AppModel: VoiceNavigator {
 
     func postsOnScreen() async -> [VisiblePost] {
         let posts = await browser.postsOnScreen()
-        let rules = browser.moderationRules
+        let rules = aiModerationRules
         guard !rules.isEmpty else { return posts }
         let siteURL = currentTopicRef?.siteURL ?? pageContext.siteURL ?? ""
         let topicID = currentTopicRef?.topicID ?? ""

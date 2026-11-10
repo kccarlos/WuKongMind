@@ -68,8 +68,13 @@ struct BrowseBridgeReport: Equatable {
 extension ForumBrowserModel {
     /// Scrolls the rendered post into view under Discourse's header; a
     /// citation jump (`pendingJump`) scrolls smoothly unless Reduce Motion.
-    func scrollToPost(_ number: Int) async -> BrowseScrollOutcome {
+    func scrollToPost(_ number: Int, anchor: String? = nil) async -> BrowseScrollOutcome {
         let smooth = pendingJump?.number == number && !UIAccessibility.isReduceMotionEnabled
+        if number >= 1, (number == 1 || anchor != nil), let script = pageBridge?.anchorScrollScript,
+           webView.url.map(Self.isBrowsableURL) == true {
+            let value = await callBrowseScript(script, arguments: ["anchor": anchor ?? "", "number": number, "smooth": smooth], world: .page)
+            return value.flatMap(BrowseScrollOutcome.init(rawValue:)) ?? .unavailable
+        }
         guard number >= 1,
               let value = await callBridge("return b.scrollToPost(n, smooth);", arguments: ["n": number, "smooth": smooth])
         else {
@@ -137,22 +142,37 @@ extension ForumBrowserModel {
     /// Highlights `numbers` once topic `topicID` is on screen, also after a
     /// full page load (which starts a fresh bridge). Cleared by
     /// `clearHighlight()` or by leaving the topic.
-    func highlightAfterLoad(_ numbers: [Int], topicID: String) {
+    func highlightAfterLoad(_ numbers: [Int], topicID: String, anchor: String? = nil) {
         // A citation jump strokes its post once as it shows.
         var flash: PostFlash?
         if let jump = pendingJump, numbers == [jump.number] {
             flash = PostFlash(number: jump.number)
             pendingJump = nil
         }
-        pendingHighlight = PendingHighlight(topicID: topicID, numbers: numbers, flash: flash)
+        pendingHighlight = PendingHighlight(topicID: topicID, numbers: numbers, flash: flash, anchor: anchor)
         // Another topic is still showing while the load starts: the next
         // topic change applies it.
-        if pageContext.topic?.topicID == topicID { applyPendingHighlight() }
+        if anchor == nil, pageContext.topic?.topicID == topicID { applyPendingHighlight() }
     }
 
     /// Re-sends the pending highlight when the page shows its topic.
-    func applyPendingHighlight() {
+    func applyPendingHighlight(afterLoad: Bool = false) {
         guard let pending = pendingHighlight else { return }
+        if let anchor = pending.anchor, let number = pending.numbers.first {
+            guard afterLoad, !webView.isLoading else { return }
+            guard pageContext.topic?.topicID == pending.topicID else {
+                pendingHighlight = nil
+                return
+            }
+            // Consume before suspending: route and load notifications can both arrive.
+            pendingHighlight = nil
+            let pageURL = webView.url
+            Task {
+                guard webView.url == pageURL, pendingHighlight == nil else { return }
+                _ = await scrollToPost(number, anchor: anchor)
+            }
+            return
+        }
         guard pageContext.state == .topic, let topic = pageContext.topic else { return }
         guard topic.topicID == pending.topicID else {
             // The reader went to another topic: the mark stays behind.
@@ -172,15 +192,19 @@ extension ForumBrowserModel {
     /// when the page is not a topic, the bridge is missing, the call fails or
     /// it takes longer than `BrowseScript.timeout`.
     private func callBridge(_ body: String, arguments: [String: Any] = [:]) async -> String? {
-        guard pageBridge != nil, pageContext.state == .topic else { return nil }
+        guard pageBridge?.bridgeInstaller != nil, pageContext.state == .topic else { return nil }
         let script = "const b = window.__forumindBrowse; if (!b) return null; \(body)"
+        return await callBrowseScript(script, arguments: arguments, world: BrowseScript.world)
+    }
+
+    private func callBrowseScript(_ script: String, arguments: [String: Any], world: WKContentWorld) async -> String? {
         #if DEBUG
         scriptSpy?(script)
         #endif
         guard webView.url.map(Self.isBrowsableURL) == true else { return nil }
         return await withCheckedContinuation { continuation in
             let once = ResumeOnce(continuation)
-            webView.callAsyncJavaScript(script, arguments: arguments, in: nil, in: BrowseScript.world) { result in
+            webView.callAsyncJavaScript(script, arguments: arguments, in: nil, in: world) { result in
                 let value = (try? result.get()) as? String
                 MainActor.assumeIsolated { once.resume(value) }
             }
@@ -210,6 +234,7 @@ struct PendingHighlight: Equatable {
     var topicID: String
     var numbers: [Int]
     var flash: PostFlash?
+    var anchor: String? = nil
 }
 
 /// Resumes a continuation once: the bridge's answer or the timeout.

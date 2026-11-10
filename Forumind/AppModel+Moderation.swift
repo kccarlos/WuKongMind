@@ -15,18 +15,47 @@ extension AppModel {
         ModerationRules(settings: settings, remote: remoteModeration)
     }
 
+    /// AI text and citations use positional numbers; storage and page bridges
+    /// use the adapter's stable identity. This is derived, never persisted.
+    var aiModerationRules: ModerationRules {
+        let nativeRules = browser.moderationRules
+        var rules = nativeRules
+        for key in nativeRules.hiddenPosts.keys {
+            guard let separator = key.lastIndex(of: "|") else { continue }
+            let siteURL = String(key[..<separator])
+            let topicID = String(key[key.index(after: separator)...])
+            guard let identity = adapter(for: siteURL)?.capabilities.postIdentity,
+                  case .native = identity else { continue }
+            rules.hiddenPosts[key] = topicModerationRules(siteURL: siteURL, topicID: topicID, rules: nativeRules).hiddenPosts[key]
+        }
+        return rules
+    }
+
+    func topicModerationRules(siteURL: String, topicID: String, blocks: [PostBlock]? = nil,
+                              facts: TopicFacts? = nil, rules: ModerationRules? = nil) -> ModerationRules {
+        let rules = rules ?? browser.moderationRules
+        guard let identity = adapter(for: siteURL)?.capabilities.postIdentity,
+              case .native = identity else { return rules }
+        let key = TopicIdentity.key(siteURL: siteURL, topicID: topicID)
+        let cachedBlocks = blocks ?? sessions[key]?.rawPages.flatMap(\.blocks) ?? []
+        return identity.aiRules(rules, siteURL: siteURL, topicID: topicID,
+                                blocks: cachedBlocks,
+                                facts: facts ?? (blocks == nil && cachedBlocks.isEmpty ? topicOverviews[key]?.facts : nil))
+    }
+
     func applyModerationRules() {
         browser.moderationRules = moderationRules
     }
 
     /// Topic text for a prompt, without blocked or filtered posts. Applied
     /// when the prompt is built, so text cached before a block is covered.
-    func moderated(_ source: String, siteURL: String, topicID: String) -> String {
-        ModerationFilter.filter(source, siteURL: siteURL, topicID: topicID, rules: moderationRules)
+    func moderated(_ source: String, siteURL: String, topicID: String, blocks: [PostBlock]? = nil, facts: TopicFacts? = nil) -> String {
+        ModerationFilter.filter(source, siteURL: siteURL, topicID: topicID,
+                                rules: topicModerationRules(siteURL: siteURL, topicID: topicID, blocks: blocks, facts: facts))
     }
 
     func isPostOneHidden(siteURL: String, topicID: String, rules: ModerationRules) -> Bool {
-        if rules.hidesPost(1, siteURL: siteURL, topicID: topicID) { return true }
+        if topicModerationRules(siteURL: siteURL, topicID: topicID, rules: rules).hidesPost(1, siteURL: siteURL, topicID: topicID) { return true }
         let key = TopicIdentity.key(siteURL: siteURL, topicID: topicID)
         if let poster = topicOverviews[key]?.facts?.openingPoster, rules.hidesUser(poster, siteURL: siteURL) {
             return true
@@ -46,7 +75,7 @@ extension AppModel {
     func isTopicTitleHidden(_ title: String, siteURL: String, topicID: String, openingPoster: String? = nil) -> Bool {
         let rules = moderationRules
         guard !rules.isEmpty else { return false }
-        return rules.hidesTopicTitle(title, siteURL: siteURL, topicID: topicID, openingPoster: openingPoster)
+        return topicModerationRules(siteURL: siteURL, topicID: topicID, rules: rules).hidesTopicTitle(title, siteURL: siteURL, topicID: topicID, openingPoster: openingPoster)
             || isPostOneHidden(siteURL: siteURL, topicID: topicID, rules: rules)
     }
 
@@ -81,10 +110,9 @@ extension AppModel {
         settings.blockedPosts.contains { $0.matches(siteURL: siteURL, topicID: topicID, postNumber: number) }
     }
 
-    /// Blocks post `number` of `topicID` on `siteURL`: hidden in the browser
-    /// at once and excluded from every AI path.
+    /// Blocks the page bridge's moderation identity (post number or native ID).
     func blockPost(_ number: Int, topicID: String, on siteURL: String) {
-        guard number > 0, !topicID.isEmpty, !isPostBlocked(number, topicID: topicID, on: siteURL) else { return }
+        guard number >= 0, !topicID.isEmpty, !isPostBlocked(number, topicID: topicID, on: siteURL) else { return }
         settings.blockedPosts.append(BlockedPost(siteURL: siteURL, topicID: topicID, postNumber: number, blockedAt: nextBlockTimestamp(on: siteURL)))
     }
 
@@ -130,7 +158,7 @@ extension AppModel {
     /// blocked user in the topic's cached pages or overview).
     var currentHiddenPosts: Set<Int> {
         guard let topic = currentTopic else { return [] }
-        let rules = browser.moderationRules
+        let rules = aiModerationRules
         var hidden = rules.hiddenPosts["\(topic.siteURL)|\(topic.topicID)"] ?? []
         if let overview = topicOverviews[topic.topicKey]?.facts {
             for post in overview.posts where rules.hidesUser(post.username, siteURL: topic.siteURL) {

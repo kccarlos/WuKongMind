@@ -194,15 +194,15 @@ a.btn[href]:hover { filter: brightness(1.08); }
 .aibtn::after, .cite.hit::after { content: ""; position: absolute; left: 50%; top: 50%; width: 2.8em; height: 2.8em; margin: -1.4em; border-radius: 50%; background: rgb(58 91 224 / 40%); opacity: 0; pointer-events: none; }
 .anim .hero-phone.s1:not(.s2) .aibtn::after,
 .anim .phone.s1:not(.s2) .hit::after,
-.anim .ipad.s2:not(.s3) .hit::after { animation: tap .55s ease-out; }
+.anim .ipad.s4:not(.s5) .hit::after { animation: tap .55s ease-out; }
 
 .anim .st:not(.s2) .hero-sheet { transform: translateY(104%); }
 .anim .s3:not(.s4) .progress { opacity: 1; transition: opacity .3s; }
 .anim .st:not(.s2) .jump-sheet { transform: none; }
 .anim .phone:not(.s3) .scroller { transform: none; }
 .anim .st:not(.s2) .hit { background: var(--soft); color: var(--citeink); }
-.anim .ipad:not(.s3) .hit { background: var(--soft); color: var(--citeink); }
-.anim .phone:not(.s4) .target::after, .anim .ipad:not(.s4) .target::after { opacity: 0; }
+.anim .ipad:not(.s5) .hit { background: var(--soft); color: var(--citeink); }
+.anim .phone:not(.s4) .target::after, .anim .ipad:not(.s6) .target::after { opacity: 0; }
 .target::after { transition: opacity .2s; }
 
 /* The whole thread: pages are read, the context fills, the summary cites start, middle and end. */
@@ -422,19 +422,34 @@ main > .strip { display: flex; gap: 22px; align-items: center; justify-content: 
 .act.main { background: var(--grad); color: #fff; }
 .act.main svg, .act.main span { color: #fff; }
 .open-sheet { height: 52%; }
-.bshare::after, .app.fm::after, .act.main::after { content: ""; position: absolute; left: 50%; top: 50%; width: 3em; height: 3em; margin: -1.5em; border-radius: 50%; background: rgb(58 91 224 / 40%); opacity: 0; pointer-events: none; }
-.app.fm::after { top: 1.8em; }
+.bshare::after, .app.fm::after, .act.main::after, .hm::after { content: ""; position: absolute; left: 50%; top: 50%; width: 3em; height: 3em; margin: -1.5em; border-radius: 50%; background: rgb(58 91 224 / 40%); opacity: 0; pointer-events: none; }
+.app.fm::after, .hm::after { top: 1.8em; }
+.hm { position: relative; font-weight: 650; }
 .act.main { position: relative; }
-/* Steps: 1 tap Share, 2 share sheet rises, 3 tap Forumind, 4 Forumind's sheet, 5 tap Summarize, 6 the app with the page, 7 drawer rises, 8 summary. */
+.acts { position: relative; }
+.acts > * { transition: opacity .35s; }
+.saved { position: absolute; inset: 0; opacity: 0; display: flex; flex-direction: column; gap: .6em; align-items: center; justify-content: center; margin: 0; padding: 0 .8em; text-align: center; font-size: 1.05em; line-height: 1.3; }
+.saved i { display: grid; place-items: center; width: 2.6em; height: 2.6em; border-radius: 50%; background: var(--grad); color: #fff; }
+.saved svg { width: 1.3em; height: 1.3em; }
+.saved b { display: block; }
+.home { position: absolute; inset: 0; padding-top: 3.6em; background: linear-gradient(165deg, color-mix(in srgb, var(--blue) 34%, var(--bg)), color-mix(in srgb, var(--purple) 22%, var(--bg))); opacity: 0; pointer-events: none; transition: opacity .35s; }
+.hgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.2em .3em; padding: 0 .7em; }
+.hgrid .app { font-size: .62em; }
+.hgrid .app small { color: var(--ink); }
+.opencap { position: absolute; left: 50%; bottom: 3.2em; transform: translateX(-50%); padding: .5em 1.1em; border-radius: 1.4em; background: var(--raised); color: var(--citeink); font-size: .85em; font-weight: 650; white-space: nowrap; box-shadow: 0 .2em 1em rgb(23 19 43 / 22%); }
+/* Steps: 1 tap Share, 2 share sheet rises, 3 tap Forumind, 4 Forumind's sheet, 5 tap Summarize, 6 "Saved, open Forumind to continue", 7 the home screen, 8 tap the Forumind icon, 9 Forumind opens with the page, 10 drawer rises, 11 summary. */
 .anim .hand:not(.s2) .hp2, .anim .hand:not(.s4) .hp3 { opacity: .35; }
 .anim .hand.s2 .hp1, .anim .hand.s4 .hp2 { opacity: .55; }
 .anim .hand:not(.s2) .ssheet { transform: translateY(100%); }
 .anim .hand:not(.s2) .dim { opacity: 0; }
 .anim .hand:not(.s1) .bshare { background: none; }
 .anim .hand:not(.s3) .app.fm img { box-shadow: none; }
-.anim .hand.s1:not(.s2) .bshare::after, .anim .hand.s3:not(.s4) .app.fm::after, .anim .hand.s5:not(.s6) .act.main::after { animation: tap .55s ease-out; }
-.anim .hand.s4:not(.s6) .fmsheet { opacity: 1; transform: none; }
-.anim .hand:not(.s7) .open-sheet { transform: translateY(104%); }
+.anim .hand.s1:not(.s2) .bshare::after, .anim .hand.s3:not(.s4) .app.fm::after, .anim .hand.s5:not(.s6) .act.main::after, .anim .hand.s8:not(.s9) .hm::after { animation: tap .55s ease-out; }
+.anim .hand.s4:not(.s7) .fmsheet { opacity: 1; transform: none; }
+.anim .hand.s6 .acts > :not(.saved) { opacity: 0; }
+.anim .hand.s6 .saved { opacity: 1; }
+.anim .hand.s7:not(.s9) .home { opacity: 1; }
+.anim .hand:not(.s10) .open-sheet { transform: translateY(104%); }
 .anim .hand:not(.s1) .h1, .anim .hand.s2 .h1 { color: var(--muted); }
 .anim .hand.s1:not(.s2) .h1, .anim .hand.s2:not(.s4) .h2, .anim .hand.s4 .h3 { color: var(--ink); }
 
@@ -452,7 +467,7 @@ main > .pad { padding-bottom: clamp(56px, 8vw, 104px); }
 .pad-scroll .topic { height: 3.4em; font-size: 1.3em; }
 .pad-scroll .post { height: 6.4em; font-size: 1em; }
 .page.clip .pad-scroll { transform: translateY(-25em); }
-.anim .ipad:not(.s3) .pad-scroll { transform: none; }
+.anim .ipad:not(.s5) .pad-scroll { transform: none; }
 .panel .sum { font-size: 1em; }
 .pchat { flex: 1; margin-top: 1.2em; padding-top: 1em; border-top: 1px solid var(--line); }
 .pchat .me { margin-bottom: .7em; font-size: 1em; }
@@ -540,12 +555,16 @@ footer p { max-width: 74em; margin-top: 6px; }
 @media (min-width: 700px) and (max-width: 900px) {
   .padwrap { justify-content: center; margin-left: 0; }
 }
+@media (max-width: 640px) {
+  .bar { flex-wrap: wrap; gap: 0 8px; height: auto; padding-block: 8px 2px; }
+  .bar .brand { margin-right: auto; }
+  .bar nav { order: 3; flex: 1 0 100%; justify-content: space-between; margin-left: 0; font-size: 14px; }
+  .bar nav a { padding: 8px 6px; }
+  html { scroll-padding-top: 112px; }
+}
 @media (max-width: 480px) {
-  .bar { gap: 8px; }
-  .bar nav a { padding: 8px 7px; }
   .strip, .sync { flex-direction: column; text-align: center; }
   .brand span { display: none; }
-  .bar nav a[href="#privacy"] { display: none; }
   main > .strip { flex-direction: column; }
 }
 
@@ -561,6 +580,7 @@ main.doc { padding: clamp(40px, 7vw, 96px) max(20px, calc((100% - 760px) / 2)) c
 .doc a { color: var(--blue); text-underline-offset: 2px; overflow-wrap: anywhere; }
 .doc code { padding: 1px 5px; border-radius: 5px; background: var(--sunken); font-size: .9em; overflow-wrap: anywhere; }
 .doc .docnote { margin-bottom: 8px; padding: 4px 20px 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
+.doc .docnote.none { display: none; }
 .doc .docnote h2 { margin-top: 1em; font-size: 19px; }
 .doc .policy { margin-top: 24px; }
 
@@ -583,9 +603,6 @@ main.wide-doc { padding-inline: max(20px, calc((100% - 1100px) / 2)); }
 .doc .site-desc { flex: 1; margin-top: 10px; color: var(--muted); font-size: 14.5px; line-height: 1.4; }
 .badges { display: flex; gap: 6px; margin-top: 12px; }
 .badge { padding: 2px 9px; border-radius: 10px; background: var(--sunken); color: var(--muted); font-size: 12.5px; font-weight: 600; }
-.badge.beta { background: var(--soft); color: var(--blue); }
-h2 .badge, h3 .badge { margin-left: .3em; padding: .2em .65em; border-radius: 1em; vertical-align: .25em; font-size: max(14px, .36em); letter-spacing: 0; }
-h3 .badge { vertical-align: .1em; font-size: 13px; }
 .doc .empty { margin-top: 18px; color: var(--muted); }
 .plats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 40px; }
 .plats section { padding: 4px 18px 18px; border-radius: 18px; background: var(--surface); }

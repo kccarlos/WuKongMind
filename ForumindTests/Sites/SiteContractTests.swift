@@ -410,7 +410,9 @@ final class SiteContractTests: XCTestCase {
                 XCTAssertNotNil(search(fixture.siteURL, "words"), fixture.name)
             }
             if let bridge = capabilities.pageBridge {
-                XCTAssertFalse(bridge.bridgeInstaller.isEmpty, fixture.name)
+                if let installer = bridge.bridgeInstaller {
+                    XCTAssertFalse(installer.isEmpty, fixture.name)
+                }
                 XCTAssertFalse(bridge.moderationInstaller.isEmpty, fixture.name)
             }
             if let filters = capabilities.topicFilters {

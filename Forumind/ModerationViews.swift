@@ -140,7 +140,11 @@ struct ReportSheet: View {
                         }
                     }
                 } header: {
-                    Text("Posts on screen")
+                    if app.browser.pageBridge?.bridgeInstaller == nil {
+                        Text("Posts in this topic")
+                    } else {
+                        Text("Posts on screen")
+                    }
                 }
 
                 if let status {
@@ -155,7 +159,7 @@ struct ReportSheet: View {
                 }
             }
             .task {
-                posts = await app.browser.visiblePosts()
+                posts = await app.reportablePosts(for: topic)
                 loaded = true
             }
             .sheet(item: $composing) { target in
@@ -275,7 +279,7 @@ struct ReportSheet: View {
     }
 
     private func send(target: ReportTarget, reason: ReportReason?, note: String, blocked: Bool) {
-        let draft = ModerationReport.draft(for: target, reason: reason, note: note, blocked: blocked, links: app.adapter(for: target.siteURL)?.links)
+        let draft = ModerationReport.draft(for: target, reason: reason, note: note, blocked: blocked, adapter: app.adapter(for: target.siteURL))
         if MFMailComposeViewController.canSendMail() {
             mail = draft
         } else {
@@ -286,6 +290,55 @@ struct ReportSheet: View {
         if !blocked {
             status = String(localized: "Thanks. Send the email to finish your report.", comment: "Report sheet status after a report email is prepared")
         }
+    }
+}
+
+extension AppModel {
+    /// Prefer the page; comment-only bridges can fall back to the topic data
+    /// when comments are offscreen, still loading, or use an unknown theme.
+    func reportablePosts(for topic: ForumTopic) async -> [VisiblePost] {
+        let visible = pageContext.topic?.topicKey == topic.topicKey ? await browser.visiblePosts() : []
+        guard visible.isEmpty, let adapter = adapter(for: topic.siteURL),
+              let bridge = adapter.capabilities.pageBridge, bridge.bridgeInstaller == nil else { return visible }
+        let pages = sessions[topic.topicKey]?.rawPages ?? []
+        let facts = topicOverviews[topic.topicKey]?.facts
+        let identity = adapter.capabilities.postIdentity
+        var posts: [Int: VisiblePost] = [:]
+        if pages.isEmpty && (facts?.posts.isEmpty ?? true), let lookup = adapter.capabilities.postLookup {
+            // shortcut: on a cold topic, load one page of posts; cached reads
+            // below include all available pages. Add paging if readers need more.
+            let fetched = try? await lookup.posts(Array(1...RawForumPage.size),
+                in: TopicRef(siteURL: topic.siteURL, topicID: topic.topicID), facts: facts ?? TopicFacts(),
+                net: await network(for: topic.siteURL, pace: settings.forumRequestPace))
+            for post in fetched ?? [] {
+                let id = identity.id(number: post.number, nativeID: post.id)
+                posts[id] = VisiblePost(number: id, username: post.username, excerpt: String(post.text.prefix(160)))
+            }
+        }
+        guard !Task.isCancelled else { return [] }
+        for page in pages.sorted(by: { $0.page < $1.page }) {
+            let text = Dictionary(RawTopicFormat.postBlocks(page.content).compactMap { text -> (Int, String)? in
+                guard let header = RawTopicFormat.parseHeaders(text).first else { return nil }
+                return (header.number, String(text.drop(while: { $0 != "\n" })).trimmingCharacters(in: .whitespacesAndNewlines))
+            }, uniquingKeysWith: { first, _ in first })
+            for block in page.blocks {
+                let id = identity.id(number: block.number, nativeID: identity.id(anchor: block.anchor) ?? 0)
+                let username = facts?.posts.first { $0.id == id }?.username ?? block.author
+                posts[id] = VisiblePost(number: id, username: username, excerpt: String((text[block.number] ?? "").prefix(160)))
+            }
+        }
+        for post in facts?.posts ?? [] {
+            let id = identity.id(number: post.number, nativeID: post.id)
+            if posts[id] == nil { posts[id] = VisiblePost(number: id, username: post.username, excerpt: "") }
+        }
+        let rules = browser.moderationRules
+        return posts.values.filter {
+            $0.number > 0 && !$0.username.isEmpty
+                && $0.username.lowercased() != RawTopicFormat.authorToken("")
+                && !rules.hidesUser($0.username, siteURL: topic.siteURL)
+                && !rules.hidesPost($0.number, siteURL: topic.siteURL, topicID: topic.topicID)
+                && !rules.hidesText($0.excerpt)
+        }.sorted { $0.number < $1.number }
     }
 }
 
@@ -378,7 +431,7 @@ struct AIOutputReportSheet: View {
         } else {
             ReportForm(target: target) { reason, note in
                 // An AI output names no post, so it needs no site links.
-                draft = ModerationReport.draft(for: target, reason: reason, note: note, blocked: false, links: nil)
+                draft = ModerationReport.draft(for: target, reason: reason, note: note, blocked: false, adapter: nil)
             }
             .accessibilityIdentifier("aiOutputReportForm")
         }
