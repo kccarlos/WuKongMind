@@ -16,10 +16,10 @@ permissions:
 env:
   PROJECT: Forumind.xcodeproj
   SCHEME: Forumind
-  # Matches the local toolchain (Xcode 27.0, 27A266a). To fall back to the GA
+  # Matches the local toolchain (Xcode 27.2, 27B52). To fall back to the GA
   # macOS 26 image, set repo variables CI_MACOS_RUNNER=macos-26 and
   # CI_XCODE_APP=/Applications/Xcode_26.6.app.
-  XCODE_APP: ${{ vars.CI_XCODE_APP || '/Applications/Xcode_27.0.app' }}
+  XCODE_APP: ${{ vars.CI_XCODE_APP || '/Applications/Xcode_27.2.app' }}
 
 jobs:
   # Cheap checks on Linux (macOS minutes are billed at a multiplier).

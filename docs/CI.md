@@ -234,8 +234,8 @@ Signing notes:
 
 ## Runners and cost
 
-Jobs run on the GitHub-hosted **`xcode-27`** image (macOS 27, Xcode 27.0 at
-`/Applications/Xcode_27.0.app`). If that image is unavailable, point the jobs
+Jobs run on the GitHub-hosted **`xcode-27`** image (macOS 27, Xcode 27.2 at
+`/Applications/Xcode_27.2.app`). If that image is unavailable, point the jobs
 elsewhere without editing YAML:
 
 ```sh

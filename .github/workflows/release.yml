@@ -52,7 +52,7 @@ permissions:
 env:
   PROJECT: Forumind.xcodeproj
   SCHEME: Forumind
-  XCODE_APP: ${{ vars.CI_XCODE_APP || '/Applications/Xcode_27.0.app' }}
+  XCODE_APP: ${{ vars.CI_XCODE_APP || '/Applications/Xcode_27.2.app' }}
   # Repo variables (Settings -> Secrets and variables -> Actions -> Variables).
   DEVELOPMENT_TEAM: ${{ vars.DEVELOPMENT_TEAM }}
   # App Store profiles (manual signing), created once with the distribution

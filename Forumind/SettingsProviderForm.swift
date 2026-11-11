@@ -173,10 +173,14 @@ struct APIKeyField: View {
                     .opacity(hasSavedKey && !isFocused ? 0.01 : 1)
                     .accessibilityIdentifier("apiKeyField")
                 if hasSavedKey && !isFocused {
+                    // UIKit doesn't hit-test the near-transparent field, so
+                    // the bullets take the tap and focus it to replace the key.
                     Text(verbatim: "••••••••••••••••")
                         .font(.body)
                         .foregroundStyle(.primary)
-                        .allowsHitTesting(false)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
+                        .onTapGesture { isFocused = true }
                         .accessibilityIdentifier("apiKeyMaskedBullets")
                 }
             }

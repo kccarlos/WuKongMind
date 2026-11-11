@@ -338,6 +338,15 @@ scheme.add_build_target(app_target)
 scheme.add_test_target(test_target)
 scheme.add_test_target(ui_test_target)
 scheme.set_launch_target(app_target)
+# AttributeGraph builds the descriptor it compares Equatable views with on a
+# background queue and installs it at the next render pass. Unit tests wait on
+# the run loop without rendering, so until then every row reads as changed and
+# the layout-count tests fail at random. The app renders every frame, so the
+# window there is a frame or two. Synchronous descriptors keep the counts exact.
+scheme.test_action.should_use_launch_scheme_args_env = false
+scheme.test_action.environment_variables = Xcodeproj::XCScheme::EnvironmentVariables.new([
+  { key: "AG_ASYNC_LAYOUTS", value: "0", enabled: true }
+])
 scheme.save_as(project_path, "Forumind", true)
 
 capabilities = []

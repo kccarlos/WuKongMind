@@ -196,6 +196,26 @@ final class SettingsNavigationUITests: DCUITestCase {
         XCTAssertGreaterThanOrEqual(testButton.frame.height, 50, "Test & Save button must keep its full 52pt row height when test status is shown.")
     }
 
+    /// A saved key is replaced by tapping its field and typing.
+    func testSavedAPIKeyFieldTakesFocusToReplaceTheKey() throws {
+        let app = launch(["-dc-sample", "-dc-forums-home", "-dc-show-settings", "root"])
+        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 20))
+        let providerRow = app.buttons["settingsRow-provider"]
+        XCTAssertTrue(reveal(providerRow, in: app, swipes: 3))
+        providerRow.tap()
+        XCTAssertTrue(app.navigationBars["AI models"].waitForExistence(timeout: 10))
+        let anthropic = app.buttons["providerRow-anthropic"]
+        XCTAssertTrue(reveal(anthropic, in: app))
+        anthropic.tap()
+        let field = app.secureTextFields["apiKeyField"]
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        XCTAssertTrue(any(app, "apiKeyMaskedBullets").exists)
+        field.tap()
+        XCTAssertTrue(wait(timeout: 5) { field.value(forKey: "hasKeyboardFocus") as? Bool == true }, "Tapping a saved key's field should focus it.")
+        field.typeText("NEWKEY")
+        XCTAssertEqual(field.value as? String, "••••••", "Typing into a saved key's field should replace the key.")
+    }
+
     func testSettingsReadingLanguageSyncErrorReportAndSavedAPIKeyLayout() throws {
         let app = launch(["-dc-sample", "-dc-forums-home", "-dc-show-settings", "root"])
         XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 20))

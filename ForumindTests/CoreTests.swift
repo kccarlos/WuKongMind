@@ -193,7 +193,8 @@ final class CoreTests: XCTestCase {
             for idx in [0, 2, 4, 5, 6, 7] where idx < pills.count {
                 let pill = pills[idx]
                 let gapAfter = try XCTUnwrap(pill.gapAfter, "\(name) pill[\(idx)]: trailing full stop must stay on the same line right after its chip")
-                XCTAssertLessThanOrEqual(gapAfter, 2.0, "\(name) pill[\(idx)]: full stop must touch the chip without a space (got \(gapAfter) pt)")
+                // A space is several points wider even at default sizes; CI renders up to 0.5 pt looser.
+                XCTAssertLessThanOrEqual(gapAfter, 3.0, "\(name) pill[\(idx)]: full stop must touch the chip without a space (got \(gapAfter) pt)")
                 if let dotMaxY = pill.dotMaxY {
                     XCTAssertLessThanOrEqual(dotMaxY, pill.pillMaxY + 1.5, "\(name) pill[\(idx)]: full stop must not drop below the chip pill")
                 }

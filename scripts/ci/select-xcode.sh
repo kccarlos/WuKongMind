@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Select the Xcode given by $XCODE_APP (e.g. /Applications/Xcode_27.0.app).
+# Select the Xcode given by $XCODE_APP (e.g. /Applications/Xcode_27.2.app).
 # Falls back to the image default (/Applications/Xcode.app) with a warning
 # so a runner image refresh doesn't hard-fail the job.
 set -euo pipefail
