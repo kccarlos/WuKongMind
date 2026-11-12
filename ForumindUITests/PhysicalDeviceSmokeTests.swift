@@ -806,6 +806,81 @@ final class PhysicalDeviceSmokeTests: DCUITestCase {
         #endif
     }
 
+    func testLiveBrowserAgentDarkAndHideSidebar() throws {
+        let apiKey = (ProcessInfo.processInfo.environment["ANTHROPIC_API_KEY"] ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !apiKey.isEmpty else {
+            throw XCTSkip("Set TEST_RUNNER_ANTHROPIC_API_KEY to run the live browser agent check.")
+        }
+
+        let beforeApp = launch(["-dc-browser-agent-fixture-page", "-AppleInterfaceStyle", "Light"])
+        let beforeWebView = beforeApp.webViews.firstMatch
+        XCTAssertTrue(beforeWebView.waitForExistence(timeout: 20), "The fixture web view did not load.")
+        XCTAssertTrue(
+            beforeWebView.staticTexts["Sponsored Sidebar"].waitForExistence(timeout: 10),
+            "The fixture sidebar should be visible before the browser agent runs."
+        )
+        RunLoop.current.run(until: Date().addingTimeInterval(1.5))
+        attachScreenshot(named: "m1-before")
+        beforeApp.terminate()
+
+        XCUIDevice.shared.orientation = .portrait
+        let app = XCUIApplication()
+        app.launchEnvironment["ANTHROPIC_API_KEY"] = apiKey
+        app.launchArguments = [
+            "-dc-skip-onboarding",
+            "-dc-browser-agent-live-prompt", "make this page dark and hide the sidebar",
+            "-dc-browser-agent-live-model", "claude-haiku-5-5",
+            "-dc-drawer-detent", "medium",
+            "-AppleInterfaceStyle", "Light"
+        ]
+        app.launch()
+
+        let webView = app.webViews.firstMatch
+        XCTAssertTrue(webView.waitForExistence(timeout: 20), "The browser web view did not appear.")
+        XCTAssertTrue(any(app, "agentPanel").waitForExistence(timeout: 20), "The browser agent panel did not open.")
+        XCTAssertTrue(any(app, "agentHostPill").waitForExistence(timeout: 10), "The non-Discourse host pill is missing.")
+
+        let statusLine = any(app, "agentStatusLine")
+        let finished = wait(timeout: 90) {
+            guard statusLine.exists else { return false }
+            let label = statusLine.label
+            return label.contains("Done") || label.contains("Turn failed") || label.contains("Stopped")
+        }
+        if !finished || !statusLine.label.contains("Done") {
+            attachTree(app, named: "Browser agent failure tree")
+            attachScreenshot(named: "m1-failure")
+            XCTFail("Browser agent did not complete cleanly (status: \(statusLine.exists ? statusLine.label : "missing")).")
+            return
+        }
+
+        RunLoop.current.run(until: Date().addingTimeInterval(1.5))
+        attachScreenshot(named: "m1-after-medium")
+
+        XCTAssertFalse(
+            webView.staticTexts["Sponsored Sidebar"].exists,
+            "The sidebar should be hidden after the browser agent runs."
+        )
+        let toolRows = app.buttons.matching(identifier: "agentToolRow")
+        XCTAssertGreaterThanOrEqual(toolRows.count, 1, "Every tool call must appear in the conversation.")
+        XCTAssertTrue(any(app, "agentAssistantReply").exists, "The assistant reply must appear after tool calls finish.")
+
+        let rowLabels = (0..<toolRows.count).map { "[\($0 + 1)] \(toolRows.element(boundBy: $0).label)" }
+        attachText(
+            (["Status: \(statusLine.label)"] + rowLabels).joined(separator: "\n"),
+            named: "m1-tool-calls"
+        )
+
+        if usesDrawerLayout(app) {
+            dragDrawer(in: app, to: 0.08)
+            let scroll = app.scrollViews["agentScroll"].firstMatch
+            if scroll.exists { scroll.swipeDown() }
+            RunLoop.current.run(until: Date().addingTimeInterval(1.0))
+            attachScreenshot(named: "m1-after-tools")
+        }
+        app.terminate()
+    }
+
     func testPhoneKeepsTheAIDrawerInLandscape() throws {
         try skipUnlessPhone("The AI drawer is an iPhone behavior.")
         let app = launch(["-dc-open", Self.forumLatest], orientation: .landscapeRight)
