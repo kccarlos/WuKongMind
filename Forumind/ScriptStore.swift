@@ -1656,7 +1656,9 @@ final class ScriptStore {
     func reloadFromDisk() {
         let fm = FileManager.default
         guard fm.fileExists(atPath: directoryURL.path) else {
-            scripts = []
+            if !scripts.isEmpty {
+                scripts = []
+            }
             syncAttachedUserScripts()
             return
         }
@@ -1874,19 +1876,37 @@ protocol ScriptLiveApplying: Sendable {
 final class ScriptWebController: ScriptLiveApplying {
     weak var webView: WKWebView?
     let store: ScriptStore
-    let agentBridge: AgentBridge
+    weak var agentBridge: AgentBridge?
 
-    private let relayToken = UUID().uuidString
+    private lazy var relayToken = UUID().uuidString
     private var managedUserScripts: [ObjectIdentifier: WKUserScript] = [:]
-    private let previousReplyRouter: (([String: Any]) async throws -> Any?)?
+    private var previousReplyRouter: (([String: Any]) async throws -> Any?)?
+    private var isReplyRouterInstalled = false
 
     init(webView: WKWebView, store: ScriptStore, agentBridge: AgentBridge) {
         self.webView = webView
         self.store = store
         self.agentBridge = agentBridge
-        self.previousReplyRouter = agentBridge.replyRouter
 
-        let fallbackRouter = previousReplyRouter
+        store.registerWebController(self)
+        syncUserScripts()
+    }
+
+    func detach() {
+        store.unregisterWebController(self)
+        removeAllManagedUserScripts()
+        if isReplyRouterInstalled {
+            agentBridge?.replyRouter = previousReplyRouter
+            previousReplyRouter = nil
+            isReplyRouterInstalled = false
+        }
+    }
+
+    private func installReplyRouterIfNeeded() {
+        guard !isReplyRouterInstalled, let agentBridge else { return }
+        let fallbackRouter = agentBridge.replyRouter
+        previousReplyRouter = fallbackRouter
+        isReplyRouterInstalled = true
         agentBridge.replyRouter = { [weak self] payload in
             if let action = payload["action"] as? String, action == "scriptError" {
                 await MainActor.run {
@@ -1900,15 +1920,15 @@ final class ScriptWebController: ScriptLiveApplying {
             let unknown = (payload["action"] as? String) ?? ""
             throw AgentBridgeError.javaScriptFailed("Unsupported isolated bridge action '\(unknown)'.")
         }
-
-        store.registerWebController(self)
-        syncUserScripts()
     }
 
-    func detach() {
-        store.unregisterWebController(self)
-        removeAllManagedUserScripts()
-        agentBridge.replyRouter = previousReplyRouter
+    private static func contentWorld(for environment: AgentExecutionEnvironment) -> WKContentWorld {
+        switch environment {
+        case .page:
+            return .page
+        case .isolated:
+            return AgentBridge.isolatedWorld
+        }
     }
 
     /// Rebuilds managed `WKUserScript`s on `webView.configuration.userContentController`
@@ -1931,6 +1951,7 @@ final class ScriptWebController: ScriptLiveApplying {
         }
 
         guard !enabledScripts.isEmpty else { return }
+        installReplyRouterIfNeeded()
 
         addManagedUserScript(
             WKUserScript(
@@ -1966,7 +1987,7 @@ final class ScriptWebController: ScriptLiveApplying {
             }
 
             if script.hasJS {
-                let targetWorld = agentBridge.contentWorld(for: script.environment)
+                let targetWorld = Self.contentWorld(for: script.environment)
                 addManagedUserScript(
                     WKUserScript(
                         source: Self.buildJSUserScriptSource(for: script, relayToken: relayToken),
@@ -1995,6 +2016,7 @@ final class ScriptWebController: ScriptLiveApplying {
             return .notApplied
         }
 
+        installReplyRouterIfNeeded()
         await ensureBootstrapsInstalledOnCurrentPage()
 
         if script.hasCSS {
@@ -2057,7 +2079,7 @@ final class ScriptWebController: ScriptLiveApplying {
                 arguments: ["scriptId": script.id],
                 world: otherWorld
             )
-            let world = agentBridge.contentWorld(for: script.environment)
+            let world = Self.contentWorld(for: script.environment)
             let liveRunner = Self.buildLiveJSInstallAndRunSource(
                 for: script,
                 relayToken: relayToken,
@@ -2140,7 +2162,8 @@ final class ScriptWebController: ScriptLiveApplying {
                 world: .page
             )
         } else {
-            await ensureBootstrapsInstalledOnCurrentPage()
+            installReplyRouterIfNeeded()
+        await ensureBootstrapsInstalledOnCurrentPage()
             _ = try? await evalAsync(
                 script: "window.__wukongScriptsGlobalEnabled = true; return true;",
                 arguments: [:],
@@ -2167,6 +2190,7 @@ final class ScriptWebController: ScriptLiveApplying {
     }
 
     private func removeAllManagedUserScripts() {
+        guard !managedUserScripts.isEmpty else { return }
         guard let webView else {
             managedUserScripts.removeAll()
             return
@@ -2196,6 +2220,7 @@ final class ScriptWebController: ScriptLiveApplying {
         if let direct = webView?.url, !direct.absoluteString.isEmpty {
             return direct
         }
+        guard let agentBridge else { return nil }
         let meta = await agentBridge.currentPageMetadata()
         guard !meta.url.isEmpty else { return nil }
         return URL(string: meta.url)

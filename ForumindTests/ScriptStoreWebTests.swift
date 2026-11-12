@@ -83,6 +83,7 @@ final class ScriptStoreWebTests: XCTestCase {
         private let listener: NWListener
         private let queue = DispatchQueue(label: "wukong.scriptstore.fixture-server")
         private let routeResolver: @Sendable (String) -> Route?
+        private let activeConnections = OSAllocatedUnfairLock(initialState: [ObjectIdentifier: NWConnection]())
         private(set) var port: UInt16 = 0
 
         init(routeResolver: @escaping @Sendable (String) -> Route?) throws {
@@ -110,7 +111,18 @@ final class ScriptStoreWebTests: XCTestCase {
                     continuation.resume(with: result)
                 }
 
+                let connections = self.activeConnections
                 listener.newConnectionHandler = { [routeResolver, queue] connection in
+                    let key = ObjectIdentifier(connection)
+                    connections.withLock { $0[key] = connection }
+                    connection.stateUpdateHandler = { state in
+                        switch state {
+                        case .cancelled, .failed:
+                            _ = connections.withLock { $0.removeValue(forKey: key) }
+                        default:
+                            break
+                        }
+                    }
                     Self.serve(connection: connection, routeResolver: routeResolver, queue: queue)
                 }
                 listener.stateUpdateHandler = { [weak listener] state in
@@ -149,6 +161,14 @@ final class ScriptStoreWebTests: XCTestCase {
 
         func stop() {
             listener.cancel()
+            let remaining = activeConnections.withLock { map -> [NWConnection] in
+                let list = Array(map.values)
+                map.removeAll()
+                return list
+            }
+            for connection in remaining {
+                connection.cancel()
+            }
         }
 
         private static func serve(
@@ -234,13 +254,23 @@ final class ScriptStoreWebTests: XCTestCase {
         override func stopLoading() {}
     }
 
-    /// Share one ephemeral `WKWebsiteDataStore` across the suite so WebKit does
-    /// not spawn a separate `Networking` AppExtensionProcess per test on Swift's
-    /// cooperative pool (3 threads on CI runners).
+    private struct NoOpBackgroundGrace: BackgroundGracing {
+        func begin(name: String, expiration: @escaping () -> Void) -> UIBackgroundTaskIdentifier { .invalid }
+        func end(_ id: UIBackgroundTaskIdentifier) {}
+    }
+
+    /// Share one ephemeral `WKWebsiteDataStore`, one primary `WKWebView`, and one
+    /// loopback fixture server across the suite so WebKit does not churn `WebContent`
+    /// and `Networking` extension processes on Swift's 3-thread cooperative pool on CI.
     private static let sharedDataStore = WKWebsiteDataStore.nonPersistent()
+    private static var sharedServer: LoopbackFixtureServer?
+    private static var sharedBaseURL: URL?
+    private static var sharedWebView: WKWebView?
+    private static var sharedBridge: AgentBridge?
+    private static var sharedWaiter: NavigationWaiter?
 
     private var tempDirectory: URL!
-    private var activeWebViews: [WKWebView] = []
+    private var dedicatedWebViews: [WKWebView] = []
     private var activeControllers: [ScriptWebController] = []
 
     override func setUpWithError() throws {
@@ -255,19 +285,71 @@ final class ScriptStoreWebTests: XCTestCase {
         }
         activeControllers.removeAll()
 
-        for webView in activeWebViews {
+        if let sharedWebView = Self.sharedWebView {
+            sharedWebView.stopLoading()
+            sharedWebView.configuration.userContentController.removeAllUserScripts()
+        }
+
+        for webView in dedicatedWebViews {
             webView.stopLoading()
             webView.navigationDelegate = nil
+            webView.configuration.userContentController.removeAllUserScripts()
             webView.configuration.userContentController.removeAllScriptMessageHandlers()
             webView.removeFromSuperview()
         }
-        activeWebViews.removeAll()
+        dedicatedWebViews.removeAll()
 
         if let tempDirectory, FileManager.default.fileExists(atPath: tempDirectory.path) {
             try? FileManager.default.removeItem(at: tempDirectory)
         }
         tempDirectory = nil
         super.tearDown()
+    }
+
+    nonisolated override class func tearDown() {
+        if Thread.isMainThread {
+            MainActor.assumeIsolated {
+                if let webView = sharedWebView {
+                    webView.stopLoading()
+                    webView.navigationDelegate = nil
+                    webView.configuration.userContentController.removeAllUserScripts()
+                    webView.configuration.userContentController.removeAllScriptMessageHandlers()
+                    webView.removeFromSuperview()
+                }
+                sharedWebView = nil
+                sharedBridge = nil
+                sharedWaiter = nil
+                sharedServer?.stop()
+                sharedServer = nil
+                sharedBaseURL = nil
+            }
+        }
+        super.tearDown()
+    }
+
+    private func sharedFixtureBaseURL() async throws -> URL {
+        if let existing = Self.sharedBaseURL {
+            return existing
+        }
+        let spaData = Data(try loadFixtureHTML("ScriptStore/spa-thread.html").utf8)
+        let strictData = Data(try loadFixtureHTML("AgentBridge/strict-csp.html").utf8)
+        let strictCSP = "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'"
+        let server = try LoopbackFixtureServer { path in
+            if path.hasPrefix("/t/") || path == "/about" {
+                return .init(body: spaData)
+            }
+            if path == "/strict" {
+                return .init(
+                    headers: ["Content-Security-Policy": strictCSP],
+                    body: strictData
+                )
+            }
+            return nil
+        }
+        let url = try await server.start()
+        Self.sharedServer = server
+        Self.sharedBaseURL = url
+        return url
     }
 
     private func loadFixtureHTML(_ relativeSubpath: String) throws -> String {
@@ -293,15 +375,71 @@ final class ScriptStoreWebTests: XCTestCase {
 
     private func makeHarness(
         store: ScriptStore,
-        preinstalledScriptSource: String? = nil
+        preinstalledScriptSource: String? = nil,
+        freshWebView: Bool = false
     ) -> WebHarness {
-        let config = WKWebViewConfiguration()
-        config.websiteDataStore = Self.sharedDataStore
-        config.defaultWebpagePreferences.allowsContentJavaScript = true
-        ForumBrowserModel.disableWebKitScreenTimeForTesting(in: config)
+        if freshWebView {
+            let config = WKWebViewConfiguration()
+            config.websiteDataStore = Self.sharedDataStore
+            config.defaultWebpagePreferences.allowsContentJavaScript = true
+            ForumBrowserModel.disableWebKitScreenTimeForTesting(in: config)
+
+            if let preinstalledScriptSource {
+                config.userContentController.addUserScript(
+                    WKUserScript(
+                        source: preinstalledScriptSource,
+                        injectionTime: .atDocumentStart,
+                        forMainFrameOnly: true
+                    )
+                )
+            }
+
+            let webView = WKWebView(frame: CGRect(x: 0, y: 0, width: 390, height: 844), configuration: config)
+            let bridge = AgentBridge(webView: webView)
+            let controller = ScriptWebController(webView: webView, store: store, agentBridge: bridge)
+            let waiter = NavigationWaiter()
+            webView.navigationDelegate = waiter
+
+            dedicatedWebViews.append(webView)
+            activeControllers.append(controller)
+            return WebHarness(webView: webView, bridge: bridge, controller: controller, waiter: waiter)
+        }
+
+        for existing in activeControllers {
+            existing.detach()
+        }
+        activeControllers.removeAll()
+
+        let webView: WKWebView
+        let bridge: AgentBridge
+        let waiter: NavigationWaiter
+        if let existingWebView = Self.sharedWebView,
+           let existingBridge = Self.sharedBridge,
+           let existingWaiter = Self.sharedWaiter {
+            webView = existingWebView
+            bridge = existingBridge
+            waiter = existingWaiter
+            webView.stopLoading()
+            webView.configuration.userContentController.removeAllUserScripts()
+        } else {
+            let config = WKWebViewConfiguration()
+            config.websiteDataStore = Self.sharedDataStore
+            config.defaultWebpagePreferences.allowsContentJavaScript = true
+            ForumBrowserModel.disableWebKitScreenTimeForTesting(in: config)
+            let createdWebView = WKWebView(frame: CGRect(x: 0, y: 0, width: 390, height: 844), configuration: config)
+            let createdBridge = AgentBridge(webView: createdWebView)
+            let createdWaiter = NavigationWaiter()
+            createdWebView.navigationDelegate = createdWaiter
+            Self.sharedWebView = createdWebView
+            Self.sharedBridge = createdBridge
+            Self.sharedWaiter = createdWaiter
+            webView = createdWebView
+            bridge = createdBridge
+            waiter = createdWaiter
+        }
 
         if let preinstalledScriptSource {
-            config.userContentController.addUserScript(
+            webView.configuration.userContentController.addUserScript(
                 WKUserScript(
                     source: preinstalledScriptSource,
                     injectionTime: .atDocumentStart,
@@ -310,13 +448,7 @@ final class ScriptStoreWebTests: XCTestCase {
             )
         }
 
-        let webView = WKWebView(frame: CGRect(x: 0, y: 0, width: 390, height: 844), configuration: config)
-        let bridge = AgentBridge(webView: webView)
         let controller = ScriptWebController(webView: webView, store: store, agentBridge: bridge)
-        let waiter = NavigationWaiter()
-        webView.navigationDelegate = waiter
-
-        activeWebViews.append(webView)
         activeControllers.append(controller)
         return WebHarness(webView: webView, bridge: bridge, controller: controller, waiter: waiter)
     }
@@ -339,13 +471,7 @@ final class ScriptStoreWebTests: XCTestCase {
     // MARK: - 1. Load, Reload, App Restart & Preserving Built-in WKUserScripts
 
     func testSavedScriptsApplyOnLoadAfterReloadAndAcrossFreshStoreAndWebView() async throws {
-        let spaHTML = try loadFixtureHTML("ScriptStore/spa-thread.html")
-        let server = try LoopbackFixtureServer { path in
-            guard path.hasPrefix("/t/") || path == "/about" else { return nil }
-            return .init(body: Data(spaHTML.utf8))
-        }
-        let baseURL = try await server.start()
-        defer { server.stop() }
+        let baseURL = try await sharedFixtureBaseURL()
 
         let store = ScriptStore(directoryURL: tempDirectory)
 
@@ -442,7 +568,7 @@ final class ScriptStoreWebTests: XCTestCase {
         // Simulate killing and reopening the app: new ScriptStore + new WKWebView reading from disk
         let restartedStore = ScriptStore(directoryURL: tempDirectory)
         XCTAssertEqual(restartedStore.scripts.count, 2)
-        let restartedHarness = makeHarness(store: restartedStore)
+        let restartedHarness = makeHarness(store: restartedStore, freshWebView: true)
         try await restartedHarness.waiter.waitForLoad {
             _ = restartedHarness.webView.load(URLRequest(url: threadURL))
         }
@@ -456,13 +582,7 @@ final class ScriptStoreWebTests: XCTestCase {
     // MARK: - 2. SPA Route Changes (pushState / replaceState / popstate)
 
     func testSavedScriptReRunsOnPushStateReplaceStateAndPopstateRouteChanges() async throws {
-        let spaHTML = try loadFixtureHTML("ScriptStore/spa-thread.html")
-        let server = try LoopbackFixtureServer { path in
-            guard path.hasPrefix("/t/") || path == "/about" else { return nil }
-            return .init(body: Data(spaHTML.utf8))
-        }
-        let baseURL = try await server.start()
-        defer { server.stop() }
+        let baseURL = try await sharedFixtureBaseURL()
 
         let store = ScriptStore(directoryURL: tempDirectory)
         _ = try store.create(
@@ -551,12 +671,7 @@ final class ScriptStoreWebTests: XCTestCase {
     // MARK: - 3. Disabled Script & Global Kill Switch
 
     func testDisabledScriptAndGlobalSwitchPreventInjectionAndRemoveInjectedCSS() async throws {
-        let spaHTML = try loadFixtureHTML("ScriptStore/spa-thread.html")
-        let server = try LoopbackFixtureServer(routes: [
-            "/t/1": .init(body: Data(spaHTML.utf8))
-        ])
-        let baseURL = try await server.start()
-        defer { server.stop() }
+        let baseURL = try await sharedFixtureBaseURL()
 
         let store = ScriptStore(directoryURL: tempDirectory)
         let activeScript = try store.create(
@@ -650,16 +765,7 @@ final class ScriptStoreWebTests: XCTestCase {
     // MARK: - 4. Strict Content Security Policy Fixture
 
     func testSavedScriptCSSAndJSApplyUnderStrictCSPHeader() async throws {
-        let strictHTML = try loadFixtureHTML("AgentBridge/strict-csp.html")
-        let strictCSP = "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'"
-        let server = try LoopbackFixtureServer(routes: [
-            "/strict": .init(
-                headers: ["Content-Security-Policy": strictCSP],
-                body: Data(strictHTML.utf8)
-            )
-        ])
-        let baseURL = try await server.start()
-        defer { server.stop() }
+        let baseURL = try await sharedFixtureBaseURL()
 
         let store = ScriptStore(directoryURL: tempDirectory)
         _ = try store.create(
@@ -721,13 +827,7 @@ final class ScriptStoreWebTests: XCTestCase {
     // MARK: - 5. Error Capture Across Both Content Worlds & Live script_save Application
 
     func testScriptErrorsInBothWorldsReportViaIsolatedHandlerAndLiveScriptSaveAppliesImmediately() async throws {
-        let spaHTML = try loadFixtureHTML("ScriptStore/spa-thread.html")
-        let server = try LoopbackFixtureServer { path in
-            guard path.hasPrefix("/t/") else { return nil }
-            return .init(body: Data(spaHTML.utf8))
-        }
-        let baseURL = try await server.start()
-        defer { server.stop() }
+        let baseURL = try await sharedFixtureBaseURL()
 
         let store = ScriptStore(directoryURL: tempDirectory)
         let brokenIsolated = try store.create(
@@ -876,13 +976,7 @@ final class ScriptStoreWebTests: XCTestCase {
     }
 
     func testAppModelWiresScriptStoreGlobalSwitchAndBrowserAgentM2Tools() async throws {
-        let spaHTML = try loadFixtureHTML("ScriptStore/spa-thread.html")
-        let server = try LoopbackFixtureServer { path in
-            guard path.hasPrefix("/t/") || path == "/about" else { return nil }
-            return .init(body: Data(spaHTML.utf8))
-        }
-        let baseURL = try await server.start()
-        defer { server.stop() }
+        let baseURL = try await sharedFixtureBaseURL()
 
         let stateURL = tempDirectory
             .appendingPathComponent("app-state", isDirectory: true)
@@ -900,87 +994,123 @@ final class ScriptStoreWebTests: XCTestCase {
             pacer: ForumRequestPacer(clock: InstantPacingClock())
         )
         let podcastDirectory = tempDirectory.appendingPathComponent("Podcasts", isDirectory: true)
-        var createdApps: [AppModel] = []
+        let sharedBrowser = ForumBrowserModel(
+            contentRules: ContentRuleLibrary(store: nil, directory: nil),
+            websiteDataStore: Self.sharedDataStore
+        )
+        sharedBrowser.webView.frame = CGRect(x: 0, y: 0, width: 390, height: 844)
         defer {
-            for instance in createdApps {
+            sharedBrowser.stopLoading()
+            sharedBrowser.onPageContextChanged = nil
+            sharedBrowser.webView.navigationDelegate = nil
+            sharedBrowser.webView.uiDelegate = nil
+            sharedBrowser.webView.configuration.userContentController.removeAllUserScripts()
+            sharedBrowser.webView.configuration.userContentController.removeAllScriptMessageHandlers()
+        }
+
+        var activeApp: AppModel?
+        defer {
+            if let instance = activeApp {
                 instance.browser.stopLoading()
                 instance.pauseDigest()
                 instance.podcast.pauseGeneration()
                 instance.scriptWebController.detach()
             }
+            activeApp = nil
         }
 
         let makeIsolatedApp: () -> AppModel = {
-            let browser = ForumBrowserModel(
-                contentRules: ContentRuleLibrary(store: nil, directory: nil)
-            )
-            browser.webView.frame = CGRect(x: 0, y: 0, width: 390, height: 844)
+            if let previous = activeApp {
+                previous.browser.stopLoading()
+                previous.pauseDigest()
+                previous.podcast.pauseGeneration()
+                previous.scriptWebController.detach()
+                activeApp = nil
+            }
             let instance = AppModel(
                 store: PersistentStore(fileURL: stateURL, keys: keys),
                 forumService: stubForumService,
-                browser: browser,
+                browser: sharedBrowser,
+                cloudSync: CloudSyncController(
+                    transport: nil,
+                    files: nil,
+                    defaults: nil,
+                    schedulesAutomatically: false
+                ),
                 podcastDirectory: podcastDirectory,
                 spotlightIndex: FakeSpotlightIndex(),
-                topicActivityDonor: FakeTopicActivityDonor()
+                topicActivityDonor: FakeTopicActivityDonor(),
+                backgroundGrace: NoOpBackgroundGrace()
             )
             instance.usesDirectForumRequests = true
             instance.browser.stopLoading()
             instance.browser.onPageContextChanged = nil
-            createdApps.append(instance)
+            activeApp = instance
             return instance
         }
 
-        let app = makeIsolatedApp()
-        var anthropicConfig = app.settings.configuration(for: .anthropic)
-        anthropicConfig.apiKey = "fake-recorded-key"
-        anthropicConfig.model = "claude-haiku-5-5"
-        app.settings.setConfiguration(anthropicConfig, for: .anthropic)
-        app.settings.setModel(ModelSelection(provider: .anthropic, model: "claude-haiku-5-5"), for: .browserAgent)
-        app.settings.aiConsent[AIProvider.anthropic.rawValue] = .allowed(Date())
-
-        let fakeClient = RecordedAppModelScriptClient()
-        app.browserAgent.configureDebugModelClient(fakeClient)
+        weak var trackedApp: AppModel?
+        weak var trackedStore: ScriptStore?
+        weak var trackedController: ScriptWebController?
 
         let threadURL = baseURL.appendingPathComponent("t/99")
-        app.browser.ignoresNavigationFailures = true
-        app.browser.load(threadURL)
-        await app.browser.waitUntilSettled(timeout: .seconds(10))
-
         let userPrompt = "Always show only the OP post and switch to dark mode"
-        await app.browserAgent.sendAndWait(userPrompt)
 
-        let exposedTools = await fakeClient.recordedToolNames
-        XCTAssertTrue(exposedTools.contains("script_save"))
-        XCTAssertTrue(exposedTools.contains("script_list"))
-        XCTAssertTrue(exposedTools.contains("script_read"))
-        XCTAssertTrue(exposedTools.contains("script_update"))
-        XCTAssertTrue(exposedTools.contains("script_delete"))
+        do {
+            let app = makeIsolatedApp()
+            trackedApp = app
+            trackedStore = app.scriptStore
+            trackedController = app.scriptWebController
 
-        XCTAssertEqual(app.scriptStore.scripts.count, 1)
-        let saved = try XCTUnwrap(app.scriptStore.scripts.first)
-        XCTAssertEqual(saved.source, .agent(userPrompt: userPrompt))
-        XCTAssertTrue(FileManager.default.fileExists(atPath: app.scriptStore.scriptFileURL(for: saved.id).path))
+            var anthropicConfig = app.settings.configuration(for: .anthropic)
+            anthropicConfig.apiKey = "fake-recorded-key"
+            anthropicConfig.model = "claude-haiku-5-5"
+            app.settings.setConfiguration(anthropicConfig, for: .anthropic)
+            app.settings.setModel(ModelSelection(provider: .anthropic, model: "claude-haiku-5-5"), for: .browserAgent)
+            app.settings.aiConsent[AIProvider.anthropic.rawValue] = .allowed(Date())
 
-        // Immediately active on the open page
-        let liveCheck = try await app.browser.agentBridge.runJS(
-            code: """
-            return {
-              bg: getComputedStyle(document.body).backgroundColor,
-              replyDisplay: getComputedStyle(document.querySelector('article.reply')).display,
-              marker: document.body.dataset.appSavedScript
-            };
-            """,
-            environment: .isolated
-        )
-        let liveObj = try JSONValue.parseObjectJSON(try XCTUnwrap(liveCheck.valueJSON))
-        XCTAssertEqual(liveObj["bg"], .string("rgb(15, 23, 42)"))
-        XCTAssertEqual(liveObj["replyDisplay"], .string("none"))
-        XCTAssertEqual(liveObj["marker"], .string("active"))
+            let fakeClient = RecordedAppModelScriptClient()
+            app.browserAgent.configureDebugModelClient(fakeClient)
 
-        // Toggling scriptStore.isGlobalEnabled updates AppSettings and persists across AppModel restart
-        app.scriptStore.isGlobalEnabled = false
-        XCTAssertFalse(app.settings.browserScriptsEnabled)
-        app.flushPendingSaves()
+            app.browser.ignoresNavigationFailures = true
+            app.browser.load(threadURL)
+            await app.browser.waitUntilSettled(timeout: .seconds(10))
+
+            await app.browserAgent.sendAndWait(userPrompt)
+
+            let exposedTools = await fakeClient.recordedToolNames
+            XCTAssertTrue(exposedTools.contains("script_save"))
+            XCTAssertTrue(exposedTools.contains("script_list"))
+            XCTAssertTrue(exposedTools.contains("script_read"))
+            XCTAssertTrue(exposedTools.contains("script_update"))
+            XCTAssertTrue(exposedTools.contains("script_delete"))
+
+            XCTAssertEqual(app.scriptStore.scripts.count, 1)
+            let saved = try XCTUnwrap(app.scriptStore.scripts.first)
+            XCTAssertEqual(saved.source, .agent(userPrompt: userPrompt))
+            XCTAssertTrue(FileManager.default.fileExists(atPath: app.scriptStore.scriptFileURL(for: saved.id).path))
+
+            // Immediately active on the open page
+            let liveCheck = try await app.browser.agentBridge.runJS(
+                code: """
+                return {
+                  bg: getComputedStyle(document.body).backgroundColor,
+                  replyDisplay: getComputedStyle(document.querySelector('article.reply')).display,
+                  marker: document.body.dataset.appSavedScript
+                };
+                """,
+                environment: .isolated
+            )
+            let liveObj = try JSONValue.parseObjectJSON(try XCTUnwrap(liveCheck.valueJSON))
+            XCTAssertEqual(liveObj["bg"], .string("rgb(15, 23, 42)"))
+            XCTAssertEqual(liveObj["replyDisplay"], .string("none"))
+            XCTAssertEqual(liveObj["marker"], .string("active"))
+
+            // Toggling scriptStore.isGlobalEnabled updates AppSettings and persists across AppModel restart
+            app.scriptStore.isGlobalEnabled = false
+            XCTAssertFalse(app.settings.browserScriptsEnabled)
+            app.flushPendingSaves()
+        }
 
         let relaunchedDisabled = makeIsolatedApp()
         XCTAssertFalse(relaunchedDisabled.scriptStore.isGlobalEnabled)
@@ -1011,5 +1141,10 @@ final class ScriptStoreWebTests: XCTestCase {
         XCTAssertEqual(restartedObj["bg"], .string("rgb(15, 23, 42)"))
         XCTAssertEqual(restartedObj["replyDisplay"], .string("none"))
         XCTAssertEqual(restartedObj["marker"], .string("active"))
+
+        // Verify previous AppModel + ScriptStore + ScriptWebController deallocated cleanly (no retain cycles)
+        try await waitUntil(timeoutSeconds: 2.0) {
+            trackedApp == nil && trackedStore == nil && trackedController == nil
+        }
     }
 }
