@@ -197,6 +197,9 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     }
 
     let webView: WKWebView
+    /// Page-tool bridge (`read_page`, `run_js`, `inject_css`, `wait_for`) and
+    /// isolated-world reply channel for the browser agent.
+    let agentBridge: AgentBridge
     /// Ad and tracker blocking for this web view.
     let contentBlocker: ContentBlocker
     /// A load issued while the compiled rule lists are still being looked up
@@ -284,6 +287,7 @@ final class ForumBrowserModel: NSObject, ObservableObject {
         }
 
         webView = WKWebView(frame: .zero, configuration: configuration)
+        agentBridge = AgentBridge(webView: webView)
         contentBlocker = ContentBlocker(
             controller: configuration.userContentController,
             library: contentRules

@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Wukong Fixture Article</title>
+  <style>
+    body { font-family: system-ui, sans-serif; color: rgb(20, 20, 20); margin: 16px; }
+    #cookie-banner { background: rgb(255, 240, 200); padding: 12px; }
+    .is-hidden { display: none; }
+    .is-invisible { visibility: hidden; }
+    .is-transparent { opacity: 0; }
+  </style>
+</head>
+<body>
+  <header id="site-header">
+    <nav aria-label="Primary">
+      <a href="/docs" class="nav-link css-9f8a7b12">Documentation</a>
+      <a href="https://example.org/pricing" data-testid="pricing-link">Pricing</a>
+    </nav>
+  </header>
+
+  <aside id="cookie-banner" role="region" aria-label="Cookie notice">
+    <p class="banner-copy">We use cookies to keep preferences.</p>
+    <button id="accept-cookies" type="button">Accept cookies</button>
+  </aside>
+
+  <main id="main-article">
+    <h1 class="article-title sc-aBc123X">Understanding Content Worlds</h1>
+    <p class="lead-paragraph">Isolated worlds access the DOM without sharing JavaScript globals.</p>
+
+    <form id="signup-form" action="/subscribe">
+      <label for="email-field">Email address</label>
+      <input id="email-field" name="email" type="email" value="reader@example.com" placeholder="you@example.com">
+      <input id="pw-field" name="secret_password" type="password" value="s3cr3t-pass-do-not-leak">
+      <select name="plan" data-testid="plan-picker">
+        <option value="free" selected>Free tier</option>
+        <option value="pro">Pro tier</option>
+      </select>
+      <button type="submit" aria-label="Subscribe now">Subscribe</button>
+    </form>
+
+    <div id="secret-hidden" class="is-hidden">Hidden display none text</div>
+    <div id="invisible-box" class="is-invisible">Hidden visibility text</div>
+    <div id="zero-opacity" class="is-transparent">Zero opacity text</div>
+    <div hidden>HTML hidden attribute text</div>
+    <div id="widget-host"></div>
+  </main>
+
+  <script>
+    window.pageCounter = 42;
+    window.bumpPageCounter = function(delta) {
+      window.pageCounter += delta;
+      return window.pageCounter;
+    };
+    const host = document.getElementById("widget-host");
+    if (host && host.attachShadow) {
+      const shadow = host.attachShadow({ mode: "open" });
+      const badge = document.createElement("span");
+      badge.id = "shadow-badge";
+      badge.textContent = "Shadow Status";
+      shadow.appendChild(badge);
+    }
+  </script>
+</body>
+</html>

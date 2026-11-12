@@ -1,162 +1,5 @@
 import Foundation
 
-enum AIProvider: String, Codable, CaseIterable, Identifiable {
-    /// Apple Foundation Models: Private Cloud Compute when available, else
-    /// on-device. Listed first so pickers show it first. No key, no base URL.
-    case appleIntelligence = "appleintelligence"
-    case openRouter = "openrouter"
-    case openAI = "openai"
-    case anthropic
-    case groq
-    case gemini
-    /// Gemini on Google Cloud Vertex AI with an API key (express mode, or a
-    /// project and location in the base URL). Same wire format as `gemini`.
-    case vertexAI = "vertexai"
-    case ollama
-    case xAI = "xai"
-    case deepSeek = "deepseek"
-    case lmStudio = "lmstudio"
-    case nvidia
-
-    var id: String { rawValue }
-
-    var displayName: String {
-        switch self {
-        // Apple's own name per language ("Apple 智能" in Simplified Chinese).
-        case .appleIntelligence: String(localized: "Apple Intelligence", comment: "AI provider name. Use Apple's official name for Apple Intelligence in this language.")
-        case .openRouter: "OpenRouter"
-        case .openAI: "OpenAI"
-        case .anthropic: "Anthropic"
-        case .groq: "Groq"
-        case .gemini: "Google Gemini"
-        case .vertexAI: "Google Vertex AI"
-        case .ollama: String(localized: "Ollama (Local)", comment: "AI provider name: Ollama running on the user's own computer. Keep \"Ollama\".")
-        case .xAI: "xAI Grok"
-        case .deepSeek: "DeepSeek"
-        case .lmStudio: String(localized: "LM Studio (Local)", comment: "AI provider name: LM Studio running on the user's own computer. Keep \"LM Studio\".")
-        case .nvidia: "NVIDIA NIM"
-        }
-    }
-
-    var defaultModel: String {
-        switch self {
-        // The backend is chosen at run time; records store "On-device" or
-        // "Private Cloud Compute" (`RunSettings.resolvingAppleIntelligence`).
-        case .appleIntelligence: "Automatic"
-        case .openRouter: "moonshotai/kimi-k2"
-        case .openAI: "gpt-4o-mini"
-        case .anthropic: "claude-3-haiku-20240307"
-        case .groq: "llama-3.1-8b-instant"
-        case .gemini: "gemini-1.5-flash"
-        case .vertexAI: "gemini-2.5-flash"
-        case .ollama: "llama3.2"
-        case .xAI: "grok-3"
-        case .deepSeek: "deepseek-chat"
-        case .lmStudio: "local-model"
-        case .nvidia: "deepseek-ai/deepseek-v4-flash-0731"
-        }
-    }
-
-    var defaultBaseURL: String {
-        switch self {
-        case .appleIntelligence: ""
-        case .openRouter: "https://openrouter.ai/api/v1"
-        case .openAI: "https://api.openai.com/v1"
-        case .anthropic: "https://api.anthropic.com/v1"
-        case .groq: "https://api.groq.com/openai/v1"
-        case .gemini: "https://generativelanguage.googleapis.com/v1beta"
-        // Express mode's global host. A project key can use
-        // https://aiplatform.googleapis.com/v1/projects/<id>/locations/global.
-        case .vertexAI: "https://aiplatform.googleapis.com/v1"
-        case .ollama: "http://localhost:11434"
-        case .xAI: "https://api.x.ai/v1"
-        case .deepSeek: "https://api.deepseek.com/v1"
-        case .lmStudio: "http://localhost:1234/v1"
-        // OpenAI-compatible: /models, /chat/completions, SSE streaming.
-        case .nvidia: "https://integrate.api.nvidia.com/v1"
-        }
-    }
-
-    var requiresAPIKey: Bool {
-        self != .ollama && self != .lmStudio && self != .appleIntelligence
-    }
-
-    /// Built into the OS (no key, no server address, no model list).
-    var isAppleIntelligence: Bool { self == .appleIntelligence }
-
-    /// A model server on the user's own computer (needs a server address).
-    var isLocalServer: Bool { self == .ollama || self == .lmStudio }
-
-    /// Vertex AI has no model list an API key can read, so the picker offers
-    /// these Gemini models; any other model ID can still be typed.
-    static let vertexAIModels = [
-        "gemini-3.8-flash",
-        "gemini-3.7-flash",
-        "gemini-3.5-flash",
-        "gemini-3.5-flash-lite",
-        "gemini-3.1-pro-preview",
-        "gemini-3.1-flash-lite",
-        "gemini-3-flash-preview",
-        "gemini-2.5-pro",
-        "gemini-2.5-flash",
-        "gemini-2.5-flash-lite"
-    ]
-}
-
-/// A provider's connection (address and key). `model` is not stored: each
-/// role's `ModelSelection` is the only model setting, and
-/// `AppSettings.configuration(for: ModelRole)` fills it in for a request;
-/// a provider's own configuration carries its default model.
-struct ProviderConfiguration: Codable, Equatable {
-    var model: String
-    var baseURL: String
-    var apiKey: String
-
-    private enum CodingKeys: String, CodingKey { case baseURL, apiKey }
-
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        model = ""
-        baseURL = try container.decode(String.self, forKey: .baseURL)
-        apiKey = try container.decodeIfPresent(String.self, forKey: .apiKey) ?? ""
-    }
-
-    init(model: String, baseURL: String, apiKey: String) {
-        self.model = model
-        self.baseURL = baseURL
-        self.apiKey = apiKey
-    }
-
-    init(provider: AIProvider) {
-        model = provider.defaultModel
-        baseURL = provider.defaultBaseURL
-        apiKey = ""
-    }
-}
-
-/// Which job a model is chosen for. Summaries, chat and watched-topic
-/// refreshes use the assistant model; Ask the forum (planning, answers and
-/// follow-ups) uses the agent model. See `AppModel+Models.swift`.
-enum ModelRole: String, Codable, CaseIterable, Identifiable {
-    case assistant
-    case agent
-
-    var id: String { rawValue }
-}
-
-/// A provider and one of its models: what a role runs with.
-struct ModelSelection: Codable, Hashable {
-    var provider: AIProvider
-    var model: String
-}
-
-struct FavoriteModel: Codable, Hashable, Identifiable {
-    var provider: AIProvider
-    var model: String
-
-    var id: String { "\(provider.rawValue):\(model)" }
-}
-
 enum BrowserBarPosition: String, Codable, CaseIterable, Identifiable {
     /// Bottom on iPhone and in narrow windows, top in the iPad split layout.
     /// The default for new users; existing users keep their stored choice.
@@ -209,6 +52,10 @@ struct AppSettings: Codable, Equatable {
     var assistantModel = ModelSelection(provider: .openRouter, model: AIProvider.openRouter.defaultModel)
     /// Ask the forum: planning, answers and follow-ups.
     var agentModel = ModelSelection(provider: .openRouter, model: AIProvider.openRouter.defaultModel)
+    /// Browser agent model (`nil`: no preset model; user chooses a tool-calling model).
+    var browserAgentModel: ModelSelection? = nil
+    var browserAgentMaxSteps = BrowserAgentLimits.defaultMaxSteps
+    var browserAgentTruncationLimit = BrowserAgentLimits.defaultTruncationLimit
     var configurations: [String: ProviderConfiguration] = Dictionary(
         uniqueKeysWithValues: AIProvider.allCases.map {
             ($0.rawValue, ProviderConfiguration(provider: $0))
@@ -290,6 +137,9 @@ struct AppSettings: Codable, Equatable {
     private enum CodingKeys: String, CodingKey {
         case assistantModel
         case agentModel
+        case browserAgentModel
+        case browserAgentMaxSteps
+        case browserAgentTruncationLimit
         case configurations
         case favoriteModels
         case systemPrompt
@@ -349,6 +199,15 @@ struct AppSettings: Codable, Equatable {
         let stock = AppSettings()
         assistantModel = try container.decodeIfPresent(ModelSelection.self, forKey: .assistantModel) ?? stock.assistantModel
         agentModel = try container.decodeIfPresent(ModelSelection.self, forKey: .agentModel) ?? stock.agentModel
+        browserAgentModel = try container.decodeIfPresent(ModelSelection.self, forKey: .browserAgentModel)
+        browserAgentMaxSteps = BrowserAgentLimits.clampSteps(
+            try container.decodeIfPresent(Int.self, forKey: .browserAgentMaxSteps)
+                ?? BrowserAgentLimits.defaultMaxSteps
+        )
+        browserAgentTruncationLimit = BrowserAgentLimits.clampTruncationLimit(
+            try container.decodeIfPresent(Int.self, forKey: .browserAgentTruncationLimit)
+                ?? BrowserAgentLimits.defaultTruncationLimit
+        )
         systemPrompt = try container.decodeIfPresent(String.self, forKey: .systemPrompt) ?? ""
         forumContextLimit = try container.decodeIfPresent(Int.self, forKey: .forumContextLimit)
             ?? 30_000
