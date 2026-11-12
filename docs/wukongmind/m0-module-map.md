@@ -1,5 +1,7 @@
 # M0: Forumind Module Map and Change List for WukongMind
 
+> **Historical document.** This M0 survey was written against the initial [requirements.md](requirements.md). Per [next-phase.md](next-phase.md), keeping the forum agent untouched alongside the browser agent and adding a separate third model role for the browser agent are superseded ([next-phase.md §6](next-phase.md#6-where-every-existing-piece-goes) and [§7](next-phase.md#7-milestones)); App Store cleanup also runs as its own milestone ([next-phase.md §9](next-phase.md#9-handling-old-code)). The M3 and M4 file-level change lists remain useful references.
+
 This document maps the existing Forumind codebase (`main`) against the [WukongMind requirements](requirements.md) and defines the concrete file-level change list for milestones `M1` through `M4`. No code, project, or configuration files are modified in `M0`.
 
 ---

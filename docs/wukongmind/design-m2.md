@@ -1,5 +1,7 @@
 # M2 design: script manager
 
+> **Note.** Per [next-phase.md](next-phase.md), where the script manager is entered from follows the unified interface design once the "One panel" milestone lands ([next-phase.md §2](next-phase.md#2-documents-and-tasks-to-replace-or-change) and [§7](next-phase.md#7-milestones)); the rest of this design still holds.
+
 The M2 UI task implements against this page and the design canvas:
 **https://claude.ai/artifact/R4m1cQPSSHB96r7f6gbyBe** (12 artboards: on iPhone, the manager in its normal + error, global-off and empty states, the script detail in normal and error + unsaved-edit states, version history, the JavaScript editor, and "scripts on this page" normal and with an error and a pending reload; on iPad, the manager and detail in the Settings sheet and the side-panel popover with scripts off; light and dark).
 
