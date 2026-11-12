@@ -654,6 +654,17 @@ final class NavigationWaiter: NSObject, WKNavigationDelegate {
         continuation?.resume(throwing: error)
         continuation = nil
     }
+
+    func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+        continuation?.resume(
+            throwing: NSError(
+                domain: "ContentBlockerTests",
+                code: 1,
+                userInfo: [NSLocalizedDescriptionKey: "WebContent process terminated during navigation"]
+            )
+        )
+        continuation = nil
+    }
 }
 
 /// Minimal HTTP/1.1 server on the loopback interface. Records every request
@@ -734,7 +745,16 @@ final class LocalHTTPServer: @unchecked Sendable {
             + "Cache-Control: no-store\r\nAccess-Control-Allow-Origin: *\r\nConnection: close\r\n\r\n"
         var response = Data(header.utf8)
         response.append(body)
-        connection.send(content: response, completion: .contentProcessed { _ in connection.cancel() })
+        connection.send(
+            content: response,
+            contentContext: .finalMessage,
+            isComplete: true,
+            completion: .contentProcessed { [queue] _ in
+                queue.asyncAfter(deadline: .now() + 2) {
+                    connection.cancel()
+                }
+            }
+        )
     }
 
     private static func body(for path: String, port: UInt16) -> (String, Data) {
