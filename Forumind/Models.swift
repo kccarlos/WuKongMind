@@ -56,6 +56,8 @@ struct AppSettings: Codable, Equatable {
     var browserAgentModel: ModelSelection? = nil
     var browserAgentMaxSteps = BrowserAgentLimits.defaultMaxSteps
     var browserAgentTruncationLimit = BrowserAgentLimits.defaultTruncationLimit
+    /// Global switch for browser userscripts (`ScriptStore.isGlobalEnabled`).
+    var browserScriptsEnabled = true
     var configurations: [String: ProviderConfiguration] = Dictionary(
         uniqueKeysWithValues: AIProvider.allCases.map {
             ($0.rawValue, ProviderConfiguration(provider: $0))
@@ -140,6 +142,7 @@ struct AppSettings: Codable, Equatable {
         case browserAgentModel
         case browserAgentMaxSteps
         case browserAgentTruncationLimit
+        case browserScriptsEnabled
         case configurations
         case favoriteModels
         case systemPrompt
@@ -208,6 +211,7 @@ struct AppSettings: Codable, Equatable {
             try container.decodeIfPresent(Int.self, forKey: .browserAgentTruncationLimit)
                 ?? BrowserAgentLimits.defaultTruncationLimit
         )
+        browserScriptsEnabled = try container.decodeIfPresent(Bool.self, forKey: .browserScriptsEnabled) ?? true
         systemPrompt = try container.decodeIfPresent(String.self, forKey: .systemPrompt) ?? ""
         forumContextLimit = try container.decodeIfPresent(Int.self, forKey: .forumContextLimit)
             ?? 30_000
