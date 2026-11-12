@@ -118,7 +118,7 @@ struct SettingsRootView: View {
     /// One "provider · model" when both roles share it, else both models.
     private var providerSummary: String {
         guard !app.rolesShareModel else { return app.providerSummary(for: .assistant) }
-        return ModelRole.allCases.map { role in
+        return ModelRole.forumRoles.map { role in
             let model = app.modelLabel(for: role)
             return model.isEmpty ? app.selection(for: role).provider.displayName : model
         }.joined(separator: " · ")

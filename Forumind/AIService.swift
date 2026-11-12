@@ -1,7 +1,7 @@
 import Foundation
 
 /// Not final so tests can stand in for the provider (streams, gated answers).
-class AIService {
+class AIService: @unchecked Sendable {
     private let session: URLSession
     /// The Apple Intelligence provider (FoundationModels); tests pass a fake.
     let appleIntelligence: AppleIntelligenceServing
@@ -638,6 +638,463 @@ class AIService {
             throw AssistantError.http(http.statusCode, String(detail.prefix(500)))
         }
     }
+
+    // MARK: - Native Tool Calling (Browser Agent)
+
+    func completeToolTurn(
+        system: String,
+        messages: [AgentModelTurn],
+        tools: [AgentToolDefinition],
+        configuration: ProviderConfiguration,
+        provider: AIProvider,
+        maxTokens: Int = 4_096
+    ) async throws -> AgentModelTurnResponse {
+        try Task.checkCancellation()
+        guard provider.supportsToolCalling else {
+            throw AssistantError.missingConfiguration(
+                "\(provider.displayName) does not support browser agent tool calling. Choose a tool-calling model in Settings."
+            )
+        }
+        try validate(configuration: configuration, provider: provider)
+
+        let request = try makeToolRequest(
+            system: system,
+            messages: messages,
+            tools: tools,
+            configuration: configuration,
+            provider: provider,
+            maxTokens: maxTokens
+        )
+        let (data, response) = try await session.data(for: request)
+        try Task.checkCancellation()
+        try validate(response: response, data: data)
+
+        guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            throw AssistantError.invalidResponse
+        }
+        return try parseToolResponse(json: json, provider: provider)
+    }
+
+    func makeToolRequest(
+        system: String,
+        messages: [AgentModelTurn],
+        tools: [AgentToolDefinition],
+        configuration: ProviderConfiguration,
+        provider: AIProvider,
+        maxTokens: Int
+    ) throws -> URLRequest {
+        let base = normalizedBaseURL(configuration.baseURL)
+        let url: URL
+        var body: [String: Any]
+
+        switch provider {
+        case .anthropic:
+            guard let endpoint = URL(string: "\(base)/messages") else {
+                throw AssistantError.invalidResponse
+            }
+            url = endpoint
+            body = [
+                "model": configuration.model,
+                "max_tokens": maxTokens,
+                "system": system,
+                "messages": Self.anthropicMessages(from: messages)
+            ]
+            if !tools.isEmpty {
+                body["tools"] = tools.map { tool in
+                    [
+                        "name": tool.name,
+                        "description": tool.description,
+                        "input_schema": JSONValue.object(tool.inputSchema).toFoundation()
+                    ]
+                }
+            }
+
+        case .gemini, .vertexAI:
+            let escapedModel = configuration.model.addingPercentEncoding(
+                withAllowedCharacters: .urlPathAllowed
+            ) ?? configuration.model
+            let path = provider == .vertexAI ? "publishers/google/models" : "models"
+            guard var components = URLComponents(
+                string: "\(base)/\(path)/\(escapedModel):generateContent"
+            ) else {
+                throw AssistantError.invalidResponse
+            }
+            if provider == .gemini {
+                components.queryItems = [URLQueryItem(name: "key", value: configuration.apiKey)]
+            }
+            guard let endpoint = components.url else { throw AssistantError.invalidResponse }
+            url = endpoint
+            body = [
+                "systemInstruction": ["parts": [["text": system]]],
+                "contents": Self.geminiContents(from: messages),
+                "generationConfig": [
+                    "temperature": 0.2,
+                    "maxOutputTokens": maxTokens
+                ]
+            ]
+            if !tools.isEmpty {
+                body["tools"] = [
+                    [
+                        "functionDeclarations": tools.map { tool in
+                            [
+                                "name": tool.name,
+                                "description": tool.description,
+                                "parameters": Self.geminiParameters(from: tool.inputSchema)
+                            ]
+                        }
+                    ]
+                ]
+            }
+
+        case .ollama:
+            guard let endpoint = URL(string: "\(base)/api/chat") else {
+                throw AssistantError.invalidResponse
+            }
+            url = endpoint
+            body = [
+                "model": configuration.model,
+                "stream": false,
+                "options": ["num_predict": maxTokens],
+                "messages": Self.openAIMessages(system: system, turns: messages, ollamaMode: true)
+            ]
+            if !tools.isEmpty {
+                body["tools"] = Self.openAIToolDefinitions(from: tools)
+            }
+
+        default:
+            guard let endpoint = URL(string: "\(base)/chat/completions") else {
+                throw AssistantError.invalidResponse
+            }
+            url = endpoint
+            body = [
+                "model": configuration.model,
+                "temperature": 0.2,
+                "max_tokens": maxTokens,
+                "messages": Self.openAIMessages(system: system, turns: messages, ollamaMode: false)
+            ]
+            if !tools.isEmpty {
+                body["tools"] = Self.openAIToolDefinitions(from: tools)
+            }
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.timeoutInterval = 300
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        applyAuthentication(to: &request, configuration: configuration, provider: provider)
+        return request
+    }
+
+    private static func anthropicMessages(from turns: [AgentModelTurn]) -> [[String: Any]] {
+        var encoded: [(role: String, blocks: [[String: Any]])] = []
+
+        func appendBlocks(role: String, _ newBlocks: [[String: Any]]) {
+            guard !newBlocks.isEmpty else { return }
+            if let last = encoded.last, last.role == role {
+                encoded[encoded.count - 1].blocks.append(contentsOf: newBlocks)
+            } else {
+                encoded.append((role: role, blocks: newBlocks))
+            }
+        }
+
+        for turn in turns {
+            switch turn {
+            case .user(let text):
+                let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !trimmed.isEmpty else { continue }
+                appendBlocks(role: "user", [["type": "text", "text": text]])
+
+            case .assistant(let text, let toolCalls):
+                var blocks: [[String: Any]] = []
+                if !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    blocks.append(["type": "text", "text": text])
+                }
+                for call in toolCalls {
+                    blocks.append([
+                        "type": "tool_use",
+                        "id": call.id,
+                        "name": call.name,
+                        "input": JSONValue.object(call.arguments).toFoundation()
+                    ])
+                }
+                appendBlocks(role: "assistant", blocks)
+
+            case .toolResults(let results):
+                let blocks: [[String: Any]] = results.map { res in
+                    [
+                        "type": "tool_result",
+                        "tool_use_id": res.toolCallID,
+                        "content": res.content,
+                        "is_error": res.isError
+                    ]
+                }
+                appendBlocks(role: "user", blocks)
+            }
+        }
+
+        return encoded.map { ["role": $0.role, "content": $0.blocks] }
+    }
+
+    private static func openAIToolDefinitions(from tools: [AgentToolDefinition]) -> [[String: Any]] {
+        tools.map { tool in
+            [
+                "type": "function",
+                "function": [
+                    "name": tool.name,
+                    "description": tool.description,
+                    "parameters": JSONValue.object(tool.inputSchema).toFoundation()
+                ]
+            ]
+        }
+    }
+
+    private static func openAIMessages(
+        system: String,
+        turns: [AgentModelTurn],
+        ollamaMode: Bool
+    ) -> [[String: Any]] {
+        var result: [[String: Any]] = [["role": "system", "content": system]]
+        for turn in turns {
+            switch turn {
+            case .user(let text):
+                result.append(["role": "user", "content": text])
+            case .assistant(let text, let toolCalls):
+                if toolCalls.isEmpty {
+                    result.append(["role": "assistant", "content": text])
+                } else {
+                    let callsPayload: [[String: Any]] = toolCalls.map { call in
+                        let argumentsField: Any = ollamaMode
+                            ? JSONValue.object(call.arguments).toFoundation()
+                            : (call.rawArgumentsJSON ?? JSONValue.encodeCompactJSON(call.arguments))
+                        return [
+                            "id": call.id,
+                            "type": "function",
+                            "function": [
+                                "name": call.name,
+                                "arguments": argumentsField
+                            ]
+                        ]
+                    }
+                    var msg: [String: Any] = [
+                        "role": "assistant",
+                        "tool_calls": callsPayload
+                    ]
+                    if ollamaMode {
+                        msg["content"] = text
+                    } else {
+                        msg["content"] = text.isEmpty ? NSNull() : text
+                    }
+                    result.append(msg)
+                }
+            case .toolResults(let results):
+                for res in results {
+                    var msg: [String: Any] = [
+                        "role": "tool",
+                        "content": res.content
+                    ]
+                    if ollamaMode {
+                        msg["tool_name"] = res.toolName
+                    } else {
+                        msg["tool_call_id"] = res.toolCallID
+                    }
+                    result.append(msg)
+                }
+            }
+        }
+        return result
+    }
+
+    private static func geminiParameters(from schema: [String: JSONValue]) -> Any {
+        var copy = schema
+        copy.removeValue(forKey: "additionalProperties")
+        return JSONValue.object(copy).toFoundation()
+    }
+
+    private static func geminiContents(from turns: [AgentModelTurn]) -> [[String: Any]] {
+        var contents: [[String: Any]] = []
+        for turn in turns {
+            switch turn {
+            case .user(let text):
+                contents.append([
+                    "role": "user",
+                    "parts": [["text": text]]
+                ])
+            case .assistant(let text, let toolCalls):
+                var parts: [[String: Any]] = []
+                if !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    parts.append(["text": text])
+                }
+                for call in toolCalls {
+                    var part: [String: Any] = [
+                        "functionCall": [
+                            "name": call.name,
+                            "args": JSONValue.object(call.arguments).toFoundation()
+                        ]
+                    ]
+                    if let signature = call.thoughtSignature {
+                        part["thoughtSignature"] = signature
+                    }
+                    parts.append(part)
+                }
+                if !parts.isEmpty {
+                    contents.append(["role": "model", "parts": parts])
+                }
+            case .toolResults(let results):
+                let parts: [[String: Any]] = results.map { res in
+                    [
+                        "functionResponse": [
+                            "name": res.toolName,
+                            "response": [
+                                "result": res.content,
+                                "is_error": res.isError
+                            ]
+                        ]
+                    ]
+                }
+                if !parts.isEmpty {
+                    contents.append(["role": "user", "parts": parts])
+                }
+            }
+        }
+        return contents
+    }
+
+    private func parseToolResponse(
+        json: [String: Any],
+        provider: AIProvider
+    ) throws -> AgentModelTurnResponse {
+        switch provider {
+        case .anthropic:
+            let blocks = (json["content"] as? [[String: Any]]) ?? []
+            var textSegments: [String] = []
+            var toolCalls: [AgentModelToolCall] = []
+            for block in blocks {
+                guard let blockType = block["type"] as? String else { continue }
+                switch blockType {
+                case "text":
+                    if let text = block["text"] as? String, !text.isEmpty {
+                        textSegments.append(text)
+                    }
+                case "tool_use":
+                    let id = (block["id"] as? String) ?? UUID().uuidString
+                    let name = (block["name"] as? String) ?? ""
+                    let inputDict = (block["input"] as? [String: Any]) ?? [:]
+                    let parsedArgs = (try? JSONValue.fromFoundation(inputDict).objectValue) ?? [:]
+                    toolCalls.append(AgentModelToolCall(id: id, name: name, arguments: parsedArgs))
+                default:
+                    break
+                }
+            }
+            let usageDict = json["usage"] as? [String: Any]
+            let inputTokens = ((usageDict?["input_tokens"] as? Int) ?? 0)
+                + ((usageDict?["cache_creation_input_tokens"] as? Int) ?? 0)
+                + ((usageDict?["cache_read_input_tokens"] as? Int) ?? 0)
+            let outputTokens = (usageDict?["output_tokens"] as? Int) ?? 0
+            return AgentModelTurnResponse(
+                text: textSegments.joined(separator: "\n"),
+                toolCalls: toolCalls,
+                stopReason: json["stop_reason"] as? String,
+                usage: AgentTokenUsage(inputTokens: inputTokens, outputTokens: outputTokens)
+            )
+
+        case .gemini, .vertexAI:
+            let candidate = (json["candidates"] as? [[String: Any]])?.first
+            let content = candidate?["content"] as? [String: Any]
+            let parts = (content?["parts"] as? [[String: Any]]) ?? []
+            var textSegments: [String] = []
+            var toolCalls: [AgentModelToolCall] = []
+            for (index, part) in parts.enumerated() {
+                if (part["thought"] as? Bool) == true { continue }
+                if let text = part["text"] as? String, !text.isEmpty {
+                    textSegments.append(text)
+                }
+                if let fnCall = part["functionCall"] as? [String: Any] {
+                    let name = (fnCall["name"] as? String) ?? ""
+                    let callID = (fnCall["id"] as? String) ?? "gemini-call-\(index)-\(UUID().uuidString.prefix(8))"
+                    let argsObj = (fnCall["args"] as? [String: Any]) ?? [:]
+                    let parsedArgs = (try? JSONValue.fromFoundation(argsObj).objectValue) ?? [:]
+                    let signature = part["thoughtSignature"] as? String
+                    toolCalls.append(
+                        AgentModelToolCall(
+                            id: callID,
+                            name: name,
+                            arguments: parsedArgs,
+                            thoughtSignature: signature
+                        )
+                    )
+                }
+            }
+            let usageMeta = json["usageMetadata"] as? [String: Any]
+            let inputTokens = (usageMeta?["promptTokenCount"] as? Int) ?? 0
+            let outputTokens = (usageMeta?["candidatesTokenCount"] as? Int) ?? 0
+            return AgentModelTurnResponse(
+                text: textSegments.joined(),
+                toolCalls: toolCalls,
+                stopReason: candidate?["finishReason"] as? String,
+                usage: AgentTokenUsage(inputTokens: inputTokens, outputTokens: outputTokens)
+            )
+
+        case .ollama:
+            let message = (json["message"] as? [String: Any]) ?? [:]
+            let text = (message["content"] as? String) ?? ""
+            let rawCalls = (message["tool_calls"] as? [[String: Any]]) ?? []
+            let toolCalls = rawCalls.enumerated().map { index, rawCall -> AgentModelToolCall in
+                let id = (rawCall["id"] as? String) ?? "ollama-call-\(index)"
+                let fn = (rawCall["function"] as? [String: Any]) ?? [:]
+                let name = (fn["name"] as? String) ?? ""
+                if let argDict = fn["arguments"] as? [String: Any] {
+                    let parsed = (try? JSONValue.fromFoundation(argDict).objectValue) ?? [:]
+                    return AgentModelToolCall(id: id, name: name, arguments: parsed)
+                } else if let argString = fn["arguments"] as? String {
+                    if let parsed = try? JSONValue.parseObjectJSON(argString) {
+                        return AgentModelToolCall(id: id, name: name, arguments: parsed)
+                    }
+                    return AgentModelToolCall(id: id, name: name, arguments: [:], rawArgumentsJSON: argString)
+                }
+                return AgentModelToolCall(id: id, name: name, arguments: [:])
+            }
+            let inputTokens = (json["prompt_eval_count"] as? Int) ?? 0
+            let outputTokens = (json["eval_count"] as? Int) ?? 0
+            return AgentModelTurnResponse(
+                text: text,
+                toolCalls: toolCalls,
+                stopReason: json["done_reason"] as? String,
+                usage: AgentTokenUsage(inputTokens: inputTokens, outputTokens: outputTokens)
+            )
+
+        default:
+            let choice = (json["choices"] as? [[String: Any]])?.first
+            let message = (choice?["message"] as? [String: Any]) ?? [:]
+            let text = (message["content"] as? String) ?? ""
+            let rawCalls = (message["tool_calls"] as? [[String: Any]]) ?? []
+            let toolCalls = rawCalls.enumerated().map { index, rawCall -> AgentModelToolCall in
+                let id = (rawCall["id"] as? String) ?? "call-\(index)"
+                let fn = (rawCall["function"] as? [String: Any]) ?? [:]
+                let name = (fn["name"] as? String) ?? ""
+                if let argString = fn["arguments"] as? String {
+                    if let parsed = try? JSONValue.parseObjectJSON(argString) {
+                        return AgentModelToolCall(id: id, name: name, arguments: parsed)
+                    }
+                    return AgentModelToolCall(id: id, name: name, arguments: [:], rawArgumentsJSON: argString)
+                } else if let argDict = fn["arguments"] as? [String: Any] {
+                    let parsed = (try? JSONValue.fromFoundation(argDict).objectValue) ?? [:]
+                    return AgentModelToolCall(id: id, name: name, arguments: parsed)
+                }
+                return AgentModelToolCall(id: id, name: name, arguments: [:])
+            }
+            let usageDict = json["usage"] as? [String: Any]
+            let inputTokens = (usageDict?["prompt_tokens"] as? Int) ?? 0
+            let outputTokens = (usageDict?["completion_tokens"] as? Int) ?? 0
+            return AgentModelTurnResponse(
+                text: text,
+                toolCalls: toolCalls,
+                stopReason: choice?["finish_reason"] as? String,
+                usage: AgentTokenUsage(inputTokens: inputTokens, outputTokens: outputTokens)
+            )
+        }
+    }
 }
 
 /// Characters a summary request has streamed so far (only touched by the
@@ -645,3 +1102,5 @@ class AIService {
 private final class StreamedCharacters: @unchecked Sendable {
     var count = 0
 }
+
+extension AIService: AgentModelClient {}

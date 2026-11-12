@@ -20,7 +20,7 @@ struct SettingsProviderPage: View {
                 }
                 if !app.rolesShareModel {
                     // One button per direction: "Use X for both".
-                    ForEach(ModelRole.allCases.filter { app.isProviderSelectable(app.selection(for: $0).provider) }) { role in
+                    ForEach(ModelRole.forumRoles.filter { app.isProviderSelectable(app.selection(for: $0).provider) }) { role in
                         Button {
                             DCHaptics.tap()
                             app.useSameModel(as: role)
@@ -70,7 +70,7 @@ struct SettingsProviderPage: View {
             NavigationStack {
                 Form {
                     Section {
-                        ForEach(ModelRole.allCases) { role in
+                        ForEach(ModelRole.allCases.filter { $0 != .browserAgent || favorite.provider.supportsToolCalling }) { role in
                             Button(String(localized: "Use for \(role.title)", comment: "Favorite model menu: use it for a role. The placeholder is Summaries & chat, or Ask the forum.")) {
                                 DCHaptics.tap()
                                 app.activateFavorite(favorite, for: role)
@@ -120,7 +120,7 @@ struct ModelRoleRow: View {
 
     var body: some View {
         SettingsIconRow {
-            SettingsIcon(symbol: role.systemImage, tint: role == .agent ? DCTheme.agentTint : DCTheme.summaryTint)
+            SettingsIcon(symbol: role.systemImage, tint: (role == .agent || role == .browserAgent) ? DCTheme.agentTint : DCTheme.summaryTint)
         } title: {
             VStack(alignment: .leading, spacing: 2) {
                 Text(role.title)
