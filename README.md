@@ -1,331 +1,250 @@
-<p align="center">
-  <img src="docs/brand/forumind-banner.png" alt="Forumind: read the thread without reading it all. AI summaries, chat and answers with sources, on iPhone and iPad." width="100%">
-</p>
+# WukongMind (悟空)
 
-<h3 align="center">A forum browser with an AI assistant beside it, for Discourse forums, WordPress sites and Hacker News.</h3>
-
-<p align="center">
-  <a href="https://apps.apple.com/app/id6816718686"><img src="https://img.shields.io/badge/App_Store-in_review-0D96F6?logo=appstore&logoColor=white" alt="App Store: in review"></a>
-  <a href="https://testflight.apple.com/join/XsfttG4P"><img src="https://img.shields.io/badge/TestFlight-public_beta-0D96F6?logo=apple&logoColor=white" alt="TestFlight: public beta"></a>
-  <a href="https://mobile.forumind.top"><img src="https://img.shields.io/badge/website-mobile.forumind.top-0D96F6?logo=safari&logoColor=white" alt="Website"></a>
+<p>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue" alt="License: Apache-2.0"></a>
   <img src="https://img.shields.io/badge/iOS_%7C_iPadOS-17%2B-000000?logo=apple&logoColor=white" alt="iOS and iPadOS 17 or later">
   <img src="https://img.shields.io/badge/Swift-F05138?logo=swift&logoColor=white" alt="Swift">
   <img src="https://img.shields.io/badge/Made_with-SwiftUI-2396F3?logo=swift&logoColor=white" alt="Made with SwiftUI">
-  <a href="https://github.com/kccarlos/forumind/stargazers"><img src="https://img.shields.io/github/stars/kccarlos/forumind?style=social" alt="GitHub stars"></a>
 </p>
 
-<p align="center">
+<p>
   <b>English</b> · <a href="README.zh-Hans.md">简体中文</a> · <a href="README.zh-Hant.md">繁體中文</a>
 </p>
 
-**Catch up on long forum threads.** Summarize long topics, ask follow-up
-questions, and let AI search the whole forum for you, with links to the posts
-it used. Forumind is a free, open-source app for iPhone and iPad that works
-with any forum built on [Discourse](https://www.discourse.org), like
-[meta.discourse.org](https://meta.discourse.org) or your own community, and
-also reads WordPress sites and Hacker News.
+**WukongMind** (悟空) is an open-source, self-use browser for iPhone and iPad whose AI agent reads and changes any web page by running JavaScript and injecting CSS, and saves its changes as per-site userscripts (like Tampermonkey).
 
-> **App Store:** Forumind 1.0 is in App Store review. The
-> [App Store link](https://apps.apple.com/app/id6816718686) goes live once
-> Apple approves it. Until then, **[join the public beta on TestFlight](https://testflight.apple.com/join/XsfttG4P)**
-> on your iPhone or iPad, or [build it yourself](#build-from-source).
+- **Self-use, not on the App Store.** WukongMind is forked from [Forumind](https://github.com/kccarlos/forumind), which keeps its AI read-only and scoped to supported forum platforms to pass App Store review. WukongMind is not distributed on the App Store or public TestFlight: you build and sign it from source with your own Apple developer account, with App Store capability restrictions removed.
+- **Code-driven page agent.** The AI never touches the page directly. It writes code; the app runs that code inside `WKWebView` and returns the result in a tool-calling loop until the task is done.
+- **Bring your own key (BYOK).** There is no WukongMind backend, account, analytics, or proxy. API keys live in the iOS Keychain, and requests go straight from your device to the model provider (or a local server on your LAN).
+- **Current status:** `M1` is shipped (agent chat panel and in-page tools on any site); `M2` (saving and auto-injecting per-site userscripts) is in progress. See [Status](#status).
 
-**Prefer your desktop browser?** Forumind's sibling is a [Chrome and Edge extension](https://forumind.top/).
+---
 
-## Why Forumind
+## Risk Statement
 
-- **Read less, know more.** Get the main points of a 500-reply topic without reading every post.
-- **Ask, don't dig.** Ask the forum a question and get an answer with numbered sources you can tap.
-- **Any Discourse forum, plus WordPress and Hacker News.** Public or private, big or small, including your own community.
-- **Your AI, your choice.** Apple Intelligence with no key, your own provider, or a model on your own computer.
-- **Private by design.** No Forumind servers, accounts, analytics, ads, or tracking.
-- **Free and open source.** Apache-2.0, built with SwiftUI for iPhone and iPad.
+> [!WARNING]
+> **Web content can steer the agent, and the agent can use every login in the app. Do not log in to banking, payment, or main email accounts in WukongMind.**
 
-## Screenshots
+Understand the security model before signing in to websites or running the agent:
 
-<p align="center">
-  <img src="docs/screenshots/iphone-page.png" alt="A Discourse Meta topic with the bottom bar; the ✦ button opens the AI drawer" width="200">
-  <img src="docs/screenshots/iphone-summary.png" alt="A summary in the drawer, with post numbers to tap and a box for follow-up questions" width="200">
-  <img src="docs/screenshots/iphone-ask.png" alt="Ask the forum: the question, its steps, and an answer that cites its sources" width="200">
-  <img src="docs/screenshots/iphone-home.png" alt="Home: today's digest, topics to continue reading, and pinned forums" width="200">
-</p>
+- **Prompt injection and active sessions:** Untrusted text on a web page can steer the model into unintended actions, and the agent operates inside the same `WKWebView` cookie and session store as your browsing. Any site you are signed in to inside WukongMind is reachable by the agent. Avoid logging in to banking, payment, primary email, or other high-value accounts.
+- **Full power in the page (`run_js`):** By default there are **no confirmation prompts and no risk tiers** — the agent calls tools directly, and `run_js` has unrestricted JavaScript execution power inside the current page (DOM reads and writes, page globals in the `page` world, forms, and same-origin requests).
+- **Optional write confirmation (planned):** An optional **"Confirm before writes"** switch in Settings (off by default; prompts before `http_request`, `cookies_get`, and actions that submit forms) is planned for a later milestone (`M3`) and is **not yet implemented**.
+- **Built-in safety baselines:**
+  - **Bridge isolation:** The app–page message channel (`WKScriptMessageHandlerWithReply`) is registered only in an isolated `WKContentWorld`, invisible to page scripts so pages cannot call native tools or forge tool results.
+  - **Key isolation:** Provider API keys stay in the iOS Keychain, never enter the page context or conversation history, and are redacted if they ever appear in tool output.
+  - **Untrusted content delimiters:** Web page output returned to the model is wrapped in `<untrusted_web_content>` delimiters, and the system prompt instructs the model never to follow instructions found inside page content.
+  - **Stop any time:** A **Stop** button stays visible for the entire run and cancels the loop immediately; runs also stop at a configurable step limit (`30` steps by default). A global userscript switch (`M2`) and on-disk tool audit log (`M3`) are on the roadmap below.
 
-## Features
+---
 
-### Understand any topic
+## Status
 
-- **Summaries.** The original post, what people are saying, and tips from
-  the thread, with post numbers you can tap. Later, **Check for new replies**
-  reads only what's new.
-- **Chat.** Ask about the topic you're reading: "What did people decide?" or
-  "Is there a workaround?"
-- **Ask the forum.** Ask a question and the assistant searches the forum,
-  reads the best topics, and answers with numbered sources you can tap.
-- **Translate.** Translate the posts on screen, or a summary, on your device
-  (iOS 18 or later).
+WukongMind is built in sequential milestones ([docs/wukongmind/requirements.md](docs/wukongmind/requirements.md)):
 
-### All your forums in one place
+| Milestone | Status | Scope |
+| :--- | :--- | :--- |
+| **M0 — Survey** | **Shipped** | Forumind module map ([m0-module-map.md](docs/wukongmind/m0-module-map.md)) and `WKWebView` CSP / execution-world verification ([m0-csp-and-worlds.md](docs/wukongmind/m0-csp-and-worlds.md)). |
+| **M1 — Core loop** | **Shipped** | General address bar on any site, **Agent** chat panel (bottom drawer on iPhone, resizable split panel on iPad) and toolbar button, `AgentLoop` with native tool calling, Stop button, token count, and in-page tools (`read_page`, `run_js`, `inject_css`, `wait_for`). |
+| **M2 — Persistence** | **In progress** | Per-site userscripts (`ScriptStore`, `.user.js` files with `// ==UserScript==` headers and `@match` rules), script tools (`script_save`, `script_list`, `script_read`, `script_update`, `script_delete`), automatic injection on load and SPA route changes, script manager UI, toolbar badge, and global script switch. |
+| **M3 — Full abilities** | Planned | `screenshot` (vision), `network_log`, `navigate`, multi-tab `tabs`, cross-origin `http_request`, `cookies_get` (including `httpOnly`), workspace `file_read` / `file_write`, on-disk `AuditLog` UI, and optional "Confirm before writes" mode. |
+| **M4 — Self-extension & Tampermonkey** | Planned | `GM_addStyle`, `GM_getValue`, `GM_setValue`, `GM_xmlhttpRequest`, userscript import from URL, one-tap "let the agent fix" on script errors, `notify`, and iCloud sync for scripts. |
 
-- **Any Discourse forum.** Open a forum and the app recognizes it. Pin your
-  favorites on **Home**; forums you visit show up under Recent.
-- **Daily digest and podcast.** The Today page collects your watched topics
-  and the top topics on pinned forums. Turn it into a short two-host podcast,
-  read by your device's voices or, with a Google key, Google's.
-- **Live voice.** Talk to the app about the page you're reading, with Google
-  Gemini Live and your own key. It asks first, because your voice and the
-  page go to Google.
-- **Share from Safari or Chrome.** Share any forum page to Forumind, then open the app
-  to find it waiting: open it, summarize it, chat about it, or ask the forum.
-- **Watch topics.** Get a notification when a topic has new replies.
-- **iPhone and iPad.** On iPhone the assistant opens in a drawer over the
-  page; on a wide iPad window the two sit side by side.
+---
 
-### The right AI for each job
+## How It Works
 
-- **Apple Intelligence or your own provider.** See [Choose your AI](#choose-your-ai).
-- **Two default models.** One for **Summaries & chat**, one for **Ask the
-  forum**, so each job gets the model that suits it.
+### Browser agent (`M1`)
 
-### Private, in sync, and polite
+1. Open any web page and tap the **✦** button in the browser bar (or use the side-by-side panel on iPad) to open **Agent** mode.
+2. Describe what you want to read or change (for example, *"make this page dark and hide the sidebar"*).
+3. The app sends your prompt, the system prompt, tool schemas, and the page's URL and title to your selected model. The model proposes tool calls, the app runs them in `WKWebView` via `callAsyncJavaScript`, and each tool call appears as an expandable row with arguments, duration, and result summary.
+4. Tools run in an **isolated `WKContentWorld`** by default (full DOM access, unaffected by page `eval` / `connect-src` CSP, invisible to page JS) or in the **`page` world** when inspecting or mutating page JS state. Stylesheets are applied through `adoptedStyleSheets` so strict `style-src` policies do not block them.
 
-- **iCloud sync.** Forums, summaries, chats, and settings follow you between
-  your iPhone and iPad automatically, end-to-end encrypted in your own iCloud
-  account; API keys sync through iCloud Keychain.
-- **Polite to forum servers.** Topics are read one page per second by
-  default (Settings › Summaries & chat › Forum requests), and each forum is
-  paced on its own. When a forum asks the app to slow down, it waits and
-  retries.
-- **Optional ad and tracker blocking** in the browser, using EasyList and
-  EasyPrivacy. It's off by default, out of respect for forum owners who rely
-  on ads; turn it on in Settings › Browser.
-- **In your language.** English, Simplified Chinese, and Traditional Chinese.
+| In-page tool (`M1`) | Purpose |
+| :--- | :--- |
+| `read_page` | Condensed DOM structure summary, plain text, or HTML (optional CSS selector and length limit). |
+| `run_js` | Async JavaScript execution (`await` supported, 10 s default timeout) in `isolated` or `page` world; returns JSON value, console output, and errors. |
+| `inject_css` | Injects CSS via `adoptedStyleSheets` across the document and open shadow roots. |
+| `wait_for` | Waits for a CSS selector to appear or for a delay in milliseconds. |
 
-## Supported forums
+### Inherited from Forumind
 
-Forumind works with **any forum that runs [Discourse](https://www.discourse.org)**,
-public or private, hosted or self-hosted: open its address in the app (log in
-in the app for private forums). Some popular Discourse communities it works
-with:
+WukongMind keeps Forumind's existing forum features working beside the new **Agent** mode:
 
-| Topic | Forums |
-| --- | --- |
-| AI and developer tools | [OpenAI Developer Community](https://community.openai.com), [Cursor Community Forum](https://forum.cursor.com), [Hugging Face Forums](https://discuss.huggingface.co), [LangChain Forum](https://forum.langchain.com), [n8n Community](https://community.n8n.io), [Fly.io Community](https://community.fly.io), [Let's Encrypt Community](https://community.letsencrypt.org) |
-| Programming languages and ML | [Discussions on Python.org](https://discuss.python.org), [Swift Forums](https://forums.swift.org), [Rust Users Forum](https://users.rust-lang.org), [Rust Internals](https://internals.rust-lang.org), [Julia Discourse](https://discourse.julialang.org), [Kotlin Discussions](https://discuss.kotlinlang.org), [PyTorch Forums](https://discuss.pytorch.org), [Ray Forum](https://discuss.ray.io) |
-| Open source, Linux, and game engines | [Discourse Meta](https://meta.discourse.org), [Ubuntu Discourse](https://discourse.ubuntu.com), [NixOS Discourse](https://discourse.nixos.org), [Manjaro Linux Forum](https://forum.manjaro.org), [Mozilla Discourse](https://discourse.mozilla.org), [Godot Forum](https://forum.godotengine.org), [Babylon.js Forum](https://forum.babylonjs.com), [freeCodeCamp Forum](https://forum.freecodecamp.org) |
-| Apps, smart home, and hardware | [Home Assistant Community](https://community.home-assistant.io), [Obsidian Forum](https://forum.obsidian.md), [Level1Techs Forums](https://forum.level1techs.com) |
-| Chinese-language communities | [美卡论坛 USCardForum](https://www.uscardforum.com), [LINUX DO](https://linux.do) |
+- **Discourse, WordPress, and Hacker News support:** Long-thread hierarchical **Summaries**, topic **Chat**, site-wide **Ask the forum** with numbered citations, watched-topic notifications, daily digest, two-host podcast, and Gemini Live voice mode.
+- **Ad and tracker blocking:** Optional `WKContentRuleList` blocker built from EasyList and EasyPrivacy (off by default; toggle in **Settings › Browser**).
+- **Localization:** English, Simplified Chinese (`zh-Hans`), and Traditional Chinese (`zh-Hant`).
 
-**WordPress sites** work too: open a blog post, or add the site by its
-address, and Forumind reads the article and its reader comments through the
-site's public REST API (comment search included, where the site allows it).
-Sites that turn the REST API off, or use plain `?p=` permalinks without
-`/wp-json/`, are not supported. Forumind is not affiliated with WordPress or
-the WordPress Foundation.
+---
 
-**[Hacker News](https://news.ycombinator.com)** is supported too: add its
-address or open an `item?id=N` story link to read the story and nested
-comments, summarize, chat, search, or include it in your digest and podcast.
-Reading uses the public Algolia API; sign-in, posting and voting are unavailable.
+## Bring Your Own Key (BYOK)
 
-The app suggests a few of these when you set it up; add any other forum by its
-address. Forum names belong to their owners; Forumind isn't affiliated with
-these communities. Know a Discourse forum that should be listed?
-[Open an issue](https://github.com/kccarlos/forumind/issues).
+WukongMind talks directly from your device to the AI provider you configure — there are no WukongMind servers or accounts.
 
-## Choose your AI
+- **Keychain storage:** API keys are saved in the iOS Keychain (and optionally synced across your own devices via iCloud Keychain). Keys are stripped from on-disk app state and never exposed to web pages or agent tools.
+- **Dedicated Browser Agent model:** No model is preset for the **Browser agent** (`Settings › AI models › Browser agent`). On first use, pick any model from a provider that supports native tool calling, independent of the models chosen for **Summaries & chat** and **Ask the forum**.
 
-**Apple Intelligence** is the easiest option: on devices that support it, the
-app uses Apple's on-device model, and Private Cloud Compute where available,
-with no account and no API key. It's picked automatically when it's
-available.
+| Provider | Credentials | Notes |
+| :--- | :--- | :--- |
+| **OpenRouter** | API key | Single key across many tool-calling models |
+| **OpenAI** | API key | GPT models |
+| **Anthropic** | API key | Claude models |
+| **Google Gemini** | API key | Gemini models (AI Studio) |
+| **Google Vertex AI** | Vertex AI API key | Gemini models billed to your Google Cloud project |
+| **Groq** | API key | Fast open-weight models |
+| **xAI** | API key | Grok models |
+| **DeepSeek** | API key | DeepSeek models |
+| **NVIDIA NIM** | API key | OpenAI-compatible hosted models |
+| **Ollama** | None (LAN URL, e.g. `http://192.168.1.20:11434`) | Local models on your own computer |
+| **LM Studio** | None (LAN URL, e.g. `http://192.168.1.20:1234/v1`) | Local models on your own computer |
+| **Apple Intelligence** | None (on-device / Private Cloud Compute) | Available for inherited forum **Summaries & chat** and **Ask the forum** only (not general browser-agent tool calling) |
 
-Or **bring your own provider**. Paste an API key once and the app suggests a
-good model:
+---
 
-| Provider | What you need | Good to know |
-| --- | --- | --- |
-| OpenRouter | An API key | One key, many models |
-| OpenAI | An API key | GPT models |
-| Anthropic | An API key | Claude models |
-| Google Gemini | An API key | Gemini models |
-| Google Vertex AI | A Vertex AI API key from Google Cloud | Gemini models, billed to your Cloud project |
-| Groq | An API key | Fast open models |
-| xAI | An API key | Grok models |
-| DeepSeek | An API key | DeepSeek models |
-| NVIDIA NIM | An API key from build.nvidia.com | Open models, OpenAI-compatible |
-| Ollama | Ollama on a computer on your network | Free, private, no key |
-| LM Studio | LM Studio on a computer on your network | Free, private, no key |
+## Build and Install from Source
 
-**Not sure?** Use Apple Intelligence if your device has it. Otherwise, if you
-already pay for one of these, use that one; to try many models with one key,
-OpenRouter is an easy start. For Ollama or LM Studio, enter the computer's
-address (for example `http://192.168.1.20:11434`) as the base URL.
+### Requirements
 
-**Two models, one for each job.** Settings › AI models has a default model
-for **Summaries & chat** and one for **Ask the forum**. Summaries and chat
-read a lot of text, so a fast, low-cost model works well there; Ask the forum
-plans searches and reasons over what it reads, so a stronger model pays off.
-Both start as the model you pick during setup; change either one, or switch
-with the model button at the top of the assistant, and the other stays as it is. Keys belong to a
-provider, so two models from the same provider share one key.
+- A Mac running **Xcode 27** (`Xcode 27.2` in CI; iOS / iPadOS **17.0+** deployment target).
+- **Ruby** with the **`xcodeproj`** gem (`gem install --user-install xcodeproj` with macOS system Ruby, or `gem install xcodeproj` with your Ruby manager).
+- An Apple account (a free Apple ID personal team or a paid Apple Developer Program team) to sign and install on a physical iPhone or iPad. Simulator builds need no signing account.
+- No Swift packages, CocoaPods, or Carthage dependencies.
 
-## Get Forumind
+> **Project and scheme naming:** WukongMind keeps Forumind's Xcode project layout (`Forumind.xcodeproj` and scheme **`Forumind`**) while building the **WukongMind** app (`CFBundleDisplayName = WukongMind`, URL scheme `wukongmind://`). Always change build settings in `scripts/generate_project.rb`, not in Xcode's UI — regenerating overwrites manual `.xcodeproj` edits.
 
-### App Store
-
-Forumind is in App Store review. Once Apple approves it, it will be here:
-**[Forumind on the App Store](https://apps.apple.com/app/id6816718686)**.
-
-### TestFlight public beta
-
-Try the latest build now: open **[https://testflight.apple.com/join/XsfttG4P](https://testflight.apple.com/join/XsfttG4P)** on your
-iPhone or iPad, install Apple's TestFlight app if asked, and tap **Accept**.
-New builds arrive in TestFlight automatically. Send feedback from TestFlight
-(take a screenshot, or open Forumind in TestFlight › Send Beta Feedback) or
-[open an issue](https://github.com/kccarlos/forumind/issues).
-
-### Build from source
-
-You need a Mac with Xcode 27 and the `xcodeproj` Ruby gem:
+### 1. Run in the iOS Simulator
 
 ```sh
-git clone https://github.com/kccarlos/forumind.git
-cd forumind
-gem install xcodeproj
+git clone https://github.com/kccarlos/WuKongMind.git
+cd WuKongMind
+gem install --user-install xcodeproj
 ruby scripts/generate_project.rb
 open Forumind.xcodeproj
 ```
 
-Run it on a simulator right away. To install on your own iPhone or iPad, set
-your signing team first; see [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md#signing).
+In Xcode, select the **Forumind** scheme and any iPhone or iPad Simulator, then press **Run** (`⌘R`). (If Xcode warns about the default signing team before you have added an account, generate with `DEVELOPMENT_TEAM="" ruby scripts/generate_project.rb`.)
 
-### First steps
+To build unsigned from the command line:
 
-1. **Pick your AI.** The first launch walks you through it. You can skip it
-   and choose later in Settings.
-2. **Pick your forums.** Pin a suggested forum or add one by address
-   (`meta.discourse.org`, or a subfolder forum like `example.com/forum`).
-3. **Open a topic and tap the ✦ button** in the bar at the bottom (on a wide
-   iPad window the assistant is already beside the page). Read the summary,
-   ask a follow-up, or switch the ask box from **This topic** to the whole
-   forum to ask the forum.
+```sh
+destination="$(scripts/ci/pick-simulator.sh)"
+xcodebuild build \
+  -project Forumind.xcodeproj \
+  -scheme Forumind \
+  -destination "$destination" \
+  CODE_SIGNING_ALLOWED=NO \
+  CODE_SIGNING_REQUIRED=NO
+```
 
-If a forum needs you to log in, log in inside the app's browser. The app
-reads the forum the way the browser does, so it can read what you can read.
+### 2. Build and install on your iPhone or iPad
 
-**Sync between iPhone and iPad** is automatic: sign in to the same Apple
-Account on both, and your forums, summaries, chats, and settings follow you.
-Check it or turn it off in **Settings › iCloud Sync**. (Sync needs a build
-signed with a paid team; see
-[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md#icloud-sync-cloudkit-and-signing).)
+Apple bundle identifiers are globally unique across all developer accounts. Because `scripts/generate_project.rb` defaults to `io.github.kccarlos.wukongmind`, **installing on a physical device with your own Apple team requires setting both your Team ID and your own reverse-DNS `BUNDLE_ID_PREFIX`**.
 
-## Privacy in plain words
+1. Find your 10-character **Team ID** in **Xcode › Settings › Accounts** or at [developer.apple.com/account](https://developer.apple.com/account) under Membership details (or sign in with a free Apple ID in **Xcode › Settings › Accounts**).
+2. Configure your Team ID and regenerate `Forumind.xcodeproj` with your own `BUNDLE_ID_PREFIX`:
 
-- **No middleman.** There are no Forumind servers, accounts,
-  analytics, ads, or tracking.
-- **Forum posts go only to the AI you chose**, straight from your device. With
-  Apple Intelligence, they stay on your device or go to Apple's Private Cloud
-  Compute.
-- **Your keys stay in your Keychain** (and iCloud Keychain, if you sync them).
-- **Your history stays yours:** on your device and, with sync, end-to-end
-  encrypted in your own iCloud account, where nobody else can read it.
-- **Each forum's login stays with that forum.** Cookies are sent only to the
-  forum they belong to. Hacker News is read through Algolia's public API,
-  without a login.
+   ```sh
+   # Option A: keep your Team ID in Config/DevelopmentTeam.txt (git-ignored)
+   cp Config/DevelopmentTeam.example.txt Config/DevelopmentTeam.txt
+   # Edit Config/DevelopmentTeam.txt and replace ABCDE12345 with your 10-character Team ID
+   BUNDLE_ID_PREFIX=com.example.wukongmind ruby scripts/generate_project.rb
 
-Full details: [Privacy Policy](PRIVACY.md).
+   # Option B: pass both as environment variables (DEVELOPMENT_TEAM overrides the file)
+   DEVELOPMENT_TEAM=ABCDE12345 BUNDLE_ID_PREFIX=com.example.wukongmind \
+     ruby scripts/generate_project.rb
+   ```
 
-## FAQ
+   `BUNDLE_ID_PREFIX` updates every target and identifier together (`<prefix>` for the app, `<prefix>.share` for the share extension, `group.<prefix>`, `iCloud.<prefix>`, Keychain service names, background task IDs, and test bundles).
 
-<details>
-<summary><b>Does it cost anything?</b></summary>
+3. Open `Forumind.xcodeproj`, connect your iPhone or iPad, pick the **Forumind** scheme and your device, and press **Run** (`⌘R`).
+4. On first install on iOS/iPadOS, turn on **Developer Mode** if prompted (**Settings › Privacy & Security › Developer Mode**) and trust your developer certificate under **Settings › General › VPN & Device Management**.
 
-The app is free. Apple Intelligence and local models cost nothing to use.
-Other AI providers may charge for usage, usually a small amount per summary.
-</details>
+#### Capabilities and free vs. paid Apple teams
 
-<details>
-<summary><b>Is this made by Discourse?</b></summary>
+- **Works out of the box on free personal teams:** In `scripts/generate_project.rb`, `DC_ENABLE_SHARE_EXTENSION`, `DC_ENABLE_APP_GROUP`, `DC_ENABLE_CLOUDKIT`, and `DC_ENABLE_PCC` all default to `NO` (see [docs/wukongmind/README.md](docs/wukongmind/README.md)). Signed device builds use empty base entitlements, so both free Apple ID personal teams (7-day app expiry; reinstall from Xcode) and paid teams build and install without portal setup.
+- **Optional Share Extension and iCloud Sync (paid team required):** After registering `group.<prefix>` and `iCloud.<prefix>` on the Apple Developer portal, enable them with:
 
-No. Forumind is an independent open-source app. It is not affiliated with
-or endorsed by Civilized Discourse Construction Kit, Inc., WordPress, Hacker
-News or any forum.
-</details>
+  ```sh
+  DEVELOPMENT_TEAM=ABCDE12345 \
+  BUNDLE_ID_PREFIX=com.example.wukongmind \
+  DC_ENABLE_SHARE_EXTENSION=YES \
+  DC_ENABLE_CLOUDKIT=YES \
+    ruby scripts/generate_project.rb
+  ```
 
-<details>
-<summary><b>Which sites work?</b></summary>
+- **Contributing back:** Never commit `Forumind.xcodeproj` generated with your own `DEVELOPMENT_TEAM`, `BUNDLE_ID_PREFIX`, or `DC_ENABLE_*` flags. Move `Config/DevelopmentTeam.txt` aside and run `env -u DEVELOPMENT_TEAM -u BUNDLE_ID_PREFIX ruby scripts/generate_project.rb` before committing project changes so CI's `scripts/ci/check-project-drift.sh` passes.
 
-Any forum running Discourse, public or private (log in inside the app); the
-app tells you when a page isn't a supported site. WordPress sites work
-through the site's public REST API (`/wp-json/`); sites that turn it off are
-not supported. Hacker News is supported for reading: no sign-in, posting or
-voting.
-</details>
+---
 
-<details>
-<summary><b>How long is my history kept?</b></summary>
+## Tests and Checks
 
-Summaries are kept (the 40 most recent, plus everything you **Keep**). Chats
-and activity you haven't kept are cleared after a day. **Settings › Data &
-privacy** deletes data per forum or all at once.
-</details>
+Run the simulator-free macOS core unit tests (`AgentLoop` and `ToolRegistry`):
 
-<details>
-<summary><b>The forum asks me to slow down.</b></summary>
+```sh
+xcodebuild test \
+  -project Forumind.xcodeproj \
+  -scheme ForumindAgentCoreTests \
+  -destination 'platform=macOS' \
+  CODE_SIGNING_ALLOWED=NO \
+  CODE_SIGNING_REQUIRED=NO
+```
 
-The app waits and retries on its own when a forum rate-limits it.
-</details>
+Run the full iOS Simulator unit test suite (matching `.github/workflows/ci.yml`):
 
-<details>
-<summary><b>Does it keep working in the background?</b></summary>
+```sh
+destination="$(scripts/ci/pick-simulator.sh)"
+xcodebuild test \
+  -project Forumind.xcodeproj \
+  -scheme Forumind \
+  -destination "$destination" \
+  -only-testing:ForumindTests \
+  CODE_SIGNING_ALLOWED=NO \
+  CODE_SIGNING_REQUIRED=NO
+```
 
-Work keeps going while you browse other topics in the app. iOS may pause it
-when you switch to another app; it resumes when you come back.
-</details>
+Run the repository lint and project-drift checks:
 
-<details>
-<summary><b>Can I use it on a desktop browser?</b></summary>
+```sh
+scripts/ci/lint-plists.sh
+scripts/ci/check-project-drift.sh
+scripts/ci/check-site-layering.sh
+scripts/i18n/check-catalogs.py
+scripts/adblock/run_tests.sh
+```
 
-Also available as a
-[Chrome and Edge extension](https://forumind.top/).
-</details>
+---
 
-## For developers
+## Documentation
 
-- [Development](docs/DEVELOPMENT.md): setup, signing, tests, DEBUG launch
-  arguments
-- [Architecture](docs/ARCHITECTURE.md): how the app is put together
-- [Adding a site](docs/ADDING_A_SITE.md): the adapter protocol and checklist for a new platform
-- [CI/CD](docs/CI.md): GitHub Actions, TestFlight, releases
-- [Ad blocking](docs/AD_BLOCKING.md): how the filter lists are converted and
-  loaded
-- [iCloud sync](docs/SYNC.md): CloudKit sync, merge rules, encryption
-- [Apple Intelligence](docs/APPLE_INTELLIGENCE.md): on-device and Private
-  Cloud Compute
-- [App Store](docs/APP_STORE.md): release checklist
+### WukongMind
 
-## Contributing
+- [docs/wukongmind/README.md](docs/wukongmind/README.md) — fork overview and build capability defaults
+- [docs/wukongmind/requirements.md](docs/wukongmind/requirements.md) — product requirements, tool specs, script system, safety boundaries, and milestones (`M0`–`M4`)
+- [docs/wukongmind/m0-module-map.md](docs/wukongmind/m0-module-map.md) — Forumind module map and file-level milestone change list
+- [docs/wukongmind/m0-csp-and-worlds.md](docs/wukongmind/m0-csp-and-worlds.md) — `WKWebView` Content Security Policy and `WKContentWorld` verification
+- [docs/wukongmind/design-m1.md](docs/wukongmind/design-m1.md) — `M1` agent chat panel and browser toolbar design
 
-Contributions are welcome: bug reports, ideas, translations, docs, and code.
-See [CONTRIBUTING.md](CONTRIBUTING.md) and the
-[Code of Conduct](CODE_OF_CONDUCT.md). Please report security issues
-privately ([SECURITY.md](SECURITY.md)).
+### Inherited Forumind docs
 
-If Forumind saves you time, a star on GitHub helps other people find it.
+The architectural and development guides below are inherited from Forumind and still apply to shared subsystems (note that WukongMind's default bundle prefix and `DC_ENABLE_*` defaults follow `scripts/generate_project.rb` as documented above):
 
-## License
+- [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) — signing details, UI tests, String Catalog localization, DEBUG launch arguments
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — app state, browser shell, site adapters, voice, and podcast architecture
+- [docs/ADDING_A_SITE.md](docs/ADDING_A_SITE.md) — adding a forum/site adapter
+- [docs/AD_BLOCKING.md](docs/AD_BLOCKING.md) — EasyList / EasyPrivacy content-blocking pipeline
+- [docs/SYNC.md](docs/SYNC.md) — CloudKit sync engine and encryption
+- [docs/APPLE_INTELLIGENCE.md](docs/APPLE_INTELLIGENCE.md) — on-device and Private Cloud Compute integration
+- [docs/CI.md](docs/CI.md) — GitHub Actions workflows
 
-Forumind is licensed under the [Apache License 2.0](LICENSE).
+*(Inherited App Store files such as [PRIVACY.md](PRIVACY.md), [TERMS.md](TERMS.md), and [docs/APP_STORE.md](docs/APP_STORE.md) belong to Forumind's store distribution and are retained in the repository for reference; WukongMind itself is self-built and not on the App Store.)*
 
-Forumind is an independent app and is not affiliated with or endorsed by
-Civilized Discourse Construction Kit, Inc. Discourse is a trademark of its
-respective owner.
+---
 
-## Acknowledgements
+## Credits and License
 
-- The optional ad and tracker blocking uses rules derived from
-  [EasyList and EasyPrivacy](https://easylist.to/), licensed under
-  CC BY-SA 3.0; see [NOTICE](NOTICE).
-- Built for the [Discourse](https://www.discourse.org) community, whose
-  open platform makes forums like these possible.
+WukongMind is forked from **[Forumind](https://github.com/kccarlos/forumind)** (`Copyright 2026 kccarlos and Forumind contributors`) and is licensed under the **[Apache License 2.0](LICENSE)**.
+
+- Optional ad and tracker blocking uses rules derived from [EasyList and EasyPrivacy](https://easylist.to/), licensed under CC BY-SA 3.0; see [NOTICE](NOTICE).
+- See [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), and [SECURITY.md](SECURITY.md) (inherited from Forumind; open issues and pull requests in [kccarlos/WuKongMind](https://github.com/kccarlos/WuKongMind)).
+- WukongMind is an independent open-source project and is not affiliated with or endorsed by Civilized Discourse Construction Kit, Inc. ("Discourse"), WordPress, Hacker News, or Tampermonkey.

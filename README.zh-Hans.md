@@ -1,294 +1,168 @@
-<p align="center">
-  <img src="docs/brand/forumind-banner-zh-Hans.png" alt="Forumind：几百楼的长帖，不用爬楼也能读懂。AI 摘要、聊天，以及附带来源的回答，支持 iPhone 与 iPad。" width="100%">
-</p>
+# WukongMind (悟空)
 
-<h3 align="center">为 Discourse 论坛、WordPress 网站和 Hacker News 打造的论坛浏览器，身边还有一位 AI 助手。</h3>
-
-<p align="center">
-  <a href="https://apps.apple.com/app/id6816718686"><img src="https://img.shields.io/badge/App_Store-%E5%AE%A1%E6%A0%B8%E4%B8%AD-0D96F6?logo=appstore&logoColor=white" alt="App Store：审核中"></a>
-  <a href="https://testflight.apple.com/join/XsfttG4P"><img src="https://img.shields.io/badge/TestFlight-%E5%85%AC%E5%BC%80%E6%B5%8B%E8%AF%95-0D96F6?logo=apple&logoColor=white" alt="TestFlight：公开测试"></a>
-  <a href="https://mobile.forumind.top"><img src="https://img.shields.io/badge/网站-mobile.forumind.top-0D96F6?logo=safari&logoColor=white" alt="网站"></a>
+<p>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue" alt="许可证：Apache-2.0"></a>
   <img src="https://img.shields.io/badge/iOS_%7C_iPadOS-17%2B-000000?logo=apple&logoColor=white" alt="iOS 与 iPadOS 17 或更高版本">
   <img src="https://img.shields.io/badge/Swift-F05138?logo=swift&logoColor=white" alt="Swift">
   <img src="https://img.shields.io/badge/Made_with-SwiftUI-2396F3?logo=swift&logoColor=white" alt="使用 SwiftUI 构建">
-  <a href="https://github.com/kccarlos/forumind/stargazers"><img src="https://img.shields.io/github/stars/kccarlos/forumind?style=social" alt="GitHub 星标"></a>
 </p>
 
-<p align="center">
+<p>
   <a href="README.md">English</a> · <b>简体中文</b> · <a href="README.zh-Hant.md">繁體中文</a>
 </p>
 
-**轻松读完长篇讨论。** 总结长篇话题、追问细节，还能让 AI
-替你搜索整个论坛，并附上它引用的帖子链接。Forumind 是一款免费开源的
-iPhone 与 iPad App，适用于任何基于 [Discourse](https://www.discourse.org)
-搭建的论坛，例如 [meta.discourse.org](https://meta.discourse.org) 或你自己的社区，
-也能阅读 WordPress 网站和 Hacker News。
+**WukongMind**（悟空）是一款面向 iPhone 与 iPad 的开源自用浏览器：内置的 AI 智能体通过运行 JavaScript 与注入 CSS 读取和修改任意网页，并可将修改保存为按站点生效的用户脚本（类似 Tampermonkey）。
 
-> **App Store：** Forumind 1.0 正在 App Store 审核中。Apple 审核通过后，
-> [App Store 链接](https://apps.apple.com/app/id6816718686)即可使用。在此之前，
-> 你可以**[通过 TestFlight 加入公开测试](https://testflight.apple.com/join/XsfttG4P)**，或[自行构建](#从源代码构建)。
+- **个人自用，不上架 App Store。** WukongMind 派生自 [Forumind](https://github.com/kccarlos/forumind)（Forumind 为通过 App Store 审核，将 AI 限制在受支持的论坛平台且保持只读）。WukongMind 不在 App Store 或公开 TestFlight 分发：由你使用自己的 Apple 开发者账号从源代码构建并签名安装，移除了面向 App Store 的能力限制。
+- **通过代码驱动网页。** AI 不会直接操作页面，而是编写代码；App 在 `WKWebView` 中执行代码并将结果返回给模型，通过工具调用循环完成任务。
+- **自带密钥（BYOK）。** 没有 WukongMind 后端服务器、账户、统计分析或中转代理。API 密钥保存在 iOS 钥匙串中，请求由你的设备直接发往模型提供方（或局域网内的本地模型服务）。
+- **当前状态：** `M1` 已完成（支持任意网站的智能体聊天面板与页面内工具）；`M2`（按站点保存并自动注入用户脚本）进行中。详见[当前进展](#当前进展)。
 
-**想在电脑浏览器上使用？** 也可以试试 [Chrome 与 Edge 扩展](https://forumind.top/)。
+---
 
-## 为什么选择 Forumind
+## 风险声明
 
-- **少读一点，多懂一些。** 不必逐条阅读，也能掌握 500 条回复的话题重点。
-- **直接问，不用翻。** 向论坛提问，得到附带编号来源的回答，点一下就能查看原帖。
-- **任何 Discourse 论坛，还有 WordPress 和 Hacker News。** 公开或私有、大型或小型，包括你自己的社区。
-- **AI 由你选。** 免密钥的 Apple 智能、你自己的 AI 提供方，或你自己电脑上的模型。
-- **隐私从设计开始。** 没有 Forumind 服务器、账户、分析、广告或跟踪。
-- **免费开源。** 采用 Apache-2.0 许可，使用 SwiftUI 为 iPhone 与 iPad 打造。
+> [!WARNING]
+> **网页内容可能会诱导智能体（提示词注入），且智能体可以使用你在本 App 中登录的所有会话。请勿在 WukongMind 中登录银行、支付或主力邮箱等高风险账户。**
 
-## 截图
+在登录网站或运行智能体前，请充分了解其安全模型：
 
-<p align="center">
-  <img src="docs/screenshots/iphone-page-zh-Hans.png" alt="Discourse Meta 上的一个话题和底部栏，点 ✦ 按钮打开 AI 抽屉" width="200">
-  <img src="docs/screenshots/iphone-summary-zh-Hans.png" alt="抽屉中的摘要，楼层号可点按，下方可以追问" width="200">
-  <img src="docs/screenshots/iphone-ask-zh-Hans.png" alt="问论坛：问题、步骤和附带来源的回答" width="200">
-  <img src="docs/screenshots/iphone-home-zh-Hans.png" alt="首页：今日摘要、继续阅读的话题和置顶的论坛" width="200">
-</p>
+- **提示词注入与登录态共享：** 网页上的不受信任文本可能会误导模型执行非预期操作，而智能体与你的日常浏览共享同一个 `WKWebView` Cookie 与会话存储。你在 WukongMind 内登录的任何网站，智能体均可访问。请避免在其中登录网银、支付工具、主邮箱或其他高价值账户。
+- **页面内完整执行权限（`run_js`）：** 默认**没有任何确认弹窗，也没有风险分级**——智能体会直接调用工具，`run_js` 在当前页面内拥有完整的 JavaScript 执行权限（读写 DOM、在 `page` 世界访问页面全局变量、操作表单及发起同源请求）。
+- **可选的写入前确认（规划中）：** 设置中的可选开关 **“写入前确认”（Confirm before writes）**（默认关闭；开启后在调用 `http_request`、`cookies_get` 及提交表单前先询问确认）计划在后续里程碑（`M3`）中提供，**当前尚未实装**。
+- **当前已内置的安全基线：**
+  - **桥接隔离：** App 与页面的消息通道（`WKScriptMessageHandlerWithReply`）仅注册在隔离的 `WKContentWorld` 中，页面自身脚本不可见，因此网页无法调用原生工具或伪造工具结果。
+  - **密钥隔离：** AI 提供方的 API 密钥仅保存在 iOS 钥匙串中，绝不进入页面环境或对话历史，若意外出现在工具输出中也会被脱敏。
+  - **不受信任内容标记：** 工具返回的网页文本会包裹在 `<untrusted_web_content>` 分隔符中，系统提示词明确要求模型绝不服从网页内容中的指令。
+  - **随时停止：** 运行期间 **停止（Stop）** 按钮全程可见，点击即刻中止循环；单次运行还受可配置的步数上限保护（默认 `30` 步）。全局脚本总开关（`M2`）和本地磁盘审计日志（`M3`）见下方路线图。
 
-## 功能
+---
 
-### 读懂任何话题
+## 当前进展
 
-- **摘要。** 原帖内容、大家怎么说，以及帖子里的建议。之后点 **检查新回复**，
-  只读取新增的内容。
-- **聊天。** 针对正在阅读的话题提问：“大家最后怎么决定的？”或“有没有变通办法？”
-- **问论坛。** 提出问题，助手会搜索论坛、阅读最相关的话题，并给出附带编号
-  来源的回答，点一下即可打开。
-- **翻译。** 在设备上翻译屏幕上的帖子或摘要（需要 iOS 18 或更高版本）。
+WukongMind 按里程碑顺序推进（详见英文需求文档 [docs/wukongmind/requirements.md](docs/wukongmind/requirements.md)）：
 
-### 所有论坛集中一处
+| 里程碑 | 状态 | 内容 |
+| :--- | :--- | :--- |
+| **M0 — 调研** | **已完成** | Forumind 模块映射与改动清单（[m0-module-map.md](docs/wukongmind/m0-module-map.md)），以及 `WKWebView` CSP 与双执行世界实测验证（[m0-csp-and-worlds.md](docs/wukongmind/m0-csp-and-worlds.md)）。 |
+| **M1 — 核心循环** | **已完成** | 支持任意网站的通用地址栏、**Agent** 聊天面板（iPhone 底部抽屉，iPad 可调宽分栏）与工具栏按钮、支持原生工具调用的 `AgentLoop`、停止按钮、Token 统计，以及页面内工具（`read_page`、`run_js`、`inject_css`、`wait_for`）。 |
+| **M2 — 持久化脚本** | **进行中** | 按站点的用户脚本系统（`ScriptStore`，带 `// ==UserScript==` 头与 `@match` 规则的 `.user.js` 文件）、脚本管理工具（`script_save`、`script_list`、`script_read`、`script_update`、`script_delete`）、页面加载与 SPA 路由切换自动注入、脚本管理器界面、工具栏脚本计数徽标与全局脚本开关。 |
+| **M3 — 完整能力** | 规划中 | `screenshot`（视觉截图）、`network_log`、`navigate`、多标签页 `tabs`、跨域 `http_request`、`cookies_get`（含 `httpOnly`）、工作区文件读写 `file_read` / `file_write`、磁盘审计日志界面，以及可选的“写入前确认”模式。 |
+| **M4 — 自扩展与 Tampermonkey 兼容** | 规划中 | `GM_addStyle`、`GM_getValue`、`GM_setValue`、`GM_xmlhttpRequest`、从 URL 导入用户脚本、脚本报错一键“交给智能体修复”、`notify`，以及脚本 iCloud 同步。 |
 
-- **任何 Discourse 论坛。** 打开论坛，App 就能识别。在 **论坛** 主页置顶常用
-  论坛；访问过的论坛会出现在“最近”中。
-- **从 Safari 或 Chrome 分享。** 把任何论坛页面分享到 Forumind，再打开 App，
-  页面已在等你：打开、生成摘要、聊天或问论坛。
-- **关注话题。** 话题有新回复时收到通知。
-- **每日摘要与播客。** 今日页面汇集你关注的话题和置顶论坛的热门话题，
-  还能变成两位主持人对谈的简短播客，用设备自带的语音朗读，有 Google 密钥时也可用 Google 的语音。
-- **实时语音。** 用 Google Gemini Live 和你自己的密钥，开口询问正在阅读的页面。
-  使用前会先征求同意，因为你的声音和页面内容会发送给 Google。
-- **iPhone 与 iPad。** 在 iPhone 上，助手以抽屉形式出现在页面上方；在较宽的 iPad 窗口中，两者并排显示。
+---
 
-### 每项工作都有合适的 AI
+## 工作方式
 
-- **Apple 智能或你自己的 AI 提供方。** 请参阅[选择你的 AI](#选择你的-ai)。
-- **两个默认模型。** 一个用于 **摘要与聊天**，一个用于 **问论坛**，让每项工作
-  都用上合适的模型。
+- **页面智能体（`M1`）：** 打开任意网页，点按浏览器栏中的 **✦** 按钮打开 **Agent** 面板，输入需求（例如 *“把这个页面改成深色并隐藏侧边栏”*）。工具默认在隔离的 `WKContentWorld` 中通过 `callAsyncJavaScript` 运行（也可指定 `page` 世界访问页面 JS 全局状态），CSS 通过 `adoptedStyleSheets` 注入以绕过严格的 `style-src` 限制。当前已提供 `read_page`、`run_js`、`inject_css`、`wait_for` 四个页面工具。
+- **继承自 Forumind 的能力：** Discourse、WordPress 与 Hacker News 的长帖分级**摘要**、话题**聊天**、全站**问论坛**、关注话题提醒、每日摘要与双人播客、Gemini Live 实时语音，以及基于 EasyList / EasyPrivacy 的可选广告与跟踪器拦截均完整保留，与 **Agent** 模式并存。
 
-### 隐私、同步与礼貌
+---
 
-- **iCloud 同步。** 论坛、摘要、聊天和设置会在你的 iPhone 与 iPad 之间自动
-  同步，并以端到端加密的方式保存在你自己的 iCloud 账户中；API 密钥通过
-  iCloud 钥匙串同步。
-- **对论坛服务器保持礼貌。** 默认每秒读取一页话题内容（设置 › 摘要与聊天 ›
-  论坛请求），每个论坛单独控制节奏。论坛要求放慢速度时，App 会等待后重试。
-- **可选的广告与跟踪器拦截**，用于内置浏览器，基于 EasyList 与 EasyPrivacy。
-  出于对依赖广告的论坛站长的尊重，默认关闭；可在 设置 › 浏览器 中开启。
-- **支持你的语言。** 英文、简体中文和繁体中文。
+## 自带密钥（BYOK）
 
-## 支持的论坛
+- **直连提供方：** 所有模型请求均从你的 iPhone 或 iPad 直接发往所配置的 AI 提供方接口。
+- **钥匙串存储：** API 密钥保存在 iOS 钥匙串（可选通过 iCloud 钥匙串在你的设备间同步），不会写入明文状态文件，也不会暴露给网页或工具。
+- **独立的浏览器智能体模型：** **浏览器智能体**默认不预设模型（**设置 › AI 模型 › Browser agent**），首次使用时请从支持原生工具调用的提供方中选择模型：
+  - **云端提供方（需 API 密钥）：** OpenRouter、OpenAI、Anthropic、Google Gemini、Google Vertex AI、Groq、xAI (Grok)、DeepSeek、NVIDIA NIM。
+  - **局域网本地服务（无需密钥）：** Ollama（如 `http://192.168.1.20:11434`）、LM Studio（如 `http://192.168.1.20:1234/v1`）。
+  - **Apple 智能：** 仅可用于继承自 Forumind 的论坛**摘要与聊天**及**问论坛**，不支持通用浏览器智能体工具调用。
 
-Forumind 支持**任何基于 [Discourse](https://www.discourse.org) 的论坛**，
-无论公开还是私有、官方托管还是自行部署：在 App 中打开论坛地址即可（私有论坛请在
-App 内登录）。可以用 Forumind 阅读的热门 Discourse 社区举例：
+---
 
-| 主题 | 论坛 |
-| --- | --- |
-| AI 与开发者工具 | [OpenAI Developer Community](https://community.openai.com), [Cursor Community Forum](https://forum.cursor.com), [Hugging Face Forums](https://discuss.huggingface.co), [LangChain Forum](https://forum.langchain.com), [n8n Community](https://community.n8n.io), [Fly.io Community](https://community.fly.io), [Let's Encrypt Community](https://community.letsencrypt.org) |
-| 编程语言与机器学习 | [Discussions on Python.org](https://discuss.python.org), [Swift Forums](https://forums.swift.org), [Rust Users Forum](https://users.rust-lang.org), [Rust Internals](https://internals.rust-lang.org), [Julia Discourse](https://discourse.julialang.org), [Kotlin Discussions](https://discuss.kotlinlang.org), [PyTorch Forums](https://discuss.pytorch.org), [Ray Forum](https://discuss.ray.io) |
-| 开源、Linux 与游戏引擎 | [Discourse Meta](https://meta.discourse.org), [Ubuntu Discourse](https://discourse.ubuntu.com), [NixOS Discourse](https://discourse.nixos.org), [Manjaro Linux Forum](https://forum.manjaro.org), [Mozilla Discourse](https://discourse.mozilla.org), [Godot Forum](https://forum.godotengine.org), [Babylon.js Forum](https://forum.babylonjs.com), [freeCodeCamp Forum](https://forum.freecodecamp.org) |
-| App、智能家居与硬件 | [Home Assistant Community](https://community.home-assistant.io), [Obsidian Forum](https://forum.obsidian.md), [Level1Techs Forums](https://forum.level1techs.com) |
-| 中文社区 | [美卡论坛 USCardForum](https://www.uscardforum.com), [LINUX DO](https://linux.do) |
+## 从源代码构建与安装
 
-首次设置时，App 会推荐其中几个论坛；其他论坛输入地址即可添加。论坛名称归各自
-所有者所有，Forumind 与这些社区没有隶属关系。知道应该列在这里的 Discourse 论坛？
-欢迎[提交 issue](https://github.com/kccarlos/forumind/issues)。
+### 环境要求
 
-**WordPress 网站**也可以使用：打开一篇博客文章，或按地址添加网站，Forumind
-会通过站点公开的 REST API 读取文章和读者评论（站点允许时也支持评论搜索）。
-关闭了 REST API 的站点，或使用不带 `/wp-json/` 的 `?p=` 简单固定链接的站点，
-不受支持。Forumind 与 WordPress 或 WordPress 基金会没有隶属关系。
+- 装有 **Xcode 27**（CI 使用 `Xcode 27.2`；部署目标为 iOS / iPadOS **17.0+**）的 Mac。
+- **Ruby** 及 **`xcodeproj`** gem（使用系统 Ruby 可运行 `gem install --user-install xcodeproj`）。
+- 若要安装到真机（iPhone / iPad），需要一个 Apple 账号（免费个人 Apple ID 团队或付费 Apple Developer Program 团队均可）；模拟器运行无需签名账号。
+- 无任何第三方 Swift Package、CocoaPods 或 Carthage 依赖。
 
-**[Hacker News](https://news.ycombinator.com)** 也受支持：添加它的地址，或打开
-`item?id=N` 故事链接，即可阅读故事和嵌套评论、生成摘要、聊天、搜索，或把它加入
-每日摘要和播客。阅读使用公开的 Algolia API；不能登录、发帖或投票。
+> **工程与 Scheme 名称说明：** WukongMind 沿用了 Forumind 的工程文件与目标名（`Forumind.xcodeproj` 与 **`Forumind`** Scheme），构建出的应用显示名称为 **WukongMind**（URL Scheme 为 `wukongmind://`）。请勿在 Xcode 界面中直接修改构建设置——请修改 `scripts/generate_project.rb` 后重新生成。
 
-## 选择你的 AI
-
-**Apple 智能** 是最简单的选择：在支持的设备上，App 会使用 Apple 的设备端
-模型，并在可用时使用私密云计算，无需账户，也无需 API 密钥。可用时会自动选用。
-
-也可以 **使用你自己的 AI 提供方**。粘贴一次 API 密钥，App 就会推荐一个合适的模型：
-
-| AI 提供方 | 你需要准备 | 说明 |
-| --- | --- | --- |
-| OpenRouter | API 密钥 | 一个密钥，多种模型 |
-| OpenAI | API 密钥 | GPT 模型 |
-| Anthropic | API 密钥 | Claude 模型 |
-| Google Gemini | API 密钥 | Gemini 模型 |
-| Google Vertex AI | 来自 Google Cloud 的 Vertex AI API 密钥 | Gemini 模型，费用计入你的 Cloud 项目 |
-| Groq | API 密钥 | 快速的开源模型 |
-| xAI | API 密钥 | Grok 模型 |
-| DeepSeek | API 密钥 | DeepSeek 模型 |
-| NVIDIA NIM | 来自 build.nvidia.com 的 API 密钥 | 开源模型，兼容 OpenAI |
-| Ollama | 在你局域网内的电脑上运行 Ollama | 免费、私密、无需密钥 |
-| LM Studio | 在你局域网内的电脑上运行 LM Studio | 免费、私密、无需密钥 |
-
-**拿不定主意？** 如果你的设备支持，就用 Apple 智能。否则，如果你已经在为
-其中某一家付费，就用那一家；想用一个密钥试用多种模型，OpenRouter 是个不错的
-起点。使用 Ollama 或 LM Studio 时，把电脑的地址（例如
-`http://192.168.1.20:11434`）填为基础 URL。
-
-**两个模型，各司其职。** 设置 › AI 模型 中有一个用于 **摘要与聊天** 的默认
-模型，还有一个用于 **问论坛** 的默认模型。摘要和聊天需要阅读大量文字，快速、
-低成本的模型就很合适；问论坛需要规划搜索并对读到的内容进行推理，更强的模型
-更值得。两者一开始都是你在设置过程中选择的模型；更改其中一个，或用助手顶部的
-模型按钮切换，另一个保持不变。密钥属于 AI 提供方，因此同一提供方的两个模型
-共用一个密钥。
-
-## 获取 Forumind
-
-### App Store
-
-Forumind 正在接受 App Store 审核。Apple 审核通过后，可在这里下载：
-**[App Store 上的 Forumind](https://apps.apple.com/app/id6816718686)**。
-
-### TestFlight 公开测试
-
-现在就可以试用最新版本：在 iPhone 或 iPad 上打开 **[https://testflight.apple.com/join/XsfttG4P](https://testflight.apple.com/join/XsfttG4P)**，
-按提示安装 Apple 的 TestFlight App，然后轻点**接受**。新版本会自动推送到
-TestFlight。你可以在 TestFlight 中反馈（截屏，或在 TestFlight 中打开
-Forumind › 发送 Beta 版反馈），也可以[提交 issue](https://github.com/kccarlos/forumind/issues)。
-
-### 从源代码构建
-
-你需要一台装有 Xcode 27 和 `xcodeproj` Ruby gem 的 Mac：
+### 1. 在 iOS 模拟器中运行
 
 ```sh
-git clone https://github.com/kccarlos/forumind.git
-cd forumind
-gem install xcodeproj
+git clone https://github.com/kccarlos/WuKongMind.git
+cd WuKongMind
+gem install --user-install xcodeproj
 ruby scripts/generate_project.rb
 open Forumind.xcodeproj
 ```
 
-可以直接在模拟器上运行。若要安装到你自己的 iPhone 或 iPad，请先设置签名团队；
-请参阅 [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md#signing)（英文）。
+在 Xcode 中选择 **Forumind** Scheme 和任意模拟器，按 **Run**（`⌘R`）即可。（若尚未登录 Apple 账号时 Xcode 提示默认签名团队不可用，可执行 `DEVELOPMENT_TEAM="" ruby scripts/generate_project.rb`。）
 
-### 开始使用
+命令行无签名构建：
 
-1. **选择你的 AI。** 首次启动时会引导你完成。你也可以跳过，稍后在设置中选择。
-2. **选择你的论坛。** 置顶推荐的论坛，或按地址添加（`meta.discourse.org`，
-   或子目录论坛，例如 `example.com/forum`）。
-3. **打开一个话题，点按底部栏中的 ✦ 按钮**（在较宽的 iPad 窗口中，助手已经在页面旁边）。
-   阅读摘要、继续追问，或把提问框从 **此话题** 切换到 **整个论坛** 来问论坛。
+```sh
+destination="$(scripts/ci/pick-simulator.sh)"
+xcodebuild build \
+  -project Forumind.xcodeproj \
+  -scheme Forumind \
+  -destination "$destination" \
+  CODE_SIGNING_ALLOWED=NO \
+  CODE_SIGNING_REQUIRED=NO
+```
 
-如果论坛需要登录，请在 App 的内置浏览器中登录。App 读取论坛的方式与浏览器
-相同，所以你能看到的内容，它也能读取。
+### 2. 使用你自己的 Apple 团队签名并安装到真机
 
-**iPhone 与 iPad 之间的同步** 是自动的：在两台设备上登录同一个 Apple 账户，
-你的论坛、摘要、聊天和设置就会跟着你走。可在 **设置 › iCloud 同步** 中查看或
-关闭。（同步需要使用付费团队签名的构建版本；请参阅
-[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md#icloud-sync-cloudkit-and-signing)（英文）。）
+Apple 的 Bundle ID 全局唯一。由于 `scripts/generate_project.rb` 默认使用 `io.github.kccarlos.wukongmind`，**在真机上用你自己的团队签名时，必须同时配置你的 Team ID 和自定义的反向域名 `BUNDLE_ID_PREFIX`**：
 
-## 用大白话讲隐私
+1. 在 **Xcode › Settings › Accounts** 或 [developer.apple.com/account](https://developer.apple.com/account) 查看你的 10 位 **Team ID**。
+2. 配置 Team ID 并指定 `BUNDLE_ID_PREFIX` 重新生成工程：
 
-- **没有中间人。** 没有 Forumind 服务器、账户、分析、广告或跟踪。
-- **论坛帖子只会发送给你选择的 AI**，直接从你的设备发出。使用 Apple 智能时，
-  帖子留在你的设备上，或发送到 Apple 的私密云计算。
-- **你的密钥保存在你的钥匙串中**（如果你同步密钥，也会保存在 iCloud 钥匙串中）。
-- **你的记录只属于你：** 保存在你的设备上；开启同步后，以端到端加密的方式
-  保存在你自己的 iCloud 账户中，其他人都无法读取。
-- **每个论坛的登录只属于该论坛。** Cookie 只会发送给它所属的论坛。Hacker News 通过 Algolia 的公开 API 读取，不需要登录。
+   ```sh
+   # 方式 A：将 Team ID 写入被 Git 忽略的 Config/DevelopmentTeam.txt
+   cp Config/DevelopmentTeam.example.txt Config/DevelopmentTeam.txt
+   # 编辑 Config/DevelopmentTeam.txt，把 ABCDE12345 替换为你的 10 位 Team ID
+   BUNDLE_ID_PREFIX=com.example.wukongmind ruby scripts/generate_project.rb
 
-完整说明：[隐私政策](PRIVACY.md)（英文）。
+   # 方式 B：直接通过环境变量传入（DEVELOPMENT_TEAM 优先级高于文件）
+   DEVELOPMENT_TEAM=ABCDE12345 BUNDLE_ID_PREFIX=com.example.wukongmind \
+     ruby scripts/generate_project.rb
+   ```
 
-## 常见问题
+3. 打开 `Forumind.xcodeproj`，连接 iPhone 或 iPad，选择 **Forumind** Scheme 与你的设备，点击 **Run**（`⌘R`）。首次安装需在设备上开启**开发者模式**（**设置 › 隐私与安全性 › 开发者模式**），并在**设置 › 通用 › VPN 与设备管理**中信任开发者证书。
 
-<details>
-<summary><b>需要付费吗？</b></summary>
+- **免费个人团队可直接签名：** `scripts/generate_project.rb` 中 `DC_ENABLE_SHARE_EXTENSION`、`DC_ENABLE_APP_GROUP`、`DC_ENABLE_CLOUDKIT` 和 `DC_ENABLE_PCC` 默认均为 `NO`（详见 [docs/wukongmind/README.md](docs/wukongmind/README.md)），基础 entitlements 为空，因此免费个人 Apple ID 团队（签名有效期 7 天）和付费开发者团队均可直接编译安装，无需预先在开发者后台注册容器。付费团队若在后台注册了 `group.<prefix>` 与 `iCloud.<prefix>`，可通过 `DC_ENABLE_SHARE_EXTENSION=YES` 与 `DC_ENABLE_CLOUDKIT=YES` 开启分享扩展与 iCloud 同步。
+- **提交代码注意：** 请勿提交带有个人 `DEVELOPMENT_TEAM`、`BUNDLE_ID_PREFIX` 或 `DC_ENABLE_*` 的 `Forumind.xcodeproj`；提交前请移开 `Config/DevelopmentTeam.txt` 并执行 `env -u DEVELOPMENT_TEAM -u BUNDLE_ID_PREFIX ruby scripts/generate_project.rb`，以通过 CI 的 `scripts/ci/check-project-drift.sh` 检查。
 
-App 免费。使用 Apple 智能和本地模型不产生任何费用。其他 AI 提供方可能按用量
-收费，通常每份摘要只需很少的费用。
-</details>
+---
 
-<details>
-<summary><b>这是 Discourse 官方出品的吗？</b></summary>
+## 测试与检查
 
-不是。Forumind 是一款独立的开源 App，与 Civilized Discourse Construction
-Kit, Inc.、WordPress、Hacker News 或任何论坛均无关联，也未获得其认可。
-</details>
+```sh
+# 无需模拟器的 macOS 核心单元测试（AgentLoop 与 ToolRegistry）
+xcodebuild test \
+  -project Forumind.xcodeproj \
+  -scheme ForumindAgentCoreTests \
+  -destination 'platform=macOS' \
+  CODE_SIGNING_ALLOWED=NO \
+  CODE_SIGNING_REQUIRED=NO
 
-<details>
-<summary><b>哪些网站可以用？</b></summary>
+# 完整 iOS 模拟器单元测试（与 .github/workflows/ci.yml 一致）
+destination="$(scripts/ci/pick-simulator.sh)"
+xcodebuild test \
+  -project Forumind.xcodeproj \
+  -scheme Forumind \
+  -destination "$destination" \
+  -only-testing:ForumindTests \
+  CODE_SIGNING_ALLOWED=NO \
+  CODE_SIGNING_REQUIRED=NO
 
-任何运行 Discourse 的论坛，无论公开还是私有（在 App 内登录即可）；如果页面
-不是受支持的网站，App 会告诉你。WordPress 网站通过站点公开的 REST API
-（`/wp-json/`）读取，关闭了该接口的站点不受支持。Hacker News 支持阅读，
-不能登录、发帖或投票。
-</details>
+# 仓库校验脚本
+scripts/ci/lint-plists.sh
+scripts/ci/check-project-drift.sh
+scripts/ci/check-site-layering.sh
+scripts/i18n/check-catalogs.py
+scripts/adblock/run_tests.sh
+```
 
-<details>
-<summary><b>我的记录会保留多久？</b></summary>
+---
 
-摘要会被保留（最近的 40 份，以及你 **保留** 的所有内容）。未保留的聊天和活动
-会在一天后清除。**设置 › 数据与隐私** 可按论坛或一次性删除全部数据。
-</details>
+## 文档与许可证
 
-<details>
-<summary><b>论坛要求我放慢速度。</b></summary>
+详细设计、模块映射与开发文档（英文）请参阅英文主文档 [README.md](README.md#documentation)、[docs/wukongmind/requirements.md](docs/wukongmind/requirements.md) 与 [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)。（仓库中的 [PRIVACY.md](PRIVACY.md)、[TERMS.md](TERMS.md) 和 [docs/APP_STORE.md](docs/APP_STORE.md) 继承自 Forumind 的 App Store 版本并保留备查；WukongMind 本身不上架 App Store。）
 
-当论坛限制请求频率时，App 会自动等待并重试。
-</details>
-
-<details>
-<summary><b>在后台也会继续工作吗？</b></summary>
-
-在 App 中浏览其他话题时，工作会继续进行。切换到其他 App 时，iOS 可能会暂停它；
-回来后会继续。
-</details>
-
-<details>
-<summary><b>可以在桌面浏览器上使用吗？</b></summary>
-
-也有
-[Chrome 与 Edge 扩展](https://forumind.top/)可用。
-</details>
-
-## 开发者文档
-
-以下文档为英文：
-
-- [Development](docs/DEVELOPMENT.md)：环境配置、签名、测试、DEBUG 启动参数
-- [Architecture](docs/ARCHITECTURE.md)：App 的整体结构
-- [CI/CD](docs/CI.md)：GitHub Actions、TestFlight、发布
-- [Ad blocking](docs/AD_BLOCKING.md)：过滤列表如何转换和加载
-- [iCloud sync](docs/SYNC.md)：CloudKit 同步、合并规则、加密
-- [Apple Intelligence](docs/APPLE_INTELLIGENCE.md)：设备端与私密云计算
-- [App Store](docs/APP_STORE.md)：发布检查清单
-
-## 参与贡献
-
-欢迎各种形式的贡献：问题反馈、想法、翻译、文档和代码。请参阅
-[CONTRIBUTING.md](CONTRIBUTING.md) 和[行为准则](CODE_OF_CONDUCT.md)（英文）。
-安全问题请私下报告（[SECURITY.md](SECURITY.md)）。
-
-如果 Forumind 帮你节省了时间，在 GitHub 上点个星标，能帮助更多人发现它。
-
-## 许可证
-
-Forumind 采用 [Apache License 2.0](LICENSE) 许可。
-
-Forumind 是一款独立 App，与 Civilized Discourse Construction Kit, Inc.
-无关联，也未获得其认可。Discourse 是其各自所有者的商标。
-
-## 致谢
-
-- 可选的广告与跟踪器拦截使用了源自
-  [EasyList 和 EasyPrivacy](https://easylist.to/) 的规则，采用 CC BY-SA 3.0
-  许可；请参阅 [NOTICE](NOTICE)。
-- 为 [Discourse](https://www.discourse.org) 社区而打造，正是它开放的平台让这样的论坛成为可能。
+WukongMind 派生自 **[Forumind](https://github.com/kccarlos/forumind)**（`Copyright 2026 kccarlos and Forumind contributors`），采用 **[Apache License 2.0](LICENSE)** 开源许可。可选广告与跟踪器拦截规则源自 [EasyList 和 EasyPrivacy](https://easylist.to/)（CC BY-SA 3.0，详见 [NOTICE](NOTICE)）。本项目与 Civilized Discourse Construction Kit, Inc.（"Discourse"）、WordPress、Hacker News 及 Tampermonkey 均无关联。
