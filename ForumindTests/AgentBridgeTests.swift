@@ -15,22 +15,52 @@ final class AgentBridgeTests: XCTestCase {
 
     private final class NavigationWaiter: NSObject, WKNavigationDelegate {
         private var continuation: CheckedContinuation<Void, Error>?
+        private var timeoutTask: Task<Void, Never>?
 
-        func waitForLoad(_ start: () -> Void) async throws {
+        func waitForLoad(timeoutSeconds: Double = 15, _ start: () -> Void) async throws {
             try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
                 self.continuation = cont
+                self.timeoutTask = Task { @MainActor [weak self] in
+                    try? await Task.sleep(nanoseconds: UInt64(timeoutSeconds * 1_000_000_000))
+                    guard !Task.isCancelled else { return }
+                    self?.finish(
+                        with: NSError(
+                            domain: "AgentBridgeTests",
+                            code: 2,
+                            userInfo: [NSLocalizedDescriptionKey: "Navigation timed out after \(timeoutSeconds)s"]
+                        )
+                    )
+                }
                 start()
             }
         }
 
-        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-            continuation?.resume()
+        private func finish(with error: Error? = nil) {
+            timeoutTask?.cancel()
+            timeoutTask = nil
+            guard let cont = continuation else { return }
             continuation = nil
+            if let error {
+                cont.resume(throwing: error)
+            } else {
+                cont.resume()
+            }
+        }
+
+        func webView(
+            _ webView: WKWebView,
+            decidePolicyFor navigationAction: WKNavigationAction,
+            decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
+        ) {
+            decisionHandler(.allow)
+        }
+
+        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            finish()
         }
 
         func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
-            continuation?.resume(throwing: error)
-            continuation = nil
+            finish(with: error)
         }
 
         func webView(
@@ -38,13 +68,13 @@ final class AgentBridgeTests: XCTestCase {
             didFailProvisionalNavigation navigation: WKNavigation!,
             withError error: Error
         ) {
-            continuation?.resume(throwing: error)
-            continuation = nil
+            finish(with: error)
         }
     }
 
-    /// Minimal loopback HTTP server on `127.0.0.1` so `Content-Security-Policy`
-    /// response headers are enforced identically to a real origin.
+    /// Minimal loopback HTTP server bound strictly to `127.0.0.1` (matching
+    /// `ContentBlockerTests.LocalHTTPServer`) so `Content-Security-Policy`
+    /// response headers are enforced identically to a real origin on CI and locally.
     private final class LoopbackFixtureServer: @unchecked Sendable {
         struct Route {
             var status: Int = 200
@@ -61,13 +91,24 @@ final class AgentBridgeTests: XCTestCase {
         init(routes: [String: Route]) throws {
             self.routes = routes
             let params = NWParameters.tcp
+            params.requiredLocalEndpoint = NWEndpoint.hostPort(host: "127.0.0.1", port: .any)
             params.allowLocalEndpointReuse = true
-            self.listener = try NWListener(using: params, on: .any)
+            self.listener = try NWListener(using: params)
         }
 
         func start() async throws -> URL {
             let readyPort: UInt16 = try await withCheckedThrowingContinuation { continuation in
                 let resumed = OSAllocatedUnfairLock(initialState: false)
+                let resumeOnce: @Sendable (Result<UInt16, Error>) -> Void = { result in
+                    let shouldResume = resumed.withLock { already -> Bool in
+                        guard !already else { return false }
+                        already = true
+                        return true
+                    }
+                    guard shouldResume else { return }
+                    continuation.resume(with: result)
+                }
+
                 listener.newConnectionHandler = { [routes, queue] connection in
                     Self.serve(connection: connection, routes: routes, queue: queue)
                 }
@@ -75,29 +116,31 @@ final class AgentBridgeTests: XCTestCase {
                     switch state {
                     case .ready:
                         if let port = listener?.port?.rawValue, port > 0 {
-                            let shouldResume = resumed.withLock { already -> Bool in
-                                guard !already else { return false }
-                                already = true
-                                return true
-                            }
-                            if shouldResume {
-                                continuation.resume(returning: port)
-                            }
+                            resumeOnce(.success(port))
                         }
                     case .failed(let error):
-                        let shouldResume = resumed.withLock { already -> Bool in
-                            guard !already else { return false }
-                            already = true
-                            return true
-                        }
-                        if shouldResume {
-                            continuation.resume(throwing: error)
-                        }
+                        resumeOnce(.failure(error))
+                    case .cancelled:
+                        resumeOnce(.failure(CancellationError()))
                     default:
                         break
                     }
                 }
                 listener.start(queue: queue)
+                queue.asyncAfter(deadline: .now() + 5) { [weak listener] in
+                    let currentState = String(describing: listener?.state)
+                    resumeOnce(
+                        .failure(
+                            NSError(
+                                domain: "LoopbackFixtureServer",
+                                code: 1,
+                                userInfo: [
+                                    NSLocalizedDescriptionKey: "Loopback listener did not become ready within 5s (state=\(currentState))"
+                                ]
+                            )
+                        )
+                    )
+                }
             }
             self.port = readyPort
             return URL(string: "http://127.0.0.1:\(readyPort)")!
@@ -113,44 +156,80 @@ final class AgentBridgeTests: XCTestCase {
             queue: DispatchQueue
         ) {
             connection.start(queue: queue)
-            connection.receive(minimumIncompleteLength: 1, maximumLength: 16_384) { data, _, _, _ in
-                let rawRequest = data.flatMap { String(data: $0, encoding: .utf8) } ?? ""
-                let firstLine = rawRequest.split(separator: "\r\n", maxSplits: 1).first ?? ""
-                let parts = firstLine.split(separator: " ")
-                let rawPath = parts.count >= 2 ? String(parts[1]) : "/"
-                let cleanPath = rawPath.split(separator: "?", maxSplits: 1).first.map(String.init) ?? "/"
+            receive(on: connection, buffer: Data(), routes: routes, queue: queue)
+        }
 
-                let route = routes[cleanPath] ?? Route(
-                    status: 404,
-                    contentType: "text/plain; charset=utf-8",
-                    headers: [:],
-                    body: Data("Not Found".utf8)
-                )
-
-                var headerLines = [
-                    "HTTP/1.1 \(route.status) \(route.status == 200 ? "OK" : "Not Found")",
-                    "Content-Type: \(route.contentType)",
-                    "Content-Length: \(route.body.count)",
-                    "Connection: close"
-                ]
-                for (key, value) in route.headers.sorted(by: { $0.key < $1.key }) {
-                    headerLines.append("\(key): \(value)")
+        private static func receive(
+            on connection: NWConnection,
+            buffer: Data,
+            routes: [String: Route],
+            queue: DispatchQueue
+        ) {
+            connection.receive(minimumIncompleteLength: 1, maximumLength: 65_536) { data, _, isComplete, error in
+                var buffer = buffer
+                if let data {
+                    buffer.append(data)
                 }
-                var payload = Data((headerLines.joined(separator: "\r\n") + "\r\n\r\n").utf8)
-                payload.append(route.body)
-
-                connection.send(content: payload, completion: .contentProcessed { _ in
+                if let rawRequest = String(data: buffer, encoding: .utf8),
+                   rawRequest.contains("\r\n\r\n") {
+                    respond(to: rawRequest, on: connection, routes: routes)
+                } else if !isComplete, error == nil {
+                    receive(on: connection, buffer: buffer, routes: routes, queue: queue)
+                } else {
                     connection.cancel()
-                })
+                }
             }
+        }
+
+        private static func respond(
+            to rawRequest: String,
+            on connection: NWConnection,
+            routes: [String: Route]
+        ) {
+            let firstLine = rawRequest.split(separator: "\r\n", maxSplits: 1).first ?? ""
+            let parts = firstLine.split(separator: " ")
+            let rawPath = parts.count >= 2 ? String(parts[1]) : "/"
+            let cleanPath = rawPath.split(separator: "?", maxSplits: 1).first.map(String.init) ?? "/"
+
+            let route = routes[cleanPath] ?? Route(
+                status: 404,
+                contentType: "text/plain; charset=utf-8",
+                headers: [:],
+                body: Data("Not Found".utf8)
+            )
+
+            var headerLines = [
+                "HTTP/1.1 \(route.status) \(route.status == 200 ? "OK" : "Not Found")",
+                "Content-Type: \(route.contentType)",
+                "Content-Length: \(route.body.count)",
+                "Cache-Control: no-store",
+                "Connection: close"
+            ]
+            for (key, value) in route.headers.sorted(by: { $0.key < $1.key }) {
+                headerLines.append("\(key): \(value)")
+            }
+            var payload = Data((headerLines.joined(separator: "\r\n") + "\r\n\r\n").utf8)
+            payload.append(route.body)
+
+            connection.send(content: payload, completion: .contentProcessed { _ in
+                connection.cancel()
+            })
         }
     }
 
-    private var hostWindow: UIWindow?
+    private var activeWebViews: [WKWebView] = []
+    private var fallbackWindow: UIWindow?
 
     override func tearDown() {
-        hostWindow?.isHidden = true
-        hostWindow = nil
+        for webView in activeWebViews {
+            webView.stopLoading()
+            webView.navigationDelegate = nil
+            webView.configuration.userContentController.removeAllScriptMessageHandlers()
+            webView.removeFromSuperview()
+        }
+        activeWebViews.removeAll()
+        fallbackWindow?.isHidden = true
+        fallbackWindow = nil
         super.tearDown()
     }
 
@@ -184,13 +263,21 @@ final class AgentBridgeTests: XCTestCase {
         let waiter = NavigationWaiter()
         webView.navigationDelegate = waiter
 
-        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
-        let controller = UIViewController()
-        controller.view.addSubview(webView)
-        webView.frame = controller.view.bounds
-        window.rootViewController = controller
-        window.makeKeyAndVisible()
-        self.hostWindow = window
+        if let sceneWindow = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .flatMap(\.windows)
+            .first {
+            sceneWindow.addSubview(webView)
+        } else {
+            let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+            let controller = UIViewController()
+            controller.view.addSubview(webView)
+            webView.frame = controller.view.bounds
+            window.rootViewController = controller
+            window.isHidden = false
+            self.fallbackWindow = window
+        }
+        activeWebViews.append(webView)
 
         return (webView, bridge, waiter)
     }
