@@ -1026,7 +1026,7 @@ final class AppModel: ObservableObject {
     /// The transport for one job on `siteURL`: the forum's cookies, the pace the
     /// job started with and (unless `inPage` is false) the in-page loader.
     func network(for siteURL: String, pace: ForumRequestPace, inPage: Bool = true) async -> SiteNetwork {
-        let cookieHeader = await browser.cookieHeader(forSite: siteURL)
+        let cookieHeader = usesDirectForumRequests ? nil : await browser.cookieHeader(forSite: siteURL)
         var context = SiteRequestContext(cookieHeader: cookieHeader, pace: pace)
         if inPage, let loader = webViewResourceLoader {
             context.resourceLoader = { url in try await loader(url) }

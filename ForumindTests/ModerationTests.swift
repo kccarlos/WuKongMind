@@ -1714,13 +1714,16 @@ final class CommentBridgeReviewTests: XCTestCase {
             let jumped = await browser.scrollToPost(2, anchor: anchor)
             XCTAssertEqual(jumped, .shown, fixture)
             var offset = 0.0
-            for _ in 0..<40 {
+            var visible: [VisiblePost] = []
+            for _ in 0..<60 {
                 offset = (try await browser.webView.evaluateJavaScript("window.scrollY") as? Double) ?? 0
-                if offset > 0 { break }
+                if offset > 0 {
+                    visible = await browser.visiblePosts()
+                    if visible.contains(where: { $0.number == ids[0] }) { break }
+                }
                 try await Task.sleep(for: .milliseconds(50))
             }
             XCTAssertGreaterThan(offset, 0, fixture)
-            let visible = await browser.visiblePosts()
             XCTAssertTrue(visible.contains { $0.number == ids[0] }, fixture)
             XCTAssertFalse(browser.canTranslatePostsOnScreen)
             _ = try await browser.webView.evaluateJavaScript("document.querySelectorAll('[data-spacer]').forEach(e => e.remove()); window.scrollTo(0, 0); true;")

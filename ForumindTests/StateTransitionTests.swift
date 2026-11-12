@@ -1681,12 +1681,16 @@ final class StateTransitionTests: XCTestCase {
             backgroundGrace: backgroundGrace
         )
         app.usesDirectForumRequests = true
+        app.browser.webView.stopLoading()
         // Consent has its own tests (AIDataConsentTests).
         app.allowAllAIProviders()
         let handler = app.browser.onPageContextChanged
         app.browser.onPageContextChanged = nil
         addTeardownBlock { @MainActor in
             for record in app.activities where !record.status.isTerminal { app.cancel(record: record) }
+            app.browser.webView.stopLoading()
+            app.pauseDigest()
+            app.podcast.pauseGeneration()
             ai.gated = false
             ai.releaseAll()
             StateForumStub.release()
@@ -3393,6 +3397,7 @@ final class AIContextValidityTests: XCTestCase {
         cfg.protocolClasses = [StateForumStub.self]
         let app = AppModel(store: store, forumService: service ?? ForumService(session: URLSession(configuration: cfg), pacer: ForumRequestPacer(clock: InstantPacingClock())), aiService: ai, planner: planner)
         app.usesDirectForumRequests = true
+        app.browser.webView.stopLoading()
         app.settings.hasCompletedOnboarding = true
         app.acceptTerms()
         app.allowAllAIProviders()
