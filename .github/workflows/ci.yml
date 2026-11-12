@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.event_name == 'workflow_dispatch' && github.run_id || github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -97,8 +97,6 @@ jobs:
             -destination "$DESTINATION" \
             -only-testing:ForumindTests \
             -parallel-testing-enabled NO \
-            -retry-tests-on-failure \
-            -test-iterations 3 \
             -test-timeouts-enabled YES \
             -maximum-test-execution-time-allowance 300 \
             -derivedDataPath DerivedData \
