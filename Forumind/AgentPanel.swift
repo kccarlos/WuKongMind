@@ -777,6 +777,7 @@ struct BrowserAgentPanelView: View {
     @State private var collapsedRunIDs: Set<UUID> = []
     @State private var manuallyExpandedRunIDs: Set<UUID> = []
     @State private var bottomScrollTrigger = 0
+    @State private var showsPageScriptsPopover = false
     @FocusState private var promptFocused: Bool
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -790,9 +791,20 @@ struct BrowserAgentPanelView: View {
         return host.isEmpty ? String(localized: "Current page", comment: "Browser agent context pill fallback when no host is available") : host
     }
 
-    private var activeMatchingScriptCount: Int {
-        guard let url = app.browser.currentURL ?? app.pageContext.url else { return 0 }
-        return app.scriptStore.activeScripts(matching: url).count
+    private var currentScriptPageURL: URL? {
+        app.browser.currentURL ?? app.pageContext.url
+    }
+
+    private var matchingPageScripts: [UserScript] {
+        guard let url = currentScriptPageURL else { return [] }
+        return app.scriptStore.sortedMatchingScripts(for: url, includeDisabled: true)
+    }
+
+    private var matchingPageScriptErrorCount: Int {
+        guard app.scriptStore.isGlobalEnabled else { return 0 }
+        return matchingPageScripts.filter {
+            $0.isEnabled && app.scriptStore.error(for: $0.id) != nil
+        }.count
     }
 
     private var canSend: Bool {
@@ -859,20 +871,107 @@ struct BrowserAgentPanelView: View {
 
     private var contextRow: some View {
         let singleLineLimit: Int? = dynamicTypeSize.isAccessibilitySize ? nil : 1
+        let scripts = matchingPageScripts
         return HStack(spacing: 8) {
             DCPill(text: currentHost, systemImage: "globe", tint: .secondary)
                 .accessibilityIdentifier("agentHostPill")
-            Text("\(activeMatchingScriptCount) scripts on this page", comment: "Browser agent context bar: number of saved scripts matching this page")
-                .font(.caption.weight(.medium))
-                .foregroundStyle(DCTheme.agentTint)
-                .lineLimit(singleLineLimit)
-                .accessibilityIdentifier("agentScriptsCount")
+            if scripts.isEmpty {
+                Text("No scripts on this page", comment: "Browser agent context bar when zero saved scripts match the current page")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(singleLineLimit)
+                    .accessibilityIdentifier("agentScriptsCount")
+            } else {
+                pageScriptsChipButton(
+                    scriptCount: scripts.count,
+                    errorCount: matchingPageScriptErrorCount,
+                    isGlobalEnabled: app.scriptStore.isGlobalEnabled,
+                    singleLineLimit: singleLineLimit
+                )
+            }
             Spacer(minLength: 0)
         }
         .padding(.horizontal, 14)
-        .padding(.vertical, 8)
+        .padding(.vertical, scripts.isEmpty ? 8 : 2)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("agentContextRow")
+        .onAppear {
+            #if DEBUG
+            if AssistantDebug.has("-dc-scripts-open-popover"), !scripts.isEmpty {
+                Task { @MainActor in
+                    try? await Task.sleep(for: .milliseconds(600))
+                    showsPageScriptsPopover = true
+                }
+            }
+            #endif
+        }
+    }
+
+    private func pageScriptsChipButton(
+        scriptCount: Int,
+        errorCount: Int,
+        isGlobalEnabled: Bool,
+        singleLineLimit: Int?
+    ) -> some View {
+        let tint: Color = {
+            if !isGlobalEnabled { return .secondary }
+            if errorCount > 0 { return DCTheme.danger }
+            return DCTheme.agentTint
+        }()
+        let symbol: String? = {
+            if !isGlobalEnabled { return "nosign" }
+            if errorCount > 0 { return "exclamationmark.triangle.fill" }
+            return nil
+        }()
+        let chipText: String = {
+            if !isGlobalEnabled {
+                return String(localized: "Scripts off · \(scriptCount) here", comment: "Browser agent context chip when global scripts switch is off; placeholder is number of scripts matching this page")
+            }
+            if errorCount > 0 {
+                let scriptsPart = String(localized: "\(scriptCount) scripts", comment: "Count of scripts in context chip error state")
+                let errorsPart = errorCount == 1
+                    ? String(localized: "1 error", comment: "Singular error count in context chip")
+                    : String(localized: "\(errorCount) errors", comment: "Plural error count in context chip")
+                return "\(scriptsPart) · \(errorsPart)"
+            }
+            return String(localized: "\(scriptCount) scripts on this page", comment: "Browser agent context bar: number of saved scripts matching this page")
+        }()
+
+        return Button {
+            DCHaptics.tap()
+            showsPageScriptsPopover = true
+        } label: {
+            HStack(spacing: 5) {
+                if let symbol {
+                    Image(systemName: symbol)
+                        .font(.caption2.weight(.semibold))
+                        .accessibilityHidden(true)
+                }
+                Text(chipText)
+                    .font(.caption.weight(.semibold))
+                    .lineLimit(singleLineLimit)
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 10, weight: .bold))
+                    .accessibilityHidden(true)
+            }
+            .foregroundStyle(tint)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .frame(minHeight: 28)
+            .background(tint.opacity(0.12), in: Capsule())
+            .frame(minHeight: DCTheme.controlHeight)
+            .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("agentScriptsCount")
+        .popover(isPresented: $showsPageScriptsPopover, arrowEdge: .top) {
+            PageScriptsPopover(
+                app: app,
+                pageURL: currentScriptPageURL,
+                isPresented: $showsPageScriptsPopover
+            )
+            .presentationCompactAdaptation(.popover)
+        }
     }
 
     // MARK: Empty state
@@ -993,6 +1092,13 @@ struct BrowserAgentPanelView: View {
                 toolCallsSection(for: run, isLatest: isLatest)
             }
 
+            let savedEntries = savedScriptEntries(in: run)
+            if !savedEntries.isEmpty {
+                ForEach(savedEntries) { entry in
+                    AgentScriptCardView(app: app, entry: entry)
+                }
+            }
+
             let reply = run.assistantText.trimmingCharacters(in: .whitespacesAndNewlines)
             if !reply.isEmpty {
                 MarkdownView(reply)
@@ -1011,6 +1117,34 @@ struct BrowserAgentPanelView: View {
                 EmptyView()
             }
         }
+    }
+
+    private func savedScriptEntries(in run: BrowserAgentRun) -> [SavedScriptCardEntry] {
+        var seen: Set<String> = []
+        var entries: [SavedScriptCardEntry] = []
+        for row in run.toolCalls where row.toolName == "script_save" && !row.isRunning {
+            guard let obj = try? JSONValue.parseObjectJSON(row.resultText),
+                  let scriptID = obj["script_id"]?.stringValue,
+                  !scriptID.isEmpty,
+                  seen.insert(scriptID).inserted else {
+                continue
+            }
+            let argsObj = try? JSONValue.parseObjectJSON(row.argumentsJSON)
+            let fallbackName = obj["name"]?.stringValue
+                ?? argsObj?["name"]?.stringValue
+                ?? scriptID
+            let fallbackRule = obj["match_rules"]?.arrayValue?.first?.stringValue
+                ?? argsObj?["match_rules"]?.arrayValue?.first?.stringValue
+                ?? ""
+            entries.append(
+                SavedScriptCardEntry(
+                    scriptID: scriptID,
+                    fallbackName: fallbackName,
+                    fallbackFirstRule: fallbackRule
+                )
+            )
+        }
+        return entries
     }
 
     private func userBubble(_ text: String) -> some View {

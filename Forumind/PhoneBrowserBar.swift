@@ -637,13 +637,17 @@ struct PhoneAIButton: View {
     }
 
     private var accessibilityValueText: Text {
+        var parts: [String] = []
         if browserAgent.isRunning {
-            return Text("Working", comment: "Accessibility value of the AI button while the browser agent is working")
+            parts.append(String(localized: "Working", comment: "Accessibility value of the AI button while the browser agent is working"))
         }
         if showsNewRepliesDot {
-            return Text("New replies", comment: "Accessibility value of the iPhone AI button while its dot says the topic has new replies")
+            parts.append(String(localized: "New replies", comment: "Accessibility value of the iPhone AI button while its dot says the topic has new replies"))
         }
-        return Text(verbatim: "")
+        if let scriptDesc = app.toolbarScriptAccessibilityDescription {
+            parts.append(scriptDesc)
+        }
+        return Text(verbatim: parts.joined(separator: ", "))
     }
 
     var body: some View {
@@ -656,7 +660,12 @@ struct PhoneAIButton: View {
             .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
             .overlay { ResearchRing(app: app) }
             .overlay(alignment: .topTrailing) {
-                if showsNewRepliesDot { NewRepliesDot() }
+                let badge = app.toolbarScriptBadgeSummary
+                if badge.isVisible {
+                    ScriptCountBadge(summary: badge)
+                } else if showsNewRepliesDot {
+                    NewRepliesDot()
+                }
             }
             .contentShape(Circle())
             .onTapGesture {

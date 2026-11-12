@@ -673,4 +673,134 @@ final class ScriptStoreCoreTests: XCTestCase {
         XCTAssertEqual(driver.injectedCSSCalls.count, 1)
         XCTAssertTrue(fakeClient.capturedSystems.first?.contains("always do this") == true)
     }
+
+    // MARK: - M2 UI Store Helpers
+
+    @MainActor
+    func testManagerGroupsSortByHostPreservingWildcardsAndAllSitesLast() throws {
+        let store = ScriptStore(directoryURL: tempDirectory)
+
+        try store.create(
+            id: "all-sites-css",
+            name: "Readable spacing",
+            matchRules: ["*://*/*"],
+            css: "body { line-height: 1.6; }"
+        )
+        try store.create(
+            id: "talk-b",
+            name: "Zebra quotes",
+            matchRules: ["https://talk.example.org/*"],
+            css: "blockquote { opacity: 0.9; }"
+        )
+        try store.create(
+            id: "talk-a",
+            name: "Alpha quotes",
+            matchRules: ["https://talk.example.org/t/*"],
+            css: "blockquote { border-left: 2px solid; }"
+        )
+        try store.create(
+            id: "wildcard-org",
+            name: "Subdomain helper",
+            matchRules: ["*://*.example.org/*"],
+            js: "void 0;"
+        )
+
+        let groups = store.managerGroups
+        XCTAssertEqual(groups.map(\.host), ["*.example.org", "talk.example.org", nil])
+        XCTAssertEqual(groups[0].scripts.map(\.id), ["wildcard-org"])
+        XCTAssertEqual(groups[1].scripts.map(\.id), ["talk-a", "talk-b"])
+        XCTAssertEqual(groups[2].scripts.map(\.id), ["all-sites-css"])
+        XCTAssertEqual(groups[2].identifierHost, "all")
+    }
+
+    func testValidationErrorAndSanitizedExportFilename() {
+        XCTAssertNil(MatchPattern.validationError("*://*.example.org/*"))
+        XCTAssertNil(MatchPattern.validationError("<all_urls>"))
+        XCTAssertEqual(MatchPattern.validationError("example.org/*"), .missingSchemeSeparator)
+        XCTAssertEqual(MatchPattern.validationError("ftp://example.org/*"), .invalidScheme("ftp"))
+        XCTAssertEqual(MatchPattern.validationError("https://example.org"), .missingPathSlash)
+
+        XCTAssertEqual(
+            UserScript.sanitizedExportFilename(from: "Original poster: v2/3"),
+            "Original poster- v2-3.user.js"
+        )
+        XCTAssertEqual(
+            UserScript.sanitizedExportFilename(from: "   ???   "),
+            "script.user.js"
+        )
+    }
+
+    @MainActor
+    func testRuntimeErrorCountIncrementsAndClearsOnDisableOrUpdate() throws {
+        let store = ScriptStore(directoryURL: tempDirectory)
+        try store.create(
+            id: "broken-js",
+            name: "Broken JS",
+            matchRules: ["*://example.com/*"],
+            js: "null.foo();"
+        )
+
+        store.recordError(scriptID: "broken-js", message: "TypeError: null", line: 1, url: "https://example.com/")
+        XCTAssertEqual(store.error(for: "broken-js")?.count, 1)
+
+        store.recordError(scriptID: "broken-js", message: "TypeError: null", line: 1, url: "https://example.com/2")
+        XCTAssertEqual(store.error(for: "broken-js")?.count, 2)
+
+        try store.setEnabled(id: "broken-js", isEnabled: false)
+        XCTAssertNil(store.error(for: "broken-js"))
+
+        try store.setEnabled(id: "broken-js", isEnabled: true)
+        store.recordError(scriptID: "broken-js", message: "ReferenceError: x", line: 3)
+        XCTAssertEqual(store.error(for: "broken-js")?.count, 1)
+
+        try store.update(id: "broken-js", patch: ScriptUpdatePatch(js: "console.log('fixed');"), origin: .editedByUser)
+        XCTAssertNil(store.error(for: "broken-js"))
+    }
+
+    @MainActor
+    func testVersionOriginPersistenceAndRestoreCleansNewerVersionFiles() throws {
+        let store = ScriptStore(directoryURL: tempDirectory)
+        let created = try store.create(
+            id: "origin-test",
+            name: "Origin test",
+            matchRules: ["*://example.com/*"],
+            css: "body { color: black; }",
+            source: .agent(userPrompt: "Make text black")
+        )
+        let v1Snapshot = try XCTUnwrap(store.script(id: created.id))
+
+        _ = try store.update(
+            id: "origin-test",
+            patch: ScriptUpdatePatch(css: "body { color: navy; }"),
+            origin: .changedByAgent(userPrompt: "Switch text to navy")
+        )
+        _ = try store.update(
+            id: "origin-test",
+            patch: ScriptUpdatePatch(css: "body { color: #111; }"),
+            origin: .editedByUser
+        )
+        let rolledBack = try store.rollback(id: "origin-test", toVersion: 1)
+        XCTAssertEqual(rolledBack.version, 4)
+        XCTAssertEqual(rolledBack.versionOrigin, .restored(fromVersion: 1))
+
+        let reloaded = ScriptStore(directoryURL: tempDirectory)
+        let loaded = try XCTUnwrap(reloaded.script(id: "origin-test"))
+        XCTAssertEqual(loaded.version, 4)
+        XCTAssertEqual(loaded.versionOrigin, .restored(fromVersion: 1))
+        XCTAssertEqual(
+            loaded.versions.map(\.origin),
+            [
+                nil,
+                .changedByAgent(userPrompt: "Switch text to navy"),
+                .editedByUser
+            ]
+        )
+
+        // Restoring an earlier pre-update snapshot cleans up newer archived versions on disk.
+        try reloaded.restore(v1Snapshot)
+        let reloadedAgain = ScriptStore(directoryURL: tempDirectory)
+        let restored = try XCTUnwrap(reloadedAgain.script(id: "origin-test"))
+        XCTAssertEqual(restored.version, 1)
+        XCTAssertTrue(restored.versions.isEmpty)
+    }
 }

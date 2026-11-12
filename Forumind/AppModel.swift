@@ -251,6 +251,9 @@ final class AppModel: ObservableObject {
     /// A Settings page an outside request wants shown (Start a Voice Chat
     /// without voice set up); RootView presents it and resets it.
     @Published var requestedSettingsPage: SettingsPage?
+    /// Script ID to open immediately in `ScriptManagerView` when pushed from
+    /// `PageScriptsPopover`; cleared once `ScriptManagerView` consumes it.
+    @Published var requestedScriptID: String?
     /// Export toggles shared between AssistantPanel and RouterHost's ExportOptionsSheet.
     @Published var exportOptions = ExportOptions()
 
@@ -274,6 +277,8 @@ final class AppModel: ObservableObject {
             || AssistantDebug.value("-dc-browser-agent-demo") != nil
             || AssistantDebug.value("-dc-browser-agent-live-prompt") != nil
             || AssistantDebug.has("-dc-browser-agent-fixture-page")
+            || AssistantDebug.value("-dc-scripts-sample") != nil
+            || AssistantDebug.has("-dc-scripts-sample")
         #else
         return false
         #endif
@@ -581,6 +586,9 @@ final class AppModel: ObservableObject {
             guard let self, self.settings.browserScriptsEnabled != isEnabled else { return }
             self.settings.browserScriptsEnabled = isEnabled
         }
+        self.scriptStore.onStoreChanged = { [weak self] in
+            self?.objectWillChange.send()
+        }
         self.browser.knownForumLookup = { [weak self] url in
             guard let forum = self?.directory.forum(containing: url) else { return nil }
             return KnownForumSite(siteURL: forum.siteURL, name: forum.name, iconURL: forum.iconURL, kind: forum.kind)
@@ -663,6 +671,7 @@ final class AppModel: ObservableObject {
             seedUITestSession()
         }
         applyBrowserAgentDebugArguments()
+        seedScriptsSampleIfNeeded()
         // Sample only: never over the real digests or with a real key.
         if AssistantDebug.isActive, AssistantDebug.has("-dc-digest-sample") { seedDigestSample() }
         // `-dc-no-forums`: the sample as a new user sees Home (never saved).
@@ -3851,7 +3860,9 @@ final class AppModel: ObservableObject {
         if AssistantDebug.isActive
             || AssistantDebug.value("-dc-browser-agent-demo") != nil
             || AssistantDebug.value("-dc-browser-agent-live-prompt") != nil
-            || AssistantDebug.has("-dc-browser-agent-fixture-page") { return }
+            || AssistantDebug.has("-dc-browser-agent-fixture-page")
+            || AssistantDebug.value("-dc-scripts-sample") != nil
+            || AssistantDebug.has("-dc-scripts-sample") { return }
         #endif
         persistChangedAPIKeys()
         let snapshot = AppSnapshot(

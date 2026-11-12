@@ -230,6 +230,7 @@ enum SettingsPage: String, CaseIterable, Identifiable, Hashable {
     case forums
     case summaries
     case agent
+    case scripts
     case watched
     case digest
     case voice
@@ -248,6 +249,7 @@ enum SettingsPage: String, CaseIterable, Identifiable, Hashable {
         case .forums: String(localized: "Forums")
         case .summaries: String(localized: "Summaries & chat")
         case .agent: String(localized: "Ask the forum")
+        case .scripts: String(localized: "Scripts", comment: "Settings page: per-site userscripts saved by the browser agent")
         case .watched: String(localized: "Watched topics")
         case .digest: String(localized: "Daily digest & podcast", comment: "Settings page: the Today page's daily digest of watched and trending topics")
         case .voice: String(localized: "Voice", comment: "Settings page: the live voice conversation with Google Gemini")
@@ -266,6 +268,7 @@ enum SettingsPage: String, CaseIterable, Identifiable, Hashable {
         case .forums: "bubble.left.and.bubble.right.fill"
         case .summaries: "text.alignleft"
         case .agent: "sparkle.magnifyingglass"
+        case .scripts: "curlybraces"
         case .watched: "bell.badge.fill"
         case .digest: "sun.max.fill"
         case .voice: "waveform"
@@ -284,6 +287,7 @@ enum SettingsPage: String, CaseIterable, Identifiable, Hashable {
         case .forums: DCTheme.brandBlue
         case .summaries: DCTheme.summaryTint
         case .agent: DCTheme.agentTint
+        case .scripts: DCTheme.agentTint
         case .watched: Color(light: 0xD9372B, dark: 0xFF6259)
         case .digest: DigestStyle.tint
         case .voice: Color(light: 0xD6336C, dark: 0xFF6B9E)

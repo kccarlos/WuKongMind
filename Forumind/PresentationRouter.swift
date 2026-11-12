@@ -400,6 +400,7 @@ extension AppModel {
             if !settings.hasCompletedOnboarding { completeOnboarding() }
         case .settings:
             requestedSettingsPage = nil
+            requestedScriptID = nil
         case .voiceConsent:
             voice.consentProvider = nil
         case .podcastConsent:
@@ -568,7 +569,10 @@ struct RouterHost: ViewModifier {
                     .navigationBarTitleDisplayMode(.inline)
                     .toolbar {
                         ToolbarItem(placement: .confirmationAction) {
-                            Button("Done") { app.requestedSettingsPage = nil }
+                            Button("Done") {
+                                app.requestedSettingsPage = nil
+                                app.requestedScriptID = nil
+                            }
                         }
                     }
             }

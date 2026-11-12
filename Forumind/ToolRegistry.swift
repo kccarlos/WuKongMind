@@ -1030,7 +1030,8 @@ extension ToolRegistry {
             makeScriptUpdateTool(
                 bridge: bridge,
                 scriptStore: scriptStore,
-                liveApplier: liveApplier
+                liveApplier: liveApplier,
+                currentUserPrompt: currentUserPrompt
             ),
             makeScriptDeleteTool(
                 scriptStore: scriptStore,
@@ -1322,7 +1323,8 @@ extension ToolRegistry {
     private static func makeScriptUpdateTool(
         bridge: AgentPageDriving,
         scriptStore: ScriptStore,
-        liveApplier: ScriptLiveApplying?
+        liveApplier: ScriptLiveApplying?,
+        currentUserPrompt: (@MainActor @Sendable () -> String?)? = nil
     ) -> AgentTool {
         let definition = AgentToolDefinition(
             name: "script_update",
@@ -1442,7 +1444,12 @@ extension ToolRegistry {
 
                 let (wasEnabled, updated): (Bool, UserScript) = try await MainActor.run {
                     let previouslyEnabled = scriptStore.script(id: id)?.isEnabled ?? false
-                    let result = try scriptStore.update(id: id, patch: patch)
+                    let prompt = currentUserPrompt?() ?? ""
+                    let result = try scriptStore.update(
+                        id: id,
+                        patch: patch,
+                        origin: .changedByAgent(userPrompt: prompt)
+                    )
                     return (previouslyEnabled, result)
                 }
 

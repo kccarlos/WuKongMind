@@ -133,6 +133,9 @@ struct SplitPanelToggle: View {
         } else if app.readyAnswer != nil {
             parts.append(String(localized: "Answer ready", comment: "AI drawer status row: an Ask the forum answer finished"))
         }
+        if let scriptDesc = app.toolbarScriptAccessibilityDescription {
+            parts.append(scriptDesc)
+        }
         return parts.joined(separator: ", ")
     }
 
@@ -158,7 +161,12 @@ struct SplitPanelToggle: View {
         .disabled(!isAvailable)
         .overlay { ResearchRing(app: app) }
         .overlay(alignment: .topTrailing) {
-            if showsNewRepliesDot { NewRepliesDot() }
+            let badge = app.toolbarScriptBadgeSummary
+            if badge.isVisible {
+                ScriptCountBadge(summary: badge)
+            } else if showsNewRepliesDot {
+                NewRepliesDot()
+            }
         }
         .onChange(of: browserAgent.isRunning) { wasRunning, isRunning in
             if wasRunning, !isRunning, !isShown, browserAgent.runs.last != nil {

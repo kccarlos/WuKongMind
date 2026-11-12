@@ -981,6 +981,7 @@ final class BrowserAgentSession {
 actor BrowserAgentDemoClient: AgentModelClient {
     enum Mode: String, Sendable {
         case recorded
+        case savedScript = "saved-script"
         case running
         case stepLimit = "step-limit"
         case error
@@ -1118,6 +1119,60 @@ actor BrowserAgentDemoClient: AgentModelClient {
                     toolCalls: [],
                     stopReason: "end_turn",
                     usage: AgentTokenUsage(inputTokens: 910, outputTokens: 54)
+                )
+            }
+
+        case .savedScript:
+            switch turn {
+            case 1:
+                return AgentModelTurnResponse(
+                    text: "",
+                    toolCalls: [
+                        AgentModelToolCall(
+                            id: "call_read_save_1",
+                            name: "read_page",
+                            arguments: ["mode": .string("structure")]
+                        )
+                    ],
+                    stopReason: "tool_use",
+                    usage: AgentTokenUsage(inputTokens: 490, outputTokens: 64)
+                )
+            case 2:
+                return AgentModelTurnResponse(
+                    text: "",
+                    toolCalls: [
+                        AgentModelToolCall(
+                            id: "call_script_save_2",
+                            name: "script_save",
+                            arguments: [
+                                "name": .string("Original poster only"),
+                                "match_rules": .array([
+                                    .string("*://news.example.org/*"),
+                                    .string("*://*.example.org/*")
+                                ]),
+                                "css": .string("""
+                                .sidebar, #newsletter-aside { display: none !important; }
+                                article { max-width: 68ch; margin-inline: auto; }
+                                """),
+                                "js": .string("""
+                                document.querySelectorAll('.reply:not([data-op])').forEach(el => {
+                                  el.hidden = true;
+                                });
+                                """),
+                                "injection_time": .string("document-end"),
+                                "environment": .string("page")
+                            ]
+                        )
+                    ],
+                    stopReason: "tool_use",
+                    usage: AgentTokenUsage(inputTokens: 740, outputTokens: 138)
+                )
+            default:
+                return AgentModelTurnResponse(
+                    text: "Saved **Original poster only** for `news.example.org`. It hides non-OP replies and the sidebar automatically on every visit.",
+                    toolCalls: [],
+                    stopReason: "end_turn",
+                    usage: AgentTokenUsage(inputTokens: 920, outputTokens: 48)
                 )
             }
         }

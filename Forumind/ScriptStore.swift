@@ -51,6 +51,82 @@ struct ScriptRuntimeError: Codable, Equatable, Sendable {
     var line: Int?
     var url: String?
     var occurredAt: Date
+    var count: Int
+
+    init(
+        scriptID: String,
+        scriptName: String,
+        message: String,
+        line: Int? = nil,
+        url: String? = nil,
+        occurredAt: Date = Date(),
+        count: Int = 1
+    ) {
+        self.scriptID = scriptID
+        self.scriptName = scriptName
+        self.message = message
+        self.line = line
+        self.url = url
+        self.occurredAt = occurredAt
+        self.count = max(1, count)
+    }
+}
+
+enum ScriptVersionOrigin: Codable, Equatable, Sendable {
+    case savedByAgent(userPrompt: String)
+    case changedByAgent(userPrompt: String)
+    case editedByUser
+    case restored(fromVersion: Int)
+    case imported
+
+    var headerKind: String {
+        switch self {
+        case .savedByAgent: "saved-by-agent"
+        case .changedByAgent: "changed-by-agent"
+        case .editedByUser: "edited-by-user"
+        case .restored(let v): "restored:\(v)"
+        case .imported: "imported"
+        }
+    }
+
+    var promptText: String? {
+        switch self {
+        case .savedByAgent(let p), .changedByAgent(let p):
+            let trimmed = p.trimmingCharacters(in: .whitespacesAndNewlines)
+            return trimmed.isEmpty ? nil : trimmed
+        case .editedByUser, .restored, .imported:
+            return nil
+        }
+    }
+
+    static func parse(headerKind: String, prompt: String) -> ScriptVersionOrigin? {
+        let normalized = headerKind.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        switch normalized {
+        case "saved-by-agent":
+            return .savedByAgent(userPrompt: prompt)
+        case "changed-by-agent":
+            return .changedByAgent(userPrompt: prompt)
+        case "edited-by-user":
+            return .editedByUser
+        case "imported":
+            return .imported
+        default:
+            if normalized.hasPrefix("restored:"),
+               let v = Int(normalized.dropFirst("restored:".count)),
+               v >= 1 {
+                return .restored(fromVersion: v)
+            }
+            return nil
+        }
+    }
+}
+
+enum ScriptVersionChangedField: String, CaseIterable, Equatable, Sendable {
+    case name
+    case matchRules
+    case js
+    case css
+    case settings
 }
 
 struct UserScriptVersion: Identifiable, Codable, Equatable, Sendable {
@@ -63,6 +139,48 @@ struct UserScriptVersion: Identifiable, Codable, Equatable, Sendable {
     var injectionTime: ScriptInjectionTime
     var environment: AgentExecutionEnvironment
     var savedAt: Date
+    var origin: ScriptVersionOrigin?
+
+    init(
+        version: Int,
+        name: String,
+        matchRules: [String],
+        js: String,
+        css: String,
+        injectionTime: ScriptInjectionTime,
+        environment: AgentExecutionEnvironment,
+        savedAt: Date,
+        origin: ScriptVersionOrigin? = nil
+    ) {
+        self.version = version
+        self.name = name
+        self.matchRules = matchRules
+        self.js = js
+        self.css = css
+        self.injectionTime = injectionTime
+        self.environment = environment
+        self.savedAt = savedAt
+        self.origin = origin
+    }
+
+    func toUserScript(from parent: UserScript) -> UserScript {
+        UserScript(
+            id: parent.id,
+            name: name,
+            matchRules: matchRules,
+            js: js,
+            css: css,
+            injectionTime: injectionTime,
+            environment: environment,
+            isEnabled: parent.isEnabled,
+            source: parent.source,
+            version: version,
+            createdAt: parent.createdAt,
+            updatedAt: savedAt,
+            versions: [],
+            versionOrigin: origin
+        )
+    }
 }
 
 struct ScriptUpdatePatch: Equatable, Sendable {
@@ -378,6 +496,17 @@ struct MatchPattern: Equatable, Sendable {
         }
     }
 
+    static func validationError(_ raw: String) -> MatchPatternError? {
+        do {
+            _ = try parse(raw)
+            return nil
+        } catch let error as MatchPatternError {
+            return error
+        } catch {
+            return .invalidPath(raw)
+        }
+    }
+
     var primarySiteLabel: String {
         if isAllURLs { return "All sites" }
         switch hostRule {
@@ -389,6 +518,21 @@ struct MatchPattern: Equatable, Sendable {
             return host.isEmpty ? "Local files" : host
         case .subdomainOrExact(let base):
             return base
+        }
+    }
+
+    /// Host shown in the M2 Script Manager group header: preserves the rule's
+    /// written host (`talk.example.org`, `*.example.org`), or returns `nil`
+    /// when the rule applies to all sites (`*://*/*`, `<all_urls>`).
+    var managerHostLabel: String? {
+        if isAllURLs { return nil }
+        switch hostRule {
+        case .any, .fileAny:
+            return nil
+        case .exact(let host):
+            return host.isEmpty ? nil : host
+        case .subdomainOrExact(let base):
+            return "*.\(base)"
         }
     }
 
@@ -619,6 +763,7 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
     var createdAt: Date
     var updatedAt: Date
     var versions: [UserScriptVersion]
+    var versionOrigin: ScriptVersionOrigin?
 
     init(
         id: String,
@@ -633,7 +778,8 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
         version: Int = 1,
         createdAt: Date = Date(),
         updatedAt: Date = Date(),
-        versions: [UserScriptVersion] = []
+        versions: [UserScriptVersion] = [],
+        versionOrigin: ScriptVersionOrigin? = nil
     ) {
         self.id = id
         self.name = name
@@ -648,6 +794,7 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
         self.createdAt = createdAt
         self.updatedAt = updatedAt
         self.versions = versions.sorted { $0.version < $1.version }
+        self.versionOrigin = versionOrigin
     }
 
     var hasJS: Bool {
@@ -665,6 +812,83 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
             }
         }
         return "Unknown site"
+    }
+
+    /// Host of the **first** `@match` rule as written (`talk.example.org`,
+    /// `*.example.org`), or `nil` when the first rule applies to all sites
+    /// (`*://*/*`, `<all_urls>`). Used by `ScriptManagerView` per M2 design.
+    var managerGroupHost: String? {
+        guard let first = matchRules.first,
+              let parsed = try? MatchPattern.parse(first) else {
+            return nil
+        }
+        return parsed.managerHostLabel
+    }
+
+    var isAllSitesRule: Bool {
+        managerGroupHost == nil
+    }
+
+    /// Sanitizes `name` for exporting as `<name>.user.js`.
+    nonisolated static func sanitizedExportFilename(from name: String) -> String {
+        var base = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        if base.lowercased().hasSuffix(".user.js") {
+            base = String(base.dropLast(".user.js".count))
+        }
+        let forbidden = CharacterSet(charactersIn: "/\\:*?\"<>|")
+            .union(.controlCharacters)
+            .union(.newlines)
+        var cleaned = ""
+        var lastWasDash = false
+        for scalar in base.unicodeScalars {
+            if forbidden.contains(scalar) {
+                if !lastWasDash && !cleaned.isEmpty {
+                    cleaned.append("-")
+                    lastWasDash = true
+                }
+            } else {
+                cleaned.unicodeScalars.append(scalar)
+                lastWasDash = false
+            }
+        }
+        cleaned = cleaned.trimmingCharacters(in: CharacterSet(charactersIn: " .-"))
+        if cleaned.isEmpty {
+            cleaned = "script"
+        }
+        if cleaned.count > 80 {
+            cleaned = String(cleaned.prefix(80)).trimmingCharacters(in: CharacterSet(charactersIn: " .-"))
+        }
+        return "\(cleaned).user.js"
+    }
+
+    /// Computes which versioned fields changed relative to `previous`.
+    static func changedFields(
+        from previous: (
+            name: String,
+            matchRules: [String],
+            js: String,
+            css: String,
+            injectionTime: ScriptInjectionTime,
+            environment: AgentExecutionEnvironment
+        ),
+        to current: (
+            name: String,
+            matchRules: [String],
+            js: String,
+            css: String,
+            injectionTime: ScriptInjectionTime,
+            environment: AgentExecutionEnvironment
+        )
+    ) -> [ScriptVersionChangedField] {
+        var fields: [ScriptVersionChangedField] = []
+        if previous.js != current.js { fields.append(.js) }
+        if previous.css != current.css { fields.append(.css) }
+        if previous.matchRules != current.matchRules { fields.append(.matchRules) }
+        if previous.name != current.name { fields.append(.name) }
+        if previous.injectionTime != current.injectionTime || previous.environment != current.environment {
+            fields.append(.settings)
+        }
+        return fields
     }
 
     func matches(url: URL) -> Bool {
@@ -703,7 +927,8 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
             css: css,
             injectionTime: injectionTime,
             environment: environment,
-            savedAt: savedAt ?? updatedAt
+            savedAt: savedAt ?? updatedAt,
+            origin: versionOrigin
         )
     }
 
@@ -734,6 +959,12 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
         lines.append("// @wukong-source \(source.kindIdentifier)")
         if case .agent(let prompt) = source, !prompt.isEmpty {
             lines.append("// @wukong-prompt \(Self.encodeHeaderValue(prompt))")
+        }
+        if let versionOrigin {
+            lines.append("// @wukong-version-origin \(Self.encodeHeaderValue(versionOrigin.headerKind))")
+            if let prompt = versionOrigin.promptText {
+                lines.append("// @wukong-version-prompt \(Self.encodeHeaderValue(prompt))")
+            }
         }
         lines.append("// @wukong-created-at \(Self.formatISO8601(createdAt))")
         lines.append("// @wukong-updated-at \(Self.formatISO8601(updatedAt))")
@@ -791,6 +1022,8 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
         var isEnabled = true
         var sourceKind: String?
         var userPrompt = ""
+        var versionOriginKind: String?
+        var versionOriginPrompt = ""
         var version = 1
         var explicitID: String?
         var createdAt: Date?
@@ -863,6 +1096,10 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
                 sourceKind = value.lowercased()
             case "@wukong-prompt":
                 userPrompt = value
+            case "@wukong-version-origin":
+                versionOriginKind = value
+            case "@wukong-version-prompt":
+                versionOriginPrompt = value
             case "@wukong-created-at":
                 createdAt = parseISO8601(value)
             case "@wukong-updated-at":
@@ -912,6 +1149,9 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
 
         let created = createdAt ?? defaultTimestamp
         let updated = updatedAt ?? created
+        let parsedVersionOrigin = versionOriginKind.flatMap {
+            ScriptVersionOrigin.parse(headerKind: $0, prompt: versionOriginPrompt)
+        }
 
         return UserScript(
             id: resolvedID,
@@ -926,7 +1166,8 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
             version: version,
             createdAt: created,
             updatedAt: updated,
-            versions: []
+            versions: [],
+            versionOrigin: parsedVersionOrigin
         )
     }
 
@@ -1133,20 +1374,40 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
 final class ScriptStore {
     nonisolated private static let log = Logger(subsystem: AppIdentity.identifierPrefix, category: "script-store")
 
+    struct ManagerScriptGroup: Identifiable, Equatable {
+        /// `nil` represents the "All sites" bucket (`*://*/*`, `<all_urls>`).
+        var host: String?
+        var scripts: [UserScript]
+
+        var id: String { host ?? "all" }
+        var identifierHost: String { host ?? "all" }
+    }
+
     let directoryURL: URL
-    private(set) var scripts: [UserScript] = []
-    private(set) var scriptErrors: [String: ScriptRuntimeError] = [:]
+    private(set) var scripts: [UserScript] = [] {
+        didSet { onStoreChanged?() }
+    }
+    private(set) var scriptErrors: [String: ScriptRuntimeError] = [:] {
+        didSet { onStoreChanged?() }
+    }
+    private(set) var lastExecutedAt: [String: Date] = [:] {
+        didSet { onStoreChanged?() }
+    }
 
     var isGlobalEnabled: Bool {
         didSet {
             guard isGlobalEnabled != oldValue else { return }
             onGlobalEnabledChanged?(isGlobalEnabled)
+            onStoreChanged?()
             syncAttachedWebControllersForGlobalToggle()
         }
     }
 
     @ObservationIgnored
     var onGlobalEnabledChanged: (@MainActor (Bool) -> Void)?
+
+    @ObservationIgnored
+    var onStoreChanged: (@MainActor () -> Void)?
 
     @ObservationIgnored
     private var attachedControllers: [WeakScriptWebController] = []
@@ -1265,6 +1526,57 @@ final class ScriptStore {
         }
     }
 
+    /// Scripts grouped by the written host of their first `@match` rule (with
+    /// "All sites" last) and sorted by name within each group, per `design-m2.md`.
+    var managerGroups: [ManagerScriptGroup] {
+        var hostBuckets: [String: [UserScript]] = [:]
+        var allSitesBucket: [UserScript] = []
+        for script in scripts {
+            if let host = script.managerGroupHost {
+                hostBuckets[host, default: []].append(script)
+            } else {
+                allSitesBucket.append(script)
+            }
+        }
+        let sortedHosts = hostBuckets.keys.sorted {
+            $0.localizedStandardCompare($1) == .orderedAscending
+        }
+        var result: [ManagerScriptGroup] = sortedHosts.map { host in
+            ManagerScriptGroup(
+                host: host,
+                scripts: Self.sortedByName(hostBuckets[host] ?? [])
+            )
+        }
+        if !allSitesBucket.isEmpty {
+            result.append(
+                ManagerScriptGroup(
+                    host: nil,
+                    scripts: Self.sortedByName(allSitesBucket)
+                )
+            )
+        }
+        return result
+    }
+
+    /// Matching scripts for `url`, sorted by name (same order as `ScriptManagerView`).
+    func sortedMatchingScripts(for url: URL, includeDisabled: Bool = true) -> [UserScript] {
+        Self.sortedByName(scripts(matching: url, includeDisabled: includeDisabled))
+    }
+
+    nonisolated static func sortedByName(_ list: [UserScript]) -> [UserScript] {
+        list.sorted { lhs, rhs in
+            let cmp = lhs.name.localizedStandardCompare(rhs.name)
+            if cmp != .orderedSame {
+                return cmp == .orderedAscending
+            }
+            return lhs.id < rhs.id
+        }
+    }
+
+    func noteExecuted(scriptID: String, at date: Date = Date()) {
+        lastExecutedAt[scriptID] = date
+    }
+
     func error(for scriptID: String) -> ScriptRuntimeError? {
         scriptErrors[scriptID]
     }
@@ -1366,6 +1678,7 @@ final class ScriptStore {
     func update(
         id: String,
         patch: ScriptUpdatePatch,
+        origin: ScriptVersionOrigin? = nil,
         now: Date = Date()
     ) throws -> UserScript {
         guard let idx = scripts.firstIndex(where: { $0.id == id }) else {
@@ -1425,7 +1738,8 @@ final class ScriptStore {
             version: nextVersion,
             createdAt: existing.createdAt,
             updatedAt: now,
-            versions: updatedVersions
+            versions: updatedVersions,
+            versionOrigin: origin
         )
 
         try writeVersionArchive(for: existing)
@@ -1442,6 +1756,7 @@ final class ScriptStore {
     func setEnabled(
         id: String,
         isEnabled: Bool,
+        runLiveJS: Bool = false,
         now: Date = Date()
     ) throws -> UserScript {
         guard let idx = scripts.firstIndex(where: { $0.id == id }) else {
@@ -1463,7 +1778,7 @@ final class ScriptStore {
             guard let controller = entry.controller else { continue }
             Task { @MainActor in
                 if isEnabled {
-                    _ = await controller.applyLiveScript(current, runJS: false)
+                    _ = await controller.applyLiveScript(current, runJS: runLiveJS)
                 } else {
                     await controller.removeLiveScript(id: id)
                 }
@@ -1519,7 +1834,8 @@ final class ScriptStore {
             version: nextVersion,
             createdAt: current.createdAt,
             updatedAt: now,
-            versions: updatedVersions
+            versions: updatedVersions,
+            versionOrigin: .restored(fromVersion: target.version)
         )
 
         try writeVersionArchive(for: current)
@@ -1572,6 +1888,10 @@ final class ScriptStore {
         _ = try Self.validateMatchRules(script.matchRules)
         try Self.validateBody(js: script.js, css: script.css)
 
+        let versionDir = versionsDirectoryURL(for: script.id)
+        if FileManager.default.fileExists(atPath: versionDir.path) {
+            try? FileManager.default.removeItem(at: versionDir)
+        }
         try writeScriptFile(script)
         for historical in script.versions {
             let historicalScript = UserScript(
@@ -1587,7 +1907,8 @@ final class ScriptStore {
                 version: historical.version,
                 createdAt: script.createdAt,
                 updatedAt: historical.savedAt,
-                versions: []
+                versions: [],
+                versionOrigin: historical.origin
             )
             try writeVersionArchive(for: historicalScript)
         }
@@ -1599,6 +1920,16 @@ final class ScriptStore {
         }
         sortScriptsInPlace()
         syncAttachedUserScripts()
+        for entry in attachedControllers {
+            guard let controller = entry.controller else { continue }
+            Task { @MainActor in
+                if script.isEnabled {
+                    _ = await controller.applyLiveScript(script, runJS: false)
+                } else {
+                    await controller.removeLiveScript(id: script.id)
+                }
+            }
+        }
     }
 
     // MARK: Runtime Error State
@@ -1614,13 +1945,15 @@ final class ScriptStore {
         let cleanMessage = message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             ? "Unknown userscript error"
             : message
+        let nextCount = (scriptErrors[scriptID]?.count ?? 0) + 1
         let runtimeError = ScriptRuntimeError(
             scriptID: scriptID,
             scriptName: name,
             message: cleanMessage,
             line: line,
             url: url,
-            occurredAt: occurredAt
+            occurredAt: occurredAt,
+            count: nextCount
         )
         scriptErrors[scriptID] = runtimeError
         Self.log.error(
@@ -1733,7 +2066,8 @@ final class ScriptStore {
                         css: parsed.css,
                         injectionTime: parsed.injectionTime,
                         environment: parsed.environment,
-                        savedAt: parsed.updatedAt
+                        savedAt: parsed.updatedAt,
+                        origin: parsed.versionOrigin
                     )
                 )
             }
@@ -2105,6 +2439,7 @@ final class ScriptWebController: ScriptLiveApplying {
             }
         }
 
+        store.noteExecuted(scriptID: script.id)
         return ScriptLiveApplicationOutcome(applied: true, runtimeError: capturedError)
     }
 

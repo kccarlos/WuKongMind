@@ -239,6 +239,29 @@
         }
       }
     },
+    "%@ · +%lld more" : {
+      "comment" : "Script row subtitle showing the first @match rule and how many additional rules exist",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · +%2$lld more"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · 另有 %2$lld 条"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · 另有 %2$lld 條"
+          }
+        }
+      }
+    },
     "%@ · Logged in as %@" : {
       "comment" : "Forum menu header; placeholders: the forum's host, the user's forum username",
       "localizations" : {
@@ -359,6 +382,29 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ · 語音可用"
+          }
+        }
+      }
+    },
+    "%@, %@, version %lld" : {
+      "comment" : "Combined accessibility label for the Script detail header: script name, state (on/off/error), and version",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@, %2$@, version %3$lld"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@，%2$@，第 %3$lld 版"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@，%2$@，第 %3$lld 版"
           }
         }
       }
@@ -503,6 +549,100 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%lld 個錯誤"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld lines" : {
+      "comment" : "Code row trailing label showing line count",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld line"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld lines"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld 行"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld 行"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld lines · edited" : {
+      "comment" : "Code row trailing label showing line count and unsaved edits",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld line · edited"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld lines · edited"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld 行 · 已编辑"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld 行 · 已編輯"
                 }
               }
             }
@@ -1049,6 +1189,53 @@
         }
       }
     },
+    "%lld rules" : {
+      "comment" : "Trailing count in the Runs on section header of Script detail",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld rule"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld rules"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld 条规则"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld 條規則"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld saved" : {
       "comment" : "Ask the forum step outcome: number of saved summaries found",
       "localizations" : {
@@ -1106,6 +1293,100 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%lld 個已儲存的項目"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld scripts" : {
+      "comment" : "Count of scripts in context chip error state",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld script"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld scripts"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld 个脚本"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld 個指令碼"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld scripts have errors" : {
+      "comment" : "Accessibility value of the browser toolbar Agent button when multiple scripts on this page failed",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld script has an error"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld scripts have errors"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld 个脚本出错"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld 個指令碼發生錯誤"
                 }
               }
             }
@@ -1293,6 +1574,53 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "有 %lld 個同步項目無法讀取，已略過。"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld times" : {
+      "comment" : "Number of times a userscript runtime error occurred",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld time"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld times"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld 次"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld 次"
                 }
               }
             }
@@ -1535,6 +1863,53 @@
         }
       }
     },
+    "%lld versions" : {
+      "comment" : "Trailing count on the Version history row in Script detail",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld version"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld versions"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld 个版本"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld 個版本"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld watched · %lld trending" : {
       "comment" : "Home podcast card: digest cards from watched topics, then trending ones",
       "localizations" : {
@@ -1609,6 +1984,23 @@
         }
       }
     },
+    "1 error" : {
+      "comment" : "Singular error count in context chip",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 个错误"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 個錯誤"
+          }
+        }
+      }
+    },
     "1 request per second, one at a time" : {
       "comment" : "Description of the Gentle forum request pace",
       "localizations" : {
@@ -1622,6 +2014,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "每秒 1 個請求，一次一個"
+          }
+        }
+      }
+    },
+    "1 script has an error" : {
+      "comment" : "Accessibility value of the browser toolbar Agent button when one script on this page failed",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 个脚本出错"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 個指令碼發生錯誤"
           }
         }
       }
@@ -2214,6 +2623,23 @@
         }
       }
     },
+    "Add JavaScript or CSS" : {
+      "comment" : "Inline validation error when both JavaScript and CSS editors are empty",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请添加 JavaScript 或 CSS"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請加入 JavaScript 或 CSS"
+          }
+        }
+      }
+    },
     "Add a Google Gemini or Vertex AI key" : {
       "localizations" : {
         "zh-Hans" : {
@@ -2313,6 +2739,57 @@
         }
       }
     },
+    "Add a name" : {
+      "comment" : "Inline validation error when the script name field is empty",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请填写名称"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請填寫名稱"
+          }
+        }
+      }
+    },
+    "Add a path starting with /, like /*" : {
+      "comment" : "Validation error when a @match rule has no path starting with /",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请添加以 / 开头的路径，例如 /*"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請加入以 / 開頭的路徑，例如 /*"
+          }
+        }
+      }
+    },
+    "Add a scheme, like https:// or *://" : {
+      "comment" : "Validation error when a @match rule is missing ://",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请添加协议，例如 https:// 或 *://"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請加入協定，例如 https:// 或 *://"
+          }
+        }
+      }
+    },
     "Add a word or phrase" : {
       "localizations" : {
         "zh-Hans" : {
@@ -2341,6 +2818,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "加入其他論壇"
+          }
+        }
+      }
+    },
+    "Add at least one rule" : {
+      "comment" : "Inline validation error when all @match rules have been removed",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请至少添加一条规则"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請至少加入一條規則"
           }
         }
       }
@@ -2374,6 +2868,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "你可以隨時在「設定 › AI 模型」中加入。"
+          }
+        }
+      }
+    },
+    "Add rule" : {
+      "comment" : "Button in Script detail Runs on section to add another @match rule",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "添加规则"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新增規則"
           }
         }
       }
@@ -2730,6 +3241,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已清除所有儲存的資料。"
+          }
+        }
+      }
+    },
+    "All scripts are off. Nothing below runs." : {
+      "comment" : "Banner in Scripts on this page popover while the global script switch is off",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所有脚本已关闭，下方内容不会运行。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所有指令碼已關閉，下方內容不會執行。"
+          }
+        }
+      }
+    },
+    "All sites" : {
+      "comment" : "Script manager group header for scripts that run on all sites",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所有网站"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所有網站"
+          }
+        }
+      }
+    },
+    "All sites · CSS only" : {
+      "comment" : "Popover subtitle for an all-sites stylesheet script",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所有网站 · 仅 CSS"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所有網站 · 僅 CSS"
           }
         }
       }
@@ -3659,6 +4221,23 @@
         }
       }
     },
+    "Ask for a change and say “always” or “from now on”." : {
+      "comment" : "Settings › Scripts empty state step 2",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "说出想修改的效果，并加上“每次都这样”或“以后都这样”。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "說出想修改的效果，並加上「每次都這樣」或「以後都這樣」。"
+          }
+        }
+      }
+    },
     "Ask the agent to change this page…" : {
       "comment" : "Browser agent composer placeholder when ready",
       "localizations" : {
@@ -4575,6 +5154,27 @@
         }
       }
     },
+    "CSS" : {
+      "comment" : "Code language label for CSS\nScript card badge when a script contains CSS",
+      "shouldTranslate" : false
+    },
+    "CSS code" : {
+      "comment" : "Accessibility label for the CSS code editor field",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CSS 代码"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CSS 程式碼"
+          }
+        }
+      }
+    },
     "Cancel" : {
       "localizations" : {
         "zh-Hans" : {
@@ -4785,6 +5385,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "透過提問修改此頁面"
+          }
+        }
+      }
+    },
+    "Changed by the agent" : {
+      "comment" : "Version history row title when updated by the browser agent",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "由代理修改"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "由代理修改"
           }
         }
       }
@@ -5563,6 +6180,23 @@
         }
       }
     },
+    "Code" : {
+      "comment" : "Section header in Script detail for JavaScript and CSS editors",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "代码"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "程式碼"
+          }
+        }
+      }
+    },
     "Collapsed" : {
       "localizations" : {
         "zh-Hans" : {
@@ -5609,6 +6243,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在合併…"
+          }
+        }
+      }
+    },
+    "Coming in a later update" : {
+      "comment" : "Accessibility hint on the disabled Let the agent fix button",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将在后续更新中推出"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "將於後續更新推出"
           }
         }
       }
@@ -5960,6 +6611,23 @@
         }
       }
     },
+    "Copy error" : {
+      "comment" : "Button in Script detail error card to copy the runtime error message",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "复制错误"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "複製錯誤"
+          }
+        }
+      }
+    },
     "Copy report" : {
       "localizations" : {
         "zh-Hans" : {
@@ -6215,6 +6883,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "美國信用卡、旅行積分與個人理財的中文社群。"
+          }
+        }
+      }
+    },
+    "Current" : {
+      "comment" : "Pill on the active version row in Version history",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目前"
           }
         }
       }
@@ -6498,6 +7183,23 @@
         }
       }
     },
+    "Delete script" : {
+      "comment" : "Accessibility label for the trash button on a script card, or the destructive button in script detail",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "删除脚本"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刪除指令碼"
+          }
+        }
+      }
+    },
     "Delete summary and chat" : {
       "localizations" : {
         "zh-Hans" : {
@@ -6613,6 +7315,23 @@
         }
       }
     },
+    "Disable" : {
+      "comment" : "Script card button to turn off this saved userscript",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "停用"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "停用"
+          }
+        }
+      }
+    },
     "Disagreements" : {
       "comment" : "Chat suggestion chip",
       "localizations" : {
@@ -6626,6 +7345,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "不同意見"
+          }
+        }
+      }
+    },
+    "Discard changes" : {
+      "comment" : "Destructive confirmation action to discard unsaved script edits",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "放弃更改"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "捨棄變更"
+          }
+        }
+      }
+    },
+    "Discard changes?" : {
+      "comment" : "Confirmation dialog title when cancelling unsaved edits in Script detail",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "放弃更改？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要捨棄變更嗎？"
           }
         }
       }
@@ -6659,6 +7412,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "關閉"
+          }
+        }
+      }
+    },
+    "Document end" : {
+      "comment" : "Userscript injection timing: after the DOM has loaded",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文档加载完成后"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文件載入完成後"
+          }
+        }
+      }
+    },
+    "Document start" : {
+      "comment" : "Userscript injection timing: before the page finishes loading",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文档开始加载时"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文件開始載入時"
           }
         }
       }
@@ -6978,6 +7765,57 @@
         }
       }
     },
+    "Edit rules, inspect versions or export .user.js files here." : {
+      "comment" : "Settings › Scripts empty state step 3",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在此编辑规则、查看历史版本或导出 .user.js 文件。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在此編輯規則、檢視歷史版本或匯出 .user.js 檔案。"
+          }
+        }
+      }
+    },
+    "Edited by you" : {
+      "comment" : "Version history row title when edited in Script detail",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "由你编辑"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "由你編輯"
+          }
+        }
+      }
+    },
+    "Edited · not saved yet. Go back and tap Save." : {
+      "comment" : "Status banner at the top of the JavaScript/CSS code editor when edits are unsaved",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已编辑 · 尚未保存。返回上一页并轻点“保存”。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已編輯 · 尚未儲存。返回上一頁並點一下「儲存」。"
+          }
+        }
+      }
+    },
     "Editing question" : {
       "comment" : "Chat composer banner while editing a previously sent question",
       "localizations" : {
@@ -6991,6 +7829,74 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在編輯問題"
+          }
+        }
+      }
+    },
+    "Empty" : {
+      "comment" : "Code row status when a script has zero lines of code in that language",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "空白"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "空白"
+          }
+        }
+      }
+    },
+    "Empty · edited" : {
+      "comment" : "Code row trailing label when cleared in the draft",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "空白 · 已编辑"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "空白 · 已編輯"
+          }
+        }
+      }
+    },
+    "Enable" : {
+      "comment" : "Script card button to turn on this saved userscript",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启用"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "啟用"
+          }
+        }
+      }
+    },
+    "Enabled" : {
+      "comment" : "Per-script enabled toggle in Script detail",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已启用"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已啟用"
           }
         }
       }
@@ -7027,6 +7933,23 @@
         }
       }
     },
+    "Enter a @match rule, like https://*.example.org/*" : {
+      "comment" : "Validation error when a @match rule text field is empty",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请输入 @match 规则，例如 https://*.example.org/*"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請輸入 @match 規則，例如 https://*.example.org/*"
+          }
+        }
+      }
+    },
     "Enter a forum address" : {
       "localizations" : {
         "zh-Hans" : {
@@ -7056,6 +7979,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "請輸入論壇網址，例如 meta.discourse.org。"
+          }
+        }
+      }
+    },
+    "Enter a valid host, like example.org or *.example.org" : {
+      "comment" : "Validation error when a @match rule host is invalid",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请输入有效主机名，例如 example.org 或 *.example.org"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請輸入有效主機名稱，例如 example.org 或 *.example.org"
           }
         }
       }
@@ -7124,6 +8064,23 @@
         }
       }
     },
+    "Environment" : {
+      "comment" : "Picker label in Script detail choosing Isolated or Page execution world",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "运行环境"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "執行環境"
+          }
+        }
+      }
+    },
     "Error" : {
       "comment" : "Sync status, short value in the Settings row: the last sync failed",
       "localizations" : {
@@ -7137,6 +8094,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "錯誤"
+          }
+        }
+      }
+    },
+    "Error · %@" : {
+      "comment" : "Error subtitle on a script row; placeholder is the formatted error message and optional line",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "错误 · %@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "錯誤 · %@"
+          }
+        }
+      }
+    },
+    "Error: %@" : {
+      "comment" : "Accessibility value on a script row when the script has a runtime error",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "错误：%@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "錯誤：%@"
           }
         }
       }
@@ -7304,6 +8295,23 @@
         }
       }
     },
+    "Export" : {
+      "comment" : "Context menu action to export a .user.js file",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导出"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "匯出"
+          }
+        }
+      }
+    },
     "Export .txt" : {
       "localizations" : {
         "zh-Hans" : {
@@ -7316,6 +8324,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "匯出 .txt"
+          }
+        }
+      }
+    },
+    "Export .user.js file" : {
+      "comment" : "Button in Script detail to share or save the script as a .user.js file",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导出 .user.js 文件"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "匯出 .user.js 檔案"
           }
         }
       }
@@ -8847,6 +9872,23 @@
         }
       }
     },
+    "How it runs" : {
+      "comment" : "Section header in Script detail for enabled state, timing and world",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "运行方式"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "執行方式"
+          }
+        }
+      }
+    },
     "How it works" : {
       "localizations" : {
         "zh-Hans" : {
@@ -9009,6 +10051,40 @@
         }
       }
     },
+    "Imported" : {
+      "comment" : "Version history row title for an imported userscript",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已导入"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已匯入"
+          }
+        }
+      }
+    },
+    "Imported · %@" : {
+      "comment" : "Source row in Script detail when imported from a .user.js file",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已导入 · %@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已匯入 · %@"
+          }
+        }
+      }
+    },
     "In progress" : {
       "localizations" : {
         "zh-Hans" : {
@@ -9071,6 +10147,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "放大字型並加寬文章區域"
+          }
+        }
+      }
+    },
+    "Initial version" : {
+      "comment" : "Version history subtitle for version 1",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "初始版本"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "初始版本"
           }
         }
       }
@@ -9173,6 +10266,23 @@
         }
       }
     },
+    "Invalid" : {
+      "comment" : "Accessibility value on an invalid form field",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无效"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無效"
+          }
+        }
+      }
+    },
     "Is this a supported site?" : {
       "localizations" : {
         "zh-Hans" : {
@@ -9185,6 +10295,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "這是受支援的網站嗎？"
+          }
+        }
+      }
+    },
+    "Isolated" : {
+      "comment" : "Userscript execution world option: isolated content world",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隔离环境"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隔離環境"
+          }
+        }
+      }
+    },
+    "Isolated works on every site and is hidden from the page, but can’t see the page’s own JavaScript. Page can, but strict sites may block eval and requests to other sites." : {
+      "comment" : "Footer in Script detail explaining Isolated vs Page execution worlds",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“隔离环境”适用于所有网站且对页面不可见，但无法访问页面自身的 JavaScript。“页面环境”可以访问，但安全策略严格的网站可能会拦截 eval 和跨站请求。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「隔離環境」適用於所有網站且對頁面不可見，但無法存取頁面自身的 JavaScript。「頁面環境」可以存取，但安全策略嚴格的網站可能會封鎖 eval 與跨站請求。"
           }
         }
       }
@@ -9205,6 +10349,23 @@
         }
       }
     },
+    "It failed on the last page it ran on" : {
+      "comment" : "Title of the runtime error card in Script detail",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在上次运行的页面上出错"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在上次執行的頁面上發生錯誤"
+          }
+        }
+      }
+    },
     "Its saved summaries, chats, agent runs, and watched topics can be kept or deleted." : {
       "localizations" : {
         "zh-Hans" : {
@@ -9217,6 +10378,35 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "可以保留或刪除它已儲存的摘要、聊天、問論壇記錄和追蹤的話題。"
+          }
+        }
+      }
+    },
+    "JS" : {
+      "comment" : "Script card badge when a script contains JavaScript",
+      "shouldTranslate" : false
+    },
+    "JS + CSS" : {
+      "comment" : "Script card badge when a script contains both JavaScript and CSS",
+      "shouldTranslate" : false
+    },
+    "JavaScript" : {
+      "comment" : "Code language label for JavaScript",
+      "shouldTranslate" : false
+    },
+    "JavaScript code" : {
+      "comment" : "Accessibility label for the JavaScript code editor field",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "JavaScript 代码"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "JavaScript 程式碼"
           }
         }
       }
@@ -9266,6 +10456,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "保留"
+          }
+        }
+      }
+    },
+    "Keep editing" : {
+      "comment" : "Cancel action in Discard changes dialog",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "继续编辑"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "繼續編輯"
           }
         }
       }
@@ -9629,6 +10836,46 @@
         }
       }
     },
+    "Let the agent fix" : {
+      "comment" : "Disabled M2 button in Script detail error card for future agent auto-fix",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "让代理修复"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "讓代理修復"
+          }
+        }
+      }
+    },
+    "Line %lld: %@" : {
+      "comment" : "Userscript runtime error with a line number; first placeholder is line number, second is error message",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Line %1$lld: %2$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第 %1$lld 行：%2$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第 %1$lld 行：%2$@"
+          }
+        }
+      }
+    },
     "Link" : {
       "localizations" : {
         "zh-Hans" : {
@@ -9889,6 +11136,23 @@
         }
       }
     },
+    "Made by the agent · %@" : {
+      "comment" : "Source row in Script detail when created by the browser agent; placeholder is creation date",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "由代理创建 · %@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "由代理建立 · %@"
+          }
+        }
+      }
+    },
     "Mail" : {
       "comment" : "Name of Apple's Mail app, as shown in the iOS share sheet",
       "localizations" : {
@@ -10099,6 +11363,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "管理"
+          }
+        }
+      }
+    },
+    "Manage scripts" : {
+      "comment" : "Footer button in Scripts on this page popover opening Settings › Scripts",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "管理脚本"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "管理指令碼"
+          }
+        }
+      }
+    },
+    "Match rules" : {
+      "comment" : "Version history changed field name: @match rules",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "匹配规则"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "比對規則"
           }
         }
       }
@@ -10472,6 +11770,23 @@
         }
       }
     },
+    "Name" : {
+      "comment" : "Section header for the script's name field\nVersion history changed field name: script name",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "名称"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "名稱"
+          }
+        }
+      }
+    },
     "Needs a key" : {
       "comment" : "AI model state: the provider's API key is missing",
       "localizations" : {
@@ -10730,6 +12045,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無需帳號，不做分析，中間也沒有我們的伺服器。"
+          }
+        }
+      }
+    },
+    "No code changes" : {
+      "comment" : "Version history subtitle when a version has identical fields to the prior snapshot",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无代码改动"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無程式碼變更"
           }
         }
       }
@@ -11024,6 +12356,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "最近沒有任務。"
+          }
+        }
+      }
+    },
+    "No scripts on this page" : {
+      "comment" : "Browser agent context bar when zero saved scripts match the current page",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此页面没有脚本"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此頁面沒有指令碼"
+          }
+        }
+      }
+    },
+    "No scripts yet" : {
+      "comment" : "Empty state title in Settings › Scripts when zero scripts are saved",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尚无脚本"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尚無指令碼"
           }
         }
       }
@@ -12165,6 +13531,23 @@
         }
       }
     },
+    "Open any page and tap the Agent button in the toolbar." : {
+      "comment" : "Settings › Scripts empty state step 1",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开任意网页，轻点工具栏中的“代理”按钮。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打開任意網頁，點一下工具列中的「代理」按鈕。"
+          }
+        }
+      }
+    },
     "Open any topic and the assistant is one tap away." : {
       "localizations" : {
         "zh-Hans" : {
@@ -12635,6 +14018,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "其他論壇"
+          }
+        }
+      }
+    },
+    "Page" : {
+      "comment" : "Userscript execution world option: page main world",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "页面环境"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "頁面環境"
           }
         }
       }
@@ -13808,6 +15208,29 @@
         }
       }
     },
+    "Ran %@ · %@" : {
+      "comment" : "Popover subtitle showing when the script last ran and in which execution world",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Ran %1$@ · %2$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "运行于 %1$@ · %2$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "執行於 %1$@ · %2$@"
+          }
+        }
+      }
+    },
     "Read" : {
       "localizations" : {
         "zh-Hans" : {
@@ -14536,6 +15959,23 @@
         }
       }
     },
+    "Reload page" : {
+      "comment" : "Button in Scripts on this page popover after flipping a script switch",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重新加载页面"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重新載入頁面"
+          }
+        }
+      }
+    },
     "Remove" : {
       "localizations" : {
         "zh-Hans" : {
@@ -15087,6 +16527,23 @@
         }
       }
     },
+    "Restore" : {
+      "comment" : "Button on an older version row in Version history to copy it as the newest version",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "恢复"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "還原"
+          }
+        }
+      }
+    },
     "Restore defaults" : {
       "localizations" : {
         "zh-Hans" : {
@@ -15099,6 +16556,74 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "回復預設值"
+          }
+        }
+      }
+    },
+    "Restore this version" : {
+      "comment" : "Version code sheet button to copy this historical version as the newest version",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "恢复此版本"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "還原此版本"
+          }
+        }
+      }
+    },
+    "Restored version %lld" : {
+      "comment" : "Version history row title when created by restoring an earlier version",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已恢复第 %lld 版"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已還原第 %lld 版"
+          }
+        }
+      }
+    },
+    "Restored ‘%@’" : {
+      "comment" : "Accessibility announcement after undoing script deletion",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已恢复“%@”"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已還原「%@」"
+          }
+        }
+      }
+    },
+    "Restoring copies it as a new version, so nothing is lost." : {
+      "comment" : "Footer in Version history explaining non-destructive version restore",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "恢复会将其复制为新版本，不会丢失任何历史记录。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "還原會將其複製為新版本，不會遺失任何歷史紀錄。"
           }
         }
       }
@@ -15203,6 +16728,40 @@
         }
       }
     },
+    "Run scripts" : {
+      "comment" : "Settings › Scripts: master switch that enables or pauses all userscripts",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "运行脚本"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "執行指令碼"
+          }
+        }
+      }
+    },
+    "Run settings" : {
+      "comment" : "Version history changed field name: injection time or execution world",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "运行设置"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "執行設定"
+          }
+        }
+      }
+    },
     "Running" : {
       "comment" : "Work status",
       "localizations" : {
@@ -15233,6 +16792,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "執行中…"
+          }
+        }
+      }
+    },
+    "Runs at" : {
+      "comment" : "Picker label in Script detail choosing when the script injects",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "运行时机"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "執行時機"
           }
         }
       }
@@ -15282,6 +16858,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "即時執行 JavaScript 並注入 CSS"
+          }
+        }
+      }
+    },
+    "Runs on" : {
+      "comment" : "Section header in Script detail for @match URL patterns",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "适用网站"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "適用網站"
           }
         }
       }
@@ -15346,6 +16939,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已儲存"
+          }
+        }
+      }
+    },
+    "Saved by the agent" : {
+      "comment" : "Version history row title when initially saved by the browser agent",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "由代理保存"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "由代理儲存"
           }
         }
       }
@@ -15498,6 +17108,210 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "說「下一個」或滑動"
+          }
+        }
+      }
+    },
+    "Script" : {
+      "comment" : "Navigation bar title of the single userscript detail screen",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "脚本"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "指令碼"
+          }
+        }
+      }
+    },
+    "Script error: %@" : {
+      "comment" : "VoiceOver announcement when opening Script detail with a runtime error",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "脚本错误：%@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "指令碼錯誤：%@"
+          }
+        }
+      }
+    },
+    "Script name" : {
+      "comment" : "Placeholder in Script detail name field",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "脚本名称"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "指令碼名稱"
+          }
+        }
+      }
+    },
+    "Script not found" : {
+      "comment" : "Fallback view when a script was deleted while viewing its detail",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未找到脚本"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "找不到指令碼"
+          }
+        }
+      }
+    },
+    "Scripts" : {
+      "comment" : "Settings page: per-site userscripts saved by the browser agent",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "脚本"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "指令碼"
+          }
+        }
+      }
+    },
+    "Scripts are off. No script runs on any page until you turn this back on." : {
+      "comment" : "VoiceOver announcement when the global Run scripts switch is turned off",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "脚本已关闭。重新开启前，任何页面都不会运行脚本。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "指令碼已關閉。重新開啟前，任何頁面都不會執行指令碼。"
+          }
+        }
+      }
+    },
+    "Scripts are off. No script runs on any page until you turn this back on. Each script keeps its own switch." : {
+      "comment" : "Settings › Scripts footer status when the global switch is off",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "脚本已关闭。重新开启前，任何页面都不会运行脚本。每个脚本会保留各自的开关状态。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "指令碼已關閉。重新開啟前，任何頁面都不會執行指令碼。每個指令碼會保留各自的開關狀態。"
+          }
+        }
+      }
+    },
+    "Scripts are small page changes the agent saves so they run automatically whenever you visit a site." : {
+      "comment" : "Empty state explanation in Settings › Scripts",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "脚本是由代理保存的小型网页改动，会在你每次访问网站时自动运行。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "指令碼是由代理儲存的小型網頁修改，會在你每次造訪網站時自動執行。"
+          }
+        }
+      }
+    },
+    "Scripts off" : {
+      "comment" : "Accessibility value of the browser toolbar Agent button when the global script switch is off",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "脚本已关闭"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "指令碼已關閉"
+          }
+        }
+      }
+    },
+    "Scripts off · %lld here" : {
+      "comment" : "Browser agent context chip when global scripts switch is off; placeholder is number of scripts matching this page",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "脚本已关闭 · 此页 %lld 个"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "指令碼已關閉 · 此頁 %lld 個"
+          }
+        }
+      }
+    },
+    "Scripts on" : {
+      "comment" : "VoiceOver announcement when the global Run scripts switch is turned on",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "脚本已开启"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "指令碼已開啟"
+          }
+        }
+      }
+    },
+    "Scripts on this page" : {
+      "comment" : "Popover header listing userscripts matching the current page",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此页面上的脚本"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此頁面的指令碼"
           }
         }
       }
@@ -16496,6 +18310,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "其他問題"
+          }
+        }
+      }
+    },
+    "Source" : {
+      "comment" : "Section header in Script detail showing how the script was created",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "来源"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "來源"
           }
         }
       }
@@ -17937,6 +19768,23 @@
         }
       }
     },
+    "Tampermonkey @match rules, like https://*.example.org/*." : {
+      "comment" : "Footer explaining @match URL rule syntax in Script detail",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tampermonkey @match 规则，例如 https://*.example.org/*。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tampermonkey @match 規則，例如 https://*.example.org/*。"
+          }
+        }
+      }
+    },
     "Tap **Edit**, turn on **Forumind**, and add it to Favorites so it’s always near the front." : {
       "localizations" : {
         "zh-Hans" : {
@@ -18014,6 +19862,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "點按貼文編號即可跳轉。"
+          }
+        }
+      }
+    },
+    "Tap a script to edit it, see its versions or export it. Swipe left to delete." : {
+      "comment" : "Footer below the last script group in Settings › Scripts",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "轻点脚本即可编辑、查看历史版本或导出。向左轻扫可删除。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "點一下指令碼即可編輯、檢視歷史版本或匯出。向左滑動可刪除。"
           }
         }
       }
@@ -18210,6 +20075,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Apple Intelligence 模型尚未就緒（可能仍在下載）。請過幾分鐘再試一次。"
+          }
+        }
+      }
+    },
+    "The agent fix comes in a later update" : {
+      "comment" : "Note beneath the disabled Let the agent fix button in Script detail",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "代理解析修复功能将在后续更新中推出"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "代理自動修復功能將於後續更新推出"
           }
         }
       }
@@ -20088,6 +21970,46 @@
         }
       }
     },
+    "Turned off · reload to remove it fully" : {
+      "comment" : "Subtitle in Scripts on this page popover after disabling a script whose JavaScript already ran on the page",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已关闭 · 重新加载页面以彻底移除效果"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已關閉 · 重新載入頁面以完全移除效果"
+          }
+        }
+      }
+    },
+    "Turns every script off at once. %lld scripts, %lld on." : {
+      "comment" : "Settings › Scripts global switch footer when enabled; first number is total scripts, second is enabled scripts",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Turns every script off at once. %1$lld scripts, %2$lld on."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一键关闭所有脚本。共 %1$lld 个脚本，%2$lld 个已开启。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一次關閉所有指令碼。共 %1$lld 個指令碼，%2$lld 個已開啟。"
+          }
+        }
+      }
+    },
     "Two hosts talk through the digest." : {
       "localizations" : {
         "zh-Hans" : {
@@ -20199,6 +22121,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "播放中斷"
+          }
+        }
+      }
+    },
+    "Undid restore" : {
+      "comment" : "VoiceOver announcement after undoing a version restore",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已撤销恢复"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已復原還原操作"
+          }
+        }
+      }
+    },
+    "Undo" : {
+      "comment" : "Undo button after deleting or restoring a userscript",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "撤销"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "復原"
           }
         }
       }
@@ -20576,6 +22532,23 @@
         }
       }
     },
+    "Use a port from 1 to 65535, or *" : {
+      "comment" : "Validation error when a @match rule port is invalid",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请使用 1 到 65535 之间的端口，或使用 *"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請使用 1 到 65535 之間的連接埠，或使用 *"
+          }
+        }
+      }
+    },
     "Use default (%@)" : {
       "localizations" : {
         "zh-Hans" : {
@@ -20637,6 +22610,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "兩者都使用"
+          }
+        }
+      }
+    },
+    "Use https://, http://, *://, file://, ws:// or wss://" : {
+      "comment" : "Validation error when a @match rule uses an unsupported URL scheme",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请使用 https://、http://、*://、file://、ws:// 或 wss://"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請使用 https://、http://、*://、file://、ws:// 或 wss://"
           }
         }
       }
@@ -20788,6 +22778,23 @@
         }
       }
     },
+    "Userscript code" : {
+      "comment" : "Accessibility label for the full .user.js code block in View code",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用户脚本代码"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用者指令碼內容"
+          }
+        }
+      }
+    },
     "Uses EasyList and EasyPrivacy filter lists." : {
       "localizations" : {
         "zh-Hans" : {
@@ -20836,6 +22843,103 @@
         }
       }
     },
+    "Version %lld" : {
+      "comment" : "Title of the View code sheet when inspecting a version from history",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第 %lld 版"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第 %lld 版"
+          }
+        }
+      }
+    },
+    "Version %lld restored as version %lld" : {
+      "comment" : "Toast and VoiceOver announcement when restoring an older script version; first number is restored version, second is newly created version",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Version %1$lld restored as version %2$lld"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已将第 %1$lld 版恢复为第 %2$lld 版"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已將第 %1$lld 版還原為第 %2$lld 版"
+          }
+        }
+      }
+    },
+    "Version %lld · edited %@" : {
+      "comment" : "Script detail header subtitle showing current version number and relative edit time",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Version %1$lld · edited %2$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第 %1$lld 版 · 编辑于 %2$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第 %1$lld 版 · 編輯於 %2$@"
+          }
+        }
+      }
+    },
+    "Version %lld · unsaved changes" : {
+      "comment" : "Script detail header subtitle while draft has unsaved changes",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第 %lld 版 · 有未保存的更改"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第 %lld 版 · 有未儲存的變更"
+          }
+        }
+      }
+    },
+    "Version history" : {
+      "comment" : "Row and screen title for a script's version history",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "版本历史"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "版本紀錄"
+          }
+        }
+      }
+    },
     "Very fast open models, with a free tier." : {
       "localizations" : {
         "zh-Hans" : {
@@ -20848,6 +22952,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "速度極快的開放模型，提供免費方案。"
+          }
+        }
+      }
+    },
+    "View code" : {
+      "comment" : "Script card button that opens the saved .user.js source sheet",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "查看代码"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "檢視程式碼"
           }
         }
       }
@@ -22488,6 +24609,23 @@
         }
       }
     },
+    "error" : {
+      "comment" : "Lowercase state word in Script detail combined header accessibility label",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "出错"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "錯誤"
+          }
+        }
+      }
+    },
     "forum.example.com" : {
       "shouldTranslate" : false
     },
@@ -22538,6 +24676,9 @@
           }
         }
       }
+    },
+    "https://*.example.org/*" : {
+      "shouldTranslate" : false
     },
     "iCloud Sync" : {
       "localizations" : {
@@ -22702,6 +24843,40 @@
         }
       }
     },
+    "isolated" : {
+      "comment" : "Short lowercase label for the isolated script execution world in subtitles",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隔离环境"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隔離環境"
+          }
+        }
+      }
+    },
+    "just now" : {
+      "comment" : "Relative timestamp when an action happened less than five seconds ago",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刚刚"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "剛剛"
+          }
+        }
+      }
+    },
     "no signal" : {
       "comment" : "Voice Health row: the microphone delivers only silence",
       "localizations" : {
@@ -22732,6 +24907,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "尚未檢查"
+          }
+        }
+      }
+    },
+    "off" : {
+      "comment" : "Lowercase state word in Script detail combined header accessibility label",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已关闭"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已關閉"
+          }
+        }
+      }
+    },
+    "on" : {
+      "comment" : "Lowercase state word in Script detail combined header accessibility label",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已开启"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已開啟"
+          }
+        }
+      }
+    },
+    "page world" : {
+      "comment" : "Short lowercase label for the page main world in script card subtitles",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "页面环境"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "頁面環境"
           }
         }
       }
@@ -22798,6 +25024,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "話題 %@"
+          }
+        }
+      }
+    },
+    "‘%@’ deleted" : {
+      "comment" : "Toast and accessibility announcement when a userscript is deleted",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已删除“%@”"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已刪除「%@」"
+          }
+        }
+      }
+    },
+    "“%@”" : {
+      "comment" : "Quoted user prompt that produced the script in Script detail and Version history",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@”"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「%@」"
           }
         }
       }
