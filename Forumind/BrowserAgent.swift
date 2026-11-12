@@ -982,6 +982,7 @@ actor BrowserAgentDemoClient: AgentModelClient {
     enum Mode: String, Sendable {
         case recorded
         case savedScript = "saved-script"
+        case spaOpOnly = "spa-op-only"
         case running
         case stepLimit = "step-limit"
         case error
@@ -1173,6 +1174,54 @@ actor BrowserAgentDemoClient: AgentModelClient {
                     toolCalls: [],
                     stopReason: "end_turn",
                     usage: AgentTokenUsage(inputTokens: 920, outputTokens: 48)
+                )
+            }
+
+        case .spaOpOnly:
+            switch turn {
+            case 1:
+                return AgentModelTurnResponse(
+                    text: "",
+                    toolCalls: [
+                        AgentModelToolCall(
+                            id: "call_spa_read_1",
+                            name: "read_page",
+                            arguments: ["mode": .string("structure")]
+                        )
+                    ],
+                    stopReason: "tool_use",
+                    usage: AgentTokenUsage(inputTokens: 510, outputTokens: 58)
+                )
+            case 2:
+                return AgentModelTurnResponse(
+                    text: "",
+                    toolCalls: [
+                        AgentModelToolCall(
+                            id: "call_spa_save_2",
+                            name: "script_save",
+                            arguments: [
+                                "name": .string("Original poster only"),
+                                "match_rules": .array([.string("*://127.0.0.1/*")]),
+                                "css": .string(".reply-post, [data-role=\"reply\"] { display: none !important; }"),
+                                "js": .string("""
+                                document.querySelectorAll('.reply-post, [data-role="reply"]').forEach(el => {
+                                  el.hidden = true;
+                                });
+                                """),
+                                "injection_time": .string("document-end"),
+                                "environment": .string("isolated")
+                            ]
+                        )
+                    ],
+                    stopReason: "tool_use",
+                    usage: AgentTokenUsage(inputTokens: 780, outputTokens: 124)
+                )
+            default:
+                return AgentModelTurnResponse(
+                    text: "Saved **Original poster only** for `127.0.0.1` so non-OP replies stay hidden across reloads and route changes.",
+                    toolCalls: [],
+                    stopReason: "end_turn",
+                    usage: AgentTokenUsage(inputTokens: 940, outputTokens: 46)
                 )
             }
         }

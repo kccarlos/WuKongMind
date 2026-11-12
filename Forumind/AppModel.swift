@@ -276,7 +276,9 @@ final class AppModel: ObservableObject {
         return AssistantDebug.isActive
             || AssistantDebug.value("-dc-browser-agent-demo") != nil
             || AssistantDebug.value("-dc-browser-agent-live-prompt") != nil
+            || AssistantDebug.has("-dc-browser-agent-live-key")
             || AssistantDebug.has("-dc-browser-agent-fixture-page")
+            || AssistantDebug.value("-dc-browser-agent-scripts-box") != nil
             || AssistantDebug.value("-dc-scripts-sample") != nil
             || AssistantDebug.has("-dc-scripts-sample")
         #else
@@ -486,6 +488,11 @@ final class AppModel: ObservableObject {
             loadedKeys[provider] = configuration.apiKey
             loadedSettings.setConfiguration(configuration, for: provider)
         }
+        #if DEBUG
+        if AssistantDebug.value("-dc-browser-agent-scripts-box") != nil {
+            loadedSettings.browserScriptsEnabled = true
+        }
+        #endif
         settings = loadedSettings
         persistedAPIKeys = loadedKeys
 
@@ -497,7 +504,31 @@ final class AppModel: ObservableObject {
             let scriptsDirectory: URL
             #if DEBUG
             if Self.loadsOnlySamplePage && store.usesDefaultLocation {
-                if let customPath = AssistantDebug.value("-dc-browser-agent-scripts-dir"), !customPath.isEmpty {
+                if let rawBox = AssistantDebug.value("-dc-browser-agent-scripts-box"), !rawBox.isEmpty {
+                    let sanitizedBox = String(rawBox.filter { $0.isLetter || $0.isNumber || $0 == "-" || $0 == "_" })
+                    let tempRoot = FileManager.default.temporaryDirectory
+                    let boxDir = tempRoot.appendingPathComponent(
+                        "wukong-scripts-box-\(sanitizedBox.isEmpty ? "default" : sanitizedBox)",
+                        isDirectory: true
+                    )
+                    if AssistantDebug.has("-dc-browser-agent-reset-scripts-box") {
+                        try? FileManager.default.removeItem(at: boxDir)
+                        if let siblings = try? FileManager.default.contentsOfDirectory(
+                            at: tempRoot,
+                            includingPropertiesForKeys: [.contentModificationDateKey],
+                            options: [.skipsHiddenFiles]
+                        ) {
+                            let cutoff = Date().addingTimeInterval(-3600)
+                            for url in siblings where url.lastPathComponent.hasPrefix("wukong-scripts-box-") && url != boxDir {
+                                let modified = (try? url.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate
+                                if let modified, modified < cutoff {
+                                    try? FileManager.default.removeItem(at: url)
+                                }
+                            }
+                        }
+                    }
+                    scriptsDirectory = boxDir
+                } else if let customPath = AssistantDebug.value("-dc-browser-agent-scripts-dir"), !customPath.isEmpty {
                     scriptsDirectory = URL(fileURLWithPath: customPath, isDirectory: true)
                 } else {
                     scriptsDirectory = FileManager.default.temporaryDirectory
@@ -3857,12 +3888,7 @@ final class AppModel: ObservableObject {
         #if DEBUG
         // Sample data for screenshots is never written over the real snapshot,
         // and its placeholder key stays in memory.
-        if AssistantDebug.isActive
-            || AssistantDebug.value("-dc-browser-agent-demo") != nil
-            || AssistantDebug.value("-dc-browser-agent-live-prompt") != nil
-            || AssistantDebug.has("-dc-browser-agent-fixture-page")
-            || AssistantDebug.value("-dc-scripts-sample") != nil
-            || AssistantDebug.has("-dc-scripts-sample") { return }
+        if Self.loadsOnlySamplePage { return }
         #endif
         persistChangedAPIKeys()
         let snapshot = AppSnapshot(
