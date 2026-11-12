@@ -3,7 +3,7 @@
 The UI task implements against this page and the design canvas:
 **https://claude.ai/artifact/Wi2peNxD7d87bfJcfedbcg** (7 artboards: iPhone running, done with script card, empty and no-model; iPad running and step limit; a sheet of every component in light and dark).
 
-Everything uses Forumind's own style: iOS system type (SF, Dynamic Type text styles), `DCTheme` colours and spacing, `dcCard`, `DCPill`, `DCActionButtonStyle`, `DCPrimaryButtonStyle`, `DCIconButtonStyle` and `DCMotion` (`Forumind/DesignSystem.swift`). Forumind decided every choice, so the sheepdog design system was not needed.
+Everything uses Forumind's own style: iOS system type (SF, Dynamic Type text styles), `DCTheme` colours and spacing, `dcCard`, `DCPill`, `DCActionButtonStyle`, `DCPrimaryButtonStyle`, `DCIconButtonStyle` and `DCMotion` (`Forumind/DesignSystem.swift`). Forumind's style covers nearly everything, so the sheepdog design system was not used. The few new pieces (the chat bubble, code blocks, the count badge) are built from these same tokens.
 
 ## Decisions
 
@@ -31,10 +31,10 @@ Everything uses Forumind's own style: iOS system type (SF, Dynamic Type text sty
 | Agent text | Leading `MarkdownView`, `.subheadline` |
 | Tool-call row | `stepRow` from `AgentPanel.swift`, rebuilt as a `DisclosureGroup`-style button. Left: a 28 pt tinted circle with the tool's symbol. Then the tool name (`.subheadline.weight(.semibold)`, monospaced) and the argument summary (`.caption`, secondary, one line). Below them, the result summary (`.caption.weight(.medium)` in the tool's tint). Right: the duration (`.caption.monospacedDigit()`) and a chevron. While it runs, a `ProgressView().controlSize(.mini)` replaces the symbol and the result reads "Running…" |
 | Expanded row | "ARGUMENTS" and "RESULT" captions over monospaced code blocks (`.caption.monospaced()`, `raisedSurface`, corner 12, `textSelection(.enabled)`), with a Copy button. A cut-off result says "Truncated · N characters in total" |
-| Collapsed run | Once a run ends, its rows fold into the "Steps N" card, which shows a strip of tool icons (`toolStrip` in `AgentPanel.swift`). A tap expands it |
+| Collapsed run | Once a run ends, its rows fold into the "Steps N" card, which shows a strip of tool icons (`toolStrip` in `AgentPanel.swift`) and an error count. A tap expands it. Anything a run produced, such as the script card or the agent's last text, stays outside the fold, below the card |
 | Status line | `.caption`, secondary. Working: "Working · step 3 of 30" with a purple dot. Done: "Done · 5 steps · 38 s" with a green check. Stopped: "Stopped by you · step 4". The total tokens ("18.2k tokens", monospaced digits) stay at the trailing edge in every state |
 | Composer | The Ask box field shape (`AskBox.swift`): a 44 pt capsule field and a 44 pt round send button with `brandGradient` |
-| Stop | While a run is working, the send button becomes a red capsule "Stop" (`stop.fill`, `DCTheme.danger`, white text, at least 44 pt). It shows for the whole run and ends the loop at once. The field stays usable |
+| Stop | While a run is working, the send button becomes a red capsule "Stop" (`stop.fill` on `DCTheme.danger`, at least 44 pt). Its text is white in light mode and black in dark mode, because white on the dark-mode red is only about 2.9:1. It shows for the whole run and ends the loop at once. The field stays editable as a draft ("Write your next message…") and sends once the run ends or is stopped |
 
 Tool symbols and tints: `read_page` `doc.text` with `brandBlue`; `run_js` `curlybraces` with `agentTint`; `inject_css` `drop` with `chatTint`; `wait_for` `clock` with secondary; `script_save` `square.and.arrow.down` with `agentTint`; any error `exclamationmark.triangle.fill` with `danger`.
 
@@ -43,7 +43,7 @@ Tool symbols and tints: `read_page` `doc.text` with `brandBlue`; `run_js` `curly
 | State | Shows |
 |---|---|
 | Empty | A `dcCard`, "Change this page by asking", with three how-it-works rows (like Ask the forum's `emptyState`). Below it, three example chips that fill the field, then "Up to 30 steps. Change it in Settings." |
-| Running | The rows above, the Stop button, and a working ring on the toolbar button |
+| Running | The rows above, the Stop button, and a working ring on the toolbar button. Closing the drawer or hiding the iPad panel does not stop the run. The ring shows that it is still working, a tap brings back the panel with its Stop button, and the button has a "Stop agent" accessibility action |
 | Tool error | A red row with the error as its result summary. The loop goes on, so the next row is usually the fix |
 | Step limit reached | A `dcCard(tint: warning)` card with `role: status`: "Stopped at the step limit (30)". It says the page may be half changed and offers **Continue** (a new run with a fresh limit) and **Step limit…** (Settings) |
 | No model or key | `ProviderSetupCard` with the agent role: "Choose a model for the agent", or "<Provider> needs an API key" with Add key. The field is disabled ("Choose a model first") |
