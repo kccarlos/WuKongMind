@@ -172,8 +172,18 @@ final class HackerNewsJobTests: XCTestCase {
     }
 
     func testAppAndShareProbeRequireSubmissionMarkup() throws {
-        let appex = try XCTUnwrap(Bundle.main.builtInPlugInsURL).appendingPathComponent("ForumindShare.appex")
-        let script = try String(contentsOf: appex.appendingPathComponent("PageFactsProbe.js"), encoding: .utf8)
+        let shareDir: URL
+        if let appex = Bundle.main.builtInPlugInsURL?.appendingPathComponent("ForumindShare.appex"),
+           FileManager.default.fileExists(atPath: appex.path) {
+            shareDir = appex
+        } else {
+            shareDir = URL(fileURLWithPath: #filePath)
+                .deletingLastPathComponent()
+                .deletingLastPathComponent()
+                .deletingLastPathComponent()
+                .appendingPathComponent("ForumindShare", isDirectory: true)
+        }
+        let script = try String(contentsOf: shareDir.appendingPathComponent("PageFactsProbe.js"), encoding: .utf8)
 
         func runShareProbe(url: String, title: String, hasHNMain: Bool, hasSubmission: Bool) throws -> [String: Any] {
             let js = try XCTUnwrap(JSContext())

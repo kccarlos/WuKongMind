@@ -1,7 +1,7 @@
 import Foundation
 
 // Links handed to the app from outside: the share extension (Safari, Chrome,
-// any app sharing a web page) and `forumind://` deep links.
+// any app sharing a web page) and `wukongmind://` deep links.
 //
 // Compiled into both the app and the ForumindShare extension, so it
 // must stay Foundation-only and extension-safe.
@@ -36,10 +36,10 @@ struct IncomingLinkRequest: Codable, Equatable, Identifiable {
 }
 
 enum IncomingLink {
-    static let scheme = "forumind"
+    static let scheme = "wukongmind"
     static let host = "open"
 
-    /// `forumind://open?url=<enc>&action=<a>&title=<enc>&id=<uuid>`.
+    /// `wukongmind://open?url=<enc>&action=<a>&title=<enc>&id=<uuid>`.
     /// `id` lets the app skip the matching SharedInbox entry, since the share
     /// extension both enqueues a request and opens this URL.
     static func url(for request: IncomingLinkRequest) -> URL {
@@ -61,7 +61,7 @@ enum IncomingLink {
         return components.url ?? URL(string: "\(scheme)://\(host)")!
     }
 
-    /// Accepts `forumind://open?...`.
+    /// Accepts `wukongmind://open?...`.
     /// Returns nil unless the page URL is http(s). Unknown or missing actions
     /// fall back to `.open`.
     static func parse(_ url: URL, now: Date = Date()) -> IncomingLinkRequest? {
@@ -162,6 +162,9 @@ enum SharedInbox {
     static var storageURL: URL? {
         if let storageURLOverride {
             return storageURLOverride
+        }
+        guard AppIdentity.isAppGroupEnabled else {
+            return nil
         }
         return FileManager.default
             .containerURL(forSecurityApplicationGroupIdentifier: appGroupIdentifier)?

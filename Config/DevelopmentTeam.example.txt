@@ -6,15 +6,15 @@
 #   ruby scripts/generate_project.rb
 #
 # The DEVELOPMENT_TEAM environment variable takes precedence over this file.
-# Without either, the project is generated with no team: simulator and
-# unsigned builds (CODE_SIGNING_ALLOWED=NO) still work.
+# Without either, the project uses WukongMind's default team (GV776BZVA8).
+# Simulator and unsigned builds (CODE_SIGNING_ALLOWED=NO) still work.
 #
-# With a team, iCloud sync (CloudKit) is turned on and the app is signed with
-# the iCloud entitlements; set DC_ENABLE_CLOUDKIT=NO for a free personal team.
-# See docs/DEVELOPMENT.md.
+# iCloud sync (CloudKit) and the share extension are off by default until
+# their portal identifiers are registered; enable with DC_ENABLE_CLOUDKIT=YES
+# and DC_ENABLE_SHARE_EXTENSION=YES. See docs/DEVELOPMENT.md.
 #
 # Forks can also build under their own identifiers with BUNDLE_ID_PREFIX
-# (default io.github.kccarlos.forumind).
+# (default io.github.kccarlos.wukongmind).
 #
 # Lines starting with # are ignored.
 # ABCDE12345

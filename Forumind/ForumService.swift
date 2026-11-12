@@ -68,8 +68,14 @@ final class ForumService: Sendable {
     /// gives up after 60 s itself); after it the request goes out directly.
     let resourceLoaderTimeout: Duration
 
+    static let defaultSession = URLSession(
+        configuration: .default,
+        delegate: ForumRedirectGuard.shared,
+        delegateQueue: nil
+    )
+
     init(
-        session: URLSession = .shared,
+        session: URLSession = ForumService.defaultSession,
         pacer: ForumRequestPacer = ForumRequestPacer(),
         resourceLoaderTimeout: Duration = .seconds(75)
     ) {
@@ -178,9 +184,16 @@ final class ForumService: Sendable {
             request.setValue(cookieHeader, forHTTPHeaderField: "Cookie")
         }
 
+        // Avoid per-task delegate registration on URLProtocol stub sessions
+        // (or sessions that already carry ForumRedirectGuard) so synchronous
+        // URLProtocol.startLoading() completions cannot race task.delegate.
+        let taskDelegate: URLSessionTaskDelegate? =
+            (session.delegate == nil && (session.configuration.protocolClasses ?? []).isEmpty)
+            ? ForumRedirectGuard.shared
+            : nil
         let (data, response) = try await session.data(
             for: request,
-            delegate: ForumRedirectGuard.shared
+            delegate: taskDelegate
         )
         guard let http = response as? HTTPURLResponse else {
             throw AssistantError.invalidResponse

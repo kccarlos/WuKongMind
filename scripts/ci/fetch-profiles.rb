@@ -58,7 +58,10 @@ ARGV.each do |name|
 
   # The name filter can match by prefix; take the exact name only.
   matches = JSON.parse(response.body).fetch("data").select { |item| item.dig("attributes", "name") == name }
-  abort "fetch-profiles: no active profile named #{name.inspect}" if matches.empty?
+  if matches.empty?
+    warn "fetch-profiles: no active profile named #{name.inspect}"
+    exit 2
+  end
   profile = matches.max_by { |item| item.dig("attributes", "expirationDate").to_s }
   attributes = profile.fetch("attributes")
   content = Base64.decode64(attributes.fetch("profileContent"))

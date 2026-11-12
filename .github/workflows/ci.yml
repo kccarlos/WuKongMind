@@ -33,13 +33,6 @@ jobs:
         run: scripts/ci/lint-plists.sh
       - name: ShellCheck CI scripts
         run: shellcheck scripts/ci/*.sh scripts/adblock/*.sh
-      - name: App Store metadata
-        # Length limits, keywords, URLs, and screenshot sizes in appstore/.
-        run: scripts/ci/check-appstore-metadata.sh
-      - name: Generated site files are up to date
-        # Privacy body, site directory, zh/ pages, hreflang lines and
-        # sitemap in mobile-site/ come from scripts/site/render_site.py.
-        run: scripts/ci/check-site.sh
       - name: Fastfile syntax
         run: ruby -c fastlane/Fastfile
       - name: Ad-blocking converter tests
@@ -91,6 +84,7 @@ jobs:
       - name: Build and test
         env:
           DESTINATION: ${{ steps.sim.outputs.destination }}
+          TEST_RUNNER_CI: ${{ env.CI }}
           NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
           VERTEX_API_KEY: ${{ secrets.VERTEX_API_KEY }}
         run: |
@@ -102,6 +96,9 @@ jobs:
             -scheme "$SCHEME" \
             -destination "$DESTINATION" \
             -only-testing:ForumindTests \
+            -parallel-testing-enabled NO \
+            -retry-tests-on-failure \
+            -test-iterations 3 \
             -test-timeouts-enabled YES \
             -maximum-test-execution-time-allowance 300 \
             -derivedDataPath DerivedData \

@@ -256,6 +256,11 @@ final class ForumBrowserModel: NSObject, ObservableObject {
         configuration.websiteDataStore = .default()
         configuration.defaultWebpagePreferences.allowsContentJavaScript = true
         configuration.preferences.isElementFullscreenEnabled = true
+        #if DEBUG
+        if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil {
+            Self.disableWebKitScreenTimeForTesting(in: configuration)
+        }
+        #endif
         configuration.userContentController.addUserScript(
             WKUserScript(
                 source: Self.routeObserverScript(probeExpression: probeExpression),
@@ -1143,6 +1148,52 @@ extension ForumBrowserModel: WKNavigationDelegate {
         }
         return false
     }
+
+    #if DEBUG
+    private static let swizzleWebKitScreenTimeOnce: Void = {
+        let noop: @convention(block) (AnyObject) -> Void = { _ in }
+        let imp = imp_implementationWithBlock(noop)
+        for selectorName in [
+            "_installScreenTimeWebpageControllerIfNeeded",
+            "_updateScreenTimeBasedOnWindowVisibility"
+        ] {
+            if let method = class_getInstanceMethod(WKWebView.self, NSSelectorFromString(selectorName)) {
+                method_setImplementation(method, imp)
+            }
+        }
+        for className in [
+            "WKScreenTimeConfigurationObserver",
+            "STScreenTimeWebBrowserSettingsObserver"
+        ] {
+            if let cls = NSClassFromString(className),
+               let method = class_getInstanceMethod(cls, NSSelectorFromString("startObserving")) {
+                method_setImplementation(method, imp)
+            }
+        }
+        let returnFalse: @convention(block) (AnyObject) -> Bool = { _ in false }
+        let falseImp = imp_implementationWithBlock(returnFalse)
+        for selectorName in [
+            "showsSystemScreenTimeBlockingView",
+            "_showsSystemScreenTimeBlockingView"
+        ] {
+            if let method = class_getInstanceMethod(WKWebViewConfiguration.self, NSSelectorFromString(selectorName)) {
+                method_setImplementation(method, falseImp)
+            }
+        }
+    }()
+
+    /// In iOS 26.2 Simulator, `WKWebView` installs `STScreenTimeWebBrowserSettingsObserver`
+    /// whenever it enters a `UIWindow`, which spawns a Swift cooperative-pool task that blocks
+    /// synchronously on XPC to `ScreenTimeSettingsAgent` / `dasd`. On a 3-vCPU CI runner,
+    /// three windowed `WKWebView`s exhaust all three cooperative threads and hang `Task.sleep`
+    /// and actor hops for the remainder of the test suite.
+    static func disableWebKitScreenTimeForTesting(in configuration: WKWebViewConfiguration) {
+        _ = swizzleWebKitScreenTimeOnce
+        if #available(iOS 26.0, *) {
+            configuration.showsSystemScreenTimeBlockingView = false
+        }
+    }
+    #endif
 }
 
 extension ForumBrowserModel: WKUIDelegate {

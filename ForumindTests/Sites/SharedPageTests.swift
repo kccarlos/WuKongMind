@@ -10,9 +10,20 @@ final class SharedPageTests: XCTestCase {
 
     // MARK: The shipped script
 
+    private static var shareExtensionDirectory: URL {
+        if let appex = Bundle.main.builtInPlugInsURL?.appendingPathComponent("ForumindShare.appex"),
+           FileManager.default.fileExists(atPath: appex.path) {
+            return appex
+        }
+        return URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("ForumindShare", isDirectory: true)
+    }
+
     private func shippedScript() throws -> String {
-        let appex = try XCTUnwrap(Bundle.main.builtInPlugInsURL).appendingPathComponent("ForumindShare.appex")
-        return try String(contentsOf: appex.appendingPathComponent("PageFactsProbe.js"), encoding: .utf8)
+        try String(contentsOf: Self.shareExtensionDirectory.appendingPathComponent("PageFactsProbe.js"), encoding: .utf8)
     }
 
     func testTheShippedScriptIsTheAppProbeForTheDeclaredKeys() throws {
@@ -72,12 +83,18 @@ final class SharedPageTests: XCTestCase {
     }
 
     func testTheInfoPlistNamesTheShippedScript() throws {
-        let appex = try XCTUnwrap(Bundle.main.builtInPlugInsURL).appendingPathComponent("ForumindShare.appex")
-        let info = try XCTUnwrap(Bundle(url: appex)?.infoDictionary)
+        let dir = Self.shareExtensionDirectory
+        let info: [String: Any]
+        if let bundleInfo = Bundle(url: dir)?.infoDictionary, bundleInfo["NSExtension"] != nil {
+            info = bundleInfo
+        } else {
+            let plistData = try Data(contentsOf: dir.appendingPathComponent("Info.plist"))
+            info = try XCTUnwrap(PropertyListSerialization.propertyList(from: plistData, format: nil) as? [String: Any])
+        }
         let extensionInfo = try XCTUnwrap(info["NSExtension"] as? [String: Any])
         let attributes = try XCTUnwrap(extensionInfo["NSExtensionAttributes"] as? [String: Any])
         let name = try XCTUnwrap(attributes["NSExtensionJavaScriptPreprocessingFile"] as? String)
-        XCTAssertTrue(FileManager.default.fileExists(atPath: appex.appendingPathComponent("\(name).js").path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: dir.appendingPathComponent("\(name).js").path))
     }
 
     func testTheShippedScriptRunsAndReportsAPropertyList() throws {

@@ -8,7 +8,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Forumind"
+            "value" : "WukongMind"
           }
         }
       },
@@ -21,7 +21,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Forumind"
+            "value" : "WukongMind"
           }
         }
       },
@@ -58,19 +58,19 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Forumind can connect to an Ollama or LM Studio server on your local network."
+            "value" : "WukongMind can connect to an Ollama or LM Studio server on your local network."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Forumind 可以连接你本地网络上的 Ollama 或 LM Studio 服务器。"
+            "value" : "WukongMind 可以连接你本地网络上的 Ollama 或 LM Studio 服务器。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Forumind 可以連線到你區域網路上的 Ollama 或 LM Studio 伺服器。"
+            "value" : "WukongMind 可以連線到你區域網路上的 Ollama 或 LM Studio 伺服器。"
           }
         }
       }
@@ -82,19 +82,19 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Forumind uses the microphone when you talk to its voice assistant, and when a forum page asks you to record a video with sound."
+            "value" : "WukongMind uses the microphone when you talk to its voice assistant, and when a forum page asks you to record a video with sound."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当你与 Forumind 的语音助手对话时，以及论坛网页请求录制带声音的视频时，Forumind 会使用麦克风。"
+            "value" : "当你与 WukongMind 的语音助手对话时，以及论坛网页请求录制带声音的视频时，WukongMind 会使用麦克风。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "當你與 Forumind 的語音助理對話時，以及論壇網頁要求錄製含聲音的影片時，Forumind 會使用麥克風。"
+            "value" : "當你與 WukongMind 的語音助理對話時，以及論壇網頁要求錄製含聲音的影片時，WukongMind 會使用麥克風。"
           }
         }
       }
@@ -106,19 +106,19 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Forumind can save images from forum pages to your photo library when you ask it to."
+            "value" : "WukongMind can save images from forum pages to your photo library when you ask it to."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在你要求时，Forumind 可以将论坛网页中的图片保存到你的照片图库。"
+            "value" : "在你要求时，WukongMind 可以将论坛网页中的图片保存到你的照片图库。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在你要求時，Forumind 可以將論壇網頁中的圖片儲存到你的照片圖庫。"
+            "value" : "在你要求時，WukongMind 可以將論壇網頁中的圖片儲存到你的照片圖庫。"
           }
         }
       }

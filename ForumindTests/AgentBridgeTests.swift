@@ -257,6 +257,7 @@ final class AgentBridgeTests: XCTestCase {
         let config = WKWebViewConfiguration()
         config.websiteDataStore = .nonPersistent()
         config.defaultWebpagePreferences.allowsContentJavaScript = true
+        ForumBrowserModel.disableWebKitScreenTimeForTesting(in: config)
 
         let webView = WKWebView(frame: CGRect(x: 0, y: 0, width: 390, height: 844), configuration: config)
         let bridge = AgentBridge(webView: webView)

@@ -28,12 +28,12 @@ mkdir -p "$work/generated" "$work/committed"
 ) | tar -xf - -C "$work/generated"
 cp -R "$repo_root/$proj" "$work/committed/$proj"
 
-# The committed project is generated with the defaults (no team, so no
-# CloudKit or generated entitlements; default identifiers, build 1), so
-# ignore any local overrides. Config/DevelopmentTeam.txt is git-ignored, so
-# it is not copied into the temporary tree.
+# The committed project is generated with the defaults (default team, default
+# identifiers, build 1, no optional capabilities), so ignore any local
+# overrides. Config/DevelopmentTeam.txt is git-ignored, so it is not copied
+# into the temporary tree.
 (cd "$work/generated" &&
-  env -u DEVELOPMENT_TEAM -u BUNDLE_ID_PREFIX -u BUILD_NUMBER -u DC_ENABLE_PCC -u DC_ENABLE_CLOUDKIT ruby scripts/generate_project.rb >/dev/null)
+  env -u DEVELOPMENT_TEAM -u BUNDLE_ID_PREFIX -u BUILD_NUMBER -u DC_ENABLE_PCC -u DC_ENABLE_CLOUDKIT -u DC_ENABLE_SHARE_EXTENSION -u DC_ENABLE_APP_GROUP ruby scripts/generate_project.rb >/dev/null)
 
 status=0
 echo "== project.pbxproj (object graph, UUIDs ignored)"

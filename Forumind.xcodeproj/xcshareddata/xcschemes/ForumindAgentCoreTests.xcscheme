@@ -14,7 +14,7 @@
             buildForAnalyzing = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "84B47FFF9DD57CDC5F3E178C"
+               BlueprintIdentifier = "6E2BCDAF2659E5835784C181"
                BuildableName = "ForumindAgentCoreTests.xctest"
                BlueprintName = "ForumindAgentCoreTests"
                ReferencedContainer = "container:Forumind.xcodeproj">
@@ -32,7 +32,7 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "84B47FFF9DD57CDC5F3E178C"
+               BlueprintIdentifier = "6E2BCDAF2659E5835784C181"
                BuildableName = "ForumindAgentCoreTests.xctest"
                BlueprintName = "ForumindAgentCoreTests"
                ReferencedContainer = "container:Forumind.xcodeproj">

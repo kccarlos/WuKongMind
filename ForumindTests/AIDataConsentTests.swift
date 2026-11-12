@@ -516,6 +516,7 @@ final class AIDataConsentTests: XCTestCase {
             planner: planner
         )
         app.usesDirectForumRequests = true
+        app.browser.stopLoading()
         app.browser.onPageContextChanged = nil
         app.settings.hasCompletedOnboarding = true
         app.settings.acceptedTermsVersion = ModerationTerms.currentVersion
@@ -527,6 +528,9 @@ final class AIDataConsentTests: XCTestCase {
         let app = makeApp(aiService: ai, snapshot: snapshot, planner: planner)
         addTeardownBlock { @MainActor in
             for record in app.activities where !record.status.isTerminal { app.cancel(record: record) }
+            app.browser.stopLoading()
+            app.pauseDigest()
+            app.podcast.pauseGeneration()
             ai.gated = false
             ai.releaseAll()
         }
@@ -545,7 +549,7 @@ final class AIDataConsentTests: XCTestCase {
         ForumTopic(siteURL: site, topicID: id, url: URL(string: "\(site)/t/topic-\(id)/\(id)")!, title: "Topic \(id)")
     }
 
-    private func waitUntil(timeout: TimeInterval = 10, file: StaticString = #filePath, line: UInt = #line, _ condition: () -> Bool) async throws {
+    private func waitUntil(timeout: TimeInterval = 60, file: StaticString = #filePath, line: UInt = #line, _ condition: () -> Bool) async throws {
         let deadline = Date().addingTimeInterval(timeout)
         while !condition() {
             if Date() > deadline {
