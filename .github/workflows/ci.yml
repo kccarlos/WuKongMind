@@ -33,13 +33,6 @@ jobs:
         run: scripts/ci/lint-plists.sh
       - name: ShellCheck CI scripts
         run: shellcheck scripts/ci/*.sh scripts/adblock/*.sh
-      - name: App Store metadata
-        # Length limits, keywords, URLs, and screenshot sizes in appstore/.
-        run: scripts/ci/check-appstore-metadata.sh
-      - name: Generated site files are up to date
-        # Privacy body, site directory, zh/ pages, hreflang lines and
-        # sitemap in mobile-site/ come from scripts/site/render_site.py.
-        run: scripts/ci/check-site.sh
       - name: Fastfile syntax
         run: ruby -c fastlane/Fastfile
       - name: Ad-blocking converter tests

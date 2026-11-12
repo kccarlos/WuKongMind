@@ -1,16 +1,15 @@
 name: Release
 
-# Every push to main (each publish from the development repo) uploads a
-# TestFlight build. Tag v1.2.3 to also publish a GitHub Release, or run it
-# manually for metadata and review submission. Every signed step is skipped cleanly when the App Store
-# Connect secrets or the DEVELOPMENT_TEAM variable are missing, so forks and
-# fresh clones stay green. See docs/CI.md.
+# Every push to main (when app sources change) uploads a TestFlight build of
+# WukongMind (bundle ID io.github.kccarlos.wukongmind, app ID 6833832262).
+# Tag v1.2.3 to also publish a GitHub Release, or run it manually via
+# workflow_dispatch. Every signed step is skipped cleanly when the App Store
+# Connect secrets or the DEVELOPMENT_TEAM variable are missing.
 
 on:
   push:
     branches: [main]
     tags: ['v*']
-    # Docs, store texts and the website don't change the app; metadata goes up manually.
     paths-ignore:
       - '**.md'
       - 'docs/**'
@@ -28,18 +27,6 @@ on:
         description: Archive, sign, and upload to TestFlight
         type: boolean
         default: true
-      submit_metadata:
-        description: Upload App Store metadata from appstore/ with fastlane deliver
-        type: boolean
-        default: false
-      upload_screenshots:
-        description: Also upload screenshots from appstore/screenshots (replaces existing ones)
-        type: boolean
-        default: false
-      submit_for_review:
-        description: Submit the version for App Review after uploading metadata
-        type: boolean
-        default: false
 
 # Never cancel a release or upload midway.
 concurrency:
@@ -54,16 +41,19 @@ env:
   SCHEME: Forumind
   XCODE_APP: ${{ vars.CI_XCODE_APP || '/Applications/Xcode_27.2.app' }}
   # Repo variables (Settings -> Secrets and variables -> Actions -> Variables).
-  DEVELOPMENT_TEAM: ${{ vars.DEVELOPMENT_TEAM }}
-  # App Store profiles (manual signing), created once with the distribution
-  # certificate; see docs/CI.md.
-  PROFILE_APP: Forumind App Store
-  PROFILE_SHARE: Forumind Share App Store
-  BUNDLE_ID_PREFIX: ${{ vars.BUNDLE_ID_PREFIX }}
+  DEVELOPMENT_TEAM: ${{ vars.DEVELOPMENT_TEAM || 'GV776BZVA8' }}
+  APP_APPLE_ID: '6833832262'
+  # App Store profile (manual signing), created once with the distribution
+  # certificate; if omitted or not yet created on the portal, falls back to
+  # automatic signing with the App Store Connect API key.
+  PROFILE_APP: ${{ vars.PROFILE_APP || 'WukongMind App Store' }}
+  BUNDLE_ID_PREFIX: ${{ vars.BUNDLE_ID_PREFIX || 'io.github.kccarlos.wukongmind' }}
   DC_ENABLE_PCC: ${{ vars.DC_ENABLE_PCC || 'NO' }}
-  # Empty: CloudKit (iCloud sync) follows DEVELOPMENT_TEAM, so it is on in the
-  # TestFlight build. NO turns it off.
-  DC_ENABLE_CLOUDKIT: ${{ vars.DC_ENABLE_CLOUDKIT }}
+  # Share extension and iCloud sync stay off until their portal identifiers are
+  # registered.
+  DC_ENABLE_CLOUDKIT: ${{ vars.DC_ENABLE_CLOUDKIT || 'NO' }}
+  DC_ENABLE_SHARE_EXTENSION: ${{ vars.DC_ENABLE_SHARE_EXTENSION || 'NO' }}
+  DC_ENABLE_APP_GROUP: ${{ vars.DC_ENABLE_APP_GROUP || 'NO' }}
 
 jobs:
   # `secrets` can't be used in a job-level `if:`, so compute what can run here.
@@ -74,7 +64,6 @@ jobs:
     outputs:
       asc: ${{ steps.check.outputs.asc }}
       signing: ${{ steps.check.outputs.signing }}
-      metadata: ${{ steps.check.outputs.metadata }}
       version: ${{ steps.version.outputs.version }}
       build: ${{ steps.version.outputs.build }}
     steps:
@@ -83,13 +72,12 @@ jobs:
           # Signing material is in 1Password (vault github); this is the token.
           HAS_OP: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN != '' }}
           WANT_TESTFLIGHT: ${{ github.event_name != 'workflow_dispatch' || inputs.testflight }}
-          WANT_METADATA: ${{ github.event_name == 'workflow_dispatch' && inputs.submit_metadata }}
         run: |
-          asc=false signing=false metadata=false
+          asc=false signing=false
           if [[ "$HAS_OP" == true ]]; then
             asc=true
           else
-            echo "::notice::OP_SERVICE_ACCOUNT_TOKEN is not set; skipping TestFlight and metadata."
+            echo "::notice::OP_SERVICE_ACCOUNT_TOKEN is not set; skipping TestFlight."
           fi
           if [[ "$asc" == true && "$WANT_TESTFLIGHT" == true ]]; then
             if [[ -z "$DEVELOPMENT_TEAM" ]]; then
@@ -98,13 +86,9 @@ jobs:
               signing=true
             fi
           fi
-          if [[ "$asc" == true && "$WANT_METADATA" == true ]]; then
-            metadata=true
-          fi
           {
             echo "asc=$asc"
             echo "signing=$signing"
-            echo "metadata=$metadata"
           } >>"$GITHUB_OUTPUT"
       - id: version
         env:
@@ -174,11 +158,11 @@ jobs:
           mkdir -p dist
           ditto -c -k --sequesterRsrc --keepParent \
             DerivedData/Build/Products/Release-iphonesimulator/Forumind.app \
-            dist/Forumind-simulator.app.zip
+            dist/WukongMind-simulator.app.zip
       - uses: actions/upload-artifact@v7
         with:
           name: simulator-app
-          path: dist/Forumind-simulator.app.zip
+          path: dist/WukongMind-simulator.app.zip
           if-no-files-found: error
 
   testflight:
@@ -201,9 +185,6 @@ jobs:
           bundler-cache: true
 
       - name: Generate project for this team and bundle ID
-        # The committed project has no team and default IDs; regenerate with
-        # the repo variables (DEVELOPMENT_TEAM, BUNDLE_ID_PREFIX, DC_ENABLE_PCC,
-        # DC_ENABLE_CLOUDKIT). With a team, CloudKit is on.
         env:
           BUILD_NUMBER: ${{ needs.preflight.outputs.build }}
         run: bundle exec ruby scripts/generate_project.rb
@@ -274,59 +255,89 @@ jobs:
           APPLE_CERTIFICATE_PASSWORD: ${{ steps.op1.outputs.APPLE_CERTIFICATE_PASSWORD || steps.op2.outputs.APPLE_CERTIFICATE_PASSWORD || steps.op3.outputs.APPLE_CERTIFICATE_PASSWORD }}
         run: scripts/ci/import-signing.sh
 
-      # Manual signing: the App Store profiles come from the API (read-only).
-      # CI never creates certificates or profiles.
-      - name: App Store profiles
-        run: ruby scripts/ci/fetch-profiles.rb "$PROFILE_APP" "$PROFILE_SHARE"
+      # Prefer manual signing with the pre-created App Store profile when present
+      # on App Store Connect; otherwise fall back to automatic signing with the
+      # App Store Connect API key.
+      - name: App Store profile
+        id: profile
+        run: |
+          if ruby scripts/ci/fetch-profiles.rb "$PROFILE_APP"; then
+            echo "manual=true" >>"$GITHUB_OUTPUT"
+          else
+            echo "::notice::No active profile named '$PROFILE_APP'; using automatic signing with App Store Connect API key."
+            echo "manual=false" >>"$GITHUB_OUTPUT"
+          fi
 
       - name: Archive
+        env:
+          MANUAL_SIGNING: ${{ steps.profile.outputs.manual }}
         run: |
           set -o pipefail
           extra=()
           [[ -n "$VERSION" ]] && extra+=("MARKETING_VERSION=$VERSION")
-          # The profile specifier is a build-setting expression, expanded per
-          # target by xcodebuild (not by the shell).
-          # shellcheck disable=SC2016
+          if [[ "$MANUAL_SIGNING" == true ]]; then
+            # shellcheck disable=SC2016
+            signing_args=(
+              CODE_SIGN_STYLE=Manual
+              CODE_SIGN_IDENTITY="Apple Distribution"
+              'PROVISIONING_PROFILE_SPECIFIER=$(DC_PROFILE_$(TARGET_NAME))'
+              DC_PROFILE_Forumind="$PROFILE_APP"
+            )
+          else
+            signing_args=(
+              CODE_SIGN_STYLE=Automatic
+              -allowProvisioningUpdates
+              -authenticationKeyPath "$ASC_KEY_PATH"
+              -authenticationKeyID "$APP_STORE_CONNECT_API_KEY_ID"
+              -authenticationKeyIssuerID "$APP_STORE_CONNECT_ISSUER_ID"
+            )
+          fi
           xcodebuild archive \
             -project "$PROJECT" \
             -scheme "$SCHEME" \
             -configuration Release \
             -destination 'generic/platform=iOS' \
-            -archivePath build/Forumind.xcarchive \
+            -archivePath build/WukongMind.xcarchive \
             DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
-            CODE_SIGN_STYLE=Manual \
-            CODE_SIGN_IDENTITY="Apple Distribution" \
-            'PROVISIONING_PROFILE_SPECIFIER=$(DC_PROFILE_$(TARGET_NAME))' \
-            DC_PROFILE_Forumind="$PROFILE_APP" \
-            DC_PROFILE_ForumindShare="$PROFILE_SHARE" \
             CURRENT_PROJECT_VERSION="$BUILD" \
+            "${signing_args[@]}" \
             "${extra[@]}" \
             | xcbeautify --renderer github-actions
 
       - name: Export IPA
+        env:
+          MANUAL_SIGNING: ${{ steps.profile.outputs.manual }}
         run: |
           set -o pipefail
-          scripts/ci/write-export-options.sh build/ExportOptions.plist
+          if [[ "$MANUAL_SIGNING" == true ]]; then
+            PROFILE_APP="$PROFILE_APP" PROFILE_SHARE="" scripts/ci/write-export-options.sh build/ExportOptions.plist
+            export_auth=()
+          else
+            PROFILE_APP="" PROFILE_SHARE="" scripts/ci/write-export-options.sh build/ExportOptions.plist
+            export_auth=(
+              -allowProvisioningUpdates
+              -authenticationKeyPath "$ASC_KEY_PATH"
+              -authenticationKeyID "$APP_STORE_CONNECT_API_KEY_ID"
+              -authenticationKeyIssuerID "$APP_STORE_CONNECT_ISSUER_ID"
+            )
+          fi
           xcodebuild -exportArchive \
-            -archivePath build/Forumind.xcarchive \
+            -archivePath build/WukongMind.xcarchive \
             -exportOptionsPlist build/ExportOptions.plist \
             -exportPath build/export \
+            "${export_auth[@]}" \
             | xcbeautify --renderer github-actions
           mkdir -p dist
-          cp build/export/*.ipa dist/Forumind.ipa
-          ditto -c -k --keepParent build/Forumind.xcarchive/dSYMs dist/Forumind-dSYMs.zip
+          cp build/export/*.ipa dist/WukongMind.ipa
+          ditto -c -k --keepParent build/WukongMind.xcarchive/dSYMs dist/WukongMind-dSYMs.zip
 
       - name: Upload to TestFlight
         env:
           APP_STORE_CONNECT_API_KEY_P8_BASE64: ${{ steps.op1.outputs.APP_STORE_CONNECT_API_KEY_P8_BASE64 || steps.op2.outputs.APP_STORE_CONNECT_API_KEY_P8_BASE64 || steps.op3.outputs.APP_STORE_CONNECT_API_KEY_P8_BASE64 }}
-          # Submitting for review in this run needs the processed build.
-          WAIT: ${{ github.event_name == 'workflow_dispatch' && inputs.submit_for_review }}
           # Repo variable: external groups (comma-separated) that get every
-          # build, e.g. "Public beta". Empty: upload only.
+          # build, e.g. "Myself". Empty: upload only.
           TESTFLIGHT_GROUPS: ${{ vars.TESTFLIGHT_GROUPS }}
         run: |
-          # "What to Test": the commit message (the publish summary), unless
-          # it is publish.sh's default; then the App Store release notes.
           subject="$(git log -1 --format=%s)"
           if [[ -n "$subject" && "$subject" != "Sync from development" ]]; then
             body="$(git log -1 --format=%B | sed -e '/^Claude-Session:/d')"
@@ -334,103 +345,22 @@ jobs:
 
           Please report anything that looks wrong or confusing through TestFlight feedback or GitHub issues."
           fi
-          bundle exec fastlane beta ipa:dist/Forumind.ipa wait:"$WAIT" groups:"$TESTFLIGHT_GROUPS"
+          bundle exec fastlane beta ipa:dist/WukongMind.ipa groups:"$TESTFLIGHT_GROUPS"
 
       - uses: actions/upload-artifact@v7
         with:
           name: ipa
-          path: dist/Forumind.ipa
+          path: dist/WukongMind.ipa
           if-no-files-found: error
       - uses: actions/upload-artifact@v7
         with:
           name: dsyms
-          path: dist/Forumind-dSYMs.zip
+          path: dist/WukongMind-dSYMs.zip
           if-no-files-found: error
 
       - name: Clean up signing material
         if: always()
         run: scripts/ci/cleanup-signing.sh
-
-  metadata:
-    name: App Store metadata
-    needs: [preflight, testflight]
-    # Runs after the TestFlight job when both were requested, or on its own.
-    if: >-
-      always() && needs.preflight.outputs.metadata == 'true' &&
-      (needs.testflight.result == 'success' || needs.testflight.result == 'skipped')
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    environment: testflight
-    steps:
-      - uses: actions/checkout@v7
-      - name: Validate metadata
-        run: scripts/ci/check-appstore-metadata.sh
-      - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.3'
-          bundler-cache: true
-      # 1Password, three attempts 30 s apart: the CLI fails intermittently on
-      # macOS 27 runners (see docs/CI.md). Values are step outputs, so only the
-      # steps that name them see them; a failed attempt leaves its outputs empty.
-      - name: Secrets from 1Password (attempt 1)
-        id: op1
-        continue-on-error: true
-        uses: 1password/load-secrets-action@70062d7a876d3eb6334754fa26efd2fbd90c32f2 # v5.0.1
-        with:
-          export-env: false
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          APP_STORE_CONNECT_API_KEY_ID: op://github/app-store-connect-api-key/key_id
-          APP_STORE_CONNECT_ISSUER_ID: op://github/app-store-connect-api-key/issuer_id
-          APP_STORE_CONNECT_API_KEY_P8_BASE64: op://github/app-store-connect-api-key/p8_base64
-      - name: Wait before 1Password attempt 2
-        if: steps.op1.outcome == 'failure'
-        run: sleep 30
-      - name: Secrets from 1Password (attempt 2)
-        id: op2
-        if: steps.op1.outcome == 'failure'
-        continue-on-error: true
-        uses: 1password/load-secrets-action@70062d7a876d3eb6334754fa26efd2fbd90c32f2 # v5.0.1
-        with:
-          export-env: false
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          APP_STORE_CONNECT_API_KEY_ID: op://github/app-store-connect-api-key/key_id
-          APP_STORE_CONNECT_ISSUER_ID: op://github/app-store-connect-api-key/issuer_id
-          APP_STORE_CONNECT_API_KEY_P8_BASE64: op://github/app-store-connect-api-key/p8_base64
-      - name: Wait before 1Password attempt 3
-        if: steps.op2.outcome == 'failure'
-        run: sleep 30
-      - name: Secrets from 1Password (attempt 3)
-        id: op3
-        if: steps.op2.outcome == 'failure'
-        uses: 1password/load-secrets-action@70062d7a876d3eb6334754fa26efd2fbd90c32f2 # v5.0.1
-        with:
-          export-env: false
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          APP_STORE_CONNECT_API_KEY_ID: op://github/app-store-connect-api-key/key_id
-          APP_STORE_CONNECT_ISSUER_ID: op://github/app-store-connect-api-key/issuer_id
-          APP_STORE_CONNECT_API_KEY_P8_BASE64: op://github/app-store-connect-api-key/p8_base64
-
-      # Key and issuer IDs are identifiers, not secrets: exported for every step.
-      - name: App Store Connect key IDs
-        env:
-          APP_STORE_CONNECT_API_KEY_ID: ${{ steps.op1.outputs.APP_STORE_CONNECT_API_KEY_ID || steps.op2.outputs.APP_STORE_CONNECT_API_KEY_ID || steps.op3.outputs.APP_STORE_CONNECT_API_KEY_ID }}
-          APP_STORE_CONNECT_ISSUER_ID: ${{ steps.op1.outputs.APP_STORE_CONNECT_ISSUER_ID || steps.op2.outputs.APP_STORE_CONNECT_ISSUER_ID || steps.op3.outputs.APP_STORE_CONNECT_ISSUER_ID }}
-        run: |
-          echo "APP_STORE_CONNECT_API_KEY_ID=$APP_STORE_CONNECT_API_KEY_ID" >>"$GITHUB_ENV"
-          echo "APP_STORE_CONNECT_ISSUER_ID=$APP_STORE_CONNECT_ISSUER_ID" >>"$GITHUB_ENV"
-
-      - name: Upload metadata with fastlane deliver
-        env:
-          VERSION: ${{ needs.preflight.outputs.version }}
-          SCREENSHOTS: ${{ inputs.upload_screenshots }}
-          APP_STORE_CONNECT_API_KEY_P8_BASE64: ${{ steps.op1.outputs.APP_STORE_CONNECT_API_KEY_P8_BASE64 || steps.op2.outputs.APP_STORE_CONNECT_API_KEY_P8_BASE64 || steps.op3.outputs.APP_STORE_CONNECT_API_KEY_P8_BASE64 }}
-          SUBMIT: ${{ inputs.submit_for_review }}
-        run: |
-          bundle exec fastlane metadata \
-            version:"$VERSION" screenshots:"$SCREENSHOTS" submit:"$SUBMIT"
 
   github-release:
     name: GitHub Release
