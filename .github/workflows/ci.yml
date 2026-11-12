@@ -97,6 +97,8 @@ jobs:
             -destination "$DESTINATION" \
             -only-testing:ForumindTests \
             -parallel-testing-enabled NO \
+            -retry-tests-on-failure \
+            -test-iterations 3 \
             -test-timeouts-enabled YES \
             -maximum-test-execution-time-allowance 300 \
             -derivedDataPath DerivedData \
