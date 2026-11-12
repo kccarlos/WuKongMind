@@ -95,6 +95,7 @@ jobs:
             -scheme "$SCHEME" \
             -destination "$DESTINATION" \
             -only-testing:ForumindTests \
+            -parallel-testing-enabled NO \
             -test-timeouts-enabled YES \
             -maximum-test-execution-time-allowance 300 \
             -derivedDataPath DerivedData \

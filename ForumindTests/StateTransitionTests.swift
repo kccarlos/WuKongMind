@@ -1681,14 +1681,14 @@ final class StateTransitionTests: XCTestCase {
             backgroundGrace: backgroundGrace
         )
         app.usesDirectForumRequests = true
-        app.browser.webView.stopLoading()
+        app.browser.stopLoading()
         // Consent has its own tests (AIDataConsentTests).
         app.allowAllAIProviders()
         let handler = app.browser.onPageContextChanged
         app.browser.onPageContextChanged = nil
         addTeardownBlock { @MainActor in
             for record in app.activities where !record.status.isTerminal { app.cancel(record: record) }
-            app.browser.webView.stopLoading()
+            app.browser.stopLoading()
             app.pauseDigest()
             app.podcast.pauseGeneration()
             ai.gated = false
@@ -3395,9 +3395,17 @@ final class AIContextValidityTests: XCTestCase {
         addTeardownBlock { try? FileManager.default.removeItem(at: directory) }
         let cfg = URLSessionConfiguration.ephemeral
         cfg.protocolClasses = [StateForumStub.self]
-        let app = AppModel(store: store, forumService: service ?? ForumService(session: URLSession(configuration: cfg), pacer: ForumRequestPacer(clock: InstantPacingClock())), aiService: ai, planner: planner)
+        let app = AppModel(
+            store: store,
+            forumService: service ?? ForumService(session: URLSession(configuration: cfg), pacer: ForumRequestPacer(clock: InstantPacingClock())),
+            aiService: ai,
+            planner: planner,
+            podcastDirectory: directory.appendingPathComponent("Podcasts", isDirectory: true),
+            spotlightIndex: FakeSpotlightIndex(),
+            topicActivityDonor: FakeTopicActivityDonor()
+        )
         app.usesDirectForumRequests = true
-        app.browser.webView.stopLoading()
+        app.browser.stopLoading()
         app.settings.hasCompletedOnboarding = true
         app.acceptTerms()
         app.allowAllAIProviders()
@@ -3407,6 +3415,7 @@ final class AIContextValidityTests: XCTestCase {
         deliverPage = { app.browser.setPageContext($0); handler?($0) }
         addTeardownBlock { @MainActor in
             for record in app.activities where !record.status.isTerminal { app.cancel(record: record) }
+            app.browser.stopLoading()
             app.pauseDigest()
             app.podcast.pauseGeneration()
             if let ai = ai as? StateAIStub { ai.gated = false; ai.releaseAll() }

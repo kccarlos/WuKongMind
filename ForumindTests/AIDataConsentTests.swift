@@ -516,7 +516,7 @@ final class AIDataConsentTests: XCTestCase {
             planner: planner
         )
         app.usesDirectForumRequests = true
-        app.browser.webView.stopLoading()
+        app.browser.stopLoading()
         app.browser.onPageContextChanged = nil
         app.settings.hasCompletedOnboarding = true
         app.settings.acceptedTermsVersion = ModerationTerms.currentVersion
@@ -528,7 +528,7 @@ final class AIDataConsentTests: XCTestCase {
         let app = makeApp(aiService: ai, snapshot: snapshot, planner: planner)
         addTeardownBlock { @MainActor in
             for record in app.activities where !record.status.isTerminal { app.cancel(record: record) }
-            app.browser.webView.stopLoading()
+            app.browser.stopLoading()
             app.pauseDigest()
             app.podcast.pauseGeneration()
             ai.gated = false
