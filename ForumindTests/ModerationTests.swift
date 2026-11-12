@@ -1047,9 +1047,12 @@ final class CommentPageModerationTests: XCTestCase {
         let siteURL = "\(pageURL.scheme!)://\(pageURL.host!)"
         let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
         let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.frame = CGRect(x: 0, y: 0, width: 390, height: 844)
         let host = UIViewController()
+        host.view.frame = window.bounds
         window.rootViewController = host
         window.makeKeyAndVisible()
+        window.layoutIfNeeded()
         browser.webView.frame = host.view.bounds
         host.view.addSubview(browser.webView)
         defer {
@@ -1648,10 +1651,13 @@ final class CommentBridgeReviewTests: XCTestCase {
         browser.setPageContext(readyContext)
         browser.applyPendingHighlight(afterLoad: true)
         browser.applyPendingHighlight(afterLoad: true)
-        for _ in 0..<40 {
-            if (try await browser.webView.evaluateJavaScript("window.citationFlashes") as? Int) == 1 { break }
+        for _ in 0..<80 {
+            let currentFlashes = (try await browser.webView.evaluateJavaScript("window.citationFlashes") as? Int) ?? 0
+            let currentOffset = (try await browser.webView.evaluateJavaScript("window.scrollY") as? Double) ?? 0
+            if currentFlashes >= 1, currentOffset > 0 { break }
             try await Task.sleep(for: .milliseconds(50))
         }
+        try await Task.sleep(for: .milliseconds(50))
         let flashes = try await browser.webView.evaluateJavaScript("window.citationFlashes") as? Int
         let offset = try await browser.webView.evaluateJavaScript("window.scrollY") as? Double
         XCTAssertEqual(flashes, 1)
@@ -1668,13 +1674,18 @@ final class CommentBridgeReviewTests: XCTestCase {
             let browser = try await load(adapter, url: url, topicID: "268566", html: html + "<div style='height:6000px'></div>")
             defer { teardown(browser) }
             _ = try await browser.webView.evaluateJavaScript("window.scrollTo(0, 2000); true;")
-            let before = try await browser.webView.evaluateJavaScript("window.scrollY") as? Double
+            var before: Double?
+            for _ in 0..<60 {
+                before = try await browser.webView.evaluateJavaScript("window.scrollY") as? Double
+                if (before ?? 0) > 0 { break }
+                try await Task.sleep(for: .milliseconds(50))
+            }
             XCTAssertGreaterThan(before ?? 0, 0)
             let destination = browser.webView.url
             let outcome = await browser.scrollToPost(1, anchor: adapter.kind == .hackerNews ? "268566" : "")
             XCTAssertEqual(outcome, .shown)
             var after: Double?
-            for _ in 0..<40 {
+            for _ in 0..<60 {
                 after = try await browser.webView.evaluateJavaScript("window.scrollY") as? Double
                 if after == 0 { break }
                 try await Task.sleep(for: .milliseconds(50))
@@ -1752,9 +1763,12 @@ final class CommentBridgeReviewTests: XCTestCase {
         let siteURL = "\(pageURL.scheme!)://\(pageURL.host!)"
         let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
         let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.frame = CGRect(x: 0, y: 0, width: 390, height: 844)
         let host = UIViewController()
+        host.view.frame = window.bounds
         window.rootViewController = host
         window.makeKeyAndVisible()
+        window.layoutIfNeeded()
         browser.webView.frame = host.view.bounds
         host.view.addSubview(browser.webView)
         windows[ObjectIdentifier(browser)] = window
