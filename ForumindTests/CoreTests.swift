@@ -488,7 +488,6 @@ final class CoreTests: XCTestCase {
 
     @MainActor
     func testChatScrollToBottomAndFollowStreamingOverLongLazySummary() throws {
-        try XCTSkipIf(ProcessInfo.processInfo.environment["CI"] != nil, "Timing-sensitive fixed RunLoop scroll-to-bottom check over lazy summary on CI simulator (see docs/wukongmind/flaky-tests.md)")
         // Mix short bullets at the top with taller multi-sentence cited bullets
         // deeper down so unmeasured row heights genuinely differ from the initial estimate.
         var lines = ["## Original post"]
