@@ -5,8 +5,8 @@ This page answers the "to verify" items in [requirements](requirements.md) secti
 ## Environment and how to rerun
 
 - Xcode 27.2 (27B52) on macOS 27.2.1.
-- iOS Simulator runtime iOS 27.2 (24B8117). Main run on **iPhone 18 Pro**; a second run on **iPad Air 11-inch (M4)** gave the same outcome in every cell (only the whole-run `report-uri` count differed, 393 vs 394, from timing).
-- **Physical device: not run (WAIVED_BY_USER style).** Nothing here was verified on the iPhone 13; see "Simulator and device".
+- iOS Simulator runtime iOS 27.2 (24B8117). Main run on **iPhone 18 Pro**; a second run on **iPad Air 11-inch (M4)** gave the same outcome in every cell (only the whole-run `report-uri` count differed, 393 vs 394, from timing); its results are in [`m0-spike/results/ipad/`](m0-spike/results/ipad/results.md).
+- **Physical device: not done** (per the brief: no result is plausibly simulator-specific). Nothing here was verified on the physical iPhone 13; see "Simulator and device".
 - Rerun with one command from the repo root (needs Xcode and `xcodegen`; takes about 5 minutes):
 
   ```sh
@@ -30,7 +30,7 @@ This page answers the "to verify" items in [requirements](requirements.md) secti
 - Each probe gets a fresh web view, attached to a window, with a non-persistent data store. The probe runs in the page world (`.page`) or an isolated world (`WKContentWorld.world(name: "wukong-iso")`).
   - The probe itself is the injected code: `callAsyncJavaScript`, or `evaluateJavaScript` for that row.
   - Each probe has a 3-second JavaScript timeout race and returns a JSON string.
-  - "Works" or "blocked" is judged by an effect: a DOM marker, `getComputedStyle`, or whether the server received the request. It is never judged by whether the call threw.
+  - The CSS, dynamic-script, page-global, DOM and message-handler rows are judged by an effect: a DOM marker, `getComputedStyle`, a world's own global, or a reply. The `eval`, `new Function`, `fetch` and XHR rows are judged by whether the call threw. That is cross-checked against whether the server received the request and against the violation events.
 - **CSP violations** are collected by a `securitypolicyviolation` listener running in a third world, plus the header variants' `report-uri` POSTs to the local server.
 - A dynamically created script records which world's global it set. That shows which world it ran in, whatever world created the tag.
 
@@ -84,7 +84,7 @@ Header and meta delivery gave the same results.
   - `eval`, `new Function` and cross-origin `fetch` all work there; `fetch` still needs CORS.
   - It has full DOM access, it is invisible to page scripts, and it is the only world that can reach the `agent` reply handler.
   - Offer `world: "page"` for reading or changing page JS state, such as framework stores or page functions.
-    - Under CSP, the page world still runs the body passed to `callAsyncJavaScript`. Only `eval`/`new Function`, `<style>`/`style` attributes and `connect-src`-blocked requests inside it fail.
+    - Under CSP, the page world still runs the body passed to `callAsyncJavaScript`. Only `eval`/`new Function`, `<style>`/`style` attributes, `connect-src`-blocked requests and `script-src`-blocked dynamic `<script>` tags inside it fail.
     - Return the `EvalError` or `TypeError: Load failed` text to the model as is, with a hint to retry in the isolated world.
 - **`inject_css`: use `adoptedStyleSheets`.** Keep one `CSSStyleSheet` per script or tool call, and update it with `replaceSync`. It works in both worlds under every policy. Never use `<style>` elements or `style` attributes: any `style-src` without `'unsafe-inline'` blocks them, even from the isolated world. Per-element tweaks can use CSSOM (`el.style.prop = …`).
   - Not tested here: pages that reassign `document.adoptedStyleSheets` themselves, or content inside shadow roots, which have their own `adoptedStyleSheets`. The implementation should re-append its sheet and cover open shadow roots.
@@ -105,7 +105,7 @@ Header and meta delivery gave the same results.
 ## Simulator and device
 
 - Every result is from the iOS 27.2 simulator: iPhone 18 Pro, and iPad Air 11-inch (M4) (identical outcomes).
-- **Device verification: not done (WAIVED_BY_USER style).** The physical iPhone 13 was not used. No result here is plausibly simulator-specific:
+- **Device verification: not done** (per the brief, a device run was only for results that plausibly differ). The physical iPhone 13 was not used. No result here is plausibly simulator-specific:
   - CSP enforcement, content worlds and message-handler scoping are WebKit logic that the simulator shares with the device for the same iOS version.
   - None of the probes uses a simulator-only feature. The isolated-world exemptions (`eval`, `connect-src`) come from WebKit's CSP checks, not from the host.
 - What could differ on a device:
