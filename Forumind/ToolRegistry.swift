@@ -94,6 +94,11 @@ extension JSONValue {
         return nil
     }
 
+    var strictArrayValue: [JSONValue]? {
+        if case .array(let items) = self { return items }
+        return nil
+    }
+
     /// Strict integer extraction (does not coerce `"37"` strings or booleans).
     var strictIntValue: Int? {
         switch self {
@@ -148,6 +153,7 @@ struct ToolParameterSchema: Equatable, Sendable {
     var type: ToolParameterType
     var description: String
     var enumValues: [String]?
+    var itemsType: ToolParameterType?
     var minLength: Int?
     var minimum: Double?
     var maximum: Double?
@@ -157,6 +163,7 @@ struct ToolParameterSchema: Equatable, Sendable {
         type: ToolParameterType,
         description: String,
         enumValues: [String]? = nil,
+        itemsType: ToolParameterType? = nil,
         minLength: Int? = nil,
         minimum: Double? = nil,
         maximum: Double? = nil
@@ -165,6 +172,7 @@ struct ToolParameterSchema: Equatable, Sendable {
         self.type = type
         self.description = description
         self.enumValues = enumValues
+        self.itemsType = itemsType
         self.minLength = minLength
         self.minimum = minimum
         self.maximum = maximum
@@ -177,6 +185,9 @@ struct ToolParameterSchema: Equatable, Sendable {
         ]
         if let enumValues {
             obj["enum"] = .array(enumValues.map(JSONValue.string))
+        }
+        if let itemsType {
+            obj["items"] = .object(["type": .string(itemsType.rawValue)])
         }
         if let minLength {
             obj["minLength"] = .int(Int64(minLength))
@@ -466,10 +477,20 @@ struct ToolRegistry: Sendable {
             }
 
         case .array:
-            guard case .array = value else {
+            guard case .array(let elements) = value else {
                 throw ToolValidationError(
                     "Invalid arguments for '\(toolName)': parameter '\(schema.name)' must be an array, got \(value.typeDescription)."
                 )
+            }
+            if let itemsType = schema.itemsType {
+                let elementSchema = ToolParameterSchema(
+                    name: "\(schema.name)[]",
+                    type: itemsType,
+                    description: "element of \(schema.name)"
+                )
+                for element in elements {
+                    try validateValue(element, against: elementSchema, toolName: toolName)
+                }
             }
 
         case .object:
@@ -955,5 +976,660 @@ extension ToolRegistry {
         if collapsed.isEmpty { return "(empty)" }
         if collapsed.count <= maxChars { return collapsed }
         return String(collapsed.prefix(maxChars)) + "…"
+    }
+
+    // MARK: - M2 Page + Userscript Tools Factory
+
+    /// Builds a `ToolRegistry` preloaded with the four M1 page tools plus the five
+    /// M2 userscript management tools (`script_save`, `script_list`, `script_read`,
+    /// `script_update`, `script_delete`).
+    static func m2(
+        bridge: AgentPageDriving,
+        scriptStore: ScriptStore,
+        liveApplier: ScriptLiveApplying? = nil,
+        currentUserPrompt: (@MainActor @Sendable () -> String?)? = nil,
+        truncationLimit: Int = ToolRegistry.defaultTruncationLimit,
+        redactedSecrets: [String] = []
+    ) -> ToolRegistry {
+        var allTools = [
+            makeReadPageTool(bridge: bridge),
+            makeRunJSTool(bridge: bridge),
+            makeInjectCSSTool(bridge: bridge),
+            makeWaitForTool(bridge: bridge)
+        ]
+        allTools.append(
+            contentsOf: scriptTools(
+                bridge: bridge,
+                scriptStore: scriptStore,
+                liveApplier: liveApplier,
+                currentUserPrompt: currentUserPrompt
+            )
+        )
+        return ToolRegistry(
+            tools: allTools,
+            truncationLimit: truncationLimit,
+            redactedSecrets: redactedSecrets
+        )
+    }
+
+    static func scriptTools(
+        bridge: AgentPageDriving,
+        scriptStore: ScriptStore,
+        liveApplier: ScriptLiveApplying? = nil,
+        currentUserPrompt: (@MainActor @Sendable () -> String?)? = nil
+    ) -> [AgentTool] {
+        [
+            makeScriptSaveTool(
+                bridge: bridge,
+                scriptStore: scriptStore,
+                liveApplier: liveApplier,
+                currentUserPrompt: currentUserPrompt
+            ),
+            makeScriptListTool(scriptStore: scriptStore),
+            makeScriptReadTool(scriptStore: scriptStore),
+            makeScriptUpdateTool(
+                bridge: bridge,
+                scriptStore: scriptStore,
+                liveApplier: liveApplier
+            ),
+            makeScriptDeleteTool(
+                scriptStore: scriptStore,
+                liveApplier: liveApplier
+            )
+        ]
+    }
+
+    private static func makeScriptSaveTool(
+        bridge: AgentPageDriving,
+        scriptStore: ScriptStore,
+        liveApplier: ScriptLiveApplying?,
+        currentUserPrompt: (@MainActor @Sendable () -> String?)?
+    ) -> AgentTool {
+        let definition = AgentToolDefinition(
+            name: "script_save",
+            description: """
+            Save a persistent per-site userscript (with JavaScript, CSS, or both) that runs \
+            automatically on every matching page load and SPA route change, and apply it to \
+            the current page right away if the current URL matches. Call this only when the \
+            user asks to always apply a change or persist it for future visits.
+            """,
+            parameters: [
+                ToolParameterSchema(
+                    name: "name",
+                    type: .string,
+                    description: "Short human-readable script name, such as 'Original poster only'.",
+                    minLength: 1
+                ),
+                ToolParameterSchema(
+                    name: "match_rules",
+                    type: .array,
+                    description: "One or more Tampermonkey @match URL patterns, e.g. ['*://*.example.com/*'].",
+                    itemsType: .string
+                ),
+                ToolParameterSchema(
+                    name: "js",
+                    type: .string,
+                    description: "Optional JavaScript body to run on matching pages (either 'js' or 'css' must be non-empty)."
+                ),
+                ToolParameterSchema(
+                    name: "css",
+                    type: .string,
+                    description: "Optional CSS rules to inject via adoptedStyleSheets under strict CSP (either 'js' or 'css' must be non-empty)."
+                ),
+                ToolParameterSchema(
+                    name: "injection_time",
+                    type: .string,
+                    description: "When to inject on page load: 'document-end' (default) or 'document-start'.",
+                    enumValues: ScriptInjectionTime.allCases.map(\.rawValue)
+                ),
+                ToolParameterSchema(
+                    name: "environment",
+                    type: .string,
+                    description: "Execution world for JS: 'isolated' (default, CSP-safe) or 'page' (shares page JS globals).",
+                    enumValues: [
+                        AgentExecutionEnvironment.isolated.rawValue,
+                        AgentExecutionEnvironment.page.rawValue
+                    ]
+                )
+            ],
+            required: ["name", "match_rules"]
+        )
+
+        return AgentTool(
+            definition: definition,
+            customValidate: { args in
+                let name = args["name"]?.stringValue?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                if name.isEmpty {
+                    throw ToolValidationError("Invalid arguments for 'script_save': 'name' must not be empty.")
+                }
+                let rules = try extractValidatedMatchRules(from: args["match_rules"], toolName: "script_save")
+                if rules.isEmpty {
+                    throw ToolValidationError("Invalid arguments for 'script_save': 'match_rules' must contain at least one @match pattern.")
+                }
+                let js = args["js"]?.stringValue ?? ""
+                let css = args["css"]?.stringValue ?? ""
+                if js.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                   css.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    throw ToolValidationError("Invalid arguments for 'script_save': provide non-empty 'js', 'css', or both.")
+                }
+            },
+            summarizeArguments: { args in
+                let name = condenseInline(args["name"]?.stringValue ?? "", maxChars: 36)
+                let firstRule = args["match_rules"]?.strictArrayValue?.first?.stringValue ?? ""
+                if !firstRule.isEmpty {
+                    return "\(name) · \(condenseInline(firstRule, maxChars: 32))"
+                }
+                return name
+            },
+            execute: { args in
+                let name = args["name"]?.stringValue ?? ""
+                let rules = try extractValidatedMatchRules(from: args["match_rules"], toolName: "script_save")
+                let js = args["js"]?.stringValue ?? ""
+                let css = args["css"]?.stringValue ?? ""
+                let injectionRaw = args["injection_time"]?.stringValue ?? ScriptInjectionTime.defaultTime.rawValue
+                let injectionTime = ScriptInjectionTime(rawValue: injectionRaw) ?? .defaultTime
+                let envRaw = args["environment"]?.stringValue ?? AgentExecutionEnvironment.defaultEnvironment.rawValue
+                let environment = AgentExecutionEnvironment(rawValue: envRaw) ?? .defaultEnvironment
+
+                let saved: UserScript = try await MainActor.run {
+                    let prompt = currentUserPrompt?() ?? ""
+                    return try scriptStore.create(
+                        name: name,
+                        matchRules: rules,
+                        js: js,
+                        css: css,
+                        injectionTime: injectionTime,
+                        environment: environment,
+                        isEnabled: true,
+                        source: .agent(userPrompt: prompt)
+                    )
+                }
+
+                let liveOutcome = await applyScriptToOpenPage(
+                    saved,
+                    runJS: saved.hasJS,
+                    bridge: bridge,
+                    scriptStore: scriptStore,
+                    liveApplier: liveApplier
+                )
+
+                var payload: [String: JSONValue] = [
+                    "script_id": .string(saved.id),
+                    "name": .string(saved.name),
+                    "version": .int(Int64(saved.version)),
+                    "match_rules": .array(saved.matchRules.map(JSONValue.string)),
+                    "injection_time": .string(saved.injectionTime.rawValue),
+                    "environment": .string(saved.environment.rawValue),
+                    "applied_to_current_page": .bool(liveOutcome.applied)
+                ]
+                if let runtimeError = liveOutcome.runtimeError {
+                    payload["runtime_error"] = .string(runtimeError)
+                }
+
+                let json = JSONValue.encodeCompactJSON(payload)
+                if let runtimeError = liveOutcome.runtimeError {
+                    return ToolExecutionOutput(
+                        content: json,
+                        summary: "Saved '\(saved.name)' (\(saved.id)), runtime error: \(condenseInline(runtimeError, maxChars: 48))",
+                        isError: true
+                    )
+                }
+                return ToolExecutionOutput(
+                    content: json,
+                    summary: "Saved '\(saved.name)' (\(saved.id), v\(saved.version))",
+                    isError: false
+                )
+            }
+        )
+    }
+
+    private static func makeScriptListTool(scriptStore: ScriptStore) -> AgentTool {
+        let definition = AgentToolDefinition(
+            name: "script_list",
+            description: """
+            List saved userscripts, optionally filtered to scripts whose @match patterns \
+            apply to a given domain.
+            """,
+            parameters: [
+                ToolParameterSchema(
+                    name: "domain",
+                    type: .string,
+                    description: "Optional domain (e.g. 'example.com' or 'sub.example.com') to filter matching scripts."
+                )
+            ],
+            required: []
+        )
+
+        return AgentTool(
+            definition: definition,
+            summarizeArguments: { args in
+                if let domain = args["domain"]?.stringValue?.trimmingCharacters(in: .whitespacesAndNewlines),
+                   !domain.isEmpty {
+                    return condenseInline(domain, maxChars: 48)
+                }
+                return "all scripts"
+            },
+            execute: { args in
+                let rawDomain = args["domain"]?.stringValue?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                let (globalEnabled, items, count): (Bool, [JSONValue], Int) = await MainActor.run {
+                    let matching = rawDomain.isEmpty
+                        ? scriptStore.scripts
+                        : scriptStore.scripts(matchingDomain: rawDomain)
+                    let encodedItems: [JSONValue] = matching.map { script in
+                        var obj: [String: JSONValue] = [
+                            "script_id": .string(script.id),
+                            "name": .string(script.name),
+                            "match_rules": .array(script.matchRules.map(JSONValue.string)),
+                            "enabled": .bool(script.isEnabled),
+                            "version": .int(Int64(script.version)),
+                            "injection_time": .string(script.injectionTime.rawValue),
+                            "environment": .string(script.environment.rawValue),
+                            "source": .string(script.source.kindIdentifier),
+                            "has_js": .bool(script.hasJS),
+                            "has_css": .bool(script.hasCSS)
+                        ]
+                        if let err = scriptStore.error(for: script.id) {
+                            obj["error"] = .string(err.message)
+                        }
+                        return .object(obj)
+                    }
+                    return (scriptStore.isGlobalEnabled, encodedItems, matching.count)
+                }
+
+                var payload: [String: JSONValue] = [
+                    "global_enabled": .bool(globalEnabled),
+                    "count": .int(Int64(count)),
+                    "scripts": .array(items)
+                ]
+                if !rawDomain.isEmpty {
+                    payload["domain"] = .string(rawDomain)
+                }
+                let summary = count == 1 ? "1 script" : "\(count) scripts"
+                return ToolExecutionOutput(
+                    content: JSONValue.encodeCompactJSON(payload),
+                    summary: summary,
+                    isError: false
+                )
+            }
+        )
+    }
+
+    private static func makeScriptReadTool(scriptStore: ScriptStore) -> AgentTool {
+        let definition = AgentToolDefinition(
+            name: "script_read",
+            description: "Read the full metadata, JavaScript/CSS bodies, version history, and .user.js content of a saved userscript.",
+            parameters: [
+                ToolParameterSchema(
+                    name: "script_id",
+                    type: .string,
+                    description: "Identifier of the script to read.",
+                    minLength: 1
+                )
+            ],
+            required: ["script_id"]
+        )
+
+        return AgentTool(
+            definition: definition,
+            customValidate: { args in
+                let id = args["script_id"]?.stringValue?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                if id.isEmpty {
+                    throw ToolValidationError("Invalid arguments for 'script_read': 'script_id' must not be empty.")
+                }
+            },
+            summarizeArguments: { args in
+                condenseInline(args["script_id"]?.stringValue ?? "", maxChars: 48)
+            },
+            execute: { args in
+                let id = args["script_id"]?.stringValue?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                let (script, runtimeErr): (UserScript, ScriptRuntimeError?) = try await MainActor.run {
+                    guard let found = scriptStore.script(id: id) else {
+                        throw ScriptStoreError.scriptNotFound(id)
+                    }
+                    return (found, scriptStore.error(for: id))
+                }
+
+                var payload: [String: JSONValue] = [
+                    "script_id": .string(script.id),
+                    "name": .string(script.name),
+                    "match_rules": .array(script.matchRules.map(JSONValue.string)),
+                    "js": .string(script.js),
+                    "css": .string(script.css),
+                    "injection_time": .string(script.injectionTime.rawValue),
+                    "environment": .string(script.environment.rawValue),
+                    "enabled": .bool(script.isEnabled),
+                    "version": .int(Int64(script.version)),
+                    "source": .string(script.source.kindIdentifier),
+                    "versions": .array(script.versions.map { .int(Int64($0.version)) }),
+                    "user_script": .string(script.toUserScriptFileContent())
+                ]
+                if let prompt = script.source.userPrompt {
+                    payload["user_prompt"] = .string(prompt)
+                }
+                if let runtimeErr {
+                    payload["error"] = .string(runtimeErr.message)
+                }
+
+                return ToolExecutionOutput(
+                    content: JSONValue.encodeCompactJSON(payload),
+                    summary: "Read '\(script.name)' (v\(script.version))",
+                    isError: false
+                )
+            }
+        )
+    }
+
+    private static func makeScriptUpdateTool(
+        bridge: AgentPageDriving,
+        scriptStore: ScriptStore,
+        liveApplier: ScriptLiveApplying?
+    ) -> AgentTool {
+        let definition = AgentToolDefinition(
+            name: "script_update",
+            description: """
+            Update one or more fields of an existing userscript, archiving the previous \
+            version for rollback and returning the new version number.
+            """,
+            parameters: [
+                ToolParameterSchema(
+                    name: "script_id",
+                    type: .string,
+                    description: "Identifier of the script to update.",
+                    minLength: 1
+                ),
+                ToolParameterSchema(
+                    name: "name",
+                    type: .string,
+                    description: "Optional updated human-readable name.",
+                    minLength: 1
+                ),
+                ToolParameterSchema(
+                    name: "match_rules",
+                    type: .array,
+                    description: "Optional replacement list of Tampermonkey @match patterns.",
+                    itemsType: .string
+                ),
+                ToolParameterSchema(
+                    name: "js",
+                    type: .string,
+                    description: "Optional replacement JavaScript body (pass '' to clear JS if CSS remains non-empty)."
+                ),
+                ToolParameterSchema(
+                    name: "css",
+                    type: .string,
+                    description: "Optional replacement CSS stylesheet (pass '' to clear CSS if JS remains non-empty)."
+                ),
+                ToolParameterSchema(
+                    name: "injection_time",
+                    type: .string,
+                    description: "Optional updated injection time: 'document-start' or 'document-end'.",
+                    enumValues: ScriptInjectionTime.allCases.map(\.rawValue)
+                ),
+                ToolParameterSchema(
+                    name: "environment",
+                    type: .string,
+                    description: "Optional updated execution world: 'isolated' or 'page'.",
+                    enumValues: [
+                        AgentExecutionEnvironment.isolated.rawValue,
+                        AgentExecutionEnvironment.page.rawValue
+                    ]
+                ),
+                ToolParameterSchema(
+                    name: "enabled",
+                    type: .boolean,
+                    description: "Optional enabled state for the script."
+                )
+            ],
+            required: ["script_id"]
+        )
+
+        return AgentTool(
+            definition: definition,
+            customValidate: { args in
+                let id = args["script_id"]?.stringValue?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                if id.isEmpty {
+                    throw ToolValidationError("Invalid arguments for 'script_update': 'script_id' must not be empty.")
+                }
+
+                let mutableKeys = ["name", "match_rules", "js", "css", "injection_time", "environment", "enabled"]
+                guard mutableKeys.contains(where: { args[$0] != nil }) else {
+                    throw ToolValidationError(
+                        "Invalid arguments for 'script_update': provide at least one field to update (name, match_rules, js, css, injection_time, environment, or enabled)."
+                    )
+                }
+
+                if let rawName = args["name"]?.stringValue,
+                   rawName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    throw ToolValidationError("Invalid arguments for 'script_update': 'name' must not be empty.")
+                }
+                if let rulesVal = args["match_rules"] {
+                    _ = try extractValidatedMatchRules(from: rulesVal, toolName: "script_update")
+                }
+                if let js = args["js"]?.stringValue, let css = args["css"]?.stringValue {
+                    if js.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                       css.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        throw ToolValidationError(
+                            "Invalid arguments for 'script_update': 'js' and 'css' cannot both be empty."
+                        )
+                    }
+                }
+            },
+            summarizeArguments: { args in
+                let id = condenseInline(args["script_id"]?.stringValue ?? "", maxChars: 36)
+                let changed = ["name", "match_rules", "js", "css", "injection_time", "environment", "enabled"]
+                    .filter { args[$0] != nil }
+                if changed.isEmpty { return id }
+                return "\(id) (\(changed.joined(separator: ", ")))"
+            },
+            execute: { args in
+                let id = args["script_id"]?.stringValue?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                let matchRules: [String]?
+                if let rulesVal = args["match_rules"] {
+                    matchRules = try extractValidatedMatchRules(from: rulesVal, toolName: "script_update")
+                } else {
+                    matchRules = nil
+                }
+
+                let patch = ScriptUpdatePatch(
+                    name: args["name"]?.stringValue,
+                    matchRules: matchRules,
+                    js: args["js"]?.stringValue,
+                    css: args["css"]?.stringValue,
+                    injectionTime: args["injection_time"]?.stringValue.flatMap(ScriptInjectionTime.init(rawValue:)),
+                    environment: args["environment"]?.stringValue.flatMap(AgentExecutionEnvironment.init(rawValue:)),
+                    isEnabled: args["enabled"]?.strictBoolValue
+                )
+
+                let (wasEnabled, updated): (Bool, UserScript) = try await MainActor.run {
+                    let previouslyEnabled = scriptStore.script(id: id)?.isEnabled ?? false
+                    let result = try scriptStore.update(id: id, patch: patch)
+                    return (previouslyEnabled, result)
+                }
+
+                let shouldRunJS = updated.hasJS && (
+                    patch.js != nil
+                    || patch.environment != nil
+                    || patch.matchRules != nil
+                    || (patch.isEnabled == true && !wasEnabled)
+                )
+                let liveOutcome = await applyScriptToOpenPage(
+                    updated,
+                    runJS: shouldRunJS,
+                    bridge: bridge,
+                    scriptStore: scriptStore,
+                    liveApplier: liveApplier
+                )
+
+                var payload: [String: JSONValue] = [
+                    "script_id": .string(updated.id),
+                    "version": .int(Int64(updated.version)),
+                    "enabled": .bool(updated.isEnabled),
+                    "applied_to_current_page": .bool(liveOutcome.applied)
+                ]
+                if let runtimeError = liveOutcome.runtimeError {
+                    payload["runtime_error"] = .string(runtimeError)
+                }
+
+                let json = JSONValue.encodeCompactJSON(payload)
+                if let runtimeError = liveOutcome.runtimeError {
+                    return ToolExecutionOutput(
+                        content: json,
+                        summary: "Updated '\(updated.name)' to v\(updated.version), runtime error: \(condenseInline(runtimeError, maxChars: 44))",
+                        isError: true
+                    )
+                }
+                return ToolExecutionOutput(
+                    content: json,
+                    summary: "Updated '\(updated.name)' to v\(updated.version)",
+                    isError: false
+                )
+            }
+        )
+    }
+
+    private static func makeScriptDeleteTool(
+        scriptStore: ScriptStore,
+        liveApplier: ScriptLiveApplying?
+    ) -> AgentTool {
+        let definition = AgentToolDefinition(
+            name: "script_delete",
+            description: "Delete a saved userscript and remove its live styles and future automatic injection.",
+            parameters: [
+                ToolParameterSchema(
+                    name: "script_id",
+                    type: .string,
+                    description: "Identifier of the script to delete.",
+                    minLength: 1
+                )
+            ],
+            required: ["script_id"]
+        )
+
+        return AgentTool(
+            definition: definition,
+            customValidate: { args in
+                let id = args["script_id"]?.stringValue?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                if id.isEmpty {
+                    throw ToolValidationError("Invalid arguments for 'script_delete': 'script_id' must not be empty.")
+                }
+            },
+            summarizeArguments: { args in
+                condenseInline(args["script_id"]?.stringValue ?? "", maxChars: 48)
+            },
+            execute: { args in
+                let id = args["script_id"]?.stringValue?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                let deletedScript: UserScript? = try await MainActor.run {
+                    guard scriptStore.script(id: id) != nil else {
+                        return nil
+                    }
+                    return try scriptStore.delete(id: id)
+                }
+
+                guard let deletedScript else {
+                    let payload: [String: JSONValue] = [
+                        "script_id": .string(id),
+                        "deleted": .bool(false),
+                        "error": .string("Script '\(id)' was not found.")
+                    ]
+                    return ToolExecutionOutput(
+                        content: JSONValue.encodeCompactJSON(payload),
+                        summary: "Error: Script '\(id)' was not found.",
+                        isError: true
+                    )
+                }
+
+                if let liveApplier {
+                    await liveApplier.removeLiveScript(id: id)
+                }
+
+                let payload: [String: JSONValue] = [
+                    "script_id": .string(id),
+                    "deleted": .bool(true)
+                ]
+                return ToolExecutionOutput(
+                    content: JSONValue.encodeCompactJSON(payload),
+                    summary: "Deleted '\(deletedScript.name)' (\(id))",
+                    isError: false
+                )
+            }
+        )
+    }
+
+    private static func extractValidatedMatchRules(
+        from rawValue: JSONValue?,
+        toolName: String
+    ) throws -> [String] {
+        guard let elements = rawValue?.strictArrayValue, !elements.isEmpty else {
+            throw ToolValidationError(
+                "Invalid arguments for '\(toolName)': 'match_rules' must be a non-empty array of @match patterns."
+            )
+        }
+        var cleaned: [String] = []
+        cleaned.reserveCapacity(elements.count)
+        for element in elements {
+            guard let rawRule = element.stringValue else {
+                throw ToolValidationError(
+                    "Invalid arguments for '\(toolName)': every entry in 'match_rules' must be a string."
+                )
+            }
+            let trimmed = rawRule.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty else {
+                throw ToolValidationError(
+                    "Invalid arguments for '\(toolName)': 'match_rules' entries must not be empty."
+                )
+            }
+            do {
+                _ = try MatchPattern.parse(trimmed)
+            } catch {
+                throw ToolValidationError(
+                    "Invalid arguments for '\(toolName)': invalid @match pattern '\(trimmed)' (\(error.localizedDescription))"
+                )
+            }
+            cleaned.append(trimmed)
+        }
+        return cleaned
+    }
+
+    private static func applyScriptToOpenPage(
+        _ script: UserScript,
+        runJS: Bool,
+        bridge: AgentPageDriving,
+        scriptStore: ScriptStore,
+        liveApplier: ScriptLiveApplying?
+    ) async -> ScriptLiveApplicationOutcome {
+        if let liveApplier {
+            return await liveApplier.applyLiveScript(script, runJS: runJS)
+        }
+
+        let isGloballyAllowed = await MainActor.run {
+            scriptStore.isGlobalEnabled && script.isEnabled
+        }
+        guard isGloballyAllowed else {
+            return .notApplied
+        }
+
+        let meta = await bridge.currentPageMetadata()
+        guard !meta.url.isEmpty, script.matches(urlString: meta.url) else {
+            return .notApplied
+        }
+
+        if script.hasCSS {
+            _ = try? await bridge.injectCSS(css: script.css, id: "userscript-\(script.id)")
+        }
+
+        var capturedError: String?
+        if runJS && script.hasJS {
+            if let jsResult = try? await bridge.runJS(
+                code: script.js,
+                environment: script.environment,
+                timeout: AgentBridge.defaultJSTimeout
+            ), let err = jsResult.error, !err.isEmpty {
+                capturedError = err
+                await MainActor.run {
+                    scriptStore.recordError(scriptID: script.id, message: err, url: meta.url)
+                }
+            }
+        }
+        return ScriptLiveApplicationOutcome(applied: true, runtimeError: capturedError)
     }
 }

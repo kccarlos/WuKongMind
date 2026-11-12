@@ -790,6 +790,11 @@ struct BrowserAgentPanelView: View {
         return host.isEmpty ? String(localized: "Current page", comment: "Browser agent context pill fallback when no host is available") : host
     }
 
+    private var activeMatchingScriptCount: Int {
+        guard let url = app.browser.currentURL ?? app.pageContext.url else { return 0 }
+        return app.scriptStore.activeScripts(matching: url).count
+    }
+
     private var canSend: Bool {
         isProviderReady
             && !session.isRunning
@@ -857,7 +862,7 @@ struct BrowserAgentPanelView: View {
         return HStack(spacing: 8) {
             DCPill(text: currentHost, systemImage: "globe", tint: .secondary)
                 .accessibilityIdentifier("agentHostPill")
-            Text("\(0) scripts on this page", comment: "Browser agent context bar: number of saved scripts matching this page")
+            Text("\(activeMatchingScriptCount) scripts on this page", comment: "Browser agent context bar: number of saved scripts matching this page")
                 .font(.caption.weight(.medium))
                 .foregroundStyle(DCTheme.agentTint)
                 .lineLimit(singleLineLimit)
@@ -1446,6 +1451,14 @@ enum BrowserAgentToolStyle {
             return Style(symbol: "clock", tint: .secondary)
         case "script_save":
             return Style(symbol: "square.and.arrow.down", tint: DCTheme.agentTint)
+        case "script_list":
+            return Style(symbol: "list.bullet.rectangle", tint: DCTheme.brandBlue)
+        case "script_read":
+            return Style(symbol: "doc.plaintext", tint: DCTheme.brandBlue)
+        case "script_update":
+            return Style(symbol: "arrow.triangle.2.circlepath", tint: DCTheme.agentTint)
+        case "script_delete":
+            return Style(symbol: "trash", tint: DCTheme.danger)
         default:
             return Style(symbol: "wrench.and.screwdriver", tint: DCTheme.agentTint)
         }
