@@ -414,32 +414,35 @@ struct ModelRolePage: View {
             }
 
             if !app.visibleFavorites.isEmpty {
-                Section {
-                    ForEach(app.visibleFavorites) { favorite in
-                        Button {
-                            DCHaptics.tap()
-                            app.activateFavorite(favorite, for: role)
-                        } label: {
-                            HStack {
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(ModelPill.label(for: favorite.selection))
-                                        .foregroundStyle(.primary)
-                                        .lineLimit(1)
-                                        .truncationMode(.middle)
-                                    Text(favorite.provider.displayName)
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                                Spacer()
-                                if favorite.matches(selection) {
-                                    Image(systemName: "checkmark").foregroundStyle(DCTheme.brandBlue)
+                let roleFavorites = app.visibleFavorites.filter { role != .browserAgent || $0.selection.supportsToolCalling }
+                if !roleFavorites.isEmpty {
+                    Section {
+                        ForEach(roleFavorites) { favorite in
+                            Button {
+                                DCHaptics.tap()
+                                app.activateFavorite(favorite, for: role)
+                            } label: {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(ModelPill.label(for: favorite.selection))
+                                            .foregroundStyle(.primary)
+                                            .lineLimit(1)
+                                            .truncationMode(.middle)
+                                        Text(favorite.provider.displayName)
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    Spacer()
+                                    if favorite.matches(selection) {
+                                        Image(systemName: "checkmark").foregroundStyle(DCTheme.brandBlue)
+                                    }
                                 }
                             }
+                            .accessibilityHint("Switches to this model")
                         }
-                        .accessibilityHint("Switches to this model")
+                    } header: {
+                        Text("Favorite models")
                     }
-                } header: {
-                    Text("Favorite models")
                 }
             }
 

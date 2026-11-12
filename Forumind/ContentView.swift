@@ -112,7 +112,12 @@ struct ContentView: View {
     /// leaves the drawer closed (the AI button opens it).
     private func updateLayout(forWidth width: CGFloat) {
         guard width > 0 else { return }
-        let next = WorkspaceMetrics.nextIsSplit(current: router.splitLayout, width: width)
+        #if DEBUG
+        let forceSplit = UIDevice.current.userInterfaceIdiom != .phone && AssistantDebug.has("-dc-force-split")
+        #else
+        let forceSplit = false
+        #endif
+        let next = forceSplit ? true : WorkspaceMetrics.nextIsSplit(current: router.splitLayout, width: width)
         let wideSummary = WorkspaceMetrics.usesTwoColumnSummary(windowWidth: width, isSplit: next)
         guard next != router.splitLayout || wideSummary != router.usesWideDrawerSummary else { return }
         var transaction = Transaction(animation: nil)
@@ -173,6 +178,13 @@ struct ContentView: View {
 
     private func openAssistant() {
         DCHaptics.tap()
+        if router.usesDrawer, router.wantsDrawer {
+            router.closeDrawer()
+            return
+        }
+        if app.toolbarOpensBrowserAgentByDefault {
+            app.assistantMode = .browserAgent
+        }
         app.showAIView()
     }
 

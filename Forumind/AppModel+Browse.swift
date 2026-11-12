@@ -236,5 +236,191 @@ extension AppModel {
             browser.showForumsHome(overPendingLoad: true)
         }
     }
+
+    private static let browserAgentFixtureURL = URL(string: "https://news.example.org/story/user-agency")!
+
+    private static let browserAgentFixtureHTML = """
+    <!doctype html>
+    <html lang="en">
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>Why Web Browsers Need User Agency</title>
+      <style>
+        body {
+          margin: 0;
+          font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+          background: #ffffff;
+          color: #1e293b;
+          line-height: 1.55;
+        }
+        header {
+          padding: 16px 20px;
+          border-bottom: 1px solid #e2e8f0;
+          font-weight: 700;
+          color: #0f172a;
+        }
+        .layout {
+          display: flex;
+          gap: 20px;
+          padding: 20px;
+          max-width: 960px;
+          margin: 0 auto;
+        }
+        article {
+          flex: 2;
+        }
+        aside.sidebar {
+          flex: 1;
+          padding: 16px;
+          border-radius: 12px;
+          background: #f1f5f9;
+          border: 1px solid #cbd5e1;
+        }
+        h1 { margin-top: 0; font-size: 1.5rem; }
+      </style>
+    </head>
+    <body>
+      <header>Example Dispatch · Technology</header>
+      <div class="layout">
+        <article id="main-article">
+          <h1>Why Web Browsers Need User Agency</h1>
+          <p>Modern web pages ship megabytes of layout chrome, sticky promos, and rigid themes. A user agent should work for its reader, adapting any page on demand.</p>
+          <p>With structured DOM inspection, scoped CSS injection, and isolated JavaScript execution, a browser agent can reshape a page in seconds while keeping untrusted content contained.</p>
+        </article>
+        <aside class="sidebar" id="newsletter-aside">
+          <h3>Sponsored Sidebar</h3>
+          <p>Subscribe to our daily growth popups and partner notifications.</p>
+        </aside>
+      </div>
+    </body>
+    </html>
+    """
+
+    private func loadBrowserAgentFixturePage() {
+        let url = Self.browserAgentFixtureURL
+        browser.onPageContextChanged = { _ in }
+        browser.ignoresNavigationFailures = true
+        browser.hideForumsHome()
+        browser.loadSamplePage(Self.browserAgentFixtureHTML, at: url)
+        browser.setPageContext(PageContext(url: url, state: .notForum))
+    }
+
+    func applyBrowserAgentDebugArguments() {
+        let demoMode = AssistantDebug.value("-dc-browser-agent-demo")
+        let livePrompt = AssistantDebug.value("-dc-browser-agent-live-prompt")
+        let wantsFixturePage = AssistantDebug.has("-dc-browser-agent-fixture-page")
+            || demoMode != nil
+            || livePrompt != nil
+
+        guard wantsFixturePage else { return }
+
+        settings.hasCompletedOnboarding = true
+        settings.acceptedTermsVersion = ModerationTerms.currentVersion
+        needsProviderSetup = nil
+        loadBrowserAgentFixturePage()
+        assistantMode = .browserAgent
+        panelRoute = .topic
+
+        if let demoMode {
+            let now = Date()
+            settings.aiConsent[AIProvider.anthropic.rawValue] = .allowed(now)
+            var config = settings.configuration(for: .anthropic)
+            config.apiKey = "demo-key"
+            config.model = "claude-haiku-5-5"
+            settings.setConfiguration(config, for: .anthropic)
+            settings.setModel(ModelSelection(provider: .anthropic, model: "claude-haiku-5-5"), for: .assistant)
+            settings.setModel(ModelSelection(provider: .anthropic, model: "claude-haiku-5-5"), for: .agent)
+            if demoMode == "no-model" {
+                settings.setModel(ModelSelection(provider: .anthropic, model: ""), for: .browserAgent)
+            } else {
+                settings.setModel(ModelSelection(provider: .anthropic, model: "claude-haiku-5-5"), for: .browserAgent)
+                if demoMode == "step-limit" {
+                    settings.browserAgentMaxSteps = 2
+                }
+                if let parsed = BrowserAgentDemoClient.Mode(rawValue: demoMode) {
+                    browserAgent.configureDebugModelClient(BrowserAgentDemoClient(mode: parsed))
+                }
+            }
+            Task { @MainActor [weak self] in
+                for delay in [500, 1200] {
+                    try? await Task.sleep(for: .milliseconds(delay))
+                    guard let self else { return }
+                    self.needsProviderSetup = nil
+                    self.requestAssistant()
+                    self.showAIView()
+                    if let value = AssistantDebug.value("-dc-drawer-detent"), let detent = DrawerDetent(rawValue: value) {
+                        self.router.drawerDetent = detent
+                    }
+                }
+                guard let self, demoMode != "no-model", demoMode != "empty" else { return }
+                self.browserAgent.send("Make this page dark and hide the sidebar")
+            }
+            return
+        }
+
+        if let livePrompt {
+            let env = ProcessInfo.processInfo.environment
+            let apiKey = (env["ANTHROPIC_API_KEY"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            let modelID = AssistantDebug.value("-dc-browser-agent-live-model") ?? "claude-haiku-5-5"
+            settings.aiConsent[AIProvider.anthropic.rawValue] = .allowed(Date())
+            settings.browserAgentMaxSteps = min(settings.browserAgentMaxSteps, 8)
+            var config = settings.configuration(for: .anthropic)
+            config.apiKey = apiKey
+            config.model = modelID
+            settings.setConfiguration(config, for: .anthropic)
+            settings.setModel(ModelSelection(provider: .anthropic, model: modelID), for: .assistant)
+            settings.setModel(ModelSelection(provider: .anthropic, model: modelID), for: .agent)
+            settings.setModel(ModelSelection(provider: .anthropic, model: modelID), for: .browserAgent)
+            let resultFile = AssistantDebug.value("-dc-browser-agent-result-file")
+
+            Task { @MainActor [weak self] in
+                for delay in [500, 1200] {
+                    try? await Task.sleep(for: .milliseconds(delay))
+                    guard let self else { return }
+                    self.needsProviderSetup = nil
+                    self.requestAssistant()
+                    self.showAIView()
+                    if let value = AssistantDebug.value("-dc-drawer-detent"), let detent = DrawerDetent(rawValue: value) {
+                        self.router.drawerDetent = detent
+                    }
+                }
+                guard let self else { return }
+                await self.browser.waitUntilSettled(timeout: .seconds(10))
+                await self.browserAgent.sendAndWait(livePrompt)
+                if let resultFile {
+                    await self.writeBrowserAgentLiveResult(to: resultFile)
+                }
+            }
+        }
+    }
+
+    private func writeBrowserAgentLiveResult(to path: String) async {
+        let sidebarDisplay = (try? await browser.agentBridge.runJS(
+            code: "const el = document.querySelector('.sidebar'); return el ? getComputedStyle(el).display : 'removed';",
+            environment: .isolated
+        ).valueJSON) ?? "unknown"
+        let bodyBg = (try? await browser.agentBridge.runJS(
+            code: "return getComputedStyle(document.body).backgroundColor;",
+            environment: .isolated
+        ).valueJSON) ?? "unknown"
+        let payload: [String: Any] = [
+            "state": String(describing: browserAgent.runState),
+            "stepCount": browserAgent.toolCalls.count,
+            "tools": browserAgent.toolCalls.map { [
+                "name": $0.toolName,
+                "argumentSummary": $0.argumentSummary,
+                "resultSummary": $0.resultSummary,
+                "isError": $0.isError
+            ] },
+            "assistantReply": browserAgent.runs.last?.assistantText ?? "",
+            "totalTokens": browserAgent.tokenUsage.totalTokens,
+            "sidebarDisplay": sidebarDisplay,
+            "bodyBackground": bodyBg
+        ]
+        if let data = try? JSONSerialization.data(withJSONObject: payload, options: [.prettyPrinted, .sortedKeys]) {
+            try? data.write(to: URL(fileURLWithPath: path), options: .atomic)
+        }
+    }
 }
 #endif

@@ -631,7 +631,7 @@ final class BrowserAgentSession {
     var isRunning: Bool { runState.isRunning }
 
     private let pageDriver: AgentPageDriving
-    private let modelClient: AgentModelClient
+    private var modelClient: AgentModelClient
     private let configProvider: @MainActor () -> BrowserAgentRuntimeConfig
     private let registryBuilder: @MainActor (AgentPageDriving, Int, [String]) -> ToolRegistry
     private var activeTask: Task<Void, Never>?
@@ -951,4 +951,158 @@ final class BrowserAgentSession {
         }
         history.append(.toolResults(synthetic))
     }
+
+    #if DEBUG
+    func configureDebugModelClient(_ client: AgentModelClient) {
+        modelClient = client
+    }
+    #endif
 }
+
+#if DEBUG
+actor BrowserAgentDemoClient: AgentModelClient {
+    enum Mode: String, Sendable {
+        case recorded
+        case running
+        case stepLimit = "step-limit"
+        case error
+    }
+
+    let mode: Mode
+    private var turn = 0
+
+    init(mode: Mode) {
+        self.mode = mode
+    }
+
+    func completeToolTurn(
+        system: String,
+        messages: [AgentModelTurn],
+        tools: [AgentToolDefinition],
+        configuration: ProviderConfiguration,
+        provider: AIProvider,
+        maxTokens: Int
+    ) async throws -> AgentModelTurnResponse {
+        turn += 1
+        switch mode {
+        case .error:
+            throw NSError(
+                domain: "BrowserAgentDemo",
+                code: 401,
+                userInfo: [NSLocalizedDescriptionKey: "OpenRouter: 401 — the API key was refused."]
+            )
+
+        case .stepLimit:
+            return AgentModelTurnResponse(
+                text: "",
+                toolCalls: [
+                    AgentModelToolCall(
+                        id: "call_step_\(turn)",
+                        name: "read_page",
+                        arguments: ["mode": .string("structure")]
+                    )
+                ],
+                stopReason: "tool_use",
+                usage: AgentTokenUsage(inputTokens: 420, outputTokens: 65)
+            )
+
+        case .running:
+            if turn == 1 {
+                return AgentModelTurnResponse(
+                    text: "",
+                    toolCalls: [
+                        AgentModelToolCall(
+                            id: "call_read_1",
+                            name: "read_page",
+                            arguments: ["mode": .string("structure")]
+                        )
+                    ],
+                    stopReason: "tool_use",
+                    usage: AgentTokenUsage(inputTokens: 510, outputTokens: 74)
+                )
+            }
+            return AgentModelTurnResponse(
+                text: "",
+                toolCalls: [
+                    AgentModelToolCall(
+                        id: "call_js_running",
+                        name: "run_js",
+                        arguments: [
+                            "code": .string("await new Promise(r => setTimeout(r, 25000)); return { hidden: true };"),
+                            "environment": .string("isolated")
+                        ]
+                    )
+                ],
+                stopReason: "tool_use",
+                usage: AgentTokenUsage(inputTokens: 640, outputTokens: 92)
+            )
+
+        case .recorded:
+            switch turn {
+            case 1:
+                return AgentModelTurnResponse(
+                    text: "",
+                    toolCalls: [
+                        AgentModelToolCall(
+                            id: "call_read_1",
+                            name: "read_page",
+                            arguments: ["mode": .string("structure")]
+                        )
+                    ],
+                    stopReason: "tool_use",
+                    usage: AgentTokenUsage(inputTokens: 480, outputTokens: 68)
+                )
+            case 2:
+                return AgentModelTurnResponse(
+                    text: "",
+                    toolCalls: [
+                        AgentModelToolCall(
+                            id: "call_css_2",
+                            name: "inject_css",
+                            arguments: [
+                                "id": .string("dark-reader-theme"),
+                                "css": .string("""
+                                html, body, main, article { background: #0f172a !important; color: #e2e8f0 !important; }
+                                h1, h2, h3 { color: #f8fafc !important; }
+                                .sidebar, #newsletter-aside { display: none !important; }
+                                """)
+                            ]
+                        )
+                    ],
+                    stopReason: "tool_use",
+                    usage: AgentTokenUsage(inputTokens: 690, outputTokens: 112)
+                )
+            case 3:
+                return AgentModelTurnResponse(
+                    text: "",
+                    toolCalls: [
+                        AgentModelToolCall(
+                            id: "call_js_3",
+                            name: "run_js",
+                            arguments: [
+                                "code": .string("""
+                                const sidebar = document.querySelector('.sidebar');
+                                return {
+                                  sidebarDisplay: sidebar ? getComputedStyle(sidebar).display : 'missing',
+                                  bodyBackground: getComputedStyle(document.body).backgroundColor
+                                };
+                                """),
+                                "environment": .string("isolated")
+                            ]
+                        )
+                    ],
+                    stopReason: "tool_use",
+                    usage: AgentTokenUsage(inputTokens: 820, outputTokens: 95)
+                )
+            default:
+                return AgentModelTurnResponse(
+                    text: "Applied a dark palette (`#0f172a` background, `#e2e8f0` text) and hid the `.sidebar` aside (`display: none`).",
+                    toolCalls: [],
+                    stopReason: "end_turn",
+                    usage: AgentTokenUsage(inputTokens: 910, outputTokens: 54)
+                )
+            }
+        }
+    }
+}
+#endif

@@ -11,7 +11,7 @@ extension AssistantMode {
         case .summary: String(localized: "Summary", comment: "Assistant mode: the topic's AI summary")
         case .chat: String(localized: "Chat", comment: "Assistant mode: chat about the open topic")
         case .agent: String(localized: "Ask the forum", comment: "Assistant mode: the research agent that searches the whole forum")
-        case .browserAgent: String(localized: "Browser agent", comment: "AI model role: the tool-calling model used by the page browser agent")
+        case .browserAgent: String(localized: "Agent", comment: "VoiceOver name of the “Ask the forum” assistant mode (the research agent)")
         }
     }
 
@@ -150,11 +150,21 @@ struct ProviderSetupCard: View {
     let role: ModelRole
 
     private var selection: ModelSelection { app.selection(for: role) }
-    private var readiness: ModelReadiness { app.readiness(of: selection) }
+    private var readiness: ModelReadiness { app.readiness(for: role) }
     private var action: ModelSetupAction { ModelSetupAction(readiness, provider: selection.provider) }
 
     private var title: String {
-        String(
+        if role == .browserAgent {
+            switch readiness {
+            case .needsModel:
+                return String(localized: "Choose a model for the agent", comment: "Browser agent setup card title when no model has been selected yet")
+            case .needsKey:
+                return String(localized: "\(selection.provider.displayName) needs an API key", comment: "Browser agent setup card title when the selected provider has no API key")
+            default:
+                break
+            }
+        }
+        return String(
             localized: "\(app.providerSummary(for: role)) isn’t ready",
             comment: "Model not ready card title. The placeholder is a provider and model, e.g. Google Gemini · gemini-flash."
         )

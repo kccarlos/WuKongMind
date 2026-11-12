@@ -98,6 +98,7 @@ struct SplitPanelToggle: View {
     @ObservedObject private var browser: ForumBrowserModel
     let isShown: Bool
     let action: () -> Void
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     init(app: AppModel, isShown: Bool, action: @escaping () -> Void) {
         self.app = app
@@ -106,8 +107,18 @@ struct SplitPanelToggle: View {
         self.action = action
     }
 
+    private var browserAgent: BrowserAgentSession { app.browserAgent }
     private var isAvailable: Bool { app.isSplitPanelAvailable }
     private var showsNewRepliesDot: Bool { app.showsNewRepliesDot }
+
+    private var finishedBounceValue: String? {
+        if reduceMotion { return nil }
+        if let id = app.readyAnswer?.id { return id.uuidString }
+        if !isShown, !browserAgent.isRunning, let last = browserAgent.runs.last {
+            return "\(last.id.uuidString)-\(String(describing: last.state))"
+        }
+        return nil
+    }
 
     /// "Hidden, New replies, Ask the forum is searching": what the ring and
     /// the dot show.
@@ -116,7 +127,9 @@ struct SplitPanelToggle: View {
         if showsNewRepliesDot {
             parts.append(String(localized: "New replies", comment: "Accessibility value of the iPhone AI button while its dot says the topic has new replies"))
         }
-        if app.activeResearch != nil {
+        if browserAgent.isRunning {
+            parts.append(String(localized: "Working", comment: "Accessibility value of the AI button while the browser agent is working"))
+        } else if app.activeResearch != nil {
             parts.append(String(localized: "Ask the forum is searching", comment: "Accessibility value of the AI panel toggle while its ring shows an Ask the forum search running"))
         } else if app.readyAnswer != nil {
             parts.append(String(localized: "Answer ready", comment: "AI drawer status row: an Ask the forum answer finished"))
@@ -129,13 +142,18 @@ struct SplitPanelToggle: View {
             DCHaptics.tap()
             action()
         } label: {
-            Image(systemName: "sidebar.trailing")
-                .symbolVariant(isShown ? .fill : .none)
-                .foregroundStyle(
-                    isShown
-                        ? AnyShapeStyle(DCTheme.brandGradient)
-                        : (isAvailable ? AnyShapeStyle(.primary) : AnyShapeStyle(.tertiary))
-                )
+            Image(systemName: "sparkles")
+                .font(.body.weight(.semibold))
+                .foregroundStyle(isAvailable ? AnyShapeStyle(DCTheme.brandGradient) : AnyShapeStyle(.tertiary))
+                .symbolEffect(.bounce, value: finishedBounceValue)
+                .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
+                .background {
+                    if isShown {
+                        Circle()
+                            .fill(DCTheme.agentTint.opacity(0.12))
+                            .padding(4)
+                    }
+                }
         }
         .buttonStyle(DCIconButtonStyle())
         .disabled(!isAvailable)
@@ -145,6 +163,11 @@ struct SplitPanelToggle: View {
         }
         .accessibilityLabel(isShown ? Text("Hide AI panel") : Text("Show AI panel"))
         .accessibilityValue(Text(verbatim: accessibilityValue))
+        .accessibilityActions {
+            if browserAgent.isRunning {
+                Button("Stop agent") { browserAgent.stop() }
+            }
+        }
         .accessibilityIdentifier("aiPanelToggle")
     }
 }

@@ -91,7 +91,15 @@ struct AssistantPanel: View {
         // The drawer shows the summary and the conversation together.
         case .topic: return .summary
         case .forumHome: return .forumHome
-        case .notForum: return .notForum
+        case .notForum:
+            #if DEBUG
+            if AssistantDebug.isActive,
+               AssistantDebug.value("-dc-page-state") == "notForum",
+               AssistantDebug.value("-dc-assistant-mode") == nil {
+                return .notForum
+            }
+            #endif
+            return .browserAgent
         case .maybe: return .maybe
         case .loading: return .loading
         }
@@ -252,11 +260,15 @@ struct AssistantPanel: View {
         }
     }
 
+    private var effectiveRole: ModelRole {
+        bodyKind == .browserAgent ? .browserAgent : ModelPill.role(for: app.assistantMode)
+    }
+
     /// The current scope's model (§6), 36 pt high; tap for the favorites
     /// and AI models. The label cross-fades and the width follows; a model
     /// that can't run shows why instead.
     private var drawerModelPill: some View {
-        let role = ModelPill.role(for: app.assistantMode)
+        let role = effectiveRole
         let selection = app.selection(for: role)
         let readiness = app.readiness(for: role)
         let model = ModelPill.label(for: selection)
@@ -316,95 +328,158 @@ struct AssistantPanel: View {
     private var drawerMoreMenu: some View {
         Menu {
             if dynamicTypeSize.isAccessibilitySize { drawerModelPill }
-            Section {
-                Button {
-                    UIPasteboard.general.string = exportText
-                    DCHaptics.success()
-                } label: {
-                    Label("Copy", systemImage: "doc.on.doc")
-                }
-                .accessibilityIdentifier("copyExport")
-                .disabled(exportDisabled)
-
-                ShareLink(item: exportText) {
-                    Label("Share", systemImage: "square.and.arrow.up")
-                }
-                .accessibilityIdentifier("shareExport")
-                .disabled(exportDisabled)
-
-                Button {
-                    exporting = true
-                } label: {
-                    Label("Export .txt", systemImage: "arrow.down.doc")
-                }
-                .accessibilityIdentifier("exportExport")
-                .disabled(exportDisabled)
-
-                Button {
-                    app.router.item = .exportOptions
-                } label: {
-                    Label("Export Options…", systemImage: "slider.horizontal.3")
-                }
-                .accessibilityIdentifier("exportOptions")
-            }
-
-            Section {
-                Button {
-                    onExpand(.post)
-                } label: {
-                    Label("Post & Responses", systemImage: "text.bubble")
-                }
-                .accessibilityIdentifier("viewPost")
-                .disabled(app.currentModeratedSource.isEmpty)
-
-                Button {
-                    app.pullTopic()
-                } label: {
-                    Label("Pull Post + Replies Only", systemImage: "arrow.down.circle")
-                }
-                .accessibilityIdentifier("pullPost")
-                .disabled(app.currentTopic == nil || activeSummary != nil || activePull != nil)
-
-                Button {
-                    app.router.item = .instructions
-                } label: {
-                    Label("Instructions & Context", systemImage: "text.quote")
-                }
-                .accessibilityIdentifier("menuInstructions")
-                .disabled(app.currentTopic == nil)
-
-                Button {
-                    app.toggleWatchCurrentTopic()
-                } label: {
-                    if let topicKey = app.currentTopic?.topicKey, app.isWatched(topicKey: topicKey) {
-                        Label("Unwatch Topic", systemImage: "eye.slash")
-                    } else {
-                        Label("Watch Topic", systemImage: "eye")
-                    }
-                }
-                .accessibilityIdentifier("toggleWatchTopic")
-                .disabled(app.currentTopic == nil)
-
-                Button {
-                    withAnimation(DCMotion.respecting(reduceMotion)) { app.panelRoute = .history }
-                } label: {
-                    Label("History", systemImage: "clock.arrow.circlepath")
-                }
-                .accessibilityIdentifier("openHistoryMenu")
-            }
-
-            if app.assistantMode != .agent {
-                Section { reportAIOutputButtons }
-            }
-
-            if !(app.currentSession?.history.isEmpty ?? true) {
+            if bodyKind == .browserAgent {
                 Section {
-                    Button(role: .destructive) {
-                        app.clearChat()
+                    Button {
+                        DCHaptics.tap()
+                        app.browserAgent.resetConversation()
                     } label: {
-                        Label("Clear Chat", systemImage: "trash")
+                        Label(
+                            String(localized: "New conversation", comment: "Browser agent menu action: clear the conversation and start fresh"),
+                            systemImage: "plus.bubble"
+                        )
                     }
-                    .accessibilityIdentifier("clearChat")
+                    .accessibilityIdentifier("agentNewConversation")
+                    .disabled(app.browserAgent.runs.isEmpty && app.browserAgent.messages.isEmpty && !app.browserAgent.isRunning)
+                }
+
+                if app.currentTopic != nil || app.pageContext.isForum {
+                    Section {
+                        if app.currentTopic != nil {
+                            Button {
+                                withAnimation(DCMotion.respecting(reduceMotion)) { app.assistantMode = .summary }
+                            } label: {
+                                Label(AssistantMode.summary.title, systemImage: AssistantMode.summary.systemImage)
+                            }
+                            Button {
+                                withAnimation(DCMotion.respecting(reduceMotion)) { app.assistantMode = .chat }
+                            } label: {
+                                Label(AssistantMode.chat.title, systemImage: AssistantMode.chat.systemImage)
+                            }
+                        }
+                        if app.currentTopic != nil || app.agentForum != nil {
+                            Button {
+                                withAnimation(DCMotion.respecting(reduceMotion)) { app.assistantMode = .agent }
+                            } label: {
+                                Label(AssistantMode.agent.title, systemImage: AssistantMode.agent.systemImage)
+                            }
+                        }
+                    }
+                }
+
+                Section {
+                    Button {
+                        withAnimation(DCMotion.respecting(reduceMotion)) { app.panelRoute = .history }
+                    } label: {
+                        Label("History", systemImage: "clock.arrow.circlepath")
+                    }
+                    .accessibilityIdentifier("openHistoryMenu")
+
+                    Button {
+                        app.openPanelRoute(.settings)
+                    } label: {
+                        Label("Settings", systemImage: "gearshape")
+                    }
+                    .accessibilityIdentifier("openSettingsMenu")
+                }
+            } else {
+                Section {
+                    Button {
+                        UIPasteboard.general.string = exportText
+                        DCHaptics.success()
+                    } label: {
+                        Label("Copy", systemImage: "doc.on.doc")
+                    }
+                    .accessibilityIdentifier("copyExport")
+                    .disabled(exportDisabled)
+
+                    ShareLink(item: exportText) {
+                        Label("Share", systemImage: "square.and.arrow.up")
+                    }
+                    .accessibilityIdentifier("shareExport")
+                    .disabled(exportDisabled)
+
+                    Button {
+                        exporting = true
+                    } label: {
+                        Label("Export .txt", systemImage: "arrow.down.doc")
+                    }
+                    .accessibilityIdentifier("exportExport")
+                    .disabled(exportDisabled)
+
+                    Button {
+                        app.router.item = .exportOptions
+                    } label: {
+                        Label("Export Options…", systemImage: "slider.horizontal.3")
+                    }
+                    .accessibilityIdentifier("exportOptions")
+                }
+
+                Section {
+                    Button {
+                        onExpand(.post)
+                    } label: {
+                        Label("Post & Responses", systemImage: "text.bubble")
+                    }
+                    .accessibilityIdentifier("viewPost")
+                    .disabled(app.currentModeratedSource.isEmpty)
+
+                    Button {
+                        app.pullTopic()
+                    } label: {
+                        Label("Pull Post + Replies Only", systemImage: "arrow.down.circle")
+                    }
+                    .accessibilityIdentifier("pullPost")
+                    .disabled(app.currentTopic == nil || activeSummary != nil || activePull != nil)
+
+                    Button {
+                        app.router.item = .instructions
+                    } label: {
+                        Label("Instructions & Context", systemImage: "text.quote")
+                    }
+                    .accessibilityIdentifier("menuInstructions")
+                    .disabled(app.currentTopic == nil)
+
+                    Button {
+                        app.toggleWatchCurrentTopic()
+                    } label: {
+                        if let topicKey = app.currentTopic?.topicKey, app.isWatched(topicKey: topicKey) {
+                            Label("Unwatch Topic", systemImage: "eye.slash")
+                        } else {
+                            Label("Watch Topic", systemImage: "eye")
+                        }
+                    }
+                    .accessibilityIdentifier("toggleWatchTopic")
+                    .disabled(app.currentTopic == nil)
+
+                    Button {
+                        withAnimation(DCMotion.respecting(reduceMotion)) { app.assistantMode = .browserAgent }
+                    } label: {
+                        Label(AssistantMode.browserAgent.title, systemImage: AssistantMode.browserAgent.systemImage)
+                    }
+                    .accessibilityIdentifier("menuBrowserAgent")
+
+                    Button {
+                        withAnimation(DCMotion.respecting(reduceMotion)) { app.panelRoute = .history }
+                    } label: {
+                        Label("History", systemImage: "clock.arrow.circlepath")
+                    }
+                    .accessibilityIdentifier("openHistoryMenu")
+                }
+
+                if app.assistantMode != .agent {
+                    Section { reportAIOutputButtons }
+                }
+
+                if !(app.currentSession?.history.isEmpty ?? true) {
+                    Section {
+                        Button(role: .destructive) {
+                            app.clearChat()
+                        } label: {
+                            Label("Clear Chat", systemImage: "trash")
+                        }
+                        .accessibilityIdentifier("clearChat")
+                    }
                 }
             }
         } label: {
@@ -464,11 +539,12 @@ struct AssistantPanel: View {
     /// while a search runs, that a change waits for the next question.
     @ViewBuilder
     private var modelSwitcherItems: some View {
-        let role = app.currentRole
+        let role = effectiveRole
         let current = app.selection(for: role)
+        let favorites = app.visibleFavorites.filter { role != .browserAgent || $0.selection.supportsToolCalling }
         Section {
             Text(role.menuExplanation)
-            ForEach(app.visibleFavorites) { favorite in
+            ForEach(favorites) { favorite in
                 Toggle(isOn: Binding(
                     get: { favorite.matches(current) },
                     set: { _ in app.activateFavorite(favorite, for: role) }
@@ -480,7 +556,7 @@ struct AssistantPanel: View {
         } header: {
             Text(role.title.localizedUppercase)
         }
-        if !app.rolesShareModel, app.isProviderSelectable(current.provider) {
+        if role != .browserAgent, !app.rolesShareModel, app.isProviderSelectable(current.provider) {
             Button {
                 app.useSameModel(as: role)
             } label: {
@@ -555,22 +631,7 @@ struct AssistantPanel: View {
                     openInBrowser(url)
                 }
             case .browserAgent:
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 14) {
-                        if !app.isProviderReady(for: .browserAgent) {
-                            providerCard
-                        }
-                        ForEach(app.browserAgent.messages) { message in
-                            Text(verbatim: message.text)
-                                .font(.subheadline)
-                                .foregroundStyle(message.isError ? DCTheme.danger : .primary)
-                        }
-                    }
-                    .padding(14)
-                    .frame(maxWidth: DCTheme.contentMaxWidth + 220, alignment: .leading)
-                    .frame(maxWidth: .infinity)
-                }
-                .accessibilityIdentifier("agentPanel")
+                BrowserAgentPanelView(app: app)
             case .forumHome, .notForum, .maybe, .loading:
                 stateContent(kind)
             }

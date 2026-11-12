@@ -106,6 +106,23 @@
         }
       }
     },
+    "%@ needs an API key" : {
+      "comment" : "Browser agent setup card title when the selected provider has no API key",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 需要 API 密钥"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 需要 API 金鑰"
+          }
+        }
+      }
+    },
     "%@ settings" : {
       "comment" : "Link to a provider's key and address. The placeholder is the provider's name.",
       "localizations" : {
@@ -136,6 +153,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@ 仍可使用 %2$@。"
+          }
+        }
+      }
+    },
+    "%@ tokens" : {
+      "comment" : "Browser agent footer token counter",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 词元"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 詞元"
           }
         }
       }
@@ -422,6 +456,53 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%lld 則聊天訊息"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld errors" : {
+      "comment" : "Browser agent steps header: tool error count",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld error"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld errors"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld 个错误"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld 個錯誤"
                 }
               }
             }
@@ -1025,6 +1106,53 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%lld 個已儲存的項目"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld scripts on this page" : {
+      "comment" : "Browser agent context bar: number of saved scripts matching this page",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld script on this page"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld scripts on this page"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "此页面上有 %lld 个脚本"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "此頁面有 %lld 個指令碼"
                 }
               }
             }
@@ -3287,6 +3415,23 @@
         }
       }
     },
+    "ARGUMENTS" : {
+      "comment" : "Expanded browser agent tool call section header for tool arguments JSON",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "参数"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "參數"
+          }
+        }
+      }
+    },
     "Ask" : {
       "comment" : "Short form of the “Ask the forum” assistant mode, for narrow switchers",
       "localizations" : {
@@ -3510,6 +3655,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "就正在閱讀的頁面繼續提問。回答始終以討論內容為依據。"
+          }
+        }
+      }
+    },
+    "Ask the agent to change this page…" : {
+      "comment" : "Browser agent composer placeholder when ready",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "让代理修改此页面…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "讓代理修改此頁面…"
           }
         }
       }
@@ -4610,6 +4772,23 @@
         }
       }
     },
+    "Change this page by asking" : {
+      "comment" : "Browser agent empty state card title",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "通过提问修改此页面"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "透過提問修改此頁面"
+          }
+        }
+      }
+    },
     "Chapter %lld of %lld" : {
       "comment" : "Podcast: the current chapter, then the number of chapters",
       "localizations" : {
@@ -4830,6 +5009,23 @@
         }
       }
     },
+    "Check key" : {
+      "comment" : "Browser agent button: open AI models settings to check the API key",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "检查密钥"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "檢查金鑰"
+          }
+        }
+      }
+    },
     "Check now" : {
       "localizations" : {
         "zh-Hans" : {
@@ -4973,6 +5169,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "選擇模型"
+          }
+        }
+      }
+    },
+    "Choose a model first" : {
+      "comment" : "Browser agent composer placeholder when no model is configured",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请先选择模型"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請先選擇模型"
+          }
+        }
+      }
+    },
+    "Choose a model for the agent" : {
+      "comment" : "Browser agent setup card title when no model has been selected yet",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "为代理选择模型"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "為代理選擇模型"
+          }
+        }
+      }
+    },
+    "Choose a model for the agent first." : {
+      "comment" : "Test & save for browser agent without a model chosen",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请先为代理选择一个模型。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請先為代理選擇一個模型。"
           }
         }
       }
@@ -5745,6 +5992,23 @@
         }
       }
     },
+    "Could not complete turn" : {
+      "comment" : "Browser agent error card title",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法完成此轮操作"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法完成此輪操作"
+          }
+        }
+      }
+    },
     "Couldn't resume the audio. Try again, or end the session." : {
       "comment" : "Voice notice",
       "localizations" : {
@@ -6434,6 +6698,53 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已完成 · %1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "Done · %lld steps · %@" : {
+      "comment" : "Browser agent footer status when a run finishes",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Done · %1$lld step · %2$@"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Done · %1$lld steps · %2$@"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "完成 · %1$lld 步 · %2$@"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "完成 · %1$lld 步 · %2$@"
+                }
+              }
+            }
           }
         }
       }
@@ -8747,6 +9058,23 @@
         }
       }
     },
+    "Increase the font size and widen the article" : {
+      "comment" : "Browser agent example prompt 3",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "增大字号并加宽文章区域"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "放大字型並加寬文章區域"
+          }
+        }
+      }
+    },
     "Inspects and modifies the current web page with tools." : {
       "comment" : "Model menu (browser agent): what this model is used for",
       "localizations" : {
@@ -9659,6 +9987,23 @@
         }
       }
     },
+    "Make this page dark and hide the sidebar" : {
+      "comment" : "Browser agent example prompt 1",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将此页面设为深色并隐藏侧边栏"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "將此頁面設為深色並隱藏側邊欄"
+          }
+        }
+      }
+    },
     "Make Today’s Digest" : {
       "localizations" : {
         "zh-Hans" : {
@@ -9758,6 +10103,22 @@
         }
       }
     },
+    "Max browser agent steps: %lld" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "浏览器代理最大步数：%lld"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "瀏覽器代理最大步數：%lld"
+          }
+        }
+      }
+    },
     "Max tool steps per run: %lld" : {
       "localizations" : {
         "zh-Hans" : {
@@ -9786,6 +10147,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "每次查詢最多閱讀的話題數：%lld"
+          }
+        }
+      }
+    },
+    "Maximum size of each page read or JavaScript result sent back to the model." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每次读取页面或返回给模型的 JavaScript 结果的最大长度。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每次讀取頁面或傳回給模型的 JavaScript 結果的最大長度。"
           }
         }
       }
@@ -10124,6 +10501,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "需要支援 Apple Intelligence 且執行 iOS 26 或以上版本的裝置，並在設定中開啟 Apple Intelligence。"
+          }
+        }
+      }
+    },
+    "New conversation" : {
+      "comment" : "Browser agent menu action: clear the conversation and start fresh",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新对话"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新對話"
           }
         }
       }
@@ -13893,6 +14287,23 @@
         }
       }
     },
+    "Reads the page’s structure and text" : {
+      "comment" : "Browser agent empty state: first how-it-works bullet",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "读取页面的结构与正文"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "讀取頁面的結構與內文"
+          }
+        }
+      }
+    },
     "Ready" : {
       "comment" : "AI provider status pill",
       "localizations" : {
@@ -14709,6 +15120,23 @@
         }
       }
     },
+    "RESULT" : {
+      "comment" : "Expanded browser agent tool call section header for tool result output",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "结果"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "結果"
+          }
+        }
+      }
+    },
     "Retry" : {
       "comment" : "Button: writes the AI summary again",
       "localizations" : {
@@ -14792,6 +15220,23 @@
         }
       }
     },
+    "Running…" : {
+      "comment" : "Browser agent tool row status while running",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "运行中…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "執行中…"
+          }
+        }
+      }
+    },
     "Runs entirely on this device. Nothing leaves your iPhone or iPad. The on-device model is small, so long discussions are summarized in more steps." : {
       "localizations" : {
         "zh-Hans" : {
@@ -14820,6 +15265,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在背景執行，你可以繼續瀏覽。長按可選擇批次選項。"
+          }
+        }
+      }
+    },
+    "Runs JavaScript and injects CSS live" : {
+      "comment" : "Browser agent empty state: second how-it-works bullet",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "实时运行 JavaScript 并注入 CSS"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "即時執行 JavaScript 並注入 CSS"
           }
         }
       }
@@ -15285,6 +15747,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "明天見"
+          }
+        }
+      }
+    },
+    "Send" : {
+      "comment" : "Browser agent send button accessibility label",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "发送"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "傳送"
           }
         }
       }
@@ -16372,6 +16851,23 @@
         }
       }
     },
+    "Step limit…" : {
+      "comment" : "Browser agent button: open step limit settings",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "步数上限…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "步數上限…"
+          }
+        }
+      }
+    },
     "Steps" : {
       "localizations" : {
         "zh-Hans" : {
@@ -16388,6 +16884,23 @@
         }
       }
     },
+    "Steps %lld" : {
+      "comment" : "Folded browser agent steps header showing the number of tool calls",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "步骤 %lld"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "步驟 %lld"
+          }
+        }
+      }
+    },
     "Stop" : {
       "localizations" : {
         "zh-Hans" : {
@@ -16400,6 +16913,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "停止"
+          }
+        }
+      }
+    },
+    "Stop agent" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "停止代理"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "停止代理"
           }
         }
       }
@@ -16433,6 +16962,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已用完步數上限"
+          }
+        }
+      }
+    },
+    "Stopped at the step limit (%lld)" : {
+      "comment" : "Browser agent warning card title when the step limit is reached",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已达到步数上限（%lld）"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已達到步數上限（%lld）"
+          }
+        }
+      }
+    },
+    "Stopped by you · step %lld" : {
+      "comment" : "Browser agent footer status when stopped by the user",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已由你停止 · 第 %lld 步"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已由你停止 · 第 %lld 步"
+          }
+        }
+      }
+    },
+    "Stops whenever you tap Stop" : {
+      "comment" : "Browser agent empty state: third how-it-works bullet",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "轻点“停止”即可随时终止"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "點一下「停止」即可隨時終止"
           }
         }
       }
@@ -16807,6 +17387,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "總結連結"
+          }
+        }
+      }
+    },
+    "Summarize the main points on this page" : {
+      "comment" : "Browser agent example prompt 2",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "总结此页面的主要内容"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "摘要此頁面的主要重點"
           }
         }
       }
@@ -17666,6 +18263,52 @@
         }
       }
     },
+    "The browser agent reads and modifies the active web page with tool calls. Defaults: %lld steps, %@ per tool result." : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "The browser agent reads and modifies the active web page with tool calls. Defaults: %1$lld step, %2$@ per tool result."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "The browser agent reads and modifies the active web page with tool calls. Defaults: %1$lld steps, %2$@ per tool result."
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "浏览器代理通过工具调用读取并修改当前网页。默认值：%1$lld 步，每条工具结果 %2$@。"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "瀏覽器代理透過工具呼叫讀取並修改目前網頁。預設值：%1$lld 步，每則工具結果 %2$@。"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "The daily podcast is written in this language. Translating needs iOS 18." : {
       "localizations" : {
         "zh-Hans" : {
@@ -17923,6 +18566,53 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "原文內容、大家的回應和重點結論，即使話題有上千則回覆也沒問題。"
+          }
+        }
+      }
+    },
+    "The page may be half changed. Continue to grant another %lld steps, or adjust the step limit in Settings." : {
+      "comment" : "Browser agent warning card body when the step limit is reached",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "The page may be half changed. Continue to grant another %lld step, or adjust the step limit in Settings."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "The page may be half changed. Continue to grant another %lld steps, or adjust the step limit in Settings."
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "页面可能只完成了部分修改。继续可再增加 %lld 步，或在“设置”中调整步数上限。"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "頁面可能只完成了部分修改。繼續可再增加 %lld 步，或在「設定」中調整步數上限。"
+                }
+              }
+            }
           }
         }
       }
@@ -18754,6 +19444,22 @@
         }
       }
     },
+    "Tool result truncation limit" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "工具结果截断上限"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "工具結果截斷上限"
+          }
+        }
+      }
+    },
     "Top" : {
       "comment" : "Browser address bar position: at the top of the screen",
       "localizations" : {
@@ -19131,6 +19837,23 @@
         }
       }
     },
+    "Truncated · %lld characters in total" : {
+      "comment" : "Footer under a truncated browser agent tool output showing the original character count",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已截断 · 共 %lld 个字符"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已截斷 · 共 %lld 個字元"
+          }
+        }
+      }
+    },
     "Try It in Safari" : {
       "localizations" : {
         "zh-Hans" : {
@@ -19229,6 +19952,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "試著說"
+          }
+        }
+      }
+    },
+    "Turn failed" : {
+      "comment" : "Browser agent footer status when a turn fails",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本轮失败"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本輪失敗"
           }
         }
       }
@@ -19610,6 +20350,53 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "停止追蹤話題"
+          }
+        }
+      }
+    },
+    "Up to %lld steps. Change it in Settings." : {
+      "comment" : "Browser agent empty state footer showing the configured step limit and linking to Settings",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Up to %lld step. Change it in Settings."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Up to %lld steps. Change it in Settings."
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "最多 %lld 步。可在“设置”中修改。"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "最多 %lld 步。可在「設定」中修改。"
+                }
+              }
+            }
           }
         }
       }
@@ -21111,6 +21898,40 @@
         }
       }
     },
+    "Working" : {
+      "comment" : "Accessibility value of the AI button while the browser agent is working",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "运行中"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "執行中"
+          }
+        }
+      }
+    },
+    "Working · step %lld of %lld" : {
+      "comment" : "Browser agent footer status while a run is working",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "运行中 · 第 %1$lld / %2$lld 步"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "執行中 · 第 %1$lld / %2$lld 步"
+          }
+        }
+      }
+    },
     "Working…" : {
       "localizations" : {
         "zh-Hans" : {
@@ -21156,6 +21977,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "總結"
+          }
+        }
+      }
+    },
+    "Write your next message…" : {
+      "comment" : "Browser agent composer placeholder while a run is in progress",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "输入下一条消息…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "輸入下一則訊息…"
           }
         }
       }

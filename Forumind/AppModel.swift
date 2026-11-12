@@ -271,6 +271,9 @@ final class AppModel: ObservableObject {
     private static var loadsOnlySamplePage: Bool {
         #if DEBUG
         return AssistantDebug.isActive
+            || AssistantDebug.value("-dc-browser-agent-demo") != nil
+            || AssistantDebug.value("-dc-browser-agent-live-prompt") != nil
+            || AssistantDebug.has("-dc-browser-agent-fixture-page")
         #else
         return false
         #endif
@@ -598,6 +601,7 @@ final class AppModel: ObservableObject {
         } else if ProcessInfo.processInfo.arguments.contains("-ui-test-sample-session") {
             seedUITestSession()
         }
+        applyBrowserAgentDebugArguments()
         // Sample only: never over the real digests or with a real key.
         if AssistantDebug.isActive, AssistantDebug.has("-dc-digest-sample") { seedDigestSample() }
         // `-dc-no-forums`: the sample as a new user sees Home (never saved).
@@ -2158,6 +2162,9 @@ final class AppModel: ObservableObject {
     /// reports) when the key store refuses one.
     @discardableResult
     private func persistChangedAPIKeys() -> Bool {
+        #if DEBUG
+        if Self.loadsOnlySamplePage { return true }
+        #endif
         for provider in AIProvider.allCases {
             let key = settings.configuration(for: provider).apiKey
             guard persistedAPIKeys[provider] != key else { continue }
@@ -3775,7 +3782,10 @@ final class AppModel: ObservableObject {
         #if DEBUG
         // Sample data for screenshots is never written over the real snapshot,
         // and its placeholder key stays in memory.
-        if AssistantDebug.isActive { return }
+        if AssistantDebug.isActive
+            || AssistantDebug.value("-dc-browser-agent-demo") != nil
+            || AssistantDebug.value("-dc-browser-agent-live-prompt") != nil
+            || AssistantDebug.has("-dc-browser-agent-fixture-page") { return }
         #endif
         persistChangedAPIKeys()
         let snapshot = AppSnapshot(
