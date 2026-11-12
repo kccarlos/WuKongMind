@@ -1,0 +1,4757 @@
+[
+  {
+    "detail" : "",
+    "outcome" : "runs",
+    "testCase" : "Control: page inline <script> without nonce",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "",
+    "outcome" : "runs",
+    "testCase" : "Control: page inline <script> with nonce",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "",
+    "outcome" : "runs",
+    "testCase" : "Control: page same-origin <script src> with nonce",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "2",
+    "outcome" : "runs",
+    "testCase" : "Control: page eval",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "rgb(1, 2, 3)",
+    "outcome" : "applies",
+    "testCase" : "Control: page inline <style>",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "rgb(4, 5, 6)",
+    "outcome" : "applies",
+    "testCase" : "Control: page same-origin stylesheet",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "readyState loading; typeof pageGlobal undefined",
+    "outcome" : "runs",
+    "testCase" : "WKUserScript at document start: runs",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "5",
+    "outcome" : "works",
+    "testCase" : "WKUserScript at document start: eval",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "7",
+    "outcome" : "works",
+    "testCase" : "WKUserScript at document start: new Function",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "readyState interactive; typeof pageGlobal number",
+    "outcome" : "runs",
+    "testCase" : "WKUserScript at document end: runs",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "5",
+    "outcome" : "works",
+    "testCase" : "WKUserScript at document end: eval",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "7",
+    "outcome" : "works",
+    "testCase" : "WKUserScript at document end: new Function",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "seen: fetch-parse, xhr-parse, fetch-load; raw [{\"k\":\"fetch\",\"u\":\"\/api\/own?via=fetch-parse\",\"status\":200},{\"k\":\"xhr\",\"m\":\"GET\",\"u\":\"\/api\/own?via=xhr-parse\",\"status\":200},{\"k\":\"fetch\",\"u\":\"\/api\/own?via=fetch-load\",\"status\":200}]",
+    "outcome" : "sees all",
+    "testCase" : "Capture hook at start sees page's own fetch\/XHR",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "readyState loading; typeof pageGlobal undefined",
+    "outcome" : "runs",
+    "testCase" : "WKUserScript at document start: runs",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "5",
+    "outcome" : "works",
+    "testCase" : "WKUserScript at document start: eval",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "7",
+    "outcome" : "works",
+    "testCase" : "WKUserScript at document start: new Function",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "readyState interactive; typeof pageGlobal undefined",
+    "outcome" : "runs",
+    "testCase" : "WKUserScript at document end: runs",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "5",
+    "outcome" : "works",
+    "testCase" : "WKUserScript at document end: eval",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "7",
+    "outcome" : "works",
+    "testCase" : "WKUserScript at document end: new Function",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "seen: ; raw []",
+    "outcome" : "sees none",
+    "testCase" : "Capture hook at start sees page's own fetch\/XHR",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "",
+    "outcome" : "0",
+    "testCase" : "CSP violations during page load (securitypolicyviolation)",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "title M0 fixture none--",
+    "outcome" : "works",
+    "testCase" : "evaluateJavaScript",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "title M0 fixture none--",
+    "outcome" : "works",
+    "testCase" : "evaluateJavaScript",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "{\"n\":1,\"arr\":[1,\"a\"],\"nested\":{\"t\":true}}",
+    "outcome" : "works",
+    "testCase" : "callAsyncJavaScript await + JSON string",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "{\"n\":1,\"arr\":[1,\"a\"],\"nested\":{\"t\":true}}",
+    "outcome" : "works",
+    "testCase" : "callAsyncJavaScript await + JSON string",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "Swift got [String: Any] n=1 arr=2 items nested.t=1",
+    "outcome" : "works",
+    "testCase" : "callAsyncJavaScript await + object return",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "Swift got [String: Any] n=1 arr=2 items nested.t=1",
+    "outcome" : "works",
+    "testCase" : "callAsyncJavaScript await + object return",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "eval -> 2",
+    "outcome" : "works",
+    "testCase" : "eval in injected code",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "eval -> 2",
+    "outcome" : "works",
+    "testCase" : "eval in injected code",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "fn -> 7",
+    "outcome" : "works",
+    "testCase" : "new Function in injected code",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "fn -> 7",
+    "outcome" : "works",
+    "testCase" : "new Function in injected code",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "read \"target\"; write seen from the other world: page",
+    "outcome" : "works",
+    "testCase" : "DOM read + write",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "read \"target\"; write seen from the other world: isolated",
+    "outcome" : "works",
+    "testCase" : "DOM read + write",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "typeof pageGlobal = number; page world now reads pageGlobal = 99",
+    "outcome" : "visible",
+    "testCase" : "page JS global visible",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "typeof pageGlobal = undefined; page world now reads pageGlobal = 42",
+    "outcome" : "not visible",
+    "testCase" : "page JS global visible",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "computed color rgb(10, 20, 30)",
+    "outcome" : "works",
+    "testCase" : "CSS via <style> element",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "computed color rgb(10, 20, 30)",
+    "outcome" : "works",
+    "testCase" : "CSS via <style> element",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "computed background rgb(40, 50, 60)",
+    "outcome" : "works",
+    "testCase" : "CSS via adoptedStyleSheets",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "computed background rgb(40, 50, 60)",
+    "outcome" : "works",
+    "testCase" : "CSS via adoptedStyleSheets",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "computed opacity 0.5",
+    "outcome" : "works",
+    "testCase" : "CSS via setAttribute('style')",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "computed opacity 0.5",
+    "outcome" : "works",
+    "testCase" : "CSS via setAttribute('style')",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "computed letter-spacing 3px",
+    "outcome" : "works",
+    "testCase" : "CSS via element.style (CSSOM)",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "computed letter-spacing 3px",
+    "outcome" : "works",
+    "testCase" : "CSS via element.style (CSSOM)",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "script global set in page world: true, isolated world: false",
+    "outcome" : "works",
+    "testCase" : "dynamic <script> inline",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "script global set in page world: true, isolated world: false",
+    "outcome" : "works",
+    "testCase" : "dynamic <script> inline",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "nonce read: yes; script global set in page world: true, isolated world: false",
+    "outcome" : "works",
+    "testCase" : "dynamic <script> inline + copied nonce",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "nonce read: yes; script global set in page world: true, isolated world: false",
+    "outcome" : "works",
+    "testCase" : "dynamic <script> inline + copied nonce",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "event load; script global set in page world: true, isolated world: false; server saw request: yes",
+    "outcome" : "works",
+    "testCase" : "dynamic <script src> same origin",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "event load; script global set in page world: true, isolated world: false; server saw request: yes",
+    "outcome" : "works",
+    "testCase" : "dynamic <script src> same origin",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "event load; nonce read: yes; script global set in page world: true, isolated world: false; server saw request: yes",
+    "outcome" : "works",
+    "testCase" : "dynamic <script src> same origin + copied nonce",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "event load; nonce read: yes; script global set in page world: true, isolated world: false; server saw request: yes",
+    "outcome" : "works",
+    "testCase" : "dynamic <script src> same origin + copied nonce",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "event load; script global set in page world: true, isolated world: false; server saw request: yes",
+    "outcome" : "works",
+    "testCase" : "dynamic <script src> other origin",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "event load; script global set in page world: true, isolated world: false; server saw request: yes",
+    "outcome" : "works",
+    "testCase" : "dynamic <script src> other origin",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "event load; nonce read: yes; script global set in page world: true, isolated world: false; server saw request: yes",
+    "outcome" : "works",
+    "testCase" : "dynamic <script src> other origin + copied nonce",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "event load; nonce read: yes; script global set in page world: true, isolated world: false; server saw request: yes",
+    "outcome" : "works",
+    "testCase" : "dynamic <script src> other origin + copied nonce",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "status 200 {\"ok\":true}; server saw request: yes; page-world capture hook saw it: true",
+    "outcome" : "works",
+    "testCase" : "fetch same origin",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "status 200 {\"ok\":true}; server saw request: yes; page-world capture hook saw it: false",
+    "outcome" : "works",
+    "testCase" : "fetch same origin",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "status 200 {\"other\":true}; server saw request: yes; page-world capture hook saw it: true",
+    "outcome" : "works",
+    "testCase" : "fetch other origin (CORS allowed)",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "status 200 {\"other\":true}; server saw request: yes; page-world capture hook saw it: false",
+    "outcome" : "works",
+    "testCase" : "fetch other origin (CORS allowed)",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "TypeError: Load failed; server saw request: yes; page-world capture hook saw it: true",
+    "outcome" : "blocked",
+    "testCase" : "fetch other origin (no CORS header)",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "TypeError: Load failed; server saw request: yes; page-world capture hook saw it: false",
+    "outcome" : "blocked",
+    "testCase" : "fetch other origin (no CORS header)",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "status 200, library global set in this world: true; server saw request: yes; page-world capture hook saw it: true",
+    "outcome" : "works",
+    "testCase" : "workaround: fetch other-origin script text + indirect eval",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "status 200, library global set in this world: true; server saw request: yes; page-world capture hook saw it: false",
+    "outcome" : "works",
+    "testCase" : "workaround: fetch other-origin script text + indirect eval",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "status 200; server saw request: yes; page-world capture hook saw it: true",
+    "outcome" : "works",
+    "testCase" : "XHR other origin (CORS allowed)",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "status 200; server saw request: yes; page-world capture hook saw it: false",
+    "outcome" : "works",
+    "testCase" : "XHR other origin (CORS allowed)",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "{\"webkit\":\"object\",\"messageHandlers\":\"object\",\"agent\":\"undefined\",\"pageCtl\":\"object\"} replies={\"pageCtl\":{\"echo\":{\"from\":\"page\"},\"world\":\"page\"}}",
+    "outcome" : "agent not visible",
+    "testCase" : "message handlers seen",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "{\"webkit\":\"object\",\"messageHandlers\":\"object\",\"agent\":\"object\",\"pageCtl\":\"undefined\"} replies={\"agent\":{\"world\":\"wukong-iso\",\"echo\":{\"from\":\"isolated\"}}}",
+    "outcome" : "agent visible",
+    "testCase" : "message handlers seen",
+    "variant" : "no CSP",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "",
+    "outcome" : "blocked",
+    "testCase" : "Control: page inline <script> without nonce",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "",
+    "outcome" : "blocked",
+    "testCase" : "Control: page inline <script> with nonce",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "",
+    "outcome" : "runs",
+    "testCase" : "Control: page same-origin <script src> with nonce",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "blocked: EvalError",
+    "outcome" : "blocked",
+    "testCase" : "Control: page eval",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "rgb(0, 0, 0)",
+    "outcome" : "blocked",
+    "testCase" : "Control: page inline <style>",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "rgb(4, 5, 6)",
+    "outcome" : "applies",
+    "testCase" : "Control: page same-origin stylesheet",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "readyState loading; typeof pageGlobal undefined",
+    "outcome" : "runs",
+    "testCase" : "WKUserScript at document start: runs",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "blocked: EvalError: Refused to evaluate a string as JavaScript because 'unsafe-eval' or 'trusted-types-eval' is not an allowed source of script in the following Content Security Policy directive: \"script-src 'self'\".\n",
+    "outcome" : "blocked",
+    "testCase" : "WKUserScript at document start: eval",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "blocked: EvalError: Refused to evaluate a string as JavaScript because 'unsafe-eval' or 'trusted-types-eval' is not an allowed source of script in the following Content Security Policy directive: \"script-src 'self'\".\n",
+    "outcome" : "blocked",
+    "testCase" : "WKUserScript at document start: new Function",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "readyState interactive; typeof pageGlobal number",
+    "outcome" : "runs",
+    "testCase" : "WKUserScript at document end: runs",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "blocked: EvalError: Refused to evaluate a string as JavaScript because 'unsafe-eval' or 'trusted-types-eval' is not an allowed source of script in the following Content Security Policy directive: \"script-src 'self'\".\n",
+    "outcome" : "blocked",
+    "testCase" : "WKUserScript at document end: eval",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "blocked: EvalError: Refused to evaluate a string as JavaScript because 'unsafe-eval' or 'trusted-types-eval' is not an allowed source of script in the following Content Security Policy directive: \"script-src 'self'\".\n",
+    "outcome" : "blocked",
+    "testCase" : "WKUserScript at document end: new Function",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "seen: fetch-parse, xhr-parse, fetch-load; raw [{\"k\":\"fetch\",\"u\":\"\/api\/own?via=fetch-parse\",\"status\":200},{\"k\":\"xhr\",\"m\":\"GET\",\"u\":\"\/api\/own?via=xhr-parse\",\"status\":200},{\"k\":\"fetch\",\"u\":\"\/api\/own?via=fetch-load\",\"status\":200}]",
+    "outcome" : "sees all",
+    "testCase" : "Capture hook at start sees page's own fetch\/XHR",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "readyState loading; typeof pageGlobal undefined",
+    "outcome" : "runs",
+    "testCase" : "WKUserScript at document start: runs",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "5",
+    "outcome" : "works",
+    "testCase" : "WKUserScript at document start: eval",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "7",
+    "outcome" : "works",
+    "testCase" : "WKUserScript at document start: new Function",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "readyState interactive; typeof pageGlobal undefined",
+    "outcome" : "runs",
+    "testCase" : "WKUserScript at document end: runs",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "5",
+    "outcome" : "works",
+    "testCase" : "WKUserScript at document end: eval",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "7",
+    "outcome" : "works",
+    "testCase" : "WKUserScript at document end: new Function",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "seen: ; raw []",
+    "outcome" : "sees none",
+    "testCase" : "Capture hook at start sees page's own fetch\/XHR",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "",
+    "outcome" : "8",
+    "testCase" : "CSP violations during page load (securitypolicyviolation)",
+    "variant" : "self (header)",
+    "violations" : [
+      "script-src eval",
+      "script-src eval",
+      "script-src-elem inline",
+      "script-src-elem inline",
+      "style-src-elem inline",
+      "script-src eval",
+      "script-src eval",
+      "script-src eval"
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "title M0 fixture self-header",
+    "outcome" : "works",
+    "testCase" : "evaluateJavaScript",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "title M0 fixture self-header",
+    "outcome" : "works",
+    "testCase" : "evaluateJavaScript",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "{\"n\":1,\"arr\":[1,\"a\"],\"nested\":{\"t\":true}}",
+    "outcome" : "works",
+    "testCase" : "callAsyncJavaScript await + JSON string",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "{\"n\":1,\"arr\":[1,\"a\"],\"nested\":{\"t\":true}}",
+    "outcome" : "works",
+    "testCase" : "callAsyncJavaScript await + JSON string",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "Swift got [String: Any] n=1 arr=2 items nested.t=1",
+    "outcome" : "works",
+    "testCase" : "callAsyncJavaScript await + object return",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "Swift got [String: Any] n=1 arr=2 items nested.t=1",
+    "outcome" : "works",
+    "testCase" : "callAsyncJavaScript await + object return",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "EvalError: Refused to evaluate a string as JavaScript because 'unsafe-eval' or 'trusted-types-eval' is not an allowed source of script in the following Content Security Policy directive: \"script-src 'self'\".\n",
+    "outcome" : "blocked",
+    "testCase" : "eval in injected code",
+    "variant" : "self (header)",
+    "violations" : [
+      "script-src eval"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "eval -> 2",
+    "outcome" : "works",
+    "testCase" : "eval in injected code",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "EvalError: Refused to evaluate a string as JavaScript because 'unsafe-eval' or 'trusted-types-eval' is not an allowed source of script in the following Content Security Policy directive: \"script-src 'self'\".\n",
+    "outcome" : "blocked",
+    "testCase" : "new Function in injected code",
+    "variant" : "self (header)",
+    "violations" : [
+      "script-src eval"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "fn -> 7",
+    "outcome" : "works",
+    "testCase" : "new Function in injected code",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "read \"target\"; write seen from the other world: page",
+    "outcome" : "works",
+    "testCase" : "DOM read + write",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "read \"target\"; write seen from the other world: isolated",
+    "outcome" : "works",
+    "testCase" : "DOM read + write",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "typeof pageGlobal = number; page world now reads pageGlobal = 99",
+    "outcome" : "visible",
+    "testCase" : "page JS global visible",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "typeof pageGlobal = undefined; page world now reads pageGlobal = 42",
+    "outcome" : "not visible",
+    "testCase" : "page JS global visible",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "computed color rgb(0, 0, 0)",
+    "outcome" : "blocked",
+    "testCase" : "CSS via <style> element",
+    "variant" : "self (header)",
+    "violations" : [
+      "style-src-elem inline"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "computed color rgb(0, 0, 0)",
+    "outcome" : "blocked",
+    "testCase" : "CSS via <style> element",
+    "variant" : "self (header)",
+    "violations" : [
+      "style-src-elem inline"
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "computed background rgb(40, 50, 60)",
+    "outcome" : "works",
+    "testCase" : "CSS via adoptedStyleSheets",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "computed background rgb(40, 50, 60)",
+    "outcome" : "works",
+    "testCase" : "CSS via adoptedStyleSheets",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "computed opacity 1",
+    "outcome" : "blocked",
+    "testCase" : "CSS via setAttribute('style')",
+    "variant" : "self (header)",
+    "violations" : [
+      "style-src-attr inline"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "computed opacity 1",
+    "outcome" : "blocked",
+    "testCase" : "CSS via setAttribute('style')",
+    "variant" : "self (header)",
+    "violations" : [
+      "style-src-attr inline"
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "computed letter-spacing 3px",
+    "outcome" : "works",
+    "testCase" : "CSS via element.style (CSSOM)",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "computed letter-spacing 3px",
+    "outcome" : "works",
+    "testCase" : "CSS via element.style (CSSOM)",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "script global set in page world: false, isolated world: false",
+    "outcome" : "blocked",
+    "testCase" : "dynamic <script> inline",
+    "variant" : "self (header)",
+    "violations" : [
+      "script-src-elem inline"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "script global set in page world: false, isolated world: false",
+    "outcome" : "blocked",
+    "testCase" : "dynamic <script> inline",
+    "variant" : "self (header)",
+    "violations" : [
+      "script-src-elem inline"
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "nonce read: yes; script global set in page world: false, isolated world: false",
+    "outcome" : "blocked",
+    "testCase" : "dynamic <script> inline + copied nonce",
+    "variant" : "self (header)",
+    "violations" : [
+      "script-src-elem inline"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "nonce read: yes; script global set in page world: false, isolated world: false",
+    "outcome" : "blocked",
+    "testCase" : "dynamic <script> inline + copied nonce",
+    "variant" : "self (header)",
+    "violations" : [
+      "script-src-elem inline"
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "event load; script global set in page world: true, isolated world: false; server saw request: yes",
+    "outcome" : "works",
+    "testCase" : "dynamic <script src> same origin",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "event load; script global set in page world: true, isolated world: false; server saw request: yes",
+    "outcome" : "works",
+    "testCase" : "dynamic <script src> same origin",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "event load; nonce read: yes; script global set in page world: true, isolated world: false; server saw request: yes",
+    "outcome" : "works",
+    "testCase" : "dynamic <script src> same origin + copied nonce",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "event load; nonce read: yes; script global set in page world: true, isolated world: false; server saw request: yes",
+    "outcome" : "works",
+    "testCase" : "dynamic <script src> same origin + copied nonce",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "event error; script global set in page world: false, isolated world: false; server saw request: no",
+    "outcome" : "blocked",
+    "testCase" : "dynamic <script src> other origin",
+    "variant" : "self (header)",
+    "violations" : [
+      "script-src-elem http:\/\/127.0.0.1:62071\/ext.js?m=m77&id=m77"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "event error; script global set in page world: false, isolated world: false; server saw request: no",
+    "outcome" : "blocked",
+    "testCase" : "dynamic <script src> other origin",
+    "variant" : "self (header)",
+    "violations" : [
+      "script-src-elem http:\/\/127.0.0.1:62071\/ext.js?m=m78&id=m78"
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "event error; nonce read: yes; script global set in page world: false, isolated world: false; server saw request: no",
+    "outcome" : "blocked",
+    "testCase" : "dynamic <script src> other origin + copied nonce",
+    "variant" : "self (header)",
+    "violations" : [
+      "script-src-elem http:\/\/127.0.0.1:62071\/ext.js?m=m79&id=m79"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "event error; nonce read: yes; script global set in page world: false, isolated world: false; server saw request: no",
+    "outcome" : "blocked",
+    "testCase" : "dynamic <script src> other origin + copied nonce",
+    "variant" : "self (header)",
+    "violations" : [
+      "script-src-elem http:\/\/127.0.0.1:62071\/ext.js?m=m80&id=m80"
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "status 200 {\"ok\":true}; server saw request: yes; page-world capture hook saw it: true",
+    "outcome" : "works",
+    "testCase" : "fetch same origin",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "status 200 {\"ok\":true}; server saw request: yes; page-world capture hook saw it: false",
+    "outcome" : "works",
+    "testCase" : "fetch same origin",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "TypeError: Load failed; server saw request: no; page-world capture hook saw it: true",
+    "outcome" : "blocked",
+    "testCase" : "fetch other origin (CORS allowed)",
+    "variant" : "self (header)",
+    "violations" : [
+      "connect-src http:\/\/127.0.0.1:62071\/cors\/data?id=m83"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "status 200 {\"other\":true}; server saw request: yes; page-world capture hook saw it: false",
+    "outcome" : "works",
+    "testCase" : "fetch other origin (CORS allowed)",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "TypeError: Load failed; server saw request: no; page-world capture hook saw it: true",
+    "outcome" : "blocked",
+    "testCase" : "fetch other origin (no CORS header)",
+    "variant" : "self (header)",
+    "violations" : [
+      "connect-src http:\/\/127.0.0.1:62071\/nocors\/data?id=m85"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "TypeError: Load failed; server saw request: yes; page-world capture hook saw it: false",
+    "outcome" : "blocked",
+    "testCase" : "fetch other origin (no CORS header)",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "TypeError: Load failed; server saw request: no; page-world capture hook saw it: true",
+    "outcome" : "blocked",
+    "testCase" : "workaround: fetch other-origin script text + indirect eval",
+    "variant" : "self (header)",
+    "violations" : [
+      "connect-src http:\/\/127.0.0.1:62071\/lib.js?id=m87"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "status 200, library global set in this world: true; server saw request: yes; page-world capture hook saw it: false",
+    "outcome" : "works",
+    "testCase" : "workaround: fetch other-origin script text + indirect eval",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "xhr error event; server saw request: no; page-world capture hook saw it: true",
+    "outcome" : "blocked",
+    "testCase" : "XHR other origin (CORS allowed)",
+    "variant" : "self (header)",
+    "violations" : [
+      "connect-src http:\/\/127.0.0.1:62071\/cors\/data?id=m89"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "status 200; server saw request: yes; page-world capture hook saw it: false",
+    "outcome" : "works",
+    "testCase" : "XHR other origin (CORS allowed)",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "{\"webkit\":\"object\",\"messageHandlers\":\"object\",\"agent\":\"undefined\",\"pageCtl\":\"object\"} replies={\"pageCtl\":{\"world\":\"page\",\"echo\":{\"from\":\"page\"}}}",
+    "outcome" : "agent not visible",
+    "testCase" : "message handlers seen",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "{\"webkit\":\"object\",\"messageHandlers\":\"object\",\"agent\":\"object\",\"pageCtl\":\"undefined\"} replies={\"agent\":{\"echo\":{\"from\":\"isolated\"},\"world\":\"wukong-iso\"}}",
+    "outcome" : "agent visible",
+    "testCase" : "message handlers seen",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "",
+    "outcome" : "blocked",
+    "testCase" : "Control: page inline <script> without nonce",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "",
+    "outcome" : "blocked",
+    "testCase" : "Control: page inline <script> with nonce",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "",
+    "outcome" : "runs",
+    "testCase" : "Control: page same-origin <script src> with nonce",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "blocked: EvalError",
+    "outcome" : "blocked",
+    "testCase" : "Control: page eval",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "rgb(0, 0, 0)",
+    "outcome" : "blocked",
+    "testCase" : "Control: page inline <style>",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "rgb(4, 5, 6)",
+    "outcome" : "applies",
+    "testCase" : "Control: page same-origin stylesheet",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "readyState loading; typeof pageGlobal undefined",
+    "outcome" : "runs",
+    "testCase" : "WKUserScript at document start: runs",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "5",
+    "outcome" : "works",
+    "testCase" : "WKUserScript at document start: eval",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "7",
+    "outcome" : "works",
+    "testCase" : "WKUserScript at document start: new Function",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "readyState interactive; typeof pageGlobal number",
+    "outcome" : "runs",
+    "testCase" : "WKUserScript at document end: runs",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "blocked: EvalError: Refused to evaluate a string as JavaScript because 'unsafe-eval' or 'trusted-types-eval' is not an allowed source of script in the following Content Security Policy directive: \"script-src 'self'\".\n",
+    "outcome" : "blocked",
+    "testCase" : "WKUserScript at document end: eval",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "blocked: EvalError: Refused to evaluate a string as JavaScript because 'unsafe-eval' or 'trusted-types-eval' is not an allowed source of script in the following Content Security Policy directive: \"script-src 'self'\".\n",
+    "outcome" : "blocked",
+    "testCase" : "WKUserScript at document end: new Function",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "seen: fetch-parse, xhr-parse, fetch-load; raw [{\"k\":\"fetch\",\"u\":\"\/api\/own?via=fetch-parse\",\"status\":200},{\"k\":\"xhr\",\"m\":\"GET\",\"u\":\"\/api\/own?via=xhr-parse\",\"status\":200},{\"k\":\"fetch\",\"u\":\"\/api\/own?via=fetch-load\",\"status\":200}]",
+    "outcome" : "sees all",
+    "testCase" : "Capture hook at start sees page's own fetch\/XHR",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "readyState loading; typeof pageGlobal undefined",
+    "outcome" : "runs",
+    "testCase" : "WKUserScript at document start: runs",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "5",
+    "outcome" : "works",
+    "testCase" : "WKUserScript at document start: eval",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "7",
+    "outcome" : "works",
+    "testCase" : "WKUserScript at document start: new Function",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "readyState interactive; typeof pageGlobal undefined",
+    "outcome" : "runs",
+    "testCase" : "WKUserScript at document end: runs",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "5",
+    "outcome" : "works",
+    "testCase" : "WKUserScript at document end: eval",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "7",
+    "outcome" : "works",
+    "testCase" : "WKUserScript at document end: new Function",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "seen: ; raw []",
+    "outcome" : "sees none",
+    "testCase" : "Capture hook at start sees page's own fetch\/XHR",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "",
+    "outcome" : "6",
+    "testCase" : "CSP violations during page load (securitypolicyviolation)",
+    "variant" : "self (meta)",
+    "violations" : [
+      "script-src-elem inline",
+      "script-src-elem inline",
+      "style-src-elem inline",
+      "script-src eval",
+      "script-src eval",
+      "script-src eval"
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "title M0 fixture self-meta",
+    "outcome" : "works",
+    "testCase" : "evaluateJavaScript",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "title M0 fixture self-meta",
+    "outcome" : "works",
+    "testCase" : "evaluateJavaScript",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "{\"n\":1,\"arr\":[1,\"a\"],\"nested\":{\"t\":true}}",
+    "outcome" : "works",
+    "testCase" : "callAsyncJavaScript await + JSON string",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "{\"n\":1,\"arr\":[1,\"a\"],\"nested\":{\"t\":true}}",
+    "outcome" : "works",
+    "testCase" : "callAsyncJavaScript await + JSON string",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "Swift got [String: Any] n=1 arr=2 items nested.t=1",
+    "outcome" : "works",
+    "testCase" : "callAsyncJavaScript await + object return",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "Swift got [String: Any] n=1 arr=2 items nested.t=1",
+    "outcome" : "works",
+    "testCase" : "callAsyncJavaScript await + object return",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "EvalError: Refused to evaluate a string as JavaScript because 'unsafe-eval' or 'trusted-types-eval' is not an allowed source of script in the following Content Security Policy directive: \"script-src 'self'\".\n",
+    "outcome" : "blocked",
+    "testCase" : "eval in injected code",
+    "variant" : "self (meta)",
+    "violations" : [
+      "script-src eval"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "eval -> 2",
+    "outcome" : "works",
+    "testCase" : "eval in injected code",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "EvalError: Refused to evaluate a string as JavaScript because 'unsafe-eval' or 'trusted-types-eval' is not an allowed source of script in the following Content Security Policy directive: \"script-src 'self'\".\n",
+    "outcome" : "blocked",
+    "testCase" : "new Function in injected code",
+    "variant" : "self (meta)",
+    "violations" : [
+      "script-src eval"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "fn -> 7",
+    "outcome" : "works",
+    "testCase" : "new Function in injected code",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "read \"target\"; write seen from the other world: page",
+    "outcome" : "works",
+    "testCase" : "DOM read + write",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "read \"target\"; write seen from the other world: isolated",
+    "outcome" : "works",
+    "testCase" : "DOM read + write",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "typeof pageGlobal = number; page world now reads pageGlobal = 99",
+    "outcome" : "visible",
+    "testCase" : "page JS global visible",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "typeof pageGlobal = undefined; page world now reads pageGlobal = 42",
+    "outcome" : "not visible",
+    "testCase" : "page JS global visible",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "computed color rgb(0, 0, 0)",
+    "outcome" : "blocked",
+    "testCase" : "CSS via <style> element",
+    "variant" : "self (meta)",
+    "violations" : [
+      "style-src-elem inline"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "computed color rgb(0, 0, 0)",
+    "outcome" : "blocked",
+    "testCase" : "CSS via <style> element",
+    "variant" : "self (meta)",
+    "violations" : [
+      "style-src-elem inline"
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "computed background rgb(40, 50, 60)",
+    "outcome" : "works",
+    "testCase" : "CSS via adoptedStyleSheets",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "computed background rgb(40, 50, 60)",
+    "outcome" : "works",
+    "testCase" : "CSS via adoptedStyleSheets",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "computed opacity 1",
+    "outcome" : "blocked",
+    "testCase" : "CSS via setAttribute('style')",
+    "variant" : "self (meta)",
+    "violations" : [
+      "style-src-attr inline"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "computed opacity 1",
+    "outcome" : "blocked",
+    "testCase" : "CSS via setAttribute('style')",
+    "variant" : "self (meta)",
+    "violations" : [
+      "style-src-attr inline"
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "computed letter-spacing 3px",
+    "outcome" : "works",
+    "testCase" : "CSS via element.style (CSSOM)",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "computed letter-spacing 3px",
+    "outcome" : "works",
+    "testCase" : "CSS via element.style (CSSOM)",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "script global set in page world: false, isolated world: false",
+    "outcome" : "blocked",
+    "testCase" : "dynamic <script> inline",
+    "variant" : "self (meta)",
+    "violations" : [
+      "script-src-elem inline"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "script global set in page world: false, isolated world: false",
+    "outcome" : "blocked",
+    "testCase" : "dynamic <script> inline",
+    "variant" : "self (meta)",
+    "violations" : [
+      "script-src-elem inline"
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "nonce read: yes; script global set in page world: false, isolated world: false",
+    "outcome" : "blocked",
+    "testCase" : "dynamic <script> inline + copied nonce",
+    "variant" : "self (meta)",
+    "violations" : [
+      "script-src-elem inline"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "nonce read: yes; script global set in page world: false, isolated world: false",
+    "outcome" : "blocked",
+    "testCase" : "dynamic <script> inline + copied nonce",
+    "variant" : "self (meta)",
+    "violations" : [
+      "script-src-elem inline"
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "event load; script global set in page world: true, isolated world: false; server saw request: yes",
+    "outcome" : "works",
+    "testCase" : "dynamic <script src> same origin",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "event load; script global set in page world: true, isolated world: false; server saw request: yes",
+    "outcome" : "works",
+    "testCase" : "dynamic <script src> same origin",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "event load; nonce read: yes; script global set in page world: true, isolated world: false; server saw request: yes",
+    "outcome" : "works",
+    "testCase" : "dynamic <script src> same origin + copied nonce",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "event load; nonce read: yes; script global set in page world: true, isolated world: false; server saw request: yes",
+    "outcome" : "works",
+    "testCase" : "dynamic <script src> same origin + copied nonce",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "event error; script global set in page world: false, isolated world: false; server saw request: no",
+    "outcome" : "blocked",
+    "testCase" : "dynamic <script src> other origin",
+    "variant" : "self (meta)",
+    "violations" : [
+      "script-src-elem http:\/\/127.0.0.1:62071\/ext.js?m=m123&id=m123"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "event error; script global set in page world: false, isolated world: false; server saw request: no",
+    "outcome" : "blocked",
+    "testCase" : "dynamic <script src> other origin",
+    "variant" : "self (meta)",
+    "violations" : [
+      "script-src-elem http:\/\/127.0.0.1:62071\/ext.js?m=m124&id=m124"
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "event error; nonce read: yes; script global set in page world: false, isolated world: false; server saw request: no",
+    "outcome" : "blocked",
+    "testCase" : "dynamic <script src> other origin + copied nonce",
+    "variant" : "self (meta)",
+    "violations" : [
+      "script-src-elem http:\/\/127.0.0.1:62071\/ext.js?m=m125&id=m125"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "event error; nonce read: yes; script global set in page world: false, isolated world: false; server saw request: no",
+    "outcome" : "blocked",
+    "testCase" : "dynamic <script src> other origin + copied nonce",
+    "variant" : "self (meta)",
+    "violations" : [
+      "script-src-elem http:\/\/127.0.0.1:62071\/ext.js?m=m126&id=m126"
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "status 200 {\"ok\":true}; server saw request: yes; page-world capture hook saw it: true",
+    "outcome" : "works",
+    "testCase" : "fetch same origin",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "status 200 {\"ok\":true}; server saw request: yes; page-world capture hook saw it: false",
+    "outcome" : "works",
+    "testCase" : "fetch same origin",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "TypeError: Load failed; server saw request: no; page-world capture hook saw it: true",
+    "outcome" : "blocked",
+    "testCase" : "fetch other origin (CORS allowed)",
+    "variant" : "self (meta)",
+    "violations" : [
+      "script-src eval",
+      "script-src eval",
+      "script-src eval",
+      "connect-src http:\/\/127.0.0.1:62071\/cors\/data?id=m129"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "status 200 {\"other\":true}; server saw request: yes; page-world capture hook saw it: false",
+    "outcome" : "works",
+    "testCase" : "fetch other origin (CORS allowed)",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "TypeError: Load failed; server saw request: no; page-world capture hook saw it: true",
+    "outcome" : "blocked",
+    "testCase" : "fetch other origin (no CORS header)",
+    "variant" : "self (meta)",
+    "violations" : [
+      "connect-src http:\/\/127.0.0.1:62071\/nocors\/data?id=m131"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "TypeError: Load failed; server saw request: yes; page-world capture hook saw it: false",
+    "outcome" : "blocked",
+    "testCase" : "fetch other origin (no CORS header)",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "TypeError: Load failed; server saw request: no; page-world capture hook saw it: true",
+    "outcome" : "blocked",
+    "testCase" : "workaround: fetch other-origin script text + indirect eval",
+    "variant" : "self (meta)",
+    "violations" : [
+      "connect-src http:\/\/127.0.0.1:62071\/lib.js?id=m133"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "status 200, library global set in this world: true; server saw request: yes; page-world capture hook saw it: false",
+    "outcome" : "works",
+    "testCase" : "workaround: fetch other-origin script text + indirect eval",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "xhr error event; server saw request: no; page-world capture hook saw it: true",
+    "outcome" : "blocked",
+    "testCase" : "XHR other origin (CORS allowed)",
+    "variant" : "self (meta)",
+    "violations" : [
+      "connect-src http:\/\/127.0.0.1:62071\/cors\/data?id=m135"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "status 200; server saw request: yes; page-world capture hook saw it: false",
+    "outcome" : "works",
+    "testCase" : "XHR other origin (CORS allowed)",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "{\"webkit\":\"object\",\"messageHandlers\":\"object\",\"agent\":\"undefined\",\"pageCtl\":\"object\"} replies={\"pageCtl\":{\"echo\":{\"from\":\"page\"},\"world\":\"page\"}}",
+    "outcome" : "agent not visible",
+    "testCase" : "message handlers seen",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "{\"webkit\":\"object\",\"messageHandlers\":\"object\",\"agent\":\"object\",\"pageCtl\":\"undefined\"} replies={\"agent\":{\"echo\":{\"from\":\"isolated\"},\"world\":\"wukong-iso\"}}",
+    "outcome" : "agent visible",
+    "testCase" : "message handlers seen",
+    "variant" : "self (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "",
+    "outcome" : "blocked",
+    "testCase" : "Control: page inline <script> without nonce",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "",
+    "outcome" : "runs",
+    "testCase" : "Control: page inline <script> with nonce",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "",
+    "outcome" : "runs",
+    "testCase" : "Control: page same-origin <script src> with nonce",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "blocked: EvalError",
+    "outcome" : "blocked",
+    "testCase" : "Control: page eval",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "rgb(0, 0, 0)",
+    "outcome" : "blocked",
+    "testCase" : "Control: page inline <style>",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "rgb(4, 5, 6)",
+    "outcome" : "applies",
+    "testCase" : "Control: page same-origin stylesheet",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "readyState loading; typeof pageGlobal undefined",
+    "outcome" : "runs",
+    "testCase" : "WKUserScript at document start: runs",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "blocked: EvalError: Refused to evaluate a string as JavaScript because 'unsafe-eval' or 'trusted-types-eval' is not an allowed source of script in the following Content Security Policy directive: \"script-src 'nonce-m0nonce123'\".\n",
+    "outcome" : "blocked",
+    "testCase" : "WKUserScript at document start: eval",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "blocked: EvalError: Refused to evaluate a string as JavaScript because 'unsafe-eval' or 'trusted-types-eval' is not an allowed source of script in the following Content Security Policy directive: \"script-src 'nonce-m0nonce123'\".\n",
+    "outcome" : "blocked",
+    "testCase" : "WKUserScript at document start: new Function",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "readyState interactive; typeof pageGlobal number",
+    "outcome" : "runs",
+    "testCase" : "WKUserScript at document end: runs",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "blocked: EvalError: Refused to evaluate a string as JavaScript because 'unsafe-eval' or 'trusted-types-eval' is not an allowed source of script in the following Content Security Policy directive: \"script-src 'nonce-m0nonce123'\".\n",
+    "outcome" : "blocked",
+    "testCase" : "WKUserScript at document end: eval",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "blocked: EvalError: Refused to evaluate a string as JavaScript because 'unsafe-eval' or 'trusted-types-eval' is not an allowed source of script in the following Content Security Policy directive: \"script-src 'nonce-m0nonce123'\".\n",
+    "outcome" : "blocked",
+    "testCase" : "WKUserScript at document end: new Function",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "seen: fetch-parse, xhr-parse, fetch-load; raw [{\"k\":\"fetch\",\"u\":\"\/api\/own?via=fetch-parse\",\"status\":200},{\"k\":\"xhr\",\"m\":\"GET\",\"u\":\"\/api\/own?via=xhr-parse\",\"status\":200},{\"k\":\"fetch\",\"u\":\"\/api\/own?via=fetch-load\",\"status\":200}]",
+    "outcome" : "sees all",
+    "testCase" : "Capture hook at start sees page's own fetch\/XHR",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "readyState loading; typeof pageGlobal undefined",
+    "outcome" : "runs",
+    "testCase" : "WKUserScript at document start: runs",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "5",
+    "outcome" : "works",
+    "testCase" : "WKUserScript at document start: eval",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "7",
+    "outcome" : "works",
+    "testCase" : "WKUserScript at document start: new Function",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "readyState interactive; typeof pageGlobal undefined",
+    "outcome" : "runs",
+    "testCase" : "WKUserScript at document end: runs",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "5",
+    "outcome" : "works",
+    "testCase" : "WKUserScript at document end: eval",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "7",
+    "outcome" : "works",
+    "testCase" : "WKUserScript at document end: new Function",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "seen: ; raw []",
+    "outcome" : "sees none",
+    "testCase" : "Capture hook at start sees page's own fetch\/XHR",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "",
+    "outcome" : "7",
+    "testCase" : "CSP violations during page load (securitypolicyviolation)",
+    "variant" : "nonce (header)",
+    "violations" : [
+      "script-src eval",
+      "script-src eval",
+      "script-src-elem inline",
+      "style-src-elem inline",
+      "script-src eval",
+      "script-src eval",
+      "script-src eval"
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "title M0 fixture nonce-header",
+    "outcome" : "works",
+    "testCase" : "evaluateJavaScript",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "title M0 fixture nonce-header",
+    "outcome" : "works",
+    "testCase" : "evaluateJavaScript",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "{\"n\":1,\"arr\":[1,\"a\"],\"nested\":{\"t\":true}}",
+    "outcome" : "works",
+    "testCase" : "callAsyncJavaScript await + JSON string",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "{\"n\":1,\"arr\":[1,\"a\"],\"nested\":{\"t\":true}}",
+    "outcome" : "works",
+    "testCase" : "callAsyncJavaScript await + JSON string",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "Swift got [String: Any] n=1 arr=2 items nested.t=1",
+    "outcome" : "works",
+    "testCase" : "callAsyncJavaScript await + object return",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "Swift got [String: Any] n=1 arr=2 items nested.t=1",
+    "outcome" : "works",
+    "testCase" : "callAsyncJavaScript await + object return",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "EvalError: Refused to evaluate a string as JavaScript because 'unsafe-eval' or 'trusted-types-eval' is not an allowed source of script in the following Content Security Policy directive: \"script-src 'nonce-m0nonce123'\".\n",
+    "outcome" : "blocked",
+    "testCase" : "eval in injected code",
+    "variant" : "nonce (header)",
+    "violations" : [
+      "script-src eval"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "eval -> 2",
+    "outcome" : "works",
+    "testCase" : "eval in injected code",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "EvalError: Refused to evaluate a string as JavaScript because 'unsafe-eval' or 'trusted-types-eval' is not an allowed source of script in the following Content Security Policy directive: \"script-src 'nonce-m0nonce123'\".\n",
+    "outcome" : "blocked",
+    "testCase" : "new Function in injected code",
+    "variant" : "nonce (header)",
+    "violations" : [
+      "script-src eval"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "fn -> 7",
+    "outcome" : "works",
+    "testCase" : "new Function in injected code",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "read \"target\"; write seen from the other world: page",
+    "outcome" : "works",
+    "testCase" : "DOM read + write",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "read \"target\"; write seen from the other world: isolated",
+    "outcome" : "works",
+    "testCase" : "DOM read + write",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "typeof pageGlobal = number; page world now reads pageGlobal = 99",
+    "outcome" : "visible",
+    "testCase" : "page JS global visible",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "typeof pageGlobal = undefined; page world now reads pageGlobal = 42",
+    "outcome" : "not visible",
+    "testCase" : "page JS global visible",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "computed color rgb(0, 0, 0)",
+    "outcome" : "blocked",
+    "testCase" : "CSS via <style> element",
+    "variant" : "nonce (header)",
+    "violations" : [
+      "style-src-elem inline"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "computed color rgb(0, 0, 0)",
+    "outcome" : "blocked",
+    "testCase" : "CSS via <style> element",
+    "variant" : "nonce (header)",
+    "violations" : [
+      "style-src-elem inline"
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "computed background rgb(40, 50, 60)",
+    "outcome" : "works",
+    "testCase" : "CSS via adoptedStyleSheets",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "computed background rgb(40, 50, 60)",
+    "outcome" : "works",
+    "testCase" : "CSS via adoptedStyleSheets",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "computed opacity 1",
+    "outcome" : "blocked",
+    "testCase" : "CSS via setAttribute('style')",
+    "variant" : "nonce (header)",
+    "violations" : [
+      "style-src-attr inline"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "computed opacity 1",
+    "outcome" : "blocked",
+    "testCase" : "CSS via setAttribute('style')",
+    "variant" : "nonce (header)",
+    "violations" : [
+      "style-src-attr inline"
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "computed letter-spacing 3px",
+    "outcome" : "works",
+    "testCase" : "CSS via element.style (CSSOM)",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "computed letter-spacing 3px",
+    "outcome" : "works",
+    "testCase" : "CSS via element.style (CSSOM)",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "script global set in page world: false, isolated world: false",
+    "outcome" : "blocked",
+    "testCase" : "dynamic <script> inline",
+    "variant" : "nonce (header)",
+    "violations" : [
+      "script-src-elem inline"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "script global set in page world: false, isolated world: false",
+    "outcome" : "blocked",
+    "testCase" : "dynamic <script> inline",
+    "variant" : "nonce (header)",
+    "violations" : [
+      "script-src-elem inline"
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "nonce read: yes; script global set in page world: true, isolated world: false",
+    "outcome" : "works",
+    "testCase" : "dynamic <script> inline + copied nonce",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "nonce read: yes; script global set in page world: true, isolated world: false",
+    "outcome" : "works",
+    "testCase" : "dynamic <script> inline + copied nonce",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "event error; script global set in page world: false, isolated world: false; server saw request: no",
+    "outcome" : "blocked",
+    "testCase" : "dynamic <script src> same origin",
+    "variant" : "nonce (header)",
+    "violations" : [
+      "script-src-elem http:\/\/127.0.0.1:62070\/ext.js?m=m165&id=m165"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "event error; script global set in page world: false, isolated world: false; server saw request: no",
+    "outcome" : "blocked",
+    "testCase" : "dynamic <script src> same origin",
+    "variant" : "nonce (header)",
+    "violations" : [
+      "script-src-elem http:\/\/127.0.0.1:62070\/ext.js?m=m166&id=m166"
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "event load; nonce read: yes; script global set in page world: true, isolated world: false; server saw request: yes",
+    "outcome" : "works",
+    "testCase" : "dynamic <script src> same origin + copied nonce",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "event load; nonce read: yes; script global set in page world: true, isolated world: false; server saw request: yes",
+    "outcome" : "works",
+    "testCase" : "dynamic <script src> same origin + copied nonce",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "event error; script global set in page world: false, isolated world: false; server saw request: no",
+    "outcome" : "blocked",
+    "testCase" : "dynamic <script src> other origin",
+    "variant" : "nonce (header)",
+    "violations" : [
+      "script-src-elem http:\/\/127.0.0.1:62071\/ext.js?m=m169&id=m169"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "event error; script global set in page world: false, isolated world: false; server saw request: no",
+    "outcome" : "blocked",
+    "testCase" : "dynamic <script src> other origin",
+    "variant" : "nonce (header)",
+    "violations" : [
+      "script-src-elem http:\/\/127.0.0.1:62071\/ext.js?m=m170&id=m170"
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "event load; nonce read: yes; script global set in page world: true, isolated world: false; server saw request: yes",
+    "outcome" : "works",
+    "testCase" : "dynamic <script src> other origin + copied nonce",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "event load; nonce read: yes; script global set in page world: true, isolated world: false; server saw request: yes",
+    "outcome" : "works",
+    "testCase" : "dynamic <script src> other origin + copied nonce",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "status 200 {\"ok\":true}; server saw request: yes; page-world capture hook saw it: true",
+    "outcome" : "works",
+    "testCase" : "fetch same origin",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "status 200 {\"ok\":true}; server saw request: yes; page-world capture hook saw it: false",
+    "outcome" : "works",
+    "testCase" : "fetch same origin",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "TypeError: Load failed; server saw request: no; page-world capture hook saw it: true",
+    "outcome" : "blocked",
+    "testCase" : "fetch other origin (CORS allowed)",
+    "variant" : "nonce (header)",
+    "violations" : [
+      "connect-src http:\/\/127.0.0.1:62071\/cors\/data?id=m175"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "status 200 {\"other\":true}; server saw request: yes; page-world capture hook saw it: false",
+    "outcome" : "works",
+    "testCase" : "fetch other origin (CORS allowed)",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "TypeError: Load failed; server saw request: no; page-world capture hook saw it: true",
+    "outcome" : "blocked",
+    "testCase" : "fetch other origin (no CORS header)",
+    "variant" : "nonce (header)",
+    "violations" : [
+      "connect-src http:\/\/127.0.0.1:62071\/nocors\/data?id=m177"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "TypeError: Load failed; server saw request: yes; page-world capture hook saw it: false",
+    "outcome" : "blocked",
+    "testCase" : "fetch other origin (no CORS header)",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "TypeError: Load failed; server saw request: no; page-world capture hook saw it: true",
+    "outcome" : "blocked",
+    "testCase" : "workaround: fetch other-origin script text + indirect eval",
+    "variant" : "nonce (header)",
+    "violations" : [
+      "connect-src http:\/\/127.0.0.1:62071\/lib.js?id=m179"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "status 200, library global set in this world: true; server saw request: yes; page-world capture hook saw it: false",
+    "outcome" : "works",
+    "testCase" : "workaround: fetch other-origin script text + indirect eval",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "xhr error event; server saw request: no; page-world capture hook saw it: true",
+    "outcome" : "blocked",
+    "testCase" : "XHR other origin (CORS allowed)",
+    "variant" : "nonce (header)",
+    "violations" : [
+      "connect-src http:\/\/127.0.0.1:62071\/cors\/data?id=m181"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "status 200; server saw request: yes; page-world capture hook saw it: false",
+    "outcome" : "works",
+    "testCase" : "XHR other origin (CORS allowed)",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "{\"webkit\":\"object\",\"messageHandlers\":\"object\",\"agent\":\"undefined\",\"pageCtl\":\"object\"} replies={\"pageCtl\":{\"echo\":{\"from\":\"page\"},\"world\":\"page\"}}",
+    "outcome" : "agent not visible",
+    "testCase" : "message handlers seen",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "{\"webkit\":\"object\",\"messageHandlers\":\"object\",\"agent\":\"object\",\"pageCtl\":\"undefined\"} replies={\"agent\":{\"world\":\"wukong-iso\",\"echo\":{\"from\":\"isolated\"}}}",
+    "outcome" : "agent visible",
+    "testCase" : "message handlers seen",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "",
+    "outcome" : "blocked",
+    "testCase" : "Control: page inline <script> without nonce",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "",
+    "outcome" : "runs",
+    "testCase" : "Control: page inline <script> with nonce",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "",
+    "outcome" : "runs",
+    "testCase" : "Control: page same-origin <script src> with nonce",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "blocked: EvalError",
+    "outcome" : "blocked",
+    "testCase" : "Control: page eval",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "rgb(0, 0, 0)",
+    "outcome" : "blocked",
+    "testCase" : "Control: page inline <style>",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "rgb(4, 5, 6)",
+    "outcome" : "applies",
+    "testCase" : "Control: page same-origin stylesheet",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "readyState loading; typeof pageGlobal undefined",
+    "outcome" : "runs",
+    "testCase" : "WKUserScript at document start: runs",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "5",
+    "outcome" : "works",
+    "testCase" : "WKUserScript at document start: eval",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "7",
+    "outcome" : "works",
+    "testCase" : "WKUserScript at document start: new Function",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "readyState interactive; typeof pageGlobal number",
+    "outcome" : "runs",
+    "testCase" : "WKUserScript at document end: runs",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "blocked: EvalError: Refused to evaluate a string as JavaScript because 'unsafe-eval' or 'trusted-types-eval' is not an allowed source of script in the following Content Security Policy directive: \"script-src 'nonce-m0nonce123'\".\n",
+    "outcome" : "blocked",
+    "testCase" : "WKUserScript at document end: eval",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "blocked: EvalError: Refused to evaluate a string as JavaScript because 'unsafe-eval' or 'trusted-types-eval' is not an allowed source of script in the following Content Security Policy directive: \"script-src 'nonce-m0nonce123'\".\n",
+    "outcome" : "blocked",
+    "testCase" : "WKUserScript at document end: new Function",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "seen: fetch-parse, xhr-parse, fetch-load; raw [{\"k\":\"fetch\",\"u\":\"\/api\/own?via=fetch-parse\",\"status\":200},{\"k\":\"xhr\",\"m\":\"GET\",\"u\":\"\/api\/own?via=xhr-parse\",\"status\":200},{\"k\":\"fetch\",\"u\":\"\/api\/own?via=fetch-load\",\"status\":200}]",
+    "outcome" : "sees all",
+    "testCase" : "Capture hook at start sees page's own fetch\/XHR",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "readyState loading; typeof pageGlobal undefined",
+    "outcome" : "runs",
+    "testCase" : "WKUserScript at document start: runs",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "5",
+    "outcome" : "works",
+    "testCase" : "WKUserScript at document start: eval",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "7",
+    "outcome" : "works",
+    "testCase" : "WKUserScript at document start: new Function",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "readyState interactive; typeof pageGlobal undefined",
+    "outcome" : "runs",
+    "testCase" : "WKUserScript at document end: runs",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "5",
+    "outcome" : "works",
+    "testCase" : "WKUserScript at document end: eval",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "7",
+    "outcome" : "works",
+    "testCase" : "WKUserScript at document end: new Function",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "seen: ; raw []",
+    "outcome" : "sees none",
+    "testCase" : "Capture hook at start sees page's own fetch\/XHR",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "",
+    "outcome" : "5",
+    "testCase" : "CSP violations during page load (securitypolicyviolation)",
+    "variant" : "nonce (meta)",
+    "violations" : [
+      "script-src-elem inline",
+      "style-src-elem inline",
+      "script-src eval",
+      "script-src eval",
+      "script-src eval"
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "title M0 fixture nonce-meta",
+    "outcome" : "works",
+    "testCase" : "evaluateJavaScript",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "title M0 fixture nonce-meta",
+    "outcome" : "works",
+    "testCase" : "evaluateJavaScript",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "{\"n\":1,\"arr\":[1,\"a\"],\"nested\":{\"t\":true}}",
+    "outcome" : "works",
+    "testCase" : "callAsyncJavaScript await + JSON string",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "{\"n\":1,\"arr\":[1,\"a\"],\"nested\":{\"t\":true}}",
+    "outcome" : "works",
+    "testCase" : "callAsyncJavaScript await + JSON string",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "Swift got [String: Any] n=1 arr=2 items nested.t=1",
+    "outcome" : "works",
+    "testCase" : "callAsyncJavaScript await + object return",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "Swift got [String: Any] n=1 arr=2 items nested.t=1",
+    "outcome" : "works",
+    "testCase" : "callAsyncJavaScript await + object return",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "EvalError: Refused to evaluate a string as JavaScript because 'unsafe-eval' or 'trusted-types-eval' is not an allowed source of script in the following Content Security Policy directive: \"script-src 'nonce-m0nonce123'\".\n",
+    "outcome" : "blocked",
+    "testCase" : "eval in injected code",
+    "variant" : "nonce (meta)",
+    "violations" : [
+      "script-src eval"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "eval -> 2",
+    "outcome" : "works",
+    "testCase" : "eval in injected code",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "EvalError: Refused to evaluate a string as JavaScript because 'unsafe-eval' or 'trusted-types-eval' is not an allowed source of script in the following Content Security Policy directive: \"script-src 'nonce-m0nonce123'\".\n",
+    "outcome" : "blocked",
+    "testCase" : "new Function in injected code",
+    "variant" : "nonce (meta)",
+    "violations" : [
+      "script-src eval"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "fn -> 7",
+    "outcome" : "works",
+    "testCase" : "new Function in injected code",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "read \"target\"; write seen from the other world: page",
+    "outcome" : "works",
+    "testCase" : "DOM read + write",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "read \"target\"; write seen from the other world: isolated",
+    "outcome" : "works",
+    "testCase" : "DOM read + write",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "typeof pageGlobal = number; page world now reads pageGlobal = 99",
+    "outcome" : "visible",
+    "testCase" : "page JS global visible",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "typeof pageGlobal = undefined; page world now reads pageGlobal = 42",
+    "outcome" : "not visible",
+    "testCase" : "page JS global visible",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "computed color rgb(0, 0, 0)",
+    "outcome" : "blocked",
+    "testCase" : "CSS via <style> element",
+    "variant" : "nonce (meta)",
+    "violations" : [
+      "style-src-elem inline"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "computed color rgb(0, 0, 0)",
+    "outcome" : "blocked",
+    "testCase" : "CSS via <style> element",
+    "variant" : "nonce (meta)",
+    "violations" : [
+      "style-src-elem inline"
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "computed background rgb(40, 50, 60)",
+    "outcome" : "works",
+    "testCase" : "CSS via adoptedStyleSheets",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "computed background rgb(40, 50, 60)",
+    "outcome" : "works",
+    "testCase" : "CSS via adoptedStyleSheets",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "computed opacity 1",
+    "outcome" : "blocked",
+    "testCase" : "CSS via setAttribute('style')",
+    "variant" : "nonce (meta)",
+    "violations" : [
+      "style-src-attr inline"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "computed opacity 1",
+    "outcome" : "blocked",
+    "testCase" : "CSS via setAttribute('style')",
+    "variant" : "nonce (meta)",
+    "violations" : [
+      "style-src-attr inline"
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "computed letter-spacing 3px",
+    "outcome" : "works",
+    "testCase" : "CSS via element.style (CSSOM)",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "computed letter-spacing 3px",
+    "outcome" : "works",
+    "testCase" : "CSS via element.style (CSSOM)",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "script global set in page world: false, isolated world: false",
+    "outcome" : "blocked",
+    "testCase" : "dynamic <script> inline",
+    "variant" : "nonce (meta)",
+    "violations" : [
+      "script-src-elem inline"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "script global set in page world: false, isolated world: false",
+    "outcome" : "blocked",
+    "testCase" : "dynamic <script> inline",
+    "variant" : "nonce (meta)",
+    "violations" : [
+      "script-src-elem inline"
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "nonce read: yes; script global set in page world: true, isolated world: false",
+    "outcome" : "works",
+    "testCase" : "dynamic <script> inline + copied nonce",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "nonce read: yes; script global set in page world: true, isolated world: false",
+    "outcome" : "works",
+    "testCase" : "dynamic <script> inline + copied nonce",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "event error; script global set in page world: false, isolated world: false; server saw request: no",
+    "outcome" : "blocked",
+    "testCase" : "dynamic <script src> same origin",
+    "variant" : "nonce (meta)",
+    "violations" : [
+      "script-src-elem http:\/\/127.0.0.1:62070\/ext.js?m=m211&id=m211"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "event error; script global set in page world: false, isolated world: false; server saw request: no",
+    "outcome" : "blocked",
+    "testCase" : "dynamic <script src> same origin",
+    "variant" : "nonce (meta)",
+    "violations" : [
+      "script-src-elem http:\/\/127.0.0.1:62070\/ext.js?m=m212&id=m212"
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "event load; nonce read: yes; script global set in page world: true, isolated world: false; server saw request: yes",
+    "outcome" : "works",
+    "testCase" : "dynamic <script src> same origin + copied nonce",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "event load; nonce read: yes; script global set in page world: true, isolated world: false; server saw request: yes",
+    "outcome" : "works",
+    "testCase" : "dynamic <script src> same origin + copied nonce",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "event error; script global set in page world: false, isolated world: false; server saw request: no",
+    "outcome" : "blocked",
+    "testCase" : "dynamic <script src> other origin",
+    "variant" : "nonce (meta)",
+    "violations" : [
+      "script-src-elem http:\/\/127.0.0.1:62071\/ext.js?m=m215&id=m215"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "event error; script global set in page world: false, isolated world: false; server saw request: no",
+    "outcome" : "blocked",
+    "testCase" : "dynamic <script src> other origin",
+    "variant" : "nonce (meta)",
+    "violations" : [
+      "script-src-elem http:\/\/127.0.0.1:62071\/ext.js?m=m216&id=m216"
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "event load; nonce read: yes; script global set in page world: true, isolated world: false; server saw request: yes",
+    "outcome" : "works",
+    "testCase" : "dynamic <script src> other origin + copied nonce",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "event load; nonce read: yes; script global set in page world: true, isolated world: false; server saw request: yes",
+    "outcome" : "works",
+    "testCase" : "dynamic <script src> other origin + copied nonce",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "status 200 {\"ok\":true}; server saw request: yes; page-world capture hook saw it: true",
+    "outcome" : "works",
+    "testCase" : "fetch same origin",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "status 200 {\"ok\":true}; server saw request: yes; page-world capture hook saw it: false",
+    "outcome" : "works",
+    "testCase" : "fetch same origin",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "TypeError: Load failed; server saw request: no; page-world capture hook saw it: true",
+    "outcome" : "blocked",
+    "testCase" : "fetch other origin (CORS allowed)",
+    "variant" : "nonce (meta)",
+    "violations" : [
+      "connect-src http:\/\/127.0.0.1:62071\/cors\/data?id=m221"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "status 200 {\"other\":true}; server saw request: yes; page-world capture hook saw it: false",
+    "outcome" : "works",
+    "testCase" : "fetch other origin (CORS allowed)",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "TypeError: Load failed; server saw request: no; page-world capture hook saw it: true",
+    "outcome" : "blocked",
+    "testCase" : "fetch other origin (no CORS header)",
+    "variant" : "nonce (meta)",
+    "violations" : [
+      "connect-src http:\/\/127.0.0.1:62071\/nocors\/data?id=m223"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "TypeError: Load failed; server saw request: yes; page-world capture hook saw it: false",
+    "outcome" : "blocked",
+    "testCase" : "fetch other origin (no CORS header)",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "TypeError: Load failed; server saw request: no; page-world capture hook saw it: true",
+    "outcome" : "blocked",
+    "testCase" : "workaround: fetch other-origin script text + indirect eval",
+    "variant" : "nonce (meta)",
+    "violations" : [
+      "connect-src http:\/\/127.0.0.1:62071\/lib.js?id=m225"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "status 200, library global set in this world: true; server saw request: yes; page-world capture hook saw it: false",
+    "outcome" : "works",
+    "testCase" : "workaround: fetch other-origin script text + indirect eval",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "xhr error event; server saw request: no; page-world capture hook saw it: true",
+    "outcome" : "blocked",
+    "testCase" : "XHR other origin (CORS allowed)",
+    "variant" : "nonce (meta)",
+    "violations" : [
+      "connect-src http:\/\/127.0.0.1:62071\/cors\/data?id=m227"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "status 200; server saw request: yes; page-world capture hook saw it: false",
+    "outcome" : "works",
+    "testCase" : "XHR other origin (CORS allowed)",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "{\"webkit\":\"object\",\"messageHandlers\":\"object\",\"agent\":\"undefined\",\"pageCtl\":\"object\"} replies={\"pageCtl\":{\"echo\":{\"from\":\"page\"},\"world\":\"page\"}}",
+    "outcome" : "agent not visible",
+    "testCase" : "message handlers seen",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "{\"webkit\":\"object\",\"messageHandlers\":\"object\",\"agent\":\"object\",\"pageCtl\":\"undefined\"} replies={\"agent\":{\"world\":\"wukong-iso\",\"echo\":{\"from\":\"isolated\"}}}",
+    "outcome" : "agent visible",
+    "testCase" : "message handlers seen",
+    "variant" : "nonce (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "",
+    "outcome" : "blocked",
+    "testCase" : "Control: page inline <script> without nonce",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "",
+    "outcome" : "runs",
+    "testCase" : "Control: page inline <script> with nonce",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "",
+    "outcome" : "runs",
+    "testCase" : "Control: page same-origin <script src> with nonce",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "blocked: EvalError",
+    "outcome" : "blocked",
+    "testCase" : "Control: page eval",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "rgb(0, 0, 0)",
+    "outcome" : "blocked",
+    "testCase" : "Control: page inline <style>",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "rgb(4, 5, 6)",
+    "outcome" : "applies",
+    "testCase" : "Control: page same-origin stylesheet",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "readyState loading; typeof pageGlobal undefined",
+    "outcome" : "runs",
+    "testCase" : "WKUserScript at document start: runs",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "blocked: EvalError: Refused to evaluate a string as JavaScript because 'unsafe-eval' or 'trusted-types-eval' is not an allowed source of script in the following Content Security Policy directive: \"script-src 'nonce-m0nonce123' 'strict-dynamic'\".\n",
+    "outcome" : "blocked",
+    "testCase" : "WKUserScript at document start: eval",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "blocked: EvalError: Refused to evaluate a string as JavaScript because 'unsafe-eval' or 'trusted-types-eval' is not an allowed source of script in the following Content Security Policy directive: \"script-src 'nonce-m0nonce123' 'strict-dynamic'\".\n",
+    "outcome" : "blocked",
+    "testCase" : "WKUserScript at document start: new Function",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "readyState interactive; typeof pageGlobal number",
+    "outcome" : "runs",
+    "testCase" : "WKUserScript at document end: runs",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "blocked: EvalError: Refused to evaluate a string as JavaScript because 'unsafe-eval' or 'trusted-types-eval' is not an allowed source of script in the following Content Security Policy directive: \"script-src 'nonce-m0nonce123' 'strict-dynamic'\".\n",
+    "outcome" : "blocked",
+    "testCase" : "WKUserScript at document end: eval",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "blocked: EvalError: Refused to evaluate a string as JavaScript because 'unsafe-eval' or 'trusted-types-eval' is not an allowed source of script in the following Content Security Policy directive: \"script-src 'nonce-m0nonce123' 'strict-dynamic'\".\n",
+    "outcome" : "blocked",
+    "testCase" : "WKUserScript at document end: new Function",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "seen: fetch-parse, xhr-parse, fetch-load; raw [{\"k\":\"fetch\",\"u\":\"\/api\/own?via=fetch-parse\",\"status\":200},{\"k\":\"xhr\",\"m\":\"GET\",\"u\":\"\/api\/own?via=xhr-parse\",\"status\":200},{\"k\":\"fetch\",\"u\":\"\/api\/own?via=fetch-load\",\"status\":200}]",
+    "outcome" : "sees all",
+    "testCase" : "Capture hook at start sees page's own fetch\/XHR",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "readyState loading; typeof pageGlobal undefined",
+    "outcome" : "runs",
+    "testCase" : "WKUserScript at document start: runs",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "5",
+    "outcome" : "works",
+    "testCase" : "WKUserScript at document start: eval",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "7",
+    "outcome" : "works",
+    "testCase" : "WKUserScript at document start: new Function",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "readyState interactive; typeof pageGlobal undefined",
+    "outcome" : "runs",
+    "testCase" : "WKUserScript at document end: runs",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "5",
+    "outcome" : "works",
+    "testCase" : "WKUserScript at document end: eval",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "7",
+    "outcome" : "works",
+    "testCase" : "WKUserScript at document end: new Function",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "seen: ; raw []",
+    "outcome" : "sees none",
+    "testCase" : "Capture hook at start sees page's own fetch\/XHR",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "",
+    "outcome" : "7",
+    "testCase" : "CSP violations during page load (securitypolicyviolation)",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+      "script-src eval",
+      "script-src eval",
+      "script-src-elem inline",
+      "style-src-elem inline",
+      "script-src eval",
+      "script-src eval",
+      "script-src eval"
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "title M0 fixture strict-dynamic-header",
+    "outcome" : "works",
+    "testCase" : "evaluateJavaScript",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "title M0 fixture strict-dynamic-header",
+    "outcome" : "works",
+    "testCase" : "evaluateJavaScript",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "{\"n\":1,\"arr\":[1,\"a\"],\"nested\":{\"t\":true}}",
+    "outcome" : "works",
+    "testCase" : "callAsyncJavaScript await + JSON string",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "{\"n\":1,\"arr\":[1,\"a\"],\"nested\":{\"t\":true}}",
+    "outcome" : "works",
+    "testCase" : "callAsyncJavaScript await + JSON string",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "Swift got [String: Any] n=1 arr=2 items nested.t=1",
+    "outcome" : "works",
+    "testCase" : "callAsyncJavaScript await + object return",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "Swift got [String: Any] n=1 arr=2 items nested.t=1",
+    "outcome" : "works",
+    "testCase" : "callAsyncJavaScript await + object return",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "EvalError: Refused to evaluate a string as JavaScript because 'unsafe-eval' or 'trusted-types-eval' is not an allowed source of script in the following Content Security Policy directive: \"script-src 'nonce-m0nonce123' 'strict-dynamic'\".\n",
+    "outcome" : "blocked",
+    "testCase" : "eval in injected code",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+      "script-src eval"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "eval -> 2",
+    "outcome" : "works",
+    "testCase" : "eval in injected code",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "EvalError: Refused to evaluate a string as JavaScript because 'unsafe-eval' or 'trusted-types-eval' is not an allowed source of script in the following Content Security Policy directive: \"script-src 'nonce-m0nonce123' 'strict-dynamic'\".\n",
+    "outcome" : "blocked",
+    "testCase" : "new Function in injected code",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+      "script-src eval"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "fn -> 7",
+    "outcome" : "works",
+    "testCase" : "new Function in injected code",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "read \"target\"; write seen from the other world: page",
+    "outcome" : "works",
+    "testCase" : "DOM read + write",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "read \"target\"; write seen from the other world: isolated",
+    "outcome" : "works",
+    "testCase" : "DOM read + write",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "typeof pageGlobal = number; page world now reads pageGlobal = 99",
+    "outcome" : "visible",
+    "testCase" : "page JS global visible",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "typeof pageGlobal = undefined; page world now reads pageGlobal = 42",
+    "outcome" : "not visible",
+    "testCase" : "page JS global visible",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "computed color rgb(0, 0, 0)",
+    "outcome" : "blocked",
+    "testCase" : "CSS via <style> element",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+      "style-src-elem inline"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "computed color rgb(0, 0, 0)",
+    "outcome" : "blocked",
+    "testCase" : "CSS via <style> element",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+      "style-src-elem inline"
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "computed background rgb(40, 50, 60)",
+    "outcome" : "works",
+    "testCase" : "CSS via adoptedStyleSheets",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "computed background rgb(40, 50, 60)",
+    "outcome" : "works",
+    "testCase" : "CSS via adoptedStyleSheets",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "computed opacity 1",
+    "outcome" : "blocked",
+    "testCase" : "CSS via setAttribute('style')",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+      "style-src-attr inline"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "computed opacity 1",
+    "outcome" : "blocked",
+    "testCase" : "CSS via setAttribute('style')",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+      "style-src-attr inline"
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "computed letter-spacing 3px",
+    "outcome" : "works",
+    "testCase" : "CSS via element.style (CSSOM)",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "computed letter-spacing 3px",
+    "outcome" : "works",
+    "testCase" : "CSS via element.style (CSSOM)",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "script global set in page world: true, isolated world: false",
+    "outcome" : "works",
+    "testCase" : "dynamic <script> inline",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "script global set in page world: true, isolated world: false",
+    "outcome" : "works",
+    "testCase" : "dynamic <script> inline",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "nonce read: yes; script global set in page world: true, isolated world: false",
+    "outcome" : "works",
+    "testCase" : "dynamic <script> inline + copied nonce",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "nonce read: yes; script global set in page world: true, isolated world: false",
+    "outcome" : "works",
+    "testCase" : "dynamic <script> inline + copied nonce",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "event load; script global set in page world: true, isolated world: false; server saw request: yes",
+    "outcome" : "works",
+    "testCase" : "dynamic <script src> same origin",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "event load; script global set in page world: true, isolated world: false; server saw request: yes",
+    "outcome" : "works",
+    "testCase" : "dynamic <script src> same origin",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "event load; nonce read: yes; script global set in page world: true, isolated world: false; server saw request: yes",
+    "outcome" : "works",
+    "testCase" : "dynamic <script src> same origin + copied nonce",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "event load; nonce read: yes; script global set in page world: true, isolated world: false; server saw request: yes",
+    "outcome" : "works",
+    "testCase" : "dynamic <script src> same origin + copied nonce",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "event load; script global set in page world: true, isolated world: false; server saw request: yes",
+    "outcome" : "works",
+    "testCase" : "dynamic <script src> other origin",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "event load; script global set in page world: true, isolated world: false; server saw request: yes",
+    "outcome" : "works",
+    "testCase" : "dynamic <script src> other origin",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "event load; nonce read: yes; script global set in page world: true, isolated world: false; server saw request: yes",
+    "outcome" : "works",
+    "testCase" : "dynamic <script src> other origin + copied nonce",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "event load; nonce read: yes; script global set in page world: true, isolated world: false; server saw request: yes",
+    "outcome" : "works",
+    "testCase" : "dynamic <script src> other origin + copied nonce",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "status 200 {\"ok\":true}; server saw request: yes; page-world capture hook saw it: true",
+    "outcome" : "works",
+    "testCase" : "fetch same origin",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "status 200 {\"ok\":true}; server saw request: yes; page-world capture hook saw it: false",
+    "outcome" : "works",
+    "testCase" : "fetch same origin",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "TypeError: Load failed; server saw request: no; page-world capture hook saw it: true",
+    "outcome" : "blocked",
+    "testCase" : "fetch other origin (CORS allowed)",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+      "connect-src http:\/\/127.0.0.1:62071\/cors\/data?id=m267"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "status 200 {\"other\":true}; server saw request: yes; page-world capture hook saw it: false",
+    "outcome" : "works",
+    "testCase" : "fetch other origin (CORS allowed)",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "TypeError: Load failed; server saw request: no; page-world capture hook saw it: true",
+    "outcome" : "blocked",
+    "testCase" : "fetch other origin (no CORS header)",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+      "connect-src http:\/\/127.0.0.1:62071\/nocors\/data?id=m269"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "TypeError: Load failed; server saw request: yes; page-world capture hook saw it: false",
+    "outcome" : "blocked",
+    "testCase" : "fetch other origin (no CORS header)",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "TypeError: Load failed; server saw request: no; page-world capture hook saw it: true",
+    "outcome" : "blocked",
+    "testCase" : "workaround: fetch other-origin script text + indirect eval",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+      "connect-src http:\/\/127.0.0.1:62071\/lib.js?id=m271"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "status 200, library global set in this world: true; server saw request: yes; page-world capture hook saw it: false",
+    "outcome" : "works",
+    "testCase" : "workaround: fetch other-origin script text + indirect eval",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "xhr error event; server saw request: no; page-world capture hook saw it: true",
+    "outcome" : "blocked",
+    "testCase" : "XHR other origin (CORS allowed)",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+      "connect-src http:\/\/127.0.0.1:62071\/cors\/data?id=m273"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "status 200; server saw request: yes; page-world capture hook saw it: false",
+    "outcome" : "works",
+    "testCase" : "XHR other origin (CORS allowed)",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "{\"webkit\":\"object\",\"messageHandlers\":\"object\",\"agent\":\"undefined\",\"pageCtl\":\"object\"} replies={\"pageCtl\":{\"echo\":{\"from\":\"page\"},\"world\":\"page\"}}",
+    "outcome" : "agent not visible",
+    "testCase" : "message handlers seen",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "{\"webkit\":\"object\",\"messageHandlers\":\"object\",\"agent\":\"object\",\"pageCtl\":\"undefined\"} replies={\"agent\":{\"echo\":{\"from\":\"isolated\"},\"world\":\"wukong-iso\"}}",
+    "outcome" : "agent visible",
+    "testCase" : "message handlers seen",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "",
+    "outcome" : "blocked",
+    "testCase" : "Control: page inline <script> without nonce",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "",
+    "outcome" : "runs",
+    "testCase" : "Control: page inline <script> with nonce",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "",
+    "outcome" : "runs",
+    "testCase" : "Control: page same-origin <script src> with nonce",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "blocked: EvalError",
+    "outcome" : "blocked",
+    "testCase" : "Control: page eval",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "rgb(0, 0, 0)",
+    "outcome" : "blocked",
+    "testCase" : "Control: page inline <style>",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "rgb(4, 5, 6)",
+    "outcome" : "applies",
+    "testCase" : "Control: page same-origin stylesheet",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "readyState loading; typeof pageGlobal undefined",
+    "outcome" : "runs",
+    "testCase" : "WKUserScript at document start: runs",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "5",
+    "outcome" : "works",
+    "testCase" : "WKUserScript at document start: eval",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "7",
+    "outcome" : "works",
+    "testCase" : "WKUserScript at document start: new Function",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "readyState interactive; typeof pageGlobal number",
+    "outcome" : "runs",
+    "testCase" : "WKUserScript at document end: runs",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "blocked: EvalError: Refused to evaluate a string as JavaScript because 'unsafe-eval' or 'trusted-types-eval' is not an allowed source of script in the following Content Security Policy directive: \"script-src 'nonce-m0nonce123' 'strict-dynamic'\".\n",
+    "outcome" : "blocked",
+    "testCase" : "WKUserScript at document end: eval",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "blocked: EvalError: Refused to evaluate a string as JavaScript because 'unsafe-eval' or 'trusted-types-eval' is not an allowed source of script in the following Content Security Policy directive: \"script-src 'nonce-m0nonce123' 'strict-dynamic'\".\n",
+    "outcome" : "blocked",
+    "testCase" : "WKUserScript at document end: new Function",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "seen: fetch-parse, xhr-parse, fetch-load; raw [{\"k\":\"fetch\",\"u\":\"\/api\/own?via=fetch-parse\",\"status\":200},{\"k\":\"xhr\",\"m\":\"GET\",\"u\":\"\/api\/own?via=xhr-parse\",\"status\":200},{\"k\":\"fetch\",\"u\":\"\/api\/own?via=fetch-load\",\"status\":200}]",
+    "outcome" : "sees all",
+    "testCase" : "Capture hook at start sees page's own fetch\/XHR",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "readyState loading; typeof pageGlobal undefined",
+    "outcome" : "runs",
+    "testCase" : "WKUserScript at document start: runs",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "5",
+    "outcome" : "works",
+    "testCase" : "WKUserScript at document start: eval",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "7",
+    "outcome" : "works",
+    "testCase" : "WKUserScript at document start: new Function",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "readyState interactive; typeof pageGlobal undefined",
+    "outcome" : "runs",
+    "testCase" : "WKUserScript at document end: runs",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "5",
+    "outcome" : "works",
+    "testCase" : "WKUserScript at document end: eval",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "7",
+    "outcome" : "works",
+    "testCase" : "WKUserScript at document end: new Function",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "seen: ; raw []",
+    "outcome" : "sees none",
+    "testCase" : "Capture hook at start sees page's own fetch\/XHR",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "",
+    "outcome" : "5",
+    "testCase" : "CSP violations during page load (securitypolicyviolation)",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+      "script-src-elem inline",
+      "style-src-elem inline",
+      "script-src eval",
+      "script-src eval",
+      "script-src eval"
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "title M0 fixture strict-dynamic-meta",
+    "outcome" : "works",
+    "testCase" : "evaluateJavaScript",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "title M0 fixture strict-dynamic-meta",
+    "outcome" : "works",
+    "testCase" : "evaluateJavaScript",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "{\"n\":1,\"arr\":[1,\"a\"],\"nested\":{\"t\":true}}",
+    "outcome" : "works",
+    "testCase" : "callAsyncJavaScript await + JSON string",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "{\"n\":1,\"arr\":[1,\"a\"],\"nested\":{\"t\":true}}",
+    "outcome" : "works",
+    "testCase" : "callAsyncJavaScript await + JSON string",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "Swift got [String: Any] n=1 arr=2 items nested.t=1",
+    "outcome" : "works",
+    "testCase" : "callAsyncJavaScript await + object return",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "Swift got [String: Any] n=1 arr=2 items nested.t=1",
+    "outcome" : "works",
+    "testCase" : "callAsyncJavaScript await + object return",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "EvalError: Refused to evaluate a string as JavaScript because 'unsafe-eval' or 'trusted-types-eval' is not an allowed source of script in the following Content Security Policy directive: \"script-src 'nonce-m0nonce123' 'strict-dynamic'\".\n",
+    "outcome" : "blocked",
+    "testCase" : "eval in injected code",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+      "script-src eval"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "eval -> 2",
+    "outcome" : "works",
+    "testCase" : "eval in injected code",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "EvalError: Refused to evaluate a string as JavaScript because 'unsafe-eval' or 'trusted-types-eval' is not an allowed source of script in the following Content Security Policy directive: \"script-src 'nonce-m0nonce123' 'strict-dynamic'\".\n",
+    "outcome" : "blocked",
+    "testCase" : "new Function in injected code",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+      "script-src eval"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "fn -> 7",
+    "outcome" : "works",
+    "testCase" : "new Function in injected code",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "read \"target\"; write seen from the other world: page",
+    "outcome" : "works",
+    "testCase" : "DOM read + write",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "read \"target\"; write seen from the other world: isolated",
+    "outcome" : "works",
+    "testCase" : "DOM read + write",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "typeof pageGlobal = number; page world now reads pageGlobal = 99",
+    "outcome" : "visible",
+    "testCase" : "page JS global visible",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "typeof pageGlobal = undefined; page world now reads pageGlobal = 42",
+    "outcome" : "not visible",
+    "testCase" : "page JS global visible",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "computed color rgb(0, 0, 0)",
+    "outcome" : "blocked",
+    "testCase" : "CSS via <style> element",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+      "style-src-elem inline"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "computed color rgb(0, 0, 0)",
+    "outcome" : "blocked",
+    "testCase" : "CSS via <style> element",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+      "style-src-elem inline"
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "computed background rgb(40, 50, 60)",
+    "outcome" : "works",
+    "testCase" : "CSS via adoptedStyleSheets",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "computed background rgb(40, 50, 60)",
+    "outcome" : "works",
+    "testCase" : "CSS via adoptedStyleSheets",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "computed opacity 1",
+    "outcome" : "blocked",
+    "testCase" : "CSS via setAttribute('style')",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+      "style-src-attr inline"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "computed opacity 1",
+    "outcome" : "blocked",
+    "testCase" : "CSS via setAttribute('style')",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+      "style-src-attr inline"
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "computed letter-spacing 3px",
+    "outcome" : "works",
+    "testCase" : "CSS via element.style (CSSOM)",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "computed letter-spacing 3px",
+    "outcome" : "works",
+    "testCase" : "CSS via element.style (CSSOM)",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "script global set in page world: true, isolated world: false",
+    "outcome" : "works",
+    "testCase" : "dynamic <script> inline",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "script global set in page world: true, isolated world: false",
+    "outcome" : "works",
+    "testCase" : "dynamic <script> inline",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "nonce read: yes; script global set in page world: true, isolated world: false",
+    "outcome" : "works",
+    "testCase" : "dynamic <script> inline + copied nonce",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "nonce read: yes; script global set in page world: true, isolated world: false",
+    "outcome" : "works",
+    "testCase" : "dynamic <script> inline + copied nonce",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "event load; script global set in page world: true, isolated world: false; server saw request: yes",
+    "outcome" : "works",
+    "testCase" : "dynamic <script src> same origin",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "event load; script global set in page world: true, isolated world: false; server saw request: yes",
+    "outcome" : "works",
+    "testCase" : "dynamic <script src> same origin",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "event load; nonce read: yes; script global set in page world: true, isolated world: false; server saw request: yes",
+    "outcome" : "works",
+    "testCase" : "dynamic <script src> same origin + copied nonce",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "event load; nonce read: yes; script global set in page world: true, isolated world: false; server saw request: yes",
+    "outcome" : "works",
+    "testCase" : "dynamic <script src> same origin + copied nonce",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "event load; script global set in page world: true, isolated world: false; server saw request: yes",
+    "outcome" : "works",
+    "testCase" : "dynamic <script src> other origin",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "event load; script global set in page world: true, isolated world: false; server saw request: yes",
+    "outcome" : "works",
+    "testCase" : "dynamic <script src> other origin",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "event load; nonce read: yes; script global set in page world: true, isolated world: false; server saw request: yes",
+    "outcome" : "works",
+    "testCase" : "dynamic <script src> other origin + copied nonce",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "event load; nonce read: yes; script global set in page world: true, isolated world: false; server saw request: yes",
+    "outcome" : "works",
+    "testCase" : "dynamic <script src> other origin + copied nonce",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "status 200 {\"ok\":true}; server saw request: yes; page-world capture hook saw it: true",
+    "outcome" : "works",
+    "testCase" : "fetch same origin",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "status 200 {\"ok\":true}; server saw request: yes; page-world capture hook saw it: false",
+    "outcome" : "works",
+    "testCase" : "fetch same origin",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "TypeError: Load failed; server saw request: no; page-world capture hook saw it: true",
+    "outcome" : "blocked",
+    "testCase" : "fetch other origin (CORS allowed)",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+      "connect-src http:\/\/127.0.0.1:62071\/cors\/data?id=m313"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "status 200 {\"other\":true}; server saw request: yes; page-world capture hook saw it: false",
+    "outcome" : "works",
+    "testCase" : "fetch other origin (CORS allowed)",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "TypeError: Load failed; server saw request: no; page-world capture hook saw it: true",
+    "outcome" : "blocked",
+    "testCase" : "fetch other origin (no CORS header)",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+      "connect-src http:\/\/127.0.0.1:62071\/nocors\/data?id=m315"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "TypeError: Load failed; server saw request: yes; page-world capture hook saw it: false",
+    "outcome" : "blocked",
+    "testCase" : "fetch other origin (no CORS header)",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "TypeError: Load failed; server saw request: no; page-world capture hook saw it: true",
+    "outcome" : "blocked",
+    "testCase" : "workaround: fetch other-origin script text + indirect eval",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+      "connect-src http:\/\/127.0.0.1:62071\/lib.js?id=m317"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "status 200, library global set in this world: true; server saw request: yes; page-world capture hook saw it: false",
+    "outcome" : "works",
+    "testCase" : "workaround: fetch other-origin script text + indirect eval",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "xhr error event; server saw request: no; page-world capture hook saw it: true",
+    "outcome" : "blocked",
+    "testCase" : "XHR other origin (CORS allowed)",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+      "connect-src http:\/\/127.0.0.1:62071\/cors\/data?id=m319"
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "status 200; server saw request: yes; page-world capture hook saw it: false",
+    "outcome" : "works",
+    "testCase" : "XHR other origin (CORS allowed)",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "{\"webkit\":\"object\",\"messageHandlers\":\"object\",\"agent\":\"undefined\",\"pageCtl\":\"object\"} replies={\"pageCtl\":{\"echo\":{\"from\":\"page\"},\"world\":\"page\"}}",
+    "outcome" : "agent not visible",
+    "testCase" : "message handlers seen",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "page"
+  },
+  {
+    "detail" : "{\"webkit\":\"object\",\"messageHandlers\":\"object\",\"agent\":\"object\",\"pageCtl\":\"undefined\"} replies={\"agent\":{\"echo\":{\"from\":\"isolated\"},\"world\":\"wukong-iso\"}}",
+    "outcome" : "agent visible",
+    "testCase" : "message handlers seen",
+    "variant" : "strict-dynamic (meta)",
+    "violations" : [
+
+    ],
+    "world" : "isolated"
+  },
+  {
+    "detail" : "connect-src http:\/\/127.0.0.1:62071\/cors\/data?id=m83 ×1; connect-src http:\/\/127.0.0.1:62071\/cors\/data?id=m89 ×1; connect-src http:\/\/127.0.0.1:62071\/lib.js?id=m87 ×1; connect-src http:\/\/127.0.0.1:62071\/nocors\/data?id=m85 ×1; script-src eval ×236; script-src-elem http:\/\/127.0.0.1:62071\/ext.js?m=m77&id=m77 ×1; script-src-elem http:\/\/127.0.0.1:62071\/ext.js?m=m78&id=m78 ×1; script-src-elem http:\/\/127.0.0.1:62071\/ext.js?m=m79&id=m79 ×1; script-src-elem http:\/\/127.0.0.1:62071\/ext.js?m=m80&id=m80 ×1; script-src-elem inline ×98; style-src-attr inline ×2; style-src-elem inline ×49",
+    "outcome" : "393",
+    "testCase" : "report-uri reports received (whole run)",
+    "variant" : "self (header)",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "connect-src http:\/\/127.0.0.1:62071\/cors\/data?id=m175 ×1; connect-src http:\/\/127.0.0.1:62071\/cors\/data?id=m181 ×1; connect-src http:\/\/127.0.0.1:62071\/lib.js?id=m179 ×1; connect-src http:\/\/127.0.0.1:62071\/nocors\/data?id=m177 ×1; script-src eval ×237; script-src-elem http:\/\/127.0.0.1:62070\/ext.js?m=m165&id=m165 ×1; script-src-elem http:\/\/127.0.0.1:62070\/ext.js?m=m166&id=m166 ×1; script-src-elem http:\/\/127.0.0.1:62071\/ext.js?m=m169&id=m169 ×1; script-src-elem http:\/\/127.0.0.1:62071\/ext.js?m=m170&id=m170 ×1; script-src-elem inline ×49; style-src-attr inline ×2; style-src-elem inline ×49",
+    "outcome" : "345",
+    "testCase" : "report-uri reports received (whole run)",
+    "variant" : "nonce (header)",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  },
+  {
+    "detail" : "connect-src http:\/\/127.0.0.1:62071\/cors\/data?id=m267 ×1; connect-src http:\/\/127.0.0.1:62071\/cors\/data?id=m273 ×1; connect-src http:\/\/127.0.0.1:62071\/lib.js?id=m271 ×1; connect-src http:\/\/127.0.0.1:62071\/nocors\/data?id=m269 ×1; script-src eval ×237; script-src-elem inline ×47; style-src-attr inline ×2; style-src-elem inline ×49",
+    "outcome" : "339",
+    "testCase" : "report-uri reports received (whole run)",
+    "variant" : "strict-dynamic (header)",
+    "violations" : [
+
+    ],
+    "world" : "-"
+  }
+]
