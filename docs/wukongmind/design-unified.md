@@ -72,6 +72,8 @@ M1 and M2 screens that use `agentTint` for scripts (the script card, the script 
   - The forum-search limits (search steps, topics to read, read size) move to Agent › Forum search.
   - Summary batching and summary instructions move to Models › Summaries.
   - Chat context goes with Topic chat.
+- **History segments become All, Conversations, Following**, and Home's Recent rows show conversations. Until M3 saves conversations, the Conversations segment lists today's saved summaries and forum answers, each as a conversation of one result.
+- **The old Research loop's model in One panel** has no row of its own. It follows the Agent model, and with no Agent model it falls back to the Summaries model (section 4).
 - **"Browser" stays a settings group of its own.** The bar position and what opens at launch fit no other group.
 - **The iPhone bar's forum menu (`ForumMenuButton`) becomes the browser menu.** It shows the site's icon. "Home" opens the start page, and the forum-only items move (migration list).
 - **The ad shield moves from the title capsule into This page.**
@@ -200,7 +202,9 @@ AssistantPanel                         // replaces the four modes and their view
   | Suggestions on other sites | Send their text to the Agent | Same |
   | Questions about the thread you type | The Agent reads the page with `read_page` (Topic chat has no entry) | The Agent uses the forum's read tool |
 
-  **Known gap in One panel, accepted by the roadmap:** tapping "Search this forum…" gives a good answer, while typing the same question goes to an Agent that has no forum tools yet and answers worse. The gap closes with One loop.
+  **Known gaps in One panel**, both closed by One loop:
+  - **Tap versus type (accepted by the roadmap).** Tapping "Search this forum…" gives a good answer, while typing the same question goes to an Agent that has no forum tools yet and answers worse.
+  - **Memory.** A result from a tapped suggestion on a built-in forum comes from today's engine and shows in the conversation, but it isn't in the Agent's history, because the engines and the Agent stay untouched. A typed follow-up such as "which boxes from point 2…" goes to an Agent that hasn't seen the summary; it can still read the page. The roadmap drops shared results because one Agent remembers by itself, which is true from One loop. The PhoneResearch board draws One loop.
 - **Unfamiliar forums.** A forum without a built-in adapter gets the same thread and list suggestions. Today's detection (`MaybeForumState`, the "add this forum" check) decides that a page looks like a forum. In One panel those suggestions go to the Agent as text, which answers with `read_page`. With Learn on ask, the Agent first learns the site ("Let me see how this site reads"), then answers and saves the tool.
 - **Page states.** Today's panel has page states besides the modes (`AssistantPanel.BodyKind` in `SummaryPanel.swift`):
   - `forumHome` (`ForumHomeState`) becomes the forum-list suggestions.
@@ -221,15 +225,17 @@ AssistantPanel                         // replaces the four modes and their view
   - **When one drops out.** A suggestion leaves the row when it no longer applies:
     - On a followed thread, "Notify me of new replies" is gone.
     - With a summary already in the conversation, "Summarize this thread and replies" becomes "Summarize the N new replies", and it is gone when there are none.
+    - While its podcast is playing, "Read it to me" is gone.
     - With a dark script on, "Make it dark" is gone.
   - **No model.** Choosing a suggestion or sending with no model for the role it needs shows `ProviderSetupCard` for that role, as today.
 - **Suggestion look.** A suggestion is a capsule with the surface background, a hairline border and label-coloured text: 36 pt tall with a 44 pt hit area, `.subheadline`, no symbol. Suggestions are not tinted, because tint would mean a mode. One that ends in "…" looks the same; the ellipsis is the cue.
 - **Tap.** A full question sends at once: the chip moves up into your bubble, the tool row starts, and the row closes the gap. A "…" suggestion puts its text into the field with the caret at the end and raises the keyboard. Nothing is sent until you finish.
-- **Overflow (owner point 4, still applies).** The row is a `ScrollView(.horizontal)` with `.scrollIndicators(.hidden)`, 16 pt content margins and a short fade at the trailing edge when it scrolls. Labels never truncate and chips never wrap. Checked on the SuggestionRow board at 390 pt:
-  - With the four forum-thread suggestions at the default size, the first two fit and the third peeks under the fade.
-  - At Accessibility XXL, the first fills the width and the second peeks.
-  - In Chinese, "总结这个帖子和回复 · 念给我听 · 搜索这个论坛… · 有新回复时通知我" behaves the same.
-  At most four show on screen at once; more scroll sideways.
+- **Overflow (owner point 4, still applies).** The row is a `ScrollView(.horizontal)` with `.scrollIndicators(.hidden)`, 16 pt content margins and a short fade at the trailing edge when it scrolls. Labels never truncate. A chip is at most the row's width minus 44 pt, so the next one always peeks. A longer label wraps inside the chip, which then becomes a rounded rectangle; this only happens at accessibility sizes. Widths were measured with the system font (label plus 30 pt of padding and border; the row is 358 pt wide on a 390 pt iPhone and 438 pt in the iPad panel):
+  - **Default size (`.subheadline`, 15 pt).** "Summarize this thread and replies" is a 263 pt chip, and "Read it to me" (120 pt) peeks under the fade. Forum list: "What's worth reading today" (219 pt) fits, and "Search this forum…" peeks. Ordinary page: "Summarize this page" and "Make it dark" fit, and "Remove distractions" peeks. On the iPad panel the first two forum-thread chips fit.
+  - **Chinese at the default size.** "总结这个帖子和回复" (164 pt) and "念给我听" (90 pt) fit, and "搜索这个论坛…" peeks.
+  - **Accessibility Medium (25 pt).** "Summarize this thread and replies" would be 392 pt, wider than the row, so it wraps to two lines inside a 314 pt chip.
+  - **Accessibility XXL (42 pt).** The same label wraps to three lines in a 314 pt chip, and "Read it to me" (263 pt) peeks.
+  At most four show on one screen; more scroll sideways.
 - **Tool rows (roadmap section 4).** Each tool call is one row: the tool's symbol, its name and a short result ("Read page · 84 posts", "Search forum · 14 topics"). Tapping a row expands it into M1's detail with arguments, result and time. M1's "Steps N" fold still folds a finished run. In developer mode (M3) the expanded row also shows the raw request and reply, and the tokens and model used.
 - **Keyboard up** (artboard KeyboardUp, a proposal):
   - **Status line.** When the field is focused and the keyboard is up, the status line folds into the header: a small spinner and "Step N" beside "Agent" while a run is going, and nothing when idle. It comes back when the keyboard goes down.
@@ -291,7 +297,7 @@ HomeView (List, .insetGrouped, listSectionSpacing(.compact))
 
 - **One concept: History (owner point 9).**
   - **What it holds.** History holds all conversations and their results (roadmap section 4). Summaries, forum answers and topic chats saved before this design stay in History as they are.
-  - **Recent.** Home's **Recent** is not a separate list: it is the newest History items, with a link to all of History. `HistoryView`'s segments become All, Conversations, Following.
+  - **Recent.** Home's **Recent** is not a separate list: it is the newest History items, with a link to all of History. `HistoryView`'s segments become All, Conversations, Following (a proposal). Until M3, Conversations lists today's saved summaries and forum answers, each as a conversation of one result.
   - **Conversations.** They live in memory today (`BrowserAgentSession`). They join History once they are saved, which comes with M3's workspace (`tasks/`). Until then, Recent also shows this launch's current conversation, and the summaries in it are saved as today.
 - **The empty state** (no sites yet) is the address field plus a `dcCard`: three suggested sites, no explanatory text. The forums among them carry the speech-bubble badge. This replaces the forum-centred empty state and the suggestions section.
 
@@ -501,13 +507,14 @@ One word per thing, the same in the UI and the docs. The code column shows today
 | **Agent** | The one loop with tools behind the input box. It reads and changes pages, and from One loop it also summarizes, searches forums, makes podcasts and follows threads through tools. The only thing called Agent, and the only thing in purple or with the sparkle | browser agent (in the UI), assistant, Research | `BrowserAgent`, `ToolRegistry`, `ModelRole.browserAgent` |
 | **Assistant** (the panel) | The one panel beside the page: the conversation, the suggestion row and the input box. Its title is always "Agent" | AI drawer, mode | `AssistantPanel` |
 | **Suggestion** | A question above the input box that you could type or say yourself. A tap sends it; one ending in "…" fills the box for you to finish. Shown only where it applies, never greyed out | quick action, mode, shortcut | new |
-| **Conversation** | Everything in the panel: your messages, one row per tool call, the Agent's replies and the tool results. The Agent remembers it | chat, mode, session | `BrowserAgentSession` |
+| **Conversation** | Everything in the panel: your messages, one row per tool call, the Agent's replies and the tool results. It holds one or more tasks. One Agent remembers it (from One loop for tapped forum results) | chat, mode, session | `BrowserAgentSession` |
+| **Task** | One request and the Agent's run for it, from your message to the final result. The unit of task export (M3, developer mode) | job, run | one run inside `BrowserAgentSession` |
 | **Summary** | A structured summary of a thread or page, shown as the summary card | | unchanged |
 | **Podcast** | A spoken version of a thread, an answer or Today. Asked for with "Read it to me" | Listen (as a button) | `Podcast/` |
 | **Voice** | Talking to the Agent. In One panel the mic dictates into the box. From One loop the mic opens the voice session, which shares the Agent's tools, and its turns join the conversation | Listen | `Voice*` views |
 | **Follow** | Get told when a thread has new replies. Asked for with "Notify me of new replies" | Watch | `watchedTopics` |
 | **Site** | Any website | | — |
-| **Forum** | A site with a built-in adapter (Discourse, WordPress, Hacker News), or one that looks like a forum. Marked with a grey speech-bubble badge | | `SiteAdapter`, `Forum` |
+| **Forum** | A site with a built-in adapter (Discourse, WordPress, Hacker News), or one that looks like a forum (it gets the same suggestions). Marked with a grey speech-bubble badge | | `SiteAdapter`, `Forum` |
 | **This page** | What is saved for the current page and site: Follow, scripts, tools, site switches | page info | new `PageCapabilitiesView` |
 | **Script** | Saved JavaScript/CSS in ScriptStore that runs on matching pages. It changes the page (M2) or registers tools (Learn on ask) | userscript (only in export/import), extension | `ScriptStore` |
 | **Tool** | A function the Agent can call. It comes from the app (built-in), a built-in adapter, a capability (summary, podcast, notify, follow), a script, or the site (WebMCP) | action, command | `ToolRegistry`; source prefixes per roadmap section 5 |
@@ -560,7 +567,7 @@ Rows 1, 2 and 4 and parts of 3 are superseded by roadmap v2 (next section): the 
 | 10 | IA reserved slots by milestone | "End state" and "Later · voice" stubs removed; slots now One panel, M3, One loop, M4, Learn on ask | IA | Information architecture |
 | 11 | Keyboard-up state | New board: status folds into the header; the row stays while empty, hides while typing | KeyboardUp(+Dark), Motion row 3 | Section 1: Keyboard up |
 | 12 | Migration "assistant panel" rewritten | Four modes → one conversation view + suggestion row; containers stay; Research loop and Topic chat deleted in One loop; roles 3 → 2 | Migration | Migration list |
-| 13 | Unchanged parts | Start page, onboarding, other settings pages, This page, vocabulary rule and purple-only-Agent kept. Motion keeps its tokens; only the rows about deleted things were redrawn | — | — |
+| 13 | Unchanged parts | Onboarding, other settings pages, This page, the vocabulary rule and purple-only-Agent are kept. Motion keeps its tokens; only the rows about deleted things were redrawn. The start page keeps its layout; two consequences are proposals: History's segments (All, Conversations, Following) and Recent rows showing conversations | PhoneHome, IPadHome (Recent rows) | Proposals; section 3 |
 | — | Developer mode switch | Settings › Agent › Developer (M3, default off) | PhoneAgentSettings, IA | Section 4; IA table |
 
 ## Appendix: every other view in the code
