@@ -60,14 +60,12 @@ platform :ios do
   lane :beta do |options|
     ipa = File.expand_path(options[:ipa] || repo_path("dist", "WukongMind.ipa"), repo_path)
     UI.user_error!("No IPA at #{ipa}") unless File.file?(ipa)
-    notes_path = repo_path("appstore", "metadata", "en-US", "release_notes.txt")
 
     groups = options[:groups].to_s.split(",").map(&:strip).reject(&:empty?)
     # Giving the build to testers needs the processed build.
     wait = truthy?(options[:wait]) || groups.any?
 
     changelog = ENV["TESTFLIGHT_CHANGELOG"].to_s.strip
-    changelog = File.read(notes_path).strip if changelog.empty? && File.file?(notes_path)
 
     upload_options = {
       api_key: asc_api_key,
@@ -107,37 +105,5 @@ platform :ios do
       UI.important(message)
       puts "::warning::#{message.gsub(/\s+/, ' ')}" if ENV["GITHUB_ACTIONS"]
     end
-  end
-
-  desc "Upload App Store metadata (and optionally screenshots) from appstore/"
-  desc "Options: version (App Store version to edit), screenshots (true to upload), submit (true to submit for review)"
-  lane :metadata do |options|
-    submit = truthy?(options[:submit])
-    version = options[:version].to_s.strip
-
-    deliver_options = {
-      api_key: asc_api_key,
-      app_identifier: app_identifier_from_env,
-      metadata_path: repo_path("appstore", "metadata"),
-      screenshots_path: repo_path("appstore", "screenshots"),
-      skip_binary_upload: true,
-      skip_app_version_update: version.empty?,
-      skip_screenshots: !truthy?(options[:screenshots]),
-      overwrite_screenshots: true,
-      force: true, # no interactive HTML preview
-      submit_for_review: submit,
-      automatic_release: false,
-      run_precheck_before_submit: false,
-      precheck_include_in_app_purchases: false,
-      submission_information: {
-        add_id_info_uses_idfa: false,
-        # Uses only exempt, OS-provided encryption (TLS, CloudKit, Keychain);
-        # matches ITSAppUsesNonExemptEncryption = NO. See docs/APP_STORE.md.
-        export_compliance_uses_encryption: true,
-        export_compliance_is_exempt: true
-      }
-    }
-    deliver_options[:app_version] = version unless version.empty?
-    deliver(**deliver_options)
   end
 end

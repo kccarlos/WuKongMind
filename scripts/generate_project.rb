@@ -221,6 +221,9 @@ share_privacy = share_group.new_file("PrivacyInfo.xcprivacy")
 share_privacy.last_known_file_type = "text.xml"
 share_target.resources_build_phase.add_file_reference(share_privacy)
 
+share_swift_flags = ["$(inherited)"]
+share_swift_flags << "-D APP_GROUP_ENABLED" if app_group_enabled
+
 share_target.build_configurations.each do |configuration|
   settings = configuration.build_settings
   settings["APPLICATION_EXTENSION_API_ONLY"] = "YES"
@@ -237,6 +240,7 @@ share_target.build_configurations.each do |configuration|
     "@executable_path/../../Frameworks"
   ]
   settings["MARKETING_VERSION"] = marketing_version
+  settings["OTHER_SWIFT_FLAGS"] = share_swift_flags.join(" ") if app_group_enabled
   settings["PRODUCT_BUNDLE_IDENTIFIER"] = "#{bundle_id_prefix}.share"
   settings["PRODUCT_NAME"] = "$(TARGET_NAME)"
   settings["SKIP_INSTALL"] = "YES"

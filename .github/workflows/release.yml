@@ -256,16 +256,21 @@ jobs:
         run: scripts/ci/import-signing.sh
 
       # Prefer manual signing with the pre-created App Store profile when present
-      # on App Store Connect; otherwise fall back to automatic signing with the
-      # App Store Connect API key.
+      # on App Store Connect; fall back to automatic signing only when the API
+      # succeeds (exit 2: no profile with that name yet). Auth or HTTP errors
+      # (exit 1) fail the step.
       - name: App Store profile
         id: profile
         run: |
-          if ruby scripts/ci/fetch-profiles.rb "$PROFILE_APP"; then
+          rc=0
+          ruby scripts/ci/fetch-profiles.rb "$PROFILE_APP" || rc=$?
+          if [[ "$rc" -eq 0 ]]; then
             echo "manual=true" >>"$GITHUB_OUTPUT"
-          else
+          elif [[ "$rc" -eq 2 ]]; then
             echo "::notice::No active profile named '$PROFILE_APP'; using automatic signing with App Store Connect API key."
             echo "manual=false" >>"$GITHUB_OUTPUT"
+          else
+            exit "$rc"
           fi
 
       - name: Archive
