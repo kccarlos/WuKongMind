@@ -1,22 +1,15 @@
 name: Release
 
-# Every push to main (when app sources change) uploads a TestFlight build of
-# WukongMind (bundle ID io.github.kccarlos.wukongmind, app ID 6833832262).
-# Tag v1.2.3 to also publish a GitHub Release, or run it manually via
-# workflow_dispatch. Every signed step is skipped cleanly when the App Store
-# Connect secrets or the DEVELOPMENT_TEAM variable are missing.
+# Pushing a v* tag (or running workflow_dispatch manually) uploads a TestFlight
+# build of WukongMind (bundle ID io.github.kccarlos.wukongmind, app ID
+# 6833832262); a v* tag also publishes a GitHub Release. Tag builds fail in
+# preflight if the tag does not match the app's MARKETING_VERSION. Every signed
+# step is skipped cleanly when the App Store Connect secrets or the
+# DEVELOPMENT_TEAM variable are missing.
 
 on:
   push:
-    branches: [main]
     tags: ['v*']
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - 'appstore/**'
-      - 'mobile-site/**'
-      - 'scripts/site/**'
-      - '.github/ISSUE_TEMPLATE/**'
   workflow_dispatch:
     inputs:
       version:
@@ -67,6 +60,7 @@ jobs:
       version: ${{ steps.version.outputs.version }}
       build: ${{ steps.version.outputs.build }}
     steps:
+      - uses: actions/checkout@v7
       - id: check
         env:
           # Signing material is in 1Password (vault github); this is the token.
@@ -90,38 +84,17 @@ jobs:
             echo "asc=$asc"
             echo "signing=$signing"
           } >>"$GITHUB_OUTPUT"
-      - id: version
+      - name: Verify marketing version and compute build number
+        id: version
         env:
           REF_NAME: ${{ github.ref_name }}
           REF_TYPE: ${{ github.ref_type }}
           INPUT_VERSION: ${{ inputs.version }}
-          # Repo variable: the version main builds upload under, once the
-          # project's own version has shipped (App Store Connect closes it).
-          VAR_VERSION: ${{ vars.MARKETING_VERSION }}
           # Builds uploaded before this workflow ran (from Xcode) used low
-          # numbers; CI numbers start above them and always go up.
+          # numbers; CI numbers start above them and always go up (M1 shipped
+          # 104 and 105, so run 6+ produces 106+).
           BUILD_BASE: ${{ vars.BUILD_NUMBER_BASE || '100' }}
-        run: |
-          # Tag v1.2.3 -> 1.2.3 (a pre-release suffix like -beta.1 is dropped:
-          # App Store versions are numbers only). Manual runs use the input.
-          version=""
-          if [[ "$REF_TYPE" == tag && "$REF_NAME" =~ ^v([0-9]+(\.[0-9]+){0,2})(-.*)?$ ]]; then
-            version="${BASH_REMATCH[1]}"
-          elif [[ -n "$INPUT_VERSION" ]]; then
-            if [[ ! "$INPUT_VERSION" =~ ^[0-9]+(\.[0-9]+){0,2}$ ]]; then
-              echo "::error::version must look like 1.2.3 (got '$INPUT_VERSION')"
-              exit 1
-            fi
-            version="$INPUT_VERSION"
-          elif [[ -n "$VAR_VERSION" ]]; then
-            version="$VAR_VERSION"
-          fi
-          build=$((BUILD_BASE + GITHUB_RUN_NUMBER))
-          {
-            echo "version=$version"
-            echo "build=$build"
-          } >>"$GITHUB_OUTPUT"
-          echo "Marketing version: ${version:-<project default>}, build number: $build"
+        run: scripts/ci/check-release-version.sh
 
   simulator-build:
     name: Unsigned simulator build
