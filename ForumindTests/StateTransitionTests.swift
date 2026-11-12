@@ -14,6 +14,10 @@ final class StateTransitionTests: XCTestCase {
         StateForumStub.reset()
     }
 
+    override func tearDown() async throws {
+        StateForumStub.reset()
+    }
+
     // MARK: 1. Provider / model switches
 
     /// Two summaries run while the user switches to a favorite model: the
@@ -937,19 +941,24 @@ final class StateTransitionTests: XCTestCase {
         let progressToken = app.progress.objectWillChange.sink { progressPublishes += 1 }
 
         // Periodic wait ticks advance ProgressStore without publishing AppModel.
-        try await Task.sleep(for: .milliseconds(360))
+        try await waitUntil { (app.progress.value(for: recordID) ?? 0) > startFraction }
         let afterIdleWait = try XCTUnwrap(app.progress.value(for: recordID))
         XCTAssertGreaterThan(afterIdleWait, startFraction, "bar creeps during idle waits")
         XCTAssertEqual(appPublishes, 0, "periodic ticks must not publish AppModel")
 
         var observedFractions: [Double] = [startFraction, afterIdleWait]
         for wave in 0..<3 {
+            let previousFraction = observedFractions.last ?? startFraction
+            let previousPublishes = progressPublishes
             for tick in 1...15 {
                 let chars = wave * 1_500 + tick * 100
                 harness.ai.emitProgress(.streamed(characters: chars))
                 harness.ai.emitDelta("chunk-\(chars) ")
             }
-            try await Task.sleep(for: .milliseconds(120))
+            try await waitUntil {
+                (app.progress.value(for: recordID) ?? 0) > previousFraction
+                    && progressPublishes > previousPublishes
+            }
             observedFractions.append(try XCTUnwrap(app.progress.value(for: recordID)))
         }
 
@@ -970,11 +979,13 @@ final class StateTransitionTests: XCTestCase {
         try await Task.sleep(for: .milliseconds(130))
         appPublishes = 0
         let combiningStart = try XCTUnwrap(app.progress.value(for: recordID))
+        var combiningPrevious = combiningStart
         for wave in 0..<2 {
             for tick in 1...12 {
                 harness.ai.emitProgress(.streamed(characters: wave * 1_200 + tick * 100))
             }
-            try await Task.sleep(for: .milliseconds(120))
+            try await waitUntil { (app.progress.value(for: recordID) ?? 0) > combiningPrevious }
+            combiningPrevious = try XCTUnwrap(app.progress.value(for: recordID))
         }
         XCTAssertEqual(appPublishes, 0, "streaming ticks in the combining pass must not publish AppModel")
         XCTAssertGreaterThan(try XCTUnwrap(app.progress.value(for: recordID)), combiningStart)
@@ -1693,7 +1704,9 @@ final class StateTransitionTests: XCTestCase {
             app.podcast.pauseGeneration()
             ai.gated = false
             ai.releaseAll()
+            session.invalidateAndCancel()
             StateForumStub.release()
+            StateForumStub.reset()
         }
         return Harness(app: app, store: store, keys: keys, ai: ai, deliver: { app.browser.setPageContext($0); handler?($0) })
     }
@@ -1752,7 +1765,7 @@ final class StateTransitionTests: XCTestCase {
     }
 
     private func waitUntil(
-        timeout: TimeInterval = 10,
+        timeout: TimeInterval = 30,
         file: StaticString = #filePath,
         line: UInt = #line,
         _ condition: () -> Bool

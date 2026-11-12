@@ -1094,11 +1094,14 @@ private struct ChatThread<Leading: View>: View {
                     metricsBox.nearBottom = new.nearBottom
                     if new.nearBottom {
                         metricsBox.pinningBottom = false
-                        if !atBottom { atBottom = true }
-                    } else if atBottom, scrollTask != nil, new.offsetY < old.offsetY - 1 {
-                        scrollTask?.cancel()
-                        scrollTask = nil
-                        atBottom = false
+                        if !atBottom,
+                           scrollTask != nil
+                            || new.offsetY > old.offsetY
+                            || new.viewportHeight > old.viewportHeight
+                            || new.contentHeight <= new.viewportHeight
+                        {
+                            atBottom = true
+                        }
                     } else if atBottom, scrollTask == nil {
                         let streamGrew = !userScrolling
                             && old.contentHeight > 0
@@ -1182,6 +1185,10 @@ private struct ChatThread<Leading: View>: View {
         scrollTask = Task { @MainActor in
             await settleScroll(reduceMotion: reduceMotion, shouldStop: { userScrolling }) {
                 proxy.scrollTo("chatBottom", anchor: .bottom)
+            }
+            for _ in 0..<24 where !metricsBox.nearBottom && !userScrolling && !Task.isCancelled {
+                scrollUnanimated(proxy: proxy)
+                try? await Task.sleep(for: .milliseconds(16))
             }
             guard !Task.isCancelled else { return }
             scrollTask = nil

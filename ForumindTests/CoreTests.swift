@@ -4,6 +4,11 @@ import XCTest
 @testable import Forumind
 
 final class CoreTests: XCTestCase {
+    override func tearDown() {
+        URLProtocolStub.handler = nil
+        super.tearDown()
+    }
+
     // MARK: Browser bar position
 
     func testNewSettingsPlaceTheBarAutomatically() {
@@ -288,6 +293,7 @@ final class CoreTests: XCTestCase {
         let wordsWidth = (["Hello", "world"].map {
             ($0 as NSString).size(withAttributes: [.font: font]).width
         }).reduce(0, +)
+        let renderWidth = wordsWidth + 6
         // Six points fits the old hard-coded four-point gap, but cannot fit
         // the native AX5 word space. The black words must occupy two lines.
         let content = MarkdownBlockView(row: MarkdownRow(
@@ -295,10 +301,34 @@ final class CoreTests: XCTestCase {
             .environment(\.dynamicTypeSize, .accessibility5)
             .environment(\.colorScheme, .light)
             .foregroundStyle(Color.black)
-            .frame(width: wordsWidth + 6, alignment: .leading)
+            .frame(width: renderWidth, alignment: .leading)
             .background(Color.white)
-        let renderer = ImageRenderer(content: content)
-        let image = try XCTUnwrap(renderer.cgImage)
+        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(x: 0, y: 0, width: renderWidth, height: 320))
+        let host = UIHostingController(rootView: content)
+        host.traitOverrides.preferredContentSizeCategory = .accessibilityExtraExtraExtraLarge
+        window.rootViewController = host
+        window.frame = CGRect(x: 0, y: 0, width: renderWidth, height: 320)
+        window.makeKeyAndVisible()
+        host.view.frame = window.bounds
+        window.layoutIfNeeded()
+        let measuredHeight = max(240, ceil(host.sizeThatFits(in: CGSize(width: renderWidth, height: 2_000)).height) + 40)
+        window.frame = CGRect(x: 0, y: 0, width: renderWidth, height: measuredHeight)
+        host.view.frame = window.bounds
+        window.layoutIfNeeded()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+        window.layoutIfNeeded()
+        defer {
+            window.isHidden = true
+            window.rootViewController = nil
+            window.windowScene = nil
+        }
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 2
+        let uiImage = UIGraphicsImageRenderer(bounds: host.view.bounds, format: format).image { ctx in
+            host.view.layer.render(in: ctx.cgContext)
+        }
+        let image = try XCTUnwrap(uiImage.cgImage)
         let width = image.width, height = image.height
         var pixels = [UInt8](repeating: 255, count: width * height * 4)
         pixels.withUnsafeMutableBytes { bytes in
@@ -519,8 +549,7 @@ final class CoreTests: XCTestCase {
         app.sendChat()
 
         // Let the scroll animation and post-jump lazy settle complete.
-        RunLoop.current.run(until: Date().addingTimeInterval(0.9))
-        host.view.layoutIfNeeded()
+        waitForChatJumpToSettle(scrollView: scrollView, view: host.view, ai: ai)
 
         let distanceAfterSend = scrollView.contentSize.height - (scrollView.contentOffset.y + scrollView.bounds.height)
         XCTAssertLessThan(distanceAfterSend, 48, "scrollTo(chatBottom) must reach the bottom over lazy rows; distance=\(distanceAfterSend)")
@@ -584,8 +613,7 @@ final class CoreTests: XCTestCase {
         let wideScroll = try XCTUnwrap(findScrollView(in: wideHost.view))
         wideApp.drafts.chat = "Summarize in one sentence"
         wideApp.sendChat()
-        RunLoop.current.run(until: Date().addingTimeInterval(0.9))
-        wideHost.view.layoutIfNeeded()
+        waitForChatJumpToSettle(scrollView: wideScroll, view: wideHost.view, ai: wideAI)
         let wideRecord = try XCTUnwrap(wideApp.activities.first { $0.type == .chat })
         for line in 1...4 {
             wideApp.streams.append("Wide column streaming answer paragraph \(line).\n\n", to: wideRecord.id)
@@ -630,6 +658,27 @@ final class CoreTests: XCTestCase {
     }
 
     @MainActor
+    private func waitForChatJumpToSettle(scrollView: UIScrollView, view: UIView, ai: HeldChatAIStub, timeout: TimeInterval = 10) {
+        let start = Date()
+        let deadline = start.addingTimeInterval(timeout)
+        while Date() < deadline {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.02))
+            view.layoutIfNeeded()
+            let distance = scrollView.contentSize.height - (scrollView.contentOffset.y + scrollView.bounds.height)
+            if ai.isWaiting, Date().timeIntervalSince(start) >= 1.0, scrollView.contentOffset.y > 0, distance < 48 {
+                for _ in 0..<6 {
+                    RunLoop.current.run(until: Date().addingTimeInterval(0.025))
+                    view.layoutIfNeeded()
+                }
+                let confirmed = scrollView.contentSize.height - (scrollView.contentOffset.y + scrollView.bounds.height)
+                if confirmed < 48 {
+                    return
+                }
+            }
+        }
+    }
+
+    @MainActor
     private func makeSummaryTestApp(
         summary: String,
         totalPosts: Int,
@@ -637,21 +686,45 @@ final class CoreTests: XCTestCase {
     ) throws -> (AppModel, ForumTopic) {
         let directory = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        addTeardownBlock { try? FileManager.default.removeItem(at: directory) }
         let store = PersistentStore(fileURL: directory.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore())
         let siteURL = "https://forum.example.com"
         let url = try XCTUnwrap(URL(string: "\(siteURL)/t/test-topic/42"))
         let topic = ForumTopic(siteURL: siteURL, topicID: "42", url: url, title: "Test topic")
+        let bodyText = "alice | 2026-10-20 | #1\nPost 1"
         var session = TopicSession(siteURL: siteURL, topicID: "42", url: url, title: "Test topic")
-        session.source = "alice | 2026-10-20 | #1\nPost 1"
+        session.source = bodyText
         session.summary = summary
         session.totalPosts = totalPosts
         session.summaryPostCount = totalPosts
         session.summaryUpdatedAt = Date()
         session.model = "test-model"
         var snapshot = AppSnapshot()
+        snapshot.forums = [Forum(siteURL: siteURL, kind: .discourse, name: "Forum")]
         snapshot.sessions = [session]
         try store.save(snapshot)
-        let app = AppModel(store: store, aiService: aiService)
+
+        URLProtocolStub.handler = { request in
+            let path = request.url?.path ?? ""
+            let body = path.hasSuffix(".json")
+                ? #"{"title":"Test topic","slug":"test-topic","posts_count":\#(totalPosts),"highest_post_number":\#(totalPosts)}"#
+                : bodyText
+            let response = HTTPURLResponse(
+                url: request.url!,
+                statusCode: 200,
+                httpVersion: "HTTP/1.1",
+                headerFields: ["Content-Type": "application/json"]
+            )!
+            return (response, Data(body.utf8))
+        }
+        let cfg = URLSessionConfiguration.ephemeral
+        cfg.protocolClasses = [URLProtocolStub.self]
+        let urlSession = URLSession(configuration: cfg)
+        let forumService = ForumService(session: urlSession, pacer: ForumRequestPacer(clock: InstantPacingClock()))
+
+        let app = AppModel(store: store, forumService: forumService, aiService: aiService)
+        app.usesDirectForumRequests = true
+        app.browser.stopLoading()
         let handler = app.browser.onPageContextChanged
         app.browser.onPageContextChanged = nil
         app.allowAllAIProviders()
@@ -659,6 +732,11 @@ final class CoreTests: XCTestCase {
         let page = PageContext(url: url, site: .discourse, siteURL: siteURL, forumName: "Forum", topic: topic, state: .topic)
         app.browser.setPageContext(page)
         handler?(page)
+        addTeardownBlock { @MainActor in
+            for record in app.activities where !record.status.isTerminal { app.cancel(record: record) }
+            app.browser.stopLoading()
+            urlSession.invalidateAndCancel()
+        }
         return (app, topic)
     }
 
@@ -1874,11 +1952,24 @@ private final class URLProtocolStub: URLProtocol {
 }
 
 private final class HeldChatAIStub: AIService, @unchecked Sendable {
+    private let lock = NSLock()
     private var continuation: CheckedContinuation<Void, Never>?
+    private var finished = false
+    private var waiting = false
+
+    var isWaiting: Bool {
+        lock.withLock { waiting }
+    }
 
     func finish() {
-        continuation?.resume()
-        continuation = nil
+        let pending: CheckedContinuation<Void, Never>? = lock.withLock {
+            finished = true
+            waiting = false
+            let cont = continuation
+            continuation = nil
+            return cont
+        }
+        pending?.resume()
     }
 
     override func answer(
@@ -1893,7 +1984,19 @@ private final class HeldChatAIStub: AIService, @unchecked Sendable {
         onDelta: @escaping @MainActor (String) -> Void,
         summaryIsStale: Bool = false
     ) async throws -> String {
-        await withCheckedContinuation { continuation = $0 }
+        await withCheckedContinuation { cont in
+            let resumeImmediately: Bool = lock.withLock {
+                if finished {
+                    return true
+                }
+                waiting = true
+                continuation = cont
+                return false
+            }
+            if resumeImmediately {
+                cont.resume()
+            }
+        }
         return "Done."
     }
 }
@@ -1966,7 +2069,9 @@ final class LazyMarkdownTests: XCTestCase {
         }
         let cfg = URLSessionConfiguration.ephemeral
         cfg.protocolClasses = [URLProtocolStub.self]
-        return ForumService(session: URLSession(configuration: cfg), pacer: ForumRequestPacer(clock: InstantPacingClock()))
+        let session = URLSession(configuration: cfg)
+        addTeardownBlock { session.invalidateAndCancel() }
+        return ForumService(session: session, pacer: ForumRequestPacer(clock: InstantPacingClock()))
     }
 
     @MainActor
@@ -2016,6 +2121,7 @@ final class LazyMarkdownTests: XCTestCase {
             aiService: aiService
         )
         app.usesDirectForumRequests = true
+        app.browser.stopLoading()
         let handler = app.browser.onPageContextChanged
         app.browser.onPageContextChanged = nil
         app.allowAllAIProviders()
@@ -2023,14 +2129,40 @@ final class LazyMarkdownTests: XCTestCase {
         let pageA = PageContext(url: urlA, site: .discourse, siteURL: siteURL, forumName: "Forum", topic: topicA, state: .topic)
         app.browser.setPageContext(pageA)
         handler?(pageA)
+        addTeardownBlock { @MainActor in
+            for record in app.activities where !record.status.isTerminal { app.cancel(record: record) }
+            app.browser.stopLoading()
+            try? FileManager.default.removeItem(at: directory)
+        }
         return (app, topicA, topicB, handler)
+    }
+
+    @MainActor
+    private func waitForChatBottom(scrollView: UIScrollView, window: UIWindow, app: AppModel, ai: HeldChatAIStub, timeout: TimeInterval = 10) {
+        let start = Date()
+        let deadline = start.addingTimeInterval(timeout)
+        while Date() < deadline {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.02))
+            window.layoutIfNeeded()
+            let running = app.activities.contains { $0.type == .chat && $0.status == .running }
+            let distance = scrollView.contentSize.height - (scrollView.contentOffset.y + scrollView.bounds.height)
+            if running, ai.isWaiting, Date().timeIntervalSince(start) >= 1.0, scrollView.contentOffset.y > 0, distance < 48 {
+                for _ in 0..<6 {
+                    RunLoop.current.run(until: Date().addingTimeInterval(0.025))
+                    window.layoutIfNeeded()
+                }
+                let confirmed = scrollView.contentSize.height - (scrollView.contentOffset.y + scrollView.bounds.height)
+                if confirmed < 48 {
+                    return
+                }
+            }
+        }
     }
 
     // Finding 2: Sending a follow-up chat message or tapping chatScrollToBottom over a long lazy
     // summary with an offscreen multi-paragraph ChatBubble must reach chatBottom instead of stopping short.
     @MainActor
     func testSendChatOverUniformLazySummaryReachesChatBottom() throws {
-        try XCTSkipIf(ProcessInfo.processInfo.environment["CI"] != nil, "Timing-sensitive fixed RunLoop scroll-to-bottom check over lazy summary on CI simulator (see docs/wukongmind/flaky-tests.md)")
         let forumService = makeStubbedForumService()
         let ai = HeldChatAIStub()
         let (app, _, _, _) = try makeTwoTopicApp(
@@ -2054,8 +2186,7 @@ final class LazyMarkdownTests: XCTestCase {
         let scrollView = try XCTUnwrap(findScrollView(in: host.view))
         app.drafts.chat = "Does my follow-up reach the viewport?"
         app.sendChat()
-        RunLoop.current.run(until: Date().addingTimeInterval(0.8))
-        window.layoutIfNeeded()
+        waitForChatBottom(scrollView: scrollView, window: window, app: app, ai: ai)
 
         XCTAssertNotNil(app.activities.first { $0.type == .chat && $0.status == .running })
         let distance = scrollView.contentSize.height - (scrollView.contentOffset.y + scrollView.bounds.height)
@@ -2208,8 +2339,7 @@ final class LazyMarkdownTests: XCTestCase {
         let scrollView = try XCTUnwrap(findScrollView(in: host.view))
         app.drafts.chat = "What is the consensus?"
         app.sendChat()
-        RunLoop.current.run(until: Date().addingTimeInterval(0.7))
-        window.layoutIfNeeded()
+        waitForChatBottom(scrollView: scrollView, window: window, app: app, ai: ai)
 
         let chatRecord = try XCTUnwrap(app.activities.first { $0.type == .chat })
         for line in 1...6 {
@@ -2217,6 +2347,9 @@ final class LazyMarkdownTests: XCTestCase {
             RunLoop.current.run(until: Date().addingTimeInterval(0.14))
             window.layoutIfNeeded()
         }
+        app.streams.flush()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.25))
+        window.layoutIfNeeded()
 
         // Simulate 90 frames of smooth upward scrolling at 1.8 pt/frame (~162 pt total, > 3x the 48 pt threshold).
         for _ in 1...90 {
@@ -2244,7 +2377,6 @@ final class LazyMarkdownTests: XCTestCase {
     // Finding 6: Regenerating or updating a saved summary never displays old summary text after new tokens arrive.
     @MainActor
     func testSummaryRetryOverSavedSummaryDoesNotFlashOldSummaryDuringStream() throws {
-        try XCTSkipIf(ProcessInfo.processInfo.environment["CI"] != nil, "Timing-sensitive summary stream throttle and layout probe check on CI simulator (see docs/wukongmind/flaky-tests.md)")
         final class ControlledSummaryAI: AIService, @unchecked Sendable {
             var onStart: (@MainActor (@escaping @MainActor (String) -> Void, CheckedContinuation<Result<String, Error>, Never>) -> Void)?
 
@@ -2271,9 +2403,16 @@ final class LazyMarkdownTests: XCTestCase {
         let ai = ControlledSummaryAI()
         var streamDelta: (@MainActor (String) -> Void)?
         var finishSummary: CheckedContinuation<Result<String, Error>, Never>?
+        var didResumeSummary = false
         ai.onStart = { delta, cont in
             streamDelta = delta
             finishSummary = cont
+        }
+        defer {
+            if !didResumeSummary, let finishSummary {
+                didResumeSummary = true
+                finishSummary.resume(returning: .failure(CancellationError()))
+            }
         }
 
         let legacySummary = (1...15)
@@ -2303,7 +2442,7 @@ final class LazyMarkdownTests: XCTestCase {
 
         MarkdownLayoutProbe.reset()
         app.startSummary(regenerate: true)
-        let startDeadline = Date().addingTimeInterval(10.0)
+        let startDeadline = Date().addingTimeInterval(30.0)
         while (streamDelta == nil || scrollView.contentSize.height >= 450), Date() < startDeadline {
             RunLoop.current.run(until: Date().addingTimeInterval(0.01))
             window.layoutIfNeeded()
@@ -2324,7 +2463,7 @@ final class LazyMarkdownTests: XCTestCase {
         let freshSummary = "## FRESH STREAMED SUMMARY\n\n- Fresh point one #1\n- Fresh point two #2"
         streamDelta?(freshSummary)
 
-        let flushDeadline = Date().addingTimeInterval(10.0)
+        let flushDeadline = Date().addingTimeInterval(30.0)
         while Date() < flushDeadline {
             RunLoop.current.run(until: Date().addingTimeInterval(0.01))
             window.layoutIfNeeded()
@@ -2359,8 +2498,9 @@ final class LazyMarkdownTests: XCTestCase {
             XCTAssertLessThanOrEqual(MarkdownLayoutProbe.blockBodies, 6)
         }
 
+        didResumeSummary = true
         finishSummary?.resume(returning: .success(freshSummary))
-        let finishDeadline = Date().addingTimeInterval(10.0)
+        let finishDeadline = Date().addingTimeInterval(30.0)
         while app.currentSession?.summary != freshSummary, Date() < finishDeadline {
             RunLoop.current.run(until: Date().addingTimeInterval(0.01))
         }
@@ -2508,7 +2648,6 @@ final class LazyMarkdownTests: XCTestCase {
 
     @MainActor
     func testStreamingSummaryDragInvalidatesOnlyChangedRowAndLaysOutLazily() throws {
-        try XCTSkipIf(ProcessInfo.processInfo.environment["CI"] != nil, "Timing-sensitive streaming summary drag and lazy row invalidation check on CI simulator (see docs/wukongmind/flaky-tests.md)")
         final class HeldSummaryAI: AIService, @unchecked Sendable {
             var onStart: (@MainActor (@escaping @MainActor (String) -> Void, CheckedContinuation<Result<String, Error>, Never>) -> Void)?
 
@@ -2554,7 +2693,8 @@ final class LazyMarkdownTests: XCTestCase {
         defer { window.isHidden = true }
 
         app.startSummary(regenerate: true)
-        for _ in 0..<300 where streamDelta == nil {
+        let startDeadline = Date().addingTimeInterval(30.0)
+        while streamDelta == nil, Date() < startDeadline {
             RunLoop.current.run(until: Date().addingTimeInterval(0.01))
         }
         XCTAssertNotNil(streamDelta)
@@ -2563,7 +2703,20 @@ final class LazyMarkdownTests: XCTestCase {
             RunLoop.current.run(until: Date().addingTimeInterval(0.05))
         }
 
-        // Stream first section (on-screen at large height): 1 heading + 4 bullets.
+        func flushAndAwaitRender(_ chunk: String, minBodyDelta: Int = 1) {
+            let before = MarkdownLayoutProbe.blockBodies
+            streamDelta?(chunk)
+            app.streams.flush()
+            let deadline = Date().addingTimeInterval(5.0)
+            while MarkdownLayoutProbe.blockBodies < before + minBodyDelta, Date() < deadline {
+                RunLoop.current.run(until: Date().addingTimeInterval(0.01))
+                window.layoutIfNeeded()
+            }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.02))
+            window.layoutIfNeeded()
+        }
+
+        // Stream first section (on-screen at large height): 2 headings + 4 bullets.
         let initialChunk = """
         ## Original post
 
@@ -2573,9 +2726,10 @@ final class LazyMarkdownTests: XCTestCase {
         - Third bullet with citation #3 #43
         - Active bullet streaming
         """
-        streamDelta?(initialChunk)
-        app.streams.flush()
-        RunLoop.current.run(until: Date().addingTimeInterval(0.16))
+        MarkdownLayoutProbe.reset()
+        flushAndAwaitRender(initialChunk, minBodyDelta: 6)
+        // Ensure the initial `.task(id: streamInput)` pass has populated `renderedSummary` before resetting.
+        RunLoop.current.run(until: Date().addingTimeInterval(0.05))
         window.layoutIfNeeded()
 
         // 1. Appending words to the active last bullet across 3 throttled flushes must only re-evaluate that 1 row per flush,
@@ -2583,10 +2737,7 @@ final class LazyMarkdownTests: XCTestCase {
         let scrollView = try XCTUnwrap(findScrollView(in: host.view))
         MarkdownLayoutProbe.reset()
         for word in [" wordA", " wordB #4", " wordC #44"] {
-            streamDelta?(word)
-            app.streams.flush()
-            RunLoop.current.run(until: Date().addingTimeInterval(0.15))
-            window.layoutIfNeeded()
+            flushAndAwaitRender(word, minBodyDelta: 1)
         }
         XCTAssertEqual(
             MarkdownLayoutProbe.blockBodies,
@@ -2594,15 +2745,9 @@ final class LazyMarkdownTests: XCTestCase {
             "Each stream flush extending the last bullet must invalidate only the 1 changed row, not all rows; got \(MarkdownLayoutProbe.blockBodies)."
         )
 
-        streamDelta?(" stub")
-        app.streams.flush()
-        RunLoop.current.run(until: Date().addingTimeInterval(0.15))
-        window.layoutIfNeeded()
+        flushAndAwaitRender(" stub", minBodyDelta: 1)
         let heightBeforeInPlaceGrowth = scrollView.contentSize.height
-        streamDelta?("SupercalifragilisticexpialidociousRepeatedToForceAnExtraWrappedLineInCitedText")
-        app.streams.flush()
-        RunLoop.current.run(until: Date().addingTimeInterval(0.15))
-        window.layoutIfNeeded()
+        flushAndAwaitRender("SupercalifragilisticexpialidociousRepeatedToForceAnExtraWrappedLineInCitedText", minBodyDelta: 1)
         XCTAssertGreaterThan(
             scrollView.contentSize.height,
             heightBeforeInPlaceGrowth + 14,
@@ -2614,11 +2759,11 @@ final class LazyMarkdownTests: XCTestCase {
         for point in 1...6 {
             section2 += "\n- Readers report that the card works well and pays out quickly after a short wait #\(2 * point) #\(42 + point)"
         }
-        streamDelta?(section2)
-        app.streams.flush()
-        RunLoop.current.run(until: Date().addingTimeInterval(0.16))
+        flushAndAwaitRender(section2, minBodyDelta: 1)
         window.frame = CGRect(origin: .zero, size: CGSize(width: 377, height: 420))
         host.view.frame = window.bounds
+        window.layoutIfNeeded()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.05))
         window.layoutIfNeeded()
 
         MarkdownLayoutProbe.reset()
@@ -2710,6 +2855,7 @@ final class LazyMarkdownTests: XCTestCase {
                 + (n == 105 ? "The secret needle workaround is setting MTU to 1492." : "Reply \(n) on page two \(String(repeating: "y", count: 140)).")
         }.joined(separator: RawTopicFormat.blockSeparator)
 
+        let fetchLock = NSLock()
         var rawPage1Fetches = 0
         var rawPage2Fetches = 0
         URLProtocolStub.handler = { request in
@@ -2721,10 +2867,10 @@ final class LazyMarkdownTests: XCTestCase {
                 body = #"{"title":"Router Firmware","slug":"router-firmware","posts_count":120,"highest_post_number":120}"#
             } else if path.hasSuffix("/raw/42") {
                 if page == "2" {
-                    rawPage2Fetches += 1
+                    fetchLock.withLock { rawPage2Fetches += 1 }
                     body = page2Posts
                 } else {
-                    rawPage1Fetches += 1
+                    fetchLock.withLock { rawPage1Fetches += 1 }
                     body = page1Posts
                 }
             } else {
@@ -2741,7 +2887,9 @@ final class LazyMarkdownTests: XCTestCase {
 
         let cfg = URLSessionConfiguration.ephemeral
         cfg.protocolClasses = [URLProtocolStub.self]
-        let forumService = ForumService(session: URLSession(configuration: cfg), pacer: ForumRequestPacer(clock: InstantPacingClock()))
+        let session = URLSession(configuration: cfg)
+        addTeardownBlock { session.invalidateAndCancel() }
+        let forumService = ForumService(session: session, pacer: ForumRequestPacer(clock: InstantPacingClock()))
 
         let planner = ScriptedAgentPlanner(actions: [
             AgentAction(thought: "", tool: "read_topic", arguments: ["topic_id": "42"]),
@@ -2760,22 +2908,27 @@ final class LazyMarkdownTests: XCTestCase {
         ai.gated = false
         let app = AppModel(store: store, forumService: forumService, aiService: ai, planner: planner)
         app.usesDirectForumRequests = true
+        app.browser.stopLoading()
         app.allowAllAIProviders()
         app.selectModel(ModelSelection(provider: .ollama, model: "test-model"), for: .both)
         app.browser.onPageContextChanged = nil
         app.settings.agentReadLimit = 10_000
         app.settings.agentMaxTopicReads = 1
+        addTeardownBlock { @MainActor in
+            for record in app.activities where !record.status.isTerminal { app.cancel(record: record) }
+            app.browser.stopLoading()
+        }
 
         app.startAgentRun(goal: "How to fix router MTU?", siteURL: "https://forum.example.com")
-        let deadline = Date().addingTimeInterval(15)
+        let deadline = Date().addingTimeInterval(45)
         while !(app.agentRuns.first?.isFinished ?? false), Date() < deadline {
             try await Task.sleep(for: .milliseconds(20))
         }
         let run = try XCTUnwrap(app.agentRuns.first)
         XCTAssertEqual(run.result, .completed, run.error)
         XCTAssertEqual(run.topicIDs, ["42"], "Paging/querying an already-read topic does not consume extra topic-read budget.")
-        XCTAssertEqual(rawPage1Fetches, 1)
-        XCTAssertEqual(rawPage2Fetches, 1)
+        XCTAssertEqual(fetchLock.withLock { rawPage1Fetches }, 1)
+        XCTAssertEqual(fetchLock.withLock { rawPage2Fetches }, 1)
         guard planner.transcripts.count > 5 else {
             XCTFail("Expected at least 6 planner transcripts, got \(planner.transcripts.count)")
             return

@@ -550,7 +550,7 @@ final class AppModel: ObservableObject {
         applyModerationRules()
         // (DEBUG samples load only their own page: a restored forum's load
         // failing late would replace it with the Forums home.)
-        if self.browser.webView.url == nil, !Self.loadsOnlySamplePage {
+        if self.browser.webView.url == nil, !Self.loadsOnlySamplePage, !Self.isRunningTests {
             self.loadHome(silentOnFailure: true)
         }
         openURLObserver = NotificationCenter.default.addObserver(

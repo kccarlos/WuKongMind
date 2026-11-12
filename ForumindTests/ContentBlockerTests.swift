@@ -414,6 +414,7 @@ final class ContentBlockerWebKitTests: XCTestCase {
     private func makeWebView(lists: [WKContentRuleList] = []) -> WKWebView {
         let configuration = WKWebViewConfiguration()
         configuration.websiteDataStore = .nonPersistent()
+        ForumBrowserModel.disableWebKitScreenTimeForTesting(in: configuration)
         for list in lists { configuration.userContentController.add(list) }
         return WKWebView(frame: CGRect(x: 0, y: 0, width: 320, height: 480), configuration: configuration)
     }

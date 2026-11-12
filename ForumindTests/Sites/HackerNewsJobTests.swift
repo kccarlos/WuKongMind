@@ -27,12 +27,14 @@ final class HackerNewsJobTests: XCTestCase {
                            aiService: aiService ?? ai, planner: planner,
                            podcastDirectory: directory.appendingPathComponent("Podcasts"))
         app.usesDirectForumRequests = true
+        app.browser.stopLoading()
         app.allowAllAIProviders()
         app.selectModel(.init(provider: .ollama, model: "model-a"), for: .both)
         app.browser.onPageContextChanged = nil
         app.settings.forumRequestPace = .fast
         addTeardownBlock { @MainActor in
             for record in app.activities where !record.status.isTerminal { app.cancel(record: record) }
+            app.browser.stopLoading()
             app.pauseDigest()
             app.podcast.pauseGeneration()
             app.podcast.player.unload()
@@ -40,7 +42,7 @@ final class HackerNewsJobTests: XCTestCase {
         return (app, ai, planner, fixture)
     }
     private func wait(_ predicate: () -> Bool) async throws {
-        let deadline = Date().addingTimeInterval(20)
+        let deadline = Date().addingTimeInterval(45)
         while !predicate() {
             guard Date() < deadline else { XCTFail("Timed out"); throw CancellationError() }
             try await Task.sleep(for: .milliseconds(20))

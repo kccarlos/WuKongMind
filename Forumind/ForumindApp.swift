@@ -22,9 +22,10 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
         DCTheme.applyAppearance()
-        UNUserNotificationCenter.current().delegate = WatchNotifier.shared
         WatchBackgroundRefresh.register()
         DigestBackgroundPrefetch.register()
+        guard !AppModel.isRunningTests else { return true }
+        UNUserNotificationCenter.current().delegate = WatchNotifier.shared
         #if CLOUDKIT_ENABLED
         // Silent pushes only: no permission prompt.
         application.registerForRemoteNotifications()
@@ -50,28 +51,40 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
     #endif
 }
 
-@main
-struct ForumindApp: App {
-    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
-    @Environment(\.scenePhase) private var scenePhase
-    @StateObject private var app: AppModel = {
+@MainActor
+private final class LiveAppHolder: ObservableObject {
+    lazy var model: AppModel = {
         let model = AppModel()
         #if DEBUG
         model.applyOnboardingDebugArguments()
         #endif
         return model
     }()
+}
+
+@main
+struct ForumindApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+    @Environment(\.scenePhase) private var scenePhase
+    @StateObject private var holder = LiveAppHolder()
 
     var body: some Scene {
         WindowGroup {
-            RootView(app: app)
+            if AppModel.isRunningTests {
+                Color.clear
+            } else {
+                RootView(app: holder.model)
+            }
         }
         .onChange(of: scenePhase) {
-            app.handleScenePhase(scenePhase)
+            guard !AppModel.isRunningTests else { return }
+            holder.model.handleScenePhase(scenePhase)
         }
         .commands {
-            // Hardware keyboard: menu bar and the ⌘-hold overlay on iPad.
-            WorkspaceCommands(playPause: app.playPauseShortcut)
+            if !AppModel.isRunningTests {
+                // Hardware keyboard: menu bar and the ⌘-hold overlay on iPad.
+                WorkspaceCommands(playPause: holder.model.playPauseShortcut)
+            }
         }
     }
 }
