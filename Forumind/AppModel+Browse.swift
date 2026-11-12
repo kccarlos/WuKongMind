@@ -404,7 +404,23 @@ extension AppModel {
             code: "return getComputedStyle(document.body).backgroundColor;",
             environment: .isolated
         ).valueJSON) ?? "unknown"
-        let payload: [String: Any] = [
+
+        var afterReloadSidebar = ""
+        var afterReloadBodyBg = ""
+        if AssistantDebug.has("-dc-browser-agent-live-reload") {
+            loadBrowserAgentFixturePage()
+            await browser.waitUntilSettled(timeout: .seconds(10))
+            afterReloadSidebar = (try? await browser.agentBridge.runJS(
+                code: "const el = document.querySelector('.sidebar'); return el ? getComputedStyle(el).display : 'removed';",
+                environment: .isolated
+            ).valueJSON) ?? "unknown"
+            afterReloadBodyBg = (try? await browser.agentBridge.runJS(
+                code: "return getComputedStyle(document.body).backgroundColor;",
+                environment: .isolated
+            ).valueJSON) ?? "unknown"
+        }
+
+        var payload: [String: Any] = [
             "state": String(describing: browserAgent.runState),
             "stepCount": browserAgent.toolCalls.count,
             "tools": browserAgent.toolCalls.map { [
@@ -416,8 +432,20 @@ extension AppModel {
             "assistantReply": browserAgent.runs.last?.assistantText ?? "",
             "totalTokens": browserAgent.tokenUsage.totalTokens,
             "sidebarDisplay": sidebarDisplay,
-            "bodyBackground": bodyBg
+            "bodyBackground": bodyBg,
+            "savedScriptCount": scriptStore.scripts.count,
+            "savedScripts": scriptStore.scripts.map { [
+                "id": $0.id,
+                "name": $0.name,
+                "matchRules": $0.matchRules,
+                "version": $0.version,
+                "enabled": $0.isEnabled
+            ] }
         ]
+        if !afterReloadSidebar.isEmpty || !afterReloadBodyBg.isEmpty {
+            payload["afterReloadSidebarDisplay"] = afterReloadSidebar
+            payload["afterReloadBodyBackground"] = afterReloadBodyBg
+        }
         if let data = try? JSONSerialization.data(withJSONObject: payload, options: [.prettyPrinted, .sortedKeys]) {
             try? data.write(to: URL(fileURLWithPath: path), options: .atomic)
         }

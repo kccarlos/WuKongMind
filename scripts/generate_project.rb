@@ -76,15 +76,16 @@ shared_source_names = [
 shared_source_prefix = "Sites/Recognition/"
 shared_source_references = []
 
-# Pure-Swift M1 browser agent core compiled directly into ForumindAgentCoreTests
-# (macOS unit test bundle) so ToolRegistry and AgentLoop unit tests run with no
-# simulator.
+# Pure-Swift M1/M2 browser agent core compiled directly into ForumindAgentCoreTests
+# (macOS unit test bundle) so ToolRegistry, AgentLoop, and ScriptStore unit tests
+# run with no simulator.
 agent_core_source_names = [
   "AgentBridge.swift",
   "AppIdentity.swift",
   "BrowserAgent.swift",
   "JSONValue.swift",
   "ProviderModels.swift",
+  "ScriptStore.swift",
   "ToolRegistry.swift"
 ]
 agent_core_source_references = []
@@ -282,6 +283,7 @@ test_target.add_dependency(app_target)
 
 agent_core_test_names = %w[
   AgentLoopTests.swift
+  ScriptStoreCoreTests.swift
   ToolRegistryTests.swift
 ]
 agent_core_test_references = []

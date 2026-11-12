@@ -247,13 +247,17 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     private static let chromeToggleTravel: CGFloat = 36
 
     /// `contentRules` nil: the shared library (see `ContentBlocker.init`).
-    init(contentRules: ContentRuleLibrary? = nil, sites: SiteRegistry = .standard) {
+    init(
+        contentRules: ContentRuleLibrary? = nil,
+        sites: SiteRegistry = .standard,
+        websiteDataStore: WKWebsiteDataStore? = nil
+    ) {
         let contentRules = contentRules ?? .shared
         let probeExpression = sites.probeExpression
         self.sites = sites
         self.probeExpression = probeExpression
         let configuration = WKWebViewConfiguration()
-        configuration.websiteDataStore = .default()
+        configuration.websiteDataStore = websiteDataStore ?? .default()
         configuration.defaultWebpagePreferences.allowsContentJavaScript = true
         configuration.preferences.isElementFullscreenEnabled = true
         #if DEBUG

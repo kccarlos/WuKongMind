@@ -370,8 +370,12 @@ final class AppModel: ObservableObject {
     }()
     /// Whether Space plays or pauses the podcast (WorkspaceLayout.swift).
     private(set) lazy var playPauseShortcut = PlayPauseShortcut(podcast: podcast)
+    /// Per-site userscript store and automatic WKWebView injector (`ScriptStore.swift`).
+    let scriptStore: ScriptStore
+    let scriptWebController: ScriptWebController
     /// Observable browser agent session (`BrowserAgent.swift`) for page inspection,
-    /// JavaScript execution, CSS injection, and multi-step tool calling on any page.
+    /// JavaScript execution, CSS injection, userscript persistence, and multi-step
+    /// tool calling on any page.
     private(set) lazy var browserAgent: BrowserAgentSession = BrowserAgentSession(
         pageDriver: browser.agentBridge,
         modelClient: aiService,
@@ -387,6 +391,21 @@ final class AppModel: ObservableObject {
                 )
             }
             return self.browserAgentRuntimeConfig
+        },
+        registryBuilder: { [weak self] bridge, limit, secrets in
+            guard let self else {
+                return ToolRegistry.m1(bridge: bridge, truncationLimit: limit, redactedSecrets: secrets)
+            }
+            return ToolRegistry.m2(
+                bridge: bridge,
+                scriptStore: self.scriptStore,
+                liveApplier: self.scriptWebController,
+                currentUserPrompt: { [weak self] in
+                    self?.browserAgent.lastUserPrompt
+                },
+                truncationLimit: limit,
+                redactedSecrets: secrets
+            )
         }
     )
     /// Where podcast audio is cached (`Caches/Podcasts`; tests pass their own).
@@ -428,7 +447,8 @@ final class AppModel: ObservableObject {
         podcastDirectory: URL? = nil,
         spotlightIndex: SpotlightIndexing? = nil,
         topicActivityDonor: TopicActivityDonating? = nil,
-        backgroundGrace: BackgroundGracing? = nil
+        backgroundGrace: BackgroundGracing? = nil,
+        scriptStore: ScriptStore? = nil
     ) {
         self.store = store
         self.backgroundGrace = backgroundGrace ?? ApplicationBackgroundGrace()
@@ -442,7 +462,8 @@ final class AppModel: ObservableObject {
         self.forumService = forumService
         self.sites = sites
         self.aiService = aiService
-        self.browser = browser ?? ForumBrowserModel(sites: sites)
+        let resolvedBrowser = browser ?? ForumBrowserModel(sites: sites)
+        self.browser = resolvedBrowser
         self.planner = planner ?? PromptAgentPlanner(aiService: aiService)
         self.notifier = notifier
 
@@ -462,6 +483,38 @@ final class AppModel: ObservableObject {
         }
         settings = loadedSettings
         persistedAPIKeys = loadedKeys
+
+        let resolvedScriptStore: ScriptStore
+        if let scriptStore {
+            scriptStore.isGlobalEnabled = loadedSettings.browserScriptsEnabled
+            resolvedScriptStore = scriptStore
+        } else {
+            let scriptsDirectory: URL
+            #if DEBUG
+            if Self.loadsOnlySamplePage && store.usesDefaultLocation {
+                if let customPath = AssistantDebug.value("-dc-browser-agent-scripts-dir"), !customPath.isEmpty {
+                    scriptsDirectory = URL(fileURLWithPath: customPath, isDirectory: true)
+                } else {
+                    scriptsDirectory = FileManager.default.temporaryDirectory
+                        .appendingPathComponent("wukong-debug-scripts-\(UUID().uuidString)", isDirectory: true)
+                }
+            } else {
+                scriptsDirectory = store.directoryURL.appendingPathComponent("Scripts", isDirectory: true)
+            }
+            #else
+            scriptsDirectory = store.directoryURL.appendingPathComponent("Scripts", isDirectory: true)
+            #endif
+            resolvedScriptStore = ScriptStore(
+                directoryURL: scriptsDirectory,
+                isGlobalEnabled: loadedSettings.browserScriptsEnabled
+            )
+        }
+        self.scriptStore = resolvedScriptStore
+        self.scriptWebController = ScriptWebController(
+            webView: resolvedBrowser.webView,
+            store: resolvedScriptStore,
+            agentBridge: resolvedBrowser.agentBridge
+        )
 
         let now = Date()
         sessions = Dictionary(
@@ -524,6 +577,10 @@ final class AppModel: ObservableObject {
             return updated
         }
 
+        self.scriptStore.onGlobalEnabledChanged = { [weak self] isEnabled in
+            guard let self, self.settings.browserScriptsEnabled != isEnabled else { return }
+            self.settings.browserScriptsEnabled = isEnabled
+        }
         self.browser.knownForumLookup = { [weak self] url in
             guard let forum = self?.directory.forum(containing: url) else { return nil }
             return KnownForumSite(siteURL: forum.siteURL, name: forum.name, iconURL: forum.iconURL, kind: forum.kind)
@@ -586,7 +643,11 @@ final class AppModel: ObservableObject {
         }
         if settings.dailyDigestEnabled { scheduleDigestPrefetch() }
         Task { [weak self] in
-            await self?.refreshNotificationAuthorization()
+            guard let notifier = self?.notifier else { return }
+            let authorized = await notifier.isAuthorized()
+            if let self, self.notificationsAuthorized != authorized {
+                self.notificationsAuthorized = authorized
+            }
         }
 
         #if DEBUG
@@ -758,7 +819,8 @@ final class AppModel: ObservableObject {
             maxSteps: settings.browserAgentMaxSteps,
             truncationLimit: settings.browserAgentTruncationLimit,
             customInstructions: settings.systemPrompt,
-            redactedSecrets: secrets
+            redactedSecrets: secrets,
+            allScripts: scriptStore.scripts
         )
     }
 
@@ -2204,6 +2266,10 @@ final class AppModel: ObservableObject {
         }
         if old.voiceEnabled, !settings.voiceEnabled {
             voice.end()
+        }
+        if old.browserScriptsEnabled != settings.browserScriptsEnabled,
+           scriptStore.isGlobalEnabled != settings.browserScriptsEnabled {
+            scriptStore.isGlobalEnabled = settings.browserScriptsEnabled
         }
         saveSettings()
     }
