@@ -98,8 +98,10 @@ struct ProviderMenu<Label: View>: View {
 
     var body: some View {
         Menu {
-            Section("Built in — no key") {
-                item(.appleIntelligence)
+            if scope != .role(.browserAgent) {
+                Section("Built in — no key") {
+                    item(.appleIntelligence)
+                }
             }
             Section("Hosted — needs an API key") {
                 ForEach(AIProvider.allCases.filter(\.requiresAPIKey)) { item($0) }
@@ -616,7 +618,7 @@ struct ProviderSetupSheet: View {
 
     init(app: AppModel, role: ModelRole) {
         self.app = app
-        _scope = State(initialValue: app.isProviderReady(for: role.other) ? .role(role) : .both)
+        _scope = State(initialValue: (role == .browserAgent || app.isProviderReady(for: role.other)) ? .role(role) : .both)
     }
 
     private var intro: String {

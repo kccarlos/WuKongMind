@@ -64,6 +64,7 @@ enum AssistantMode: String, CaseIterable, Identifiable {
     case summary = "Summary"
     case chat = "Chat"
     case agent = "Agent"
+    case browserAgent = "BrowserAgent"
 
     var id: String { rawValue }
 }
@@ -366,6 +367,25 @@ final class AppModel: ObservableObject {
     }()
     /// Whether Space plays or pauses the podcast (WorkspaceLayout.swift).
     private(set) lazy var playPauseShortcut = PlayPauseShortcut(podcast: podcast)
+    /// Observable browser agent session (`BrowserAgent.swift`) for page inspection,
+    /// JavaScript execution, CSS injection, and multi-step tool calling on any page.
+    private(set) lazy var browserAgent: BrowserAgentSession = BrowserAgentSession(
+        pageDriver: browser.agentBridge,
+        modelClient: aiService,
+        configProvider: { [weak self] in
+            guard let self else {
+                return BrowserAgentRuntimeConfig(
+                    selection: nil,
+                    configuration: nil,
+                    maxSteps: BrowserAgentLimits.defaultMaxSteps,
+                    truncationLimit: BrowserAgentLimits.defaultTruncationLimit,
+                    customInstructions: "",
+                    redactedSecrets: []
+                )
+            }
+            return self.browserAgentRuntimeConfig
+        }
+    )
     /// Where podcast audio is cached (`Caches/Podcasts`; tests pass their own).
     let podcastDirectory: URL
     /// Read topics and summaries in Spotlight (AppModel+System.swift).
@@ -705,6 +725,39 @@ final class AppModel: ObservableObject {
         assistantRequest &+= 1
     }
 
+    /// Opens the page browser agent on any loaded web page (whether a recognized
+    /// forum or a general website).
+    func openBrowserAgent() {
+        browser.hideForumsHome()
+        assistantMode = .browserAgent
+        panelRoute = .topic
+        requestAssistant()
+        if !isProviderReady(for: .browserAgent) {
+            needsProviderSetup = .browserAgent
+        }
+    }
+
+    /// Live configuration snapshot read by `browserAgent` when starting a turn.
+    var browserAgentRuntimeConfig: BrowserAgentRuntimeConfig {
+        let selection = settings.browserAgentModel
+        let configuration: ProviderConfiguration? = selection.map { sel in
+            var config = settings.configuration(for: sel.provider)
+            config.model = sel.model
+            return config
+        }
+        let secrets = AIProvider.allCases
+            .map { settings.configuration(for: $0).apiKey }
+            .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+        return BrowserAgentRuntimeConfig(
+            selection: selection,
+            configuration: configuration,
+            maxSteps: settings.browserAgentMaxSteps,
+            truncationLimit: settings.browserAgentTruncationLimit,
+            customInstructions: settings.systemPrompt,
+            redactedSecrets: secrets
+        )
+    }
+
     /// Opens a shared link. Once the page is detected as that topic (or, for
     /// "agent", any page of a Discourse forum), switches to the Assistant and
     /// starts the summary / focuses chat / prepares the agent for that forum.
@@ -840,8 +893,16 @@ final class AppModel: ObservableObject {
         case .loading, .maybe:
             return
         case .notForum:
-            // Only give up once the shared page itself (or its redirect) settled.
-            if !browser.isLoading { pendingShare = nil }
+            // Plain web pages can open directly or launch the browser agent once
+            // the page settles; forum-specific summary/chat shares still stop here.
+            guard !browser.isLoading else { return }
+            pendingShare = nil
+            if pending.action == .agent {
+                assistantMode = .browserAgent
+                panelRoute = .topic
+                requestAssistant()
+                if !isProviderReady(for: .browserAgent) { needsProviderSetup = .browserAgent }
+            }
             return
         case .forumHome, .topic:
             break

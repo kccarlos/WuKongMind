@@ -76,12 +76,28 @@ shared_source_names = [
 shared_source_prefix = "Sites/Recognition/"
 shared_source_references = []
 
+# Pure-Swift M1 browser agent core compiled directly into ForumindAgentCoreTests
+# (macOS unit test bundle) so ToolRegistry and AgentLoop unit tests run with no
+# simulator.
+agent_core_source_names = [
+  "AgentBridge.swift",
+  "AppIdentity.swift",
+  "BrowserAgent.swift",
+  "JSONValue.swift",
+  "ProviderModels.swift",
+  "ToolRegistry.swift"
+]
+agent_core_source_references = []
+
 Dir.glob(File.join(root, "Forumind", "**", "*.swift")).sort.each do |path|
   relative_path = path.delete_prefix("#{root}/Forumind/")
   reference = app_group.new_file(relative_path)
   app_target.source_build_phase.add_file_reference(reference)
   if shared_source_names.include?(relative_path) || relative_path.start_with?(shared_source_prefix)
     shared_source_references << reference
+  end
+  if agent_core_source_names.include?(relative_path)
+    agent_core_source_references << reference
   end
 end
 
@@ -264,9 +280,19 @@ end
 test_target = project.new_target(:unit_test_bundle, "ForumindTests", :ios, "17.0")
 test_target.add_dependency(app_target)
 
+agent_core_test_names = %w[
+  AgentLoopTests.swift
+  ToolRegistryTests.swift
+]
+agent_core_test_references = []
+
 Dir.glob(File.join(root, "ForumindTests", "**", "*.swift")).sort.each do |path|
-  reference = test_group.new_file(path.delete_prefix("#{root}/ForumindTests/"))
+  relative_path = path.delete_prefix("#{root}/ForumindTests/")
+  reference = test_group.new_file(relative_path)
   test_target.source_build_phase.add_file_reference(reference)
+  if agent_core_test_names.include?(relative_path)
+    agent_core_test_references << reference
+  end
 end
 
 # Speech fixtures for the voice-activity detector tests.
@@ -275,10 +301,8 @@ Dir.glob(File.join(root, "ForumindTests", "**", "*.wav")).sort.each do |path|
   test_target.resources_build_phase.add_file_reference(reference)
 end
 
-# Pre-P0 data (site-adapter refactor): a state snapshot and a topic session as
-# the app wrote them before `Forum.kind` and post blocks, kept to prove that
-# older data still loads.
-Dir.glob(File.join(root, "ForumindTests", "Fixtures", "**", "*.json")).sort.each do |path|
+# Pre-P0 data (site-adapter refactor) and local HTML fixtures for AgentBridgeTests.
+Dir.glob(File.join(root, "ForumindTests", "Fixtures", "**", "*.{json,html}")).sort.each do |path|
   reference = test_group.new_file(path.delete_prefix("#{root}/ForumindTests/"))
   test_target.resources_build_phase.add_file_reference(reference)
 end
@@ -295,6 +319,27 @@ test_target.build_configurations.each do |configuration|
   settings["SWIFT_VERSION"] = "5.0"
   settings["TARGETED_DEVICE_FAMILY"] = "1,2"
   settings["TEST_HOST"] = "$(BUILT_PRODUCTS_DIR)/Forumind.app/Forumind"
+end
+
+# Simulator-free macOS unit test target for ToolRegistry and AgentLoop.
+agent_core_test_target = project.new_target(
+  :unit_test_bundle,
+  "ForumindAgentCoreTests",
+  :osx,
+  "14.0"
+)
+(agent_core_source_references + agent_core_test_references).each do |reference|
+  agent_core_test_target.source_build_phase.add_file_reference(reference)
+end
+agent_core_test_target.build_configurations.each do |configuration|
+  settings = configuration.build_settings
+  settings["CODE_SIGN_STYLE"] = "Automatic"
+  settings.merge!(identity_settings)
+  settings["GENERATE_INFOPLIST_FILE"] = "YES"
+  settings["MACOSX_DEPLOYMENT_TARGET"] = "14.0"
+  settings["PRODUCT_BUNDLE_IDENTIFIER"] = "#{bundle_id_prefix}.agentcoretests"
+  settings["SWIFT_STRICT_CONCURRENCY"] = "minimal"
+  settings["SWIFT_VERSION"] = "5.0"
 end
 
 ui_test_target = project.new_target(
@@ -364,6 +409,11 @@ scheme.test_action.environment_variables = Xcodeproj::XCScheme::EnvironmentVaria
   { key: "AG_ASYNC_LAYOUTS", value: "0", enabled: true }
 ])
 scheme.save_as(project_path, "Forumind", true)
+
+agent_core_scheme = Xcodeproj::XCScheme.new
+agent_core_scheme.add_build_target(agent_core_test_target, false)
+agent_core_scheme.add_test_target(agent_core_test_target)
+agent_core_scheme.save_as(project_path, "ForumindAgentCoreTests", true)
 
 capabilities = []
 capabilities << "AppGroup" if app_group_enabled

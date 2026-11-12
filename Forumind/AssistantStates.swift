@@ -11,6 +11,7 @@ extension AssistantMode {
         case .summary: String(localized: "Summary", comment: "Assistant mode: the topic's AI summary")
         case .chat: String(localized: "Chat", comment: "Assistant mode: chat about the open topic")
         case .agent: String(localized: "Ask the forum", comment: "Assistant mode: the research agent that searches the whole forum")
+        case .browserAgent: String(localized: "Browser agent", comment: "AI model role: the tool-calling model used by the page browser agent")
         }
     }
 
@@ -20,7 +21,7 @@ extension AssistantMode {
         switch self {
         case .summary: String(localized: "Summary", comment: "Assistant mode: the topic's AI summary")
         case .chat: String(localized: "Chat", comment: "Assistant mode: chat about the open topic")
-        case .agent: String(localized: "Agent", comment: "VoiceOver name of the “Ask the forum” assistant mode (the research agent)")
+        case .agent, .browserAgent: String(localized: "Agent", comment: "VoiceOver name of the “Ask the forum” assistant mode (the research agent)")
         }
     }
 
@@ -30,6 +31,7 @@ extension AssistantMode {
         case .summary: String(localized: "Summary", comment: "Assistant mode: the topic's AI summary")
         case .chat: String(localized: "Chat", comment: "Assistant mode: chat about the open topic")
         case .agent: String(localized: "Ask", comment: "Short form of the “Ask the forum” assistant mode, for narrow switchers")
+        case .browserAgent: String(localized: "Agent", comment: "VoiceOver name of the “Ask the forum” assistant mode (the research agent)")
         }
     }
 
@@ -38,6 +40,7 @@ extension AssistantMode {
         case .summary: "text.alignleft"
         case .chat: "bubble.left.and.bubble.right"
         case .agent: "sparkle.magnifyingglass"
+        case .browserAgent: "sparkles"
         }
     }
 
@@ -45,7 +48,7 @@ extension AssistantMode {
         switch self {
         case .summary: DCTheme.summaryTint
         case .chat: DCTheme.chatTint
-        case .agent: DCTheme.agentTint
+        case .agent, .browserAgent: DCTheme.agentTint
         }
     }
 }

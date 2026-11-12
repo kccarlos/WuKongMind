@@ -408,13 +408,6 @@ struct PhoneTitleCapsule: View {
                     .foregroundStyle(.primary)
                     .lineLimit(1)
                 HStack(spacing: 4) {
-                    if browser.pageContext.state == .notForum, !browser.isLoading, !showsHome {
-                        Image(systemName: "exclamationmark.circle")
-                            .font(.caption2.weight(.semibold))
-                            .foregroundStyle(DCTheme.warning)
-                            .accessibilityLabel("Not a supported site")
-                            .accessibilityIdentifier("pageStatusNotForum")
-                    }
                     Text(subtitle)
                         .font(.caption2)
                         .foregroundStyle(.secondary)

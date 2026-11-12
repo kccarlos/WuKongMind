@@ -4266,6 +4266,40 @@
         }
       }
     },
+    "Browser agent" : {
+      "comment" : "AI model role: the tool-calling model used by the page browser agent",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "浏览器代理"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "瀏覽器代理"
+          }
+        }
+      }
+    },
+    "Browser agent model" : {
+      "comment" : "Assistant menu: switches the model used by the page browser agent",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "浏览器代理模型"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "瀏覽器代理模型"
+          }
+        }
+      }
+    },
     "Browser bar" : {
       "localizations" : {
         "zh-Hans" : {
@@ -8713,6 +8747,23 @@
         }
       }
     },
+    "Inspects and modifies the current web page with tools." : {
+      "comment" : "Model menu (browser agent): what this model is used for",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用工具检查并修改当前网页。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用工具檢查並修改目前網頁。"
+          }
+        }
+      }
+    },
     "Instructions" : {
       "localizations" : {
         "zh-Hans" : {
@@ -10748,22 +10799,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "以後再說"
-          }
-        }
-      }
-    },
-    "Not a supported site" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "不是受支持的网站"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "不是受支援的網站"
           }
         }
       }
@@ -13790,6 +13825,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "閱讀或摘要最相關的話題。"
+          }
+        }
+      }
+    },
+    "Reads the current page, runs JavaScript and injects CSS. Choose a model that supports tool calling." : {
+      "comment" : "Settings › AI models: what the browser agent model is used for",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "读取当前页面、运行 JavaScript 并注入 CSS。请选择支持工具调用的模型。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "讀取目前頁面、執行 JavaScript 並注入 CSS。請選擇支援工具呼叫的模型。"
           }
         }
       }

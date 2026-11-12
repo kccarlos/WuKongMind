@@ -13,18 +13,29 @@ import Foundation
 // by both roles. Favorites are provider + model pairs, shared too.
 
 extension ModelRole {
-    /// Summary and Chat share the assistant model; Ask the forum has its own.
+    /// Summary and Chat share the assistant model; Ask the forum and the
+    /// browser agent each have their own model.
     init(mode: AssistantMode) {
-        self = mode == .agent ? .agent : .assistant
+        switch mode {
+        case .summary, .chat: self = .assistant
+        case .agent: self = .agent
+        case .browserAgent: self = .browserAgent
+        }
     }
 
-    var other: ModelRole { self == .assistant ? .agent : .assistant }
+    var other: ModelRole {
+        switch self {
+        case .assistant: .agent
+        case .agent, .browserAgent: .assistant
+        }
+    }
 
     /// The role's name in Settings and the model picker.
     var title: String {
         switch self {
         case .assistant: String(localized: "Summaries & chat", comment: "AI model role: the model used for summaries and chat")
         case .agent: String(localized: "Ask the forum", comment: "AI model role: the model used by Ask the forum (the research agent)")
+        case .browserAgent: String(localized: "Browser agent", comment: "AI model role: the tool-calling model used by the page browser agent")
         }
     }
 
@@ -33,6 +44,7 @@ extension ModelRole {
         switch self {
         case .assistant: String(localized: "Summaries & chat model", comment: "Assistant menu: switches the model used for summaries and chat")
         case .agent: String(localized: "Ask the forum model", comment: "Assistant menu: switches the model used by Ask the forum")
+        case .browserAgent: String(localized: "Browser agent model", comment: "Assistant menu: switches the model used by the page browser agent")
         }
     }
 
@@ -41,6 +53,7 @@ extension ModelRole {
         switch self {
         case .assistant: String(localized: "Used for this topic. Ask the forum keeps its own model.", comment: "Model menu (summaries & chat): what this model is used for")
         case .agent: String(localized: "Plans searches and writes the answer. Summaries & chat keep their own model.", comment: "Model menu (Ask the forum): what this model is used for")
+        case .browserAgent: String(localized: "Inspects and modifies the current web page with tools.", comment: "Model menu (browser agent): what this model is used for")
         }
     }
 
@@ -49,6 +62,7 @@ extension ModelRole {
         switch self {
         case .assistant: String(localized: "Every summary and chat answer, and summaries Ask the forum writes along the way. A fast, low-cost model works well.", comment: "Settings › AI models: what the summaries & chat model is used for")
         case .agent: String(localized: "Plans searches, reads topics, and writes answers. A stronger reasoning model works best.", comment: "Settings › AI models: what the Ask the forum model is used for")
+        case .browserAgent: String(localized: "Reads the current page, runs JavaScript and injects CSS. Choose a model that supports tool calling.", comment: "Settings › AI models: what the browser agent model is used for")
         }
     }
 
@@ -56,6 +70,7 @@ extension ModelRole {
         switch self {
         case .assistant: "text.bubble"
         case .agent: "sparkle.magnifyingglass"
+        case .browserAgent: "sparkles"
         }
     }
 }
@@ -69,7 +84,7 @@ enum ModelScope: Hashable {
     var roles: [ModelRole] {
         switch self {
         case .role(let role): [role]
-        case .both: ModelRole.allCases
+        case .both: ModelRole.forumRoles
         }
     }
 
@@ -83,16 +98,23 @@ enum ModelScope: Hashable {
 }
 
 extension AppSettings {
+    /// Fallback placeholder when no browser agent model has been chosen yet.
+    static let unsetBrowserAgentSelection = ModelSelection(provider: .anthropic, model: "")
+
     func model(for role: ModelRole) -> ModelSelection {
         switch role {
         case .assistant: assistantModel
         case .agent: agentModel
+        case .browserAgent: browserAgentModel ?? Self.unsetBrowserAgentSelection
         }
     }
 
     /// The roles that run on `provider`.
     func roles(using provider: AIProvider) -> [ModelRole] {
-        ModelRole.allCases.filter { model(for: $0).provider == provider }
+        ModelRole.allCases.filter { role in
+            if role == .browserAgent, browserAgentModel == nil { return false }
+            return model(for: role).provider == provider
+        }
     }
 
     /// The provider's settings (key, base URL) with the role's model.
@@ -105,8 +127,13 @@ extension AppSettings {
 
     mutating func setModel(_ selection: ModelSelection, for role: ModelRole) {
         switch role {
-        case .assistant: assistantModel = selection
-        case .agent: agentModel = selection
+        case .assistant:
+            assistantModel = selection
+        case .agent:
+            agentModel = selection
+        case .browserAgent:
+            guard selection.provider.supportsToolCalling else { return }
+            browserAgentModel = selection
         }
     }
 }
@@ -122,7 +149,7 @@ extension AppModel {
     /// The role's provider has what it needs to run: a model, and a key
     /// unless it needs none; Apple Intelligence must be available now.
     func isProviderReady(for role: ModelRole) -> Bool {
-        isReady(selection(for: role))
+        settings.readiness(for: role, appleIntelligence: appleIntelligenceStatus) == .ready
     }
 
     /// Whether a provider and model (a role's, or a favorite) can run now.
@@ -130,13 +157,22 @@ extension AppModel {
         settings.readiness(of: selection, appleIntelligence: appleIntelligenceStatus)
     }
 
+    func readiness(for role: ModelRole) -> ModelReadiness {
+        settings.readiness(for: role, appleIntelligence: appleIntelligenceStatus)
+    }
+
     func isReady(_ selection: ModelSelection) -> Bool {
         readiness(of: selection) == .ready
     }
 
-    /// Both roles can run.
+    /// Forumind's two forum roles can run.
     var isProviderReady: Bool {
-        ModelRole.allCases.allSatisfy { isProviderReady(for: $0) }
+        ModelRole.forumRoles.allSatisfy { isProviderReady(for: $0) }
+    }
+
+    /// Whether the browser agent has a valid tool-calling model and API key.
+    var isBrowserAgentReady: Bool {
+        isProviderReady(for: .browserAgent)
     }
 
     /// The model name to show: Apple Intelligence shows its live backend
@@ -150,6 +186,9 @@ extension AppModel {
 
     /// "Provider · model" for headers and Settings.
     func providerSummary(for role: ModelRole) -> String {
+        if role == .browserAgent, settings.browserAgentModel == nil {
+            return String(localized: "No model chosen", comment: "Settings › AI models: no browser agent model selected yet")
+        }
         let provider = selection(for: role).provider
         let model = modelLabel(for: role)
         return model.isEmpty ? provider.displayName : "\(provider.displayName) · \(model)"
@@ -198,8 +237,12 @@ extension AppModel {
     /// Switches the scope to `provider` with its suggested model.
     func selectProvider(_ provider: AIProvider, for scope: ModelScope) {
         guard isProviderSelectable(provider) else { return }
+        if scope == .role(.browserAgent), !provider.supportsToolCalling { return }
         // With `.both`, a role still on another provider moves too.
-        guard scope.roles.contains(where: { selection(for: $0).provider != provider }) else { return }
+        guard scope.roles.contains(where: { role in
+            if role == .browserAgent, settings.browserAgentModel == nil { return true }
+            return selection(for: role).provider != provider
+        }) else { return }
         selectModel(
             ModelSelection(provider: provider, model: suggestedModel(for: provider, role: scope.primaryRole)),
             for: scope
@@ -207,8 +250,10 @@ extension AppModel {
     }
 
     /// The model to preselect when a role switches to `provider`: what the
-    /// other role uses there, else the provider's default.
+    /// other role uses there, else the provider's default (empty for `.browserAgent`,
+    /// which intentionally has no preset model).
     func suggestedModel(for provider: AIProvider, role: ModelRole) -> String {
+        if role == .browserAgent { return "" }
         if provider.isAppleIntelligence { return provider.defaultModel }
         let other = selection(for: role.other)
         if other.provider == provider, !other.model.isEmpty { return other.model }
@@ -218,6 +263,7 @@ extension AppModel {
     /// Switches one role to a favorite; the other role is left as it is.
     func activateFavorite(_ favorite: FavoriteModel, for role: ModelRole) {
         guard isProviderSelectable(favorite.provider) else { return }
+        if role == .browserAgent, !favorite.provider.supportsToolCalling { return }
         selectModel(ModelSelection(provider: favorite.provider, model: favorite.model), for: .role(role))
     }
 
@@ -326,6 +372,30 @@ extension AppSettings {
         if case .declined = aiConsentState(for: selection.provider) { return .aiConsentDeclined }
         return .ready
     }
+
+    /// Role-aware readiness check. `.browserAgent` starts with no preset model
+    /// (`browserAgentModel == nil`), requires `supportsToolCalling`, and is not
+    /// gated on Forumind's forum-data consent check.
+    func readiness(for role: ModelRole, appleIntelligence: AppleIntelligenceStatus) -> ModelReadiness {
+        guard role == .browserAgent else {
+            return readiness(of: model(for: role), appleIntelligence: appleIntelligence)
+        }
+        guard let selection = browserAgentModel else {
+            return .needsModel
+        }
+        guard selection.provider.supportsToolCalling else {
+            return .needsModel
+        }
+        let trimmedModel = selection.model.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedModel.isEmpty else {
+            return .needsModel
+        }
+        if selection.provider.requiresAPIKey,
+           configuration(for: selection.provider).apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return .needsKey
+        }
+        return .ready
+    }
 }
 
 // MARK: - Favorites
@@ -392,8 +462,17 @@ enum ModelFavorites {
            !candidates.contains(where: { $0.matches(other.selection) }) {
             candidates.append(other)
         }
-        return candidates.filter {
-            !$0.matches(current) && settings.readiness(of: $0.selection, appleIntelligence: status) == .ready
+        return candidates.filter { candidate in
+            guard !candidate.matches(current) else { return false }
+            if role == .browserAgent {
+                guard candidate.selection.supportsToolCalling else { return false }
+                if candidate.provider.requiresAPIKey {
+                    return !settings.configuration(for: candidate.provider).apiKey
+                        .trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                }
+                return true
+            }
+            return settings.readiness(of: candidate.selection, appleIntelligence: status) == .ready
         }
     }
 }

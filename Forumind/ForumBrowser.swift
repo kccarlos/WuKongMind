@@ -197,6 +197,9 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     }
 
     let webView: WKWebView
+    /// Page-tool bridge (`read_page`, `run_js`, `inject_css`, `wait_for`) and
+    /// isolated-world reply channel for the browser agent.
+    let agentBridge: AgentBridge
     /// Ad and tracker blocking for this web view.
     let contentBlocker: ContentBlocker
     /// A load issued while the compiled rule lists are still being looked up
@@ -289,6 +292,7 @@ final class ForumBrowserModel: NSObject, ObservableObject {
         }
 
         webView = WKWebView(frame: .zero, configuration: configuration)
+        agentBridge = AgentBridge(webView: webView)
         contentBlocker = ContentBlocker(
             controller: configuration.userContentController,
             library: contentRules
@@ -1159,7 +1163,7 @@ extension ForumBrowserModel: WKNavigationDelegate {
     /// synchronously on XPC to `ScreenTimeSettingsAgent` / `dasd`. On a 3-vCPU CI runner,
     /// three windowed `WKWebView`s exhaust all three cooperative threads and hang `Task.sleep`
     /// and actor hops for the remainder of the test suite.
-    private static func disableWebKitScreenTimeForTesting(in configuration: WKWebViewConfiguration) {
+    static func disableWebKitScreenTimeForTesting(in configuration: WKWebViewConfiguration) {
         _ = swizzleWebKitScreenTimeOnce
         if #available(iOS 26.0, *) {
             configuration.showsSystemScreenTimeBlockingView = false

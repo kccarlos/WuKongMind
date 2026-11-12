@@ -76,10 +76,13 @@ struct AssistantPanel: View {
 
     /// What the body shows; the key drives the cross-fade between states.
     private enum BodyKind: Hashable {
-        case summary, agent, forumHome, notForum, maybe, loading
+        case summary, agent, browserAgent, forumHome, notForum, maybe, loading
     }
 
     private var bodyKind: BodyKind {
+        if app.assistantMode == .browserAgent {
+            return .browserAgent
+        }
         let state = app.assistantPageState
         if app.assistantMode == .agent, state == .topic || app.agentForum != nil {
             return .agent
@@ -239,7 +242,12 @@ struct AssistantPanel: View {
 
     private var drawerTitle: String {
         switch app.panelRoute {
-        case .topic: bodyKind == .agent ? AssistantMode.agent.title : AssistantMode.summary.title
+        case .topic:
+            switch bodyKind {
+            case .browserAgent: AssistantMode.browserAgent.title
+            case .agent: AssistantMode.agent.title
+            default: AssistantMode.summary.title
+            }
         case .history: String(localized: "History", comment: "Screen title: saved summaries, chats, Ask the forum runs and watched topics")
         }
     }
@@ -250,10 +258,10 @@ struct AssistantPanel: View {
     private var drawerModelPill: some View {
         let role = ModelPill.role(for: app.assistantMode)
         let selection = app.selection(for: role)
-        let readiness = app.readiness(of: selection)
+        let readiness = app.readiness(for: role)
         let model = ModelPill.label(for: selection)
         let ready = readiness == .ready
-        let tint = role == .agent ? DCTheme.agentTint : DCTheme.summaryTint
+        let tint = (role == .agent || role == .browserAgent) ? DCTheme.agentTint : DCTheme.summaryTint
         return Menu {
             modelSwitcherItems
         } label: {
@@ -546,6 +554,23 @@ struct AssistantPanel: View {
                 ) { url in
                     openInBrowser(url)
                 }
+            case .browserAgent:
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 14) {
+                        if !app.isProviderReady(for: .browserAgent) {
+                            providerCard
+                        }
+                        ForEach(app.browserAgent.messages) { message in
+                            Text(verbatim: message.text)
+                                .font(.subheadline)
+                                .foregroundStyle(message.isError ? DCTheme.danger : .primary)
+                        }
+                    }
+                    .padding(14)
+                    .frame(maxWidth: DCTheme.contentMaxWidth + 220, alignment: .leading)
+                    .frame(maxWidth: .infinity)
+                }
+                .accessibilityIdentifier("agentPanel")
             case .forumHome, .notForum, .maybe, .loading:
                 stateContent(kind)
             }

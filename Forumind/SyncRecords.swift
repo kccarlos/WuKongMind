@@ -20,61 +20,6 @@ import Foundation
 // uses the same encoding), so a value that went through the server compares
 // equal to the in-memory one.
 
-/// A JSON value with a canonical encoding (sorted keys).
-enum JSONValue: Codable, Equatable, Hashable {
-    case null
-    case bool(Bool)
-    case int(Int64)
-    case double(Double)
-    case string(String)
-    case array([JSONValue])
-    case object([String: JSONValue])
-
-    init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        if container.decodeNil() {
-            self = .null
-        } else if let value = try? container.decode(Bool.self) {
-            self = .bool(value)
-        } else if let value = try? container.decode(Int64.self) {
-            self = .int(value)
-        } else if let value = try? container.decode(Double.self) {
-            self = .double(value)
-        } else if let value = try? container.decode(String.self) {
-            self = .string(value)
-        } else if let value = try? container.decode([JSONValue].self) {
-            self = .array(value)
-        } else {
-            self = .object(try container.decode([String: JSONValue].self))
-        }
-    }
-
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.singleValueContainer()
-        switch self {
-        case .null: try container.encodeNil()
-        case .bool(let value): try container.encode(value)
-        case .int(let value): try container.encode(value)
-        case .double(let value): try container.encode(value)
-        case .string(let value): try container.encode(value)
-        case .array(let value): try container.encode(value)
-        case .object(let value): try container.encode(value)
-        }
-    }
-
-    var objectValue: [String: JSONValue]? {
-        if case .object(let value) = self { return value }
-        return nil
-    }
-
-    var stringValue: String? {
-        if case .string(let value) = self { return value }
-        return nil
-    }
-
-    var isNull: Bool { self == .null }
-}
-
 enum SyncCoding {
     /// Canonical encoder: sorted keys, no whitespace, whole-second ISO dates.
     static func makeEncoder() -> JSONEncoder {
@@ -338,7 +283,13 @@ enum SyncSchema {
         guard var object = try SyncCoding.json(local).objectValue else { return local }
         var configurations = object["configurations"]?.objectValue ?? [:]
         var consent = object["aiConsent"]?.objectValue ?? [:]
-        for (name, value) in units where !value.isNull {
+        for (name, value) in units {
+            if value.isNull {
+                if !SyncSettings.deviceLocalKeys.contains(name), name != "configurations", name != "aiConsent" {
+                    object.removeValue(forKey: name)
+                }
+                continue
+            }
             if name.hasPrefix(SyncSettings.aiConsentPrefix) {
                 consent[String(name.dropFirst(SyncSettings.aiConsentPrefix.count))] = value
             } else if name.hasPrefix(SyncSettings.configurationPrefix) {
