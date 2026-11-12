@@ -84,6 +84,7 @@ jobs:
       - name: Build and test
         env:
           DESTINATION: ${{ steps.sim.outputs.destination }}
+          TEST_RUNNER_CI: ${{ env.CI }}
           NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
           VERTEX_API_KEY: ${{ secrets.VERTEX_API_KEY }}
         run: |

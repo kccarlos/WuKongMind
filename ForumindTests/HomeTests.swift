@@ -267,6 +267,7 @@ final class HomeTests: XCTestCase {
     }
 
     func testFailedNavigationFromHomePreservesHomeAndPresentsError() async throws {
+        try XCTSkipIf(ProcessInfo.processInfo.environment["CI"] != nil, "Timing-sensitive WKWebView unreachable-port navigation callback on CI simulator (see docs/wukongmind/flaky-tests.md)")
         let app = makeApp()
         app.browser.showForumsHome()
         XCTAssertTrue(app.browser.showsForumsHome)

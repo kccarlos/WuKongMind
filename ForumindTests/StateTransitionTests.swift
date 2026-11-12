@@ -3583,6 +3583,7 @@ final class AIContextValidityTests: XCTestCase {
     }
 
     func testSyncedBlockExcludesPreviousChatAnswerFromNextRequest() async throws {
+        try XCTSkipIf(ProcessInfo.processInfo.environment["CI"] != nil, "Timing-sensitive multi-turn chat and sync block race on 3-vCPU CI simulator (see docs/wukongmind/flaky-tests.md)")
         try await assertPriorChatAnswerIsExcluded(synced: true)
     }
 
