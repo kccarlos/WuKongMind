@@ -205,6 +205,10 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     /// A load issued while the compiled rule lists are still being looked up
     /// (launch); it starts when they are attached, or after a short cap.
     private var deferredLoad: URL?
+    /// Tracks the current main-frame navigation so late IPC callbacks from a
+    /// superseded navigation cannot overwrite flags of a newer load.
+    private var activeNavigation: WKNavigation?
+    private var activeNavigationStarted = false
     /// The longest a load waits for rule-list lookups (never for compiling).
     static let ruleLookupWait: Duration = .milliseconds(300)
     /// Called whenever `pageContext` changes, apart from its position fields.
@@ -403,18 +407,22 @@ final class ForumBrowserModel: NSObject, ObservableObject {
             // the first page is filtered too. Compiling is never waited for.
             let isWaiting = deferredLoad != nil
             deferredLoad = url
+            activeNavigation = nil
+            activeNavigationStarted = false
             guard !isWaiting else { return }
             Task { @MainActor [weak self] in
                 guard let self else { return }
                 await self.contentBlocker.library.waitForLookups(timeout: Self.ruleLookupWait)
                 guard let url = self.deferredLoad else { return }
                 self.deferredLoad = nil
-                self.webView.load(URLRequest(url: url))
+                self.activeNavigation = self.webView.load(URLRequest(url: url))
+                self.activeNavigationStarted = false
             }
             return
         }
         deferredLoad = nil
-        webView.load(URLRequest(url: url))
+        activeNavigation = webView.load(URLRequest(url: url))
+        activeNavigationStarted = false
     }
 
     #if DEBUG
@@ -423,7 +431,8 @@ final class ForumBrowserModel: NSObject, ObservableObject {
         deferredLoad = nil
         hideForumsHome()
         currentURL = url
-        webView.loadHTMLString(html, baseURL: url)
+        activeNavigation = webView.loadHTMLString(html, baseURL: url)
+        activeNavigationStarted = false
     }
     #endif
 
@@ -497,7 +506,8 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     func goBack() {
         guard webView.canGoBack else { return }
         suppressLoadError = false
-        webView.goBack()
+        activeNavigation = webView.goBack()
+        activeNavigationStarted = false
     }
 
     /// Back also leaves the Forums home when it covers a page.
@@ -523,22 +533,27 @@ final class ForumBrowserModel: NSObject, ObservableObject {
         hideForumsHome()
         loadStartedFromForumsHome = startedFromHome
         suppressLoadError = false
-        webView.go(to: item)
+        activeNavigation = webView.go(to: item)
+        activeNavigationStarted = false
     }
 
     func goForward() {
         guard webView.canGoForward else { return }
         suppressLoadError = false
-        webView.goForward()
+        activeNavigation = webView.goForward()
+        activeNavigationStarted = false
     }
 
     func reload() {
         suppressLoadError = false
-        webView.reload()
+        activeNavigation = webView.reload()
+        activeNavigationStarted = false
     }
 
     func stopLoading() {
         deferredLoad = nil
+        activeNavigation = nil
+        activeNavigationStarted = false
         webView.stopLoading()
     }
 
@@ -1045,38 +1060,61 @@ extension ForumBrowserModel: WKNavigationDelegate {
         }
     }
 
-    func webView(_ webView: WKWebView, didStartProvisionalNavigation: WKNavigation!) {
-        Task { @MainActor in
-            self.expandChrome()
-            if !self.holdsHomeOverLoad {
-                let startedFromHome = self.loadStartedFromForumsHome
-                self.hideForumsHome()
-                self.loadStartedFromForumsHome = startedFromHome
-            }
-            self.updateNavigationState()
+    private func isCurrentNavigation(_ navigation: WKNavigation?) -> Bool {
+        guard deferredLoad == nil else { return false }
+        return activeNavigation == nil || activeNavigation == navigation
+    }
+
+    func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
+        guard deferredLoad == nil else {
+            updateNavigationState()
+            return
         }
+        if activeNavigation == nil || activeNavigationStarted || activeNavigation == navigation {
+            activeNavigation = navigation
+            activeNavigationStarted = true
+        } else {
+            updateNavigationState()
+            return
+        }
+        expandChrome()
+        if !holdsHomeOverLoad {
+            let startedFromHome = loadStartedFromForumsHome
+            hideForumsHome()
+            loadStartedFromForumsHome = startedFromHome
+        }
+        updateNavigationState()
     }
 
     func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
-        Task { @MainActor in
-            self.loadStartedFromForumsHome = false
-            self.suppressLoadError = false
-            // A new document: the facts of the last one no longer apply.
-            self.lastFacts = nil
-            // The committed page (after redirects) decides the lists.
-            self.contentBlocker.prepare(forTopURL: webView.url)
-            self.updateNavigationState()
+        guard isCurrentNavigation(navigation) else {
+            updateNavigationState()
+            return
         }
+        loadStartedFromForumsHome = false
+        suppressLoadError = false
+        // A new document: the facts of the last one no longer apply.
+        lastFacts = nil
+        // The committed page (after redirects) decides the lists.
+        contentBlocker.prepare(forTopURL: webView.url)
+        updateNavigationState()
     }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        guard isCurrentNavigation(navigation) else {
+            updateNavigationState()
+            return
+        }
+        activeNavigation = nil
+        activeNavigationStarted = false
+        holdsHomeOverLoad = false
+        loadStartedFromForumsHome = false
+        suppressLoadError = false
+        if showsCrashNotice { showsCrashNotice = false }
+        updateNavigationState()
+        applyModerationToPage()
         Task { @MainActor in
-            self.holdsHomeOverLoad = false
-            self.loadStartedFromForumsHome = false
-            self.suppressLoadError = false
-            if self.showsCrashNotice { self.showsCrashNotice = false }
-            self.updateNavigationState()
-            self.applyModerationToPage()
+            guard self.deferredLoad == nil, self.activeNavigation == nil else { return }
             // A full load starts a fresh bridge: mark the landing post again.
             await self.probeCurrentPage()
             self.applyPendingHighlight(afterLoad: true)
@@ -1095,19 +1133,23 @@ extension ForumBrowserModel: WKNavigationDelegate {
         didFail navigation: WKNavigation!,
         withError error: Error
     ) {
-        Task { @MainActor in
-            let heldHome = self.holdsHomeOverLoad
-            let silent = self.suppressLoadError
-            self.holdsHomeOverLoad = false
-            self.suppressLoadError = false
-            self.updateNavigationState()
-            guard !Self.isIgnorableNavigationError(error) else { return }
-            #if DEBUG
-            if self.ignoresNavigationFailures { return }
-            #endif
-            if !silent, !heldHome {
-                self.onNavigationFailed?(error)
-            }
+        guard isCurrentNavigation(navigation) else {
+            updateNavigationState()
+            return
+        }
+        activeNavigation = nil
+        activeNavigationStarted = false
+        let heldHome = holdsHomeOverLoad
+        let silent = suppressLoadError
+        holdsHomeOverLoad = false
+        suppressLoadError = false
+        updateNavigationState()
+        guard !Self.isIgnorableNavigationError(error) else { return }
+        #if DEBUG
+        if ignoresNavigationFailures { return }
+        #endif
+        if !silent, !heldHome {
+            onNavigationFailed?(error)
         }
     }
 
@@ -1116,30 +1158,34 @@ extension ForumBrowserModel: WKNavigationDelegate {
         didFailProvisionalNavigation navigation: WKNavigation!,
         withError error: Error
     ) {
-        Task { @MainActor in
-            let heldHome = self.holdsHomeOverLoad
-            let silent = self.suppressLoadError
-            self.holdsHomeOverLoad = false
-            // The page did not change: back to its lists.
-            self.contentBlocker.prepare(forTopURL: webView.url)
-            let ignored = Self.isIgnorableNavigationError(error)
-            if !ignored {
-                self.suppressLoadError = false
-                var ignoresFailure = false
-                #if DEBUG
-                ignoresFailure = self.ignoresNavigationFailures
-                #endif
-                if !ignoresFailure, self.loadStartedFromForumsHome {
-                    self.loadStartedFromForumsHome = false
-                    self.isForumsHomeRequested = true
-                }
-                self.updateNavigationState()
-                if !ignoresFailure, !silent, !heldHome {
-                    self.onNavigationFailed?(error)
-                }
-            } else {
-                self.updateNavigationState()
+        guard isCurrentNavigation(navigation) else {
+            updateNavigationState()
+            return
+        }
+        activeNavigation = nil
+        activeNavigationStarted = false
+        let heldHome = holdsHomeOverLoad
+        let silent = suppressLoadError
+        holdsHomeOverLoad = false
+        // The page did not change: back to its lists.
+        contentBlocker.prepare(forTopURL: webView.url)
+        let ignored = Self.isIgnorableNavigationError(error)
+        if !ignored {
+            suppressLoadError = false
+            var ignoresFailure = false
+            #if DEBUG
+            ignoresFailure = ignoresNavigationFailures
+            #endif
+            if !ignoresFailure, loadStartedFromForumsHome {
+                loadStartedFromForumsHome = false
+                isForumsHomeRequested = true
             }
+            updateNavigationState()
+            if !ignoresFailure, !silent, !heldHome {
+                onNavigationFailed?(error)
+            }
+        } else {
+            updateNavigationState()
         }
     }
 
@@ -1156,6 +1202,14 @@ extension ForumBrowserModel: WKNavigationDelegate {
 
     #if DEBUG
     private static let swizzleWebKitScreenTimeOnce: Void = {
+        #if targetEnvironment(simulator)
+        for path in [
+            "/System/Library/Frameworks/ScreenTime.framework/ScreenTime",
+            "/System/Library/PrivateFrameworks/ScreenTimeCore.framework/ScreenTimeCore"
+        ] {
+            _ = dlopen(path, RTLD_LAZY)
+        }
+        #endif
         let noop: @convention(block) (AnyObject) -> Void = { _ in }
         let imp = imp_implementationWithBlock(noop)
         for selectorName in [

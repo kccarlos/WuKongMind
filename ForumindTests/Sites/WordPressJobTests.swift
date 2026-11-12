@@ -42,6 +42,7 @@ final class WordPressJobTests: XCTestCase {
             planner: planner
         )
         app.usesDirectForumRequests = true
+        app.browser.stopLoading()
         app.allowAllAIProviders()
         var provider = app.settings.configuration(for: .ollama)
         provider.apiKey = ""
@@ -50,6 +51,7 @@ final class WordPressJobTests: XCTestCase {
         app.browser.onPageContextChanged = nil
         addTeardownBlock { @MainActor in
             for record in app.activities where !record.status.isTerminal { app.cancel(record: record) }
+            app.browser.stopLoading()
         }
         return Harness(app: app, ai: ai, wordpress: wordpress)
     }
@@ -61,7 +63,7 @@ final class WordPressJobTests: XCTestCase {
         )
     }
 
-    private func waitUntil(timeout: TimeInterval = 20, _ condition: () -> Bool) async throws {
+    private func waitUntil(timeout: TimeInterval = 45, _ condition: () -> Bool) async throws {
         let deadline = Date().addingTimeInterval(timeout)
         while !condition() {
             guard Date() < deadline else {

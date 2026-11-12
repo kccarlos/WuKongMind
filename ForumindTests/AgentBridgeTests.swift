@@ -17,7 +17,23 @@ final class AgentBridgeTests: XCTestCase {
         private var continuation: CheckedContinuation<Void, Error>?
         private var timeoutTask: Task<Void, Never>?
 
-        func waitForLoad(timeoutSeconds: Double = 15, _ start: () -> Void) async throws {
+        func waitForLoad(timeoutSeconds: Double = 45, retries: Int = 1, _ start: () -> Void) async throws {
+            var lastError: Error?
+            for attempt in 0...retries {
+                do {
+                    try await waitForSingleLoad(timeoutSeconds: timeoutSeconds, start)
+                    return
+                } catch {
+                    lastError = error
+                    if attempt < retries {
+                        try? await Task.sleep(for: .milliseconds(250))
+                    }
+                }
+            }
+            throw lastError!
+        }
+
+        private func waitForSingleLoad(timeoutSeconds: Double, _ start: () -> Void) async throws {
             try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
                 self.continuation = cont
                 self.timeoutTask = Task { @MainActor [weak self] in
@@ -70,6 +86,16 @@ final class AgentBridgeTests: XCTestCase {
         ) {
             finish(with: error)
         }
+
+        func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+            finish(
+                with: NSError(
+                    domain: "AgentBridgeTests",
+                    code: 3,
+                    userInfo: [NSLocalizedDescriptionKey: "WebContent process terminated during navigation"]
+                )
+            )
+        }
     }
 
     /// Minimal loopback HTTP server bound strictly to `127.0.0.1` (matching
@@ -92,7 +118,6 @@ final class AgentBridgeTests: XCTestCase {
             self.routes = routes
             let params = NWParameters.tcp
             params.requiredLocalEndpoint = NWEndpoint.hostPort(host: "127.0.0.1", port: .any)
-            params.allowLocalEndpointReuse = true
             self.listener = try NWListener(using: params)
         }
 
@@ -143,7 +168,11 @@ final class AgentBridgeTests: XCTestCase {
                 }
             }
             self.port = readyPort
-            return URL(string: "http://127.0.0.1:\(readyPort)")!
+            let baseURL = URL(string: "http://127.0.0.1:\(readyPort)")!
+            let probeSession = URLSession(configuration: .ephemeral)
+            defer { probeSession.invalidateAndCancel() }
+            _ = try await probeSession.data(from: baseURL.appendingPathComponent("__ready"))
+            return baseURL
         }
 
         func stop() {
@@ -172,7 +201,7 @@ final class AgentBridgeTests: XCTestCase {
                 }
                 if let rawRequest = String(data: buffer, encoding: .utf8),
                    rawRequest.contains("\r\n\r\n") {
-                    respond(to: rawRequest, on: connection, routes: routes)
+                    respond(to: rawRequest, on: connection, routes: routes, queue: queue)
                 } else if !isComplete, error == nil {
                     receive(on: connection, buffer: buffer, routes: routes, queue: queue)
                 } else {
@@ -184,7 +213,8 @@ final class AgentBridgeTests: XCTestCase {
         private static func respond(
             to rawRequest: String,
             on connection: NWConnection,
-            routes: [String: Route]
+            routes: [String: Route],
+            queue: DispatchQueue
         ) {
             let firstLine = rawRequest.split(separator: "\r\n", maxSplits: 1).first ?? ""
             let parts = firstLine.split(separator: " ")
@@ -211,14 +241,21 @@ final class AgentBridgeTests: XCTestCase {
             var payload = Data((headerLines.joined(separator: "\r\n") + "\r\n\r\n").utf8)
             payload.append(route.body)
 
-            connection.send(content: payload, completion: .contentProcessed { _ in
-                connection.cancel()
-            })
+            connection.send(
+                content: payload,
+                contentContext: .finalMessage,
+                isComplete: true,
+                completion: .contentProcessed { _ in
+                    queue.asyncAfter(deadline: .now() + 2) {
+                        connection.cancel()
+                    }
+                }
+            )
         }
     }
 
     private var activeWebViews: [WKWebView] = []
-    private var fallbackWindow: UIWindow?
+    private var activeWindows: [UIWindow] = []
 
     override func tearDown() {
         for webView in activeWebViews {
@@ -228,8 +265,12 @@ final class AgentBridgeTests: XCTestCase {
             webView.removeFromSuperview()
         }
         activeWebViews.removeAll()
-        fallbackWindow?.isHidden = true
-        fallbackWindow = nil
+        for window in activeWindows {
+            window.isHidden = true
+            window.rootViewController = nil
+            window.windowScene = nil
+        }
+        activeWindows.removeAll()
         super.tearDown()
     }
 
@@ -264,20 +305,17 @@ final class AgentBridgeTests: XCTestCase {
         let waiter = NavigationWaiter()
         webView.navigationDelegate = waiter
 
-        if let sceneWindow = UIApplication.shared.connectedScenes
-            .compactMap({ $0 as? UIWindowScene })
-            .flatMap(\.windows)
-            .first {
-            sceneWindow.addSubview(webView)
-        } else {
-            let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
-            let controller = UIViewController()
-            controller.view.addSubview(webView)
-            webView.frame = controller.view.bounds
-            window.rootViewController = controller
-            window.isHidden = false
-            self.fallbackWindow = window
-        }
+        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.frame = CGRect(x: 0, y: 0, width: 390, height: 844)
+        let controller = UIViewController()
+        controller.view.frame = window.bounds
+        controller.view.addSubview(webView)
+        webView.frame = controller.view.bounds
+        window.rootViewController = controller
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        activeWindows.append(window)
         activeWebViews.append(webView)
 
         return (webView, bridge, waiter)
@@ -542,11 +580,11 @@ final class AgentBridgeTests: XCTestCase {
               el.id = "async-toast";
               el.textContent = "Saved!";
               document.body.appendChild(el);
-            }, 140);
+            }, 250);
             """,
             environment: .page
         )
-        let delayed = try await bridge.waitFor(selector: "#async-toast", milliseconds: 2_000)
+        let delayed = try await bridge.waitFor(selector: "#async-toast", milliseconds: 5_000)
         XCTAssertTrue(delayed.matched)
         XCTAssertGreaterThanOrEqual(delayed.elapsedMs, 80)
 

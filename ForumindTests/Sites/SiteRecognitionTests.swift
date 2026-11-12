@@ -297,6 +297,7 @@ final class RouteObserverWebKitTests: XCTestCase {
     private func makeWebView(_ recorder: Recorder) -> WKWebView {
         let configuration = WKWebViewConfiguration()
         configuration.websiteDataStore = .nonPersistent()
+        ForumBrowserModel.disableWebKitScreenTimeForTesting(in: configuration)
         let script = ForumBrowserModel.routeObserverScript(probeExpression: SiteRegistry.standard.probeExpression)
         configuration.userContentController.addUserScript(
             WKUserScript(source: script, injectionTime: .atDocumentStart, forMainFrameOnly: true)

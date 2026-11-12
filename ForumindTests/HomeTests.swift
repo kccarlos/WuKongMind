@@ -266,15 +266,42 @@ final class HomeTests: XCTestCase {
         XCTAssertEqual(app.homePath, [])
     }
 
+    private static func closedLoopbackURL(path: String = "/latest") throws -> URL {
+        let fd = socket(AF_INET, SOCK_STREAM, 0)
+        XCTAssertGreaterThanOrEqual(fd, 0)
+        defer { close(fd) }
+        var addr = sockaddr_in()
+        addr.sin_len = UInt8(MemoryLayout<sockaddr_in>.size)
+        addr.sin_family = sa_family_t(AF_INET)
+        addr.sin_port = 0
+        addr.sin_addr = in_addr(s_addr: inet_addr("127.0.0.1"))
+        let bound = withUnsafePointer(to: &addr) { ptr in
+            ptr.withMemoryRebound(to: sockaddr.self, capacity: 1) {
+                bind(fd, $0, socklen_t(MemoryLayout<sockaddr_in>.size))
+            }
+        }
+        XCTAssertEqual(bound, 0)
+        var assigned = sockaddr_in()
+        var len = socklen_t(MemoryLayout<sockaddr_in>.size)
+        let named = withUnsafeMutablePointer(to: &assigned) { ptr in
+            ptr.withMemoryRebound(to: sockaddr.self, capacity: 1) {
+                getsockname(fd, $0, &len)
+            }
+        }
+        XCTAssertEqual(named, 0)
+        let port = UInt16(bigEndian: assigned.sin_port)
+        return try XCTUnwrap(URL(string: "http://127.0.0.1:\(port)\(path)"))
+    }
+
     func testFailedNavigationFromHomePreservesHomeAndPresentsError() async throws {
-        try XCTSkipIf(ProcessInfo.processInfo.environment["CI"] != nil, "Timing-sensitive WKWebView unreachable-port navigation callback on CI simulator (see docs/wukongmind/flaky-tests.md)")
         let app = makeApp()
+        addTeardownBlock { @MainActor in app.browser.stopLoading() }
         app.browser.showForumsHome()
         XCTAssertTrue(app.browser.showsForumsHome)
         XCTAssertNil(app.browser.currentURL)
 
         // First load from Home to an unreachable server: returns to Home and surfaces an error.
-        let unreachable = URL(string: "http://127.0.0.1:1/latest")!
+        let unreachable = try Self.closedLoopbackURL()
         app.browser.load(unreachable)
 
         let firstDeadline = ContinuousClock.now + .seconds(30)
@@ -296,7 +323,7 @@ final class HomeTests: XCTestCase {
             baseURL: forumA
         )
         let settleA = ContinuousClock.now + .seconds(30)
-        while app.browser.currentURL != forumA, ContinuousClock.now < settleA {
+        while (app.browser.currentURL != forumA || app.browser.isLoading), ContinuousClock.now < settleA {
             try await Task.sleep(for: .milliseconds(50))
         }
         XCTAssertEqual(app.browser.currentURL, forumA)
@@ -304,7 +331,7 @@ final class HomeTests: XCTestCase {
         app.browser.showForumsHome()
         XCTAssertTrue(app.browser.showsForumsHome)
 
-        app.browser.load(unreachable)
+        app.browser.load(try Self.closedLoopbackURL())
         let secondDeadline = ContinuousClock.now + .seconds(30)
         while (app.browser.isLoading || !app.browser.showsForumsHome || app.presentedError == nil),
               ContinuousClock.now < secondDeadline {

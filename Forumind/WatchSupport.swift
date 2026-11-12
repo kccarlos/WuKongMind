@@ -18,12 +18,14 @@ final class WatchNotifier: NSObject, UNUserNotificationCenterDelegate {
     @MainActor static var pendingTodayOpen = false
 
     func isAuthorized() async -> Bool {
+        guard !AppModel.isRunningTests else { return false }
         let settings = await UNUserNotificationCenter.current().notificationSettings()
         return settings.authorizationStatus == .authorized
             || settings.authorizationStatus == .provisional
     }
 
     func requestAuthorization() async -> Bool {
+        guard !AppModel.isRunningTests else { return false }
         do {
             return try await UNUserNotificationCenter.current()
                 .requestAuthorization(options: [.alert, .sound, .badge])
