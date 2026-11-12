@@ -1,6 +1,6 @@
 # Flaky Tests & CI Quarantine Status
 
-`TEST_RUNNER_CI: ${{ env.CI }}` and `-retry-tests-on-failure -test-iterations 3` remain in `.github/workflows/ci.yml` until Cleanup task 4 (`docs/wukongmind/next-phase.md` §1) deletes the legacy Forumind moderation, AI data consent, and terms-acceptance code and removes CI retries. All non-cleanup tests previously skipped on CI have been fixed and un-skipped.
+`TEST_RUNNER_CI: ${{ env.CI }}` and `-retry-tests-on-failure -test-iterations 3` remain in `.github/workflows/ci.yml` until Cleanup task 4 (`docs/wukongmind/next-phase.md` §1) deletes the legacy Forumind moderation, AI data consent, and terms-acceptance code and removes CI retries. All non-cleanup tests previously skipped on CI have been fixed, un-skipped, and verified across 5 consecutive retry-free CI runs ([`43314534253`](https://github.com/kccarlos/WuKongMind/actions/runs/43314534253), [`43314538180`](https://github.com/kccarlos/WuKongMind/actions/runs/43314538180), [`43314543200`](https://github.com/kccarlos/WuKongMind/actions/runs/43314543200), [`43314547360`](https://github.com/kccarlos/WuKongMind/actions/runs/43314547360), [`43314553283`](https://github.com/kccarlos/WuKongMind/actions/runs/43314553283)).
 
 ## Systemic Races Fixed (`Forumind/` & Test Harnesses)
 
