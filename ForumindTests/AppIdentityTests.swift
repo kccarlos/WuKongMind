@@ -24,5 +24,17 @@ final class AppIdentityTests: XCTestCase {
         let types = Bundle.main.object(forInfoDictionaryKey: "CFBundleURLTypes") as? [[String: Any]]
         let schemes = types?.flatMap { $0["CFBundleURLSchemes"] as? [String] ?? [] }
         XCTAssertEqual(schemes, [IncomingLink.scheme])
+        XCTAssertEqual(IncomingLink.scheme, "wukongmind")
+    }
+
+    func testSharedInboxDegradesGracefullyWhenAppGroupIsDisabled() {
+        let previousOverride = SharedInbox.storageURLOverride
+        SharedInbox.storageURLOverride = nil
+        defer { SharedInbox.storageURLOverride = previousOverride }
+
+        if !AppIdentity.isAppGroupEnabled {
+            XCTAssertNil(SharedInbox.storageURL)
+            XCTAssertEqual(SharedInbox.drainAll(), [])
+        }
     }
 }

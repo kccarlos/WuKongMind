@@ -1790,9 +1790,9 @@ final class StateTransitionTests: XCTestCase {
         XCTAssertFalse(app.currentSession?.source.isEmpty ?? true)
         XCTAssertEqual(app.currentSession?.history.map(\.role), [.user, .assistant])
 
-        // 2. Deep link `forumind://open?url=...&action=chat` opens in .chat mode with empty
+        // 2. Deep link `wukongmind://open?url=...&action=chat` opens in .chat mode with empty
         // source and also allows sending immediately.
-        let deepLink = URL(string: "forumind://open?url=https%3A%2F%2Fforum.example.com%2Ft%2Ftopic-99%2F99&action=chat")!
+        let deepLink = URL(string: "wukongmind://open?url=https%3A%2F%2Fforum.example.com%2Ft%2Ftopic-99%2F99&action=chat")!
         app.handleDeepLink(deepLink)
         harness.deliver(topicPage(topic("99")))
         XCTAssertEqual(app.assistantMode, .chat)

@@ -29,7 +29,7 @@ final class IncomingLinkTests: XCTestCase {
         )
 
         let link = IncomingLink.url(for: request)
-        XCTAssertEqual(link.scheme, "forumind")
+        XCTAssertEqual(link.scheme, "wukongmind")
         XCTAssertEqual(link.host, "open")
 
         let parsed = try XCTUnwrap(IncomingLink.parse(link, now: request.createdAt))
@@ -49,7 +49,7 @@ final class IncomingLinkTests: XCTestCase {
 
     func testParsesMinimalLinkWithDefaultAction() throws {
         let link = try XCTUnwrap(
-            URL(string: "forumind://open?url=https%3A%2F%2Fforum.example.com%2Ft%2Ftopic%2F42")
+            URL(string: "wukongmind://open?url=https%3A%2F%2Fforum.example.com%2Ft%2Ftopic%2F42")
         )
         let parsed = try XCTUnwrap(IncomingLink.parse(link))
         XCTAssertEqual(parsed.url.absoluteString, "https://forum.example.com/t/topic/42")
@@ -59,24 +59,25 @@ final class IncomingLinkTests: XCTestCase {
 
     func testUnknownActionFallsBackToOpen() throws {
         let link = try XCTUnwrap(
-            URL(string: "forumind://open?url=https://a.example/t/1&action=explode")
+            URL(string: "wukongmind://open?url=https://a.example/t/1&action=explode")
         )
         XCTAssertEqual(IncomingLink.parse(link)?.action, .open)
         let upper = try XCTUnwrap(
-            URL(string: "forumind://open?url=https://a.example/t/1&action=CHAT")
+            URL(string: "wukongmind://open?url=https://a.example/t/1&action=CHAT")
         )
         XCTAssertEqual(IncomingLink.parse(upper)?.action, .chat)
     }
 
     func testRejectsNonWebPagesAndForeignLinks() throws {
         let rejected = [
-            "forumind://open?url=javascript%3Aalert(1)",
-            "forumind://open?url=file%3A%2F%2F%2Fetc%2Fpasswd",
-            "forumind://open?url=ftp%3A%2F%2Fexample.com",
-            "forumind://open?url=https%3A%2F%2F",
-            "forumind://open?action=summary",
-            "forumind://open",
-            "forumind://settings?url=https%3A%2F%2Fa.example",
+            "wukongmind://open?url=javascript%3Aalert(1)",
+            "wukongmind://open?url=file%3A%2F%2F%2Fetc%2Fpasswd",
+            "wukongmind://open?url=ftp%3A%2F%2Fexample.com",
+            "wukongmind://open?url=https%3A%2F%2F",
+            "wukongmind://open?action=summary",
+            "wukongmind://open",
+            "wukongmind://settings?url=https%3A%2F%2Fa.example",
+            "forumind://open?url=https%3A%2F%2Fa.example",
             "https://open?url=https%3A%2F%2Fa.example",
             "otherapp://open?url=https%3A%2F%2Fa.example"
         ]
@@ -88,7 +89,7 @@ final class IncomingLinkTests: XCTestCase {
 
     func testParseNormalizesTitleAndIgnoresBadID() throws {
         let link = try XCTUnwrap(
-            URL(string: "forumind://open?url=https://a.example/t/1&title=%20%20Hello%0A%20world%20&id=nope")
+            URL(string: "wukongmind://open?url=https://a.example/t/1&title=%20%20Hello%0A%20world%20&id=nope")
         )
         let parsed = try XCTUnwrap(IncomingLink.parse(link))
         XCTAssertEqual(parsed.title, "Hello world")

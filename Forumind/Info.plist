@@ -10,7 +10,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>Forumind</string>
+	<string>WukongMind</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -30,7 +30,7 @@
 			<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>forumind</string>
+				<string>wukongmind</string>
 			</array>
 		</dict>
 	</array>
@@ -54,11 +54,11 @@
 	<key>NSCameraUsageDescription</key>
 	<string>A forum page can ask for a photo or video, for example a profile picture or an attachment to your post.</string>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>Forumind can connect to an Ollama or LM Studio server on your local network.</string>
+	<string>WukongMind can connect to an Ollama or LM Studio server on your local network.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Forumind uses the microphone when you talk to its voice assistant, and when a forum page asks you to record a video with sound.</string>
+	<string>WukongMind uses the microphone when you talk to its voice assistant, and when a forum page asks you to record a video with sound.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Forumind can save images from forum pages to your photo library when you ask it to.</string>
+	<string>WukongMind can save images from forum pages to your photo library when you ask it to.</string>
 	<key>NSUserActivityTypes</key>
 	<array>
 		<string>$(DC_IDENTIFIER_PREFIX).topic</string>

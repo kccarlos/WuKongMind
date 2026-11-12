@@ -7,4 +7,5 @@ WukongMind is a fork of Forumind into a self-use, open-source iOS/iPadOS browser
 - This repo started as a copy of Forumind `main` (e046b43). The `forumind` remote is fetch-only; never push to it.
 - Milestones run in order (M0 to M4); each needs the owner's acceptance before the next. M0 comes first: read the Forumind code and write the module map and change list for the owner to confirm before any code changes.
 - Open questions in section 11 of the requirements use their stated defaults until the owner decides: a separate repo (this one), separate bundle ID and iCloud container, no preset agent model, Discourse features kept.
+- The share extension and iCloud sync are disabled in the initial `io.github.kccarlos.wukongmind` build (`DC_ENABLE_SHARE_EXTENSION` and `DC_ENABLE_CLOUDKIT` default to `NO` in `scripts/generate_project.rb`): re-enabling them later requires the owner to register the new App Group (`group.io.github.kccarlos.wukongmind`) and iCloud container (`iCloud.io.github.kccarlos.wukongmind`) on the Apple Developer portal.
 - Forumind's own docs, AGENTS/CLAUDE rules and tests still apply, and its existing features and tests must keep passing.

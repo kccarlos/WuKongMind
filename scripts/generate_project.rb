@@ -6,22 +6,23 @@ require "fileutils"
 root = File.expand_path("..", __dir__)
 
 # Signing team: $DEVELOPMENT_TEAM, else Config/DevelopmentTeam.txt (git-ignored;
-# see Config/DevelopmentTeam.example.txt), else none (simulator and unsigned
-# builds still work).
+# see Config/DevelopmentTeam.example.txt), else WukongMind's default team
+# (simulator and unsigned builds with CODE_SIGNING_ALLOWED=NO still work).
 team_file = File.join(root, "Config", "DevelopmentTeam.txt")
-development_team = ENV["DEVELOPMENT_TEAM"].to_s.strip
-if development_team.empty? && File.file?(team_file)
+development_team = ENV["DEVELOPMENT_TEAM"]&.strip
+if development_team.nil? && File.file?(team_file)
   development_team = File.readlines(team_file, chomp: true)
     .map(&:strip)
     .reject { |line| line.empty? || line.start_with?("#") }
     .first
     .to_s
 end
+development_team = "GV776BZVA8" if development_team.nil?
 
 # Every identifier derives from one prefix, so a fork can build under its own
 # IDs: BUNDLE_ID_PREFIX=com.example.dc ruby scripts/generate_project.rb
 bundle_id_prefix = ENV["BUNDLE_ID_PREFIX"].to_s.strip
-bundle_id_prefix = "io.github.kccarlos.forumind" if bundle_id_prefix.empty?
+bundle_id_prefix = "io.github.kccarlos.wukongmind" if bundle_id_prefix.empty?
 unless bundle_id_prefix.match?(/\A[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+\z/)
   abort "BUNDLE_ID_PREFIX must be a reverse-DNS identifier (got #{bundle_id_prefix.inspect})"
 end
@@ -117,13 +118,15 @@ def flag_value(name)
   abort "#{name} must be YES or NO (got #{value.inspect})"
 end
 
-# Capabilities beyond the base entitlements (App Group only).
+# Capabilities beyond the base entitlements (empty by default).
 #
-# - CloudKit (iCloud sync): on whenever a team is resolved, because CloudKit
-#   needs a signed build and an app without the iCloud entitlement crashes
-#   on its first CloudKit call. DC_ENABLE_CLOUDKIT=YES|NO overrides.
-#   Unsigned builds (CI, forks without a team, CODE_SIGNING_ALLOWED=NO) get
-#   neither the entitlement nor `CLOUDKIT_ENABLED`, so sync stays off there.
+# - Share extension & App Group: off by default while the WukongMind app group
+#   (`group.io.github.kccarlos.wukongmind`) is not yet registered on the Apple
+#   Developer portal. Enable with `DC_ENABLE_SHARE_EXTENSION=YES` (which also
+#   enables `DC_ENABLE_APP_GROUP=YES` unless overridden).
+# - CloudKit (iCloud sync): off by default while the WukongMind iCloud
+#   container (`iCloud.io.github.kccarlos.wukongmind`) is not yet registered on
+#   the Apple Developer portal. Enable with `DC_ENABLE_CLOUDKIT=YES`.
 # - Private Cloud Compute: a managed entitlement Apple assigns on request.
 #   DC_ENABLE_PCC=YES. See docs/APPLE_INTELLIGENCE.md.
 #
@@ -131,12 +134,17 @@ end
 # plus the enabled capabilities into Forumind/Generated/Forumind.entitlements
 # (git-ignored). With nothing beyond the base (the committed project), the
 # project signs with the committed base file directly.
-cloudkit_override = flag_value("DC_ENABLE_CLOUDKIT")
-cloudkit_enabled = cloudkit_override.nil? ? !development_team.empty? : cloudkit_override
+cloudkit_enabled = flag_value("DC_ENABLE_CLOUDKIT") || false
 pcc_enabled = flag_value("DC_ENABLE_PCC") || false
+share_extension_enabled = flag_value("DC_ENABLE_SHARE_EXTENSION") || false
+app_group_override = flag_value("DC_ENABLE_APP_GROUP")
+app_group_enabled = app_group_override.nil? ? share_extension_enabled : app_group_override
 cloudkit_container = "iCloud.$(DC_IDENTIFIER_PREFIX)"
 
 extra_entitlements = {}
+if app_group_enabled
+  extra_entitlements["com.apple.security.application-groups"] = ["$(DC_APP_GROUP)"]
+end
 if cloudkit_enabled
   # "development" here; exporting for TestFlight / the App Store re-signs
   # with the distribution profile, which switches it to "production".
@@ -161,6 +169,8 @@ app_entitlements_path =
   end
 
 app_swift_flags = ["$(inherited)"]
+app_swift_flags << "-D APP_GROUP_ENABLED" if app_group_enabled
+app_swift_flags << "-D SHARE_EXTENSION_ENABLED" if share_extension_enabled
 app_swift_flags << "-D CLOUDKIT_ENABLED" if cloudkit_enabled
 app_swift_flags << "-D PCC_ENABLED" if pcc_enabled
 
@@ -238,12 +248,14 @@ share_target.build_configurations.each do |configuration|
   settings["TARGETED_DEVICE_FAMILY"] = "1,2"
 end
 
-app_target.add_dependency(share_target)
-embed_extensions = app_target.new_copy_files_build_phase("Embed Foundation Extensions")
-embed_extensions.dst_subfolder_spec = "13"
-embed_extensions.dst_path = ""
-embedded_share = embed_extensions.add_file_reference(share_target.product_reference, true)
-embedded_share.settings = { "ATTRIBUTES" => ["RemoveHeadersOnCopy"] }
+if share_extension_enabled
+  app_target.add_dependency(share_target)
+  embed_extensions = app_target.new_copy_files_build_phase("Embed Foundation Extensions")
+  embed_extensions.dst_subfolder_spec = "13"
+  embed_extensions.dst_path = ""
+  embedded_share = embed_extensions.add_file_reference(share_target.product_reference, true)
+  embedded_share.settings = { "ATTRIBUTES" => ["RemoveHeadersOnCopy"] }
+end
 
 test_target = project.new_target(:unit_test_bundle, "ForumindTests", :ios, "17.0")
 test_target.add_dependency(app_target)
@@ -350,6 +362,8 @@ scheme.test_action.environment_variables = Xcodeproj::XCScheme::EnvironmentVaria
 scheme.save_as(project_path, "Forumind", true)
 
 capabilities = []
+capabilities << "AppGroup" if app_group_enabled
+capabilities << "ShareExtension" if share_extension_enabled
 capabilities << "CloudKit" if cloudkit_enabled
 capabilities << "PCC" if pcc_enabled
 puts "Generated #{project_path}"

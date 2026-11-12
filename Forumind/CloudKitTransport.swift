@@ -16,9 +16,9 @@ import os
 // units and stamps are in `encryptedValues["payload"]` (end-to-end encrypted
 // with the user's iCloud keys).
 final class CloudKitTransport: CloudSyncTransport, @unchecked Sendable {
-    static let zoneName = "Forumind"
+    static let zoneName = "WukongMind"
     static let recordType = "SyncRecord"
-    static let defaultContainerIdentifier = "iCloud.io.github.kccarlos.forumind"
+    static let defaultContainerIdentifier = "iCloud.io.github.kccarlos.wukongmind"
 
     /// Info.plist `DCCloudKitContainer`, else the default container.
     static var containerIdentifier: String {
