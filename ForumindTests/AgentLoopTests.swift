@@ -712,6 +712,19 @@ final class AgentLoopTests: XCTestCase {
         app.openBrowserAgent()
         XCTAssertEqual(app.assistantMode, .browserAgent)
         XCTAssertEqual(app.currentRole, .browserAgent)
+
+        // M1 UI helpers: tool style resolution, token formatting, and duration formatting.
+        XCTAssertEqual(BrowserAgentToolStyle.resolve(toolName: "read_page", isError: false).symbol, "doc.text")
+        XCTAssertEqual(BrowserAgentToolStyle.resolve(toolName: "run_js", isError: false).symbol, "curlybraces")
+        XCTAssertEqual(BrowserAgentToolStyle.resolve(toolName: "inject_css", isError: false).symbol, "drop")
+        XCTAssertEqual(BrowserAgentToolStyle.resolve(toolName: "wait_for", isError: false).symbol, "clock")
+        XCTAssertEqual(BrowserAgentToolStyle.resolve(toolName: "script_save", isError: false).symbol, "square.and.arrow.down")
+        XCTAssertEqual(BrowserAgentToolStyle.resolve(toolName: "run_js", isError: true).symbol, "exclamationmark.triangle.fill")
+
+        XCTAssertEqual(BrowserAgentPanelView.formatTokens(420), "420")
+        XCTAssertEqual(BrowserAgentPanelView.formatTokens(1_420), "1.4k")
+        XCTAssertEqual(BrowserAgentPanelView.formatDuration(0.34), "0.3s")
+        XCTAssertEqual(BrowserAgentPanelView.formatDuration(14.2), "14s")
     }
     #endif
 }

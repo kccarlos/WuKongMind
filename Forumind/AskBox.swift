@@ -315,6 +315,13 @@ struct AskBox: View {
                     scopeItem(String(localized: "Whole forum", comment: "Ask box scope: questions to the whole forum (Ask the forum)"),
                               systemImage: "sparkle.magnifyingglass", checked: scope == .forum)
                 }
+                Button {
+                    app.assistantMode = .browserAgent
+                } label: {
+                    scopeItem(AssistantMode.browserAgent.title,
+                              systemImage: AssistantMode.browserAgent.systemImage, checked: app.assistantMode == .browserAgent)
+                }
+                .accessibilityIdentifier("askScope-browserAgent")
             }
             Section("Search this forum") {
                 if let pageForum = app.assistantForum {

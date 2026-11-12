@@ -210,8 +210,11 @@ struct ModelField: View {
     private var bindings: ModelScopeBindings { ModelScopeBindings(app: app, scope: scope) }
 
     var body: some View {
+        let placeholder = scope == .role(.browserAgent)
+            ? String(localized: "Choose a model", comment: "Placeholder for browser agent model field when no model is chosen")
+            : bindings.provider.defaultModel
         HStack(spacing: DCTheme.spacingS) {
-            TextField(bindings.provider.defaultModel, text: bindings.model)
+            TextField(placeholder, text: bindings.model)
                 .autocorrectionDisabled()
                 .textInputAutocapitalization(.never)
                 .submitLabel(.done)
@@ -248,6 +251,11 @@ struct ModelListSheet: View {
     private var bindings: ModelScopeBindings { ModelScopeBindings(app: app, scope: scope) }
     private var discovered: [String] { app.discoveredModels[bindings.provider] ?? [] }
 
+    private func isCompatibleModel(_ model: String) -> Bool {
+        guard scope == .role(.browserAgent) else { return true }
+        return ModelSelection(provider: bindings.provider, model: model).supportsToolCalling
+    }
+
     private var suggestions: [String] {
         let provider = bindings.provider
         var models = [provider.defaultModel]
@@ -258,13 +266,14 @@ struct ModelListSheet: View {
             models.append(favorite.model)
         }
         var seen = Set<String>()
-        return models.filter { !$0.isEmpty && seen.insert($0).inserted }
+        return models.filter { !$0.isEmpty && isCompatibleModel($0) && seen.insert($0).inserted }
     }
 
     private var filtered: [String] {
+        let compatible = discovered.filter { isCompatibleModel($0) }
         let trimmed = query.trimmingCharacters(in: .whitespaces)
-        guard !trimmed.isEmpty else { return discovered }
-        return discovered.filter { $0.localizedCaseInsensitiveContains(trimmed) }
+        guard !trimmed.isEmpty else { return compatible }
+        return compatible.filter { $0.localizedCaseInsensitiveContains(trimmed) }
     }
 
     var body: some View {
@@ -387,7 +396,12 @@ extension AppModel {
         let selection = selection(for: role)
         let provider = selection.provider
         var model = selection.model.trimmingCharacters(in: .whitespacesAndNewlines)
-        if model.isEmpty { model = provider.defaultModel }
+        if model.isEmpty {
+            if role == .browserAgent {
+                return .failure(String(localized: "Choose a model for the agent first.", comment: "Test & save for browser agent without a model chosen"))
+            }
+            model = provider.defaultModel
+        }
         if model != selection.model { selectModel(ModelSelection(provider: provider, model: model), for: scope) }
         return await testAndSaveProvider(provider, role: role)
     }

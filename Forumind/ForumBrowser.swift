@@ -416,6 +416,7 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     #if DEBUG
     /// `-dc-sample`: shows the sample's own topic page at `url` (no network).
     func loadSamplePage(_ html: String, at url: URL) {
+        deferredLoad = nil
         hideForumsHome()
         currentURL = url
         webView.loadHTMLString(html, baseURL: url)

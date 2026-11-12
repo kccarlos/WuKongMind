@@ -622,10 +622,29 @@ struct PhoneAIButton: View {
     @ObservedObject var podcast: PodcastController
     let isAvailable: Bool
     let onOpen: () -> Void
+    @State private var completedBrowserAgentBounce = 0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+    private var browserAgent: BrowserAgentSession { app.browserAgent }
     private var canTalk: Bool { app.showsVoiceButton }
     private var showsNewRepliesDot: Bool { app.showsNewRepliesDot }
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private var finishedBounceValue: String? {
+        if reduceMotion { return nil }
+        if let id = app.readyAnswer?.id { return id.uuidString }
+        if completedBrowserAgentBounce > 0 { return "agent-\(completedBrowserAgentBounce)" }
+        return nil
+    }
+
+    private var accessibilityValueText: Text {
+        if browserAgent.isRunning {
+            return Text("Working", comment: "Accessibility value of the AI button while the browser agent is working")
+        }
+        if showsNewRepliesDot {
+            return Text("New replies", comment: "Accessibility value of the iPhone AI button while its dot says the topic has new replies")
+        }
+        return Text(verbatim: "")
+    }
 
     var body: some View {
         Image(systemName: voice.isActive ? "waveform" : "sparkles")
@@ -633,7 +652,7 @@ struct PhoneAIButton: View {
             .foregroundStyle(isAvailable ? AnyShapeStyle(DCTheme.brandGradient) : AnyShapeStyle(.tertiary))
             .symbolEffect(.pulse, isActive: voice.isActive)
             // Done: one bounce (not with Reduce Motion).
-            .symbolEffect(.bounce, value: reduceMotion ? nil : app.readyAnswer?.id)
+            .symbolEffect(.bounce, value: finishedBounceValue)
             .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
             .overlay { ResearchRing(app: app) }
             .overlay(alignment: .topTrailing) {
@@ -649,14 +668,26 @@ struct PhoneAIButton: View {
                 DCHaptics.tap()
                 voice.toggle()
             }
+            .onChange(of: browserAgent.isRunning) { wasRunning, isRunning in
+                if wasRunning, !isRunning, !app.isAIViewShown, browserAgent.runs.last != nil {
+                    completedBrowserAgentBounce &+= 1
+                }
+            }
             .accessibilityElement()
-            .accessibilityLabel(Text("AI assistant", comment: "iPhone browser bar button that opens the AI drawer"))
-            .accessibilityValue(showsNewRepliesDot ? Text("New replies", comment: "Accessibility value of the iPhone AI button while its dot says the topic has new replies") : Text(verbatim: ""))
+            .accessibilityLabel(
+                app.toolbarOpensBrowserAgentByDefault || app.assistantMode == .browserAgent
+                    ? Text(verbatim: AssistantMode.browserAgent.title)
+                    : Text("AI assistant", comment: "iPhone browser bar button that opens the AI drawer")
+            )
+            .accessibilityValue(accessibilityValueText)
             .accessibilityHint(canTalk ? Text("Touch and hold to talk to Forumind", comment: "Accessibility hint of the iPhone AI button when voice is set up") : Text(verbatim: ""))
             .accessibilityAddTraits(.isButton)
             .accessibilityRemoveTraits(isAvailable ? [] : .isButton)
             .accessibilityAction { if isAvailable { onOpen() } }
             .accessibilityActions {
+                if browserAgent.isRunning {
+                    Button("Stop agent") { browserAgent.stop() }
+                }
                 if canTalk {
                     Button(voice.isActive ? "End voice" : "Talk to Forumind") { voice.toggle() }
                 }
@@ -665,14 +696,21 @@ struct PhoneAIButton: View {
     }
 }
 
-/// Ask the forum's progress around the AI button (and the split layout's
-/// panel toggle); a short arc while the progress is not known, a full ring
-/// once the answer is ready and unseen.
+/// Ask the forum's or browser agent's progress around the AI button (and the
+/// split layout's panel toggle); a short arc while the progress is not known,
+/// a full ring once the answer is ready and unseen.
 struct ResearchRing: View {
     @ObservedObject var app: AppModel
 
+    private var browserAgent: BrowserAgentSession { app.browserAgent }
+
     var body: some View {
-        if let research = app.activeResearch {
+        if browserAgent.isRunning {
+            BrowserAgentProgressArc(
+                step: browserAgent.currentStep,
+                maxSteps: max(1, browserAgent.maxSteps)
+            )
+        } else if let research = app.activeResearch {
             ResearchProgressArc(recordID: research.id, progress: app.progress)
         } else if app.readyAnswer != nil {
             Circle()
@@ -681,6 +719,24 @@ struct ResearchRing: View {
                 .allowsHitTesting(false)
                 .accessibilityIdentifier("answerReadyRing")
         }
+    }
+}
+
+private struct BrowserAgentProgressArc: View {
+    let step: Int
+    let maxSteps: Int
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        let fraction = max(0.15, min(0.92, Double(max(1, step)) / Double(max(1, maxSteps))))
+        Circle()
+            .trim(from: 0, to: fraction)
+            .stroke(DCTheme.brandGradient, style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
+            .rotationEffect(.degrees(-90))
+            .padding(4)
+            .animation(reduceMotion ? nil : .linear(duration: 0.3), value: fraction)
+            .allowsHitTesting(false)
+            .accessibilityIdentifier("researchRing")
     }
 }
 

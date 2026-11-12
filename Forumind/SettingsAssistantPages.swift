@@ -267,14 +267,61 @@ struct SettingsAgentPage: View {
                 Text("Read size")
             }
 
+            Section {
+                NavigationLink {
+                    ModelRolePage(app: app, role: .browserAgent)
+                } label: {
+                    ModelRoleRow(app: app, role: .browserAgent)
+                }
+                .accessibilityIdentifier("browserAgentModelRow")
+
+                Stepper(
+                    "Max browser agent steps: \(app.settings.browserAgentMaxSteps)",
+                    value: Binding(
+                        get: { app.settings.browserAgentMaxSteps },
+                        set: { app.settings.browserAgentMaxSteps = BrowserAgentLimits.clampSteps($0) }
+                    ),
+                    in: BrowserAgentLimits.stepRange
+                )
+                .accessibilityIdentifier("browserAgentMaxSteps")
+
+                VStack(alignment: .leading, spacing: DCTheme.spacingS) {
+                    SettingExplanation(
+                        title: "Tool result truncation limit",
+                        value: characters(app.settings.browserAgentTruncationLimit),
+                        detail: "Maximum size of each page read or JavaScript result sent back to the model."
+                    )
+                    Slider(
+                        value: Binding(
+                            get: { Double(app.settings.browserAgentTruncationLimit) },
+                            set: { app.settings.browserAgentTruncationLimit = BrowserAgentLimits.clampTruncationLimit(Int($0)) }
+                        ),
+                        in: Double(BrowserAgentLimits.truncationRange.lowerBound)...Double(BrowserAgentLimits.truncationRange.upperBound),
+                        step: 1_000
+                    )
+                    .tint(DCTheme.agentTint)
+                    .accessibilityLabel("Tool result truncation limit")
+                    .accessibilityValue(characters(app.settings.browserAgentTruncationLimit))
+                    .accessibilityIdentifier("browserAgentTruncationLimit")
+                }
+            } header: {
+                Text("Browser agent")
+            } footer: {
+                Text("The browser agent reads and modifies the active web page with tool calls. Defaults: \(BrowserAgentLimits.defaultMaxSteps) steps, \(characters(BrowserAgentLimits.defaultTruncationLimit)) per tool result.")
+            }
+
             if app.settings.agentMaxSteps != AgentLimits.defaultMaxSteps
                 || app.settings.agentMaxTopicReads != AgentLimits.defaultMaxTopicReads
-                || app.settings.agentReadLimit != AgentLimits.defaultReadLimit {
+                || app.settings.agentReadLimit != AgentLimits.defaultReadLimit
+                || app.settings.browserAgentMaxSteps != BrowserAgentLimits.defaultMaxSteps
+                || app.settings.browserAgentTruncationLimit != BrowserAgentLimits.defaultTruncationLimit {
                 Section {
                     Button("Restore defaults") {
                         app.settings.agentMaxSteps = AgentLimits.defaultMaxSteps
                         app.settings.agentMaxTopicReads = AgentLimits.defaultMaxTopicReads
                         app.settings.agentReadLimit = AgentLimits.defaultReadLimit
+                        app.settings.browserAgentMaxSteps = BrowserAgentLimits.defaultMaxSteps
+                        app.settings.browserAgentTruncationLimit = BrowserAgentLimits.defaultTruncationLimit
                     }
                 }
             }
@@ -283,6 +330,8 @@ struct SettingsAgentPage: View {
         .onChange(of: app.settings.agentMaxSteps) { app.saveSettings() }
         .onChange(of: app.settings.agentMaxTopicReads) { app.saveSettings() }
         .onChange(of: app.settings.agentReadLimit) { app.saveSettings() }
+        .onChange(of: app.settings.browserAgentMaxSteps) { app.saveSettings() }
+        .onChange(of: app.settings.browserAgentTruncationLimit) { app.saveSettings() }
     }
 }
 

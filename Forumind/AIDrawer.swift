@@ -116,12 +116,25 @@ extension AppModel {
     /// Home, where it is collapsed by default); the drawer closes or opens.
     func toggleAIView() {
         if router.usesDrawer {
-            if router.wantsDrawer { router.closeDrawer() } else { showAIView() }
+            if router.wantsDrawer {
+                router.closeDrawer()
+            } else {
+                if toolbarOpensBrowserAgentByDefault { assistantMode = .browserAgent }
+                showAIView()
+            }
         } else {
             let currentlyVisible = isSplitPanelAvailable && router.splitPanelMode.isVisible(onHome: browser.showsForumsHome)
             if !currentlyVisible, !isSplitPanelAvailable { return }
+            if !currentlyVisible, toolbarOpensBrowserAgentByDefault {
+                assistantMode = .browserAgent
+            }
             router.splitPanelMode = currentlyVisible ? .hidden : .shown
         }
+    }
+
+    /// Whether the toolbar button opens the panel straight in `.browserAgent` mode.
+    var toolbarOpensBrowserAgentByDefault: Bool {
+        !browser.pageContext.isForum || currentTopic == nil
     }
 
     /// History and Settings (the menus, Home's top bar, ⌘, and ⇧⌘Y). History:
@@ -226,7 +239,7 @@ struct AIDrawerCoordinator: ViewModifier {
             // the panel: on iPhone the panel only exists while the drawer is up.
             .onChange(of: TopicMode(topicKey: app.currentTopic?.topicKey, mode: app.assistantMode)) { old, new in
                 guard old.topicKey != new.topicKey else { return }
-                if new.mode != .agent, old.mode == new.mode { app.assistantMode = .summary }
+                if new.mode != .agent, new.mode != .browserAgent, old.mode == new.mode { app.assistantMode = .summary }
             }
             // A citation or solved-hint jump landed (§4.5).
             .sensoryFeedback(.selection, trigger: app.citationJump)
