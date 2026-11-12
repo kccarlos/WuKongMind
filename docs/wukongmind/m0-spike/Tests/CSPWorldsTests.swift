@@ -341,6 +341,7 @@ final class CSPWorldsTests: XCTestCase {
                     markerCounter += 1
                     let id = "m\(markerCounter)"
                     let wv = try await load(v)
+                    await sleep(150) // let load-time violation events (queued tasks) land before the snapshot
                     let before = await violations(wv).count
                     var (outcome, detail) = await run(probe, in: world, worldName: worldName, id: id, wv: wv)
                     await sleep(150)
