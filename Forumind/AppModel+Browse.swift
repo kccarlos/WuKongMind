@@ -354,7 +354,10 @@ extension AppModel {
                     }
                 }
                 guard let self, demoMode != "no-model", demoMode != "empty" else { return }
-                self.browserAgent.send("Make this page dark and hide the sidebar")
+                let demoPrompt = demoMode == "saved-script"
+                    ? "Keep only the original poster's posts and hide the sidebar on every visit"
+                    : "Make this page dark and hide the sidebar"
+                self.browserAgent.send(demoPrompt)
             }
             return
         }
@@ -448,6 +451,183 @@ extension AppModel {
         }
         if let data = try? JSONSerialization.data(withJSONObject: payload, options: [.prettyPrinted, .sortedKeys]) {
             try? data.write(to: URL(fileURLWithPath: path), options: .atomic)
+        }
+    }
+
+    func seedScriptsSampleIfNeeded() {
+        guard AssistantDebug.has("-dc-scripts-sample") else { return }
+        let variant = AssistantDebug.value("-dc-scripts-sample") ?? "manager"
+        settings.hasCompletedOnboarding = true
+        settings.acceptedTermsVersion = ModerationTerms.currentVersion
+        needsProviderSetup = nil
+
+        if variant == "empty" {
+            for existing in scriptStore.scripts {
+                _ = scriptStore.deleteIfPresent(id: existing.id)
+            }
+            if AssistantDebug.has("-dc-scripts-sheet") {
+                Task { @MainActor [weak self] in
+                    try? await Task.sleep(for: .milliseconds(450))
+                    self?.requestedSettingsPage = .scripts
+                }
+            }
+            return
+        }
+
+        let now = Date()
+        let v1Date = now.addingTimeInterval(-3 * 86_400)
+        let v2Date = now.addingTimeInterval(-3600 * 5)
+        let v3Date = now.addingTimeInterval(-900)
+
+        for existing in scriptStore.scripts {
+            _ = scriptStore.deleteIfPresent(id: existing.id)
+        }
+
+        if let created = try? scriptStore.create(
+            id: "op-only",
+            name: "Original poster only",
+            matchRules: ["*://news.example.org/*", "*://*.example.org/*"],
+            js: """
+            document.querySelectorAll('.reply').forEach(el => {
+              el.hidden = true;
+            });
+            """,
+            css: "",
+            injectionTime: .documentEnd,
+            environment: .page,
+            isEnabled: true,
+            source: .agent(userPrompt: "Keep only the original poster's posts on news.example.org"),
+            now: v1Date
+        ) {
+            _ = try? scriptStore.update(
+                id: created.id,
+                patch: ScriptUpdatePatch(
+                    js: """
+                    document.querySelectorAll('.reply:not([data-op])').forEach(el => {
+                      el.hidden = true;
+                    });
+                    """,
+                    css: ".sidebar { display: none !important; }"
+                ),
+                origin: .changedByAgent(userPrompt: "Also hide the sidebar aside and keep [data-op] replies"),
+                now: v2Date
+            )
+            _ = try? scriptStore.update(
+                id: created.id,
+                patch: ScriptUpdatePatch(
+                    css: """
+                    .sidebar, #newsletter-aside { display: none !important; }
+                    article { max-width: 68ch; margin-inline: auto; }
+                    """
+                ),
+                origin: .editedByUser,
+                now: v3Date
+            )
+            scriptStore.noteExecuted(scriptID: created.id, at: now.addingTimeInterval(-120))
+        }
+
+        _ = try? scriptStore.create(
+            id: "dark-thread",
+            name: "Dark palette & wide thread",
+            matchRules: ["*://news.example.org/*"],
+            js: """
+            const header = document.querySelector('header.site-header');
+            if (header) header.dataset.theme = 'dark';
+            """,
+            css: """
+            html, body { background: #0f172a !important; color: #e2e8f0 !important; }
+            """,
+            injectionTime: .documentStart,
+            environment: .isolated,
+            isEnabled: true,
+            source: .agent(userPrompt: "Make news.example.org articles dark and readable at night"),
+            now: now.addingTimeInterval(-7200)
+        )
+        scriptStore.noteExecuted(scriptID: "dark-thread", at: now.addingTimeInterval(-95))
+
+        if variant == "page-error" {
+            scriptStore.recordError(
+                scriptID: "dark-thread",
+                message: "TypeError: Cannot read properties of null (reading 'classList')",
+                line: 2,
+                url: Self.browserAgentFixtureURL.absoluteString,
+                occurredAt: now.addingTimeInterval(-40)
+            )
+        }
+
+        _ = try? scriptStore.create(
+            id: "collapse-solved",
+            name: "Collapse solved banners",
+            matchRules: ["https://*.example.org/*"],
+            js: """
+            document.querySelectorAll('.solved-callout').forEach(node => {
+              node.setAttribute('open', 'false');
+            });
+            """,
+            css: "",
+            injectionTime: .documentEnd,
+            environment: .isolated,
+            isEnabled: true,
+            source: .agent(userPrompt: "Collapse solved banners across example.org subdomains"),
+            now: now.addingTimeInterval(-86_400)
+        )
+        scriptStore.noteExecuted(scriptID: "collapse-solved", at: now.addingTimeInterval(-1080))
+
+        _ = try? scriptStore.create(
+            id: "quote-fold",
+            name: "Fold long nested quotes",
+            matchRules: ["https://talk.example.org/*"],
+            js: """
+            const quotes = document.querySelector('.post-stream').querySelectorAll('blockquote blockquote');
+            quotes.forEach(q => q.classList.add('folded'));
+            """,
+            css: "blockquote.folded { max-height: 4.5em; overflow: hidden; }",
+            injectionTime: .documentEnd,
+            environment: .page,
+            isEnabled: true,
+            source: .agent(userPrompt: "Fold nested blockquotes on talk.example.org"),
+            now: now.addingTimeInterval(-43_200)
+        )
+        for _ in 0..<3 {
+            scriptStore.recordError(
+                scriptID: "quote-fold",
+                message: "TypeError: Cannot read properties of null (reading 'querySelectorAll')",
+                line: 1,
+                url: "https://talk.example.org/posts/release-notes-420",
+                occurredAt: now.addingTimeInterval(-300)
+            )
+        }
+
+        _ = try? scriptStore.create(
+            id: "reading-spacing",
+            name: "Comfortable reading spacing",
+            matchRules: ["*://*/*"],
+            js: "",
+            css: "article p { line-height: 1.65; }",
+            injectionTime: .documentStart,
+            environment: .isolated,
+            isEnabled: false,
+            source: .imported,
+            now: now.addingTimeInterval(-172_800)
+        )
+
+        if variant == "global-off" {
+            settings.browserScriptsEnabled = false
+        } else {
+            settings.browserScriptsEnabled = true
+        }
+
+        if variant == "detail" {
+            requestedScriptID = "op-only"
+        } else if variant == "detail-error" {
+            requestedScriptID = "quote-fold"
+        }
+
+        if AssistantDebug.has("-dc-scripts-sheet") {
+            Task { @MainActor [weak self] in
+                try? await Task.sleep(for: .milliseconds(450))
+                self?.requestedSettingsPage = .scripts
+            }
         }
     }
 }

@@ -37,6 +37,12 @@ struct SettingsRootView: View {
             Section("Reading") {
                 row(.summaries)
                 row(.agent)
+                row(
+                    .scripts,
+                    value: app.settings.browserScriptsEnabled
+                        ? "\(app.scriptStore.scripts.count)"
+                        : String(localized: "Off")
+                )
                 ReadingLanguagePicker(app: app)
                 row(.browser, value: String(localized: "Bar: \(app.settings.browserBarPosition.displayName)", comment: "Settings root, Browser row: the address bar position, e.g. Automatic"))
             }
@@ -229,6 +235,7 @@ struct SettingsDestination: View {
             case .forums: SettingsForumsPage(app: app)
             case .summaries: SettingsSummariesPage(app: app)
             case .agent: SettingsAgentPage(app: app)
+            case .scripts: ScriptManagerView(app: app)
             case .watched: SettingsWatchedPage(app: app)
             case .digest: SettingsDigestPage(app: app)
             case .voice: SettingsVoicePage(app: app, voice: app.voice)

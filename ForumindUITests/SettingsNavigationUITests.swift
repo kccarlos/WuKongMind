@@ -8,6 +8,7 @@ final class SettingsNavigationUITests: DCUITestCase {
         ("voice", "Voice"),
         ("summaries", "Summaries & chat"),
         ("agent", "Ask the forum"),
+        ("scripts", "Scripts"),
         ("browser", "Browser"),
         ("digest", "Daily digest & podcast"),
         ("watched", "Watched topics"),
@@ -592,6 +593,7 @@ final class SettingsNavigationUITests: DCUITestCase {
         case "sync": expected = any(app, "syncAPIKeys")
         case "summaries": expected = any(app, "summaryBatchLimit")
         case "agent": expected = any(app, "agentMaxSteps")
+        case "scripts": expected = any(app, "scriptsGlobalToggle")
         case "watched": expected = any(app, "watchAutoRefresh")
         case "browser": expected = app.segmentedControls["browserBarPosition"]
         case "data": expected = any(app, "clearAllData")
