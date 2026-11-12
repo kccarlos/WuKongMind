@@ -31,6 +31,7 @@ Running the previous plan (`next-phase.md` and draft 2 of the unified interface 
 | Version numbers | M4 was 1.3.0 | M4 is 1.4.0; see section 7 |
 
 **What did not change**
+
 - Decisions on the four kinds of old code and the four cleanup steps (kept verbatim in section 9).
 - Everything in M2.
 - M3's tool list and workspace revision; M4's scope and `GM_ai`.
@@ -74,11 +75,13 @@ Repository docs remain English-first; translate this document and apply it. Chan
 | Start page, onboarding, remaining settings pages, motion | Unchanged |
 
 **Tasks**
+
 - Task 15 (unified interface design): do not accept against draft 2; revise per the table above before showing the owner again.
 - Tasks 10, 11 (M2) and task 14 (flaky tests): continue as planned, unaffected.
 - Do not split tasks yet for any milestone after "One panel".
 
 **Current status (verified when writing this document)**
+
 - `next-phase.md` is already on `main` (PR #15 merged); replace it directly on `main`.
 - `design-unified.md` is still on task 15's branch and in PR #16, not yet merged. Apply the revisions directly in that PR.
 - The briefs for tasks 14 and 15 cite section numbers from the previous `next-phase.md`; map them using the table below.
@@ -120,6 +123,7 @@ Opening the app shows the browser start page. Entering any web page shows one in
 | Frequently visited site | Also shows things the user has asked here before, plus questions matching tools saved for this site |
 
 Suggestion rules:
+
 - Each suggestion is a complete question; tapping sends it at once. Suggestions with an ellipsis (`…`) fill in half the sentence and wait for the user to finish it.
 - Typing or speaking the same thing directly must have the exact same effect.
 - Four sources: built-in by page type, matching tools saved for this site, previously asked by the user on this site, and matching the site's own WebMCP tools.
@@ -127,17 +131,20 @@ Suggestion rules:
 - Suggestions still appear on unfamiliar forums. The first time the user taps "Summarize this thread", the Agent learns first and then answers.
 
 **Conversation**
+
 - Every result lives in the same conversation, produced by the same Agent, which remembers earlier context. "Summarize this first, then look up the model mentioned in point 2, then highlight it on the page" is three consecutive sentences without switching anything.
 - Result rendering reuses Forumind's mature styles: a summary is an expandable card, a search answer carries numbered sources, and a podcast has a playback bar. These are how tool results are displayed.
 - Each tool-call step shows as a single line by default and can be expanded.
 
 **What persists**
+
 - `This page`: scripts and tools saved for this site, with switches.
 - Start page: frequent sites, recent items, `Today` daily digest.
 - Notifications when followed threads get new replies.
 - History: all conversations and results.
 
 **Three scenarios**
+
 - News site: tap "Remove distractions"; the Agent cleans up the page and asks whether to always do this, saving it as a script once agreed.
 - Unfamiliar forum: tap "Summarize this thread and replies"; the Agent says "Let me see how to read this site first", delivers the summary in about half a minute and saves the tool. The second time, the result comes straight out.
 - Discourse forum: say "What do people here think of the N100, and read it to me"; the Agent searches the whole site, reads the relevant threads, gives an answer with numbered sources, and then generates a podcast.
@@ -160,6 +167,7 @@ The sole agent loop is M1's `BrowserAgent`, using native tool calling. Both text
 | Page tools | Registered by scripts (written by the Agent or imported by the user), or registered by the site itself | When registered on the current page | Script tools belong to the user; site tools are untrusted |
 
 **Page tools use the WebMCP shape**
+
 - [WebMCP](https://webmachinelearning.github.io/webmcp/) is a draft from the W3C Web Machine Learning Community Group that lets web pages register tools in JavaScript for AI agents to call. The entry point is `document.modelContext`; each tool has a name, description, input and output JSON Schemas, an execute function and a few annotations.
 - A tool the Agent writes for a site is simply a script in `ScriptStore` that calls the registration interface. No new storage or file format is added.
 - 悟空 injects an implementation of `document.modelContext` into the page (while also catching the older `navigator.modelContext` entry point), so tools shipped by websites themselves work too. No browser on iOS supports WebMCP today.
@@ -245,6 +253,7 @@ Four independent tasks; see section 9.
 **One panel (1.1.x)**
 
 The UI takes its final shape without changing a single line of the engines.
+
 - Preconditions: the revised unified interface design is confirmed by the owner, and cleanup is done.
 - Deliver: one conversation view plus the suggestion row, replacing the four modes; start page; settings grouped by object; three-step onboarding; `This page` popover; unified vocabulary.
 - Transitional routing: on the three built-in forum kinds, tapping "Summarize this thread" calls the existing summary engine directly, tapping "Read it to me" calls the existing podcast, tapping "Search this forum…" and completing the query calls the old Research loop, and tapping "Notify me on new replies" calls the existing follow feature. Everything the user types directly goes to the Agent.
@@ -256,6 +265,7 @@ The UI takes its final shape without changing a single line of the engines.
 **M3 full abilities (1.2.0)**
 
 The planned tools are unchanged: screenshot, network log, navigation, multiple tabs, HTTP requests, cookies, audit log. Additions:
+
 - Workspace: one directory and three tools — `file_read` (supports range reads), `file_write`, `file_list`. Tool results exceeding the truncation limit are automatically saved as files, and the model receives the path, a preview and the total size. The directory is visible in the system Files app. Directory layout is agreed on only in the prompt, not written into code.
 - Developer mode part 1: switch, raw request and response inspection, per-step token counts, and task export. See section 8.
 - Acceptance (added): crawl a thread of 20+ pages, with raw content landing in the workspace and the summary covering every page; kill and reopen the app mid-task and the files are still there; an exported task file can be replayed by unit tests.
@@ -263,6 +273,7 @@ The planned tools are unchanged: screenshot, network log, navigation, multiple t
 **One loop (1.3.0)**
 
 The highest-risk step on the entire roadmap. Never reverse the order: prove quality does not regress before deleting old code.
+
 - Register the three adapters' read-thread, search, list-latest and search-comments operations as Agent tools, reusing the existing tool names in `AgentToolName` and implementations in `executeAgentTool`, returning the two shapes from section 5. Long thread content lands in the workspace.
 - Register summary, podcast, follow and notification as capability tools. The summary tool reuses the existing engine and cache, and renders its result with the existing summary card.
 - Write the old Research rules as prompt instructions appended to the Agent whenever forum tools are present. Connect the numbered-source display component to the Agent's answers.
@@ -277,6 +288,7 @@ The highest-risk step on the entire roadmap. Never reverse the order: prove qual
 **M4 self-extension and Tampermonkey compatibility (1.4.0)**
 
 Original plan unchanged: GM API subset, importing scripts from a URL, handing script errors to the Agent to fix, and including scripts in iCloud sync. Add `GM_ai(prompt, optional return format)` so scripts can call a model at run time, defaulting to the Summary model role.
+
 - Acceptance (added): have the Agent write a script that, on a thread page, uses `GM_ai` to judge whether each post has substance and folds those that don't; it still takes effect after reloading.
 
 **Trial (two weeks, no release)**
@@ -284,6 +296,7 @@ Original plan unchanged: GM API subset, importing scripts from a URL, handing sc
 The owner uses 1.4.0 daily and exports any task the Agent cannot do, does slowly, or spends too many tokens on. The deliverable is an issue list in `docs/wukongmind/trial-notes.md` together with the exported files. During the trial, the orchestrator handles only defects the owner reports. Confirm the scope of "Learn on ask" against this list before splitting tasks.
 
 **Learn on ask (1.5.0, direction)**
+
 - Trigger: when the user's question needs to read a thread or a list and the current site has no matching tool, the Agent starts learning on its own. There is no dedicated "Learn" button, and nothing runs automatically on page open.
 - Learning process: look for data sources in priority order — the site's own JSON API, preloaded page data, then the DOM — write a tool-registering script, and record findings in site notes in the workspace.
 - Verification: the app calls the new tool with real arguments and validates the return value against section 5's shapes; only if it passes is it saved and marked learned. If it fails, record the reason and explain it in the conversation.
@@ -312,6 +325,7 @@ One set of data at two densities: the default UI shows one line per step, while 
 | Tool dry-run: fill in arguments by hand to call one tool, inspect raw return value, re-run validation | Does this tool work on its own | Learn on ask |
 
 **Task export requirements**
+
 - One task exports as a single JSON file containing every turn's full request, raw response, tool calls and results, page URL, and app version, shared via the system share sheet.
 - The format must be directly replayable by the existing recorded-response mechanism in unit tests (`RecordedModelClient` in `AgentLoopTests`), turning a failed task straight into a regression test.
 - API keys and cookies are not written to the exported file. Page content is written; prompt once before exporting.
@@ -328,6 +342,7 @@ This section carries over from v1; only category 4's role changed.
 | 4. Forum features | Keep capabilities, change wiring | Leave them untouched during cleanup. Per section 6, turn them into Agent tools in "One loop", and delete the old Research loop and Topic chat |
 
 **Four cleanup tasks, in order, each shipping a 1.1.x**
+
 - Delete review restrictions and compliance flows; make rate limiting a switch in Settings.
 - Delete listing-only directories and flows; keep TestFlight releases.
 - Rename the project, targets, directories and tests to WukongMind.
@@ -338,6 +353,7 @@ This section carries over from v1; only category 4's role changed.
 Content moderation code is embedded inside the adapters, e.g. `DiscourseDOM.moderationInstaller` and `SiteCapabilities.postIdentity`. When deleting it, make sure the `SiteAdapter` protocol, the three adapters' read paths and the page bridge are unaffected — "One loop" uses them directly.
 
 **Cleanup is done when**
+
 - CI removes `-retry-tests-on-failure`, and no test is skipped based on the `CI` environment variable.
 - Tests of deleted features are deleted with them; remaining flaky tests are fixed rather than quarantined further.
 - `Forumind` cannot be found anywhere in the repo as an identifier, except where docs describe the project's origin.
@@ -362,6 +378,7 @@ The designs below were all considered, and no real problem drives them today. Do
 ## 11. Open questions
 
 These items need the owner's decision; until answered, follow the default in parentheses.
+
 - After "One loop", Apple Intelligence users lose site-wide search Q&A. (Default: accept.)
 - In the "One panel" stage the microphone does dictation only, entering voice sessions only after "One loop". (Default: yes.)
 - In the "One panel" stage Topic chat temporarily has no entry point. (Default: accept.)
