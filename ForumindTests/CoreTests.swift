@@ -2001,11 +2001,11 @@ final class LazyMarkdownTests: XCTestCase {
         snapshot.sessions = [sessionA, sessionB]
         try store.save(snapshot)
 
-        let app = if let forumService {
-            AppModel(store: store, forumService: forumService, aiService: aiService)
-        } else {
-            AppModel(store: store, aiService: aiService)
-        }
+        let app = AppModel(
+            store: store,
+            forumService: forumService ?? makeStubbedForumService(),
+            aiService: aiService
+        )
         app.usesDirectForumRequests = true
         let handler = app.browser.onPageContextChanged
         app.browser.onPageContextChanged = nil
@@ -2767,6 +2767,10 @@ final class LazyMarkdownTests: XCTestCase {
         XCTAssertEqual(run.topicIDs, ["42"], "Paging/querying an already-read topic does not consume extra topic-read budget.")
         XCTAssertEqual(rawPage1Fetches, 1)
         XCTAssertEqual(rawPage2Fetches, 1)
+        guard planner.transcripts.count > 5 else {
+            XCTFail("Expected at least 6 planner transcripts, got \(planner.transcripts.count)")
+            return
+        }
 
         let firstObs = try XCTUnwrap(planner.transcripts[1].last?.content)
         XCTAssertTrue(firstObs.contains("pass page=2 or query=\"<keywords>\" to read other parts."), firstObs)

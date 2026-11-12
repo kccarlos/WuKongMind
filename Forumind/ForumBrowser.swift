@@ -1151,10 +1151,34 @@ extension ForumBrowserModel: WKNavigationDelegate {
 
     #if DEBUG
     private static let swizzleWebKitScreenTimeOnce: Void = {
-        let selector = NSSelectorFromString("_installScreenTimeWebpageControllerIfNeeded")
-        if let method = class_getInstanceMethod(WKWebView.self, selector) {
-            let noop: @convention(block) (AnyObject) -> Void = { _ in }
-            method_setImplementation(method, imp_implementationWithBlock(noop))
+        let noop: @convention(block) (AnyObject) -> Void = { _ in }
+        let imp = imp_implementationWithBlock(noop)
+        for selectorName in [
+            "_installScreenTimeWebpageControllerIfNeeded",
+            "_updateScreenTimeBasedOnWindowVisibility"
+        ] {
+            if let method = class_getInstanceMethod(WKWebView.self, NSSelectorFromString(selectorName)) {
+                method_setImplementation(method, imp)
+            }
+        }
+        for className in [
+            "WKScreenTimeConfigurationObserver",
+            "STScreenTimeWebBrowserSettingsObserver"
+        ] {
+            if let cls = NSClassFromString(className),
+               let method = class_getInstanceMethod(cls, NSSelectorFromString("startObserving")) {
+                method_setImplementation(method, imp)
+            }
+        }
+        let returnFalse: @convention(block) (AnyObject) -> Bool = { _ in false }
+        let falseImp = imp_implementationWithBlock(returnFalse)
+        for selectorName in [
+            "showsSystemScreenTimeBlockingView",
+            "_showsSystemScreenTimeBlockingView"
+        ] {
+            if let method = class_getInstanceMethod(WKWebViewConfiguration.self, NSSelectorFromString(selectorName)) {
+                method_setImplementation(method, falseImp)
+            }
         }
     }()
 

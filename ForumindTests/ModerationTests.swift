@@ -547,6 +547,10 @@ final class ModerationTests: XCTestCase {
         }
         let run = try XCTUnwrap(app.agentRuns.first)
         XCTAssertEqual(run.result, .completed, run.error)
+        guard planner.transcripts.count > 3 else {
+            XCTFail("Expected at least 4 planner transcripts, got \(planner.transcripts.count)")
+            return
+        }
 
         // 1. Agent search_forum observation excludes blocked user bob and blocked post #3 (leaving only Topic Two).
         let searchObs = try XCTUnwrap(planner.transcripts[1].last?.content)
