@@ -1,5 +1,12 @@
 # WukongMind requirements
 
+> **Note.** [next-phase.md](next-phase.md) ("WukongMind roadmap v2: Just ask") supersedes parts of this document and wins where they conflict. Specifically superseded:
+> - **Section 2 baseline table:** the row *"Discourse-specific summaries, chat, site-wide Q&A, followed topics: Kept as they are"* (capabilities are kept and rewired as Agent tools in "One loop", while the old Research loop and Topic chat engine are deleted — see [next-phase.md §6](next-phase.md#6-where-every-existing-piece-goes) and [§9](next-phase.md#9-handling-old-code)).
+> - **Section 6 (Models):** *"Agent mode has its own default model, beside Forumind's two existing defaults"* (reduced to two model roles — Agent and Summary — in "One loop"; see [next-phase.md §6](next-phase.md#6-where-every-existing-piece-goes)).
+> - **Section 7 (Interface):** superseded by the unified single-input-box interface and suggestion row ([next-phase.md §2](next-phase.md#2-documents-and-tasks-to-replace-or-change), [§3](next-phase.md#3-six-product-rules) and [§4](next-phase.md#4-end-state)).
+> - **Section 9 (Milestones and acceptance):** milestone order, versions and "Forumind's existing features and tests keep passing" are superseded by [next-phase.md §6](next-phase.md#6-where-every-existing-piece-goes), [§7](next-phase.md#7-milestones) and [§9](next-phase.md#9-handling-old-code).
+> - **Section 11 (Open questions):** *"Whether the Discourse-specific features stay long term"* (superseded by [next-phase.md §6](next-phase.md#6-where-every-existing-piece-goes), [§9](next-phase.md#9-handling-old-code) and [§11](next-phase.md#11-open-questions)).
+
 WukongMind (Chinese name 悟空, "Wukong") is an iOS/iPadOS app with its own browser. An AI agent reads and changes any web page by running JavaScript, and can save its changes as scripts that run automatically per site, like Tampermonkey.
 
 ## 1. Background and goals

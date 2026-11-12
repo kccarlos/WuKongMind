@@ -1,5 +1,7 @@
 # M1 design: agent panel, script card, toolbar button
 
+> **Note.** Per [next-phase.md](next-phase.md), the decision below that the agent is a fourth mode of the assistant panel (beside Summary, Chat and Ask the forum, with a separate third `ModelRole`) is superseded: the assistant panel becomes one conversation view with a single input box and a suggestion row ([next-phase.md §3](next-phase.md#3-six-product-rules), [§4](next-phase.md#4-end-state) and [§7](next-phase.md#7-milestones)). The tool rows, status line, Stop button and script card designs still hold.
+
 The UI task implements against this page and the design canvas:
 **https://claude.ai/artifact/Wi2peNxD7d87bfJcfedbcg** (7 artboards: iPhone running, done with script card, empty and no-model; iPad running and step limit; a sheet of every component in light and dark).
 
