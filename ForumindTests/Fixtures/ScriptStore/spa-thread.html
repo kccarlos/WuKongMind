@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Local SPA Thread Fixture</title>
+  <script>
+    window.__observedAtHeadParse = (document.documentElement && document.documentElement.dataset.docStartMarker) || "missing";
+  </script>
+  <style>
+    body { background: rgb(255, 255, 255); color: rgb(20, 20, 20); margin: 16px; }
+    article.post { padding: 8px; margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+  <header id="spa-header">
+    <h1 id="route-title">Thread 1</h1>
+  </header>
+  <main id="thread-feed">
+    <article class="post op" data-op="true" id="post-op">Original poster opening message</article>
+    <article class="post reply" data-op="false" id="post-reply-1">First reply from commenter</article>
+    <article class="post reply" data-op="false" id="post-reply-2">Second reply from commenter</article>
+  </main>
+  <div id="shadow-host"></div>
+  <script>
+    window.pageRouteVisits = [window.location.pathname];
+    const host = document.getElementById("shadow-host");
+    if (host && host.attachShadow) {
+      const root = host.attachShadow({ mode: "open" });
+      const pill = document.createElement("span");
+      pill.id = "shadow-pill";
+      pill.textContent = "Shadow Pill";
+      root.appendChild(pill);
+    }
+
+    function renderRoute() {
+      const path = window.location.pathname;
+      const title = document.getElementById("route-title");
+      const feed = document.getElementById("thread-feed");
+      if (title) title.textContent = "Route: " + path;
+      if (feed && path.startsWith("/t/")) {
+        feed.innerHTML =
+          '<article class="post op" data-op="true">OP on ' + path + '</article>' +
+          '<article class="post reply" data-op="false">Reply on ' + path + '</article>';
+      } else if (feed) {
+        feed.innerHTML = '<section id="about-view">About this forum</section>';
+      }
+    }
+
+    window.spaPush = function(path) {
+      history.pushState({ path }, "", path);
+      window.pageRouteVisits.push(path);
+      renderRoute();
+    };
+
+    window.spaReplace = function(path) {
+      history.replaceState({ path }, "", path);
+      window.pageRouteVisits.push(path);
+      renderRoute();
+    };
+
+    window.addEventListener("popstate", () => {
+      window.pageRouteVisits.push(window.location.pathname);
+      renderRoute();
+    });
+  </script>
+</body>
+</html>
