@@ -643,7 +643,11 @@ final class AppModel: ObservableObject {
         }
         if settings.dailyDigestEnabled { scheduleDigestPrefetch() }
         Task { [weak self] in
-            await self?.refreshNotificationAuthorization()
+            guard let notifier = self?.notifier else { return }
+            let authorized = await notifier.isAuthorized()
+            if let self, self.notificationsAuthorized != authorized {
+                self.notificationsAuthorized = authorized
+            }
         }
 
         #if DEBUG

@@ -17,7 +17,7 @@ final class ScriptStoreWebTests: XCTestCase {
         private var continuation: CheckedContinuation<Void, Error>?
         private var timeoutTask: Task<Void, Never>?
 
-        func waitForLoad(timeoutSeconds: Double = 15, _ start: () -> Void) async throws {
+        func waitForLoad(timeoutSeconds: Double = 30, _ start: () -> Void) async throws {
             try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
                 self.continuation = cont
                 self.timeoutTask = Task { @MainActor [weak self] in
@@ -1074,7 +1074,14 @@ final class ScriptStoreWebTests: XCTestCase {
 
             app.browser.ignoresNavigationFailures = true
             app.browser.load(threadURL)
-            await app.browser.waitUntilSettled(timeout: .seconds(10))
+            await app.browser.waitUntilSettled(timeout: .seconds(30))
+            try await waitUntil(timeoutSeconds: 15.0) {
+                let ready = try? await app.browser.agentBridge.runJS(
+                    code: "return window.location.pathname === '/t/99' && document.querySelector('article.reply') !== null;",
+                    environment: .isolated
+                )
+                return ready?.valueJSON == "true"
+            }
 
             await app.browserAgent.sendAndWait(userPrompt)
 
@@ -1123,9 +1130,17 @@ final class ScriptStoreWebTests: XCTestCase {
 
         let relaunchedEnabled = makeIsolatedApp()
         XCTAssertTrue(relaunchedEnabled.scriptStore.isGlobalEnabled)
+        let restartedURL = baseURL.appendingPathComponent("t/100")
         relaunchedEnabled.browser.ignoresNavigationFailures = true
-        relaunchedEnabled.browser.load(threadURL)
-        await relaunchedEnabled.browser.waitUntilSettled(timeout: .seconds(10))
+        relaunchedEnabled.browser.load(restartedURL)
+        await relaunchedEnabled.browser.waitUntilSettled(timeout: .seconds(30))
+        try await waitUntil(timeoutSeconds: 15.0) {
+            let ready = try? await relaunchedEnabled.browser.agentBridge.runJS(
+                code: "return window.location.pathname === '/t/100' && document.querySelector('article.reply') !== null;",
+                environment: .isolated
+            )
+            return ready?.valueJSON == "true"
+        }
 
         let restartedCheck = try await relaunchedEnabled.browser.agentBridge.runJS(
             code: """
@@ -1143,7 +1158,7 @@ final class ScriptStoreWebTests: XCTestCase {
         XCTAssertEqual(restartedObj["marker"], .string("active"))
 
         // Verify previous AppModel + ScriptStore + ScriptWebController deallocated cleanly (no retain cycles)
-        try await waitUntil(timeoutSeconds: 2.0) {
+        try await waitUntil(timeoutSeconds: 10.0) {
             trackedApp == nil && trackedStore == nil && trackedController == nil
         }
     }

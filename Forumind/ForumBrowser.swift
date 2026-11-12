@@ -250,14 +250,14 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     init(
         contentRules: ContentRuleLibrary? = nil,
         sites: SiteRegistry = .standard,
-        websiteDataStore: WKWebsiteDataStore = .default()
+        websiteDataStore: WKWebsiteDataStore? = nil
     ) {
         let contentRules = contentRules ?? .shared
         let probeExpression = sites.probeExpression
         self.sites = sites
         self.probeExpression = probeExpression
         let configuration = WKWebViewConfiguration()
-        configuration.websiteDataStore = websiteDataStore
+        configuration.websiteDataStore = websiteDataStore ?? .default()
         configuration.defaultWebpagePreferences.allowsContentJavaScript = true
         configuration.preferences.isElementFullscreenEnabled = true
         #if DEBUG
