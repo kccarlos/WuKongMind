@@ -622,18 +622,17 @@ struct PhoneAIButton: View {
     @ObservedObject var podcast: PodcastController
     let isAvailable: Bool
     let onOpen: () -> Void
+    @State private var completedBrowserAgentBounce = 0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var browserAgent: BrowserAgentSession { app.browserAgent }
     private var canTalk: Bool { app.showsVoiceButton }
     private var showsNewRepliesDot: Bool { app.showsNewRepliesDot }
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var finishedBounceValue: String? {
         if reduceMotion { return nil }
         if let id = app.readyAnswer?.id { return id.uuidString }
-        if !app.isAIViewShown, !browserAgent.isRunning, let last = browserAgent.runs.last {
-            return "\(last.id.uuidString)-\(String(describing: last.state))"
-        }
+        if completedBrowserAgentBounce > 0 { return "agent-\(completedBrowserAgentBounce)" }
         return nil
     }
 
@@ -669,8 +668,17 @@ struct PhoneAIButton: View {
                 DCHaptics.tap()
                 voice.toggle()
             }
+            .onChange(of: browserAgent.isRunning) { wasRunning, isRunning in
+                if wasRunning, !isRunning, !app.isAIViewShown, browserAgent.runs.last != nil {
+                    completedBrowserAgentBounce &+= 1
+                }
+            }
             .accessibilityElement()
-            .accessibilityLabel(Text("AI assistant", comment: "iPhone browser bar button that opens the AI drawer"))
+            .accessibilityLabel(
+                app.toolbarOpensBrowserAgentByDefault || app.assistantMode == .browserAgent
+                    ? Text(verbatim: AssistantMode.browserAgent.title)
+                    : Text("AI assistant", comment: "iPhone browser bar button that opens the AI drawer")
+            )
             .accessibilityValue(accessibilityValueText)
             .accessibilityHint(canTalk ? Text("Touch and hold to talk to Forumind", comment: "Accessibility hint of the iPhone AI button when voice is set up") : Text(verbatim: ""))
             .accessibilityAddTraits(.isButton)

@@ -22491,6 +22491,30 @@
     "forum.example.com" : {
       "shouldTranslate" : false
     },
+    "assistantMode.browserAgent" : {
+      "comment" : "Browser agent mode title in the AI drawer header and mode switcher",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Agent"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "浏览器代理"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "瀏覽器代理"
+          }
+        }
+      }
+    },
     "forumPill.prefixAndName" : {
       "comment" : "Pill with a forum's icon: an action (e.g. “Searching”), then the forum name",
       "extractionState" : "extracted_with_value",

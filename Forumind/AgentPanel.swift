@@ -779,6 +779,7 @@ struct BrowserAgentPanelView: View {
     @State private var bottomScrollTrigger = 0
     @FocusState private var promptFocused: Bool
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var session: BrowserAgentSession { app.browserAgent }
@@ -847,25 +848,19 @@ struct BrowserAgentPanelView: View {
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("agentPanel")
-        .onChange(of: promptFocused) { _, focused in
-            if focused, app.router.usesDrawer, app.router.drawerDetent == .medium {
-                withAnimation(DCMotion.respecting(reduceMotion, DCMotion.smooth)) {
-                    app.router.drawerDetent = .large
-                }
-            }
-        }
     }
 
     // MARK: Context row
 
     private var contextRow: some View {
-        HStack(spacing: 8) {
+        let singleLineLimit: Int? = dynamicTypeSize.isAccessibilitySize ? nil : 1
+        return HStack(spacing: 8) {
             DCPill(text: currentHost, systemImage: "globe", tint: .secondary)
                 .accessibilityIdentifier("agentHostPill")
             Text("\(0) scripts on this page", comment: "Browser agent context bar: number of saved scripts matching this page")
                 .font(.caption.weight(.medium))
                 .foregroundStyle(DCTheme.agentTint)
-                .lineLimit(1)
+                .lineLimit(singleLineLimit)
                 .accessibilityIdentifier("agentScriptsCount")
             Spacer(minLength: 0)
         }
@@ -1255,7 +1250,8 @@ struct BrowserAgentPanelView: View {
     }
 
     private var statusLine: some View {
-        HStack(spacing: 6) {
+        let singleLineLimit: Int? = dynamicTypeSize.isAccessibilitySize ? nil : 1
+        return HStack(spacing: 6) {
             switch session.runState {
             case .idle:
                 EmptyView()
@@ -1265,36 +1261,36 @@ struct BrowserAgentPanelView: View {
                     .frame(width: 8, height: 8)
                     .accessibilityHidden(true)
                 Text("Working · step \(max(1, step)) of \(maxSteps)", comment: "Browser agent footer status while a run is working")
-                    .lineLimit(1)
+                    .lineLimit(singleLineLimit)
             case .completed(let steps, let duration):
                 Image(systemName: "checkmark.circle.fill")
                     .foregroundStyle(DCTheme.success)
                     .accessibilityHidden(true)
                 Text("Done · \(steps) steps · \(Self.formatDuration(duration))", comment: "Browser agent footer status when a run finishes")
-                    .lineLimit(1)
+                    .lineLimit(singleLineLimit)
             case .stopped(let step):
                 Image(systemName: "stop.circle.fill")
                     .foregroundStyle(.secondary)
                     .accessibilityHidden(true)
                 Text("Stopped by you · step \(step)", comment: "Browser agent footer status when stopped by the user")
-                    .lineLimit(1)
+                    .lineLimit(singleLineLimit)
             case .stepLimitReached(let limit):
                 Image(systemName: "pause.circle.fill")
                     .foregroundStyle(DCTheme.warning)
                     .accessibilityHidden(true)
                 Text("Stopped at the step limit (\(limit))", comment: "Browser agent warning card title when the step limit is reached")
-                    .lineLimit(1)
+                    .lineLimit(singleLineLimit)
             case .failed:
                 Image(systemName: "exclamationmark.circle.fill")
                     .foregroundStyle(DCTheme.danger)
                     .accessibilityHidden(true)
                 Text("Turn failed", comment: "Browser agent footer status when a turn fails")
-                    .lineLimit(1)
+                    .lineLimit(singleLineLimit)
             }
             Spacer(minLength: 6)
             Text("\(Self.formatTokens(session.tokenUsage.totalTokens)) tokens", comment: "Browser agent footer token counter")
                 .monospacedDigit()
-                .lineLimit(1)
+                .lineLimit(singleLineLimit)
         }
         .font(.caption)
         .foregroundStyle(.secondary)
@@ -1382,6 +1378,12 @@ struct BrowserAgentPanelView: View {
         guard !prompt.isEmpty else { return }
         DCHaptics.tap()
         draft = ""
+        promptFocused = false
+        if app.router.usesDrawer, !dynamicTypeSize.isAccessibilitySize, app.router.drawerDetent == .large {
+            withAnimation(DCMotion.respecting(reduceMotion, DCMotion.smooth)) {
+                app.router.drawerDetent = .medium
+            }
+        }
         session.send(prompt)
     }
 
@@ -1454,12 +1456,18 @@ private struct BrowserAgentToolRowView: View {
     let row: BrowserAgentToolCallRow
     let isExpanded: Bool
     let onToggle: () -> Void
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     private var style: BrowserAgentToolStyle.Style {
         BrowserAgentToolStyle.resolve(toolName: row.toolName, isError: row.isError)
     }
 
     var body: some View {
+        let singleLineLimit: Int? = dynamicTypeSize.isAccessibilitySize ? nil : 1
+        let summaryLineLimit: Int? = dynamicTypeSize.isAccessibilitySize ? nil : 2
+        let headerLayout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 2))
+            : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 6))
         VStack(alignment: .leading, spacing: 0) {
             Button(action: onToggle) {
                 HStack(alignment: .center, spacing: 10) {
@@ -1480,16 +1488,16 @@ private struct BrowserAgentToolRowView: View {
                         .accessibilityHidden(true)
 
                     VStack(alignment: .leading, spacing: 2) {
-                        HStack(alignment: .firstTextBaseline, spacing: 6) {
+                        headerLayout {
                             Text(verbatim: row.toolName)
                                 .font(.subheadline.weight(.semibold).monospaced())
                                 .foregroundStyle(.primary)
-                                .lineLimit(1)
+                                .lineLimit(singleLineLimit)
                             if !row.argumentSummary.isEmpty {
                                 Text(verbatim: row.argumentSummary)
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
-                                    .lineLimit(1)
+                                    .lineLimit(singleLineLimit)
                                     .truncationMode(.tail)
                             }
                         }
@@ -1500,7 +1508,7 @@ private struct BrowserAgentToolRowView: View {
                         )
                         .font(.caption.weight(.medium))
                         .foregroundStyle(row.isError ? DCTheme.danger : style.tint)
-                        .lineLimit(2)
+                        .lineLimit(summaryLineLimit)
                         .multilineTextAlignment(.leading)
                     }
 

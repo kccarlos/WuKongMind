@@ -134,19 +134,7 @@ extension AppModel {
 
     /// Whether the toolbar button opens the panel straight in `.browserAgent` mode.
     var toolbarOpensBrowserAgentByDefault: Bool {
-        #if DEBUG
-        let args = ProcessInfo.processInfo.arguments
-        if AssistantDebug.value("-dc-assistant-mode")?.lowercased() == AssistantMode.browserAgent.rawValue.lowercased()
-            || AssistantDebug.value("-dc-browser-agent-demo") != nil
-            || AssistantDebug.value("-dc-browser-agent-live-prompt") != nil
-            || AssistantDebug.has("-dc-browser-agent-fixture-page") {
-            return true
-        }
-        if AssistantDebug.isActive || args.contains("-ui-test-sample-session") || args.contains("-dc-open") {
-            return !browser.pageContext.isForum && AssistantDebug.value("-dc-page-state") != "notForum"
-        }
-        #endif
-        return !browser.pageContext.isForum || currentTopic == nil
+        !browser.pageContext.isForum || currentTopic == nil
     }
 
     /// History and Settings (the menus, Home's top bar, ⌘, and ⇧⌘Y). History:

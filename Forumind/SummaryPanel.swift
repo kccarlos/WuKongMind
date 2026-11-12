@@ -92,13 +92,6 @@ struct AssistantPanel: View {
         case .topic: return .summary
         case .forumHome: return .forumHome
         case .notForum:
-            #if DEBUG
-            if AssistantDebug.isActive,
-               AssistantDebug.value("-dc-page-state") == "notForum",
-               AssistantDebug.value("-dc-assistant-mode") == nil {
-                return .notForum
-            }
-            #endif
             return .browserAgent
         case .maybe: return .maybe
         case .loading: return .loading

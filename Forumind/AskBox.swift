@@ -318,8 +318,8 @@ struct AskBox: View {
                 Button {
                     app.assistantMode = .browserAgent
                 } label: {
-                    scopeItem(String(localized: "Agent", comment: "Ask box scope: browser agent that reads and modifies the open page"),
-                              systemImage: "sparkles", checked: app.assistantMode == .browserAgent)
+                    scopeItem(AssistantMode.browserAgent.title,
+                              systemImage: AssistantMode.browserAgent.systemImage, checked: app.assistantMode == .browserAgent)
                 }
                 .accessibilityIdentifier("askScope-browserAgent")
             }

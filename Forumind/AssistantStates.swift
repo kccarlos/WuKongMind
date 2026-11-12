@@ -11,7 +11,12 @@ extension AssistantMode {
         case .summary: String(localized: "Summary", comment: "Assistant mode: the topic's AI summary")
         case .chat: String(localized: "Chat", comment: "Assistant mode: chat about the open topic")
         case .agent: String(localized: "Ask the forum", comment: "Assistant mode: the research agent that searches the whole forum")
-        case .browserAgent: String(localized: "Agent", comment: "VoiceOver name of the “Ask the forum” assistant mode (the research agent)")
+        case .browserAgent:
+            String(
+                localized: "assistantMode.browserAgent",
+                defaultValue: "Agent",
+                comment: "Browser agent mode title in the AI drawer header and mode switcher"
+            )
         }
     }
 
@@ -21,7 +26,8 @@ extension AssistantMode {
         switch self {
         case .summary: String(localized: "Summary", comment: "Assistant mode: the topic's AI summary")
         case .chat: String(localized: "Chat", comment: "Assistant mode: chat about the open topic")
-        case .agent, .browserAgent: String(localized: "Agent", comment: "VoiceOver name of the “Ask the forum” assistant mode (the research agent)")
+        case .agent: String(localized: "Agent", comment: "VoiceOver name of the “Ask the forum” assistant mode (the research agent)")
+        case .browserAgent: title
         }
     }
 
@@ -31,7 +37,7 @@ extension AssistantMode {
         case .summary: String(localized: "Summary", comment: "Assistant mode: the topic's AI summary")
         case .chat: String(localized: "Chat", comment: "Assistant mode: chat about the open topic")
         case .agent: String(localized: "Ask", comment: "Short form of the “Ask the forum” assistant mode, for narrow switchers")
-        case .browserAgent: String(localized: "Agent", comment: "VoiceOver name of the “Ask the forum” assistant mode (the research agent)")
+        case .browserAgent: title
         }
     }
 

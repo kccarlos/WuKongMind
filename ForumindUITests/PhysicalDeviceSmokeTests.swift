@@ -609,12 +609,11 @@ final class PhysicalDeviceSmokeTests: DCUITestCase {
 
     func testAssistantPageStatesOffline() throws {
         try skipUnlessPhone("The iPad workspace switcher, mode picker and Manage screen were replaced in Phase 8; IPadLayoutUITests covers the split and drawer layouts.")
-        // A page that isn't a Discourse forum: status chip and not-forum card.
+        // A page that isn't a Discourse forum: opens the browser agent panel.
         var app = launch(["-dc-sample", "-dc-no-provider", "-dc-page-state", "notForum"])
         showAssistantIfNeeded(in: app)
-        XCTAssertTrue(any(app, "notForumState").waitForExistence(timeout: 20), "The not-a-forum card is missing.")
+        XCTAssertTrue(any(app, "agentPanel").waitForExistence(timeout: 20), "The browser agent panel is missing.")
         XCTAssertTrue(any(app, "providerSetupCard").exists, "The provider card must show without a provider.")
-        XCTAssertTrue(app.buttons["stateAllForums"].exists)
         app.terminate()
 
         // A forum's home page: Ask the forum.

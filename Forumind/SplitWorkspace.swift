@@ -98,6 +98,7 @@ struct SplitPanelToggle: View {
     @ObservedObject private var browser: ForumBrowserModel
     let isShown: Bool
     let action: () -> Void
+    @State private var completedBrowserAgentBounce = 0
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     init(app: AppModel, isShown: Bool, action: @escaping () -> Void) {
@@ -114,9 +115,7 @@ struct SplitPanelToggle: View {
     private var finishedBounceValue: String? {
         if reduceMotion { return nil }
         if let id = app.readyAnswer?.id { return id.uuidString }
-        if !isShown, !browserAgent.isRunning, let last = browserAgent.runs.last {
-            return "\(last.id.uuidString)-\(String(describing: last.state))"
-        }
+        if completedBrowserAgentBounce > 0 { return "agent-\(completedBrowserAgentBounce)" }
         return nil
     }
 
@@ -161,7 +160,16 @@ struct SplitPanelToggle: View {
         .overlay(alignment: .topTrailing) {
             if showsNewRepliesDot { NewRepliesDot() }
         }
-        .accessibilityLabel(isShown ? Text("Hide AI panel") : Text("Show AI panel"))
+        .onChange(of: browserAgent.isRunning) { wasRunning, isRunning in
+            if wasRunning, !isRunning, !isShown, browserAgent.runs.last != nil {
+                completedBrowserAgentBounce &+= 1
+            }
+        }
+        .accessibilityLabel(
+            app.toolbarOpensBrowserAgentByDefault || app.assistantMode == .browserAgent
+                ? Text(verbatim: AssistantMode.browserAgent.title)
+                : (isShown ? Text("Hide AI panel") : Text("Show AI panel"))
+        )
         .accessibilityValue(Text(verbatim: accessibilityValue))
         .accessibilityActions {
             if browserAgent.isRunning {
