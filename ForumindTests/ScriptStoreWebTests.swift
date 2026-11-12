@@ -225,10 +225,23 @@ final class ScriptStoreWebTests: XCTestCase {
         let waiter: NavigationWaiter
     }
 
+    private final class OfflineForumURLProtocol: URLProtocol {
+        override class func canInit(with request: URLRequest) -> Bool { true }
+        override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+        override func startLoading() {
+            client?.urlProtocol(self, didFailWithError: URLError(.cancelled))
+        }
+        override func stopLoading() {}
+    }
+
+    /// Share one ephemeral `WKWebsiteDataStore` across the suite so WebKit does
+    /// not spawn a separate `Networking` AppExtensionProcess per test on Swift's
+    /// cooperative pool (3 threads on CI runners).
+    private static let sharedDataStore = WKWebsiteDataStore.nonPersistent()
+
     private var tempDirectory: URL!
     private var activeWebViews: [WKWebView] = []
     private var activeControllers: [ScriptWebController] = []
-    private var fallbackWindow: UIWindow?
 
     override func setUpWithError() throws {
         try super.setUpWithError()
@@ -249,8 +262,6 @@ final class ScriptStoreWebTests: XCTestCase {
             webView.removeFromSuperview()
         }
         activeWebViews.removeAll()
-        fallbackWindow?.isHidden = true
-        fallbackWindow = nil
 
         if let tempDirectory, FileManager.default.fileExists(atPath: tempDirectory.path) {
             try? FileManager.default.removeItem(at: tempDirectory)
@@ -285,7 +296,7 @@ final class ScriptStoreWebTests: XCTestCase {
         preinstalledScriptSource: String? = nil
     ) -> WebHarness {
         let config = WKWebViewConfiguration()
-        config.websiteDataStore = .nonPersistent()
+        config.websiteDataStore = Self.sharedDataStore
         config.defaultWebpagePreferences.allowsContentJavaScript = true
         ForumBrowserModel.disableWebKitScreenTimeForTesting(in: config)
 
@@ -304,21 +315,6 @@ final class ScriptStoreWebTests: XCTestCase {
         let controller = ScriptWebController(webView: webView, store: store, agentBridge: bridge)
         let waiter = NavigationWaiter()
         webView.navigationDelegate = waiter
-
-        if let sceneWindow = UIApplication.shared.connectedScenes
-            .compactMap({ $0 as? UIWindowScene })
-            .flatMap(\.windows)
-            .first {
-            sceneWindow.addSubview(webView)
-        } else {
-            let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
-            let vc = UIViewController()
-            vc.view.addSubview(webView)
-            webView.frame = vc.view.bounds
-            window.rootViewController = vc
-            window.isHidden = false
-            self.fallbackWindow = window
-        }
 
         activeWebViews.append(webView)
         activeControllers.append(controller)
@@ -896,19 +892,45 @@ final class ScriptStoreWebTests: XCTestCase {
             withIntermediateDirectories: true
         )
 
-        let attachWebView: (WKWebView) -> Void = { webView in
-            webView.frame = CGRect(x: 0, y: 0, width: 390, height: 844)
-            if let sceneWindow = UIApplication.shared.connectedScenes
-                .compactMap({ $0 as? UIWindowScene })
-                .flatMap(\.windows)
-                .first {
-                sceneWindow.addSubview(webView)
+        let keys = InMemoryProviderKeyStore()
+        let forumConfig = URLSessionConfiguration.ephemeral
+        forumConfig.protocolClasses = [OfflineForumURLProtocol.self]
+        let stubForumService = ForumService(
+            session: URLSession(configuration: forumConfig),
+            pacer: ForumRequestPacer(clock: InstantPacingClock())
+        )
+        let podcastDirectory = tempDirectory.appendingPathComponent("Podcasts", isDirectory: true)
+        var createdApps: [AppModel] = []
+        defer {
+            for instance in createdApps {
+                instance.browser.stopLoading()
+                instance.pauseDigest()
+                instance.podcast.pauseGeneration()
+                instance.scriptWebController.detach()
             }
-            self.activeWebViews.append(webView)
         }
 
-        let app = AppModel(store: PersistentStore(fileURL: stateURL))
-        attachWebView(app.browser.webView)
+        let makeIsolatedApp: () -> AppModel = {
+            let browser = ForumBrowserModel(
+                contentRules: ContentRuleLibrary(store: nil, directory: nil)
+            )
+            browser.webView.frame = CGRect(x: 0, y: 0, width: 390, height: 844)
+            let instance = AppModel(
+                store: PersistentStore(fileURL: stateURL, keys: keys),
+                forumService: stubForumService,
+                browser: browser,
+                podcastDirectory: podcastDirectory,
+                spotlightIndex: FakeSpotlightIndex(),
+                topicActivityDonor: FakeTopicActivityDonor()
+            )
+            instance.usesDirectForumRequests = true
+            instance.browser.stopLoading()
+            instance.browser.onPageContextChanged = nil
+            createdApps.append(instance)
+            return instance
+        }
+
+        let app = makeIsolatedApp()
         var anthropicConfig = app.settings.configuration(for: .anthropic)
         anthropicConfig.apiKey = "fake-recorded-key"
         anthropicConfig.model = "claude-haiku-5-5"
@@ -960,7 +982,7 @@ final class ScriptStoreWebTests: XCTestCase {
         XCTAssertFalse(app.settings.browserScriptsEnabled)
         app.flushPendingSaves()
 
-        let relaunchedDisabled = AppModel(store: PersistentStore(fileURL: stateURL))
+        let relaunchedDisabled = makeIsolatedApp()
         XCTAssertFalse(relaunchedDisabled.scriptStore.isGlobalEnabled)
         XCTAssertEqual(relaunchedDisabled.scriptStore.scripts.count, 1)
 
@@ -969,8 +991,7 @@ final class ScriptStoreWebTests: XCTestCase {
         XCTAssertTrue(relaunchedDisabled.scriptStore.isGlobalEnabled)
         relaunchedDisabled.flushPendingSaves()
 
-        let relaunchedEnabled = AppModel(store: PersistentStore(fileURL: stateURL))
-        attachWebView(relaunchedEnabled.browser.webView)
+        let relaunchedEnabled = makeIsolatedApp()
         XCTAssertTrue(relaunchedEnabled.scriptStore.isGlobalEnabled)
         relaunchedEnabled.browser.ignoresNavigationFailures = true
         relaunchedEnabled.browser.load(threadURL)

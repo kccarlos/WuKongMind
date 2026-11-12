@@ -1916,6 +1916,11 @@ final class ScriptWebController: ScriptLiveApplying {
     /// `routeObserverScript` and Discourse moderation/browse bridges).
     func syncUserScripts() {
         guard let webView else { return }
+        let enabledScripts = store.isGlobalEnabled ? store.scripts.filter(\.isEnabled) : []
+        if managedUserScripts.isEmpty, enabledScripts.isEmpty {
+            return
+        }
+
         let controller = webView.configuration.userContentController
         let preserved = controller.userScripts.filter { managedUserScripts[ObjectIdentifier($0)] == nil }
         controller.removeAllUserScripts()
@@ -1925,8 +1930,6 @@ final class ScriptWebController: ScriptLiveApplying {
             controller.addUserScript(existing)
         }
 
-        guard store.isGlobalEnabled else { return }
-        let enabledScripts = store.scripts.filter(\.isEnabled)
         guard !enabledScripts.isEmpty else { return }
 
         addManagedUserScript(
