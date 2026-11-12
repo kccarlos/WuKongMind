@@ -1,7 +1,7 @@
 # Unified interface design (whole app)
 
 The unified-interface implementation milestone builds against this page and the design canvas:
-**https://claude.ai/artifact/Daefr4AsZcSm2EWbTLU9uK**. The canvas has the information architecture, the answers to the six directions, artboards for iPhone and iPad in light and dark (the assistant panel on a forum page and on an ordinary page, "This page", Home, Settings, the three onboarding steps), the migration list and the glossary.
+**https://claude.ai/artifact/Daefr4AsZcSm2EWbTLU9uK**. The canvas has the information architecture, the answers to the six directions, artboards for iPhone and iPad in light and dark (the assistant panel on a forum page and on an ordinary page, "This page", Home, Settings, the three onboarding steps), motion storyboards, the migration list and the glossary.
 
 It answers section 3 of [next-phase.md](next-phase.md), which wins where [requirements.md](requirements.md) or [README.md](README.md) disagree. It builds on [design-m1.md](design-m1.md) and [design-m2.md](design-m2.md) and their canvases. **This changes structure, not looks.** Every piece keeps Forumind's style: SF text styles, `DCTheme` tokens, `dcCard`, `DCPill`, `DCActionButtonStyle`, `Form(.grouped)`, `SettingsIcon`, `DCMotion` (`Forumind/DesignSystem.swift`, `Forumind/SettingsPanel.swift`). `agentTint` still marks agent and script things and `brandBlue` is still the action colour. Summary keeps `summaryTint` and topic chat keeps `chatTint`. One token assignment changes, and it is listed as a proposal below: Research moves from `agentTint` to `brandBlue`, so purple means only the Agent. If the owner declines, Research keeps `agentTint` and nothing else changes.
 
@@ -281,6 +281,39 @@ OnboardingFlow
 ```
 
 "Later" on step 1 still goes on. Step 3 then shows the panel's no-model card instead of the prompts.
+
+### 6. Motion
+
+Motion explains what happened, so the screens need fewer words. It reuses what the app already has:
+- `DCMotion.quick` (0.22 s), `.smooth` (0.32 s) and `.spring` for animation.
+- `DCMotion.respecting(reduceMotion, …)` for Reduce Motion.
+- `DCHaptics` for haptics.
+- `.contentTransition(.numericText())`, already used on Home.
+- The zoom navigation transition, already used by Now playing.
+- The Dock's `glassEffectID` morph.
+
+There are no new curves and no decorative motion. Every animation is short, starts from what was touched, and ends where the result is. The canvas's **Motion** board draws each one as a storyboard.
+
+| Moment | What moves | How (SwiftUI) | Why |
+|---|---|---|---|
+| Tap Research or Topic chat | The chip flies into the input box and becomes the target token. The field's placeholder crossfades. Tapping the token's ✕ sends it back to the row | `matchedGeometryEffect(id: action, in: ns)` shared by the chip and the token, `DCMotion.spring`, `DCHaptics.tap()` | It shows where the next message goes, with no explanation needed |
+| Tap Summary or Listen | The chip shows a small `ProgressView` in place of its symbol. The result card then inserts at the bottom of the conversation, which scrolls to it | `.transition(.move(edge: .bottom).combined(with: .opacity))`, `DCMotion.smooth`, the existing `scrollToBottomEdge` | It links the tap to its result |
+| Page changes (forum topic ↔ ordinary page) | The quick-action row grows or collapses in height while its chips fade. The header and input box stay still | `.transition(.opacity.combined(with: .scale(scale: 0.96, anchor: .bottom)))` on the row, `DCMotion.smooth` | Only the part that differs moves, so the panel reads as the same panel |
+| This page chip and toolbar badge | The count rolls to its new value. The chip's tint crossfades to danger on an error | `.contentTransition(.numericText())`, `DCMotion.quick` | Shows that a script just applied or failed |
+| Open This page | The system popover animation, nothing custom | `.popover` | Native behaviour |
+| Agent running | Unchanged from M1: tool rows slide in, `ResearchRing` turns around the toolbar button, and the run folds into "Steps N" when it ends. Research runs get the same ring | M1's `DCMotion.respecting` rules | One way to show "working" |
+| Run finishes | A success haptic, and the status line's dot morphs into the check. With the panel closed, the existing button bounce plays and the Dock shows "Answer ready" (`glassEffectID` morph) | `DCHaptics.success()`, `.symbolEffect(.bounce)` | Felt even when you aren't looking |
+| Run fails or hits the step limit | A warning haptic. The card inserts as above and is announced | `DCHaptics.warning()`, the M1 announcement | Same rule for every result |
+| Home: open a site tile or a recent task | The tile zooms into the page. A recent task then raises the panel | `.navigationTransition(.zoom(sourceID: site.id, in: ns))`, the Now playing pattern. If the browser host can't take a navigation transition, a 0.22 s crossfade | Keeps your place: back returns to the tile |
+| Home: pin or unpin | The tile moves to or from the front of the grid | `withAnimation(DCMotion.spring)` on the grid order | Shows where it went |
+| Onboarding | Steps 1 → 2 push. The active progress dot stretches to the next one. When the cover closes for step 3, the panel rises to medium over the opened page and the two prompts appear 60 ms apart | `matchedGeometryEffect` on the active dot, the drawer's own detent animation, a `.delay` on the second prompt | Ends onboarding inside the real app, not on a "done" page |
+| Settings | System push and pop only | — | Settings stay plain |
+
+**Reduce Motion.** Every row above goes through `DCMotion.respecting`:
+- Moves, scales, zooms and the chip-to-token flight become a 0.2 s opacity crossfade.
+- The progress ring and the bounce are off.
+- Number rolls become plain changes.
+- Haptics stay, because they aren't motion.
 
 ## Migration list
 
