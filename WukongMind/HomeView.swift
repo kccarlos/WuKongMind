@@ -298,7 +298,12 @@ private struct HomeList: View {
         }
         Divider()
         Button(role: .destructive) { confirmRemoval(site) } label: {
-            Label("Remove", systemImage: "trash")
+            // A forum asks what happens to its saved data first.
+            if site.isForum {
+                Label("Remove…", systemImage: "trash")
+            } else {
+                Label("Remove", systemImage: "trash")
+            }
         }
     }
 
@@ -593,7 +598,7 @@ private struct RecentRow: View {
     private var detail: String {
         let when = Date().timeIntervalSince(item.date) < 60
             ? String(localized: "just now", comment: "Home Recent: less than a minute ago")
-            : item.date.formatted(.relative(presentation: .named, unitsStyle: .abbreviated))
+            : item.date.formatted(.relative(presentation: .named, unitsStyle: .narrow))
         return [kindLabel, item.host, when].filter { !$0.isEmpty }.joined(separator: " · ")
     }
 

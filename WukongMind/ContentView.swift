@@ -30,6 +30,8 @@ struct ContentView: View {
             }
         }
         .background(DCTheme.pageBackground)
+        // First-run step 3: the Agent's first run over the page.
+        .firstRunHost(app: app)
         #if DEBUG
         .modifier(DebugWindowWidth())
         #endif
@@ -287,7 +289,6 @@ struct BrowserContent: View {
                 .accessibilityHidden(showsHome)
             if showsHome {
                 HomeView(app: app, actions: actions)
-                    .transition(DCMotion.screen(reduceMotion: reduceMotion))
                     .zIndex(1)
             }
         }
@@ -332,7 +333,6 @@ struct BrowserContent: View {
             if AssistantDebug.has("-dc-browse-debug") { BrowseDebugState(app: app, browser: app.browser) }
         }
         #endif
-        .animation(DCMotion.respecting(reduceMotion), value: showsHome)
         .animation(DCMotion.respecting(reduceMotion, DCMotion.spring), value: browser.showsCrashNotice)
     }
 }

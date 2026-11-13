@@ -524,9 +524,9 @@ final class SettingsNavigationUITests: DCUITestCase {
     }
 
     /// §15 item 5: controls that were under 44 pt (audit): the walkthrough's
-    /// "Skip for now" and Settings › Forums' Pin.
+    /// "Later" and Settings › Forums' Pin.
     func testSmallControlsAreAtLeast44PointsToTap() throws {
-        var app = launch(["-dc-onboarding-step", "provider"])
+        var app = launch(["-dc-onboarding-step", "model"])
         let skip = app.buttons["onboardingSkipStep"]
         XCTAssertTrue(skip.waitForExistence(timeout: 15))
         XCTAssertGreaterThanOrEqual(skip.frame.height, 44, "Skip for now")

@@ -3,46 +3,42 @@ import XCTest
 @testable import WukongMind
 
 final class OnboardingTests: XCTestCase {
-    func testStepsRunInOrder() {
-        XCTAssertEqual(OnboardingStep.allCases, [.welcome, .provider, .forums, .daily, .privacy, .done])
-        XCTAssertEqual(OnboardingStep.first, .welcome)
-        XCTAssertEqual(OnboardingStep.last, .done)
-        XCTAssertNil(OnboardingStep.done.next)
-        XCTAssertNil(OnboardingStep.welcome.previous)
-        XCTAssertEqual(OnboardingStep.forums.previous, .provider)
-        XCTAssertEqual(OnboardingStep.daily.next, .privacy)
+    func testThereAreThreeStepsInOrder() {
+        XCTAssertEqual(OnboardingStep.allCases, [.model, .site, .tryAgent])
+        XCTAssertEqual(OnboardingStep.first, .model)
+        XCTAssertEqual(OnboardingStep.last, .tryAgent)
+        XCTAssertNil(OnboardingStep.tryAgent.next)
+        XCTAssertNil(OnboardingStep.model.previous)
+        XCTAssertEqual(OnboardingStep.site.previous, .model)
+        XCTAssertEqual(OnboardingStep.model.next, .site)
     }
 
-    func testOnlyOptionalStepsCanBeSkipped() {
-        XCTAssertEqual(OnboardingStep.allCases.filter(\.allowsSkip), [.provider, .forums, .daily])
-        XCTAssertEqual(OnboardingStep.allCases.filter(\.hasTextInput), [.provider, .forums])
+    func testStepsOneAndTwoArePagesAndStepThreeRunsInTheBrowser() {
+        XCTAssertEqual(OnboardingStep.allCases.filter(\.isPage), [.model, .site])
+        XCTAssertEqual(OnboardingStep.allCases.filter(\.allowsSkip), [.model], "only the model can be left for later")
+        XCTAssertEqual(OnboardingStep.allCases.filter(\.hasTextInput), [.model, .site])
     }
 
-    func testSkipFinishesDirectly() {
-        for step in [OnboardingStep.welcome, .provider, .forums, .daily, .privacy] {
-            XCTAssertEqual(step.skipTarget, .done, "\(step)")
-        }
-    }
-
-    func testProgressAndLabels() {
-        XCTAssertEqual(OnboardingStep.welcome.progress, 0)
-        XCTAssertEqual(OnboardingStep.done.progress, 1)
-        XCTAssertEqual(OnboardingStep.provider.accessibilityLabel, "Step 2 of 6: Connect an AI provider")
-        XCTAssertEqual(OnboardingStep.welcome.continueTitle, "Get started")
-        XCTAssertEqual(OnboardingStep.done.continueTitle, "Finish")
-        XCTAssertEqual(OnboardingStep.daily.continueTitle, "Continue")
+    func testLabels() {
+        XCTAssertEqual(OnboardingStep.model.accessibilityLabel, "Step 1 of 3: Pick a model")
+        XCTAssertEqual(OnboardingStep.site.accessibilityLabel, "Step 2 of 3: Open a site")
+        XCTAssertEqual(OnboardingStep.tryAgent.accessibilityLabel, "Step 3 of 3: Try the Agent once")
     }
 
     func testParseStepNumbersAndNames() {
-        XCTAssertEqual(OnboardingStep.parse("1"), .welcome)
-        XCTAssertEqual(OnboardingStep.parse("3"), .forums)
-        XCTAssertEqual(OnboardingStep.parse("4"), .daily)
-        XCTAssertEqual(OnboardingStep.parse("6"), .done)
-        XCTAssertNil(OnboardingStep.parse("7"))
+        XCTAssertEqual(OnboardingStep.parse("1"), .model)
+        XCTAssertEqual(OnboardingStep.parse("2"), .site)
+        XCTAssertEqual(OnboardingStep.parse("3"), .tryAgent)
+        XCTAssertNil(OnboardingStep.parse("4"))
         XCTAssertNil(OnboardingStep.parse("0"))
-        XCTAssertEqual(OnboardingStep.parse("daily"), .daily)
-        XCTAssertEqual(OnboardingStep.parse("Privacy"), .privacy)
-        XCTAssertNil(OnboardingStep.parse("sync"))
+        XCTAssertEqual(OnboardingStep.parse("site"), .site)
+        XCTAssertEqual(OnboardingStep.parse("TryAgent"), .tryAgent)
+        XCTAssertNil(OnboardingStep.parse("privacy"), "the deleted steps are gone")
+        XCTAssertNil(OnboardingStep.parse("daily"))
+    }
+
+    func testStepThreeOffersTwoSentencesTheUserCouldHaveTyped() {
+        XCTAssertEqual(AppModel.firstRunSuggestions, ["Make this page easier to read", "Hide everything but the article"])
     }
 
     func testChineseLanguageSuggestsTheChineseForumsFirst() {
@@ -225,15 +221,26 @@ final class OnboardingReplayTests: XCTestCase {
     }
 }
 
-/// The walkthrough's top Skip is a model intent on `skipTarget` (audit A12).
+/// Step 3 runs over the browser after the cover has closed (design-unified.md §5).
 @MainActor
-final class OnboardingSkipTests: XCTestCase {
-    func testSkipFinishesDirectlyFromAnyStep() throws {
+final class FirstRunTests: XCTestCase {
+    private func model() throws -> AppModel {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
         addTeardownBlock { try? FileManager.default.removeItem(at: directory) }
-        let app = AppModel(store: PersistentStore(fileURL: directory.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore()))
-        for step in [OnboardingStep.welcome, .provider, .forums, .daily, .privacy] {
-            XCTAssertEqual(app.skipOnboarding(from: step), .done, "\(step)")
-        }
+        return AppModel(store: PersistentStore(fileURL: directory.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore()))
+    }
+
+    func testTheFirstRunIsOffUntilTheWalkthroughOpensASite() throws {
+        let app = try model()
+        XCTAssertNil(app.firstRun)
+        XCTAssertEqual(app.rootPresentation, .onboarding, "a fresh install starts with step 1")
+        app.completeOnboarding()
+        app.firstRun = .prompts
+        XCTAssertNil(app.rootPresentation, "the cover is gone; step 3 is not a presentation")
+        XCTAssertEqual(app.firstRun, .prompts)
+    }
+
+    func testOnboardingIsACoverOnPhoneAndAFormSheetOnPad() {
+        XCTAssertEqual(RootPresentation.onboarding.isFullScreen, UIDevice.current.userInterfaceIdiom == .phone)
     }
 }

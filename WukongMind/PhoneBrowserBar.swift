@@ -38,7 +38,6 @@ struct PhoneBrowser<Page: View>: View {
     @State private var addressDraft = ""
     @State private var addressError: AddressError?
     @FocusState private var addressFocused: Bool
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     /// The toolbar's own side margins and the glass container's padding.
     static var toolbarMargins: CGFloat { 56 }
@@ -80,11 +79,9 @@ struct PhoneBrowser<Page: View>: View {
                         if isEditingAddress {
                             addressRow
                                 .background(.bar)
-                                .transition(.opacity)
                         } else if showsStrip {
                             strip
                                 .background(.bar)
-                                .transition(.opacity)
                         }
                     }
                 }
@@ -92,7 +89,7 @@ struct PhoneBrowser<Page: View>: View {
         .onAppear { app.barShowsTopicFacts = true }
         .onChange(of: addressFocused) {
             if !addressFocused {
-                withAnimation(DCMotion.respecting(reduceMotion, DCMotion.quick)) { isEditingAddress = false }
+                isEditingAddress = false
             }
         }
         .onChange(of: addressFocusRequest) {
@@ -111,16 +108,12 @@ struct PhoneBrowser<Page: View>: View {
         } message: { error in
             Text(error.message)
         }
-        .animation(DCMotion.respecting(reduceMotion, DCMotion.smooth), value: showsStrip)
-        .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: isEditingAddress)
     }
 
     // MARK: Bars
 
-    /// Home: the mic only when voice is available; pages: the AI button.
-    private var trailingItemCount: CGFloat {
-        browser.showsForumsHome && !app.showsVoiceButton ? 0 : 1
-    }
+    /// The Agent ring after the address capsule.
+    private var trailingItemCount: CGFloat { 1 }
 
     @ViewBuilder
     private var items: some View {
@@ -131,19 +124,24 @@ struct PhoneBrowser<Page: View>: View {
         }
     }
 
-    /// Forum avatar, back, forward | address capsule | mic, ···, AI panel.
+    /// Forum avatar, back, forward | address capsule | mic, ···, AI panel. Home
+    /// has its own address field, so the bar hides its capsule while it shows.
     @ViewBuilder
     private func splitItems(_ split: SplitBarContext) -> some View {
         let controls = 5 + (app.showsVoiceButton ? 1 : 0)
         ForumMenuButton(app: app, browser: browser, actions: actions)
         SplitNavigationButtons(browser: browser)
-        PhoneTitleCapsule(
-            app: app,
-            browser: browser,
-            filled: true,
-            width: max(0, width - 2 * DCTheme.spacingM - CGFloat(controls) * (DCTheme.controlHeight + DCTheme.spacingS)),
-            onEdit: beginEditingAddress
-        )
+        if browser.showsForumsHome {
+            Spacer(minLength: 0)
+        } else {
+            PhoneTitleCapsule(
+                app: app,
+                browser: browser,
+                filled: true,
+                width: max(0, width - 2 * DCTheme.spacingM - CGFloat(controls) * (DCTheme.controlHeight + DCTheme.spacingS)),
+                onEdit: beginEditingAddress
+            )
+        }
         if app.showsVoiceButton {
             VoiceBarButton(voice: app.voice)
         }
@@ -151,22 +149,40 @@ struct PhoneBrowser<Page: View>: View {
         SplitPanelToggle(app: app, isShown: split.panelShown, action: split.togglePanel)
     }
 
+    /// Forum menu | address capsule | Agent ring. On Home the capsule gives way
+    /// to Home's own address field: the menu, the mic (when voice is set up)
+    /// and, with a page loaded under Home, the Agent ring.
     @ViewBuilder
     private var phoneItems: some View {
         ForumMenuButton(app: app, browser: browser, actions: actions)
-        PhoneTitleCapsule(
-            app: app,
-            browser: browser,
-            filled: position == .top || !PhoneBarStyle.usesGlass,
-            width: max(0, (position == .bottom ? width - Self.toolbarMargins : width - 2 * DCTheme.spacingM)
-                - (1 + trailingItemCount) * (DCTheme.controlHeight + DCTheme.spacingS)),
-            onEdit: beginEditingAddress
-        )
         if browser.showsForumsHome {
+            Spacer(minLength: 0)
             if app.showsVoiceButton {
                 VoiceBarButton(voice: app.voice)
             }
+            if browser.currentURL != nil {
+                PhoneAIButton(
+                    app: app,
+                    voice: app.voice,
+                    router: app.router,
+                    podcast: app.podcast,
+                    isAvailable: app.isDrawerAvailable,
+                    onOpen: {
+                        // The page comes forward, then the panel opens over it.
+                        browser.hideForumsHome()
+                        actions.openAssistant()
+                    }
+                )
+            }
         } else {
+            PhoneTitleCapsule(
+                app: app,
+                browser: browser,
+                filled: position == .top || !PhoneBarStyle.usesGlass,
+                width: max(0, (position == .bottom ? width - Self.toolbarMargins : width - 2 * DCTheme.spacingM)
+                    - (1 + trailingItemCount) * (DCTheme.controlHeight + DCTheme.spacingS)),
+                onEdit: beginEditingAddress
+            )
             PhoneAIButton(
                 app: app,
                 voice: app.voice,
@@ -191,7 +207,6 @@ struct PhoneBrowser<Page: View>: View {
                         .padding(.vertical, 6)
                 }
             }
-            .transition(.opacity)
             Divider()
         }
         .background(.bar)
@@ -233,7 +248,7 @@ struct PhoneBrowser<Page: View>: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .accessibilityHidden(true)
-                TextField("Forum address", text: $addressDraft)
+                TextField("Search or enter address", text: $addressDraft)
                     .textContentType(.URL)
                     .keyboardType(.URL)
                     .autocorrectionDisabled()
@@ -289,7 +304,7 @@ struct PhoneBrowser<Page: View>: View {
         if browser.open(address: addressDraft) {
             addressFocused = false
             isEditingAddress = false
-        } else if !query.isEmpty, let url = app.searchPageURL(query: query) {
+        } else if !query.isEmpty, let url = app.searchPageURL(query: query) ?? app.webSearchURL(query: query) {
             browser.load(url)
             addressFocused = false
             isEditingAddress = false
@@ -321,7 +336,6 @@ struct PhoneTitleCapsule: View {
     /// so the title is given the room explicitly to truncate in.
     var width: CGFloat = 0
     let onEdit: () -> Void
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var showsHome: Bool { browser.showsForumsHome }
 
@@ -348,7 +362,6 @@ struct PhoneTitleCapsule: View {
 
             if let answerPost {
                 answerChip(answerPost)
-                    .transition(.opacity)
             }
             if !showsHome, browser.currentURL != nil {
                 AdShieldMenu(app: app, browser: browser)
@@ -368,15 +381,14 @@ struct PhoneTitleCapsule: View {
             }
         }
         .contentShape(Capsule())
-        .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: answerPost)
     }
 
     private var canSearch: Bool { app.searchPageURL(query: "a") != nil }
 
     private var homePrompt: Text {
         canSearch
-            ? Text("Search or enter a forum address", comment: "iPhone bar on Home: placeholder of the search and address field")
-            : Text("Enter a forum address")
+            ? Text("Search or enter address", comment: "iPhone bar on Home: placeholder of the search and address field")
+            : Text("Enter an address")
     }
 
     @ViewBuilder
@@ -441,7 +453,7 @@ struct PhoneTitleCapsule: View {
     }
 
     private var accessibilityHint: Text {
-        Text("Tap to enter a forum address. Touch and hold for history.", comment: "Accessibility hint of the iPhone bar title")
+        Text("Tap to enter an address. Touch and hold for history.", comment: "Accessibility hint of the iPhone bar title")
     }
 
     @ViewBuilder
@@ -615,6 +627,8 @@ struct SiteBlocking {
 /// dot when the topic has new replies and another row holds the hint row's
 /// place (`BottomLayer.showsNewRepliesDot`).
 struct PhoneAIButton: View {
+    /// The Agent's mark in the bar: an open gold ring of `ring-width`, no icon.
+    static let ringSize: CGFloat = 40
     @ObservedObject var app: AppModel
     @ObservedObject var voice: VoiceController
     /// The layer's inputs, for the dot.
@@ -658,8 +672,8 @@ struct PhoneAIButton: View {
                     .foregroundStyle(isAvailable ? DCTheme.goldInk : DCTheme.inkFaint)
             } else {
                 DCAgentRing(
-                    size: 22,
-                    lineWidth: 2.2,
+                    size: Self.ringSize,
+                    lineWidth: DCTheme.ringWidth,
                     isTurning: browserAgent.isRunning || app.activeResearch != nil,
                     isEnabled: isAvailable
                 )
@@ -761,7 +775,6 @@ struct ForumMenuButton: View {
     @ObservedObject var app: AppModel
     @ObservedObject var browser: ForumBrowserModel
     let actions: BrowserActions
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var forum: Forum? { app.barForum }
     private var showsHome: Bool { browser.showsForumsHome }
@@ -928,11 +941,11 @@ struct ForumMenuButton: View {
     }
 
     private func goBack() {
-        withAnimation(DCMotion.respecting(reduceMotion)) { browser.navigateBack() }
+        browser.navigateBack()
     }
 
     private func goHome() {
-        withAnimation(DCMotion.respecting(reduceMotion)) { app.goHome() }
+        app.goHome()
     }
 
     /// Signed in: the user's account page; otherwise the forum's sign-in page.

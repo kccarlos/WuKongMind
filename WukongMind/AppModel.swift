@@ -292,6 +292,8 @@ final class AppModel: ObservableObject {
     let router = PresentationRouter()
     /// The sites visited, for Home's Sites grid (HomeSites.swift); local to the device.
     let siteVisits = SiteVisitStore()
+    /// First-run step 3 over the browser (OnboardingTry.swift); nil when it is not running.
+    @Published var firstRun: FirstRunStage?
     /// iCloud (CloudKit) sync (see CloudSyncController.swift).
     let cloudSync: CloudSyncController
 

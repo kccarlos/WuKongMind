@@ -17,93 +17,54 @@ extension EnvironmentValues {
     }
 }
 
-/// First-launch walkthrough: paged (swipe or Back/Continue), progress dots,
-/// Skip on optional steps. On iPad it is a centered card.
+/// First-run steps 1 and 2 (design-unified.md §5): pick a model, open a site.
+/// A full-screen cover on iPhone and a form sheet on iPad. Opening a site ends
+/// it; step 3 then runs in the real browser (`OnboardingTryPanel`).
 struct OnboardingFlow: View {
     @ObservedObject var app: AppModel
     /// Called after `completeOnboarding()`; the host dismisses the cover.
     var onFinish: () -> Void = {}
 
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.verticalSizeClass) private var verticalSizeClass
 
     @State private var step: OnboardingStep
-    @State private var movingForward = true
     @State private var providerState: ProviderTestState = .idle
-    @State private var selectedForums: Set<String>
-    @State private var showingShareHowTo = false
-    @FocusState private var focused: Bool
+    @State private var address = ""
+    @State private var selectedSiteURL: String? = OnboardingSitePage.suggestions.first?.siteURL
     @State private var keyboardVisible = false
 
-    init(app: AppModel, initialStep: OnboardingStep = .welcome, onFinish: @escaping () -> Void = {}) {
+    init(app: AppModel, initialStep: OnboardingStep = .model, onFinish: @escaping () -> Void = {}) {
         self.app = app
         self.onFinish = onFinish
-        _step = State(initialValue: initialStep)
-        _selectedForums = State(initialValue: Set(app.pinnedForums.map(\.siteURL)))
-    }
-
-    private var usesCard: Bool {
-        horizontalSizeClass == .regular && verticalSizeClass == .regular
+        // Step 3 is not a page.
+        _step = State(initialValue: initialStep.isPage ? initialStep : .site)
     }
 
     var body: some View {
         ZStack {
             OnboardingBackdrop()
-            if usesCard {
-                content
-                    .frame(maxWidth: 520, maxHeight: 860)
-                    .background(
-                        DCTheme.pageBackground,
-                        in: RoundedRectangle(cornerRadius: 28, style: .continuous)
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 28, style: .continuous)
-                            .stroke(Color.primary.opacity(0.12))
-                    }
-                    .shadow(color: .black.opacity(0.18), radius: 30, y: 12)
-                    .padding(DCTheme.spacingXL)
-            } else {
-                content
-            }
+            content
         }
-        // Pages over the walkthrough are overlays, not nested sheets: the
-        // walkthrough is itself the root cover.
-        .overlay {
-            if showingShareHowTo {
-                ShareHowToSheet(onDone: { showingShareHowTo = false })
-                    .transition(.move(edge: .bottom))
-            }
-        }
-        .animation(DCMotion.respecting(reduceMotion, DCMotion.smooth), value: showingShareHowTo)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("onboarding")
     }
 
     private var content: some View {
         VStack(spacing: 0) {
-            topBar
-            ZStack {
-                page(for: step)
-                    .id(step)
-                    .transition(pageTransition)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .clipShape(HorizontalClip())
-            .contentShape(Rectangle())
-            .simultaneousGesture(swipe)
+            OnboardingProgressDots(current: step)
+                .padding(.top, usesCompactChrome ? DCTheme.spacingS : DCTheme.spacingL)
+            page(for: step)
+                .id(step)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
             // The bar tucks away while typing so it never rides the keyboard
-            // and covers the field (and "Test & save") being edited.
+            // and covers the field being edited.
             if !keyboardVisible {
                 bottomBar
-                    .transition(.opacity)
             }
         }
-        .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: keyboardVisible)
         .dcKeyboardVisible($keyboardVisible)
     }
 
@@ -113,163 +74,63 @@ struct OnboardingFlow: View {
         verticalSizeClass == .compact || dynamicTypeSize.isAccessibilitySize
     }
 
-    private var topBar: some View {
-        HStack {
-            Button {
-                go(to: step.previous)
-            } label: {
-                Image(systemName: "chevron.left")
-                    .font(.body.weight(.semibold))
-            }
-            .buttonStyle(DCIconButtonStyle())
-            .opacity(step.isFirst || step.isLast ? 0 : 1)
-            .disabled(step.isFirst || step.isLast)
-            .accessibilityLabel("Back")
-            .accessibilityIdentifier("onboardingBack")
-
-            Spacer()
-            OnboardingProgressDots(current: step)
-            Spacer()
-
-            Button("Skip") {
-                DCHaptics.tap()
-                go(to: app.skipOnboarding(from: step))
-            }
-            .font(.subheadline.weight(.semibold))
-            .frame(minWidth: DCTheme.controlHeight, minHeight: DCTheme.controlHeight)
-            .opacity(step.isFirst || step.isLast ? 0 : 1)
-            .disabled(step.isFirst || step.isLast)
-            .accessibilityHint("Skips the rest of the walkthrough")
-            .accessibilityIdentifier("onboardingSkipAll")
-        }
-        .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
-        .padding(.horizontal, DCTheme.spacingS)
-        .padding(.top, usesCompactChrome ? 2 : DCTheme.spacingS)
-    }
-
     private var bottomBar: some View {
-        VStack(spacing: DCTheme.spacingS) {
-            if step == .done {
-                doneButtons
-            } else if usesCompactChrome && step.allowsSkip {
-                HStack(spacing: DCTheme.spacingM) {
-                    skipStepButton
-                    continueButton
+        VStack(spacing: DCTheme.spacingXS) {
+            switch step {
+            case .model:
+                primaryButton(
+                    title: String(localized: "Continue"),
+                    isBusy: providerState == .testing,
+                    id: "onboardingContinue",
+                    action: continueFromModel
+                )
+                quietButton(title: String(localized: "Later", comment: "First-run step 1: go on without a model"), id: "onboardingSkipStep") {
+                    go(to: .site)
                 }
-            } else {
-                continueButton
-                if step.allowsSkip {
-                    skipStepButton
+            case .site:
+                primaryButton(
+                    title: String(localized: "Open", comment: "First-run step 2: open the chosen site"),
+                    isBusy: false,
+                    id: "onboardingOpen",
+                    action: openSite
+                )
+                quietButton(title: String(localized: "Back"), id: "onboardingBack") {
+                    go(to: .model)
                 }
+            case .tryAgent:
+                EmptyView()
             }
         }
         .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
-        .padding(.horizontal, DCTheme.spacingXL)
+        .padding(.horizontal, DCTheme.spacingL)
         .padding(.top, usesCompactChrome ? DCTheme.spacingXS : DCTheme.spacingM)
-        .padding(.bottom, usesCompactChrome ? DCTheme.spacingXS : DCTheme.spacingM)
+        .padding(.bottom, usesCompactChrome ? DCTheme.spacingXS : DCTheme.spacingS)
         .frame(maxWidth: 520)
         .frame(maxWidth: .infinity)
-        .background {
-            DCTheme.ground
-                .overlay(alignment: .top) {
-                    Rectangle().fill(DCTheme.hairline).frame(height: DCTheme.hairlineWidth)
-                }
-                .ignoresSafeArea()
-        }
+        .dcStickyFooter()
     }
 
-    private var continueButton: some View {
-        Button {
-            advance()
-        } label: {
-            Text(primaryTitle)
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
+    private func primaryButton(title: String, isBusy: Bool, id: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: DCTheme.spacingS) {
+                if isBusy { ProgressView().tint(DCTheme.onGold) }
+                Text(title).lineLimit(1).minimumScaleFactor(0.8)
+            }
+            .frame(maxWidth: .infinity)
         }
-        .buttonStyle(DCPrimaryButtonStyle())
-        .disabled(step == .provider && providerState == .testing)
-        .accessibilityIdentifier("onboardingContinue")
+        .buttonStyle(DCButtonStyle(role: .primary, fullWidth: true))
+        .disabled(isBusy)
+        .accessibilityIdentifier(id)
     }
 
-    private var skipStepButton: some View {
-        Button("Skip for now") {
+    private func quietButton(title: String, id: String, action: @escaping () -> Void) -> some View {
+        Button(title) {
             DCHaptics.tap()
-            focused = false
-            go(to: step.next)
+            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            action()
         }
-        .font(.subheadline.weight(.medium))
-        .frame(minWidth: DCTheme.controlHeight, minHeight: DCTheme.controlHeight)
-        .contentShape(Rectangle())
-        .accessibilityIdentifier("onboardingSkipStep")
-    }
-
-    private var primaryTitle: String {
-        switch step {
-        case .provider where app.isProviderReady && providerState == .success: String(localized: "Continue")
-        case .provider: String(localized: "Test & Continue", comment: "Walkthrough button: test the AI provider, then go on")
-        case .forums where !selectedForums.isEmpty:
-            String(localized: "Continue with \(selectedForums.count) forums", comment: "Walkthrough button: continue with the number of forums the user picked.")
-        default: step.continueTitle
-        }
-    }
-
-    @ViewBuilder
-    private var doneButtons: some View {
-        if isReplayOverPage {
-            // A replay from Settings returns to the page the user was on.
-            Button("Back to the page") {
-                finish {}
-            }
-            .buttonStyle(DCPrimaryButtonStyle())
-            .accessibilityIdentifier("onboardingReturn")
-            browseAllForumsButton
-        } else if isReplay {
-            Button("Back to Home") {
-                finish { app.showForumsHome() }
-            }
-            .buttonStyle(DCPrimaryButtonStyle())
-            .accessibilityIdentifier("onboardingReturn")
-        } else if let first = firstPinnedForum {
-            Button {
-                finish { app.openForum(first) }
-            } label: {
-                Text("Open \(first.displayName)").lineLimit(1)
-            }
-            .buttonStyle(DCPrimaryButtonStyle())
-            .accessibilityIdentifier("onboardingOpenForum")
-            browseAllForumsButton
-        } else {
-            Button("Browse forums") {
-                finish { app.showForumsHome() }
-            }
-            .buttonStyle(DCPrimaryButtonStyle())
-            .accessibilityIdentifier("onboardingBrowseForums")
-        }
-    }
-
-    private var browseAllForumsButton: some View {
-        Button {
-            finish { app.showForumsHome() }
-        } label: {
-            Text("Browse all forums")
-                .font(.subheadline.weight(.semibold))
-                .frame(minWidth: DCTheme.controlHeight, minHeight: DCTheme.controlHeight)
-                .contentShape(Rectangle())
-        }
-        .accessibilityIdentifier("onboardingBrowseForums")
-    }
-
-    private var isReplay: Bool {
-        app.settings.hasCompletedOnboarding
-    }
-
-    /// Replaying the walkthrough (already completed) while a page is open.
-    private var isReplayOverPage: Bool {
-        isReplay && app.browser.currentURL != nil && !app.browser.showsForumsHome
-    }
-
-    private var firstPinnedForum: Forum? {
-        app.pinnedForums.first
+        .buttonStyle(DCButtonStyle(role: .quiet))
+        .accessibilityIdentifier(id)
     }
 
     // MARK: Pages
@@ -277,103 +138,74 @@ struct OnboardingFlow: View {
     @ViewBuilder
     private func page(for step: OnboardingStep) -> some View {
         switch step {
-        case .welcome: OnboardingWelcomePage()
-        case .provider: OnboardingProviderPage(app: app, state: $providerState)
-        case .forums: OnboardingForumsPage(app: app, selected: $selectedForums)
-        case .daily: OnboardingDailyPage(app: app)
-        case .privacy: OnboardingPrivacyPage(app: app)
-        case .done: OnboardingDonePage(app: app, showShareHowTo: { showingShareHowTo = true })
+        case .model:
+            OnboardingModelPage(app: app, state: $providerState)
+        case .site:
+            OnboardingSitePage(address: $address, selectedSiteURL: $selectedSiteURL, onSubmit: openSite)
+        case .tryAgent:
+            EmptyView()
         }
-    }
-
-    private var pageTransition: AnyTransition {
-        if reduceMotion { return .opacity }
-        return .asymmetric(
-            insertion: .move(edge: movingForward ? .trailing : .leading).combined(with: .opacity),
-            removal: .move(edge: movingForward ? .leading : .trailing).combined(with: .opacity)
-        )
-    }
-
-    private var swipe: some Gesture {
-        DragGesture(minimumDistance: 30)
-            .onEnded { value in
-                guard !step.hasTextInput else { return }
-                let horizontal = value.translation.width
-                guard abs(horizontal) > 70,
-                      abs(horizontal) > abs(value.translation.height) * 1.6 else { return }
-                if horizontal < 0 {
-                    if !step.isLast { advance() }
-                } else if !step.isLast {
-                    go(to: step.previous)
-                }
-            }
     }
 
     // MARK: Navigation
 
-    private func advance() {
+    /// Continue: tests the model and moves on; with a model that already
+    /// works (a replay), it just moves on.
+    private func continueFromModel() {
         DCHaptics.tap()
-        focused = false
-        if step == .forums { applyForumSelection() }
-        if step == .provider { continueFromProvider(); return }
-        go(to: step.next)
-    }
-
-    /// "Test & Continue": tests the provider, stars its model, and moves on.
-    private func continueFromProvider() {
-        if app.isProviderReady, providerState == .success {
-            finishProvider()
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        if providerState == .success || (providerState == .idle && app.isBrowserAgentReady) {
+            finishModel()
             return
         }
         guard providerState != .testing else { return }
         providerState = .testing
         Task {
-            let result = await app.testAndSaveProvider(scope: .both)
+            let result = await app.testAndSaveProvider(scope: .role(.browserAgent))
             providerState = result
-            if result == .success { finishProvider() }
+            if result == .success { finishModel() }
         }
     }
 
-    private func finishProvider() {
-        let selection = app.selection(for: .assistant)
-        app.selectModel(selection, for: .both)
-        if !app.isFavorite(selection) { app.addCurrentFavorite(for: .assistant) }
-        go(to: .forums)
+    /// The Agent's model also runs summaries and forum search until Settings
+    /// gives them their own.
+    private func finishModel() {
+        let selection = app.selection(for: .browserAgent)
+        app.applyModelToBothUIRoles(selection)
+        if !app.isFavorite(selection) { app.addCurrentFavorite(for: .browserAgent) }
+        go(to: .site)
     }
 
     private func go(to target: OnboardingStep?) {
         guard let target, target != step else { return }
-        movingForward = target.rawValue > step.rawValue
-        UIApplication.shared.sendAction(
-            #selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil
-        )
-        withAnimation(reduceMotion ? .easeInOut(duration: 0.2) : DCMotion.smooth) {
-            step = target
-        }
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        step = target
         UIAccessibility.post(notification: .screenChanged, argument: target.accessibilityLabel)
     }
 
-    /// Pins the selected forums and unpins deselected ones (in list order).
-    private func applyForumSelection() {
-        let pinned = Set(app.pinnedForums.map(\.siteURL))
-        for forum in app.pinnedForums where !selectedForums.contains(forum.siteURL) {
-            app.unpin(forum)
-        }
-        for suggested in AppModel.onboardingSuggestions()
-        where selectedForums.contains(suggested.siteURL) && !pinned.contains(suggested.siteURL) {
-            app.pinSuggested(suggested)
-        }
-        for forum in app.forums
-        where selectedForums.contains(forum.siteURL) && !forum.isPinned {
-            app.pin(forum)
+    /// Open: the typed address (or a search), else the chosen suggestion. The
+    /// cover closes, the site loads, and step 3 starts over it.
+    private func openSite() {
+        DCHaptics.success()
+        let text = address.trimmingCharacters(in: .whitespacesAndNewlines)
+        let suggested = OnboardingSitePage.suggestions.first { $0.siteURL == selectedSiteURL }
+            ?? OnboardingSitePage.suggestions.first
+        finish {
+            if !text.isEmpty {
+                if !app.browser.open(address: text), let url = app.webSearchURL(query: text) {
+                    app.browser.load(url)
+                }
+            } else if let suggested {
+                app.openForum(suggested)
+            }
         }
     }
 
     private func finish(then action: @escaping () -> Void) {
-        DCHaptics.success()
         app.saveSettings()
         app.completeOnboarding()
         app.settingsStatus = ""
+        app.firstRun = .prompts
         onFinish()
         action()
     }
@@ -388,28 +220,21 @@ struct OnboardingBackdrop: View {
     }
 }
 
+/// The three steps as dots: the current one is a wider gold bar. Changes in
+/// place, without animation.
 struct OnboardingProgressDots: View {
     let current: OnboardingStep
 
     var body: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: DCTheme.spacingS) {
             ForEach(OnboardingStep.allCases) { step in
-                Capsule()
-                    .fill(step == current ? DCTheme.gold : DCTheme.inkFaint.opacity(step.rawValue < current.rawValue ? 0.55 : 0.28))
+                RoundedRectangle(cornerRadius: 3.5, style: .continuous)
+                    .fill(step == current ? DCTheme.gold : DCTheme.inkFaint.opacity(0.45))
                     .frame(width: step == current ? 22 : 7, height: 7)
             }
         }
-        .animation(DCMotion.spring, value: current)
         .accessibilityElement()
         .accessibilityLabel(current.accessibilityLabel)
         .accessibilityIdentifier("onboardingProgress")
-    }
-}
-
-/// Clips sideways only, so sliding pages stay inside the column while the
-/// scroll content still runs under the top and bottom bars.
-private struct HorizontalClip: Shape {
-    func path(in rect: CGRect) -> Path {
-        Path(rect.insetBy(dx: 0, dy: -4_000))
     }
 }

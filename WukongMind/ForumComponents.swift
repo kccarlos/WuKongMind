@@ -1,7 +1,7 @@
 import SwiftUI
 
-// Reusable forum UI: icons, tiles, rows, the forum switcher, the Add forum
-// sheet, the pinned-forums editor, and the remove-forum confirmation.
+// Reusable forum UI: icons, tiles, rows, the Add site sheet, the pinned-forums
+// editor, and the remove-forum confirmation.
 
 // MARK: - Icon
 
@@ -227,105 +227,12 @@ struct ForumSwitcherLabel: View {
     }
 }
 
-/// Pinned forums, recents, "All forums…", and "Add forum…".
-struct ForumSwitcherPanel: View {
-    @ObservedObject var app: AppModel
-    let onSelect: (Forum) -> Void
-    let onAllForums: () -> Void
-    let onAddForum: () -> Void
+// MARK: - Add site
 
-    private var recents: [Forum] { Array(app.recentForums.prefix(5)) }
-
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                if !app.pinnedForums.isEmpty {
-                    header("Pinned")
-                    ForEach(app.pinnedForums) { row($0) }
-                }
-                if !recents.isEmpty {
-                    header("Recent")
-                    ForEach(recents) { row($0) }
-                }
-                if app.forums.isEmpty {
-                    Text("No forums yet. Add one, or pick a suggestion on the Forums home.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal, DCTheme.spacingL)
-                        .padding(.vertical, DCTheme.spacingM)
-                }
-                Divider().padding(.vertical, DCTheme.spacingXS)
-                action("All forums…", systemImage: "square.grid.2x2", identifier: "switcherAllForums", perform: onAllForums)
-                action("Add forum…", systemImage: "plus", identifier: "switcherAddForum", perform: onAddForum)
-            }
-            .padding(.vertical, DCTheme.spacingS)
-        }
-        .scrollBounceBehavior(.basedOnSize)
-        .frame(minWidth: 300, idealWidth: 330, maxWidth: 360)
-        .frame(maxHeight: 460)
-    }
-
-    private func header(_ title: LocalizedStringKey) -> some View {
-        Text(title)
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(.secondary)
-            .textCase(.uppercase)
-            .padding(.horizontal, DCTheme.spacingL)
-            .padding(.top, DCTheme.spacingS)
-            .padding(.bottom, DCTheme.spacingXS)
-            .accessibilityAddTraits(.isHeader)
-    }
-
-    private func row(_ forum: Forum) -> some View {
-        Button { onSelect(forum) } label: {
-            ForumRow(forum: forum, iconSize: 30, isCurrent: app.isCurrent(forum))
-                .padding(.horizontal, DCTheme.spacingL)
-                .frame(minHeight: 48)
-        }
-        .buttonStyle(DCRowButtonStyle())
-        .accessibilityIdentifier("switcherForum-\(forum.host)")
-    }
-
-    private func action(
-        _ title: LocalizedStringKey,
-        systemImage: String,
-        identifier: String,
-        perform: @escaping () -> Void
-    ) -> some View {
-        Button(action: perform) {
-            HStack(spacing: DCTheme.spacingM) {
-                Image(systemName: systemImage)
-                    .font(.body.weight(.medium))
-                    .frame(width: 30)
-                    .foregroundStyle(Color.accentColor)
-                Text(title)
-                    .foregroundStyle(.primary)
-                Spacer(minLength: 0)
-            }
-            .padding(.horizontal, DCTheme.spacingL)
-            .frame(minHeight: 46)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(DCRowButtonStyle())
-        .accessibilityIdentifier(identifier)
-    }
-}
-
-/// Full-width row button with a pressed highlight (menus and panels).
-struct DCRowButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .background(Color.primary.opacity(configuration.isPressed ? 0.08 : 0))
-            .contentShape(.hoverEffect, Rectangle())
-            .hoverEffect(.highlight)
-            .animation(DCMotion.quick, value: configuration.isPressed)
-    }
-}
-
-// MARK: - Add forum
-
-/// Adds a forum by URL or host; validates it (basic-info.json) with inline
-/// progress and errors. `onAdded` runs after the sheet dismisses.
+/// Adds a site by URL or host to Home's Sites grid. A forum of a supported
+/// platform is validated (basic-info.json) with inline progress and errors and
+/// joins the forum directory; any other site is just pinned and opened.
+/// `onAdded` runs after the sheet dismisses.
 struct AddForumSheet: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var app: AppModel
@@ -359,7 +266,7 @@ struct AddForumSheet: View {
                             .focused($focused)
                             .onSubmit(add)
                             .disabled(isAdding)
-                            .accessibilityLabel("Forum address")
+                            .accessibilityLabel("Site address")
                             .accessibilityIdentifier("addForumAddress")
                         if isAdding {
                             ProgressView().controlSize(.small)
@@ -367,28 +274,26 @@ struct AddForumSheet: View {
                     }
                     .onChange(of: address) { errorMessage = nil }
                 } header: {
-                    Text("Forum address")
+                    Text("Site address")
                 } footer: {
                     if let errorMessage {
                         Label(errorMessage, systemImage: "exclamationmark.triangle.fill")
                             .foregroundStyle(DCTheme.danger)
-                            .transition(.opacity)
                     } else if isAdding {
-                        Text("Checking the forum…")
+                        Text("Checking the site…")
                     } else {
-                        Text("Paste any page of a supported site, or type its address.")
+                        Text("Paste any page of a site, or type its address.")
                     }
                 }
 
                 Section {
                     Toggle(isOn: $pin) {
-                        Label("Pin to Forums home", systemImage: "pin")
+                        Label("Pin to Home", systemImage: "pin")
                     }
                     .disabled(isAdding)
                 }
             }
-            .animation(DCMotion.quick, value: errorMessage)
-            .navigationTitle("Add Forum")
+            .navigationTitle("Add Site")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -417,6 +322,19 @@ struct AddForumSheet: View {
         }
     }
 
+    /// Opens `address` as an ordinary site and, when asked, pins it on Home.
+    private func openAsPlainSite(_ address: String, pin: Bool) -> Bool {
+        guard let url = ForumBrowserModel.resolveAddress(address, currentSiteURL: nil),
+              let origin = HomeSites.originOf(url)
+        else {
+            return false
+        }
+        app.siteVisits.noteVisit(siteURL: origin, name: HomeSites.displayName(forOrigin: origin), isForum: false)
+        if pin { app.siteVisits.setPinned(true, siteURL: origin) }
+        app.browser.load(url)
+        return true
+    }
+
     private func add() {
         guard !trimmed.isEmpty, !isAdding else { return }
         isAdding = true
@@ -432,6 +350,11 @@ struct AddForumSheet: View {
                 onAdded(forum)
             } catch is CancellationError {
                 isAdding = false
+            } catch ForumDirectoryError.notSupported where openAsPlainSite(address, pin: pin) {
+                // Not a forum of a supported platform: any site is a site.
+                DCHaptics.success()
+                isAdding = false
+                dismiss()
             } catch {
                 DCHaptics.warning()
                 isAdding = false

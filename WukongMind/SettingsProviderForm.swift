@@ -441,6 +441,9 @@ struct ProviderSetupForm: View {
     /// Onboarding sets both roles; the setup sheet the role(s) not ready.
     let scope: ModelScope
     @Binding var state: ProviderTestState
+    /// First-run step 1 lists the providers itself and tests with its own
+    /// Continue: no provider menu, no captions and no "Test & save" button.
+    var isCompact = false
     @State private var showingAdvanced = false
 
     private var scopeBindings: ModelScopeBindings { ModelScopeBindings(app: app, scope: scope) }
@@ -450,10 +453,14 @@ struct ProviderSetupForm: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: DCTheme.spacingL) {
-            providerPicker
+            if !isCompact { providerPicker }
             credentials
             if !provider.isAppleIntelligence { modelSection }
-            testSection
+            if isCompact {
+                ProviderTestStatusView(state: state)
+            } else {
+                testSection
+            }
         }
         .onChange(of: provider) {
             state = .idle
@@ -515,14 +522,16 @@ struct ProviderSetupForm: View {
                     .accessibilityIdentifier("getAPIKeyLink")
                 }
                 APIKeyField(app: app, provider: provider, carded: true)
-                DisclosureGroup(isExpanded: $showingAdvanced) {
-                    baseURLField.fieldCard().padding(.top, DCTheme.spacingS)
-                } label: {
-                    Text("Advanced: custom base URL")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
+                if !isCompact {
+                    DisclosureGroup(isExpanded: $showingAdvanced) {
+                        baseURLField.fieldCard().padding(.top, DCTheme.spacingS)
+                    } label: {
+                        Text("Advanced: custom base URL")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+                    .tint(.secondary)
                 }
-                .tint(.secondary)
             }
         } else {
             VStack(alignment: .leading, spacing: DCTheme.spacingS) {
@@ -559,9 +568,11 @@ struct ProviderSetupForm: View {
         VStack(alignment: .leading, spacing: DCTheme.spacingS) {
             fieldLabel("Model")
             ModelField(app: app, scope: scope).fieldCard()
-            Text("A good default is filled in. Tap the list button to see every model.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            if !isCompact {
+                Text("A good default is filled in. Tap the list button to see every model.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 

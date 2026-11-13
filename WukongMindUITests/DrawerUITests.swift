@@ -474,7 +474,7 @@ final class DrawerUITests: DCUITestCase {
     }
 
     /// The first topic opened: the drawer stays closed and the hint row
-    /// over the bar has the "Summarize this topic" tip. Its text opens the
+    /// over the bar has the "Summarize this thread?" tip. Its text opens the
     /// drawer at medium (and the tip has done its job); its button opens it
     /// and starts the summary (the DEBUG fake summary).
     func testTheHintRowOpensTheDrawerAndItsButtonSummarizes() throws {
@@ -485,7 +485,7 @@ final class DrawerUITests: DCUITestCase {
         let text = app.buttons["dockHintText"]
         XCTAssertTrue(waitOrDump(text, timeout: 20, in: app), "The first topic shows no hint row.")
         XCTAssertFalse(state.exists, "The first topic must not open the drawer.")
-        XCTAssertEqual(text.label, "Summarize this topic")
+        XCTAssertEqual(text.label, "Summarize this thread? · Open assistant")
         XCTAssertTrue(waitForHittable(text))
         text.tap()
         XCTAssertTrue(state.waitForExistence(timeout: 10), "The hint row's text did not open the drawer.")
@@ -499,7 +499,7 @@ final class DrawerUITests: DCUITestCase {
         state = drawerState(in: app)
         let button = app.buttons["dockHintAction"]
         XCTAssertTrue(waitOrDump(button, timeout: 20, in: app), "The hint row has no button.")
-        XCTAssertEqual(button.label, "Summarize this topic")
+        XCTAssertEqual(button.label, "Summarize this thread")
         XCTAssertTrue(waitForHittable(button))
         button.tap()
         XCTAssertTrue(state.waitForExistence(timeout: 10), "The hint row's button did not open the drawer.")
