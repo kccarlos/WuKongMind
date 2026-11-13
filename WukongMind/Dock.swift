@@ -372,7 +372,7 @@ private struct DockAnswerReadyRow: View {
         } label: {
             HStack(spacing: DCTheme.spacingS) {
                 Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(DCTheme.brandBlue)
+                    .foregroundStyle(DCTheme.goldInk)
                     .accessibilityHidden(true)
                 Text("Answer ready", comment: "AI drawer status row: an Ask the forum answer finished")
                     .font(.subheadline.weight(.semibold))
@@ -432,17 +432,17 @@ private struct DockHintRow: View {
             } label: {
                 Image(systemName: hint.action.symbol)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(DCTheme.onGold)
                     .frame(width: 36, height: 36)
-                    .background(hint.action.needsAttention ? DCTheme.warning : DCTheme.summaryTint, in: Circle())
+                    .background(DCTheme.gold, in: Circle())
                     .overlay(alignment: .topTrailing) {
                         if let badge = hint.action.badge {
                             Text(verbatim: badge)
                                 .font(.caption2.weight(.bold))
-                                .foregroundStyle(.white)
+                                .foregroundStyle(DCTheme.goldInk)
                                 .padding(.horizontal, 5)
                                 .frame(minWidth: 18, minHeight: 18)
-                                .background(Color.red, in: Capsule())
+                                .background(DCTheme.goldWash, in: RoundedRectangle(cornerRadius: DCTheme.radiusSm, style: .continuous))
                                 .offset(x: 6, y: -4)
                         }
                     }

@@ -651,12 +651,20 @@ struct PhoneAIButton: View {
     }
 
     var body: some View {
-        Image(systemName: voice.isActive ? "waveform" : "sparkles")
-            .font(.body.weight(.semibold))
-            .foregroundStyle(isAvailable ? AnyShapeStyle(DCTheme.brandGradient) : AnyShapeStyle(.tertiary))
-            .symbolEffect(.pulse, isActive: voice.isActive)
-            // Done: one bounce (not with Reduce Motion).
-            .symbolEffect(.bounce, value: finishedBounceValue)
+        Group {
+            if voice.isActive {
+                Image(systemName: "waveform")
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(isAvailable ? DCTheme.goldInk : DCTheme.inkFaint)
+            } else {
+                DCAgentRing(
+                    size: 22,
+                    lineWidth: 2.2,
+                    isTurning: browserAgent.isRunning || app.activeResearch != nil,
+                    isEnabled: isAvailable
+                )
+            }
+        }
             .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
             .overlay { ResearchRing(app: app) }
             .overlay(alignment: .topTrailing) {
@@ -715,64 +723,29 @@ struct ResearchRing: View {
 
     var body: some View {
         if browserAgent.isRunning {
-            BrowserAgentProgressArc(
-                step: browserAgent.currentStep,
-                maxSteps: max(1, browserAgent.maxSteps)
-            )
-        } else if let research = app.activeResearch {
-            ResearchProgressArc(recordID: research.id, progress: app.progress)
+            Color.clear
+                .allowsHitTesting(false)
+                .accessibilityIdentifier("researchRing")
+        } else if app.activeResearch != nil {
+            Color.clear
+                .allowsHitTesting(false)
+                .accessibilityIdentifier("researchRing")
         } else if app.readyAnswer != nil {
             Circle()
-                .stroke(DCTheme.brandGradient, lineWidth: 2.5)
-                .padding(4)
+                .stroke(DCTheme.gold, lineWidth: DCTheme.ringWidth)
+                .padding(5)
                 .allowsHitTesting(false)
                 .accessibilityIdentifier("answerReadyRing")
         }
     }
 }
 
-private struct BrowserAgentProgressArc: View {
-    let step: Int
-    let maxSteps: Int
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    var body: some View {
-        let fraction = max(0.15, min(0.92, Double(max(1, step)) / Double(max(1, maxSteps))))
-        Circle()
-            .trim(from: 0, to: fraction)
-            .stroke(DCTheme.brandGradient, style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
-            .rotationEffect(.degrees(-90))
-            .padding(4)
-            .animation(reduceMotion ? nil : .linear(duration: 0.3), value: fraction)
-            .allowsHitTesting(false)
-            .accessibilityIdentifier("researchRing")
-    }
-}
-
-private struct ResearchProgressArc: View {
-    let recordID: UUID
-    @ObservedObject var progress: ProgressStore
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    var body: some View {
-        let fraction = progress.value(for: recordID)
-        Circle()
-            .trim(from: 0, to: max(0.08, fraction ?? 0.25))
-            .stroke(DCTheme.brandGradient, style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
-            .rotationEffect(.degrees(-90))
-            .padding(4)
-            .animation(reduceMotion ? nil : .linear(duration: 0.3), value: fraction)
-            .allowsHitTesting(false)
-            .accessibilityIdentifier("researchRing")
-    }
-}
-
 /// The AI button's (or panel toggle's) dot: the topic has new replies
-/// (`AppModel.showsNewRepliesDot`).
+/// (`AppModel.showsNewRepliesDot`). Gold per design system ("New" and "unread" are gold, never cinnabar).
 struct NewRepliesDot: View {
     var body: some View {
         Circle()
-            .fill(Color.red)
+            .fill(DCTheme.gold)
             .frame(width: 8, height: 8)
             .padding(8)
             .allowsHitTesting(false)
@@ -863,9 +836,9 @@ struct ForumMenuButton: View {
             if let forum {
                 ForumIcon(forum: forum, size: 30)
             } else {
-                Image(systemName: "square.grid.2x2.fill")
+                Image(systemName: "square.grid.2x2")
                     .font(.body)
-                    .foregroundStyle(DCTheme.brandGradient)
+                    .foregroundStyle(DCTheme.ink)
                     .frame(width: 30, height: 30)
             }
         }

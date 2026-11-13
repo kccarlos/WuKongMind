@@ -122,8 +122,8 @@ private struct HomeList: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.75)
                 Text("Home", comment: "Title of the Home screen")
-                    .font(.largeTitle.weight(.heavy))
-                    .foregroundStyle(DCTheme.brandInk)
+                    .font(DCType.largeTitle)
+                    .foregroundStyle(DCTheme.ink)
             }
             .accessibilityElement(children: .combine)
             .accessibilityAddTraits(.isHeader)
@@ -357,7 +357,7 @@ private struct HomeList: View {
                         Button { withAnimation(DCMotion.smooth) { app.pin(forum) } } label: {
                             Label("Pin", systemImage: "pin")
                         }
-                        .tint(DCTheme.brandBlue)
+                        .tint(DCTheme.goldInk)
                     }
                     .swipeActions(edge: .trailing) {
                         Button(role: .destructive) { forumToRemove = forum } label: {
@@ -514,7 +514,7 @@ private struct HomeList: View {
                 HStack(alignment: .top, spacing: DCTheme.spacingM) {
                     Image(systemName: "square.and.arrow.up")
                         .font(.body.weight(.semibold))
-                        .foregroundStyle(DCTheme.brandPurple)
+                        .foregroundStyle(DCTheme.goldInk)
                         .frame(width: 28)
                         .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: 2) {
@@ -541,7 +541,7 @@ private struct HomeList: View {
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier("homeShareHowTo")
         }
-        .listRowBackground(DCTheme.brandPurple.opacity(0.08))
+        .listRowBackground(DCTheme.goldWash)
     }
 
     private func open(_ forum: Forum) {
@@ -929,7 +929,7 @@ private struct DigestStrip: View {
             NewRepliesBadge(text: String(localized: "\(count) new replies", comment: "Digest card: why a watched topic is in the digest"))
         case .trending:
             DCPill(text: String(localized: "Trending", comment: "Digest card: the topic is among today's top topics of a pinned forum"),
-                   tint: DCTheme.brandBlue)
+                   tint: DCTheme.jade)
         }
     }
 }
@@ -968,27 +968,25 @@ private struct ContinueReadingRow: View {
     }
 }
 
-/// The orange "12 new" badge.
+/// The gold "12 new" seal.
 private struct NewRepliesBadge: View {
     let text: String
 
     var body: some View {
         Text(text)
-            .font(.caption.weight(.bold))
+            .font(DCType.caption)
             .foregroundStyle(DCTheme.newRepliesBadgeText)
             .padding(.horizontal, 8)
             .padding(.vertical, 3)
-            .background(DCTheme.newRepliesBadgeBackground, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .background(DCTheme.newRepliesBadgeBackground, in: RoundedRectangle(cornerRadius: DCTheme.radiusSm, style: .continuous))
             .lineLimit(1)
             .fixedSize()
-            .contentTransition(.numericText())
     }
 }
 
 enum HomeStyle {
-    /// The podcast card: deep ink in both appearances (it is the one dark
-    /// card on Home).
-    static let podcastCard = Color(light: 0x17132B, dark: 0x2A2541)
+    /// The podcast card: warm ink in light, raised warm surface in dark.
+    static let podcastCard = Color(light: 0x1A1612, dark: 0x2A251E)
 }
 
 private struct TilePressStyle: ButtonStyle {
@@ -996,7 +994,7 @@ private struct TilePressStyle: ButtonStyle {
         configuration.label
             .contentShape(.hoverEffect, RoundedRectangle(cornerRadius: DCTheme.cardCornerRadius, style: .continuous))
             .hoverEffect(.lift)
-            .scaleEffect(configuration.isPressed ? 0.95 : 1)
+            .opacity(configuration.isPressed ? 0.85 : 1)
             .animation(DCMotion.quick, value: configuration.isPressed)
     }
 }

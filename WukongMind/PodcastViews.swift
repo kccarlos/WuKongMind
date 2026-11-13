@@ -60,7 +60,7 @@ struct PodcastTodaySection: View {
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .foregroundStyle(DCTheme.brandBlue)
+                .foregroundStyle(DCTheme.goldInk)
                 .accessibilityIdentifier("podcastSetupGoogleKey")
             }
         }
@@ -210,7 +210,7 @@ struct SettingsPodcastSections: View {
                         .foregroundStyle(.secondary)
                 }
             }
-            .tint(DCTheme.brandBlue)
+            .tint(DCTheme.goldInk)
             .disabled(!app.settings.dailyDigestEnabled)
             .accessibilityIdentifier("podcastDailyEnabled")
             Picker("Voices", selection: $app.settings.podcast.engine) {

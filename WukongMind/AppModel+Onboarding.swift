@@ -274,22 +274,7 @@ enum SettingsPage: String, CaseIterable, Identifiable, Hashable {
     }
 
     var tint: Color {
-        switch self {
-        case .provider: DCTheme.brandPurple
-        case .sync: Color(light: 0x2F7FE6, dark: 0x5AAEFF)
-        case .forums: DCTheme.brandBlue
-        case .summaries: DCTheme.summaryTint
-        case .agent: DCTheme.agentTint
-        case .scripts: DCTheme.agentTint
-        case .watched: Color(light: 0xD9372B, dark: 0xFF6259)
-        case .digest: DigestStyle.tint
-        case .voice: Color(light: 0xD6336C, dark: 0xFF6B9E)
-        case .browser: Color(light: 0x1C7CD6, dark: 0x4AA3FF)
-        case .data: Color(light: 0x4B5563, dark: 0x8E96A3)
-        case .help: DCTheme.chatTint
-        case .sharing: Color(light: 0x1C7CD6, dark: 0x4AA3FF)
-        case .acknowledgements: Color(light: 0x6B7280, dark: 0x8E96A3)
-        }
+        self == .agent ? DCTheme.gold : DCTheme.ink
     }
 
     /// Parses a DEBUG `-dc-show-settings` value; "root" or unknown → nil.

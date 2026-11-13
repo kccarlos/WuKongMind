@@ -78,11 +78,7 @@ struct ForumIcon: View {
     private var monogram: some View {
         let tint = DCTheme.forumTint(for: siteURL)
         return ZStack {
-            LinearGradient(
-                colors: [tint.opacity(0.95), tint.opacity(0.7)],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
+            tint
             Text(Self.initial(of: name, siteURL: siteURL))
                 .font(.system(size: size * 0.46, weight: .bold, design: .rounded))
                 .foregroundStyle(.white)
@@ -210,9 +206,9 @@ struct ForumSwitcherLabel: View {
             if let forum {
                 ForumIcon(forum: forum, size: 22)
             } else {
-                Image(systemName: "square.grid.2x2.fill")
+                Image(systemName: "square.grid.2x2")
                     .font(.subheadline)
-                    .foregroundStyle(DCTheme.brandGradient)
+                    .foregroundStyle(DCTheme.ink)
                     .frame(width: 22, height: 22)
             }
             Text(forum?.displayName ?? String(localized: "Forums"))

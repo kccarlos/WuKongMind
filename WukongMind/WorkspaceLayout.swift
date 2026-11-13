@@ -340,10 +340,10 @@ extension View {
         if #available(iOS 18.0, *) {
             presentationSizing(.form)
                 .presentationBackground(DCTheme.pageBackground)
-                .tint(DCTheme.brandBlue)
+                .tint(DCTheme.goldInk)
         } else {
             presentationBackground(DCTheme.pageBackground)
-                .tint(DCTheme.brandBlue)
+                .tint(DCTheme.goldInk)
         }
     }
 }

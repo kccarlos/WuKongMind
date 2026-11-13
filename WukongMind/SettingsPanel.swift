@@ -72,7 +72,8 @@ struct SettingsRootView: View {
             }
         }
         .formStyle(.grouped)
-        .tint(DCTheme.brandBlue)
+        .dcGroupedBackground()
+        .tint(DCTheme.goldInk)
         .navigationTitle("Settings")
         .navigationDestination(for: SettingsPage.self) { page in
             SettingsDestination(app: app, page: page)
@@ -140,7 +141,7 @@ struct SettingsRootView: View {
             }
         } label: {
             SettingsIconRow {
-                SettingsIcon(symbol: "globe", tint: Color(light: 0x1C7CD6, dark: 0x4AA3FF))
+                SettingsIcon(symbol: "globe", tint: DCTheme.ink)
             } title: {
                 // Explicit colors: a Form button would tint `.primary`.
                 Text("Language")
@@ -185,7 +186,7 @@ struct ReadingLanguagePicker: View {
 
     var body: some View {
         SettingsIconRow {
-            SettingsIcon(symbol: "translate", tint: Color(light: 0x2F9E6B, dark: 0x4CC38A))
+            SettingsIcon(symbol: "translate", tint: DCTheme.ink)
         } title: {
             Text("Reading language")
                 .foregroundStyle(Color.primary)
@@ -246,41 +247,37 @@ struct SettingsDestination: View {
             case .acknowledgements: SettingsAcknowledgementsPage(app: app)
             }
         }
-        .tint(DCTheme.brandBlue)
+        .dcGroupedBackground()
+        .tint(DCTheme.goldInk)
         .navigationTitle(page.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.visible, for: .navigationBar)
     }
 }
 
-/// White glyph in a colored rounded square, like iOS Settings.
+/// 29pt `radiusSm` icon tile: `ink` with a `ground` glyph by default, or `gold`
+/// with the `onGold` ring for the Agent row (`ListRow/README.md`).
 struct SettingsIcon: View {
     let symbol: String
-    let tint: Color
+    let isAgent: Bool
 
     init(page: SettingsPage) {
         symbol = page.systemImage
-        tint = page.tint
+        isAgent = (page == .agent)
     }
 
     init(symbol: String, tint: Color) {
         self.symbol = symbol
-        self.tint = tint
+        self.isAgent = false
     }
 
     @ScaledMetric(relativeTo: .body) private var size: CGFloat = 29
 
     var body: some View {
-        let side = min(size, 34)
-        RoundedRectangle(cornerRadius: side * 0.24, style: .continuous)
-            .fill(tint.gradient)
-            .frame(width: side, height: side)
-            .overlay {
-                Image(systemName: symbol)
-                    .font(.system(size: side * 0.52, weight: .semibold))
-                    .foregroundStyle(.white)
-            }
-            .accessibilityHidden(true)
+        DCListIconTile(
+            kind: isAgent ? .agent : .ink(symbol: symbol),
+            size: min(size, 34)
+        )
     }
 }
 
@@ -338,10 +335,9 @@ struct SettingsStatusPill: View {
     let ready: Bool
 
     var body: some View {
-        DCPill(
+        DCSeal(
             text: ready ? String(localized: "Ready", comment: "AI provider status pill") : String(localized: "Set up", comment: "AI provider status pill: needs setup"),
-            systemImage: ready ? "checkmark.circle.fill" : "exclamationmark.circle.fill",
-            tint: ready ? DCTheme.success : DCTheme.warning
+            variant: .state(ready ? .ready : .attention)
         )
         .accessibilityLabel(ready ? "Provider ready" : "Provider needs setup")
     }

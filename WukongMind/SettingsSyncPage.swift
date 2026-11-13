@@ -82,7 +82,7 @@ struct SyncStatusPresentation: Equatable {
             self.init(
                 title: String(localized: "Syncing…"),
                 symbol: "arrow.triangle.2.circlepath.icloud",
-                tint: DCTheme.brandBlue,
+                tint: DCTheme.goldInk,
                 shortLabel: String(localized: "Syncing", comment: "Sync status, short value in the Settings row"),
                 isBusy: true
             )

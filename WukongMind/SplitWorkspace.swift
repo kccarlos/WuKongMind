@@ -138,18 +138,20 @@ struct SplitPanelToggle: View {
             DCHaptics.tap()
             action()
         } label: {
-            Image(systemName: "sparkles")
-                .font(.body.weight(.semibold))
-                .foregroundStyle(isAvailable ? AnyShapeStyle(DCTheme.brandGradient) : AnyShapeStyle(.tertiary))
-                .symbolEffect(.bounce, value: finishedBounceValue)
-                .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
-                .background {
-                    if isShown {
-                        Circle()
-                            .fill(DCTheme.agentTint.opacity(0.12))
-                            .padding(4)
-                    }
+            DCAgentRing(
+                size: 20,
+                lineWidth: 2.2,
+                isTurning: browserAgent.isRunning || app.activeResearch != nil,
+                isEnabled: isAvailable
+            )
+            .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
+            .background {
+                if isShown {
+                    Circle()
+                        .fill(DCTheme.goldWash)
+                        .padding(4)
                 }
+            }
         }
         .buttonStyle(DCIconButtonStyle())
         .disabled(!isAvailable)
@@ -284,12 +286,12 @@ struct WorkspaceView: View {
         .overlay {
             if dropTargeted {
                 RoundedRectangle(cornerRadius: DCTheme.cardCornerRadius, style: .continuous)
-                    .strokeBorder(DCTheme.brandBlue, lineWidth: 3)
+                    .strokeBorder(DCTheme.gold, lineWidth: 3)
                     .background(.regularMaterial.opacity(0.6), in: RoundedRectangle(cornerRadius: DCTheme.cardCornerRadius, style: .continuous))
                     .overlay {
                         Label("Summarize this link", systemImage: "link")
                             .font(.headline)
-                            .foregroundStyle(DCTheme.brandBlue)
+                            .foregroundStyle(DCTheme.goldInk)
                     }
                     .padding(DCTheme.spacingS)
                     .allowsHitTesting(false)

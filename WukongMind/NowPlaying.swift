@@ -147,14 +147,14 @@ struct NowPlayingView: View {
     }
 
     private var cover: some View {
-        RoundedRectangle(cornerRadius: 24, style: .continuous)
-            .fill(LinearGradient(colors: [DigestStyle.tint, DCTheme.brandPurple], startPoint: .topLeading, endPoint: .bottomTrailing))
+        RoundedRectangle(cornerRadius: DCTheme.radiusLg, style: .continuous)
+            .fill(DCTheme.ink)
             .aspectRatio(1, contentMode: .fit)
             .frame(maxWidth: 260)
             .overlay {
                 Image(systemName: "headphones")
                     .font(.system(size: 72, weight: .semibold))
-                    .foregroundStyle(.white.opacity(0.92))
+                    .foregroundStyle(DCTheme.ground)
             }
             .accessibilityHidden(true)
     }

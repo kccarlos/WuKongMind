@@ -103,12 +103,7 @@ struct HistoryView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
-    private static let selectedChipForeground = Color(
-        light: 0xFFFFFF,
-        dark: 0x0B0E1A,
-        highContrastLight: 0xFFFFFF,
-        highContrastDark: 0x000000
-    )
+    private static let selectedChipForeground = DCTheme.onGold
 
     typealias Segment = HistoryFeed.Segment
 
@@ -162,6 +157,7 @@ struct HistoryView: View {
                 }
             }
             .listStyle(.insetGrouped)
+            .scrollContentBackground(.hidden)
             .accessibilityIdentifier("historyView")
             .animation(DCMotion.respecting(reduceMotion), value: segment)
             .animation(DCMotion.respecting(reduceMotion), value: forumFilter)
@@ -267,14 +263,15 @@ struct HistoryView: View {
             .padding(.horizontal, 14)
             .padding(.vertical, 8)
             .frame(minHeight: DCTheme.controlHeight)
-            .background(DCTheme.brandBlue, in: RoundedRectangle(cornerRadius: DCTheme.controlCornerRadius, style: .continuous))
-            .contentShape(RoundedRectangle(cornerRadius: DCTheme.controlCornerRadius, style: .continuous))
+            .background(DCTheme.gold, in: RoundedRectangle(cornerRadius: DCTheme.radiusSm, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: DCTheme.radiusSm, style: .continuous))
         }
         .accessibilityIdentifier("historySegmentMenu")
     }
 
     private func segmentChip(_ item: Segment, count: Int) -> some View {
         let selected = segment == item
+        let chipShape = RoundedRectangle(cornerRadius: DCTheme.radiusSm, style: .continuous)
         return Button {
             withAnimation(DCMotion.respecting(reduceMotion, DCMotion.quick)) { segment = item }
         } label: {
@@ -287,16 +284,16 @@ struct HistoryView: View {
                         .font(.caption2.weight(.bold).monospacedDigit())
                         .padding(.horizontal, 5)
                         .padding(.vertical, 1)
-                        .background(selected ? Self.selectedChipForeground.opacity(0.22) : Color.primary.opacity(0.08), in: Capsule())
+                        .background(selected ? Self.selectedChipForeground.opacity(0.18) : Color.primary.opacity(0.08), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
                         .fixedSize(horizontal: true, vertical: false)
                 }
             }
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(selected ? Self.selectedChipForeground : Color.primary)
-            .padding(.horizontal, 6)
+            .font(DCType.caption)
+            .foregroundStyle(selected ? Self.selectedChipForeground : DCTheme.ink)
+            .padding(.horizontal, 8)
             .padding(.vertical, 7)
-            .background(selected ? AnyShapeStyle(DCTheme.brandBlue) : AnyShapeStyle(Color.primary.opacity(0.06)), in: Capsule())
-            .contentShape(Capsule())
+            .background(selected ? DCTheme.gold : DCTheme.surfaceRaised, in: chipShape)
+            .contentShape(chipShape)
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(selected ? .isSelected : [])
@@ -341,7 +338,7 @@ struct HistoryView: View {
                     .font(.caption2.weight(.bold))
                     .accessibilityHidden(true)
             }
-            .foregroundStyle(forumFilter == nil ? Color.secondary : DCTheme.brandBlue)
+            .foregroundStyle(forumFilter == nil ? Color.secondary : DCTheme.goldInk)
             .frame(minWidth: 32, minHeight: DCTheme.controlHeight)
             .contentShape(Rectangle())
         }
@@ -661,7 +658,7 @@ struct HistoryView: View {
                 } label: {
                     Label("Open", systemImage: "arrow.up.right")
                 }
-                .tint(DCTheme.brandBlue)
+                .tint(DCTheme.goldInk)
 
                 Menu {
                     Button {
@@ -732,11 +729,11 @@ struct HistoryView: View {
                 Spacer(minLength: 0)
                 if watched.newReplies > 0 {
                     Text("\(watched.newReplies) new")
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(.white)
+                        .font(DCType.caption)
+                        .foregroundStyle(DCTheme.goldInk)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 3)
-                        .background(DCTheme.brandBlue, in: Capsule())
+                        .background(DCTheme.goldWash, in: RoundedRectangle(cornerRadius: DCTheme.radiusSm, style: .continuous))
                         .accessibilityIdentifier("watchedNewReplies-\(watched.topicID)")
                 }
             }
@@ -746,7 +743,7 @@ struct HistoryView: View {
                 } label: {
                     Label("Open", systemImage: "arrow.up.right")
                 }
-                .tint(DCTheme.brandBlue)
+                .tint(DCTheme.goldInk)
                 Button {
                     app.unwatch(topicKey: watched.topicKey)
                 } label: {

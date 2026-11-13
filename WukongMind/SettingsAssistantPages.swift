@@ -153,7 +153,7 @@ private struct ForumRequestPaceSection: View {
     var body: some View {
         Section {
             Toggle("Limit request rate", isOn: $app.settings.forumRateLimitingEnabled)
-                .tint(DCTheme.brandBlue)
+                .tint(DCTheme.goldInk)
                 .accessibilityIdentifier("forumRateLimitingEnabled")
             if app.settings.forumRateLimitingEnabled {
                 Picker(selection: $app.settings.forumRequestPace) {
@@ -373,7 +373,7 @@ struct SettingsWatchedPage: View {
                             .foregroundStyle(.secondary)
                     }
                 }
-                .tint(DCTheme.brandBlue)
+                .tint(DCTheme.goldInk)
                 .accessibilityIdentifier("watchAutoRefresh")
             } footer: {
                 Text("Checked when you open WukongMind, every 30 minutes while it’s open, and now and then in the background.")
@@ -400,7 +400,7 @@ struct SettingsWatchedPage: View {
                                 }
                                 Spacer(minLength: DCTheme.spacingS)
                                 if watched.newReplies > 0 {
-                                    DCPill(text: String(localized: "\(watched.newReplies) new", comment: "Badge: number of new replies in a watched topic"), tint: DCTheme.brandBlue)
+                                    DCPill(text: String(localized: "\(watched.newReplies) new", comment: "Badge: number of new replies in a watched topic"), tint: DCTheme.goldInk)
                                 }
                                 Image(systemName: "arrow.up.right")
                                     .font(.caption.weight(.semibold))
@@ -518,7 +518,7 @@ private struct ContentBlockingSettingsSections: View {
                 Label {
                     Text("Block ads")
                 } icon: {
-                    SettingsIcon(symbol: "shield.lefthalf.filled", tint: DCTheme.brandBlue)
+                    SettingsIcon(symbol: "shield.lefthalf.filled", tint: DCTheme.ink)
                 }
             }
             .accessibilityIdentifier("blockAdsToggle")
@@ -526,7 +526,7 @@ private struct ContentBlockingSettingsSections: View {
                 Label {
                     Text("Block trackers")
                 } icon: {
-                    SettingsIcon(symbol: "eye.slash.fill", tint: Color(light: 0x4B5563, dark: 0x8E96A3))
+                    SettingsIcon(symbol: "eye.slash.fill", tint: DCTheme.ink)
                 }
             }
             .accessibilityIdentifier("blockTrackersToggle")
@@ -606,7 +606,7 @@ private struct BrowserBarPreview: View {
                     .frame(width: 70, height: 120)
                     .overlay(alignment: position == .top ? .top : .bottom) {
                         Capsule()
-                            .fill(selected ? DCTheme.brandBlue : Color.secondary.opacity(0.5))
+                            .fill(selected ? DCTheme.gold : Color.secondary.opacity(0.5))
                             .frame(width: 52, height: 12)
                             .padding(8)
                     }
@@ -615,7 +615,7 @@ private struct BrowserBarPreview: View {
                         if position == .automatic {
                             Capsule()
                                 .strokeBorder(
-                                    selected ? DCTheme.brandBlue : Color.secondary.opacity(0.5),
+                                    selected ? DCTheme.gold : Color.secondary.opacity(0.5),
                                     style: StrokeStyle(lineWidth: 1.5, dash: [3, 2])
                                 )
                                 .frame(width: 52, height: 12)
@@ -633,11 +633,11 @@ private struct BrowserBarPreview: View {
                     }
                     .overlay {
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .stroke(selected ? DCTheme.brandBlue : DCTheme.border, lineWidth: selected ? 2 : 1)
+                            .stroke(selected ? DCTheme.gold : DCTheme.border, lineWidth: selected ? 2 : 1)
                     }
                 Text(position.displayName)
                     .font(.footnote.weight(selected ? .semibold : .regular))
-                    .foregroundStyle(selected ? DCTheme.brandBlue : Color.secondary)
+                    .foregroundStyle(selected ? DCTheme.goldInk : Color.secondary)
             }
         }
         .buttonStyle(.plain)

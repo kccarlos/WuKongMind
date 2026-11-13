@@ -422,7 +422,7 @@ struct ModelRolePage: View {
                                     }
                                     Spacer()
                                     if favorite.matches(selection) {
-                                        Image(systemName: "checkmark").foregroundStyle(DCTheme.brandBlue)
+                                        Image(systemName: "checkmark").foregroundStyle(DCTheme.goldInk)
                                     }
                                 }
                             }
@@ -585,11 +585,11 @@ struct ProviderSettingsPage: View {
                         }
                     } label: {
                         HStack(spacing: DCTheme.spacingS) {
-                            if testState == .testing { ProgressView().tint(.white) }
+                            if testState == .testing { ProgressView().tint(DCTheme.onGold) }
                             Text("Test & Save")
                         }
                         .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(DCTheme.onGold)
                         .frame(maxWidth: .infinity, minHeight: 52)
                         .contentShape(Rectangle())
                     }
@@ -597,7 +597,7 @@ struct ProviderSettingsPage: View {
                     .disabled(testState == .testing)
                     .accessibilityIdentifier("testProvider")
                     .listRowInsets(EdgeInsets())
-                    .listRowBackground(DCTheme.brandBlue.opacity(testState == .testing ? 0.7 : 1))
+                    .listRowBackground(DCTheme.gold.opacity(testState == .testing ? 0.7 : 1))
                 } footer: {
                     if testState != .idle && testState != .testing {
                         ProviderTestStatusView(state: testState)

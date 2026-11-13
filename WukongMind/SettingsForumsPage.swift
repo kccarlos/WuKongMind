@@ -55,7 +55,7 @@ struct SettingsForumsPage: View {
                             .swipeActions(edge: .trailing) {
                                 Button("Remove", role: .destructive) { removing = forum }
                                 Button("Pin") { withAnimation { app.pin(forum) } }
-                                    .tint(DCTheme.brandBlue)
+                                    .tint(DCTheme.goldInk)
                             }
                     }
                 } header: {
@@ -229,10 +229,10 @@ private struct PinPill: View {
     var body: some View {
         Text("Pin")
             .font(.footnote.weight(.semibold))
-            .foregroundStyle(DCTheme.brandBlue)
+            .foregroundStyle(DCTheme.goldInk)
             .padding(.horizontal, 12)
             .frame(height: 30)
-            .background(DCTheme.brandBlue.opacity(0.12), in: Capsule())
+            .background(DCTheme.goldWash, in: RoundedRectangle(cornerRadius: DCTheme.radiusSm, style: .continuous))
             .fixedSize()
             // 44 pt to tap; the pill stays 30 pt.
             .frame(minWidth: DCTheme.controlHeight, minHeight: DCTheme.controlHeight)

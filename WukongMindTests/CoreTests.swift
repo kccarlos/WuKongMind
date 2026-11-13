@@ -90,10 +90,17 @@ final class CoreTests: XCTestCase {
                 )
                 ctx?.draw(cgImage, in: CGRect(x: 0, y: 0, width: w, height: h))
             }
+            let pillBG = UIColor(DCTheme.postHighlightBackground)
+                .resolvedColor(with: UITraitCollection(userInterfaceStyle: .light))
+            var pr: CGFloat = 0, pg: CGFloat = 0, pb: CGFloat = 0, pa: CGFloat = 0
+            pillBG.getRed(&pr, green: &pg, blue: &pb, alpha: &pa)
+            let wantR = Int((pr * 255).rounded())
+            let wantG = Int((pg * 255).rounded())
+            let wantB = Int((pb * 255).rounded())
             func isPill(_ x: Int, _ y: Int) -> Bool {
                 let i = (y * w + x) * 4
                 let r = Int(px[i]), g = Int(px[i + 1]), b = Int(px[i + 2])
-                return r > 220 && g > 220 && b > 245 && b - r > 8
+                return abs(r - wantR) <= 14 && abs(g - wantG) <= 14 && abs(b - wantB) <= 14 && g - r >= 10
             }
             func isInk(_ x: Int, _ y: Int) -> Bool {
                 let i = (y * w + x) * 4

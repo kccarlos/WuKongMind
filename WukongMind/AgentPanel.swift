@@ -360,7 +360,7 @@ struct AgentView: View {
                     .font(.subheadline.weight(.bold))
                     .foregroundStyle(statusColor(status))
             } else {
-                ProgressView().controlSize(.small).tint(DCTheme.agentTint)
+                DCAgentRing(size: 18, lineWidth: DCTheme.ringWidth, isTurning: true)
             }
         }
         .frame(width: 32, height: 32)
@@ -512,7 +512,7 @@ struct AgentView: View {
                     onOpenTopic(session.url)
                 } label: {
                     Image(systemName: "arrow.up.right.square")
-                        .foregroundStyle(DCTheme.brandBlue)
+                        .foregroundStyle(DCTheme.jade)
                 }
                 .buttonStyle(DCIconButtonStyle())
                 .accessibilityLabel("Open \(session.title) in Browse")
@@ -634,7 +634,7 @@ struct AgentView: View {
                         Spacer(minLength: 4)
                         Image(systemName: "arrow.up.right")
                             .font(.caption.weight(.bold))
-                            .foregroundStyle(DCTheme.brandBlue)
+                            .foregroundStyle(DCTheme.jade)
                     }
                     .padding(10)
                     .background(Color.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
@@ -670,7 +670,7 @@ struct AgentView: View {
             if message.role == .user {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Image(systemName: "person.crop.circle.fill")
-                        .foregroundStyle(DCTheme.brandBlue)
+                        .foregroundStyle(DCTheme.inkMuted)
                         .accessibilityHidden(true)
                     Text(message.content)
                         .font(.subheadline.weight(.semibold))
@@ -718,7 +718,7 @@ struct AgentView: View {
 
     private func toolTint(_ tool: String) -> Color {
         switch AgentToolName(rawValue: tool)?.tint {
-        case .search?: DCTheme.brandBlue
+        case .search?: DCTheme.jade
         case .read?: DCTheme.chatTint
         case .summarize?: DCTheme.agentTint
         case .watch?: DCTheme.warning
@@ -972,17 +972,17 @@ struct BrowserAgentPanelView: View {
             VStack(alignment: .leading, spacing: 10) {
                 howItWorksRow(
                     symbol: "doc.text",
-                    tint: DCTheme.brandBlue,
+                    tint: DCTheme.ink,
                     text: String(localized: "Reads the page’s structure and text", comment: "Browser agent empty state: first how-it-works bullet")
                 )
                 howItWorksRow(
                     symbol: "curlybraces",
-                    tint: DCTheme.agentTint,
+                    tint: DCTheme.ink,
                     text: String(localized: "Runs JavaScript and injects CSS live", comment: "Browser agent empty state: second how-it-works bullet")
                 )
                 howItWorksRow(
                     symbol: "hand.raised",
-                    tint: DCTheme.chatTint,
+                    tint: DCTheme.ink,
                     text: String(localized: "Stops whenever you tap Stop", comment: "Browser agent empty state: third how-it-works bullet")
                 )
             }
@@ -1139,13 +1139,13 @@ struct BrowserAgentPanelView: View {
             Spacer(minLength: 44)
             Text(text)
                 .font(.subheadline)
-                .foregroundStyle(.primary)
+                .foregroundStyle(DCTheme.ink)
                 .textSelection(.enabled)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)
                 .background(
-                    DCTheme.brandBlue.opacity(colorScheme == .dark ? 0.22 : 0.12),
-                    in: RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    DCTheme.surfaceRaised,
+                    in: RoundedRectangle(cornerRadius: DCTheme.radiusLg, style: .continuous)
                 )
                 .accessibilityIdentifier("agentUserMessage")
         }
@@ -1466,11 +1466,11 @@ struct BrowserAgentPanelView: View {
                         Text("Stop", comment: "Browser agent stop button title")
                             .font(.subheadline.weight(.semibold))
                     }
-                    .foregroundStyle(colorScheme == .dark ? Color.black : Color.white)
+                    .foregroundStyle(DCTheme.onCinnabar)
                     .padding(.horizontal, 14)
                     .frame(minWidth: 44, minHeight: 44)
-                    .background(DCTheme.danger, in: Capsule())
-                    .contentShape(Capsule())
+                    .background(DCTheme.cinnabar, in: RoundedRectangle(cornerRadius: DCTheme.radiusMd, style: .continuous))
+                    .contentShape(RoundedRectangle(cornerRadius: DCTheme.radiusMd, style: .continuous))
                 }
                 .buttonStyle(.plain)
                 .keyboardShortcut(".", modifiers: .command)
@@ -1480,12 +1480,10 @@ struct BrowserAgentPanelView: View {
                 Button(action: sendDraft) {
                     Image(systemName: "arrow.up")
                         .font(.body.weight(.bold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(canSend ? DCTheme.onGold : DCTheme.inkFaint)
                         .frame(width: 44, height: 44)
                         .background(
-                            canSend
-                                ? AnyShapeStyle(DCTheme.brandGradient)
-                                : AnyShapeStyle(Color.secondary.opacity(0.25)),
+                            canSend ? DCTheme.gold : DCTheme.surfaceRaised,
                             in: Circle()
                         )
                         .contentShape(Circle())
@@ -1563,25 +1561,25 @@ enum BrowserAgentToolStyle {
         }
         switch toolName {
         case "read_page":
-            return Style(symbol: "doc.text", tint: DCTheme.brandBlue)
+            return Style(symbol: "doc.text", tint: DCTheme.ink)
         case "run_js":
-            return Style(symbol: "curlybraces", tint: DCTheme.agentTint)
+            return Style(symbol: "curlybraces", tint: DCTheme.ink)
         case "inject_css":
-            return Style(symbol: "drop", tint: DCTheme.chatTint)
+            return Style(symbol: "drop", tint: DCTheme.ink)
         case "wait_for":
-            return Style(symbol: "clock", tint: .secondary)
+            return Style(symbol: "clock", tint: DCTheme.inkMuted)
         case "script_save":
-            return Style(symbol: "square.and.arrow.down", tint: DCTheme.agentTint)
+            return Style(symbol: "square.and.arrow.down", tint: DCTheme.ink)
         case "script_list":
-            return Style(symbol: "list.bullet.rectangle", tint: DCTheme.brandBlue)
+            return Style(symbol: "list.bullet.rectangle", tint: DCTheme.ink)
         case "script_read":
-            return Style(symbol: "doc.plaintext", tint: DCTheme.brandBlue)
+            return Style(symbol: "doc.plaintext", tint: DCTheme.ink)
         case "script_update":
-            return Style(symbol: "arrow.triangle.2.circlepath", tint: DCTheme.agentTint)
+            return Style(symbol: "arrow.triangle.2.circlepath", tint: DCTheme.ink)
         case "script_delete":
             return Style(symbol: "trash", tint: DCTheme.danger)
         default:
-            return Style(symbol: "wrench.and.screwdriver", tint: DCTheme.agentTint)
+            return Style(symbol: "wrench.and.screwdriver", tint: DCTheme.ink)
         }
     }
 }
@@ -1605,14 +1603,12 @@ private struct BrowserAgentToolRowView: View {
         VStack(alignment: .leading, spacing: 0) {
             Button(action: onToggle) {
                 HStack(alignment: .center, spacing: 10) {
-                    Circle()
-                        .fill(style.tint.opacity(0.14))
+                    RoundedRectangle(cornerRadius: DCTheme.radiusSm, style: .continuous)
+                        .fill(DCTheme.surfaceRaised)
                         .frame(width: 28, height: 28)
                         .overlay {
                             if row.isRunning {
-                                ProgressView()
-                                    .controlSize(.mini)
-                                    .tint(style.tint)
+                                DCAgentRing(size: 16, lineWidth: DCTheme.ringWidth, isTurning: true)
                             } else {
                                 Image(systemName: style.symbol)
                                     .font(.caption.weight(.semibold))
@@ -1641,7 +1637,7 @@ private struct BrowserAgentToolRowView: View {
                                 : row.resultSummary
                         )
                         .font(.caption.weight(.medium))
-                        .foregroundStyle(row.isError ? DCTheme.danger : style.tint)
+                        .foregroundStyle(row.isError ? DCTheme.danger : (row.isRunning ? DCTheme.goldInk : DCTheme.inkMuted))
                         .lineLimit(summaryLineLimit)
                         .multilineTextAlignment(.leading)
                     }
@@ -1704,7 +1700,7 @@ private struct BrowserAgentToolRowView: View {
                                     .font(.caption.weight(.semibold))
                                 }
                                 .buttonStyle(.plain)
-                                .foregroundStyle(DCTheme.brandBlue)
+                                .foregroundStyle(DCTheme.goldInk)
                                 .accessibilityIdentifier("agentToolCopyResult")
                             }
                         }

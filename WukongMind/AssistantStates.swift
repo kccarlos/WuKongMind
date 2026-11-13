@@ -76,7 +76,7 @@ struct AssistantForumIcon: View {
     }
 
     private var tint: Color {
-        siteURL.map(DCTheme.forumTint(for:)) ?? DCTheme.brandBlue
+        siteURL.map(DCTheme.forumTint(for:)) ?? DCTheme.goldInk
     }
 
     private var monogram: String {
@@ -331,29 +331,10 @@ struct AssistantProgressBar: View {
 
     private func determinate(value: Double, width: CGFloat) -> some View {
         let fill = max(8, width * min(max(value, 0), 1))
-        let sheen = max(24, fill * 0.35)
-        return TimelineView(.animation(minimumInterval: 1 / 30)) { context in
-            let time = context.date.timeIntervalSinceReferenceDate
-            Capsule()
-                .fill(LinearGradient(colors: [tint, DCTheme.brandPurple], startPoint: .leading, endPoint: .trailing))
-                .overlay(alignment: .leading) {
-                    if !reduceMotion {
-                        // A highlight gliding along the filled part.
-                        LinearGradient(
-                            colors: [.white.opacity(0), .white.opacity(0.45), .white.opacity(0)],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                        .frame(width: sheen)
-                        .offset(x: -sheen + (fill + sheen) * Self.sweepPhase(at: time, period: Self.sheenPeriod))
-                        .blendMode(.plusLighter)
-                    }
-                }
-                .clipShape(Capsule())
-                .opacity(reduceMotion ? Self.pulse(at: time, low: 0.7, high: 1) : 1)
-        }
-        .frame(width: fill)
-        .animation(DCMotion.respecting(reduceMotion), value: value)
+        return Capsule()
+            .fill(tint)
+            .frame(width: fill)
+            .animation(DCMotion.respecting(reduceMotion), value: value)
     }
 
     private func indeterminate(width: CGFloat) -> some View {
@@ -365,7 +346,7 @@ struct AssistantProgressBar: View {
                     .opacity(Self.pulse(at: time, low: 0.25, high: 0.65))
             } else {
                 Capsule()
-                    .fill(LinearGradient(colors: [tint.opacity(0.6), tint, DCTheme.brandPurple], startPoint: .leading, endPoint: .trailing))
+                    .fill(tint)
                     .frame(width: width * Self.segment)
                     .offset(x: width * Self.sweepOffset(at: time))
             }
@@ -417,7 +398,7 @@ private struct StateCardHeader: View {
     let eyebrow: LocalizedStringKey
     let title: LocalizedStringKey
     var text: LocalizedStringKey?
-    var tint: Color = DCTheme.brandBlue
+    var tint: Color = DCTheme.gold
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -652,9 +633,9 @@ struct MaybeForumState: View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             Text("\(number)")
                 .font(.caption.weight(.bold))
-                .foregroundStyle(.white)
+                .foregroundStyle(DCTheme.onGold)
                 .frame(width: 20, height: 20)
-                .background(DCTheme.brandBlue, in: Circle())
+                .background(DCTheme.gold, in: Circle())
             Text(text)
                 .font(.subheadline)
                 .fixedSize(horizontal: false, vertical: true)

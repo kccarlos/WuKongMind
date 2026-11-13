@@ -17,84 +17,277 @@ final class DesignTokenTests: XCTestCase {
         }
     }
 
-    private func hex(_ color: Color, _ mode: Mode) -> UInt32 {
+    private struct RGBA: Equatable {
+        let r: Int
+        let g: Int
+        let b: Int
+        let a: CGFloat
+    }
+
+    private func rgba(_ color: Color, _ mode: Mode) -> RGBA {
         let resolved = UIColor(color).resolvedColor(with: mode.traits)
         var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
         resolved.getRed(&r, green: &g, blue: &b, alpha: &a)
-        func byte(_ v: CGFloat) -> UInt32 { UInt32((v * 255).rounded()) }
-        return byte(r) << 16 | byte(g) << 8 | byte(b)
+        return RGBA(
+            r: Int((r * 255).rounded()),
+            g: Int((g * 255).rounded()),
+            b: Int((b * 255).rounded()),
+            a: a
+        )
     }
 
-    private struct Expectation {
-        let name: String
-        let color: Color
-        let light: UInt32
-        let dark: UInt32
-        let highContrastLight: UInt32
-        let highContrastDark: UInt32
+    private func hex(_ color: Color, _ mode: Mode) -> UInt32 {
+        let c = rgba(color, mode)
+        return UInt32(c.r) << 16 | UInt32(c.g) << 8 | UInt32(c.b)
     }
 
-    private var expectations: [Expectation] {
-        [
-            Expectation(name: "brandBlue", color: DCTheme.brandBlue, light: 0x3A5BE0, dark: 0x7B93FF, highContrastLight: 0x2A45B8, highContrastDark: 0xA9BAFF),
-            Expectation(name: "brandPurple", color: DCTheme.brandPurple, light: 0x8E2DB5, dark: 0xC77DEB, highContrastLight: 0x6E1F8E, highContrastDark: 0xE0A8F7),
-            Expectation(name: "chatTint", color: DCTheme.chatTint, light: 0x0E8A7E, dark: 0x4FD1C0, highContrastLight: 0x0A6B62, highContrastDark: 0x8BEBDD),
-            Expectation(name: "newRepliesBadgeText", color: DCTheme.newRepliesBadgeText, light: 0x8A4A00, dark: 0xFFB44C, highContrastLight: 0x6E3A00, highContrastDark: 0xFFD08A),
-            Expectation(name: "newRepliesBadgeBackground", color: DCTheme.newRepliesBadgeBackground, light: 0xFFF1DE, dark: 0x3A2A12, highContrastLight: 0xFFE6C4, highContrastDark: 0x2A1C08),
-            Expectation(name: "postHighlightBackground", color: DCTheme.postHighlightBackground, light: 0xEEF1FF, dark: 0x1E2550, highContrastLight: 0xEEF1FF, highContrastDark: 0x1E2550),
+    private func relativeLuminance(_ c: RGBA) -> Double {
+        func channel(_ byte: Int) -> Double {
+            let s = Double(byte) / 255.0
+            return s <= 0.03928 ? s / 12.92 : pow((s + 0.055) / 1.055, 2.4)
+        }
+        return 0.2126 * channel(c.r) + 0.7152 * channel(c.g) + 0.0722 * channel(c.b)
+    }
+
+    private func contrastRatio(_ fg: Color, on bg: Color, mode: Mode) -> Double {
+        let l1 = relativeLuminance(rgba(fg, mode))
+        let l2 = relativeLuminance(rgba(bg, mode))
+        let lighter = max(l1, l2)
+        let darker = min(l1, l2)
+        return (lighter + 0.05) / (darker + 0.05)
+    }
+
+    func testAllOpaqueColourTokensMatchDesignSystemSpec() {
+        let opaqueTokens: [(name: String, color: Color, light: UInt32, dark: UInt32)] = [
+            ("ground", DCTheme.ground, 0xF7F3EA, 0x14110E),
+            ("surface", DCTheme.surface, 0xFFFDF8, 0x1F1B16),
+            ("surfaceRaised", DCTheme.surfaceRaised, 0xEFE9DC, 0x2A251E),
+            ("ink", DCTheme.ink, 0x1A1612, 0xF4EEE2),
+            ("inkMuted", DCTheme.inkMuted, 0x5F574C, 0xB3A998),
+            ("inkFaint", DCTheme.inkFaint, 0x756C5F, 0x8F8676),
+            ("borderStrong", DCTheme.borderStrong, 0x8C8375, 0x7D7567),
+            ("gold", DCTheme.gold, 0xB07F0C, 0xE0B040),
+            ("onGold", DCTheme.onGold, 0x1A1612, 0x1A1612),
+            ("goldInk", DCTheme.goldInk, 0x8A6200, 0xE8BD55),
+            ("goldWash", DCTheme.goldWash, 0xF6ECD0, 0x3A2F14),
+            ("jade", DCTheme.jade, 0x1F6F66, 0x6FD0C2),
+            ("jadeWash", DCTheme.jadeWash, 0xDCEFEB, 0x12302C),
+            ("cinnabar", DCTheme.cinnabar, 0xB3321F, 0xFF7A5C),
+            ("onCinnabar", DCTheme.onCinnabar, 0xFFFFFF, 0x1A1612),
+            ("cinnabarWash", DCTheme.cinnabarWash, 0xF9E1DA, 0x3D1A12),
+            ("danger", DCTheme.danger, 0xB3321F, 0xFF7A5C),
+            ("success", DCTheme.success, 0x356F1B, 0x8FD66B),
+            ("warning", DCTheme.warning, 0xA34A08, 0xFFB070),
         ]
-    }
 
-    func testTokensResolveInEveryAppearanceAndContrast() {
-        for item in expectations {
-            XCTAssertEqual(hex(item.color, .light), item.light, "\(item.name) light")
-            XCTAssertEqual(hex(item.color, .dark), item.dark, "\(item.name) dark")
-            XCTAssertEqual(hex(item.color, .lightHighContrast), item.highContrastLight, "\(item.name) light high contrast")
-            XCTAssertEqual(hex(item.color, .darkHighContrast), item.highContrastDark, "\(item.name) dark high contrast")
+        for token in opaqueTokens {
+            XCTAssertEqual(hex(token.color, .light), token.light, "\(token.name) light")
+            XCTAssertEqual(hex(token.color, .dark), token.dark, "\(token.name) dark")
+            XCTAssertEqual(rgba(token.color, .light).a, 1.0, accuracy: 0.01, "\(token.name) light alpha")
+            XCTAssertEqual(rgba(token.color, .dark).a, 1.0, accuracy: 0.01, "\(token.name) dark alpha")
         }
     }
 
-    func testHighContrastDiffersWhereSpecified() {
-        for item in expectations where item.name != "postHighlightBackground" {
-            XCTAssertNotEqual(item.light, item.highContrastLight, "\(item.name) light")
-            XCTAssertNotEqual(item.dark, item.highContrastDark, "\(item.name) dark")
+    func testTranslucentTokensAndIncreaseContrastHairline() {
+        let translucentTokens: [(name: String, color: Color, lightHex: UInt32, lightAlpha: CGFloat, darkHex: UInt32, darkAlpha: CGFloat)] = [
+            ("hairline", DCTheme.hairline, 0x1A1612, 0.14, 0xF4EEE2, 0.16),
+            ("scrim", DCTheme.scrim, 0x14110E, 0.40, 0x000000, 0.50),
+        ]
+
+        for token in translucentTokens {
+            XCTAssertEqual(hex(token.color, .light), token.lightHex, "\(token.name) light RGB")
+            XCTAssertEqual(rgba(token.color, .light).a, token.lightAlpha, accuracy: 0.015, "\(token.name) light alpha")
+            XCTAssertEqual(hex(token.color, .dark), token.darkHex, "\(token.name) dark RGB")
+            XCTAssertEqual(rgba(token.color, .dark).a, token.darkAlpha, accuracy: 0.015, "\(token.name) dark alpha")
+        }
+
+        // Accessibility rule: Increase Contrast resolves `hairline` to `borderStrong`.
+        XCTAssertEqual(rgba(DCTheme.hairline, .lightHighContrast), rgba(DCTheme.borderStrong, .lightHighContrast))
+        XCTAssertEqual(rgba(DCTheme.hairline, .darkHighContrast), rgba(DCTheme.borderStrong, .darkHighContrast))
+        XCTAssertEqual(hex(DCTheme.hairline, .lightHighContrast), 0x8C8375)
+        XCTAssertEqual(hex(DCTheme.hairline, .darkHighContrast), 0x7D7567)
+        XCTAssertEqual(rgba(DCTheme.hairline, .lightHighContrast).a, 1.0, accuracy: 0.01)
+        XCTAssertEqual(rgba(DCTheme.hairline, .darkHighContrast).a, 1.0, accuracy: 0.01)
+    }
+
+    func testTextAndControlContrastMeetsWCAGAA() {
+        let textPairs: [(label: String, fg: Color, bg: Color)] = [
+            ("ink on ground", DCTheme.ink, DCTheme.ground),
+            ("ink on surface", DCTheme.ink, DCTheme.surface),
+            ("ink on surfaceRaised", DCTheme.ink, DCTheme.surfaceRaised),
+            ("inkMuted on ground", DCTheme.inkMuted, DCTheme.ground),
+            ("inkMuted on surface", DCTheme.inkMuted, DCTheme.surface),
+            ("inkMuted on surfaceRaised", DCTheme.inkMuted, DCTheme.surfaceRaised),
+            ("inkFaint on ground", DCTheme.inkFaint, DCTheme.ground),
+            ("inkFaint on surface", DCTheme.inkFaint, DCTheme.surface),
+            ("onGold on gold", DCTheme.onGold, DCTheme.gold),
+            ("goldInk on ground", DCTheme.goldInk, DCTheme.ground),
+            ("goldInk on surface", DCTheme.goldInk, DCTheme.surface),
+            ("goldInk on goldWash", DCTheme.goldInk, DCTheme.goldWash),
+            ("jade on ground", DCTheme.jade, DCTheme.ground),
+            ("jade on surface", DCTheme.jade, DCTheme.surface),
+            ("jade on jadeWash", DCTheme.jade, DCTheme.jadeWash),
+            ("onCinnabar on cinnabar", DCTheme.onCinnabar, DCTheme.cinnabar),
+            ("danger on ground", DCTheme.danger, DCTheme.ground),
+            ("danger on surface", DCTheme.danger, DCTheme.surface),
+            ("danger on cinnabarWash", DCTheme.danger, DCTheme.cinnabarWash),
+            ("success on ground", DCTheme.success, DCTheme.ground),
+            ("success on surface", DCTheme.success, DCTheme.surface),
+            ("warning on ground", DCTheme.warning, DCTheme.ground),
+            ("warning on surface", DCTheme.warning, DCTheme.surface),
+            ("ground on ink (ink seal / tile)", DCTheme.ground, DCTheme.ink),
+        ]
+
+        for mode in [Mode.light, .dark] {
+            for pair in textPairs {
+                let ratio = contrastRatio(pair.fg, on: pair.bg, mode: mode)
+                XCTAssertGreaterThanOrEqual(
+                    ratio,
+                    4.5,
+                    "\(pair.label) in \(mode) had contrast \(String(format: "%.2f", ratio)):1 (< 4.5:1)"
+                )
+            }
+            // Non-text control contrast checks (>= 3.0:1).
+            for (label, fg, bg) in [
+                ("borderStrong on ground", DCTheme.borderStrong, DCTheme.ground),
+                ("borderStrong on surface", DCTheme.borderStrong, DCTheme.surface),
+                ("gold ring on ground", DCTheme.gold, DCTheme.ground),
+                ("gold ring on surface", DCTheme.gold, DCTheme.surface),
+                ("Switch off knob (inkMuted on surface)", DCTheme.inkMuted, DCTheme.surface),
+                ("Switch on knob (onGold on gold)", DCTheme.onGold, DCTheme.gold),
+            ] {
+                XCTAssertGreaterThanOrEqual(
+                    contrastRatio(fg, on: bg, mode: mode),
+                    3.0,
+                    "\(label) in \(mode)"
+                )
+            }
         }
     }
 
-    func testBrandInkUsesSystemLabelInHighContrast() {
-        XCTAssertEqual(hex(DCTheme.brandInk, .light), 0x17132B)
-        XCTAssertEqual(hex(DCTheme.brandInk, .dark), 0xF2F0FA)
-        for mode in [Mode.lightHighContrast, .darkHighContrast] {
-            let label = UIColor.label.resolvedColor(with: mode.traits)
-            XCTAssertEqual(UIColor(DCTheme.brandInk).resolvedColor(with: mode.traits), label)
-        }
-        XCTAssertEqual(hex(DCTheme.brandInk, .lightHighContrast), 0x000000)
-        XCTAssertEqual(hex(DCTheme.brandInk, .darkHighContrast), 0xFFFFFF)
-    }
+    func testDimensionsRoleMappingsAndAssetColors() throws {
+        XCTAssertEqual(DCTheme.space1, 4)
+        XCTAssertEqual(DCTheme.space2, 8)
+        XCTAssertEqual(DCTheme.space3, 12)
+        XCTAssertEqual(DCTheme.space4, 16)
+        XCTAssertEqual(DCTheme.space6, 24)
+        XCTAssertEqual(DCTheme.space8, 32)
+        XCTAssertEqual(DCTheme.radiusSm, 6)
+        XCTAssertEqual(DCTheme.radiusMd, 10)
+        XCTAssertEqual(DCTheme.radiusLg, 14)
+        XCTAssertEqual(DCTheme.radiusSheet, 28)
+        XCTAssertEqual(DCTheme.radiusFull, 999)
+        XCTAssertEqual(DCTheme.hairlineWidth, 1)
+        XCTAssertEqual(DCTheme.ringWidth, 2)
+        XCTAssertEqual(DCTheme.forumPalette.count, 8)
 
-    func testPostHighlightStrokeIsBrandBlueAndThickerInHighContrast() {
         XCTAssertEqual(DCTheme.postHighlightStrokeWidth(highContrast: false), 2)
         XCTAssertEqual(DCTheme.postHighlightStrokeWidth(highContrast: true), 3)
-        for mode in Mode.allCases {
-            XCTAssertEqual(hex(DCTheme.postHighlightStroke, mode), hex(DCTheme.brandBlue, mode))
-        }
-        XCTAssertEqual(hex(DCTheme.postHighlightStroke, .light), 0x3A5BE0)
-        XCTAssertEqual(hex(DCTheme.postHighlightStroke, .dark), 0x7B93FF)
+        XCTAssertEqual(hex(DCTheme.postHighlightStroke, .light), 0x1F6F66)
+        XCTAssertEqual(hex(DCTheme.postHighlightStroke, .dark), 0x6FD0C2)
+        XCTAssertEqual(DCTheme.postHighlightStroke.cssHex(dark: false, highContrast: false), "#1F6F66")
+        XCTAssertEqual(DCTheme.postHighlightStroke.cssHex(dark: true, highContrast: false), "#6FD0C2")
+        XCTAssertEqual(hex(DCTheme.chatTint, .light), 0x1F6F66)
+        XCTAssertEqual(hex(DCTheme.chatTint, .dark), 0x6FD0C2)
+
+        let bundle = Bundle(for: AppModel.self)
+        let launch = try XCTUnwrap(UIColor(named: "LaunchBackground", in: bundle, compatibleWith: nil))
+        XCTAssertEqual(hex(Color(uiColor: launch), .light), 0xF7F3EA)
+        XCTAssertEqual(hex(Color(uiColor: launch), .dark), 0x14110E)
+
+        let accent = try XCTUnwrap(UIColor(named: "AccentColor", in: bundle, compatibleWith: nil))
+        XCTAssertEqual(hex(Color(uiColor: accent), .light), 0x8A6200)
+        XCTAssertEqual(hex(Color(uiColor: accent), .dark), 0xE8BD55)
     }
 
-    func testLaunchBackgroundColorIsConfigured() throws {
-        let color = try XCTUnwrap(UIColor(named: "LaunchBackground", in: Bundle(for: AppModel.self), compatibleWith: nil))
-        func white(_ mode: Mode) -> CGFloat {
-            var value: CGFloat = -1
-            color.resolvedColor(with: mode.traits).getWhite(&value, alpha: nil)
-            return value
+    func testLogoAndMascotVectorAssetsLoadAndRenderWithoutClipping() throws {
+        let bundle = Bundle(for: AppModel.self)
+        let assetNames = DCLogoVariant.allCases.map(\.assetName) + DCMascotPose.allCases.map(\.assetName)
+        XCTAssertEqual(assetNames.count, 8)
+
+        let canvas = CGSize(width: 96, height: 96)
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        format.opaque = false
+
+        for name in assetNames {
+            let image = try XCTUnwrap(UIImage(named: name, in: bundle, compatibleWith: nil), "Missing vector asset \(name)")
+            XCTAssertGreaterThan(image.size.width, 0, "\(name) width")
+            XCTAssertGreaterThan(image.size.height, 0, "\(name) height")
+
+            let rendered = UIGraphicsImageRenderer(size: canvas, format: format).image { _ in
+                let scale = min(canvas.width / image.size.width, canvas.height / image.size.height)
+                let drawSize = CGSize(width: image.size.width * scale, height: image.size.height * scale)
+                let origin = CGPoint(x: (canvas.width - drawSize.width) / 2, y: (canvas.height - drawSize.height) / 2)
+                image.draw(in: CGRect(origin: origin, size: drawSize))
+            }
+            let cg = try XCTUnwrap(rendered.cgImage)
+            let data = try XCTUnwrap(cg.dataProvider?.data)
+            let ptr = try XCTUnwrap(CFDataGetBytePtr(data))
+            let bpp = cg.bitsPerPixel / 8
+            let bpr = cg.bytesPerRow
+
+            var opaquePixelCount = 0
+            for y in 0..<cg.height {
+                for x in 0..<cg.width {
+                    let alpha = ptr[y * bpr + x * bpp + (bpp - 1)]
+                    if alpha > 32 {
+                        opaquePixelCount += 1
+                    }
+                }
+            }
+            XCTAssertGreaterThan(opaquePixelCount, 200, "Vector asset \(name) rendered blank or nearly empty (\(opaquePixelCount) pixels).")
         }
-        XCTAssertEqual(white(.light), 1, accuracy: 0.01)
-        XCTAssertEqual(white(.dark), 0, accuracy: 0.01)
     }
 
     @MainActor
-    func testHistoryFilterSelectedChipUsesDarkBrandBlueToken() throws {
+    func testSharedDesignSystemComponentsRenderCleanly() {
+        let showcase = VStack(spacing: DCTheme.space2) {
+            Button("Primary") {}
+                .buttonStyle(DCButtonStyle(role: .primary, fullWidth: true))
+            Button("Secondary") {}
+                .buttonStyle(DCButtonStyle(role: .secondary))
+            Button("Quiet") {}
+                .buttonStyle(DCButtonStyle(role: .quiet))
+            Button("Stop") {}
+                .buttonStyle(DCButtonStyle(role: .destructive))
+            HStack {
+                DCSeal(text: "2", variant: .ink)
+                DCSeal(text: "Sonnet", variant: .outline)
+                DCSeal(text: "Saved", variant: .gold, showsAgentRing: true)
+                DCSeal(text: "Discourse", variant: .jade)
+                DCSeal(text: "Ready", variant: .state(.ready))
+            }
+            Toggle("Run on site", isOn: .constant(true))
+                .toggleStyle(DCSwitchStyle())
+            Toggle("Disabled off", isOn: .constant(false))
+                .toggleStyle(DCSwitchStyle())
+            DCListRow(title: "Browser Agent", subtitle: "Gold icon tile", value: "On", icon: .agent, showsChevron: true)
+            DCListRow(title: "Sites", value: "3", icon: .ink(symbol: "globe"), showsChevron: true)
+            HStack {
+                DCAgentRing(size: 22, isTurning: false)
+                DCAgentRing(size: 22, isTurning: true)
+                DCLogoView(variant: .mark, size: 32, showsWordmark: true)
+                DCMascotView(pose: .wave, size: 20) // clamped to >= 40pt
+            }
+        }
+        .padding()
+        .background(DCTheme.ground)
+
+        let renderer = ImageRenderer(content: showcase.frame(width: 360))
+        renderer.scale = 1
+        let image = renderer.uiImage
+        XCTAssertNotNil(image)
+        XCTAssertEqual(Int(image?.size.width ?? 0), 360)
+        XCTAssertGreaterThan(Int(image?.size.height ?? 0), 280)
+
+        let smallMascotRenderer = ImageRenderer(content: DCMascotView(pose: .think, size: 16))
+        smallMascotRenderer.scale = 1
+        XCTAssertEqual(smallMascotRenderer.uiImage?.size.width ?? 0, DCMascotView.minimumSize, accuracy: 0.5)
+    }
+
+    @MainActor
+    func testHistoryFilterSelectedChipUsesGoldTokenInDarkMode() throws {
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: dir) }
@@ -142,36 +335,29 @@ final class DesignTokenTests: XCTestCase {
             return
         }
 
-        let darkBrand = UIColor(DCTheme.brandBlue).resolvedColor(with: Mode.dark.traits)
-        var tr: CGFloat = 0, tg: CGFloat = 0, tb: CGFloat = 0, ta: CGFloat = 0
-        darkBrand.getRed(&tr, green: &tg, blue: &tb, alpha: &ta)
-        let wantR = Int((tr * 255).rounded())
-        let wantG = Int((tg * 255).rounded())
-        let wantB = Int((tb * 255).rounded())
-
+        let darkGold = rgba(DCTheme.gold, .dark)
         let bpp = cgImage.bitsPerPixel / 8
         let bpr = cgImage.bytesPerRow
-        var foundDarkBrandBlue = false
+        var foundDarkGold = false
         for y in 0..<cgImage.height {
             for x in 0..<cgImage.width {
                 let offset = y * bpr + x * bpp
                 let b0 = Int(ptr[offset])
                 let b1 = Int(ptr[offset + 1])
                 let b2 = Int(ptr[offset + 2])
-                // Match either RGB or BGR byte order within ±16 tolerance.
-                let rgbMatch = abs(b0 - wantR) <= 16 && abs(b1 - wantG) <= 16 && abs(b2 - wantB) <= 16
-                let bgrMatch = abs(b2 - wantR) <= 16 && abs(b1 - wantG) <= 16 && abs(b0 - wantB) <= 16
+                let rgbMatch = abs(b0 - darkGold.r) <= 16 && abs(b1 - darkGold.g) <= 16 && abs(b2 - darkGold.b) <= 16
+                let bgrMatch = abs(b2 - darkGold.r) <= 16 && abs(b1 - darkGold.g) <= 16 && abs(b0 - darkGold.b) <= 16
                 if rgbMatch || bgrMatch {
-                    foundDarkBrandBlue = true
+                    foundDarkGold = true
                     break
                 }
             }
-            if foundDarkBrandBlue { break }
+            if foundDarkGold { break }
         }
 
         XCTAssertTrue(
-            foundDarkBrandBlue,
-            "Selected HistoryView filter chip in dark mode did not render DCTheme.brandBlue (\(String(format: "#%02X%02X%02X", wantR, wantG, wantB)))."
+            foundDarkGold,
+            "Selected HistoryView filter chip in dark mode did not render DCTheme.gold (\(String(format: "#%02X%02X%02X", darkGold.r, darkGold.g, darkGold.b)))."
         )
     }
 
@@ -192,7 +378,6 @@ final class DesignTokenTests: XCTestCase {
 
         let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
 
-        // Voice dock over a black backdrop in light mode must stay opaque enough to prevent bleed-through.
         let dockSize = CGSize(width: 390, height: 120)
         let dockWindow = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(origin: .zero, size: dockSize))
         dockWindow.frame = CGRect(origin: .zero, size: dockSize)
@@ -285,7 +470,6 @@ final class DesignTokenTests: XCTestCase {
             return nil
         }
 
-        // 1. Finding 5: HistoryView's primary top UIScrollView must span the full width so UINavigationBar's top pocket does not clip behind Done.
         let historySize = CGSize(width: 393, height: 852)
         let historyWindow = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(origin: .zero, size: historySize))
         historyWindow.frame = CGRect(origin: .zero, size: historySize)
@@ -302,7 +486,6 @@ final class DesignTokenTests: XCTestCase {
         historyWindow.windowScene = nil
         XCTAssertGreaterThanOrEqual(topScrollWidth, 390, "HistoryView's first UIScrollView is narrower than the sheet (\(topScrollWidth)pt), causing UINavigationBar's scroll pocket to clip behind Done.")
 
-        // 2. Finding 27: AssistantPanel summaryMeta at narrow split width (380pt) must fit all four pills without horizontal overflow clipping "Kept".
         let panelSize = CGSize(width: 380, height: 640)
         let panelWindow = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(origin: .zero, size: panelSize))
         panelWindow.frame = CGRect(origin: .zero, size: panelSize)
@@ -322,7 +505,6 @@ final class DesignTokenTests: XCTestCase {
         panelWindow.windowScene = nil
         XCTAssertTrue(overflowingHorizontalScrolls.isEmpty, "Summary meta chips overflowed horizontally at 380pt panel width, clipping Kept.")
 
-        // 3. Finding 7: Toggles inside Settings/form sheets use DCTheme.brandBlue instead of system green.
         let settingsWindow = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(origin: .zero, size: historySize))
         settingsWindow.frame = CGRect(origin: .zero, size: historySize)
         let settingsHost = UIHostingController(rootView: NavigationStack { SettingsDestination(app: app, page: .sync) })
@@ -338,9 +520,8 @@ final class DesignTokenTests: XCTestCase {
         settingsWindow.rootViewController = nil
         settingsWindow.windowScene = nil
         XCTAssertNotNil(toggleSwitch, "Expected a UISwitch in SettingsSyncPage.")
-        XCTAssertNotNil(switchTint, "Settings toggle should set an explicit brand onTintColor instead of system green.")
+        XCTAssertNotNil(switchTint, "Settings toggle should set an explicit gold onTintColor instead of system green.")
 
-        // 4. Finding 8: PostsTranslationSheet uses DCTheme.pageBackground instead of pure white.
         let translateWindow = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(origin: .zero, size: historySize))
         translateWindow.frame = CGRect(origin: .zero, size: historySize)
         translateWindow.overrideUserInterfaceStyle = .light

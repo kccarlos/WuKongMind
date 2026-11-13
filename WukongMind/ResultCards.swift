@@ -261,8 +261,8 @@ extension BrowseCursor {
 
     var tint: Color {
         switch origin {
-        case .research, .sources: DCTheme.agentTint
-        case .search, .focus, .none: DCTheme.brandBlue
+        case .research, .sources: DCTheme.goldInk
+        case .search, .focus, .none: DCTheme.jade
         }
     }
 }

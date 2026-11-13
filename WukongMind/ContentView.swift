@@ -476,7 +476,7 @@ struct LoadingLine: View {
     var body: some View {
         GeometryReader { proxy in
             Capsule()
-                .fill(DCTheme.brandGradient)
+                .fill(DCTheme.gold)
                 .frame(width: proxy.size.width * max(0.06, min(1, progress)))
                 .animation(reduceMotion ? nil : .easeOut(duration: 0.25), value: progress)
         }
