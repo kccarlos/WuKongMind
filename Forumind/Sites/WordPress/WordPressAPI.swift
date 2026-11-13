@@ -106,6 +106,7 @@ struct WordPressAPI: Sendable {
             totalPages: totalPages,
             facts: facts,
             pace: net.context.pace,
+            isPaced: net.context.isPaced,
             progress: progress,
             onPage: onPage,
             fetchPage: { page in

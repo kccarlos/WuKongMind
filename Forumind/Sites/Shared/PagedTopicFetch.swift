@@ -21,6 +21,7 @@ enum PagedTopicFetch {
         totalPages: Int,
         facts: TopicFacts,
         pace: ForumRequestPace,
+        isPaced: Bool = true,
         progress: @escaping @Sendable (ForumFetchProgress) async -> Void,
         onPage: (@Sendable (RawForumPage) async -> Void)?,
         fetchPage: @escaping @Sendable (Int) async throws -> RawForumPage
@@ -48,7 +49,7 @@ enum PagedTopicFetch {
         case .fetch(let reusablePages, let pageNumbers):
             var fetchedPages: [RawForumPage] = []
             var completed = reusablePages.count
-            let batchSize = max(1, pace.maximumConcurrency)
+            let batchSize = isPaced ? max(1, pace.maximumConcurrency) : max(1, pageNumbers.count)
             if let first = pageNumbers.first {
                 // Reported before the (paced) wait for the first page, so the
                 // status says what is happening while the bar waits.

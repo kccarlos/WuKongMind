@@ -1178,9 +1178,13 @@ final class AppModel: ObservableObject {
 
     /// The transport for one job on `siteURL`: the forum's cookies, the pace the
     /// job started with and (unless `inPage` is false) the in-page loader.
-    func network(for siteURL: String, pace: ForumRequestPace, inPage: Bool = true) async -> SiteNetwork {
+    func network(for siteURL: String, pace: ForumRequestPace, isPaced: Bool? = nil, inPage: Bool = true) async -> SiteNetwork {
         let cookieHeader = usesDirectForumRequests ? nil : await browser.cookieHeader(forSite: siteURL)
-        var context = SiteRequestContext(cookieHeader: cookieHeader, pace: pace)
+        var context = SiteRequestContext(
+            cookieHeader: cookieHeader,
+            pace: pace,
+            isPaced: isPaced ?? settings.forumRateLimitingEnabled
+        )
         if inPage, let loader = webViewResourceLoader {
             context.resourceLoader = { url in try await loader(url) }
         }
@@ -1777,13 +1781,14 @@ final class AppModel: ObservableObject {
         var networks: [String: SiteNetwork] = [:]
         var arrivals: [(WatchedTopic, Int)] = []
         let pace = settings.forumRequestPace
+        let isPaced = settings.forumRateLimitingEnabled
         let clock = forumService.pacer.clock
         let started = clock.now()
 
         for watched in Self.watchCheckOrder(watchedTopics) {
             if Task.isCancelled { break }
             if reason == .background,
-               clock.now() - started + pace.minimumInterval > Self.backgroundWatchCheckBudget {
+               clock.now() - started + (isPaced ? pace.minimumInterval : 0) > Self.backgroundWatchCheckBudget {
                 break
             }
             // A site without an adapter (its forum was removed) is skipped quietly.
@@ -1794,7 +1799,7 @@ final class AppModel: ObservableObject {
             if let known = networks[watched.siteURL] {
                 net = known
             } else {
-                net = await network(for: watched.siteURL, pace: pace, inPage: reason != .background)
+                net = await network(for: watched.siteURL, pace: pace, isPaced: isPaced, inPage: reason != .background)
                 networks[watched.siteURL] = net
             }
             let result: Result<ForumTopicOverview, Error>
@@ -2720,7 +2725,8 @@ final class AppModel: ObservableObject {
             agentMaxSteps: settings.agentMaxSteps,
             agentMaxTopicReads: settings.agentMaxTopicReads,
             agentReadLimit: settings.agentReadLimit,
-            forumRequestPace: settings.forumRequestPace
+            forumRequestPace: settings.forumRequestPace,
+            forumRateLimitingEnabled: settings.forumRateLimitingEnabled
         )
     }
 
@@ -2878,7 +2884,7 @@ final class AppModel: ObservableObject {
             url: record.url,
             title: record.title
         )
-        let fetch = try await fetchTopicPages(of: session, adapter: adapter, recordID: recordID, pace: context.forumRequestPace) { progress in
+        let fetch = try await fetchTopicPages(of: session, adapter: adapter, recordID: recordID, pace: context.forumRequestPace, isPaced: context.forumRateLimitingEnabled) { progress in
             await self.updateFetchProgress(recordID: recordID, progress: progress)
         }
 
@@ -2928,7 +2934,7 @@ final class AppModel: ObservableObject {
         )
         let feed = startSummaryFeed(recordID: recordID, tracker: tracker)
         defer { stopSummaryFeed(recordID, feed) }
-        let fetch = try await fetchTopicPages(of: session, adapter: adapter, recordID: recordID, pace: context.forumRequestPace) { progress in
+        let fetch = try await fetchTopicPages(of: session, adapter: adapter, recordID: recordID, pace: context.forumRequestPace, isPaced: context.forumRateLimitingEnabled) { progress in
             await self.updateFetchProgress(recordID: recordID, progress: progress)
         }
 
@@ -3027,7 +3033,7 @@ final class AppModel: ObservableObject {
             title: record.title
         )
 
-        let fetch = try await fetchTopicPages(of: session, adapter: adapter, recordID: recordID, pace: context.forumRequestPace) { progress in
+        let fetch = try await fetchTopicPages(of: session, adapter: adapter, recordID: recordID, pace: context.forumRequestPace, isPaced: context.forumRateLimitingEnabled) { progress in
             await self.updateFetchProgress(recordID: recordID, progress: progress)
         }
         // Cancelled (or its forum's data deleted) while the page fetch was
@@ -3276,7 +3282,7 @@ final class AppModel: ObservableObject {
 
         switch tool {
         case .searchForum, .searchComments:
-            let results = try await runSiteQuery(tool, action, adapter: adapter, siteURL: siteURL, pace: context.forumRequestPace)
+            let results = try await runSiteQuery(tool, action, adapter: adapter, siteURL: siteURL, pace: context.forumRequestPace, isPaced: context.forumRateLimitingEnabled)
             run.remember(results.topics.map { ($0.url, $0.topicID) } + results.hits.map { ($0.url, $0.topic.topicID) }, links: adapter.links)
             return (
                 String(localized: "\(results.topics.count) topics", comment: "Ask the forum step outcome: number of topics found"),
@@ -3284,7 +3290,7 @@ final class AppModel: ObservableObject {
             )
 
         case .listLatest:
-            let listings = try await runSiteQuery(tool, action, adapter: adapter, siteURL: siteURL, pace: context.forumRequestPace).topics
+            let listings = try await runSiteQuery(tool, action, adapter: adapter, siteURL: siteURL, pace: context.forumRequestPace, isPaced: context.forumRateLimitingEnabled).topics
             run.remember(listings.map { ($0.url, $0.topicID) }, links: adapter.links)
             return (String(localized: "\(listings.count) topics", comment: "Ask the forum step outcome: number of topics found"), AgentPrompt.format(listings: listings, limit: 30))
 
@@ -3379,7 +3385,7 @@ final class AppModel: ObservableObject {
             } else {
                 let overview = try await adapter.overview(
                     TopicRef(siteURL: siteURL, topicID: topicID),
-                    net: await network(for: siteURL, pace: context.forumRequestPace)
+                    net: await network(for: siteURL, pace: context.forumRequestPace, isPaced: context.forumRateLimitingEnabled)
                 )
                 try ensureLive(recordID)
                 await watch(
@@ -3405,10 +3411,11 @@ final class AppModel: ObservableObject {
         _ action: AgentAction,
         adapter: any SiteAdapter,
         siteURL: String,
-        pace: ForumRequestPace
+        pace: ForumRequestPace,
+        isPaced: Bool
     ) async throws -> SiteQueryResult {
         let query = try adapter.agent.query(tool, action.arguments)
-        return try await adapter.run(query, net: await network(for: siteURL, pace: pace))
+        return try await adapter.run(query, net: await network(for: siteURL, pace: pace, isPaced: isPaced))
     }
 
     private func formatAgentTopicRead(
@@ -3455,7 +3462,7 @@ final class AppModel: ObservableObject {
                 openingPost: openingPost
             )
             if matches.isEmpty, pageNumber == nil, totalPages > 1 {
-                let net = await network(for: session.siteURL, pace: context.forumRequestPace)
+                let net = await network(for: session.siteURL, pace: context.forumRequestPace, isPaced: context.forumRateLimitingEnabled)
                 if let searchResult = try? await adapter.run(.search(text: query, scope: .topic(id: session.topicID)), net: net) {
                     var seen: Set<Int> = []
                     let hits = searchResult.hits.filter { hit in
@@ -3577,7 +3584,7 @@ final class AppModel: ObservableObject {
         } else {
             let overview = try await adapter.overview(
                 TopicRef(siteURL: siteURL, topicID: topicID),
-                net: await network(for: siteURL, pace: context.forumRequestPace)
+                net: await network(for: siteURL, pace: context.forumRequestPace, isPaced: context.forumRateLimitingEnabled)
             )
             session = TopicSession(
                 siteURL: siteURL,
@@ -3589,7 +3596,7 @@ final class AppModel: ObservableObject {
         mutateRecord(recordID) {
             $0.statusText = String(localized: "Reading \(session.title)…", comment: "Status; the placeholder is a forum topic's title")
         }
-        let fetch = try await fetchTopicPages(of: session, adapter: adapter, recordID: recordID, pace: context.forumRequestPace) { fetchProgress in
+        let fetch = try await fetchTopicPages(of: session, adapter: adapter, recordID: recordID, pace: context.forumRequestPace, isPaced: context.forumRateLimitingEnabled) { fetchProgress in
             await self.advanceProgress(recordID: recordID, to: progress(fetchProgress.fraction))
         }
         // Cancelled (or its forum's data deleted) while the page fetch was
@@ -3614,9 +3621,10 @@ final class AppModel: ObservableObject {
         adapter siteAdapter: any SiteAdapter,
         recordID: UUID,
         pace: ForumRequestPace,
+        isPaced: Bool,
         progress: @escaping @Sendable (ForumFetchProgress) async -> Void
     ) async throws -> ForumFetchResult {
-        let net = await network(for: session.siteURL, pace: pace)
+        let net = await network(for: session.siteURL, pace: pace, isPaced: isPaced)
         let template = session
         let result = try await siteAdapter.readTopic(
             TopicReadRequest(
@@ -3841,6 +3849,7 @@ struct RunSettings {
     var agentReadLimit: Int
     /// How quickly this job's requests go to the forum (taken at the start).
     var forumRequestPace: ForumRequestPace = .default
+    var forumRateLimitingEnabled = true
 
     /// Fails with a clear message when the provider was disconnected (key
     /// deleted, settings reset) between queueing and starting.

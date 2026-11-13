@@ -33,6 +33,7 @@ struct DiscourseAPI: Sendable {
             totalPages: totalPages,
             facts: facts,
             pace: net.context.pace,
+            isPaced: net.context.isPaced,
             progress: progress,
             onPage: onPage,
             fetchPage: { try await self.rawPage(topicID: topicID, page: $0) }

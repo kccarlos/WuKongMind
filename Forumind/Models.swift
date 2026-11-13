@@ -87,6 +87,9 @@ struct AppSettings: Codable, Equatable {
     /// default. Turning it off keeps a local copy and leaves the synced item
     /// in place for the user's other devices.
     var syncAPIKeys = true
+    /// Whether per-forum request spacing and concurrency limits are active.
+    /// On by default; turning it off sends forum requests immediately.
+    var forumRateLimitingEnabled = true
     /// How quickly requests go to one forum (see ForumRequestPacing.swift).
     var forumRequestPace: ForumRequestPace = .default
     /// Daily digest (see DailyDigest.swift). Off by default: making it
@@ -142,6 +145,7 @@ struct AppSettings: Codable, Equatable {
         case blockTrackers
         case adBlockAllowedSites
         case syncAPIKeys
+        case forumRateLimitingEnabled
         case forumRequestPace
         case dailyDigestEnabled
         case dailyDigestNotifies
@@ -225,6 +229,7 @@ struct AppSettings: Codable, Equatable {
         adBlockAllowedSites = (try container.decodeIfPresent([String].self, forKey: .adBlockAllowedSites) ?? [])
             .compactMap(ContentBlockingRules.normalizedHost)
         syncAPIKeys = try container.decodeIfPresent(Bool.self, forKey: .syncAPIKeys) ?? true
+        forumRateLimitingEnabled = try container.decodeIfPresent(Bool.self, forKey: .forumRateLimitingEnabled) ?? true
         forumRequestPace = try container.decodeIfPresent(ForumRequestPace.self, forKey: .forumRequestPace) ?? .default
         dailyDigestEnabled = try container.decodeIfPresent(Bool.self, forKey: .dailyDigestEnabled) ?? false
         dailyDigestNotifies = try container.decodeIfPresent(Bool.self, forKey: .dailyDigestNotifies) ?? false

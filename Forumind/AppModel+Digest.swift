@@ -129,13 +129,14 @@ extension AppModel {
         var prefetch = DigestPrefetch(day: todayKey)
         let cap = DigestLimits.prefetchRequestCap
         let pace: ForumRequestPace = background ? .gentle : settings.forumRequestPace
+        let isPaced = settings.forumRateLimitingEnabled
         let options = DigestPlanner.Options(settings: settings)
         // One transport per site (its cookies are read once). A site with no
         // adapter is skipped quietly: no request, no failure.
         var networks: [String: SiteNetwork] = [:]
         func network(_ siteURL: String) async -> SiteNetwork {
             if let known = networks[siteURL] { return known }
-            let net = await self.network(for: siteURL, pace: pace, inPage: !background)
+            let net = await self.network(for: siteURL, pace: pace, isPaced: isPaced, inPage: !background)
             networks[siteURL] = net
             return net
         }
@@ -489,7 +490,7 @@ extension AppModel {
                 cachedPages: cached?.rawPages ?? [],
                 knownTotalPosts: cached?.totalPosts
             ),
-            net: await network(for: card.siteURL, pace: context.forumRequestPace),
+            net: await network(for: card.siteURL, pace: context.forumRequestPace, isPaced: context.forumRateLimitingEnabled),
             progress: { _ in },
             onPage: nil
         )

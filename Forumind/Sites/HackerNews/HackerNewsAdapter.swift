@@ -28,7 +28,7 @@ struct HackerNewsAdapter: SiteAdapter {
     func siteInfo(siteURL: String, net: SiteNetwork) async throws -> ForumSiteInfo {
         guard let url = URL(string: siteURL), HackerNewsRecognizer.accepts(url) else { throw AssistantError.invalidResponse }
         let direct = SiteNetwork(service: net.service, siteURL: HackerNewsRecognizer.siteURL,
-                                 context: SiteRequestContext(pace: net.context.pace))
+                                 context: SiteRequestContext(pace: net.context.pace, isPaced: net.context.isPaced))
         let data = try await direct.data(URL(string: HackerNewsRecognizer.siteURL)!, accept: "text/html")
         let html = String(decoding: data, as: UTF8.self)
         // A valid 200 HTML page may discuss Cloudflare or challenge phrases.
@@ -61,7 +61,7 @@ struct HackerNewsAdapter: SiteAdapter {
             plan: unchanged ? .unchanged : .fetch(reusablePages: [], pageNumbers: pages.map(\.page)),
             cachedPages: request.cachedPages, knownTotalPosts: request.knownTotalPosts,
             totalPosts: posts.count, totalPages: pages.count, facts: HackerNewsAPI.facts(posts),
-            pace: net.context.pace, progress: progress, onPage: onPage, fetchPage: { pages[$0 - 1] })
+            pace: net.context.pace, isPaced: net.context.isPaced, progress: progress, onPage: onPage, fetchPage: { pages[$0 - 1] })
     }
     func run(_ query: SiteQuery, net: SiteNetwork) async throws -> SiteQueryResult {
         try await HackerNewsAPI(net: net).run(query)

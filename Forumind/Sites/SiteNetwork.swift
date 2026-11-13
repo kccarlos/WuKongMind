@@ -7,15 +7,18 @@ struct SiteRequestContext: Sendable {
     var cookieHeader: String?
     var resourceLoader: (@MainActor @Sendable (URL) async throws -> ForumResourceResponse)?
     var pace: ForumRequestPace
+    var isPaced: Bool
 
     init(
         cookieHeader: String? = nil,
         resourceLoader: (@MainActor @Sendable (URL) async throws -> ForumResourceResponse)? = nil,
-        pace: ForumRequestPace = .default
+        pace: ForumRequestPace = .default,
+        isPaced: Bool = true
     ) {
         self.cookieHeader = cookieHeader
         self.resourceLoader = resourceLoader
         self.pace = pace
+        self.isPaced = isPaced
     }
 }
 

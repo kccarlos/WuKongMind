@@ -26,7 +26,7 @@ struct HackerNewsAPI: Sendable {
             throw AssistantError.invalidResponse
         }
         let publicAPI = SiteNetwork(service: net.service, siteURL: "https://hn.algolia.com",
-                                    context: SiteRequestContext(pace: net.context.pace))
+                                    context: SiteRequestContext(pace: net.context.pace, isPaced: net.context.isPaced))
         return try await publicAPI.data(url, accept: "application/json")
     }
     func story(_ id: String) async throws -> Item {
