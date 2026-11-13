@@ -516,6 +516,14 @@ struct AssistantPanel: View {
                 .accessibilityIdentifier("agentModelMenu")
 
                 Button {
+                    app.router.item = .instructions
+                } label: {
+                    Label("Instructions & Context", systemImage: "text.quote")
+                }
+                .accessibilityIdentifier("menuInstructions")
+                .disabled(app.currentTopic == nil)
+
+                Button {
                     DCHaptics.tap()
                     browserAgent.resetConversation()
                     if app.assistantMode == .agent {
@@ -698,6 +706,7 @@ struct AssistantPanel: View {
         let hasSummarySection = !parsed.rows.isEmpty || activeSummary != nil || activePull != nil || isSummaryFailed
         let hasLeadingContent = providerSetupRole != nil
             || hasSummarySection
+            || app.currentTopic != nil
             || (app.assistantPageState == .loading && browserAgent.runs.isEmpty && (app.currentSession?.history.isEmpty ?? true))
         let isLazy = parsed.hasCitations
             || parsed.rows.count >= MarkdownView.lazyRowThreshold
@@ -771,6 +780,17 @@ struct AssistantPanel: View {
                 SummaryPlaceholder()
                     .padding(.top, 4)
                     .transition(.asymmetric(insertion: .opacity, removal: .identity))
+            } else if activePull == nil, !isSummaryFailed, app.assistantPageState != .loading, app.currentTopic != nil {
+                // Until the suggestion row (task 2b) lands, the empty forum panel keeps its way to a summary.
+                VStack(spacing: 0) {
+                    DCMascotView(pose: .wave, size: 128)
+                        .padding(.vertical, 32)
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel(Text("Agent ready", comment: "Empty Agent panel accessibility label"))
+                        .accessibilityIdentifier("agentEmptyState")
+                    summarizeControl(prominent: true)
+                }
+                .frame(maxWidth: .infinity)
             }
         } else {
             if activeSummary == nil, let session = app.currentSession {
@@ -962,14 +982,6 @@ struct AssistantPanel: View {
                 }
                 .accessibilityIdentifier("pullPost")
                 .disabled(app.currentTopic == nil || activeSummary != nil || activePull != nil)
-
-                Button {
-                    app.router.item = .instructions
-                } label: {
-                    Label("Instructions & Context", systemImage: "text.quote")
-                }
-                .accessibilityIdentifier("menuInstructions")
-                .disabled(app.currentTopic == nil)
             }
         } label: {
             Image(systemName: "ellipsis")
@@ -1190,7 +1202,7 @@ private struct ChatThread<Leading: View>: View {
                                 }
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 48)
-                                .accessibilityElement(children: .combine)
+                                .accessibilityElement(children: .ignore)
                                 .accessibilityLabel(Text("Agent ready", comment: "Empty Agent panel accessibility label"))
                                 .accessibilityIdentifier("agentEmptyState")
                             }

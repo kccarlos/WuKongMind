@@ -505,7 +505,7 @@ final class DrawerUITests: DCUITestCase {
         XCTAssertEqual(forumTitle.label, "Agent")
         let forumSeal = app.buttons["pageCapabilitiesSeal"].firstMatch
         XCTAssertTrue(forumSeal.waitForExistence(timeout: 5))
-        XCTAssertTrue(any(app, "agentEmptyState").exists, "Unsummarized forum topic should show the unified wave mascot empty state.")
+        XCTAssertTrue(any(app, "agentEmptyState").waitForExistence(timeout: 10), "Unsummarized forum topic should show the unified wave mascot empty state.")
         XCTAssertFalse(any(app, "agentStatusLine").exists, "Status line must stay hidden while idle.")
         XCTAssertTrue(app.textFields["agentPromptInput"].exists)
         XCTAssertTrue(app.buttons["composerMic"].exists)
