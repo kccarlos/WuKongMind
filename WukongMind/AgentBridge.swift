@@ -226,12 +226,24 @@ final class AgentBridge: NSObject, AgentPageDriving {
 
     func load(_ url: URL, wait: Bool, timeout: TimeInterval) async throws -> AgentNavigationOutcome {
         guard let navigator else { throw AgentBridgeError.navigationUnavailable }
-        return try await navigator.agentLoad(url, wait: wait, timeout: timeout)
+        let outcome = try await navigator.agentLoad(url, wait: wait, timeout: timeout)
+        return wait ? await withSettledTitle(outcome) : outcome
     }
 
     func reload(timeout: TimeInterval) async throws -> AgentNavigationOutcome {
         guard let navigator else { throw AgentBridgeError.navigationUnavailable }
-        return try await navigator.agentReload(timeout: timeout)
+        return await withSettledTitle(try await navigator.agentReload(timeout: timeout))
+    }
+
+    /// `webView.title` can lag behind `didFinish` (seen after a redirect):
+    /// read the document's title instead.
+    private func withSettledTitle(_ outcome: AgentNavigationOutcome) async -> AgentNavigationOutcome {
+        guard outcome.title.isEmpty, outcome.failure == nil, let webView else { return outcome }
+        var settled = outcome
+        if let title = try? await webView.evaluateJavaScript("document.title", in: nil, contentWorld: Self.isolatedWorld) as? String {
+            settled.title = title
+        }
+        return settled
     }
 
     func contentWorld(for environment: AgentExecutionEnvironment) -> WKContentWorld {
