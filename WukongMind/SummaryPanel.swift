@@ -172,6 +172,8 @@ struct AssistantPanel: View {
         .onChange(of: app.askFocusRequest) {
             composerFocused = true
         }
+        .onChange(of: activeSummary?.id) { app.completePendingReadAloud() }
+        .onChange(of: app.currentSession?.summaryUpdatedAt) { app.completePendingReadAloud() }
         .onChange(of: browserAgent.runState) { _, newState in
             updateCompletedStatusVisibility(for: newState, isInitialAppear: false)
         }
@@ -526,6 +528,8 @@ struct AssistantPanel: View {
                 Button {
                     DCHaptics.tap()
                     browserAgent.resetConversation()
+                    app.agentHandoffs = []
+                    app.researchFillPending = false
                     if app.assistantMode == .agent {
                         app.assistantMode = .summary
                     }
@@ -634,7 +638,10 @@ struct AssistantPanel: View {
                 .transition(.opacity)
             }
 
-            // Reserved slot for SuggestionRow (One panel 2b).
+            if showsSuggestionRow {
+                SuggestionRowView(suggestions: visibleSuggestions, onTap: runSuggestion)
+                    .transition(.opacity)
+            }
 
             AssistantComposer(
                 draft: $agentDraft,
@@ -654,14 +661,78 @@ struct AssistantPanel: View {
         .padding(.top, 8)
         .padding(.bottom, 10 + (isKeyboardVisible ? 0 : bottomInset))
         .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: showsFooterStatusLine)
+        .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: showsSuggestionRow)
         .dcStickyFooter()
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("askBox")
     }
 
+    // MARK: Suggestions
+
+    private var suggestionKind: SuggestionPageKind? {
+        PageSuggestions.pageKind(
+            state: app.assistantPageState,
+            hasPage: currentScriptPageURL != nil || app.currentTopic != nil
+        )
+    }
+
+    private var visibleSuggestions: [PageSuggestion] {
+        let isFollowing = app.currentTopic.map { app.isWatched(topicKey: $0.topicKey) } ?? false
+        return PageSuggestions.suggestions(for: suggestionKind, isFollowing: isFollowing)
+    }
+
+    /// While the box is empty and the Agent is idle; it hides once you type.
+    private var showsSuggestionRow: Bool {
+        agentDraft.isEmpty && !browserAgent.isRunning && !visibleSuggestions.isEmpty
+    }
+
+    private func runSuggestion(_ suggestion: PageSuggestion) {
+        switch PageSuggestions.route(for: suggestion, on: suggestionKind) {
+        case .summary:
+            app.suggestSummary()
+        case .podcast:
+            app.suggestReadAloud()
+        case .follow:
+            if app.suggestFollow() {
+                browserAgent.appendLocalReply(
+                    prompt: suggestion.text,
+                    reply: String(localized: "Following. I'll tell you when new replies come in.", comment: "Agent confirmation after the Notify me of new replies suggestion")
+                )
+            }
+        case .fillForResearch:
+            agentDraft = suggestion.composerText
+            app.researchFillPending = true
+            composerFocused = true
+        case .agent:
+            if suggestion.fillsComposer {
+                agentDraft = suggestion.composerText
+                composerFocused = true
+            } else {
+                sendAgentPrompt(suggestion.text)
+            }
+        }
+    }
+
     private func sendAgentPrompt() {
-        let prompt = agentDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+        sendAgentPrompt(agentDraft)
+    }
+
+    /// Sends to the Agent, except a completed "Search this forum…", which
+    /// goes to the old Research loop (transitional routing).
+    private func sendAgentPrompt(_ text: String) {
+        let prompt = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !prompt.isEmpty, !browserAgent.isRunning else { return }
+        if app.researchFillPending {
+            app.researchFillPending = false
+            if let query = PageSuggestions.researchQuery(from: prompt),
+               PageSuggestions.route(for: .searchForum, on: suggestionKind) == .fillForResearch {
+                DCHaptics.tap()
+                agentDraft = ""
+                composerFocused = false
+                app.startSuggestedResearch(query)
+                return
+            }
+        }
         guard app.isProviderReady(for: .browserAgent) else {
             requestedProviderSetup = true
             composerFocused = false
@@ -678,7 +749,7 @@ struct AssistantPanel: View {
                 app.router.drawerDetent = .medium
             }
         }
-        browserAgent.send(prompt)
+        browserAgent.send(prompt, context: app.takeAgentHandoffContext())
     }
 
     // MARK: Summary & Unified Transcript
@@ -787,16 +858,13 @@ struct AssistantPanel: View {
                     .padding(.top, 4)
                     .transition(.asymmetric(insertion: .opacity, removal: .identity))
             } else if activePull == nil, !isSummaryFailed, app.assistantPageState != .loading, app.currentTopic != nil {
-                // Until the suggestion row (task 2b) lands, the empty forum panel keeps its way to a summary.
-                VStack(spacing: 0) {
-                    DCMascotView(pose: .wave, size: 128)
-                        .padding(.vertical, 32)
-                        .accessibilityElement(children: .ignore)
-                        .accessibilityLabel(Text("Agent ready", comment: "Empty Agent panel accessibility label"))
-                        .accessibilityIdentifier("agentEmptyState")
-                    summarizeControl(prominent: true)
-                }
-                .frame(maxWidth: .infinity)
+                // The suggestion row offers the summary.
+                DCMascotView(pose: .wave, size: 128)
+                    .padding(.vertical, 32)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(Text("Agent ready", comment: "Empty Agent panel accessibility label"))
+                    .accessibilityIdentifier("agentEmptyState")
+                    .frame(maxWidth: .infinity)
             }
         } else {
             if activeSummary == nil, let session = app.currentSession {

@@ -105,8 +105,8 @@ final class IPadLayoutUITests: DCUITestCase {
         try skipUnlessPad("iPad layout")
         let app = launch(sample + ["-dc-no-summary", "-dc-fake-summary", "-dc-browse-debug"], orientation: .landscapeLeft)
         XCTAssertTrue(waitOrDump(any(app, "aiPanel"), timeout: 20, in: app))
-        let summarize = app.buttons["createSummary"].firstMatch
-        XCTAssertTrue(waitForHittable(summarize, timeout: 20), "Create summary is missing from the panel.")
+        let summarize = app.buttons["suggestion-summarizeThread"].firstMatch
+        XCTAssertTrue(waitForHittable(summarize, timeout: 20), "The summarize suggestion is missing from the panel.")
         summarize.tap()
         let citation = app.buttons["citation-12"].firstMatch
         XCTAssertTrue(waitOrDump(citation, timeout: 30, in: app), "The summary has no #12 citation.")

@@ -323,8 +323,8 @@ final class DrawerUITests: DCUITestCase {
         let state = drawerState(in: app)
         XCTAssertTrue(waitOrDump(state, timeout: 20, in: app), "The sample did not open the drawer.")
         XCTAssertTrue(wait(timeout: 8) { state.label == "detent=medium" }, "Got \(state.label).")
-        let summarize = app.buttons["createSummary"].firstMatch
-        XCTAssertTrue(waitForHittable(summarize), "Create summary is missing.")
+        let summarize = app.buttons["suggestion-summarizeThread"].firstMatch
+        XCTAssertTrue(waitForHittable(summarize), "The summarize suggestion is missing.")
         summarize.tap()
 
         let citation = app.buttons["citation-12"].firstMatch
@@ -358,8 +358,8 @@ final class DrawerUITests: DCUITestCase {
         let app = launch(sample + ["-dc-no-summary", "-dc-fake-summary", "-dc-fake-summary-fails", "-dc-browse-debug"])
         let state = drawerState(in: app)
         XCTAssertTrue(waitOrDump(state, timeout: 20, in: app), "The sample did not open the drawer.")
-        let summarize = app.buttons["createSummary"].firstMatch
-        XCTAssertTrue(waitForHittable(summarize), "Create summary is missing.")
+        let summarize = app.buttons["suggestion-summarizeThread"].firstMatch
+        XCTAssertTrue(waitForHittable(summarize), "The summarize suggestion is missing.")
         summarize.tap()
 
         let alert = app.alerts.firstMatch

@@ -7957,7 +7957,7 @@
       }
     },
     "Following" : {
-      "comment" : "Settings page: followed topics and new-reply checks",
+      "comment" : "Settings page: followed topics and new-reply checks\nThis page popover toggle: follow new replies on the open forum topic",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -7969,6 +7969,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "追蹤"
+          }
+        }
+      }
+    },
+    "Following. I'll tell you when new replies come in." : {
+      "comment" : "Agent confirmation after the Notify me of new replies suggestion",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已关注。有新回复时我会告诉你。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已追蹤。有新回覆時我會告訴你。"
           }
         }
       }
@@ -10268,6 +10285,23 @@
         }
       }
     },
+    "Make it dark" : {
+      "comment" : "Suggestion above the Agent composer on an ordinary web page",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切换为深色"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切換為深色"
+          }
+        }
+      }
+    },
     "Make the podcast every day" : {
       "localizations" : {
         "zh-Hans" : {
@@ -11528,6 +11562,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "通知"
+          }
+        }
+      }
+    },
+    "Notify me of new replies" : {
+      "comment" : "Suggestion above the Agent composer on a forum thread: follows it",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有新回复时通知我"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有新回覆時通知我"
           }
         }
       }
@@ -13734,6 +13785,23 @@
         }
       }
     },
+    "Read it to me" : {
+      "comment" : "Suggestion above the Agent composer on a forum thread: reads the summary aloud",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "读给我听"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "讀給我聽"
+          }
+        }
+      }
+    },
     "Read page %lld of %lld" : {
       "comment" : "Ask the forum step outcome: page read in a topic",
       "localizations" : {
@@ -14371,6 +14439,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "移除並刪除已儲存的資料"
+          }
+        }
+      }
+    },
+    "Remove distractions" : {
+      "comment" : "Suggestion above the Agent composer on an ordinary web page",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "去掉干扰内容"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除干擾內容"
           }
         }
       }
@@ -15537,6 +15622,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "搜尋步數：%lld"
+          }
+        }
+      }
+    },
+    "Search this forum…" : {
+      "comment" : "Suggestion above the Agent composer on a forum: fills the box to finish the search",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜索这个论坛…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜尋這個論壇…"
           }
         }
       }
@@ -16942,6 +17044,23 @@
         }
       }
     },
+    "Suggestions" : {
+      "comment" : "Accessibility label of the suggestion row above the Agent composer",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "建议"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "建議"
+          }
+        }
+      }
+    },
     "Summaries" : {
       "comment" : "AI model role: the model used for summaries, digests and reply checks",
       "localizations" : {
@@ -17149,6 +17268,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "總結此連結"
+          }
+        }
+      }
+    },
+    "Summarize this page" : {
+      "comment" : "Suggestion above the Agent composer on an ordinary web page",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "总结这个页面"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "總結這個頁面"
+          }
+        }
+      }
+    },
+    "Summarize this thread and replies" : {
+      "comment" : "Suggestion above the Agent composer on a forum thread",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "总结这个帖子和回复"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "總結這篇貼文和回覆"
           }
         }
       }
@@ -19872,7 +20025,7 @@
       }
     },
     "Use %@ for both" : {
-      "comment" : "Model menu: gives the other role this model too. The placeholder is a model name, e.g. claude-opus.\nSettings › Models: gives both Agent and Summaries this model. The placeholder is a provider and model, e.g. OpenRouter · kimi-k2.",
+      "comment" : "Settings › Models: gives both Agent and Summaries this model. The placeholder is a provider and model, e.g. OpenRouter · kimi-k2.",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -21012,6 +21165,23 @@
         }
       }
     },
+    "What's worth reading today" : {
+      "comment" : "Suggestion above the Agent composer on a forum's topic list",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今天有什么值得读"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今天有什麼值得讀"
+          }
+        }
+      }
+    },
     "When WukongMind opens" : {
       "localizations" : {
         "zh-Hans" : {
@@ -21041,22 +21211,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "有新回覆時，使用你的摘要模型"
-          }
-        }
-      }
-    },
-    "When on, network requests, cookie reads and actions that submit forms ask before running." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "开启后，网络请求、读取 Cookie 以及提交表单的操作在运行前会先询问。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "開啟後，網路要求、讀取 Cookie 以及送出表單的操作在執行前會先詢問。"
           }
         }
       }
@@ -21441,6 +21595,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "專為網頁與各個論壇打造的代理瀏覽器。"
+          }
+        }
+      }
+    },
+    "Your choice is saved now. Asking before network requests, cookie reads and form submits starts working with the M3 safety update." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的选择已保存。网络请求、读取 Cookie 和提交表单前询问，将在 M3 安全更新后生效。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的選擇已儲存。網路請求、讀取 Cookie 和送出表單前詢問，將在 M3 安全更新後生效。"
+          }
+        }
+      }
+    },
+    "Your choice is saved now. Web search from the address bar arrives with the unified address field." : {
+      "comment" : "Settings › Browser footer: search engine is not yet used by the address bar",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的选择已保存。从地址栏进行网页搜索将随统一地址栏推出。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的選擇已儲存。從網址列進行網頁搜尋將隨統一網址列推出。"
           }
         }
       }

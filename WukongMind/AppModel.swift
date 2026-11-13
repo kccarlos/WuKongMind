@@ -197,6 +197,14 @@ final class AppModel: ObservableObject {
     /// The Ask box's Whole forum scope starts a new run instead of following
     /// up the selected one (its examples and recent runs show).
     @Published var agentComposesNewQuestion = false
+    /// Old-engine results started from suggestions, attached once as context
+    /// to the Agent's next message (`AppModel+Suggestions.swift`).
+    var agentHandoffs: [AgentHandoff] = []
+    /// "Search this forum…" filled the composer: its completed text goes to
+    /// the old Research loop.
+    var researchFillPending = false
+    /// "Read it to me" before a summary existed: read it once it is written.
+    @Published var pendingReadAloudTopicKey: String?
     /// Bumped to focus the Ask box (⌘2, ⌘3).
     @Published var askFocusRequest = 0
     /// In-progress edit of an existing user turn in chat (`editChat`).
