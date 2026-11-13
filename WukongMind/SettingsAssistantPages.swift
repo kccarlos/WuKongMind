@@ -233,12 +233,15 @@ struct SettingsAgentPage: View {
             }
 
             Section {
-                Toggle("Confirm before writes", isOn: $app.settings.agentConfirmBeforeWrites)
-                    .accessibilityIdentifier("agentConfirmBeforeWrites")
+                HStack {
+                    Toggle("Confirm before writes", isOn: $app.settings.agentConfirmBeforeWrites)
+                        .accessibilityIdentifier("agentConfirmBeforeWrites")
+                    DCSeal(text: "M3", variant: .outline)
+                }
             } header: {
                 Text("Safety", comment: "Settings › Agent section header for confirmation settings")
             } footer: {
-                Text("When on, network requests, cookie reads and actions that submit forms ask before running.")
+                Text("Your choice is saved now. Asking before network requests, cookie reads and form submits starts working with the M3 safety update.")
             }
 
             Section {
@@ -263,7 +266,10 @@ struct SettingsAgentPage: View {
             Section {
                 Toggle(isOn: $app.settings.agentDeveloperMode) {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Developer mode", comment: "Settings › Agent switch showing raw tool payloads")
+                        HStack(spacing: DCTheme.spacingS) {
+                            Text("Developer mode", comment: "Settings › Agent switch showing raw tool payloads")
+                            DCSeal(text: "M3", variant: .outline)
+                        }
                         Text("Show raw tool arguments & results", comment: "Settings › Agent subtitle for Developer mode")
                             .font(.caption)
                             .foregroundStyle(.secondary)
@@ -539,6 +545,8 @@ struct SettingsBrowserPage: View {
                 .accessibilityIdentifier("searchEnginePicker")
             } header: {
                 Text("Search", comment: "Settings › Browser section header for the web search engine picker")
+            } footer: {
+                Text("Your choice is saved now. Web search from the address bar arrives with the unified address field.", comment: "Settings › Browser footer: search engine is not yet used by the address bar")
             }
 
             Section {
