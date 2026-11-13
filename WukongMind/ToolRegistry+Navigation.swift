@@ -20,6 +20,15 @@ extension ToolRegistry {
         ]
     }
 
+    /// `reload_page`'s count: the enabled saved scripts whose match rules
+    /// cover a URL.
+    static func savedScriptCounter(_ store: ScriptStore) -> @MainActor @Sendable (String) -> Int {
+        { url in
+            guard store.isGlobalEnabled else { return 0 }
+            return store.scripts.filter { $0.isEnabled && $0.matches(urlString: url) }.count
+        }
+    }
+
     /// The address `navigate` may open, or a refusal.
     static func navigableURL(_ raw: String) throws -> URL {
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)

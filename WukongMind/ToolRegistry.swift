@@ -1025,12 +1025,6 @@ extension ToolRegistry {
                 currentUserPrompt: currentUserPrompt
             )
         )
-        allTools.append(
-            contentsOf: navigationTools(bridge: bridge) { url in
-                guard scriptStore.isGlobalEnabled else { return 0 }
-                return scriptStore.scripts.filter { $0.isEnabled && $0.matches(urlString: url) }.count
-            }
-        )
         return ToolRegistry(
             tools: allTools,
             truncationLimit: truncationLimit,

@@ -158,10 +158,11 @@ final class BrowserToolsTests: XCTestCase {
     private func registry(timeout: TimeInterval = ToolRegistry.navigationTimeout, store: ScriptStore? = nil) -> ToolRegistry {
         let bridge = browser.agentBridge
         var tools = ToolRegistry.m1(bridge: bridge)
-        let navigation = ToolRegistry.navigationTools(bridge: bridge, savedScriptCount: { url in
-            guard let store else { return 0 }
-            return store.scripts.filter { $0.isEnabled && $0.matches(urlString: url) }.count
-        }, timeout: timeout)
+        let navigation = ToolRegistry.navigationTools(
+            bridge: bridge,
+            savedScriptCount: store.map(ToolRegistry.savedScriptCounter) ?? { _ in 0 },
+            timeout: timeout
+        )
         navigation.forEach { tools.register($0) }
         return tools
     }
