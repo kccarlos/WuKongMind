@@ -52,10 +52,10 @@ struct SplitMoreMenu: View {
         Menu {
             Section {
                 Button(action: actions.showForumsHome) {
-                    Label("All Forums", systemImage: "square.grid.2x2")
+                    Label("Home", systemImage: "square.grid.2x2")
                 }
                 Button(action: actions.addForum) {
-                    Label("Add Forum…", systemImage: "plus")
+                    Label("Add Site…", systemImage: "plus")
                 }
             }
             Section {
@@ -139,8 +139,8 @@ struct SplitPanelToggle: View {
             action()
         } label: {
             DCAgentRing(
-                size: 20,
-                lineWidth: 2.2,
+                size: PhoneAIButton.ringSize,
+                lineWidth: DCTheme.ringWidth,
                 isTurning: browserAgent.isRunning || app.activeResearch != nil,
                 isEnabled: isAvailable
             )
@@ -149,7 +149,7 @@ struct SplitPanelToggle: View {
                 if isShown {
                     Circle()
                         .fill(DCTheme.goldWash)
-                        .padding(4)
+                        .padding(2)
                 }
             }
         }

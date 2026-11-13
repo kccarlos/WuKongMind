@@ -32,7 +32,7 @@ final class DrawerHintTests: XCTestCase {
         XCTAssertEqual(DrawerHint.Action.checkNew(6).badge, "6")
         XCTAssertEqual(DrawerHint.Action.checkNew(250).badge, "99+")
         XCTAssertNil(DrawerHint.Action.summarize.badge)
-        XCTAssertEqual(DrawerHint.Action.summarize.symbol, "sparkles")
+        XCTAssertEqual(DrawerHint.Action.summarize.symbol, "text.alignleft")
         XCTAssertEqual(DrawerHint.Action.checkNew(6).symbol, "arrow.clockwise")
         XCTAssertEqual(DrawerHint.Action.setUpAI.symbol, "key.fill")
         XCTAssertTrue(DrawerHint.Action.setUpAI.needsAttention)
@@ -44,14 +44,14 @@ final class DrawerHintTests: XCTestCase {
         // A topic without a summary: only as the one-time tip.
         XCTAssertEqual(row(.topic, tip: true), DrawerHint.Row(action: .summarize, isTip: true))
         XCTAssertNil(row(.topic, tip: false))
-        XCTAssertEqual(row(.topic, tip: true)?.text, "Summarize this topic")
+        XCTAssertEqual(row(.topic, tip: true)?.text, "Summarize this thread? · Open assistant")
         // New replies since the summary, tip or not.
         let stale = row(.topic) { $0.hasSummary = true; $0.totalPosts = 26; $0.summaryPostCount = 14 }
         XCTAssertEqual(stale, DrawerHint.Row(action: .checkNew(12), isTip: false))
         XCTAssertEqual(stale?.text, "12 new replies")
         XCTAssertEqual(row(.topic) { $0.hasSummary = true; $0.totalPosts = 15; $0.summaryPostCount = 14 }?.text, "1 new reply")
         // AI not set up.
-        XCTAssertEqual(row(.topic) { $0.providerReady = false }?.text, "Set up AI")
+        XCTAssertEqual(row(.topic) { $0.providerReady = false }?.text, "Choose a model")
         // Nothing to say: no row.
         XCTAssertNil(row(.topic, tip: true) { $0.hasSummary = true; $0.totalPosts = 14; $0.summaryPostCount = 14 })
         XCTAssertNil(row(.topic, tip: true) { $0.summaryRunning = true })

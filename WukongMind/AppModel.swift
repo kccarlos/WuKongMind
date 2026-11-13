@@ -290,6 +290,10 @@ final class AppModel: ObservableObject {
     /// Root sheets, covers and alerts, and the iPhone AI drawer
     /// (PresentationRouter.swift).
     let router = PresentationRouter()
+    /// The sites visited, for Home's Sites grid (HomeSites.swift); local to the device.
+    let siteVisits = SiteVisitStore()
+    /// First-run step 3 over the browser (OnboardingTry.swift); nil when it is not running.
+    @Published var firstRun: FirstRunStage?
     /// iCloud (CloudKit) sync (see CloudSyncController.swift).
     let cloudSync: CloudSyncController
 
@@ -700,6 +704,7 @@ final class AppModel: ObservableObject {
         // `-dc-no-forums`: the sample as a new user sees Home (never saved).
         if AssistantDebug.isActive, AssistantDebug.has("-dc-no-forums") {
             directory = ForumDirectory(forums: [])
+            siteVisits.hidesVisits = true
             currentSiteURL = nil
             self.browser.homeSiteURL = nil
         }
@@ -913,6 +918,9 @@ final class AppModel: ObservableObject {
         }
         if let kind = context.site, let siteURL = context.siteURL, siteURL != suppressedAutoAddSiteURL {
             recordVisit(siteURL: siteURL, kind: kind, name: context.forumName, iconURL: context.iconURL)
+            siteVisits.noteVisit(siteURL: siteURL, name: context.forumName, isForum: true)
+        } else if context.state == .notForum, let origin = HomeSites.originOf(context.url) {
+            siteVisits.noteVisit(siteURL: origin, name: HomeSites.displayName(forOrigin: origin), isForum: false)
         }
         select(topic: context.topic)
         completePendingShare(with: context)
@@ -1416,6 +1424,7 @@ final class AppModel: ObservableObject {
         var directory = self.directory
         directory.remove(siteURL: siteURL)
         self.directory = directory
+        siteVisits.remove(siteURL: siteURL)
         if !deleteData { failQueuedWork(siteURL: siteURL, error: AssistantError.noForum) }
         if currentSiteURL == siteURL {
             currentSiteURL = (pageContext.siteURL.flatMap { self.directory.forum(siteURL: $0) }
