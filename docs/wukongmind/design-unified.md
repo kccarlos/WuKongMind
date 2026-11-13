@@ -32,7 +32,7 @@ It follows roadmap v2, "Just ask" ([next-phase.md](next-phase.md), which v2 repl
   - `cheer` shows when a run ends, for about 3 seconds, and in onboarding's "You're set" card.
   - It never appears in the bar, in buttons, in lists, beside every message or with errors.
   - With Reduce Motion it doesn't change pose mid-run; it shows `think` until the result.
-- **Motion.** The design system limits motion to the turning ring and standard transitions. The motion table below uses only standard SwiftUI transitions (insertions, crossfades, the system popover and sheet), and the ring replaces `ResearchRing` and the status dot.
+- **Motion.** The design system limits motion to the turning ring and standard sheet transitions, and section 6 follows that.
 
 **The end state in one line:** one input box and a mic on every page, no modes, no target switch, one Agent loop. Forum summary, search, podcast and voice become the Agent's tools. The boards draw that look, which the One panel milestone already ships. What changes between milestones is only what runs behind a tap (section 1, "Phases").
 
@@ -236,7 +236,7 @@ AssistantPanel                         // replaces the four modes and their view
 - **Unfamiliar forums.** How the app decides that a site without a built-in adapter is a forum:
   - **Until Learn on ask (1.5.0) it can't.** Today's `.maybe` state (`MaybeForumState`) only means a URL looks like a topic of one of the three built-in platforms before the page check confirms it. That page shows the ordinary-page suggestions until the check reports, then switches to the forum ones or stays.
   - **So until Learn on ask**, an unfamiliar forum gets the ordinary-page row (Summarize this page · Make it dark · Remove distractions), and those go to the Agent as text.
-  - **From Learn on ask**, a page-fact check that needs no model decides. It runs on the facts the probe already collects (`PageFacts`). Any one of these signals makes the page a thread:
+  - **From Learn on ask (a proposal, not yet agreed)**, a page check that needs no model decides. Today's probe facts (`PageFacts`: meta tags, links, declared elements, selector matches, classes) cover the generator meta. The probe would need two new fact keys: the page's JSON-LD types, and a count of repeated blocks that carry an author and a time. Any one of these signals makes the page a thread:
     - schema.org `DiscussionForumPosting` or `Comment` data;
     - a known forum generator in the meta tags (phpBB, vBulletin, XenForo, Flarum, NodeBB, MyBB, Invision, Discuz);
     - three or more repeated post blocks, each with an author and a time.
@@ -244,7 +244,7 @@ AssistantPanel                         // replaces the four modes and their view
 - **Page states.** Today's panel has page states besides the modes (`AssistantPanel.BodyKind` in `SummaryPanel.swift`):
   - `forumHome` (`ForumHomeState`) becomes the forum-list suggestions.
   - `notForum` (`NotForumState`) goes: an ordinary page shows its own suggestions.
-  - `maybe` (`MaybeForumState`, with its "add this forum" button) gives forum suggestions, and "Add as a forum" moves to This page › This site.
+  - `maybe` (`MaybeForumState`, with its "add this forum" button) shows the ordinary-page suggestions until the page check reports (see Unfamiliar forums). "Add as a forum" moves to This page › This site.
   - `loading` (`AssistantLoadingState`) stays as the transcript's loading row.
 - **Suggestions per page** (drawn on the panel boards and the SuggestionRow board):
 
@@ -275,10 +275,12 @@ AssistantPanel                         // replaces the four modes and their view
   - **Accessibility Medium (25 pt).** "Summarize this thread and replies" would be about 425 pt, wider than the row, so it wraps to two lines inside a 314 pt chip.
   - **Accessibility XXL (42 pt).** The same label wraps to three lines in a 314 pt chip, and "Read it to me" (263 pt) peeks.
   At most four show on one screen; more scroll sideways.
-- **Status row and fixed height (owner feedback).** The footer's first row holds the status ("Done · 3 steps · 9 s"; a token count appears only in developer mode) and, at its trailing end, the This page seal. The mascot pose sits on the row's top edge, so it takes no width. Without the separate host row, the fixed part of a 500 pt iPhone panel is about 230 pt: grabber 15, header 44, status row 40, suggestions 36, composer 44, gaps 24 and the bottom inset 30. It was about 265 pt.
+- **Status row and fixed height (owner feedback).** The footer's first row holds the status ("Done · 3 steps · 9 s") and, at its trailing end, the This page seal. The mascot pose sits on the footer's top edge above the seal, so it takes no width.
+  - **Developer mode.** The token count joins the status ("Done · 3 steps · 9 s · 6.4k tokens"), and the seal shortens to the script count ("2 scripts") so the row still fits 358 pt.
+  - **Height.** Without the separate host row, the fixed part of a 500 pt iPhone panel is about 230 pt, still 46% of the panel: grabber 15, header 44, status row 40, suggestions 36, composer 44, gaps 24 and the bottom inset 30. It was about 265 pt (53%). At the large detent the same 230 pt is about 29% of the panel.
 - **Tool rows (roadmap section 4).** Each tool call is one ToolRow: its disc, its tool name in monospace and a short result ("read_page · 84 posts", "search_forum · 14 topics"). Tapping a row expands it into M1's detail with arguments, result and time. M1's "Steps N" fold still folds a finished run. In developer mode (M3) the expanded row also shows the raw request and reply, and the tokens and model used.
 - **Keyboard up** (artboard KeyboardUp, a proposal):
-  - **Status row.** When the field is focused and the keyboard is up, the status row (with the This page seal and the mascot) folds into the header: a small spinner and "Step N" beside "Agent" while a run is going, and nothing when idle. It comes back when the keyboard goes down.
+  - **Status row.** When the field is focused and the keyboard is up, the status row folds into the header, and the This page seal and the mascot go with it. This page can't be opened until the keyboard goes down; that is deliberate, since the box has focus. In the header: a small spinner and "Step N" beside "Agent" while a run is going, and nothing when idle. It comes back when the keyboard goes down.
   - **Suggestion row.** It stays while the field is empty, so a suggestion is still one tap away. It hides as soon as you type a character and comes back when the field is empty again.
   - **Trailing button.** It stays the mic, Send or Stop as usual.
   - **Space.** The conversation keeps the rest of the height and scrolls to the bottom.
@@ -392,38 +394,21 @@ OnboardingFlow
 
 ### 6. Motion
 
-Motion explains what happened, so the screens need fewer words. It reuses what the app already has:
-- `DCMotion.quick` (0.22 s), `.smooth` (0.32 s) and `.spring` for animation.
-- `DCMotion.respecting(reduceMotion, …)` for Reduce Motion.
-- `DCHaptics` for haptics.
-- `.contentTransition(.numericText())`, already used on Home.
-- The zoom navigation transition, already used by Now playing.
-- The Dock's `glassEffectID` morph.
+**The design system limits motion to the turning ring and standard sheet transitions.** This draft follows that rule, which replaces the earlier motion table. Haptics are not motion and stay (`DCHaptics`).
 
-There are no new curves and no decorative motion. Every animation is short, starts from what was touched, and ends where the result is. The canvas's **Motion** board draws each one as a storyboard.
+| Moment | What happens | How (SwiftUI) |
+|---|---|---|
+| A tool runs | Its ToolRow disc is an open gold ring that turns. This is the only moving element in the panel | `rotationEffect` on a repeating linear animation |
+| The Agent works with the panel closed | The bar's Agent ring turns. It replaces `ResearchRing` | Same animation |
+| A run ends | The ring stops and becomes the check. Success haptic; the mascot pose becomes `cheer` for about 3 s (a swap, not an animation). With the panel closed the Dock shows "Answer ready" | `DCHaptics.success()` |
+| A run fails or hits the step limit | Warning haptic. The explanation appears in the conversation and is announced | `DCHaptics.warning()` |
+| Open This page, Settings, the code sheet, Now playing | The system popover and sheet transitions; Settings push and pop | `.popover`, `.sheet`, `NavigationStack` |
+| The drawer moves between detents; the keyboard rises | System behaviour | `presentationDetents`, the keyboard |
+| Everything else | Changes in place without animation: a suggestion's chip, the new bubble and the result card appear at the bottom of the conversation, which scrolls to them; the suggestion row changes with the page; the mic becomes Send | `scrollPosition` to the bottom; no `withAnimation` |
 
-| Moment | What moves | How (SwiftUI) | Why |
-|---|---|---|---|
-| Mic and send | The trailing button morphs between mic and send as the field empties or fills | `.contentTransition(.symbolEffect(.replace))` | One place for both |
-| Tap a suggestion | The chip moves up into your message bubble and the row closes the gap. The tool row appears, then the result (summary card, sourced answer or podcast row) inserts at the bottom of the conversation, which scrolls to it | `matchedGeometryEffect` from the chip to the bubble, `.transition(.move(edge: .bottom).combined(with: .opacity))`, `DCMotion.smooth`, the existing `scrollToBottomEdge` | It links the tap to its message and its result |
-| Tap a suggestion ending in "…" | Its text drops into the field, the caret waits at the end and the keyboard rises | `matchedGeometryEffect` from the chip to the field text, `@FocusState`, `DCMotion.quick` | Shows the sentence is yours to finish |
-| Page changes (forum thread ↔ ordinary page) | The suggestions crossfade to the new page's set, and the row's height animates if the count changes. The header and input box stay still | `.transition(.opacity)` per chip with `.id(page)`, `DCMotion.smooth` | Only the part that differs moves, so the panel reads as the same panel |
-| Keyboard rises; you type | The status line folds into the header beside "Agent". The suggestion row folds away on the first character and returns when the field empties | `.transition(.opacity.combined(with: .move(edge: .bottom)))`, `DCMotion.smooth` | Keeps the conversation tall while you type |
-| This page seal and the ring's badge | The count rolls to its new value. The seal's text turns `danger` on an error | `.contentTransition(.numericText())`, `DCMotion.quick` | Shows that a script just applied or failed |
-| Open This page | The system popover animation, nothing custom | `.popover` | Native behaviour |
-| Agent running | Tool rows slide in, the running row's gold ring turns, and the bar's Agent ring turns (replacing `ResearchRing`); the mascot shows think, run or search, and the run folds into "Steps N" when it ends. In One panel, a tapped suggestion's engine run gets the same ring | M1's `DCMotion.respecting` rules | One way to show "working" |
-| Run finishes | A success haptic, the turning ring becomes the check, and the mascot shows `cheer` for about 3 s. With the panel closed, the existing button bounce plays and the Dock shows "Answer ready" (`glassEffectID` morph) | `DCHaptics.success()`, `.symbolEffect(.bounce)` | Felt even when you aren't looking |
-| Run fails or hits the step limit | A warning haptic. The card inserts as above and is announced | `DCHaptics.warning()`, the M1 announcement | Same rule for every result |
-| Home: open a site tile or a recent task | The tile zooms into the page. A recent task then raises the panel | `.navigationTransition(.zoom(sourceID: site.id, in: ns))`, the Now playing pattern. If the browser host can't take a navigation transition, a 0.22 s crossfade | Keeps your place: back returns to the tile |
-| Home: pin or unpin | The tile moves to or from the front of the grid | `withAnimation(DCMotion.spring)` on the grid order | Shows where it went |
-| Onboarding | Steps 1 → 2 push. The active progress dot stretches to the next one. When the cover closes for step 3, the panel rises to medium over the opened page and the two prompts appear 60 ms apart | `matchedGeometryEffect` on the active dot, the drawer's own detent animation, a `.delay` on the second prompt | Ends onboarding inside the real app, not on a "done" page |
-| Settings | System push and pop only | — | Settings stay plain |
+**Removed from the earlier motion table** (one open question for the owner, since you asked for motion before the design system existed): the chip flying into the bubble, the result card rising, the "…" text dropping into the field, suggestion crossfades, rolling counts, the Home tile zoom and pin reordering, the Dock's `glassEffectID` morph, the button bounce, and the onboarding dot stretch and staggered prompts. Any of them can come back if you prefer.
 
-**Reduce Motion.** Every row above goes through `DCMotion.respecting`:
-- Moves, scales, zooms and the chip and button morphs become a 0.2 s opacity crossfade, the ring stands still, and the mascot keeps one pose.
-- The progress ring and the bounce are off.
-- Number rolls become plain changes.
-- Haptics stay, because they aren't motion.
+**Reduce Motion.** The ring stands still, the mascot keeps one pose until the result, and haptics stay.
 
 ## Migration list
 
@@ -547,14 +532,14 @@ One word per thing, the same in the UI and the docs. The code column shows today
 | **Agent** | The one loop with tools behind the input box. It reads and changes pages, and from One loop it also summarizes, searches forums, makes podcasts and follows threads through tools. The only thing called Agent, and the only thing in purple or with the sparkle | browser agent (in the UI), assistant, Research | `BrowserAgent`, `ToolRegistry`, `ModelRole.browserAgent` |
 | **Assistant** (the panel) | The one panel beside the page: the conversation, the suggestion row and the input box. Its title is always "Agent" | AI drawer, mode | `AssistantPanel` |
 | **Suggestion** | A question above the input box that you could type or say yourself. A tap sends it; one ending in "…" fills the box for you to finish. Shown only where it applies, never greyed out | quick action, mode, shortcut | new |
-| **Conversation** | Everything in the panel: your messages, one row per tool call, the Agent's replies and the tool results. It holds one or more tasks. One Agent remembers it (from One loop for tapped forum results) | chat, mode, session | `BrowserAgentSession` |
+| **Conversation** | Everything in the panel: your messages, one row per tool call, the Agent's replies and the tool results. It holds one or more tasks. One Agent remembers it. In One panel, a tapped forum result reaches it as attached context | chat, mode, session | `BrowserAgentSession` |
 | **Task** | One request and the Agent's run for it, from your message to the final result. The unit of task export (M3, developer mode) | job, run | one run inside `BrowserAgentSession` |
 | **Summary** | A structured summary of a thread or page, shown as the summary card | | unchanged |
 | **Podcast** | A spoken version of a thread, an answer or Today. Asked for with "Read it to me" | Listen (as a button) | `Podcast/` |
 | **Voice** | Talking to the Agent. In One panel the mic dictates into the box. From One loop the mic opens the voice session, which shares the Agent's tools, and its turns join the conversation | Listen | `Voice*` views |
 | **Follow** | Get told when a thread has new replies. Asked for with "Notify me of new replies". The state, the switch and the confirmation say **Following** | Watch | `watchedTopics` |
 | **Site** | Any website | | — |
-| **Forum** | A site with a built-in adapter (Discourse, WordPress, Hacker News), or one that looks like a forum (it gets the same suggestions). Marked with a grey speech-bubble badge | | `SiteAdapter`, `Forum` |
+| **Forum** | A site with a built-in adapter (Discourse, WordPress, Hacker News), or, from Learn on ask, one the page check recognises (it then gets the forum suggestions). Its grey speech-bubble badge shows only on Home's site tiles | | `SiteAdapter`, `Forum` |
 | **This page** | What is saved for the current page and site: Following, scripts, tools, site switches. Its seal shows the host and script count | page info | new `PageCapabilitiesView` |
 | **Script** | Saved JavaScript/CSS in ScriptStore that runs on matching pages. It changes the page (M2) or registers tools (Learn on ask) | userscript (only in export/import), extension | `ScriptStore` |
 | **Tool** | A function the Agent can call. It comes from the app (built-in), a built-in adapter, a capability (summary, podcast, notify, follow), a script, or the site (WebMCP) | action, command | `ToolRegistry`; source prefixes per roadmap section 5 |
@@ -616,13 +601,13 @@ The owner agreed to all six proposals, which are now under "Decided".
 
 | # | Feedback | Change | Boards | Spec |
 |---|---|---|---|---|
-| 1 | Switch to the new design system | Every board uses its tokens: ink, gold, jade and cinnabar on warm paper or lacquer black, with no gradient, no purple and no capsule. Its components are used throughout: Composer, SuggestionRow, ToolRow, ResultCard, Message, Seal, Switch, ListRow and BrowserBar. The Agent's mark is the thin gold ring (bar, composer, running tool). The Logo is on onboarding step 1. The Mascot is in the panel states: wave when empty, think, run and search while working, cheer when done, at most one per screen | All boards; PanelStates (+Dark) is new; PhoneOnb1 (Logo); PhoneOnb3 (cheer) | Opening section; section 1 tree; Settings tree |
+| 1 | Switch to the new design system | Motion now follows its rule too (section 6); what that removed is listed there as an open question. Every board uses its tokens: ink, gold, jade and cinnabar on warm paper or lacquer black, with no gradient, no purple and no capsule. Its components are used throughout: Composer, SuggestionRow, ToolRow, ResultCard, Message, Seal, Switch, ListRow and BrowserBar. The Agent's mark is the thin gold ring (bar, composer, running tool). The Logo is on onboarding step 1. The Mascot is in the panel states: wave when empty, think, run and search while working, cheer when done, at most one per screen | All boards; PanelStates (+Dark) is new; PhoneOnb1 (Logo); PhoneOnb3 (cheer) | Opening section; section 1 tree; Settings tree |
 | 2 | Token count only in developer mode | The status row shows "Done · 3 steps · 9 s"; tokens join it in developer mode | All panel boards | Section 1, status row; IA table (M3) |
-| 3 | Fixed part too tall | Host and This page merge into one seal at the end of the status row; the separate row is gone. The fixed part is about 230 of 500 pt, down from about 265 | All panel boards, PhoneThisPage, KeyboardUp | Direction 2; section 1, status row |
+| 3 | Fixed part too tall | Host and This page merge into one seal at the end of the status row; the separate row is gone. The fixed part is about 230 of 500 pt (46%), down from about 265 (53%). Still nearly half: the next saving would be the status row itself | All panel boards, PhoneThisPage, KeyboardUp | Direction 2; section 1, status row |
 | 4 | No "Forum ·" in the pill | The seal shows host and script count only; site type is internal. The grey badge stays only on Home's tiles (removed from onboarding) | Panel boards, PhoneThisPage, IPadPage, PhoneOnb2, IPadOnb | Opening rules; section 2 |
-| 5 | How an unfamiliar forum is recognised | Until Learn on ask it isn't, so the ordinary-page row shows. From Learn on ask a no-model page-fact check decides (schema.org, generator meta, repeated post blocks), and the site's shape state overrides it | SuggestionRow (two rows, by milestone) | Section 1, Unfamiliar forums |
+| 5 | How an unfamiliar forum is recognised | Until Learn on ask it isn't, so the ordinary-page row shows. From Learn on ask, a proposal: a no-model page check (generator meta today; JSON-LD types and repeated post blocks need two new probe fact keys), overridden by the site's shape state | SuggestionRow (two rows, by milestone) | Section 1, Unfamiliar forums |
 | 6 | One panel follow-ups fail | Requirement: a tapped suggestion's engine result text is attached as context to the Agent's next message (untrusted delimiters, capped). PhoneResearch is titled and noted as One loop | PhoneResearch (title, note) | Section 1, Phases |
-| 7 | Vocabulary: Follow / Following | The suggestion stays "Notify me of new replies"; the confirmation and the This page switch say "Following" | PhoneThisPage, IPadPage | Decided list; section 2; glossary |
+| 7 | Vocabulary: Follow / Following | The suggestion stays "Notify me of new replies"; the confirmation and the This page switch say "Following" | PhoneThisPage | Decided list; section 2; glossary |
 
 ## Appendix: every other view in the code
 
