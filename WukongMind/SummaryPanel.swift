@@ -525,6 +525,17 @@ struct AssistantPanel: View {
                 .accessibilityIdentifier("menuInstructions")
                 .disabled(app.currentTopic == nil)
 
+                // Before a summary exists (after, it is in the summary's ⋯).
+                if app.currentTopic != nil, app.currentSession?.hasSummary != true {
+                    Button {
+                        app.pullTopic()
+                    } label: {
+                        Label("Pull Post + Replies Only", systemImage: "arrow.down.circle")
+                    }
+                    .accessibilityIdentifier("menuPullPost")
+                    .disabled(activeSummary != nil || activePull != nil)
+                }
+
                 Button {
                     DCHaptics.tap()
                     browserAgent.resetConversation()
