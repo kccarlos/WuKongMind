@@ -32,7 +32,7 @@ It follows roadmap v2, "Just ask" ([next-phase.md](next-phase.md), which v2 repl
   - `cheer` shows when a run ends, for about 3 seconds, and in onboarding's "You're set" card.
   - It never appears in the bar, in buttons, in lists, beside every message or with errors.
   - With Reduce Motion it doesn't change pose mid-run; it shows `think` until the result.
-- **Motion.** The design system limits motion to the turning ring and standard sheet transitions, and section 6 follows that.
+- **Motion.** The turning ring is the only continuous animation. By the owner's decision, two short transitions are allowed besides the system ones: a suggestion flying into the input box, and a result rising into view (section 6).
 
 **The end state in one line:** one input box and a mic on every page, no modes, no target switch, one Agent loop. Forum summary, search, podcast and voice become the Agent's tools. The boards draw that look, which the One panel milestone already ships. What changes between milestones is only what runs behind a tap (section 1, "Phases").
 
@@ -394,21 +394,23 @@ OnboardingFlow
 
 ### 6. Motion
 
-**The design system limits motion to the turning ring and standard sheet transitions.** This draft follows that rule, which replaces the earlier motion table. Haptics are not motion and stay (`DCHaptics`).
+**The owner's decision (2026-11-12, a compromise; the design system's motion rules will be updated to match):** the turning gold ring is the only continuous animation, and it means the Agent is working. Two short transitions come back, because they explain cause and effect. Each lasts at most 250 ms, uses a standard system curve, and becomes a fade with Reduce Motion. Haptics are not motion and stay (`DCHaptics`).
 
 | Moment | What happens | How (SwiftUI) |
 |---|---|---|
-| A tool runs | Its ToolRow disc is an open gold ring that turns. This is the only moving element in the panel | `rotationEffect` on a repeating linear animation |
+| Tap a suggestion | The chip flies into the input box. A full question then sends, and the text becomes your bubble; a "…" suggestion stays in the box with the caret at the end. The row closes the gap | `matchedGeometryEffect` from the chip to the field text, `.snappy(duration: 0.25)` or shorter; Reduce Motion: `.opacity` |
+| A result arrives | The result card (summary, sourced answer, listen row) or the ScriptCard rises into view at the bottom of the conversation, which scrolls to it | `.transition(.move(edge: .bottom).combined(with: .opacity))` within 250 ms, then `scrollPosition` to the bottom; Reduce Motion: `.opacity` |
+| A tool runs | Its ToolRow disc is an open gold ring that turns. It is the only continuous animation | `rotationEffect` on a repeating linear animation; Reduce Motion: still |
 | The Agent works with the panel closed | The bar's Agent ring turns. It replaces `ResearchRing` | Same animation |
-| A run ends | The ring stops and becomes the check. Success haptic; the mascot pose becomes `cheer` for about 3 s (a swap, not an animation). With the panel closed the Dock shows "Answer ready" | `DCHaptics.success()` |
+| A run ends | The ring stops and becomes the check. Success haptic; the mascot swaps to `cheer` for about 3 s (a swap, not an animation). With the panel closed the Dock shows "Answer ready" | `DCHaptics.success()` |
 | A run fails or hits the step limit | Warning haptic. The explanation appears in the conversation and is announced | `DCHaptics.warning()` |
 | Open This page, Settings, the code sheet, Now playing | The system popover and sheet transitions; Settings push and pop | `.popover`, `.sheet`, `NavigationStack` |
 | The drawer moves between detents; the keyboard rises | System behaviour | `presentationDetents`, the keyboard |
-| Everything else | Changes in place without animation: a suggestion's chip, the new bubble and the result card appear at the bottom of the conversation, which scrolls to them; the suggestion row changes with the page; the mic becomes Send | `scrollPosition` to the bottom; no `withAnimation` |
+| Everything else | Changes in place without animation: the suggestion row changes with the page, the mic becomes Send, counts change | no `withAnimation` |
 
-**Removed from the earlier motion table** (one open question for the owner, since you asked for motion before the design system existed): the chip flying into the bubble, the result card rising, the "…" text dropping into the field, suggestion crossfades, rolling counts, the Home tile zoom and pin reordering, the Dock's `glassEffectID` morph, the button bounce, and the onboarding dot stretch and staggered prompts. Any of them can come back if you prefer.
+**Still removed:** rolling counts on the seal and badge, and the Home tile zoom (both by the owner's decision); also suggestion crossfades, Home pin reordering, the Dock's `glassEffectID` morph, the button bounce, and the onboarding dot stretch and staggered prompts.
 
-**Reduce Motion.** The ring stands still, the mascot keeps one pose until the result, and haptics stay.
+**Reduce Motion.** The two transitions become fades, the ring stands still, the mascot keeps one pose until the result, and haptics stay.
 
 ## Migration list
 
@@ -601,7 +603,7 @@ The owner agreed to all six proposals, which are now under "Decided".
 
 | # | Feedback | Change | Boards | Spec |
 |---|---|---|---|---|
-| 1 | Switch to the new design system | Motion now follows its rule too (section 6); what that removed is listed there as an open question. Every board uses its tokens: ink, gold, jade and cinnabar on warm paper or lacquer black, with no gradient, no purple and no capsule. Its components are used throughout: Composer, SuggestionRow, ToolRow, ResultCard, Message, Seal, Switch, ListRow and BrowserBar. The Agent's mark is the thin gold ring (bar, composer, running tool). The Logo is on onboarding step 1. The Mascot is in the panel states: wave when empty, think, run and search while working, cheer when done, at most one per screen | All boards; PanelStates (+Dark) is new; PhoneOnb1 (Logo); PhoneOnb3 (cheer) | Opening section; section 1 tree; Settings tree |
+| 1 | Switch to the new design system | Motion follows the owner's compromise (section 6): the ring is the only continuous animation, plus two 250 ms transitions. Every board uses its tokens: ink, gold, jade and cinnabar on warm paper or lacquer black, with no gradient, no purple and no capsule. Its components are used throughout: Composer, SuggestionRow, ToolRow, ResultCard, Message, Seal, Switch, ListRow and BrowserBar. The Agent's mark is the thin gold ring (bar, composer, running tool). The Logo is on onboarding step 1. The Mascot is in the panel states: wave when empty, think, run and search while working, cheer when done, at most one per screen | All boards; PanelStates (+Dark) is new; PhoneOnb1 (Logo); PhoneOnb3 (cheer) | Opening section; section 1 tree; Settings tree |
 | 2 | Token count only in developer mode | The status row shows "Done · 3 steps · 9 s"; tokens join it in developer mode | All panel boards | Section 1, status row; IA table (M3) |
 | 3 | Fixed part too tall | Host and This page merge into one seal at the end of the status row; the separate row is gone. The fixed part is about 230 of 500 pt (46%), down from about 265 (53%). Still nearly half: the next saving would be the status row itself | All panel boards, PhoneThisPage, KeyboardUp | Direction 2; section 1, status row |
 | 4 | No "Forum ·" in the pill | The seal shows host and script count only; site type is internal. The grey badge stays only on Home's tiles (removed from onboarding) | Panel boards, PhoneThisPage, IPadPage, PhoneOnb2, IPadOnb | Opening rules; section 2 |
