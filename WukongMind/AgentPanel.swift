@@ -956,6 +956,19 @@ struct BrowserAgentRunsView: View {
                         .accessibilityIdentifier("agentToolTruncatedNote")
                 }
                 Spacer(minLength: 0)
+                if !row.isRunning {
+                    Button {
+                        DCHaptics.tap()
+                        app.auditLogRequest = AuditLogRequest(taskID: row.runID.uuidString, step: row.stepNumber)
+                    } label: {
+                        Text("View in audit log", comment: "Quiet button under an expanded tool row that opens this step in the audit log")
+                            .font(.caption.weight(.semibold))
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(DCTheme.inkMuted)
+                    .padding(.trailing, 8)
+                    .accessibilityIdentifier("agentToolViewInAuditLog")
+                }
                 if !row.resultText.isEmpty {
                     Button {
                         UIPasteboard.general.string = row.resultText

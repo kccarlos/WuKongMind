@@ -151,9 +151,7 @@ private struct ForumRequestPaceSection: View {
 struct SettingsAgentPage: View {
     @ObservedObject var app: AppModel
 
-    private var auditStepCount: Int {
-        app.browserAgent.runs.reduce(0) { $0 + $1.toolCalls.count }
-    }
+    @State private var auditStepCount = 0
 
     private var headerTitle: String {
         app.hasConfiguredModel(for: .browserAgent)
@@ -259,6 +257,7 @@ struct SettingsAgentPage: View {
                     }
                 }
                 .accessibilityIdentifier("settingsRow-auditLog")
+                SettingsWorkspaceRow()
             } header: {
                 Text("Records", comment: "Settings › Agent section header for the audit log")
             }
@@ -345,6 +344,10 @@ struct SettingsAgentPage: View {
         }
         .formStyle(.grouped)
         .accessibilityIdentifier("agentSettingsPage")
+        .task {
+            let log = app.auditLog
+            auditStepCount = await Task.detached { log.stepCount }.value
+        }
         .onChange(of: app.settings.agentConfirmBeforeWrites) { app.saveSettings() }
         .onChange(of: app.settings.agentDeveloperMode) { app.saveSettings() }
         .onChange(of: app.settings.agentMaxSteps) { app.saveSettings() }
@@ -355,64 +358,50 @@ struct SettingsAgentPage: View {
     }
 }
 
+/// The on-disk audit log: one section per day, each task a row that pushes its steps.
 struct SettingsAuditLogPage: View {
     @ObservedObject var app: AppModel
-
-    private var runsWithToolCalls: [BrowserAgentRun] {
-        app.browserAgent.runs.filter { !$0.toolCalls.isEmpty }.reversed()
-    }
+    var focus: AuditLogRequest?
+    @State private var days: [AuditDay] = []
+    @State private var openTask: AuditTask?
+    @State private var focusHandled = false
+    @State private var confirmingClear = false
 
     var body: some View {
         Form {
-            if runsWithToolCalls.isEmpty {
+            if days.isEmpty {
                 Section {
-                    Text("No tool calls recorded in this session yet.", comment: "Settings › Agent › Audit log empty state")
+                    Text("No tool calls recorded yet.", comment: "Settings › Agent › Audit log empty state")
                         .foregroundStyle(.secondary)
                         .accessibilityIdentifier("auditLogEmptyState")
                 } footer: {
                     Text("Every tool call's time, arguments and result summary appear here as the Agent works.")
                 }
             } else {
-                ForEach(runsWithToolCalls) { run in
+                ForEach(days) { day in
                     Section {
-                        ForEach(run.toolCalls) { step in
-                            VStack(alignment: .leading, spacing: 4) {
-                                HStack {
-                                    Text(verbatim: step.toolName)
-                                        .font(DCType.code)
-                                    Spacer()
-                                    if step.isError {
-                                        DCSeal(
-                                            text: String(localized: "Error", comment: "Audit log badge for a failed tool call"),
-                                            variant: .state(.error)
-                                        )
-                                    } else {
-                                        DCSeal(text: "#\(step.stepNumber)", variant: .outline)
-                                    }
-                                }
-                                if !step.argumentSummary.isEmpty {
-                                    Text(verbatim: step.argumentSummary)
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                        .lineLimit(2)
-                                }
-                                Text(verbatim: step.resultSummary)
-                                    .font(.caption)
-                                    .foregroundStyle(step.isError ? DCTheme.danger : .secondary)
-                                    .lineLimit(3)
-                                if app.settings.agentDeveloperMode {
-                                    Text(verbatim: step.argumentsJSON)
-                                        .font(DCType.code)
-                                        .foregroundStyle(.secondary)
-                                        .lineLimit(6)
-                                }
+                        ForEach(day.tasks) { task in
+                            Button {
+                                openTask = task
+                            } label: {
+                                AuditTaskRow(task: task)
                             }
-                            .padding(.vertical, 2)
+                            .foregroundStyle(.primary)
+                            .accessibilityIdentifier("auditTaskRow-\(task.id)")
                         }
                     } header: {
-                        Text(verbatim: "\(run.startedAt.formatted(date: .abbreviated, time: .shortened)) · \(run.prompt)")
-                            .lineLimit(1)
+                        Text(verbatim: day.id)
                     }
+                }
+                Section {
+                    Button(role: .destructive) {
+                        confirmingClear = true
+                    } label: {
+                        Text("Clear audit log", comment: "Settings › Agent › Audit log destructive button")
+                    }
+                    .accessibilityIdentifier("auditClear")
+                } footer: {
+                    Text("Removes every recorded task from this device. It can't be undone.")
                 }
             }
         }
@@ -421,7 +410,201 @@ struct SettingsAuditLogPage: View {
         .tint(DCTheme.goldInk)
         .navigationTitle(Text("Audit log", comment: "Navigation bar title of the Agent audit log screen"))
         .navigationBarTitleDisplayMode(.inline)
+        .navigationDestination(item: $openTask) { task in
+            AuditTaskPage(app: app, task: task, focusStep: focus?.taskID == task.id ? focus?.step : nil)
+        }
+        .confirmationDialog(
+            String(localized: "Clear the audit log?", comment: "Confirmation title for clearing the audit log"),
+            isPresented: $confirmingClear,
+            titleVisibility: .visible
+        ) {
+            Button(String(localized: "Clear audit log", comment: "Confirm clearing the audit log"), role: .destructive) {
+                app.auditLog.clear()
+                days = []
+            }
+        }
+        .onAppear {
+            days = app.auditLog.days()
+            if !focusHandled, let taskID = focus?.taskID {
+                focusHandled = true
+                openTask = days.flatMap(\.tasks).first { $0.id == taskID }
+            }
+        }
         .accessibilityIdentifier("auditLogPage")
+    }
+}
+
+private struct AuditTaskRow: View {
+    let task: AuditTask
+
+    var body: some View {
+        HStack(spacing: DCTheme.spacingM) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(verbatim: task.prompt.split(separator: "\n").first.map(String.init) ?? "")
+                    .lineLimit(2)
+                Text(verbatim: detail)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer(minLength: DCTheme.spacingS)
+            if task.hasError {
+                DCSeal(text: String(localized: "Error", comment: "Audit log badge for a failed tool call"), variant: .state(.error))
+            }
+            Image(systemName: "chevron.right")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.tertiary)
+        }
+        .contentShape(Rectangle())
+    }
+
+    private var detail: String {
+        let count = task.steps.count
+        let time = task.start.formatted(date: .omitted, time: .shortened)
+        let steps = String(localized: "\(count) steps", comment: "Audit log task row: number of steps")
+        return [task.host, steps, time].compactMap { $0 }.joined(separator: " · ")
+    }
+}
+
+/// One task's steps, in order. Opens at `focusStep` when set ("View in audit log").
+struct AuditTaskPage: View {
+    @ObservedObject var app: AppModel
+    let task: AuditTask
+    var focusStep: Int?
+
+    var body: some View {
+        ScrollViewReader { proxy in
+            Form {
+                Section {
+                    ForEach(task.steps) { step in
+                        stepRow(step)
+                            .id(step.step ?? 0)
+                            .accessibilityIdentifier("auditStepRow-\(step.step ?? 0)")
+                    }
+                } header: {
+                    Text(verbatim: task.start.formatted(date: .abbreviated, time: .shortened))
+                } footer: {
+                    if let model = task.model {
+                        Text(verbatim: [model, task.provider].compactMap { $0 }.joined(separator: " · "))
+                    }
+                }
+            }
+            .onAppear {
+                if let focusStep { proxy.scrollTo(focusStep, anchor: .top) }
+            }
+        }
+        .formStyle(.grouped)
+        .dcGroupedBackground()
+        .tint(DCTheme.goldInk)
+        .navigationTitle(Text(verbatim: task.prompt.split(separator: "\n").first.map(String.init) ?? ""))
+        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private func stepRow(_ step: AuditLine) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Text(verbatim: DCToolLabel.browser(step.tool ?? "", running: false))
+                    .font(.body.weight(.medium))
+                Spacer()
+                if step.isError == true {
+                    DCSeal(text: String(localized: "Error", comment: "Audit log badge for a failed tool call"), variant: .state(.error))
+                } else {
+                    DCSeal(text: "#\(step.step ?? 0)", variant: .outline)
+                }
+            }
+            if let url = step.url {
+                Text(verbatim: "\(step.method ?? "GET") \(url)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(3)
+            } else if let arguments = step.arguments, !arguments.isEmpty, arguments != "{}" {
+                Text(verbatim: AuditLine.clip(arguments, 120))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+            }
+            if let summary = step.resultSummary {
+                Text(verbatim: summary)
+                    .font(.caption)
+                    .foregroundStyle(step.isError == true ? DCTheme.danger : .secondary)
+                    .lineLimit(3)
+            }
+            if let warning = step.warning {
+                Text(verbatim: warning)
+                    .font(.caption)
+                    .foregroundStyle(DCTheme.warning)
+            }
+            Text(verbatim: timing(step))
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
+            if app.settings.agentDeveloperMode {
+                Text(verbatim: step.tool ?? "")
+                    .font(DCType.code)
+                    .foregroundStyle(.secondary)
+                if let arguments = step.arguments {
+                    Text(verbatim: arguments)
+                        .font(DCType.code)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(6)
+                }
+            }
+        }
+        .padding(.vertical, 2)
+    }
+
+    private func timing(_ step: AuditLine) -> String {
+        let time = step.time.formatted(date: .omitted, time: .standard)
+        guard let ms = step.durationMs else { return time }
+        return "\(time) · " + BrowserAgentPanelView.formatDuration(Double(ms) / 1000)
+    }
+}
+
+/// Settings › Agent › Records › Workspace: the folder's size, opening the Files app at it.
+struct SettingsWorkspaceRow: View {
+    @State private var size: Int64 = 0
+    @State private var openFailed = false
+
+    private var folder: URL? {
+        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+    }
+
+    var body: some View {
+        Button {
+            guard let folder, let url = URL(string: "shareddocuments://" + folder.path) else {
+                openFailed = true
+                return
+            }
+            UIApplication.shared.open(url) { opened in
+                if !opened { openFailed = true }
+            }
+        } label: {
+            SettingsIconRow {
+                SettingsIcon(symbol: "folder", tint: DCTheme.ink)
+            } title: {
+                Text("Workspace", comment: "Settings › Agent › Records row opening the Agent's files in the Files app")
+                    .foregroundStyle(Color.primary)
+            } trailing: {
+                Text(verbatim: ByteCountFormatter.string(fromByteCount: size, countStyle: .file))
+                    .foregroundStyle(.secondary)
+                    .monospacedDigit()
+            }
+        }
+        .accessibilityIdentifier("settingsRow-workspace")
+        .task { size = Self.folderSize(folder) }
+        if openFailed {
+            Text("In the Files app: On My iPhone › WukongMind", comment: "Settings › Agent › Workspace footer when the Files app can't be opened")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    static func folderSize(_ url: URL?) -> Int64 {
+        guard let url,
+              let enumerator = FileManager.default.enumerator(at: url, includingPropertiesForKeys: [.fileSizeKey]) else { return 0 }
+        var total: Int64 = 0
+        for case let file as URL in enumerator {
+            total += Int64((try? file.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0)
+        }
+        return total
     }
 }
 
