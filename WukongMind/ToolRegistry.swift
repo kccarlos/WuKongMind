@@ -794,7 +794,11 @@ extension ToolRegistry {
         )
     }
 
-    private static func makeReadPageTool(bridge: AgentPageDriving, workspace: AgentWorkspace? = nil) -> AgentTool {
+    private static func makeReadPageTool(
+        bridge: AgentPageDriving,
+        workspace: AgentWorkspace? = nil,
+        secrets: [String] = []
+    ) -> AgentTool {
         var definition = AgentToolDefinition(
             name: "read_page",
             description: """
@@ -855,7 +859,7 @@ extension ToolRegistry {
                 )
                 let summary = "\(content.count) chars (\(mode.rawValue))"
                 if let workspace, let target = args["save_to"]?.stringValue {
-                    let saved = try await saveOutput(content, to: target, workspace: workspace)
+                    let saved = try await saveOutput(content, to: target, workspace: workspace, secrets: secrets)
                     return ToolExecutionOutput(content: saved.notice, summary: "\(summary) · \(saved.path)", savedPath: saved.path)
                 }
                 return ToolExecutionOutput(content: content, summary: summary, isError: false)
@@ -863,7 +867,11 @@ extension ToolRegistry {
         )
     }
 
-    private static func makeRunJSTool(bridge: AgentPageDriving, workspace: AgentWorkspace? = nil) -> AgentTool {
+    private static func makeRunJSTool(
+        bridge: AgentPageDriving,
+        workspace: AgentWorkspace? = nil,
+        secrets: [String] = []
+    ) -> AgentTool {
         var definition = AgentToolDefinition(
             name: "run_js",
             description: """
@@ -924,7 +932,9 @@ extension ToolRegistry {
                 let env = AgentExecutionEnvironment(rawValue: envRaw) ?? .defaultEnvironment
                 let timeout = args["timeout"]?.strictDoubleValue ?? AgentBridge.defaultJSTimeout
 
-                let result = try await bridge.runJS(code: code, environment: env, timeout: timeout)
+                let result = workspace == nil
+                    ? try await bridge.runJS(code: code, environment: env, timeout: timeout)
+                    : try await bridge.runAgentJS(code: code, environment: env, timeout: timeout)
                 if let errorMessage = result.error {
                     var sections = ["Error: \(errorMessage)"]
                     if !result.consoleOutput.isEmpty {
@@ -943,7 +953,7 @@ extension ToolRegistry {
                     let text = result.valueJSON
                         .flatMap { try? JSONSerialization.jsonObject(with: Data($0.utf8), options: .fragmentsAllowed) as? String }
                         ?? valueDisplay
-                    let saved = try await saveOutput(text, to: target, workspace: workspace)
+                    let saved = try await saveOutput(text, to: target, workspace: workspace, secrets: secrets)
                     var sections = [saved.notice]
                     if !result.consoleOutput.isEmpty {
                         sections.append("Console:\n" + result.consoleOutput.joined(separator: "\n"))
@@ -1142,10 +1152,14 @@ extension ToolRegistry {
 
     /// The four M1 page tools; with a workspace, `read_page` and `run_js` also
     /// take `save_to`, and `run_js` gets the `wukong.files` helpers.
-    static func pageTools(bridge: AgentPageDriving, workspace: AgentWorkspace?) -> [AgentTool] {
+    static func pageTools(
+        bridge: AgentPageDriving,
+        workspace: AgentWorkspace?,
+        secrets: [String] = []
+    ) -> [AgentTool] {
         [
-            makeReadPageTool(bridge: bridge, workspace: workspace),
-            makeRunJSTool(bridge: bridge, workspace: workspace),
+            makeReadPageTool(bridge: bridge, workspace: workspace, secrets: secrets),
+            makeRunJSTool(bridge: bridge, workspace: workspace, secrets: secrets),
             makeInjectCSSTool(bridge: bridge),
             makeWaitForTool(bridge: bridge)
         ]
@@ -1823,7 +1837,11 @@ extension ToolRegistry {
     /// results to the workspace, plus one list per tool family. Each family
     /// lives in its own `ToolRegistry+<Family>.swift`.
     static func m3(context: AgentToolContext) -> ToolRegistry {
-        var tools = pageTools(bridge: context.bridge, workspace: context.workspace)
+        var tools = pageTools(
+            bridge: context.bridge,
+            workspace: context.workspace,
+            secrets: context.settings.redactedSecrets
+        )
         tools += scriptTools(
             bridge: context.bridge,
             scriptStore: context.scriptStore,

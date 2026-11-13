@@ -24,8 +24,10 @@ extension ToolRegistry {
         _ text: String,
         to path: String,
         workspace: AgentWorkspace,
+        secrets: [String] = [],
         previewLength: Int = saveToPreviewLength
     ) async throws -> (path: String, notice: String) {
+        let text = UntrustedWebContent.redactSecrets(in: text, secrets: secrets)
         let written = try await workspace.write(path: path, content: text)
         let preview = String(text.prefix(previewLength))
         var lines = ["Saved to \(written.path) (\(grouped(text.count)) characters)."]

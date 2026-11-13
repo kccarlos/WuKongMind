@@ -419,7 +419,7 @@ final class AgentBridgeTests: XCTestCase {
         }
 
         // 1. Isolated run_js: write, then append, and hand back its own token.
-        let agent = try await bridge.runJS(
+        let agent = try await bridge.runAgentJS(
             code: """
             const heading = document.querySelector("h1").textContent.trim();
             const first = await wukong.files.write("crawls/fixture/page-001.txt", heading + "\\n");
@@ -437,7 +437,15 @@ final class AgentBridgeTests: XCTestCase {
         XCTAssertEqual(first["path"] as? String, "crawls/fixture/page-001.txt")
         let staleToken = try XCTUnwrap(agentDict["token"] as? String)
 
-        // 2. A saved userscript runs in the same isolated world, outside run_js: no helpers,
+        // 2a. Plain runJS (how saved scripts and app code run, e.g. the live-apply
+        //     fallback in ToolRegistry.applyScriptToOpenPage) gets no helpers.
+        let savedScript = try await bridge.runJS(
+            code: "return [typeof wukong, typeof __wukongCallToken];",
+            environment: .isolated
+        )
+        XCTAssertEqual(savedScript.valueJSON, #"["undefined","undefined"]"#)
+
+        // 2b. A saved userscript runs in the same isolated world, outside run_js: no helpers,
         //    and the handler refuses it with no token, a made-up one, or the finished call's.
         let userscript = try await webView.callAsyncJavaScript(
             """
@@ -478,7 +486,7 @@ final class AgentBridgeTests: XCTestCase {
         XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("evil.txt").path))
 
         // 4. The workspace rules still apply inside run_js.
-        let escape = try await bridge.runJS(code: "await wukong.files.write('../escape.txt', 'x');", environment: .isolated)
+        let escape = try await bridge.runAgentJS(code: "await wukong.files.write('../escape.txt', 'x');", environment: .isolated)
         XCTAssertTrue(escape.error?.contains("'..'") == true, escape.error ?? "nil")
     }
 

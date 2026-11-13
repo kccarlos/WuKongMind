@@ -48,6 +48,17 @@ final class ToolRegistryTests: XCTestCase {
         func waitFor(selector: String?, milliseconds: Int?) async throws -> WaitForResult {
             try await waitForHandler(selector, milliseconds)
         }
+
+        private(set) var agentJSCalls = 0
+
+        func runAgentJS(
+            code: String,
+            environment: AgentExecutionEnvironment,
+            timeout: TimeInterval
+        ) async throws -> JSExecutionResult {
+            agentJSCalls += 1
+            return try await runJSHandler(code, environment, timeout)
+        }
     }
 
     func testM1RegistryExposesFourToolsWithValidObjectSchemas() {
@@ -291,6 +302,12 @@ final class ToolRegistryTests: XCTestCase {
         }
         XCTAssertTrue(registry.tool(named: "run_js")?.definition.description.contains("wukong.files.write") == true)
         XCTAssertFalse(ToolRegistry.m1(bridge: driver).tool(named: "run_js")?.definition.description.contains("wukong") == true)
+
+        // Only the M3 run_js tool runs with the helpers; m1/m2 run plain runJS.
+        _ = try await ToolRegistry.m1(bridge: driver).dispatch(toolName: "run_js", arguments: ["code": .string("return 1")])
+        XCTAssertEqual(driver.agentJSCalls, 0)
+        _ = try await registry.dispatch(toolName: "run_js", arguments: ["code": .string("return 1")])
+        XCTAssertEqual(driver.agentJSCalls, 1)
     }
 
     @MainActor
@@ -383,7 +400,7 @@ final class ToolRegistryTests: XCTestCase {
         driver.runJSHandler = { _, _, _ in
             JSExecutionResult(valueJSON: "\"line 1\\nline 2\"", consoleOutput: ["fetched 2 pages"], error: nil)
         }
-        let (registry, _, root) = try makeM3(driver: driver, limit: 20_000)
+        let (registry, _, root) = try makeM3(driver: driver, limit: 20_000, secrets: ["sk-save-to-secret-42"])
 
         let read = try await registry.dispatch(toolName: "read_page", arguments: [
             "mode": .string("text"), "save_to": .string("crawls/site/article.txt")
@@ -401,6 +418,11 @@ final class ToolRegistryTests: XCTestCase {
         XCTAssertEqual(ran.savedPath, "crawls/site/out.txt")
         XCTAssertTrue(ran.output.contains("Console:\nfetched 2 pages"))
         XCTAssertEqual(try String(contentsOf: root.appendingPathComponent("crawls/site/out.txt"), encoding: .utf8), "line 1\nline 2")
+
+        // Configured keys never reach the file.
+        driver.readPageHandler = { _, _, _ in "key: sk-save-to-secret-42" }
+        _ = try await registry.dispatch(toolName: "read_page", arguments: ["save_to": .string("k.txt")])
+        XCTAssertEqual(try String(contentsOf: root.appendingPathComponent("k.txt"), encoding: .utf8), "key: [REDACTED_API_KEY]")
 
         let refused = try await registry.dispatch(toolName: "read_page", arguments: ["save_to": .string("/etc/x")])
         XCTAssertTrue(refused.isError)

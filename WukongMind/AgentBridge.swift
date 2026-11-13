@@ -102,6 +102,23 @@ protocol AgentPageDriving: Sendable {
     ) async throws -> JSExecutionResult
     func injectCSS(css: String, id: String?) async throws -> CSSInjectionResult
     func waitFor(selector: String?, milliseconds: Int?) async throws -> WaitForResult
+    /// `runJS` for the Agent's own `run_js` tool only: isolated code also gets
+    /// the `wukong.files` helpers. Saved scripts and app code use `runJS`.
+    func runAgentJS(
+        code: String,
+        environment: AgentExecutionEnvironment,
+        timeout: TimeInterval
+    ) async throws -> JSExecutionResult
+}
+
+extension AgentPageDriving {
+    func runAgentJS(
+        code: String,
+        environment: AgentExecutionEnvironment,
+        timeout: TimeInterval
+    ) async throws -> JSExecutionResult {
+        try await runJS(code: code, environment: environment, timeout: timeout)
+    }
 }
 
 /// Bridges the browser agent's page tools (`read_page`, `run_js`, `inject_css`,
@@ -193,11 +210,28 @@ final class AgentBridge: NSObject, AgentPageDriving {
         environment: AgentExecutionEnvironment = .defaultEnvironment,
         timeout: TimeInterval = AgentBridge.defaultJSTimeout
     ) async throws -> JSExecutionResult {
+        try await runJS(code: code, environment: environment, timeout: timeout, withHelpers: false)
+    }
+
+    func runAgentJS(
+        code: String,
+        environment: AgentExecutionEnvironment = .defaultEnvironment,
+        timeout: TimeInterval = AgentBridge.defaultJSTimeout
+    ) async throws -> JSExecutionResult {
+        try await runJS(code: code, environment: environment, timeout: timeout, withHelpers: true)
+    }
+
+    private func runJS(
+        code: String,
+        environment: AgentExecutionEnvironment,
+        timeout: TimeInterval,
+        withHelpers: Bool
+    ) async throws -> JSExecutionResult {
         let effectiveTimeout = timeout > 0 ? timeout : Self.defaultJSTimeout
         let world = contentWorld(for: environment)
-        // Isolated calls get the workspace helpers and a token valid only until
+        // The Agent's isolated calls get the workspace helpers and a token valid only until
         // this call returns or times out.
-        let token: String? = (environment == .isolated && workspace != nil) ? UUID().uuidString : nil
+        let token: String? = (withHelpers && environment == .isolated && workspace != nil) ? UUID().uuidString : nil
         let wrapped = Self.wrappedExecutionScript(userBody: code, withHelpers: token != nil)
         if let token { activeCallTokens.insert(token) }
         defer { if let token { activeCallTokens.remove(token) } }
