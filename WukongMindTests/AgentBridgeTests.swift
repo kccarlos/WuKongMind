@@ -405,6 +405,91 @@ final class AgentBridgeTests: XCTestCase {
         XCTAssertTrue(runtimeErr.error?.contains("deliberate boom") == true)
     }
 
+    // MARK: - wukong.files: isolated run_js only
+
+    func testWukongFilesWritesFromIsolatedRunJSButNotFromUserscriptsOrThePageWorld() async throws {
+        let html = try loadFixtureHTML("article.html")
+        let (webView, bridge, waiter) = makeHostedWebView()
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("AgentBridgeFiles-\(UUID().uuidString)", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        bridge.workspace = AgentWorkspace(root: root)
+        try await waiter.waitForLoad {
+            webView.loadHTMLString(html, baseURL: URL(string: "https://fixture.local/article"))
+        }
+
+        // 1. Isolated run_js: write, then append, and hand back its own token.
+        let agent = try await bridge.runAgentJS(
+            code: """
+            const heading = document.querySelector("h1").textContent.trim();
+            const first = await wukong.files.write("crawls/fixture/page-001.txt", heading + "\\n");
+            const second = await wukong.files.append("crawls/fixture/page-001.txt", "second line\\n");
+            return { first, second, token: __wukongCallToken };
+            """,
+            environment: .isolated
+        )
+        XCTAssertNil(agent.error)
+        let saved = try String(contentsOf: root.appendingPathComponent("crawls/fixture/page-001.txt"), encoding: .utf8)
+        XCTAssertEqual(saved, "Understanding Content Worlds\nsecond line\n")
+        let agentJSON = try XCTUnwrap(agent.valueJSON?.data(using: .utf8))
+        let agentDict = try XCTUnwrap(JSONSerialization.jsonObject(with: agentJSON) as? [String: Any])
+        let first = try XCTUnwrap(agentDict["first"] as? [String: Any])
+        XCTAssertEqual(first["path"] as? String, "crawls/fixture/page-001.txt")
+        let staleToken = try XCTUnwrap(agentDict["token"] as? String)
+
+        // 2a. Plain runJS (how saved scripts and app code run, e.g. the live-apply
+        //     fallback in ToolRegistry.applyScriptToOpenPage) gets no helpers.
+        let savedScript = try await bridge.runJS(
+            code: "return [typeof wukong, typeof __wukongCallToken];",
+            environment: .isolated
+        )
+        XCTAssertEqual(savedScript.valueJSON, #"["undefined","undefined"]"#)
+
+        // 2b. A saved userscript runs in the same isolated world, outside run_js: no helpers,
+        //    and the handler refuses it with no token, a made-up one, or the finished call's.
+        let userscript = try await webView.callAsyncJavaScript(
+            """
+            const handler = window.webkit.messageHandlers.wukongAgent;
+            const attempt = async (token) => {
+              try {
+                await handler.postMessage({ action: "files", op: "write", path: "evil.txt", text: "x", token });
+                return "wrote";
+              } catch (error) {
+                return String(error.message || error);
+              }
+            };
+            return JSON.stringify({
+              helpers: typeof wukong,
+              none: await attempt(undefined),
+              madeUp: await attempt("00000000-0000-0000-0000-000000000000"),
+              stale: await attempt(staleToken)
+            });
+            """,
+            arguments: ["staleToken": staleToken],
+            in: nil,
+            contentWorld: AgentBridge.isolatedWorld
+        )
+        let userscriptData = try XCTUnwrap((userscript as? String)?.data(using: .utf8))
+        let outcome = try XCTUnwrap(JSONSerialization.jsonObject(with: userscriptData) as? [String: String])
+        XCTAssertEqual(outcome["helpers"], "undefined")
+        for key in ["none", "madeUp", "stale"] {
+            XCTAssertEqual(outcome[key], "wukong.files is only available inside the Agent's run_js.", key)
+        }
+
+        // 3. The page world has neither the helpers nor the handler.
+        let page = try await bridge.runJS(
+            code: "return [typeof wukong, typeof window.webkit?.messageHandlers?.wukongAgent];",
+            environment: .page
+        )
+        XCTAssertEqual(page.valueJSON, #"["undefined","undefined"]"#)
+
+        XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("evil.txt").path))
+
+        // 4. The workspace rules still apply inside run_js.
+        let escape = try await bridge.runAgentJS(code: "await wukong.files.write('../escape.txt', 'x');", environment: .isolated)
+        XCTAssertTrue(escape.error?.contains("'..'") == true, escape.error ?? "nil")
+    }
+
     // MARK: - Strict CSP Header: eval & adoptedStyleSheets CSS Injection
 
     func testStrictCSPHeaderBlocksPageEvalButAllowsIsolatedEvalAndAdoptedStyleSheets() async throws {

@@ -113,6 +113,23 @@ protocol AgentPageDriving: Sendable {
     func load(_ url: URL, wait: Bool, timeout: TimeInterval) async throws -> AgentNavigationOutcome
     /// Reloads the page, dropping unsaved changes; saved scripts run again.
     func reload(timeout: TimeInterval) async throws -> AgentNavigationOutcome
+    /// `runJS` for the Agent's own `run_js` tool only: isolated code also gets
+    /// the `wukong.files` helpers. Saved scripts and app code use `runJS`.
+    func runAgentJS(
+        code: String,
+        environment: AgentExecutionEnvironment,
+        timeout: TimeInterval
+    ) async throws -> JSExecutionResult
+}
+
+extension AgentPageDriving {
+    func runAgentJS(
+        code: String,
+        environment: AgentExecutionEnvironment,
+        timeout: TimeInterval
+    ) async throws -> JSExecutionResult {
+        try await runJS(code: code, environment: environment, timeout: timeout)
+    }
 }
 
 extension AgentPageDriving {
@@ -177,6 +194,11 @@ final class AgentBridge: NSObject, AgentPageDriving {
     /// Loads and reloads for `navigate` and `reload_page`; set by the
     /// browser that owns the web view.
     weak var navigator: AgentPageNavigating?
+    /// The Agent's workspace, reached by `wukong.files` in isolated `run_js` code.
+    var workspace: AgentWorkspace?
+    /// Tokens of the `run_js` calls running now; the `files` route accepts only
+    /// these, so saved userscripts (same world) and the page world can't use it.
+    private var activeCallTokens: Set<String> = []
 
     private let replyMessageHandler = AgentReplyMessageHandler()
     private var nextGeneratedSheetIndex = 0
@@ -284,15 +306,37 @@ final class AgentBridge: NSObject, AgentPageDriving {
         environment: AgentExecutionEnvironment = .defaultEnvironment,
         timeout: TimeInterval = AgentBridge.defaultJSTimeout
     ) async throws -> JSExecutionResult {
+        try await runJS(code: code, environment: environment, timeout: timeout, withHelpers: false)
+    }
+
+    func runAgentJS(
+        code: String,
+        environment: AgentExecutionEnvironment = .defaultEnvironment,
+        timeout: TimeInterval = AgentBridge.defaultJSTimeout
+    ) async throws -> JSExecutionResult {
+        try await runJS(code: code, environment: environment, timeout: timeout, withHelpers: true)
+    }
+
+    private func runJS(
+        code: String,
+        environment: AgentExecutionEnvironment,
+        timeout: TimeInterval,
+        withHelpers: Bool
+    ) async throws -> JSExecutionResult {
         let effectiveTimeout = timeout > 0 ? timeout : Self.defaultJSTimeout
         let world = contentWorld(for: environment)
-        let wrapped = Self.wrappedExecutionScript(userBody: code)
+        // The Agent's isolated calls get the workspace helpers and a token valid only until
+        // this call returns or times out.
+        let token: String? = (withHelpers && environment == .isolated && workspace != nil) ? UUID().uuidString : nil
+        let wrapped = Self.wrappedExecutionScript(userBody: code, withHelpers: token != nil)
+        if let token { activeCallTokens.insert(token) }
+        defer { if let token { activeCallTokens.remove(token) } }
 
         let raw: Any?
         do {
             raw = try await callAsyncJS(
                 script: wrapped,
-                arguments: [:],
+                arguments: token.map { ["__wukongCallToken": $0] } ?? [:],
                 world: world,
                 timeout: effectiveTimeout
             )
@@ -502,6 +546,8 @@ final class AgentBridge: NSObject, AgentPageDriving {
         case "pageInfo":
             let meta = await currentPageMetadata()
             return (["url": meta.url, "title": meta.title], nil)
+        case "files":
+            return await handleFilesMessage(payload)
         default:
             if let replyRouter {
                 do {
@@ -512,6 +558,29 @@ final class AgentBridge: NSObject, AgentPageDriving {
                 }
             }
             return (nil, "Unsupported isolated bridge action '\(action)'.")
+        }
+    }
+
+    /// `wukong.files.write` / `append` from an isolated `run_js` call.
+    private func handleFilesMessage(_ payload: [String: Any]) async -> (Any?, String?) {
+        guard let token = payload["token"] as? String, activeCallTokens.contains(token) else {
+            return (nil, "wukong.files is only available inside the Agent's run_js.")
+        }
+        guard let workspace else {
+            return (nil, "The workspace is unavailable.")
+        }
+        let op = (payload["op"] as? String) ?? ""
+        guard op == "write" || op == "append" else {
+            return (nil, "Unsupported wukong.files operation '\(op)'.")
+        }
+        guard let path = payload["path"] as? String, let text = payload["text"] as? String else {
+            return (nil, "wukong.files.\(op) needs a path and text.")
+        }
+        do {
+            let written = try await workspace.write(path: path, content: text, append: op == "append")
+            return (["path": written.path, "bytes_written": written.bytesWritten, "size": written.size], nil)
+        } catch {
+            return (nil, error.localizedDescription)
         }
     }
 
@@ -655,8 +724,22 @@ private final class AgentReplyMessageHandler: NSObject, WKScriptMessageHandlerWi
 // MARK: - Injected JavaScript Helpers
 
 extension AgentBridge {
-    fileprivate static func wrappedExecutionScript(userBody: String) -> String {
+    /// Defined inside each isolated `run_js` call only. `__wukongCallToken` is a
+    /// `callAsyncJavaScript` argument, so it never exists outside that call.
+    fileprivate static let helpersScript = """
+        const wukong = (() => {
+          const handler = window.webkit.messageHandlers.wukongAgent;
+          const token = __wukongCallToken;
+          const files = (op) => (path, text) => handler.postMessage({
+            action: "files", op, token, path: String(path), text: String(text)
+          });
+          return Object.freeze({ files: Object.freeze({ write: files("write"), append: files("append") }) });
+        })();
         """
+
+    fileprivate static func wrappedExecutionScript(userBody: String, withHelpers: Bool = false) -> String {
+        """
+        \(withHelpers ? helpersScript : "")
         const __wukongLogs = [];
         const __wukongFormat = (value) => {
           if (typeof value === "string") return value;

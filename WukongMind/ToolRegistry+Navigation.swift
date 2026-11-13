@@ -6,6 +6,11 @@ extension ToolRegistry {
     /// Both tools give up waiting after this long and return what loaded.
     static let navigationTimeout: TimeInterval = 30
 
+    /// The navigation family in `m3` (task 1's seam).
+    static func navigationTools(context: AgentToolContext) -> [AgentTool] {
+        navigationTools(bridge: context.bridge, savedScriptCount: savedScriptCounter(context.scriptStore))
+    }
+
     /// `navigate` and `reload_page` on the browser's one page.
     /// `savedScriptCount` gives the number of saved scripts that run on a
     /// URL (for `reload_page`'s note).

@@ -8946,6 +8946,38 @@
         }
       }
     },
+    "Listed files" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已列出文件"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已列出檔案"
+          }
+        }
+      }
+    },
+    "Listing files" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在列出文件"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在列出檔案"
+          }
+        }
+      }
+    },
     "LM Studio (Local)" : {
       "comment" : "AI provider name: LM Studio running on the user's own computer. Keep \"LM Studio\".",
       "localizations" : {
@@ -11484,6 +11516,38 @@
         }
       }
     },
+    "Opened page" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已打开页面"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已打開頁面"
+          }
+        }
+      }
+    },
+    "Opening page" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在打开页面"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在打開頁面"
+          }
+        }
+      }
+    },
     "Opens %@" : {
       "localizations" : {
         "zh-Hans" : {
@@ -12918,6 +12982,38 @@
         }
       }
     },
+    "Read cookies" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已读取 Cookie"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已讀取 Cookie"
+          }
+        }
+      }
+    },
+    "Read file" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已读取文件"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已讀取檔案"
+          }
+        }
+      }
+    },
     "Read it to me" : {
       "comment" : "Suggestion above the Agent composer on a forum thread: reads the summary aloud",
       "localizations" : {
@@ -12931,6 +13027,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "讀給我聽"
+          }
+        }
+      }
+    },
+    "Read network log" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已读取网络日志"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已讀取網路日誌"
           }
         }
       }
@@ -13063,6 +13175,38 @@
         }
       }
     },
+    "Reading cookies" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在读取 Cookie"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在讀取 Cookie"
+          }
+        }
+      }
+    },
+    "Reading file" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在读取文件"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在讀取檔案"
+          }
+        }
+      }
+    },
     "Reading forum responses…" : {
       "comment" : "Status while downloading a topic's replies",
       "localizations" : {
@@ -13099,6 +13243,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在閱讀第 %1$lld 層的第 %2$lld 部分（共 %3$lld 部分）…"
+          }
+        }
+      }
+    },
+    "Reading network log" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在读取网络日志"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在讀取網路日誌"
           }
         }
       }
@@ -13474,6 +13634,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "重新載入頁面"
+          }
+        }
+      }
+    },
+    "Reloaded page" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已重新加载页面"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已重新載入頁面"
+          }
+        }
+      }
+    },
+    "Reloading page" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在重新加载页面"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在重新載入頁面"
           }
         }
       }
@@ -14845,6 +15037,22 @@
         }
       }
     },
+    "Sending request" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在发送请求"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在傳送請求"
+          }
+        }
+      }
+    },
     "Sent only to %@. Both models use this key." : {
       "localizations" : {
         "zh-Hans" : {
@@ -14889,6 +15097,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "只傳送給 %@。儲存在此裝置的鑰匙圈中。"
+          }
+        }
+      }
+    },
+    "Sent request" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已发送请求"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已傳送請求"
           }
         }
       }
@@ -16712,6 +16936,22 @@
         }
       }
     },
+    "Taking screenshot" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在截屏"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在截圖"
+          }
+        }
+      }
+    },
     "Talk to WukongMind" : {
       "comment" : "Browser bar button: start a live voice session",
       "localizations" : {
@@ -18026,6 +18266,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "內容太長，無法一次處理；正在分成更小的部分重試…"
+          }
+        }
+      }
+    },
+    "Took screenshot" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已截屏"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已截圖"
           }
         }
       }
@@ -20236,6 +20492,22 @@
         }
       }
     },
+    "Writing file" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在写入文件"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在寫入檔案"
+          }
+        }
+      }
+    },
     "Writing summary…" : {
       "localizations" : {
         "zh-Hans" : {
@@ -20265,6 +20537,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在撰寫「%@」…"
+          }
+        }
+      }
+    },
+    "Wrote file" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已写入文件"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已寫入檔案"
           }
         }
       }

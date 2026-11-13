@@ -375,17 +375,26 @@ struct ToolExecutionOutput: Equatable, Sendable {
     /// Page-changing tools' before/after comparison; its lines are added
     /// after saving or truncation, so the model always sees them.
     var pageFeedback: PageFeedbackReport?
+    /// The workspace file the tool saved its full output to (`save_to`).
+    var savedPath: String?
+    /// The tool already cut its output to a range (`file_read`), so the
+    /// registry neither saves nor truncates it.
+    var isRanged: Bool
 
     init(
         content: String,
         summary: String? = nil,
         isError: Bool = false,
-        pageFeedback: PageFeedbackReport? = nil
+        pageFeedback: PageFeedbackReport? = nil,
+        savedPath: String? = nil,
+        isRanged: Bool = false
     ) {
         self.content = content
         self.summary = summary ?? Self.defaultSummary(for: content)
         self.isError = isError
         self.pageFeedback = pageFeedback
+        self.savedPath = savedPath
+        self.isRanged = isRanged
     }
 
     static func defaultSummary(for text: String, maxChars: Int = 96) -> String {
@@ -421,6 +430,9 @@ struct ToolDispatchResult: Equatable, Sendable {
     var totalCharacterCount: Int
     var duration: TimeInterval
     var pageFeedback: PageFeedbackReport? = nil
+    /// Where the full output went when it was saved to the workspace (over the
+    /// limit, or `save_to`); `output` then holds the notice and preview.
+    var savedPath: String? = nil
 }
 
 /// Validates tool arguments against JSON Schema, dispatches tool calls, converts
@@ -433,14 +445,20 @@ struct ToolRegistry: Sendable {
     private var orderedNames: [String] = []
     var truncationLimit: Int
     var redactedSecrets: [String]
+    /// Where output over the limit is saved (`results/<task-id>/`). Without a
+    /// workspace or a task ID, output is truncated and marked instead.
+    var workspace: AgentWorkspace?
+    var taskID: String?
 
     init(
         tools: [AgentTool] = [],
         truncationLimit: Int = ToolRegistry.defaultTruncationLimit,
-        redactedSecrets: [String] = []
+        redactedSecrets: [String] = [],
+        workspace: AgentWorkspace? = nil
     ) {
         self.truncationLimit = max(1, truncationLimit)
         self.redactedSecrets = redactedSecrets
+        self.workspace = workspace
         for tool in tools {
             register(tool)
         }
@@ -621,7 +639,7 @@ struct ToolRegistry: Sendable {
 
     /// Dispatches a tool call using raw JSON string arguments, catching JSON
     /// parse errors as error results rather than throwing.
-    func dispatch(toolName: String, rawArgumentsJSON: String) async throws -> ToolDispatchResult {
+    func dispatch(toolName: String, rawArgumentsJSON: String, step: Int? = nil) async throws -> ToolDispatchResult {
         try Task.checkCancellation()
         let started = ContinuousClock.now
         let parsed: [String: JSONValue]
@@ -629,7 +647,7 @@ struct ToolRegistry: Sendable {
             parsed = try JSONValue.parseObjectJSON(rawArgumentsJSON)
         } catch {
             let duration = Self.secondsElapsed(since: started)
-            return makeResult(
+            return await makeResult(
                 toolName: toolName,
                 argumentSummary: ToolExecutionOutput.defaultSummary(for: rawArgumentsJSON, maxChars: 64),
                 argumentsJSON: rawArgumentsJSON,
@@ -639,20 +657,21 @@ struct ToolRegistry: Sendable {
                 duration: duration
             )
         }
-        return try await dispatch(toolName: toolName, arguments: parsed)
+        return try await dispatch(toolName: toolName, arguments: parsed, step: step)
     }
 
     /// Validates and executes `toolName`. Validation failures and tool runtime
     /// errors return `ToolDispatchResult(..., isError: true)` without throwing;
     /// `CancellationError` rethrows immediately so `stop()` halts the loop at once.
-    func dispatch(toolName: String, arguments: [String: JSONValue]) async throws -> ToolDispatchResult {
+    /// `step` names the file an over-limit result is saved to.
+    func dispatch(toolName: String, arguments: [String: JSONValue], step: Int? = nil) async throws -> ToolDispatchResult {
         try Task.checkCancellation()
         let started = ContinuousClock.now
         let argsJSON = JSONValue.encodeCompactJSON(arguments)
 
         guard let tool = toolsByName[toolName] else {
             let message = "Unknown tool '\(toolName)'. Available tools: \(orderedNames.joined(separator: ", "))."
-            return makeResult(
+            return await makeResult(
                 toolName: toolName,
                 argumentSummary: argsJSON,
                 argumentsJSON: argsJSON,
@@ -669,7 +688,7 @@ struct ToolRegistry: Sendable {
             try validateArguments(arguments, for: toolName)
             let execution = try await tool.execute(arguments)
             try Task.checkCancellation()
-            return makeResult(
+            return await makeResult(
                 toolName: toolName,
                 argumentSummary: argSummary,
                 argumentsJSON: argsJSON,
@@ -677,13 +696,16 @@ struct ToolRegistry: Sendable {
                 summary: execution.summary,
                 isError: execution.isError,
                 duration: Self.secondsElapsed(since: started),
-                pageFeedback: execution.pageFeedback
+                pageFeedback: execution.pageFeedback,
+                savedPath: execution.savedPath,
+                isRanged: execution.isRanged,
+                step: step
             )
         } catch let cancellation as CancellationError {
             throw cancellation
         } catch {
             let message = error.localizedDescription
-            return makeResult(
+            return await makeResult(
                 toolName: toolName,
                 argumentSummary: argSummary,
                 argumentsJSON: argsJSON,
@@ -703,21 +725,42 @@ struct ToolRegistry: Sendable {
         summary: String,
         isError: Bool,
         duration: TimeInterval,
-        pageFeedback: PageFeedbackReport? = nil
-    ) -> ToolDispatchResult {
+        pageFeedback: PageFeedbackReport? = nil,
+        savedPath: String? = nil,
+        isRanged: Bool = false,
+        step: Int? = nil
+    ) async -> ToolDispatchResult {
         let scrubbedOutput = UntrustedWebContent.redactSecrets(in: rawOutput, secrets: redactedSecrets)
         let scrubbedSummary = UntrustedWebContent.redactSecrets(in: summary, secrets: redactedSecrets)
-        let (truncatedOutput, wasTruncated, totalCount) = Self.truncate(scrubbedOutput, limit: truncationLimit)
-        var finalSummary: String
-        if wasTruncated {
-            finalSummary = "\(scrubbedSummary) (truncated, \(totalCount) chars total)"
-        } else {
-            finalSummary = scrubbedSummary
+        var finalOutput = scrubbedOutput
+        var wasTruncated = false
+        var totalCount = scrubbedOutput.count
+        var finalSummary = scrubbedSummary
+        var finalSavedPath = savedPath
+        if !isRanged, totalCount > truncationLimit {
+            if let workspace, let taskID,
+               let saved = try? await Self.saveOutput(
+                   scrubbedOutput,
+                   to: Self.resultPath(taskID: taskID, step: step, toolName: toolName),
+                   workspace: workspace,
+                   previewLength: Self.savedResultPreviewLength
+               ) {
+                finalOutput = saved.notice
+                finalSavedPath = saved.path
+                finalSummary = "\(scrubbedSummary) (saved to \(saved.path))"
+            } else {
+                (finalOutput, wasTruncated, totalCount) = Self.truncate(scrubbedOutput, limit: truncationLimit)
+                finalSummary = "\(scrubbedSummary) (truncated, \(totalCount) chars total)"
+            }
         }
-        // Page feedback goes on after truncation (design-m3.md "Page feedback").
-        let finalOutput = pageFeedback.map {
-            UntrustedWebContent.redactSecrets(in: $0.decorate(truncatedOutput), secrets: redactedSecrets)
-        } ?? truncatedOutput
+        // Page feedback goes on after saving or truncation (design-m3.md
+        // "Page feedback"): the model always sees it, and a saved file stays raw.
+        if let pageFeedback {
+            finalOutput = UntrustedWebContent.redactSecrets(
+                in: pageFeedback.decorate(finalOutput),
+                secrets: redactedSecrets
+            )
+        }
         if pageFeedback?.isWarning == true {
             finalSummary = "Page may be broken · \(finalSummary)"
         }
@@ -737,7 +780,8 @@ struct ToolRegistry: Sendable {
             wasTruncated: wasTruncated,
             totalCharacterCount: totalCount,
             duration: duration,
-            pageFeedback: pageFeedback
+            pageFeedback: pageFeedback,
+            savedPath: finalSavedPath
         )
     }
 
@@ -770,8 +814,12 @@ extension ToolRegistry {
         )
     }
 
-    private static func makeReadPageTool(bridge: AgentPageDriving) -> AgentTool {
-        let definition = AgentToolDefinition(
+    private static func makeReadPageTool(
+        bridge: AgentPageDriving,
+        workspace: AgentWorkspace? = nil,
+        secrets: [String] = []
+    ) -> AgentTool {
+        var definition = AgentToolDefinition(
             name: "read_page",
             description: """
             Read the current web page as a condensed structure summary ('structure'), \
@@ -802,6 +850,9 @@ extension ToolRegistry {
             ],
             required: []
         )
+        if workspace != nil {
+            definition.parameters.append(saveToParameter)
+        }
 
         return AgentTool(
             definition: definition,
@@ -827,13 +878,21 @@ extension ToolRegistry {
                     maxLength: maxLength
                 )
                 let summary = "\(content.count) chars (\(mode.rawValue))"
+                if let workspace, let target = args["save_to"]?.stringValue {
+                    let saved = try await saveOutput(content, to: target, workspace: workspace, secrets: secrets)
+                    return ToolExecutionOutput(content: saved.notice, summary: "\(summary) · \(saved.path)", savedPath: saved.path)
+                }
                 return ToolExecutionOutput(content: content, summary: summary, isError: false)
             }
         )
     }
 
-    private static func makeRunJSTool(bridge: AgentPageDriving) -> AgentTool {
-        let definition = AgentToolDefinition(
+    private static func makeRunJSTool(
+        bridge: AgentPageDriving,
+        workspace: AgentWorkspace? = nil,
+        secrets: [String] = []
+    ) -> AgentTool {
+        var definition = AgentToolDefinition(
             name: "run_js",
             description: """
             Execute JavaScript in the current page via an async function body (top-level \
@@ -868,6 +927,11 @@ extension ToolRegistry {
             ],
             required: ["code"]
         )
+        if workspace != nil {
+            definition.description += " In the isolated world, `await wukong.files.write(path, text)` and "
+                + "`await wukong.files.append(path, text)` save text to the workspace from the script itself."
+            definition.parameters.append(saveToParameter)
+        }
 
         return AgentTool(
             definition: definition,
@@ -888,7 +952,9 @@ extension ToolRegistry {
                 let env = AgentExecutionEnvironment(rawValue: envRaw) ?? .defaultEnvironment
                 let timeout = args["timeout"]?.strictDoubleValue ?? AgentBridge.defaultJSTimeout
 
-                let result = try await bridge.runJS(code: code, environment: env, timeout: timeout)
+                let result = workspace == nil
+                    ? try await bridge.runJS(code: code, environment: env, timeout: timeout)
+                    : try await bridge.runAgentJS(code: code, environment: env, timeout: timeout)
                 if let errorMessage = result.error {
                     var sections = ["Error: \(errorMessage)"]
                     if !result.consoleOutput.isEmpty {
@@ -902,6 +968,22 @@ extension ToolRegistry {
                 }
 
                 let valueDisplay = result.valueJSON ?? "undefined"
+                if let workspace, let target = args["save_to"]?.stringValue {
+                    // A returned string is saved as its text, anything else as JSON.
+                    let text = result.valueJSON
+                        .flatMap { try? JSONSerialization.jsonObject(with: Data($0.utf8), options: .fragmentsAllowed) as? String }
+                        ?? valueDisplay
+                    let saved = try await saveOutput(text, to: target, workspace: workspace, secrets: secrets)
+                    var sections = [saved.notice]
+                    if !result.consoleOutput.isEmpty {
+                        sections.append("Console:\n" + result.consoleOutput.joined(separator: "\n"))
+                    }
+                    return ToolExecutionOutput(
+                        content: sections.joined(separator: "\n\n"),
+                        summary: "Saved \(saved.path)",
+                        savedPath: saved.path
+                    )
+                }
                 var sections = [valueDisplay]
                 if !result.consoleOutput.isEmpty {
                     sections.append("Console:\n" + result.consoleOutput.joined(separator: "\n"))
@@ -1050,7 +1132,7 @@ extension ToolRegistry {
         )
     }
 
-    private static func condenseInline(_ text: String, maxChars: Int) -> String {
+    static func condenseInline(_ text: String, maxChars: Int) -> String {
         let collapsed = text
             .split(whereSeparator: { $0.isWhitespace || $0.isNewline })
             .joined(separator: " ")
@@ -1072,12 +1154,7 @@ extension ToolRegistry {
         truncationLimit: Int = ToolRegistry.defaultTruncationLimit,
         redactedSecrets: [String] = []
     ) -> ToolRegistry {
-        var allTools = [
-            makeReadPageTool(bridge: bridge),
-            makeRunJSTool(bridge: bridge),
-            makeInjectCSSTool(bridge: bridge),
-            makeWaitForTool(bridge: bridge)
-        ]
+        var allTools = pageTools(bridge: bridge, workspace: nil)
         allTools.append(
             contentsOf: scriptTools(
                 bridge: bridge,
@@ -1091,6 +1168,21 @@ extension ToolRegistry {
             truncationLimit: truncationLimit,
             redactedSecrets: redactedSecrets
         )
+    }
+
+    /// The four M1 page tools; with a workspace, `read_page` and `run_js` also
+    /// take `save_to`, and `run_js` gets the `wukong.files` helpers.
+    static func pageTools(
+        bridge: AgentPageDriving,
+        workspace: AgentWorkspace?,
+        secrets: [String] = []
+    ) -> [AgentTool] {
+        [
+            makeReadPageTool(bridge: bridge, workspace: workspace, secrets: secrets),
+            makeRunJSTool(bridge: bridge, workspace: workspace, secrets: secrets),
+            makeInjectCSSTool(bridge: bridge),
+            makeWaitForTool(bridge: bridge)
+        ]
     }
 
     static func scriptTools(
@@ -1719,5 +1811,72 @@ extension ToolRegistry {
             }
         }
         return ScriptLiveApplicationOutcome(applied: true, runtimeError: capturedError)
+    }
+}
+
+// MARK: - M3 Tool Context & Factory
+
+/// The settings an M3 tool may read when the registry is built.
+struct AgentToolSettings: Equatable, Sendable {
+    var truncationLimit: Int = ToolRegistry.defaultTruncationLimit
+    var redactedSecrets: [String] = []
+    var supportsImageInput = false
+    var confirmBeforeWrites = false
+}
+
+/// Everything an M3 tool family needs, handed to each `ToolRegistry+*.swift`
+/// file by `ToolRegistry.m3`. Later tasks add their own fields (the cookie
+/// store and the confirmation gate) with defaults, so call sites stay put.
+struct AgentToolContext: Sendable {
+    var bridge: AgentPageDriving
+    var workspace: AgentWorkspace?
+    var scriptStore: ScriptStore
+    var liveApplier: ScriptLiveApplying?
+    var currentUserPrompt: (@MainActor @Sendable () -> String?)?
+    var settings: AgentToolSettings
+
+    init(
+        bridge: AgentPageDriving,
+        workspace: AgentWorkspace?,
+        scriptStore: ScriptStore,
+        liveApplier: ScriptLiveApplying? = nil,
+        currentUserPrompt: (@MainActor @Sendable () -> String?)? = nil,
+        settings: AgentToolSettings = AgentToolSettings()
+    ) {
+        self.bridge = bridge
+        self.workspace = workspace
+        self.scriptStore = scriptStore
+        self.liveApplier = liveApplier
+        self.currentUserPrompt = currentUserPrompt
+        self.settings = settings
+    }
+}
+
+extension ToolRegistry {
+    /// The M3 registry: the M2 tools, with `save_to` and saving over-limit
+    /// results to the workspace, plus one list per tool family. Each family
+    /// lives in its own `ToolRegistry+<Family>.swift`.
+    static func m3(context: AgentToolContext) -> ToolRegistry {
+        var tools = pageTools(
+            bridge: context.bridge,
+            workspace: context.workspace,
+            secrets: context.settings.redactedSecrets
+        )
+        tools += scriptTools(
+            bridge: context.bridge,
+            scriptStore: context.scriptStore,
+            liveApplier: context.liveApplier,
+            currentUserPrompt: context.currentUserPrompt
+        )
+        tools += workspaceTools(context: context)
+        tools += captureTools(context: context)
+        tools += navigationTools(context: context)
+        tools += networkTools(context: context)
+        return ToolRegistry(
+            tools: tools,
+            truncationLimit: context.settings.truncationLimit,
+            redactedSecrets: context.settings.redactedSecrets,
+            workspace: context.workspace
+        )
     }
 }

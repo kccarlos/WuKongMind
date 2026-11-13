@@ -92,7 +92,8 @@ enum BrowserAgentPrompt {
     static func system(
         page: AgentPageMetadata,
         customInstructions: String = "",
-        matchingScripts: [UserScript] = []
+        matchingScripts: [UserScript] = [],
+        includesWorkspace: Bool = false
     ) -> String {
         let urlLine = page.url.isEmpty ? "(no page loaded)" : page.url
         let titleLine = page.title.isEmpty ? "(untitled)" : page.title
@@ -131,6 +132,10 @@ enum BrowserAgentPrompt {
             """
         ]
 
+        if includesWorkspace {
+            sections.append(workspaceSection)
+        }
+
         if !matchingScripts.isEmpty {
             let lines = matchingScripts.map { script in
                 let status = script.isEnabled ? "enabled" : "disabled"
@@ -145,6 +150,63 @@ enum BrowserAgentPrompt {
         }
 
         return sections.joined(separator: "\n\n")
+    }
+
+    /// The workspace layout, agreed in the prompt only (design-m3.md, "Workspace").
+    static let workspaceSection = """
+    Workspace:
+    You have a workspace of files (`file_read`, `file_write`, `file_list`), which the user sees in \
+    the Files app. A result over the limit is saved under `results/` and you get its path; read it \
+    with `file_read` ranges. `read_page` and `run_js` take `save_to` to send a full result straight \
+    to a file, and `run_js` code in the isolated world can call `await wukong.files.write(path, text)` \
+    and `await wukong.files.append(path, text)`.
+    - Put a crawl's raw pages in `crawls/<host>/<slug>/page-001.txt`, `page-002.txt`, and so on.
+    - In the same script, also write the extracted posts compactly (number, author, plain body) to \
+    `thread.md` beside them, and summarise from that file, not the raw pages.
+    - Keep a running `notes.md` beside them. Per-site notes go in `sites/<host>/notes.md`.
+    - Read big files back with `file_read` ranges. Write a few lines of notes in your reply text \
+    alongside each read: older reads leave the conversation, but that text stays. Then write the summary.
+    """
+}
+
+// MARK: - History Trimming
+
+/// Trims what each model request carries, never the stored history
+/// (design-m3.md, "History trimming"): only the newest
+/// `keptFileReads` `file_read` results go whole; each older one becomes a
+/// one-line notice naming the path and offset to re-read. Deterministic, so
+/// replay rebuilds the same request.
+enum AgentHistoryPruner {
+    static let keptFileReads = 3
+
+    static func prune(_ history: [AgentModelTurn]) -> [AgentModelTurn] {
+        var callArguments: [String: [String: JSONValue]] = [:]
+        var fileReads: [(turn: Int, result: Int)] = []
+        for (turnIndex, turn) in history.enumerated() {
+            switch turn {
+            case .assistant(_, let calls):
+                for call in calls { callArguments[call.id] = call.arguments }
+            case .toolResults(let results):
+                for (resultIndex, result) in results.enumerated()
+                where result.toolName == "file_read" && !result.isError {
+                    fileReads.append((turnIndex, resultIndex))
+                }
+            case .user:
+                break
+            }
+        }
+        guard fileReads.count > keptFileReads else { return history }
+
+        var pruned = history
+        for (turnIndex, resultIndex) in fileReads.dropLast(keptFileReads) {
+            guard case .toolResults(var results) = pruned[turnIndex] else { continue }
+            let arguments = callArguments[results[resultIndex].toolCallID] ?? [:]
+            let path = arguments["path"]?.stringValue ?? "?"
+            let offset = arguments["offset"]?.strictIntValue ?? 0
+            results[resultIndex].content = "[file_read omitted, re-read by path and offset: \(path), offset \(offset)]"
+            pruned[turnIndex] = .toolResults(results)
+        }
+        return pruned
     }
 }
 
@@ -181,6 +243,8 @@ struct BrowserAgentToolCallRow: Identifiable, Equatable, Sendable {
     var totalCharacterCount: Int
     /// Page-changing tools' snapshots and matched rules (developer mode).
     var pageFeedback: PageFeedbackReport?
+    /// The workspace file holding the full result, when it was saved.
+    var savedPath: String?
 
     init(
         id: UUID = UUID(),
@@ -380,7 +444,7 @@ struct AgentLoop: Sendable {
             do {
                 response = try await modelClient.completeToolTurn(
                     system: systemPrompt,
-                    messages: history,
+                    messages: AgentHistoryPruner.prune(history),
                     tools: registry.definitions,
                     configuration: configuration,
                     provider: provider,
@@ -506,12 +570,14 @@ struct AgentLoop: Sendable {
                     if let malformedRaw = call.rawArgumentsJSON {
                         dispatchResult = try await registry.dispatch(
                             toolName: call.name,
-                            rawArgumentsJSON: malformedRaw
+                            rawArgumentsJSON: malformedRaw,
+                            step: stepsUsed
                         )
                     } else {
                         dispatchResult = try await registry.dispatch(
                             toolName: call.name,
-                            arguments: call.arguments
+                            arguments: call.arguments,
+                            step: stepsUsed
                         )
                     }
 
@@ -523,6 +589,7 @@ struct AgentLoop: Sendable {
                     row.wasTruncated = dispatchResult.wasTruncated
                     row.totalCharacterCount = dispatchResult.totalCharacterCount
                     row.pageFeedback = dispatchResult.pageFeedback
+                    row.savedPath = dispatchResult.savedPath
                     toolRows[rowIndex] = row
                     await events.onStepFinished(row)
                     await events.onToolResult(call, row, true)
@@ -898,11 +965,15 @@ final class BrowserAgentSession {
         activeGeneration &+= 1
         let generation = activeGeneration
         let startingHistory = history
-        let registry = registryBuilder(
+        var registry = registryBuilder(
             pageDriver,
             BrowserAgentLimits.clampTruncationLimit(runtime.truncationLimit),
             runtime.redactedSecrets
         )
+        // Names this run's folder for saved results, `results/<task-id>/`, which
+        // task-record retention deletes with the record of the same ID.
+        registry.taskID = taskID
+        let includesWorkspace = registry.tool(named: "file_read") != nil
         let loop = AgentLoop(
             modelClient: modelClient,
             registry: registry,
@@ -920,7 +991,8 @@ final class BrowserAgentSession {
             let systemPrompt = BrowserAgentPrompt.system(
                 page: pageMeta,
                 customInstructions: runtime.customInstructions,
-                matchingScripts: matchingScripts
+                matchingScripts: matchingScripts,
+                includesWorkspace: includesWorkspace
             )
 
             let auditLog = self.auditLog
@@ -1005,12 +1077,13 @@ final class BrowserAgentSession {
                     await taskRecords.append(taskID: taskID, .toolResult(
                         call: call, output: output, isError: row.isError, duration: row.duration,
                         wasTruncated: row.wasTruncated, totalCharacterCount: row.totalCharacterCount,
-                        savedPath: nil, resultSummary: row.resultSummary, time: Date()
+                        savedPath: row.savedPath, resultSummary: row.resultSummary, time: Date()
                     ))
                 }
                 if executed {
                     auditLog?.append(.step(
-                        row: row, taskID: taskID, time: Date(), pageURL: pageURL, secrets: secrets
+                        row: row, taskID: taskID, time: Date(), pageURL: pageURL,
+                        savedPath: row.savedPath, secrets: secrets
                     ))
                 }
             }
