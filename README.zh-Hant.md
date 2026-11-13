@@ -79,7 +79,7 @@ WukongMind 依里程碑順序開發（詳見英文需求文件 [docs/wukongmind/
 - 若要安裝到實體 iPhone 或 iPad，需要一個 Apple 帳號（免費個人 Apple ID 團隊或付費 Apple Developer Program 團隊皆可）；模擬器執行無需簽署帳號。
 - 無任何第三方 Swift Package、CocoaPods 或 Carthage 相依套件。
 
-> **專案與 Scheme 名稱說明：** WukongMind 沿用 Forumind 的專案檔與目標名稱（`Forumind.xcodeproj` 與 **`Forumind`** Scheme），建置出的應用程式顯示名稱為 **WukongMind**（URL Scheme 為 `wukongmind://`）。請勿直接在 Xcode 介面修改建置設定——請編輯 `scripts/generate_project.rb` 後重新產生。
+> **產生的 Xcode 專案：** `WukongMind.xcodeproj`（**`WukongMind`** Scheme）由 `scripts/generate_project.rb` 產生（應用程式顯示名稱為 **WukongMind**，URL Scheme 為 `wukongmind://`）。請勿直接在 Xcode 介面修改建置設定——請編輯 `scripts/generate_project.rb` 後重新產生。
 
 ### 1. 在 iOS 模擬器中執行
 
@@ -88,18 +88,18 @@ git clone https://github.com/kccarlos/WuKongMind.git
 cd WuKongMind
 gem install --user-install xcodeproj
 ruby scripts/generate_project.rb
-open Forumind.xcodeproj
+open WukongMind.xcodeproj
 ```
 
-在 Xcode 中選擇 **Forumind** Scheme 與任意模擬器，按 **Run**（`⌘R`）即可。（若尚未登入 Apple 帳號時 Xcode 提示預設簽署團隊不可用，可執行 `DEVELOPMENT_TEAM="" ruby scripts/generate_project.rb`。）
+在 Xcode 中選擇 **WukongMind** Scheme 與任意模擬器，按 **Run**（`⌘R`）即可。（若尚未登入 Apple 帳號時 Xcode 提示預設簽署團隊不可用，可執行 `DEVELOPMENT_TEAM="" ruby scripts/generate_project.rb`。）
 
 命令列無簽署建置：
 
 ```sh
 destination="$(scripts/ci/pick-simulator.sh)"
 xcodebuild build \
-  -project Forumind.xcodeproj \
-  -scheme Forumind \
+  -project WukongMind.xcodeproj \
+  -scheme WukongMind \
   -destination "$destination" \
   CODE_SIGNING_ALLOWED=NO \
   CODE_SIGNING_REQUIRED=NO
@@ -123,10 +123,10 @@ Apple 的 Bundle ID 為全域唯一。由於 `scripts/generate_project.rb` 預�
      ruby scripts/generate_project.rb
    ```
 
-3. 開啟 `Forumind.xcodeproj`，連接 iPhone 或 iPad，選擇 **Forumind** Scheme 與你的裝置，點按 **Run**（`⌘R`）。首次安裝需在裝置上開啟**開發者模式**（**設定 › 隱私權與安全性 › 開發者模式**），並於**設定 › 一般 › VPN 與裝置管理**中信任開發者憑證。
+3. 開啟 `WukongMind.xcodeproj`，連接 iPhone 或 iPad，選擇 **WukongMind** Scheme 與你的裝置，點按 **Run**（`⌘R`）。首次安裝需在裝置上開啟**開發者模式**（**設定 › 隱私權與安全性 › 開發者模式**），並於**設定 › 一般 › VPN 與裝置管理**中信任開發者憑證。
 
 - **免費個人團隊可直接簽署：** `scripts/generate_project.rb` 中 `DC_ENABLE_SHARE_EXTENSION`、`DC_ENABLE_APP_GROUP`、`DC_ENABLE_CLOUDKIT` 與 `DC_ENABLE_PCC` 預設皆為 `NO`（詳見 [docs/wukongmind/README.md](docs/wukongmind/README.md)），基礎 entitlements 為空，因此免費個人 Apple ID 團隊（簽署效期 7 天）與付費開發者團隊皆可直接建置安裝，無須事先在開發者後台註冊容器。付費團隊若已在後台註冊 `group.<prefix>` 與 `iCloud.<prefix>`，可透過 `DC_ENABLE_SHARE_EXTENSION=YES` 與 `DC_ENABLE_CLOUDKIT=YES` 啟用分享延伸功能與 iCloud 同步。
-- **提交變更注意事項：** 請勿提交含有個人 `DEVELOPMENT_TEAM`、`BUNDLE_ID_PREFIX` 或 `DC_ENABLE_*` 的 `Forumind.xcodeproj`；提交前請先移開 `Config/DevelopmentTeam.txt` 並執行 `env -u DEVELOPMENT_TEAM -u BUNDLE_ID_PREFIX ruby scripts/generate_project.rb`，以通過 CI 的 `scripts/ci/check-project-drift.sh` 檢查。
+- **提交變更注意事項：** 請勿提交含有個人 `DEVELOPMENT_TEAM`、`BUNDLE_ID_PREFIX` 或 `DC_ENABLE_*` 的 `WukongMind.xcodeproj`；提交前請先移開 `Config/DevelopmentTeam.txt` 並執行 `env -u DEVELOPMENT_TEAM -u BUNDLE_ID_PREFIX ruby scripts/generate_project.rb`，以通過 CI 的 `scripts/ci/check-project-drift.sh` 檢查。
 
 ---
 
@@ -135,8 +135,8 @@ Apple 的 Bundle ID 為全域唯一。由於 `scripts/generate_project.rb` 預�
 ```sh
 # 免模擬器的 macOS 核心單元測試（AgentLoop 與 ToolRegistry）
 xcodebuild test \
-  -project Forumind.xcodeproj \
-  -scheme ForumindAgentCoreTests \
+  -project WukongMind.xcodeproj \
+  -scheme WukongMindAgentCoreTests \
   -destination 'platform=macOS' \
   CODE_SIGNING_ALLOWED=NO \
   CODE_SIGNING_REQUIRED=NO
@@ -144,10 +144,10 @@ xcodebuild test \
 # 完整 iOS 模擬器單元測試（與 .github/workflows/ci.yml 一致）
 destination="$(scripts/ci/pick-simulator.sh)"
 xcodebuild test \
-  -project Forumind.xcodeproj \
-  -scheme Forumind \
+  -project WukongMind.xcodeproj \
+  -scheme WukongMind \
   -destination "$destination" \
-  -only-testing:ForumindTests \
+  -only-testing:WukongMindTests \
   CODE_SIGNING_ALLOWED=NO \
   CODE_SIGNING_REQUIRED=NO
 

@@ -5,7 +5,7 @@ Input (``--input-dir``), produced by update_rules.sh:
     easylist.txt / easyprivacy.txt     the downloaded ABP lists (for headers)
     easylist.json / easyprivacy.json   adblock-rust content-blocking output
 
-Output (``--output-dir``, normally Forumind/ContentBlocking):
+Output (``--output-dir``, normally WukongMind/ContentBlocking):
     ads-N.json, privacy-N.json         WebKit content rule lists (JSON arrays)
     manifest.json                      see docs/AD_BLOCKING.md ("Output contract")
     ATTRIBUTION.md                     CC BY-SA 3.0 attribution for the lists
@@ -36,7 +36,7 @@ MAX_RULES_PER_CHUNK = 50_000
 WEBKIT_HARD_LIMIT = 150_000
 SHORT_SHA_LEN = 12
 CONVERTER_SOURCE_URL = (
-    "https://github.com/kccarlos/forumind/tree/main/scripts/adblock"
+    "https://github.com/kccarlos/WuKongMind/tree/main/scripts/adblock"
 )
 
 

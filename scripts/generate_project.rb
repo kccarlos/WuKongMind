@@ -28,7 +28,7 @@ unless bundle_id_prefix.match?(/\A[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+\z/)
 end
 build_number = ENV["BUILD_NUMBER"].to_s.strip
 build_number = "1" if build_number.empty?
-marketing_version = "1.1.2"
+marketing_version = "1.1.3"
 
 # Settings every target shares. DC_APP_GROUP feeds the entitlements files;
 # DC_IDENTIFIER_PREFIX feeds the Info.plist keys AppIdentity.swift reads.
@@ -37,7 +37,7 @@ identity_settings = {
   "DC_IDENTIFIER_PREFIX" => bundle_id_prefix
 }
 identity_settings["DEVELOPMENT_TEAM"] = development_team unless development_team.empty?
-project_path = File.join(root, "Forumind.xcodeproj")
+project_path = File.join(root, "WukongMind.xcodeproj")
 FileUtils.rm_rf(project_path)
 
 project = Xcodeproj::Project.new(project_path)
@@ -45,21 +45,21 @@ project.root_object.attributes["LastSwiftUpdateCheck"] = "2660"
 project.root_object.attributes["LastUpgradeCheck"] = "2660"
 # Localizations: English is the development language; the String Catalogs
 # (*.xcstrings) hold Simplified and Traditional Chinese. With more than one
-# localization in the bundle, iOS shows Settings › Forumind › Language.
+# localization in the bundle, iOS shows Settings › WukongMind › Language.
 # See docs/DEVELOPMENT.md#localization.
 project.root_object.development_region = "en"
 project.root_object.known_regions = %w[en Base zh-Hans zh-Hant]
 
-app_group = project.main_group.new_group("Forumind", "Forumind")
-test_group = project.main_group.new_group("ForumindTests", "ForumindTests")
+app_group = project.main_group.new_group("WukongMind", "WukongMind")
+test_group = project.main_group.new_group("WukongMindTests", "WukongMindTests")
 ui_test_group = project.main_group.new_group(
-  "ForumindUITests",
-  "ForumindUITests"
+  "WukongMindUITests",
+  "WukongMindUITests"
 )
-share_group = project.main_group.new_group("ForumindShare", "ForumindShare")
+share_group = project.main_group.new_group("WukongMindShare", "WukongMindShare")
 
-app_target = project.new_target(:application, "Forumind", :ios, "17.0")
-app_target.product_reference.name = "Forumind.app"
+app_target = project.new_target(:application, "WukongMind", :ios, "17.0")
+app_target.product_reference.name = "WukongMind.app"
 
 # Compiled into both the app and the share extension. The recognition sources
 # (Sites/Recognition/ and ForumSite.swift) are Foundation-only so the extension
@@ -76,7 +76,7 @@ shared_source_names = [
 shared_source_prefix = "Sites/Recognition/"
 shared_source_references = []
 
-# Pure-Swift M1/M2 browser agent core compiled directly into ForumindAgentCoreTests
+# Pure-Swift M1/M2 browser agent core compiled directly into WukongMindAgentCoreTests
 # (macOS unit test bundle) so ToolRegistry, AgentLoop, and ScriptStore unit tests
 # run with no simulator.
 agent_core_source_names = [
@@ -90,8 +90,8 @@ agent_core_source_names = [
 ]
 agent_core_source_references = []
 
-Dir.glob(File.join(root, "Forumind", "**", "*.swift")).sort.each do |path|
-  relative_path = path.delete_prefix("#{root}/Forumind/")
+Dir.glob(File.join(root, "WukongMind", "**", "*.swift")).sort.each do |path|
+  relative_path = path.delete_prefix("#{root}/WukongMind/")
   reference = app_group.new_file(relative_path)
   app_target.source_build_phase.add_file_reference(reference)
   if shared_source_names.include?(relative_path) || relative_path.start_with?(shared_source_prefix)
@@ -107,7 +107,7 @@ app_target.resources_build_phase.add_file_reference(assets)
 
 # String Catalogs: UI strings, and the Info.plist strings (display name,
 # usage descriptions). Kept in sync by scripts/i18n/sync-catalogs.sh.
-# AppShortcuts.xcstrings holds the Siri phrases (Forumind/System/AppIntents.swift);
+# AppShortcuts.xcstrings holds the Siri phrases (WukongMind/System/AppIntents.swift);
 # it is edited by hand, since the phrases aren't in the compiler's .stringsdata.
 %w[Localizable.xcstrings InfoPlist.xcstrings AppShortcuts.xcstrings].each do |name|
   app_target.resources_build_phase.add_file_reference(app_group.new_file(name))
@@ -121,7 +121,7 @@ content_blocking = app_group.new_reference("ContentBlocking")
 content_blocking.last_known_file_type = "folder"
 app_target.resources_build_phase.add_file_reference(content_blocking)
 app_group.new_file("Info.plist")
-app_group.new_file("Forumind.entitlements")
+app_group.new_file("WukongMind.entitlements")
 # Privacy manifests (declares required-reason APIs such as UserDefaults).
 app_privacy = app_group.new_file("PrivacyInfo.xcprivacy")
 app_privacy.last_known_file_type = "text.xml"
@@ -147,8 +147,8 @@ end
 # - Private Cloud Compute: a managed entitlement Apple assigns on request.
 #   DC_ENABLE_PCC=YES. See docs/APPLE_INTELLIGENCE.md.
 #
-# The signing entitlements are composed from Forumind/Forumind.entitlements
-# plus the enabled capabilities into Forumind/Generated/Forumind.entitlements
+# The signing entitlements are composed from WukongMind/WukongMind.entitlements
+# plus the enabled capabilities into WukongMind/Generated/WukongMind.entitlements
 # (git-ignored). With nothing beyond the base (the committed project), the
 # project signs with the committed base file directly.
 cloudkit_enabled = flag_value("DC_ENABLE_CLOUDKIT") || false
@@ -171,8 +171,8 @@ if cloudkit_enabled
 end
 extra_entitlements["com.apple.developer.private-cloud-compute"] = true if pcc_enabled
 
-base_entitlements_path = "Forumind/Forumind.entitlements"
-generated_entitlements_dir = File.join(root, "Forumind", "Generated")
+base_entitlements_path = "WukongMind/WukongMind.entitlements"
+generated_entitlements_dir = File.join(root, "WukongMind", "Generated")
 FileUtils.rm_rf(generated_entitlements_dir)
 app_entitlements_path =
   if extra_entitlements.empty?
@@ -181,8 +181,8 @@ app_entitlements_path =
     entitlements = Xcodeproj::Plist.read_from_path(File.join(root, base_entitlements_path))
     entitlements.merge!(extra_entitlements)
     FileUtils.mkdir_p(generated_entitlements_dir)
-    Xcodeproj::Plist.write_to_path(entitlements, File.join(generated_entitlements_dir, "Forumind.entitlements"))
-    "Forumind/Generated/Forumind.entitlements"
+    Xcodeproj::Plist.write_to_path(entitlements, File.join(generated_entitlements_dir, "WukongMind.entitlements"))
+    "WukongMind/Generated/WukongMind.entitlements"
   end
 
 app_swift_flags = ["$(inherited)"]
@@ -201,7 +201,7 @@ app_target.build_configurations.each do |configuration|
   settings["CURRENT_PROJECT_VERSION"] = build_number
   settings.merge!(identity_settings)
   settings["GENERATE_INFOPLIST_FILE"] = "NO"
-  settings["INFOPLIST_FILE"] = "Forumind/Info.plist"
+  settings["INFOPLIST_FILE"] = "WukongMind/Info.plist"
   settings["IPHONEOS_DEPLOYMENT_TARGET"] = "17.0"
   settings["MARKETING_VERSION"] = marketing_version
   settings["PRODUCT_BUNDLE_IDENTIFIER"] = bundle_id_prefix
@@ -214,26 +214,26 @@ app_target.build_configurations.each do |configuration|
   settings["TARGETED_DEVICE_FAMILY"] = "1,2"
 end
 
-share_target = project.new_target(:app_extension, "ForumindShare", :ios, "17.0")
-share_target.product_reference.name = "ForumindShare.appex"
+share_target = project.new_target(:app_extension, "WukongMindShare", :ios, "17.0")
+share_target.product_reference.name = "WukongMindShare.appex"
 
-Dir.glob(File.join(root, "ForumindShare", "**", "*.swift")).sort.each do |path|
-  reference = share_group.new_file(path.delete_prefix("#{root}/ForumindShare/"))
+Dir.glob(File.join(root, "WukongMindShare", "**", "*.swift")).sort.each do |path|
+  reference = share_group.new_file(path.delete_prefix("#{root}/WukongMindShare/"))
   share_target.source_build_phase.add_file_reference(reference)
 end
 shared_source_references.each do |reference|
   share_target.source_build_phase.add_file_reference(reference)
 end
 
-Dir.glob(File.join(root, "ForumindShare", "**", "*.js")).sort.each do |path|
-  reference = share_group.new_file(path.delete_prefix("#{root}/ForumindShare/"))
+Dir.glob(File.join(root, "WukongMindShare", "**", "*.js")).sort.each do |path|
+  reference = share_group.new_file(path.delete_prefix("#{root}/WukongMindShare/"))
   share_target.resources_build_phase.add_file_reference(reference)
 end
 %w[Localizable.xcstrings InfoPlist.xcstrings].each do |name|
   share_target.resources_build_phase.add_file_reference(share_group.new_file(name))
 end
 share_group.new_file("Info.plist")
-share_group.new_file("ForumindShare.entitlements")
+share_group.new_file("WukongMindShare.entitlements")
 share_privacy = share_group.new_file("PrivacyInfo.xcprivacy")
 share_privacy.last_known_file_type = "text.xml"
 share_target.resources_build_phase.add_file_reference(share_privacy)
@@ -244,12 +244,12 @@ share_swift_flags << "-D APP_GROUP_ENABLED" if app_group_enabled
 share_target.build_configurations.each do |configuration|
   settings = configuration.build_settings
   settings["APPLICATION_EXTENSION_API_ONLY"] = "YES"
-  settings["CODE_SIGN_ENTITLEMENTS"] = "ForumindShare/ForumindShare.entitlements"
+  settings["CODE_SIGN_ENTITLEMENTS"] = "WukongMindShare/WukongMindShare.entitlements"
   settings["CODE_SIGN_STYLE"] = "Automatic"
   settings["CURRENT_PROJECT_VERSION"] = build_number
   settings.merge!(identity_settings)
   settings["GENERATE_INFOPLIST_FILE"] = "NO"
-  settings["INFOPLIST_FILE"] = "ForumindShare/Info.plist"
+  settings["INFOPLIST_FILE"] = "WukongMindShare/Info.plist"
   settings["IPHONEOS_DEPLOYMENT_TARGET"] = "17.0"
   settings["LD_RUNPATH_SEARCH_PATHS"] = [
     "$(inherited)",
@@ -278,7 +278,7 @@ if share_extension_enabled
   embedded_share.settings = { "ATTRIBUTES" => ["RemoveHeadersOnCopy"] }
 end
 
-test_target = project.new_target(:unit_test_bundle, "ForumindTests", :ios, "17.0")
+test_target = project.new_target(:unit_test_bundle, "WukongMindTests", :ios, "17.0")
 test_target.add_dependency(app_target)
 
 agent_core_test_names = %w[
@@ -288,8 +288,8 @@ agent_core_test_names = %w[
 ]
 agent_core_test_references = []
 
-Dir.glob(File.join(root, "ForumindTests", "**", "*.swift")).sort.each do |path|
-  relative_path = path.delete_prefix("#{root}/ForumindTests/")
+Dir.glob(File.join(root, "WukongMindTests", "**", "*.swift")).sort.each do |path|
+  relative_path = path.delete_prefix("#{root}/WukongMindTests/")
   reference = test_group.new_file(relative_path)
   test_target.source_build_phase.add_file_reference(reference)
   if agent_core_test_names.include?(relative_path)
@@ -298,14 +298,14 @@ Dir.glob(File.join(root, "ForumindTests", "**", "*.swift")).sort.each do |path|
 end
 
 # Speech fixtures for the voice-activity detector tests.
-Dir.glob(File.join(root, "ForumindTests", "**", "*.wav")).sort.each do |path|
-  reference = test_group.new_file(path.delete_prefix("#{root}/ForumindTests/"))
+Dir.glob(File.join(root, "WukongMindTests", "**", "*.wav")).sort.each do |path|
+  reference = test_group.new_file(path.delete_prefix("#{root}/WukongMindTests/"))
   test_target.resources_build_phase.add_file_reference(reference)
 end
 
 # Pre-P0 data (site-adapter refactor) and local HTML fixtures for AgentBridgeTests.
-Dir.glob(File.join(root, "ForumindTests", "Fixtures", "**", "*.{json,html}")).sort.each do |path|
-  reference = test_group.new_file(path.delete_prefix("#{root}/ForumindTests/"))
+Dir.glob(File.join(root, "WukongMindTests", "Fixtures", "**", "*.{json,html}")).sort.each do |path|
+  reference = test_group.new_file(path.delete_prefix("#{root}/WukongMindTests/"))
   test_target.resources_build_phase.add_file_reference(reference)
 end
 
@@ -320,13 +320,13 @@ test_target.build_configurations.each do |configuration|
   settings["SWIFT_STRICT_CONCURRENCY"] = "minimal"
   settings["SWIFT_VERSION"] = "5.0"
   settings["TARGETED_DEVICE_FAMILY"] = "1,2"
-  settings["TEST_HOST"] = "$(BUILT_PRODUCTS_DIR)/Forumind.app/Forumind"
+  settings["TEST_HOST"] = "$(BUILT_PRODUCTS_DIR)/WukongMind.app/WukongMind"
 end
 
 # Simulator-free macOS unit test target for ToolRegistry and AgentLoop.
 agent_core_test_target = project.new_target(
   :unit_test_bundle,
-  "ForumindAgentCoreTests",
+  "WukongMindAgentCoreTests",
   :osx,
   "14.0"
 )
@@ -346,15 +346,15 @@ end
 
 ui_test_target = project.new_target(
   :ui_test_bundle,
-  "ForumindUITests",
+  "WukongMindUITests",
   :ios,
   "17.0"
 )
 ui_test_target.add_dependency(app_target)
 
-Dir.glob(File.join(root, "ForumindUITests", "**", "*.swift")).sort.each do |path|
+Dir.glob(File.join(root, "WukongMindUITests", "**", "*.swift")).sort.each do |path|
   reference = ui_test_group.new_file(
-    path.delete_prefix("#{root}/ForumindUITests/")
+    path.delete_prefix("#{root}/WukongMindUITests/")
   )
   ui_test_target.source_build_phase.add_file_reference(reference)
 end
@@ -369,7 +369,7 @@ ui_test_target.build_configurations.each do |configuration|
   settings["SWIFT_STRICT_CONCURRENCY"] = "minimal"
   settings["SWIFT_VERSION"] = "5.0"
   settings["TARGETED_DEVICE_FAMILY"] = "1,2"
-  settings["TEST_TARGET_NAME"] = "Forumind"
+  settings["TEST_TARGET_NAME"] = "WukongMind"
 end
 
 project.build_configurations.each do |configuration|
@@ -410,12 +410,12 @@ scheme.test_action.should_use_launch_scheme_args_env = false
 scheme.test_action.environment_variables = Xcodeproj::XCScheme::EnvironmentVariables.new([
   { key: "AG_ASYNC_LAYOUTS", value: "0", enabled: true }
 ])
-scheme.save_as(project_path, "Forumind", true)
+scheme.save_as(project_path, "WukongMind", true)
 
 agent_core_scheme = Xcodeproj::XCScheme.new
 agent_core_scheme.add_build_target(agent_core_test_target, false)
 agent_core_scheme.add_test_target(agent_core_test_target)
-agent_core_scheme.save_as(project_path, "ForumindAgentCoreTests", true)
+agent_core_scheme.save_as(project_path, "WukongMindAgentCoreTests", true)
 
 capabilities = []
 capabilities << "AppGroup" if app_group_enabled

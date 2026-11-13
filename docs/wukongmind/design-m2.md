@@ -5,7 +5,7 @@
 The M2 UI task implements against this page and the design canvas:
 **https://claude.ai/artifact/R4m1cQPSSHB96r7f6gbyBe** (12 artboards: on iPhone, the manager in its normal + error, global-off and empty states, the script detail in normal and error + unsaved-edit states, version history, the JavaScript editor, and "scripts on this page" normal and with an error and a pending reload; on iPad, the manager and detail in the Settings sheet and the side-panel popover with scripts off; light and dark).
 
-It builds on [design-m1.md](design-m1.md) and its canvas (https://claude.ai/artifact/Wi2peNxD7d87bfJcfedbcg). The script card, the toolbar badge and the look of the "N scripts on this page" chip are specified there and are not repeated. Style is Forumind's own, as in M1: SF text styles, `DCTheme` tokens, `Form(.grouped)`, `SettingsIcon`, `DCPill`, `dcCard`, `DCActionButtonStyle` and `DCMotion` (`Forumind/DesignSystem.swift`, `Forumind/SettingsPanel.swift`). The colours: `agentTint` marks script things, `brandBlue` is for actions and switches (the Settings tint), and `danger` is for errors.
+It builds on [design-m1.md](design-m1.md) and its canvas (https://claude.ai/artifact/Wi2peNxD7d87bfJcfedbcg). The script card, the toolbar badge and the look of the "N scripts on this page" chip are specified there and are not repeated. Style is Forumind's own, as in M1: SF text styles, `DCTheme` tokens, `Form(.grouped)`, `SettingsIcon`, `DCPill`, `dcCard`, `DCActionButtonStyle` and `DCMotion` (`WukongMind/DesignSystem.swift`, `WukongMind/SettingsPanel.swift`). The colours: `agentTint` marks script things, `brandBlue` is for actions and switches (the Settings tint), and `danger` is for errors.
 
 ## Decisions
 
@@ -121,8 +121,8 @@ The existing `agentScriptsCount` stays on the chip.
 
 ## Files (suggested, following the M0 change list)
 
-- `Forumind/ScriptViews.swift`: `ScriptManagerView`, `ScriptDetailView`, `ScriptCodeEditor`, `ScriptHistoryView` and `PageScriptsPopover`.
-- `Forumind/AppModel+Onboarding.swift`: `SettingsPage.scripts` (title, `systemImage`, `tint`).
-- `Forumind/SettingsPanel.swift`: the root row and the `SettingsDestination` case.
-- `Forumind/AgentPanel.swift`: the chip becomes the popover's button.
+- `WukongMind/ScriptViews.swift`: `ScriptManagerView`, `ScriptDetailView`, `ScriptCodeEditor`, `ScriptHistoryView` and `PageScriptsPopover`.
+- `WukongMind/AppModel+Onboarding.swift`: `SettingsPage.scripts` (title, `systemImage`, `tint`).
+- `WukongMind/SettingsPanel.swift`: the root row and the `SettingsDestination` case.
+- `WukongMind/AgentPanel.swift`: the chip becomes the popover's button.
 - New strings go in `Localizable.xcstrings` with comments, as Forumind does.

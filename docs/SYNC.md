@@ -1,6 +1,6 @@
 # iCloud sync
 
-Forumind syncs between a person's iPhone and iPad in two ways:
+WukongMind syncs between a person's iPhone and iPad in two ways:
 
 - **CloudKit** carries forums, summaries, chats, Ask the forum runs, watched
   topics, and settings, in the app's private database in the user's own
@@ -18,7 +18,7 @@ There is no server of ours involved.
   on this device only), **Sync API keys**, "What syncs", and **Delete iCloud
   data**.
 - The status says what to fix: "Sign in to iCloud in the Settings app" (no
-  account), "iCloud is turned off for Forumind in Settings › [your name] ›
+  account), "iCloud is turned off for WukongMind in Settings › [your name] ›
   iCloud" (restricted), the reason CloudKit gave (unavailable), or the error
   with **Sync now**.
 - Synced data counts toward the user's iCloud storage. When iCloud is full,
@@ -105,7 +105,7 @@ They never go into CloudKit.
 `CloudSyncController` (main actor) owns the status shown in Settings, the
 on/off switch, and scheduling. `CloudSyncEngine` (an actor) keeps a mirror of
 the server's records and a baseline, and plans each pass. `CloudKitTransport`
-wraps a `CKSyncEngine` on the private database, zone `Forumind`, and turns the
+wraps a `CKSyncEngine` on the private database, zone `WukongMind`, and turns the
 engine's outbox into CloudKit records. `SyncRecords.swift` defines the record
 model and merge rules, and `AppModel+CloudSync.swift` converts app state to
 and from records.
@@ -156,7 +156,7 @@ the settings it started with.
 - **Sync with iCloud off** stops sync on this device and forgets the server
   state; local data and the iCloud copy stay, and other devices keep syncing.
   Turning it back on joins again.
-- **Delete iCloud data** deletes the `Forumind` zone, which removes the
+- **Delete iCloud data** deletes the `WukongMind` zone, which removes the
   iCloud copy for every device, and turns sync off here. Other devices notice
   the deleted zone and turn sync off too, rather than uploading everything
   again. Local data stays on every device.
@@ -216,7 +216,7 @@ modify field … in production schema".
 | | `deletedAt` | Date/Time | set on deleted items; written (as empty) on every save, so it must exist |
 | | `payload` | Bytes, **encrypted** | the record's JSON (id, units, stamps) |
 
-Zone: `Forumind` (custom zone in the private database). No indexes are
+Zone: `WukongMind` (custom zone in the private database). No indexes are
 needed: records are only fetched through zone changes, never queried. Forks
 use their own container (`iCloud.<BUNDLE_ID_PREFIX>`) and deploy the same
 schema to it.

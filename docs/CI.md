@@ -14,8 +14,8 @@ in `scripts/ci/` also run locally.
 | Job | Runner | What it does |
 | --- | --- | --- |
 | `lint` | `ubuntu-latest` | Validates tracked `.plist`, `.entitlements`, and `.xcprivacy` files (`lint-plists.sh`); ShellChecks `scripts/ci` and `scripts/adblock`; checks `fastlane/Fastfile` syntax; runs the ad-blocking converter tests; runs `actionlint`. |
-| `project-drift` | `ubuntu-latest` | Runs `scripts/generate_project.rb` in a temporary copy and fails if the committed `Forumind.xcodeproj` differs (`check-project-drift.sh`); checks the site-adapter layering boundary (`check-site-layering.sh`). |
-| `build-test` | `xcode-27` | Picks an iPhone simulator and runs the `ForumindTests` unit tests, unsigned. Uploads the `.xcresult` bundle on failure. |
+| `project-drift` | `ubuntu-latest` | Runs `scripts/generate_project.rb` in a temporary copy and fails if the committed `WukongMind.xcodeproj` differs (`check-project-drift.sh`); checks the site-adapter layering boundary (`check-site-layering.sh`). |
+| `build-test` | `xcode-27` | Picks an iPhone simulator and runs the `WukongMindTests` unit tests, unsigned. Uploads the `.xcresult` bundle on failure. |
 | `release-build` | `xcode-27` | Builds the **Release** configuration for a generic iOS device, unsigned, to catch errors that only show up in Release (for example, code that is only compiled in DEBUG). |
 
 A newer push to the same branch or pull request cancels the run in progress.
@@ -61,7 +61,7 @@ flowchart LR
 1. **preflight** (Linux) checks which secrets and variables exist and validates
    the version (`scripts/ci/check-release-version.sh`). Tag `v1.2.3` must match
    `marketing_version` in `scripts/generate_project.rb` and the committed
-   `Forumind.xcodeproj` (an optional pre-release suffix like `-beta.1` is
+   `WukongMind.xcodeproj` (an optional pre-release suffix like `-beta.1` is
    dropped for `CFBundleShortVersionString`); manual runs use the `version`
    input, or fall back to the project's version when empty.
    The **build number** is `BUILD_NUMBER_BASE` (repo variable, default 100)
@@ -96,7 +96,7 @@ GitHub Release, and the signed job is skipped with a notice.
 ### Cutting a release
 
 Bump `marketing_version` in `scripts/generate_project.rb`, regenerate
-`Forumind.xcodeproj`, and merge to `main`. Then tag `main` to build, upload to
+`WukongMind.xcodeproj`, and merge to `main`. Then tag `main` to build, upload to
 TestFlight, and publish a GitHub Release (or trigger `workflow_dispatch` for a
 manual build):
 
@@ -149,7 +149,7 @@ gh secret set VERTEX_API_KEY -R $R
 
 # Variables (not secret).
 gh variable set DEVELOPMENT_TEAM -R $R --body 'YOURTEAMID'                          # required for TestFlight
-gh variable set BUNDLE_ID_PREFIX -R $R --body 'io.github.kccarlos.forumind' # optional (this is the default)
+gh variable set BUNDLE_ID_PREFIX -R $R --body 'io.github.kccarlos.wukongmind' # optional (this is the default)
 gh variable set DC_ENABLE_PCC    -R $R --body 'YES'   # optional: only once Apple has assigned the PCC entitlement
 gh variable set DC_ENABLE_CLOUDKIT -R $R --body 'NO'  # optional: only to ship without iCloud sync (default: on with a team)
 ```
@@ -234,8 +234,8 @@ scripts/ci/check-site-layering.sh
 shellcheck scripts/ci/*.sh scripts/adblock/*.sh
 actionlint
 DEST=$(scripts/ci/pick-simulator.sh)
-xcodebuild test -project Forumind.xcodeproj -scheme Forumind \
-  -destination "$DEST" -only-testing:ForumindTests CODE_SIGNING_ALLOWED=NO
+xcodebuild test -project WukongMind.xcodeproj -scheme WukongMind \
+  -destination "$DEST" -only-testing:WukongMindTests CODE_SIGNING_ALLOWED=NO
 ```
 
 To upload from your Mac instead of CI (with the same environment variables

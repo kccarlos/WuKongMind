@@ -1,0 +1,525 @@
+import SwiftUI
+
+// The voice UI (plan B7): the browser bar's microphone, the voice bar over
+// the page, and Settings › Voice. The session is in Voice/VoiceSession.swift,
+// started by `VoiceController`.
+
+// MARK: - Browser bar button
+
+/// The microphone in the browser bar: starts a session on the current page,
+/// or ends the running one.
+struct VoiceBarButton: View {
+    @ObservedObject var voice: VoiceController
+    var onTap: () -> Void = {}
+
+    var body: some View {
+        Button {
+            DCHaptics.tap()
+            onTap()
+            voice.toggle()
+        } label: {
+            Image(systemName: voice.isActive ? "mic.fill" : "mic")
+                .foregroundStyle(voice.isActive ? AnyShapeStyle(DCTheme.brandGradient) : AnyShapeStyle(.primary))
+                .symbolEffect(.pulse, isActive: voice.isActive)
+        }
+        .buttonStyle(DCIconButtonStyle())
+        .accessibilityLabel(voice.isActive ? Text("End voice") : Text("Talk to WukongMind", comment: "Browser bar button: start a live voice session"))
+        .accessibilityIdentifier("voiceButton")
+    }
+}
+
+// MARK: - Voice Dock
+
+/// The Dock while voice runs (spec §8.2), in place of the browser bar: the
+/// last lines above, the state with the level bars, the time left, mute and
+/// end, and the Health row behind a tap. The material comes from `DockLayer`.
+struct VoiceDock: View {
+    @ObservedObject var voice: VoiceController
+    @ObservedObject var player: PodcastPlayer
+
+    var body: some View {
+        Group {
+            if let session = voice.session {
+                VoiceSessionBar(voice: voice, session: session, player: player)
+            } else if let failure = voice.startFailure {
+                VoiceBarFrame {
+                    HStack(spacing: DCTheme.spacingS) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundStyle(DCTheme.warning)
+                            .accessibilityHidden(true)
+                        Text(failure.message)
+                            .font(.footnote)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityIdentifier("voiceBarState")
+                        Spacer(minLength: 0)
+                        VoiceBarCloseButton(action: voice.dismiss)
+                    }
+                    .padding(.leading, DCTheme.spacingM)
+                    .padding(.vertical, DCTheme.spacingXS)
+                }
+            }
+        }
+    }
+}
+
+struct VoiceSessionBar: View {
+    @ObservedObject var voice: VoiceController
+    @ObservedObject var session: VoiceSession
+    @ObservedObject var player: PodcastPlayer
+    @State private var showsHealth = false
+    @State private var draft = ""
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        VoiceBarFrame {
+            VStack(alignment: .leading, spacing: 2) {
+                if !transcript.isEmpty {
+                    Text(transcript)
+                        .font(.subheadline)
+                        .foregroundStyle(.primary)
+                        .lineLimit(2)
+                        .padding(.horizontal, DCTheme.spacingM)
+                        .padding(.top, DCTheme.spacingS)
+                        .accessibilityIdentifier("voiceTranscript")
+                }
+                header
+                if player.isSuspendedForVoice, !session.state.isOver {
+                    Label(DockText.podcastPaused(at: player.timeline.elapsed(player.position)), systemImage: "headphones")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, DCTheme.spacingM)
+                        .accessibilityIdentifier("dockPodcastPaused")
+                }
+                if let engine = voice.audioEngine {
+                    VoiceEngineStatus(engine: engine, showsHealth: showsHealth)
+                }
+                if VoiceDebug.showsTextInput, !session.state.isOver {
+                    typeField
+                }
+            }
+            .padding(.bottom, DCTheme.spacingS)
+        }
+        .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: showsHealth)
+    }
+
+    private var header: some View {
+        HStack(spacing: DCTheme.spacingS) {
+            Button {
+                showsHealth.toggle()
+            } label: {
+                HStack(spacing: DCTheme.spacingS) {
+                    if let mode = barsMode {
+                        VoiceLevelBars(mode: mode, levels: voice.audioEngine?.levels, tint: stateTint)
+                    } else {
+                        Image(systemName: stateSymbol)
+                            .foregroundStyle(stateTint)
+                            .frame(width: 30)
+                            .accessibilityHidden(true)
+                    }
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text(stateText)
+                            .font(.subheadline.weight(.semibold))
+                            .lineLimit(2)
+                            .multilineTextAlignment(.leading)
+                            .accessibilityIdentifier("voiceBarState")
+                        if !session.state.isOver {
+                            Text(timeLine)
+                                .font(.footnote.monospacedDigit())
+                                .foregroundStyle(DCTheme.brandInk.opacity(0.78))
+                                .accessibilityIdentifier("voiceTimeLine")
+                        }
+                    }
+                    if voice.audioEngine != nil {
+                        Image(systemName: showsHealth ? "chevron.up" : "chevron.down")
+                            .font(.caption2.weight(.bold))
+                            .foregroundStyle(.tertiary)
+                            .accessibilityHidden(true)
+                    }
+                }
+                .frame(maxWidth: .infinity, minHeight: DCTheme.controlHeight, alignment: .leading)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .allowsHitTesting(voice.audioEngine != nil)
+            .accessibilityHint(Text("Shows the audio health", comment: "Accessibility hint of the voice bar's state"))
+            .padding(.leading, DCTheme.spacingM)
+
+            if session.state.isOver {
+                VoiceBarCloseButton(action: voice.dismiss)
+            } else {
+                Button {
+                    DCHaptics.tap()
+                    session.setMuted(!session.isMuted)
+                } label: {
+                    Image(systemName: session.isMuted ? "mic.slash.fill" : "mic.fill")
+                        .foregroundStyle(session.isMuted ? DCTheme.danger : .primary)
+                }
+                .buttonStyle(DCIconButtonStyle())
+                .accessibilityLabel(session.isMuted ? Text("Unmute") : Text("Mute"))
+                .accessibilityIdentifier("voiceMute")
+                Button {
+                    DCHaptics.tap()
+                    voice.end()
+                } label: {
+                    Image(systemName: "phone.down.fill")
+                        .foregroundStyle(.white)
+                        .frame(width: 34, height: 34)
+                        .background(DCTheme.danger, in: Circle())
+                }
+                .buttonStyle(DCIconButtonStyle())
+                .accessibilityLabel(Text("End voice"))
+                .accessibilityIdentifier("voiceEnd")
+                .padding(.trailing, DCTheme.spacingXS)
+            }
+        }
+    }
+
+    /// Developer path: typed turns instead of speech.
+    private var typeField: some View {
+        HStack(spacing: DCTheme.spacingS) {
+            TextField(text: $draft) {
+                Text(verbatim: "Type instead of speaking")
+            }
+            .textFieldStyle(.roundedBorder)
+            .submitLabel(.send)
+            .onSubmit(send)
+            .accessibilityIdentifier("voiceTextField")
+            Button(action: send) {
+                Image(systemName: "arrow.up.circle.fill").font(.title3)
+            }
+            .buttonStyle(DCIconButtonStyle())
+            .disabled(draft.trimmingCharacters(in: .whitespaces).isEmpty || !session.state.isActive)
+            .accessibilityLabel(Text(verbatim: "Send"))
+            .accessibilityIdentifier("voiceTextSend")
+        }
+        .padding(.horizontal, DCTheme.spacingM)
+        .padding(.top, DCTheme.spacingXS)
+    }
+
+    private func send() {
+        session.sendText(draft)
+        draft = ""
+    }
+
+    /// The model's line once it answers, else the user's.
+    private var transcript: String {
+        let model = session.lastModelText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let user = session.lastUserText.trimmingCharacters(in: .whitespacesAndNewlines)
+        switch session.state {
+        case .speaking: return model
+        case .listening, .thinking: return user.isEmpty ? model : user
+        default: return model.isEmpty ? user : model
+        }
+    }
+
+    private var barsMode: VoiceLevelBars.Mode? {
+        switch session.state {
+        case .listening: session.isMuted ? .idle : .input
+        case .speaking: .output
+        case .thinking: .thinking
+        default: nil
+        }
+    }
+
+    private var timeLine: String {
+        let settings = session.configuration.settings
+        return DockText.sessionLine(
+            connected: session.connectedSeconds,
+            minutesLeft: DockText.minutesLeft(limitMinutes: settings.dailyLimitMinutes, usedSeconds: session.todaySeconds)
+        )
+    }
+
+    private var stateText: String { Self.stateText(session) }
+
+    static func stateText(_ session: VoiceSession) -> String {
+        switch session.state {
+        case .idle, .connecting:
+            return String(localized: "Connecting…", comment: "Voice bar state")
+        case .listening:
+            return session.isMuted
+                ? String(localized: "Muted", comment: "Voice bar state: the microphone is muted")
+                : String(localized: "Listening", comment: "Voice bar state")
+        case .thinking:
+            return String(localized: "Thinking…", comment: "Voice bar state")
+        case .speaking:
+            return String(localized: "Speaking", comment: "Voice bar state")
+        case .reconnecting:
+            return String(localized: "Reconnecting…", comment: "Voice bar state")
+        case .ended(let reason):
+            return VoiceSessionBar.endText(reason, settings: session.configuration.settings)
+        case .failed(let failure):
+            return failure.message
+        }
+    }
+
+    static func endText(_ reason: VoiceSession.EndReason, settings: VoiceSettings) -> String {
+        switch reason {
+        case .user, .model:
+            return String(localized: "Voice ended.", comment: "Voice bar: the session is over")
+        case .idle:
+            return String(localized: "Voice ended after a quiet moment. Tap the microphone to talk again.", comment: "Voice bar: the idle timeout closed the session")
+        case .sessionLimit:
+            return String(localized: "Voice ended: this session reached its \(settings.sessionLimitMinutes)-minute limit.", comment: "Voice bar: the cost guard ended the session; the placeholder is minutes")
+        case .dailyLimit:
+            return String(localized: "Voice ended: today’s \(settings.dailyLimitMinutes) voice minutes are used up. Change the limit in Settings › Voice.", comment: "Voice bar: the daily cost guard; the placeholder is minutes")
+        }
+    }
+
+    private var stateSymbol: String {
+        switch session.state {
+        case .idle, .connecting, .reconnecting: "antenna.radiowaves.left.and.right"
+        case .listening: session.isMuted ? "mic.slash" : "waveform"
+        case .thinking: "ellipsis"
+        case .speaking: "speaker.wave.2.fill"
+        case .ended: "checkmark.circle"
+        case .failed: "exclamationmark.triangle.fill"
+        }
+    }
+
+    private var stateTint: Color {
+        switch session.state {
+        case .failed: DCTheme.warning
+        case .ended: DCTheme.brandBlue
+        case .speaking: DCTheme.brandPurple
+        default: DCTheme.brandBlue
+        }
+    }
+}
+
+/// The engine's notice ("Paused for a call or Siri"), tap to resume, and
+/// the Health row.
+private struct VoiceEngineStatus: View {
+    @ObservedObject var engine: VoiceAudioEngine
+    let showsHealth: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: DCTheme.spacingXS) {
+            if engine.needsResume {
+                Button {
+                    engine.resume()
+                } label: {
+                    Label("Tap to resume", systemImage: "play.circle.fill")
+                        .font(.footnote.weight(.semibold))
+                }
+                .buttonStyle(.borderless)
+                .accessibilityIdentifier("voiceResume")
+            }
+            if let notice = engine.notice {
+                Text(notice)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            if engine.health.noMicrophoneSignal {
+                Label("The microphone sends silence. Check that no other app is using it.", systemImage: "mic.badge.xmark")
+                    .font(.caption)
+                    .foregroundStyle(DCTheme.warning)
+            }
+            if showsHealth {
+                VoiceHealthRows(health: engine.health)
+                    .transition(.opacity)
+            }
+        }
+        .padding(.horizontal, DCTheme.spacingM)
+    }
+}
+
+/// Echo cancellation, underruns, the route and the microphone: where most
+/// audio problems show first.
+private struct VoiceHealthRows: View {
+    let health: VoiceAudioHealth
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            row(Text("Echo cancellation", comment: "Voice Health row"), echo, ok: health.echoCancellation.isActive)
+            row(Text("Underruns", comment: "Voice Health row: audible gaps in the voice's playback"), "\(health.underruns) · \(health.bufferTargetMilliseconds) ms", ok: health.underruns == 0)
+            row(Text("Route", comment: "Voice Health row: the audio output and input"), health.route.isEmpty ? "—" : health.route, ok: true)
+            row(Text("Microphone", comment: "Voice Health row"), microphone, ok: !health.noMicrophoneSignal)
+        }
+        .font(.caption.monospacedDigit())
+        .padding(.top, DCTheme.spacingXS)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("voiceHealth")
+    }
+
+    private var echo: String {
+        health.echoCancellation.isActive
+            ? String(localized: "On")
+            : String(localized: "Off") + " (" + health.echoCancellation.missing.joined(separator: ", ") + ")"
+    }
+
+    private var microphone: String {
+        let rate = health.inputSampleRate > 0 ? String(format: "%.0f kHz", health.inputSampleRate / 1000) : "—"
+        let signal = health.noMicrophoneSignal
+            ? String(localized: "no signal", comment: "Voice Health row: the microphone delivers only silence")
+            : CaptureGate.Diagnostics.format(dBFS: health.gate.levelDBFS)
+        return "\(rate) · \(signal)"
+    }
+
+    private func row(_ title: Text, _ value: String, ok: Bool) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: DCTheme.spacingS) {
+            Circle()
+                .fill(ok ? DCTheme.success : DCTheme.warning)
+                .frame(width: 6, height: 6)
+                .accessibilityHidden(true)
+            title.foregroundStyle(.secondary)
+            Spacer(minLength: DCTheme.spacingS)
+            Text(value)
+                .multilineTextAlignment(.trailing)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+}
+
+private struct VoiceBarFrame<Content: View>: View {
+    @ViewBuilder let content: Content
+
+    var body: some View {
+        content
+            .frame(maxWidth: DCTheme.contentMaxWidth)
+            .accessibilityElement(children: .contain)
+            .accessibilityIdentifier("voiceBar")
+    }
+}
+
+struct VoiceBarCloseButton: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: "xmark").font(.caption.weight(.bold))
+        }
+        .buttonStyle(DCIconButtonStyle())
+        .accessibilityLabel("Close")
+        .accessibilityIdentifier("voiceBarClose")
+        .padding(.trailing, DCTheme.spacingXS)
+    }
+}
+
+// MARK: - Settings › Voice
+
+struct SettingsVoicePage: View {
+    @ObservedObject var app: AppModel
+    @ObservedObject var voice: VoiceController
+
+    private var providers: [VoiceProvider] { app.availableVoiceProviders }
+
+    var body: some View {
+        Form {
+            Section {
+                Toggle(isOn: $app.settings.voiceEnabled) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Talk to WukongMind")
+                        Text("A microphone in the browser bar starts a live conversation that can find, open and read posts for you.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .tint(DCTheme.brandBlue)
+                .accessibilityIdentifier("voiceEnabled")
+            } footer: {
+                Text("Voice uses Google Gemini Live with your own Google Gemini or Vertex AI key. This setting is kept on this device.")
+            }
+
+            if providers.isEmpty {
+                Section {
+                    NavigationLink(value: SettingsPage.provider) {
+                        Label("Add a Google Gemini or Vertex AI key", systemImage: "key")
+                    }
+                } footer: {
+                    Text("The free tier of Google AI Studio includes live voice.")
+                }
+            } else {
+                Section("Provider") {
+                    Picker("Provider", selection: providerBinding) {
+                        ForEach(providers) { provider in
+                            Text(provider.displayName).tag(provider)
+                        }
+                    }
+                    if app.voiceProvider == .vertex,
+                       GeminiLive.Endpoint.vertexProject(fromBaseURL: app.settings.configuration(for: .vertexAI).baseURL) == nil {
+                        TextField("Google Cloud project ID", text: $app.settings.voice.vertexProject)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                            .accessibilityIdentifier("voiceVertexProject")
+                    }
+                }
+            }
+
+            Section {
+                Picker("Voice", selection: $app.settings.voice.voiceName) {
+                    ForEach(VoiceCatalog.voices) { item in
+                        Text(verbatim: "\(item.name) · \(item.style)").tag(item.name)
+                    }
+                }
+                .accessibilityIdentifier("voiceName")
+                Picker("Answer length", selection: $app.settings.voice.answerLength) {
+                    ForEach(VoiceAnswerLength.allCases) { length in
+                        Text(length.label).tag(length)
+                    }
+                }
+                Picker("Read posts aloud", selection: $app.settings.voice.eyesFree) {
+                    ForEach(VoiceEyesFree.allCases) { mode in
+                        Text(mode.label).tag(mode)
+                    }
+                }
+                Picker("Close when quiet", selection: $app.settings.voice.idleTimeout) {
+                    ForEach([30.0, 60, 120, 300], id: \.self) { seconds in
+                        Text(Self.duration(seconds)).tag(seconds)
+                    }
+                }
+            } header: {
+                Text("Conversation")
+            } footer: {
+                Text("Automatic reads posts aloud while headphones are connected; otherwise the voice points at the screen. Voice names and styles are Google’s.")
+            }
+
+            Section {
+                Picker("Per session", selection: $app.settings.voice.sessionLimitMinutes) {
+                    ForEach(VoiceSettings.sessionLimitChoices, id: \.self) { minutes in
+                        Text(Self.limit(minutes)).tag(minutes)
+                    }
+                }
+                .accessibilityIdentifier("voiceSessionLimit")
+                Picker("Per day", selection: $app.settings.voice.dailyLimitMinutes) {
+                    ForEach(VoiceSettings.dailyLimitChoices, id: \.self) { minutes in
+                        Text(Self.limit(minutes)).tag(minutes)
+                    }
+                }
+                .accessibilityIdentifier("voiceDailyLimit")
+                LabeledContent("Used today", value: Self.minutes(VoiceUsageStore().seconds(on: Date())))
+                LabeledContent(voice.isActive ? "This session" : "Last session", value: Self.minutes(voice.session?.connectedSeconds ?? VoiceUsageStore().lastSessionSeconds))
+            } header: {
+                Text("Time limit")
+            } footer: {
+                Text("Every connected minute is billed to your key. At a limit, voice finishes its answer and ends. Minutes are counted on this device.")
+            }
+        }
+        .formStyle(.grouped)
+    }
+
+    private var providerBinding: Binding<VoiceProvider> {
+        Binding(
+            get: { app.voiceProvider ?? .aiStudio },
+            set: { app.settings.voice.provider = $0 }
+        )
+    }
+
+    static func duration(_ seconds: Double) -> String {
+        let formatter = DateComponentsFormatter()
+        formatter.allowedUnits = seconds < 60 ? [.second] : [.minute]
+        formatter.unitsStyle = .short
+        return formatter.string(from: seconds) ?? "\(Int(seconds))"
+    }
+
+    static func limit(_ minutes: Int) -> String {
+        minutes > 0 ? duration(Double(minutes) * 60) : String(localized: "No limit", comment: "Settings › Voice: no time limit")
+    }
+
+    static func minutes(_ seconds: Double) -> String {
+        let formatter = DateComponentsFormatter()
+        formatter.allowedUnits = [.minute]
+        formatter.unitsStyle = .short
+        formatter.zeroFormattingBehavior = .dropLeading
+        return formatter.string(from: (seconds / 60).rounded(.up) * 60) ?? "0"
+    }
+}

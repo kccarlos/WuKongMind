@@ -1,0 +1,344 @@
+import SwiftUI
+
+// Settings › Data & privacy, Help, How to share, About, Acknowledgements.
+
+// MARK: Data & privacy
+
+struct SettingsDataPage: View {
+    @ObservedObject var app: AppModel
+    @State private var clearingSiteURL: String?
+    @State private var confirmingClearAll = false
+    @State private var confirmingReset = false
+    @State private var status: String?
+
+    private var forumsWithData: [String] {
+        app.siteURLsWithSavedData.sorted { name(for: $0) < name(for: $1) }
+    }
+
+    var body: some View {
+        Form {
+            Section {
+                Toggle(isOn: $app.settings.spotlightEnabled) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Show in Spotlight")
+                        Text("Topics you read and their saved summaries")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .accessibilityIdentifier("spotlightEnabled")
+                Toggle(isOn: $app.settings.donatesTopicActivity) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Siri Suggestions")
+                        Text("Lets Siri suggest topics you read")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .accessibilityIdentifier("donatesTopicActivity")
+            } header: {
+                Text("Search & suggestions")
+            } footer: {
+                Text("Both stay on this device. Turning Spotlight off removes WukongMind’s entries from Spotlight.")
+            }
+
+            Section {
+                if forumsWithData.isEmpty {
+                    Text("Nothing saved yet. Summaries, chats, and answers appear here by forum.")
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(forumsWithData, id: \.self) { siteURL in
+                        HStack(spacing: DCTheme.spacingM) {
+                            OnboardingForumIcon(
+                                siteURL: siteURL,
+                                name: name(for: siteURL),
+                                iconURL: app.forum(for: siteURL)?.iconURL,
+                                size: 30
+                            )
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(name(for: siteURL)).lineLimit(1)
+                                Text(itemsText(app.savedItemCount(forSiteURL: siteURL)))
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer(minLength: DCTheme.spacingS)
+                            Button("Clear", role: .destructive) {
+                                clearingSiteURL = siteURL
+                            }
+                            .buttonStyle(.borderless)
+                            .accessibilityLabel("Clear saved data for \(name(for: siteURL))")
+                        }
+                    }
+                }
+            } header: {
+                Text("Saved data by forum")
+            } footer: {
+                Text("Clearing deletes saved summaries, chats, answers, and watched topics for that forum. The forum stays in your list.")
+            }
+
+            Section {
+                Button(role: .destructive) {
+                    confirmingClearAll = true
+                } label: {
+                    Text("Clear All Saved Data…")
+                }
+                .disabled(!app.hasAnySavedData)
+                .accessibilityIdentifier("clearAllData")
+                Button(role: .destructive) {
+                    confirmingReset = true
+                } label: {
+                    Text("Reset Settings to Defaults…")
+                }
+                .accessibilityIdentifier("resetSettings")
+            } footer: {
+                if let status {
+                    Text(status)
+                } else {
+                    Text(app.settings.syncAPIKeys
+                        ? "Resetting settings keeps your forums and saved data. API keys are removed, including from iCloud Keychain on your other devices."
+                        : "Resetting settings keeps your forums and saved data. API keys are removed from this device.")
+                }
+            }
+        }
+        .formStyle(.grouped)
+        .confirmationDialog(
+            clearingSiteURL.map { String(localized: "Clear saved data for \(name(for: $0))?", comment: "Confirmation title; the argument is a forum name") }
+                ?? String(localized: "Clear saved data for this forum?"),
+            isPresented: Binding(get: { clearingSiteURL != nil }, set: { if !$0 { clearingSiteURL = nil } }),
+            titleVisibility: .visible,
+            presenting: clearingSiteURL
+        ) { siteURL in
+            Button("Clear saved data", role: .destructive) {
+                withAnimation { app.clearSavedData(forSiteURL: siteURL) }
+                status = String(localized: "Cleared saved data for \(name(for: siteURL)).", comment: "The argument is a forum name")
+                DCHaptics.success()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: { _ in
+            Text("Summaries, chats, answers, and watched topics for this forum will be deleted. This can’t be undone.")
+        }
+        .confirmationDialog(
+            "Clear all saved data?",
+            isPresented: $confirmingClearAll,
+            titleVisibility: .visible
+        ) {
+            Button("Clear all saved data", role: .destructive) {
+                withAnimation { app.clearAllSavedData() }
+                status = String(localized: "All saved data cleared.")
+                DCHaptics.success()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Every saved summary, chat, answer, and watched topic will be deleted. Your forums and settings stay.")
+        }
+        .confirmationDialog(
+            "Reset all settings?",
+            isPresented: $confirmingReset,
+            titleVisibility: .visible
+        ) {
+            Button("Reset to defaults", role: .destructive) {
+                app.resetSettings()
+                status = String(localized: "Settings reset to defaults.")
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Provider settings, API keys, favorite models, and custom instructions will be reset.")
+        }
+    }
+
+    private func name(for siteURL: String) -> String {
+        app.forum(for: siteURL)?.displayName ?? ForumSite.host(of: siteURL)
+    }
+
+    private func itemsText(_ count: Int) -> String {
+        String(localized: "\(count) saved items", comment: "Saved summaries, chats and answers for one forum")
+    }
+}
+
+// MARK: Help
+
+struct SettingsHelpPage: View {
+    @ObservedObject var app: AppModel
+    @Environment(\.replayOnboarding) private var replayOnboarding
+    @Environment(\.openURL) private var openURL
+
+    var body: some View {
+        Form {
+            Section {
+                VStack(spacing: DCTheme.spacingM) {
+                    BrandMark(size: 84)
+                        .shadow(color: Color(hex: 0x4A6BFF, opacity: 0.3), radius: 12, y: 6)
+                    Text("WukongMind").font(.title3.weight(.bold))
+                    Text("Summaries, chat, and answers for any forum or article.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, DCTheme.spacingM)
+                LabeledContent("Version", value: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "—")
+                LabeledContent("Build", value: Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "—")
+            }
+
+            Section("How it works") {
+                helpLine("text.alignleft", String(localized: "Open a forum topic and WukongMind summarizes it; chat about it with the assistant."))
+                helpLine("sparkle.magnifyingglass", String(localized: "Ask the forum searches, reads the most relevant topics and answers with numbered sources you can open."))
+                helpLine("waveform", String(localized: "Voice lets you talk with the assistant while you read."))
+            }
+
+            Section {
+                Button {
+                    DCHaptics.tap()
+                    replayOnboarding()
+                } label: {
+                    HStack(spacing: DCTheme.spacingM) {
+                        SettingsIcon(symbol: "play.fill", tint: DCTheme.brandPurple)
+                        Text("Show onboarding again").foregroundStyle(.primary)
+                    }
+                }
+                .accessibilityIdentifier("replayOnboarding")
+            }
+
+            Section {
+                ForEach(AIProvider.allCases) { provider in
+                    let guide = ProviderGuide.guide(for: provider)
+                    Button {
+                        openURL(guide.link)
+                    } label: {
+                        HStack(spacing: DCTheme.spacingM) {
+                            ProviderBadge(provider: provider, size: 29)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(provider.displayName).foregroundStyle(.primary)
+                                Text(guide.blurb)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            Spacer(minLength: DCTheme.spacingS)
+                            Image(systemName: "arrow.up.right")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.tertiary)
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityHint(guide.linkTitle)
+                }
+            } header: {
+                Text("Choosing an AI provider")
+            } footer: {
+                Text("Not sure? If you already pay for one of these, use it. To try many models with one key, OpenRouter is an easy start.")
+            }
+
+            Section {
+                NavigationLink(value: SettingsPage.acknowledgements) {
+                    SettingsRowLabel(page: .acknowledgements)
+                }
+                .accessibilityIdentifier("settingsRow-acknowledgements")
+                Link(destination: AppVersion.websiteURL) {
+                    Label("Website", systemImage: "globe")
+                }
+                Link(destination: AppVersion.supportURL) {
+                    Label("Support", systemImage: "lifepreserver")
+                }
+                Link(destination: AppVersion.repositoryURL) {
+                    Label("Source code on GitHub", systemImage: "chevron.left.forwardslash.chevron.right")
+                }
+            } footer: {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("WukongMind works with \(SiteRecognizers.platformNames()) sites. It is an independent app and is not affiliated with or endorsed by Civilized Discourse Construction Kit, Inc. Discourse is a trademark of its respective owner.")
+                    Text("WordPress is a trademark of the WordPress Foundation. WukongMind is an independent app and is not affiliated with or endorsed by WordPress or the WordPress Foundation.")
+                    Text("Hacker News is operated by Y Combinator. WukongMind is not affiliated with or endorsed by Y Combinator or Hacker News.")
+                }
+            }
+        }
+        .formStyle(.grouped)
+    }
+
+    private func helpLine(_ symbol: String, _ text: String) -> some View {
+        Label(text, systemImage: symbol)
+            .font(.subheadline)
+    }
+}
+
+struct SettingsSharingPage: View {
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: DCTheme.spacingXL) {
+                Text("Send any forum page from Safari, Chrome, or another app straight to WukongMind.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                ShareHowToGuide()
+            }
+            .padding(DCTheme.spacingL)
+            .frame(maxWidth: DCTheme.contentMaxWidth, alignment: .leading)
+            .frame(maxWidth: .infinity)
+        }
+        .background(DCTheme.pageBackground)
+    }
+}
+
+/// Credits for the bundled filter lists: the pipeline's ATTRIBUTION.md when
+/// present, otherwise a built-in summary.
+struct SettingsAcknowledgementsPage: View {
+    @ObservedObject var app: AppModel
+
+    static let easyListURL = URL(string: "https://easylist.to")!
+    static let licenseURL = URL(string: "https://creativecommons.org/licenses/by-sa/3.0/")!
+
+    static let builtInText = """
+    ## EasyList and EasyPrivacy
+
+    The built-in browser blocks ads and trackers with the EasyList and \
+    EasyPrivacy filter lists by The EasyList authors (https://easylist.to), \
+    converted to WebKit content-blocking rules.
+
+    The lists are licensed under the Creative Commons Attribution-ShareAlike \
+    3.0 Unported license (CC BY-SA 3.0), and may also be used under the GNU \
+    General Public License v3 or later.
+    """
+
+    static var bundledAttribution: String? {
+        guard let url = Bundle.main.url(
+            forResource: "ATTRIBUTION",
+            withExtension: "md",
+            subdirectory: "ContentBlocking"
+        ) else {
+            return nil
+        }
+        return (try? String(contentsOf: url, encoding: .utf8))?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .nilIfEmpty
+    }
+
+    var body: some View {
+        Form {
+            Section {
+                MarkdownView(Self.bundledAttribution ?? Self.builtInText)
+                    .textSelection(.enabled)
+                    .padding(.vertical, DCTheme.spacingXS)
+                    .accessibilityIdentifier("acknowledgementsText")
+            } header: {
+                Text("Filter lists")
+            } footer: {
+                if let manifest = app.contentRules.manifest {
+                    Text("Lists version \(manifest.version).")
+                }
+            }
+
+            Section {
+                Link(destination: Self.easyListURL) {
+                    Label("EasyList website", systemImage: "safari")
+                }
+                Link(destination: Self.licenseURL) {
+                    Label("CC BY-SA 3.0 license", systemImage: "doc.text")
+                }
+            }
+        }
+        .formStyle(.grouped)
+    }
+}
+
+private extension String {
+    var nilIfEmpty: String? { isEmpty ? nil : self }
+}

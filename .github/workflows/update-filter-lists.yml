@@ -1,7 +1,7 @@
 name: Update filter lists
 
 # Weekly refresh of the bundled ad/tracker blocking rules
-# (Forumind/ContentBlocking) from EasyList + EasyPrivacy.
+# (WukongMind/ContentBlocking) from EasyList + EasyPrivacy.
 # Opens or updates a single PR on branch `bot/update-filter-lists` when the
 # converted rules change; does nothing when they don't.
 #
@@ -49,11 +49,11 @@ jobs:
             cat "$RUNNER_TEMP/update.log"
             echo 'EOF_SUMMARY'
           } >>"$GITHUB_OUTPUT"
-          if [[ -z "$(git status --porcelain -- Forumind/ContentBlocking)" ]]; then
+          if [[ -z "$(git status --porcelain -- WukongMind/ContentBlocking)" ]]; then
             echo "changed=false" >>"$GITHUB_OUTPUT"
           else
             echo "changed=true" >>"$GITHUB_OUTPUT"
-            echo "version=$(jq -r .version Forumind/ContentBlocking/manifest.json)" >>"$GITHUB_OUTPUT"
+            echo "version=$(jq -r .version WukongMind/ContentBlocking/manifest.json)" >>"$GITHUB_OUTPUT"
           fi
 
       - name: Open or update pull request
@@ -68,7 +68,7 @@ jobs:
           committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
           branch: bot/update-filter-lists
           delete-branch: true
-          add-paths: Forumind/ContentBlocking
+          add-paths: WukongMind/ContentBlocking
           commit-message: "chore(adblock): update filter lists to ${{ steps.update.outputs.version }}"
           title: "chore(adblock): update filter lists (${{ steps.update.outputs.version }})"
           body: |

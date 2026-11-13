@@ -1,15 +1,15 @@
 # Adding a site
 
-Forumind reads Discourse, WordPress and Hacker News. Everything that knows a platform lives
-in `Forumind/Sites/` behind the `SiteAdapter` protocol, so supporting another
+WukongMind reads Discourse, WordPress and Hacker News. Everything that knows a platform lives
+in `WukongMind/Sites/` behind the `SiteAdapter` protocol, so supporting another
 platform means adding one folder there and two list entries, not changing the
 app. This page is the checklist. For how the pieces fit together see
 [ARCHITECTURE.md](ARCHITECTURE.md).
 
-Read `Forumind/Sites/Discourse/` as the first worked example,
-`Forumind/Sites/WordPress/` as the second (a platform with no topic filters,
+Read `WukongMind/Sites/Discourse/` as the first worked example,
+`WukongMind/Sites/WordPress/` as the second (a platform with no topic filters,
 page bridge or sign-in page, whose "topic" is a post and whose "posts" are its
-comments), and `ForumindTests/Sites/FakeSiteAdapter.swift` as the smallest.
+comments), and `WukongMindTests/Sites/FakeSiteAdapter.swift` as the smallest.
 
 ### WordPress as a second adapter
 
@@ -69,7 +69,7 @@ broaden the original network's origin guard to permit third-party requests.
 
 For expected HTML, validate the site's page structure before any challenge
 heuristics: a successful page may discuss “Cloudflare”, “Just a moment” or
-`cf-chl-`. This is the extension's `ae3b61b` rule. Forumind's transport already
+`cf-chl-`. This is the extension's `ae3b61b` rule. WukongMind's transport already
 accepts 2xx bodies without keyword classification; the adapter checks `hnmain`
 when validating the site, and JSON decoding rejects non-JSON challenge bodies.
 A genuine challenge document without the site's markup still fails validation.
@@ -81,7 +81,7 @@ A genuine challenge document without the site's markup still fails validation.
 - What a site supports is stated only in `capabilities`, and each capability is
   either present and working or `nil`. No capability says yes and then throws.
   The UI reads the capability and hides or falls back when it is nil.
-- Only `Forumind/Sites/` may name a platform (see "The layering guard").
+- Only `WukongMind/Sites/` may name a platform (see "The layering guard").
 - Output must follow the shared raw text shape below, so summaries, chat and
   exports need no per-site code.
 - Preserve author evidence in `TopicFacts.posts` and, when available, the
@@ -146,7 +146,7 @@ caller has it; a platform that links by number can ignore it.
 | `activeTopics` | the site can list recently active topics cheaply (`activeTopics(siteURL:budget:net:)`, at most `budget` requests, reporting how many it used) | The daily digest and podcast skip the site. |
 | `postLookup` | a single post's text can be fetched by number when the page lacks it | Reading a post uses only text already on the page or read. |
 | `topicFilters` | a topic can be narrowed to its top posts or one author (`url`, `isFiltered`, `overview(filter:)`) | The `top` landing opens the topic; the voice agent loses its `user` and `op` focus modes. |
-| `pageBridge` | the app can script the page (`bridgeInstaller`, JavaScript that defines `window.__forumindBrowse`) | No script is ever sent to the page, and scrolling to a post loads its URL. |
+| `pageBridge` | the app can script the page (`bridgeInstaller`, JavaScript that defines `window.__wukongmindBrowse`) | No script is ever sent to the page, and scrolling to a post loads its URL. |
 | `loginURL` | the site has a sign-in page | The forum menu hides Sign in and Sign-in help. |
 | `searchPageURL` | the site has its own search page for typed words | Words typed in the iPhone bar are treated as an address and fail as one. |
 | `session` | signed-in state and the username can be read from page facts (`session(from:)`) | The browser never shows a signed-in state for the site. |
@@ -211,7 +211,7 @@ share extension's script and commit it:
 scripts/generate-share-probe.sh
 ```
 
-It writes `ForumindShare/PageFactsProbe.js` from the same Swift code the app
+It writes `WukongMindShare/PageFactsProbe.js` from the same Swift code the app
 uses. A unit test (`SharedPageTests`) fails if the shipped file differs.
 
 ## Registering the adapter
@@ -227,7 +227,7 @@ Two entries, and nothing else:
 `SiteRegistry.standard` is derived from the first list through the second
 (Discourse first, then WordPress). Adding a recognizer changes what the share
 extension's probe collects: run `scripts/generate-share-probe.sh` to refresh
-`ForumindShare/PageFactsProbe.js` (a test fails when it is stale). A
+`WukongMindShare/PageFactsProbe.js` (a test fails when it is stale). A
 listed kind without a factory stops the app at first use and fails the contract
 tests, so a platform cannot be half added. After adding files run
 `env -u DEVELOPMENT_TEAM ruby scripts/generate_project.rb` and
@@ -277,7 +277,7 @@ tools it may use, so the specs must be complete.
 ## Voice profile
 
 `SiteAdapter.voice` is a `VoiceSiteProfile` of three model-facing English
-sentences: `persona` (completes "You are the voice of Forumind, ..."), `findHint`
+sentences: `persona` (completes "You are the voice of WukongMind, ..."), `findHint`
 (how the `find` tool should choose search words, for example which language to
 search in) and `languageHint`. The voice agent builds its instructions and its
 tool declarations from the profile of the page's site when a session connects.
@@ -287,8 +287,8 @@ The `user` and `op` focus modes exist only when the site has `topicFilters`.
 
 Model-facing text (tool descriptions, prompts, voice sentences) is English and
 is not localized. Any new text the user sees goes into
-`Forumind/Localizable.xcstrings` (the share extension has its own
-`ForumindShare/Localizable.xcstrings`) in all three languages: `en`,
+`WukongMind/Localizable.xcstrings` (the share extension has its own
+`WukongMindShare/Localizable.xcstrings`) in all three languages: `en`,
 `zh-Hans` and `zh-Hant`. `LocalizationCatalogTests` fails when one is missing
 or a format specifier does not match. Prefer site-neutral wording; the share
 sheet badge is the one place that still names a platform.
@@ -297,7 +297,7 @@ sheet badge is the one place that still names a platform.
 
 Add your adapter to the generic suite, then write the tests only it needs.
 
-- `SiteContractTests` (`ForumindTests/Sites/`) runs one set of checks over every
+- `SiteContractTests` (`WukongMindTests/Sites/`) runs one set of checks over every
   adapter: unique kinds, link round trips, the raw text shape (header format,
   separator, no triple newline in a block, blocks matching the text), cached
   reads making the declared requests, `onPage` once per page, the tool specs
@@ -309,7 +309,7 @@ Add your adapter to the generic suite, then write the tests only it needs.
   of real people and sites: use `example.com` and names such as `alice`. Never
   call the live site from a test.
 - Recognizer tests: add a recorded facts file under
-  `ForumindTests/Fixtures/PageFacts/` for a topic page and a plain page of your
+  `WukongMindTests/Fixtures/PageFacts/` for a topic page and a plain page of your
   platform and assert the match (`SiteRecognitionTests`). Also check that the
   share extension's list and the registry agree (`SharedPageTests`).
 - `CapabilityGatingTests` runs the app against a fake whose optional
@@ -320,7 +320,7 @@ Add your adapter to the generic suite, then write the tests only it needs.
 ## The layering guard
 
 `scripts/ci/check-site-layering.sh` fails the build when Swift code outside
-`Forumind/Sites/` names a platform: a Discourse type, a concrete `SiteKind`, or a
+`WukongMind/Sites/` names a platform: a Discourse type, a concrete `SiteKind`, or a
 `/t/` route. If you find yourself wanting to, add a capability or a profile
 field instead. Existing exceptions (sample content, UI-test seeds, the share
 sheet badge, the generic topic-key format) are in
@@ -331,10 +331,10 @@ anything. Do not add to it.
 ## The Labs flag (planned)
 
 Platforms that are not ready for everyone will ship behind a compile-time
-flag, `#if FORUMIND_LABS`, in a separate Labs build with its own bundle
+flag, `#if WUKONGMIND_LABS`, in a separate Labs build with its own bundle
 identifier and its own data container, so Labs never touches the data of the
 release app. The two lists above already carry a commented placeholder inside
-`#if FORUMIND_LABS` where such a platform goes (its recognizer in
+`#if WUKONGMIND_LABS` where such a platform goes (its recognizer in
 `SiteRecognizers.standard` and its factory in `SiteRegistry.adapterFactories`).
 The Labs target is not built yet; until it is, new platforms are added to the
 lists directly.

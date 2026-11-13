@@ -30,8 +30,8 @@ permissions:
   contents: read
 
 env:
-  PROJECT: Forumind.xcodeproj
-  SCHEME: Forumind
+  PROJECT: WukongMind.xcodeproj
+  SCHEME: WukongMind
   XCODE_APP: ${{ vars.CI_XCODE_APP || '/Applications/Xcode_27.2.app' }}
   # Repo variables (Settings -> Secrets and variables -> Actions -> Variables).
   DEVELOPMENT_TEAM: ${{ vars.DEVELOPMENT_TEAM || 'GV776BZVA8' }}
@@ -130,7 +130,7 @@ jobs:
         run: |
           mkdir -p dist
           ditto -c -k --sequesterRsrc --keepParent \
-            DerivedData/Build/Products/Release-iphonesimulator/Forumind.app \
+            DerivedData/Build/Products/Release-iphonesimulator/WukongMind.app \
             dist/WukongMind-simulator.app.zip
       - uses: actions/upload-artifact@v7
         with:
@@ -259,7 +259,7 @@ jobs:
               CODE_SIGN_STYLE=Manual
               CODE_SIGN_IDENTITY="Apple Distribution"
               'PROVISIONING_PROFILE_SPECIFIER=$(DC_PROFILE_$(TARGET_NAME))'
-              DC_PROFILE_Forumind="$PROFILE_APP"
+              DC_PROFILE_WukongMind="$PROFILE_APP"
             )
           else
             signing_args=(

@@ -6,7 +6,7 @@
 # Downloads EasyList + EasyPrivacy, converts them to WebKit content-blocker
 # JSON with Brave's adblock-rust (pinned in converter/Cargo.lock; built from
 # crates.io, not vendored), then validates, de-duplicates and chunks the result
-# into Forumind/ContentBlocking/ (manifest.json, ads-N.json,
+# into WukongMind/ContentBlocking/ (manifest.json, ads-N.json,
 # privacy-N.json, ATTRIBUTION.md). Leaves the directory untouched when the
 # rules did not change. Extra arguments are passed to build_rules.py.
 #
@@ -15,7 +15,7 @@ set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd "$here/../.." && pwd)"
-out_dir="${CONTENT_BLOCKING_DIR:-$repo_root/Forumind/ContentBlocking}"
+out_dir="${CONTENT_BLOCKING_DIR:-$repo_root/WukongMind/ContentBlocking}"
 
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT

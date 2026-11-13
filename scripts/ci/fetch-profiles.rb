@@ -5,7 +5,7 @@
 # API and install them where Xcode looks. Read-only: the Release workflow
 # signs manually and never creates certificates or profiles.
 #
-#   fetch-profiles.rb "Forumind App Store" "Forumind Share App Store"
+#   fetch-profiles.rb "WukongMind App Store" "WukongMind Share App Store"
 #
 # Env: ASC_KEY_PATH (.p8), APP_STORE_CONNECT_API_KEY_ID,
 #      APP_STORE_CONNECT_ISSUER_ID.

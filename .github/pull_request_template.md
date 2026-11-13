@@ -4,7 +4,7 @@
 
 ## How it was tested
 
-- [ ] Unit tests pass (`xcodebuild test … -only-testing:ForumindTests`, see docs/DEVELOPMENT.md)
+- [ ] Unit tests pass (`xcodebuild test … -only-testing:WukongMindTests`, see docs/DEVELOPMENT.md)
 - [ ] Tried on a simulator or device (which, and what you checked)
 - [ ] UI tests run locally, if the change affects UI flows
 

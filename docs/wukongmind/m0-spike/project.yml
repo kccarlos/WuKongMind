@@ -1,5 +1,5 @@
 # Throwaway M0 spike: a tiny host app plus a hosted XCTest bundle.
-# Not part of the WukongMind/Forumind app. Generate with xcodegen (run.sh does it).
+# Not part of the WukongMind app. Generate with xcodegen (run.sh does it).
 name: M0Spike
 options:
   bundleIdPrefix: dev.wukongmind.m0spike

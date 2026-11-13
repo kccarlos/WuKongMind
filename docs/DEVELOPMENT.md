@@ -1,6 +1,6 @@
 # Development
 
-How to build, run, and test Forumind from source. For how the code is
+How to build, run, and test WukongMind from source. For how the code is
 organized, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Requirements
@@ -8,7 +8,7 @@ organized, see [ARCHITECTURE.md](ARCHITECTURE.md).
 | Tool | Why |
 | --- | --- |
 | **Xcode 27** (macOS 27 or later) | Builds the app. The deployment target is iOS 17; Apple Intelligence features need a newer iOS (see [APPLE_INTELLIGENCE.md](APPLE_INTELLIGENCE.md)). |
-| **Ruby** with the **`xcodeproj`** gem | Generates `Forumind.xcodeproj`. The system Ruby works: `gem install --user-install xcodeproj` (or use Homebrew/rbenv Ruby). |
+| **Ruby** with the **`xcodeproj`** gem | Generates `WukongMind.xcodeproj`. The system Ruby works: `gem install --user-install xcodeproj` (or use Homebrew/rbenv Ruby). |
 | Rust (optional) | Only to refresh the ad-blocking filter lists (`brew install rust` or rustup). See [AD_BLOCKING.md](AD_BLOCKING.md). |
 | Bundler + fastlane (optional) | Only for TestFlight uploads from your Mac (`bundle install`). CI does this for you. |
 
@@ -24,7 +24,7 @@ committed project doesn't match the generator.
 ```sh
 gem install xcodeproj
 ruby scripts/generate_project.rb
-open Forumind.xcodeproj
+open WukongMind.xcodeproj
 ```
 
 Don't edit build settings in Xcode's UI: the next generator run overwrites
@@ -61,11 +61,11 @@ generator turns CloudKit on **only when it finds a team**:
 
 | Generated with | CloudKit | Entitlements the app is signed with |
 | --- | --- | --- |
-| No team (the committed project, CI, forks without a team) | off: no `CLOUDKIT_ENABLED`; Settings shows "Sync needs a signed build" | `Forumind/Forumind.entitlements` (App Group only) |
-| A team | on: `-D CLOUDKIT_ENABLED` | `Forumind/Generated/Forumind.entitlements` (git-ignored) |
+| No team (the committed project, CI, forks without a team) | off: no `CLOUDKIT_ENABLED`; Settings shows "Sync needs a signed build" | `WukongMind/WukongMind.entitlements` (App Group only) |
+| A team | on: `-D CLOUDKIT_ENABLED` | `WukongMind/Generated/WukongMind.entitlements` (git-ignored) |
 
 With CloudKit on, the generator writes
-`Forumind/Generated/Forumind.entitlements` from the base file plus:
+`WukongMind/Generated/WukongMind.entitlements` from the base file plus:
 
 - `com.apple.developer.icloud-services` = `CloudKit`,
 - `com.apple.developer.icloud-container-identifiers` =
@@ -99,12 +99,12 @@ iCloud) on the same Apple Account, both running a signed build. See
 
 ### Forks and your own bundle ID
 
-Every identifier comes from one prefix, `io.github.kccarlos.forumind`
+Every identifier comes from one prefix, `io.github.kccarlos.wukongmind`
 by default. Bundle IDs are unique across Apple's whole system, so a fork that
 signs for a device needs its own:
 
 ```sh
-BUNDLE_ID_PREFIX=com.example.forumind DEVELOPMENT_TEAM=ABCDE12345 \
+BUNDLE_ID_PREFIX=com.example.wukongmind DEVELOPMENT_TEAM=ABCDE12345 \
   ruby scripts/generate_project.rb
 ```
 
@@ -124,7 +124,7 @@ A free Apple ID team can run the app on your own devices, with limits:
 - Builds expire after 7 days; reinstall from Xcode.
 - Free teams have a limited set of capabilities and a small number of App IDs.
   If Xcode can't register the App Group for your team, sharing from Safari
-  still opens the app through the `forumind://` link; only the App
+  still opens the app through the `wukongmind://` link; only the App
   Group inbox is unavailable.
 - Apple Intelligence through Private Cloud Compute needs an entitlement Apple
   grants to a paid team.
@@ -134,11 +134,11 @@ A free Apple ID team can run the app on your own devices, with limits:
 
 ## Build and run
 
-In Xcode, pick the **Forumind** scheme and a simulator or device.
+In Xcode, pick the **WukongMind** scheme and a simulator or device.
 From the command line:
 
 ```sh
-xcodebuild build -project Forumind.xcodeproj -scheme Forumind \
+xcodebuild build -project WukongMind.xcodeproj -scheme WukongMind \
   -destination 'platform=iOS Simulator,name=iPhone 17' \
   CODE_SIGNING_ALLOWED=NO -derivedDataPath /tmp/dc-dd
 ```
@@ -153,9 +153,9 @@ iOS asks.
 ### Unit tests
 
 ```sh
-xcodebuild test -project Forumind.xcodeproj -scheme Forumind \
+xcodebuild test -project WukongMind.xcodeproj -scheme WukongMind \
   -destination 'platform=iOS Simulator,name=iPhone 17' \
-  -only-testing:ForumindTests CODE_SIGNING_ALLOWED=NO
+  -only-testing:WukongMindTests CODE_SIGNING_ALLOWED=NO
 ```
 
 - `ContentBlockingRulesTests` compiles every bundled filter-list chunk in the
@@ -170,9 +170,9 @@ xcodebuild test -project Forumind.xcodeproj -scheme Forumind \
   skip). Run them ad-hoc signed:
 
   ```sh
-  xcodebuild test -project Forumind.xcodeproj -scheme Forumind \
+  xcodebuild test -project WukongMind.xcodeproj -scheme WukongMind \
     -destination 'platform=iOS Simulator,name=iPhone 17' \
-    -only-testing:ForumindTests/KeychainSyncTests \
+    -only-testing:WukongMindTests/KeychainSyncTests \
     CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM=
   ```
 
@@ -183,10 +183,10 @@ so use a simulator you aren't using for anything else. Build once, then run:
 
 ```sh
 DEST='platform=iOS Simulator,name=iPhone 17'
-xcodebuild build-for-testing -project Forumind.xcodeproj -scheme Forumind \
+xcodebuild build-for-testing -project WukongMind.xcodeproj -scheme WukongMind \
   -destination "$DEST" CODE_SIGNING_ALLOWED=NO -derivedDataPath /tmp/dc-dd-uitest
-xcodebuild test-without-building -project Forumind.xcodeproj -scheme Forumind \
-  -destination "$DEST" -only-testing:ForumindUITests \
+xcodebuild test-without-building -project WukongMind.xcodeproj -scheme WukongMind \
+  -destination "$DEST" -only-testing:WukongMindUITests \
   CODE_SIGNING_ALLOWED=NO -derivedDataPath /tmp/dc-dd-uitest
 ```
 
@@ -196,15 +196,15 @@ side-by-side layout tests; iPhone-only and iPad-only tests skip themselves.
 **Offline subset** (no network and no AI; uses the DEBUG sample data):
 
 ```sh
-xcodebuild test-without-building -project Forumind.xcodeproj -scheme Forumind \
+xcodebuild test-without-building -project WukongMind.xcodeproj -scheme WukongMind \
   -destination "$DEST" CODE_SIGNING_ALLOWED=NO -derivedDataPath /tmp/dc-dd-uitest \
-  -only-testing:ForumindUITests/OnboardingUITests \
-  -only-testing:ForumindUITests/SettingsNavigationUITests \
-  -only-testing:ForumindUITests/HomeUITests/testAddForumSheetOpensFromHome \
-  -only-testing:ForumindUITests/PhysicalDeviceSmokeTests/testExpandedWorkspacesRenderMarkdownAndKeepChatComposerVisible \
-  -only-testing:ForumindUITests/PhysicalDeviceSmokeTests/testManageRowsUseMailStyleSwipeActions \
-  -only-testing:ForumindUITests/PhysicalDeviceSmokeTests/testAssistantPageStatesOffline \
-  -only-testing:ForumindUITests/PhysicalDeviceSmokeTests/testAgentModeAndWatchedTopics
+  -only-testing:WukongMindUITests/OnboardingUITests \
+  -only-testing:WukongMindUITests/SettingsNavigationUITests \
+  -only-testing:WukongMindUITests/HomeUITests/testAddForumSheetOpensFromHome \
+  -only-testing:WukongMindUITests/PhysicalDeviceSmokeTests/testExpandedWorkspacesRenderMarkdownAndKeepChatComposerVisible \
+  -only-testing:WukongMindUITests/PhysicalDeviceSmokeTests/testManageRowsUseMailStyleSwipeActions \
+  -only-testing:WukongMindUITests/PhysicalDeviceSmokeTests/testAssistantPageStatesOffline \
+  -only-testing:WukongMindUITests/PhysicalDeviceSmokeTests/testAgentModeAndWatchedTopics
 ```
 
 Notes:
@@ -219,20 +219,20 @@ Notes:
   run only on a physical device with a configured provider, and make real AI
   calls: `-destination 'id=<device id>' -allowProvisioningUpdates`.
 - To start from a clean slate, uninstall the app:
-  `xcrun simctl uninstall <udid> io.github.kccarlos.forumind`.
+  `xcrun simctl uninstall <udid> io.github.kccarlos.wukongmind`.
 
 ## DEBUG launch arguments
 
 DEBUG builds read these arguments for QA and screenshots. Set them in Xcode
 (Product › Scheme › Edit Scheme › Run › Arguments) or pass them to
-`xcrun simctl launch <device> io.github.kccarlos.forumind <args>`.
+`xcrun simctl launch <device> io.github.kccarlos.wukongmind <args>`.
 They never overwrite real saved data, and Release builds ignore them.
 
 ### Sample data (no key or network needed)
 
 | Argument | Effect |
 | --- | --- |
-| `-dc-sample` | Loads offline sample data (required by the rest of this table): Discourse Meta and the OpenAI Developer Community (real public forums, the same as in the Chrome extension's screenshots) with invented topics, posts, usernames, summaries, chats and answers, plus Hacker News as a recent forum. The Assistant opens by itself on iPhone. In Simplified or Traditional Chinese (`-AppleLanguages "(zh-Hans)"`) the same forums carry Chinese topics and text; see `Forumind/SampleContent.swift`. |
+| `-dc-sample` | Loads offline sample data (required by the rest of this table): Discourse Meta and the OpenAI Developer Community (real public forums, the same as in the Chrome extension's screenshots) with invented topics, posts, usernames, summaries, chats and answers, plus Hacker News as a recent forum. The Assistant opens by itself on iPhone. In Simplified or Traditional Chinese (`-AppleLanguages "(zh-Hans)"`) the same forums carry Chinese topics and text; see `WukongMind/SampleContent.swift`. |
 | `-dc-page-state <state>` | `loading`, `notForum`, `maybe`, `forumHome`, or `topic` (default). |
 | `-dc-topic meta\|openai` | Which sample topic is open: on Discourse Meta, or on the OpenAI Developer Community. Default: `meta`, but `openai` with `-dc-assistant-mode agent`, so Ask the forum shows the run from the open forum. With `-dc-topic meta` in agent mode, the run on Discourse Meta is shown. |
 | `-dc-assistant-mode <mode>` | `summary`, `chat`, or `agent`. |
@@ -317,14 +317,14 @@ To run the Keychain probe on a device:
 
 ```sh
 xcrun devicectl device process launch --console --device <device id> \
-  io.github.kccarlos.forumind -dc-keychain-sync-probe
+  io.github.kccarlos.wukongmind -dc-keychain-sync-probe
 ```
 
 ## Localization
 
-Forumind is in English (the development language), Simplified Chinese
+WukongMind is in English (the development language), Simplified Chinese
 (`zh-Hans`) and Traditional Chinese (`zh-Hant`, Taiwan usage). Because the
-bundle has more than one localization, iOS shows **Settings › Forumind ›
+bundle has more than one localization, iOS shows **Settings › WukongMind ›
 Language**, where people pick the app's language; the app's own
 **Settings › Language** row shows the current language and opens that page.
 The app can't change its language itself.
@@ -333,9 +333,9 @@ The strings live in String Catalogs, added by `scripts/generate_project.rb`:
 
 | Catalog | Holds |
 | --- | --- |
-| `Forumind/Localizable.xcstrings` | The app's UI strings |
-| `Forumind/InfoPlist.xcstrings` | Info.plist strings (`NSLocalNetworkUsageDescription`; `CFBundleDisplayName` stays "Forumind") |
-| `ForumindShare/Localizable.xcstrings`, `ForumindShare/InfoPlist.xcstrings` | The share extension |
+| `WukongMind/Localizable.xcstrings` | The app's UI strings |
+| `WukongMind/InfoPlist.xcstrings` | Info.plist strings (`NSLocalNetworkUsageDescription`; `CFBundleDisplayName` stays "WukongMind") |
+| `WukongMindShare/Localizable.xcstrings`, `WukongMindShare/InfoPlist.xcstrings` | The share extension |
 
 The files shared by both targets (`IncomingLink.swift`, …) feed both
 catalogs, so a string they use needs the same translation in each.
@@ -382,16 +382,16 @@ its own derived-data folder, feeds the compiler's `.stringsdata` to
 added; keys the code no longer uses are marked stale. The report
 (`scripts/i18n/check-catalogs.py --list`) lists every key that is missing a
 translation, isn't marked translated, is stale, or has format specifiers
-that differ from English. `ForumindTests/LocalizationCatalogTests` checks
+that differ from English. `WukongMindTests/LocalizationCatalogTests` checks
 the same rules, plus plural variations, in the unit tests.
 
 To translate what's missing:
 
 ```sh
-scripts/i18n/translations.py export Forumind/Localizable.xcstrings > todo.json
+scripts/i18n/translations.py export WukongMind/Localizable.xcstrings > todo.json
 # add "zh-Hans" / "zh-Hant" to each key (see the script's help for plurals)
-scripts/i18n/translations.py import Forumind/Localizable.xcstrings todo.json
-scripts/i18n/translations.py prune Forumind/Localizable.xcstrings   # drop stale keys
+scripts/i18n/translations.py import WukongMind/Localizable.xcstrings todo.json
+scripts/i18n/translations.py prune WukongMind/Localizable.xcstrings   # drop stale keys
 scripts/i18n/check-catalogs.py
 ```
 
@@ -407,7 +407,7 @@ Chinese, as on Apple's own sites. AI models AI 模型, Summaries & chat 摘要�
 摘要與聊天, Forum requests 论坛请求 / 論壇請求, Reading pace 读取节奏 /
 讀取節奏, the paces Gentle / Standard / Fast 温和 / 标准 / 快速 (溫和 / 標準 /
 快速), favorite models 常用模型, ad blocking 广告拦截 / 廣告阻擋.
-"Forumind" is never translated.
+"WukongMind" is never translated.
 
 ### Adding a language
 
@@ -415,7 +415,7 @@ Chinese, as on Apple's own sites. AI models AI 模型, Summaries & chat 摘要�
    regenerate the project.
 2. Add it to `LANGUAGES` in `scripts/i18n/check-catalogs.py` and
    `translations.py`, and to `languages` in
-   `ForumindTests/LocalizationCatalogTests.swift`.
+   `WukongMindTests/LocalizationCatalogTests.swift`.
 3. Translate every catalog (export, translate, import), including the
    Info.plist catalogs, and add its prompt name to
    `PromptBuilder.readerLanguageName` and `AppLanguage.englishName`.
@@ -428,7 +428,7 @@ Launch with the language and region as arguments (they apply to that launch
 only):
 
 ```sh
-xcrun simctl launch <udid> io.github.kccarlos.forumind \
+xcrun simctl launch <udid> io.github.kccarlos.wukongmind \
   -AppleLanguages "(zh-Hans)" -AppleLocale zh_CN \
   -dc-skip-onboarding -dc-sample -dc-forums-home -dc-assistant-mode summary
 ```
@@ -457,13 +457,13 @@ scripts/adblock/update_rules.sh     # download, convert, validate, write
 scripts/adblock/run_tests.sh        # converter tests
 ```
 
-Then run the unit tests and commit `Forumind/ContentBlocking/`. See
+Then run the unit tests and commit `WukongMind/ContentBlocking/`. See
 [AD_BLOCKING.md](AD_BLOCKING.md).
 
 ## Logo and app icon
 
-The logo is drawn in code: `Forumind/BrandMarkShapes.swift` (shapes and
-brand colors) and `Forumind/BrandMark.swift` (`BrandMark(size:style:)`).
+The logo is drawn in code: `WukongMind/BrandMarkShapes.swift` (shapes and
+brand colors) and `WukongMind/BrandMark.swift` (`BrandMark(size:style:)`).
 Both are plain SwiftUI with no UIKit, so the app icon is rendered from the
 same code on macOS. After changing them, re-render the icons:
 
@@ -472,9 +472,9 @@ scripts/brand/render_app_icon.sh
 ```
 
 It writes the light (opaque), dark and tinted 1024 px icons into
-`Forumind/Assets.xcassets/AppIcon.appiconset/` and
-`docs/brand/forumind-icon-1024.png`. Check the light icon has no alpha
-channel with `sips -g hasAlpha`. `docs/brand/forumind-mark.svg` uses the
+`WukongMind/Assets.xcassets/AppIcon.appiconset/` and
+`docs/brand/wukongmind-icon-1024.png`. Check the light icon has no alpha
+channel with `sips -g hasAlpha`. `docs/brand/wukongmind-mark.svg` uses the
 same coordinates; update it by hand.
 
 ## Platform notes
@@ -487,7 +487,7 @@ same coordinates; update it by hand.
   `BGAppRefreshTask`) and the daily digest's prefetch
   (`<prefix>.digestPrefetch`, a `BGProcessingTask` scheduled only while the
   daily digest is on) are listed in `BGTaskSchedulerPermittedIdentifiers` in
-  `Forumind/Info.plist`, which is edited by hand (the generator only points
+  `WukongMind/Info.plist`, which is edited by hand (the generator only points
   at it); `UIBackgroundModes` has `fetch`, `processing` and
   `remote-notification`. To run one on a device, pause in the debugger after
   the app went to the background (so the request was submitted) and run

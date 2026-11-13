@@ -1,0 +1,970 @@
+import SwiftUI
+import WebKit
+
+// MARK: - iPhone browser bar
+//
+// The page in a NavigationStack (no navigation bar) with one bar of three
+// items: the forum avatar (the forum menu), the title capsule (tap to edit the
+// address, long press for history; the not-a-forum icon, the solved hint and
+// the ad shield sit inside it) and the AI button (the drawer; long press
+// starts voice). On Home the capsule is "Search or enter a forum address" and
+// the AI button gives way to the mic (only when voice is available); pages
+// pushed over Home (`AppModel.homePath`) go on this stack. At the bottom it
+// is the system toolbar; at the top (the
+// user's choice) the same items in a bar above the page. While the address
+// is edited the field rides on the keyboard instead. In the iPad split layout
+// the same bar sits at the top over the page and the AI panel, with three
+// groups (`SplitBarContext`).
+
+struct PhoneBrowser<Page: View>: View {
+    @ObservedObject var app: AppModel
+    @ObservedObject var browser: ForumBrowserModel
+    /// The voice Dock replaces the bottom bar while a session shows.
+    @ObservedObject var voice: VoiceController
+    /// Resolved: `.top` or `.bottom`.
+    let position: BrowserBarPosition
+    let actions: BrowserActions
+    /// Bumped by ⌘L to start editing the address.
+    var addressFocusRequest = 0
+    /// The window width: toolbar items get their ideal width, so the
+    /// capsule is given the room the avatar and the AI button leave.
+    var width: CGFloat = 0
+    /// iPad split layout: the top bar's three groups, with the AI panel's
+    /// toggle. nil: the iPhone bar.
+    var split: SplitBarContext?
+    @ViewBuilder let page: () -> Page
+
+    @State private var isEditingAddress = false
+    @State private var addressDraft = ""
+    @State private var addressError: AddressError?
+    @FocusState private var addressFocused: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    /// The toolbar's own side margins and the glass container's padding.
+    static var toolbarMargins: CGFloat { 56 }
+
+    /// Scrolling down the page swaps the bar for a thin strip (today's
+    /// behaviour). The system's own toolbar minimization (iOS 27,
+    /// `toolbarMinimizationBehavior`) doesn't follow WKWebView's scroll view,
+    /// so it isn't used.
+    private var showsStrip: Bool {
+        !isEditingAddress && browser.isChromeMinimized && !browser.showsForumsHome && split == nil
+    }
+
+    private var showsToolbar: Bool {
+        position == .bottom && !isEditingAddress && !showsStrip && !voice.showsBar
+    }
+
+    var body: some View {
+        NavigationStack(path: $app.homePath) {
+            page()
+                .toolbar(.hidden, for: .navigationBar)
+                .modifier(HomeDestinations(app: app, onOpenDigestLink: actions.openDigestLink))
+                .toolbar {
+                    // One item: the bar is one glass container (avatar,
+                    // capsule, AI button); its width is set, since toolbar
+                    // items otherwise get their ideal width and overflow.
+                    ToolbarItem(placement: .bottomBar) {
+                        if showsToolbar {
+                            HStack(spacing: 2) { items }
+                                .frame(width: width > 0 ? max(200, width - Self.toolbarMargins) : nil)
+                        }
+                    }
+                }
+                .toolbar(showsToolbar ? .visible : .hidden, for: .bottomBar)
+                .safeAreaInset(edge: .top, spacing: 0) {
+                    if position == .top { topBar }
+                }
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    if position == .bottom {
+                        if isEditingAddress {
+                            addressRow
+                                .background(.bar)
+                                .transition(.opacity)
+                        } else if showsStrip {
+                            strip
+                                .background(.bar)
+                                .transition(.opacity)
+                        }
+                    }
+                }
+        }
+        .onAppear { app.barShowsTopicFacts = true }
+        .onChange(of: addressFocused) {
+            if !addressFocused {
+                withAnimation(DCMotion.respecting(reduceMotion, DCMotion.quick)) { isEditingAddress = false }
+            }
+        }
+        .onChange(of: addressFocusRequest) {
+            browser.expandChrome()
+            beginEditingAddress()
+        }
+        .alert(
+            addressError?.title ?? "",
+            isPresented: Binding(
+                get: { addressError != nil },
+                set: { if !$0 { addressError = nil } }
+            ),
+            presenting: addressError
+        ) { _ in
+            Button("OK", role: .cancel) {}
+        } message: { error in
+            Text(error.message)
+        }
+        .animation(DCMotion.respecting(reduceMotion, DCMotion.smooth), value: showsStrip)
+        .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: isEditingAddress)
+    }
+
+    // MARK: Bars
+
+    /// Home: the mic only when voice is available; pages: the AI button.
+    private var trailingItemCount: CGFloat {
+        browser.showsForumsHome && !app.showsVoiceButton ? 0 : 1
+    }
+
+    @ViewBuilder
+    private var items: some View {
+        if let split {
+            splitItems(split)
+        } else {
+            phoneItems
+        }
+    }
+
+    /// Forum avatar, back, forward | address capsule | mic, ···, AI panel.
+    @ViewBuilder
+    private func splitItems(_ split: SplitBarContext) -> some View {
+        let controls = 5 + (app.showsVoiceButton ? 1 : 0)
+        ForumMenuButton(app: app, browser: browser, actions: actions)
+        SplitNavigationButtons(browser: browser)
+        PhoneTitleCapsule(
+            app: app,
+            browser: browser,
+            filled: true,
+            width: max(0, width - 2 * DCTheme.spacingM - CGFloat(controls) * (DCTheme.controlHeight + DCTheme.spacingS)),
+            onEdit: beginEditingAddress
+        )
+        if app.showsVoiceButton {
+            VoiceBarButton(voice: app.voice)
+        }
+        SplitMoreMenu(app: app, browser: browser, actions: actions)
+        SplitPanelToggle(app: app, isShown: split.panelShown, action: split.togglePanel)
+    }
+
+    @ViewBuilder
+    private var phoneItems: some View {
+        ForumMenuButton(app: app, browser: browser, actions: actions)
+        PhoneTitleCapsule(
+            app: app,
+            browser: browser,
+            filled: position == .top || !PhoneBarStyle.usesGlass,
+            width: max(0, (position == .bottom ? width - Self.toolbarMargins : width - 2 * DCTheme.spacingM)
+                - (1 + trailingItemCount) * (DCTheme.controlHeight + DCTheme.spacingS)),
+            onEdit: beginEditingAddress
+        )
+        if browser.showsForumsHome {
+            if app.showsVoiceButton {
+                VoiceBarButton(voice: app.voice)
+            }
+        } else {
+            PhoneAIButton(
+                app: app,
+                voice: app.voice,
+                router: app.router,
+                podcast: app.podcast,
+                isAvailable: app.isDrawerAvailable && browser.currentURL != nil,
+                onOpen: actions.openAssistant
+            )
+        }
+    }
+
+    private var topBar: some View {
+        VStack(spacing: 0) {
+            Group {
+                if isEditingAddress {
+                    addressRow
+                } else if showsStrip {
+                    strip
+                } else {
+                    HStack(spacing: DCTheme.spacingS) { items }
+                        .padding(.horizontal, DCTheme.spacingM)
+                        .padding(.vertical, 6)
+                }
+            }
+            .transition(.opacity)
+            Divider()
+        }
+        .background(.bar)
+    }
+
+    /// The minimized bar while the page scrolls down; a tap brings it back.
+    private var strip: some View {
+        Button(action: browser.expandChrome) {
+            HStack(spacing: 6) {
+                if let forum = app.barForum, browser.pageContext.isForum {
+                    ForumIcon(forum: forum, size: 14)
+                } else {
+                    Image(systemName: "lock.fill")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+                Text(BrowserAddress.host(browser.currentURL))
+                    .font(.caption.weight(.semibold))
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity, minHeight: 30)
+            // 44 pt to tap, over the page's edge; the strip stays 30 pt.
+            .padding(.vertical, 7)
+            .contentShape(Rectangle())
+            .padding(.vertical, -7)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Show browser bar")
+        .accessibilityIdentifier("browserChromeStrip")
+    }
+
+    // MARK: Address
+
+    /// Edit, paste (the field's menu), Go (return) and clear, on the keyboard.
+    private var addressRow: some View {
+        HStack(spacing: DCTheme.spacingS) {
+            HStack(spacing: 6) {
+                Image(systemName: "globe")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
+                TextField("Forum address", text: $addressDraft)
+                    .textContentType(.URL)
+                    .keyboardType(.URL)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.never)
+                    .submitLabel(.go)
+                    .focused($addressFocused)
+                    .onSubmit(commitAddress)
+                    .accessibilityIdentifier("addressField")
+                    // Select the whole address so typing replaces it, like Safari.
+                    .onReceive(
+                        NotificationCenter.default.publisher(for: UITextField.textDidBeginEditingNotification)
+                    ) { notification in
+                        (notification.object as? UITextField)?.selectAll(nil)
+                    }
+                    .onAppear {
+                        DispatchQueue.main.async { addressFocused = true }
+                    }
+                if !addressDraft.isEmpty {
+                    Button {
+                        addressDraft = ""
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(.secondary)
+                            .frame(width: 30, height: 30)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Clear address")
+                }
+            }
+            .padding(.horizontal, 10)
+            .frame(minHeight: DCTheme.controlHeight)
+            .background(Color(uiColor: .tertiarySystemFill), in: Capsule())
+            .overlay { Capsule().strokeBorder(Color.accentColor, lineWidth: 1.5) }
+
+            // Esc / ⌘. too, like Safari.
+            Button("Cancel") { addressFocused = false }
+                .keyboardShortcut(.cancelAction)
+                .frame(minHeight: DCTheme.controlHeight)
+                .accessibilityIdentifier("addressCancel")
+        }
+        .padding(.horizontal, DCTheme.spacingM)
+        .padding(.vertical, 6)
+    }
+
+    private func beginEditingAddress() {
+        addressDraft = browser.showsForumsHome ? "" : (browser.currentURL?.absoluteString ?? "")
+        isEditingAddress = true
+    }
+
+    /// An address opens; other words search the current forum.
+    private func commitAddress() {
+        let query = addressDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+        if browser.open(address: addressDraft) {
+            addressFocused = false
+            isEditingAddress = false
+        } else if !query.isEmpty, let url = app.searchPageURL(query: query) {
+            browser.load(url)
+            addressFocused = false
+            isEditingAddress = false
+        } else {
+            addressError = AddressError(address: addressDraft, hasForum: browser.homeSiteURL != nil)
+        }
+    }
+}
+
+enum PhoneBarStyle {
+    /// iOS 26+: the system toolbar is Liquid Glass, so the capsule needs no fill.
+    static var usesGlass: Bool {
+        if #available(iOS 26.0, *) { return true }
+        return false
+    }
+}
+
+// MARK: - Title capsule
+
+/// Page title over the host; on Home "Search or enter a forum address". Tap
+/// edits the address; long press lists the history. The not-a-forum icon,
+/// the solved hint and the ad shield sit inside.
+struct PhoneTitleCapsule: View {
+    @ObservedObject var app: AppModel
+    @ObservedObject var browser: ForumBrowserModel
+    /// A fill of its own (top bar, and before Liquid Glass).
+    var filled = true
+    /// The capsule's width. A menu label in a toolbar takes its ideal width,
+    /// so the title is given the room explicitly to truncate in.
+    var width: CGFloat = 0
+    let onEdit: () -> Void
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private var showsHome: Bool { browser.showsForumsHome }
+
+    private var answerPost: Int? {
+        guard !showsHome, app.pageContext.state == .topic else { return nil }
+        return app.pageContext.acceptedAnswerPost
+    }
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Menu {
+                historyMenu
+            } label: {
+                titleLabel
+            } primaryAction: {
+                onEdit()
+            }
+            .menuOrder(.fixed)
+            .tint(.primary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityLabel(accessibilityTitle)
+            .accessibilityHint(accessibilityHint)
+            .accessibilityIdentifier("browserTitle")
+
+            if let answerPost {
+                answerChip(answerPost)
+                    .transition(.opacity)
+            }
+            if !showsHome, browser.currentURL != nil {
+                AdShieldMenu(app: app, browser: browser)
+            }
+        }
+        .padding(.leading, 12)
+        .padding(.trailing, 4)
+        .frame(maxWidth: .infinity, minHeight: DCTheme.controlHeight)
+        .background {
+            if filled { Capsule().fill(Color(uiColor: .tertiarySystemFill)) }
+        }
+        .overlay(alignment: .bottom) {
+            if !showsHome {
+                LoadingLine(progress: browser.estimatedProgress, isLoading: browser.isLoading)
+                    .padding(.horizontal, 14)
+                    .padding(.bottom, 2)
+            }
+        }
+        .contentShape(Capsule())
+        .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: answerPost)
+    }
+
+    private var canSearch: Bool { app.searchPageURL(query: "a") != nil }
+
+    private var homePrompt: Text {
+        canSearch
+            ? Text("Search or enter a forum address", comment: "iPhone bar on Home: placeholder of the search and address field")
+            : Text("Enter a forum address")
+    }
+
+    @ViewBuilder
+    private var titleLabel: some View {
+        if showsHome {
+            HStack(spacing: 8) {
+                Image(systemName: canSearch ? "magnifyingglass" : "globe")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                homePrompt
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                Spacer(minLength: 0)
+            }
+            .frame(width: titleWidth, alignment: .leading)
+            .frame(maxWidth: .infinity, minHeight: DCTheme.controlHeight, alignment: .leading)
+            .contentShape(Rectangle())
+        } else {
+            pageTitleLabel
+        }
+    }
+
+    private var pageTitleLabel: some View {
+        HStack(spacing: 6) {
+            VStack(alignment: .leading, spacing: 1) {
+                Text(browser.pageTitle)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+                HStack(spacing: 4) {
+                    Text(subtitle)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
+            }
+            Spacer(minLength: 0)
+        }
+        .frame(width: titleWidth, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: DCTheme.controlHeight, alignment: .leading)
+        .contentShape(Rectangle())
+    }
+
+    /// What the chip and the shield leave of the capsule (nil: no limit).
+    private var titleWidth: CGFloat? {
+        guard width > 0 else { return nil }
+        var reserved: CGFloat = 16
+        if answerPost != nil { reserved += 64 }
+        if !showsHome, browser.currentURL != nil { reserved += 34 }
+        return max(60, width - reserved)
+    }
+
+    private var subtitle: String {
+        BrowserAddress.host(browser.currentURL)
+    }
+
+    private var accessibilityTitle: Text {
+        if showsHome { return homePrompt }
+        return Text(verbatim: "\(browser.pageTitle), \(BrowserAddress.display(browser.currentURL))")
+    }
+
+    private var accessibilityHint: Text {
+        Text("Tap to enter a forum address. Touch and hold for history.", comment: "Accessibility hint of the iPhone bar title")
+    }
+
+    @ViewBuilder
+    private var historyMenu: some View {
+        let back = Array(browser.backHistory.prefix(12))
+        let forward = Array(browser.forwardHistory.prefix(12))
+        if !forward.isEmpty {
+            Section("Forward") {
+                ForEach(forward.reversed(), id: \.self) { historyItem($0) }
+            }
+        }
+        if !back.isEmpty {
+            Section("Back") {
+                ForEach(back, id: \.self) { historyItem($0) }
+            }
+        }
+        if back.isEmpty, forward.isEmpty {
+            Text("No history yet", comment: "iPhone bar title's history menu with no pages to go back or forward to")
+        }
+    }
+
+    private func historyItem(_ item: WKBackForwardListItem) -> some View {
+        Button {
+            browser.go(to: item)
+        } label: {
+            Text(item.title?.isEmpty == false ? item.title ?? "" : BrowserAddress.host(item.url))
+            Text(BrowserAddress.display(item.url))
+        }
+    }
+
+    /// "Solved · answer at #N": jumps to the accepted answer.
+    private func answerChip(_ number: Int) -> some View {
+        Button {
+            // The same jump as a citation in the drawer (§4.5).
+            app.jumpToCitation(number)
+        } label: {
+            HStack(spacing: 3) {
+                Image(systemName: "checkmark.seal.fill")
+                    .font(.caption.weight(.semibold))
+                Text(verbatim: "#\(number)")
+                    .font(.caption.weight(.semibold).monospacedDigit())
+            }
+            .fixedSize()
+            .foregroundStyle(DCTheme.success)
+            .padding(.horizontal, 8)
+            .frame(minHeight: 30)
+            .background(DCTheme.success.opacity(0.12), in: Capsule())
+            .frame(minHeight: DCTheme.controlHeight)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text("Solved · answer at #\(number)", comment: "iPhone bar hint: the topic has an accepted answer; the placeholder is its post number"))
+        .accessibilityHint(Text("Jumps to the answer", comment: "Accessibility hint of the solved hint in the iPhone bar"))
+        .accessibilityIdentifier("acceptedAnswerHint")
+    }
+}
+
+/// Shield at the end of the title: shows whether ads are blocked here and
+/// toggles the site. Blocking is off by default; then the shield is neutral
+/// and offers to turn it on.
+struct AdShieldMenu: View {
+    @ObservedObject var app: AppModel
+    @ObservedObject var browser: ForumBrowserModel
+
+    var body: some View {
+        let blocking = SiteBlocking(app: app, url: browser.currentURL)
+        Menu {
+            Section(blocking.statusTitle) {
+                if blocking.status == .off {
+                    Button {
+                        DCHaptics.tap()
+                        app.turnOnContentBlocking()
+                    } label: {
+                        Label("Turn on ad blocking", systemImage: "shield.lefthalf.filled")
+                    }
+                    .accessibilityIdentifier("shieldTurnOnBlocking")
+                }
+                if let toggle = blocking.toggle {
+                    Button(action: toggle.action) {
+                        Label(toggle.title, systemImage: toggle.systemImage)
+                    }
+                    .accessibilityIdentifier("shieldToggleAdsOnSite")
+                }
+            }
+        } label: {
+            Image(systemName: blocking.symbol)
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(blocking.tint)
+                .frame(width: 30, height: DCTheme.controlHeight)
+                .contentShape(Rectangle())
+        }
+        .accessibilityLabel(blocking.statusTitle)
+        .accessibilityIdentifier("contentBlockingShield")
+    }
+}
+
+/// Ad blocking on the current site, for the shield and the forum menu.
+@MainActor
+struct SiteBlocking {
+    let app: AppModel
+    let url: URL?
+
+    var status: ContentBlockingStatus { app.contentBlockingStatus(for: url) }
+
+    var statusTitle: String {
+        switch status {
+        case .off: String(localized: "Ad blocking is off")
+        case .blocking(let ads, _):
+            ads ? String(localized: "Ads blocked on this site") : String(localized: "Trackers blocked on this site")
+        case .allowedSite: String(localized: "Ads allowed on this site")
+        case .signInPage: String(localized: "Nothing blocked on sign-in pages")
+        }
+    }
+
+    var symbol: String {
+        switch status {
+        case .blocking: "shield.lefthalf.filled"
+        case .off: "shield"
+        case .allowedSite, .signInPage: "shield.slash"
+        }
+    }
+
+    var tint: Color {
+        if case .blocking = status { return DCTheme.success }
+        return .secondary
+    }
+
+    /// Allow / block ads on the current site (nil when it doesn't apply).
+    var toggle: (title: String, systemImage: String, action: () -> Void)? {
+        guard let host = url?.host.flatMap(ContentBlockingRules.normalizedHost) else { return nil }
+        let app = app, url = url
+        switch status {
+        case .blocking:
+            return (String(localized: "Allow ads on \(host)", comment: "Menu item; the placeholder is a website host"), "shield.slash", {
+                DCHaptics.tap()
+                app.setAdsAllowed(true, on: url)
+            })
+        case .allowedSite:
+            return (String(localized: "Block ads on \(host)", comment: "Menu item; the placeholder is a website host"), "shield.lefthalf.filled", {
+                DCHaptics.tap()
+                app.setAdsAllowed(false, on: url)
+            })
+        case .off, .signInPage:
+            return nil
+        }
+    }
+
+    /// The forum menu's "Block Ads on This Site" switch: on while this page
+    /// is filtered. Turning it on with blocking off turns blocking on.
+    var isBlockingHere: Binding<Bool>? {
+        guard url?.host.flatMap(ContentBlockingRules.normalizedHost) != nil, status != .signInPage else { return nil }
+        let app = app, url = url, status = status
+        return Binding(
+            get: { if case .blocking = status { return true } else { return false } },
+            set: { blocks in
+                DCHaptics.tap()
+                if blocks {
+                    app.setAdsAllowed(false, on: url)
+                    if status == .off { app.turnOnContentBlocking() }
+                } else {
+                    app.setAdsAllowed(true, on: url)
+                }
+            }
+        )
+    }
+}
+
+// MARK: - AI button
+
+/// Opens the drawer at medium; a long press starts voice (when set up). A
+/// dot when the topic has new replies and another row holds the hint row's
+/// place (`BottomLayer.showsNewRepliesDot`).
+struct PhoneAIButton: View {
+    @ObservedObject var app: AppModel
+    @ObservedObject var voice: VoiceController
+    /// The layer's inputs, for the dot.
+    @ObservedObject var router: PresentationRouter
+    @ObservedObject var podcast: PodcastController
+    let isAvailable: Bool
+    let onOpen: () -> Void
+    @State private var completedBrowserAgentBounce = 0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private var browserAgent: BrowserAgentSession { app.browserAgent }
+    private var canTalk: Bool { app.showsVoiceButton }
+    private var showsNewRepliesDot: Bool { app.showsNewRepliesDot }
+
+    private var finishedBounceValue: String? {
+        if reduceMotion { return nil }
+        if let id = app.readyAnswer?.id { return id.uuidString }
+        if completedBrowserAgentBounce > 0 { return "agent-\(completedBrowserAgentBounce)" }
+        return nil
+    }
+
+    private var accessibilityValueText: Text {
+        var parts: [String] = []
+        if browserAgent.isRunning {
+            parts.append(String(localized: "Working", comment: "Accessibility value of the AI button while the browser agent is working"))
+        }
+        if showsNewRepliesDot {
+            parts.append(String(localized: "New replies", comment: "Accessibility value of the iPhone AI button while its dot says the topic has new replies"))
+        }
+        if let scriptDesc = app.toolbarScriptAccessibilityDescription {
+            parts.append(scriptDesc)
+        }
+        return Text(verbatim: parts.joined(separator: ", "))
+    }
+
+    var body: some View {
+        Image(systemName: voice.isActive ? "waveform" : "sparkles")
+            .font(.body.weight(.semibold))
+            .foregroundStyle(isAvailable ? AnyShapeStyle(DCTheme.brandGradient) : AnyShapeStyle(.tertiary))
+            .symbolEffect(.pulse, isActive: voice.isActive)
+            // Done: one bounce (not with Reduce Motion).
+            .symbolEffect(.bounce, value: finishedBounceValue)
+            .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
+            .overlay { ResearchRing(app: app) }
+            .overlay(alignment: .topTrailing) {
+                let badge = app.toolbarScriptBadgeSummary
+                if badge.isVisible {
+                    ScriptCountBadge(summary: badge)
+                } else if showsNewRepliesDot {
+                    NewRepliesDot()
+                }
+            }
+            .contentShape(Circle())
+            .onTapGesture {
+                guard isAvailable else { return }
+                onOpen()
+            }
+            .onLongPressGesture(minimumDuration: 0.45) {
+                guard canTalk else { return }
+                DCHaptics.tap()
+                voice.toggle()
+            }
+            .onChange(of: browserAgent.isRunning) { wasRunning, isRunning in
+                if wasRunning, !isRunning, !app.isAIViewShown, browserAgent.runs.last != nil {
+                    completedBrowserAgentBounce &+= 1
+                }
+            }
+            .accessibilityElement()
+            .accessibilityLabel(
+                app.toolbarOpensBrowserAgentByDefault || app.assistantMode == .browserAgent
+                    ? Text(verbatim: AssistantMode.browserAgent.title)
+                    : Text("AI assistant", comment: "iPhone browser bar button that opens the AI drawer")
+            )
+            .accessibilityValue(accessibilityValueText)
+            .accessibilityHint(canTalk ? Text("Touch and hold to talk to WukongMind", comment: "Accessibility hint of the iPhone AI button when voice is set up") : Text(verbatim: ""))
+            .accessibilityAddTraits(.isButton)
+            .accessibilityRemoveTraits(isAvailable ? [] : .isButton)
+            .accessibilityAction { if isAvailable { onOpen() } }
+            .accessibilityActions {
+                if browserAgent.isRunning {
+                    Button("Stop agent") { browserAgent.stop() }
+                }
+                if canTalk {
+                    Button(voice.isActive ? "End voice" : "Talk to WukongMind") { voice.toggle() }
+                }
+            }
+            .accessibilityIdentifier("aiButton")
+    }
+}
+
+/// Ask the forum's or browser agent's progress around the AI button (and the
+/// split layout's panel toggle); a short arc while the progress is not known,
+/// a full ring once the answer is ready and unseen.
+struct ResearchRing: View {
+    @ObservedObject var app: AppModel
+
+    private var browserAgent: BrowserAgentSession { app.browserAgent }
+
+    var body: some View {
+        if browserAgent.isRunning {
+            BrowserAgentProgressArc(
+                step: browserAgent.currentStep,
+                maxSteps: max(1, browserAgent.maxSteps)
+            )
+        } else if let research = app.activeResearch {
+            ResearchProgressArc(recordID: research.id, progress: app.progress)
+        } else if app.readyAnswer != nil {
+            Circle()
+                .stroke(DCTheme.brandGradient, lineWidth: 2.5)
+                .padding(4)
+                .allowsHitTesting(false)
+                .accessibilityIdentifier("answerReadyRing")
+        }
+    }
+}
+
+private struct BrowserAgentProgressArc: View {
+    let step: Int
+    let maxSteps: Int
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        let fraction = max(0.15, min(0.92, Double(max(1, step)) / Double(max(1, maxSteps))))
+        Circle()
+            .trim(from: 0, to: fraction)
+            .stroke(DCTheme.brandGradient, style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
+            .rotationEffect(.degrees(-90))
+            .padding(4)
+            .animation(reduceMotion ? nil : .linear(duration: 0.3), value: fraction)
+            .allowsHitTesting(false)
+            .accessibilityIdentifier("researchRing")
+    }
+}
+
+private struct ResearchProgressArc: View {
+    let recordID: UUID
+    @ObservedObject var progress: ProgressStore
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        let fraction = progress.value(for: recordID)
+        Circle()
+            .trim(from: 0, to: max(0.08, fraction ?? 0.25))
+            .stroke(DCTheme.brandGradient, style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
+            .rotationEffect(.degrees(-90))
+            .padding(4)
+            .animation(reduceMotion ? nil : .linear(duration: 0.3), value: fraction)
+            .allowsHitTesting(false)
+            .accessibilityIdentifier("researchRing")
+    }
+}
+
+/// The AI button's (or panel toggle's) dot: the topic has new replies
+/// (`AppModel.showsNewRepliesDot`).
+struct NewRepliesDot: View {
+    var body: some View {
+        Circle()
+            .fill(Color.red)
+            .frame(width: 8, height: 8)
+            .padding(8)
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+    }
+}
+
+// MARK: - Forum menu
+
+/// The forum avatar; its menu (spec §4.3): the forum and account, page
+/// navigation, page actions, ad blocking, other forums and Home.
+struct ForumMenuButton: View {
+    @ObservedObject var app: AppModel
+    @ObservedObject var browser: ForumBrowserModel
+    let actions: BrowserActions
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private var forum: Forum? { app.barForum }
+    private var showsHome: Bool { browser.showsForumsHome }
+    private var pageURL: URL? { showsHome ? nil : browser.currentURL }
+    private var topic: ForumTopic? { showsHome ? nil : browser.pageContext.topic }
+
+    var body: some View {
+        Menu {
+            Section {
+                Button(action: actions.showForumsHome) {
+                    Label("Home", systemImage: "square.grid.2x2")
+                }
+                .accessibilityIdentifier("switcherAllForums")
+            }
+            headerSection
+            ControlGroup {
+                Button(action: goBack) { Label("Back", systemImage: "chevron.backward") }
+                    .disabled(!browser.canNavigateBack)
+                Button(action: browser.goForward) { Label("Forward", systemImage: "chevron.forward") }
+                    .disabled(!browser.canGoForward || showsHome)
+                if browser.isLoading, !showsHome {
+                    Button(action: browser.stopLoading) { Label("Stop loading", systemImage: "xmark") }
+                } else {
+                    Button(action: browser.reload) { Label("Reload", systemImage: "arrow.clockwise") }
+                        .disabled(pageURL == nil)
+                }
+                Button(action: goHome) { Label(homeLabel, systemImage: "house") }
+                    .accessibilityIdentifier("browserHome")
+            }
+            // Four icons in one row (the default size wraps Home to its own).
+            .controlGroupStyle(.palette)
+            .controlSize(.small)
+            // A palette keeps the menu open after a tap (the page would
+            // change behind it, e.g. Back from Home); these are commands.
+            .menuActionDismissBehavior(.enabled)
+            pageSection
+            if let pageURL {
+                Menu {
+                    ShareLink(item: pageURL) {
+                        Label("Share Page", systemImage: "square.and.arrow.up")
+                    }
+                    Button {
+                        UIPasteboard.general.url = pageURL
+                        DCHaptics.success()
+                    } label: {
+                        Label("Copy Link", systemImage: "link")
+                    }
+                } label: {
+                    Label("Share", systemImage: "square.and.arrow.up")
+                }
+                .accessibilityIdentifier("forumMenuShare")
+            }
+            Section {
+                Button { actions.openPanel(.history) } label: {
+                    Label("History", systemImage: "clock.arrow.circlepath")
+                }
+                Button { actions.openPanel(.settings) } label: {
+                    Label("Settings", systemImage: "gearshape")
+                }
+            }
+        } label: {
+            avatar
+        }
+        .menuOrder(.fixed)
+        .accessibilityLabel(forum.map { String(localized: "Forum: \($0.displayName)") } ?? String(localized: "Forums"))
+        .accessibilityHint(Text("Forum menu", comment: "Accessibility hint of the iPhone bar's forum avatar"))
+        .accessibilityIdentifier("forumSwitcher")
+    }
+
+    private var avatar: some View {
+        Group {
+            if let forum {
+                ForumIcon(forum: forum, size: 30)
+            } else {
+                Image(systemName: "square.grid.2x2.fill")
+                    .font(.body)
+                    .foregroundStyle(DCTheme.brandGradient)
+                    .frame(width: 30, height: 30)
+            }
+        }
+        .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
+        .contentShape(Circle())
+    }
+
+    // MARK: Sections
+
+    @ViewBuilder
+    private var headerSection: some View {
+        Section {
+            if let forum {
+                Menu {
+                    // A site without a sign-in page offers neither the entry nor its help.
+                    if browser.isAuthenticated ? app.accountURL != nil : app.loginURL != nil {
+                        Button(action: openAccount) {
+                            if browser.isAuthenticated {
+                                Label("Open account", systemImage: "person.crop.circle")
+                            } else {
+                                Label("Sign in", systemImage: "person.badge.key")
+                            }
+                        }
+                        .accessibilityIdentifier("forumMenuAccountOpen")
+                    }
+                    if app.loginURL != nil {
+                        Button(action: actions.showLoginInfo) {
+                            Label("Sign-in help", systemImage: "questionmark.circle")
+                        }
+                        .accessibilityIdentifier("forumMenuSignInHelp")
+                    }
+                    // Per-site settings live with the forum, not in the root menu.
+                    if pageURL != nil, let blocks = SiteBlocking(app: app, url: pageURL).isBlockingHere {
+                        Section {
+                            Toggle(isOn: blocks) {
+                                Label("Block Ads on This Site", systemImage: "shield.lefthalf.filled")
+                            }
+                            .accessibilityIdentifier("menuToggleAdsOnSite")
+                        }
+                    }
+                } label: {
+                    Text(forum.displayName)
+                    Text(accountLine(for: forum))
+                    Image(systemName: browser.isAuthenticated ? "person.crop.circle.fill" : "person.badge.key")
+                }
+                .accessibilityIdentifier("forumMenuAccount")
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var pageSection: some View {
+        Section {
+            if let topic = app.currentTopic, self.topic != nil {
+                Button(action: app.toggleWatchCurrentTopic) {
+                    if app.isWatched(topicKey: topic.topicKey) {
+                        Label("Unwatch topic", systemImage: "eye.slash")
+                    } else {
+                        Label("Watch this topic", systemImage: "eye")
+                    }
+                }
+            }
+            if self.topic != nil, browser.canTranslatePostsOnScreen {
+                Button(action: actions.translatePosts) {
+                    Label("Translate", systemImage: "translate")
+                }
+                .accessibilityIdentifier("menuTranslatePosts")
+            }
+        }
+    }
+
+    // MARK: Actions
+
+    private var homeLabel: String {
+        forum.map { String(localized: "\($0.displayName) home", comment: "Button label: the forum's home page (forum name)") }
+            ?? String(localized: "Forums")
+    }
+
+    private func accountLine(for forum: Forum) -> String {
+        guard browser.isAuthenticated else {
+            return String(localized: "\(forum.host) · Not signed in", comment: "Forum menu header; the placeholder is the forum's host")
+        }
+        if let name = browser.signedInUsername {
+            return String(localized: "\(forum.host) · Logged in as \(name)", comment: "Forum menu header; placeholders: the forum's host, the user's forum username")
+        }
+        return String(localized: "\(forum.host) · Signed in", comment: "Forum menu header; the placeholder is the forum's host")
+    }
+
+    private func goBack() {
+        withAnimation(DCMotion.respecting(reduceMotion)) { browser.navigateBack() }
+    }
+
+    private func goHome() {
+        withAnimation(DCMotion.respecting(reduceMotion)) { app.goHome() }
+    }
+
+    /// Signed in: the user's account page; otherwise the forum's sign-in page.
+    private func openAccount() {
+        let opened = browser.isAuthenticated ? app.loadAccount() : app.loadLogin()
+        if !opened { actions.showForumsHome() }
+    }
+}

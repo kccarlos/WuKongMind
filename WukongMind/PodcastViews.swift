@@ -1,0 +1,271 @@
+import SwiftUI
+
+// The podcast UI: the Today page's podcast section (Make, Play and the row
+// that opens Now Playing, NowPlaying.swift), the read-aloud button, and the
+// podcast part of Settings › Daily digest. The logic is in
+// Podcast/PodcastController.swift.
+
+// MARK: - Today page
+
+/// Make / Play before an episode exists; the Now Playing row after.
+struct PodcastTodaySection: View {
+    @ObservedObject var app: AppModel
+    @ObservedObject var podcast: PodcastController
+    let digest: DailyDigest
+    var onStart: (() -> Void)? = nil
+
+    var body: some View {
+        Section {
+            if let episode = podcast.episode, episode.digestID == digest.id {
+                PodcastNowPlayingRow(app: app, podcast: podcast, episode: episode)
+                    .id("todayPodcast")
+            } else {
+                startCard
+                    .id("todayPodcast")
+            }
+        }
+        .onAppear { podcast.refresh() }
+    }
+
+    private var startCard: some View {
+        VStack(alignment: .leading, spacing: DCTheme.spacingM) {
+            HStack(spacing: DCTheme.spacingS) {
+                Image(systemName: "headphones")
+                    .font(.headline)
+                    .foregroundStyle(DigestStyle.tint)
+                    .accessibilityHidden(true)
+                Text("Listen to today", comment: "Today page: the podcast section's title")
+                    .font(.headline)
+            }
+            Text("Two hosts talk through today’s topics, one chapter per card. Play starts as soon as the first chapter is ready.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: DCTheme.spacingS) { buttons(singleLine: true) }
+                VStack(spacing: DCTheme.spacingS) { buttons(singleLine: false) }
+            }
+            Text(costNote)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            if podcast.engineSelection() == .needsKey {
+                Button {
+                    DCHaptics.tap()
+                    app.requestedSettingsPage = .provider
+                } label: {
+                    Label("Add a Google Gemini or Vertex AI key", systemImage: "key")
+                        .font(.footnote.weight(.semibold))
+                        .frame(minHeight: DCTheme.controlHeight)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(DCTheme.brandBlue)
+                .accessibilityIdentifier("podcastSetupGoogleKey")
+            }
+        }
+        .padding(.vertical, DCTheme.spacingXS)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("podcastStart")
+    }
+
+    @ViewBuilder
+    private func buttons(singleLine: Bool) -> some View {
+        Button {
+            DCHaptics.tap()
+            podcast.make(play: true)
+            if podcast.episode?.digestID == digest.id { onStart?() }
+        } label: {
+            Label("Play", systemImage: "play.fill")
+                .labelStyle(.titleAndIcon)
+                .fixedSize(horizontal: singleLine, vertical: false)
+                .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(DCPrimaryButtonStyle())
+        .disabled(!podcast.canMake)
+        .accessibilityIdentifier("podcastPlay")
+        Button {
+            DCHaptics.tap()
+            podcast.make(play: false)
+            if podcast.episode?.digestID == digest.id { onStart?() }
+        } label: {
+            Label("Make Podcast", systemImage: "waveform")
+                .labelStyle(.titleAndIcon)
+                .fixedSize(horizontal: singleLine, vertical: false)
+                .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(DCActionButtonStyle(prominent: false, minHeight: 50))
+        .disabled(!podcast.canMake)
+        .accessibilityIdentifier("makePodcast")
+    }
+
+    private var costNote: String {
+        if app.digestActivity.isRunning {
+            return String(localized: "The podcast can be made once the digest is ready.", comment: "Today page: the podcast waits for the digest")
+        }
+        let script = String(localized: "Each chapter is one request to your AI provider (\(app.providerSummary(for: .assistant))).", comment: "Today page: what making the podcast's script costs; the placeholder is the provider and model")
+        let voices: String
+        switch podcast.engineSelection() {
+        case .engine(.aiStudio), .engine(.vertex):
+            voices = String(localized: "Google’s voices read it with your key.", comment: "Today page: the podcast is spoken by Gemini text-to-speech, billed to the user's key")
+        case .needsKey:
+            voices = String(localized: "Google’s voices need a Google Gemini or Vertex AI key.", comment: "Today page: Google voices are chosen without a saved key")
+        case .engine(.onDevice), .engine(.fake):
+            voices = String(localized: "This device’s voices read it, free and offline.", comment: "Today page: the podcast is spoken by the built-in voices")
+        }
+        return script + " " + voices
+    }
+}
+
+/// The episode on the Today page: one row that opens Now Playing, where the
+/// controls and the chapters are.
+struct PodcastNowPlayingRow: View {
+    @ObservedObject var app: AppModel
+    @ObservedObject var podcast: PodcastController
+    let episode: PodcastEpisode
+
+    var body: some View {
+        Button {
+            DCHaptics.tap()
+            app.router.item = .nowPlaying
+        } label: {
+            HStack(spacing: DCTheme.spacingS) {
+                Image(systemName: "headphones")
+                    .foregroundStyle(DigestStyle.tint)
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(episode.title)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.primary)
+                        .lineLimit(2)
+                    Text(podcast.statusLine(for: episode))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                }
+                .multilineTextAlignment(.leading)
+                Spacer(minLength: 0)
+                if podcast.activity.isRunning {
+                    ProgressView().controlSize(.small)
+                }
+                Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+                    .accessibilityHidden(true)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("podcastNowPlayingRow")
+    }
+}
+
+// MARK: - Read aloud
+
+/// Reads a summary or a digest card aloud with the podcast's engines (one
+/// host); tapping again pauses.
+struct ReadAloudButton: View {
+    @ObservedObject var podcast: PodcastController
+    let id: String
+    let title: String
+    let text: String
+    var compact = false
+
+    var body: some View {
+        let reading = podcast.isReadingAloud(id)
+        Button {
+            DCHaptics.tap()
+            podcast.readAloud(id: id, title: title, text: text)
+        } label: {
+            if compact {
+                Image(systemName: reading ? "pause.circle" : "speaker.wave.2")
+            } else {
+                Label(reading ? "Pause" : "Listen", systemImage: reading ? "pause.circle" : "speaker.wave.2")
+            }
+        }
+        .accessibilityLabel(reading ? Text("Pause") : Text("Read aloud", comment: "Button: reads the summary aloud"))
+        .accessibilityIdentifier("readAloud-\(id)")
+    }
+}
+
+// MARK: - Settings
+
+/// The podcast part of Settings › Daily digest.
+struct SettingsPodcastSections: View {
+    @ObservedObject var app: AppModel
+    @ObservedObject var podcast: PodcastController
+
+    var body: some View {
+        Section {
+            Toggle(
+                isOn: Binding(
+                    get: { app.settings.dailyDigestEnabled && app.settings.podcastDailyEnabled },
+                    set: { app.settings.podcastDailyEnabled = $0 }
+                )
+            ) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Make the podcast every day")
+                    Text("Right after the digest is made when you open WukongMind: one request per chapter to your AI provider, then the voices.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .tint(DCTheme.brandBlue)
+            .disabled(!app.settings.dailyDigestEnabled)
+            .accessibilityIdentifier("podcastDailyEnabled")
+            Picker("Voices", selection: $app.settings.podcast.engine) {
+                ForEach(PodcastEngineChoice.allCases) { choice in
+                    Text(choice.label).tag(choice)
+                }
+            }
+            .accessibilityIdentifier("podcastEngine")
+            if app.settings.podcast.engine == .google, podcast.googleProviders.isEmpty {
+                NavigationLink {
+                    SettingsProviderPage(app: app)
+                        .navigationTitle(SettingsPage.provider.title)
+                        .navigationBarTitleDisplayMode(.inline)
+                } label: {
+                    Label("Add a Google Gemini or Vertex AI key", systemImage: "key")
+                }
+                .accessibilityIdentifier("podcastAddGoogleKey")
+            }
+            Picker("Length per topic", selection: $app.settings.podcast.minutesPerChapter) {
+                ForEach(PodcastSettings.minuteChoices, id: \.self) { minutes in
+                    Text(SettingsVoicePage.duration(minutes * 60)).tag(minutes)
+                }
+            }
+            .accessibilityIdentifier("podcastLength")
+        } header: {
+            Text("Podcast")
+        } footer: {
+            Text("Automatic uses Google’s voices when you have a Google Gemini or Vertex AI key; otherwise this device’s voices. Nothing is made in the background. The daily switch is kept on this device.")
+        }
+
+        Section {
+            host(.a, name: $app.settings.podcast.hostA, voice: $app.settings.podcast.voiceA)
+            host(.b, name: $app.settings.podcast.hostB, voice: $app.settings.podcast.voiceB)
+        } header: {
+            Text("Hosts")
+        } footer: {
+            Text("The first host guides the episode; the second asks what you might ask. Google’s voice names are used with Google’s voices; this device picks two of its own voices otherwise.")
+        }
+    }
+
+    private func host(_ speaker: PodcastSpeaker, name: Binding<String>, voice: Binding<String>) -> some View {
+        Group {
+            LabeledContent(speaker == .a ? String(localized: "First host", comment: "Settings: the podcast's first host's name") : String(localized: "Second host", comment: "Settings: the podcast's second host's name")) {
+                TextField(speaker.defaultName, text: name)
+                    .multilineTextAlignment(.trailing)
+                    .textInputAutocapitalization(.words)
+                    .autocorrectionDisabled()
+                    .accessibilityIdentifier("podcastHost\(speaker.rawValue)")
+            }
+            Picker(speaker == .a ? String(localized: "First host’s voice", comment: "Settings: the Google voice of the podcast's first host") : String(localized: "Second host’s voice", comment: "Settings: the Google voice of the podcast's second host"), selection: voice) {
+                ForEach(VoiceCatalog.voices) { item in
+                    Text(verbatim: "\(item.name) · \(item.style)").tag(item.name)
+                }
+            }
+            .accessibilityIdentifier("podcastVoice\(speaker.rawValue)")
+        }
+    }
+}

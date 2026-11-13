@@ -12,12 +12,12 @@ easylist.txt ─┐                    adblock-rust (build time)       build_rul
 easyprivacy ──┴─ update_rules.sh ─► dc-adblock-converter ─► JSON ─► sanitize → validate → dedupe
                                                                    → chunk → manifest + ATTRIBUTION
                                                                    ↓
-                                   Forumind/ContentBlocking/ (committed, bundled as a folder)
+                                   WukongMind/ContentBlocking/ (committed, bundled as a folder)
 ```
 
 ## Output contract
 
-The files live in `Forumind/ContentBlocking/`. The project includes this
+The files live in `WukongMind/ContentBlocking/`. The project includes this
 directory as a **folder reference**, so it is copied into the bundle as-is and
 found like this:
 
@@ -231,7 +231,7 @@ It:
 
 1. Runs the converter tests.
 2. Runs the update script.
-3. If `Forumind/ContentBlocking/` changed, opens or updates a PR from
+3. If `WukongMind/ContentBlocking/` changed, opens or updates a PR from
    `bot/update-filter-lists`, committed as `github-actions[bot]`.
 
 **One-time repo setup:** enable Settings → Actions → General → "Allow GitHub
@@ -251,7 +251,7 @@ scripts/adblock/run_tests.sh             # converter tests (cargo test + python 
 ```
 
 Then run the unit tests (`ContentBlockingRulesTests` compiles every chunk in the
-simulator's WebKit) and commit `Forumind/ContentBlocking/`.
+simulator's WebKit) and commit `WukongMind/ContentBlocking/`.
 
 **Tests:**
 
@@ -268,7 +268,7 @@ simulator's WebKit) and commit `Forumind/ContentBlocking/`.
   BY-SA 3.0**; we use the CC BY-SA 3.0 option
   (<https://easylist.to/pages/licence.html>). The bundled JSON is a converted
   derivative. It is distributed under CC BY-SA 3.0 with attribution in
-  `Forumind/ContentBlocking/ATTRIBUTION.md`, which the app shows in
+  `WukongMind/ContentBlocking/ATTRIBUTION.md`, which the app shows in
   Settings › About › Acknowledgements. See also the repository's `NOTICE`.
 - **adblock-rust:** MPL-2.0, used as a build-time tool only (see above).
 - **Sources we avoid:** no GPL-only material (uBlock Origin lists, AdGuard

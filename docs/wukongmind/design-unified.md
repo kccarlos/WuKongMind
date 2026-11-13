@@ -569,7 +569,7 @@ The review rounds that shaped this page (the owner's ten points, roadmap v2, the
 
 ## Appendix: every other view in the code
 
-Every public `struct …: View` / `ViewModifier` under `Forumind/` is named on this page. The ones the tables above don't name:
+Every public `struct …: View` / `ViewModifier` under `WukongMind/` is named on this page. The ones the tables above don't name:
 
 | Views | Kind | Where they land |
 |---|---|---|

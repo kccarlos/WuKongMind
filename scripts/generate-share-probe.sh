@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Regenerates ForumindShare/PageFactsProbe.js, the share extension's Safari
+# Regenerates WukongMindShare/PageFactsProbe.js, the share extension's Safari
 # preprocessing script, from the Swift probe (PageFactsProbe.expression) and
 # the recognizers' declared keys. Run it after changing a recognizer's
 # `factKeys` or the probe; SharedProbeScriptTests fails when the shipped file
@@ -41,7 +41,7 @@ var ExtensionPreprocessingJS = new PageFactsProbe();
 SWIFT
 
 swiftc -o "$work/gen" -module-name Gen \
-  Forumind/ForumSite.swift Forumind/Sites/Recognition/*.swift \
-  Forumind/Sites/HackerNews/HackerNewsRecognizer.swift "$work/main.swift" 2>"$work/err" ||
+  WukongMind/ForumSite.swift WukongMind/Sites/Recognition/*.swift \
+  WukongMind/Sites/HackerNews/HackerNewsRecognizer.swift "$work/main.swift" 2>"$work/err" ||
   { cat "$work/err" >&2; exit 1; }
-"$work/gen" >ForumindShare/PageFactsProbe.js
+"$work/gen" >WukongMindShare/PageFactsProbe.js

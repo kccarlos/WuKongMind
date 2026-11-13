@@ -1,0 +1,19 @@
+import Foundation
+@testable import WukongMind
+
+extension ForumService {
+    /// A network scoped to `siteURL` over this service, as a job builds it.
+    func net(
+        _ siteURL: String,
+        cookieHeader: String? = nil,
+        resourceLoader: (@MainActor @Sendable (URL) async throws -> ForumResourceResponse)? = nil,
+        pace: ForumRequestPace = .default,
+        isPaced: Bool = true
+    ) -> SiteNetwork {
+        SiteNetwork(
+            service: self,
+            siteURL: siteURL,
+            context: SiteRequestContext(cookieHeader: cookieHeader, resourceLoader: resourceLoader, pace: pace, isPaced: isPaced)
+        )
+    }
+}
