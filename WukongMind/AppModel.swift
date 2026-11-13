@@ -60,6 +60,13 @@ enum PanelRoute: String, CaseIterable {
     case history = "History"
 }
 
+/// A request to open the audit log, optionally at one step of one task.
+struct AuditLogRequest: Identifiable, Equatable {
+    var taskID: String?
+    var step: Int?
+    var id: String { "\(taskID ?? "all")-\(step ?? 0)" }
+}
+
 enum AssistantMode: String, CaseIterable, Identifiable {
     case summary = "Summary"
     case chat = "Chat"
@@ -387,6 +394,11 @@ final class AppModel: ObservableObject {
     private(set) lazy var playPauseShortcut = PlayPauseShortcut(podcast: podcast)
     /// Per-site userscript store and automatic WKWebView injector (`ScriptStore.swift`).
     let scriptStore: ScriptStore
+    /// The agent's on-disk audit log and task records (`AuditLog.swift`, `TaskRecord.swift`).
+    let auditLog: AuditLog
+    let taskRecordStore: TaskRecordStore
+    /// Set to open the audit log (optionally at one task and step) from the panel.
+    @Published var auditLogRequest: AuditLogRequest?
     let scriptWebController: ScriptWebController
     /// Observable browser agent session (`BrowserAgent.swift`) for page inspection,
     /// JavaScript execution, CSS injection, userscript persistence, and multi-step
@@ -421,7 +433,9 @@ final class AppModel: ObservableObject {
                 truncationLimit: limit,
                 redactedSecrets: secrets
             )
-        }
+        },
+        auditLog: auditLog,
+        taskRecords: taskRecordStore
     )
     /// Where podcast audio is cached (`Caches/Podcasts`; tests pass their own).
     let podcastDirectory: URL
@@ -466,6 +480,18 @@ final class AppModel: ObservableObject {
         scriptStore: ScriptStore? = nil
     ) {
         self.store = store
+        let auditLog = AuditLog(directory: store.directoryURL.appendingPathComponent("AuditLog", isDirectory: true))
+        let taskRecordStore = TaskRecordStore(
+            directory: store.directoryURL.appendingPathComponent("Tasks", isDirectory: true),
+            resultsRoot: FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?
+                .appendingPathComponent("results", isDirectory: true),
+            cookieSource: WebKitTaskCookieSource()
+        )
+        self.auditLog = auditLog
+        self.taskRecordStore = taskRecordStore
+        // Retention runs at launch: the oldest audit days and task records go.
+        DispatchQueue.global(qos: .utility).async { auditLog.prune() }
+        Task.detached(priority: .utility) { await taskRecordStore.prune() }
         self.backgroundGrace = backgroundGrace ?? ApplicationBackgroundGrace()
         spotlight = Self.makeSpotlightIndexer(index: spotlightIndex, store: store)
         self.topicActivityDonor = topicActivityDonor ?? Self.makeTopicActivityDonor(store: store)
