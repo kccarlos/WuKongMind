@@ -1,20 +1,16 @@
-# WUKO-23 recap
+# WUKO-29 recap
 
-**Goal:** replace the four assistant panels with one Agent conversation view (iPhone drawer, iPad sidebar) with composer, mic hook and status line; engines untouched; about 500 changed lines.
+**Goal:** restyle the one conversation's results and tool rows with the design system (ToolRow, ResultCard, Message, ScriptCard, listen row); engines untouched; about 450 changed lines.
 
-**Rounds**
-- Before me: a previous agent left an uncommitted ~5000-line rewrite (panels, composer, status line, tests).
-- Me: committed it, fixed 3 failing UI tests (empty-panel mascot id, Create summary entry, Instructions moved to the ⋯ menu), screenshots, proof artifact, ready.
-- Review 1: UI tests still used removed controls (askScopeButton, modelPill); a Shortcuts question was dropped; mode code only partly removed. I fixed the tests and the dropped question, and rejected removing the leftover mode code (engine tests use it).
-- Review 2 and 3: passed. PR #29 then conflicted with main (WUKO-24, settings by object).
-- After that: I merged origin/main, resolved the catalog (three-way by key), `AppModel+Assistant.swift` and one UI test. Build, catalog check and drift check OK; the 3 key UI tests pass on the iPhone simulator. The merge is committed locally; **not pushed and ready not re-run** because of the stop.
+**Rounds:** no review yet. Build and `WukongMindTests` pass on the iPhone simulator. Screenshots (folded steps, summary card, script card + saved note; light/dark, iPhone/iPad) are in the proof artifact `wuko-29-one-panel-2c-res-b2ca`.
 
-**Recurring finding and premise:** every finding came from the panel rewrite deleting controls that tests or other entry points still referenced. The premise is that the old `assistantMode` and ask-scope code stays until the engine tasks, so tests and entry points keep touching it.
+**Why it is over size:** diff is 487 added and 520 removed (1,023 gross; 3,018 more lines are the regenerated project file). About half is deletion: the old step timeline, tool style table and `BrowserAgentToolRowView` in `AgentPanel.swift`, replaced by one new file `ConversationViews.swift` (292 lines: DCToolRow, DCStepsFold, DCResultCard, DCCitationChip, DCListenRow, DCSavedNote, rise-in motion). Splitting the removal from the new components would leave dead or duplicate code.
 
-**Open items:** `PhysicalDeviceSmokeTests` still uses askScopeButton, assistantModePicker and selectMode (device-only, stale, not run). Unused ask-scope code remains. Change size is far over the 500-line aim. Full UI suite not re-run after the merge.
+**Done:** tense labels (Running script / Ran script), code names and durations only in developer mode, one step shows directly, two or more fold into "Steps N" after the run, summary and forum answer as jade ResultCards with citation chips, podcast listen row, gold-wash script card, "Saved. Faster next time." note, user bubble shape, failure on cinnabar-wash.
+
+**Open items / not proven:** running ring, expanded rows, single-step row, answer card and listen row were not screenshotted (demo run too fast, no launch flag reaches them); Reduce Motion, device and CI not checked. `ResultCardsOverlay` stays (the migration list says keep). `RECAP.md` here overwrites the older tracked WUKO-23 recap and is not committed.
 
 **Options**
-1. Push the merge and run ready (one more review round). Likely passes.
-2. Split: land the panel now, and a follow-up task cleans the dead mode code and the device smoke tests.
-3. New approach: not needed.
-4. Drop: not advised, the work is reviewed twice.
+1. Accept the size and run ready (recommended): the gross count is mostly replaced code.
+2. Split into two tasks: new components plus tool rows, then result cards.
+3. Drop: not advised.
