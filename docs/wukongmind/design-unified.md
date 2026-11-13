@@ -381,7 +381,7 @@ Today onboarding is a full-screen cover on both devices (`RootPresentation.isFul
 
 ```
 OnboardingFlow
-├─ 1 OnboardingModelPage     // the Logo mark with "WukongMind" beside it, "An agent for any web page"; OnboardingProviderPage's list for the Agent role
+├─ 1 OnboardingModelPage     // the Logo mark (replaces BrandMark) with "WukongMind" beside it, "An agent for any web page"; OnboardingProviderPage's list for the Agent role
 │                            // (tool-calling models only), key field; footnote "Keys stay in the Keychain"; Continue / Later
 ├─ 2 OnboardingSitePage      // AddressField + suggested sites (from ForumDirectory, no forum badge; subtitles say what the site is about) ; Open
 └─ 3 OnboardingTryPage       // the chosen page behind a medium drawer: the real AssistantPanel with two suggestions
