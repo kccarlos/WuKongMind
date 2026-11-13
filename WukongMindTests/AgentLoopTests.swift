@@ -816,3 +816,41 @@ final class AgentLoopTests: XCTestCase {
     }
     #endif
 }
+
+// MARK: - One panel 2b: context hand-off
+
+extension AgentLoopTests {
+    /// A follow-up after a summary: the model's turn carries the summary,
+    /// the user's bubble and the run show only the question.
+    @MainActor
+    func testFollowUpCarriesHandedOverContextOnlyToTheModel() async throws {
+        let client = RecordedModelClient([
+            .success(AgentModelTurnResponse(text: "Post 3 has the CSS.", toolCalls: [], usage: AgentTokenUsage(inputTokens: 10, outputTokens: 5)))
+        ])
+        let session = BrowserAgentSession(
+            pageDriver: StubDriver(),
+            modelClient: client,
+            configProvider: {
+                BrowserAgentRuntimeConfig(
+                    selection: ModelSelection(provider: .anthropic, model: "claude-haiku-5-5"),
+                    configuration: ProviderConfiguration(model: "claude-haiku-5-5", baseURL: AIProvider.anthropic.defaultBaseURL, apiKey: "fake-key"),
+                    maxSteps: 3,
+                    truncationLimit: 20_000,
+                    customInstructions: "",
+                    redactedSecrets: []
+                )
+            }
+        )
+        session.appendLocalReply(prompt: "Notify me of new replies", reply: "Following.")
+        XCTAssertEqual(session.runs.last?.assistantText, "Following.")
+        XCTAssertTrue(session.history.isEmpty, "A local reply never reaches the model.")
+
+        await session.sendAndWait("Which post has the CSS?", context: "Summary of the forum thread: #3 explains the CSS.")
+        let firstTurn = try XCTUnwrap(client.recordedRequests.first?.messages.first)
+        guard case .user(let text) = firstTurn else { return XCTFail("Expected a user turn, got \(firstTurn)") }
+        XCTAssertTrue(text.contains("#3 explains the CSS."), text)
+        XCTAssertTrue(text.hasSuffix("Which post has the CSS?"), text)
+        XCTAssertEqual(session.messages.first?.text, "Which post has the CSS?")
+        XCTAssertEqual(session.runs.last?.prompt, "Which post has the CSS?")
+    }
+}

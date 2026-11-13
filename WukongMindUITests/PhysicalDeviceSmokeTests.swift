@@ -663,7 +663,7 @@ final class PhysicalDeviceSmokeTests: DCUITestCase {
         pullButton.tap()
 
         // The summary button is disabled while the pull runs and re-enables after.
-        let summaryButton = any(app, "createSummary")
+        let summaryButton = any(app, "suggestion-summarizeThread")
         try waitForEnabled(
             summaryButton,
             in: app,
@@ -751,7 +751,7 @@ final class PhysicalDeviceSmokeTests: DCUITestCase {
 
         try selectForumTopic(in: app)
 
-        let summaryButton = any(app, "createSummary")
+        let summaryButton = any(app, "suggestion-summarizeThread")
         XCTAssertTrue(summaryButton.isEnabled)
         XCTAssertTrue(any(app, "assistantTopicTitle").exists)
         XCTAssertFalse(any(app, "notForumState").exists)
@@ -765,7 +765,7 @@ final class PhysicalDeviceSmokeTests: DCUITestCase {
         let app = try launchOnForum()
         try selectForumTopic(in: app)
 
-        let summaryButton = any(app, "createSummary")
+        let summaryButton = any(app, "suggestion-summarizeThread")
         XCTAssertTrue(summaryButton.waitForExistence(timeout: 10))
         XCTAssertTrue(
             summaryButton.isEnabled,
@@ -1195,7 +1195,7 @@ final class PhysicalDeviceSmokeTests: DCUITestCase {
         }
 
         XCTAssertTrue(
-            any(app, "createSummary").waitForExistence(timeout: 30),
+            any(app, "suggestion-summarizeThread").waitForExistence(timeout: 30),
             "Selecting a Discourse SPA topic did not activate the summary panel."
         )
     }
