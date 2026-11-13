@@ -15,10 +15,11 @@ final class SuggestionRoutingTests: XCTestCase {
     func testPageKindFollowsThePageState() {
         XCTAssertEqual(PageSuggestions.pageKind(state: .topic, hasPage: true), .forumThread)
         XCTAssertEqual(PageSuggestions.pageKind(state: .forumHome, hasPage: true), .forumList)
-        // Unrecognised sites (and pages still loading) are ordinary pages.
+        // Unrecognised sites are ordinary pages.
         XCTAssertEqual(PageSuggestions.pageKind(state: .notForum, hasPage: true), .ordinaryPage)
         XCTAssertEqual(PageSuggestions.pageKind(state: .maybe, hasPage: true), .ordinaryPage)
-        XCTAssertEqual(PageSuggestions.pageKind(state: .loading, hasPage: true), .ordinaryPage)
+        // A loading page's kind isn't known yet: no row (no flash of page suggestions).
+        XCTAssertNil(PageSuggestions.pageKind(state: .loading, hasPage: true))
         // No page open: no row.
         XCTAssertNil(PageSuggestions.pageKind(state: .notForum, hasPage: false))
         XCTAssertNil(PageSuggestions.pageKind(state: .loading, hasPage: false))
@@ -33,6 +34,10 @@ final class SuggestionRoutingTests: XCTestCase {
 
     func testAFollowedThreadDropsNotifyMe() {
         XCTAssertEqual(PageSuggestions.suggestions(for: .forumThread, isFollowing: true), [.summarizeThread, .readAloud, .searchForum])
+    }
+
+    func testARunningSummaryDropsSummarize() {
+        XCTAssertEqual(PageSuggestions.suggestions(for: .forumThread, isSummarizing: true), [.readAloud, .searchForum, .followReplies])
     }
 
     func testAtMostFourVisibleAndOnlySearchFillsTheBox() {
@@ -93,6 +98,10 @@ final class SuggestionRoutingTests: XCTestCase {
         XCTAssertTrue(context.contains("followed the thread \"Dark mode\""), context)
         XCTAssertTrue(app.agentHandoffs.isEmpty, "A deleted run is dropped, the rest are handed over.")
         XCTAssertNil(app.takeAgentHandoffContext(), "Each result goes along once.")
+
+        // The same summary handed over again (e.g. a second Read it to me) is skipped.
+        app.agentHandoffs = [.summary(topicKey: session.topicKey)]
+        XCTAssertNil(app.takeAgentHandoffContext())
     }
 
     func testAMissingSummaryIsNotHandedOver() {

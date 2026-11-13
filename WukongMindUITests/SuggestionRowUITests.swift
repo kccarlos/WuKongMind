@@ -10,6 +10,7 @@ final class SuggestionRowUITests: DCUITestCase {
     }
 
     /// The row scrolls sideways: swipe until the chip can be tapped.
+    @discardableResult
     private func scrollToChip(_ app: XCUIApplication, _ id: String) -> XCUIElement {
         let element = chip(app, id)
         XCTAssertTrue(waitOrDump(element, timeout: 20, in: app), "Missing suggestion \(id).")
@@ -68,6 +69,18 @@ final class SuggestionRowUITests: DCUITestCase {
             "Read it to me did not start reading the summary aloud."
         )
         capture("suggestion-read-aloud")
+    }
+
+    /// Read it to me with no summary yet: it summarizes first, then reads.
+    func testReadAloudWithoutASummarySummarizesFirst() {
+        let app = launch(thread + ["-dc-no-summary", "-dc-fake-summary"])
+        showAssistant(in: app)
+        scrollToChip(app, "readAloud").tap()
+        XCTAssertTrue(wait(timeout: 30) { app.buttons["retrySummary"].exists }, "Read it to me did not write the summary.")
+        XCTAssertTrue(
+            wait(timeout: 15) { app.buttons.matching(label(contains: "Pause")).firstMatch.exists },
+            "The summary was not read aloud once written."
+        )
     }
 
     /// Notify me follows the thread: the Agent says "Following", the switch

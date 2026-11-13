@@ -540,6 +540,7 @@ struct AssistantPanel: View {
                     DCHaptics.tap()
                     browserAgent.resetConversation()
                     app.agentHandoffs = []
+                    app.handedOverSummaries = [:]
                     app.researchFillPending = false
                     if app.assistantMode == .agent {
                         app.assistantMode = .summary
@@ -689,7 +690,11 @@ struct AssistantPanel: View {
 
     private var visibleSuggestions: [PageSuggestion] {
         let isFollowing = app.currentTopic.map { app.isWatched(topicKey: $0.topicKey) } ?? false
-        return PageSuggestions.suggestions(for: suggestionKind, isFollowing: isFollowing)
+        return PageSuggestions.suggestions(
+            for: suggestionKind,
+            isFollowing: isFollowing,
+            isSummarizing: activeSummary != nil || activePull != nil
+        )
     }
 
     /// While the box is empty and the Agent is idle; it hides once you type.

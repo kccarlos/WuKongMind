@@ -71,8 +71,13 @@ extension AppModel {
     }
 
     /// Finished results not handed over yet, as one context block; results
-    /// still running stay for a later message.
+    /// still running stay for a later message. The open thread's summary
+    /// (saved, retried or started from a suggestion) goes along once per
+    /// version, so a follow-up question sees what the panel shows.
     func takeAgentHandoffContext() -> String? {
+        if let topic = currentTopic, currentSession?.hasSummary == true {
+            addHandoff(.summary(topicKey: topic.topicKey))
+        }
         var parts: [String] = []
         var waiting: [AgentHandoff] = []
         for handoff in agentHandoffs {
@@ -80,7 +85,9 @@ extension AppModel {
             case .summary(let key):
                 if summaryIsRunning(topicKey: key) {
                     waiting.append(handoff)
-                } else if let session = sessions[key], session.hasSummary {
+                } else if let session = sessions[key], session.hasSummary,
+                          handedOverSummaries[key] != (session.summaryUpdatedAt ?? .distantPast) {
+                    handedOverSummaries[key] = session.summaryUpdatedAt ?? .distantPast
                     parts.append("Summary of the forum thread \"\(session.title)\" (\(session.url.absoluteString)):\n\(Self.capped(session.summary))")
                 }
             case .research(let id):

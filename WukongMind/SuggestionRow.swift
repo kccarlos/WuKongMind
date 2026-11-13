@@ -76,21 +76,26 @@ enum SuggestionRoute: Equatable {
 enum PageSuggestions {
     /// The page kind for the panel's state. Built-in forums (a recognized
     /// site) are `.topic` / `.forumHome`; everything else is an ordinary page.
-    /// nil: no page open, so no row.
+    /// nil: no page open, or one still loading (its kind isn't known yet), so no row.
     static func pageKind(state: PageContext.State, hasPage: Bool) -> SuggestionPageKind? {
         switch state {
         case .topic: .forumThread
         case .forumHome: .forumList
-        case .notForum, .maybe, .loading: hasPage ? .ordinaryPage : nil
+        case .notForum, .maybe: hasPage ? .ordinaryPage : nil
+        case .loading: nil
         }
     }
 
-    /// The suggestions for a page, in order. "Notify me of new replies" is
-    /// absent once the thread is followed.
-    static func suggestions(for kind: SuggestionPageKind?, isFollowing: Bool = false) -> [PageSuggestion] {
+    /// The suggestions for a page, in order. "Summarize" is absent while a
+    /// summary is being written, "Notify me" once the thread is followed.
+    static func suggestions(
+        for kind: SuggestionPageKind?,
+        isFollowing: Bool = false,
+        isSummarizing: Bool = false
+    ) -> [PageSuggestion] {
         switch kind {
         case .forumThread:
-            [.summarizeThread, .readAloud, .searchForum] + (isFollowing ? [] : [.followReplies])
+            (isSummarizing ? [] : [.summarizeThread]) + [.readAloud, .searchForum] + (isFollowing ? [] : [.followReplies])
         case .forumList:
             [.worthReadingToday, .searchForum]
         case .ordinaryPage:

@@ -200,6 +200,9 @@ final class AppModel: ObservableObject {
     /// Old-engine results started from suggestions, attached once as context
     /// to the Agent's next message (`AppModel+Suggestions.swift`).
     var agentHandoffs: [AgentHandoff] = []
+    /// Summaries already handed to the Agent in this conversation, by topic
+    /// key: the `summaryUpdatedAt` of the version it got.
+    var handedOverSummaries: [String: Date] = [:]
     /// "Search this forum…" filled the composer: its completed text goes to
     /// the old Research loop.
     var researchFillPending = false
