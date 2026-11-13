@@ -33,7 +33,7 @@ final class FakePacingClock: ForumPacingClock, @unchecked Sendable {
 
     func sleep(until deadline: TimeInterval) async throws {
         try Task.checkCancellation()
-        guard deadline > now() else { return }
+        guard deadline > 0 else { return }
         if blocks {
             try await Task.sleep(for: .seconds(3_600))
         }
@@ -57,13 +57,39 @@ private final class RequestLog {
     private(set) var entries: [Entry] = []
     private(set) var maxInFlight = 0
     private var inFlight = 0
+    private var startTogether: Int
+    private var expectedPageConcurrency: Int
+    private var startedWaiters: [CheckedContinuation<Void, Never>] = []
+    private var startFallback: Task<Void, Never>?
+    private var pageWaiters: [CheckedContinuation<Void, Never>] = []
+    private var pageFallback: Task<Void, Never>?
     let clock: FakePacingClock
     /// Status (and Retry-After) for the nth request to a path+page; default 200.
     var failures: [String: [(status: Int, retryAfter: String?)]] = [:]
     var postsCount = 450
 
-    init(clock: FakePacingClock) {
+    init(clock: FakePacingClock, startTogether: Int = 1, expectedPageConcurrency: Int = 1) {
         self.clock = clock
+        self.startTogether = startTogether
+        self.expectedPageConcurrency = expectedPageConcurrency
+    }
+
+    private func releaseStartWaiters() {
+        startFallback?.cancel()
+        startFallback = nil
+        startTogether = 1
+        let waiters = startedWaiters
+        startedWaiters.removeAll()
+        for waiter in waiters { waiter.resume() }
+    }
+
+    private func releasePageWaiters() {
+        pageFallback?.cancel()
+        pageFallback = nil
+        expectedPageConcurrency = 1
+        let waiters = pageWaiters
+        pageWaiters.removeAll()
+        for waiter in waiters { waiter.resume() }
     }
 
     func loader(_ url: URL) async throws -> ForumResourceResponse {
@@ -72,6 +98,35 @@ private final class RequestLog {
         entries.append(Entry(path: url.path, page: page, time: clock.now()))
         inFlight += 1
         maxInFlight = max(maxInFlight, inFlight)
+        if startTogether > 1 {
+            startTogether -= 1
+            if startFallback == nil {
+                startFallback = Task { @MainActor [weak self] in
+                    try? await Task.sleep(for: .seconds(5))
+                    self?.releaseStartWaiters()
+                }
+            }
+            await withCheckedContinuation { continuation in
+                startedWaiters.append(continuation)
+            }
+        } else if !startedWaiters.isEmpty {
+            releaseStartWaiters()
+        }
+        if page != nil, expectedPageConcurrency > 1 {
+            if inFlight >= expectedPageConcurrency {
+                releasePageWaiters()
+            } else {
+                if pageFallback == nil {
+                    pageFallback = Task { @MainActor [weak self] in
+                        try? await Task.sleep(for: .seconds(5))
+                        self?.releasePageWaiters()
+                    }
+                }
+                await withCheckedContinuation { continuation in
+                    pageWaiters.append(continuation)
+                }
+            }
+        }
         // Stay in flight across a few hops so overlapping requests overlap.
         for _ in 0..<5 { await Task.yield() }
         inFlight -= 1
@@ -167,7 +222,7 @@ final class ForumPacingTests: XCTestCase {
     func testStandardAndFastAllowMoreAtOnce() async throws {
         for (pace, spacing, elapsed) in [(ForumRequestPace.standard, 0.5, 2.5), (.fast, 0, 0)] {
             let clock = FakePacingClock()
-            let log = RequestLog(clock: clock)
+            let log = RequestLog(clock: clock, expectedPageConcurrency: pace.maximumConcurrency)
             let service = ForumService(pacer: ForumRequestPacer(clock: clock))
             let result = try await fetch(service, log: log, pace: pace)
             XCTAssertEqual(result.rawPages.map(\.page), [1, 2, 3, 4, 5])
@@ -228,7 +283,7 @@ final class ForumPacingTests: XCTestCase {
         // sleeps, so request times are not exact; the spacing on one forum
         // is checked exactly in testGentleIsSequentialOneRequestPerSecondInOrder,
         // and independence by the exact checks at the top of this test.
-        let log = RequestLog(clock: FakePacingClock())
+        let log = RequestLog(clock: FakePacingClock(), startTogether: 2)
         let service = ForumService(pacer: ForumRequestPacer(clock: log.clock))
         async let one = fetch(service, log: log, pace: .gentle, site: "https://one.example.com")
         async let two = fetch(service, log: log, pace: .gentle, site: "https://two.example.org")
@@ -444,7 +499,7 @@ final class ForumPacingTests: XCTestCase {
 
     func testRateLimitingDisabledSendsAllPagesImmediatelyWithoutPacerCaps() async throws {
         let clock = FakePacingClock()
-        let log = RequestLog(clock: clock)
+        let log = RequestLog(clock: clock, expectedPageConcurrency: 5)
         let pacer = ForumRequestPacer(clock: clock)
         let service = ForumService(pacer: pacer)
         let result = try await fetch(service, log: log, pace: .gentle, isPaced: false)

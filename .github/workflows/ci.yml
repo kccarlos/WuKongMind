@@ -84,7 +84,6 @@ jobs:
       - name: Build and test
         env:
           DESTINATION: ${{ steps.sim.outputs.destination }}
-          TEST_RUNNER_CI: ${{ env.CI }}
           NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
           VERTEX_API_KEY: ${{ secrets.VERTEX_API_KEY }}
         run: |
@@ -97,8 +96,6 @@ jobs:
             -destination "$DESTINATION" \
             -only-testing:WukongMindTests \
             -parallel-testing-enabled NO \
-            -retry-tests-on-failure \
-            -test-iterations 3 \
             -test-timeouts-enabled YES \
             -maximum-test-execution-time-allowance 300 \
             -derivedDataPath DerivedData \
