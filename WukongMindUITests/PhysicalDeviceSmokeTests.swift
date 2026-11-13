@@ -839,7 +839,7 @@ final class PhysicalDeviceSmokeTests: DCUITestCase {
         let webView = app.webViews.firstMatch
         XCTAssertTrue(webView.waitForExistence(timeout: 20), "The browser web view did not appear.")
         XCTAssertTrue(any(app, "agentPanel").waitForExistence(timeout: 20), "The browser agent panel did not open.")
-        XCTAssertTrue(any(app, "agentHostPill").waitForExistence(timeout: 10), "The non-Discourse host pill is missing.")
+        XCTAssertTrue(any(app, "pageCapabilitiesSeal").waitForExistence(timeout: 10), "The This page seal is missing.")
 
         let statusLine = any(app, "agentStatusLine")
         let finished = wait(timeout: 90) {
@@ -923,7 +923,7 @@ final class PhysicalDeviceSmokeTests: DCUITestCase {
         XCTAssertTrue(title.waitForExistence(timeout: 10), "The bar has no title capsule.")
         XCTAssertTrue(app.buttons["aiButton"].exists || any(app, "aiButton").exists, "The bar has no AI button.")
         XCTAssertFalse(app.buttons["browserMoreMenu"].exists)
-        XCTAssertTrue(any(app, "contentBlockingShield").exists, "The ad shield is not in the title.")
+        XCTAssertFalse(any(app, "contentBlockingShield").exists, "The ad shield moved from the address capsule into This page.")
 
         // The forum menu lists every bar action (menu items keep only labels).
         openForumMenu(in: app)

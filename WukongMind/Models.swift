@@ -119,6 +119,8 @@ struct AppSettings: Codable, Equatable {
     /// Topics the user reads are offered to Siri suggestions
     /// (`NSUserActivity`). On by default; per device.
     var donatesTopicActivity = true
+    /// Shows token counts on the status line and raw tool names/durations.
+    var developerMode = false
 
     init() {}
 
@@ -159,6 +161,7 @@ struct AppSettings: Codable, Equatable {
         case readingLanguage
         case spotlightEnabled
         case donatesTopicActivity
+        case developerMode
     }
 
     // A missing key takes its default; an unreadable value fails the decode
@@ -245,6 +248,7 @@ struct AppSettings: Codable, Equatable {
         readingLanguage = try container.decodeIfPresent(String.self, forKey: .readingLanguage) ?? ""
         spotlightEnabled = try container.decodeIfPresent(Bool.self, forKey: .spotlightEnabled) ?? true
         donatesTopicActivity = try container.decodeIfPresent(Bool.self, forKey: .donatesTopicActivity) ?? true
+        developerMode = try container.decodeIfPresent(Bool.self, forKey: .developerMode) ?? false
     }
 
     func configuration(for provider: AIProvider) -> ProviderConfiguration {

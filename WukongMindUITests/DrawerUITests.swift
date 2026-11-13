@@ -133,50 +133,6 @@ final class DrawerUITests: DCUITestCase {
         }
     }
 
-    func testLatestMessageControlLeavesChatActionsUncovered() throws {
-        try skipUnlessPhone("Drawer chat layout")
-        continueAfterFailure = true
-        let app = launch(sample + ["-dc-assistant-mode", "chat", "-dc-drawer-detent", "large"])
-        let jump = app.buttons["chatScrollToBottom"]
-        XCTAssertTrue(jump.waitForExistence(timeout: 20))
-        let scroll = any(app, "chatScroll")
-        XCTAssertGreaterThanOrEqual(jump.frame.minY, scroll.frame.maxY - 1,
-            "The latest-message control must reserve space outside the message viewport")
-        let edit = app.buttons["Edit"].firstMatch
-        XCTAssertTrue(reveal(edit, in: app))
-        if jump.exists {
-            XCTAssertFalse(jump.frame.intersects(edit.frame), "Edit must remain uncovered")
-        }
-        captureAuditScreen("base-chat-edit-action", in: app)
-    }
-
-    func testAccessibilityChatEditingKeepsQuestionReadable() throws {
-        try skipUnlessPhone("Drawer accessibility editing")
-        let app = launch(sample + ["-dc-assistant-mode", "chat", "-dc-drawer-detent", "large",
-            "-UIPreferredContentSizeCategoryName", UIContentSizeCategory.accessibilityExtraExtraExtraLarge.rawValue])
-        XCTAssertTrue(drawerState(in: app).waitForExistence(timeout: 20))
-        let edit = app.buttons["Edit"].firstMatch
-        XCTAssertTrue(reveal(edit, in: app, swipes: 48))
-        // reveal's swipes fling: a tap while the chat still glides misses the button.
-        var last = CGRect.null
-        XCTAssertTrue(wait(timeout: 5) { let frame = edit.frame; defer { last = frame }; return frame == last })
-        edit.tap()
-        let field = app.textFields["chatInput"]
-        XCTAssertTrue(any(app, "chatEditBanner").waitForExistence(timeout: 5))
-        XCTAssertGreaterThanOrEqual(field.frame.width, 180)
-        let title = app.staticTexts["Editing question"].firstMatch
-        let font = UIFont.preferredFont(forTextStyle: .caption1, compatibleWith:
-            UITraitCollection(preferredContentSizeCategory: .accessibilityExtraExtraExtraLarge))
-        let titleWidth = (title.label as NSString).size(withAttributes: [.font: font]).width
-        XCTAssertTrue(title.frame.width >= titleWidth - 2 || title.frame.height >= font.lineHeight * 2 - 2,
-                      "The editing banner must show its full title")
-        let wordWidth = ("question" as NSString).size(withAttributes: [.font: font]).width
-        XCTAssertGreaterThanOrEqual(title.frame.width, wordWidth - 2, "Editing words must fit without hyphenation")
-        XCTAssertTrue(app.buttons["cancelChatEdit"].isHittable)
-        XCTAssertTrue(app.buttons["assistantMoreMenu"].isHittable)
-        captureAuditScreen("ax5-chat-edit", in: app)
-    }
-
     func testAccessibilityDrawerKeepsTitleAndComposerReadable() throws {
         try skipUnlessPhone("Drawer accessibility layout")
         for detent in ["medium", "large"] {
@@ -185,7 +141,7 @@ final class DrawerUITests: DCUITestCase {
             XCTAssertTrue(drawerState(in: app).waitForExistence(timeout: 20))
             XCTAssertTrue(wait(timeout: 5) { drawerState(in: app).label == "detent=\(detent)" })
             let title = any(app, "drawerTitle")
-            let field = app.textFields["chatInput"]
+            let field = app.textFields["agentPromptInput"]
             XCTAssertTrue(field.waitForExistence(timeout: 5))
             let shot = XCTAttachment(screenshot: app.screenshot())
             shot.name = "ax5-drawer-summary-\(detent)"
@@ -198,7 +154,7 @@ final class DrawerUITests: DCUITestCase {
             let scale: CGFloat = detent == "medium" ? 0.94 : 1
             XCTAssertGreaterThanOrEqual(title.frame.width, titleWidth * scale - 2, "Header title must fit without truncation")
             XCTAssertGreaterThanOrEqual(field.frame.width, 180, "AX5 field must keep room to read and edit a question")
-            XCTAssertGreaterThanOrEqual(app.buttons["Send question"].frame.width, 44 * scale)
+            XCTAssertGreaterThanOrEqual(app.buttons["composerMic"].frame.width, 44 * scale)
             if detent == "large" {
                 any(app, "summaryDetails").coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
                 let metadata = app.staticTexts.matching(label(contains: "88 posts")).firstMatch
@@ -206,162 +162,11 @@ final class DrawerUITests: DCUITestCase {
                 XCTAssertTrue(metadata.label.contains("Kept"))
                 captureAuditScreen("ax5-summary-details", in: app)
                 app.buttons["assistantMoreMenu"].tap()
-                let model = app.buttons.matching(label(contains: "claude-sonnet-4-5")).firstMatch
-                XCTAssertTrue(model.waitForExistence(timeout: 5), "Model selection stays available in More at accessibility sizes")
+                let model = app.buttons.matching(label(contains: "Model")).firstMatch
+                XCTAssertTrue(model.waitForExistence(timeout: 5), "Model submenu stays available in More at accessibility sizes")
                 captureAuditScreen("ax5-model-overflow", in: app)
             }
         }
-    }
-
-    func testAskControlsStayInsideBarAcrossDetentsAndKeyboard() throws {
-        try skipUnlessPhone("Drawer geometry")
-        continueAfterFailure = true
-        let server = FixtureWordPressServer()
-        try server.start()
-        defer { server.stop() }
-        server.streamedSummary = (["## Summary\n" + String(repeating: "Readers compare the options and explain their experiences. #1\n\n", count: 30)], 0.001)
-        let app = launch(["-dc-open", server.postURL, "-dc-fixture-model", server.baseURL,
-                          "-dc-voice-fake", "-AppleInterfaceStyle", "Light",
-                          "-UIPreferredContentSizeCategoryName", UIContentSizeCategory.large.rawValue])
-        showAssistant(in: app)
-        let summarize = app.buttons["createSummary"].firstMatch
-        XCTAssertTrue(waitOrDump(summarize, timeout: 30, in: app))
-        summarize.tap()
-        let retry = app.buttons["retrySummary"].firstMatch
-        XCTAssertTrue(wait(timeout: 30) { retry.exists && retry.isEnabled })
-        XCTAssertTrue(any(app, "askSuggestions").exists)
-        let bar = any(app, "askBox")
-        XCTAssertTrue(waitOrDump(bar, timeout: 20, in: app))
-        var iconInk: [String: Set<Int>] = [:]
-        func ink(in frame: CGRect, screenshot: XCUIScreenshot) -> Set<Int> {
-            guard let image = screenshot.image.cgImage else { return [] }
-            let scale = CGFloat(image.width) / app.windows.firstMatch.frame.width
-            let rect = CGRect(x: frame.minX * scale, y: frame.minY * scale,
-                              width: frame.width * scale, height: frame.height * scale).integral
-            guard let crop = image.cropping(to: rect) else { return [] }
-            var pixels = [UInt8](repeating: 0, count: 44 * 44 * 4)
-            pixels.withUnsafeMutableBytes { bytes in
-                let context = CGContext(data: bytes.baseAddress, width: 44, height: 44,
-                                        bitsPerComponent: 8, bytesPerRow: 44 * 4,
-                                        space: CGColorSpaceCreateDeviceRGB(),
-                                        bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
-                context?.draw(crop, in: CGRect(x: 0, y: 0, width: 44, height: 44))
-            }
-            return Set((0..<(44 * 44)).filter {
-                pixels[$0 * 4] < 180 && pixels[$0 * 4 + 1] < 180
-                    && pixels[$0 * 4 + 2] < 180 && pixels[$0 * 4 + 3] > 240
-            })
-        }
-        func find(_ node: XCUIElementSnapshot, _ id: String, _ type: XCUIElement.ElementType) -> XCUIElementSnapshot? {
-            if node.identifier == id, node.elementType == type { return node }
-            return node.children.lazy.compactMap { find($0, id, type) }.first
-        }
-        func check(_ stage: String) {
-            // One snapshot: separate frame queries during a drag observe different instants.
-            guard let snapshot = try? bar.snapshot(),
-                  let field = find(snapshot, "chatInput", .textField)?.frame else {
-                XCTFail("\(stage): missing bar or field")
-                return
-            }
-            let bounds = snapshot.frame
-            let screenshot = app.screenshot()
-            var frames = "\(stage): bar=\(bounds), field=\(field)"
-            for id in ["chatInstructions", "voiceButton"] {
-                guard let icon = find(snapshot, id, .button)?.frame else {
-                    XCTFail("\(stage): missing \(id)")
-                    continue
-                }
-                XCTAssertTrue(bounds.insetBy(dx: -1, dy: -1).contains(icon), "\(stage): \(id) \(icon) outside bar \(bounds)")
-                XCTAssertEqual(icon.maxY - field.maxY, 11, accuracy: 2, "\(stage): \(id) drifted from field bottom")
-                // AX geometry alone cannot detect a glyph painted in the wrong layer.
-                // Compare its ink inside the expected slot while the bar is visible.
-                if stage != "closing" {
-                    let current = ink(in: icon, screenshot: screenshot)
-                    XCTAssertGreaterThan(current.count, 15, "\(stage): \(id) is not drawn in its bar slot")
-                    XCTAssertLessThan(current.count, 300, "\(stage): expected an icon on the light bar background")
-                    if let reference = iconInk[id] {
-                        let matched = current.filter { point in
-                            (-2...2).contains { dy in
-                                (-2...2).contains { dx in reference.contains(point + dy * 44 + dx) }
-                            }
-                        }.count
-                        XCTAssertGreaterThan(Double(matched) / Double(max(current.count, 1)), 0.65,
-                                             "\(stage): \(id)'s rendered glyph drifted")
-                    } else {
-                        iconInk[id] = current
-                    }
-                }
-                frames += ", \(id)=\(icon)"
-            }
-            attachText(frames, named: stage)
-            let shot = XCTAttachment(screenshot: screenshot)
-            shot.name = stage
-            shot.lifetime = .keepAlways
-            add(shot)
-        }
-        func sampleMotion(_ stage: String, gesture: () -> Void) {
-            var sampled = false
-            let timer = Timer(timeInterval: 0.9, repeats: false) { _ in
-                if bar.exists {
-                    check(stage)
-                    sampled = true
-                }
-            }
-            RunLoop.main.add(timer, forMode: .common)
-            gesture()
-            timer.invalidate()
-            XCTAssertTrue(sampled, "Read bar-relative frames during \(stage)")
-        }
-        check("medium")
-        sampleMotion("expanding") { dragDrawer(in: app, to: 0.08) }
-        check("large")
-        dragDrawer(in: app, to: 0.54)
-        check("medium-again")
-        // Focus from medium: sheet expansion and keyboard avoidance happen together.
-        app.textFields["chatInput"].tap()
-        XCTAssertTrue(wait(timeout: 5) { drawerState(in: app).label == "detent=large" })
-        let keyboard = app.keyboards.firstMatch
-        // With Simulator's hardware keyboard connected the software keyboard sits below the
-        // screen: there is nothing to avoid, so only the overlap check depends on it.
-        let softwareKeyboard = wait(timeout: 5) {
-            keyboard.exists && keyboard.frame.height > 150
-                && keyboard.frame.minY < app.windows.firstMatch.frame.maxY - 150
-        }
-        if !softwareKeyboard {
-            attachText("Hardware keyboard connected (keyboard \(keyboard.frame)): keyboard overlap not checked", named: "keyboard mode")
-        }
-        // The keyboard exposes its target before the keyboard and hint animations settle.
-        var previousBarFrame = CGRect.null
-        XCTAssertTrue(wait(timeout: 5) {
-            let frame = bar.frame
-            defer { previousBarFrame = frame }
-            return frame == previousBarFrame
-        }, "Keyboard and hint layout must settle")
-        // Capture before typeText attaches XCUITest's hardware keyboard.
-        check("keyboard")
-        if softwareKeyboard {
-            XCTAssertLessThanOrEqual(bar.frame.maxY, keyboard.frame.minY + 1, "Bar background must stop above keyboard")
-        }
-        app.textFields["chatInput"].typeText("A follow-up")
-        app.typeKey(XCUIKeyboardKey.escape, modifierFlags: [])
-        check("large-after-keyboard")
-        dragDrawer(in: app, to: 0.54)
-        check("lowered")
-        let header = any(app, "drawerHeader")
-        let start = header.coordinate(withNormalizedOffset: CGVector(dx: 0.08, dy: 0.5))
-        let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: 0.90))
-        sampleMotion("closing") {
-            start.press(forDuration: 0.1, thenDragTo: end, withVelocity: .slow, thenHoldForDuration: 3)
-        }
-        XCTAssertTrue(waitForGone(bar, timeout: 5))
-        XCTAssertFalse(app.buttons["chatInstructions"].exists, "Instructions must leave with the bar")
-    }
-
-    func testAskScopeLeavesRoomForQuestion() throws {
-        let app = launch(sample + ["-dc-voice-fake"])
-        let field = app.textFields["chatInput"]
-        XCTAssertTrue(waitOrDump(field, timeout: 20, in: app))
-        XCTAssertGreaterThanOrEqual(field.frame.width, 90, "The scope must leave room for a readable question")
     }
 
     func testTypingFollowUpKeepsSummaryPosition() throws {
@@ -370,7 +175,7 @@ final class DrawerUITests: DCUITestCase {
         dragDrawer(in: app, to: 0.08)
         let marker = app.buttons["retrySummary"].firstMatch
         XCTAssertTrue(marker.waitForExistence(timeout: 5))
-        let field = app.textFields["chatInput"]
+        let field = app.textFields["agentPromptInput"]
         field.tap()
         let before = marker.frame.minY
         field.typeText("Follow-up with more details")
@@ -572,77 +377,6 @@ final class DrawerUITests: DCUITestCase {
     /// at once). Text typed under This topic moves along to Whole forum and
     /// to a new question; the run it starts shows in History. The sample
     /// summary's `#3 #7` chips are 44 pt wide and at least 4 pt apart.
-    func testAskBoxScopeKeepsTheTextAndAWholeForumRunShowsInHistory() throws {
-        try skipUnlessPhone("The AI drawer is an iPhone behavior.")
-        let app = launch(sample + ["-dc-no-provider"])
-        let state = drawerState(in: app)
-        XCTAssertTrue(waitOrDump(state, timeout: 20, in: app), "The sample did not open the drawer.")
-        XCTAssertTrue(wait(timeout: 5) { state.label == "detent=medium" }, "Got \(state.label).")
-
-        let first = app.buttons["citation-3"].firstMatch
-        let second = app.buttons["citation-7"].firstMatch
-        // Lazy summary rows can be outside the medium viewport.
-        XCTAssertTrue(reveal(first, in: app), "The sample summary has no #3 citation.")
-        XCTAssertGreaterThanOrEqual(first.frame.width, 44, "A citation chip must be 44 pt wide to tap.")
-        if second.exists, abs(second.frame.midY - first.frame.midY) < 4 {
-            XCTAssertGreaterThanOrEqual(second.frame.minX - first.frame.maxX, 4, "Citation chips need 4 pt between them.")
-        }
-
-        let question = "Retention offers this year"
-        let chat = app.textFields["chatInput"]
-        XCTAssertTrue(chat.waitForExistence(timeout: 10), "The Ask box has no field.")
-        chat.tap()
-        chat.typeText(question)
-        XCTAssertTrue(wait(timeout: 5) { state.label == "detent=large" }, "Focusing the field must raise the drawer.")
-
-        let scope = any(app, "askScopeButton")
-        XCTAssertTrue(waitForHittable(scope), "The Ask box has no scope button.")
-        scope.tap()
-        let wholeForum = app.buttons["Whole forum"].firstMatch
-        XCTAssertTrue(wholeForum.waitForExistence(timeout: 5), "The scope menu has no Whole forum.")
-        wholeForum.tap()
-
-        // The sample's run on this forum is finished: the box follows it up.
-        let followUp = app.textFields["agentFollowUpInput"]
-        XCTAssertTrue(followUp.waitForExistence(timeout: 10), "Whole forum did not follow up the selected run.")
-        XCTAssertEqual(followUp.value as? String, question, "Switching the scope lost the typed text.")
-        XCTAssertFalse(app.textFields["chatInput"].exists)
-
-        let newQuestion = app.buttons["agentNewQuestion"]
-        if !newQuestion.isHittable { app.swipeDown() }
-        XCTAssertTrue(waitForHittable(newQuestion), "New question is missing.")
-        newQuestion.tap()
-        let goal = app.textFields["agentGoalInput"]
-        XCTAssertTrue(goal.waitForExistence(timeout: 10))
-        XCTAssertEqual(goal.value as? String, question, "New question lost the typed text.")
-        XCTAssertTrue(any(app, "agentExample").exists, "A new question shows the example questions.")
-
-        let run = app.buttons["runAgent"]
-        XCTAssertTrue(run.isEnabled)
-        run.tap()
-        let alert = app.alerts.firstMatch
-        if alert.waitForExistence(timeout: 3) { alert.buttons["OK"].tap() }
-        let runGoal = app.staticTexts["agentRunGoal"]
-        XCTAssertTrue(runGoal.waitForExistence(timeout: 10), "The run did not show.")
-        XCTAssertEqual(runGoal.label, question)
-
-        // History lists the run under Asks.
-        let more = app.buttons["assistantMoreMenu"]
-        XCTAssertTrue(waitForHittable(more))
-        more.tap()
-        // Not Ask the forum's own History menu (agentHistoryMenu).
-        let history = app.buttons
-            .matching(NSPredicate(format: "label == 'History' AND identifier != 'agentHistoryMenu'"))
-            .firstMatch
-        XCTAssertTrue(history.waitForExistence(timeout: 10))
-        history.tap()
-        let asks = app.buttons["historySegment-asks"]
-        XCTAssertTrue(asks.waitForExistence(timeout: 10), "History did not open.")
-        asks.tap()
-        // Running it shows in progress, finished under Asks; either way the goal is listed.
-        XCTAssertTrue(reveal(app.staticTexts[question], in: app), "The new run is not listed under Asks.")
-    }
-
     /// "Answer ready" over the bar (iPhone: drawer closed; iPad split: panel
     /// hidden) brings the AI view forward on the run that finished, not the
     /// selected one, and the row goes (audit A1, A2).
@@ -675,27 +409,6 @@ final class DrawerUITests: DCUITestCase {
             XCTAssertTrue(goal.label.contains("rate limits"), "Not the finished run: \(goal.label)")
         }
         XCTAssertTrue(waitForGone(row, timeout: 5), "Answer ready stayed after it was shown.")
-    }
-
-    /// Pressing the software keyboard's Send key in the forum home Ask field
-    /// submits Ask the forum instead of inserting a newline.
-    func testForumHomeSendKeySubmitsAskTheForum() throws {
-        let app = launch(["-dc-sample", "-dc-page-state", "forumHome", "-dc-no-provider"])
-        showAssistant(in: app)
-        let goalField = any(app, "forumHomeGoalInput")
-        XCTAssertTrue(waitOrDump(goalField, timeout: 15, in: app))
-        goalField.tap()
-        let question = "best backup plugin"
-        goalField.typeText(question)
-        goalField.typeText("\n")
-
-        let alert = app.alerts.firstMatch
-        if alert.waitForExistence(timeout: 3) { alert.buttons["OK"].tap() }
-        XCTAssertTrue(waitForGone(any(app, "forumHomeState"), timeout: 5),
-                      "Pressing Send on ForumHomeState goal field inserted a newline instead of starting Ask the forum.")
-        let runGoal = app.staticTexts["agentRunGoal"]
-        XCTAssertTrue(runGoal.waitForExistence(timeout: 10), "The Ask the forum run did not appear.")
-        XCTAssertEqual(runGoal.label, question)
     }
 
     // MARK: Helpers
@@ -741,83 +454,10 @@ final class DrawerUITests: DCUITestCase {
         defer { server.stop() }
 
         app = launch(["-dc-open", server.postURL, "-dc-fixture-model", server.baseURL])
-        showAssistant(in: app)
-        XCTAssertTrue(waitOrDump(app.buttons["createSummary"].firstMatch, timeout: 25, in: app))
-        closeDrawer(in: app)
+        XCTAssertTrue(waitOrDump(app.buttons["dockHintAction"].firstMatch, timeout: 25, in: app))
         openForumMenu(in: app)
         XCTAssertTrue(app.buttons["Watch this topic"].waitForExistence(timeout: 8))
         XCTAssertFalse(app.buttons["menuTranslatePosts"].exists)
-    }
-
-    func testEditingChatQuestionKeepsHistoryUntilSubmittedAndSupportsCancel() throws {
-        try skipUnlessPhone("iPhone drawer chat edit check.")
-        let app = launch(sample + ["-dc-assistant-mode", "chat", "-dc-no-provider"])
-        let state = drawerState(in: app)
-        XCTAssertTrue(waitOrDump(state, timeout: 20, in: app), "The sample did not open the drawer.")
-        dragDrawer(in: app, to: 0.08)
-        XCTAssertTrue(wait(timeout: 5) { state.label == "detent=large" }, "Got \(state.label), wanted large.")
-
-        let editButton = app.buttons["Edit"].firstMatch
-        let chatScroll = app.scrollViews["chatScroll"].firstMatch
-        for _ in 0..<8 where !(editButton.exists && editButton.isHittable) {
-            if chatScroll.exists { chatScroll.swipeUp() } else { app.swipeUp() }
-        }
-        XCTAssertTrue(waitForHittable(editButton, timeout: 5), "No Edit button on the sample user question.")
-
-        let originalQuestion = "Why can’t I post more than two links yet?"
-        // The sample chat has two turns; Edit (the first) edits the first question.
-        let users = app.otherElements.matching(identifier: "chatMessage-user").count
-        let replies = app.otherElements.matching(identifier: "chatMessage-assistant").count
-        editButton.tap()
-
-        // Tapping Edit populates the composer, shows the Cancel banner, and keeps both chat turns intact.
-        let banner = any(app, "chatEditBanner")
-        let cancel = app.buttons["cancelChatEdit"]
-        let chatField = app.textFields["chatInput"]
-        XCTAssertTrue(waitOrDump(banner, timeout: 5, in: app), "Editing banner did not appear.")
-        XCTAssertTrue(cancel.exists)
-        XCTAssertGreaterThanOrEqual(cancel.frame.width, 44)
-        XCTAssertGreaterThanOrEqual(cancel.frame.height, 44)
-        XCTAssertEqual(chatField.value as? String, originalQuestion)
-        XCTAssertEqual(app.otherElements.matching(identifier: "chatMessage-user").count, users)
-        XCTAssertEqual(app.otherElements.matching(identifier: "chatMessage-assistant").count, replies)
-
-        // Cancel leaves history untouched and clears the composer back to its prior draft.
-        cancel.tap()
-        XCTAssertTrue(waitForGone(banner, timeout: 5))
-        XCTAssertEqual(app.otherElements.matching(identifier: "chatMessage-user").count, users)
-        XCTAssertEqual(app.otherElements.matching(identifier: "chatMessage-assistant").count, replies)
-
-        // Edit again and submit: the old question and assistant reply are replaced by the edited turn.
-        // Cancel keeps the composer focused, so only a short strip above the keyboard shows the
-        // chat and the first question can sit below or above it. Swipes fling past that strip
-        // (and blind swipes down reach the top and drag the drawer closed): step toward the
-        // question with short drags that stop without momentum.
-        let composer = any(app, "askBox")
-        let origin = app.windows.firstMatch.coordinate(withNormalizedOffset: .zero)
-        for _ in 0..<12 where !(editButton.exists && editButton.isHittable) {
-            let mid = (chatScroll.frame.minY + composer.frame.minY) / 2
-            let up = !editButton.exists || editButton.frame.midY > mid
-            let start = origin.withOffset(CGVector(dx: chatScroll.frame.midX, dy: mid + (up ? 50 : -50)))
-            start.press(forDuration: 0.05, thenDragTo: start.withOffset(CGVector(dx: 0, dy: up ? -100 : 100)),
-                        withVelocity: .slow, thenHoldForDuration: 0.2)
-        }
-        XCTAssertTrue(waitForHittable(editButton, timeout: 5))
-        editButton.tap()
-        XCTAssertTrue(banner.waitForExistence(timeout: 5))
-        chatField.tap()
-        chatField.typeText(" Or moderators?")
-        let send = app.buttons["Send question"]
-        XCTAssertTrue(send.waitForExistence(timeout: 5))
-        XCTAssertTrue(send.isEnabled)
-        send.tap()
-
-        let alert = app.alerts.firstMatch
-        if alert.waitForExistence(timeout: 4) { alert.buttons.firstMatch.tap() }
-
-        XCTAssertTrue(waitForGone(banner, timeout: 5))
-        XCTAssertEqual(app.otherElements.matching(identifier: "chatMessage-assistant").count, 0, "Old assistant reply must be removed when edited question is submitted.")
-        XCTAssertTrue(app.staticTexts["Why can’t I post more than two links yet? Or moderators?"].waitForExistence(timeout: 5))
     }
 
     func testRealKeyboardKeepsChatVStackPinnedAtBottom() throws {
@@ -835,12 +475,12 @@ final class DrawerUITests: DCUITestCase {
         if jumpBtn.waitForExistence(timeout: 1.5) && jumpBtn.isHittable {
             jumpBtn.tap()
         } else {
-            let chatScroll = any(app, "chatScroll")
+            let chatScroll = any(app, "agentScroll")
             if chatScroll.exists { chatScroll.swipeUp() }
         }
         XCTAssertTrue(waitForGone(jumpBtn, timeout: 5), "Reader starts at bottom with no scroll-to-bottom button")
 
-        let input = any(app, "chatInput")
+        let input = any(app, "agentPromptInput")
         XCTAssertTrue(input.waitForExistence(timeout: 5))
         input.tap()
         if app.keyboards.keys.count == 0 {
@@ -852,5 +492,118 @@ final class DrawerUITests: DCUITestCase {
             jumpBtn.exists,
             "Raising software keyboard while pinned at bottom in ChatThread must keep latest reply pinned without showing chatScrollToBottom"
         )
+    }
+
+    func testUnifiedAgentPanelMatchesAcrossForumAndOrdinaryPageAndRunsAgent() throws {
+        let base = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
+
+        // 1. Forum fixture (unsummarized): shows "Agent" header, This page seal, wave mascot, and composer + mic ring.
+        var app = launch(base + ["-dc-sample", "-dc-no-summary", "-dc-drawer-detent", "large"], orientation: isPhone ? .portrait : .landscapeLeft)
+        showAssistant(in: app)
+        let forumTitle = any(app, "drawerTitle")
+        XCTAssertTrue(waitOrDump(forumTitle, timeout: 15, in: app))
+        XCTAssertEqual(forumTitle.label, "Agent")
+        let forumSeal = app.buttons["pageCapabilitiesSeal"].firstMatch
+        XCTAssertTrue(forumSeal.waitForExistence(timeout: 5))
+        XCTAssertTrue(any(app, "agentEmptyState").exists, "Unsummarized forum topic should show the unified wave mascot empty state.")
+        XCTAssertFalse(any(app, "agentStatusLine").exists, "Status line must stay hidden while idle.")
+        XCTAssertTrue(app.textFields["agentPromptInput"].exists)
+        XCTAssertTrue(app.buttons["composerMic"].exists)
+
+        // Open This page popover on a forum thread: shows This topic Following + Block ads here + Site settings.
+        forumSeal.tap()
+        let popover = any(app, "pageScriptsPopover")
+        XCTAssertTrue(waitOrDump(popover, timeout: 8, in: app), "This page popover did not open.")
+        XCTAssertTrue(app.switches["pageTopicFollowing"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.switches["pageBlockAdsToggle"].exists)
+        XCTAssertTrue(app.buttons["pageSiteSettings"].exists)
+        app.terminate()
+
+        // 2. Ordinary web page: identical "Agent" shell, then type a question and run the Agent.
+        app = launch(base + ["-dc-browser-agent-fixture-page", "-dc-browser-agent-demo", "empty", "-dc-drawer-detent", "large"], orientation: isPhone ? .portrait : .landscapeLeft)
+        showAssistant(in: app)
+        let ordinaryTitle = any(app, "drawerTitle")
+        XCTAssertTrue(waitOrDump(ordinaryTitle, timeout: 15, in: app))
+        XCTAssertEqual(ordinaryTitle.label, "Agent")
+        XCTAssertTrue(app.buttons["pageCapabilitiesSeal"].firstMatch.exists)
+        XCTAssertTrue(any(app, "agentEmptyState").exists, "Ordinary page should show the identical wave mascot empty state.")
+        XCTAssertFalse(any(app, "agentStatusLine").exists)
+        XCTAssertTrue(app.buttons["composerMic"].exists)
+
+        let promptInput = app.textFields["agentPromptInput"].firstMatch
+        XCTAssertTrue(waitForHittable(promptInput, timeout: 10))
+        promptInput.tap()
+        promptInput.typeText("Make this page dark and hide the sidebar")
+
+        let sendButton = app.buttons["agentSendButton"].firstMatch
+        XCTAssertTrue(sendButton.waitForExistence(timeout: 5), "Typing in composer must switch mic ring to Send.")
+        if sendButton.isHittable {
+            sendButton.tap()
+        } else {
+            sendButton.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        }
+
+        XCTAssertTrue(any(app, "agentUserMessage").waitForExistence(timeout: 10))
+        let statusLine = any(app, "agentStatusLine")
+        XCTAssertTrue(wait(timeout: 20) {
+            statusLine.exists && statusLine.label.contains("Done ·")
+        }, "Agent status line did not show transient completion.")
+        XCTAssertFalse(statusLine.label.contains("tokens"), "Token count must be hidden when developerMode is off.")
+        XCTAssertTrue(any(app, "agentAssistantReply").exists)
+    }
+
+    func testCaptureWuko23ProofScreenshots() throws {
+        guard ProcessInfo.processInfo.environment["DC_SCREENSHOT_DIR"] != nil else {
+            throw XCTSkip("Set TEST_RUNNER_DC_SCREENSHOT_DIR to capture WUKO-23 proof screenshots.")
+        }
+        let device = isPhone ? "iphone" : "ipad"
+        let orient: UIDeviceOrientation = isPhone ? .portrait : .landscapeLeft
+        let base = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
+
+        for (suffix, style) in [("light", "Light"), ("dark", "Dark")] {
+            let styleArgs = base + ["-AppleInterfaceStyle", style]
+
+            // 1. Forum fixture showing the unified Agent panel (empty wave mascot + This page seal + composer).
+            let forumApp = launch(styleArgs + ["-dc-sample", "-dc-no-summary", "-dc-drawer-detent", "medium"], orientation: orient)
+            showAssistant(in: forumApp)
+            XCTAssertTrue(waitOrDump(any(forumApp, "agentEmptyState"), timeout: 15, in: forumApp))
+            RunLoop.current.run(until: Date().addingTimeInterval(0.8))
+            capture("\(device)-forum-panel-\(suffix)")
+
+            if suffix == "light" {
+                forumApp.buttons["pageCapabilitiesSeal"].firstMatch.tap()
+                XCTAssertTrue(waitOrDump(any(forumApp, "pageScriptsPopover"), timeout: 8, in: forumApp))
+                RunLoop.current.run(until: Date().addingTimeInterval(0.6))
+                capture("\(device)-this-page-popover-light")
+            }
+            forumApp.terminate()
+
+            // 2. Ordinary non-forum page showing the exact same Agent panel.
+            let webApp = launch(styleArgs + ["-dc-browser-agent-fixture-page", "-dc-browser-agent-demo", "empty", "-dc-drawer-detent", "medium"], orientation: orient)
+            showAssistant(in: webApp)
+            XCTAssertTrue(waitOrDump(any(webApp, "agentEmptyState"), timeout: 15, in: webApp))
+            RunLoop.current.run(until: Date().addingTimeInterval(0.8))
+            capture("\(device)-ordinary-panel-\(suffix)")
+
+            // 3. Typed question running the Agent through AssistantComposer -> completed turn + Done status line.
+            if suffix == "light" || !isPhone {
+                let input = webApp.textFields["agentPromptInput"].firstMatch
+                XCTAssertTrue(waitForHittable(input, timeout: 10))
+                input.tap()
+                input.typeText("Make this page dark and hide the sidebar")
+                let send = webApp.buttons["agentSendButton"].firstMatch
+                XCTAssertTrue(send.waitForExistence(timeout: 5))
+                if send.isHittable {
+                    send.tap()
+                } else {
+                    send.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+                }
+                let statusLine = any(webApp, "agentStatusLine")
+                XCTAssertTrue(wait(timeout: 20) { statusLine.exists && statusLine.label.contains("Done ·") })
+                RunLoop.current.run(until: Date().addingTimeInterval(0.6))
+                capture("\(device)-typed-agent-run-\(suffix)")
+            }
+            webApp.terminate()
+        }
     }
 }

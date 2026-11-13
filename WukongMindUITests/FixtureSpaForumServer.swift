@@ -466,7 +466,7 @@ extension DCUITestCase {
         // 2. Open the browser agent and say: "from now on, show only the original poster on this site".
         showAssistant(in: app)
         XCTAssertTrue(waitOrDump(any(app, "agentPanel"), timeout: 15, in: app), "Browser agent panel did not open.")
-        XCTAssertTrue(any(app, "agentHostPill").waitForExistence(timeout: 10), "Host pill is missing in browser agent panel.")
+        XCTAssertTrue(any(app, "pageCapabilitiesSeal").waitForExistence(timeout: 10), "This page seal is missing in Agent panel.")
 
         let promptInput = app.textFields["agentPromptInput"].firstMatch
         XCTAssertTrue(waitForHittable(promptInput, timeout: 10), "Agent prompt input is not hittable.")

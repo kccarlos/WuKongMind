@@ -20,13 +20,16 @@ enum ExpandedPanelRoute: String, Identifiable {
     }
 }
 
-/// The assistant column (iPad) or the AI drawer's content (iPhone): a header
-/// with the forum, topic and the Summary · Chat · Ask the forum switch, a
-/// body that follows the page state (not a forum, forum home, topic…), and
-/// the Manage and Settings screens shown in place.
+/// The unified Agent panel (`design-unified.md` §1): one conversation view
+/// shared by the iPhone drawer (`AIDrawer`) and iPad split sidebar (`SplitWorkspace`),
+/// with the `"Agent"` + This page header, unified transcript, transient status line,
+/// suggestion slot (2b), and `AssistantComposer`.
 struct AssistantPanel: View {
     @ObservedObject var app: AppModel
     @ObservedObject private var streams: StreamStore
+    @ObservedObject private var browser: ForumBrowserModel
+    private var browserAgent: BrowserAgentSession { app.browserAgent }
+    private var scriptStore: ScriptStore { app.scriptStore }
     /// Post & responses as a sheet.
     let onExpand: (ExpandedPanelRoute) -> Void
     /// Opens a forum URL in the Browse workspace (the agent's step log uses it).
@@ -35,8 +38,17 @@ struct AssistantPanel: View {
     /// "Tap a post number to jump to it", shown with the first summary.
     @State private var showsCitationTip = false
     @State private var renderedSummary: ThrottledParse<DrawerSummarySections.Input, (sections: Int, hasCitations: Bool, rows: [MarkdownRow])>?
+    @State private var agentDraft = ""
+    @FocusState private var composerFocused: Bool
+    @State private var isKeyboardVisible = false
+    @State private var showsPageCapabilitiesPopover = false
+    @State private var showsCompletedStatus = false
+    @State private var completedStatusTask: Task<Void, Never>?
+    @State private var expandedToolRowIDs: Set<UUID> = []
+    @State private var requestedProviderSetup = false
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.composerBottomInset) private var bottomInset
 
     init(
         app: AppModel,
@@ -45,6 +57,7 @@ struct AssistantPanel: View {
     ) {
         self.app = app
         _streams = ObservedObject(wrappedValue: app.streams)
+        _browser = ObservedObject(wrappedValue: app.browser)
         self.onExpand = onExpand
         self.onOpenURL = onOpenURL
     }
@@ -58,6 +71,10 @@ struct AssistantPanel: View {
     private var summaryRun: SummaryRunState {
         guard let topicKey = app.currentTopic?.topicKey else { return .idle }
         return SummaryRunState.resolve(app.activities, topicKey: topicKey)
+    }
+    private var isSummaryFailed: Bool {
+        if case .failed = summaryRun { return true }
+        return false
     }
     private var activePull: WorkRecord? { activeRecords.first { $0.type == .pull } }
     private var activeChat: WorkRecord? { activeRecords.first { $0.type == .chat } }
@@ -74,28 +91,36 @@ struct AssistantPanel: View {
         activePull != nil || !payload.hasContent(options: app.exportOptions)
     }
 
-    /// What the body shows; the key drives the cross-fade between states.
-    private enum BodyKind: Hashable {
-        case summary, agent, browserAgent, forumHome, notForum, maybe, loading
-    }
-
-    private var bodyKind: BodyKind {
-        if app.assistantMode == .browserAgent {
-            return .browserAgent
-        }
-        let state = app.assistantPageState
-        if app.assistantMode == .agent, state == .topic || app.agentForum != nil {
+    private var providerSetupRole: ModelRole? {
+        if app.assistantMode == .agent, !app.isProviderReady(for: .agent) {
             return .agent
         }
-        switch state {
-        // The drawer shows the summary and the conversation together.
-        case .topic: return .summary
-        case .forumHome: return .forumHome
-        case .notForum:
+        if !app.isProviderReady(for: .browserAgent),
+           requestedProviderSetup || !app.isProviderReady(for: .assistant) {
             return .browserAgent
-        case .maybe: return .maybe
-        case .loading: return .loading
         }
+        return nil
+    }
+
+    private var isBrowserAgentCompleted: Bool {
+        if case .completed = browserAgent.runState { return true }
+        return false
+    }
+
+    private var runningStepNumber: Int? {
+        if case .running(let step, _) = browserAgent.runState {
+            return max(1, step)
+        }
+        return nil
+    }
+
+    private var foldsStatusIntoHeader: Bool {
+        isKeyboardVisible && composerFocused && runningStepNumber != nil
+    }
+
+    private var showsFooterStatusLine: Bool {
+        (browserAgent.isRunning && !(isKeyboardVisible && composerFocused))
+            || (showsCompletedStatus && isBrowserAgentCompleted)
     }
 
     var body: some View {
@@ -107,13 +132,15 @@ struct AssistantPanel: View {
                 voiceOnly: app.panelRoute != .topic
             )
             if app.panelRoute == .topic {
-                drawerHeader
-                topicContent
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                // §5: one field for the topic and the whole forum.
-                if bodyKind == .summary || bodyKind == .agent {
-                    AskBox(app: app) { app.router.item = .instructions }
+                VStack(spacing: 0) {
+                    drawerHeader
+                    Divider()
+                    drawerThread
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    assistantFooter
                 }
+                .accessibilityElement(children: .contain)
+                .accessibilityIdentifier("agentPanel")
             } else {
                 routeContent
             }
@@ -122,6 +149,7 @@ struct AssistantPanel: View {
         // In the drawer the system sheet's glass shows through at medium
         // (opaque at large by itself).
         .background(Color.clear)
+        .dcKeyboardVisible($isKeyboardVisible)
         .environment(\.activeCitation, app.citationJump?.number)
         // A pointer over a citation pre-highlights the post on the page.
         .environment(\.citationHover, CitationHoverAction { number in
@@ -141,6 +169,27 @@ struct AssistantPanel: View {
             app.exportOptions = ExportOptions()
             renderedSummary = nil
         }
+        .onChange(of: app.askFocusRequest) {
+            composerFocused = true
+        }
+        .onChange(of: browserAgent.runState) { _, newState in
+            updateCompletedStatusVisibility(for: newState, isInitialAppear: false)
+        }
+        .onAppear {
+            updateCompletedStatusVisibility(for: browserAgent.runState, isInitialAppear: true)
+            #if DEBUG
+            if AssistantDebug.has("-dc-scripts-open-popover") {
+                Task { @MainActor in
+                    try? await Task.sleep(for: .milliseconds(600))
+                    showsPageCapabilitiesPopover = true
+                }
+            }
+            #endif
+        }
+        .onDisappear {
+            completedStatusTask?.cancel()
+            completedStatusTask = nil
+        }
         .fileExporter(
             isPresented: $exporting,
             document: PlainTextDocument(text: exportText),
@@ -149,6 +198,66 @@ struct AssistantPanel: View {
         ) { result in
             if case .failure(let error) = result {
                 app.presentError(error.localizedDescription)
+            }
+        }
+    }
+
+    private static var completedStatusHoldDuration: Double {
+        #if DEBUG
+        if AssistantDebug.has("-dc-browser-agent-live-prompt")
+            || AssistantDebug.value("-dc-browser-agent-live-prompt") != nil
+            || AssistantDebug.has("-dc-browser-agent-live-key")
+            || AssistantDebug.value("-dc-browser-agent-live-key") != nil
+            || AssistantDebug.has("-dc-browser-agent-demo")
+            || AssistantDebug.value("-dc-browser-agent-demo") != nil {
+            return 8.0
+        }
+        #endif
+        return 3.5
+    }
+
+    private func updateCompletedStatusVisibility(for state: BrowserAgentRunState, isInitialAppear: Bool) {
+        completedStatusTask?.cancel()
+        completedStatusTask = nil
+        guard case .completed = state else {
+            showsCompletedStatus = false
+            return
+        }
+        let holdDuration = Self.completedStatusHoldDuration
+        if isInitialAppear {
+            var remaining = holdDuration
+            var shouldShow = false
+            #if DEBUG
+            if AssistantDebug.has("-dc-browser-agent-demo") || AssistantDebug.value("-dc-browser-agent-demo") != nil {
+                shouldShow = true
+            }
+            #endif
+            if !shouldShow, let lastRun = browserAgent.runs.last {
+                let endedAt = lastRun.startedAt.addingTimeInterval(lastRun.duration ?? 0)
+                let elapsed = Date().timeIntervalSince(endedAt)
+                if elapsed >= 0, elapsed < holdDuration {
+                    shouldShow = true
+                    remaining = max(0.5, holdDuration - elapsed)
+                }
+            }
+            guard shouldShow else {
+                showsCompletedStatus = false
+                return
+            }
+            showsCompletedStatus = true
+            scheduleCompletedStatusDismiss(after: remaining)
+        } else {
+            showsCompletedStatus = true
+            scheduleCompletedStatusDismiss(after: holdDuration)
+        }
+    }
+
+    private func scheduleCompletedStatusDismiss(after seconds: Double) {
+        completedStatusTask = Task { @MainActor in
+            try? await Task.sleep(for: .seconds(seconds))
+            guard !Task.isCancelled else { return }
+            withAnimation(DCMotion.respecting(reduceMotion, DCMotion.quick)) {
+                showsCompletedStatus = false
             }
         }
     }
@@ -188,332 +297,284 @@ struct AssistantPanel: View {
 
     // MARK: Header
 
-    // MARK: Drawer header
+    private var currentScriptPageURL: URL? {
+        if let url = browser.currentURL, !browser.showsForumsHome {
+            return url
+        }
+        if let url = app.pageContext.url, !browser.showsForumsHome {
+            return url
+        }
+        return nil
+    }
 
-    /// The drawer's title (Summary, or Ask the forum while the
-    /// Ask box asks the whole forum), the model pill, Translate, Read aloud
-    /// and the drawer's ··· menu. The system grabber sits above it.
+    private var currentHost: String {
+        if let url = currentScriptPageURL,
+           let host = url.host,
+           !host.isEmpty {
+            return host
+        }
+        return String(localized: "No page open", comment: "Browser agent context bar when no web page is loaded")
+    }
+
+    private var matchingPageScripts: [UserScript] {
+        guard let url = currentScriptPageURL else { return [] }
+        return scriptStore.sortedMatchingScripts(for: url, includeDisabled: true)
+    }
+
+    private var enabledMatchingPageScripts: [UserScript] {
+        matchingPageScripts.filter(\.isEnabled)
+    }
+
+    private var matchingPageScriptErrorCount: Int {
+        guard scriptStore.isGlobalEnabled else { return 0 }
+        return enabledMatchingPageScripts.filter { scriptStore.error(for: $0.id) != nil }.count
+    }
+
+    /// Unified Agent header: `"Agent"`, the This page seal (or folded `"Step N"`
+    /// while the keyboard is up during a run), and the `⋯` menu.
     private var drawerHeader: some View {
         let layout = dynamicTypeSize.isAccessibilitySize
             ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
-            : AnyLayout(HStackLayout(spacing: 4))
+            : AnyLayout(HStackLayout(spacing: 8))
         return layout {
-            HStack(spacing: 4) {
-                Text(drawerTitle)
+            HStack(spacing: 8) {
+                Text(AssistantMode.browserAgent.title)
                     .font(.headline)
                     .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .contentTransition(.opacity)
+                    .fixedSize(horizontal: !dynamicTypeSize.isAccessibilitySize, vertical: true)
                     .accessibilityAddTraits(.isHeader)
                     .accessibilityIdentifier("drawerTitle")
-                if dynamicTypeSize.isAccessibilitySize {
-                    Spacer(minLength: 0)
-                    drawerHeaderActions
+                if !dynamicTypeSize.isAccessibilitySize {
+                    headerStatusOrPageSeal
                 }
+                Spacer(minLength: 0)
+                drawerMoreMenu
             }
-            if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 4) }
-            if !dynamicTypeSize.isAccessibilitySize {
-                drawerModelPill
-                drawerHeaderActions
+            if dynamicTypeSize.isAccessibilitySize {
+                headerStatusOrPageSeal
             }
         }
         .padding(.leading, 16)
         .padding(.trailing, 8)
-        .padding(.top, 14)
-        .frame(minHeight: DCTheme.controlHeight + 14)
+        .padding(.top, 10)
+        .padding(.bottom, 4)
+        .frame(minHeight: DCTheme.controlHeight + 10)
         .fixedSize(horizontal: false, vertical: true)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("drawerHeader")
     }
 
-    private var drawerHeaderActions: some View {
-        HStack(spacing: 4) {
-            if bodyKind == .summary, let session = app.currentSession, session.hasSummary {
-                let text = PostCitations.stripped(session.summary)
-                TranslateButton(app: app, title: session.title, text: text, compact: true)
-                    .buttonStyle(DCIconButtonStyle())
-                    .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
-                ReadAloudButton(podcast: app.podcast, id: "summary-\(session.topicKey)", title: session.title, text: text, compact: true)
-                    .buttonStyle(DCIconButtonStyle())
-                    .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+    @ViewBuilder
+    private var headerStatusOrPageSeal: some View {
+        if foldsStatusIntoHeader, let step = runningStepNumber {
+            HStack(spacing: 6) {
+                DCAgentRing(size: 14, lineWidth: 2, isTurning: !reduceMotion)
+                Text("Step \(step)", comment: "Folded header status during an Agent run while the keyboard is up; placeholder is step number")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(DCTheme.goldInk)
+                    .monospacedDigit()
+                    .lineLimit(1)
             }
-            drawerMoreMenu
-        }
-    }
-
-    private var drawerTitle: String {
-        switch app.panelRoute {
-        case .topic:
-            switch bodyKind {
-            case .browserAgent: AssistantMode.browserAgent.title
-            case .agent: AssistantMode.agent.title
-            default: AssistantMode.summary.title
-            }
-        case .history: String(localized: "History", comment: "Screen title: saved summaries, chats, Ask the forum runs and watched topics")
-        }
-    }
-
-    private var effectiveRole: ModelRole {
-        bodyKind == .browserAgent ? .browserAgent : ModelPill.role(for: app.assistantMode)
-    }
-
-    /// The current scope's model (§6), 36 pt high; tap for the favorites
-    /// and AI models. The label cross-fades and the width follows; a model
-    /// that can't run shows why instead.
-    private var drawerModelPill: some View {
-        let role = effectiveRole
-        let selection = app.selection(for: role)
-        let readiness = app.readiness(for: role)
-        let model = ModelPill.label(for: selection)
-        let ready = readiness == .ready
-        let tint = (role == .agent || role == .browserAgent) ? DCTheme.agentTint : DCTheme.summaryTint
-        return Menu {
-            modelSwitcherItems
-        } label: {
-            HStack(spacing: 4) {
-                if !ready {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .imageScale(.small)
-                        .accessibilityHidden(true)
-                }
-                Text(verbatim: ready ? model : readiness.title)
-                    .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? .infinity : nil, alignment: .leading)
-                    .multilineTextAlignment(.leading)
-                    .truncationMode(.middle)
-                    .contentTransition(.opacity)
-                Image(systemName: "chevron.up.chevron.down")
-                    .font(dynamicTypeSize.isAccessibilitySize ? .system(size: 12, weight: .semibold) : .footnote.weight(.semibold))
-                    .imageScale(.small)
-                    .accessibilityHidden(true)
-            }
-            .frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? .infinity : nil, alignment: .leading)
-            .font(dynamicTypeSize.isAccessibilitySize ? .caption2.weight(.semibold) : .footnote.weight(.semibold))
-            .foregroundStyle(ready ? tint : DCTheme.newRepliesBadgeText)
-            .padding(.horizontal, dynamicTypeSize.isAccessibilitySize ? 8 : 12)
-            .frame(minHeight: 36)
-            .background(ready ? tint.opacity(0.12) : DCTheme.newRepliesBadgeBackground, in: RoundedRectangle(cornerRadius: dynamicTypeSize.isAccessibilitySize ? 14 : 18))
             .frame(minHeight: DCTheme.controlHeight)
-            .contentShape(Rectangle())
-            .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: model)
-            .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: role)
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("agentFoldedStatus")
+        } else {
+            thisPageSealButton
         }
-        .menuOrder(.fixed)
-        .frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? .infinity : 190)
-        // A new model for the same role; a scope change has its own haptic.
-        .sensoryFeedback(.impact(weight: .light), trigger: PillState(role: role, selection: selection)) { old, new in
-            old.role == new.role && old.selection != new.selection
-        }
-        .accessibilityLabel(Text("Model: \(ready ? model : "\(model), \(readiness.title)")", comment: "Accessibility label of the AI drawer's model pill; the placeholder is the model name"))
-        .accessibilityIdentifier("modelPill")
     }
 
-    private struct PillState: Equatable {
-        let role: ModelRole
-        let selection: ModelSelection
+    private var thisPageSealButton: some View {
+        let allCount = matchingPageScripts.count
+        let activeCount = enabledMatchingPageScripts.count
+        let errorCount = matchingPageScriptErrorCount
+        let isGlobalEnabled = scriptStore.isGlobalEnabled
+        let host = currentHost
+
+        let sealInfo: (text: String, accessibility: String, isDanger: Bool, variant: DCSealVariant, symbol: String?) = {
+            if !isGlobalEnabled, allCount > 0 {
+                let offPart = String(
+                    localized: "Scripts off · \(allCount) here",
+                    comment: "Browser agent context chip when global scripts switch is off; placeholder is number of scripts matching this page"
+                )
+                return (
+                    "\(host) · \(offPart)",
+                    String(localized: "This page, \(host), \(offPart)", comment: "Accessibility label of the This page seal when scripts are turned off"),
+                    false,
+                    .outline,
+                    "nosign"
+                )
+            }
+            if errorCount > 0 {
+                let scriptsPart = String(localized: "\(activeCount) scripts", comment: "Count of scripts in context chip error state")
+                let errorsPart = errorCount == 1
+                    ? String(localized: "1 error", comment: "Singular error count in context chip")
+                    : String(localized: "\(errorCount) errors", comment: "Plural error count in context chip")
+                return (
+                    "\(host) · \(scriptsPart) · \(errorsPart)",
+                    String(localized: "This page, \(host), \(scriptsPart), \(errorsPart)", comment: "Accessibility label of the This page seal when scripts have errors"),
+                    true,
+                    .outline,
+                    "exclamationmark.triangle.fill"
+                )
+            }
+            if activeCount > 0 {
+                let scriptsPart = String(localized: "\(activeCount) scripts", comment: "Count of scripts in context chip error state")
+                return (
+                    "\(host) · \(scriptsPart)",
+                    String(localized: "This page, \(host), \(scriptsPart)", comment: "Accessibility label of the This page seal when scripts are active"),
+                    false,
+                    .ink,
+                    nil
+                )
+            }
+            return (
+                host,
+                String(localized: "This page, \(host)", comment: "Accessibility label of the This page seal when no scripts match; placeholder is the host"),
+                false,
+                .ink,
+                nil
+            )
+        }()
+
+        return Group {
+            if sealInfo.isDanger {
+                Button {
+                    DCHaptics.tap()
+                    showsPageCapabilitiesPopover = true
+                } label: {
+                    HStack(spacing: DCTheme.space1) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.system(size: 11, weight: .semibold))
+                            .accessibilityHidden(true)
+                        Text(verbatim: sealInfo.text)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 9, weight: .bold))
+                            .accessibilityHidden(true)
+                    }
+                    .font(DCType.caption)
+                    .foregroundStyle(DCTheme.danger)
+                    .padding(.horizontal, DCTheme.space2)
+                    .padding(.vertical, DCTheme.space1)
+                    .frame(minHeight: 24)
+                    .background(
+                        DCTheme.danger.opacity(0.12),
+                        in: RoundedRectangle(cornerRadius: DCTheme.radiusSm, style: .continuous)
+                    )
+                    .frame(minHeight: DCTheme.controlHeight)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            } else {
+                DCSealButton(
+                    text: sealInfo.text,
+                    variant: sealInfo.variant,
+                    systemImage: sealInfo.symbol
+                ) {
+                    showsPageCapabilitiesPopover = true
+                }
+                .truncationMode(.middle)
+            }
+        }
+        .accessibilityLabel(Text(verbatim: sealInfo.accessibility))
+        .accessibilityIdentifier("pageCapabilitiesSeal")
+        .popover(isPresented: $showsPageCapabilitiesPopover, arrowEdge: .top) {
+            PageCapabilitiesView(
+                app: app,
+                pageURL: currentScriptPageURL,
+                isPresented: $showsPageCapabilitiesPopover
+            )
+            .presentationCompactAdaptation(.popover)
+        }
     }
 
-    // MARK: Drawer ··· menu
+    // MARK: Header ··· menu
 
-    /// §4.4 order: export, the topic's post and pull, instructions, watch,
-    /// History (Manage for now), then Clear Chat.
+    private var currentAgentModelSubtitle: String {
+        let selection = app.selection(for: .browserAgent)
+        let readiness = app.readiness(for: .browserAgent)
+        if readiness == .ready {
+            return ModelPill.label(for: selection)
+        }
+        return readiness.title
+    }
+
     private var drawerMoreMenu: some View {
         Menu {
-            if dynamicTypeSize.isAccessibilitySize { drawerModelPill }
-            if bodyKind == .browserAgent {
-                Section {
-                    Button {
-                        DCHaptics.tap()
-                        app.browserAgent.resetConversation()
-                    } label: {
-                        Label(
-                            String(localized: "New conversation", comment: "Browser agent menu action: clear the conversation and start fresh"),
-                            systemImage: "plus.bubble"
-                        )
-                    }
-                    .accessibilityIdentifier("agentNewConversation")
-                    .disabled(app.browserAgent.runs.isEmpty && app.browserAgent.messages.isEmpty && !app.browserAgent.isRunning)
-                }
-
-                if app.currentTopic != nil || app.pageContext.isForum {
-                    Section {
-                        if app.currentTopic != nil {
-                            Button {
-                                withAnimation(DCMotion.respecting(reduceMotion)) { app.assistantMode = .summary }
-                            } label: {
-                                Label(AssistantMode.summary.title, systemImage: AssistantMode.summary.systemImage)
-                            }
-                            Button {
-                                withAnimation(DCMotion.respecting(reduceMotion)) { app.assistantMode = .chat }
-                            } label: {
-                                Label(AssistantMode.chat.title, systemImage: AssistantMode.chat.systemImage)
-                            }
-                        }
-                        if app.currentTopic != nil || app.agentForum != nil {
-                            Button {
-                                withAnimation(DCMotion.respecting(reduceMotion)) { app.assistantMode = .agent }
-                            } label: {
-                                Label(AssistantMode.agent.title, systemImage: AssistantMode.agent.systemImage)
-                            }
-                        }
+            Section {
+                Menu {
+                    agentModelMenuItems
+                } label: {
+                    Label {
+                        Text("Model", comment: "Assistant more menu submenu for choosing the Agent model")
+                        Text(verbatim: currentAgentModelSubtitle)
+                    } icon: {
+                        Image(systemName: "cpu")
                     }
                 }
+                .accessibilityIdentifier("agentModelMenu")
 
-                Section {
-                    Button {
-                        withAnimation(DCMotion.respecting(reduceMotion)) { app.panelRoute = .history }
-                    } label: {
-                        Label("History", systemImage: "clock.arrow.circlepath")
+                Button {
+                    DCHaptics.tap()
+                    browserAgent.resetConversation()
+                    if app.assistantMode == .agent {
+                        app.assistantMode = .summary
                     }
-                    .accessibilityIdentifier("openHistoryMenu")
-
-                    Button {
-                        app.openPanelRoute(.settings)
-                    } label: {
-                        Label("Settings", systemImage: "gearshape")
-                    }
-                    .accessibilityIdentifier("openSettingsMenu")
+                } label: {
+                    Label(
+                        String(localized: "New conversation", comment: "Browser agent menu action: clear the conversation and start fresh"),
+                        systemImage: "plus.bubble"
+                    )
                 }
-            } else {
-                Section {
-                    Button {
-                        UIPasteboard.general.string = exportText
-                        DCHaptics.success()
-                    } label: {
-                        Label("Copy", systemImage: "doc.on.doc")
-                    }
-                    .accessibilityIdentifier("copyExport")
-                    .disabled(exportDisabled)
+                .accessibilityIdentifier("agentNewConversation")
+                .disabled(browserAgent.runs.isEmpty && browserAgent.messages.isEmpty && !browserAgent.isRunning && app.assistantMode != .agent)
+            }
 
-                    ShareLink(item: exportText) {
-                        Label("Share", systemImage: "square.and.arrow.up")
-                    }
-                    .accessibilityIdentifier("shareExport")
-                    .disabled(exportDisabled)
-
-                    Button {
-                        exporting = true
-                    } label: {
-                        Label("Export .txt", systemImage: "arrow.down.doc")
-                    }
-                    .accessibilityIdentifier("exportExport")
-                    .disabled(exportDisabled)
-
-                    Button {
-                        app.router.item = .exportOptions
-                    } label: {
-                        Label("Export Options…", systemImage: "slider.horizontal.3")
-                    }
-                    .accessibilityIdentifier("exportOptions")
+            Section {
+                Button {
+                    withAnimation(DCMotion.respecting(reduceMotion)) { app.panelRoute = .history }
+                } label: {
+                    Label("History", systemImage: "clock.arrow.circlepath")
                 }
+                .accessibilityIdentifier("openHistoryMenu")
 
-                Section {
-                    Button {
-                        onExpand(.post)
-                    } label: {
-                        Label("Post & Responses", systemImage: "text.bubble")
-                    }
-                    .accessibilityIdentifier("viewPost")
-                    .disabled((app.currentSession?.source ?? "").isEmpty)
-
-                    Button {
-                        app.pullTopic()
-                    } label: {
-                        Label("Pull Post + Replies Only", systemImage: "arrow.down.circle")
-                    }
-                    .accessibilityIdentifier("pullPost")
-                    .disabled(app.currentTopic == nil || activeSummary != nil || activePull != nil)
-
-                    Button {
-                        app.router.item = .instructions
-                    } label: {
-                        Label("Instructions & Context", systemImage: "text.quote")
-                    }
-                    .accessibilityIdentifier("menuInstructions")
-                    .disabled(app.currentTopic == nil)
-
-                    Button {
-                        app.toggleWatchCurrentTopic()
-                    } label: {
-                        if let topicKey = app.currentTopic?.topicKey, app.isWatched(topicKey: topicKey) {
-                            Label("Unwatch Topic", systemImage: "eye.slash")
-                        } else {
-                            Label("Watch Topic", systemImage: "eye")
-                        }
-                    }
-                    .accessibilityIdentifier("toggleWatchTopic")
-                    .disabled(app.currentTopic == nil)
-
-                    Button {
-                        withAnimation(DCMotion.respecting(reduceMotion)) { app.assistantMode = .browserAgent }
-                    } label: {
-                        Label(AssistantMode.browserAgent.title, systemImage: AssistantMode.browserAgent.systemImage)
-                    }
-                    .accessibilityIdentifier("menuBrowserAgent")
-
-                    Button {
-                        withAnimation(DCMotion.respecting(reduceMotion)) { app.panelRoute = .history }
-                    } label: {
-                        Label("History", systemImage: "clock.arrow.circlepath")
-                    }
-                    .accessibilityIdentifier("openHistoryMenu")
+                Button {
+                    app.openPanelRoute(.settings)
+                } label: {
+                    Label("Settings", systemImage: "gearshape")
                 }
-
-                if !(app.currentSession?.history.isEmpty ?? true) {
-                    Section {
-                        Button(role: .destructive) {
-                            app.clearChat()
-                        } label: {
-                            Label("Clear Chat", systemImage: "trash")
-                        }
-                        .accessibilityIdentifier("clearChat")
-                    }
-                }
+                .accessibilityIdentifier("openSettingsMenu")
             }
         } label: {
             Image(systemName: "ellipsis.circle")
                 .font(dynamicTypeSize.isAccessibilitySize ? .system(size: 24, weight: .medium) : .body.weight(.medium))
-                // Watch Topic lives in this menu: the button answers the tap.
-                .dcStateBounce(app.currentTopic.map { app.isWatched(topicKey: $0.topicKey) })
         }
         .buttonStyle(DCIconButtonStyle())
         .accessibilityLabel("More assistant actions")
         .accessibilityIdentifier("assistantMoreMenu")
     }
 
-    /// The pill's menu (ModelMenu, ModelForum): the role, what it is used
-    /// for, the favorites with their state, "Use X for both", AI models…, and
-    /// while a search runs, that a change waits for the next question.
     @ViewBuilder
-    private var modelSwitcherItems: some View {
-        let role = effectiveRole
-        let current = app.selection(for: role)
-        let favorites = app.visibleFavorites.filter { role != .browserAgent || $0.selection.supportsToolCalling }
+    private var agentModelMenuItems: some View {
+        let current = app.selection(for: .browserAgent)
+        let favorites = app.visibleFavorites.filter { $0.selection.supportsToolCalling }
         Section {
-            Text(role.menuExplanation)
+            if !current.model.isEmpty, !favorites.contains(where: { $0.matches(current) }) {
+                Toggle(isOn: .constant(true)) {
+                    Text(current.provider.displayName)
+                    Text(verbatim: ModelPill.label(for: current))
+                }
+            }
             ForEach(favorites) { favorite in
                 Toggle(isOn: Binding(
                     get: { favorite.matches(current) },
-                    set: { _ in app.activateFavorite(favorite, for: role) }
+                    set: { _ in app.activateFavorite(favorite, for: .browserAgent) }
                 )) {
                     Text(favorite.provider.displayName)
                     Text(app.favoriteDetail(favorite))
                 }
             }
-        } header: {
-            Text(role.title.localizedUppercase)
-        }
-        if role != .browserAgent, !app.rolesShareModel, app.isProviderSelectable(current.provider) {
-            Button {
-                app.useSameModel(as: role)
-            } label: {
-                Label(
-                    String(localized: "Use \(ModelPill.label(for: current)) for both", comment: "Model menu: gives the other role this model too. The placeholder is a model name, e.g. claude-opus."),
-                    systemImage: "arrow.left.arrow.right"
-                )
-            }
-            .accessibilityIdentifier("modelUseForBoth")
         }
         Button {
             app.requestedSettingsPage = .provider
@@ -521,11 +582,6 @@ struct AssistantPanel: View {
             Label("AI models…", systemImage: "gearshape")
         }
         .accessibilityIdentifier("modelMenuSettings")
-        if let running = app.runningSearchModel(for: role) {
-            Section {
-                Text("A change applies to your next question. The search running now keeps \(running).", comment: "Ask the forum model menu while a search runs. The placeholder is the running search's model.")
-            }
-        }
     }
 
     private func subHeader(_ title: LocalizedStringKey) -> some View {
@@ -535,7 +591,7 @@ struct AssistantPanel: View {
                     app.panelRoute = .topic
                 }
             } label: {
-                Label("Assistant", systemImage: "chevron.left")
+                Label("Agent", systemImage: "chevron.left")
                     .labelStyle(.titleAndIcon)
                     .font(.body.weight(.medium))
             }
@@ -549,7 +605,7 @@ struct AssistantPanel: View {
                 .accessibilityAddTraits(.isHeader)
             Spacer()
             // Balance the back button so the title stays centered.
-            Label("Assistant", systemImage: "chevron.left")
+            Label("Agent", systemImage: "chevron.left")
                 .font(.body.weight(.medium))
                 .hidden()
         }
@@ -558,65 +614,60 @@ struct AssistantPanel: View {
         .background(DCTheme.toolbar)
     }
 
-    // MARK: Body
+    // MARK: Sticky Footer (StatusLine + 2b Suggestion Slot + Composer)
 
-    private var providerCard: some View {
-        ProviderSetupCard(app: app, role: app.currentRole)
+    private var assistantFooter: some View {
+        VStack(alignment: .leading, spacing: DCTheme.space2) {
+            if showsFooterStatusLine {
+                AgentStatusLine(
+                    session: browserAgent,
+                    developerMode: app.settings.developerMode
+                )
+                .transition(.opacity)
+            }
+
+            // Reserved slot for SuggestionRow (One panel 2b).
+
+            AssistantComposer(
+                draft: $agentDraft,
+                focused: $composerFocused,
+                isRunning: browserAgent.isRunning,
+                onSend: sendAgentPrompt,
+                onStop: { browserAgent.stop() }
+            )
+        }
+        .padding(.horizontal, 14)
+        .padding(.top, 8)
+        .padding(.bottom, 10 + (isKeyboardVisible ? 0 : bottomInset))
+        .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: showsFooterStatusLine)
+        .dcStickyFooter()
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("askBox")
     }
 
-    @ViewBuilder
-    private var topicContent: some View {
-        let kind = bodyKind
-        Group {
-            switch kind {
-            case .summary:
-                drawerThread
-            case .agent:
-                AgentView(
-                    app: app,
-                    showsProviderCard: !app.isProviderReady(for: .agent)
-                ) { url in
-                    openInBrowser(url)
-                }
-            case .browserAgent:
-                BrowserAgentPanelView(app: app)
-            case .forumHome, .notForum, .maybe, .loading:
-                stateContent(kind)
+    private func sendAgentPrompt() {
+        let prompt = agentDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !prompt.isEmpty, !browserAgent.isRunning else { return }
+        guard app.isProviderReady(for: .browserAgent) else {
+            requestedProviderSetup = true
+            composerFocused = false
+            return
+        }
+        requestedProviderSetup = false
+        DCHaptics.tap()
+        agentDraft = ""
+        composerFocused = false
+        if app.router.drawerPhase == .shown,
+           app.router.drawerDetent == .large,
+           !dynamicTypeSize.isAccessibilitySize {
+            withAnimation(DCMotion.respecting(reduceMotion, DCMotion.smooth)) {
+                app.router.drawerDetent = .medium
             }
         }
-        .id(kind)
-        .transition(reduceMotion ? .opacity : .opacity.combined(with: .offset(y: 6)))
-        .animation(DCMotion.respecting(reduceMotion), value: kind)
+        browserAgent.send(prompt)
     }
 
-    private func stateContent(_ kind: BodyKind) -> some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
-                if !app.isProviderReady(for: app.currentRole), kind != .loading {
-                    providerCard
-                }
-                switch kind {
-                case .forumHome:
-                    if let forum = app.assistantForum {
-                        ForumHomeState(app: app, forum: forum)
-                    }
-                case .notForum:
-                    NotForumState(app: app)
-                case .maybe:
-                    MaybeForumState(app: app)
-                default:
-                    AssistantLoadingState()
-                }
-            }
-            .padding(14)
-            .frame(maxWidth: DCTheme.contentMaxWidth + 220, alignment: .leading)
-            .frame(maxWidth: .infinity)
-        }
-        .scrollDismissesKeyboard(.interactively)
-        .accessibilityIdentifier("assistantStateScroll")
-    }
-
-    // MARK: Summary
+    // MARK: Summary & Unified Transcript
 
     private var streamedSummary: String? {
         guard let activeSummary,
@@ -629,10 +680,6 @@ struct AssistantPanel: View {
         activeSummary != nil ? (streamedSummary ?? "") : (app.currentSession?.summary ?? "")
     }
 
-    // MARK: Drawer topic (summary + conversation)
-
-    /// §4.4: the summary, then the topic's conversation, with the chat input
-    /// pinned at the bottom.
     private var drawerThread: some View {
         let streamInput = streamedSummary.map {
             DrawerSummarySections.Input(text: $0, maximumPost: app.currentSession?.totalPosts)
@@ -648,15 +695,22 @@ struct AssistantPanel: View {
                 for: .init(text: visibleSummary, maximumPost: app.currentSession?.totalPosts)
             )
         }
+        let hasSummarySection = !parsed.rows.isEmpty || activeSummary != nil || activePull != nil || isSummaryFailed
+        let hasLeadingContent = providerSetupRole != nil
+            || hasSummarySection
+            || (app.assistantPageState == .loading && browserAgent.runs.isEmpty && (app.currentSession?.history.isEmpty ?? true))
         let isLazy = parsed.hasCitations
             || parsed.rows.count >= MarkdownView.lazyRowThreshold
         return ChatThread(
             app: app,
             topicKey: app.currentTopic?.topicKey ?? "",
             activeChat: activeChat,
-            isLazy: isLazy
+            isLazy: isLazy,
+            hasLeadingContent: hasLeadingContent,
+            expandedToolRowIDs: $expandedToolRowIDs,
+            onOpenURL: openInBrowser
         ) {
-            drawerSummary(rows: parsed.rows)
+            drawerSummary(rows: parsed.rows, hasSummarySection: hasSummarySection)
         }
         .animation(DCMotion.respecting(reduceMotion), value: activeSummary?.id)
         .animation(DCMotion.respecting(reduceMotion), value: activePull?.id)
@@ -686,9 +740,13 @@ struct AssistantPanel: View {
     }
 
     @ViewBuilder
-    private func drawerSummary(rows: [MarkdownRow]) -> some View {
-        if !app.isProviderReady(for: .assistant) {
-            providerCard
+    private func drawerSummary(rows: [MarkdownRow], hasSummarySection: Bool) -> some View {
+        if let setupRole = providerSetupRole, app.assistantPageState != .loading {
+            ProviderSetupCard(app: app, role: setupRole)
+                .padding(.top, 4)
+        }
+        if app.assistantPageState == .loading, !hasSummarySection, browserAgent.runs.isEmpty {
+            AssistantLoadingState()
                 .padding(.top, 4)
         }
         if let record = activePull {
@@ -713,9 +771,6 @@ struct AssistantPanel: View {
                 SummaryPlaceholder()
                     .padding(.top, 4)
                     .transition(.asymmetric(insertion: .opacity, removal: .identity))
-            } else if activePull == nil {
-                drawerSummaryStart
-                    .padding(.top, 4)
             }
         } else {
             if activeSummary == nil, let session = app.currentSession {
@@ -747,17 +802,6 @@ struct AssistantPanel: View {
                     .padding(.top, 4)
                     .transition(.asymmetric(insertion: .opacity, removal: .identity))
             }
-        }
-    }
-
-    /// No summary yet: the topic and the main button.
-    private var drawerSummaryStart: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(app.currentTopic?.title ?? String(localized: "No topic open"))
-                .font(.headline)
-                .fixedSize(horizontal: false, vertical: true)
-                .accessibilityIdentifier("assistantTopicTitle")
-            summarizeControl(prominent: true)
         }
     }
 
@@ -817,13 +861,14 @@ struct AssistantPanel: View {
         }
     }
 
-    /// Model, post count, age, Kept; then the AI label and Retry.
+    /// Model, post count, age, Kept; then the AI label, Translate, Read aloud, Retry, and summary `⋯`.
     private func drawerSummaryMeta(_ session: TopicSession) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
+        let strippedText = PostCitations.stripped(session.summary)
+        return VStack(alignment: .leading, spacing: 6) {
             if !dynamicTypeSize.isAccessibilitySize { summaryMeta(session) }
             let layout = dynamicTypeSize.isAccessibilitySize
                 ? AnyLayout(VStackLayout(alignment: .leading, spacing: 0))
-                : AnyLayout(HStackLayout(spacing: 8))
+                : AnyLayout(HStackLayout(spacing: 6))
             layout {
                 if dynamicTypeSize.isAccessibilitySize {
                     DisclosureGroup {
@@ -836,21 +881,106 @@ struct AssistantPanel: View {
                     summaryNotice
                 }
                 if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 0) }
-                Button {
-                    DCHaptics.tap()
-                    app.startSummary(regenerate: true)
-                } label: {
-                    Text("Retry", comment: "Button: writes the AI summary again")
-                        .font(.caption.weight(.semibold))
-                        .frame(minHeight: DCTheme.controlHeight)
-                        .contentShape(Rectangle())
+                HStack(spacing: 2) {
+                    if session.hasSummary {
+                        TranslateButton(app: app, title: session.title, text: strippedText, compact: true)
+                            .buttonStyle(DCIconButtonStyle())
+                            .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+                        ReadAloudButton(podcast: app.podcast, id: "summary-\(session.topicKey)", title: session.title, text: strippedText, compact: true)
+                            .buttonStyle(DCIconButtonStyle())
+                            .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+                    }
+                    Button {
+                        DCHaptics.tap()
+                        app.startSummary(regenerate: true)
+                    } label: {
+                        Text("Retry", comment: "Button: writes the AI summary again")
+                            .font(.caption.weight(.semibold))
+                            .padding(.horizontal, 4)
+                            .frame(minHeight: DCTheme.controlHeight)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.borderless)
+                    .disabled(activeSummary != nil || activePull != nil)
+                    .accessibilityHint(Text("Writes the summary again", comment: "Accessibility hint of the summary's Retry button"))
+                    .accessibilityIdentifier("retrySummary")
+
+                    summaryMoreMenu
                 }
-                .buttonStyle(.borderless)
-                .disabled(activeSummary != nil || activePull != nil)
-                .accessibilityHint(Text("Writes the summary again", comment: "Accessibility hint of the summary's Retry button"))
-                .accessibilityIdentifier("retrySummary")
             }
         }
+    }
+
+    /// Summary-specific actions moved out of the panel header (`design-unified.md` §1).
+    private var summaryMoreMenu: some View {
+        Menu {
+            Section {
+                Button {
+                    UIPasteboard.general.string = exportText
+                    DCHaptics.success()
+                } label: {
+                    Label("Copy", systemImage: "doc.on.doc")
+                }
+                .accessibilityIdentifier("copyExport")
+                .disabled(exportDisabled)
+
+                ShareLink(item: exportText) {
+                    Label("Share", systemImage: "square.and.arrow.up")
+                }
+                .accessibilityIdentifier("shareExport")
+                .disabled(exportDisabled)
+
+                Button {
+                    exporting = true
+                } label: {
+                    Label("Export .txt", systemImage: "arrow.down.doc")
+                }
+                .accessibilityIdentifier("exportExport")
+                .disabled(exportDisabled)
+
+                Button {
+                    app.router.item = .exportOptions
+                } label: {
+                    Label("Export Options…", systemImage: "slider.horizontal.3")
+                }
+                .accessibilityIdentifier("exportOptions")
+            }
+
+            Section {
+                Button {
+                    onExpand(.post)
+                } label: {
+                    Label("Post & Responses", systemImage: "text.bubble")
+                }
+                .accessibilityIdentifier("viewPost")
+                .disabled((app.currentSession?.source ?? "").isEmpty)
+
+                Button {
+                    app.pullTopic()
+                } label: {
+                    Label("Pull Post + Replies Only", systemImage: "arrow.down.circle")
+                }
+                .accessibilityIdentifier("pullPost")
+                .disabled(app.currentTopic == nil || activeSummary != nil || activePull != nil)
+
+                Button {
+                    app.router.item = .instructions
+                } label: {
+                    Label("Instructions & Context", systemImage: "text.quote")
+                }
+                .accessibilityIdentifier("menuInstructions")
+                .disabled(app.currentTopic == nil)
+            }
+        } label: {
+            Image(systemName: "ellipsis")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .frame(minWidth: 32, minHeight: DCTheme.controlHeight)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text("Summary actions", comment: "Accessibility label of the summary card's more menu"))
+        .accessibilityIdentifier("summaryMoreMenu")
     }
 
     private var summaryNotice: some View {
@@ -933,9 +1063,10 @@ struct AssistantPanel: View {
     }
 }
 
-// MARK: - Chat
+// MARK: - Unified Conversation ScrollView
 
-/// The conversation: a collapsed summary card, messages, and a pinned composer.
+/// Unified scrollable transcript hosting summary results, saved legacy messages,
+/// embedded forum research runs, and `BrowserAgentSession` turns.
 private struct ChatThread<Leading: View>: View {
     private struct HistoryCountKey: Equatable {
         let topicKey: String
@@ -945,9 +1076,13 @@ private struct ChatThread<Leading: View>: View {
 
     @ObservedObject var app: AppModel
     @ObservedObject private var streams: StreamStore
+    private var browserAgent: BrowserAgentSession { app.browserAgent }
     let topicKey: String
     let activeChat: WorkRecord?
     let isLazy: Bool
+    let hasLeadingContent: Bool
+    @Binding var expandedToolRowIDs: Set<UUID>
+    let onOpenURL: (URL) -> Void
     /// The summary above the conversation, scrolled from the top.
     let leading: Leading
     @State private var atBottom = true
@@ -962,6 +1097,9 @@ private struct ChatThread<Leading: View>: View {
         topicKey: String,
         activeChat: WorkRecord?,
         isLazy: Bool,
+        hasLeadingContent: Bool,
+        expandedToolRowIDs: Binding<Set<UUID>>,
+        onOpenURL: @escaping (URL) -> Void,
         @ViewBuilder leading: () -> Leading
     ) {
         self.app = app
@@ -969,6 +1107,9 @@ private struct ChatThread<Leading: View>: View {
         self.topicKey = topicKey
         self.activeChat = activeChat
         self.isLazy = isLazy
+        self.hasLeadingContent = hasLeadingContent
+        _expandedToolRowIDs = expandedToolRowIDs
+        self.onOpenURL = onOpenURL
         self.leading = leading()
     }
 
@@ -981,6 +1122,18 @@ private struct ChatThread<Leading: View>: View {
         app.currentSession?.history ?? []
     }
 
+    private var showsEmbeddedForumRun: Bool {
+        app.assistantMode == .agent && app.selectedAgentRun != nil
+    }
+
+    private var hasConversationEntries: Bool {
+        !history.isEmpty || activeChat != nil || !browserAgent.runs.isEmpty
+    }
+
+    private var isCompletelyEmpty: Bool {
+        !hasLeadingContent && !hasConversationEntries && !showsEmbeddedForumRun
+    }
+
     var body: some View {
         ScrollViewReader { proxy in
             VStack(spacing: 0) {
@@ -990,17 +1143,19 @@ private struct ChatThread<Leading: View>: View {
                             .frame(height: 0)
                             .id("chatTop")
 
-                        VStack(alignment: .leading, spacing: 8) {
-                            if isLazy {
-                                LazyVStack(alignment: .leading, spacing: 8) {
-                                    leading
+                        VStack(alignment: .leading, spacing: 12) {
+                            if hasLeadingContent {
+                                if isLazy {
+                                    LazyVStack(alignment: .leading, spacing: 8) {
+                                        leading
+                                    }
+                                    .transition(.identity)
+                                } else {
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        leading
+                                    }
+                                    .transition(.identity)
                                 }
-                                .transition(.identity)
-                            } else {
-                                VStack(alignment: .leading, spacing: 8) {
-                                    leading
-                                }
-                                .transition(.identity)
                             }
 
                             if !history.isEmpty || activeChat != nil {
@@ -1008,6 +1163,36 @@ private struct ChatThread<Leading: View>: View {
                                     conversationRows
                                 }
                                 .transition(.identity)
+                            }
+
+                            if showsEmbeddedForumRun {
+                                AgentView(
+                                    app: app,
+                                    showsProviderCard: false,
+                                    embeddedInTranscript: true,
+                                    onOpenTopic: onOpenURL
+                                )
+                                .transition(.identity)
+                            }
+
+                            if !browserAgent.runs.isEmpty {
+                                BrowserAgentRunsView(
+                                    app: app,
+                                    session: browserAgent,
+                                    expandedToolRowIDs: $expandedToolRowIDs
+                                )
+                                .transition(.identity)
+                            }
+
+                            if isCompletelyEmpty {
+                                VStack(spacing: 0) {
+                                    DCMascotView(pose: .wave, size: 128)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 48)
+                                .accessibilityElement(children: .combine)
+                                .accessibilityLabel(Text("Agent ready", comment: "Empty Agent panel accessibility label"))
+                                .accessibilityIdentifier("agentEmptyState")
                             }
                         }
                         .padding(.top, 10)
@@ -1026,15 +1211,16 @@ private struct ChatThread<Leading: View>: View {
                     .onGeometryChange(for: Int.self) { Int($0.size.height.rounded()) } action: { newHeight in
                         let grew = metricsBox.contentHeight > 0 && newHeight > metricsBox.contentHeight
                         metricsBox.contentHeight = newHeight
-                        if grew, atBottom, !userScrolling, activeChat != nil {
+                        if grew, atBottom, !userScrolling, !metricsBox.scrolledUp, (activeChat != nil || browserAgent.isRunning) {
                             scrollUnanimated(proxy: proxy)
                             DispatchQueue.main.async {
-                                if atBottom, !userScrolling { scrollUnanimated(proxy: proxy) }
+                                if atBottom, !userScrolling, !metricsBox.scrolledUp { scrollUnanimated(proxy: proxy) }
                             }
                         }
                     }
                     .animation(DCMotion.respecting(reduceMotion), value: history.count)
                     .animation(DCMotion.respecting(reduceMotion), value: activeChat?.id)
+                    .animation(DCMotion.respecting(reduceMotion), value: browserAgent.runs.count)
                 }
                 .defaultScrollAnchor(.top)
                 .modifier(ChatScrollTracker(onPhaseChange: { scrolling in
@@ -1045,28 +1231,46 @@ private struct ChatThread<Leading: View>: View {
                         scrollTask = nil
                     }
                 }, onStateChange: { old, new in
+                    let movedUp = scrollTask == nil
+                        && old.contentHeight > 0
+                        && new.viewportHeight == old.viewportHeight
+                        && new.contentHeight >= old.contentHeight
+                        && new.offsetTenths < old.offsetTenths - 3
+                    if movedUp {
+                        metricsBox.scrolledUp = true
+                    } else if new.offsetTenths > old.offsetTenths + 3 && !metricsBox.pinningBottom {
+                        metricsBox.scrolledUp = false
+                    }
                     metricsBox.nearBottom = new.nearBottom
                     if new.nearBottom {
                         metricsBox.pinningBottom = false
                         if !atBottom,
                            scrollTask != nil
-                            || new.offsetY > old.offsetY
+                            || new.offsetTenths > old.offsetTenths + 3
                             || new.viewportHeight > old.viewportHeight
                             || new.contentHeight <= new.viewportHeight
                         {
                             atBottom = true
+                            metricsBox.scrolledUp = false
                         }
                     } else if atBottom, scrollTask == nil {
+                        let viewportShrank = !userScrolling
+                            && old.viewportHeight > 0
+                            && new.viewportHeight < old.viewportHeight
+                            && new.offsetTenths >= old.offsetTenths - 3
                         let streamGrew = !userScrolling
+                            && !metricsBox.scrolledUp
                             && old.contentHeight > 0
-                            && ((activeChat != nil && new.contentHeight > old.contentHeight) || new.viewportHeight < old.viewportHeight)
-                            && new.offsetY >= old.offsetY - 1
-                        if streamGrew {
+                            && (activeChat != nil || browserAgent.isRunning)
+                            && new.contentHeight > old.contentHeight
+                            && new.offsetTenths >= old.offsetTenths - 3
+                        if viewportShrank || streamGrew {
                             metricsBox.pinningBottom = true
+                            metricsBox.scrolledUp = false
                             scrollUnanimated(proxy: proxy)
                             DispatchQueue.main.async {
                                 metricsBox.pinningBottom = false
-                                if atBottom, !userScrolling { scrollUnanimated(proxy: proxy) }
+                                if atBottom, !userScrolling, !metricsBox.scrolledUp { scrollUnanimated(proxy: proxy) }
                             }
                         } else if !metricsBox.pinningBottom {
                             atBottom = false
@@ -1074,12 +1278,23 @@ private struct ChatThread<Leading: View>: View {
                     }
                 }))
                 .scrollDismissesKeyboard(.interactively)
-                .accessibilityIdentifier("chatScroll")
+                .accessibilityIdentifier("agentScroll")
+                .onAppear {
+                    #if DEBUG
+                    if AssistantDebug.has("-dc-browser-agent-expand-first-tool"),
+                       expandedToolRowIDs.isEmpty,
+                       let first = browserAgent.toolCalls.first {
+                        expandedToolRowIDs.insert(first.id)
+                    }
+                    #endif
+                }
                 .onChange(of: topicKey) {
+                    guard browserAgent.runs.isEmpty else { return }
                     scrollTask?.cancel()
                     scrollTask = nil
                     userScrolling = false
                     metricsBox.contentHeight = 0
+                    metricsBox.scrolledUp = false
                     atBottom = false
                     scrollUnanimated("chatTop", anchor: .top, proxy: proxy)
                     Task { @MainActor in
@@ -1091,24 +1306,47 @@ private struct ChatThread<Leading: View>: View {
                     if new.lastID != old.lastID, history.last?.role == .user {
                         jumpToBottom(proxy: proxy)
                     } else if new.count > old.count, atBottom, !userScrolling {
+                        metricsBox.scrolledUp = false
                         scrollUnanimated(proxy: proxy)
                     }
                 }
                 .onChange(of: stream) {
                     // Follow the answer only while the reader is at the bottom.
+                    if atBottom, !userScrolling {
+                        metricsBox.scrolledUp = false
+                        scrollUnanimated(proxy: proxy)
+                    }
+                }
+                .onChange(of: browserAgent.runs.count) { oldCount, newCount in
+                    if newCount > oldCount {
+                        jumpToBottom(proxy: proxy)
+                    }
+                }
+                .onChange(of: browserAgent.toolCalls.count) { _, _ in
+                    #if DEBUG
+                    if AssistantDebug.has("-dc-browser-agent-expand-first-tool"),
+                       expandedToolRowIDs.isEmpty,
+                       let first = browserAgent.toolCalls.first {
+                        expandedToolRowIDs.insert(first.id)
+                    }
+                    #endif
                     if atBottom, !userScrolling { scrollUnanimated(proxy: proxy) }
+                }
+                .onChange(of: browserAgent.runState) { _, newState in
+                    if atBottom, !userScrolling { scrollUnanimated(proxy: proxy) }
+                    announceAgentStateIfNeeded(newState)
                 }
                 .onDisappear {
                     scrollTask?.cancel()
                     scrollTask = nil
                 }
-                if !atBottom, !history.isEmpty {
+                if !atBottom, hasConversationEntries {
                     Button {
                         jumpToBottom(proxy: proxy)
                     } label: {
                         Image(systemName: "arrow.down")
                             .font(.system(size: 16, weight: .bold))
-                            .foregroundStyle(DCTheme.chatTint)
+                            .foregroundStyle(DCTheme.goldInk)
                             .frame(width: 44, height: 44)
                             .background(.regularMaterial, in: Circle())
                             .overlay { Circle().stroke(DCTheme.border) }
@@ -1123,7 +1361,24 @@ private struct ChatThread<Leading: View>: View {
                     .accessibilityIdentifier("chatScrollToBottom")
                 }
             }
-            .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: !atBottom && !history.isEmpty)
+            .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: !atBottom && hasConversationEntries)
+        }
+    }
+
+    private func announceAgentStateIfNeeded(_ state: BrowserAgentRunState) {
+        switch state {
+        case .failed(let message):
+            UIAccessibility.post(notification: .announcement, argument: message)
+        case .stepLimitReached(let limit):
+            UIAccessibility.post(
+                notification: .announcement,
+                argument: String(
+                    localized: "Stopped after \(limit) steps",
+                    comment: "Browser agent step limit card title; placeholder is the step limit integer"
+                )
+            )
+        default:
+            break
         }
     }
 
@@ -1135,6 +1390,7 @@ private struct ChatThread<Leading: View>: View {
 
     private func jumpToBottom(proxy: ScrollViewProxy) {
         scrollTask?.cancel()
+        metricsBox.scrolledUp = false
         atBottom = true
         scrollTask = Task { @MainActor in
             await settleScroll(reduceMotion: reduceMotion, shouldStop: { userScrolling }) {
@@ -1157,14 +1413,12 @@ private struct ChatThread<Leading: View>: View {
         }
 
         ForEach(history) { message in
-            ChatBubble(message: message, maximumPost: app.currentSession?.totalPosts) {
-                app.editChat(messageID: message.id)
-            }
-            .padding(.top, 4)
-            .transition(.asymmetric(
-                insertion: reduceMotion ? .opacity : .opacity.combined(with: .move(edge: .bottom)),
-                removal: .opacity
-            ))
+            ChatBubble(message: message, maximumPost: app.currentSession?.totalPosts, onEdit: nil)
+                .padding(.top, 4)
+                .transition(.asymmetric(
+                    insertion: reduceMotion ? .opacity : .opacity.combined(with: .move(edge: .bottom)),
+                    removal: .opacity
+                ))
         }
 
         if !stream.isEmpty {
@@ -1185,13 +1439,9 @@ private struct ChatThread<Leading: View>: View {
             chatStatus(activeChat)
                 .padding(.top, 4)
         }
-
-        if !history.isEmpty, activeChat == nil, app.activeChatEdit == nil {
-            followUpChips
-        }
     }
 
-    /// "Conversation" between the drawer's summary and the messages.
+    /// "Conversation" between the drawer's summary and saved legacy messages.
     private var conversationHeader: some View {
         HStack {
             Text("Conversation", comment: "AI drawer: heading above the chat messages about the topic")
@@ -1230,37 +1480,6 @@ private struct ChatThread<Leading: View>: View {
             .accessibilityIdentifier("cancelChat")
         }
         .padding(.horizontal, 4)
-    }
-
-    private static var suggestions: [(String, String)] { AskBox.suggestions }
-
-    private var followUpChips: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ForEach(Self.suggestions.prefix(3), id: \.0) { suggestion in
-                    suggestionChip(suggestion.0, question: suggestion.1)
-                }
-            }
-        }
-        .padding(.top, 6)
-    }
-
-    private func suggestionChip(_ title: String, question: String) -> some View {
-        Button {
-            DCHaptics.tap()
-            app.applyChatSuggestion(question)
-        } label: {
-            Label(title, systemImage: "sparkle")
-                .labelStyle(.titleAndIcon)
-                .font(.footnote.weight(.semibold))
-                .padding(.horizontal, 12)
-                .padding(.vertical, 7)
-                .foregroundStyle(DCTheme.chatTint)
-                .background(DCTheme.chatTint.opacity(0.1), in: Capsule())
-                .overlay { Capsule().stroke(DCTheme.chatTint.opacity(0.22)) }
-        }
-        .buttonStyle(.plain)
-        .accessibilityHint("Fills the question box")
     }
 }
 
@@ -1716,13 +1935,14 @@ private final class ScrollMetricsBox {
     var nearBottom = true
     var contentHeight = 0
     var pinningBottom = false
+    var scrolledUp = false
 }
 
 private struct ScrollState: Equatable {
     var nearBottom: Bool
     var contentHeight: Int
     var viewportHeight: Int
-    var offsetY: Int
+    var offsetTenths: Int
 }
 
 /// Tracks scroll phase and whether the bottom of `ChatThread` is in view
@@ -1742,7 +1962,7 @@ private struct ChatScrollTracker: ViewModifier {
                         nearBottom: geometry.contentSize.height - geometry.visibleRect.maxY < 48,
                         contentHeight: Int(geometry.contentSize.height.rounded()),
                         viewportHeight: Int(geometry.visibleRect.height.rounded()),
-                        offsetY: Int(geometry.contentOffset.y.rounded())
+                        offsetTenths: Int((geometry.contentOffset.y * 10).rounded())
                     )
                 } action: { old, new in
                     onStateChange(old, new)

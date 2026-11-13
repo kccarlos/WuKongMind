@@ -30,7 +30,7 @@ final class ShareHandoffUITests: DCUITestCase {
             "The Assistant did not appear."
         )
         XCTAssertTrue(any(app, "providerSetupCard").waitForExistence(timeout: 10))
-        XCTAssertTrue(any(app, "assistantTopicTitle").waitForExistence(timeout: 10), "No topic is selected.")
+        XCTAssertTrue(any(app, "pageCapabilitiesSeal").waitForExistence(timeout: 10), "This page seal is missing.")
         XCTAssertFalse(any(app, "summaryContent").exists, "No summary may start without a provider.")
 
         // The browser shows the shared topic.
@@ -55,9 +55,8 @@ final class ShareHandoffUITests: DCUITestCase {
             return
         }
         setupSheet.buttons["Later"].tap()
-        // The drawer and the panel show the summary and the conversation
-        // together; the chat input is pinned at the bottom.
-        XCTAssertTrue(any(app, "chatInput").waitForExistence(timeout: 10), "The AI view has no chat input.")
+        // The unified panel pins the Agent composer at the bottom.
+        XCTAssertTrue(any(app, "agentPromptInput").waitForExistence(timeout: 10), "The AI view has no Agent composer.")
     }
 
     func testOpenLinkOnlyLoadsThePage() throws {

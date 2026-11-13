@@ -180,9 +180,6 @@ struct ContentView: View {
             router.closeDrawer()
             return
         }
-        if app.toolbarOpensBrowserAgentByDefault {
-            app.assistantMode = .browserAgent
-        }
         app.showAIView()
     }
 
@@ -211,19 +208,6 @@ struct ContentView: View {
             openPanelRoute(.settings)
         case .history:
             openPanelRoute(.history)
-        case .summary, .chat, .agent:
-            // ⌘2 / ⌘3 pick the Ask box's scope and focus it.
-            let asks = command != .summary
-            withAnimation(DCMotion.respecting(reduceMotion, DCMotion.spring)) {
-                app.panelRoute = .topic
-                if asks {
-                    app.setAskScope(command == .chat ? .topic : .forum)
-                } else {
-                    app.assistantMode = .summary
-                }
-            }
-            app.showAIView()
-            if asks { app.askFocusRequest += 1 }
         case .togglePanel:
             app.toggleAIView()
         case .nextResult:

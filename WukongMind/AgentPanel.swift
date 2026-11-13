@@ -7,6 +7,7 @@ import UIKit
 struct AgentView: View {
     @ObservedObject var app: AppModel
     var showsProviderCard = false
+    var embeddedInTranscript = false
     /// Opens a topic the agent read in the browser.
     let onOpenTopic: (URL) -> Void
     /// nil follows the run: open while it works, closed once it has an answer.
@@ -14,9 +15,15 @@ struct AgentView: View {
     @State private var bottomScrollTrigger = 0
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    init(app: AppModel, showsProviderCard: Bool = false, onOpenTopic: @escaping (URL) -> Void) {
+    init(
+        app: AppModel,
+        showsProviderCard: Bool = false,
+        embeddedInTranscript: Bool = false,
+        onOpenTopic: @escaping (URL) -> Void
+    ) {
         self.app = app
         self.showsProviderCard = showsProviderCard
+        self.embeddedInTranscript = embeddedInTranscript
         self.onOpenTopic = onOpenTopic
     }
 
@@ -36,7 +43,45 @@ struct AgentView: View {
 
     private var forum: Forum? { app.agentForum }
 
+    @ViewBuilder
+    private func runBody(_ run: AgentRun) -> some View {
+        runHeader(run)
+        if !run.steps.isEmpty {
+            stepTimeline(run)
+        }
+        if !run.answer.isEmpty || !run.followUps.isEmpty {
+            answerSection(run)
+                .transition(.opacity.combined(with: .move(edge: .bottom)))
+        }
+        if !run.error.isEmpty {
+            Label(run.error, systemImage: "exclamationmark.triangle.fill")
+                .font(.caption)
+                .foregroundStyle(DCTheme.danger)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .dcCard(tint: DCTheme.danger)
+                .accessibilityIdentifier("agentRunError")
+        }
+    }
+
     var body: some View {
+        if embeddedInTranscript {
+            if let run {
+                VStack(alignment: .leading, spacing: 14) {
+                    if showsProviderCard {
+                        ProviderSetupCard(app: app, role: .agent)
+                    }
+                    runBody(run)
+                }
+                .onChange(of: app.selectedAgentRunID) {
+                    stepsExpanded = nil
+                }
+            }
+        } else {
+            standaloneBody
+        }
+    }
+
+    private var standaloneBody: some View {
         VStack(spacing: 0) {
             ScrollViewReader { proxy in
                 ScrollView {
@@ -48,22 +93,7 @@ struct AgentView: View {
                         askBoxHeader
 
                         if let run {
-                            runHeader(run)
-                            if !run.steps.isEmpty {
-                                stepTimeline(run)
-                            }
-                            if !run.answer.isEmpty || !run.followUps.isEmpty {
-                                answerSection(run)
-                                    .transition(.opacity.combined(with: .move(edge: .bottom)))
-                            }
-                            if !run.error.isEmpty {
-                                Label(run.error, systemImage: "exclamationmark.triangle.fill")
-                                    .font(.caption)
-                                    .foregroundStyle(DCTheme.danger)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .dcCard(tint: DCTheme.danger)
-                                    .accessibilityIdentifier("agentRunError")
-                            }
+                            runBody(run)
                         } else {
                             askBoxEmptyState
                         }
@@ -755,320 +785,137 @@ struct AgentView: View {
     }
 }
 
-// MARK: - Browser Agent Chat Panel (M1)
+// MARK: - Unified Agent Runs & Status Line
 
-struct BrowserAgentPanelView: View {
-    @ObservedObject var app: AppModel
-    @State private var draft = ""
-    @State private var expandedToolRowIDs: Set<UUID> = []
-    @State private var collapsedRunIDs: Set<UUID> = []
-    @State private var manuallyExpandedRunIDs: Set<UUID> = []
-    @State private var bottomScrollTrigger = 0
-    @State private var showsPageScriptsPopover = false
-    @FocusState private var promptFocused: Bool
-    @Environment(\.colorScheme) private var colorScheme
+enum BrowserAgentPanelView {
+    static func formatDuration(_ duration: TimeInterval) -> String {
+        if duration < 1 {
+            return String(format: "%.1f s", max(0.1, duration))
+        }
+        return String(format: "%.0f s", duration.rounded())
+    }
+
+    static func formatTokens(_ count: Int) -> String {
+        if count >= 1_000 {
+            return String(format: "%.1fk", Double(count) / 1_000.0)
+        }
+        return "\(count)"
+    }
+
+    static func mascotPose(
+        runState: BrowserAgentRunState,
+        toolCalls: [BrowserAgentToolCallRow],
+        reduceMotion: Bool
+    ) -> DCMascotPose? {
+        switch runState {
+        case .running(let step, _):
+            if reduceMotion {
+                return .think
+            }
+            if let runningRow = toolCalls.last(where: \.isRunning) {
+                return runningRow.toolName == "read_page" ? .search : .run
+            }
+            return step > 0 ? .run : .think
+        case .completed:
+            return .cheer
+        case .idle, .stopped, .stepLimitReached, .failed:
+            return nil
+        }
+    }
+
+    static func statusText(
+        runState: BrowserAgentRunState,
+        developerMode: Bool,
+        totalTokens: Int
+    ) -> String? {
+        let base: String
+        switch runState {
+        case .running(let step, _):
+            if step <= 0 {
+                base = String(localized: "Thinking…", comment: "Agent status line while waiting on the first model step")
+            } else {
+                base = String(localized: "Working · step \(step)", comment: "Agent status line while executing a step")
+            }
+            if developerMode && totalTokens > 0 {
+                let tokensPart = String(localized: "\(formatTokens(totalTokens)) tokens", comment: "Browser agent footer token counter")
+                return "\(base) · \(tokensPart)"
+            }
+            return base
+        case .completed(let steps, let duration):
+            base = String(localized: "Done · \(steps) steps · \(formatDuration(duration))", comment: "Browser agent footer status when a run finishes")
+            if developerMode {
+                let tokensPart = String(localized: "\(formatTokens(totalTokens)) tokens", comment: "Browser agent footer token counter")
+                return "\(base) · \(tokensPart)"
+            }
+            return base
+        case .idle, .stopped, .stepLimitReached, .failed:
+            return nil
+        }
+    }
+}
+
+struct AgentStatusLine: View {
+    let session: BrowserAgentSession
+    let developerMode: Bool
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    private var session: BrowserAgentSession { app.browserAgent }
-    private var isProviderReady: Bool { app.isProviderReady(for: .browserAgent) }
-
-    private var currentHost: String {
-        let host = BrowserAddress.host(app.browser.currentURL ?? app.pageContext.url)
-        return host.isEmpty ? String(localized: "Current page", comment: "Browser agent context pill fallback when no host is available") : host
-    }
-
-    private var currentScriptPageURL: URL? {
-        app.browser.currentURL ?? app.pageContext.url
-    }
-
-    private var matchingPageScripts: [UserScript] {
-        guard let url = currentScriptPageURL else { return [] }
-        return app.scriptStore.sortedMatchingScripts(for: url, includeDisabled: true)
-    }
-
-    private var matchingPageScriptErrorCount: Int {
-        guard app.scriptStore.isGlobalEnabled else { return 0 }
-        return matchingPageScripts.filter {
-            $0.isEnabled && app.scriptStore.error(for: $0.id) != nil
-        }.count
-    }
-
-    private var canSend: Bool {
-        isProviderReady
-            && !session.isRunning
-            && !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    }
-
     var body: some View {
-        VStack(spacing: 0) {
-            contextRow
-            Divider()
-            ScrollViewReader { proxy in
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 12) {
-                        if !isProviderReady {
-                            ProviderSetupCard(app: app, role: .browserAgent)
-                        }
-
-                        if session.runs.isEmpty {
-                            emptyStateCard
-                        } else {
-                            ForEach(Array(session.runs.enumerated()), id: \.element.id) { index, run in
-                                runSection(run, isLatest: index == session.runs.count - 1)
-                            }
-                        }
-
-                        Color.clear
-                            .frame(height: 1)
-                            .id("browserAgentBottom")
-                    }
-                    .padding(14)
-                    .frame(maxWidth: 860, alignment: .leading)
-                    .frame(maxWidth: .infinity)
-                }
-                .scrollDismissesKeyboard(.interactively)
-                .scrollToBottomEdge(trigger: bottomScrollTrigger, reduceMotion: reduceMotion)
-                .accessibilityIdentifier("agentScroll")
-                .onChange(of: session.runs.count) { _, _ in
-                    scrollToBottom(proxy: proxy)
-                }
-                .onChange(of: session.toolCalls.count) { _, _ in
-                    #if DEBUG
-                    if AssistantDebug.has("-dc-browser-agent-expand-first-tool"),
-                       expandedToolRowIDs.isEmpty,
-                       let first = session.toolCalls.first {
-                        expandedToolRowIDs.insert(first.id)
-                    }
-                    #endif
-                    scrollToBottom(proxy: proxy)
-                }
-                .onChange(of: session.runState) { _, newState in
-                    scrollToBottom(proxy: proxy)
-                    announceStateIfNeeded(newState)
-                }
-            }
-            footerBar
-        }
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("agentPanel")
-    }
-
-    // MARK: Context row
-
-    private var contextRow: some View {
-        let singleLineLimit: Int? = dynamicTypeSize.isAccessibilitySize ? nil : 1
-        let scripts = matchingPageScripts
-        return HStack(spacing: 8) {
-            DCPill(text: currentHost, systemImage: "globe", tint: .secondary)
-                .accessibilityIdentifier("agentHostPill")
-            if scripts.isEmpty {
-                Text("No scripts on this page", comment: "Browser agent context bar when zero saved scripts match the current page")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(singleLineLimit)
-                    .accessibilityIdentifier("agentScriptsCount")
-            } else {
-                pageScriptsChipButton(
-                    scriptCount: scripts.count,
-                    errorCount: matchingPageScriptErrorCount,
-                    isGlobalEnabled: app.scriptStore.isGlobalEnabled,
-                    singleLineLimit: singleLineLimit
-                )
-            }
-            Spacer(minLength: 0)
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, scripts.isEmpty ? 8 : 2)
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("agentContextRow")
-        .onAppear {
-            #if DEBUG
-            if AssistantDebug.has("-dc-scripts-open-popover"), !scripts.isEmpty {
-                Task { @MainActor in
-                    try? await Task.sleep(for: .milliseconds(600))
-                    showsPageScriptsPopover = true
-                }
-            }
-            #endif
-        }
-    }
-
-    private func pageScriptsChipButton(
-        scriptCount: Int,
-        errorCount: Int,
-        isGlobalEnabled: Bool,
-        singleLineLimit: Int?
-    ) -> some View {
-        let tint: Color = {
-            if !isGlobalEnabled { return .secondary }
-            if errorCount > 0 { return DCTheme.danger }
-            return DCTheme.agentTint
-        }()
-        let symbol: String? = {
-            if !isGlobalEnabled { return "nosign" }
-            if errorCount > 0 { return "exclamationmark.triangle.fill" }
-            return nil
-        }()
-        let chipText: String = {
-            if !isGlobalEnabled {
-                return String(localized: "Scripts off · \(scriptCount) here", comment: "Browser agent context chip when global scripts switch is off; placeholder is number of scripts matching this page")
-            }
-            if errorCount > 0 {
-                let scriptsPart = String(localized: "\(scriptCount) scripts", comment: "Count of scripts in context chip error state")
-                let errorsPart = errorCount == 1
-                    ? String(localized: "1 error", comment: "Singular error count in context chip")
-                    : String(localized: "\(errorCount) errors", comment: "Plural error count in context chip")
-                return "\(scriptsPart) · \(errorsPart)"
-            }
-            return String(localized: "\(scriptCount) scripts on this page", comment: "Browser agent context bar: number of saved scripts matching this page")
-        }()
-
-        return Button {
-            DCHaptics.tap()
-            showsPageScriptsPopover = true
-        } label: {
-            HStack(spacing: 5) {
-                if let symbol {
-                    Image(systemName: symbol)
-                        .font(.caption2.weight(.semibold))
+        let state = session.runState
+        if let pose = BrowserAgentPanelView.mascotPose(
+            runState: state,
+            toolCalls: session.toolCalls,
+            reduceMotion: reduceMotion
+        ),
+           let text = BrowserAgentPanelView.statusText(
+            runState: state,
+            developerMode: developerMode,
+            totalTokens: session.tokenUsage.totalTokens
+        ) {
+            let singleLineLimit: Int? = dynamicTypeSize.isAccessibilitySize ? nil : 1
+            let isCompleted: Bool = {
+                if case .completed = state { return true }
+                return false
+            }()
+            HStack(spacing: 8) {
+                DCMascotView(pose: pose, size: 40)
+                if isCompleted {
+                    Image(systemName: "checkmark")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(DCTheme.success)
                         .accessibilityHidden(true)
                 }
-                Text(chipText)
-                    .font(.caption.weight(.semibold))
+                Text(verbatim: text)
+                    .font(.caption.weight(isCompleted ? .medium : .semibold))
+                    .foregroundStyle(isCompleted ? DCTheme.inkMuted : DCTheme.goldInk)
+                    .monospacedDigit()
                     .lineLimit(singleLineLimit)
-                Image(systemName: "chevron.down")
-                    .font(.system(size: 10, weight: .bold))
-                    .accessibilityHidden(true)
+                Spacer(minLength: 0)
             }
-            .foregroundStyle(tint)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 5)
-            .frame(minHeight: 28)
-            .background(tint.opacity(0.12), in: Capsule())
-            .frame(minHeight: DCTheme.controlHeight)
-            .contentShape(Capsule())
-        }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier("agentScriptsCount")
-        .popover(isPresented: $showsPageScriptsPopover, arrowEdge: .top) {
-            PageScriptsPopover(
-                app: app,
-                pageURL: currentScriptPageURL,
-                isPresented: $showsPageScriptsPopover
-            )
-            .presentationCompactAdaptation(.popover)
+            .frame(minHeight: 40)
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("agentStatusLine")
         }
     }
+}
 
-    // MARK: Empty state
+struct BrowserAgentRunsView: View {
+    @ObservedObject var app: AppModel
+    let session: BrowserAgentSession
+    @Binding var expandedToolRowIDs: Set<UUID>
+    @State private var collapsedRunIDs: Set<UUID> = []
+    @State private var manuallyExpandedRunIDs: Set<UUID> = []
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    private var emptyStateCard: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("Change this page by asking", comment: "Browser agent empty state card title")
-                .font(.headline)
-                .accessibilityAddTraits(.isHeader)
+    private var isProviderReady: Bool { app.isProviderReady(for: .browserAgent) }
 
-            VStack(alignment: .leading, spacing: 10) {
-                howItWorksRow(
-                    symbol: "doc.text",
-                    tint: DCTheme.ink,
-                    text: String(localized: "Reads the page’s structure and text", comment: "Browser agent empty state: first how-it-works bullet")
-                )
-                howItWorksRow(
-                    symbol: "curlybraces",
-                    tint: DCTheme.ink,
-                    text: String(localized: "Runs JavaScript and injects CSS live", comment: "Browser agent empty state: second how-it-works bullet")
-                )
-                howItWorksRow(
-                    symbol: "hand.raised",
-                    tint: DCTheme.ink,
-                    text: String(localized: "Stops whenever you tap Stop", comment: "Browser agent empty state: third how-it-works bullet")
-                )
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            ForEach(Array(session.runs.enumerated()), id: \.element.id) { index, run in
+                runSection(run, isLatest: index == session.runs.count - 1)
             }
-
-            VStack(alignment: .leading, spacing: 8) {
-                ForEach(Self.examples, id: \.self) { example in
-                    Button {
-                        DCHaptics.tap()
-                        draft = example
-                        if isProviderReady {
-                            promptFocused = true
-                        }
-                    } label: {
-                        HStack(spacing: 8) {
-                            Image(systemName: "sparkles")
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(DCTheme.agentTint)
-                                .accessibilityHidden(true)
-                            Text(example)
-                                .font(.subheadline)
-                                .foregroundStyle(.primary)
-                                .multilineTextAlignment(.leading)
-                            Spacer(minLength: 0)
-                        }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 10)
-                        .frame(minHeight: DCTheme.controlHeight)
-                        .background(
-                            DCTheme.raisedSurface,
-                            in: RoundedRectangle(cornerRadius: DCTheme.controlCornerRadius, style: .continuous)
-                        )
-                        .overlay {
-                            RoundedRectangle(cornerRadius: DCTheme.controlCornerRadius, style: .continuous)
-                                .stroke(DCTheme.border)
-                        }
-                        .contentShape(RoundedRectangle(cornerRadius: DCTheme.controlCornerRadius, style: .continuous))
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityIdentifier("agentExample")
-                }
-            }
-
-            Button {
-                DCHaptics.tap()
-                app.requestedSettingsPage = .agent
-            } label: {
-                Text("Up to \(app.settings.browserAgentMaxSteps) steps. Change it in Settings.", comment: "Browser agent empty state footer showing the configured step limit and linking to Settings")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .underline()
-            }
-            .buttonStyle(.plain)
-            .accessibilityIdentifier("agentStepLimitLink")
-        }
-        .dcCard()
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("agentEmptyState")
-    }
-
-    private func howItWorksRow(symbol: String, tint: Color, text: String) -> some View {
-        HStack(spacing: 10) {
-            Circle()
-                .fill(tint.opacity(0.14))
-                .frame(width: 28, height: 28)
-                .overlay {
-                    Image(systemName: symbol)
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(tint)
-                }
-                .accessibilityHidden(true)
-            Text(text)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
         }
     }
-
-    private static var examples: [String] {
-        [
-            String(localized: "Make this page dark and hide the sidebar", comment: "Browser agent example prompt 1"),
-            String(localized: "Summarize the main points on this page", comment: "Browser agent example prompt 2"),
-            String(localized: "Increase the font size and widen the article", comment: "Browser agent example prompt 3")
-        ]
-    }
-
-    // MARK: Conversation runs
 
     @ViewBuilder
     private func runSection(_ run: BrowserAgentRun, isLatest: Bool) -> some View {
@@ -1277,8 +1124,6 @@ struct BrowserAgentPanelView: View {
         .accessibilityHidden(true)
     }
 
-    // MARK: Step limit & error cards
-
     private func stepLimitCard(limit: Int) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {
@@ -1359,193 +1204,6 @@ struct BrowserAgentPanelView: View {
         .dcCard(tint: DCTheme.danger)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("agentErrorCard")
-    }
-
-    // MARK: Sticky footer
-
-    private var footerBar: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if session.runState != .idle || session.tokenUsage.totalTokens > 0 {
-                statusLine
-            }
-            composerRow
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .dcStickyFooter()
-    }
-
-    private var statusLine: some View {
-        let singleLineLimit: Int? = dynamicTypeSize.isAccessibilitySize ? nil : 1
-        return HStack(spacing: 6) {
-            switch session.runState {
-            case .idle:
-                EmptyView()
-            case .running(let step, let maxSteps):
-                Circle()
-                    .fill(DCTheme.agentTint)
-                    .frame(width: 8, height: 8)
-                    .accessibilityHidden(true)
-                Text("Working · step \(max(1, step)) of \(maxSteps)", comment: "Browser agent footer status while a run is working")
-                    .lineLimit(singleLineLimit)
-            case .completed(let steps, let duration):
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(DCTheme.success)
-                    .accessibilityHidden(true)
-                Text("Done · \(steps) steps · \(Self.formatDuration(duration))", comment: "Browser agent footer status when a run finishes")
-                    .lineLimit(singleLineLimit)
-            case .stopped(let step):
-                Image(systemName: "stop.circle.fill")
-                    .foregroundStyle(.secondary)
-                    .accessibilityHidden(true)
-                Text("Stopped by you · step \(step)", comment: "Browser agent footer status when stopped by the user")
-                    .lineLimit(singleLineLimit)
-            case .stepLimitReached(let limit):
-                Image(systemName: "pause.circle.fill")
-                    .foregroundStyle(DCTheme.warning)
-                    .accessibilityHidden(true)
-                Text("Stopped at the step limit (\(limit))", comment: "Browser agent warning card title when the step limit is reached")
-                    .lineLimit(singleLineLimit)
-            case .failed:
-                Image(systemName: "exclamationmark.circle.fill")
-                    .foregroundStyle(DCTheme.danger)
-                    .accessibilityHidden(true)
-                Text("Turn failed", comment: "Browser agent footer status when a turn fails")
-                    .lineLimit(singleLineLimit)
-            }
-            Spacer(minLength: 6)
-            Text("\(Self.formatTokens(session.tokenUsage.totalTokens)) tokens", comment: "Browser agent footer token counter")
-                .monospacedDigit()
-                .lineLimit(singleLineLimit)
-        }
-        .font(.caption)
-        .foregroundStyle(.secondary)
-        .accessibilityElement(children: .combine)
-        .accessibilityIdentifier("agentStatusLine")
-    }
-
-    private var composerPlaceholder: String {
-        if !isProviderReady {
-            return String(localized: "Choose a model first", comment: "Browser agent composer placeholder when no model is configured")
-        }
-        if session.isRunning {
-            return String(localized: "Write your next message…", comment: "Browser agent composer placeholder while a run is in progress")
-        }
-        return String(localized: "Ask the agent to change this page…", comment: "Browser agent composer placeholder when ready")
-    }
-
-    private var composerRow: some View {
-        HStack(spacing: 8) {
-            TextField(composerPlaceholder, text: $draft)
-                .textFieldStyle(.plain)
-                .font(.subheadline)
-                .focused($promptFocused)
-                .disabled(!isProviderReady)
-                .submitLabel(.send)
-                .onSubmit(sendDraft)
-                .padding(.horizontal, 14)
-                .frame(minHeight: 44)
-                .background(
-                    Color(uiColor: .tertiarySystemFill),
-                    in: Capsule()
-                )
-                .overlay {
-                    Capsule()
-                        .strokeBorder(promptFocused ? DCTheme.agentTint.opacity(0.6) : DCTheme.border, lineWidth: 1)
-                }
-                .accessibilityIdentifier("agentPromptInput")
-
-            if session.isRunning {
-                Button {
-                    DCHaptics.tap()
-                    session.stop()
-                } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: "stop.fill")
-                            .font(.caption.weight(.bold))
-                        Text("Stop", comment: "Browser agent stop button title")
-                            .font(.subheadline.weight(.semibold))
-                    }
-                    .foregroundStyle(DCTheme.onCinnabar)
-                    .padding(.horizontal, 14)
-                    .frame(minWidth: 44, minHeight: 44)
-                    .background(DCTheme.cinnabar, in: RoundedRectangle(cornerRadius: DCTheme.radiusMd, style: .continuous))
-                    .contentShape(RoundedRectangle(cornerRadius: DCTheme.radiusMd, style: .continuous))
-                }
-                .buttonStyle(.plain)
-                .keyboardShortcut(".", modifiers: .command)
-                .accessibilityLabel(Text("Stop", comment: "Browser agent stop button title"))
-                .accessibilityIdentifier("agentStopButton")
-            } else {
-                Button(action: sendDraft) {
-                    Image(systemName: "arrow.up")
-                        .font(.body.weight(.bold))
-                        .foregroundStyle(canSend ? DCTheme.onGold : DCTheme.inkFaint)
-                        .frame(width: 44, height: 44)
-                        .background(
-                            canSend ? DCTheme.gold : DCTheme.surfaceRaised,
-                            in: Circle()
-                        )
-                        .contentShape(Circle())
-                }
-                .buttonStyle(.plain)
-                .disabled(!canSend)
-                .accessibilityLabel(Text("Send", comment: "Browser agent send button accessibility label"))
-                .accessibilityIdentifier("agentSendButton")
-            }
-        }
-    }
-
-    private func sendDraft() {
-        guard canSend else { return }
-        let prompt = draft.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !prompt.isEmpty else { return }
-        DCHaptics.tap()
-        draft = ""
-        promptFocused = false
-        if app.router.usesDrawer, !dynamicTypeSize.isAccessibilitySize, app.router.drawerDetent == .large {
-            withAnimation(DCMotion.respecting(reduceMotion, DCMotion.smooth)) {
-                app.router.drawerDetent = .medium
-            }
-        }
-        session.send(prompt)
-    }
-
-    private func scrollToBottom(proxy: ScrollViewProxy) {
-        if #available(iOS 18.0, *) {
-            bottomScrollTrigger &+= 1
-        } else {
-            withAnimation(DCMotion.respecting(reduceMotion, DCMotion.quick)) {
-                proxy.scrollTo("browserAgentBottom", anchor: .bottom)
-            }
-        }
-    }
-
-    private func announceStateIfNeeded(_ state: BrowserAgentRunState) {
-        switch state {
-        case .stepLimitReached(let limit):
-            AccessibilityNotification.Announcement(
-                String(localized: "Stopped at the step limit (\(limit))", comment: "Browser agent warning card title when the step limit is reached")
-            ).post()
-        case .failed(let message):
-            AccessibilityNotification.Announcement(message).post()
-        default:
-            break
-        }
-    }
-
-    static func formatDuration(_ duration: TimeInterval) -> String {
-        if duration < 10 {
-            return String(format: "%.1fs", max(0.1, duration))
-        }
-        return String(format: "%.0fs", duration)
-    }
-
-    static func formatTokens(_ count: Int) -> String {
-        if count >= 1_000 {
-            return String(format: "%.1fk", Double(count) / 1_000.0)
-        }
-        return "\(count)"
     }
 }
 

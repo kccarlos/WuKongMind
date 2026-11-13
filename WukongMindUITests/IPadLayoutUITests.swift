@@ -315,8 +315,11 @@ final class IPadLayoutUITests: DCUITestCase {
         XCTAssertTrue(waitForHittable(continueRow, timeout: 5))
         continueRow.tap()
 
-        let instructions = app.buttons["chatInstructions"].firstMatch
-        XCTAssertTrue(waitForHittable(instructions, timeout: 10))
+        let summaryMenu = app.buttons["summaryMoreMenu"].firstMatch
+        XCTAssertTrue(waitForHittable(summaryMenu, timeout: 10))
+        summaryMenu.tap()
+        let instructions = app.buttons["menuInstructions"].firstMatch
+        XCTAssertTrue(instructions.waitForExistence(timeout: 5))
         instructions.tap()
         let instructionsCancel = app.navigationBars["Instructions"].buttons["Cancel"]
         XCTAssertTrue(instructionsCancel.waitForExistence(timeout: 5))
