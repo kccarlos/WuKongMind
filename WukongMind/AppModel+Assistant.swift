@@ -262,6 +262,7 @@ struct AssistantDebugSeed {
 /// - `-dc-no-summary`                  the open topic has no summary yet
 /// - `-dc-fake-summary`                Create summary streams the sample summary (no network, no AI)
 /// - `-dc-fake-summary-fails`          with `-dc-fake-summary`: the first run fails, Retry works
+/// - `-dc-not-following`               the open topic is not followed (suggestion row shows Notify me)
 /// - `-dc-scroll-sources`              Agent: scrolls to the answer's sources
 /// - `-dc-history-segment <segment>`   History: all | summaries | asks | watching
 /// - `-dc-chat-typing`                 with `-dc-chat-streaming`: no text yet (typing dots)
@@ -569,7 +570,9 @@ extension AppModel {
             sessions: sessions,
             activities: activities,
             agentRuns: [currentRun, olderRun],
-            watchedTopics: [watchedMeta, watchedStream, watchedWorkingOn],
+            watchedTopics: [watchedMeta, watchedStream, watchedWorkingOn].filter {
+                !AssistantDebug.has("-dc-not-following") || $0.topicKey != openTopic.topicKey
+            },
             currentTopic: selected,
             currentForum: openForum,
             pageContext: context
