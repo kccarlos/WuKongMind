@@ -598,10 +598,12 @@ extension AppModel {
         var sampleSettings = settings
         sampleSettings.setModel(ModelSelection(provider: sampleProvider, model: sampleModel), for: .assistant)
         sampleSettings.setModel(sampleAgent, for: .agent)
-        if sampleProvider.supportsToolCalling {
-            sampleSettings.setModel(ModelSelection(provider: sampleProvider, model: sampleModel), for: .browserAgent)
-        } else if sampleAgent.supportsToolCalling {
-            sampleSettings.setModel(sampleAgent, for: .browserAgent)
+        if !AssistantDebug.has("-dc-no-provider") {
+            if sampleProvider.supportsToolCalling {
+                sampleSettings.setModel(ModelSelection(provider: sampleProvider, model: sampleModel), for: .browserAgent)
+            } else if sampleAgent.supportsToolCalling {
+                sampleSettings.setModel(sampleAgent, for: .browserAgent)
+            }
         }
         if AssistantDebug.has("-dc-developer-mode") {
             sampleSettings.developerMode = true

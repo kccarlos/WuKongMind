@@ -65,6 +65,11 @@ extension AppModel {
         return adapter(for: siteURL)?.capabilities.searchPageURL?(siteURL, query)
     }
 
+    /// Web search URL using the search engine configured in Settings › Browser.
+    func webSearchURL(query: String) -> URL? {
+        settings.searchEngine.searchURL(for: query)
+    }
+
     func showForumsHome() {
         browser.showForumsHome()
     }

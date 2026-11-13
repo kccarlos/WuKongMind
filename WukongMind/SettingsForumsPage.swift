@@ -224,17 +224,11 @@ struct SettingsForumsPage: View {
     }
 }
 
-/// The "Pin" pill on forums that aren't pinned yet.
+/// The "Pin" seal on forums that aren't pinned yet.
 private struct PinPill: View {
     var body: some View {
-        Text("Pin")
-            .font(.footnote.weight(.semibold))
-            .foregroundStyle(DCTheme.goldInk)
-            .padding(.horizontal, 12)
-            .frame(height: 30)
-            .background(DCTheme.goldWash, in: RoundedRectangle(cornerRadius: DCTheme.radiusSm, style: .continuous))
-            .fixedSize()
-            // 44 pt to tap; the pill stays 30 pt.
+        DCSeal(text: String(localized: "Pin"), variant: .gold)
+            // 44 pt to tap; the seal stays compact.
             .frame(minWidth: DCTheme.controlHeight, minHeight: DCTheme.controlHeight)
             .contentShape(Rectangle())
     }

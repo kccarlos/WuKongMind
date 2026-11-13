@@ -524,6 +524,53 @@
         }
       }
     },
+    "%lld forums" : {
+      "comment" : "Settings root, Sites row: number of saved forums",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld forum"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld forums"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld 个论坛"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld 個論壇"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld lines" : {
       "comment" : "Code row trailing label showing line count",
       "localizations" : {
@@ -927,23 +974,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "百分之 %lld"
-          }
-        }
-      }
-    },
-    "%lld pinned" : {
-      "comment" : "Settings root, Forums row: number of pinned forums",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已置顶 %lld 个"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已釘選 %lld 個"
           }
         }
       }
@@ -1434,7 +1464,7 @@
       }
     },
     "%lld steps" : {
-      "comment" : "Agent run detail: tool calls made\nAsk the forum run progress: tool calls made",
+      "comment" : "Agent run detail: tool calls made\nAsk the forum run progress: tool calls made\nSettings root, Agent row: configured step limit, e.g. 30 steps",
       "localizations" : {
         "en" : {
           "variations" : {
@@ -2015,6 +2045,23 @@
         }
       }
     },
+    "2 roles" : {
+      "comment" : "Settings root, Models row: both Agent and Summaries models are configured",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2 个角色"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2 個角色"
+          }
+        }
+      }
+    },
     "A 2,000-post topic takes about 10 seconds." : {
       "comment" : "Forum requests footer for the Standard pace",
       "localizations" : {
@@ -2110,39 +2157,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "你關注的主題和熱門主題的最新動態摘要。"
-          }
-        }
-      }
-    },
-    "AI" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AI"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AI"
-          }
-        }
-      }
-    },
-    "AI models" : {
-      "comment" : "Settings page: the AI models for summaries & chat and for Ask the forum, and the providers' keys",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AI 模型"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AI 模型"
           }
         }
       }
@@ -2821,7 +2835,7 @@
       }
     },
     "Agent" : {
-      "comment" : "VoiceOver name of the “Ask the forum” assistant mode (the research agent)",
+      "comment" : "AI model role: the tool-calling model used by the Agent\nSettings page: Agent step limits, safety, audit log, developer mode and forum search\nVoiceOver name of the “Ask the forum” assistant mode (the research agent)",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -2833,6 +2847,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "代理"
+          }
+        }
+      }
+    },
+    "Agent model" : {
+      "comment" : "Assistant menu: switches the model used by the Agent\nSettings › Agent header subtitle under the selected model name",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "代理模型"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "代理模型"
           }
         }
       }
@@ -2850,6 +2881,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "代理已就緒"
+          }
+        }
+      }
+    },
+    "Agent requires a tool-calling model. Summaries can use Apple Intelligence or any fast, low-cost model." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "代理需要支持工具调用的模型。摘要可使用 Apple 智能或任何快速、低成本的模型。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "代理需要支援工具呼叫的模型。摘要可使用 Apple Intelligence 或任何快速、低成本的模型。"
+          }
+        }
+      }
+    },
+    "Agent: none" : {
+      "comment" : "Settings root, Models row: no Agent model chosen yet",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "代理：无"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "代理：無"
           }
         }
       }
@@ -3150,6 +3214,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "回答動作"
+          }
+        }
+      }
+    },
+    "Answer language" : {
+      "comment" : "Settings › Models section header for the reading/answer language picker",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "回答语言"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "回答語言"
           }
         }
       }
@@ -3634,22 +3715,6 @@
         }
       }
     },
-    "Ask a question and the assistant searches the forum, reads the most relevant topics, and answers with numbered sources. It only reads — it never posts." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "提出问题后，助手会搜索论坛、阅读最相关的话题，并给出附带编号来源的回答。它只读取，从不发帖。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "提出問題後，助理會搜尋論壇、閱讀最相關的話題，並提供附有編號來源的回答。它只會閱讀，絕不發文。"
-          }
-        }
-      }
-    },
     "Ask about this" : {
       "localizations" : {
         "zh-Hans" : {
@@ -3878,6 +3943,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "音訊已切換到 %@。"
+          }
+        }
+      }
+    },
+    "Audit log" : {
+      "comment" : "Navigation bar title of the Agent audit log screen\nSettings › Agent › Records row opening the tool-call audit log",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "审计日志"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "稽核記錄"
           }
         }
       }
@@ -4125,23 +4207,6 @@
         }
       }
     },
-    "Bar: %@" : {
-      "comment" : "Settings root, Browser row: the address bar position, e.g. Automatic",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "栏位：%@"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "列位置：%@"
-          }
-        }
-      }
-    },
     "Block Ads on This Site" : {
       "localizations" : {
         "zh-Hans" : {
@@ -4321,40 +4386,6 @@
         }
       }
     },
-    "Browser agent" : {
-      "comment" : "AI model role: the tool-calling model used by the page browser agent",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "浏览器代理"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "瀏覽器代理"
-          }
-        }
-      }
-    },
-    "Browser agent model" : {
-      "comment" : "Assistant menu: switches the model used by the page browser agent",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "浏览器代理模型"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "瀏覽器代理模型"
-          }
-        }
-      }
-    },
     "Browser bar" : {
       "localizations" : {
         "zh-Hans" : {
@@ -4449,6 +4480,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "內建——不需要金鑰"
+          }
+        }
+      }
+    },
+    "Built-in" : {
+      "comment" : "Settings › Models › Summaries: built-in instructions are active",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "内置"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "內建"
           }
         }
       }
@@ -4639,6 +4687,23 @@
         }
       }
     },
+    "Change" : {
+      "comment" : "Settings › Agent header link to change the Agent model",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更改"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更改"
+          }
+        }
+      }
+    },
     "Change it in Settings › Daily digest & podcast." : {
       "comment" : "Walkthrough checklist",
       "localizations" : {
@@ -4779,22 +4844,6 @@
         }
       }
     },
-    "Chat context size" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "聊天上下文大小"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "聊天上下文大小"
-          }
-        }
-      }
-    },
     "Chat history:\n%@" : {
       "comment" : "Exported text: heading followed by the chat transcript",
       "localizations" : {
@@ -4865,6 +4914,7 @@
       }
     },
     "Check for new replies" : {
+      "comment" : "Settings › Sites › Following row subtitle",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -5208,6 +5258,23 @@
         }
       }
     },
+    "Clear Agent model" : {
+      "comment" : "Settings › Models › Agent: clears the selected Agent model",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清除代理模型"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清除代理模型"
+          }
+        }
+      }
+    },
     "Clear All Saved Data…" : {
       "localizations" : {
         "zh-Hans" : {
@@ -5540,6 +5607,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在精簡第 %1$lld 部分（共 %2$lld 部分）…"
+          }
+        }
+      }
+    },
+    "Confirm before writes" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "写入前确认"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "寫入前確認"
           }
         }
       }
@@ -6115,6 +6198,23 @@
         }
       }
     },
+    "Custom" : {
+      "comment" : "Settings › Models › Summaries: custom instructions are set",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自定义"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自訂"
+          }
+        }
+      }
+    },
     "Custom instructions" : {
       "localizations" : {
         "zh-Hans" : {
@@ -6247,6 +6347,23 @@
         }
       }
     },
+    "Default models" : {
+      "comment" : "Settings › Models section header for the Agent, Summaries and Scripts roles",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "默认模型"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "預設模型"
+          }
+        }
+      }
+    },
     "Default: %@. Tap the list button to load every model %@ offers." : {
       "localizations" : {
         "en" : {
@@ -6265,6 +6382,52 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "預設：%1$@。點一下列表按鈕以載入 %2$@ 提供的所有模型。"
+          }
+        }
+      }
+    },
+    "Defaults: %lld steps, %@ per tool result." : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Defaults: %1$lld step, %2$@ per tool result."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Defaults: %1$lld steps, %2$@ per tool result."
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "默认值：%1$lld 步，每条工具结果 %2$@。"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "預設值：%1$lld 步，每則工具結果 %2$@。"
+                }
+              }
+            }
           }
         }
       }
@@ -6492,6 +6655,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "詳細"
+          }
+        }
+      }
+    },
+    "Developer" : {
+      "comment" : "Settings › Agent section header for developer diagnostics",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开发者"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開發者"
+          }
+        }
+      }
+    },
+    "Developer mode" : {
+      "comment" : "Settings › Agent switch showing raw tool payloads",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开发者模式"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開發者模式"
           }
         }
       }
@@ -6885,22 +7082,6 @@
         }
       }
     },
-    "Each search or topic read is one step. More steps can find better answers but take longer and cost more. Default: %lld." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "每次搜索或阅读话题算作一步。步数越多，答案可能越好，但耗时更长、费用更高。默认：%lld。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "每次搜尋或閱讀話題算作一步。步數越多，答案可能越好，但耗時更長、費用更高。預設：%lld。"
-          }
-        }
-      }
-    },
     "Earlier" : {
       "localizations" : {
         "zh-Hans" : {
@@ -7282,7 +7463,7 @@
       }
     },
     "Error" : {
-      "comment" : "State pill on a script card or detail view when the script threw an error\nSync status, short value in the Settings row: the last sync failed",
+      "comment" : "Audit log badge for a failed tool call\nState pill on a script card or detail view when the script threw an error\nSync status, short value in the Settings row: the last sync failed",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -7364,19 +7545,18 @@
         }
       }
     },
-    "Every summary and chat answer, and summaries Ask the forum writes along the way. A fast, low-cost model works well." : {
-      "comment" : "Settings › AI models: what the summaries & chat model is used for",
+    "Every tool call's time, arguments and result summary appear here as the Agent works." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "所有摘要和聊天回答，以及问论坛过程中写的摘要。快速、低成本的模型就很合适。"
+            "value" : "代理工作时，每次工具调用的时间、参数和结果摘要都会显示在这里。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "所有摘要和聊天回答，以及問論壇過程中寫的摘要。快速、低成本的模型就很適合。"
+            "value" : "代理運作時，每次工具呼叫的時間、參數與結果摘要都會顯示在這裡。"
           }
         }
       }
@@ -7777,18 +7957,18 @@
       }
     },
     "Following" : {
-      "comment" : "This page popover toggle: follow new replies on the open forum topic",
+      "comment" : "Settings page: followed topics and new-reply checks",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "关注中"
+            "value" : "关注"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "追蹤中"
+            "value" : "追蹤"
           }
         }
       }
@@ -7924,18 +8104,19 @@
         }
       }
     },
-    "Forum requests" : {
+    "Forum search" : {
+      "comment" : "Settings › Agent section header for forum search limits",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "论坛请求"
+            "value" : "论坛搜索"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "論壇請求"
+            "value" : "論壇搜尋"
           }
         }
       }
@@ -8067,22 +8248,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "論壇、摘要和聊天會透過你自己的 iCloud 端對端加密，在你的裝置間同步。"
-          }
-        }
-      }
-    },
-    "Forums, sync & privacy" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "论坛、同步与隐私"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "論壇、同步與隱私"
           }
         }
       }
@@ -8589,22 +8754,6 @@
         }
       }
     },
-    "Help" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "帮助"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "說明"
-          }
-        }
-      }
-    },
     "Help & about" : {
       "localizations" : {
         "zh-Hans" : {
@@ -8835,22 +8984,6 @@
         }
       }
     },
-    "How many full topics it may open to answer one question. Default: %lld." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "回答一个问题时最多可以完整打开多少个话题。默认：%lld。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "回答一個問題時最多可以完整打開多少個話題。預設：%lld。"
-          }
-        }
-      }
-    },
     "How much of a long topic is summarized at once." : {
       "localizations" : {
         "zh-Hans" : {
@@ -8895,22 +9028,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "每次聊天回答可以閱讀多少已取得的討論內容。"
-          }
-        }
-      }
-    },
-    "How much of the topic is sent along with each chat question." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "每次聊天提问时随附多少话题内容。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "每次聊天提問時附帶多少話題內容。"
           }
         }
       }
@@ -9014,24 +9131,25 @@
         }
       }
     },
-    "Inspects and modifies the current web page with tools." : {
-      "comment" : "Model menu (browser agent): what this model is used for",
+    "Inspects pages, runs tools and answers questions." : {
+      "comment" : "Model menu (Agent): what this model is used for",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "使用工具检查并修改当前网页。"
+            "value" : "查看网页、运行工具并回答问题。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "使用工具檢查並修改目前網頁。"
+            "value" : "檢視網頁、執行工具並回答問題。"
           }
         }
       }
     },
     "Instructions" : {
+      "comment" : "Navigation bar title for custom summary instructions\nSettings › Models › Summaries: row opening custom summary instructions",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -9341,23 +9459,6 @@
         }
       }
     },
-    "Key added" : {
-      "comment" : "Settings › AI models, provider row: a key is saved for this provider",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已添加密钥"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已加入金鑰"
-          }
-        }
-      }
-    },
     "Key takeaways" : {
       "comment" : "Chat suggestion chip",
       "localizations" : {
@@ -9587,18 +9688,18 @@
         }
       }
     },
-    "Leave blank to use the built-in structured summary prompt. Custom instructions apply to summaries and chat. A topic’s own instructions (in the assistant’s ⋯ menu) take priority." : {
+    "Leave blank to use the built-in structured summary prompt. A topic’s own instructions (in the assistant’s ⋯ menu) take priority." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "留空则使用内置的结构化摘要提示词。自定义指令适用于摘要和聊天。话题自己的指令（在助手的 ⋯ 菜单中）优先。"
+            "value" : "留空则使用内置的结构化摘要提示词。话题自己的指令（在助手的 ⋯ 菜单中）优先。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "留空則使用內建的結構化摘要提示詞。自訂指示適用於摘要和聊天。話題本身的指示（在助理的 ⋯ 選單中）優先。"
+            "value" : "留空則使用內建的結構化摘要提示詞。話題本身的指示（在助理的 ⋯ 選單中）優先。"
           }
         }
       }
@@ -9969,6 +10070,23 @@
         }
       }
     },
+    "Local" : {
+      "comment" : "Settings › Models, provider row: a model server on the user's own computer",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本地"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本機"
+          }
+        }
+      }
+    },
     "Long topics take longer to read: a 2,000-post topic takes about 20 seconds." : {
       "comment" : "Forum requests footer for the Gentle pace (20 pages of 100 posts at 1 per second)",
       "localizations" : {
@@ -9986,18 +10104,18 @@
         }
       }
     },
-    "Longer discussions are split into batches of this size. Each batch is summarized, then the batch summaries are combined. Use smaller batches for models with small context windows. Hold Create summary to pick a size for one run." : {
+    "Longer discussions are split into batches of this size. Hold Create summary to pick a size for one run." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "较长的讨论会按此大小拆分成多个批次。每个批次先分别总结，再合并各批次的摘要。上下文窗口较小的模型请使用较小的批次。按住“生成摘要”可为单次运行选择大小。"
+            "value" : "较长的讨论会按此大小分批处理。按住“生成摘要”可为单次运行选择大小。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "較長的討論會依此大小拆分成多個批次。每個批次先分別摘要，再合併各批次的摘要。上下文視窗較小的模型請使用較小的批次。按住「產生摘要」可為單次執行選擇大小。"
+            "value" : "較長的討論會按此大小分批處理。按住「產生摘要」可為單次執行選擇大小。"
           }
         }
       }
@@ -10217,54 +10335,6 @@
         }
       }
     },
-    "Max browser agent steps: %lld" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "浏览器代理最大步数：%lld"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "瀏覽器代理最大步數：%lld"
-          }
-        }
-      }
-    },
-    "Max tool steps per run: %lld" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "每次查询的最多步数：%lld"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "每次查詢的最多步數：%lld"
-          }
-        }
-      }
-    },
-    "Max topics read per run: %lld" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "每次查询最多阅读的话题数：%lld"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "每次查詢最多閱讀的話題數：%lld"
-          }
-        }
-      }
-    },
     "Maximum size of each page read or JavaScript result sent back to the model." : {
       "localizations" : {
         "zh-Hans" : {
@@ -10423,6 +10493,7 @@
       }
     },
     "Models" : {
+      "comment" : "Settings page: AI models for Agent and Summaries, answer language, and provider keys",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -10483,22 +10554,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "更多瀏覽器動作"
-          }
-        }
-      }
-    },
-    "More context gives better answers on long topics but uses more of your provider’s quota." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "上下文越多，长话题的回答越好，但会消耗更多提供方额度。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "上下文越多，長話題的回答越好，但會消耗更多供應商額度。"
           }
         }
       }
@@ -11098,6 +11153,23 @@
         }
       }
     },
+    "No tool calls recorded in this session yet." : {
+      "comment" : "Settings › Agent › Audit log empty state",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本次会话尚未记录任何工具调用。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此次工作階段尚未記錄任何工具呼叫。"
+          }
+        }
+      }
+    },
     "No watched topic has new replies, and your pinned forums have no top topics yet. Watch topics or pin forums to fill the digest." : {
       "localizations" : {
         "zh-Hans" : {
@@ -11590,23 +11662,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "開啟"
-          }
-        }
-      }
-    },
-    "On your computer" : {
-      "comment" : "Settings › AI models, provider row: a model server on the user's own computer",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在你的电脑上"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在你的電腦上"
           }
         }
       }
@@ -12785,19 +12840,19 @@
         }
       }
     },
-    "Plans searches and writes the answer. Summaries & chat keep their own model." : {
+    "Plans searches and writes the answer." : {
       "comment" : "Model menu (Ask the forum): what this model is used for",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "规划搜索并撰写回答。摘要与聊天保留自己的模型。"
+            "value" : "规划搜索并撰写回答。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "規劃搜尋並撰寫回答。摘要與聊天保留自己的模型。"
+            "value" : "規劃搜尋並撰寫回答。"
           }
         }
       }
@@ -13266,18 +13321,19 @@
         }
       }
     },
-    "Providers" : {
+    "Providers & keys" : {
+      "comment" : "Settings › Models section header for AI providers and their API keys",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "提供方"
+            "value" : "提供方与密钥"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "供應商"
+            "value" : "供應商與金鑰"
           }
         }
       }
@@ -13661,6 +13717,23 @@
         }
       }
     },
+    "Read answers in" : {
+      "comment" : "Settings › Models › Answer language: picker label for summary and answer language",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "回答语言"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "回答語言"
+          }
+        }
+      }
+    },
     "Read page %lld of %lld" : {
       "comment" : "Ask the forum step outcome: page read in a topic",
       "localizations" : {
@@ -13756,22 +13829,6 @@
         }
       }
     },
-    "Reading" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "阅读"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "閱讀"
-          }
-        }
-      }
-    },
     "Reading %@…" : {
       "comment" : "Status; the placeholder is a forum topic's title",
       "localizations" : {
@@ -13818,22 +13875,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在讀取論壇回覆…"
-          }
-        }
-      }
-    },
-    "Reading language" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "阅读语言"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "閱讀語言"
           }
         }
       }
@@ -13939,19 +13980,19 @@
         }
       }
     },
-    "Reads the current page, runs JavaScript and injects CSS. Choose a model that supports tool calling." : {
-      "comment" : "Settings › AI models: what the browser agent model is used for",
+    "Reads the current page, runs JavaScript, injects CSS and calls tools. Choose a model that supports tool calling." : {
+      "comment" : "Settings › Models: what the Agent model is used for",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "读取当前页面、运行 JavaScript 并注入 CSS。请选择支持工具调用的模型。"
+            "value" : "读取当前网页、运行 JavaScript、注入 CSS 并调用工具。请选择支持工具调用的模型。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "讀取目前頁面、執行 JavaScript 並注入 CSS。請選擇支援工具呼叫的模型。"
+            "value" : "讀取目前網頁、執行 JavaScript、注入 CSS 並呼叫工具。請選擇支援工具呼叫的模型。"
           }
         }
       }
@@ -14167,6 +14208,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在錄製…"
+          }
+        }
+      }
+    },
+    "Records" : {
+      "comment" : "Settings › Agent section header for the audit log",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "记录"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "記錄"
           }
         }
       }
@@ -14479,22 +14537,6 @@
         }
       }
     },
-    "Research steps" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "研究步骤"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "研究步驟"
-          }
-        }
-      }
-    },
     "Reset Settings to Defaults…" : {
       "localizations" : {
         "zh-Hans" : {
@@ -14709,6 +14751,22 @@
         }
       }
     },
+    "Result size" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "结果大小"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "結果大小"
+          }
+        }
+      }
+    },
     "Retry" : {
       "comment" : "Button: writes the AI summary again",
       "localizations" : {
@@ -14827,6 +14885,23 @@
         }
       }
     },
+    "Runs" : {
+      "comment" : "Settings › Agent section header for step and result limits",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "运行"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "執行"
+          }
+        }
+      }
+    },
     "Runs at" : {
       "comment" : "Picker label in Script detail choosing when the script injects",
       "localizations" : {
@@ -14905,6 +14980,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在你自己的電腦上執行。無需金鑰，也沒有用量帳單。"
+          }
+        }
+      }
+    },
+    "Safety" : {
+      "comment" : "Settings › Agent section header for confirmation settings",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "安全"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "安全"
+          }
+        }
+      }
+    },
+    "Same as Summaries" : {
+      "comment" : "Settings › Models: subtitle for the M4 Scripts model placeholder",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "与摘要相同"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "與摘要相同"
           }
         }
       }
@@ -15004,6 +15113,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已儲存的頁面已包含所有回覆。"
+          }
+        }
+      }
+    },
+    "Saved sites, search & pins" : {
+      "comment" : "Settings › Sites › Forums row subtitle",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已保存站点、搜索与置顶"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已儲存網站、搜尋與釘選"
           }
         }
       }
@@ -15149,7 +15275,7 @@
       }
     },
     "Scripts" : {
-      "comment" : "Settings page: per-site userscripts saved by the browser agent",
+      "comment" : "Settings › Models: placeholder row for M4's optional script generation model",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -15161,6 +15287,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "指令碼"
+          }
+        }
+      }
+    },
+    "Scripts & tools" : {
+      "comment" : "Settings page: per-site userscripts and saved site tools",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "脚本与工具"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "指令碼與工具"
           }
         }
       }
@@ -15300,6 +15443,23 @@
         }
       }
     },
+    "Search" : {
+      "comment" : "Settings › Browser section header for the web search engine picker",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜索"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜尋"
+          }
+        }
+      }
+    },
     "Search & suggestions" : {
       "localizations" : {
         "zh-Hans" : {
@@ -15312,6 +15472,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "搜尋與建議"
+          }
+        }
+      }
+    },
+    "Search engine" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜索引擎"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜尋引擎"
           }
         }
       }
@@ -15345,6 +15521,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "搜尋或輸入論壇網址"
+          }
+        }
+      }
+    },
+    "Search steps: %lld" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜索步数：%lld"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜尋步數：%lld"
           }
         }
       }
@@ -15856,6 +16048,23 @@
         }
       }
     },
+    "Show raw tool arguments & results" : {
+      "comment" : "Settings › Agent subtitle for Developer mode",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示原始工具参数与结果"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "顯示原始工具參數與結果"
+          }
+        }
+      }
+    },
     "Show translation" : {
       "localizations" : {
         "zh-Hans" : {
@@ -16082,6 +16291,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "網站設定"
+          }
+        }
+      }
+    },
+    "Sites" : {
+      "comment" : "Settings page: saved forums, followed topics, reading pace and ad blocking",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "站点"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "網站"
+          }
+        }
+      }
+    },
+    "Sites & browsing" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "站点与浏览"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "網站與瀏覽"
           }
         }
       }
@@ -16456,6 +16698,22 @@
         }
       }
     },
+    "Step limit: %lld" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "步数上限：%lld"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "步數上限：%lld"
+          }
+        }
+      }
+    },
     "Step limit…" : {
       "comment" : "Browser agent button: open step limit settings",
       "localizations" : {
@@ -16684,36 +16942,19 @@
         }
       }
     },
-    "Summaries & chat" : {
-      "comment" : "AI model role: the model used for summaries and chat",
+    "Summaries" : {
+      "comment" : "AI model role: the model used for summaries, digests and reply checks",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "摘要与聊天"
+            "value" : "摘要"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "摘要與聊天"
-          }
-        }
-      }
-    },
-    "Summaries & chat model" : {
-      "comment" : "Assistant menu: switches the model used for summaries and chat",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "摘要与聊天模型"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "摘要與聊天模型"
+            "value" : "摘要"
           }
         }
       }
@@ -16783,18 +17024,19 @@
         }
       }
     },
-    "Summaries, chat, and answers for any forum or article." : {
+    "Summaries model" : {
+      "comment" : "Assistant menu: switches the model used for summaries",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "为任何论坛或文章提供摘要、聊天和解答。"
+            "value" : "摘要模型"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "為任何論壇或文章提供摘要、聊天和解答。"
+            "value" : "摘要模型"
           }
         }
       }
@@ -16827,6 +17069,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "此論壇的摘要、聊天、解答和追蹤的話題都將被刪除。此動作無法還原。"
+          }
+        }
+      }
+    },
+    "Summaries, digests and answers are written in this language." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "摘要、每日精选和回答都会使用此语言撰写。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "摘要、每日精選與回答都會使用此語言撰寫。"
           }
         }
       }
@@ -17086,22 +17344,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "摘要操作"
-          }
-        }
-      }
-    },
-    "Summary batching" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "摘要分批"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "摘要分批"
           }
         }
       }
@@ -17708,52 +17950,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "向下捲動論壇頁面時，瀏覽器列會縮小；向上捲動或點一下它時會恢復。放在底部時，拇指更容易碰到。"
-          }
-        }
-      }
-    },
-    "The browser agent reads and modifies the active web page with tool calls. Defaults: %lld steps, %@ per tool result." : {
-      "localizations" : {
-        "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "The browser agent reads and modifies the active web page with tool calls. Defaults: %1$lld step, %2$@ per tool result."
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "The browser agent reads and modifies the active web page with tool calls. Defaults: %1$lld steps, %2$@ per tool result."
-                }
-              }
-            }
-          }
-        },
-        "zh-Hans" : {
-          "variations" : {
-            "plural" : {
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "浏览器代理通过工具调用读取并修改当前网页。默认值：%1$lld 步，每条工具结果 %2$@。"
-                }
-              }
-            }
-          }
-        },
-        "zh-Hant" : {
-          "variations" : {
-            "plural" : {
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "瀏覽器代理透過工具呼叫讀取並修改目前網頁。預設值：%1$lld 步，每則工具結果 %2$@。"
-                }
-              }
-            }
           }
         }
       }
@@ -18517,6 +18713,23 @@
         }
       }
     },
+    "Thread summaries, daily digests and reply checks. Apple Intelligence or a fast, low-cost model works well." : {
+      "comment" : "Settings › Models: what the Summaries model is used for",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "帖子摘要、每日精选与新回复检查。Apple 智能或快速、低成本的模型都很合适。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "貼文摘要、每日精選與新回覆檢查。Apple Intelligence 或快速、低成本的模型都很合適。"
+          }
+        }
+      }
+    },
     "Through iCloud Keychain, so you paste a key once for all your devices. Deleting a key in the app deletes it on your other devices too." : {
       "localizations" : {
         "zh-Hans" : {
@@ -18610,22 +18823,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "今日"
-          }
-        }
-      }
-    },
-    "Today & following" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "今日与关注"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "今日與關注"
           }
         }
       }
@@ -18793,22 +18990,6 @@
         }
       }
     },
-    "Tool result truncation limit" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "工具结果截断上限"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "工具結果截斷上限"
-          }
-        }
-      }
-    },
     "Top" : {
       "comment" : "Browser address bar position: at the top of the screen",
       "localizations" : {
@@ -18893,34 +19074,18 @@
         }
       }
     },
-    "Topic text per question" : {
+    "Topics to read: %lld" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "每次提问附带的话题内容"
+            "value" : "阅读话题数：%lld"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "每次提問附帶的話題內容"
-          }
-        }
-      }
-    },
-    "Topics to read" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "要阅读的话题"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "要閱讀的話題"
+            "value" : "閱讀話題數：%lld"
           }
         }
       }
@@ -19707,7 +19872,7 @@
       }
     },
     "Use %@ for both" : {
-      "comment" : "Settings › AI models: gives both roles this model. The placeholder is a provider and model, e.g. OpenRouter · kimi-k2.",
+      "comment" : "Model menu: gives the other role this model too. The placeholder is a model name, e.g. claude-opus.\nSettings › Models: gives both Agent and Summaries this model. The placeholder is a provider and model, e.g. OpenRouter · kimi-k2.",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -19735,22 +19900,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "請使用 Vertex AI API 金鑰。模型列表為內建列表；你也可以輸入專案可用的任何 Gemini 模型 ID。"
-          }
-        }
-      }
-    },
-    "Use a fast, low-cost model for summaries and chat, and a stronger reasoning model for Ask the forum." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "摘要和聊天用快速、低成本的模型，问论坛用推理能力更强的模型。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "摘要和聊天用快速、低成本的模型，問論壇用推理能力更強的模型。"
           }
         }
       }
@@ -19805,7 +19954,7 @@
       }
     },
     "Use for %@" : {
-      "comment" : "Favorite model menu: use it for a role. The placeholder is Summaries & chat, or Ask the forum.",
+      "comment" : "Favorite model menu: use it for a role. The placeholder is Agent or Summaries.",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -19903,6 +20052,23 @@
         }
       }
     },
+    "Used for summaries, digests and reply checks." : {
+      "comment" : "Model menu (Summaries): what this model is used for",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用于摘要、每日精选与新回复检查。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用於摘要、每日精選與新回覆檢查。"
+          }
+        }
+      }
+    },
     "Used for this topic's summary and chat. Leave blank to use the built-in structured summary prompt (in the discussion's language)." : {
       "localizations" : {
         "zh-Hans" : {
@@ -19935,23 +20101,6 @@
         }
       }
     },
-    "Used for this topic. Ask the forum keeps its own model." : {
-      "comment" : "Model menu (summaries & chat): what this model is used for",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "用于此话题。问论坛保留自己的模型。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "用於此話題。問論壇保留自己的模型。"
-          }
-        }
-      }
-    },
     "Used today" : {
       "localizations" : {
         "zh-Hans" : {
@@ -19964,6 +20113,52 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "今天已用"
+          }
+        }
+      }
+    },
+    "Used when searching across a forum. Defaults: %lld steps, %lld topics, %@ per topic." : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Used when searching across a forum. Defaults: %1$lld step, %2$lld topics, %3$@ per topic."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Used when searching across a forum. Defaults: %1$lld steps, %2$lld topics, %3$@ per topic."
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "用于跨全站搜索论坛。默认值：%1$lld 步、%2$lld 个话题，每个话题 %3$@。"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "用於跨全站搜尋論壇。預設值：%1$lld 步、%2$lld 個話題，每個話題 %3$@。"
+                }
+              }
+            }
           }
         }
       }
@@ -20193,6 +20388,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "語音"
+          }
+        }
+      }
+    },
+    "Voice & digest" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "语音与精选"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "語音與精選"
           }
         }
       }
@@ -20546,22 +20757,6 @@
         }
       }
     },
-    "Watched topics" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "关注的话题"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "追蹤的話題"
-          }
-        }
-      }
-    },
     "Watched topics and today’s top topics" : {
       "comment" : "Today page subtitle: what the daily digest contains",
       "localizations" : {
@@ -20833,18 +21028,35 @@
         }
       }
     },
-    "When new replies arrive, with your Summaries & chat model" : {
+    "When new replies arrive, with your Summaries model" : {
+      "comment" : "Settings › Sites › Following toggle subtitle",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "有新回复时，使用你的“摘要与聊天”模型"
+            "value" : "有新回复时，使用你的摘要模型"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "有新回覆時，使用你的「摘要與聊天」模型"
+            "value" : "有新回覆時，使用你的摘要模型"
+          }
+        }
+      }
+    },
+    "When on, network requests, cookie reads and actions that submit forms ask before running." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开启后，网络请求、读取 Cookie 以及提交表单的操作在运行前会先询问。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開啟後，網路要求、讀取 Cookie 以及送出表單的操作在執行前會先詢問。"
           }
         }
       }
@@ -21213,6 +21425,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "只需開啟一次，之後它就會出現在每個 App 的分享表單中。"
+          }
+        }
+      }
+    },
+    "Your agent browser for the web and every forum." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "面向网页与各个论坛的代理浏览器。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "專為網頁與各個論壇打造的代理瀏覽器。"
+          }
+        }
+      }
+    },
+    "Your data" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的数据"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的資料"
           }
         }
       }

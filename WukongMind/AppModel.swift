@@ -1548,7 +1548,7 @@ final class AppModel: ObservableObject {
             throw AssistantError.noForum
         }
         guard activeTaskCount < 50 else { throw AgentError.queueFull }
-        let selection = settings.agentModel
+        let selection = selection(for: .agent)
         var run = AgentRun(
             siteURL: forumSiteURL,
             goal: goal,
@@ -2703,7 +2703,7 @@ final class AppModel: ObservableObject {
     /// The same snapshot for work outside the queue (the daily digest).
     func runSettings(role: ModelRole, topicKey: String, batchLimit: Int? = nil) -> RunSettings {
         let resolved = { (role: ModelRole) -> RunSettings.Model in
-            let provider = self.settings.model(for: role).provider
+            let provider = self.selection(for: role).provider
             return RunSettings.Model(
                 provider: provider,
                 configuration: RunSettings.resolvingAppleIntelligence(

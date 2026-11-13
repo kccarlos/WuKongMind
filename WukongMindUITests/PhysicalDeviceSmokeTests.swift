@@ -277,13 +277,13 @@ final class PhysicalDeviceSmokeTests: DCUITestCase {
         XCTAssertTrue(reveal(app.staticTexts["Summaries & chats"], in: app))
         app.buttons["backToTopic"].tap()
 
-        // Settings is a root list; summary batching lives in Summaries & chat.
+        // Settings is grouped by object; summary batching lives in Models.
         app.buttons["openSettings"].tap()
-        XCTAssertTrue(app.staticTexts["AI models"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["Models"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.buttons["settingsRow-browser"].exists)
-        app.buttons["settingsRow-summaries"].tap()
-        XCTAssertTrue(app.navigationBars["Summaries & chat"].waitForExistence(timeout: 10))
-        XCTAssertTrue(any(app, "summaryBatchLimit").waitForExistence(timeout: 5))
+        app.buttons["settingsRow-provider"].tap()
+        XCTAssertTrue(app.navigationBars["Models"].waitForExistence(timeout: 10))
+        XCTAssertTrue(reveal(any(app, "summaryBatchLimit"), in: app))
         tapNavigationBack(in: app)
         XCTAssertTrue(app.buttons["backToTopic"].waitForExistence(timeout: 10))
         app.buttons["backToTopic"].tap()
@@ -421,21 +421,25 @@ final class PhysicalDeviceSmokeTests: DCUITestCase {
         for _ in 0..<8 where !app.buttons["backToTopic"].isHittable { app.swipeDown() }
         app.buttons["backToTopic"].tap()
 
-        // Settings: the agent budget is under Ask the forum, watch options under Watched topics.
+        // Settings: the agent budget is under Agent, follow options under Sites › Following.
         openSettings(in: app)
-        XCTAssertTrue(app.staticTexts["AI models"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["Models"].waitForExistence(timeout: 10))
         app.buttons["settingsRow-agent"].tap()
-        XCTAssertTrue(app.navigationBars["Ask the forum"].waitForExistence(timeout: 10))
-        XCTAssertTrue(any(app, "agentMaxSteps").waitForExistence(timeout: 5))
+        XCTAssertTrue(app.navigationBars["Agent"].waitForExistence(timeout: 10))
+        XCTAssertTrue(reveal(any(app, "agentMaxSteps"), in: app))
         XCTAssertTrue(any(app, "agentMaxTopicReads").exists)
         tapNavigationBack(in: app)
 
-        // Below the fold since the Settings root was regrouped.
+        let sitesSettingsRow = app.buttons["settingsRow-sites"]
+        XCTAssertTrue(reveal(sitesSettingsRow, in: app))
+        sitesSettingsRow.tap()
+        XCTAssertTrue(app.navigationBars["Sites"].waitForExistence(timeout: 10))
         let watchedSettingsRow = app.buttons["settingsRow-watched"]
         XCTAssertTrue(reveal(watchedSettingsRow, in: app))
         watchedSettingsRow.tap()
-        XCTAssertTrue(app.navigationBars["Watched topics"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.navigationBars["Following"].waitForExistence(timeout: 10))
         XCTAssertTrue(reveal(any(app, "watchAutoRefresh"), in: app))
+        tapNavigationBack(in: app)
         tapNavigationBack(in: app)
         if isPhone {
             closeSettings(in: app)

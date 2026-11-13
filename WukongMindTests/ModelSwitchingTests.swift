@@ -132,6 +132,40 @@ final class ModelSwitchingTests: XCTestCase {
     }
 
     @MainActor
+    func testUIRolesShowAgentAndSummariesWhileForumSearchFollowsAgentThenSummaries() {
+        XCTAssertEqual(ModelRole.uiRoles, [.browserAgent, .assistant])
+        XCTAssertEqual(ModelRole.browserAgent.title, "Agent")
+        XCTAssertEqual(ModelRole.assistant.title, "Summaries")
+
+        let app = makeApp()
+        // With no Agent model set, selecting Summaries in Settings › Models also updates transitional forum search (.agent).
+        app.selectModel(gemini.selection, for: app.uiScope(for: .assistant))
+        XCTAssertNil(app.settings.browserAgentModel)
+        XCTAssertEqual(app.selection(for: .assistant), gemini.selection)
+        XCTAssertEqual(app.selection(for: .agent), gemini.selection)
+
+        // Setting the Agent model (.browserAgent) makes transitional forum search (.agent) follow it.
+        app.selectModel(claude.selection, for: .role(.browserAgent))
+        XCTAssertEqual(app.settings.browserAgentModel, claude.selection)
+        XCTAssertEqual(app.selection(for: .browserAgent), claude.selection)
+        XCTAssertEqual(app.selection(for: .agent), claude.selection)
+        XCTAssertEqual(app.selection(for: .assistant), gemini.selection)
+        XCTAssertFalse(app.uiRolesShareModel)
+
+        // Clearing the Agent model falls transitional forum search back to Summaries.
+        app.clearBrowserAgentModel()
+        XCTAssertNil(app.settings.browserAgentModel)
+        XCTAssertEqual(app.selection(for: .agent), gemini.selection)
+
+        // Applying a tool-calling model to both UI roles updates Agent, Summaries, and transitional forum search.
+        app.applyModelToBothUIRoles(llama.selection)
+        XCTAssertTrue(app.uiRolesShareModel)
+        XCTAssertEqual(app.selection(for: .browserAgent), llama.selection)
+        XCTAssertEqual(app.selection(for: .assistant), llama.selection)
+        XCTAssertEqual(app.selection(for: .agent), llama.selection)
+    }
+
+    @MainActor
     private func makeApp() -> AppModel {
         let directory = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString, isDirectory: true)

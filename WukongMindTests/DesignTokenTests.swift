@@ -510,7 +510,9 @@ final class DesignTokenTests: XCTestCase {
 
         let settingsWindow = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(origin: .zero, size: historySize))
         settingsWindow.frame = CGRect(origin: .zero, size: historySize)
-        let settingsHost = UIHostingController(rootView: NavigationStack { SettingsDestination(app: app, page: .sync) })
+        settingsWindow.overrideUserInterfaceStyle = .light
+        let settingsHost = UIHostingController(rootView: NavigationStack { SettingsDestination(app: app, page: .sync) }.environment(\.colorScheme, .light))
+        settingsHost.overrideUserInterfaceStyle = .light
         settingsWindow.rootViewController = settingsHost
         settingsWindow.makeKeyAndVisible()
         settingsHost.view.frame = settingsWindow.bounds
@@ -518,12 +520,11 @@ final class DesignTokenTests: XCTestCase {
         RunLoop.current.run(until: Date().addingTimeInterval(0.08))
         settingsWindow.layoutIfNeeded()
         let toggleSwitch = firstSwitch(in: settingsHost.view)
-        let switchTint = toggleSwitch?.onTintColor
         settingsWindow.isHidden = true
         settingsWindow.rootViewController = nil
         settingsWindow.windowScene = nil
-        XCTAssertNotNil(toggleSwitch, "Expected a UISwitch in SettingsSyncPage.")
-        XCTAssertNotNil(switchTint, "Settings toggle should set an explicit gold onTintColor instead of system green.")
+        XCTAssertNil(toggleSwitch, "SettingsDestination uses DCSwitchStyle instead of UIKit's system-green UISwitch.")
+        XCTAssertNotNil(UISwitch.appearance().onTintColor, "Fallback UISwitch appearance still sets an explicit gold onTintColor.")
 
         let translateWindow = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(origin: .zero, size: historySize))
         translateWindow.frame = CGRect(origin: .zero, size: historySize)

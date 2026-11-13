@@ -33,42 +33,42 @@ extension ModelRole {
     /// The role's name in Settings and the model picker.
     var title: String {
         switch self {
-        case .assistant: String(localized: "Summaries & chat", comment: "AI model role: the model used for summaries and chat")
+        case .assistant: String(localized: "Summaries", comment: "AI model role: the model used for summaries, digests and reply checks")
         case .agent: String(localized: "Ask the forum", comment: "AI model role: the model used by Ask the forum (the research agent)")
-        case .browserAgent: String(localized: "Browser agent", comment: "AI model role: the tool-calling model used by the page browser agent")
+        case .browserAgent: String(localized: "Agent", comment: "AI model role: the tool-calling model used by the Agent")
         }
     }
 
     /// Title of the assistant header's model switcher.
     var switcherTitle: String {
         switch self {
-        case .assistant: String(localized: "Summaries & chat model", comment: "Assistant menu: switches the model used for summaries and chat")
+        case .assistant: String(localized: "Summaries model", comment: "Assistant menu: switches the model used for summaries")
         case .agent: String(localized: "Ask the forum model", comment: "Assistant menu: switches the model used by Ask the forum")
-        case .browserAgent: String(localized: "Browser agent model", comment: "Assistant menu: switches the model used by the page browser agent")
+        case .browserAgent: String(localized: "Agent model", comment: "Assistant menu: switches the model used by the Agent")
         }
     }
 
     /// The model menu's line under the role's name.
     var menuExplanation: String {
         switch self {
-        case .assistant: String(localized: "Used for this topic. Ask the forum keeps its own model.", comment: "Model menu (summaries & chat): what this model is used for")
-        case .agent: String(localized: "Plans searches and writes the answer. Summaries & chat keep their own model.", comment: "Model menu (Ask the forum): what this model is used for")
-        case .browserAgent: String(localized: "Inspects and modifies the current web page with tools.", comment: "Model menu (browser agent): what this model is used for")
+        case .assistant: String(localized: "Used for summaries, digests and reply checks.", comment: "Model menu (Summaries): what this model is used for")
+        case .agent: String(localized: "Plans searches and writes the answer.", comment: "Model menu (Ask the forum): what this model is used for")
+        case .browserAgent: String(localized: "Inspects pages, runs tools and answers questions.", comment: "Model menu (Agent): what this model is used for")
         }
     }
 
     /// What the role does and which kind of model suits it.
     var hint: String {
         switch self {
-        case .assistant: String(localized: "Every summary and chat answer, and summaries Ask the forum writes along the way. A fast, low-cost model works well.", comment: "Settings › AI models: what the summaries & chat model is used for")
+        case .assistant: String(localized: "Thread summaries, daily digests and reply checks. Apple Intelligence or a fast, low-cost model works well.", comment: "Settings › Models: what the Summaries model is used for")
         case .agent: String(localized: "Plans searches, reads topics, and writes answers. A stronger reasoning model works best.", comment: "Settings › AI models: what the Ask the forum model is used for")
-        case .browserAgent: String(localized: "Reads the current page, runs JavaScript and injects CSS. Choose a model that supports tool calling.", comment: "Settings › AI models: what the browser agent model is used for")
+        case .browserAgent: String(localized: "Reads the current page, runs JavaScript, injects CSS and calls tools. Choose a model that supports tool calling.", comment: "Settings › Models: what the Agent model is used for")
         }
     }
 
     var systemImage: String {
         switch self {
-        case .assistant: "text.bubble"
+        case .assistant: "text.alignleft"
         case .agent: "sparkle.magnifyingglass"
         case .browserAgent: "sparkles"
         }
@@ -101,6 +101,17 @@ extension AppSettings {
     /// Fallback placeholder when no browser agent model has been chosen yet.
     static let unsetBrowserAgentSelection = ModelSelection(provider: .anthropic, model: "")
 
+    /// Non-empty tool-calling model chosen for `.browserAgent`, if any.
+    var configuredBrowserAgentModel: ModelSelection? {
+        guard let selection = browserAgentModel,
+              selection.provider.supportsToolCalling,
+              !selection.model.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        else {
+            return nil
+        }
+        return selection
+    }
+
     func model(for role: ModelRole) -> ModelSelection {
         switch role {
         case .assistant: assistantModel
@@ -109,17 +120,29 @@ extension AppSettings {
         }
     }
 
-    /// The roles that run on `provider`.
+    /// Effective model used at runtime: `.agent` (transitional forum search)
+    /// follows `.browserAgent` when set, falling back to `agentModel` / Summaries.
+    func effectiveModel(for role: ModelRole) -> ModelSelection {
+        switch role {
+        case .assistant: assistantModel
+        case .agent: configuredBrowserAgentModel ?? agentModel
+        case .browserAgent: browserAgentModel ?? Self.unsetBrowserAgentSelection
+        }
+    }
+
+    /// The UI roles (`Agent`, `Summaries`) that run on `provider`.
     func roles(using provider: AIProvider) -> [ModelRole] {
-        ModelRole.allCases.filter { role in
-            if role == .browserAgent, browserAgentModel == nil { return false }
-            return model(for: role).provider == provider
+        ModelRole.uiRoles.filter { role in
+            if role == .browserAgent {
+                return configuredBrowserAgentModel?.provider == provider
+            }
+            return effectiveModel(for: role).provider == provider
         }
     }
 
     /// The provider's settings (key, base URL) with the role's model.
     func configuration(for role: ModelRole) -> ProviderConfiguration {
-        let selection = model(for: role)
+        let selection = effectiveModel(for: role)
         var configuration = configuration(for: selection.provider)
         configuration.model = selection.model
         return configuration
@@ -142,8 +165,12 @@ extension AppModel {
     /// The role of the Assistant's current mode.
     var currentRole: ModelRole { ModelRole(mode: assistantMode) }
 
+    func hasConfiguredModel(for role: ModelRole) -> Bool {
+        role != .browserAgent || settings.configuredBrowserAgentModel != nil
+    }
+
     func selection(for role: ModelRole) -> ModelSelection {
-        settings.model(for: role)
+        settings.effectiveModel(for: role)
     }
 
     /// The role's provider has what it needs to run: a model, and a key
@@ -186,7 +213,7 @@ extension AppModel {
 
     /// "Provider · model" for headers and Settings.
     func providerSummary(for role: ModelRole) -> String {
-        if role == .browserAgent, settings.browserAgentModel == nil {
+        if role == .browserAgent, settings.configuredBrowserAgentModel == nil {
             return String(localized: "No model chosen", comment: "Settings › AI models: no browser agent model selected yet")
         }
         let provider = selection(for: role).provider
@@ -200,10 +227,54 @@ extension AppModel {
     /// Both roles use the same provider and model.
     var rolesShareModel: Bool { settings.assistantModel == settings.agentModel }
 
+    /// Both visible UI roles (`Agent` and `Summaries`) use the same model.
+    var uiRolesShareModel: Bool {
+        guard let agent = settings.configuredBrowserAgentModel else { return false }
+        return agent == settings.assistantModel
+    }
+
+    /// Sets `selection` on both UI roles (`Agent` and `Summaries`) as well as
+    /// transitional forum search (`.agent`). Requires tool-calling support.
+    func applyModelToBothUIRoles(_ selection: ModelSelection) {
+        guard selection.provider.supportsToolCalling else { return }
+        var updated = settings
+        updated.setModel(selection, for: .browserAgent)
+        updated.setModel(selection, for: .assistant)
+        updated.setModel(selection, for: .agent)
+        if updated != settings { settings = updated }
+        saveSettings()
+    }
+
+    /// Clears the Agent model and falls back transitional forum search to Summaries.
+    func clearBrowserAgentModel() {
+        var updated = settings
+        updated.browserAgentModel = nil
+        updated.agentModel = updated.assistantModel
+        if updated != settings { settings = updated }
+        saveSettings()
+    }
+
+    /// Scope used by the two-role `Settings › Models` UI: when no `Agent` model
+    /// is chosen, changing `Summaries` also updates transitional forum search (`.agent`).
+    func uiScope(for role: ModelRole) -> ModelScope {
+        role == .assistant && settings.configuredBrowserAgentModel == nil ? .both : .role(role)
+    }
+
+    func activateUIRoleFavorite(_ favorite: FavoriteModel, for role: ModelRole) {
+        guard isProviderSelectable(favorite.provider) else { return }
+        if role == .browserAgent, !favorite.provider.supportsToolCalling { return }
+        selectModel(ModelSelection(provider: favorite.provider, model: favorite.model), for: uiScope(for: role))
+    }
+
     /// Sets the model for every role in `scope`.
     func selectModel(_ selection: ModelSelection, for scope: ModelScope) {
         var updated = settings
         for role in scope.roles { updated.setModel(selection, for: role) }
+        if scope == .role(.browserAgent),
+           selection.provider.supportsToolCalling,
+           !selection.model.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            updated.setModel(selection, for: .agent)
+        }
         if updated != settings { settings = updated }
         saveSettings()
     }
@@ -372,7 +443,7 @@ extension AppSettings {
     /// (`browserAgentModel == nil`) and requires `supportsToolCalling`.
     func readiness(for role: ModelRole, appleIntelligence: AppleIntelligenceStatus) -> ModelReadiness {
         guard role == .browserAgent else {
-            return readiness(of: model(for: role), appleIntelligence: appleIntelligence)
+            return readiness(of: effectiveModel(for: role), appleIntelligence: appleIntelligence)
         }
         guard let selection = browserAgentModel else {
             return .needsModel

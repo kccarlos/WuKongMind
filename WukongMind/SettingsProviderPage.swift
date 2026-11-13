@@ -1,16 +1,32 @@
 import SwiftUI
 
-/// Settings › AI models (ModelSettings): the model for each role (Summaries
-/// & chat, Ask the forum), favorite models, and each provider's key and
-/// address with its state.
+/// Settings › Models: the model for each role (Agent and Summaries, plus a
+/// placeholder for M4's Scripts model), summary batching & instructions,
+/// answer language, favorite models, and each provider's key and address.
 struct SettingsProviderPage: View {
     @ObservedObject var app: AppModel
     @State private var choosing: FavoriteModel?
 
+    /// UI roles whose selection can be applied to both Agent and Summaries.
+    private var shareableRoles: [ModelRole] {
+        guard !app.uiRolesShareModel else { return [] }
+        return ModelRole.uiRoles.filter { role in
+            guard app.hasConfiguredModel(for: role) else { return false }
+            let selection = app.selection(for: role)
+            return app.isProviderSelectable(selection.provider)
+                && selection.provider.supportsToolCalling
+                && !selection.model.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+    }
+
+    private var hasCustomInstructions: Bool {
+        !app.settings.systemPrompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
     var body: some View {
         Form {
             Section {
-                ForEach(ModelRole.allCases) { role in
+                ForEach(ModelRole.uiRoles) { role in
                     NavigationLink {
                         ModelRolePage(app: app, role: role)
                     } label: {
@@ -18,28 +34,88 @@ struct SettingsProviderPage: View {
                     }
                     .accessibilityIdentifier("modelRole-\(role.rawValue)")
                 }
-                if !app.rolesShareModel {
-                    // One button per direction: "Use X for both".
-                    ForEach(ModelRole.forumRoles.filter { app.isProviderSelectable(app.selection(for: $0).provider) }) { role in
-                        Button {
-                            DCHaptics.tap()
-                            app.useSameModel(as: role)
-                        } label: {
-                            Label(
-                                String(
-                                    localized: "Use \(app.providerSummary(for: role)) for both",
-                                    comment: "Settings › AI models: gives both roles this model. The placeholder is a provider and model, e.g. OpenRouter · kimi-k2."
-                                ),
-                                systemImage: "arrow.left.arrow.right"
-                            )
-                        }
-                        .accessibilityIdentifier("useSameModel-\(role.rawValue)")
+                ScriptsModelPlaceholderRow()
+                ForEach(shareableRoles) { role in
+                    Button {
+                        DCHaptics.tap()
+                        app.applyModelToBothUIRoles(app.selection(for: role))
+                    } label: {
+                        Label(
+                            String(
+                                localized: "Use \(app.providerSummary(for: role)) for both",
+                                comment: "Settings › Models: gives both Agent and Summaries this model. The placeholder is a provider and model, e.g. OpenRouter · kimi-k2."
+                            ),
+                            systemImage: "arrow.left.arrow.right"
+                        )
                     }
+                    .accessibilityIdentifier("useSameModel-\(role.rawValue)")
                 }
             } header: {
-                Text("Models")
+                Text("Default models", comment: "Settings › Models section header for the Agent, Summaries and Scripts roles")
             } footer: {
-                Text("Use a fast, low-cost model for summaries and chat, and a stronger reasoning model for Ask the forum.")
+                Text("Agent requires a tool-calling model. Summaries can use Apple Intelligence or any fast, low-cost model.")
+            }
+
+            Section {
+                VStack(alignment: .leading, spacing: DCTheme.spacingS) {
+                    HStack {
+                        Text("Context per batch")
+                        Spacer()
+                        Text(SummaryBatchLimit.label(app.settings.summaryBatchLimit))
+                            .foregroundStyle(.secondary)
+                            .monospacedDigit()
+                    }
+                    Text("How much of a long topic is summarized at once.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Slider(
+                        value: Binding(
+                            get: { Double(app.settings.summaryBatchLimit) },
+                            set: { app.settings.summaryBatchLimit = SummaryBatchLimit.normalized(Int($0)) }
+                        ),
+                        in: Double(SummaryBatchLimit.minimum)...Double(SummaryBatchLimit.maximum),
+                        step: Double(SummaryBatchLimit.step)
+                    )
+                    .accessibilityLabel("Context per summary batch")
+                    .tint(DCTheme.goldInk)
+                    .accessibilityValue(SummaryBatchLimit.label(app.settings.summaryBatchLimit))
+                    .accessibilityIdentifier("summaryBatchLimit")
+                }
+                if app.settings.summaryBatchLimit != SummaryBatchLimit.default {
+                    Button("Use default (\(SummaryBatchLimit.label(SummaryBatchLimit.default)))") {
+                        app.settings.summaryBatchLimit = SummaryBatchLimit.default
+                    }
+                }
+                NavigationLink {
+                    SummaryInstructionsPage(app: app)
+                } label: {
+                    SettingsIconRow {
+                        SettingsIcon(symbol: "text.quote", tint: DCTheme.ink)
+                    } title: {
+                        Text("Instructions", comment: "Settings › Models › Summaries: row opening custom summary instructions")
+                    } trailing: {
+                        Text(
+                            hasCustomInstructions
+                                ? String(localized: "Custom", comment: "Settings › Models › Summaries: custom instructions are set")
+                                : String(localized: "Built-in", comment: "Settings › Models › Summaries: built-in instructions are active")
+                        )
+                        .foregroundStyle(.secondary)
+                    }
+                }
+                .accessibilityIdentifier("settingsRow-summaryInstructions")
+            } header: {
+                Text("Summaries")
+            } footer: {
+                Text("Longer discussions are split into batches of this size. Hold Create summary to pick a size for one run.")
+            }
+
+            Section {
+                ReadingLanguagePicker(app: app)
+            } header: {
+                Text("Answer language", comment: "Settings › Models section header for the reading/answer language picker")
+            } footer: {
+                Text("Summaries, digests and answers are written in this language.")
             }
 
             FavoriteModelsSection(app: app, choosing: $choosing)
@@ -54,13 +130,15 @@ struct SettingsProviderPage: View {
                     .accessibilityIdentifier("providerRow-\(provider.rawValue)")
                 }
             } header: {
-                Text("Providers")
+                Text("Providers & keys", comment: "Settings › Models section header for AI providers and their API keys")
             } footer: {
                 Text("Keys and server addresses belong to a provider; both models use them.")
             }
         }
         .formStyle(.grouped)
         .accessibilityIdentifier("aiModelsPage")
+        .onChange(of: app.settings.summaryBatchLimit) { app.saveSettings() }
+        .onChange(of: app.settings.readingLanguage) { app.saveSettings() }
         .onDisappear {
             app.saveSettings()
         }
@@ -70,17 +148,19 @@ struct SettingsProviderPage: View {
             NavigationStack {
                 Form {
                     Section {
-                        ForEach(ModelRole.allCases.filter { $0 != .browserAgent || favorite.provider.supportsToolCalling }) { role in
-                            Button(String(localized: "Use for \(role.title)", comment: "Favorite model menu: use it for a role. The placeholder is Summaries & chat, or Ask the forum.")) {
+                        ForEach(ModelRole.uiRoles.filter { $0 != .browserAgent || favorite.provider.supportsToolCalling }) { role in
+                            Button(String(localized: "Use for \(role.title)", comment: "Favorite model menu: use it for a role. The placeholder is Agent or Summaries.")) {
                                 DCHaptics.tap()
-                                app.activateFavorite(favorite, for: role)
+                                app.activateUIRoleFavorite(favorite, for: role)
                                 choosing = nil
                             }
                         }
-                        Button("Use for both") {
-                            DCHaptics.tap()
-                            app.selectModel(favorite.selection, for: .both)
-                            choosing = nil
+                        if favorite.provider.supportsToolCalling {
+                            Button("Use for both") {
+                                DCHaptics.tap()
+                                app.applyModelToBothUIRoles(favorite.selection)
+                                choosing = nil
+                            }
                         }
                         Button("Remove from favorites", role: .destructive) {
                             app.removeFavorite(favorite)
@@ -113,6 +193,82 @@ struct SettingsProviderPage: View {
     }
 }
 
+/// M4 placeholder row in Settings › Models › Default models (`PhoneModels.dc.html`).
+private struct ScriptsModelPlaceholderRow: View {
+    var body: some View {
+        SettingsIconRow {
+            SettingsIcon(symbol: "curlybraces", tint: DCTheme.ink)
+        } title: {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Scripts", comment: "Settings › Models: placeholder row for M4's optional script generation model")
+                Text("Same as Summaries", comment: "Settings › Models: subtitle for the M4 Scripts model placeholder")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        } trailing: {
+            DCSeal(text: "M4", variant: .outline)
+        }
+        .opacity(0.55)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("modelRole-scriptsPlaceholder")
+    }
+}
+
+/// Sub-page for editing `AppSettings.systemPrompt` (`Settings › Models › Instructions`).
+struct SummaryInstructionsPage: View {
+    @ObservedObject var app: AppModel
+    @FocusState private var editingInstructions: Bool
+
+    var body: some View {
+        Form {
+            Section {
+                TextEditor(text: $app.settings.systemPrompt)
+                    .focused($editingInstructions)
+                    .frame(minHeight: 160)
+                    .overlay(alignment: .topLeading) {
+                        if app.settings.systemPrompt.isEmpty {
+                            Text("For example: Answer in English. Keep summaries under 200 words.",
+                                 comment: "Placeholder for custom AI instructions. Translations may name their own language instead of English.")
+                                .foregroundStyle(.tertiary)
+                                .padding(.top, 8)
+                                .padding(.leading, 5)
+                                .allowsHitTesting(false)
+                        }
+                    }
+                    .accessibilityLabel("Custom instructions")
+                    .accessibilityIdentifier("customInstructions")
+                if !app.settings.systemPrompt.isEmpty {
+                    Button("Use the built-in prompt", role: .destructive) {
+                        app.settings.systemPrompt = ""
+                        app.saveSettings()
+                    }
+                }
+            } header: {
+                Text("Custom instructions")
+            } footer: {
+                Text("Leave blank to use the built-in structured summary prompt. A topic’s own instructions (in the assistant’s ⋯ menu) take priority.")
+            }
+        }
+        .formStyle(.grouped)
+        .dcGroupedBackground()
+        .tint(DCTheme.goldInk)
+        .scrollDismissesKeyboard(.interactively)
+        .navigationTitle(Text("Instructions", comment: "Navigation bar title for custom summary instructions"))
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if editingInstructions {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") {
+                        editingInstructions = false
+                        app.saveSettings()
+                    }
+                }
+            }
+        }
+        .onDisappear { app.saveSettings() }
+    }
+}
+
 /// A role's row: its name, provider · model, and whether it can run.
 struct ModelRoleRow: View {
     @ObservedObject var app: AppModel
@@ -120,7 +276,7 @@ struct ModelRoleRow: View {
 
     var body: some View {
         SettingsIconRow {
-            SettingsIcon(symbol: role.systemImage, tint: (role == .agent || role == .browserAgent) ? DCTheme.agentTint : DCTheme.summaryTint)
+            SettingsIcon(symbol: role.systemImage, tint: DCTheme.ink, isAgent: role == .browserAgent)
         } title: {
             VStack(alignment: .leading, spacing: 2) {
                 Text(role.title)
@@ -158,28 +314,27 @@ private struct ProviderRow: View {
                 }
             }
         } trailing: {
-            Text(state.text)
-                .font(.footnote.weight(state.tint == nil ? .regular : .semibold))
-                .foregroundStyle(state.tint ?? .secondary)
-                .multilineTextAlignment(.trailing)
+            DCSeal(text: state.text, variant: state.variant)
         }
         .accessibilityElement(children: .combine)
     }
 
-    private var state: (text: String, tint: Color?) {
+    private var state: (text: String, variant: DCSealVariant) {
         if provider.isAppleIntelligence {
-            // A device without Apple Intelligence says why.
             if let reason = app.appleIntelligenceStatus.reason {
-                return (reason.title, ModelFavorites.hidesAppleIntelligence(app.appleIntelligenceStatus) ? nil : DCTheme.warning)
+                let variant: DCSealVariant = ModelFavorites.hidesAppleIntelligence(app.appleIntelligenceStatus)
+                    ? .outline
+                    : .state(.attention)
+                return (reason.title, variant)
             }
-            return (String(localized: "Built in", comment: "Settings › AI models, provider row: Apple Intelligence is part of the system"), nil)
+            return (String(localized: "Built in", comment: "Settings › AI models, provider row: Apple Intelligence is part of the system"), .outline)
         }
         if provider.requiresAPIKey {
             return app.settings.configuration(for: provider).apiKey.isEmpty
-                ? (String(localized: "No key", comment: "Settings › AI models, provider row: no key saved for this provider"), DCTheme.warning)
-                : (String(localized: "Key added", comment: "Settings › AI models, provider row: a key is saved for this provider"), DCTheme.success)
+                ? (String(localized: "No key", comment: "Settings › AI models, provider row: no key saved for this provider"), .state(.attention))
+                : (String(localized: "Ready", comment: "AI provider status pill"), .state(.ready))
         }
-        return (String(localized: "On your computer", comment: "Settings › AI models, provider row: a model server on the user's own computer"), nil)
+        return (String(localized: "Local", comment: "Settings › Models, provider row: a model server on the user's own computer"), .outline)
     }
 }
 
@@ -194,7 +349,8 @@ private struct FavoriteModelsSection: View {
     /// Roles whose model isn't starred yet, one button per distinct model.
     private var unstarred: [ModelRole] {
         var seen: [ModelSelection] = []
-        return ModelRole.allCases.filter { role in
+        return ModelRole.uiRoles.filter { role in
+            guard app.hasConfiguredModel(for: role) else { return false }
             let selection = app.selection(for: role)
             guard app.isProviderSelectable(selection.provider),
                   FavoriteModel(selection: selection) != nil, !app.isFavorite(selection),
@@ -256,7 +412,11 @@ private struct FavoriteModelsSection: View {
 
     private func useForBoth(_ favorite: FavoriteModel) {
         DCHaptics.tap()
-        app.selectModel(favorite.selection, for: .both)
+        if favorite.provider.supportsToolCalling {
+            app.applyModelToBothUIRoles(favorite.selection)
+        } else {
+            app.activateFavorite(favorite, for: .assistant)
+        }
     }
 }
 
@@ -268,7 +428,7 @@ private struct FavoriteModelRow: View {
     var hidden = false
 
     private var roles: [ModelRole] {
-        ModelRole.allCases.filter { favorite.matches(app.selection(for: $0)) }
+        ModelRole.uiRoles.filter { app.hasConfiguredModel(for: $0) && favorite.matches(app.selection(for: $0)) }
     }
 
     private var readiness: ModelReadiness { app.readiness(of: favorite.selection) }
@@ -276,7 +436,7 @@ private struct FavoriteModelRow: View {
     var body: some View {
         SettingsIconRow {
             Image(systemName: "star.fill")
-                .foregroundStyle(DCTheme.warning)
+                .foregroundStyle(DCTheme.goldInk)
                 .imageScale(.small)
                 .accessibilityHidden(true)
         } title: {
@@ -298,9 +458,10 @@ private struct FavoriteModelRow: View {
             }
         } trailing: {
             if !hidden {
-                Text(readiness.title)
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(readiness == .ready ? DCTheme.success : DCTheme.warning)
+                DCSeal(
+                    text: readiness.title,
+                    variant: .state(readiness == .ready ? .ready : .attention)
+                )
             }
         }
         .accessibilityElement(children: .combine)
@@ -316,7 +477,7 @@ struct ModelRolePage: View {
     let role: ModelRole
     @State private var testState: ProviderTestState = .idle
 
-    private var scope: ModelScope { .role(role) }
+    private var scope: ModelScope { app.uiScope(for: role) }
     private var selection: ModelSelection { app.selection(for: role) }
     private var provider: AIProvider { selection.provider }
     private var guide: ProviderGuide { ProviderGuide.guide(for: provider) }
@@ -408,7 +569,7 @@ struct ModelRolePage: View {
                         ForEach(roleFavorites) { favorite in
                             Button {
                                 DCHaptics.tap()
-                                app.activateFavorite(favorite, for: role)
+                                app.activateUIRoleFavorite(favorite, for: role)
                             } label: {
                                 HStack {
                                     VStack(alignment: .leading, spacing: 2) {
@@ -453,8 +614,22 @@ struct ModelRolePage: View {
                     ProviderTestStatusView(state: testState)
                 }
             }
+
+            if role == .browserAgent, app.hasConfiguredModel(for: .browserAgent) {
+                Section {
+                    Button(role: .destructive) {
+                        DCHaptics.tap()
+                        app.clearBrowserAgentModel()
+                    } label: {
+                        Text("Clear Agent model", comment: "Settings › Models › Agent: clears the selected Agent model")
+                    }
+                    .accessibilityIdentifier("clearBrowserAgentModel")
+                }
+            }
         }
         .formStyle(.grouped)
+        .dcGroupedBackground()
+        .tint(DCTheme.goldInk)
         .animation(DCMotion.quick, value: testState)
         .navigationTitle(role.title)
         .navigationBarTitleDisplayMode(.inline)
@@ -608,6 +783,8 @@ struct ProviderSettingsPage: View {
             }
         }
         .formStyle(.grouped)
+        .dcGroupedBackground()
+        .tint(DCTheme.goldInk)
         .animation(DCMotion.quick, value: testState)
         .navigationTitle(provider.displayName)
         .navigationBarTitleDisplayMode(.inline)

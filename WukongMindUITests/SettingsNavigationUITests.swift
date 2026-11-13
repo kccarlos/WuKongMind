@@ -1,22 +1,30 @@
 import XCTest
 
-/// Settings is a grouped root list; every row pushes its own page.
+/// Settings is grouped by object; every root row pushes its own page, and each
+/// setting appears in one place.
 final class SettingsNavigationUITests: DCUITestCase {
     /// Root row identifier suffix → the pushed page's navigation title.
     private let pages: [(row: String, title: String)] = [
-        ("provider", "AI models"),
-        ("voice", "Voice"),
-        ("summaries", "Summaries & chat"),
-        ("agent", "Ask the forum"),
-        ("scripts", "Scripts"),
+        ("provider", "Models"),
+        ("agent", "Agent"),
+        ("scripts", "Scripts & tools"),
+        ("sites", "Sites"),
         ("browser", "Browser"),
+        ("voice", "Voice"),
         ("digest", "Daily digest & podcast"),
-        ("watched", "Watched topics"),
-        ("forums", "Forums"),
         ("sync", "iCloud Sync"),
         ("data", "Data & privacy"),
         ("help", "Help & about")
     ]
+
+    private func tapSwitch(_ toggle: XCUIElement) {
+        let inner = toggle.switches.firstMatch
+        if inner.exists && inner.frame.width > 0 {
+            inner.tap()
+        } else {
+            toggle.tap()
+        }
+    }
 
     func testEachRootRowOpensItsPageAndBackReturns() throws {
         // `-dc-panel-settings` opens Settings (a sheet in every layout) once
@@ -26,6 +34,13 @@ final class SettingsNavigationUITests: DCUITestCase {
         let root = any(app, "settingsRoot")
         XCTAssertTrue(root.waitForExistence(timeout: 20), "Settings did not open.")
         XCTAssertTrue(waitOrDump(app.navigationBars["Settings"], timeout: 5, in: app))
+
+        // Removed root duplicates and legacy Summaries & chat page must not exist.
+        XCTAssertFalse(app.buttons["settingsRow-summaries"].exists)
+        XCTAssertFalse(app.buttons["settingsSummary-voice"].exists)
+        XCTAssertFalse(app.buttons["settingsRow-forums"].exists)
+        XCTAssertFalse(app.buttons["settingsRow-watched"].exists)
+        XCTAssertFalse(app.buttons["settingsRow-sharing"].exists)
 
         for page in pages {
             let row = app.buttons["settingsRow-\(page.row)"]
@@ -48,11 +63,38 @@ final class SettingsNavigationUITests: DCUITestCase {
             XCTAssertTrue(waitForGone(app.navigationBars[page.title], timeout: 5))
         }
 
-        // The Help section's share guide pushes and pops too.
+        // Sites sub-pages: Forums and Following push and pop cleanly.
+        let sitesRow = app.buttons["settingsRow-sites"]
+        XCTAssertTrue(revealRow(sitesRow, in: app))
+        sitesRow.tap()
+        XCTAssertTrue(app.navigationBars["Sites"].waitForExistence(timeout: 10))
+        let forumsRow = app.buttons["settingsRow-forums"]
+        XCTAssertTrue(reveal(forumsRow, in: app))
+        forumsRow.tap()
+        XCTAssertTrue(app.navigationBars["Forums"].waitForExistence(timeout: 10))
+        tapNavigationBack(in: app)
+        XCTAssertTrue(app.navigationBars["Sites"].waitForExistence(timeout: 10))
+        let watchedRow = app.buttons["settingsRow-watched"]
+        XCTAssertTrue(reveal(watchedRow, in: app))
+        watchedRow.tap()
+        XCTAssertTrue(app.navigationBars["Following"].waitForExistence(timeout: 10))
+        tapNavigationBack(in: app)
+        XCTAssertTrue(app.navigationBars["Sites"].waitForExistence(timeout: 10))
+        tapNavigationBack(in: app)
+        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 10))
+
+        // Help & about sub-page: Share from Safari or Chrome and Language live here.
+        let helpRow = app.buttons["settingsRow-help"]
+        XCTAssertTrue(revealRow(helpRow, in: app))
+        helpRow.tap()
+        XCTAssertTrue(app.navigationBars["Help & about"].waitForExistence(timeout: 10))
+        XCTAssertTrue(reveal(any(app, "settingsRow-language"), in: app))
         let sharing = app.buttons["settingsRow-sharing"]
         XCTAssertTrue(reveal(sharing, in: app))
         sharing.tap()
         XCTAssertTrue(app.navigationBars["Share from Safari or Chrome"].waitForExistence(timeout: 10))
+        tapNavigationBack(in: app)
+        XCTAssertTrue(app.navigationBars["Help & about"].waitForExistence(timeout: 10))
         tapNavigationBack(in: app)
         XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 10))
 
@@ -119,50 +161,91 @@ final class SettingsNavigationUITests: DCUITestCase {
         XCTAssertFalse(app.buttons["syncStatusAction"].exists, "Nothing to retry without an account.")
     }
 
-    /// Settings › AI models lists both roles with their own models (here set
-    /// apart with `-dc-agent-model`) and opens a role's model picker.
+    /// Settings › Models lists Agent, Summaries, and the M4 Scripts placeholder,
+    /// plus summary batching, custom instructions, and answer language.
     func testAIModelsPageShowsBothRolesAndOpensARolesPicker() throws {
         let app = launch(["-dc-sample", "-dc-show-settings", "provider", "-dc-agent-model", "deepseek:deepseek-v4-flash"])
 
-        XCTAssertTrue(app.navigationBars["AI models"].waitForExistence(timeout: 20))
+        XCTAssertTrue(app.navigationBars["Models"].waitForExistence(timeout: 20))
+        let agent = any(app, "modelRole-browserAgent")
         let assistant = any(app, "modelRole-assistant")
-        let agent = any(app, "modelRole-agent")
-        XCTAssertTrue(assistant.waitForExistence(timeout: 5))
-        XCTAssertTrue(assistant.label.contains("claude-sonnet-4-5"), "Got “\(assistant.label)”.")
+        let scriptsPlaceholder = any(app, "modelRole-scriptsPlaceholder")
+        XCTAssertTrue(agent.waitForExistence(timeout: 5))
+        XCTAssertTrue(assistant.exists)
+        XCTAssertTrue(scriptsPlaceholder.exists, "M4 Scripts placeholder row should appear under Default models.")
+        XCTAssertFalse(any(app, "modelRole-agent").exists, "Legacy Ask the forum role row must not appear.")
         XCTAssertTrue(agent.label.contains("deepseek-v4-flash"), "Got “\(agent.label)”.")
-        XCTAssertTrue(any(app, "useSameModel-agent").exists, "Different models offer “Use deepseek-v4-flash for both”.")
+        XCTAssertTrue(assistant.label.contains("claude-sonnet-4-5"), "Got “\(assistant.label)”.")
+        XCTAssertTrue(any(app, "useSameModel-browserAgent").exists, "Different models offer “Use deepseek-v4-flash for both”.")
         XCTAssertTrue(any(app, "useSameModel-assistant").exists)
+
+        // Summaries batching, custom instructions, and answer language live here.
+        XCTAssertTrue(reveal(any(app, "summaryBatchLimit"), in: app))
+        let instructionsRow = app.buttons["settingsRow-summaryInstructions"]
+        XCTAssertTrue(reveal(instructionsRow, in: app))
+        instructionsRow.tap()
+        XCTAssertTrue(app.navigationBars["Instructions"].waitForExistence(timeout: 10))
+        XCTAssertTrue(any(app, "customInstructions").waitForExistence(timeout: 5))
+        tapNavigationBack(in: app)
+        XCTAssertTrue(app.navigationBars["Models"].waitForExistence(timeout: 10))
+        XCTAssertTrue(reveal(any(app, "settingsRow-readingLanguage"), in: app))
+
         // Favorites with their state; both roles' models are starred.
-        XCTAssertTrue(any(app, "favoriteModel-anthropic:claude-sonnet-4-5").exists)
+        XCTAssertTrue(reveal(any(app, "favoriteModel-anthropic:claude-sonnet-4-5"), in: app))
         XCTAssertFalse(any(app, "starCurrentModel-assistant").exists, "The current model is starred already.")
 
         capture("ai-models")
 
+        XCTAssertTrue(reveal(agent, in: app, swipes: 5))
         agent.tap()
-        XCTAssertTrue(app.navigationBars["Ask the forum"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.navigationBars["Agent"].waitForExistence(timeout: 10))
         XCTAssertTrue(any(app, "providerPicker").waitForExistence(timeout: 5))
         capture("ai-models-agent-picker")
         XCTAssertTrue(reveal(app.buttons["testAndSaveProvider"], in: app, swipes: 4))
         tapNavigationBack(in: app)
-        XCTAssertTrue(app.navigationBars["AI models"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.navigationBars["Models"].waitForExistence(timeout: 10))
+    }
+
+    func testAgentPageShowsDefaultsSwitchesAndAuditLog() throws {
+        let app = launch(["-dc-sample", "-dc-show-settings", "agent"])
+        XCTAssertTrue(app.navigationBars["Agent"].waitForExistence(timeout: 20))
+        XCTAssertTrue(any(app, "browserAgentModelRow").waitForExistence(timeout: 5))
+        XCTAssertTrue(any(app, "browserAgentMaxSteps").exists)
+        XCTAssertTrue(reveal(any(app, "browserAgentTruncationLimit"), in: app))
+
+        let confirmSwitch = app.switches["agentConfirmBeforeWrites"]
+        XCTAssertTrue(reveal(confirmSwitch, in: app))
+        XCTAssertEqual(confirmSwitch.value as? String, "0", "Confirm before writes defaults to off.")
+
+        let devSwitch = app.switches["agentDeveloperMode"]
+        XCTAssertTrue(reveal(devSwitch, in: app))
+        XCTAssertEqual(devSwitch.value as? String, "0", "Developer mode defaults to off.")
+
+        let auditLog = app.buttons["settingsRow-auditLog"]
+        XCTAssertTrue(reveal(auditLog, in: app))
+        auditLog.tap()
+        XCTAssertTrue(app.navigationBars["Audit log"].waitForExistence(timeout: 10))
+        XCTAssertTrue(any(app, "auditLogEmptyState").waitForExistence(timeout: 5))
+        tapNavigationBack(in: app)
+        XCTAssertTrue(app.navigationBars["Agent"].waitForExistence(timeout: 10))
     }
 
     func testAIModelsRowsStayReadableAtAccessibilitySize() throws {
         let ax5 = UIContentSizeCategory.accessibilityExtraExtraExtraLarge.rawValue
         let app = launch(["-UIPreferredContentSizeCategoryName", ax5, "-dc-sample", "-dc-forums-home", "-dc-show-settings", "provider"])
-        XCTAssertTrue(app.navigationBars["AI models"].waitForExistence(timeout: 20))
+        XCTAssertTrue(app.navigationBars["Models"].waitForExistence(timeout: 20))
+        let agent = any(app, "modelRole-browserAgent")
         let assistant = any(app, "modelRole-assistant")
-        let agent = any(app, "modelRole-agent")
-        XCTAssertTrue(assistant.waitForExistence(timeout: 5))
         XCTAssertTrue(agent.waitForExistence(timeout: 5))
+        XCTAssertTrue(assistant.waitForExistence(timeout: 5))
         capture("ax5_phone_settings-provider")
-        XCTAssertLessThan(assistant.frame.height, 340, "Summaries & chat row collapsed into a narrow multi-screen column at AX5.")
-        XCTAssertLessThanOrEqual(agent.frame.maxY, app.windows.firstMatch.frame.maxY, "Both model role rows should fit on screen at AX5.")
+        XCTAssertLessThan(assistant.frame.height, 340, "Summaries row collapsed into a narrow multi-screen column at AX5.")
+        XCTAssertLessThanOrEqual(assistant.frame.maxY, app.windows.firstMatch.frame.maxY, "Both model role rows should fit on screen at AX5.")
     }
 
     func testProviderSettingsTestAndSaveButtonKeepsFullRowHeight() throws {
         let app = launch(["-dc-sample", "-dc-forums-home", "-dc-show-settings", "provider"])
-        XCTAssertTrue(app.navigationBars["AI models"].waitForExistence(timeout: 20))
+        XCTAssertTrue(app.navigationBars["Models"].waitForExistence(timeout: 20))
 
         let openRouter = app.buttons["providerRow-openrouter"]
         XCTAssertTrue(reveal(openRouter, in: app))
@@ -184,7 +267,7 @@ final class SettingsNavigationUITests: DCUITestCase {
         let providerRow = app.buttons["settingsRow-provider"]
         XCTAssertTrue(reveal(providerRow, in: app, swipes: 3))
         providerRow.tap()
-        XCTAssertTrue(app.navigationBars["AI models"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.navigationBars["Models"].waitForExistence(timeout: 10))
         let anthropic = app.buttons["providerRow-anthropic"]
         XCTAssertTrue(reveal(anthropic, in: app))
         anthropic.tap()
@@ -200,15 +283,16 @@ final class SettingsNavigationUITests: DCUITestCase {
     func testSettingsReadingLanguageSyncErrorAndSavedAPIKeyLayout() throws {
         let app = launch(["-dc-sample", "-dc-forums-home", "-dc-show-settings", "root"])
         XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 20))
-        let readingLanguage = any(app, "settingsRow-readingLanguage")
-        XCTAssertTrue(reveal(readingLanguage, in: app))
         capture("base_phone_settings-root")
-        XCTAssertLessThanOrEqual(readingLanguage.frame.height, 56, "Reading language row wrapped onto a second indented line at standard Dynamic Type.")
 
         let providerRow = app.buttons["settingsRow-provider"]
         XCTAssertTrue(reveal(providerRow, in: app, swipes: 3))
         providerRow.tap()
-        XCTAssertTrue(app.navigationBars["AI models"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.navigationBars["Models"].waitForExistence(timeout: 10))
+        let readingLanguage = any(app, "settingsRow-readingLanguage")
+        XCTAssertTrue(reveal(readingLanguage, in: app))
+        XCTAssertLessThanOrEqual(readingLanguage.frame.height, 56, "Answer language row wrapped onto a second indented line at standard Dynamic Type.")
+
         let anthropic = app.buttons["providerRow-anthropic"]
         XCTAssertTrue(reveal(anthropic, in: app))
         anthropic.tap()
@@ -225,10 +309,9 @@ final class SettingsNavigationUITests: DCUITestCase {
         let syncNowButtons = syncApp.buttons.matching(NSPredicate(format: "label == 'Sync now'"))
         XCTAssertEqual(syncNowButtons.count, 1, "iCloud Sync error state should not show two duplicate Sync now buttons.")
 
-        let zhApp = launch(["-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_Hans", "-dc-sample", "-dc-forums-home", "-dc-show-settings", "root"])
-        XCTAssertTrue(any(zhApp, "settingsRow-readingLanguage").waitForExistence(timeout: 20))
-        _ = reveal(any(zhApp, "settingsRow-readingLanguage"), in: zhApp)
-        capture("zh_phone_settings-root")
+        let zhApp = launch(["-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_Hans", "-dc-sample", "-dc-forums-home", "-dc-show-settings", "provider"])
+        XCTAssertTrue(any(zhApp, "settingsRow-readingLanguage").waitForExistence(timeout: 20) || reveal(any(zhApp, "settingsRow-readingLanguage"), in: zhApp))
+        capture("zh_phone_settings-provider")
 
         let addForumApp = launch(["-dc-sample", "-dc-forums-home", "-dc-add-forum"])
         XCTAssertTrue(addForumApp.textFields["addForumAddress"].waitForExistence(timeout: 20))
@@ -274,8 +357,9 @@ final class SettingsNavigationUITests: DCUITestCase {
         favorite.tap()
         let sheet = any(app, "favoriteModelActionsSheet")
         XCTAssertTrue(waitOrDump(sheet, timeout: 5, in: app), "Favorite actions must use a sheet")
-        XCTAssertTrue(app.buttons["Use for Summaries & chat"].exists)
-        XCTAssertTrue(app.buttons["Use for Ask the forum"].exists)
+        XCTAssertTrue(app.buttons["Use for Agent"].exists)
+        XCTAssertTrue(app.buttons["Use for Summaries"].exists)
+        XCTAssertFalse(app.buttons["Use for Ask the forum"].exists)
         XCTAssertTrue(app.buttons["Use for both"].exists)
         XCTAssertTrue(app.buttons["Remove from favorites"].exists)
         let shot = XCTAttachment(screenshot: app.screenshot())
@@ -288,8 +372,8 @@ final class SettingsNavigationUITests: DCUITestCase {
     }
 
     func testForumRequestRateLimitToggleShowsAndHidesPaceOptions() throws {
-        let app = launch(["-dc-sample", "-dc-show-settings", "summaries"])
-        XCTAssertTrue(app.navigationBars["Summaries & chat"].waitForExistence(timeout: 20))
+        let app = launch(["-dc-sample", "-dc-show-settings", "sites"])
+        XCTAssertTrue(app.navigationBars["Sites"].waitForExistence(timeout: 20))
         let toggle = app.switches["forumRateLimitingEnabled"]
         XCTAssertTrue(reveal(toggle, in: app, swipes: 4))
         XCTAssertEqual(toggle.value as? String, "1", "Per-forum rate limiting is on by default.")
@@ -297,51 +381,54 @@ final class SettingsNavigationUITests: DCUITestCase {
         XCTAssertTrue(reveal(gentle, in: app, swipes: 2))
         capture("settings-rate-limit-on")
 
-        toggle.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
+        tapSwitch(toggle)
         XCTAssertTrue(wait(timeout: 5) { (toggle.value as? String) == "0" })
         XCTAssertTrue(waitForGone(gentle, timeout: 5))
         capture("settings-rate-limit-off")
 
         // Restore on so persisted simulator state stays at default.
-        toggle.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
+        tapSwitch(toggle)
         XCTAssertTrue(wait(timeout: 5) { (toggle.value as? String) == "1" })
         XCTAssertTrue(gentle.waitForExistence(timeout: 5))
     }
 
-    /// Settings › AI models favorites (ModelSettings): tap = pick the role,
-    /// hold = use for both, swipe = remove.
+    /// Settings › Models favorites: tap = pick the role, hold = use for both,
+    /// swipe = remove.
     func testFavoritesTapHoldAndSwipe() throws {
         let app = launch(["-dc-sample", "-dc-show-settings", "provider", "-dc-agent-model", "deepseek:deepseek-v4-flash"])
-        XCTAssertTrue(app.navigationBars["AI models"].waitForExistence(timeout: 20))
-        let agent = any(app, "modelRole-agent")
+        XCTAssertTrue(app.navigationBars["Models"].waitForExistence(timeout: 20))
+        let agent = any(app, "modelRole-browserAgent")
         let assistant = any(app, "modelRole-assistant")
         XCTAssertTrue(agent.waitForExistence(timeout: 5))
 
-        // Tap: the role choice; Ask the forum takes claude-sonnet-4-5.
+        // Tap: the role choice; Agent takes claude-sonnet-4-5.
         let claude = any(app, "favoriteModel-anthropic:claude-sonnet-4-5")
         XCTAssertTrue(reveal(claude, in: app))
         claude.tap()
-        let useForAgent = app.buttons["Use for Ask the forum"]
+        let useForAgent = app.buttons["Use for Agent"]
         XCTAssertTrue(waitOrDump(useForAgent, timeout: 5, in: app), "Tapping a favorite offers its roles.")
         useForAgent.tap()
+        XCTAssertTrue(reveal(agent, in: app, swipes: 5))
         XCTAssertTrue(wait(timeout: 5) { agent.label.contains("claude-sonnet-4-5") }, "Got “\(agent.label)”.")
 
         // Hold: both roles take deepseek-v4-flash.
         let deepseek = any(app, "favoriteModel-deepseek:deepseek-v4-flash")
         XCTAssertTrue(reveal(deepseek, in: app))
         deepseek.press(forDuration: 1.2)
+        XCTAssertTrue(reveal(agent, in: app, swipes: 5))
         XCTAssertTrue(wait(timeout: 5) {
             agent.label.contains("deepseek-v4-flash") && assistant.label.contains("deepseek-v4-flash")
         }, "Holding a favorite uses it for both; got “\(assistant.label)” and “\(agent.label)”.")
-        XCTAssertFalse(app.buttons["Use for Ask the forum"].exists, "Holding doesn't open the role choice.")
+        XCTAssertFalse(app.buttons["Use for Agent"].exists, "Holding doesn't open the role choice.")
 
         // Swipe left: remove. The roles keep their model, so it can be starred again.
+        XCTAssertTrue(reveal(deepseek, in: app))
         deepseek.swipeLeft()
         let remove = app.buttons["Remove"]
         XCTAssertTrue(remove.waitForExistence(timeout: 5))
         remove.tap()
         XCTAssertTrue(waitForGone(deepseek, timeout: 5))
-        XCTAssertTrue(any(app, "starCurrentModel-assistant").waitForExistence(timeout: 5), "Star deepseek-v4-flash is offered.")
+        XCTAssertTrue(any(app, "starCurrentModel-browserAgent").waitForExistence(timeout: 5), "Star deepseek-v4-flash is offered.")
     }
 
     /// A favorite in the model menu: "Provider, model · state".
@@ -432,18 +519,22 @@ final class SettingsNavigationUITests: DCUITestCase {
         let podcastSwitch = app.switches["podcastDailyEnabled"]
         XCTAssertTrue(reveal(podcastSwitch, in: app, swipes: 4))
         if (podcastSwitch.value as? String) != "1" {
-            podcastSwitch.switches.firstMatch.tap()
+            tapSwitch(podcastSwitch)
         }
         if (digestSwitch.value as? String) == "1" {
-            digestSwitch.switches.firstMatch.tap()
+            tapSwitch(digestSwitch)
         }
         XCTAssertFalse(podcastSwitch.isEnabled, "Make the podcast every day must be disabled when Make a digest every day is off")
         XCTAssertEqual(podcastSwitch.value as? String, "0")
         tapNavigationBack(in: app)
 
-        // 2. Watched topics: tapping a watched topic row dismisses Settings to open the topic.
+        // 2. Sites › Following: tapping a watched topic row dismisses Settings to open the topic.
+        let sitesRow = app.buttons["settingsRow-sites"]
+        XCTAssertTrue(revealRow(sitesRow, in: app))
+        sitesRow.tap()
+        XCTAssertTrue(app.navigationBars["Sites"].waitForExistence(timeout: 10))
         let watchedRow = app.buttons["settingsRow-watched"]
-        XCTAssertTrue(revealRow(watchedRow, in: app))
+        XCTAssertTrue(reveal(watchedRow, in: app))
         watchedRow.tap()
         let firstWatched = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'settingsWatchedRow-'")).firstMatch
         XCTAssertTrue(reveal(firstWatched, in: app, swipes: 4))
@@ -454,11 +545,11 @@ final class SettingsNavigationUITests: DCUITestCase {
     func testUnsupportedAppleIntelligenceMenuAndGoogleVoicesMissingKeySetup() throws {
         // 1. Unsupported device: provider menu shows Apple Intelligence as "Not supported on this device" and disabled.
         var app = launch(["-dc-sample", "-dc-show-settings", "provider", "-dc-apple-intelligence", "unsupported"])
-        XCTAssertTrue(app.navigationBars["AI models"].waitForExistence(timeout: 20))
+        XCTAssertTrue(app.navigationBars["Models"].waitForExistence(timeout: 20))
         let assistantRow = any(app, "modelRole-assistant")
         XCTAssertTrue(assistantRow.waitForExistence(timeout: 5))
         assistantRow.tap()
-        XCTAssertTrue(app.navigationBars["Summaries & chat"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.navigationBars["Summaries"].waitForExistence(timeout: 10))
         let picker = app.buttons["providerPicker"]
         XCTAssertTrue(picker.waitForExistence(timeout: 5))
         picker.tap()
@@ -483,7 +574,7 @@ final class SettingsNavigationUITests: DCUITestCase {
         let addKey = app.buttons["podcastAddGoogleKey"]
         XCTAssertTrue(reveal(addKey, in: app, swipes: 4), "Choosing Google voices with no key should offer key setup.")
         addKey.tap()
-        XCTAssertTrue(app.navigationBars["AI models"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.navigationBars["Models"].waitForExistence(timeout: 10))
         tapNavigationBack(in: app)
         XCTAssertTrue(app.navigationBars["Daily digest & podcast"].waitForExistence(timeout: 10))
 
@@ -492,6 +583,43 @@ final class SettingsNavigationUITests: DCUITestCase {
         (voicesMenuButton.exists ? voicesMenuButton : voicesPicker).tap()
         let automatic = app.buttons["Automatic"].firstMatch
         if automatic.waitForExistence(timeout: 5) { automatic.tap() }
+    }
+
+    func testCaptureWuko24ProofScreenshots() throws {
+        guard ProcessInfo.processInfo.environment["DC_SCREENSHOT_DIR"] != nil else {
+            throw XCTSkip("Set TEST_RUNNER_DC_SCREENSHOT_DIR to capture WUKO-24 proof screenshots.")
+        }
+        let suffix = ProcessInfo.processInfo.environment["DC_SCREENSHOT_STYLE"] ?? "light"
+        let base = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US", "-dc-sample"]
+        let prefix = isPhone ? "iphone" : "ipad"
+
+        let rootArgs = isPhone
+            ? base + ["-dc-forums-home", "-dc-show-settings", "root"]
+            : base + ["-dc-panel-settings"]
+        let rootApp = launch(rootArgs, orientation: isPhone ? .portrait : .landscapeLeft)
+        XCTAssertTrue(rootApp.navigationBars["Settings"].waitForExistence(timeout: 20))
+        RunLoop.current.run(until: Date().addingTimeInterval(0.6))
+        capture("\(prefix)-settings-root-\(suffix)")
+
+        if isPhone && suffix == "light" {
+            for (page, title, slug) in [
+                ("provider", "Models", "models"),
+                ("agent", "Agent", "agent"),
+                ("sites", "Sites", "sites"),
+                ("browser", "Browser", "browser"),
+                ("help", "Help & about", "help")
+            ] {
+                let subApp = launch(base + ["-dc-forums-home", "-dc-show-settings", page])
+                XCTAssertTrue(subApp.navigationBars[title].waitForExistence(timeout: 15))
+                RunLoop.current.run(until: Date().addingTimeInterval(0.6))
+                capture("\(prefix)-settings-\(slug)-\(suffix)")
+                if page == "agent" {
+                    _ = reveal(any(subApp, "agentReadLimit"), in: subApp, swipes: 3)
+                    RunLoop.current.run(until: Date().addingTimeInterval(0.4))
+                    capture("\(prefix)-settings-agent-bottom-\(suffix)")
+                }
+            }
+        }
     }
 
     /// A root row, scrolled into view by dragging the Settings list itself
@@ -515,13 +643,12 @@ final class SettingsNavigationUITests: DCUITestCase {
     private func assertPageContent(_ row: String, in app: XCUIApplication) {
         let expected: XCUIElement?
         switch row {
-        case "provider": expected = any(app, "modelRole-assistant")
+        case "provider": expected = any(app, "modelRole-browserAgent")
         case "sync": expected = any(app, "syncAPIKeys")
-        case "summaries": expected = any(app, "summaryBatchLimit")
-        case "agent": expected = any(app, "agentMaxSteps")
+        case "sites": expected = any(app, "forumRateLimitingEnabled")
+        case "agent": expected = any(app, "browserAgentMaxSteps")
         case "scripts": expected = any(app, "scriptsGlobalToggle")
-        case "watched": expected = any(app, "watchAutoRefresh")
-        case "browser": expected = app.segmentedControls["browserBarPosition"]
+        case "browser": expected = any(app, "searchEnginePicker")
         case "data": expected = any(app, "clearAllData")
         case "help": expected = any(app, "replayOnboarding")
         case "digest": expected = any(app, "podcastDailyEnabled")
