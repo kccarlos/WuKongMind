@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Verify the committed Forumind.xcodeproj matches what
+# Verify the committed WukongMind.xcodeproj matches what
 # scripts/generate_project.rb produces.
 #
 # The generator creates random object UUIDs on every run, so a plain
@@ -11,8 +11,11 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-proj="Forumind.xcodeproj"
-scheme_rel="xcshareddata/xcschemes/Forumind.xcscheme"
+proj="WukongMind.xcodeproj"
+schemes=(
+  "xcshareddata/xcschemes/WukongMind.xcscheme"
+  "xcshareddata/xcschemes/WukongMindAgentCoreTests.xcscheme"
+)
 
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
@@ -47,18 +50,20 @@ else
   status=1
 fi
 
-echo "== $scheme_rel"
 strip_ids() { sed -E '/BlueprintIdentifier = /d' "$1"; }
-if [[ -f "$work/committed/$proj/$scheme_rel" && -f "$work/generated/$proj/$scheme_rel" ]] &&
-   diff -u <(strip_ids "$work/committed/$proj/$scheme_rel") <(strip_ids "$work/generated/$proj/$scheme_rel") \
-     --label "committed/scheme" --label "generated/scheme"; then
-  echo "OK: scheme matches generator output"
-else
-  status=1
-fi
+for scheme_rel in "${schemes[@]}"; do
+  echo "== $scheme_rel"
+  if [[ -f "$work/committed/$proj/$scheme_rel" && -f "$work/generated/$proj/$scheme_rel" ]] &&
+     diff -u <(strip_ids "$work/committed/$proj/$scheme_rel") <(strip_ids "$work/generated/$proj/$scheme_rel") \
+       --label "committed/$scheme_rel" --label "generated/$scheme_rel"; then
+    echo "OK: $scheme_rel matches generator output"
+  else
+    status=1
+  fi
+done
 
 if [[ $status -ne 0 ]]; then
   echo
-  echo "::error::Forumind.xcodeproj is out of date. Run 'ruby scripts/generate_project.rb' and commit the result."
+  echo "::error::WukongMind.xcodeproj is out of date. Run 'ruby scripts/generate_project.rb' and commit the result."
 fi
 exit $status

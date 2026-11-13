@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Layering guard for the site-adapter layer: only Forumind/Sites/ may know a
+# Layering guard for the site-adapter layer: only WukongMind/Sites/ may know a
 # platform (dev/docs/SITE_ADAPTERS_PLAN.md §8.4). Fails when Swift code outside
-# Forumind/Sites/ names a Discourse type or kind, or builds a `/t/` route.
+# WukongMind/Sites/ names a Discourse type or kind, or builds a `/t/` route.
 #
 # Existing offenders are listed in scripts/ci/site-layering-allowlist.txt as
 # `path|trimmed source line`. The list may only shrink: a hit that is not in
@@ -21,9 +21,9 @@ pattern='DiscourseRoutes|DiscourseAPI|DiscourseParsing|DiscourseDOM|SiteKind\.di
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
 
-# path|trimmed line for every offending line outside Forumind/Sites/.
-{ grep -rnE --include='*.swift' "$pattern" Forumind ForumindShare || true; } |
-  { grep -v '^Forumind/Sites/' || true; } |
+# path|trimmed line for every offending line outside WukongMind/Sites/.
+{ grep -rnE --include='*.swift' "$pattern" WukongMind WukongMindShare || true; } |
+  { grep -v '^WukongMind/Sites/' || true; } |
   sed -E 's/^([^:]+):[0-9]+:[[:space:]]*/\1|/' |
   { grep -vE '^[^|]+\|//' || true; } |
   LC_ALL=C sort -u >"$work/hits"
@@ -35,7 +35,7 @@ LC_ALL=C comm -13 "$work/hits" "$work/allowed" >"$work/stale"
 
 status=0
 if [[ -s "$work/new" ]]; then
-  echo "::error::Platform-specific code outside Forumind/Sites/ (use the site adapter instead):"
+  echo "::error::Platform-specific code outside WukongMind/Sites/ (use the site adapter instead):"
   sed 's/^/  /' "$work/new"
   status=1
 fi

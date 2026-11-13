@@ -1,10 +1,12 @@
-Forumind for iPhone and iPad
-Copyright 2026 kccarlos and Forumind contributors
+WukongMind for iPhone and iPad
+Copyright 2026 kccarlos and WukongMind contributors
 
+This product is derived from Forumind (https://github.com/kccarlos/forumind),
+Copyright 2026 kccarlos and Forumind contributors.
 This product is licensed under the Apache License, Version 2.0 (see LICENSE).
 
 "Discourse" is a trademark of Civilized Discourse Construction Kit, Inc.
-Forumind is an independent project and is not affiliated with,
+WukongMind is an independent project and is not affiliated with,
 endorsed by, or sponsored by Civilized Discourse Construction Kit, Inc. or
 any forum it can open.
 
@@ -13,9 +15,9 @@ Third-party material bundled with the app
 -------------------------------------------------------------------------------
 
 EasyList and EasyPrivacy (converted content-blocking rules)
-  Files:   Forumind/ContentBlocking/ads-*.json,
-           Forumind/ContentBlocking/privacy-*.json,
-           Forumind/ContentBlocking/manifest.json
+  Files:   WukongMind/ContentBlocking/ads-*.json,
+           WukongMind/ContentBlocking/privacy-*.json,
+           WukongMind/ContentBlocking/manifest.json
   Authors: The EasyList authors (https://easylist.to/)
   License: Creative Commons Attribution-ShareAlike 3.0 Unported (CC BY-SA 3.0),
            https://creativecommons.org/licenses/by-sa/3.0/
@@ -26,7 +28,7 @@ EasyList and EasyPrivacy (converted content-blocking rules)
            omitted, and the result was split into several files. The converted
            files are a derivative work and are shared under CC BY-SA 3.0, not
            under the Apache License. Full attribution, including the source
-           list versions, is in Forumind/ContentBlocking/ATTRIBUTION.md
+           list versions, is in WukongMind/ContentBlocking/ATTRIBUTION.md
            and is shown in the app under Settings > About > Acknowledgements.
 
 -------------------------------------------------------------------------------

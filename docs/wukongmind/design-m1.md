@@ -5,7 +5,7 @@
 The UI task implements against this page and the design canvas:
 **https://claude.ai/artifact/Wi2peNxD7d87bfJcfedbcg** (7 artboards: iPhone running, done with script card, empty and no-model; iPad running and step limit; a sheet of every component in light and dark).
 
-Everything uses Forumind's own style: iOS system type (SF, Dynamic Type text styles), `DCTheme` colours and spacing, `dcCard`, `DCPill`, `DCActionButtonStyle`, `DCPrimaryButtonStyle`, `DCIconButtonStyle` and `DCMotion` (`Forumind/DesignSystem.swift`). Forumind's style covers nearly everything, so the sheepdog design system was not used. The few new pieces (the chat bubble, code blocks, the count badge) are built from these same tokens.
+Everything uses Forumind's own style: iOS system type (SF, Dynamic Type text styles), `DCTheme` colours and spacing, `dcCard`, `DCPill`, `DCActionButtonStyle`, `DCPrimaryButtonStyle`, `DCIconButtonStyle` and `DCMotion` (`WukongMind/DesignSystem.swift`). Forumind's style covers nearly everything, so the sheepdog design system was not used. The few new pieces (the chat bubble, code blocks, the count badge) are built from these same tokens.
 
 ## Decisions
 

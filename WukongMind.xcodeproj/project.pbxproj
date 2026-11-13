@@ -1,0 +1,2011 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		01422F113ED475E5D08B40AE /* HistoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79AED30B4F7B196F63DB823B /* HistoryTests.swift */; };
+		023384A99B22013401803025 /* AppleIntelligenceViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95433FECE4740BE02374282F /* AppleIntelligenceViews.swift */; };
+		026F5C4E1808AEE884C83B92 /* IncomingLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A6FBC23615AFD244323BF0C /* IncomingLink.swift */; };
+		028C57FCA8695602E2764AB7 /* DiscourseParsing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A4B9AE1A964FFB5F8454F5D /* DiscourseParsing.swift */; };
+		036C5866D36F45D7B6C1B17B /* SiteRecognitionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC7A8BD38A63F8F82CF37F21 /* SiteRecognitionTests.swift */; };
+		03F1BFECA6BB58E4E49F41E3 /* PodcastViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = D966ACD4F5F8A101E9CCF41A /* PodcastViews.swift */; };
+		043940581F42B9BE85BAD741 /* ForumBrowser.swift in Sources */ = {isa = PBXBuildFile; fileRef = D230D77FB87D04704FF6CAE6 /* ForumBrowser.swift */; };
+		0479FC6A33D243C7495C7CF6 /* SettingsPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44C2CC06A996A2945424880B /* SettingsPanel.swift */; };
+		04C006043DB7576A96408362 /* SharedPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9FC2DA85F97000EA5FA98FC /* SharedPage.swift */; };
+		07A03E4461E2F9DEED543348 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9F1B9B73864827584C3E58D1 /* Assets.xcassets */; };
+		0BD4B77258384D61D13A8046 /* DesignTokenTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A6ED166D217BDFC234BCF0E /* DesignTokenTests.swift */; };
+		0C3B81FC24DFAFCCE537647B /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E363C82CFC898510A3540E0F /* ShareViewController.swift */; };
+		0F75239D56D4E2D63DAE42AA /* LocalizationCatalogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B36B5AE53F7AAA4E255DDE4B /* LocalizationCatalogTests.swift */; };
+		0F8C19F4CE16FC1EACC4AE67 /* HistoryUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FB4F8C063AE8B39D2290677 /* HistoryUITests.swift */; };
+		10FC4AC71C2D521301A9205A /* PageFacts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A3BD5EB90838FAE45D65AA5 /* PageFacts.swift */; };
+		11FE4EBE132575BE26135B74 /* wordpress-subfolder.json in Resources */ = {isa = PBXBuildFile; fileRef = E937F4AD8D8DC5B5353F445D /* wordpress-subfolder.json */; };
+		128916A32990FC5374683114 /* DrawerHint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B684EB200763C5755D4D567 /* DrawerHint.swift */; };
+		12B574E681B0F6DB424C6D50 /* AppModel+Browse.swift in Sources */ = {isa = PBXBuildFile; fileRef = E470A4D99474C323416A516B /* AppModel+Browse.swift */; };
+		133313195D7F497C111FCC18 /* SiteRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = B09A779AC020CE769315CBE2 /* SiteRegistry.swift */; };
+		13B43FBD9F42EE580D108ECE /* PodcastController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F34A8BE28B98F9BB95C393E /* PodcastController.swift */; };
+		15DB67C44638AC3DDE6F2146 /* FixtureSpaForumServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B7F4A996F66C0D2D6508414 /* FixtureSpaForumServer.swift */; };
+		171CFB7EA8EF0F2C037020BE /* AppModel+Navigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD730793A78364A75CDC18C8 /* AppModel+Navigation.swift */; };
+		17AD8282662813ACEE658BEB /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 932777996286087AAA72620D /* PrivacyInfo.xcprivacy */; };
+		195486DA08C661479F809429 /* SyncRecords.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7527A6335DDD556A42A85BD5 /* SyncRecords.swift */; };
+		199749C3200EA3F934F01961 /* AppModel+System.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAA4C63210B4D6C2047FE21A /* AppModel+System.swift */; };
+		19D8F4F7D8540EAC53C4A4A0 /* HackerNewsAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72185DF8C93CF80BADF63852 /* HackerNewsAPI.swift */; };
+		1C195E0CE7C80188A0C8496B /* wordpress-home.json in Resources */ = {isa = PBXBuildFile; fileRef = 1AFD08112CCC894FF964F451 /* wordpress-home.json */; };
+		1C456F54A829BBF9F81E9CC4 /* ForumPacingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15369CDF382DB9F3A7B8D320 /* ForumPacingTests.swift */; };
+		1CB050B3789F71D33C3F535E /* PostLevelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66545BC078AF1ED76A7D4F29 /* PostLevelTests.swift */; };
+		1D570607EBB2A4C994ABF453 /* HTMLTextTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 710C3335885264B1AF85E689 /* HTMLTextTests.swift */; };
+		1E49E2BED926F5E3B919738D /* ComposerDrafts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90AE726633F13C6626CB528E /* ComposerDrafts.swift */; };
+		1E7CA86DBD23867282AC8B98 /* OnboardingUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE04CD8D12FD77442E700952 /* OnboardingUITests.swift */; };
+		1F0600C424077BCCAD0CCD74 /* hn-large.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B8DDE33B10E4A05FD85DEBD /* hn-large.json */; };
+		1F3BA0F946D9F8D960C43117 /* ScriptManagerUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C25B848E993C524032D11EB /* ScriptManagerUITests.swift */; };
+		1F3D26B840CE3D95A5FB0A16 /* AppIdentityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6C719E8158D5CFDF706A100 /* AppIdentityTests.swift */; };
+		1F68FD5E9CF8E480FEC4CC05 /* SiteKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91FCAFE85AEDFAE7A8058812 /* SiteKind.swift */; };
+		1FCA6DE24433F75CFA85E689 /* HackerNewsLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = A89ABFE26CF265E62565B7E3 /* HackerNewsLinks.swift */; };
+		2237C6557212F7213DA71C44 /* WatchSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73A7AE2B98F9142F154AFD58 /* WatchSupport.swift */; };
+		22BEE9B8D6A04F341A5DB9F0 /* ForumSite.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81743E27FF1ADCCB718B6DEE /* ForumSite.swift */; };
+		2384C5BA5574BBC0FA4F29DE /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22F884EC95A94EECDD149165 /* AppModel.swift */; };
+		2438BBDAEDC6717C31C075B2 /* BrandMark.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B621785FD7B7982E624812C /* BrandMark.swift */; };
+		266EA6078129C12332129677 /* DiscourseAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53D32B77B697C63423D21229 /* DiscourseAPI.swift */; };
+		27D89B339A442FFCCF2E8D04 /* ScriptStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDD14F5A2C928EE3DCBBD013 /* ScriptStore.swift */; };
+		283BD6ECA531D6551572D2FE /* WordPressUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9120A541093B7DA71C350353 /* WordPressUITests.swift */; };
+		292465CDF07E9577E3253FB5 /* WordPressRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D61FEBF23174E5D5F1D4AFF9 /* WordPressRecognizer.swift */; };
+		29E3E8B0B8E2CED2965FF5E6 /* ScriptViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = B205A692F6D4CFE20DD9CE93 /* ScriptViews.swift */; };
+		2ADFE987F47A75A9ED93FAF7 /* PlaybackQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A5DE56324905777B7249110 /* PlaybackQueue.swift */; };
+		2B4A67A6239DAE3E67A33DC0 /* IncomingLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A6FBC23615AFD244323BF0C /* IncomingLink.swift */; };
+		2BC194649F99231B947A3740 /* WordPressRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D61FEBF23174E5D5F1D4AFF9 /* WordPressRecognizer.swift */; };
+		2C2183FAE059E39F79DF2797 /* RawTopicFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CD8A1CD3FA90FA9CB877FCF /* RawTopicFormat.swift */; };
+		2C82E0A65A3B1DD86E7283B4 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 07D7A7470B89CE9DF69D9406 /* Foundation.framework */; };
+		2CBF49E258B63FC8E01CA2D7 /* SummaryPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFB6C067D17F507D0C1633C9 /* SummaryPanel.swift */; };
+		2E24234FA22D565E197E3CAB /* VoiceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3820138BA846D50AC8F776C /* VoiceController.swift */; };
+		3033D46D9743E9FDC672DB2E /* PhoneBrowserBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7509EDC340CE5869EF515915 /* PhoneBrowserBar.swift */; };
+		30CD817C26F03920F1F5D247 /* LiveProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8715A2858FC04CC9FC7EEC4D /* LiveProtocol.swift */; };
+		30DC936DE3559348C2D0351B /* VoiceActivityDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD16C3723AAF962657E6030F /* VoiceActivityDetectorTests.swift */; };
+		30EADBD28FE62AA9DD8A4B16 /* TranslationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167C3B8D47AA829D7B3EBF93 /* TranslationTests.swift */; };
+		30F06293FB4DB4E008CCE9B6 /* AppModel+ContentBlocking.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EEC3A11954BC3F05CFF7772 /* AppModel+ContentBlocking.swift */; };
+		323BE56214E11E2429C62F3A /* AppModel+Assistant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B8E93D7DF6BBDCE237DC238 /* AppModel+Assistant.swift */; };
+		33287E2473B5D6C46AD78CAE /* ForumRobustnessTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 856A8B8772AD9119CFF49D9B /* ForumRobustnessTests.swift */; };
+		34C992C46ACC5AF7E272DBDC /* PageFactsFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31BEF00EA6C962BA59969E84 /* PageFactsFixtures.swift */; };
+		34F37C6F138FD69662B13A01 /* HackerNewsAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52AB33BFB9F2F6BE562392DA /* HackerNewsAdapter.swift */; };
+		357FD1617922F13F8148B49E /* PostBlock.swift in Sources */ = {isa = PBXBuildFile; fileRef = E98F02825889D19F2A5A13C7 /* PostBlock.swift */; };
+		35CCD0FC09EA8D4FCCD01F82 /* page-2002.json in Resources */ = {isa = PBXBuildFile; fileRef = E66E85AC08B9B7D013CA6094 /* page-2002.json */; };
+		3832EC7E59CECA91318B081E /* KeychainSyncTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73A99AB700715412D60C89D8 /* KeychainSyncTests.swift */; };
+		38611A9E979FE9088689B4E5 /* AppIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5338721D20CA734220E73EAD /* AppIdentity.swift */; };
+		38BB1458B6527CF432319A62 /* WordPressRecognitionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 116A7C6E4BC8964A13454F79 /* WordPressRecognitionTests.swift */; };
+		3977FAA7109CD060CBEF23BA /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 9C3CAD1A298A9DA1809E0741 /* InfoPlist.xcstrings */; };
+		3A6E7B332F2004A587AD1349 /* ToolRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06AE897166D0DE997238B595 /* ToolRegistry.swift */; };
+		3B8E8C3ACD5C93AC04BE3FA2 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = DCA4FD3A8E98743CDC2D68E5 /* PrivacyInfo.xcprivacy */; };
+		3BD23C7052C909F5C5C70BF9 /* PodcastStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C3E833D90B379E5E267322B /* PodcastStore.swift */; };
+		3C78D823EDBE87FE970BE6D6 /* PromptBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DB5C1AD864297999342E52D /* PromptBuilder.swift */; };
+		3D1EDCE6777C4BBF47DB1E44 /* AgentLoopTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F6463AA84E097D644BF0E41 /* AgentLoopTests.swift */; };
+		3D1F05E60D5637566C004BD6 /* DiscourseRoutes.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE04F56B1304C93428BAA3DE /* DiscourseRoutes.swift */; };
+		3D4D6036F16A006C39DECD79 /* ToolRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06AE897166D0DE997238B595 /* ToolRegistry.swift */; };
+		3EB6D264EC5B31D0849EDE01 /* PodcastSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 623A010D1D2BB5DBD0E69FFC /* PodcastSettings.swift */; };
+		3EF9070371A834F02F527EE3 /* ResultCards.swift in Sources */ = {isa = PBXBuildFile; fileRef = 885FA308463E188FD198ED62 /* ResultCards.swift */; };
+		3F76E7B3C7F3D34140E7E9A8 /* CloudSyncEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = D179D6E1A4489C55F4FE4D2B /* CloudSyncEngine.swift */; };
+		4158E1617CBF16573E7F631D /* plain-page.json in Resources */ = {isa = PBXBuildFile; fileRef = 5F3855116CAA2B5A6DBB3EC5 /* plain-page.json */; };
+		43B45A105606EA185E7133D9 /* PageFactsProbe.js in Resources */ = {isa = PBXBuildFile; fileRef = 8DA2381EA3FF71696BB69B37 /* PageFactsProbe.js */; };
+		43CF925D0FD7E0E42DBD32CA /* PodcastPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 548BB56E735A671F936B65A3 /* PodcastPlayer.swift */; };
+		43E0A94604FD1B01260A2550 /* comments-sample.json in Resources */ = {isa = PBXBuildFile; fileRef = 05DB1F8C2397DB1D8F5C98BF /* comments-sample.json */; };
+		441D5581591D739B22362908 /* BrowseUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13B0B00C6887EF8FB78E698F /* BrowseUITests.swift */; };
+		444C5D766697BEA99511E363 /* MultiForumTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF322046DA4FE6E3C5DADAB3 /* MultiForumTests.swift */; };
+		44B394554BA23C4B51523844 /* BrandMarkShapes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46D889AB55546BF52D9C1678 /* BrandMarkShapes.swift */; };
+		4591DA5F058C4A91A850CA55 /* ContentBlocking in Resources */ = {isa = PBXBuildFile; fileRef = B5DD912798EE71BB7070185F /* ContentBlocking */; };
+		4593AF9550A46EB2DF69EFBE /* article.html in Resources */ = {isa = PBXBuildFile; fileRef = 87AB634D6783E169D65E5F1A /* article.html */; };
+		4615B1B8AE77C8E58ECCA796 /* WordPressFixtureSite.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A83C8E0ECD0A7357B9A3054 /* WordPressFixtureSite.swift */; };
+		46CB4BE4621CC9DD97A7C0E5 /* AppIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = A26D3B5085B679E557A28557 /* AppIntents.swift */; };
+		4805231C4165713F062989A8 /* ShareHandoffUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3041A87FD4F6C75BAAFB114E /* ShareHandoffUITests.swift */; };
+		486C8120164286AA33DCEEA3 /* AppModel+Digest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ED942EB101B9267F50452F1 /* AppModel+Digest.swift */; };
+		492E97625C82FDE6F450ABA8 /* wordpress-plain-permalink.json in Resources */ = {isa = PBXBuildFile; fileRef = 3FFCAFA2825FDAF54405F244 /* wordpress-plain-permalink.json */; };
+		4B84CA3EF64B800E3CABB15D /* AskBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B65B353479CA5AC722FD1A7 /* AskBox.swift */; };
+		4C4EB45E396A6421AE8748C3 /* VoiceSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9A55BC3C120F721F300F562 /* VoiceSettings.swift */; };
+		4C4ECA4708470C2F5C9C563D /* spa-thread.html in Resources */ = {isa = PBXBuildFile; fileRef = B84C677ECAAA6066E6CA1D3C /* spa-thread.html */; };
+		4E53AE6B655283D9F499D69B /* VoiceDebug.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43F84D6821C5C6E5B261F97B /* VoiceDebug.swift */; };
+		4F44A8CC907BF03FFDE936CB /* AppModel+StateDebug.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0267ED302A274201518C9119 /* AppModel+StateDebug.swift */; };
+		4FF5D1C0F65D35FFB73CB538 /* SettingsForumsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = F805B445E296E14A145D0E8B /* SettingsForumsPage.swift */; };
+		5141565D6E10542F23329B95 /* HTMLText.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2FAF35038E89CFE54EF47A1 /* HTMLText.swift */; };
+		52092ADF1F227E25763BA142 /* hn-item-1.json in Resources */ = {isa = PBXBuildFile; fileRef = 454F69CA54F7FE9A5BBB01AF /* hn-item-1.json */; };
+		53840FA794237D1FCF60CC92 /* SiteRequestSequenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 533974BE3452AD090DC27655 /* SiteRequestSequenceTests.swift */; };
+		547ABA6BFDED8AE5F020FE08 /* DiscourseRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 785B8D933E1363B4107E836A /* DiscourseRecognizer.swift */; };
+		5657F5BB25FB37AA211FE187 /* SampleContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = B61B3DA5ED33A1E5358BB523 /* SampleContent.swift */; };
+		574217CEA38F48B1D08EA6BD /* AppleIntelligenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E13B3DF4577D63BB79440E24 /* AppleIntelligenceTests.swift */; };
+		589F4E504DC232C448B5FF1A /* MarkdownView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5C12981BDEC5EF7CFF9A04D /* MarkdownView.swift */; };
+		58ACB015E537DDA57A7B3906 /* ForumTransportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 885F72463A334AB8E6897CDD /* ForumTransportTests.swift */; };
+		58AE454A94D4BC32E00DD61C /* session.json in Resources */ = {isa = PBXBuildFile; fileRef = B1E8FCA2502CE8B76DA2D533 /* session.json */; };
+		5966963593B645DA3B3DA666 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2B37248D1A3F874A1AD3F01 /* Models.swift */; };
+		5A1B329DC5EB2942DA00541E /* VoiceAudioFormatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC59FDE02593F18503309892 /* VoiceAudioFormatTests.swift */; };
+		5A333536F3873363DB81B75E /* PlaybackQueueTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6572F420DDAA35F6C213D6A2 /* PlaybackQueueTests.swift */; };
+		5ACFFDC92FFE0DD29C483822 /* BrowseBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6B2B225E8EBC4C76CF4C50E /* BrowseBridge.swift */; };
+		5AD592EF3295EF19D53A664D /* VoiceContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E07EF32A13892E0A7E47078 /* VoiceContext.swift */; };
+		5B4272715427997499429978 /* CloudSyncFakes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37C22841A270326159C38683 /* CloudSyncFakes.swift */; };
+		5B4EF2D216F3198E95A59E92 /* BrowserAgent.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0CE0EB7F9BB5F81AA958720 /* BrowserAgent.swift */; };
+		5B83ECC38AACBDDF42282A77 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 07D7A7470B89CE9DF69D9406 /* Foundation.framework */; };
+		5D65E3696EAE058E1E2256CF /* strict-csp.html in Resources */ = {isa = PBXBuildFile; fileRef = 4A5504A7ADE0F8E6271C3016 /* strict-csp.html */; };
+		5E4FE96C2A950E8E7E7366AA /* MotionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA391973918EADB544E80769 /* MotionTests.swift */; };
+		5ED4E8FE59AB435F6D7F6C41 /* WordPressAdapterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35B2EE6D58A5192F7EAC8485 /* WordPressAdapterTests.swift */; };
+		6009ADFB93519AA0C5D939B8 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 25C5F05E18B1462349739C4F /* InfoPlist.xcstrings */; };
+		60D2708D552BCFD0DCF42A14 /* WordPressPagePlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 992C366F7D5EF0517DD16EFF /* WordPressPagePlan.swift */; };
+		60E0DD0770861CF6864BD134 /* ForumService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2D7B2AAE6560051CB4C8E19 /* ForumService.swift */; };
+		61069BBFFFE5B4DB4EA3CC2A /* ContentBlockingRulesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10EDFCC4BB2D6243B4225D95 /* ContentBlockingRulesTests.swift */; };
+		62DC00B5A73B8E4FD5E0AF15 /* TopicFacts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EB9F212D81B14697A14B4B9 /* TopicFacts.swift */; };
+		6469324F1C588418F46CBA4D /* SettingsAssistantPages.swift in Sources */ = {isa = PBXBuildFile; fileRef = 184A87A85357207E9289372F /* SettingsAssistantPages.swift */; };
+		65430EBFDF098AAA98B62FA1 /* WorkProgressTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF8C90752C8CED2476B8A0FB /* WorkProgressTests.swift */; };
+		65AEB9508B1893B16E18CDCF /* Spotlight.swift in Sources */ = {isa = PBXBuildFile; fileRef = F89E5827B8CAB11E8EF7173A /* Spotlight.swift */; };
+		65EBD24022446C8A3E049D01 /* NetworkFailure.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ACCBCF59F65AF0CC85BFB05 /* NetworkFailure.swift */; };
+		67499B6568025ABF6A7DA1CF /* speech-d.wav in Resources */ = {isa = PBXBuildFile; fileRef = 9B023DB09196FB1909769C2B /* speech-d.wav */; };
+		6771AF2F04C8608C8185476F /* SettingsNavigationUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B63079E7ACC80AA28EB5F738 /* SettingsNavigationUITests.swift */; };
+		69557768E96C969C1221E184 /* ForumDirectory.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8662F84E374C687721441D7 /* ForumDirectory.swift */; };
+		6A8EB349D3C978F4C92DAA93 /* HackerNewsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 830992320B5243375D26E469 /* HackerNewsTests.swift */; };
+		6B491D99A229BC97380E1FC8 /* VoiceTools.swift in Sources */ = {isa = PBXBuildFile; fileRef = 589AB753ADB658C57A485424 /* VoiceTools.swift */; };
+		6CA8FD49A750326CC21BCCD6 /* SessionRetention.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71D482365CF28EE4781B451C /* SessionRetention.swift */; };
+		6D8BDC62A04CFE096986CC4E /* SystemEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4139EBF8E8AC37297C6BFB /* SystemEntry.swift */; };
+		6DDF7B9ADEAEF63F0A11F65B /* speech-a.wav in Resources */ = {isa = PBXBuildFile; fileRef = 8B064A46DB5D0557C536DDCB /* speech-a.wav */; };
+		6FADB7ACB49AEDFE3498BD62 /* AppModel+Onboarding.swift in Sources */ = {isa = PBXBuildFile; fileRef = E846616FED7EB75D3978FA67 /* AppModel+Onboarding.swift */; };
+		7018350CEA558A8A494EF780 /* VoiceSite.swift in Sources */ = {isa = PBXBuildFile; fileRef = E596AF0D514F015AF6824961 /* VoiceSite.swift */; };
+		7023A9E72F8642FBF936A454 /* ForumSite.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81743E27FF1ADCCB718B6DEE /* ForumSite.swift */; };
+		7203E266594FE1A69F76884D /* PresentationRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 737F27EAFF243F4484E0BDA5 /* PresentationRouter.swift */; };
+		7347E44F95219F7279BF0C61 /* AppleIntelligenceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49A06F9769094D8C5AEACA36 /* AppleIntelligenceService.swift */; };
+		7591A5420892CE79E690A58D /* AppIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5338721D20CA734220E73EAD /* AppIdentity.swift */; };
+		75D89F0158D618A06D0C8FF7 /* WorkProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61D9504F3A471DF3A5B7E859 /* WorkProgress.swift */; };
+		7690F820DBEFF8E271D1FC15 /* speech-b.wav in Resources */ = {isa = PBXBuildFile; fileRef = C9EFCE205CA35CC5EAFFCCED /* speech-b.wav */; };
+		76A41094FCE61930FF02F9E8 /* WordPressAgent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73ABB36044060AAA5F18FFC2 /* WordPressAgent.swift */; };
+		786C92685A998B0EABF34F4C /* ScriptStoreCoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA71920F09B0955B118F4D15 /* ScriptStoreCoreTests.swift */; };
+		79A399E632351407995D6124 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 07D7A7470B89CE9DF69D9406 /* Foundation.framework */; };
+		7A472B408901798E7E553233 /* DiscourseAgent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ACC2C0B8F670FDBBFFD8B8F /* DiscourseAgent.swift */; };
+		7ADBE24054A4127549A8602B /* AppModel+CloudSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19FD5F46C49E02CDCB7DD65A /* AppModel+CloudSync.swift */; };
+		7B0F12B9C67FD76AE76B9D0A /* WordPressParsing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49C4C282F7D5A8CD92A58E31 /* WordPressParsing.swift */; };
+		7BA645665E4BE6BAF6C02452 /* ShareSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D763A7670D1C5039B90FF267 /* ShareSheetView.swift */; };
+		7C7E7EFB9345CF21A43F1F41 /* DailyDigestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E8A7806037F195068C2C87B /* DailyDigestTests.swift */; };
+		7D2091E1C8236FA78419FE67 /* BrandMark.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B621785FD7B7982E624812C /* BrandMark.swift */; };
+		7D24C99A88E7E9C44023386F /* VoiceToolBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995A39768F7E71BE41C0436F /* VoiceToolBridge.swift */; };
+		7FFFD54E12CE109DE8104FEA /* SiteJobTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9AEB0630DEF99F2C187F6E5 /* SiteJobTests.swift */; };
+		80089F00F80DBB4FA2D042B5 /* FixtureWordPressServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3175236B6EC040452635DF53 /* FixtureWordPressServer.swift */; };
+		8183887B0775D92249128BA1 /* root-index.json in Resources */ = {isa = PBXBuildFile; fileRef = 15D55C1F6335177511BA5F9B /* root-index.json */; };
+		81D829C7FB3590865FFCB3D6 /* VoiceActivityDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AB94AE71262CE61E5E039BB /* VoiceActivityDetector.swift */; };
+		81DD998AD41DB87686B10DA0 /* IncomingLinkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32442900709FD82FA41190B4 /* IncomingLinkTests.swift */; };
+		82367D000B719301B40F33DA /* DockTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 199AFE6A15E71B039B4C26A9 /* DockTests.swift */; };
+		867A2634777F2F9C7E52A48D /* SiteAddress.swift in Sources */ = {isa = PBXBuildFile; fileRef = A98A55657B58FA81849C9D09 /* SiteAddress.swift */; };
+		86AB9694ECFAA96392D2F647 /* VoiceUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4DAB760D7C4587709E98A9 /* VoiceUITests.swift */; };
+		88C86BEABD3ADED531F07398 /* FakeSiteAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13A9D378D1E46DE837B4B392 /* FakeSiteAdapter.swift */; };
+		896B84F88DD072F1BC1F109D /* SiteRecognizers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84CC8A4918E0C8FBBB869CA9 /* SiteRecognizers.swift */; };
+		89E93387BCB1304296895F08 /* UITestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5DE80A155D5635CD4DC6166 /* UITestSupport.swift */; };
+		8A056CE1C368324B1B5C2C1A /* PagedTopicFetch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F40EA78F8BF329C1D8BF122 /* PagedTopicFetch.swift */; };
+		8A578F4B3A3D4318CAF08D28 /* ToolRegistryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F32E0746D89B35F40D769A95 /* ToolRegistryTests.swift */; };
+		8A725ACD07FA7879DE70D8E7 /* SiteKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91FCAFE85AEDFAE7A8058812 /* SiteKind.swift */; };
+		8B254B07CC4798197881DF81 /* SiteGoldenTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F2D463CE43BCD5540A125B3 /* SiteGoldenTests.swift */; };
+		8BCABD33C85C8139680B5CE9 /* Persistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D4CD6AB44BF3189D8C63355 /* Persistence.swift */; };
+		8CBEC4EC320E3DA1DF337CFB /* AppModel+Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC4DC882B057ADE089EE61C8 /* AppModel+Models.swift */; };
+		8DA08799BF306642E59FD38A /* AIDrawer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2CD7F158595CD6759402182 /* AIDrawer.swift */; };
+		8DF4EEA5A9EA10C627BAFA6F /* WukongMindApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B83284A3B462AC4170985A47 /* WukongMindApp.swift */; };
+		8E9EDABC745F4B0BC7FD43B1 /* error-invalid-page.json in Resources */ = {isa = PBXBuildFile; fileRef = 1E0E346739D02A4AF821A759 /* error-invalid-page.json */; };
+		8F2DC9DDEFDCFCCBC4CC76E9 /* VoiceAudioFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD26F932453098AA43FC4F03 /* VoiceAudioFormat.swift */; };
+		904605A3296D6EE4860ABB96 /* RawTopicFormatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC145B76C175EAB64B313F88 /* RawTopicFormatTests.swift */; };
+		91146378ECE3D99AA07CA8DE /* AppleIntelligence.swift in Sources */ = {isa = PBXBuildFile; fileRef = E101594532DE2E3B2752F708 /* AppleIntelligence.swift */; };
+		911E183341C42E52FE6F821F /* SessionRetentionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B66480F982671C5D02546F5 /* SessionRetentionTests.swift */; };
+		94AB8961476A0C1EA3BE6BF7 /* WordPressAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C77AC40856A93876338240B7 /* WordPressAdapter.swift */; };
+		9543BC8B1AC1AC0316023E8D /* CloudKitTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 643BBA643D96B4302A7EF0FE /* CloudKitTransport.swift */; };
+		95B38B3F0FA37258D6E437A6 /* DrawerUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F902DE5D29398B0AA68E4390 /* DrawerUITests.swift */; };
+		970A87F4D965C9502C3ED2DE /* AssistantStates.swift in Sources */ = {isa = PBXBuildFile; fileRef = 189E2BCE69A768DEB32607B5 /* AssistantStates.swift */; };
+		97C6A96482911F8FDF2CA6D0 /* hn-comments.json in Resources */ = {isa = PBXBuildFile; fileRef = D8B059DA4F9B1871315079C4 /* hn-comments.json */; };
+		98287545F39789E0A79E4F31 /* DigestViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = F64CD74B7442DAC8B827E829 /* DigestViews.swift */; };
+		9877BD760A2EA9848D4665F0 /* StreamStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 785412C89A674735AA27C3F5 /* StreamStore.swift */; };
+		989F326F5D6FB2BB5D2750AD /* VoiceFakes.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA910A35710D2A3F7135A2BA /* VoiceFakes.swift */; };
+		9AEF1A0478680F3C85A24AE3 /* SiteNetwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C6E2742F66E67303E41758 /* SiteNetwork.swift */; };
+		9B4C011963662E4341E7D324 /* AgentBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 793323475C8509F18F64509D /* AgentBridge.swift */; };
+		9BE2865E46E077C37507BDDE /* article-1001.json in Resources */ = {isa = PBXBuildFile; fileRef = 39B37B6EBC4B1B9D0929618D /* article-1001.json */; };
+		9D0756ABF9CD40C9599968A3 /* HomeState.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE66E92AAD164C4BE4E99180 /* HomeState.swift */; };
+		9D515F560E574744F367236E /* SiteNetworkTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8984D96A01474831E5EDF709 /* SiteNetworkTestSupport.swift */; };
+		9DB9B6A1B4F2D4105101CB3A /* PageContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CE43DD13862A4D1FEDB8409 /* PageContext.swift */; };
+		9DDF6520847C02157479FA20 /* SiteRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7A35C2127F1DAA61F8354BA /* SiteRecognizer.swift */; };
+		9ED15AAC3270B24D68E83AEB /* hn-search.json in Resources */ = {isa = PBXBuildFile; fileRef = E3221EBB90A27FBBDB30BE75 /* hn-search.json */; };
+		9F1EC068CA895C3DAFABDA40 /* JSONValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = F908B33CC0E4591EC5374133 /* JSONValue.swift */; };
+		9F33F8BAA24CBE0395DAB413 /* DiscussionProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D2782729538F35593558884 /* DiscussionProfile.swift */; };
+		9F89ECF43E6351C0F292E7FB /* CoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04E06C3185322DFD0B41E14D /* CoreTests.swift */; };
+		9F9BC7DAA5EE0E5622A2BAFC /* state.json in Resources */ = {isa = PBXBuildFile; fileRef = 6CB3E6542E071D0E2375870D /* state.json */; };
+		A0231C877004D597AC4ADB99 /* VoiceAudioHealth.swift in Sources */ = {isa = PBXBuildFile; fileRef = 089A044D443A5423A6E350F5 /* VoiceAudioHealth.swift */; };
+		A0BEDB4FE1E3C29421734076 /* LiveTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D1C40EAF9EE254A17921B9A /* LiveTransport.swift */; };
+		A0D281DE24C33789C372367F /* SiteRecognizers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84CC8A4918E0C8FBBB869CA9 /* SiteRecognizers.swift */; };
+		A296131659C7753115D9C3CE /* HomeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7504C11F63F97D35D9E61DA8 /* HomeTests.swift */; };
+		A503DC94C71E644D51BFD376 /* DailyDigest.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA16DD077C24CE96B5C40350 /* DailyDigest.swift */; };
+		A57185A575600C3C50389DA6 /* ProviderModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7534A11B8A945B7F1309F533 /* ProviderModels.swift */; };
+		A67D776FC521970CA9603D37 /* WordPressJobTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC465A6A01EBC9720ADD8F63 /* WordPressJobTests.swift */; };
+		A69CEBDF16E8E91E6D20FCE5 /* StateTransitionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E29FDE84F42768CBB011104 /* StateTransitionTests.swift */; };
+		A73C73038D03CD1BEE9A6A42 /* VoiceToolTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81ACD5BFF6FA33914BD7A10B /* VoiceToolTests.swift */; };
+		A75EDA7B09861F2839BEEBF2 /* WidenedShapesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CCDA24CAF3FB57B6B1B1AF /* WidenedShapesTests.swift */; };
+		A7AF4631B78193735795A60B /* error-invalid-id.json in Resources */ = {isa = PBXBuildFile; fileRef = D63BB16307387E44A6DB09E5 /* error-invalid-id.json */; };
+		A8BC5AC0603B76D8A747C096 /* BrowseCursor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D6685EA40BD4C3DE7C52B0A /* BrowseCursor.swift */; };
+		A970C13DD2A4380E0B86F3F8 /* BrandMarkShapes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46D889AB55546BF52D9C1678 /* BrandMarkShapes.swift */; };
+		A9C18C85EF22EFC0CF4A5990 /* AppleIntelligenceClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D2F8DFC927218C85CACCAAA /* AppleIntelligenceClient.swift */; };
+		AA998163FB0E48EC5744FB08 /* Dock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A2EE7CA9AB42A8239F647F3 /* Dock.swift */; };
+		AAAA382C8773B97770F82FCC /* TimePitchGraphTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C392E8BDEA27B608B14EFD7 /* TimePitchGraphTests.swift */; };
+		AC505629499CE2F2B46E6CA5 /* PageFactsProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D8B707E94EDCFC4303F883E /* PageFactsProbe.swift */; };
+		AC8D652BEEFB76145CA101B3 /* BrowseNavigationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BE70AB68B83B08A3433307F /* BrowseNavigationTests.swift */; };
+		AC8E5CE38F602CA60F20C6D6 /* PodcastTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E29031D85EFC387323C3BA3 /* PodcastTests.swift */; };
+		ADD06A68EF38C0082DC9F352 /* VoiceProtocolTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAA9E963BCBEA9DE85939134 /* VoiceProtocolTests.swift */; };
+		AE85BD5636923DF887A08A03 /* DrawerStreamPerfUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A2A8283CB4C1EB0885A146B /* DrawerStreamPerfUITests.swift */; };
+		B052607AFF162086DB3E217C /* IPadLayoutUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95595CA944978AF259F4DDEF /* IPadLayoutUITests.swift */; };
+		B24451A5FCC988182A736ED1 /* DiscourseAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D544F1AF094C5E786CAAD8F3 /* DiscourseAdapter.swift */; };
+		B29E94DB602764FFE07C3147 /* CloudSyncTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 815C9D69D6EBA1796F9010EC /* CloudSyncTests.swift */; };
+		B3027E8E40D55BA35D48A4DD /* SplitWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 105891CF9B32969AD85F7B88 /* SplitWorkspace.swift */; };
+		B35300D2B41B6626582BA72B /* CapabilityGatingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C8880A391AF68F0FB18B0B4 /* CapabilityGatingTests.swift */; };
+		B5EC621D86B55AC8D6D18BF1 /* HackerNewsAgent.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC5DEF8B3F640F8860D960D5 /* HackerNewsAgent.swift */; };
+		B634DF274EB8741E44566CC1 /* WordPressAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5569438933C1353BCBB7A1A5 /* WordPressAPI.swift */; };
+		B766AFF0E0CA1D699292DC86 /* AIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09D65C3A914F5E2D73348EB2 /* AIService.swift */; };
+		B847D0D51405E8170E8311F9 /* speech-c.wav in Resources */ = {isa = PBXBuildFile; fileRef = 0DC20BB13A2E3CF2F5247D90 /* speech-c.wav */; };
+		B9DB8A86F04C83528EF0C0EF /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F2A2A6184E987DC824C0C4C /* DesignSystem.swift */; };
+		BACC31CEAF8F4415B40C99B8 /* SharedPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 951B5B0BD54437F52EF3109F /* SharedPageTests.swift */; };
+		BB538B2019EA2358E06DCEA5 /* PageFacts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A3BD5EB90838FAE45D65AA5 /* PageFacts.swift */; };
+		BC5DD9E3923DA0062E8E091B /* DiscourseDOM.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20271D8462197C7561BAB9B /* DiscourseDOM.swift */; };
+		BD0E0DFF5C39658C0C17ABCA /* DiscourseFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62EFEC5EE764B90906FEEC94 /* DiscourseFixtures.swift */; };
+		BE6FBFDEEB94429385979699 /* NowPlaying.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3508D90BA724112D6E022819 /* NowPlaying.swift */; };
+		BFFC2A3D0F2E8120BBB57CB4 /* ScriptStoreWebTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AD2B5DD33BAF12DB0B3E932 /* ScriptStoreWebTests.swift */; };
+		C000038C19469CB9AF2A1785 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3C77D0E9DC78285377A20F2 /* HistoryView.swift */; };
+		C052131B5ED893AA498FF0A2 /* ScriptStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDD14F5A2C928EE3DCBBD013 /* ScriptStore.swift */; };
+		C082B254F60127AF98040356 /* ScriptStoreCoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA71920F09B0955B118F4D15 /* ScriptStoreCoreTests.swift */; };
+		C0D6796E7A0264240B1F8E25 /* hn-latest.json in Resources */ = {isa = PBXBuildFile; fileRef = 0988DBFC5D9146F2AB365D6B /* hn-latest.json */; };
+		C12B4859CF20C0078A0B7709 /* hn-html.json in Resources */ = {isa = PBXBuildFile; fileRef = 650E305B16D0CAD7D71E6C14 /* hn-html.json */; };
+		C14F9091A61ACA53573E965C /* VoiceAudioEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 309729174EED9C2BCFC4DF20 /* VoiceAudioEngine.swift */; };
+		C270CF565D26E53457CBD34F /* DiscourseSuggestions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4292A3356ABDC8B1430DB432 /* DiscourseSuggestions.swift */; };
+		C294D9B9ABD50A26778C4EED /* HackerNewsRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ED03CB3FCEDE60770C77ACD /* HackerNewsRecognizer.swift */; };
+		C3677017534C6DC6463A5EA3 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 0B9E05B8E5776A383F870A17 /* Localizable.xcstrings */; };
+		C372A6B9B038AAFFA0383BD7 /* AgentBridgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC9FBA207A9FFE17C01F723E /* AgentBridgeTests.swift */; };
+		C411FFB840F46D052B3A69C2 /* AssistantSourcesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 555845430A4758C3ED68C46E /* AssistantSourcesTests.swift */; };
+		C447144DF83B2F1B9993BEA4 /* SettingsProviderPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71FD548FE5C3CC747148FE94 /* SettingsProviderPage.swift */; };
+		C67BA90F5FEEBD0A8D9A0104 /* SettingsSyncPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76028A60CBA2D547BCA01847 /* SettingsSyncPage.swift */; };
+		C6E321AB5EDB6503B3EAA9A0 /* ContentBlocker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5708BBB75AF45E12C7430109 /* ContentBlocker.swift */; };
+		C7A520057740D46CF65C9347 /* BrowserAgent.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0CE0EB7F9BB5F81AA958720 /* BrowserAgent.swift */; };
+		C928CA6F748702F49B825F26 /* DiscoursePagePlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9C65666294FB03BD3838E77 /* DiscoursePagePlan.swift */; };
+		C9B248C0013636D2130B4F24 /* hn-story-live.html in Resources */ = {isa = PBXBuildFile; fileRef = 1D1D5C198013100BCB0DAD30 /* hn-story-live.html */; };
+		CA6CF093EE42F3731FBA7BE2 /* VoiceInstructions.swift in Sources */ = {isa = PBXBuildFile; fileRef = E35FBD388EC097A3843734D8 /* VoiceInstructions.swift */; };
+		CC72C95BCB9D6ECA0DA22BC1 /* HackerNewsJobTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FE697E800ED1DFCC733A50E /* HackerNewsJobTests.swift */; };
+		CD6AE00A2E99875343A80B85 /* VoiceAudio.swift in Sources */ = {isa = PBXBuildFile; fileRef = 421074CA88EEDC15B1D9B440 /* VoiceAudio.swift */; };
+		CD7C16E5003B6E2C215DB55E /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = F084647ECD8C5E531E00816F /* Localizable.xcstrings */; };
+		CD951411B86E6611751E2B73 /* SiteAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD35128CB9333A289648A0FD /* SiteAdapter.swift */; };
+		CDDAE5C99DA7F006C9672119 /* SiteContractTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 980C248AA608B4FDA02AF380 /* SiteContractTests.swift */; };
+		CEB2206D645EABC2DEE3AE60 /* PodcastSpeech.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8EDDFF6CA981EF8EAB1661E /* PodcastSpeech.swift */; };
+		CEEA2913E277ED6CB7E49252 /* CloudSyncController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B1DC012095766CD2C3E6A6C /* CloudSyncController.swift */; };
+		CF299D8ED4A9017A27CFCBAC /* KeychainSyncProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = B54BDCBD25052424FBA7E0D1 /* KeychainSyncProbe.swift */; };
+		CF9B12785AFC60BD75D7233A /* SiteRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7A35C2127F1DAA61F8354BA /* SiteRecognizer.swift */; };
+		D0E2A081F943418E856E02E9 /* WordPressLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 463C8FA520EAEDBC040D9838 /* WordPressLinks.swift */; };
+		D1196D9019A6B1698004223C /* HackerNewsRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ED03CB3FCEDE60770C77ACD /* HackerNewsRecognizer.swift */; };
+		D24A8AB027EE66BCDDE79559 /* SettingsDataHelpPages.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9124491E1E46F81094074382 /* SettingsDataHelpPages.swift */; };
+		D4ED0265B302B64E07F92463 /* AppLanguage.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEBAE1A8FBD471A81CAF70F0 /* AppLanguage.swift */; };
+		D68B1C1FF488F50DD01D7C55 /* AgentEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3479DB9125C4545905A1826F /* AgentEngine.swift */; };
+		DA4356C3922829B1344E7AC7 /* VADTestAudio.swift in Sources */ = {isa = PBXBuildFile; fileRef = E31FC5B3F77BCBE6392EC6FD /* VADTestAudio.swift */; };
+		DA506313879AE7A82177C49B /* PageFactsProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D8B707E94EDCFC4303F883E /* PageFactsProbe.swift */; };
+		DA6F33567DEC0FAC69ABC6A4 /* SettingsProviderForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52E045E933BFF000324DD430 /* SettingsProviderForm.swift */; };
+		DAC5A000EC9DBA9E6F862C57 /* ForumComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 921EE4BD19F09C1587121FA7 /* ForumComponents.swift */; };
+		DAEA207EE28E11CD5C44D78A /* hn-item-2.json in Resources */ = {isa = PBXBuildFile; fileRef = 32DCB534D55B51DF95DCB63F /* hn-item-2.json */; };
+		DB6295DA6B06410D9D136E5D /* WordPressTools.swift in Sources */ = {isa = PBXBuildFile; fileRef = 712E74A07DF1C59CB38B80B2 /* WordPressTools.swift */; };
+		DCC835A54BC9BD6F28A16E75 /* OnboardingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14A2C0359073479D944ACBDE /* OnboardingTests.swift */; };
+		DD604E3821D513FD272947E9 /* SpotlightTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C8378B005D3E35A33A9C55C /* SpotlightTests.swift */; };
+		DD90B117F2F721527AB87F0B /* WordPressActiveTopics.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5429ECA3D657C7F20D10FAC /* WordPressActiveTopics.swift */; };
+		DE7839174AFB12A591D6C2D6 /* JSONValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = F908B33CC0E4591EC5374133 /* JSONValue.swift */; };
+		DF134245023E008DE4973DE5 /* TimeStretchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A439F2A6B4F5B93E409F2137 /* TimeStretchTests.swift */; };
+		DF9EF7639C1EA875971FDBAE /* AgentBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 793323475C8509F18F64509D /* AgentBridge.swift */; };
+		E122C1C2D71DD62E53ECC52F /* AgentToolPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D59F5A7B1A3396AEFBD5F06A /* AgentToolPresentation.swift */; };
+		E1F9B217C56B786E7BFDE7B0 /* DiscourseRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 785B8D933E1363B4107E836A /* DiscourseRecognizer.swift */; };
+		E2C84F3FB9CD2D3335576AF8 /* AppShortcuts.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 0C7822A182B709F993DC8732 /* AppShortcuts.xcstrings */; };
+		E2D0B0C0B0DEA3C6063F8B82 /* SiteCapabilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = A73B73C6FF574CA92EF6B361 /* SiteCapabilities.swift */; };
+		E3021DCF5E182AA3033F84B8 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B0BE65B4B8634C381CA1E707 /* Cocoa.framework */; };
+		E4F5B71C03632060EAD25A0E /* AppIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5338721D20CA734220E73EAD /* AppIdentity.swift */; };
+		E52FC2CDA397445E0CF276F5 /* IPadLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DF5DF1CA52EC38686421B84 /* IPadLayoutTests.swift */; };
+		E5918840E322577291AE2E9B /* TodayUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49AE0FD809B96D848CA2BD25 /* TodayUITests.swift */; };
+		E6EE534EC8B320010B968A1B /* Onboarding.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA23F72677A5E1AB78385041 /* Onboarding.swift */; };
+		E7BB9B275F358B70187AF197 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 081E778CF13E4C98C56E78BF /* HomeView.swift */; };
+		E842A46CC6AD33B57559D73D /* OnboardingSteps.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA28F6C0967FD0211E35FFA9 /* OnboardingSteps.swift */; };
+		E8510EFE2BCF9604C068A2BC /* PodcastSystemSpeech.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11091B1586FD3DB3617D2070 /* PodcastSystemSpeech.swift */; };
+		E85C16F6E6FD27A0073D9E01 /* CloudSyncTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15A699B439CA35FC0CE351FD /* CloudSyncTransport.swift */; };
+		EA5C1AAE8BF6D4730EBA295E /* AgentLoopTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F6463AA84E097D644BF0E41 /* AgentLoopTests.swift */; };
+		EAB1B3081D12D7C5101EED59 /* SharedPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9FC2DA85F97000EA5FA98FC /* SharedPage.swift */; };
+		EB26D0BB7EEEEA7229142CF4 /* WordPressAgentRunTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B19E991EA078EAD22CA218 /* WordPressAgentRunTests.swift */; };
+		EE84F0BECCDA6C854FD396B1 /* wordpress-post.json in Resources */ = {isa = PBXBuildFile; fileRef = A674FFAFAABD8C3826F302CA /* wordpress-post.json */; };
+		EFDEE1ED0304AC42C24CCCE5 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 07D7A7470B89CE9DF69D9406 /* Foundation.framework */; };
+		F00CDACE0E8D486733555046 /* ContentBlockerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F298B7DFDEAF3A2B73983D6A /* ContentBlockerTests.swift */; };
+		F06F3349A4951CA12D52EE2F /* DrawerHintTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42C63759DAC326D99D9F238A /* DrawerHintTests.swift */; };
+		F08A007262463E5ACD7F1FE6 /* AppModel+Voice.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9B0FCD16C28516101E063FB /* AppModel+Voice.swift */; };
+		F1138483346468F522F07FA4 /* ProviderModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7534A11B8A945B7F1309F533 /* ProviderModels.swift */; };
+		F1565911AABBC3804986D13E /* PhysicalDeviceSmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB9409D91C846F32ED3CCF4C /* PhysicalDeviceSmokeTests.swift */; };
+		F233057A84F4DD214A4C18FE /* VoiceViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92E925993F3E35BC6DFED893 /* VoiceViews.swift */; };
+		F2BCD42954043E2618F2E22A /* SystemEntryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E90A3F1B82438FB8CF41C8 /* SystemEntryTests.swift */; };
+		F3E563906FDF4BABCFDEA8DE /* WordPressToolsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17FA28FC35F5F8CFD202B43 /* WordPressToolsTests.swift */; };
+		F4404912AD8004ECC5DA5DFE /* HomeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0900ABA820D74639310F5D4 /* HomeUITests.swift */; };
+		F621FB7AD6143529E3A091BB /* ForumRequestPacing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 390C057173F95E2D9579B577 /* ForumRequestPacing.swift */; };
+		F85A9783DA67AA8239DB83F5 /* ToolRegistryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F32E0746D89B35F40D769A95 /* ToolRegistryTests.swift */; };
+		F9759595F017F0ACF8F3E1AF /* VoiceSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E7D20019BA8572963CE1BDA /* VoiceSession.swift */; };
+		FA0E195314C6F81046727CA7 /* ModelSwitchingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C05253261D791E0AF45B5CB /* ModelSwitchingTests.swift */; };
+		FAC136EDC1CD2321CB97A5DF /* AgentPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52B4B41AE36E8678995EC6DA /* AgentPanel.swift */; };
+		FADBA2CF6CC267C94360FD27 /* VoiceAudioHealthTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19B2CD98B789DAB5893FFD45 /* VoiceAudioHealthTests.swift */; };
+		FB84579D69C93AAE2EC8B646 /* ForumKindTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A7A1C19CCCEF3F64D6720D8 /* ForumKindTests.swift */; };
+		FBFF726BAF9C69D5F78E7E64 /* VoiceSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF253B05619DF0C56BBF2A98 /* VoiceSessionTests.swift */; };
+		FCB586A984A0D86D849839FB /* ReadingLanguage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AB51C510A211522D4430F25 /* ReadingLanguage.swift */; };
+		FDD12ACE6821BEB6F896761E /* PodcastScript.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3C2AE60945B7F0AFBD074BA /* PodcastScript.swift */; };
+		FE3FABB023A9839221604FBE /* WorkspaceLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E3872CF9ADEDCD2BBFA439D /* WorkspaceLayout.swift */; };
+		FEA4CEC93AFB9F9C517461E6 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B83461F2698229045EDE28AA /* ContentView.swift */; };
+		FF59892A96301B06078345AF /* TranslationViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8298C747E3AC94CE8F40596C /* TranslationViews.swift */; };
+		FF6E6AFFCEB0DD38F47927CF /* discourse-topic.json in Resources */ = {isa = PBXBuildFile; fileRef = 17C3D07EEB480E1CA7884C09 /* discourse-topic.json */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		794B46C67A9E7BB011D13F9D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0F91FEB3718DD543EDF8BD29 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 882D0BF1E07061B4627BB256;
+			remoteInfo = WukongMind;
+		};
+		BF0A34456CEC250C4529CD63 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0F91FEB3718DD543EDF8BD29 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 882D0BF1E07061B4627BB256;
+			remoteInfo = WukongMind;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0267ED302A274201518C9119 /* AppModel+StateDebug.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "AppModel+StateDebug.swift"; sourceTree = "<group>"; };
+		04E06C3185322DFD0B41E14D /* CoreTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CoreTests.swift; sourceTree = "<group>"; };
+		05DB1F8C2397DB1D8F5C98BF /* comments-sample.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "comments-sample.json"; path = "Fixtures/WordPress/comments-sample.json"; sourceTree = "<group>"; };
+		06AE897166D0DE997238B595 /* ToolRegistry.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ToolRegistry.swift; sourceTree = "<group>"; };
+		07D7A7470B89CE9DF69D9406 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		081E778CF13E4C98C56E78BF /* HomeView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		089A044D443A5423A6E350F5 /* VoiceAudioHealth.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VoiceAudioHealth.swift; path = Voice/VoiceAudioHealth.swift; sourceTree = "<group>"; };
+		0988DBFC5D9146F2AB365D6B /* hn-latest.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "hn-latest.json"; path = "Fixtures/HackerNews/hn-latest.json"; sourceTree = "<group>"; };
+		09D65C3A914F5E2D73348EB2 /* AIService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AIService.swift; sourceTree = "<group>"; };
+		09E90A3F1B82438FB8CF41C8 /* SystemEntryTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SystemEntryTests.swift; sourceTree = "<group>"; };
+		0A2A8283CB4C1EB0885A146B /* DrawerStreamPerfUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DrawerStreamPerfUITests.swift; sourceTree = "<group>"; };
+		0B9E05B8E5776A383F870A17 /* Localizable.xcstrings */ = {isa = PBXFileReference; includeInIndex = 1; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		0C7822A182B709F993DC8732 /* AppShortcuts.xcstrings */ = {isa = PBXFileReference; includeInIndex = 1; path = AppShortcuts.xcstrings; sourceTree = "<group>"; };
+		0C8880A391AF68F0FB18B0B4 /* CapabilityGatingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CapabilityGatingTests.swift; path = Sites/CapabilityGatingTests.swift; sourceTree = "<group>"; };
+		0DB5C1AD864297999342E52D /* PromptBuilder.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PromptBuilder.swift; sourceTree = "<group>"; };
+		0DC20BB13A2E3CF2F5247D90 /* speech-c.wav */ = {isa = PBXFileReference; includeInIndex = 1; name = "speech-c.wav"; path = "Audio/speech-c.wav"; sourceTree = "<group>"; };
+		0E29FDE84F42768CBB011104 /* StateTransitionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StateTransitionTests.swift; sourceTree = "<group>"; };
+		0F2B4CE56DA47F07F3037FF7 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		105891CF9B32969AD85F7B88 /* SplitWorkspace.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SplitWorkspace.swift; sourceTree = "<group>"; };
+		10EDFCC4BB2D6243B4225D95 /* ContentBlockingRulesTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ContentBlockingRulesTests.swift; sourceTree = "<group>"; };
+		11091B1586FD3DB3617D2070 /* PodcastSystemSpeech.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PodcastSystemSpeech.swift; path = Podcast/PodcastSystemSpeech.swift; sourceTree = "<group>"; };
+		116A7C6E4BC8964A13454F79 /* WordPressRecognitionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WordPressRecognitionTests.swift; path = Sites/WordPressRecognitionTests.swift; sourceTree = "<group>"; };
+		11CCDA24CAF3FB57B6B1B1AF /* WidenedShapesTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WidenedShapesTests.swift; path = Sites/WidenedShapesTests.swift; sourceTree = "<group>"; };
+		13A9D378D1E46DE837B4B392 /* FakeSiteAdapter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FakeSiteAdapter.swift; path = Sites/FakeSiteAdapter.swift; sourceTree = "<group>"; };
+		13B0B00C6887EF8FB78E698F /* BrowseUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BrowseUITests.swift; sourceTree = "<group>"; };
+		14A2C0359073479D944ACBDE /* OnboardingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingTests.swift; sourceTree = "<group>"; };
+		15369CDF382DB9F3A7B8D320 /* ForumPacingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ForumPacingTests.swift; sourceTree = "<group>"; };
+		15A699B439CA35FC0CE351FD /* CloudSyncTransport.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CloudSyncTransport.swift; sourceTree = "<group>"; };
+		15D55C1F6335177511BA5F9B /* root-index.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "root-index.json"; path = "Fixtures/WordPress/root-index.json"; sourceTree = "<group>"; };
+		167C3B8D47AA829D7B3EBF93 /* TranslationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TranslationTests.swift; sourceTree = "<group>"; };
+		17C3D07EEB480E1CA7884C09 /* discourse-topic.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "discourse-topic.json"; path = "Fixtures/PageFacts/discourse-topic.json"; sourceTree = "<group>"; };
+		184A87A85357207E9289372F /* SettingsAssistantPages.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettingsAssistantPages.swift; sourceTree = "<group>"; };
+		189E2BCE69A768DEB32607B5 /* AssistantStates.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AssistantStates.swift; sourceTree = "<group>"; };
+		199AFE6A15E71B039B4C26A9 /* DockTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DockTests.swift; sourceTree = "<group>"; };
+		19B2CD98B789DAB5893FFD45 /* VoiceAudioHealthTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VoiceAudioHealthTests.swift; sourceTree = "<group>"; };
+		19FD5F46C49E02CDCB7DD65A /* AppModel+CloudSync.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "AppModel+CloudSync.swift"; sourceTree = "<group>"; };
+		1A4B9AE1A964FFB5F8454F5D /* DiscourseParsing.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DiscourseParsing.swift; path = Sites/Discourse/DiscourseParsing.swift; sourceTree = "<group>"; };
+		1A7A1C19CCCEF3F64D6720D8 /* ForumKindTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ForumKindTests.swift; path = Sites/ForumKindTests.swift; sourceTree = "<group>"; };
+		1AD2B5DD33BAF12DB0B3E932 /* ScriptStoreWebTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScriptStoreWebTests.swift; sourceTree = "<group>"; };
+		1AFD08112CCC894FF964F451 /* wordpress-home.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "wordpress-home.json"; path = "Fixtures/PageFacts/wordpress-home.json"; sourceTree = "<group>"; };
+		1D1D5C198013100BCB0DAD30 /* hn-story-live.html */ = {isa = PBXFileReference; includeInIndex = 1; name = "hn-story-live.html"; path = "Fixtures/hn-story-live.html"; sourceTree = "<group>"; };
+		1E0E346739D02A4AF821A759 /* error-invalid-page.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "error-invalid-page.json"; path = "Fixtures/WordPress/error-invalid-page.json"; sourceTree = "<group>"; };
+		1E8A7806037F195068C2C87B /* DailyDigestTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DailyDigestTests.swift; sourceTree = "<group>"; };
+		1F2D463CE43BCD5540A125B3 /* SiteGoldenTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SiteGoldenTests.swift; sourceTree = "<group>"; };
+		1F40EA78F8BF329C1D8BF122 /* PagedTopicFetch.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PagedTopicFetch.swift; path = Sites/Shared/PagedTopicFetch.swift; sourceTree = "<group>"; };
+		22F884EC95A94EECDD149165 /* AppModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
+		25C5F05E18B1462349739C4F /* InfoPlist.xcstrings */ = {isa = PBXFileReference; includeInIndex = 1; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
+		266F9B129DD41949A8F76902 /* WukongMindAgentCoreTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WukongMindAgentCoreTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		2A2EE7CA9AB42A8239F647F3 /* Dock.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Dock.swift; sourceTree = "<group>"; };
+		2AB94AE71262CE61E5E039BB /* VoiceActivityDetector.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VoiceActivityDetector.swift; path = Voice/VoiceActivityDetector.swift; sourceTree = "<group>"; };
+		2B1DC012095766CD2C3E6A6C /* CloudSyncController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CloudSyncController.swift; sourceTree = "<group>"; };
+		2B8DDE33B10E4A05FD85DEBD /* hn-large.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "hn-large.json"; path = "Fixtures/HackerNews/hn-large.json"; sourceTree = "<group>"; };
+		2C3E833D90B379E5E267322B /* PodcastStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PodcastStore.swift; path = Podcast/PodcastStore.swift; sourceTree = "<group>"; };
+		2F34A8BE28B98F9BB95C393E /* PodcastController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PodcastController.swift; path = Podcast/PodcastController.swift; sourceTree = "<group>"; };
+		2F6463AA84E097D644BF0E41 /* AgentLoopTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AgentLoopTests.swift; sourceTree = "<group>"; };
+		2FB4F8C063AE8B39D2290677 /* HistoryUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HistoryUITests.swift; sourceTree = "<group>"; };
+		3041A87FD4F6C75BAAFB114E /* ShareHandoffUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ShareHandoffUITests.swift; sourceTree = "<group>"; };
+		309729174EED9C2BCFC4DF20 /* VoiceAudioEngine.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VoiceAudioEngine.swift; path = Voice/VoiceAudioEngine.swift; sourceTree = "<group>"; };
+		3175236B6EC040452635DF53 /* FixtureWordPressServer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FixtureWordPressServer.swift; sourceTree = "<group>"; };
+		31BEF00EA6C962BA59969E84 /* PageFactsFixtures.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PageFactsFixtures.swift; path = Sites/PageFactsFixtures.swift; sourceTree = "<group>"; };
+		32442900709FD82FA41190B4 /* IncomingLinkTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = IncomingLinkTests.swift; sourceTree = "<group>"; };
+		32DCB534D55B51DF95DCB63F /* hn-item-2.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "hn-item-2.json"; path = "Fixtures/HackerNews/hn-item-2.json"; sourceTree = "<group>"; };
+		3479DB9125C4545905A1826F /* AgentEngine.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AgentEngine.swift; sourceTree = "<group>"; };
+		3508D90BA724112D6E022819 /* NowPlaying.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NowPlaying.swift; sourceTree = "<group>"; };
+		35B2EE6D58A5192F7EAC8485 /* WordPressAdapterTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WordPressAdapterTests.swift; path = Sites/WordPressAdapterTests.swift; sourceTree = "<group>"; };
+		37C22841A270326159C38683 /* CloudSyncFakes.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CloudSyncFakes.swift; sourceTree = "<group>"; };
+		390C057173F95E2D9579B577 /* ForumRequestPacing.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ForumRequestPacing.swift; sourceTree = "<group>"; };
+		39B37B6EBC4B1B9D0929618D /* article-1001.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "article-1001.json"; path = "Fixtures/WordPress/article-1001.json"; sourceTree = "<group>"; };
+		3C05253261D791E0AF45B5CB /* ModelSwitchingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ModelSwitchingTests.swift; sourceTree = "<group>"; };
+		3DAF44B81BC968B512983B94 /* WukongMindShare.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = WukongMindShare.entitlements; sourceTree = "<group>"; };
+		3E7D20019BA8572963CE1BDA /* VoiceSession.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VoiceSession.swift; path = Voice/VoiceSession.swift; sourceTree = "<group>"; };
+		3FFCAFA2825FDAF54405F244 /* wordpress-plain-permalink.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "wordpress-plain-permalink.json"; path = "Fixtures/PageFacts/wordpress-plain-permalink.json"; sourceTree = "<group>"; };
+		421074CA88EEDC15B1D9B440 /* VoiceAudio.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VoiceAudio.swift; path = Voice/VoiceAudio.swift; sourceTree = "<group>"; };
+		4292A3356ABDC8B1430DB432 /* DiscourseSuggestions.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DiscourseSuggestions.swift; path = Sites/Discourse/DiscourseSuggestions.swift; sourceTree = "<group>"; };
+		42C63759DAC326D99D9F238A /* DrawerHintTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DrawerHintTests.swift; sourceTree = "<group>"; };
+		43F84D6821C5C6E5B261F97B /* VoiceDebug.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VoiceDebug.swift; path = Voice/VoiceDebug.swift; sourceTree = "<group>"; };
+		44C2CC06A996A2945424880B /* SettingsPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettingsPanel.swift; sourceTree = "<group>"; };
+		454F69CA54F7FE9A5BBB01AF /* hn-item-1.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "hn-item-1.json"; path = "Fixtures/HackerNews/hn-item-1.json"; sourceTree = "<group>"; };
+		463C8FA520EAEDBC040D9838 /* WordPressLinks.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WordPressLinks.swift; path = Sites/WordPress/WordPressLinks.swift; sourceTree = "<group>"; };
+		46D889AB55546BF52D9C1678 /* BrandMarkShapes.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BrandMarkShapes.swift; sourceTree = "<group>"; };
+		49A06F9769094D8C5AEACA36 /* AppleIntelligenceService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppleIntelligenceService.swift; sourceTree = "<group>"; };
+		49AE0FD809B96D848CA2BD25 /* TodayUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TodayUITests.swift; sourceTree = "<group>"; };
+		49C4C282F7D5A8CD92A58E31 /* WordPressParsing.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WordPressParsing.swift; path = Sites/WordPress/WordPressParsing.swift; sourceTree = "<group>"; };
+		4A3BD5EB90838FAE45D65AA5 /* PageFacts.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PageFacts.swift; path = Sites/Recognition/PageFacts.swift; sourceTree = "<group>"; };
+		4A5504A7ADE0F8E6271C3016 /* strict-csp.html */ = {isa = PBXFileReference; includeInIndex = 1; name = "strict-csp.html"; path = "Fixtures/AgentBridge/strict-csp.html"; sourceTree = "<group>"; };
+		4A83C8E0ECD0A7357B9A3054 /* WordPressFixtureSite.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WordPressFixtureSite.swift; path = Sites/WordPressFixtureSite.swift; sourceTree = "<group>"; };
+		4EB9F212D81B14697A14B4B9 /* TopicFacts.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TopicFacts.swift; path = Sites/Shared/TopicFacts.swift; sourceTree = "<group>"; };
+		4FE697E800ED1DFCC733A50E /* HackerNewsJobTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HackerNewsJobTests.swift; path = Sites/HackerNewsJobTests.swift; sourceTree = "<group>"; };
+		52AB33BFB9F2F6BE562392DA /* HackerNewsAdapter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HackerNewsAdapter.swift; path = Sites/HackerNews/HackerNewsAdapter.swift; sourceTree = "<group>"; };
+		52B4B41AE36E8678995EC6DA /* AgentPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AgentPanel.swift; sourceTree = "<group>"; };
+		52E045E933BFF000324DD430 /* SettingsProviderForm.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettingsProviderForm.swift; sourceTree = "<group>"; };
+		5338721D20CA734220E73EAD /* AppIdentity.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppIdentity.swift; sourceTree = "<group>"; };
+		533974BE3452AD090DC27655 /* SiteRequestSequenceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SiteRequestSequenceTests.swift; sourceTree = "<group>"; };
+		53D32B77B697C63423D21229 /* DiscourseAPI.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DiscourseAPI.swift; path = Sites/Discourse/DiscourseAPI.swift; sourceTree = "<group>"; };
+		548BB56E735A671F936B65A3 /* PodcastPlayer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PodcastPlayer.swift; path = Podcast/PodcastPlayer.swift; sourceTree = "<group>"; };
+		555845430A4758C3ED68C46E /* AssistantSourcesTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AssistantSourcesTests.swift; sourceTree = "<group>"; };
+		5569438933C1353BCBB7A1A5 /* WordPressAPI.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WordPressAPI.swift; path = Sites/WordPress/WordPressAPI.swift; sourceTree = "<group>"; };
+		5708BBB75AF45E12C7430109 /* ContentBlocker.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ContentBlocker.swift; sourceTree = "<group>"; };
+		589AB753ADB658C57A485424 /* VoiceTools.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VoiceTools.swift; path = Voice/VoiceTools.swift; sourceTree = "<group>"; };
+		5C392E8BDEA27B608B14EFD7 /* TimePitchGraphTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TimePitchGraphTests.swift; sourceTree = "<group>"; };
+		5CE43DD13862A4D1FEDB8409 /* PageContext.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PageContext.swift; sourceTree = "<group>"; };
+		5E3872CF9ADEDCD2BBFA439D /* WorkspaceLayout.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WorkspaceLayout.swift; sourceTree = "<group>"; };
+		5EEC3A11954BC3F05CFF7772 /* AppModel+ContentBlocking.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "AppModel+ContentBlocking.swift"; sourceTree = "<group>"; };
+		5F3855116CAA2B5A6DBB3EC5 /* plain-page.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "plain-page.json"; path = "Fixtures/PageFacts/plain-page.json"; sourceTree = "<group>"; };
+		613B19F9A18F34DF1FA40721 /* WukongMind.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = WukongMind.entitlements; sourceTree = "<group>"; };
+		61D9504F3A471DF3A5B7E859 /* WorkProgress.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WorkProgress.swift; sourceTree = "<group>"; };
+		623A010D1D2BB5DBD0E69FFC /* PodcastSettings.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PodcastSettings.swift; path = Podcast/PodcastSettings.swift; sourceTree = "<group>"; };
+		62EFEC5EE764B90906FEEC94 /* DiscourseFixtures.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DiscourseFixtures.swift; sourceTree = "<group>"; };
+		643BBA643D96B4302A7EF0FE /* CloudKitTransport.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CloudKitTransport.swift; sourceTree = "<group>"; };
+		650E305B16D0CAD7D71E6C14 /* hn-html.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "hn-html.json"; path = "Fixtures/HackerNews/hn-html.json"; sourceTree = "<group>"; };
+		6572F420DDAA35F6C213D6A2 /* PlaybackQueueTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PlaybackQueueTests.swift; sourceTree = "<group>"; };
+		66545BC078AF1ED76A7D4F29 /* PostLevelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PostLevelTests.swift; sourceTree = "<group>"; };
+		6AB1A0204883EEED5C15DDE8 /* WukongMindUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WukongMindUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		6ACC2C0B8F670FDBBFFD8B8F /* DiscourseAgent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DiscourseAgent.swift; path = Sites/Discourse/DiscourseAgent.swift; sourceTree = "<group>"; };
+		6ACCBCF59F65AF0CC85BFB05 /* NetworkFailure.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NetworkFailure.swift; sourceTree = "<group>"; };
+		6B684EB200763C5755D4D567 /* DrawerHint.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DrawerHint.swift; sourceTree = "<group>"; };
+		6C25B848E993C524032D11EB /* ScriptManagerUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScriptManagerUITests.swift; sourceTree = "<group>"; };
+		6CB3E6542E071D0E2375870D /* state.json */ = {isa = PBXFileReference; includeInIndex = 1; name = state.json; path = Fixtures/PreP0/state.json; sourceTree = "<group>"; };
+		6CD8A1CD3FA90FA9CB877FCF /* RawTopicFormat.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RawTopicFormat.swift; path = Sites/Shared/RawTopicFormat.swift; sourceTree = "<group>"; };
+		6D8B707E94EDCFC4303F883E /* PageFactsProbe.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PageFactsProbe.swift; path = Sites/Recognition/PageFactsProbe.swift; sourceTree = "<group>"; };
+		6DF5DF1CA52EC38686421B84 /* IPadLayoutTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = IPadLayoutTests.swift; sourceTree = "<group>"; };
+		710C3335885264B1AF85E689 /* HTMLTextTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HTMLTextTests.swift; path = Sites/HTMLTextTests.swift; sourceTree = "<group>"; };
+		712E74A07DF1C59CB38B80B2 /* WordPressTools.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WordPressTools.swift; path = Sites/WordPress/WordPressTools.swift; sourceTree = "<group>"; };
+		71D482365CF28EE4781B451C /* SessionRetention.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SessionRetention.swift; sourceTree = "<group>"; };
+		71FD548FE5C3CC747148FE94 /* SettingsProviderPage.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettingsProviderPage.swift; sourceTree = "<group>"; };
+		72185DF8C93CF80BADF63852 /* HackerNewsAPI.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HackerNewsAPI.swift; path = Sites/HackerNews/HackerNewsAPI.swift; sourceTree = "<group>"; };
+		737F27EAFF243F4484E0BDA5 /* PresentationRouter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PresentationRouter.swift; sourceTree = "<group>"; };
+		73A7AE2B98F9142F154AFD58 /* WatchSupport.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WatchSupport.swift; sourceTree = "<group>"; };
+		73A99AB700715412D60C89D8 /* KeychainSyncTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KeychainSyncTests.swift; sourceTree = "<group>"; };
+		73ABB36044060AAA5F18FFC2 /* WordPressAgent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WordPressAgent.swift; path = Sites/WordPress/WordPressAgent.swift; sourceTree = "<group>"; };
+		7504C11F63F97D35D9E61DA8 /* HomeTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HomeTests.swift; sourceTree = "<group>"; };
+		7509EDC340CE5869EF515915 /* PhoneBrowserBar.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PhoneBrowserBar.swift; sourceTree = "<group>"; };
+		7527A6335DDD556A42A85BD5 /* SyncRecords.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SyncRecords.swift; sourceTree = "<group>"; };
+		7534A11B8A945B7F1309F533 /* ProviderModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProviderModels.swift; sourceTree = "<group>"; };
+		76028A60CBA2D547BCA01847 /* SettingsSyncPage.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettingsSyncPage.swift; sourceTree = "<group>"; };
+		785412C89A674735AA27C3F5 /* StreamStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StreamStore.swift; sourceTree = "<group>"; };
+		785B8D933E1363B4107E836A /* DiscourseRecognizer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DiscourseRecognizer.swift; path = Sites/Recognition/DiscourseRecognizer.swift; sourceTree = "<group>"; };
+		793323475C8509F18F64509D /* AgentBridge.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AgentBridge.swift; sourceTree = "<group>"; };
+		79AED30B4F7B196F63DB823B /* HistoryTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HistoryTests.swift; sourceTree = "<group>"; };
+		79F541D6F5BBD8D6BAAA69D2 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		7A5DE56324905777B7249110 /* PlaybackQueue.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PlaybackQueue.swift; path = Voice/PlaybackQueue.swift; sourceTree = "<group>"; };
+		7B65B353479CA5AC722FD1A7 /* AskBox.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AskBox.swift; sourceTree = "<group>"; };
+		7B7F4A996F66C0D2D6508414 /* FixtureSpaForumServer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FixtureSpaForumServer.swift; sourceTree = "<group>"; };
+		7D1C40EAF9EE254A17921B9A /* LiveTransport.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LiveTransport.swift; path = Voice/LiveTransport.swift; sourceTree = "<group>"; };
+		815C9D69D6EBA1796F9010EC /* CloudSyncTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CloudSyncTests.swift; sourceTree = "<group>"; };
+		81743E27FF1ADCCB718B6DEE /* ForumSite.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ForumSite.swift; sourceTree = "<group>"; };
+		81ACD5BFF6FA33914BD7A10B /* VoiceToolTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VoiceToolTests.swift; sourceTree = "<group>"; };
+		8298C747E3AC94CE8F40596C /* TranslationViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TranslationViews.swift; path = Translation/TranslationViews.swift; sourceTree = "<group>"; };
+		830992320B5243375D26E469 /* HackerNewsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HackerNewsTests.swift; path = Sites/HackerNewsTests.swift; sourceTree = "<group>"; };
+		84CC8A4918E0C8FBBB869CA9 /* SiteRecognizers.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SiteRecognizers.swift; path = Sites/Recognition/SiteRecognizers.swift; sourceTree = "<group>"; };
+		856A8B8772AD9119CFF49D9B /* ForumRobustnessTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ForumRobustnessTests.swift; sourceTree = "<group>"; };
+		8715A2858FC04CC9FC7EEC4D /* LiveProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LiveProtocol.swift; path = Voice/LiveProtocol.swift; sourceTree = "<group>"; };
+		87AB634D6783E169D65E5F1A /* article.html */ = {isa = PBXFileReference; includeInIndex = 1; name = article.html; path = Fixtures/AgentBridge/article.html; sourceTree = "<group>"; };
+		885F72463A334AB8E6897CDD /* ForumTransportTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ForumTransportTests.swift; sourceTree = "<group>"; };
+		885FA308463E188FD198ED62 /* ResultCards.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ResultCards.swift; sourceTree = "<group>"; };
+		8984D96A01474831E5EDF709 /* SiteNetworkTestSupport.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SiteNetworkTestSupport.swift; path = Sites/SiteNetworkTestSupport.swift; sourceTree = "<group>"; };
+		8A6FBC23615AFD244323BF0C /* IncomingLink.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = IncomingLink.swift; sourceTree = "<group>"; };
+		8AB51C510A211522D4430F25 /* ReadingLanguage.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ReadingLanguage.swift; path = Translation/ReadingLanguage.swift; sourceTree = "<group>"; };
+		8B064A46DB5D0557C536DDCB /* speech-a.wav */ = {isa = PBXFileReference; includeInIndex = 1; name = "speech-a.wav"; path = "Audio/speech-a.wav"; sourceTree = "<group>"; };
+		8B66480F982671C5D02546F5 /* SessionRetentionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SessionRetentionTests.swift; sourceTree = "<group>"; };
+		8B8E93D7DF6BBDCE237DC238 /* AppModel+Assistant.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "AppModel+Assistant.swift"; sourceTree = "<group>"; };
+		8BE70AB68B83B08A3433307F /* BrowseNavigationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BrowseNavigationTests.swift; sourceTree = "<group>"; };
+		8C8378B005D3E35A33A9C55C /* SpotlightTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SpotlightTests.swift; sourceTree = "<group>"; };
+		8D2782729538F35593558884 /* DiscussionProfile.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DiscussionProfile.swift; path = Sites/DiscussionProfile.swift; sourceTree = "<group>"; };
+		8D2F8DFC927218C85CACCAAA /* AppleIntelligenceClient.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppleIntelligenceClient.swift; sourceTree = "<group>"; };
+		8D6685EA40BD4C3DE7C52B0A /* BrowseCursor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BrowseCursor.swift; sourceTree = "<group>"; };
+		8DA2381EA3FF71696BB69B37 /* PageFactsProbe.js */ = {isa = PBXFileReference; includeInIndex = 1; path = PageFactsProbe.js; sourceTree = "<group>"; };
+		8E29031D85EFC387323C3BA3 /* PodcastTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PodcastTests.swift; sourceTree = "<group>"; };
+		8ED03CB3FCEDE60770C77ACD /* HackerNewsRecognizer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HackerNewsRecognizer.swift; path = Sites/HackerNews/HackerNewsRecognizer.swift; sourceTree = "<group>"; };
+		8F2A2A6184E987DC824C0C4C /* DesignSystem.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
+		90AE726633F13C6626CB528E /* ComposerDrafts.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ComposerDrafts.swift; sourceTree = "<group>"; };
+		9120A541093B7DA71C350353 /* WordPressUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WordPressUITests.swift; sourceTree = "<group>"; };
+		9124491E1E46F81094074382 /* SettingsDataHelpPages.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettingsDataHelpPages.swift; sourceTree = "<group>"; };
+		91FCAFE85AEDFAE7A8058812 /* SiteKind.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SiteKind.swift; path = Sites/Recognition/SiteKind.swift; sourceTree = "<group>"; };
+		921EE4BD19F09C1587121FA7 /* ForumComponents.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ForumComponents.swift; sourceTree = "<group>"; };
+		92E925993F3E35BC6DFED893 /* VoiceViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VoiceViews.swift; sourceTree = "<group>"; };
+		932777996286087AAA72620D /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		951B5B0BD54437F52EF3109F /* SharedPageTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SharedPageTests.swift; path = Sites/SharedPageTests.swift; sourceTree = "<group>"; };
+		95433FECE4740BE02374282F /* AppleIntelligenceViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppleIntelligenceViews.swift; sourceTree = "<group>"; };
+		95595CA944978AF259F4DDEF /* IPadLayoutUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = IPadLayoutUITests.swift; sourceTree = "<group>"; };
+		980C248AA608B4FDA02AF380 /* SiteContractTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SiteContractTests.swift; path = Sites/SiteContractTests.swift; sourceTree = "<group>"; };
+		992C366F7D5EF0517DD16EFF /* WordPressPagePlan.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WordPressPagePlan.swift; path = Sites/WordPress/WordPressPagePlan.swift; sourceTree = "<group>"; };
+		995A39768F7E71BE41C0436F /* VoiceToolBridge.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VoiceToolBridge.swift; path = Voice/VoiceToolBridge.swift; sourceTree = "<group>"; };
+		9A6ED166D217BDFC234BCF0E /* DesignTokenTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DesignTokenTests.swift; sourceTree = "<group>"; };
+		9B023DB09196FB1909769C2B /* speech-d.wav */ = {isa = PBXFileReference; includeInIndex = 1; name = "speech-d.wav"; path = "Audio/speech-d.wav"; sourceTree = "<group>"; };
+		9B4139EBF8E8AC37297C6BFB /* SystemEntry.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SystemEntry.swift; path = System/SystemEntry.swift; sourceTree = "<group>"; };
+		9B621785FD7B7982E624812C /* BrandMark.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BrandMark.swift; sourceTree = "<group>"; };
+		9C3CAD1A298A9DA1809E0741 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; includeInIndex = 1; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
+		9D4CD6AB44BF3189D8C63355 /* Persistence.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Persistence.swift; sourceTree = "<group>"; };
+		9E07EF32A13892E0A7E47078 /* VoiceContext.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VoiceContext.swift; path = Voice/VoiceContext.swift; sourceTree = "<group>"; };
+		9ED942EB101B9267F50452F1 /* AppModel+Digest.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "AppModel+Digest.swift"; sourceTree = "<group>"; };
+		9F1B9B73864827584C3E58D1 /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A08BE4D38DCC70929FF407E3 /* WukongMindShare.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; name = WukongMindShare.appex; path = WukongMindShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		A17FA28FC35F5F8CFD202B43 /* WordPressToolsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WordPressToolsTests.swift; path = Sites/WordPressToolsTests.swift; sourceTree = "<group>"; };
+		A1C6E2742F66E67303E41758 /* SiteNetwork.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SiteNetwork.swift; path = Sites/SiteNetwork.swift; sourceTree = "<group>"; };
+		A26D3B5085B679E557A28557 /* AppIntents.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppIntents.swift; path = System/AppIntents.swift; sourceTree = "<group>"; };
+		A2B37248D1A3F874A1AD3F01 /* Models.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		A439F2A6B4F5B93E409F2137 /* TimeStretchTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TimeStretchTests.swift; sourceTree = "<group>"; };
+		A674FFAFAABD8C3826F302CA /* wordpress-post.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "wordpress-post.json"; path = "Fixtures/PageFacts/wordpress-post.json"; sourceTree = "<group>"; };
+		A73B73C6FF574CA92EF6B361 /* SiteCapabilities.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SiteCapabilities.swift; path = Sites/SiteCapabilities.swift; sourceTree = "<group>"; };
+		A8662F84E374C687721441D7 /* ForumDirectory.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ForumDirectory.swift; sourceTree = "<group>"; };
+		A89ABFE26CF265E62565B7E3 /* HackerNewsLinks.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HackerNewsLinks.swift; path = Sites/HackerNews/HackerNewsLinks.swift; sourceTree = "<group>"; };
+		A98A55657B58FA81849C9D09 /* SiteAddress.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SiteAddress.swift; path = Sites/Shared/SiteAddress.swift; sourceTree = "<group>"; };
+		A9A55BC3C120F721F300F562 /* VoiceSettings.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VoiceSettings.swift; path = Voice/VoiceSettings.swift; sourceTree = "<group>"; };
+		AA16DD077C24CE96B5C40350 /* DailyDigest.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DailyDigest.swift; sourceTree = "<group>"; };
+		AAA4C63210B4D6C2047FE21A /* AppModel+System.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "AppModel+System.swift"; sourceTree = "<group>"; };
+		AB9409D91C846F32ED3CCF4C /* PhysicalDeviceSmokeTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PhysicalDeviceSmokeTests.swift; sourceTree = "<group>"; };
+		AC465A6A01EBC9720ADD8F63 /* WordPressJobTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WordPressJobTests.swift; path = Sites/WordPressJobTests.swift; sourceTree = "<group>"; };
+		AC59FDE02593F18503309892 /* VoiceAudioFormatTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VoiceAudioFormatTests.swift; sourceTree = "<group>"; };
+		AC7A8BD38A63F8F82CF37F21 /* SiteRecognitionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SiteRecognitionTests.swift; path = Sites/SiteRecognitionTests.swift; sourceTree = "<group>"; };
+		B09A779AC020CE769315CBE2 /* SiteRegistry.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SiteRegistry.swift; path = Sites/SiteRegistry.swift; sourceTree = "<group>"; };
+		B0BE65B4B8634C381CA1E707 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.0.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
+		B1E8FCA2502CE8B76DA2D533 /* session.json */ = {isa = PBXFileReference; includeInIndex = 1; name = session.json; path = Fixtures/PreP0/session.json; sourceTree = "<group>"; };
+		B205A692F6D4CFE20DD9CE93 /* ScriptViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScriptViews.swift; sourceTree = "<group>"; };
+		B2CD7F158595CD6759402182 /* AIDrawer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AIDrawer.swift; sourceTree = "<group>"; };
+		B2FAF35038E89CFE54EF47A1 /* HTMLText.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HTMLText.swift; path = Sites/Shared/HTMLText.swift; sourceTree = "<group>"; };
+		B36B5AE53F7AAA4E255DDE4B /* LocalizationCatalogTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LocalizationCatalogTests.swift; sourceTree = "<group>"; };
+		B54BDCBD25052424FBA7E0D1 /* KeychainSyncProbe.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KeychainSyncProbe.swift; sourceTree = "<group>"; };
+		B5DD912798EE71BB7070185F /* ContentBlocking */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder; path = ContentBlocking; sourceTree = "<group>"; };
+		B61B3DA5ED33A1E5358BB523 /* SampleContent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SampleContent.swift; sourceTree = "<group>"; };
+		B63079E7ACC80AA28EB5F738 /* SettingsNavigationUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettingsNavigationUITests.swift; sourceTree = "<group>"; };
+		B6B2B225E8EBC4C76CF4C50E /* BrowseBridge.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BrowseBridge.swift; sourceTree = "<group>"; };
+		B6C719E8158D5CFDF706A100 /* AppIdentityTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppIdentityTests.swift; sourceTree = "<group>"; };
+		B83284A3B462AC4170985A47 /* WukongMindApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WukongMindApp.swift; sourceTree = "<group>"; };
+		B83461F2698229045EDE28AA /* ContentView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		B84C677ECAAA6066E6CA1D3C /* spa-thread.html */ = {isa = PBXFileReference; includeInIndex = 1; name = "spa-thread.html"; path = "Fixtures/ScriptStore/spa-thread.html"; sourceTree = "<group>"; };
+		B9B0FCD16C28516101E063FB /* AppModel+Voice.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "AppModel+Voice.swift"; sourceTree = "<group>"; };
+		BAA9E963BCBEA9DE85939134 /* VoiceProtocolTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VoiceProtocolTests.swift; sourceTree = "<group>"; };
+		BB4DAB760D7C4587709E98A9 /* VoiceUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VoiceUITests.swift; sourceTree = "<group>"; };
+		BC5DEF8B3F640F8860D960D5 /* HackerNewsAgent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HackerNewsAgent.swift; path = Sites/HackerNews/HackerNewsAgent.swift; sourceTree = "<group>"; };
+		BD26F932453098AA43FC4F03 /* VoiceAudioFormat.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VoiceAudioFormat.swift; path = Voice/VoiceAudioFormat.swift; sourceTree = "<group>"; };
+		BE66E92AAD164C4BE4E99180 /* HomeState.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HomeState.swift; sourceTree = "<group>"; };
+		BEBAE1A8FBD471A81CAF70F0 /* AppLanguage.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppLanguage.swift; sourceTree = "<group>"; };
+		BF8C90752C8CED2476B8A0FB /* WorkProgressTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WorkProgressTests.swift; sourceTree = "<group>"; };
+		C0CE0EB7F9BB5F81AA958720 /* BrowserAgent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BrowserAgent.swift; sourceTree = "<group>"; };
+		C1B19E991EA078EAD22CA218 /* WordPressAgentRunTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WordPressAgentRunTests.swift; path = Sites/WordPressAgentRunTests.swift; sourceTree = "<group>"; };
+		C2D7B2AAE6560051CB4C8E19 /* ForumService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ForumService.swift; sourceTree = "<group>"; };
+		C3405F88C8132B74E7F0B2B6 /* WukongMindTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WukongMindTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		C5429ECA3D657C7F20D10FAC /* WordPressActiveTopics.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WordPressActiveTopics.swift; path = Sites/WordPress/WordPressActiveTopics.swift; sourceTree = "<group>"; };
+		C77AC40856A93876338240B7 /* WordPressAdapter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WordPressAdapter.swift; path = Sites/WordPress/WordPressAdapter.swift; sourceTree = "<group>"; };
+		C9EFCE205CA35CC5EAFFCCED /* speech-b.wav */ = {isa = PBXFileReference; includeInIndex = 1; name = "speech-b.wav"; path = "Audio/speech-b.wav"; sourceTree = "<group>"; };
+		C9FC2DA85F97000EA5FA98FC /* SharedPage.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SharedPage.swift; sourceTree = "<group>"; };
+		CC145B76C175EAB64B313F88 /* RawTopicFormatTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RawTopicFormatTests.swift; path = Sites/RawTopicFormatTests.swift; sourceTree = "<group>"; };
+		CD16C3723AAF962657E6030F /* VoiceActivityDetectorTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VoiceActivityDetectorTests.swift; sourceTree = "<group>"; };
+		CE04CD8D12FD77442E700952 /* OnboardingUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingUITests.swift; sourceTree = "<group>"; };
+		D179D6E1A4489C55F4FE4D2B /* CloudSyncEngine.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CloudSyncEngine.swift; sourceTree = "<group>"; };
+		D20271D8462197C7561BAB9B /* DiscourseDOM.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DiscourseDOM.swift; path = Sites/Discourse/DiscourseDOM.swift; sourceTree = "<group>"; };
+		D230D77FB87D04704FF6CAE6 /* ForumBrowser.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ForumBrowser.swift; sourceTree = "<group>"; };
+		D3820138BA846D50AC8F776C /* VoiceController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VoiceController.swift; path = Voice/VoiceController.swift; sourceTree = "<group>"; };
+		D544F1AF094C5E786CAAD8F3 /* DiscourseAdapter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DiscourseAdapter.swift; path = Sites/Discourse/DiscourseAdapter.swift; sourceTree = "<group>"; };
+		D59F5A7B1A3396AEFBD5F06A /* AgentToolPresentation.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AgentToolPresentation.swift; path = Sites/AgentToolPresentation.swift; sourceTree = "<group>"; };
+		D5BF048F5DA1169246BE5042 /* WukongMind.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = WukongMind.app; path = WukongMind.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D5C12981BDEC5EF7CFF9A04D /* MarkdownView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MarkdownView.swift; sourceTree = "<group>"; };
+		D61FEBF23174E5D5F1D4AFF9 /* WordPressRecognizer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WordPressRecognizer.swift; path = Sites/Recognition/WordPressRecognizer.swift; sourceTree = "<group>"; };
+		D63BB16307387E44A6DB09E5 /* error-invalid-id.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "error-invalid-id.json"; path = "Fixtures/WordPress/error-invalid-id.json"; sourceTree = "<group>"; };
+		D763A7670D1C5039B90FF267 /* ShareSheetView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ShareSheetView.swift; sourceTree = "<group>"; };
+		D8B059DA4F9B1871315079C4 /* hn-comments.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "hn-comments.json"; path = "Fixtures/HackerNews/hn-comments.json"; sourceTree = "<group>"; };
+		D8EDDFF6CA981EF8EAB1661E /* PodcastSpeech.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PodcastSpeech.swift; path = Podcast/PodcastSpeech.swift; sourceTree = "<group>"; };
+		D966ACD4F5F8A101E9CCF41A /* PodcastViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PodcastViews.swift; sourceTree = "<group>"; };
+		D9AEB0630DEF99F2C187F6E5 /* SiteJobTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SiteJobTests.swift; path = Sites/SiteJobTests.swift; sourceTree = "<group>"; };
+		DA910A35710D2A3F7135A2BA /* VoiceFakes.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VoiceFakes.swift; sourceTree = "<group>"; };
+		DC4DC882B057ADE089EE61C8 /* AppModel+Models.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "AppModel+Models.swift"; sourceTree = "<group>"; };
+		DC9FBA207A9FFE17C01F723E /* AgentBridgeTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AgentBridgeTests.swift; sourceTree = "<group>"; };
+		DCA4FD3A8E98743CDC2D68E5 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		DD35128CB9333A289648A0FD /* SiteAdapter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SiteAdapter.swift; path = Sites/SiteAdapter.swift; sourceTree = "<group>"; };
+		DFB6C067D17F507D0C1633C9 /* SummaryPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SummaryPanel.swift; sourceTree = "<group>"; };
+		E101594532DE2E3B2752F708 /* AppleIntelligence.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppleIntelligence.swift; sourceTree = "<group>"; };
+		E13B3DF4577D63BB79440E24 /* AppleIntelligenceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppleIntelligenceTests.swift; sourceTree = "<group>"; };
+		E31FC5B3F77BCBE6392EC6FD /* VADTestAudio.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VADTestAudio.swift; sourceTree = "<group>"; };
+		E3221EBB90A27FBBDB30BE75 /* hn-search.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "hn-search.json"; path = "Fixtures/HackerNews/hn-search.json"; sourceTree = "<group>"; };
+		E35FBD388EC097A3843734D8 /* VoiceInstructions.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VoiceInstructions.swift; path = Voice/VoiceInstructions.swift; sourceTree = "<group>"; };
+		E363C82CFC898510A3540E0F /* ShareViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
+		E3C2AE60945B7F0AFBD074BA /* PodcastScript.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PodcastScript.swift; path = Podcast/PodcastScript.swift; sourceTree = "<group>"; };
+		E470A4D99474C323416A516B /* AppModel+Browse.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "AppModel+Browse.swift"; sourceTree = "<group>"; };
+		E596AF0D514F015AF6824961 /* VoiceSite.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VoiceSite.swift; path = Voice/VoiceSite.swift; sourceTree = "<group>"; };
+		E5DE80A155D5635CD4DC6166 /* UITestSupport.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UITestSupport.swift; sourceTree = "<group>"; };
+		E66E85AC08B9B7D013CA6094 /* page-2002.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "page-2002.json"; path = "Fixtures/WordPress/page-2002.json"; sourceTree = "<group>"; };
+		E7A35C2127F1DAA61F8354BA /* SiteRecognizer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SiteRecognizer.swift; path = Sites/Recognition/SiteRecognizer.swift; sourceTree = "<group>"; };
+		E846616FED7EB75D3978FA67 /* AppModel+Onboarding.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "AppModel+Onboarding.swift"; sourceTree = "<group>"; };
+		E937F4AD8D8DC5B5353F445D /* wordpress-subfolder.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "wordpress-subfolder.json"; path = "Fixtures/PageFacts/wordpress-subfolder.json"; sourceTree = "<group>"; };
+		E98F02825889D19F2A5A13C7 /* PostBlock.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PostBlock.swift; path = Sites/Shared/PostBlock.swift; sourceTree = "<group>"; };
+		E9C65666294FB03BD3838E77 /* DiscoursePagePlan.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DiscoursePagePlan.swift; path = Sites/Discourse/DiscoursePagePlan.swift; sourceTree = "<group>"; };
+		EA71920F09B0955B118F4D15 /* ScriptStoreCoreTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScriptStoreCoreTests.swift; sourceTree = "<group>"; };
+		EDD14F5A2C928EE3DCBBD013 /* ScriptStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScriptStore.swift; sourceTree = "<group>"; };
+		EF322046DA4FE6E3C5DADAB3 /* MultiForumTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MultiForumTests.swift; sourceTree = "<group>"; };
+		F084647ECD8C5E531E00816F /* Localizable.xcstrings */ = {isa = PBXFileReference; includeInIndex = 1; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		F0900ABA820D74639310F5D4 /* HomeUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HomeUITests.swift; sourceTree = "<group>"; };
+		F298B7DFDEAF3A2B73983D6A /* ContentBlockerTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ContentBlockerTests.swift; sourceTree = "<group>"; };
+		F32E0746D89B35F40D769A95 /* ToolRegistryTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ToolRegistryTests.swift; sourceTree = "<group>"; };
+		F3C77D0E9DC78285377A20F2 /* HistoryView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
+		F64CD74B7442DAC8B827E829 /* DigestViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DigestViews.swift; sourceTree = "<group>"; };
+		F805B445E296E14A145D0E8B /* SettingsForumsPage.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettingsForumsPage.swift; sourceTree = "<group>"; };
+		F89E5827B8CAB11E8EF7173A /* Spotlight.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Spotlight.swift; path = System/Spotlight.swift; sourceTree = "<group>"; };
+		F902DE5D29398B0AA68E4390 /* DrawerUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DrawerUITests.swift; sourceTree = "<group>"; };
+		F908B33CC0E4591EC5374133 /* JSONValue.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = JSONValue.swift; sourceTree = "<group>"; };
+		FA23F72677A5E1AB78385041 /* Onboarding.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Onboarding.swift; sourceTree = "<group>"; };
+		FA28F6C0967FD0211E35FFA9 /* OnboardingSteps.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingSteps.swift; sourceTree = "<group>"; };
+		FA391973918EADB544E80769 /* MotionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MotionTests.swift; sourceTree = "<group>"; };
+		FD730793A78364A75CDC18C8 /* AppModel+Navigation.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "AppModel+Navigation.swift"; sourceTree = "<group>"; };
+		FE04F56B1304C93428BAA3DE /* DiscourseRoutes.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DiscourseRoutes.swift; path = Sites/Discourse/DiscourseRoutes.swift; sourceTree = "<group>"; };
+		FF253B05619DF0C56BBF2A98 /* VoiceSessionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VoiceSessionTests.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		3FE134FA1DB53A959C218EBC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				79A399E632351407995D6124 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		70A3F0812A239A6BFEB63691 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5B83ECC38AACBDDF42282A77 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8D2B7FE5495F9AD5C82B8D2C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2C82E0A65A3B1DD86E7283B4 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BD2D8702D0CF2A53B654F6AB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EFDEE1ED0304AC42C24CCCE5 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D2AF5C900252A0A6DB091DAC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E3021DCF5E182AA3033F84B8 /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		2617A75B191BD5E527355325 /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				07D7A7470B89CE9DF69D9406 /* Foundation.framework */,
+			);
+			name = iOS;
+			sourceTree = "<group>";
+		};
+		29D2E5354612BE67876DFE97 /* WukongMindShare */ = {
+			isa = PBXGroup;
+			children = (
+				D763A7670D1C5039B90FF267 /* ShareSheetView.swift */,
+				E363C82CFC898510A3540E0F /* ShareViewController.swift */,
+				8DA2381EA3FF71696BB69B37 /* PageFactsProbe.js */,
+				F084647ECD8C5E531E00816F /* Localizable.xcstrings */,
+				25C5F05E18B1462349739C4F /* InfoPlist.xcstrings */,
+				79F541D6F5BBD8D6BAAA69D2 /* Info.plist */,
+				3DAF44B81BC968B512983B94 /* WukongMindShare.entitlements */,
+				932777996286087AAA72620D /* PrivacyInfo.xcprivacy */,
+			);
+			name = WukongMindShare;
+			path = WukongMindShare;
+			sourceTree = "<group>";
+		};
+		6F87D8DF6D638556986F8141 = {
+			isa = PBXGroup;
+			children = (
+				BCDA1BCD20AF146087171F76 /* Products */,
+				73CC8420E00DE14EA89A2DA4 /* Frameworks */,
+				DEC6CADB780B83D4166891AF /* WukongMind */,
+				D051D33EFBDDFFC40C25C80A /* WukongMindTests */,
+				E00DCA00ECB77463D38AA379 /* WukongMindUITests */,
+				29D2E5354612BE67876DFE97 /* WukongMindShare */,
+			);
+			sourceTree = "<group>";
+		};
+		73CC8420E00DE14EA89A2DA4 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				2617A75B191BD5E527355325 /* iOS */,
+				89C854056871B3C3B07B4F57 /* OS X */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		89C854056871B3C3B07B4F57 /* OS X */ = {
+			isa = PBXGroup;
+			children = (
+				B0BE65B4B8634C381CA1E707 /* Cocoa.framework */,
+			);
+			name = "OS X";
+			sourceTree = "<group>";
+		};
+		BCDA1BCD20AF146087171F76 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D5BF048F5DA1169246BE5042 /* WukongMind.app */,
+				A08BE4D38DCC70929FF407E3 /* WukongMindShare.appex */,
+				C3405F88C8132B74E7F0B2B6 /* WukongMindTests.xctest */,
+				266F9B129DD41949A8F76902 /* WukongMindAgentCoreTests.xctest */,
+				6AB1A0204883EEED5C15DDE8 /* WukongMindUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		D051D33EFBDDFFC40C25C80A /* WukongMindTests */ = {
+			isa = PBXGroup;
+			children = (
+				DC9FBA207A9FFE17C01F723E /* AgentBridgeTests.swift */,
+				2F6463AA84E097D644BF0E41 /* AgentLoopTests.swift */,
+				B6C719E8158D5CFDF706A100 /* AppIdentityTests.swift */,
+				E13B3DF4577D63BB79440E24 /* AppleIntelligenceTests.swift */,
+				555845430A4758C3ED68C46E /* AssistantSourcesTests.swift */,
+				8BE70AB68B83B08A3433307F /* BrowseNavigationTests.swift */,
+				37C22841A270326159C38683 /* CloudSyncFakes.swift */,
+				815C9D69D6EBA1796F9010EC /* CloudSyncTests.swift */,
+				F298B7DFDEAF3A2B73983D6A /* ContentBlockerTests.swift */,
+				10EDFCC4BB2D6243B4225D95 /* ContentBlockingRulesTests.swift */,
+				04E06C3185322DFD0B41E14D /* CoreTests.swift */,
+				1E8A7806037F195068C2C87B /* DailyDigestTests.swift */,
+				9A6ED166D217BDFC234BCF0E /* DesignTokenTests.swift */,
+				62EFEC5EE764B90906FEEC94 /* DiscourseFixtures.swift */,
+				199AFE6A15E71B039B4C26A9 /* DockTests.swift */,
+				42C63759DAC326D99D9F238A /* DrawerHintTests.swift */,
+				15369CDF382DB9F3A7B8D320 /* ForumPacingTests.swift */,
+				856A8B8772AD9119CFF49D9B /* ForumRobustnessTests.swift */,
+				885F72463A334AB8E6897CDD /* ForumTransportTests.swift */,
+				79AED30B4F7B196F63DB823B /* HistoryTests.swift */,
+				7504C11F63F97D35D9E61DA8 /* HomeTests.swift */,
+				6DF5DF1CA52EC38686421B84 /* IPadLayoutTests.swift */,
+				32442900709FD82FA41190B4 /* IncomingLinkTests.swift */,
+				73A99AB700715412D60C89D8 /* KeychainSyncTests.swift */,
+				B36B5AE53F7AAA4E255DDE4B /* LocalizationCatalogTests.swift */,
+				3C05253261D791E0AF45B5CB /* ModelSwitchingTests.swift */,
+				FA391973918EADB544E80769 /* MotionTests.swift */,
+				EF322046DA4FE6E3C5DADAB3 /* MultiForumTests.swift */,
+				14A2C0359073479D944ACBDE /* OnboardingTests.swift */,
+				6572F420DDAA35F6C213D6A2 /* PlaybackQueueTests.swift */,
+				8E29031D85EFC387323C3BA3 /* PodcastTests.swift */,
+				66545BC078AF1ED76A7D4F29 /* PostLevelTests.swift */,
+				EA71920F09B0955B118F4D15 /* ScriptStoreCoreTests.swift */,
+				1AD2B5DD33BAF12DB0B3E932 /* ScriptStoreWebTests.swift */,
+				8B66480F982671C5D02546F5 /* SessionRetentionTests.swift */,
+				1F2D463CE43BCD5540A125B3 /* SiteGoldenTests.swift */,
+				533974BE3452AD090DC27655 /* SiteRequestSequenceTests.swift */,
+				0C8880A391AF68F0FB18B0B4 /* CapabilityGatingTests.swift */,
+				13A9D378D1E46DE837B4B392 /* FakeSiteAdapter.swift */,
+				1A7A1C19CCCEF3F64D6720D8 /* ForumKindTests.swift */,
+				710C3335885264B1AF85E689 /* HTMLTextTests.swift */,
+				4FE697E800ED1DFCC733A50E /* HackerNewsJobTests.swift */,
+				830992320B5243375D26E469 /* HackerNewsTests.swift */,
+				31BEF00EA6C962BA59969E84 /* PageFactsFixtures.swift */,
+				CC145B76C175EAB64B313F88 /* RawTopicFormatTests.swift */,
+				951B5B0BD54437F52EF3109F /* SharedPageTests.swift */,
+				980C248AA608B4FDA02AF380 /* SiteContractTests.swift */,
+				D9AEB0630DEF99F2C187F6E5 /* SiteJobTests.swift */,
+				8984D96A01474831E5EDF709 /* SiteNetworkTestSupport.swift */,
+				AC7A8BD38A63F8F82CF37F21 /* SiteRecognitionTests.swift */,
+				11CCDA24CAF3FB57B6B1B1AF /* WidenedShapesTests.swift */,
+				35B2EE6D58A5192F7EAC8485 /* WordPressAdapterTests.swift */,
+				C1B19E991EA078EAD22CA218 /* WordPressAgentRunTests.swift */,
+				4A83C8E0ECD0A7357B9A3054 /* WordPressFixtureSite.swift */,
+				AC465A6A01EBC9720ADD8F63 /* WordPressJobTests.swift */,
+				116A7C6E4BC8964A13454F79 /* WordPressRecognitionTests.swift */,
+				A17FA28FC35F5F8CFD202B43 /* WordPressToolsTests.swift */,
+				8C8378B005D3E35A33A9C55C /* SpotlightTests.swift */,
+				0E29FDE84F42768CBB011104 /* StateTransitionTests.swift */,
+				09E90A3F1B82438FB8CF41C8 /* SystemEntryTests.swift */,
+				5C392E8BDEA27B608B14EFD7 /* TimePitchGraphTests.swift */,
+				A439F2A6B4F5B93E409F2137 /* TimeStretchTests.swift */,
+				F32E0746D89B35F40D769A95 /* ToolRegistryTests.swift */,
+				167C3B8D47AA829D7B3EBF93 /* TranslationTests.swift */,
+				E31FC5B3F77BCBE6392EC6FD /* VADTestAudio.swift */,
+				CD16C3723AAF962657E6030F /* VoiceActivityDetectorTests.swift */,
+				AC59FDE02593F18503309892 /* VoiceAudioFormatTests.swift */,
+				19B2CD98B789DAB5893FFD45 /* VoiceAudioHealthTests.swift */,
+				DA910A35710D2A3F7135A2BA /* VoiceFakes.swift */,
+				BAA9E963BCBEA9DE85939134 /* VoiceProtocolTests.swift */,
+				FF253B05619DF0C56BBF2A98 /* VoiceSessionTests.swift */,
+				81ACD5BFF6FA33914BD7A10B /* VoiceToolTests.swift */,
+				BF8C90752C8CED2476B8A0FB /* WorkProgressTests.swift */,
+				8B064A46DB5D0557C536DDCB /* speech-a.wav */,
+				C9EFCE205CA35CC5EAFFCCED /* speech-b.wav */,
+				0DC20BB13A2E3CF2F5247D90 /* speech-c.wav */,
+				9B023DB09196FB1909769C2B /* speech-d.wav */,
+				87AB634D6783E169D65E5F1A /* article.html */,
+				4A5504A7ADE0F8E6271C3016 /* strict-csp.html */,
+				D8B059DA4F9B1871315079C4 /* hn-comments.json */,
+				650E305B16D0CAD7D71E6C14 /* hn-html.json */,
+				454F69CA54F7FE9A5BBB01AF /* hn-item-1.json */,
+				32DCB534D55B51DF95DCB63F /* hn-item-2.json */,
+				2B8DDE33B10E4A05FD85DEBD /* hn-large.json */,
+				0988DBFC5D9146F2AB365D6B /* hn-latest.json */,
+				E3221EBB90A27FBBDB30BE75 /* hn-search.json */,
+				17C3D07EEB480E1CA7884C09 /* discourse-topic.json */,
+				5F3855116CAA2B5A6DBB3EC5 /* plain-page.json */,
+				1AFD08112CCC894FF964F451 /* wordpress-home.json */,
+				3FFCAFA2825FDAF54405F244 /* wordpress-plain-permalink.json */,
+				A674FFAFAABD8C3826F302CA /* wordpress-post.json */,
+				E937F4AD8D8DC5B5353F445D /* wordpress-subfolder.json */,
+				B1E8FCA2502CE8B76DA2D533 /* session.json */,
+				6CB3E6542E071D0E2375870D /* state.json */,
+				B84C677ECAAA6066E6CA1D3C /* spa-thread.html */,
+				39B37B6EBC4B1B9D0929618D /* article-1001.json */,
+				05DB1F8C2397DB1D8F5C98BF /* comments-sample.json */,
+				D63BB16307387E44A6DB09E5 /* error-invalid-id.json */,
+				1E0E346739D02A4AF821A759 /* error-invalid-page.json */,
+				E66E85AC08B9B7D013CA6094 /* page-2002.json */,
+				15D55C1F6335177511BA5F9B /* root-index.json */,
+				1D1D5C198013100BCB0DAD30 /* hn-story-live.html */,
+			);
+			name = WukongMindTests;
+			path = WukongMindTests;
+			sourceTree = "<group>";
+		};
+		DEC6CADB780B83D4166891AF /* WukongMind */ = {
+			isa = PBXGroup;
+			children = (
+				B2CD7F158595CD6759402182 /* AIDrawer.swift */,
+				09D65C3A914F5E2D73348EB2 /* AIService.swift */,
+				793323475C8509F18F64509D /* AgentBridge.swift */,
+				3479DB9125C4545905A1826F /* AgentEngine.swift */,
+				52B4B41AE36E8678995EC6DA /* AgentPanel.swift */,
+				5338721D20CA734220E73EAD /* AppIdentity.swift */,
+				BEBAE1A8FBD471A81CAF70F0 /* AppLanguage.swift */,
+				8B8E93D7DF6BBDCE237DC238 /* AppModel+Assistant.swift */,
+				E470A4D99474C323416A516B /* AppModel+Browse.swift */,
+				19FD5F46C49E02CDCB7DD65A /* AppModel+CloudSync.swift */,
+				5EEC3A11954BC3F05CFF7772 /* AppModel+ContentBlocking.swift */,
+				9ED942EB101B9267F50452F1 /* AppModel+Digest.swift */,
+				DC4DC882B057ADE089EE61C8 /* AppModel+Models.swift */,
+				FD730793A78364A75CDC18C8 /* AppModel+Navigation.swift */,
+				E846616FED7EB75D3978FA67 /* AppModel+Onboarding.swift */,
+				0267ED302A274201518C9119 /* AppModel+StateDebug.swift */,
+				AAA4C63210B4D6C2047FE21A /* AppModel+System.swift */,
+				B9B0FCD16C28516101E063FB /* AppModel+Voice.swift */,
+				22F884EC95A94EECDD149165 /* AppModel.swift */,
+				E101594532DE2E3B2752F708 /* AppleIntelligence.swift */,
+				8D2F8DFC927218C85CACCAAA /* AppleIntelligenceClient.swift */,
+				49A06F9769094D8C5AEACA36 /* AppleIntelligenceService.swift */,
+				95433FECE4740BE02374282F /* AppleIntelligenceViews.swift */,
+				7B65B353479CA5AC722FD1A7 /* AskBox.swift */,
+				189E2BCE69A768DEB32607B5 /* AssistantStates.swift */,
+				9B621785FD7B7982E624812C /* BrandMark.swift */,
+				46D889AB55546BF52D9C1678 /* BrandMarkShapes.swift */,
+				B6B2B225E8EBC4C76CF4C50E /* BrowseBridge.swift */,
+				8D6685EA40BD4C3DE7C52B0A /* BrowseCursor.swift */,
+				C0CE0EB7F9BB5F81AA958720 /* BrowserAgent.swift */,
+				643BBA643D96B4302A7EF0FE /* CloudKitTransport.swift */,
+				2B1DC012095766CD2C3E6A6C /* CloudSyncController.swift */,
+				D179D6E1A4489C55F4FE4D2B /* CloudSyncEngine.swift */,
+				15A699B439CA35FC0CE351FD /* CloudSyncTransport.swift */,
+				90AE726633F13C6626CB528E /* ComposerDrafts.swift */,
+				5708BBB75AF45E12C7430109 /* ContentBlocker.swift */,
+				B83461F2698229045EDE28AA /* ContentView.swift */,
+				AA16DD077C24CE96B5C40350 /* DailyDigest.swift */,
+				8F2A2A6184E987DC824C0C4C /* DesignSystem.swift */,
+				F64CD74B7442DAC8B827E829 /* DigestViews.swift */,
+				2A2EE7CA9AB42A8239F647F3 /* Dock.swift */,
+				6B684EB200763C5755D4D567 /* DrawerHint.swift */,
+				D230D77FB87D04704FF6CAE6 /* ForumBrowser.swift */,
+				921EE4BD19F09C1587121FA7 /* ForumComponents.swift */,
+				A8662F84E374C687721441D7 /* ForumDirectory.swift */,
+				390C057173F95E2D9579B577 /* ForumRequestPacing.swift */,
+				C2D7B2AAE6560051CB4C8E19 /* ForumService.swift */,
+				81743E27FF1ADCCB718B6DEE /* ForumSite.swift */,
+				F3C77D0E9DC78285377A20F2 /* HistoryView.swift */,
+				BE66E92AAD164C4BE4E99180 /* HomeState.swift */,
+				081E778CF13E4C98C56E78BF /* HomeView.swift */,
+				8A6FBC23615AFD244323BF0C /* IncomingLink.swift */,
+				F908B33CC0E4591EC5374133 /* JSONValue.swift */,
+				B54BDCBD25052424FBA7E0D1 /* KeychainSyncProbe.swift */,
+				D5C12981BDEC5EF7CFF9A04D /* MarkdownView.swift */,
+				A2B37248D1A3F874A1AD3F01 /* Models.swift */,
+				6ACCBCF59F65AF0CC85BFB05 /* NetworkFailure.swift */,
+				3508D90BA724112D6E022819 /* NowPlaying.swift */,
+				FA23F72677A5E1AB78385041 /* Onboarding.swift */,
+				FA28F6C0967FD0211E35FFA9 /* OnboardingSteps.swift */,
+				5CE43DD13862A4D1FEDB8409 /* PageContext.swift */,
+				9D4CD6AB44BF3189D8C63355 /* Persistence.swift */,
+				7509EDC340CE5869EF515915 /* PhoneBrowserBar.swift */,
+				2F34A8BE28B98F9BB95C393E /* PodcastController.swift */,
+				548BB56E735A671F936B65A3 /* PodcastPlayer.swift */,
+				E3C2AE60945B7F0AFBD074BA /* PodcastScript.swift */,
+				623A010D1D2BB5DBD0E69FFC /* PodcastSettings.swift */,
+				D8EDDFF6CA981EF8EAB1661E /* PodcastSpeech.swift */,
+				2C3E833D90B379E5E267322B /* PodcastStore.swift */,
+				11091B1586FD3DB3617D2070 /* PodcastSystemSpeech.swift */,
+				D966ACD4F5F8A101E9CCF41A /* PodcastViews.swift */,
+				737F27EAFF243F4484E0BDA5 /* PresentationRouter.swift */,
+				0DB5C1AD864297999342E52D /* PromptBuilder.swift */,
+				7534A11B8A945B7F1309F533 /* ProviderModels.swift */,
+				885FA308463E188FD198ED62 /* ResultCards.swift */,
+				B61B3DA5ED33A1E5358BB523 /* SampleContent.swift */,
+				EDD14F5A2C928EE3DCBBD013 /* ScriptStore.swift */,
+				B205A692F6D4CFE20DD9CE93 /* ScriptViews.swift */,
+				71D482365CF28EE4781B451C /* SessionRetention.swift */,
+				184A87A85357207E9289372F /* SettingsAssistantPages.swift */,
+				9124491E1E46F81094074382 /* SettingsDataHelpPages.swift */,
+				F805B445E296E14A145D0E8B /* SettingsForumsPage.swift */,
+				44C2CC06A996A2945424880B /* SettingsPanel.swift */,
+				52E045E933BFF000324DD430 /* SettingsProviderForm.swift */,
+				71FD548FE5C3CC747148FE94 /* SettingsProviderPage.swift */,
+				76028A60CBA2D547BCA01847 /* SettingsSyncPage.swift */,
+				C9FC2DA85F97000EA5FA98FC /* SharedPage.swift */,
+				D59F5A7B1A3396AEFBD5F06A /* AgentToolPresentation.swift */,
+				53D32B77B697C63423D21229 /* DiscourseAPI.swift */,
+				D544F1AF094C5E786CAAD8F3 /* DiscourseAdapter.swift */,
+				6ACC2C0B8F670FDBBFFD8B8F /* DiscourseAgent.swift */,
+				D20271D8462197C7561BAB9B /* DiscourseDOM.swift */,
+				E9C65666294FB03BD3838E77 /* DiscoursePagePlan.swift */,
+				1A4B9AE1A964FFB5F8454F5D /* DiscourseParsing.swift */,
+				FE04F56B1304C93428BAA3DE /* DiscourseRoutes.swift */,
+				4292A3356ABDC8B1430DB432 /* DiscourseSuggestions.swift */,
+				8D2782729538F35593558884 /* DiscussionProfile.swift */,
+				72185DF8C93CF80BADF63852 /* HackerNewsAPI.swift */,
+				52AB33BFB9F2F6BE562392DA /* HackerNewsAdapter.swift */,
+				BC5DEF8B3F640F8860D960D5 /* HackerNewsAgent.swift */,
+				A89ABFE26CF265E62565B7E3 /* HackerNewsLinks.swift */,
+				8ED03CB3FCEDE60770C77ACD /* HackerNewsRecognizer.swift */,
+				785B8D933E1363B4107E836A /* DiscourseRecognizer.swift */,
+				4A3BD5EB90838FAE45D65AA5 /* PageFacts.swift */,
+				6D8B707E94EDCFC4303F883E /* PageFactsProbe.swift */,
+				91FCAFE85AEDFAE7A8058812 /* SiteKind.swift */,
+				E7A35C2127F1DAA61F8354BA /* SiteRecognizer.swift */,
+				84CC8A4918E0C8FBBB869CA9 /* SiteRecognizers.swift */,
+				D61FEBF23174E5D5F1D4AFF9 /* WordPressRecognizer.swift */,
+				B2FAF35038E89CFE54EF47A1 /* HTMLText.swift */,
+				1F40EA78F8BF329C1D8BF122 /* PagedTopicFetch.swift */,
+				E98F02825889D19F2A5A13C7 /* PostBlock.swift */,
+				6CD8A1CD3FA90FA9CB877FCF /* RawTopicFormat.swift */,
+				A98A55657B58FA81849C9D09 /* SiteAddress.swift */,
+				4EB9F212D81B14697A14B4B9 /* TopicFacts.swift */,
+				DD35128CB9333A289648A0FD /* SiteAdapter.swift */,
+				A73B73C6FF574CA92EF6B361 /* SiteCapabilities.swift */,
+				A1C6E2742F66E67303E41758 /* SiteNetwork.swift */,
+				B09A779AC020CE769315CBE2 /* SiteRegistry.swift */,
+				5569438933C1353BCBB7A1A5 /* WordPressAPI.swift */,
+				C5429ECA3D657C7F20D10FAC /* WordPressActiveTopics.swift */,
+				C77AC40856A93876338240B7 /* WordPressAdapter.swift */,
+				73ABB36044060AAA5F18FFC2 /* WordPressAgent.swift */,
+				463C8FA520EAEDBC040D9838 /* WordPressLinks.swift */,
+				992C366F7D5EF0517DD16EFF /* WordPressPagePlan.swift */,
+				49C4C282F7D5A8CD92A58E31 /* WordPressParsing.swift */,
+				712E74A07DF1C59CB38B80B2 /* WordPressTools.swift */,
+				105891CF9B32969AD85F7B88 /* SplitWorkspace.swift */,
+				785412C89A674735AA27C3F5 /* StreamStore.swift */,
+				DFB6C067D17F507D0C1633C9 /* SummaryPanel.swift */,
+				7527A6335DDD556A42A85BD5 /* SyncRecords.swift */,
+				A26D3B5085B679E557A28557 /* AppIntents.swift */,
+				F89E5827B8CAB11E8EF7173A /* Spotlight.swift */,
+				9B4139EBF8E8AC37297C6BFB /* SystemEntry.swift */,
+				06AE897166D0DE997238B595 /* ToolRegistry.swift */,
+				8AB51C510A211522D4430F25 /* ReadingLanguage.swift */,
+				8298C747E3AC94CE8F40596C /* TranslationViews.swift */,
+				8715A2858FC04CC9FC7EEC4D /* LiveProtocol.swift */,
+				7D1C40EAF9EE254A17921B9A /* LiveTransport.swift */,
+				7A5DE56324905777B7249110 /* PlaybackQueue.swift */,
+				2AB94AE71262CE61E5E039BB /* VoiceActivityDetector.swift */,
+				421074CA88EEDC15B1D9B440 /* VoiceAudio.swift */,
+				309729174EED9C2BCFC4DF20 /* VoiceAudioEngine.swift */,
+				BD26F932453098AA43FC4F03 /* VoiceAudioFormat.swift */,
+				089A044D443A5423A6E350F5 /* VoiceAudioHealth.swift */,
+				9E07EF32A13892E0A7E47078 /* VoiceContext.swift */,
+				D3820138BA846D50AC8F776C /* VoiceController.swift */,
+				43F84D6821C5C6E5B261F97B /* VoiceDebug.swift */,
+				E35FBD388EC097A3843734D8 /* VoiceInstructions.swift */,
+				3E7D20019BA8572963CE1BDA /* VoiceSession.swift */,
+				A9A55BC3C120F721F300F562 /* VoiceSettings.swift */,
+				E596AF0D514F015AF6824961 /* VoiceSite.swift */,
+				995A39768F7E71BE41C0436F /* VoiceToolBridge.swift */,
+				589AB753ADB658C57A485424 /* VoiceTools.swift */,
+				92E925993F3E35BC6DFED893 /* VoiceViews.swift */,
+				73A7AE2B98F9142F154AFD58 /* WatchSupport.swift */,
+				61D9504F3A471DF3A5B7E859 /* WorkProgress.swift */,
+				5E3872CF9ADEDCD2BBFA439D /* WorkspaceLayout.swift */,
+				B83284A3B462AC4170985A47 /* WukongMindApp.swift */,
+				9F1B9B73864827584C3E58D1 /* Assets.xcassets */,
+				0B9E05B8E5776A383F870A17 /* Localizable.xcstrings */,
+				9C3CAD1A298A9DA1809E0741 /* InfoPlist.xcstrings */,
+				0C7822A182B709F993DC8732 /* AppShortcuts.xcstrings */,
+				B5DD912798EE71BB7070185F /* ContentBlocking */,
+				0F2B4CE56DA47F07F3037FF7 /* Info.plist */,
+				613B19F9A18F34DF1FA40721 /* WukongMind.entitlements */,
+				DCA4FD3A8E98743CDC2D68E5 /* PrivacyInfo.xcprivacy */,
+			);
+			name = WukongMind;
+			path = WukongMind;
+			sourceTree = "<group>";
+		};
+		E00DCA00ECB77463D38AA379 /* WukongMindUITests */ = {
+			isa = PBXGroup;
+			children = (
+				13B0B00C6887EF8FB78E698F /* BrowseUITests.swift */,
+				0A2A8283CB4C1EB0885A146B /* DrawerStreamPerfUITests.swift */,
+				F902DE5D29398B0AA68E4390 /* DrawerUITests.swift */,
+				7B7F4A996F66C0D2D6508414 /* FixtureSpaForumServer.swift */,
+				3175236B6EC040452635DF53 /* FixtureWordPressServer.swift */,
+				2FB4F8C063AE8B39D2290677 /* HistoryUITests.swift */,
+				F0900ABA820D74639310F5D4 /* HomeUITests.swift */,
+				95595CA944978AF259F4DDEF /* IPadLayoutUITests.swift */,
+				CE04CD8D12FD77442E700952 /* OnboardingUITests.swift */,
+				AB9409D91C846F32ED3CCF4C /* PhysicalDeviceSmokeTests.swift */,
+				6C25B848E993C524032D11EB /* ScriptManagerUITests.swift */,
+				B63079E7ACC80AA28EB5F738 /* SettingsNavigationUITests.swift */,
+				3041A87FD4F6C75BAAFB114E /* ShareHandoffUITests.swift */,
+				49AE0FD809B96D848CA2BD25 /* TodayUITests.swift */,
+				E5DE80A155D5635CD4DC6166 /* UITestSupport.swift */,
+				BB4DAB760D7C4587709E98A9 /* VoiceUITests.swift */,
+				9120A541093B7DA71C350353 /* WordPressUITests.swift */,
+			);
+			name = WukongMindUITests;
+			path = WukongMindUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		61606C4300E3B5F8947DDC6E /* WukongMindTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1CD33879AE91EAE5B879D9B5 /* Build configuration list for PBXNativeTarget "WukongMindTests" */;
+			buildPhases = (
+				1C25232DF46E6731AA87EE38 /* Sources */,
+				8D2B7FE5495F9AD5C82B8D2C /* Frameworks */,
+				A3D0606826C396433C6F898A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4EF70E7A865E503A5AFE8546 /* PBXTargetDependency */,
+			);
+			name = WukongMindTests;
+			productName = WukongMindTests;
+			productReference = C3405F88C8132B74E7F0B2B6 /* WukongMindTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		882D0BF1E07061B4627BB256 /* WukongMind */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B32D4FD1A25530BD2F233821 /* Build configuration list for PBXNativeTarget "WukongMind" */;
+			buildPhases = (
+				24438C86744A95B322124D8F /* Sources */,
+				BD2D8702D0CF2A53B654F6AB /* Frameworks */,
+				A1F9081D0C3AF3DE9B441004 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = WukongMind;
+			productName = WukongMind;
+			productReference = D5BF048F5DA1169246BE5042 /* WukongMind.app */;
+			productType = "com.apple.product-type.application";
+		};
+		AADCDC2DBCD46857666EE013 /* WukongMindShare */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 88296E140EB16A8D98376805 /* Build configuration list for PBXNativeTarget "WukongMindShare" */;
+			buildPhases = (
+				13CC06779C7317FE0DC7FAF5 /* Sources */,
+				3FE134FA1DB53A959C218EBC /* Frameworks */,
+				BDED9A4316ACD3B69D5D2D64 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = WukongMindShare;
+			productName = WukongMindShare;
+			productReference = A08BE4D38DCC70929FF407E3 /* WukongMindShare.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		BBA33354D73B52F9CEA5752B /* WukongMindAgentCoreTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9A63D106BC0A15829BB24C6E /* Build configuration list for PBXNativeTarget "WukongMindAgentCoreTests" */;
+			buildPhases = (
+				DE6E29356DF7BFEA5AD104DF /* Sources */,
+				D2AF5C900252A0A6DB091DAC /* Frameworks */,
+				92F1D7DB314C165DE7AB9A5F /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = WukongMindAgentCoreTests;
+			productName = WukongMindAgentCoreTests;
+			productReference = 266F9B129DD41949A8F76902 /* WukongMindAgentCoreTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		C6371BE3CCEA27747654F6DC /* WukongMindUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AF92B52E0E17512F88EA30A8 /* Build configuration list for PBXNativeTarget "WukongMindUITests" */;
+			buildPhases = (
+				A157100489E1E690E4B57F46 /* Sources */,
+				70A3F0812A239A6BFEB63691 /* Frameworks */,
+				4EC7370BAAAE2B055B2B11D0 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F183725A794B6D31E9E45B50 /* PBXTargetDependency */,
+			);
+			name = WukongMindUITests;
+			productName = WukongMindUITests;
+			productReference = 6AB1A0204883EEED5C15DDE8 /* WukongMindUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		0F91FEB3718DD543EDF8BD29 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 2660;
+				LastUpgradeCheck = 2660;
+			};
+			buildConfigurationList = 0E76D1BA942B672BA05463BB /* Build configuration list for PBXProject "WukongMind" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+				"zh-Hans",
+				"zh-Hant",
+			);
+			mainGroup = 6F87D8DF6D638556986F8141;
+			minimizedProjectReferenceProxies = 0;
+			preferredProjectObjectVersion = 100;
+			productRefGroup = BCDA1BCD20AF146087171F76 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				882D0BF1E07061B4627BB256 /* WukongMind */,
+				AADCDC2DBCD46857666EE013 /* WukongMindShare */,
+				61606C4300E3B5F8947DDC6E /* WukongMindTests */,
+				BBA33354D73B52F9CEA5752B /* WukongMindAgentCoreTests */,
+				C6371BE3CCEA27747654F6DC /* WukongMindUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		4EC7370BAAAE2B055B2B11D0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		92F1D7DB314C165DE7AB9A5F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A1F9081D0C3AF3DE9B441004 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				07A03E4461E2F9DEED543348 /* Assets.xcassets in Resources */,
+				C3677017534C6DC6463A5EA3 /* Localizable.xcstrings in Resources */,
+				3977FAA7109CD060CBEF23BA /* InfoPlist.xcstrings in Resources */,
+				E2C84F3FB9CD2D3335576AF8 /* AppShortcuts.xcstrings in Resources */,
+				4591DA5F058C4A91A850CA55 /* ContentBlocking in Resources */,
+				3B8E8C3ACD5C93AC04BE3FA2 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A3D0606826C396433C6F898A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6DDF7B9ADEAEF63F0A11F65B /* speech-a.wav in Resources */,
+				7690F820DBEFF8E271D1FC15 /* speech-b.wav in Resources */,
+				B847D0D51405E8170E8311F9 /* speech-c.wav in Resources */,
+				67499B6568025ABF6A7DA1CF /* speech-d.wav in Resources */,
+				4593AF9550A46EB2DF69EFBE /* article.html in Resources */,
+				5D65E3696EAE058E1E2256CF /* strict-csp.html in Resources */,
+				97C6A96482911F8FDF2CA6D0 /* hn-comments.json in Resources */,
+				C12B4859CF20C0078A0B7709 /* hn-html.json in Resources */,
+				52092ADF1F227E25763BA142 /* hn-item-1.json in Resources */,
+				DAEA207EE28E11CD5C44D78A /* hn-item-2.json in Resources */,
+				1F0600C424077BCCAD0CCD74 /* hn-large.json in Resources */,
+				C0D6796E7A0264240B1F8E25 /* hn-latest.json in Resources */,
+				9ED15AAC3270B24D68E83AEB /* hn-search.json in Resources */,
+				FF6E6AFFCEB0DD38F47927CF /* discourse-topic.json in Resources */,
+				4158E1617CBF16573E7F631D /* plain-page.json in Resources */,
+				1C195E0CE7C80188A0C8496B /* wordpress-home.json in Resources */,
+				492E97625C82FDE6F450ABA8 /* wordpress-plain-permalink.json in Resources */,
+				EE84F0BECCDA6C854FD396B1 /* wordpress-post.json in Resources */,
+				11FE4EBE132575BE26135B74 /* wordpress-subfolder.json in Resources */,
+				58AE454A94D4BC32E00DD61C /* session.json in Resources */,
+				9F9BC7DAA5EE0E5622A2BAFC /* state.json in Resources */,
+				4C4ECA4708470C2F5C9C563D /* spa-thread.html in Resources */,
+				9BE2865E46E077C37507BDDE /* article-1001.json in Resources */,
+				43E0A94604FD1B01260A2550 /* comments-sample.json in Resources */,
+				A7AF4631B78193735795A60B /* error-invalid-id.json in Resources */,
+				8E9EDABC745F4B0BC7FD43B1 /* error-invalid-page.json in Resources */,
+				35CCD0FC09EA8D4FCCD01F82 /* page-2002.json in Resources */,
+				8183887B0775D92249128BA1 /* root-index.json in Resources */,
+				C9B248C0013636D2130B4F24 /* hn-story-live.html in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BDED9A4316ACD3B69D5D2D64 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				43B45A105606EA185E7133D9 /* PageFactsProbe.js in Resources */,
+				CD7C16E5003B6E2C215DB55E /* Localizable.xcstrings in Resources */,
+				6009ADFB93519AA0C5D939B8 /* InfoPlist.xcstrings in Resources */,
+				17AD8282662813ACEE658BEB /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		13CC06779C7317FE0DC7FAF5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7BA645665E4BE6BAF6C02452 /* ShareSheetView.swift in Sources */,
+				0C3B81FC24DFAFCCE537647B /* ShareViewController.swift in Sources */,
+				38611A9E979FE9088689B4E5 /* AppIdentity.swift in Sources */,
+				7D2091E1C8236FA78419FE67 /* BrandMark.swift in Sources */,
+				A970C13DD2A4380E0B86F3F8 /* BrandMarkShapes.swift in Sources */,
+				22BEE9B8D6A04F341A5DB9F0 /* ForumSite.swift in Sources */,
+				2B4A67A6239DAE3E67A33DC0 /* IncomingLink.swift in Sources */,
+				04C006043DB7576A96408362 /* SharedPage.swift in Sources */,
+				C294D9B9ABD50A26778C4EED /* HackerNewsRecognizer.swift in Sources */,
+				547ABA6BFDED8AE5F020FE08 /* DiscourseRecognizer.swift in Sources */,
+				10FC4AC71C2D521301A9205A /* PageFacts.swift in Sources */,
+				DA506313879AE7A82177C49B /* PageFactsProbe.swift in Sources */,
+				8A725ACD07FA7879DE70D8E7 /* SiteKind.swift in Sources */,
+				CF9B12785AFC60BD75D7233A /* SiteRecognizer.swift in Sources */,
+				896B84F88DD072F1BC1F109D /* SiteRecognizers.swift in Sources */,
+				292465CDF07E9577E3253FB5 /* WordPressRecognizer.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1C25232DF46E6731AA87EE38 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C372A6B9B038AAFFA0383BD7 /* AgentBridgeTests.swift in Sources */,
+				3D1EDCE6777C4BBF47DB1E44 /* AgentLoopTests.swift in Sources */,
+				1F3D26B840CE3D95A5FB0A16 /* AppIdentityTests.swift in Sources */,
+				574217CEA38F48B1D08EA6BD /* AppleIntelligenceTests.swift in Sources */,
+				C411FFB840F46D052B3A69C2 /* AssistantSourcesTests.swift in Sources */,
+				AC8D652BEEFB76145CA101B3 /* BrowseNavigationTests.swift in Sources */,
+				5B4272715427997499429978 /* CloudSyncFakes.swift in Sources */,
+				B29E94DB602764FFE07C3147 /* CloudSyncTests.swift in Sources */,
+				F00CDACE0E8D486733555046 /* ContentBlockerTests.swift in Sources */,
+				61069BBFFFE5B4DB4EA3CC2A /* ContentBlockingRulesTests.swift in Sources */,
+				9F89ECF43E6351C0F292E7FB /* CoreTests.swift in Sources */,
+				7C7E7EFB9345CF21A43F1F41 /* DailyDigestTests.swift in Sources */,
+				0BD4B77258384D61D13A8046 /* DesignTokenTests.swift in Sources */,
+				BD0E0DFF5C39658C0C17ABCA /* DiscourseFixtures.swift in Sources */,
+				82367D000B719301B40F33DA /* DockTests.swift in Sources */,
+				F06F3349A4951CA12D52EE2F /* DrawerHintTests.swift in Sources */,
+				1C456F54A829BBF9F81E9CC4 /* ForumPacingTests.swift in Sources */,
+				33287E2473B5D6C46AD78CAE /* ForumRobustnessTests.swift in Sources */,
+				58ACB015E537DDA57A7B3906 /* ForumTransportTests.swift in Sources */,
+				01422F113ED475E5D08B40AE /* HistoryTests.swift in Sources */,
+				A296131659C7753115D9C3CE /* HomeTests.swift in Sources */,
+				E52FC2CDA397445E0CF276F5 /* IPadLayoutTests.swift in Sources */,
+				81DD998AD41DB87686B10DA0 /* IncomingLinkTests.swift in Sources */,
+				3832EC7E59CECA91318B081E /* KeychainSyncTests.swift in Sources */,
+				0F75239D56D4E2D63DAE42AA /* LocalizationCatalogTests.swift in Sources */,
+				FA0E195314C6F81046727CA7 /* ModelSwitchingTests.swift in Sources */,
+				5E4FE96C2A950E8E7E7366AA /* MotionTests.swift in Sources */,
+				444C5D766697BEA99511E363 /* MultiForumTests.swift in Sources */,
+				DCC835A54BC9BD6F28A16E75 /* OnboardingTests.swift in Sources */,
+				5A333536F3873363DB81B75E /* PlaybackQueueTests.swift in Sources */,
+				AC8E5CE38F602CA60F20C6D6 /* PodcastTests.swift in Sources */,
+				1CB050B3789F71D33C3F535E /* PostLevelTests.swift in Sources */,
+				C082B254F60127AF98040356 /* ScriptStoreCoreTests.swift in Sources */,
+				BFFC2A3D0F2E8120BBB57CB4 /* ScriptStoreWebTests.swift in Sources */,
+				911E183341C42E52FE6F821F /* SessionRetentionTests.swift in Sources */,
+				8B254B07CC4798197881DF81 /* SiteGoldenTests.swift in Sources */,
+				53840FA794237D1FCF60CC92 /* SiteRequestSequenceTests.swift in Sources */,
+				B35300D2B41B6626582BA72B /* CapabilityGatingTests.swift in Sources */,
+				88C86BEABD3ADED531F07398 /* FakeSiteAdapter.swift in Sources */,
+				FB84579D69C93AAE2EC8B646 /* ForumKindTests.swift in Sources */,
+				1D570607EBB2A4C994ABF453 /* HTMLTextTests.swift in Sources */,
+				CC72C95BCB9D6ECA0DA22BC1 /* HackerNewsJobTests.swift in Sources */,
+				6A8EB349D3C978F4C92DAA93 /* HackerNewsTests.swift in Sources */,
+				34C992C46ACC5AF7E272DBDC /* PageFactsFixtures.swift in Sources */,
+				904605A3296D6EE4860ABB96 /* RawTopicFormatTests.swift in Sources */,
+				BACC31CEAF8F4415B40C99B8 /* SharedPageTests.swift in Sources */,
+				CDDAE5C99DA7F006C9672119 /* SiteContractTests.swift in Sources */,
+				7FFFD54E12CE109DE8104FEA /* SiteJobTests.swift in Sources */,
+				9D515F560E574744F367236E /* SiteNetworkTestSupport.swift in Sources */,
+				036C5866D36F45D7B6C1B17B /* SiteRecognitionTests.swift in Sources */,
+				A75EDA7B09861F2839BEEBF2 /* WidenedShapesTests.swift in Sources */,
+				5ED4E8FE59AB435F6D7F6C41 /* WordPressAdapterTests.swift in Sources */,
+				EB26D0BB7EEEEA7229142CF4 /* WordPressAgentRunTests.swift in Sources */,
+				4615B1B8AE77C8E58ECCA796 /* WordPressFixtureSite.swift in Sources */,
+				A67D776FC521970CA9603D37 /* WordPressJobTests.swift in Sources */,
+				38BB1458B6527CF432319A62 /* WordPressRecognitionTests.swift in Sources */,
+				F3E563906FDF4BABCFDEA8DE /* WordPressToolsTests.swift in Sources */,
+				DD604E3821D513FD272947E9 /* SpotlightTests.swift in Sources */,
+				A69CEBDF16E8E91E6D20FCE5 /* StateTransitionTests.swift in Sources */,
+				F2BCD42954043E2618F2E22A /* SystemEntryTests.swift in Sources */,
+				AAAA382C8773B97770F82FCC /* TimePitchGraphTests.swift in Sources */,
+				DF134245023E008DE4973DE5 /* TimeStretchTests.swift in Sources */,
+				8A578F4B3A3D4318CAF08D28 /* ToolRegistryTests.swift in Sources */,
+				30EADBD28FE62AA9DD8A4B16 /* TranslationTests.swift in Sources */,
+				DA4356C3922829B1344E7AC7 /* VADTestAudio.swift in Sources */,
+				30DC936DE3559348C2D0351B /* VoiceActivityDetectorTests.swift in Sources */,
+				5A1B329DC5EB2942DA00541E /* VoiceAudioFormatTests.swift in Sources */,
+				FADBA2CF6CC267C94360FD27 /* VoiceAudioHealthTests.swift in Sources */,
+				989F326F5D6FB2BB5D2750AD /* VoiceFakes.swift in Sources */,
+				ADD06A68EF38C0082DC9F352 /* VoiceProtocolTests.swift in Sources */,
+				FBFF726BAF9C69D5F78E7E64 /* VoiceSessionTests.swift in Sources */,
+				A73C73038D03CD1BEE9A6A42 /* VoiceToolTests.swift in Sources */,
+				65430EBFDF098AAA98B62FA1 /* WorkProgressTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		24438C86744A95B322124D8F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8DA08799BF306642E59FD38A /* AIDrawer.swift in Sources */,
+				B766AFF0E0CA1D699292DC86 /* AIService.swift in Sources */,
+				9B4C011963662E4341E7D324 /* AgentBridge.swift in Sources */,
+				D68B1C1FF488F50DD01D7C55 /* AgentEngine.swift in Sources */,
+				FAC136EDC1CD2321CB97A5DF /* AgentPanel.swift in Sources */,
+				7591A5420892CE79E690A58D /* AppIdentity.swift in Sources */,
+				D4ED0265B302B64E07F92463 /* AppLanguage.swift in Sources */,
+				323BE56214E11E2429C62F3A /* AppModel+Assistant.swift in Sources */,
+				12B574E681B0F6DB424C6D50 /* AppModel+Browse.swift in Sources */,
+				7ADBE24054A4127549A8602B /* AppModel+CloudSync.swift in Sources */,
+				30F06293FB4DB4E008CCE9B6 /* AppModel+ContentBlocking.swift in Sources */,
+				486C8120164286AA33DCEEA3 /* AppModel+Digest.swift in Sources */,
+				8CBEC4EC320E3DA1DF337CFB /* AppModel+Models.swift in Sources */,
+				171CFB7EA8EF0F2C037020BE /* AppModel+Navigation.swift in Sources */,
+				6FADB7ACB49AEDFE3498BD62 /* AppModel+Onboarding.swift in Sources */,
+				4F44A8CC907BF03FFDE936CB /* AppModel+StateDebug.swift in Sources */,
+				199749C3200EA3F934F01961 /* AppModel+System.swift in Sources */,
+				F08A007262463E5ACD7F1FE6 /* AppModel+Voice.swift in Sources */,
+				2384C5BA5574BBC0FA4F29DE /* AppModel.swift in Sources */,
+				91146378ECE3D99AA07CA8DE /* AppleIntelligence.swift in Sources */,
+				A9C18C85EF22EFC0CF4A5990 /* AppleIntelligenceClient.swift in Sources */,
+				7347E44F95219F7279BF0C61 /* AppleIntelligenceService.swift in Sources */,
+				023384A99B22013401803025 /* AppleIntelligenceViews.swift in Sources */,
+				4B84CA3EF64B800E3CABB15D /* AskBox.swift in Sources */,
+				970A87F4D965C9502C3ED2DE /* AssistantStates.swift in Sources */,
+				2438BBDAEDC6717C31C075B2 /* BrandMark.swift in Sources */,
+				44B394554BA23C4B51523844 /* BrandMarkShapes.swift in Sources */,
+				5ACFFDC92FFE0DD29C483822 /* BrowseBridge.swift in Sources */,
+				A8BC5AC0603B76D8A747C096 /* BrowseCursor.swift in Sources */,
+				C7A520057740D46CF65C9347 /* BrowserAgent.swift in Sources */,
+				9543BC8B1AC1AC0316023E8D /* CloudKitTransport.swift in Sources */,
+				CEEA2913E277ED6CB7E49252 /* CloudSyncController.swift in Sources */,
+				3F76E7B3C7F3D34140E7E9A8 /* CloudSyncEngine.swift in Sources */,
+				E85C16F6E6FD27A0073D9E01 /* CloudSyncTransport.swift in Sources */,
+				1E49E2BED926F5E3B919738D /* ComposerDrafts.swift in Sources */,
+				C6E321AB5EDB6503B3EAA9A0 /* ContentBlocker.swift in Sources */,
+				FEA4CEC93AFB9F9C517461E6 /* ContentView.swift in Sources */,
+				A503DC94C71E644D51BFD376 /* DailyDigest.swift in Sources */,
+				B9DB8A86F04C83528EF0C0EF /* DesignSystem.swift in Sources */,
+				98287545F39789E0A79E4F31 /* DigestViews.swift in Sources */,
+				AA998163FB0E48EC5744FB08 /* Dock.swift in Sources */,
+				128916A32990FC5374683114 /* DrawerHint.swift in Sources */,
+				043940581F42B9BE85BAD741 /* ForumBrowser.swift in Sources */,
+				DAC5A000EC9DBA9E6F862C57 /* ForumComponents.swift in Sources */,
+				69557768E96C969C1221E184 /* ForumDirectory.swift in Sources */,
+				F621FB7AD6143529E3A091BB /* ForumRequestPacing.swift in Sources */,
+				60E0DD0770861CF6864BD134 /* ForumService.swift in Sources */,
+				7023A9E72F8642FBF936A454 /* ForumSite.swift in Sources */,
+				C000038C19469CB9AF2A1785 /* HistoryView.swift in Sources */,
+				9D0756ABF9CD40C9599968A3 /* HomeState.swift in Sources */,
+				E7BB9B275F358B70187AF197 /* HomeView.swift in Sources */,
+				026F5C4E1808AEE884C83B92 /* IncomingLink.swift in Sources */,
+				DE7839174AFB12A591D6C2D6 /* JSONValue.swift in Sources */,
+				CF299D8ED4A9017A27CFCBAC /* KeychainSyncProbe.swift in Sources */,
+				589F4E504DC232C448B5FF1A /* MarkdownView.swift in Sources */,
+				5966963593B645DA3B3DA666 /* Models.swift in Sources */,
+				65EBD24022446C8A3E049D01 /* NetworkFailure.swift in Sources */,
+				BE6FBFDEEB94429385979699 /* NowPlaying.swift in Sources */,
+				E6EE534EC8B320010B968A1B /* Onboarding.swift in Sources */,
+				E842A46CC6AD33B57559D73D /* OnboardingSteps.swift in Sources */,
+				9DB9B6A1B4F2D4105101CB3A /* PageContext.swift in Sources */,
+				8BCABD33C85C8139680B5CE9 /* Persistence.swift in Sources */,
+				3033D46D9743E9FDC672DB2E /* PhoneBrowserBar.swift in Sources */,
+				13B43FBD9F42EE580D108ECE /* PodcastController.swift in Sources */,
+				43CF925D0FD7E0E42DBD32CA /* PodcastPlayer.swift in Sources */,
+				FDD12ACE6821BEB6F896761E /* PodcastScript.swift in Sources */,
+				3EB6D264EC5B31D0849EDE01 /* PodcastSettings.swift in Sources */,
+				CEB2206D645EABC2DEE3AE60 /* PodcastSpeech.swift in Sources */,
+				3BD23C7052C909F5C5C70BF9 /* PodcastStore.swift in Sources */,
+				E8510EFE2BCF9604C068A2BC /* PodcastSystemSpeech.swift in Sources */,
+				03F1BFECA6BB58E4E49F41E3 /* PodcastViews.swift in Sources */,
+				7203E266594FE1A69F76884D /* PresentationRouter.swift in Sources */,
+				3C78D823EDBE87FE970BE6D6 /* PromptBuilder.swift in Sources */,
+				F1138483346468F522F07FA4 /* ProviderModels.swift in Sources */,
+				3EF9070371A834F02F527EE3 /* ResultCards.swift in Sources */,
+				5657F5BB25FB37AA211FE187 /* SampleContent.swift in Sources */,
+				C052131B5ED893AA498FF0A2 /* ScriptStore.swift in Sources */,
+				29E3E8B0B8E2CED2965FF5E6 /* ScriptViews.swift in Sources */,
+				6CA8FD49A750326CC21BCCD6 /* SessionRetention.swift in Sources */,
+				6469324F1C588418F46CBA4D /* SettingsAssistantPages.swift in Sources */,
+				D24A8AB027EE66BCDDE79559 /* SettingsDataHelpPages.swift in Sources */,
+				4FF5D1C0F65D35FFB73CB538 /* SettingsForumsPage.swift in Sources */,
+				0479FC6A33D243C7495C7CF6 /* SettingsPanel.swift in Sources */,
+				DA6F33567DEC0FAC69ABC6A4 /* SettingsProviderForm.swift in Sources */,
+				C447144DF83B2F1B9993BEA4 /* SettingsProviderPage.swift in Sources */,
+				C67BA90F5FEEBD0A8D9A0104 /* SettingsSyncPage.swift in Sources */,
+				EAB1B3081D12D7C5101EED59 /* SharedPage.swift in Sources */,
+				E122C1C2D71DD62E53ECC52F /* AgentToolPresentation.swift in Sources */,
+				266EA6078129C12332129677 /* DiscourseAPI.swift in Sources */,
+				B24451A5FCC988182A736ED1 /* DiscourseAdapter.swift in Sources */,
+				7A472B408901798E7E553233 /* DiscourseAgent.swift in Sources */,
+				BC5DD9E3923DA0062E8E091B /* DiscourseDOM.swift in Sources */,
+				C928CA6F748702F49B825F26 /* DiscoursePagePlan.swift in Sources */,
+				028C57FCA8695602E2764AB7 /* DiscourseParsing.swift in Sources */,
+				3D1F05E60D5637566C004BD6 /* DiscourseRoutes.swift in Sources */,
+				C270CF565D26E53457CBD34F /* DiscourseSuggestions.swift in Sources */,
+				9F33F8BAA24CBE0395DAB413 /* DiscussionProfile.swift in Sources */,
+				19D8F4F7D8540EAC53C4A4A0 /* HackerNewsAPI.swift in Sources */,
+				34F37C6F138FD69662B13A01 /* HackerNewsAdapter.swift in Sources */,
+				B5EC621D86B55AC8D6D18BF1 /* HackerNewsAgent.swift in Sources */,
+				1FCA6DE24433F75CFA85E689 /* HackerNewsLinks.swift in Sources */,
+				D1196D9019A6B1698004223C /* HackerNewsRecognizer.swift in Sources */,
+				E1F9B217C56B786E7BFDE7B0 /* DiscourseRecognizer.swift in Sources */,
+				BB538B2019EA2358E06DCEA5 /* PageFacts.swift in Sources */,
+				AC505629499CE2F2B46E6CA5 /* PageFactsProbe.swift in Sources */,
+				1F68FD5E9CF8E480FEC4CC05 /* SiteKind.swift in Sources */,
+				9DDF6520847C02157479FA20 /* SiteRecognizer.swift in Sources */,
+				A0D281DE24C33789C372367F /* SiteRecognizers.swift in Sources */,
+				2BC194649F99231B947A3740 /* WordPressRecognizer.swift in Sources */,
+				5141565D6E10542F23329B95 /* HTMLText.swift in Sources */,
+				8A056CE1C368324B1B5C2C1A /* PagedTopicFetch.swift in Sources */,
+				357FD1617922F13F8148B49E /* PostBlock.swift in Sources */,
+				2C2183FAE059E39F79DF2797 /* RawTopicFormat.swift in Sources */,
+				867A2634777F2F9C7E52A48D /* SiteAddress.swift in Sources */,
+				62DC00B5A73B8E4FD5E0AF15 /* TopicFacts.swift in Sources */,
+				CD951411B86E6611751E2B73 /* SiteAdapter.swift in Sources */,
+				E2D0B0C0B0DEA3C6063F8B82 /* SiteCapabilities.swift in Sources */,
+				9AEF1A0478680F3C85A24AE3 /* SiteNetwork.swift in Sources */,
+				133313195D7F497C111FCC18 /* SiteRegistry.swift in Sources */,
+				B634DF274EB8741E44566CC1 /* WordPressAPI.swift in Sources */,
+				DD90B117F2F721527AB87F0B /* WordPressActiveTopics.swift in Sources */,
+				94AB8961476A0C1EA3BE6BF7 /* WordPressAdapter.swift in Sources */,
+				76A41094FCE61930FF02F9E8 /* WordPressAgent.swift in Sources */,
+				D0E2A081F943418E856E02E9 /* WordPressLinks.swift in Sources */,
+				60D2708D552BCFD0DCF42A14 /* WordPressPagePlan.swift in Sources */,
+				7B0F12B9C67FD76AE76B9D0A /* WordPressParsing.swift in Sources */,
+				DB6295DA6B06410D9D136E5D /* WordPressTools.swift in Sources */,
+				B3027E8E40D55BA35D48A4DD /* SplitWorkspace.swift in Sources */,
+				9877BD760A2EA9848D4665F0 /* StreamStore.swift in Sources */,
+				2CBF49E258B63FC8E01CA2D7 /* SummaryPanel.swift in Sources */,
+				195486DA08C661479F809429 /* SyncRecords.swift in Sources */,
+				46CB4BE4621CC9DD97A7C0E5 /* AppIntents.swift in Sources */,
+				65AEB9508B1893B16E18CDCF /* Spotlight.swift in Sources */,
+				6D8BDC62A04CFE096986CC4E /* SystemEntry.swift in Sources */,
+				3D4D6036F16A006C39DECD79 /* ToolRegistry.swift in Sources */,
+				FCB586A984A0D86D849839FB /* ReadingLanguage.swift in Sources */,
+				FF59892A96301B06078345AF /* TranslationViews.swift in Sources */,
+				30CD817C26F03920F1F5D247 /* LiveProtocol.swift in Sources */,
+				A0BEDB4FE1E3C29421734076 /* LiveTransport.swift in Sources */,
+				2ADFE987F47A75A9ED93FAF7 /* PlaybackQueue.swift in Sources */,
+				81D829C7FB3590865FFCB3D6 /* VoiceActivityDetector.swift in Sources */,
+				CD6AE00A2E99875343A80B85 /* VoiceAudio.swift in Sources */,
+				C14F9091A61ACA53573E965C /* VoiceAudioEngine.swift in Sources */,
+				8F2DC9DDEFDCFCCBC4CC76E9 /* VoiceAudioFormat.swift in Sources */,
+				A0231C877004D597AC4ADB99 /* VoiceAudioHealth.swift in Sources */,
+				5AD592EF3295EF19D53A664D /* VoiceContext.swift in Sources */,
+				2E24234FA22D565E197E3CAB /* VoiceController.swift in Sources */,
+				4E53AE6B655283D9F499D69B /* VoiceDebug.swift in Sources */,
+				CA6CF093EE42F3731FBA7BE2 /* VoiceInstructions.swift in Sources */,
+				F9759595F017F0ACF8F3E1AF /* VoiceSession.swift in Sources */,
+				4C4EB45E396A6421AE8748C3 /* VoiceSettings.swift in Sources */,
+				7018350CEA558A8A494EF780 /* VoiceSite.swift in Sources */,
+				7D24C99A88E7E9C44023386F /* VoiceToolBridge.swift in Sources */,
+				6B491D99A229BC97380E1FC8 /* VoiceTools.swift in Sources */,
+				F233057A84F4DD214A4C18FE /* VoiceViews.swift in Sources */,
+				2237C6557212F7213DA71C44 /* WatchSupport.swift in Sources */,
+				75D89F0158D618A06D0C8FF7 /* WorkProgress.swift in Sources */,
+				FE3FABB023A9839221604FBE /* WorkspaceLayout.swift in Sources */,
+				8DF4EEA5A9EA10C627BAFA6F /* WukongMindApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A157100489E1E690E4B57F46 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				441D5581591D739B22362908 /* BrowseUITests.swift in Sources */,
+				AE85BD5636923DF887A08A03 /* DrawerStreamPerfUITests.swift in Sources */,
+				95B38B3F0FA37258D6E437A6 /* DrawerUITests.swift in Sources */,
+				15DB67C44638AC3DDE6F2146 /* FixtureSpaForumServer.swift in Sources */,
+				80089F00F80DBB4FA2D042B5 /* FixtureWordPressServer.swift in Sources */,
+				0F8C19F4CE16FC1EACC4AE67 /* HistoryUITests.swift in Sources */,
+				F4404912AD8004ECC5DA5DFE /* HomeUITests.swift in Sources */,
+				B052607AFF162086DB3E217C /* IPadLayoutUITests.swift in Sources */,
+				1E7CA86DBD23867282AC8B98 /* OnboardingUITests.swift in Sources */,
+				F1565911AABBC3804986D13E /* PhysicalDeviceSmokeTests.swift in Sources */,
+				1F3BA0F946D9F8D960C43117 /* ScriptManagerUITests.swift in Sources */,
+				6771AF2F04C8608C8185476F /* SettingsNavigationUITests.swift in Sources */,
+				4805231C4165713F062989A8 /* ShareHandoffUITests.swift in Sources */,
+				E5918840E322577291AE2E9B /* TodayUITests.swift in Sources */,
+				89E93387BCB1304296895F08 /* UITestSupport.swift in Sources */,
+				86AB9694ECFAA96392D2F647 /* VoiceUITests.swift in Sources */,
+				283BD6ECA531D6551572D2FE /* WordPressUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DE6E29356DF7BFEA5AD104DF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DF9EF7639C1EA875971FDBAE /* AgentBridge.swift in Sources */,
+				E4F5B71C03632060EAD25A0E /* AppIdentity.swift in Sources */,
+				5B4EF2D216F3198E95A59E92 /* BrowserAgent.swift in Sources */,
+				9F1EC068CA895C3DAFABDA40 /* JSONValue.swift in Sources */,
+				A57185A575600C3C50389DA6 /* ProviderModels.swift in Sources */,
+				27D89B339A442FFCCF2E8D04 /* ScriptStore.swift in Sources */,
+				3A6E7B332F2004A587AD1349 /* ToolRegistry.swift in Sources */,
+				EA5C1AAE8BF6D4730EBA295E /* AgentLoopTests.swift in Sources */,
+				786C92685A998B0EABF34F4C /* ScriptStoreCoreTests.swift in Sources */,
+				F85A9783DA67AA8239DB83F5 /* ToolRegistryTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		4EF70E7A865E503A5AFE8546 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = WukongMind;
+			target = 882D0BF1E07061B4627BB256 /* WukongMind */;
+			targetProxy = BF0A34456CEC250C4529CD63 /* PBXContainerItemProxy */;
+		};
+		F183725A794B6D31E9E45B50 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = WukongMind;
+			target = 882D0BF1E07061B4627BB256 /* WukongMind */;
+			targetProxy = 794B46C67A9E7BB011D13F9D /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		1028BDA3298901877317BCAB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DC_APP_GROUP = group.io.github.kccarlos.wukongmind;
+				DC_IDENTIFIER_PREFIX = io.github.kccarlos.wukongmind;
+				DEVELOPMENT_TEAM = GV776BZVA8;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind.agentcoretests;
+				SDKROOT = macosx;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		1541C85C07BF1247B825823B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		202934354C8D626258CA1A1E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				DC_APP_GROUP = group.io.github.kccarlos.wukongmind;
+				DC_IDENTIFIER_PREFIX = io.github.kccarlos.wukongmind;
+				DEVELOPMENT_TEAM = GV776BZVA8;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind.uitests;
+				SDKROOT = iphoneos;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = WukongMind;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		2886DF76E4EF6BC09D49057D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		31F290B09AFF6FB096C46977 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = WukongMindShare/WukongMindShare.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DC_APP_GROUP = group.io.github.kccarlos.wukongmind;
+				DC_IDENTIFIER_PREFIX = io.github.kccarlos.wukongmind;
+				DEVELOPMENT_TEAM = GV776BZVA8;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = WukongMindShare/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				MARKETING_VERSION = 1.1.3;
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind.share;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		31FE7ED20B900BEC3338D49B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = WukongMind/WukongMind.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DC_APP_GROUP = group.io.github.kccarlos.wukongmind;
+				DC_IDENTIFIER_PREFIX = io.github.kccarlos.wukongmind;
+				DEVELOPMENT_TEAM = GV776BZVA8;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = WukongMind/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 1.1.3;
+				OTHER_SWIFT_FLAGS = "$(inherited)";
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		35CDA3447DF90F11AC842D13 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				DC_APP_GROUP = group.io.github.kccarlos.wukongmind;
+				DC_IDENTIFIER_PREFIX = io.github.kccarlos.wukongmind;
+				DEVELOPMENT_TEAM = GV776BZVA8;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind.tests;
+				SDKROOT = iphoneos;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/WukongMind.app/WukongMind";
+			};
+			name = Debug;
+		};
+		7483DDE380B3FE78D9B0F1C3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DC_APP_GROUP = group.io.github.kccarlos.wukongmind;
+				DC_IDENTIFIER_PREFIX = io.github.kccarlos.wukongmind;
+				DEVELOPMENT_TEAM = GV776BZVA8;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind.agentcoretests;
+				SDKROOT = macosx;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		7F405108300D96E4EDBEF831 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				DC_APP_GROUP = group.io.github.kccarlos.wukongmind;
+				DC_IDENTIFIER_PREFIX = io.github.kccarlos.wukongmind;
+				DEVELOPMENT_TEAM = GV776BZVA8;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind.uitests;
+				SDKROOT = iphoneos;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = WukongMind;
+			};
+			name = Debug;
+		};
+		C2B28D97D1CBFCD68B6ED2F4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = WukongMind/WukongMind.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DC_APP_GROUP = group.io.github.kccarlos.wukongmind;
+				DC_IDENTIFIER_PREFIX = io.github.kccarlos.wukongmind;
+				DEVELOPMENT_TEAM = GV776BZVA8;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = WukongMind/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 1.1.3;
+				OTHER_SWIFT_FLAGS = "$(inherited)";
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		D7F52F3CE6983BB0716636E2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = WukongMindShare/WukongMindShare.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DC_APP_GROUP = group.io.github.kccarlos.wukongmind;
+				DC_IDENTIFIER_PREFIX = io.github.kccarlos.wukongmind;
+				DEVELOPMENT_TEAM = GV776BZVA8;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = WukongMindShare/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				MARKETING_VERSION = 1.1.3;
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind.share;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		DA304EB30A018EE6C86E1139 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				DC_APP_GROUP = group.io.github.kccarlos.wukongmind;
+				DC_IDENTIFIER_PREFIX = io.github.kccarlos.wukongmind;
+				DEVELOPMENT_TEAM = GV776BZVA8;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind.tests;
+				SDKROOT = iphoneos;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/WukongMind.app/WukongMind";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		0E76D1BA942B672BA05463BB /* Build configuration list for PBXProject "WukongMind" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1541C85C07BF1247B825823B /* Debug */,
+				2886DF76E4EF6BC09D49057D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1CD33879AE91EAE5B879D9B5 /* Build configuration list for PBXNativeTarget "WukongMindTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DA304EB30A018EE6C86E1139 /* Release */,
+				35CDA3447DF90F11AC842D13 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		88296E140EB16A8D98376805 /* Build configuration list for PBXNativeTarget "WukongMindShare" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D7F52F3CE6983BB0716636E2 /* Release */,
+				31F290B09AFF6FB096C46977 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		9A63D106BC0A15829BB24C6E /* Build configuration list for PBXNativeTarget "WukongMindAgentCoreTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7483DDE380B3FE78D9B0F1C3 /* Release */,
+				1028BDA3298901877317BCAB /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AF92B52E0E17512F88EA30A8 /* Build configuration list for PBXNativeTarget "WukongMindUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				202934354C8D626258CA1A1E /* Release */,
+				7F405108300D96E4EDBEF831 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B32D4FD1A25530BD2F233821 /* Build configuration list for PBXNativeTarget "WukongMind" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				31FE7ED20B900BEC3338D49B /* Release */,
+				C2B28D97D1CBFCD68B6ED2F4 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 0F91FEB3718DD543EDF8BD29 /* Project object */;
+}

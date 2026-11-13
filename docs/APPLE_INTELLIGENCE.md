@@ -1,6 +1,6 @@
 # Apple Intelligence provider
 
-Forumind can summarize, chat, and run the forum research agent with
+WukongMind can summarize, chat, and run the forum research agent with
 Apple's Foundation Models, with no API key and no bill. The provider
 is called **Apple Intelligence** in the app and is listed first in every
 provider picker.
@@ -22,11 +22,11 @@ also needs `#if PCC_ENABLED` and `@available(iOS 27, *)`.
 
 | File | What it holds |
 | --- | --- |
-| `Forumind/AppleIntelligence.swift` | App-owned types and pure logic, with no FoundationModels import: `AppleIntelligenceBackend`, `AppleIntelligenceStatus`, the `AppleIntelligenceAvailability.resolve` probe mapping, `AppleIntelligenceDefaults` (new-user default), `AppleIntelligenceBudget` (context window to character budgets), `AppleIntelligenceError` (user-facing messages), prompt fitting and rendering, stream-delta logic, the agent-action draft, and the `AppleIntelligenceServing` protocol |
-| `Forumind/AppleIntelligenceClient.swift` | `AppleIntelligenceClient` (the real `AppleIntelligenceServing`), `FoundationModelsBridge` (availability, sessions, streaming, error mapping), and the `@Generable` agent-action schema |
-| `Forumind/AppleIntelligenceService.swift` | `AIService` extension for summaries, chat, and agent steps, plus `AppleIntelligenceAgentPlanner` |
-| `Forumind/AppleIntelligenceViews.swift` | `AppleIntelligenceStatusView`, which shows live status and the "No API key needed · Private" note |
-| `ForumindTests/AppleIntelligenceTests.swift` | Unit tests with a fake `AppleIntelligenceServing`, plus opt-in live tests |
+| `WukongMind/AppleIntelligence.swift` | App-owned types and pure logic, with no FoundationModels import: `AppleIntelligenceBackend`, `AppleIntelligenceStatus`, the `AppleIntelligenceAvailability.resolve` probe mapping, `AppleIntelligenceDefaults` (new-user default), `AppleIntelligenceBudget` (context window to character budgets), `AppleIntelligenceError` (user-facing messages), prompt fitting and rendering, stream-delta logic, the agent-action draft, and the `AppleIntelligenceServing` protocol |
+| `WukongMind/AppleIntelligenceClient.swift` | `AppleIntelligenceClient` (the real `AppleIntelligenceServing`), `FoundationModelsBridge` (availability, sessions, streaming, error mapping), and the `@Generable` agent-action schema |
+| `WukongMind/AppleIntelligenceService.swift` | `AIService` extension for summaries, chat, and agent steps, plus `AppleIntelligenceAgentPlanner` |
+| `WukongMind/AppleIntelligenceViews.swift` | `AppleIntelligenceStatusView`, which shows live status and the "No API key needed · Private" note |
+| `WukongMindTests/AppleIntelligenceTests.swift` | Unit tests with a fake `AppleIntelligenceServing`, plus opt-in live tests |
 
 `AIService` sends every request through `streamText`, `generateSummary`,
 `answer`, and `complete`. Each of these checks
@@ -96,8 +96,8 @@ The generator then:
 
 1. adds `-D PCC_ENABLED` to the app target's `OTHER_SWIFT_FLAGS`, which turns
    on `#if PCC_ENABLED`, and
-2. signs with `Forumind/Generated/Forumind.entitlements` (git-ignored),
-   which it composes from `Forumind/Forumind.entitlements` plus
+2. signs with `WukongMind/Generated/WukongMind.entitlements` (git-ignored),
+   which it composes from `WukongMind/WukongMind.entitlements` plus
    `com.apple.developer.private-cloud-compute = true` (and the iCloud
    entitlements when CloudKit is on; see
    [DEVELOPMENT.md](DEVELOPMENT.md#icloud-sync-cloudkit-and-signing)).
@@ -108,7 +108,7 @@ To check that the PCC path compiles without the entitlement (it only compiles,
 it doesn't sign):
 
 ```sh
-xcodebuild build -project Forumind.xcodeproj -scheme Forumind \
+xcodebuild build -project WukongMind.xcodeproj -scheme WukongMind \
   -destination 'platform=iOS Simulator,name=iPhone Air' \
   OTHER_SWIFT_FLAGS='$(inherited) -D PCC_ENABLED' CODE_SIGNING_ALLOWED=NO
 ```
@@ -145,7 +145,7 @@ off no-cost PCC. PCC needs **iOS 27**. The on-device fallback works on
 | iOS 27+ | `PCC_ENABLED` + entitlement | both unavailable | The on-device reason (e.g. "Turn on Apple Intelligence in Settings") |
 
 `supportsLocale()` checks `Locale.current`, which follows the app's language
-(Settings › Forumind › Language), so the app in Simplified or Traditional
+(Settings › WukongMind › Language), so the app in Simplified or Traditional
 Chinese asks the model about Chinese. The status texts and errors, including
 the unsupported language or region ones, are localized; Apple's name for the
 feature is "Apple 智能" in Simplified Chinese and "Apple Intelligence" in
@@ -227,7 +227,7 @@ ready.
 
 ## Tests
 
-`ForumindTests/AppleIntelligenceTests.swift` covers availability
+`WukongMindTests/AppleIntelligenceTests.swift` covers availability
 mapping, the default-provider rules, batch derivation, error mapping (including
 real `GenerationError` values on iOS 26), prompt fitting, stream deltas, and
 agent-action decoding (including `GeneratedContent(json:)` into the
@@ -236,9 +236,9 @@ agent-action decoding (including `GeneratedContent(json:)` into the
 Live tests use the real model and are opt-in:
 
 ```sh
-xcodebuild test -project Forumind.xcodeproj -scheme Forumind \
+xcodebuild test -project WukongMind.xcodeproj -scheme WukongMind \
   -destination 'platform=iOS Simulator,name=iPhone Air' \
-  -only-testing:ForumindTests/AppleIntelligenceTests \
+  -only-testing:WukongMindTests/AppleIntelligenceTests \
   CODE_SIGNING_ALLOWED=NO TEST_RUNNER_DC_LIVE_APPLE_INTELLIGENCE=1
 ```
 

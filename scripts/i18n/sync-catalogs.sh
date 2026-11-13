@@ -20,20 +20,26 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-derived="${I18N_DERIVED_DATA:-${TMPDIR:-/tmp}/forumind-i18n-dd}"
+derived="${I18N_DERIVED_DATA:-${TMPDIR:-/tmp}/wukongmind-i18n-dd}"
 build=1
 [[ "${1:-}" == "--no-build" ]] && build=0
 
-intermediates="$derived/Build/Intermediates.noindex/Forumind.build"
+intermediates="$derived/Build/Intermediates.noindex/WukongMind.build"
 
 if [[ $build -eq 1 ]]; then
   # Stale .stringsdata from renamed or deleted files would keep old keys alive.
   rm -rf "$intermediates"
   destination="${I18N_DESTINATION:-generic/platform=iOS Simulator}"
-  xcodebuild build -project "$repo_root/Forumind.xcodeproj" -scheme Forumind \
+  xcodebuild build -project "$repo_root/WukongMind.xcodeproj" -scheme WukongMind \
     -configuration Debug -destination "$destination" \
     CODE_SIGNING_ALLOWED=NO SWIFT_EMIT_LOC_STRINGS=YES \
     -derivedDataPath "$derived" -quiet
+  if ! find "$intermediates" -path "*-iphonesimulator/WukongMindShare.build/*" -name '*.stringsdata' -print -quit | grep -q .; then
+    xcodebuild build -project "$repo_root/WukongMind.xcodeproj" -target WukongMindShare \
+      -sdk iphonesimulator -configuration Debug \
+      CODE_SIGNING_ALLOWED=NO SWIFT_EMIT_LOC_STRINGS=YES \
+      OBJROOT="$derived/Build/Intermediates.noindex" SYMROOT="$derived/Build/Products" -quiet
+  fi
 fi
 
 sync_target() {
@@ -50,7 +56,7 @@ sync_target() {
   echo "Synced $catalog from $(( ${#files[@]} / 2 )) source files"
 }
 
-sync_target Forumind Forumind/Localizable.xcstrings
-sync_target ForumindShare ForumindShare/Localizable.xcstrings
+sync_target WukongMind WukongMind/Localizable.xcstrings
+sync_target WukongMindShare WukongMindShare/Localizable.xcstrings
 
 python3 "$repo_root/scripts/i18n/check-catalogs.py"

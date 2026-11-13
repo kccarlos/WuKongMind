@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Report the translation state of Forumind's String Catalogs.
+"""Report the translation state of WukongMind's String Catalogs.
 
     scripts/i18n/check-catalogs.py            # all catalogs
     scripts/i18n/check-catalogs.py --list     # also list each problem key
@@ -7,7 +7,7 @@
 Exits 1 when any key (other than ones marked "Don't translate") is missing a
 zh-Hans or zh-Hant translation, is in a state other than "translated", is
 stale (no longer in the code), or has format specifiers that differ from
-English. ForumindTests/LocalizationCatalogTests.swift checks the same rules.
+English. WukongMindTests/LocalizationCatalogTests.swift checks the same rules.
 """
 import json
 import re
@@ -16,11 +16,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 CATALOGS = [
-    "Forumind/Localizable.xcstrings",
-    "Forumind/InfoPlist.xcstrings",
-    "Forumind/AppShortcuts.xcstrings",
-    "ForumindShare/Localizable.xcstrings",
-    "ForumindShare/InfoPlist.xcstrings",
+    "WukongMind/Localizable.xcstrings",
+    "WukongMind/InfoPlist.xcstrings",
+    "WukongMind/AppShortcuts.xcstrings",
+    "WukongMindShare/Localizable.xcstrings",
+    "WukongMindShare/InfoPlist.xcstrings",
 ]
 LANGUAGES = ["zh-Hans", "zh-Hant"]
 SPECIFIER = re.compile(r"%(?:\d+\$)?(?:ll|l|h)?[@dDuUxXoOfeEgGcCsSaAp]")

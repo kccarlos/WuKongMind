@@ -1,4 +1,4 @@
-# Occurrences of platform-specific code outside Forumind/Sites/ that
+# Occurrences of platform-specific code outside WukongMind/Sites/ that
 # scripts/ci/check-site-layering.sh tolerates. Format: path|trimmed source line.
 # The list may only shrink: delete an entry in the step that moves its code.
 # A stale entry (matching nothing) fails the check.
@@ -8,18 +8,18 @@
 #   AppModel+Assistant.swift, ShareSheetView.swift's badge (until the
 #   WordPress step), PodcastScript.swift's speech regex, and
 #   ForumSite.topicKey (the `/t/` in the key format is generic).
-Forumind/AppModel+Assistant.swift|context = PageContext(url: URL(string: "https://forum.example.org/t/welcome-to-our-community/1234"), state: .maybe)
-Forumind/AppModel+Assistant.swift|let kind = SiteKind.discourse
-Forumind/AppModel+Assistant.swift|url: URL(string: "\(forum.siteURL)/t/\(slug)/\(id)")!,
-Forumind/AppModel.swift|site: .discourse,
-Forumind/AppModel.swift|string: "https://meta.discourse.org/t/ui-test-delete/999997"
-Forumind/AppModel.swift|string: "https://meta.discourse.org/t/ui-test-keep/999998"
-Forumind/AppModel.swift|string: "https://meta.discourse.org/t/ui-test-topic/999999"
-Forumind/ForumSite.swift|return "\(site.host)\(site.basePath)/t/\(id)"
-Forumind/Podcast/PodcastScript.swift|(#"/t/[\w-]*/?\d"#, "a forum link"),
+WukongMind/AppModel+Assistant.swift|context = PageContext(url: URL(string: "https://forum.example.org/t/welcome-to-our-community/1234"), state: .maybe)
+WukongMind/AppModel+Assistant.swift|let kind = SiteKind.discourse
+WukongMind/AppModel+Assistant.swift|url: URL(string: "\(forum.siteURL)/t/\(slug)/\(id)")!,
+WukongMind/AppModel.swift|site: .discourse,
+WukongMind/AppModel.swift|string: "https://meta.discourse.org/t/ui-test-delete/999997"
+WukongMind/AppModel.swift|string: "https://meta.discourse.org/t/ui-test-keep/999998"
+WukongMind/AppModel.swift|string: "https://meta.discourse.org/t/ui-test-topic/999999"
+WukongMind/ForumSite.swift|return "\(site.host)\(site.basePath)/t/\(id)"
+WukongMind/Podcast/PodcastScript.swift|(#"/t/[\w-]*/?\d"#, "a forum link"),
 # Added in S2 (Forum.kind):
 #   - the pre-kind decode default is owner decision 1 (remove once every device ran P0);
 #   - the DEBUG sample seeds name the Discourse kind once per seed function (`let kind`),
 #     permanent like the other seeds.
-Forumind/AppModel+Browse.swift|let kind = SiteKind.discourse
-Forumind/ForumDirectory.swift|kind = try container.decodeIfPresent(SiteKind.self, forKey: .kind) ?? .discourse
+WukongMind/AppModel+Browse.swift|let kind = SiteKind.discourse
+WukongMind/ForumDirectory.swift|kind = try container.decodeIfPresent(SiteKind.self, forKey: .kind) ?? .discourse

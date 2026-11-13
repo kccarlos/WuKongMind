@@ -7,8 +7,8 @@ work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
 
 xcrun swiftc -parse-as-library -O \
-  "$repo_root/Forumind/BrandMarkShapes.swift" \
-  "$repo_root/Forumind/BrandMark.swift" \
+  "$repo_root/WukongMind/BrandMarkShapes.swift" \
+  "$repo_root/WukongMind/BrandMark.swift" \
   "$repo_root/scripts/brand/render_app_icon.swift" \
   -o "$work/render_app_icon"
 "$work/render_app_icon" "$repo_root"

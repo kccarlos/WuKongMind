@@ -2,7 +2,7 @@
 # Resolve and validate the release marketing version and CI build number.
 #
 # Reads marketing_version from scripts/generate_project.rb and checks that the
-# committed Forumind.xcodeproj agrees with it. On tag builds (REF_TYPE=tag),
+# committed WukongMind.xcodeproj agrees with it. On tag builds (REF_TYPE=tag),
 # fails unless the tag's numeric version matches MARKETING_VERSION (for example,
 # pushing v1.1.0 while MARKETING_VERSION is 1.0.0 fails immediately).
 #
@@ -20,7 +20,7 @@ set -euo pipefail
 
 repo_root="${PROJECT_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
 generator="$repo_root/scripts/generate_project.rb"
-pbxproj="$repo_root/Forumind.xcodeproj/project.pbxproj"
+pbxproj="$repo_root/WukongMind.xcodeproj/project.pbxproj"
 
 if [[ ! -f "$generator" ]]; then
   echo "::error::Generator script not found at $generator" >&2
@@ -53,17 +53,17 @@ while IFS= read -r line; do
 done < <(sed -nE 's/^[[:space:]]*MARKETING_VERSION = "?([^";]+)"?;$/\1/p' "$pbxproj" | LC_ALL=C sort -u)
 
 if [[ ${#pbx_versions[@]} -eq 0 ]]; then
-  echo "::error file=Forumind.xcodeproj/project.pbxproj::No MARKETING_VERSION found in Forumind.xcodeproj/project.pbxproj." >&2
+  echo "::error file=WukongMind.xcodeproj/project.pbxproj::No MARKETING_VERSION found in WukongMind.xcodeproj/project.pbxproj." >&2
   exit 1
 fi
 if [[ ${#pbx_versions[@]} -gt 1 ]]; then
-  echo "::error file=Forumind.xcodeproj/project.pbxproj::Inconsistent MARKETING_VERSION values in Forumind.xcodeproj/project.pbxproj: ${pbx_versions[*]}" >&2
+  echo "::error file=WukongMind.xcodeproj/project.pbxproj::Inconsistent MARKETING_VERSION values in WukongMind.xcodeproj/project.pbxproj: ${pbx_versions[*]}" >&2
   exit 1
 fi
 pbx_version="${pbx_versions[0]}"
 
 if [[ "$pbx_version" != "$generator_version" ]]; then
-  echo "::error::Forumind.xcodeproj MARKETING_VERSION ($pbx_version) does not match scripts/generate_project.rb ($generator_version). Run 'ruby scripts/generate_project.rb' and commit the result." >&2
+  echo "::error::WukongMind.xcodeproj MARKETING_VERSION ($pbx_version) does not match scripts/generate_project.rb ($generator_version). Run 'ruby scripts/generate_project.rb' and commit the result." >&2
   exit 1
 fi
 
@@ -81,7 +81,7 @@ if [[ "$ref_type" == "tag" ]]; then
   fi
   tag_version="${BASH_REMATCH[1]}"
   if [[ "$tag_version" != "$project_version" ]]; then
-    echo "::error::Tag $ref_name (version $tag_version) does not match app MARKETING_VERSION $project_version (expected tag v$project_version). Bump marketing_version in scripts/generate_project.rb and regenerate Forumind.xcodeproj first." >&2
+    echo "::error::Tag $ref_name (version $tag_version) does not match app MARKETING_VERSION $project_version (expected tag v$project_version). Bump marketing_version in scripts/generate_project.rb and regenerate WukongMind.xcodeproj first." >&2
     exit 1
   fi
   if [[ -n "$input_version" && "$input_version" != "$tag_version" ]]; then

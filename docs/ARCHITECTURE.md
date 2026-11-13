@@ -1,6 +1,6 @@
 # Architecture
 
-Forumind is a SwiftUI app with a `WKWebView` browser and an AI
+WukongMind is a SwiftUI app with a `WKWebView` browser and an AI
 assistant beside it, plus a share extension. It has no third-party
 dependencies and no backend: the app talks directly to the forum and to the AI
 provider the user chose.
@@ -8,8 +8,8 @@ provider the user chose.
 ```mermaid
 flowchart LR
   subgraph Device
-    Share["Share extension<br/>(ForumindShare)"] -- "SharedInbox.json<br/>+ forumind:// link" --> App
-    subgraph App["App (Forumind)"]
+    Share["Share extension<br/>(WukongMindShare)"] -- "SharedInbox.json<br/>+ wukongmind:// link" --> App
+    subgraph App["App (WukongMind)"]
       UI["SwiftUI views<br/>ContentView, SummaryPanel,<br/>AgentPanel, HomeView, Settings"]
       Model["AppModel<br/>state, work queue, agent runner"]
       Browser["ForumBrowserModel<br/>WKWebView + content blocking"]
@@ -34,13 +34,13 @@ flowchart LR
 
 ## Module map
 
-All app code is in `Forumind/`; files are grouped here by role.
+All app code is in `WukongMind/`; files are grouped here by role.
 
 ### App shell and layout
 
 | File | Role |
 | --- | --- |
-| `ForumindApp.swift` | App entry, `AppDelegate` (background refresh, notifications), scene setup. |
+| `WukongMindApp.swift` | App entry, `AppDelegate` (background refresh, notifications), scene setup. |
 | `ContentView.swift` | Root view: browser, Assistant panel (drawer or split), sheets. |
 | `WorkspaceLayout.swift` | Side-by-side layout on wide windows (iPad landscape, large Stage Manager windows), resizable panel, keyboard commands. Narrower windows (under 850 pt, every iPhone) get the drawer layout. |
 | `DesignSystem.swift`, `ForumComponents.swift`, `AssistantStates.swift`, `MarkdownView.swift` | Shared styles, forum rows/tiles/switcher, Assistant empty/loading/not-a-forum states, and a small Markdown renderer. |
@@ -74,7 +74,7 @@ from the same facts through the adapter's `session`. The share extension uses
 the same recognizers and a probe script generated from them (see Share
 extension).
 
-**Site adapters.** Everything that knows a platform lives in `Forumind/Sites/`
+**Site adapters.** Everything that knows a platform lives in `WukongMind/Sites/`
 behind one protocol, `SiteAdapter`. Discourse and WordPress are the adapters
 today, in that recognition order.
 Contributors adding a platform: [ADDING_A_SITE.md](ADDING_A_SITE.md).
@@ -91,7 +91,7 @@ Contributors adding a platform: [ADDING_A_SITE.md](ADDING_A_SITE.md).
 | `Sites/Discourse/` | The Discourse adapter: `DiscourseAdapter`, `DiscourseAPI` (requests), `DiscourseRoutes` (URLs), `DiscourseParsing`, `DiscoursePagePlan` (which raw pages to fetch), `DiscourseDOM` (the in-page bridge script), `DiscourseAgent` (tool specs, voice words), `DiscourseSuggestions`. |
 | `Sites/WordPress/` | The WordPress adapter, a second worked example: `WordPressAdapter`, `WordPressAPI` (REST requests; paging read from `X-WP-Total` headers, closed comments and pages past the last read as empty), `WordPressLinks` (`/?p=ID`), `WordPressParsing` (article and comments into `RawTopicFormat`), `WordPressPagePlan`, `WordPressTools` (post and comment search, latest, post lookup), `WordPressActiveTopics` (digest: newest posts and recent comments), `WordPressAgent` (tool specs, voice and discussion profiles). It has no page bridge, sign-in page or session reader, so the app never scripts a WordPress page and navigates by URL. |
 
-**Layering.** Only `Forumind/Sites/` may name a platform.
+**Layering.** Only `WukongMind/Sites/` may name a platform.
 `scripts/ci/check-site-layering.sh` fails when Swift code outside it mentions a
 Discourse type, `SiteKind.discourse` or a `/t/` route. The remaining hits are
 listed in `scripts/ci/site-layering-allowlist.txt` (sample data, UI-test seeds,
@@ -190,7 +190,7 @@ and agent answers follow the user's; with the app in another language
 **Localization.** UI strings live in String Catalogs
 (`Localizable.xcstrings`, `InfoPlist.xcstrings` in each target), in English,
 Simplified Chinese and Traditional Chinese; iOS picks the language
-(Settings › Forumind › Language). `AppLanguage.swift` reports the resolved
+(Settings › WukongMind › Language). `AppLanguage.swift` reports the resolved
 language. See [DEVELOPMENT.md](DEVELOPMENT.md#localization).
 
 **Watched topics** are checked when the app comes to the foreground, every 30
@@ -238,7 +238,7 @@ The Today module sits at the top of Home, and the Today page is pushed over
 Home (`AppModel.homePath`: the iPhone bar's navigation stack, or Home's own
 on iPad); opening a link closes both and shows the browser.
 
-**Launch.** Settings › Browser › When Forumind opens: Automatic (default),
+**Launch.** Settings › Browser › When WukongMind opens: Automatic (default),
 Home or Last forum. A link, notification, Siri, Spotlight or the share
 extension always opens its page. Automatic shows Home on the first launch of
 the day when Today has a podcast or digest ready or being made (the day is
@@ -527,7 +527,7 @@ builds and behind a developer switch (seven taps on Build in Settings ›
 Help › About) otherwise.
 
 **Silent context.** `VoiceContext` builds bracketed `[Screen: …]` and
-`[Forumind: …]` notes: a topic brief when a topic opens (title, forum and its
+`[WukongMind: …]` notes: a topic brief when a topic opens (title, forum and its
 language, the opening question, post count, solution, top posts, the saved
 summary or a quick one made in the background), then position deltas from
 `pageChanges` (current post, visible posts as author and first sentence, the
@@ -547,7 +547,7 @@ full text is sent (both switchable). Posts are capped at about 800 tokens.
 | `Podcast/PodcastPlayer.swift` | The timeline, the player, interruptions and route changes, the hand-over to voice, positions, Now Playing and remote commands. |
 | `Podcast/PodcastController.swift` | Making episodes, Ask about this, read aloud, cleanup (`app.podcast`). |
 
-A finished digest can be heard as a two-host episode, "Today on Forumind –
+A finished digest can be heard as a two-host episode, "Today on WukongMind –
 <date>". It has a fixed intro and outro in the interface language (no AI)
 and one chapter per summarized card (cards that failed or wait are left out;
 an episode made from a partial digest doesn't grow later). Topic titles are
@@ -677,10 +677,10 @@ purges the cache, a chapter whose file is missing is spoken again.
 
 | File | Role |
 | --- | --- |
-| `ForumindShare/ShareViewController.swift`, `ShareSheetView.swift` | The share sheet UI: shows whether the page looks like a supported forum and offers Summarize, Chat about it, Ask the forum, or Just open. |
+| `WukongMindShare/ShareViewController.swift`, `ShareSheetView.swift` | The share sheet UI: shows whether the page looks like a supported forum and offers Summarize, Chat about it, Ask the forum, or Just open. |
 | `SharedPage.swift` | Compiled into the app and the extension. Parses what the host app shared (URL, title, Safari preprocessing results) into `PageFacts` and runs the recognizers on them. |
-| `ForumindShare/PageFactsProbe.js` | Safari preprocessing script that collects the page facts. Generated by `scripts/generate-share-probe.sh` from `PageFactsProbe.expression(keys: SiteRecognizers.factKeys)`, so it cannot drift from the app's probe; a unit test fails if the shipped file differs. |
-| `IncomingLink.swift` | Compiled into both targets. `IncomingLinkRequest`, the `forumind://open?url=…&action=…` format, and the App Group `SharedInbox`. |
+| `WukongMindShare/PageFactsProbe.js` | Safari preprocessing script that collects the page facts. Generated by `scripts/generate-share-probe.sh` from `PageFactsProbe.expression(keys: SiteRecognizers.factKeys)`, so it cannot drift from the app's probe; a unit test fails if the shipped file differs. |
+| `IncomingLink.swift` | Compiled into both targets. `IncomingLinkRequest`, the `wukongmind://open?url=…&action=…` format, and the App Group `SharedInbox`. |
 
 ```mermaid
 sequenceDiagram
@@ -690,7 +690,7 @@ sequenceDiagram
   participant A as App
   S->>X: share page URL
   X->>G: enqueue request (url, action, id)
-  X->>A: open forumind://open?...&id=
+  X->>A: open wukongmind://open?...&id=
   A->>G: drain inbox (launch / foreground)
   A->>A: open page, start chosen action once
 ```
@@ -702,7 +702,7 @@ URL) the badge says the page is unconfirmed.
 
 The extension writes the request to the App Group inbox and opens the link;
 the app drains the inbox on launch and foreground and handles each request id
-once. Because any app or website can open a `forumind://` link, a link
+once. Because any app or website can open a `wukongmind://` link, a link
 that did not come through the share sheet only opens the page and the
 Assistant; the user starts the summary. Unsigned simulator builds have no App
 Group container, so the inbox is skipped there.
@@ -763,7 +763,7 @@ Start a Voice Chat, and Open Topic (a `TopicEntity`). All of them have
   background just to list forums. So the forum query reads the AppModel
   when it is attached, else only the `forums` key of `state.json`. Pinned
   forums come first, in their order, then the recent ones.
-- `ForumindShortcuts` gives each intent two Siri phrases, which Spotlight
+- `WukongMindShortcuts` gives each intent two Siri phrases, which Spotlight
   and the Shortcuts app show too. The phrases are translated in
   `AppShortcuts.xcstrings`; the titles are in `Localizable.xcstrings`. Siri
   learns new forum names through `updateAppShortcutParameters()`.
@@ -827,7 +827,7 @@ available:
 - `SyncRecords.swift`: the record model, units, merge rules, and payload
   encoding.
 - `CloudSyncTransport.swift` (the transport protocol) and
-  `CloudKitTransport.swift` (`CKSyncEngine`, zone `Forumind`, record type
+  `CloudKitTransport.swift` (`CKSyncEngine`, zone `WukongMind`, record type
   `SyncRecord` with an encrypted payload; compiled only with
   `CLOUDKIT_ENABLED`, which the generator sets for signed builds).
 - `AppModel+CloudSync.swift`: app state to records and back
@@ -835,7 +835,7 @@ available:
 - `SettingsSyncPage.swift`: Settings › iCloud Sync and the status text shared
   with the onboarding step.
 
-`ForumindApp.swift`'s app delegate registers for remote notifications in
+`WukongMindApp.swift`'s app delegate registers for remote notifications in
 CloudKit builds. Details: [SYNC.md](SYNC.md).
 
 ### Persistence and Keychain
@@ -863,10 +863,10 @@ on launch and after each job).
 
 | Target | What it covers |
 | --- | --- |
-| `ForumindTests` | Unit tests: forum identity and URL building, forum request pacing (fake clock), the daily digest (card plan, prefetch cap, scheduling, resumable cards), the work queue and state transitions, incoming links, onboarding, agent sources (topic and post level), post-level browsing (the current list, landing URLs, page position and its debounce, find/read, research single-flight, result trimming), the podcast (script JSON and its speech checks, chapters from cards, the Gemini TTS request on both endpoints and responses from fixtures, retries, engine and system-voice selection, the player's timeline, chapter navigation and remembered position with fakes, Ask about this pausing and resuming, the opt-in defaults, cache cleanup), the voice agent offline (Gemini Live message fixtures, the session against a fake transport, fake audio and a manual clock, tool mapping, context notes, typed input, the cost guard), the audio pipeline without hardware (sample-rate conversion, framing, the voice-activity detector on four short speech fixtures in `ForumindTests/Audio` mixed with generated noise, the jitter buffer and time-stretch replays, the time-pitch graph rendered offline, the microphone watchdog), post-level Discourse parsing (trimmed JSON fixtures in `DiscourseFixtures.swift`), content blocking (compiles every bundled chunk in WebKit), CloudKit sync against a fake transport (two simulated devices), Keychain sync, iPad layout math, String Catalog completeness (every key translated, matching format specifiers and intent placeholders, plural variations), App Intents (each intent's action through a fake router, the forum query's order, the AppModel carrying actions out), Spotlight against a fake index (items, identifiers, removal on every delete path and the switch), Siri-suggestion donations, and the reading-language decision and Markdown segmenting for translation. |
-| `ForumindUITests` | UI tests on simulators (Home, the Today page and its podcast on a fake engine, landing on a post and the result cards on a live topic, the voice bar on a scripted session, onboarding, settings navigation, share hand-off, iPad layouts) and smoke tests for physical devices. |
+| `WukongMindTests` | Unit tests: forum identity and URL building, forum request pacing (fake clock), the daily digest (card plan, prefetch cap, scheduling, resumable cards), the work queue and state transitions, incoming links, onboarding, agent sources (topic and post level), post-level browsing (the current list, landing URLs, page position and its debounce, find/read, research single-flight, result trimming), the podcast (script JSON and its speech checks, chapters from cards, the Gemini TTS request on both endpoints and responses from fixtures, retries, engine and system-voice selection, the player's timeline, chapter navigation and remembered position with fakes, Ask about this pausing and resuming, the opt-in defaults, cache cleanup), the voice agent offline (Gemini Live message fixtures, the session against a fake transport, fake audio and a manual clock, tool mapping, context notes, typed input, the cost guard), the audio pipeline without hardware (sample-rate conversion, framing, the voice-activity detector on four short speech fixtures in `WukongMindTests/Audio` mixed with generated noise, the jitter buffer and time-stretch replays, the time-pitch graph rendered offline, the microphone watchdog), post-level Discourse parsing (trimmed JSON fixtures in `DiscourseFixtures.swift`), content blocking (compiles every bundled chunk in WebKit), CloudKit sync against a fake transport (two simulated devices), Keychain sync, iPad layout math, String Catalog completeness (every key translated, matching format specifiers and intent placeholders, plural variations), App Intents (each intent's action through a fake router, the forum query's order, the AppModel carrying actions out), Spotlight against a fake index (items, identifiers, removal on every delete path and the switch), Siri-suggestion donations, and the reading-language decision and Markdown segmenting for translation. |
+| `WukongMindUITests` | UI tests on simulators (Home, the Today page and its podcast on a fake engine, landing on a post and the result cards on a live topic, the voice bar on a scripted session, onboarding, settings navigation, share hand-off, iPad layouts) and smoke tests for physical devices. |
 
-The site layer has its own suites in `ForumindTests/Sites/`: `SiteContractTests`
+The site layer has its own suites in `WukongMindTests/Sites/`: `SiteContractTests`
 runs one generic suite over every adapter (Discourse and a made-up
 `FakeSiteAdapter` with every optional capability nil: registry, links round
 trip, the raw text shape, cached reads, tool queries, present capabilities),

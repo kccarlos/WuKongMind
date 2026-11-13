@@ -2,13 +2,13 @@
 """Move translations in and out of a String Catalog as plain JSON.
 
     # Keys that still need a translation in any language, with their comments:
-    scripts/i18n/translations.py export Forumind/Localizable.xcstrings > todo.json
+    scripts/i18n/translations.py export WukongMind/Localizable.xcstrings > todo.json
 
     # Write translations back (state "translated"):
-    scripts/i18n/translations.py import Forumind/Localizable.xcstrings done.json
+    scripts/i18n/translations.py import WukongMind/Localizable.xcstrings done.json
 
     # Delete keys the code no longer uses (marked "stale" by the sync):
-    scripts/i18n/translations.py prune Forumind/Localizable.xcstrings
+    scripts/i18n/translations.py prune WukongMind/Localizable.xcstrings
 
 The JSON maps each key to its translations. A value is a string, or an object
 of plural cases for a count ("one"/"other" in English; Chinese uses only
@@ -23,7 +23,7 @@ format-only keys.
         "zh-Hans": {"other": "%lld 个帖子"},
         "zh-Hant": {"other": "%lld 則貼文"}
       },
-      "Forumind": {"shouldTranslate": false}
+      "WukongMind": {"shouldTranslate": false}
     }
 
 Import fails for keys that aren't in the catalog: run

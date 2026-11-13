@@ -14,8 +14,8 @@ permissions:
   contents: read
 
 env:
-  PROJECT: Forumind.xcodeproj
-  SCHEME: Forumind
+  PROJECT: WukongMind.xcodeproj
+  SCHEME: WukongMind
   # Matches the local toolchain (Xcode 27.2, 27B52). To fall back to the GA
   # macOS 26 image, set repo variables CI_MACOS_RUNNER=macos-26 and
   # CI_XCODE_APP=/Applications/Xcode_26.6.app.
@@ -58,7 +58,7 @@ jobs:
       - name: Compare committed project with generator output
         # Fails on drift; the log shows a UUID-free diff of what changed.
         run: scripts/ci/check-project-drift.sh
-      - name: Site layering (only Forumind/Sites/ knows a platform)
+      - name: Site layering (only WukongMind/Sites/ knows a platform)
         # Fails on a new platform-specific hit outside Sites/ and on a stale
         # entry in scripts/ci/site-layering-allowlist.txt.
         run: scripts/ci/check-site-layering.sh
@@ -95,7 +95,7 @@ jobs:
             -project "$PROJECT" \
             -scheme "$SCHEME" \
             -destination "$DESTINATION" \
-            -only-testing:ForumindTests \
+            -only-testing:WukongMindTests \
             -parallel-testing-enabled NO \
             -retry-tests-on-failure \
             -test-iterations 3 \
