@@ -6,97 +6,11 @@ import XCTest
 /// meta.discourse.org and skip when it is unreachable. The two live AI tests
 /// run only on a physical device with a configured provider.
 final class PhysicalDeviceSmokeTests: DCUITestCase {
-    func testLandscapeShowsBrowserAndAdaptivePanelSideBySide() throws {
-        try skipUnlessPhone("The iPad workspace switcher, mode picker and Manage screen were replaced in Phase 8; IPadLayoutUITests covers the split and drawer layouts.")
-        try skipUnlessPad("The side-by-side layout is an iPad feature.")
-        let app = launch(["-dc-sample"], orientation: .landscapeRight)
-
-        let modePicker = app.segmentedControls["assistantModePicker"]
-        XCTAssertTrue(
-            modePicker.waitForExistence(timeout: 20),
-            "The assistant panel did not appear in landscape."
-        )
-        XCTAssertTrue(
-            app.webViews.firstMatch.waitForExistence(timeout: 30),
-            "The forum WKWebView did not appear."
-        )
-        let home = app.buttons["browserHome"]
-        XCTAssertTrue(home.waitForExistence(timeout: 10), "The browser toolbar did not appear.")
-        XCTAssertTrue(home.label.hasSuffix(" home"), "Home is labeled “\(home.label)”.")
-        XCTAssertTrue(app.buttons["forumSwitcher"].exists)
-        XCTAssertTrue(
-            app.buttons.matching(
-                NSPredicate(format: "label == %@ OR label == %@", "Reload", "Stop loading")
-            ).firstMatch.waitForExistence(timeout: 10),
-            "The forum browser reload control is missing."
-        )
-        XCTAssertFalse(app.segmentedControls["workspacePicker"].exists)
-
-        let browserFrame = app.webViews.firstMatch.frame
-        let panelFrame = modePicker.frame
-        XCTAssertLessThan(
-            browserFrame.midX,
-            panelFrame.midX,
-            "The forum must remain to the left of the assistant panel."
-        )
-        XCTAssertFalse(
-            browserFrame.intersects(panelFrame),
-            "The adaptive assistant panel must not overlap the forum."
-        )
-
-        XCTAssertTrue(modePicker.buttons["Summary"].isSelected)
-        XCTAssertTrue(modePicker.buttons["Chat"].exists)
-        XCTAssertTrue(modePicker.buttons["Agent"].exists)
-
-        app.buttons["openSettings"].tap()
-        XCTAssertTrue(
-            any(app, "settingsRoot").waitForExistence(timeout: 10),
-            "The Settings panel did not render."
-        )
-        XCTAssertTrue(app.buttons["settingsRow-provider"].exists)
-        app.buttons["backToTopic"].tap()
-
-        app.buttons["openHistory"].tap()
-        XCTAssertTrue(
-            app.staticTexts["In progress"].waitForExistence(timeout: 10),
-            "The Manage panel did not render."
-        )
-        XCTAssertTrue(reveal(app.staticTexts["Summaries & chats"], in: app))
-        XCTAssertTrue(reveal(app.staticTexts["Recent activity"], in: app))
-        app.buttons["backToTopic"].tap()
-        XCTAssertTrue(modePicker.waitForExistence(timeout: 10))
-    }
-
     func testPortraitUsesBrowseAssistantWorkspaceSwitcher() throws {
-        try skipUnlessPhone("The iPad workspace switcher, mode picker and Manage screen were replaced in Phase 8; IPadLayoutUITests covers the split and drawer layouts.")
+        try skipUnlessPhone("The old iPad shell is gone; IPadLayoutUITests covers the split and drawer layouts.")
         // A page is open (the web view shows even when it fails to load offline).
         let app = launch(["-dc-open", Self.forumLatest])
-        if isPhone {
-            assertPhoneOpensTheAIDrawer(in: app)
-            return
-        }
-
-        let workspace = app.segmentedControls["workspacePicker"]
-        XCTAssertTrue(
-            workspace.waitForExistence(timeout: 20),
-            "The portrait workspace switcher did not appear."
-        )
-        XCTAssertTrue(app.webViews.firstMatch.waitForExistence(timeout: 30))
-        XCTAssertTrue(workspace.buttons["Browse"].isSelected)
-        XCTAssertTrue(app.buttons["forumSwitcher"].exists)
-
-        workspace.buttons["Assistant"].tap()
-        XCTAssertTrue(
-            app.segmentedControls["assistantModePicker"].waitForExistence(timeout: 10),
-            "The Assistant workspace did not appear."
-        )
-        XCTAssertTrue(app.buttons["openHistory"].exists)
-        XCTAssertTrue(app.buttons["openSettings"].exists)
-        // The Assistant pane shows only the workspace switch, not the address bar.
-        XCTAssertFalse(app.buttons["Back"].exists)
-
-        workspace.buttons["Browse"].tap()
-        XCTAssertTrue(app.webViews.firstMatch.waitForExistence(timeout: 10))
+        assertPhoneOpensTheAIDrawer(in: app)
     }
 
     func testForumLoginLoadsInsideEmbeddedBrowser() throws {
@@ -154,19 +68,11 @@ final class PhysicalDeviceSmokeTests: DCUITestCase {
     }
 
     func testExpandedWorkspacesRenderMarkdownAndKeepChatComposerVisible() throws {
-        try skipUnlessPhone("The iPad workspace switcher, mode picker and Manage screen were replaced in Phase 8; IPadLayoutUITests covers the split and drawer layouts.")
-        // iPhone: a page under the AI drawer (the seeded topic stays selected).
-        let app = launch(["-ui-test-sample-session"] + (isPhone ? ["-dc-open", Self.forumLatest] : []))
-
-        if isPhone {
-            showAssistant(in: app)
-            dragDrawer(in: app, to: 0.05)
-        } else {
-            let workspace = app.segmentedControls["workspacePicker"]
-            if workspace.waitForExistence(timeout: 20) {
-                workspace.buttons["Assistant"].tap()
-            }
-        }
+        try skipUnlessPhone("The old iPad shell is gone; IPadLayoutUITests covers the split and drawer layouts.")
+        // A page under the AI drawer (the seeded topic stays selected).
+        let app = launch(["-ui-test-sample-session", "-dc-open", Self.forumLatest])
+        showAssistant(in: app)
+        dragDrawer(in: app, to: 0.05)
 
         XCTAssertTrue(
             app.staticTexts["Card Strategy"].waitForExistence(timeout: 10),
@@ -175,17 +81,7 @@ final class PhysicalDeviceSmokeTests: DCUITestCase {
         XCTAssertTrue(app.staticTexts["Key points"].exists)
         XCTAssertTrue(app.staticTexts["Sample card"].exists)
         XCTAssertTrue(app.staticTexts["4x points"].exists)
-
-        // iPhone: the drawer shows the summary and the conversation together
-        // (its Ask box picks This topic or Whole forum); iPad: the picker.
-        let modePicker = app.segmentedControls["assistantModePicker"]
-        if !isPhone {
-            XCTAssertTrue(modePicker.waitForExistence(timeout: 10))
-            XCTAssertTrue(modePicker.buttons["Summary"].isSelected)
-        }
         XCTAssertTrue(app.descendants(matching: .any)["summaryContent"].exists)
-        let exportOptions = isPhone ? "Export Options…" : "Export options"
-        let postResponses = isPhone ? "Post & Responses" : "Post & responses"
 
         // Export lives in the More menu; its options open a sheet of toggles.
         // (Menu items lose their identifiers; match the labels.)
@@ -193,7 +89,7 @@ final class PhysicalDeviceSmokeTests: DCUITestCase {
         XCTAssertTrue(app.buttons["Export .txt"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.buttons["Share"].exists)
         XCTAssertTrue(app.buttons["Copy"].exists)
-        app.buttons[exportOptions].tap()
+        app.buttons["Export Options…"].tap()
         XCTAssertTrue(app.switches["excludeTitleURL"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.switches["excludeSummary"].exists)
         XCTAssertTrue(app.switches["excludePostResponses"].exists)
@@ -202,8 +98,8 @@ final class PhysicalDeviceSmokeTests: DCUITestCase {
 
         // The pulled post opens full screen from the same menu.
         app.buttons["assistantMoreMenu"].tap()
-        XCTAssertTrue(app.buttons[postResponses].waitForExistence(timeout: 10))
-        app.buttons[postResponses].tap()
+        XCTAssertTrue(app.buttons["Post & Responses"].waitForExistence(timeout: 10))
+        app.buttons["Post & Responses"].tap()
         XCTAssertTrue(app.navigationBars["Post & responses"].waitForExistence(timeout: 10))
         let postDisclosure = app.descendants(matching: .any)["postResponsesDisclosure"].firstMatch
         XCTAssertTrue(postDisclosure.waitForExistence(timeout: 10))
@@ -212,159 +108,36 @@ final class PhysicalDeviceSmokeTests: DCUITestCase {
         XCTAssertTrue(app.descendants(matching: .any)["pulledPostContent"].exists)
         app.buttons["Done"].tap()
 
-        // Chat: collapsed summary card, transcript, and a pinned composer.
-        if !isPhone { modePicker.buttons["Chat"].tap() }
-        let chatInput = app.textFields["chatInput"]
-        XCTAssertTrue(chatInput.waitForExistence(timeout: 10))
-        XCTAssertTrue(chatInput.isHittable, "The chat composer must stay pinned and visible.")
-        XCTAssertTrue(app.buttons["Send question"].exists)
-        XCTAssertTrue(app.buttons["chatInstructions"].exists)
-        XCTAssertTrue(app.descendants(matching: .any)["chatMessage-assistant"].exists)
-        if isPhone {
-            // Per-topic instructions sheet, from the composer.
-            app.buttons["chatInstructions"].tap()
-            XCTAssertTrue(app.navigationBars["Instructions"].waitForExistence(timeout: 10))
-            app.buttons["Cancel"].tap()
-            // Manage is the drawer menu's History for now; Settings is in the
-            // forum menu (SettingsNavigationUITests).
-            app.buttons["assistantMoreMenu"].tap()
-            XCTAssertFalse(app.buttons["Open full screen"].exists)
-            let history = app.buttons["History"]
-            XCTAssertTrue(history.waitForExistence(timeout: 10))
-            history.tap()
-            XCTAssertTrue(app.buttons["historySegment-all"].waitForExistence(timeout: 10))
-            app.buttons["backToTopic"].tap()
-            XCTAssertTrue(any(app, "askScopeButton").waitForExistence(timeout: 10))
-            return
-        }
-        let summaryCard = app.buttons["chatSummaryCard"]
-        XCTAssertTrue(summaryCard.waitForExistence(timeout: 10))
-        XCTAssertFalse(app.descendants(matching: .any)["chatSummaryContent"].exists)
-        summaryCard.tap()
-        XCTAssertTrue(
-            app.descendants(matching: .any)["chatSummaryContent"].waitForExistence(timeout: 5)
-        )
-        // Let the expand animation settle before collapsing again.
-        RunLoop.current.run(until: Date().addingTimeInterval(1))
-        summaryCard.tap()
-        XCTAssertTrue(waitForGone(app.descendants(matching: .any)["chatSummaryContent"], timeout: 10))
+        // The one prompt field stays pinned and visible.
+        let prompt = any(app, "agentPromptInput")
+        XCTAssertTrue(prompt.waitForExistence(timeout: 10))
+        XCTAssertTrue(prompt.isHittable, "The prompt field must stay pinned and visible.")
 
-        // Per-topic instructions sheet.
-        app.buttons["chatInstructions"].tap()
-        XCTAssertTrue(app.navigationBars["Instructions"].waitForExistence(timeout: 10))
-        XCTAssertTrue(app.descendants(matching: .any)["topicInstructions"].exists)
-        app.buttons["Cancel"].tap()
-
-        // iPad: the whole assistant can open full screen from a panel that
-        // is not already full screen (single-pane and split alike). iPhone:
-        // the drawer's large height is that.
+        // Manage is the drawer menu's History for now; Settings is in the
+        // forum menu (SettingsNavigationUITests).
         app.buttons["assistantMoreMenu"].tap()
-        if isPhone {
-            XCTAssertTrue(app.buttons["Post & responses"].waitForExistence(timeout: 10))
-            XCTAssertFalse(app.buttons["Open full screen"].exists)
-            dismissMenu(in: app)
-        } else {
-            XCTAssertTrue(app.buttons["Open full screen"].waitForExistence(timeout: 10))
-            app.buttons["Open full screen"].tap()
-            XCTAssertTrue(app.navigationBars["Assistant"].waitForExistence(timeout: 10))
-            XCTAssertTrue(app.textFields["chatInput"].firstMatch.waitForExistence(timeout: 10))
-            app.buttons["Done"].tap()
-        }
-
-        // Manage and Settings show in place with a way back to the topic.
-        app.buttons["openHistory"].tap()
-        XCTAssertTrue(app.staticTexts["In progress"].waitForExistence(timeout: 10))
-        XCTAssertTrue(reveal(app.staticTexts["Summaries & chats"], in: app))
+        XCTAssertFalse(app.buttons["Open full screen"].exists)
+        let history = app.buttons["History"]
+        XCTAssertTrue(history.waitForExistence(timeout: 10))
+        history.tap()
+        XCTAssertTrue(app.buttons["historySegment-all"].waitForExistence(timeout: 10))
         app.buttons["backToTopic"].tap()
-
-        // Settings is grouped by object; summary batching lives in Models.
-        app.buttons["openSettings"].tap()
-        XCTAssertTrue(app.staticTexts["Models"].waitForExistence(timeout: 10))
-        XCTAssertTrue(app.buttons["settingsRow-browser"].exists)
-        app.buttons["settingsRow-provider"].tap()
-        XCTAssertTrue(app.navigationBars["Models"].waitForExistence(timeout: 10))
-        XCTAssertTrue(reveal(any(app, "summaryBatchLimit"), in: app))
-        tapNavigationBack(in: app)
-        XCTAssertTrue(app.buttons["backToTopic"].waitForExistence(timeout: 10))
-        app.buttons["backToTopic"].tap()
-        XCTAssertTrue(modePicker.waitForExistence(timeout: 10))
+        XCTAssertTrue(any(app, "agentPromptInput").waitForExistence(timeout: 10))
     }
 
     func testAgentModeAndWatchedTopics() throws {
-        try skipUnlessPhone("The iPad branch drove the old iPad shell (workspacePicker, assistantModePicker), removed in Phase 8; the split layout is covered by IPadLayoutUITests.")
+        try skipUnlessPhone("The old iPad shell is gone; IPadLayoutUITests covers the split and drawer layouts.")
         let app = launch(["-ui-test-sample-session"])
-        // iPhone: the AI drawer, whose Ask box scope picks This topic or
-        // Whole forum; iPad: the panel's mode picker.
-        let modePicker = app.segmentedControls["assistantModePicker"]
-        if isPhone {
-            let aiButton = app.buttons["aiButton"]
-            XCTAssertTrue(waitForBarItem(aiButton, timeout: 20), "The bar's AI button is missing.")
-            tapBarItem(aiButton)
-            XCTAssertTrue(any(app, "askScopeButton").waitForExistence(timeout: 10), "The drawer did not open.")
-        } else {
-            let workspace = app.segmentedControls["workspacePicker"]
-            if workspace.waitForExistence(timeout: 20) {
-                workspace.buttons["Assistant"].tap()
-            }
-            XCTAssertTrue(modePicker.waitForExistence(timeout: 20))
-        }
-        let watchLabel = isPhone ? "Watch Topic" : "Watch topic for new replies"
-        let unwatchLabel = isPhone ? "Unwatch Topic" : "Unwatch topic"
-
-        // Agent mode: goal box, run button, and a run that ends cleanly (the
-        // run record, its status and the follow-up field all appear).
-        selectMode("Whole forum", picker: "Agent", in: app)
-        // iPhone: runs left by earlier launches are selected; ask anew.
-        if isPhone, app.buttons["agentNewQuestion"].waitForExistence(timeout: 3) {
-            app.buttons["agentNewQuestion"].tap()
-        }
-        let goal = app.textFields["agentGoalInput"]
-        XCTAssertTrue(goal.waitForExistence(timeout: 10))
-        let runButton = app.buttons["runAgent"]
-        XCTAssertFalse(runButton.isEnabled)
-        goal.tap()
-        goal.typeText("What are people saying about retention offers?")
-        XCTAssertTrue(runButton.isEnabled)
-        runButton.tap()
-
-        let alert = app.alerts.firstMatch
-        if alert.waitForExistence(timeout: 5) {
-            alert.buttons["OK"].tap()
-        }
-        XCTAssertTrue(app.staticTexts["agentRunGoal"].waitForExistence(timeout: 10))
-        let status = app.staticTexts["agentRunStatus"]
-        // Without a provider the run fails at once. With one set up on this
-        // simulator it would really run: stop it right away (at most one
-        // request) and accept the cancelled run.
-        let stop = app.buttons["cancelAgentRun"]
-        if stop.waitForExistence(timeout: 3), stop.isHittable { stop.tap() }
-        XCTAssertTrue(
-            wait(timeout: 30) { ["Failed", "Cancelled", "Done"].contains { status.label.hasPrefix($0) } },
-            "Run status was: \(status.label)"
-        )
-        if status.label.hasPrefix("Failed") {
-            XCTAssertTrue(app.descendants(matching: .any)["agentRunError"].exists)
-        }
-        XCTAssertTrue(app.textFields["agentFollowUpInput"].waitForExistence(timeout: 10))
-        // Starting a run clears the goal box, so a new goal is needed to run
-        // again (iPhone: the Ask box follows the run up until New question).
-        if isPhone {
-            app.buttons["agentNewQuestion"].tap()
-            XCTAssertTrue(goal.waitForExistence(timeout: 10))
-        }
-        XCTAssertFalse(runButton.isEnabled)
-        goal.tap()
-        goal.typeText("Another goal")
-        XCTAssertTrue(runButton.isEnabled)
+        let aiButton = app.buttons["aiButton"]
+        XCTAssertTrue(waitForBarItem(aiButton, timeout: 20), "The bar's AI button is missing.")
+        tapBarItem(aiButton)
+        // The one Agent conversation: prompt field, model menu, More menu.
+        XCTAssertTrue(any(app, "agentPromptInput").waitForExistence(timeout: 10), "The drawer did not open.")
+        XCTAssertTrue(app.buttons["agentModelMenu"].exists)
+        let watchLabel = "Watch Topic"
+        let unwatchLabel = "Unwatch Topic"
 
         // Watch the current topic from the More menu (grant notifications if asked).
-        selectMode("This topic", picker: "Summary", in: app)
-        if isPhone {
-            // The Ask box keeps the typed text across the scope switch.
-            let chat = app.textFields["chatInput"]
-            XCTAssertTrue(chat.waitForExistence(timeout: 10))
-            XCTAssertEqual(chat.value as? String, "Another goal", "Switching the scope lost the typed text.")
-        }
         app.buttons["assistantMoreMenu"].tap()
         // Menu items may lose their identifiers; match the labels too.
         let watchButton = app.buttons.matching(NSPredicate(
@@ -388,24 +161,16 @@ final class PhysicalDeviceSmokeTests: DCUITestCase {
         app.buttons["assistantMoreMenu"].tap()
         XCTAssertTrue(watchButton.waitForExistence(timeout: 10))
         XCTAssertEqual(watchButton.label, unwatchLabel)
-        if isPhone {
-            // Manage is the drawer menu's History for now.
-            app.buttons.matching(NSPredicate(
-                format: "identifier == 'openHistoryMenu' OR (label == 'History' AND identifier != 'agentHistoryMenu')"
-            )).firstMatch.tap()
-        } else {
-            dismissMenu(in: app)
-        }
+        // Manage is the drawer menu's History for now.
+        app.buttons.matching(NSPredicate(
+            format: "identifier == 'openHistoryMenu' OR (label == 'History' AND identifier != 'agentHistoryMenu')"
+        )).firstMatch.tap()
 
-        // Manage lists the watched topic and the agent run, grouped by forum.
-        if !isPhone { app.buttons["openHistory"].tap() }
+        // Manage lists the watched topic, grouped by forum.
         XCTAssertTrue(app.staticTexts["In progress"].waitForExistence(timeout: 10))
         let watchedRow = any(app, "watchedTopicRow-999999")
         XCTAssertTrue(reveal(watchedRow, in: app), "The watched topic is not listed in Manage.")
         XCTAssertTrue(app.buttons["checkWatchedTopics"].exists)
-        let runRow = any(app, "agentRunRow")
-        if !runRow.exists { reveal(runRow, in: app) }
-        XCTAssertTrue(runRow.exists, "The agent run is not listed in Manage.")
         // The Watched filter shows only watched topics; unwatch from the row.
         let watchedChip = app.buttons["historySegment-watching"]
         // The chips scroll sideways; the Watched chip may start off screen.
@@ -413,7 +178,6 @@ final class PhysicalDeviceSmokeTests: DCUITestCase {
         XCTAssertTrue(waitForHittable(watchedChip))
         watchedChip.tap()
         XCTAssertTrue(watchedRow.waitForExistence(timeout: 5))
-        XCTAssertFalse(any(app, "agentRunRow").exists)
         let unwatch = app.buttons["Unwatch"].firstMatch
         XCTAssertTrue(reveal(unwatch, in: app))
         unwatch.tap()
@@ -441,28 +205,7 @@ final class PhysicalDeviceSmokeTests: DCUITestCase {
         XCTAssertTrue(reveal(any(app, "watchAutoRefresh"), in: app))
         tapNavigationBack(in: app)
         tapNavigationBack(in: app)
-        if isPhone {
-            closeSettings(in: app)
-            return
-        }
-        XCTAssertTrue(app.buttons["backToTopic"].waitForExistence(timeout: 10))
-        app.buttons["backToTopic"].tap()
-        XCTAssertTrue(modePicker.waitForExistence(timeout: 10))
-    }
-
-    /// iPhone: the Ask box's scope menu (This topic / Whole forum); iPad:
-    /// the mode picker segment.
-    private func selectMode(_ title: String, picker segment: String, in app: XCUIApplication) {
-        guard isPhone else {
-            app.segmentedControls["assistantModePicker"].buttons[segment].tap()
-            return
-        }
-        let menu = any(app, "askScopeButton")
-        XCTAssertTrue(waitForHittable(menu), "The Ask box's scope button is missing.")
-        menu.tap()
-        let item = app.buttons[title].firstMatch
-        XCTAssertTrue(item.waitForExistence(timeout: 5), "\(title) is missing from the scope menu.")
-        item.tap()
+        closeSettings(in: app)
     }
 
     func testBrowserBarMinimizesOnScrollAndMovesToBottom() throws {
@@ -612,202 +355,19 @@ final class PhysicalDeviceSmokeTests: DCUITestCase {
     }
 
     func testAssistantPageStatesOffline() throws {
-        try skipUnlessPhone("The iPad workspace switcher, mode picker and Manage screen were replaced in Phase 8; IPadLayoutUITests covers the split and drawer layouts.")
-        // A page that isn't a Discourse forum: opens the browser agent panel.
+        try skipUnlessPhone("The old iPad shell is gone; IPadLayoutUITests covers the split and drawer layouts.")
+        // Without a provider the one Agent conversation shows the setup card.
         var app = launch(["-dc-sample", "-dc-no-provider", "-dc-page-state", "notForum"])
         showAssistantIfNeeded(in: app)
-        XCTAssertTrue(any(app, "agentPanel").waitForExistence(timeout: 20), "The browser agent panel is missing.")
+        XCTAssertTrue(any(app, "agentPanel").waitForExistence(timeout: 20), "The Agent conversation is missing.")
         XCTAssertTrue(any(app, "providerSetupCard").exists, "The provider card must show without a provider.")
         app.terminate()
 
-        // A forum's home page: Ask the forum.
+        // With a provider the same panel shows the prompt field and no setup card.
         app = launch(["-dc-sample", "-dc-page-state", "forumHome"])
         showAssistantIfNeeded(in: app)
-        XCTAssertTrue(any(app, "forumHomeState").waitForExistence(timeout: 20), "The forum-home card is missing.")
-        XCTAssertTrue(any(app, "forumHomeGoalInput").exists)
+        XCTAssertTrue(any(app, "agentPromptInput").waitForExistence(timeout: 20), "The prompt field is missing.")
         XCTAssertFalse(any(app, "providerSetupCard").exists)
-        app.terminate()
-
-        // A topic: Summary / Chat / Agent.
-        app = launch(["-dc-sample", "-dc-assistant-mode", "chat"])
-        showAssistantIfNeeded(in: app)
-        if isPhone {
-            // The drawer shows the summary and the conversation together.
-            XCTAssertTrue(any(app, "chatInput").waitForExistence(timeout: 20), "The drawer has no chat input.")
-            XCTAssertTrue(any(app, "summaryContent").exists, "The summary sits above the conversation.")
-            selectMode("Whole forum", picker: "Agent", in: app)
-            // The sample's finished run: the Ask box follows it up.
-            XCTAssertTrue(app.textFields["agentFollowUpInput"].waitForExistence(timeout: 10))
-            return
-        }
-        let modePicker = app.segmentedControls["assistantModePicker"]
-        XCTAssertTrue(modePicker.waitForExistence(timeout: 20))
-        XCTAssertTrue(wait(timeout: 5) { modePicker.buttons["Chat"].isSelected })
-        XCTAssertTrue(any(app, "assistantTopicTitle").exists)
-        modePicker.buttons["Agent"].tap()
-        XCTAssertTrue(app.textFields["agentGoalInput"].waitForExistence(timeout: 10))
-    }
-
-    func testLivePullPostResponsesSupportsExportAndChat() throws {
-        #if targetEnvironment(simulator)
-        throw XCTSkip("Live pull verification runs only on a physical device.")
-        #else
-        let app = try launchOnForum(extra: ["-ui-test-pull-mode"])
-
-        try selectForumTopic(in: app)
-
-        app.buttons["assistantMoreMenu"].tap()
-        let pullButton = app.buttons["pullPost"]
-        XCTAssertTrue(pullButton.waitForExistence(timeout: 10))
-        XCTAssertTrue(pullButton.isEnabled)
-        pullButton.tap()
-
-        // The summary button is disabled while the pull runs and re-enables after.
-        let summaryButton = any(app, "suggestion-summarizeThread")
-        try waitForEnabled(
-            summaryButton,
-            in: app,
-            timeout: 180,
-            operation: "post pull"
-        )
-        XCTAssertFalse(app.descendants(matching: .any)["summaryContent"].exists)
-
-        app.buttons["assistantMoreMenu"].tap()
-        XCTAssertTrue(app.buttons["copyExport"].waitForExistence(timeout: 10))
-        XCTAssertTrue(app.buttons["shareExport"].exists)
-        XCTAssertTrue(app.buttons["exportExport"].exists)
-        app.buttons["exportOptions"].tap()
-        XCTAssertTrue(app.switches["excludeTitleURL"].waitForExistence(timeout: 10))
-        XCTAssertTrue(app.switches["excludeTitleURL"].isEnabled)
-        XCTAssertFalse(app.switches["excludeSummary"].isEnabled)
-        XCTAssertTrue(app.switches["excludePostResponses"].isEnabled)
-        XCTAssertFalse(app.switches["excludeChatHistory"].isEnabled)
-        app.buttons["Done"].tap()
-
-        app.buttons["assistantMoreMenu"].tap()
-        XCTAssertTrue(app.buttons["Post & responses"].waitForExistence(timeout: 10))
-        app.buttons["Post & responses"].tap()
-        let postDisclosure = app.descendants(matching: .any)["postResponsesDisclosure"].firstMatch
-        XCTAssertTrue(postDisclosure.waitForExistence(timeout: 10))
-        XCTAssertFalse(app.descendants(matching: .any)["pulledPostContent"].exists)
-        postDisclosure.tap()
-        let pulledPost = app.descendants(matching: .any)["pulledPostContent"].firstMatch
-        XCTAssertTrue(pulledPost.waitForExistence(timeout: 10))
-        app.buttons["Done"].tap()
-
-        app.buttons["assistantMoreMenu"].tap()
-        let copyButton = app.buttons["copyExport"]
-        XCTAssertTrue(copyButton.waitForExistence(timeout: 10))
-        copyButton.tap()
-
-        app.segmentedControls["assistantModePicker"].buttons["Chat"].tap()
-        let chatInput = app.textFields["chatInput"]
-        XCTAssertTrue(chatInput.waitForExistence(timeout: 20))
-        chatInput.tap()
-        chatInput.typeText("What is the main point of this pulled discussion?")
-        let sendButton = app.buttons["Send question"]
-        XCTAssertTrue(sendButton.waitForExistence(timeout: 10))
-        XCTAssertTrue(sendButton.isEnabled)
-        sendButton.tap()
-
-        let assistantMessage = app.descendants(matching: .any)[
-            "chatMessage-assistant"
-        ].firstMatch
-        try waitForAIResult(
-            assistantMessage,
-            in: app,
-            timeout: 600,
-            operation: "pull-only chat"
-        )
-        #endif
-    }
-
-    func testLayoutAdaptsWhenRotatedAfterLaunch() throws {
-        try skipUnlessPhone("The iPad workspace switcher, mode picker and Manage screen were replaced in Phase 8; IPadLayoutUITests covers the split and drawer layouts.")
-        try skipUnlessPad("The side-by-side layout is an iPad feature.")
-        let app = launch(["-dc-open", Self.forumLatest])
-
-        let workspace = app.segmentedControls["workspacePicker"]
-        XCTAssertTrue(workspace.waitForExistence(timeout: 20))
-
-        XCUIDevice.shared.orientation = .landscapeRight
-        XCTAssertTrue(
-            app.segmentedControls["assistantModePicker"].waitForExistence(timeout: 10),
-            "The assistant did not appear after rotating to landscape."
-        )
-        XCTAssertTrue(app.webViews.firstMatch.waitForExistence(timeout: 10))
-        XCTAssertTrue(waitForGone(workspace, timeout: 5))
-
-        XCUIDevice.shared.orientation = .portrait
-        XCTAssertTrue(
-            workspace.waitForExistence(timeout: 10),
-            "The workspace switcher did not return after rotating to portrait."
-        )
-    }
-
-    func testSelectingForumPostActivatesTopicPanel() throws {
-        try skipUnlessPhone("The iPad workspace switcher, mode picker and Manage screen were replaced in Phase 8; IPadLayoutUITests covers the split and drawer layouts.")
-        let app = try launchOnForum()
-
-        try selectForumTopic(in: app)
-
-        let summaryButton = any(app, "suggestion-summarizeThread")
-        XCTAssertTrue(summaryButton.isEnabled)
-        XCTAssertTrue(any(app, "assistantTopicTitle").exists)
-        XCTAssertFalse(any(app, "notForumState").exists)
-        XCTAssertFalse(any(app, "forumHomeState").exists)
-    }
-
-    func testLiveSummaryAndChat() throws {
-        #if targetEnvironment(simulator)
-        throw XCTSkip("Live API verification runs only on a physical device.")
-        #else
-        let app = try launchOnForum()
-        try selectForumTopic(in: app)
-
-        let summaryButton = any(app, "suggestion-summarizeThread")
-        XCTAssertTrue(summaryButton.waitForExistence(timeout: 10))
-        XCTAssertTrue(
-            summaryButton.isEnabled,
-            "The live AI test must not continue until a forum topic is selected."
-        )
-        summaryButton.tap()
-
-        let summary = app.descendants(matching: .any)["summaryContent"].firstMatch
-        try waitForAIResult(
-            summary,
-            in: app,
-            timeout: 600,
-            operation: "summary"
-        )
-        attachText(summary.label, named: "Live summary response")
-
-        let modePicker = app.segmentedControls["assistantModePicker"]
-        XCTAssertTrue(modePicker.waitForExistence(timeout: 10))
-        modePicker.buttons["Chat"].tap()
-
-        let chatInput = app.textFields["chatInput"]
-        XCTAssertTrue(chatInput.waitForExistence(timeout: 20))
-        chatInput.tap()
-        chatInput.typeText(
-            "In one short sentence, state the main point of this forum discussion."
-        )
-        let sendButton = app.buttons["Send question"]
-        XCTAssertTrue(sendButton.waitForExistence(timeout: 10))
-        XCTAssertTrue(sendButton.isEnabled)
-        sendButton.tap()
-
-        let assistantMessage = app.descendants(matching: .any)[
-            "chatMessage-assistant"
-        ].firstMatch
-        try waitForAIResult(
-            assistantMessage,
-            in: app,
-            timeout: 600,
-            operation: "chat"
-        )
-        attachText(assistantMessage.label, named: "Live chat response")
-        #endif
     }
 
     func testLiveBrowserAgentDarkAndHideSidebar() throws {

@@ -3389,23 +3389,6 @@
         }
       }
     },
-    "Are there any warnings or important caveats?" : {
-      "comment" : "Chat question filled in by the Warnings chip",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "有什么警告或需要特别注意的地方吗？"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "有什麼警告或需要特別注意的地方嗎？"
-          }
-        }
-      }
-    },
     "Ask" : {
       "comment" : "Short form of the “Ask the forum” assistant mode, for narrow switchers",
       "localizations" : {
@@ -3484,23 +3467,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "問問這個"
-          }
-        }
-      }
-    },
-    "Ask anything about this page…" : {
-      "comment" : "Placeholder of the Agent's input box",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "询问关于此页面的任何问题…"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "詢問關於此頁面的任何問題…"
           }
         }
       }
@@ -6327,23 +6293,6 @@
         }
       }
     },
-    "Disagreements" : {
-      "comment" : "Chat suggestion chip",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "分歧意见"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "不同意見"
-          }
-        }
-      }
-    },
     "Discard changes" : {
       "comment" : "Destructive confirmation action to discard unsaved script edits",
       "localizations" : {
@@ -8931,23 +8880,6 @@
         }
       }
     },
-    "Key takeaways" : {
-      "comment" : "Chat suggestion chip",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "关键要点"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "重點整理"
-          }
-        }
-      }
-    },
     "Keys" : {
       "comment" : "Settings › iCloud Sync section header",
       "localizations" : {
@@ -9125,23 +9057,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "稍後"
-          }
-        }
-      }
-    },
-    "Latest replies" : {
-      "comment" : "Chat suggestion chip",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "最新回复"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "最新回覆"
           }
         }
       }
@@ -16046,23 +15961,6 @@
         }
       }
     },
-    "Stopped." : {
-      "comment" : "First-run step 3: the user stopped the Agent",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已停止。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已停止。"
-          }
-        }
-      }
-    },
     "Stored securely in iCloud Keychain" : {
       "localizations" : {
         "zh-Hans" : {
@@ -16992,23 +16890,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在測試連線…"
-          }
-        }
-      }
-    },
-    "That took more steps than allowed. Try something smaller." : {
-      "comment" : "First-run step 3: the Agent hit its step limit",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "这超出了允许的步数。试试更小的任务。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "這超出了允許的步數。試試更小的任務。"
           }
         }
       }
@@ -19884,23 +19765,6 @@
         }
       }
     },
-    "Warnings" : {
-      "comment" : "Chat suggestion chip",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "注意事项"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "注意事項"
-          }
-        }
-      }
-    },
     "Watch a topic from the Assistant menu, or let the agent watch one." : {
       "localizations" : {
         "zh-Hans" : {
@@ -20106,40 +19970,6 @@
         }
       }
     },
-    "What are the key takeaways?" : {
-      "comment" : "Chat question filled in by the Key takeaways chip",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "有哪些重点结论？"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "有哪些重點結論？"
-          }
-        }
-      }
-    },
-    "What do the latest replies add?" : {
-      "comment" : "Chat question filled in by the Latest replies chip",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "最新的回复补充了什么？"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "最新的回覆補充了什麼？"
-          }
-        }
-      }
-    },
     "What do you want to ask?" : {
       "localizations" : {
         "zh-Hans" : {
@@ -20218,23 +20048,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "有新回覆時，使用你的摘要模型"
-          }
-        }
-      }
-    },
-    "Where do people disagree, and why?" : {
-      "comment" : "Chat question filled in by the Disagreements chip",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "大家在哪些地方意见不一，为什么？"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "大家在哪些地方意見不同，為什麼？"
           }
         }
       }
@@ -20335,23 +20148,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "執行中"
-          }
-        }
-      }
-    },
-    "Working on it…" : {
-      "comment" : "First-run step 3: the Agent is working",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在处理…"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在處理…"
           }
         }
       }

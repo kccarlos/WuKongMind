@@ -132,13 +132,6 @@ extension AppModel {
         }
     }
 
-    func applyChatSuggestion(_ question: String) {
-        if activeChatEdit != nil {
-            cancelEditChat()
-        }
-        drafts.chat = question
-    }
-
     /// Runs `change`; when it moves the box to another draft, the typed text
     /// moves along (unless the other draft already has text of its own).
     private func carryingAskText(_ change: () -> Void) {
@@ -193,30 +186,6 @@ extension AppModel {
 
 extension EnvironmentValues {
     @Entry var composerBottomInset: CGFloat = 0
-}
-
-enum AskBox {
-    /// Kept for legacy `AppModel.applyChatSuggestion` engine tests until One loop.
-    static var suggestions: [(String, String)] {
-        [
-            (
-                String(localized: "Key takeaways", comment: "Chat suggestion chip"),
-                String(localized: "What are the key takeaways?", comment: "Chat question filled in by the Key takeaways chip")
-            ),
-            (
-                String(localized: "Warnings", comment: "Chat suggestion chip"),
-                String(localized: "Are there any warnings or important caveats?", comment: "Chat question filled in by the Warnings chip")
-            ),
-            (
-                String(localized: "Latest replies", comment: "Chat suggestion chip"),
-                String(localized: "What do the latest replies add?", comment: "Chat question filled in by the Latest replies chip")
-            ),
-            (
-                String(localized: "Disagreements", comment: "Chat suggestion chip"),
-                String(localized: "Where do people disagree, and why?", comment: "Chat question filled in by the Disagreements chip")
-            )
-        ]
-    }
 }
 
 /// The unified WukongMind composer (`design-system/components/Composer`):

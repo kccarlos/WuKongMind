@@ -24,6 +24,9 @@ enum PageSuggestion: String, CaseIterable, Identifiable {
     case summarizePage
     case makeDark
     case removeDistractions
+    /// First-run step 3 (`AppModel.firstRunSuggestions`).
+    case tryReadable
+    case tryHideClutter
 
     var id: String { rawValue }
 
@@ -38,6 +41,8 @@ enum PageSuggestion: String, CaseIterable, Identifiable {
         case .summarizePage: String(localized: "Summarize this page", comment: "Suggestion above the Agent composer on an ordinary web page")
         case .makeDark: String(localized: "Make it dark", comment: "Suggestion above the Agent composer on an ordinary web page")
         case .removeDistractions: String(localized: "Remove distractions", comment: "Suggestion above the Agent composer on an ordinary web page")
+        case .tryReadable: AppModel.firstRunSuggestions[0]
+        case .tryHideClutter: AppModel.firstRunSuggestions[1]
         }
     }
 
