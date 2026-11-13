@@ -644,6 +644,12 @@ struct AssistantPanel: View {
                 onStop: { browserAgent.stop() }
             )
         }
+        // A question kept for later (Shortcuts, examples) lands in the composer.
+        .onChange(of: app.drafts.goal, initial: true) { _, goal in
+            guard !goal.isEmpty else { return }
+            agentDraft = goal
+            app.drafts.goal = ""
+        }
         .padding(.horizontal, 14)
         .padding(.top, 8)
         .padding(.bottom, 10 + (isKeyboardVisible ? 0 : bottomInset))

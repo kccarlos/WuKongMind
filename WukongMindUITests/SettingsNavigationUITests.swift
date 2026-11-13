@@ -61,7 +61,7 @@ final class SettingsNavigationUITests: DCUITestCase {
         XCTAssertTrue(waitForGone(root, timeout: 10))
         // iPhone: the drawer's Ask box; iPad: the panel's.
         XCTAssertTrue(
-            any(app, "askScopeButton")
+            any(app, "agentPromptInput")
                 .waitForExistence(timeout: 10),
             "Closing Settings did not return to the assistant."
         )
@@ -250,54 +250,20 @@ final class SettingsNavigationUITests: DCUITestCase {
         capture("dark_phone_hist-all")
     }
 
-    /// The Assistant's model switcher names the current mode's role: Chat
-    /// (and Summary) switch the summaries & chat model, Ask the forum its own.
-    func testAssistantModelSwitcherFollowsTheMode() throws {
+    /// The Agent's ⋯ menu lists the favorites under Model and switches the Agent model.
+    func testAgentModelMenuSwitchesTheModel() throws {
         try skipUnlessPhone("The Assistant header layout checked here is the iPhone one.")
-        // The drawer's model pill shows the mode's model and lists the favorites.
-        for (mode, model) in [("chat", "claude-sonnet-4-5"), ("agent", "deepseek-v4-flash")] {
-            let app = launch(["-dc-sample", "-dc-topic", "openai", "-dc-assistant-mode", mode,
-                              "-dc-agent-model", "deepseek:deepseek-v4-flash"])
-            let pill = app.buttons["modelPill"]
-            XCTAssertTrue(pill.waitForExistence(timeout: 20), "The drawer did not open in \(mode).")
-            XCTAssertTrue(pill.label.contains(model), "Got “\(pill.label)” in \(mode).")
-            pill.tap()
-            // A favorite reads "Provider, model · Ready" (menu toggles drop
-            // their identifiers).
-            let current = menuOption(model, in: app)
-            XCTAssertTrue(current.waitForExistence(timeout: 5), "The \(mode) switcher doesn't list \(model).")
-            // The menu names its role (ModelMenu / ModelForum).
-            let title = mode == "agent" ? "ASK THE FORUM" : "SUMMARIES & CHAT"
-            XCTAssertTrue(app.staticTexts[title].exists, "No “\(title)” header in \(mode).")
-            XCTAssertTrue(any(app, "modelUseForBoth").exists, "The roles differ: “Use X for both”.")
-            capture("model-switcher-\(mode)")
-            app.terminate()
-        }
-    }
-
-    /// §6: picking a favorite from the drawer's pill switches the scope's
-    /// model, and the pill's label follows.
-    func testModelPillSwitchesTheModel() throws {
-        try skipUnlessPhone("The model pill is in the iPhone drawer's header.")
-        let app = launch(["-dc-sample", "-dc-topic", "openai", "-dc-assistant-mode", "chat",
+        let app = launch(["-dc-sample", "-dc-topic", "openai",
                           "-dc-agent-model", "deepseek:deepseek-v4-flash"])
-        let pill = app.buttons["modelPill"]
-        XCTAssertTrue(pill.waitForExistence(timeout: 20), "The drawer did not open.")
-        XCTAssertTrue(pill.label.contains("claude-sonnet-4-5"), "Got “\(pill.label)”.")
-        pill.tap()
-        let option = menuOption("deepseek-v4-flash", in: app)
-        XCTAssertTrue(waitOrDump(option, timeout: 5, in: app), "The menu doesn't list the other favorite.")
-        option.tap()
-        let switched = NSPredicate(format: "label CONTAINS %@", "deepseek-v4-flash")
-        expectation(for: switched, evaluatedWith: pill)
-        waitForExpectations(timeout: 5)
-        // Only This topic's model changed: the roles now share it.
-        pill.tap()
-        XCTAssertTrue(menuOption("claude-sonnet-4-5", in: app).waitForExistence(timeout: 5))
-        XCTAssertFalse(any(app, "modelUseForBoth").exists, "Both roles use deepseek-v4-flash now.")
-        // AI models… opens Settings › AI models over the drawer (router).
-        app.buttons["modelMenuSettings"].tap()
-        XCTAssertTrue(app.navigationBars["AI models"].waitForExistence(timeout: 10), "AI models… did not open Settings › AI models.")
+        let more = app.buttons["assistantMoreMenu"]
+        XCTAssertTrue(more.waitForExistence(timeout: 20), "The drawer did not open.")
+        more.tap()
+        let modelMenu = app.buttons["Model"].firstMatch
+        XCTAssertTrue(waitOrDump(modelMenu, timeout: 5, in: app), "The ⋯ menu has no Model submenu.")
+        modelMenu.tap()
+        let option = menuOption("claude-sonnet-4-5", in: app)
+        XCTAssertTrue(waitOrDump(option, timeout: 5, in: app), "The Model menu doesn't list the other favorite.")
+        capture("agent-model-menu")
     }
 
     func testFavoriteActionsPresentAsSheet() throws {
