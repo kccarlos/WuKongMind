@@ -151,11 +151,9 @@ private struct HomeList: View {
                     .font(.body)
                     .foregroundStyle(DCTheme.inkFaint)
                     .accessibilityHidden(true)
-                TextField(
-                    "",
-                    text: $addressText,
-                    prompt: Text("Search or enter address", comment: "Home address field placeholder").foregroundStyle(DCTheme.inkFaint)
-                )
+                TextField(text: $addressText, prompt: Text("Search or enter address", comment: "Home address field placeholder").foregroundStyle(DCTheme.inkFaint)) {
+                    Text("Address", comment: "Accessibility label of Home's address field")
+                }
                 .textContentType(.URL)
                 .keyboardType(.webSearch)
                 .autocorrectionDisabled()
@@ -164,7 +162,6 @@ private struct HomeList: View {
                 .focused($addressFocused)
                 .onSubmit(submitAddress)
                 .foregroundStyle(DCTheme.ink)
-                .accessibilityLabel(Text("Address", comment: "Accessibility label of Home's address field"))
                 .accessibilityIdentifier("homeAddress")
                 if !addressText.isEmpty {
                     Button {

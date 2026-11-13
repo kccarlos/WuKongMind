@@ -127,9 +127,9 @@ enum HomeSites {
 /// The visits behind Home's Sites grid. Local to the device.
 @MainActor
 final class SiteVisitStore: ObservableObject {
-    static let defaultsKey = "wk.siteVisits"
+    nonisolated static let defaultsKey = "wk.siteVisits"
     /// Visits kept; the least visited, oldest ones go first.
-    static let maximumSites = 200
+    nonisolated static let maximumSites = 200
 
     @Published private(set) var visits: [SiteVisit]
     private let defaults: UserDefaults

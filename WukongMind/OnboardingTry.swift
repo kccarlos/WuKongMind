@@ -223,11 +223,12 @@ struct OnboardingTryPanel: View {
     private var composer: some View {
         HStack(spacing: DCTheme.spacingS) {
             TextField(
-                "",
                 text: $draft,
                 prompt: Text("Ask anything about this page…", comment: "Placeholder of the Agent's input box").foregroundStyle(DCTheme.inkFaint),
                 axis: .vertical
-            )
+            ) {
+                Text("Ask anything about this page…", comment: "Placeholder of the Agent's input box")
+            }
             .lineLimit(1...4)
             .focused($focused)
             .submitLabel(.send)

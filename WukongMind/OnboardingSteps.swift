@@ -314,11 +314,9 @@ struct OnboardingSitePage: View {
             Image(systemName: "magnifyingglass")
                 .foregroundStyle(DCTheme.inkFaint)
                 .accessibilityHidden(true)
-            TextField(
-                "",
-                text: $address,
-                prompt: Text("Search or enter address", comment: "Home address field placeholder").foregroundStyle(DCTheme.inkFaint)
-            )
+            TextField(text: $address, prompt: Text("Search or enter address", comment: "Home address field placeholder").foregroundStyle(DCTheme.inkFaint)) {
+                Text("Address", comment: "Accessibility label of Home's address field")
+            }
             .keyboardType(.webSearch)
             .textContentType(.URL)
             .autocorrectionDisabled()
@@ -330,7 +328,6 @@ struct OnboardingSitePage: View {
                 onSubmit()
             }
             .foregroundStyle(DCTheme.ink)
-            .accessibilityLabel(Text("Address", comment: "Accessibility label of Home's address field"))
             .accessibilityIdentifier("onboardingSiteAddress")
         }
         .padding(.horizontal, 14)
