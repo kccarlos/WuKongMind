@@ -179,7 +179,7 @@ Everything in [page-feedback.md](page-feedback.md) is in M3, including its "othe
   - `AgentBridge.pageSnapshot()` runs one fixed function in the isolated world.
   - The page-error counter is a small document-start script in the page world, which is where page errors and unhandled rejections fire. One extra page-world `evaluateJavaScript` reads it.
   - The code lives in `PageFeedback.swift` (new), together with `PageFeedbackRules`: the thresholds, as one set of constants, and the comparison.
-- **Page-changing tools** are `run_js` and `inject_css`. Each takes a snapshot before and after running and appends "Page changes: text 12,400 → 310; height 8,200 → 900", or "Page changes: none". On a warning, the result's first line is "The page may be broken: <reasons>". `navigate` and `reload_page` change the URL or reset the page, so they skip the comparison.
+- **Page-changing tools** are `run_js` and `inject_css`. Each takes a snapshot before and after running and appends "Page changes: text 12,400 → 310; height 8,200 → 900", or "Page changes: none". On a warning, the result's first line is "The page may be broken: <reasons>". `navigate` and `reload_page` change the URL or reset the page, so they skip the comparison. The warning and "Page changes" lines are added after saving or truncation, so the model always sees them and a saved file stays raw.
 - **Baseline.** The session stores the snapshot taken before the run's first page change. Verify before saving compares against it. If nothing changed the page this run, verify takes a snapshot of the current page first.
 - **Prompt.** `BrowserAgentPrompt.system` gains the spec's rule 4: on a warning, check with `read_page`, then fix or undo, and never report done straight away.
 - **Verify before saving** (`script_save`, `script_update`).
@@ -207,6 +207,7 @@ Everything in [page-feedback.md](page-feedback.md) is in M3, including its "othe
 | `wukong.fetch` | Runs (cookies on the current page's site only) | Unavailable |
 | `file_write`, form submits, everything else | Runs | Runs |
 
+- **Cookies to another site.** A `Cookie` header the model writes itself counts as `send_cookies`. A redirect that leaves the starting site drops the `Cookie` header, for `http_request` and `wukong.fetch` alike.
 - **"Site"** means the registrable domain, found with a small built-in rule: the last two labels of the host, or the last three when the second-to-last label is a common second-level label under a country code (`co.uk`, `com.au`, …). An unknown case counts as a different site, so it asks.
 - **No form-submit confirmation.** The owner removed it, so `ForumBrowser.swift`'s `decidePolicyFor` is untouched.
 - **How it asks.** The run pauses, and an inline card appears in the conversation under the pending ToolRow:
@@ -400,12 +401,14 @@ Seven implementation tasks and one acceptance task. Sizes count changed lines, t
 
 **Waves.** Tasks in a wave can run at the same time.
 - **Wave A: tasks 1, 3 and 6.**
+  - Page feedback starts here with task 3. Task 4 is in wave B because it needs task 3's snapshot and reload.
   - **Task 1 merges first**; tasks 3 and 6 rebase on it before they merge.
   - Shared edits sit in separate places:
-    - `ToolRegistry.swift`: task 1 changes `makeResult` and adds `save_to`; task 3 adds the snapshot wrapping in the `run_js` and `inject_css` handlers.
+    - `ToolRegistry.swift`: task 1 changes `makeResult` and adds `save_to`; task 3 adds the snapshot wrapping in the `run_js` and `inject_css` handlers. Both touch the `run_js` handler, a rebase point.
+    - `AgentBridge.swift`: task 1 adds the `wukong.files` route; task 3 adds `pageSnapshot`, `load` and `reload`. Another rebase point.
     - `BrowserAgent.swift`: task 1 adds the prompt's Workspace section and the pruner; task 3 the page-feedback prompt rule and the baseline; task 6 Codable and the session's store feeds.
     - The `browserAgent` initializer in `AppModel.swift`: task 1 changes `registryBuilder`; task 6 adds the stores.
-- **Wave B: tasks 2, 4 and 5.** Task 2 fills `ToolRegistry+Capture.swift` and edits `AgentBridge.swift`, `AIService.swift` and `PageFeedback.swift` (the screenshots on a warning). Task 4 edits the script tools in `ToolRegistry.swift`, `ScriptStore.swift`, `ScriptViews.swift` and `SuggestionRow.swift`. Task 5 fills `ToolRegistry+Network.swift` and edits `SummaryPanel.swift` (the card).
+- **Wave B: tasks 2, 4 and 5.** Task 2 fills `ToolRegistry+Capture.swift` and edits `AgentBridge.swift`, `AIService.swift` and `PageFeedback.swift` (the screenshots on a warning). Task 4 edits the script tools in `ToolRegistry.swift`, `ScriptStore.swift`, `ScriptViews.swift` and `SuggestionRow.swift`. Task 5 fills `ToolRegistry+Network.swift` and edits `SummaryPanel.swift` (the card), which task 4 also edits (sending the suggestion). The images on a failed verify are wired by whichever of tasks 2 and 4 merges second.
 - **Wave C: task 7.**
 - **Then task 8.**
 
@@ -443,14 +446,15 @@ Seven implementation tasks and one acceptance task. Sizes count changed lines, t
   - `AIService.swift`: images per provider family.
   - `PageFeedback.swift`: the before screenshot and the images on a warning or a failed verify.
   - Tests: `AgentPageCaptureTests.swift` (new), and `AgentLoopTests.swift` for the wire format per family through `RecordedToolURLProtocol`.
-- **Size:** about 600. If it runs over, split the warning screenshots into a small follow-up and tell the Assistant. **Depends on:** 1, and 3 (`PageFeedback.swift`).
+- **Size:** about 600. If it runs over, split the warning screenshots into a small follow-up and tell the Assistant. **Depends on:** 1, and 3, the page-feedback task (`PageFeedback.swift`), which only the warning screenshots need. If task 4 has merged first, this task also wires the images on a failed verify.
 - **Done when:**
   - on a fixture page that calls `fetch` and XHR, `network_log` returns both requests, with filtering and the limit working, and no cookie or auth headers;
   - `screenshot` returns a JPEG of at most 1,280 px, and `full_page` caps at 8 screens;
   - the wire-format tests show the image block for Anthropic, Gemini, OpenAI-compatible and Ollama;
   - the tool is hidden when `supportsImageInput` is false;
   - only the images of the 2 newest image-bearing results stay in the request;
-  - a warning on a fixture page carries before and after images for an image model, and none for a text-only one (test).
+  - a warning on a fixture page carries before and after images for an image model, and none for a text-only one (test);
+  - if task 4 merged first: a failed verify carries both images too (test).
 
 ### 3. M3 3: Page feedback 1: snapshots, warnings, `reload_page` and `navigate`
 - **Read:** design-m3.md: `navigate` and `reload_page`, Page feedback (Snapshot, Page-changing tools, Baseline, Prompt); [page-feedback.md](page-feedback.md) "How" 1 to 5.
@@ -462,7 +466,7 @@ Seven implementation tasks and one acceptance task. Sizes count changed lines, t
   - `ToolRegistry+Navigation.swift`.
   - `BrowserAgent.swift`: the prompt rule, and the run's baseline snapshot in the session.
   - Tests: `PageFeedbackTests.swift` (new, fixture HTML), `BrowserToolsTests.swift` (new).
-- **Size:** about 600. **Depends on:** nothing (merges after 1).
+- **Size:** about 600. If it runs over, stop and ask the Assistant before going on. **Depends on:** nothing (merges after 1).
 - **Done when:**
   - on fixture pages, emptying the body, halving the height, making the page unscrollable, removing the links and throwing a page error each give the warning line, and a change that alters nothing gives one line (tests);
   - the thresholds live in one place;
@@ -479,13 +483,14 @@ Seven implementation tasks and one acceptance task. Sizes count changed lines, t
   - `SuggestionRow.swift`: the "This page looks broken" entry.
   - `SummaryPanel.swift`: sending that suggestion and the fix request with their attached context.
   - Tests: `ScriptStoreTests.swift`, `PageFeedbackTests.swift`, and a recorded replay of the refused save.
-- **Size:** about 550. **Depends on:** 3.
+- **Size:** about 550. **Depends on:** 3. If task 2 has merged first, this task also wires the before and after images on a failed verify.
 - **Done when:**
   - saving a script that throws is refused with the reason, even with `confirm_change` (test);
   - a script that empties the page is refused, then saved with `confirm_change: true` (test);
   - three erroring loads in a row disable a script, a clean load resets the count, and This page shows the reason (tests);
   - **Undo** disables the just-saved script and reloads the page;
-  - the suggestion shows only with an active script and attaches the snapshot, the scripts and their errors.
+  - the suggestion shows only with an active script and attaches the snapshot, the scripts and their errors;
+  - if task 2 merged first: a failed verify carries both images (test).
 
 ### 5. M3 5: `http_request`, `cookies_get` and confirmations
 - **Read:** design-m3.md: `http_request`, `cookies_get`, Confirmations; Workspace, "Isolated-world helpers" (`wukong.fetch`).
@@ -502,7 +507,7 @@ Seven implementation tasks and one acceptance task. Sizes count changed lines, t
   - methods, headers, body, timeout, redirects, the 20 MB cap and binary bodies work;
   - `send_cookies` attaches httpOnly cookies, and `Set-Cookie` is neither returned nor stored;
   - `cookies_get` matches parent domains;
-  - with the switch off, `cookies_get` and a cross-site `send_cookies` still wait for Allow, and other requests run; with it on, every `http_request` waits; **Don't allow** returns the declined error (tests);
+  - with the switch off, `cookies_get` and a cross-site `send_cookies` (or a model-written `Cookie` header) still wait for Allow, a redirect off the site drops the cookies, and other requests run; with it on, every `http_request` waits; **Don't allow** returns the declined error (tests);
   - the site rule treats `a.example.org` and `b.example.org` as one site, and `example.co.uk` and `other.co.uk` as two (tests);
   - `wukong.fetch` waits for the per-forum pace between requests to one forum host, skips it when pacing is off, sends cookies only on the current page's site, and is unavailable with the switch on (tests with a fake clock).
 
