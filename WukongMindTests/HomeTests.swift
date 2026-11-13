@@ -237,10 +237,114 @@ final class HomeTests: XCTestCase {
         XCTAssertEqual(HomeSections.watching([watched("a", new: 0), watched("b", new: 2), watched("c", new: 7)]).map(\.topicID), ["c", "b"])
     }
 
-    func testSuggestionsOnlyWhileTheUserHasFewForums() {
-        XCTAssertTrue(HomeSections.showsSuggestions(forumCount: 0))
-        XCTAssertTrue(HomeSections.showsSuggestions(forumCount: 2))
-        XCTAssertFalse(HomeSections.showsSuggestions(forumCount: 3))
+    // MARK: Sites grid and Recent (design-unified.md §3)
+
+    private func forum(_ host: String, pinned: Bool = false, order: Int = 0, visited: TimeInterval? = nil) -> Forum {
+        Forum(
+            siteURL: "https://\(host)", kind: .discourse, name: host, isPinned: pinned, pinOrder: order,
+            lastVisitedAt: visited.map { Date(timeIntervalSince1970: $0) }
+        )
+    }
+
+    private func visit(_ host: String, count: Int, at time: TimeInterval, pinned: Bool = false, order: Int = 0, isForum: Bool = false) -> SiteVisit {
+        SiteVisit(
+            siteURL: "https://\(host)", name: host, isForum: isForum, visitCount: count,
+            lastVisitedAt: Date(timeIntervalSince1970: time), isPinned: pinned, pinOrder: order
+        )
+    }
+
+    func testSitesListPinnedFirstThenMostVisited() {
+        let tiles = HomeSites.tiles(
+            forums: [forum("a.example", visited: 50), forum("b.example", pinned: true, order: 1), forum("c.example", pinned: true, order: 0)],
+            visits: [
+                visit("a.example", count: 2, at: 50, isForum: true),
+                visit("docs.example", count: 9, at: 10),
+                visit("news.example", count: 3, at: 90),
+                visit("pinned-web.example", count: 1, at: 5, pinned: true)
+            ]
+        )
+        XCTAssertEqual(
+            tiles.map(\.host),
+            ["c.example", "b.example", "pinned-web.example", "docs.example", "news.example", "a.example"],
+            "pinned forums in their order, pinned sites, then by visit count"
+        )
+        XCTAssertEqual(tiles.filter(\.isForum).map(\.host), ["c.example", "b.example", "a.example"], "only forums carry the badge")
+    }
+
+    func testSitesBreakTiesByNewestVisitAndCountAnOldForumVisitOnce() {
+        let tiles = HomeSites.tiles(
+            forums: [forum("old-forum.example", visited: 100)],
+            visits: [visit("new.example", count: 1, at: 200), visit("older.example", count: 1, at: 50)]
+        )
+        XCTAssertEqual(tiles.map(\.host), ["new.example", "old-forum.example", "older.example"])
+        XCTAssertEqual(tiles.first { $0.host == "old-forum.example" }?.visitCount, 1)
+    }
+
+    func testSitesAreLimitedAndAForumIsNeverListedTwice() {
+        let many = (0..<20).map { visit("site\($0).example", count: $0 + 1, at: Double($0)) }
+        XCTAssertEqual(HomeSites.tiles(forums: [], visits: many).count, HomeSites.limit)
+        let tiles = HomeSites.tiles(forums: [forum("a.example")], visits: [visit("a.example", count: 4, at: 1, isForum: false)])
+        XCTAssertEqual(tiles.map(\.host), ["a.example"])
+    }
+
+    func testOriginAndNameOfAPage() {
+        XCTAssertEqual(HomeSites.originOf(URL(string: "https://WWW.Example.com/a/b?c=1")), "https://www.example.com")
+        XCTAssertEqual(HomeSites.originOf(URL(string: "http://127.0.0.1:8080/x")), "http://127.0.0.1:8080")
+        XCTAssertNil(HomeSites.originOf(URL(string: "about:blank")))
+        XCTAssertNil(HomeSites.originOf(URL(string: "file:///tmp/a.html")))
+        XCTAssertNil(HomeSites.originOf(nil))
+        XCTAssertEqual(HomeSites.displayName(forOrigin: "https://www.example.com"), "example.com")
+    }
+
+    func testTheAddressFieldOffersMatchingSites() {
+        let tiles = HomeSites.tiles(forums: [forum("meta.discourse.org"), forum("news.ycombinator.com")], visits: [])
+        XCTAssertEqual(HomeSites.matches(tiles, for: "disc").map(\.host), ["meta.discourse.org"])
+        XCTAssertEqual(HomeSites.matches(tiles, for: "  ").count, 0)
+        XCTAssertEqual(HomeSites.matches(tiles, for: "zzz").count, 0)
+    }
+
+    @MainActor
+    func testVisitsCountOncePerMinutePinAndPersist() throws {
+        let suite = UserDefaults(suiteName: "wk.test.\(UUID().uuidString)")!
+        let store = SiteVisitStore(defaults: suite, key: "visits")
+        let start = Date(timeIntervalSince1970: 1_000)
+        store.noteVisit(siteURL: "https://a.example", name: "a.example", isForum: false, at: start)
+        store.noteVisit(siteURL: "https://a.example", name: "a.example", isForum: false, at: start.addingTimeInterval(30))
+        XCTAssertEqual(store.visit(for: "https://a.example")?.visitCount, 1, "a second visit within a minute is the same visit")
+        store.noteVisit(siteURL: "https://a.example", name: "a.example", isForum: false, at: start.addingTimeInterval(90))
+        XCTAssertEqual(store.visit(for: "https://a.example")?.visitCount, 2)
+        store.noteVisit(siteURL: "https://b.example", name: "b.example", isForum: false, at: start)
+        store.setPinned(true, siteURL: "https://a.example")
+        store.setPinned(true, siteURL: "https://b.example")
+        XCTAssertEqual(store.visit(for: "https://b.example")?.pinOrder, 1, "a pinned site goes last")
+        store.setPinned(false, siteURL: "https://a.example")
+        XCTAssertEqual(SiteVisitStore(defaults: suite, key: "visits").visits, store.visits, "visits are kept on the device")
+        store.remove(siteURL: "https://b.example")
+        XCTAssertNil(store.visit(for: "https://b.example"))
+    }
+
+    func testRecentIsTheNewestThreeHistoryItems() {
+        func session(_ id: String, at time: TimeInterval) -> TopicSession {
+            var session = TopicSession(siteURL: "https://forum.example", topicID: id, url: URL(string: "https://forum.example/t/\(id)")!, title: "Topic \(id)")
+            session.summary = "S"
+            session.updatedAt = Date(timeIntervalSince1970: time)
+            return session
+        }
+        var run = AgentRun(siteURL: "https://forum.example", goal: "Which boxes do people regret?\nsecond line", provider: .ollama, model: "m")
+        run.createdAt = Date(timeIntervalSince1970: 5)
+        let items = HomeRecent.items(
+            sessions: [session("1", at: 10), session("2", at: 40), session("3", at: 20)],
+            runs: [run],
+            conversation: (prompt: "Make this page dark and hide the sidebar", host: "news.example.com", date: Date(timeIntervalSince1970: 30))
+        )
+        XCTAssertEqual(items.count, 3)
+        XCTAssertEqual(items[1].title, "Make this page dark and hide the sidebar")
+        XCTAssertTrue(items[1].isAgent)
+        XCTAssertEqual(items[1].target, .conversation)
+        XCTAssertFalse(items[0].isAgent)
+        XCTAssertEqual(items.map(\.id).first, "session-\(session("2", at: 40).topicKey)")
+        XCTAssertEqual(HomeRecent.firstWords(String(repeating: "word ", count: 40)).count < HomeRecent.titleLength + 2, true)
+        XCTAssertEqual(HomeRecent.firstWords("a\nb"), "a")
     }
 
     // MARK: The Today page over Home

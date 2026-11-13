@@ -36,15 +36,15 @@ enum DrawerHint {
         /// Spoken label of the icon-only button.
         var title: String {
             switch self {
-            case .summarize: String(localized: "Summarize this topic", comment: "Hint row over the bar on a topic without a summary, and its button")
+            case .summarize: String(localized: "Summarize this thread", comment: "Spoken label of the hint row's button on a thread without a summary")
             case .checkNew(let count): String(localized: "Check \(count) new replies", comment: "Button on the hint row over the bar; the placeholder is the number of replies since the summary")
-            case .setUpAI: String(localized: "Set up AI", comment: "Hint row over the bar when no AI provider is set up, and its button")
+            case .setUpAI: String(localized: "Choose a model", comment: "Hint row over the bar when no AI model is set up, and its button")
             }
         }
 
         var symbol: String {
             switch self {
-            case .summarize: "sparkles"
+            case .summarize: "text.alignleft"
             case .checkNew: "arrow.clockwise"
             case .setUpAI: "key.fill"
             }
@@ -68,7 +68,8 @@ enum DrawerHint {
         var text: String {
             switch action {
             case .checkNew(let count): String(localized: "\(count) new replies")
-            case .summarize, .setUpAI: action.title
+            case .summarize: String(localized: "Summarize this thread? · Open assistant", comment: "Hint row over the bar on a thread without a summary")
+            case .setUpAI: action.title
             }
         }
     }

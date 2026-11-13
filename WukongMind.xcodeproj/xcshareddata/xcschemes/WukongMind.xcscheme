@@ -14,7 +14,7 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "995B663064E055B9EE5DCDFB"
+               BlueprintIdentifier = "8D83C4C4FB7DB83D4A7E1F7E"
                BuildableName = "WukongMind.app"
                BlueprintName = "WukongMind"
                ReferencedContainer = "container:WukongMind.xcodeproj">
@@ -30,7 +30,7 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "995B663064E055B9EE5DCDFB"
+            BlueprintIdentifier = "8D83C4C4FB7DB83D4A7E1F7E"
             BuildableName = "WukongMind.app"
             BlueprintName = "WukongMind"
             ReferencedContainer = "container:WukongMind.xcodeproj">
@@ -41,7 +41,7 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "6191186EADB62B124C58E48D"
+               BlueprintIdentifier = "13E9044E7A4DA3D3A13B4226"
                BuildableName = "WukongMindTests.xctest"
                BlueprintName = "WukongMindTests"
                ReferencedContainer = "container:WukongMind.xcodeproj">
@@ -51,7 +51,7 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "121846C7D8D98AB871FF73DA"
+               BlueprintIdentifier = "824A7CDE22AD04518CD7E197"
                BuildableName = "WukongMindUITests.xctest"
                BlueprintName = "WukongMindUITests"
                ReferencedContainer = "container:WukongMind.xcodeproj">
@@ -80,7 +80,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "995B663064E055B9EE5DCDFB"
+            BlueprintIdentifier = "8D83C4C4FB7DB83D4A7E1F7E"
             BuildableName = "WukongMind.app"
             BlueprintName = "WukongMind"
             ReferencedContainer = "container:WukongMind.xcodeproj">
@@ -97,7 +97,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "995B663064E055B9EE5DCDFB"
+            BlueprintIdentifier = "8D83C4C4FB7DB83D4A7E1F7E"
             BuildableName = "WukongMind.app"
             BlueprintName = "WukongMind"
             ReferencedContainer = "container:WukongMind.xcodeproj">

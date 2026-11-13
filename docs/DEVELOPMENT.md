@@ -293,7 +293,7 @@ runs are labeled as Apple Intelligence runs and it is the selected provider.
 | Argument | Effect |
 | --- | --- |
 | `-dc-reset` | Shows the walkthrough again (no data deleted). |
-| `-dc-onboarding-step <n\|name>` | Opens the walkthrough on a step: 1-based number, or `welcome`, `features`, `provider`, `forums`, `sync`, `share`, `privacy`, `done`. |
+| `-dc-onboarding-step <n\|name>` | Opens the first run on a step: 1-based number, or `model`, `site`, `tryAgent`. Step 3 (`tryAgent`) runs over the browser, not in the cover. |
 | `-dc-scroll-bottom`, `-dc-focus` | Walkthrough: scroll to the bottom / focus the key field. |
 | `-dc-skip-onboarding` | Marks the walkthrough done. |
 | `-dc-show-settings <page>` | Presents Settings: `root`, or a page: `provider` (AI models), `sync`, `forums`, `summaries`, `agent`, `watched`, `digest`, `browser`, `data`, `help`, `sharing`, `about`, `acknowledgements`. |

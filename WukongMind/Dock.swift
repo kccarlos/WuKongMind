@@ -3,8 +3,8 @@ import SwiftUI
 // The Dock (spec §8): the one floating layer at the bottom of the page. The
 // layer for each state is chosen by `BottomLayer.resolve`; the voice Dock, the
 // "Answer ready" row, the podcast row and the drawer's hint row share one
-// glass shape, so they morph into each other (`glassEffectID` on iOS 26+,
-// `matchedGeometryEffect` before).
+// glass shape. They change in place: no morph between them, no transition
+// (design-unified.md §6, "Motion").
 
 // MARK: - Which layer shows
 
@@ -202,22 +202,18 @@ extension AppModel {
 
 /// The Dock's glass (iOS 26+) or material, one shape for every state.
 private struct DockSurface: ViewModifier {
-    let namespace: Namespace.ID
-
     func body(content: Content) -> some View {
         let shape = RoundedRectangle(cornerRadius: DCTheme.cardCornerRadius, style: .continuous)
         if #available(iOS 26.0, *) {
             content
                 .background(DCTheme.surface.opacity(0.95), in: shape)
                 .glassEffect(.regular, in: shape)
-                .glassEffectID("dock", in: namespace)
         } else {
             content
                 .background(DCTheme.surface.opacity(0.95), in: shape)
                 .background(.regularMaterial, in: shape)
                 .overlay { shape.stroke(DCTheme.border) }
                 .shadow(color: .black.opacity(0.12), radius: 10, y: 4)
-                .matchedGeometryEffect(id: "dock", in: namespace)
         }
     }
 }
@@ -247,14 +243,8 @@ struct DockLayer: View {
     let showsHome: Bool
     /// Split layout, panel hidden: the Dock floats bottom-right.
     var floatsTrailing = false
-    @Namespace private var namespace
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var layer: BottomLayer { app.bottomLayer }
-
-    private var transition: AnyTransition {
-        reduceMotion ? .opacity : .opacity.combined(with: .scale(scale: 0.96, anchor: .bottom))
-    }
 
     var body: some View {
         VStack(alignment: floatsTrailing ? .trailing : .center, spacing: DCTheme.spacingS) {
@@ -267,29 +257,24 @@ struct DockLayer: View {
                 switch layer {
                 case .dock:
                     VoiceDock(voice: voice, player: podcast.player)
-                        .modifier(DockSurface(namespace: namespace))
-                        .transition(transition)
+                        .modifier(DockSurface())
                 case .barWithAnswerReady:
                     DockAnswerReadyRow(app: app)
-                        .modifier(DockSurface(namespace: namespace))
-                        .transition(transition)
+                        .modifier(DockSurface())
                 case .barWithPodcast:
                     if let episode = podcast.episode {
                         DockPodcastRow(app: app, player: podcast.player, episode: episode)
-                            .modifier(DockSurface(namespace: namespace))
-                            .transition(transition)
+                            .modifier(DockSurface())
                     }
                 case .barWithHint(let hint):
                     DockHintRow(app: app, hint: hint)
-                        .modifier(DockSurface(namespace: namespace))
-                        .transition(transition)
+                        .modifier(DockSurface())
                 case .bar, .drawer:
                     EmptyView()
                 }
             }
             .frame(maxWidth: floatsTrailing ? 420 : DCTheme.contentMaxWidth)
         }
-        .animation(DCMotion.respecting(reduceMotion, .spring(duration: 0.38, bounce: 0.14)), value: layer)
     }
 }
 
@@ -303,8 +288,6 @@ struct HomeRouteDockModifier: ViewModifier {
     @ObservedObject private var podcast: PodcastController
     @ObservedObject private var player: PodcastPlayer
     let route: HomeRoute
-    @Namespace private var namespace
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     init(app: AppModel, route: HomeRoute) {
         self.app = app
@@ -330,22 +313,16 @@ struct HomeRouteDockModifier: ViewModifier {
 
     private var floatsTrailing: Bool { router.splitLayout == true }
 
-    private var transition: AnyTransition {
-        reduceMotion ? .opacity : .opacity.combined(with: .scale(scale: 0.96, anchor: .bottom))
-    }
-
     func body(content: Content) -> some View {
         content.safeAreaInset(edge: .bottom, spacing: 0) {
             if showsVoice || showsPodcast {
                 DockContainer {
                     if showsVoice {
                         VoiceDock(voice: voice, player: player)
-                            .modifier(DockSurface(namespace: namespace))
-                            .transition(transition)
+                            .modifier(DockSurface())
                     } else if showsPodcast, let episode = podcast.episode {
                         DockPodcastRow(app: app, player: player, episode: episode)
-                            .modifier(DockSurface(namespace: namespace))
-                            .transition(transition)
+                            .modifier(DockSurface())
                     }
                 }
                 .frame(maxWidth: floatsTrailing ? 420 : DCTheme.contentMaxWidth)
@@ -353,8 +330,6 @@ struct HomeRouteDockModifier: ViewModifier {
                 .padding(.horizontal, DCTheme.spacingM)
                 .padding(.top, DCTheme.spacingXS)
                 .padding(.bottom, DCTheme.spacingS)
-                .animation(DCMotion.respecting(reduceMotion, .spring(duration: 0.38, bounce: 0.14)), value: showsVoice)
-                .animation(DCMotion.respecting(reduceMotion, .spring(duration: 0.38, bounce: 0.14)), value: showsPodcast)
             }
         }
     }
@@ -434,7 +409,7 @@ private struct DockHintRow: View {
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(DCTheme.onGold)
                     .frame(width: 36, height: 36)
-                    .background(DCTheme.gold, in: Circle())
+                    .background(DCTheme.gold, in: RoundedRectangle(cornerRadius: DCTheme.radiusMd, style: .continuous))
                     .overlay(alignment: .topTrailing) {
                         if let badge = hint.action.badge {
                             Text(verbatim: badge)

@@ -1,23 +1,29 @@
 import UIKit
 import XCTest
 
-/// Home (spec §7.1): the sections in order, the Today page pushed over it,
-/// forum tiles, pinning a suggestion, Add forum, and Home with no forums.
+/// Home, the start page (design-unified.md §3): the address field, Today,
+/// Sites (pinned first, then most visited), Recent, Continue reading; the
+/// Today page pushed over it; pinning from a tile's menu; Add site; and Home
+/// with no sites.
 final class HomeUITests: DCUITestCase {
-    func testAddForumIsLastTileAtStandardAndAccessibilitySizes() throws {
+    private func siteTiles(_ app: XCUIApplication) -> XCUIElementQuery {
+        app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'siteTile-'"))
+    }
+
+    func testAddIsLastTileAtStandardAndAccessibilitySizes() throws {
         for category in [UIContentSizeCategory.accessibilityExtraExtraExtraLarge, .large] {
             let app = launch(["-dc-sample", "-dc-forums-home", "-UIPreferredContentSizeCategoryName", category.rawValue],
                              orientation: isPhone ? .portrait : .landscapeLeft)
             openHome(in: app)
-            let last = app.buttons["pinnedForum-community.openai.com"]
-            XCTAssertTrue(reveal(last, in: app))
-            let add = app.buttons["homeAddForum"]
+            let first = siteTiles(app).firstMatch
+            XCTAssertTrue(reveal(first, in: app))
+            let add = app.buttons["homeAddSite"]
             XCTAssertTrue(reveal(add, in: app))
-            XCTAssertEqual(add.frame.width, last.frame.width, accuracy: 1, "Add forum must have a tile's width")
-            XCTAssertEqual(add.frame.height, last.frame.height, accuracy: 1, "Add forum must have a tile's height")
-            XCTAssertTrue(add.frame.minY > last.frame.minY + 1 || add.frame.minX > last.frame.minX + 1, "Add forum goes last")
+            XCTAssertEqual(add.frame.width, first.frame.width, accuracy: 1, "Add must have a tile's width")
+            XCTAssertEqual(add.frame.height, first.frame.height, accuracy: 1, "Add must have a tile's height")
+            XCTAssertTrue(add.frame.minY > first.frame.minY + 1 || add.frame.minX > first.frame.minX + 1, "Add goes last")
             let shot = XCTAttachment(screenshot: app.screenshot())
-            shot.name = "forum-grid-\(category.rawValue)"
+            shot.name = "site-grid-\(category.rawValue)"
             shot.lifetime = .keepAlways
             self.add(shot)
             add.tap()
@@ -26,88 +32,76 @@ final class HomeUITests: DCUITestCase {
         }
     }
 
-    /// On the sample with no forums (nothing is saved): pin a suggestion,
-    /// find it under Forums and in the switcher, then unpin it from the
-    /// tile's menu.
-    func testPinningASuggestedForumShowsItInTheSwitcherAndUnpinning() throws {
-        let app = launch(["-dc-sample", "-dc-forums-home", "-dc-no-forums"],
-                         orientation: isPhone ? .portrait : .landscapeLeft)
-        let home = openHome(in: app)
+    /// A tile's menu pins and unpins (buttons only), and offers Remove.
+    func testPinAndUnpinFromTheTileMenu() throws {
+        let app = launch(["-dc-sample", "-dc-forums-home"], orientation: isPhone ? .portrait : .landscapeLeft)
+        openHome(in: app)
+        let tile = siteTiles(app).firstMatch
+        XCTAssertTrue(reveal(tile, in: app), "No site tile.")
+        let identifier = tile.identifier
 
-        let pinButton = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'pinSuggested-'")).firstMatch
-        XCTAssertTrue(reveal(pinButton, in: app), "No suggested forum to pin.")
-        let host = String(pinButton.identifier.dropFirst("pinSuggested-".count))
-        pinButton.tap()
-
-        // Pinned: it leaves the suggestions and appears as a pinned tile.
-        XCTAssertTrue(waitForGone(app.buttons["pinSuggested-\(host)"], timeout: 5))
-        let tile = app.buttons["pinnedForum-\(host)"]
-        for _ in 0..<6 where !tile.exists { app.swipeDown() }
-        XCTAssertTrue(tile.waitForExistence(timeout: 10), "\(host) did not appear under Forums.")
-
-        // The forum menu's first item goes back to Home.
-        openForumMenu(in: app)
-        let homeItem = app.buttons["Home"]
-        XCTAssertTrue(homeItem.exists)
-        // Home closes the menu and keeps Home.
-        homeItem.tap()
-        XCTAssertTrue(waitForGone(homeItem, timeout: 5))
-        XCTAssertTrue(home.waitForExistence(timeout: 5))
-
-        // Unpin from the tile's menu: the tile goes, the suggestion is back.
-        XCTAssertTrue(waitForHittable(tile))
         tile.press(forDuration: 1.0)
+        let pin = app.buttons["Pin"]
         let unpin = app.buttons["Unpin"]
-        XCTAssertTrue(unpin.waitForExistence(timeout: 5), "The tile has no Unpin.")
-        unpin.tap()
-        XCTAssertTrue(waitForGone(tile, timeout: 5), "\(host) is still pinned.")
+        XCTAssertTrue(wait(timeout: 5) { pin.exists || unpin.exists }, "The tile's menu has no Pin or Unpin.")
+        XCTAssertTrue(app.buttons["Remove…"].exists || app.buttons["Remove"].exists, "The tile's menu has no Remove.")
+        let wasPinned = unpin.exists
+        let before = tile.frame
+        (wasPinned ? unpin : pin).tap()
+        XCTAssertTrue(waitForGone(wasPinned ? unpin : pin, timeout: 5))
+
+        // Pinned sites go first, the rest by visits: the tile moved.
+        let moved = any(app, identifier)
+        XCTAssertTrue(
+            wait(timeout: 5) { moved.exists && moved.frame != before },
+            "Tapping \(wasPinned ? "Unpin" : "Pin") did not move the tile."
+        )
     }
 
-    func testAddForumSheetOpensFromHome() throws {
-        let app = launch(["-dc-forums-home"])
+    func testAddSiteSheetOpensFromHome() throws {
+        let app = launch(["-dc-sample", "-dc-forums-home"])
 
         XCTAssertTrue(any(app, "home").waitForExistence(timeout: 20))
         // (iPad: in front of the assistant pane.)
         openHome(in: app)
-        // Under the pinned tiles, in the Forums section; with no forums
-        // (a fresh simulator) the Start with a forum card's button.
-        let first = app.buttons["homeAddFirstForum"]
-        let add = first.waitForExistence(timeout: 3) ? first : app.buttons["homeAddForum"]
+        let add = app.buttons["homeAddSite"]
         if !reveal(add, in: app) { attachTree(app) }
         add.tap()
-        XCTAssertTrue(app.navigationBars["Add Forum"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.navigationBars["Add Site"].waitForExistence(timeout: 10))
         XCTAssertTrue(any(app, "addForumAddress").exists)
         // Nothing typed yet: Add is disabled.
         XCTAssertFalse(app.buttons["addForumConfirm"].isEnabled)
-        app.navigationBars["Add Forum"].buttons["Cancel"].tap()
-        XCTAssertTrue(waitForGone(app.navigationBars["Add Forum"], timeout: 5))
+        app.navigationBars["Add Site"].buttons["Cancel"].tap()
+        XCTAssertTrue(waitForGone(app.navigationBars["Add Site"], timeout: 5))
     }
 
-    /// Today module, Continue reading, the pinned forums, Recent: top to
-    /// bottom (the sample: a digest being made, saved topics, three pinned
-    /// forums and recents).
+    /// Address field, Today, Sites, Recent, Continue reading: top to bottom
+    /// (the sample: a digest being made, saved topics, three forums and
+    /// summaries).
     func testHomeSectionsComeInTheFixedOrder() throws {
         let app = launch(["-dc-sample", "-dc-forums-home", "-dc-digest-sample"],
                          orientation: isPhone ? .portrait : .landscapeLeft)
         openHome(in: app)
 
+        let address = app.textFields["homeAddress"]
         let today = any(app, "homeToday")
+        let tile = siteTiles(app).firstMatch
         let continueRow = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'continueReading-'")).firstMatch
-        let tile = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'pinnedForum-'")).firstMatch
+        XCTAssertTrue(address.waitForExistence(timeout: 10), "No address field.")
         XCTAssertTrue(waitOrDump(today, timeout: 10, in: app), "No Today module.")
-        XCTAssertTrue(continueRow.waitForExistence(timeout: 5), "No Continue reading.")
-        XCTAssertTrue(tile.waitForExistence(timeout: 5), "No pinned forum tiles.")
-        XCTAssertLessThan(today.frame.minY, continueRow.frame.minY)
-        XCTAssertLessThan(continueRow.frame.minY, tile.frame.minY)
-        XCTAssertLessThanOrEqual(app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'continueReading-'")).count, 3)
+        XCTAssertTrue(tile.waitForExistence(timeout: 5), "No site tiles.")
+        XCTAssertLessThan(address.frame.minY, today.frame.minY)
+        XCTAssertLessThan(today.frame.minY, tile.frame.minY)
         XCTAssertTrue(app.buttons["homeHistory"].exists)
         XCTAssertTrue(app.buttons["homeSettings"].exists)
 
-        let recent = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'recentForum-'")).firstMatch
-        XCTAssertTrue(reveal(recent, in: app), "No Recent forums.")
+        let recent = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'recent-'")).firstMatch
+        XCTAssertTrue(reveal(recent, in: app), "No Recent items.")
         XCTAssertLessThan(tile.frame.minY, recent.frame.minY)
-        // Three forums or more: no suggestions.
-        XCTAssertFalse(app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'pinSuggested-'")).firstMatch.exists)
+        XCTAssertLessThanOrEqual(app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'recent-'")).count, 3)
+        XCTAssertTrue(reveal(continueRow, in: app), "No Continue reading.")
+        XCTAssertLessThan(recent.frame.minY, continueRow.frame.minY)
+        XCTAssertLessThanOrEqual(app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'continueReading-'")).count, 3)
     }
 
     /// The Today page is pushed over Home and Back returns to it.
@@ -128,54 +122,52 @@ final class HomeUITests: DCUITestCase {
         XCTAssertTrue(home.waitForExistence(timeout: 5))
     }
 
-    /// A pinned forum's tile opens the forum (Home goes).
-    func testForumTileOpensTheForum() throws {
+    /// A site tile opens the site (Home goes).
+    func testSiteTileOpensTheSite() throws {
         let app = launch(["-dc-sample", "-dc-forums-home"],
                          orientation: isPhone ? .portrait : .landscapeLeft)
         let home = openHome(in: app)
-        let tile = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'pinnedForum-'")).firstMatch
+        let tile = siteTiles(app).firstMatch
         XCTAssertTrue(reveal(tile, in: app))
         tile.tap()
-        XCTAssertTrue(waitForGone(home, timeout: 10), "The tile did not open its forum.")
+        XCTAssertTrue(waitForGone(home, timeout: 10), "The tile did not open its site.")
     }
 
-    /// No forums yet: Start with a forum, suggestions, the share card.
-    func testHomeWithNoForumsShowsSuggestions() throws {
+    /// No sites yet: the address field and three suggested sites; no Today,
+    /// no share card, no Add tile.
+    func testHomeWithNoSitesShowsTheAddressFieldAndSuggestedSites() throws {
         let app = launch(["-dc-sample", "-dc-forums-home", "-dc-no-forums"],
                          orientation: isPhone ? .portrait : .landscapeLeft)
         openHome(in: app)
-        XCTAssertTrue(app.buttons["homeAddFirstForum"].waitForExistence(timeout: 10))
-        XCTAssertTrue(app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'pinSuggested-'")).firstMatch.waitForExistence(timeout: 5))
-        XCTAssertTrue(reveal(any(app, "homeShareHowTo"), in: app))
+        XCTAssertTrue(app.textFields["homeAddress"].waitForExistence(timeout: 10))
+        let suggested = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'suggestedSite-'"))
+        XCTAssertTrue(suggested.firstMatch.waitForExistence(timeout: 5), "No suggested sites.")
+        XCTAssertLessThanOrEqual(suggested.count, 3)
+        XCTAssertFalse(any(app, "homeShareHowTo").exists, "the share card lives in Settings › Help now")
         XCTAssertFalse(any(app, "homeToday").exists, "no Today module without forums")
+        XCTAssertEqual(siteTiles(app).count, 0)
     }
 
-    /// Without a forum to search, Home's address bar asks for a forum address
-    /// rather than inviting search words.
-    func testHomeWithNoForumsPromptsForAddressOnly() throws {
+    /// Home has its own address field, so the bar shows no address capsule
+    /// while it shows; an address typed there opens the page and Home goes.
+    func testHomeAddressFieldOpensAnAddressAndTheBarHidesItsOwn() throws {
+        let server = FixtureWordPressServer()
+        try server.start()
+        defer { server.stop() }
         let app = launch(["-dc-sample", "-dc-forums-home", "-dc-no-forums", "-dc-page-state", "loading"])
-        openHome(in: app)
-        let title = app.buttons["browserTitle"]
-        XCTAssertTrue(waitForBarItem(title, timeout: 10))
-        XCTAssertEqual(title.label, "Enter a forum address")
-
-        tapBarItem(title)
-        let field = app.textFields["addressField"]
+        let home = openHome(in: app)
+        XCTAssertFalse(app.buttons["browserTitle"].exists, "The bar still shows its address capsule on Home.")
+        let field = app.textFields["homeAddress"]
         XCTAssertTrue(field.waitForExistence(timeout: 5))
-        field.typeText("swift concurrency\n")
-        let alert = app.alerts["Can’t open this address"]
-        XCTAssertTrue(alert.waitForExistence(timeout: 5))
-        XCTAssertFalse(
-            alert.staticTexts.matching(NSPredicate(format: "label CONTAINS 'current forum'")).firstMatch.exists,
-            "Alert mentions a current forum when none exists."
-        )
-        alert.buttons["OK"].tap()
+        field.tap()
+        field.typeText(server.baseURL + "\n")
+        XCTAssertTrue(waitForGone(home, timeout: 15), "The typed address did not open.")
     }
 
     func testDockRowsWrapToTwoLinesAtAccessibilitySize() throws {
         let ax5 = UIContentSizeCategory.accessibilityExtraExtraExtraLarge.rawValue
 
-        // 1. DockHintRow ("Summarize this topic") wraps onto two lines at AX5.
+        // 1. DockHintRow ("Summarize this thread?") wraps onto two lines at AX5.
         var app = launch(
             [
                 "-UIPreferredContentSizeCategoryName", ax5,

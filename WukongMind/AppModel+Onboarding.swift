@@ -3,7 +3,8 @@ import SwiftUI
 
 // MARK: - Onboarding and Settings support (UI engineer B)
 //
-// - `OnboardingStep`                 the walkthrough pages, in order (pure)
+// - `OnboardingStep`                 the three first-run steps, in order (pure)
+// - `FirstRunStage`                  step 3, the Agent's first run in the real browser
 // - `ProviderGuide`                  per-provider help text and key/download links (pure)
 // - `SettingsPage`                   Settings sub-pages (navigation values)
 // - `testProviderInline()`           tests the selected provider; returns an error message or nil
@@ -13,80 +14,48 @@ import SwiftUI
 // - `savedItemCount(forSiteURL:)`    how many saved items a forum has
 // - `applyOnboardingDebugArguments()` DEBUG launch arguments for screenshots
 
-/// One page of the first-launch walkthrough.
+/// The first-run steps (design-unified.md §5): pick a model, open a site, try
+/// the Agent once. Steps 1 and 2 are pages in a cover (a form sheet on iPad);
+/// step 3 runs over the real browser once the cover has closed.
 enum OnboardingStep: Int, CaseIterable, Identifiable, Hashable, Comparable {
-    case welcome
-    case provider
-    case forums
-    case daily
-    case privacy
-    case done
+    case model
+    case site
+    case tryAgent
 
     var id: Int { rawValue }
 
     static func < (lhs: OnboardingStep, rhs: OnboardingStep) -> Bool { lhs.rawValue < rhs.rawValue }
 
-    static var first: OnboardingStep { .welcome }
-    static var last: OnboardingStep { .done }
+    static var first: OnboardingStep { .model }
+    static var last: OnboardingStep { .tryAgent }
 
     var next: OnboardingStep? { OnboardingStep(rawValue: rawValue + 1) }
     var previous: OnboardingStep? { OnboardingStep(rawValue: rawValue - 1) }
     var isFirst: Bool { self == .first }
     var isLast: Bool { self == .last }
 
-    /// 0...1 position for the progress indicator.
-    var progress: Double {
-        Double(rawValue) / Double(Self.allCases.count - 1)
-    }
-
-    /// Short title used for accessibility ("Step 2 of 6: Connect an AI provider").
+    /// Short title used for accessibility ("Step 2 of 3: Open a site").
     var title: String {
         switch self {
-        case .welcome: String(localized: "Welcome")
-        case .provider: String(localized: "Connect an AI provider")
-        case .forums: String(localized: "Choose your forums")
-        case .daily: String(localized: "Your day")
-        case .privacy: String(localized: "Your privacy")
-        case .done: String(localized: "You’re all set")
+        case .model: String(localized: "Pick a model", comment: "First-run step 1")
+        case .site: String(localized: "Open a site", comment: "First-run step 2")
+        case .tryAgent: String(localized: "Try the Agent once", comment: "First-run step 3")
         }
-    }
-
-    /// "Step 3 of 6": matches the progress dots (which include Welcome and Done).
-    var stepLabel: String {
-        String(localized: "Step \(rawValue + 1) of \(Self.allCases.count)", comment: "Walkthrough progress, e.g. Step 3 of 6")
     }
 
     var accessibilityLabel: String {
-        String(localized: "Step \(rawValue + 1) of \(Self.allCases.count): \(title)", comment: "Walkthrough progress for VoiceOver: step number, total, step title")
+        String(localized: "Step \(rawValue + 1) of \(Self.allCases.count): \(title)", comment: "First-run progress for VoiceOver: step number, total, step title")
     }
 
-    /// Steps the user may skip past (optional setup).
-    var allowsSkip: Bool {
-        switch self {
-        case .provider, .forums, .daily: true
-        default: false
-        }
-    }
+    /// Steps shown as pages in the cover (step 3 is in the browser).
+    var isPage: Bool { self != .tryAgent }
 
-    /// Label of the primary button on this step.
-    var continueTitle: String {
-        switch self {
-        case .welcome: String(localized: "Get started")
-        case .done: String(localized: "Finish")
-        default: String(localized: "Continue")
-        }
-    }
-
-    /// Where the top "Skip" goes.
-    var skipTarget: OnboardingStep {
-        .done
-    }
+    /// Steps the user may go on from without doing them.
+    var allowsSkip: Bool { self == .model }
 
     /// Steps with text fields, where swiping between pages is disabled so
     /// editing text never flips the page.
-    var hasTextInput: Bool {
-        self == .provider || self == .forums
-    }
+    var hasTextInput: Bool { self == .model || self == .site }
 
     /// Parses a DEBUG `-dc-onboarding-step` value: a 1-based number or a name.
     static func parse(_ value: String) -> OnboardingStep? {
@@ -94,25 +63,37 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Hashable, Comparable {
             return OnboardingStep(rawValue: number - 1)
         }
         let lowered = value.lowercased()
-        return allCases.first { String(describing: $0) == lowered }
+        return allCases.first { String(describing: $0).lowercased() == lowered }
     }
 }
 
-extension AppModel {
-    /// The walkthrough's top Skip from `step` (`OnboardingStep.skipTarget`).
-    func skipOnboarding(from step: OnboardingStep) -> OnboardingStep {
-        step.skipTarget
-    }
+/// Step 3 while it runs over the browser (`AppModel.firstRun`).
+enum FirstRunStage: Equatable {
+    /// Two suggestions and the input box.
+    case prompts
+    /// The first run ended (or was skipped): the "You're set" card.
+    case done
+}
 
+extension AppModel {
     /// "Try It in Safari" on the Share how-to opens this page.
     nonisolated static let shareTryURL = URL(string: "https://meta.discourse.org/latest")!
+
+    /// The two suggestions of step 3 (design-unified.md §5): each is a sentence
+    /// the user could have typed.
+    nonisolated static var firstRunSuggestions: [String] {
+        [
+            String(localized: "Make this page easier to read", comment: "First-run step 3 suggestion"),
+            String(localized: "Hide everything but the article", comment: "First-run step 3 suggestion")
+        ]
+    }
 
     /// Whether the app is showing in Chinese (the walkthrough's forum order).
     nonisolated static var appLanguageIsChinese: Bool {
         Bundle.main.preferredLocalizations.first?.hasPrefix("zh") == true
     }
 
-    /// The walkthrough's forum suggestions: with a Chinese app language the
+    /// The walkthrough's site suggestions: with a Chinese app language the
     /// Chinese-language forums come first.
     nonisolated static func onboardingSuggestions(chineseFirst: Bool = appLanguageIsChinese) -> [SuggestedForum] {
         chineseFirst ? SiteRegistry.standard.adapters.flatMap(\.suggestedForums.chinese) + suggestedForums : suggestedForums
@@ -401,7 +382,7 @@ enum OnboardingDebug {
 
 extension AppModel {
     /// - `-dc-reset`               shows the walkthrough again (no data is deleted)
-    /// - `-dc-onboarding-step N`   walkthrough on step N (1-based) or a step name
+    /// - `-dc-onboarding-step N`   walkthrough on step N (1-based) or a step name (3: the Agent's first run over the browser)
     /// - `-dc-skip-onboarding`     marks the walkthrough done (UI tests)
     /// - `-dc-show-settings <page>` Settings on launch (root, provider, forums, …)
     /// - `-dc-panel-settings [page]` opens Settings (a sheet) once the page is up
@@ -414,6 +395,11 @@ extension AppModel {
         }
         if arguments.contains("-dc-reset") || OnboardingDebug.initialStep != nil {
             settings.hasCompletedOnboarding = false
+        }
+        // Step 3 runs over the browser, so it needs no walkthrough.
+        if OnboardingDebug.initialStep == .tryAgent {
+            settings.hasCompletedOnboarding = true
+            firstRun = .prompts
         }
         // The keychain probe's alert can't show over the walkthrough cover.
         if arguments.contains("-dc-skip-onboarding") || OnboardingDebug.settingsPage != nil

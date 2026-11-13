@@ -252,7 +252,7 @@ final class IPadLayoutUITests: DCUITestCase {
         let app = launch(["-dc-sample", "-dc-forums-home"], orientation: .landscapeLeft)
         let home = any(app, "home")
         XCTAssertTrue(waitOrDump(home, timeout: 20, in: app))
-        let tiles = app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH 'pinnedForum-'"))
+        let tiles = app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH 'siteTile-'"))
         let tile = tiles.firstMatch
         XCTAssertTrue(tile.waitForExistence(timeout: 10))
         let identifier = tile.identifier
@@ -269,7 +269,7 @@ final class IPadLayoutUITests: DCUITestCase {
         XCTAssertTrue(waitForGone(any(app, identifier), timeout: 5), "\(identifier) was not removed.")
     }
 
-    /// Sheets opened from Home (`PinnedForumsEditor`) and the assistant panel
+    /// Sheets opened from Home (Add site) and the assistant panel
     /// (`InstructionsSheet`) must route through `PresentationRouter` instead
     /// of competing local `.sheet` modifiers that drop routed presentations and
     /// leave `router.item` permanently jammed.
@@ -284,19 +284,19 @@ final class IPadLayoutUITests: DCUITestCase {
         app.typeKey(".", modifierFlags: .command)
         XCTAssertTrue(waitForGone(any(app, "settingsRoot"), timeout: 5))
 
-        let editPinned = app.buttons["editPinnedForums"]
-        XCTAssertTrue(waitForHittable(editPinned, timeout: 5))
-        editPinned.tap()
-        let pinnedDone = app.navigationBars["Pinned Forums"].buttons["Done"]
-        XCTAssertTrue(pinnedDone.waitForExistence(timeout: 5))
+        let addSite = app.buttons["homeAddSite"]
+        XCTAssertTrue(reveal(addSite, in: app))
+        addSite.tap()
+        let addDone = app.navigationBars["Add Site"].buttons["Cancel"]
+        XCTAssertTrue(addDone.waitForExistence(timeout: 5))
 
-        // Trigger ⌘, (`openPanelRoute(.settings)`) while Pinned Forums is up:
-        // routed through PresentationRouter, Settings replaces Pinned Forums
+        // Trigger ⌘, (`openPanelRoute(.settings)`) while Add Site is up:
+        // routed through PresentationRouter, Settings replaces Add Site
         // instead of stalling behind a competing local `.sheet` and jamming `router.item`.
         pressSettingsShortcut(app)
         XCTAssertTrue(
             any(app, "settingsRoot").waitForExistence(timeout: 5),
-            "⌘, was blocked while Pinned Forums sheet was open."
+            "⌘, was blocked while Add Site sheet was open."
         )
         app.typeKey(".", modifierFlags: .command)
         XCTAssertTrue(waitForGone(any(app, "settingsRoot"), timeout: 5))

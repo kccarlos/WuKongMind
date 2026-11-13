@@ -14,7 +14,7 @@ struct HistoryFeed {
             case .all: String(localized: "All", comment: "History segment: show everything")
             case .summaries: String(localized: "Summaries & chats", comment: "History segment")
             case .asks: String(localized: "Asks", comment: "History segment: Ask the forum runs")
-            case .watching: String(localized: "Watching", comment: "History segment: watched topics")
+            case .watching: String(localized: "Following", comment: "History segment: followed topics")
             }
         }
 
@@ -100,7 +100,6 @@ struct HistoryView: View {
     @State private var segment: Segment = .all
     /// nil shows every forum.
     @State private var forumFilter: String?
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     private static let selectedChipForeground = DCTheme.onGold
@@ -159,8 +158,6 @@ struct HistoryView: View {
             .listStyle(.insetGrouped)
             .scrollContentBackground(.hidden)
             .accessibilityIdentifier("historyView")
-            .animation(DCMotion.respecting(reduceMotion), value: segment)
-            .animation(DCMotion.respecting(reduceMotion), value: forumFilter)
         }
         .background(DCTheme.pageBackground)
         // The filtered forum was removed or its data cleared: back to All.
@@ -232,7 +229,7 @@ struct HistoryView: View {
                 let count = feed.count(item)
                 let label = item != .all && count > 0 ? "\(item.title) (\(count))" : item.title
                 Button {
-                    withAnimation(DCMotion.respecting(reduceMotion, DCMotion.quick)) { segment = item }
+                    segment = item
                 } label: {
                     Label {
                         Text(verbatim: label)
@@ -273,7 +270,7 @@ struct HistoryView: View {
         let selected = segment == item
         let chipShape = RoundedRectangle(cornerRadius: DCTheme.radiusSm, style: .continuous)
         return Button {
-            withAnimation(DCMotion.respecting(reduceMotion, DCMotion.quick)) { segment = item }
+            segment = item
         } label: {
             HStack(spacing: 3) {
                 Text(item.title)
