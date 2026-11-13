@@ -117,10 +117,15 @@ actor ForumRequestPacer {
         // The slot is held from here: give it back on any error.
         do {
             var state = hosts[host, default: HostState()]
-            let start = max(clock.now(), state.nextStart)
+            let now = clock.now()
+            let start = max(now, state.nextStart)
             state.nextStart = start + pace.minimumInterval
             hosts[host] = state
-            try await clock.sleep(until: start)
+            if start > now {
+                try await clock.sleep(until: start)
+            } else {
+                try Task.checkCancellation()
+            }
             return host
         } catch {
             release(host)
