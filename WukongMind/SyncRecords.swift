@@ -127,6 +127,7 @@ struct SyncRecord: Codable, Equatable {
 enum SyncSettings {
     static let deviceLocalKeys: Set<String> = [
         "browserBarPosition",
+        "agentDeveloperMode",
         "hasCompletedOnboarding",
         "syncAPIKeys",
         // The daily digest spends AI credits and schedules a background

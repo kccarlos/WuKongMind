@@ -156,6 +156,9 @@ enum ModelRole: String, Codable, CaseIterable, Identifiable, Sendable {
     case agent
     case browserAgent
 
+    /// The two roles shown in Settings › Models (One panel): Agent and Summaries.
+    static let uiRoles: [ModelRole] = [.browserAgent, .assistant]
+
     /// The two forum roles (onboarding and shared-role toggles).
     static let forumRoles: [ModelRole] = [.assistant, .agent]
 

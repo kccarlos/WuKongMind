@@ -13,62 +13,51 @@ struct SettingsRootView: View {
 
     var body: some View {
         Form {
-            Section {
-                summaryRow(.assistant)
-                summaryRow(.agent)
-                NavigationLink(value: SettingsPage.voice) {
-                    Label(SettingsRootSummary.voiceToday(
-                        seconds: VoiceUsageStore().seconds(on: Date()),
-                        dailyLimitMinutes: app.settings.voice.dailyLimitMinutes
-                    ), systemImage: "waveform")
-                    .foregroundStyle(.secondary)
-                }
-                .accessibilityIdentifier("settingsSummary-voice")
-            }
-
-            Section("AI") {
-                NavigationLink(value: SettingsPage.provider) {
-                    providerRow
-                }
-                .accessibilityIdentifier("settingsRow-provider")
-                row(.voice, value: app.settings.voiceEnabled ? String(localized: "On") : String(localized: "Off"))
-            }
-
-            Section("Reading") {
-                row(.summaries)
-                row(.agent)
+            Section("Assistant") {
+                row(.provider, value: modelsSummary)
+                row(
+                    .agent,
+                    value: String(
+                        localized: "\(app.settings.browserAgentMaxSteps) steps",
+                        comment: "Settings root, Agent row: configured step limit, e.g. 30 steps"
+                    )
+                )
                 row(
                     .scripts,
                     value: app.settings.browserScriptsEnabled
                         ? "\(app.scriptStore.scripts.count)"
                         : String(localized: "Off")
                 )
-                ReadingLanguagePicker(app: app)
-                row(.browser, value: String(localized: "Bar: \(app.settings.browserBarPosition.displayName)", comment: "Settings root, Browser row: the address bar position, e.g. Automatic"))
             }
 
-            Section("Today & following") {
-                row(.digest, value: app.settings.dailyDigestEnabled ? String(localized: "On") : String(localized: "Off"))
-                row(.watched, value: app.watchedTopics.isEmpty ? nil : "\(app.watchedTopics.count)")
+            Section("Sites & browsing") {
+                row(
+                    .sites,
+                    value: String(
+                        localized: "\(app.forums.count) forums",
+                        comment: "Settings root, Sites row: number of saved forums"
+                    )
+                )
+                row(.browser, value: app.settings.searchEngine.displayName)
             }
 
-            Section("Forums, sync & privacy") {
-                row(.forums, value: forumsValue)
+            Section("Voice & digest") {
+                row(.voice, value: app.settings.voiceEnabled ? String(localized: "On") : String(localized: "Off"))
+                row(
+                    .digest,
+                    value: (app.settings.dailyDigestEnabled || app.settings.podcastDailyEnabled)
+                        ? String(localized: "On")
+                        : String(localized: "Off")
+                )
+            }
+
+            Section("Your data") {
                 SettingsSyncRow(app: app)
                 row(.data)
             }
 
             Section {
-                NavigationLink(value: SettingsPage.sharing) {
-                    SettingsRowLabel(page: .sharing, title: String(localized: "Open pages from Safari or Chrome"))
-                }
-                .accessibilityIdentifier("settingsRow-sharing")
                 row(.help)
-                languageRow
-            } header: {
-                Text("Help")
-            } footer: {
-                Text("iOS manages the app language. Change it in Settings › WukongMind › Language.")
             }
         }
         .formStyle(.grouped)
@@ -84,56 +73,24 @@ struct SettingsRootView: View {
         .accessibilityIdentifier("settingsRoot")
     }
 
-    /// A header line: the role's name and its current model.
-    private func summaryRow(_ role: ModelRole) -> some View {
-        let model = app.modelLabel(for: role)
-        return NavigationLink(value: SettingsPage.provider) {
-            LabeledContent {
-                Text(model.isEmpty ? app.selection(for: role).provider.displayName : model)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-            } label: {
-                Text(role == .assistant ? "Summaries & chat model" : "Ask the forum model")
-            }
+    private var modelsSummary: String {
+        app.hasConfiguredModel(for: .browserAgent)
+            ? String(localized: "2 roles", comment: "Settings root, Models row: both Agent and Summaries models are configured")
+            : String(localized: "Agent: none", comment: "Settings root, Models row: no Agent model chosen yet")
+    }
+
+    private func row(_ page: SettingsPage, value: String? = nil) -> some View {
+        NavigationLink(value: page) {
+            SettingsRowLabel(page: page, value: value)
         }
-        .accessibilityIdentifier("settingsSummary-\(role.rawValue)")
+        .accessibilityIdentifier("settingsRow-\(page.rawValue)")
     }
+}
 
-    private var forumsValue: String? {
-        let pinned = app.pinnedForums.count
-        if pinned > 0 { return String(localized: "\(pinned) pinned", comment: "Settings root, Forums row: number of pinned forums") }
-        return app.forums.isEmpty ? nil : "\(app.forums.count)"
-    }
-
-    private var providerRow: some View {
-        SettingsIconRow {
-            SettingsIcon(page: .provider)
-        } title: {
-            VStack(alignment: .leading, spacing: 2) {
-                Text("AI models")
-                Text(providerSummary)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-            }
-        } trailing: {
-            SettingsStatusPill(ready: app.isProviderReady)
-        }
-    }
-
-    /// One "provider · model" when both roles share it, else both models.
-    private var providerSummary: String {
-        guard !app.rolesShareModel else { return app.providerSummary(for: .assistant) }
-        return ModelRole.forumRoles.map { role in
-            let model = app.modelLabel(for: role)
-            return model.isEmpty ? app.selection(for: role).provider.displayName : model
-        }.joined(separator: " · ")
-    }
-
-    /// Opens WukongMind's page in the Settings app, where iOS shows the
-    /// per-app Language picker (the bundle has more than one localization).
-    private var languageRow: some View {
+/// Opens WukongMind's page in the Settings app, where iOS shows the
+/// per-app Language picker (the bundle has more than one localization).
+struct SettingsLanguageRow: View {
+    var body: some View {
         Button {
             DCHaptics.tap()
             if let url = URL(string: UIApplication.openSettingsURLString) {
@@ -141,7 +98,7 @@ struct SettingsRootView: View {
             }
         } label: {
             SettingsIconRow {
-                SettingsIcon(symbol: "globe", tint: DCTheme.ink)
+                SettingsIcon(symbol: "character.bubble", tint: DCTheme.ink)
             } title: {
                 // Explicit colors: a Form button would tint `.primary`.
                 Text("Language")
@@ -161,16 +118,9 @@ struct SettingsRootView: View {
         .accessibilityHint("Opens WukongMind in the Settings app")
         .accessibilityIdentifier("settingsRow-language")
     }
-
-    private func row(_ page: SettingsPage, value: String? = nil) -> some View {
-        NavigationLink(value: page) {
-            SettingsRowLabel(page: page, value: value)
-        }
-        .accessibilityIdentifier("settingsRow-\(page.rawValue)")
-    }
 }
 
-/// Settings › Reading language: the app's language, or one of
+/// Settings › Models › Answer language: the app's language, or one of
 /// `ReadingLanguage.choices` (names from the system).
 struct ReadingLanguagePicker: View {
     @ObservedObject var app: AppModel
@@ -188,7 +138,7 @@ struct ReadingLanguagePicker: View {
         SettingsIconRow {
             SettingsIcon(symbol: "translate", tint: DCTheme.ink)
         } title: {
-            Text("Reading language")
+            Text("Read answers in", comment: "Settings › Models › Answer language: picker label for summary and answer language")
                 .foregroundStyle(Color.primary)
                 .fixedSize(horizontal: !dynamicTypeSize.isAccessibilitySize, vertical: false)
         } trailing: {
@@ -206,7 +156,7 @@ struct ReadingLanguagePicker: View {
         .contentShape(Rectangle())
         .overlay {
             Menu {
-                Picker("Reading language", selection: $app.settings.readingLanguage) {
+                Picker("Read answers in", selection: $app.settings.readingLanguage) {
                     Text("App language (\(AppLanguage.displayName))", comment: "Reading language option; the placeholder is the app's language name").tag("")
                     ForEach(ReadingLanguage.choices, id: \.self) { code in
                         Text(verbatim: ReadingLanguage.displayName(code)).tag(code)
@@ -216,7 +166,7 @@ struct ReadingLanguagePicker: View {
                 Color.clear
                     .contentShape(Rectangle())
             }
-            .accessibilityLabel(Text("Reading language"))
+            .accessibilityLabel(Text("Read answers in"))
             .accessibilityValue(selectedLabel)
             .accessibilityIdentifier("settingsRow-readingLanguage")
         }
@@ -229,29 +179,46 @@ struct SettingsDestination: View {
     let page: SettingsPage
 
     var body: some View {
-        Group {
-            switch page {
-            case .provider: SettingsProviderPage(app: app)
-            case .sync: SettingsSyncPage(app: app)
-            case .forums: SettingsForumsPage(app: app)
-            case .summaries: SettingsSummariesPage(app: app)
-            case .agent: SettingsAgentPage(app: app)
-            case .scripts: ScriptManagerView(app: app)
-            case .watched: SettingsWatchedPage(app: app)
-            case .digest: SettingsDigestPage(app: app)
-            case .voice: SettingsVoicePage(app: app, voice: app.voice)
-            case .browser: SettingsBrowserPage(app: app)
-            case .data: SettingsDataPage(app: app)
-            case .help: SettingsHelpPage(app: app)
-            case .sharing: SettingsSharingPage()
-            case .acknowledgements: SettingsAcknowledgementsPage(app: app)
-            }
+        destinationContent
+            .dcGroupedBackground()
+            .tint(DCTheme.goldInk)
+            .navigationTitle(page.title)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar(.visible, for: .navigationBar)
+    }
+
+    @ViewBuilder
+    private var destinationContent: some View {
+        switch page {
+        case .scripts:
+            ScriptManagerView(app: app)
+        case .provider:
+            SettingsProviderPage(app: app).toggleStyle(DCSwitchStyle())
+        case .sites:
+            SettingsSitesPage(app: app).toggleStyle(DCSwitchStyle())
+        case .sync:
+            SettingsSyncPage(app: app).toggleStyle(DCSwitchStyle())
+        case .forums:
+            SettingsForumsPage(app: app).toggleStyle(DCSwitchStyle())
+        case .agent:
+            SettingsAgentPage(app: app).toggleStyle(DCSwitchStyle())
+        case .watched:
+            SettingsWatchedPage(app: app).toggleStyle(DCSwitchStyle())
+        case .digest:
+            SettingsDigestPage(app: app).toggleStyle(DCSwitchStyle())
+        case .voice:
+            SettingsVoicePage(app: app, voice: app.voice).toggleStyle(DCSwitchStyle())
+        case .browser:
+            SettingsBrowserPage(app: app).toggleStyle(DCSwitchStyle())
+        case .data:
+            SettingsDataPage(app: app).toggleStyle(DCSwitchStyle())
+        case .help:
+            SettingsHelpPage(app: app).toggleStyle(DCSwitchStyle())
+        case .sharing:
+            SettingsSharingPage().toggleStyle(DCSwitchStyle())
+        case .acknowledgements:
+            SettingsAcknowledgementsPage(app: app).toggleStyle(DCSwitchStyle())
         }
-        .dcGroupedBackground()
-        .tint(DCTheme.goldInk)
-        .navigationTitle(page.title)
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar(.visible, for: .navigationBar)
     }
 }
 
@@ -266,9 +233,9 @@ struct SettingsIcon: View {
         isAgent = (page == .agent)
     }
 
-    init(symbol: String, tint: Color) {
+    init(symbol: String, tint: Color, isAgent: Bool = false) {
         self.symbol = symbol
-        self.isAgent = false
+        self.isAgent = isAgent
     }
 
     @ScaledMetric(relativeTo: .body) private var size: CGFloat = 29

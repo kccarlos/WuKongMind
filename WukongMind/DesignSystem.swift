@@ -747,9 +747,12 @@ struct DCSwitchStyle: ToggleStyle {
         }
         .buttonStyle(.plain)
         .opacity(isEnabled ? 1 : 0.5)
-        .accessibilityElement(children: .combine)
-        .accessibilityValue(configuration.isOn ? Text("On") : Text("Off"))
-        .accessibilityAddTraits(.isToggle)
+        .accessibilityRepresentation {
+            Toggle(isOn: configuration.$isOn) {
+                configuration.label
+            }
+            .toggleStyle(.switch)
+        }
     }
 
     private func track(isOn: Bool) -> some View {

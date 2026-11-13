@@ -47,6 +47,42 @@ enum SummaryBatchLimit {
     }
 }
 
+enum SearchEngine: String, Codable, CaseIterable, Identifiable, Sendable {
+    case google
+    case duckDuckGo = "duckduckgo"
+    case bing
+    case ecosia
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .google: "Google"
+        case .duckDuckGo: "DuckDuckGo"
+        case .bing: "Bing"
+        case .ecosia: "Ecosia"
+        }
+    }
+
+    func searchURL(for query: String) -> URL? {
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        var components: URLComponents?
+        switch self {
+        case .google:
+            components = URLComponents(string: "https://www.google.com/search")
+        case .duckDuckGo:
+            components = URLComponents(string: "https://duckduckgo.com/")
+        case .bing:
+            components = URLComponents(string: "https://www.bing.com/search")
+        case .ecosia:
+            components = URLComponents(string: "https://www.ecosia.org/search")
+        }
+        components?.queryItems = [URLQueryItem(name: "q", value: trimmed)]
+        return components?.url
+    }
+}
+
 struct AppSettings: Codable, Equatable {
     /// Summaries, chat and watched-topic refreshes.
     var assistantModel = ModelSelection(provider: .openRouter, model: AIProvider.openRouter.defaultModel)
@@ -68,8 +104,14 @@ struct AppSettings: Codable, Equatable {
     var forumContextLimit = 30_000
     var summaryBatchLimit = SummaryBatchLimit.default
     var browserBarPosition: BrowserBarPosition = .automatic
+    /// Web search engine in Settings › Browser. Synced.
+    var searchEngine: SearchEngine = .google
     /// Where the app opens (HomeState.swift). Synced.
     var launchDestination: LaunchDestination = .automatic
+    /// Optional confirmation before write actions (`Settings › Agent`). Off by default.
+    var agentConfirmBeforeWrites = false
+    /// Shows raw tool arguments and results in step rows (`Settings › Agent`). Off by default; per device.
+    var agentDeveloperMode = false
     var agentMaxSteps = AgentLimits.defaultMaxSteps
     var agentMaxTopicReads = AgentLimits.defaultMaxTopicReads
     var agentReadLimit = AgentLimits.defaultReadLimit
@@ -135,7 +177,10 @@ struct AppSettings: Codable, Equatable {
         case forumContextLimit
         case summaryBatchLimit
         case browserBarPosition
+        case searchEngine
         case launchDestination
+        case agentConfirmBeforeWrites
+        case agentDeveloperMode
         case agentMaxSteps
         case agentMaxTopicReads
         case agentReadLimit
@@ -200,7 +245,10 @@ struct AppSettings: Codable, Equatable {
                 ?? SummaryBatchLimit.default
         )
         browserBarPosition = try container.decodeIfPresent(BrowserBarPosition.self, forKey: .browserBarPosition) ?? stock.browserBarPosition
+        searchEngine = try container.decodeIfPresent(SearchEngine.self, forKey: .searchEngine) ?? stock.searchEngine
         launchDestination = try container.decodeIfPresent(LaunchDestination.self, forKey: .launchDestination) ?? stock.launchDestination
+        agentConfirmBeforeWrites = try container.decodeIfPresent(Bool.self, forKey: .agentConfirmBeforeWrites) ?? stock.agentConfirmBeforeWrites
+        agentDeveloperMode = try container.decodeIfPresent(Bool.self, forKey: .agentDeveloperMode) ?? stock.agentDeveloperMode
         agentMaxSteps = AgentLimits.clampSteps(
             try container.decodeIfPresent(Int.self, forKey: .agentMaxSteps)
                 ?? AgentLimits.defaultMaxSteps
