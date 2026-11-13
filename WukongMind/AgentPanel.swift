@@ -454,9 +454,9 @@ struct AgentView: View {
             ForEach(run.steps.suffix(7)) { step in
                 Image(systemName: toolIcon(step.tool))
                     .font(.system(size: 9, weight: .bold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(step.isError ? DCTheme.danger : toolTint(step.tool))
                     .frame(width: 18, height: 18)
-                    .background(step.isError ? DCTheme.danger : toolTint(step.tool), in: Circle())
+                    .background(step.isError ? DCTheme.cinnabarWash : DCTheme.surfaceRaised, in: Circle())
                     .overlay { Circle().stroke(DCTheme.surface, lineWidth: 1.5) }
             }
         }

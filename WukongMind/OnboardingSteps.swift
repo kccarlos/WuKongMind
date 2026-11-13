@@ -349,7 +349,7 @@ struct OnboardingForumsPage: View {
                 Button(action: add) {
                     Group {
                         if adding {
-                            ProgressView().tint(.white)
+                            ProgressView().tint(DCTheme.onGold)
                         } else {
                             Text("Add")
                         }

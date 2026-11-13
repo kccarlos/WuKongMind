@@ -162,9 +162,9 @@ struct VoiceSessionBar: View {
                     voice.end()
                 } label: {
                     Image(systemName: "phone.down.fill")
-                        .foregroundStyle(.white)
+                        .foregroundStyle(DCTheme.onCinnabar)
                         .frame(width: 34, height: 34)
-                        .background(DCTheme.danger, in: Circle())
+                        .background(DCTheme.cinnabar, in: Circle())
                 }
                 .buttonStyle(DCIconButtonStyle())
                 .accessibilityLabel(Text("End voice"))

@@ -605,7 +605,7 @@ struct MaybeForumState: View {
                 add()
             } label: {
                 HStack(spacing: 8) {
-                    if adding { ProgressView().tint(.white) }
+                    if adding { ProgressView().tint(DCTheme.onGold) }
                     Text(adding ? "Checking \(host)…" : "Add \(host)")
                 }
             }
