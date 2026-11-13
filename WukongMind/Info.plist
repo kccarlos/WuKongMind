@@ -56,7 +56,9 @@
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>WukongMind can connect to an Ollama or LM Studio server on your local network.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>WukongMind uses the microphone when you talk to its voice assistant, and when a forum page asks you to record a video with sound.</string>
+	<string>WukongMind uses the microphone to turn your speech into text when you dictate a question, when you talk to its voice assistant, and when a forum page asks you to record a video with sound.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>WukongMind uses speech recognition to turn what you say into text in the input box. Where your language is not supported on the device, Apple processes the audio.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>WukongMind can save images from forum pages to your photo library when you ask it to.</string>
 	<key>NSUserActivityTypes</key>

@@ -76,25 +76,25 @@
       }
     },
     "NSMicrophoneUsageDescription" : {
-      "comment" : "Privacy - Microphone Usage Description: shown before the first voice session, or when a forum page asks to record a video.",
+      "comment" : "Privacy - Microphone Usage Description: shown before the first dictation or voice session, or when a forum page asks to record a video.",
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "WukongMind uses the microphone when you talk to its voice assistant, and when a forum page asks you to record a video with sound."
+            "value" : "WukongMind uses the microphone to turn your speech into text when you dictate a question, when you talk to its voice assistant, and when a forum page asks you to record a video with sound."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当你与 WukongMind 的语音助手对话时，以及论坛网页请求录制带声音的视频时，WukongMind 会使用麦克风。"
+            "value" : "当你口述问题、与 WukongMind 的语音助手对话，以及论坛网页请求录制带声音的视频时，WukongMind 会使用麦克风，把你的语音转成文字。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "當你與 WukongMind 的語音助理對話時，以及論壇網頁要求錄製含聲音的影片時，WukongMind 會使用麥克風。"
+            "value" : "當你口述問題、與 WukongMind 的語音助理對話，以及論壇網頁要求錄製含聲音的影片時，WukongMind 會使用麥克風，將你的語音轉成文字。"
           }
         }
       }
@@ -119,6 +119,30 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在你要求時，WukongMind 可以將論壇網頁中的圖片儲存到你的照片圖庫。"
+          }
+        }
+      }
+    },
+    "NSSpeechRecognitionUsageDescription" : {
+      "comment" : "Privacy - Speech Recognition Usage Description: shown before the first dictation.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WukongMind uses speech recognition to turn what you say into text in the input box. Where your language is not supported on the device, Apple processes the audio."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WukongMind 使用语音识别，把你说的话转成输入框里的文字。如果设备本身不支持你的语言，音频会交给 Apple 处理。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WukongMind 使用語音辨識，將你說的話轉成輸入框裡的文字。如果裝置本身不支援你的語言，音訊會交給 Apple 處理。"
           }
         }
       }

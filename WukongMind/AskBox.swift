@@ -229,14 +229,23 @@ struct AssistantComposer: View {
     let isRunning: Bool
     let onSend: () -> Void
     let onStop: () -> Void
+    /// Dictation is listening: the ring is cinnabar with a stop square, and
+    /// the field says so.
+    var isListening = false
     var onDictate: () -> Void = {}
+    var onStopDictation: () -> Void = {}
     @Environment(\.composerFocusChanged) private var composerFocusChanged
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var listeningPulse = false
 
     private var trimmedDraft: String {
         draft.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     private var placeholder: String {
+        if isListening {
+            return String(localized: "Listening…", comment: "Composer placeholder while the microphone is dictating")
+        }
         if isRunning {
             return String(localized: "Write your next message…", comment: "Browser agent composer placeholder while a run is in progress")
         }
@@ -278,7 +287,7 @@ struct AssistantComposer: View {
         )
         .overlay {
             RoundedRectangle(cornerRadius: DCTheme.radiusMd, style: .continuous)
-                .strokeBorder(DCTheme.borderStrong, lineWidth: 1)
+                .strokeBorder(isListening ? DCTheme.cinnabar : DCTheme.borderStrong, lineWidth: isListening ? DCTheme.ringWidth : 1)
         }
         .dcFocusRing(focused, cornerRadius: DCTheme.radiusMd)
         .focused($focused)
@@ -340,6 +349,35 @@ struct AssistantComposer: View {
             .keyboardShortcut(".", modifiers: .command)
             .accessibilityLabel(Text("Stop", comment: "Browser agent stop button title"))
             .accessibilityIdentifier("agentStopButton")
+        } else if isListening {
+            Button {
+                DCHaptics.tap()
+                onStopDictation()
+            } label: {
+                Image(systemName: "stop.fill")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(DCTheme.onCinnabar)
+                    .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
+                    .background(DCTheme.cinnabar, in: Circle())
+                    .overlay {
+                        // A breathing halo says the microphone is open.
+                        Circle()
+                            .strokeBorder(DCTheme.cinnabar.opacity(listeningPulse ? 0 : 0.5), lineWidth: DCTheme.ringWidth)
+                            .scaleEffect(listeningPulse ? 1.35 : 1)
+                    }
+                    .contentShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .hoverEffect(.highlight)
+            .accessibilityLabel(Text("Stop dictating", comment: "Composer button label while the microphone is dictating"))
+            .accessibilityIdentifier("composerMicStop")
+            .onAppear {
+                guard !reduceMotion else { return }
+                withAnimation(.easeOut(duration: 1.1).repeatForever(autoreverses: false)) {
+                    listeningPulse = true
+                }
+            }
+            .onDisappear { listeningPulse = false }
         } else if !trimmedDraft.isEmpty {
             Button {
                 onSend()
@@ -377,5 +415,51 @@ struct AssistantComposer: View {
             .accessibilityLabel(Text("Dictate", comment: "Composer microphone button accessibility label in One panel"))
             .accessibilityIdentifier("composerMic")
         }
+    }
+}
+
+/// Says why dictation did not work, in one short sentence above the
+/// composer; a permission problem gets a link to Settings.
+struct DictationNotice: View {
+    let failure: DictationFailure
+    let onDismiss: () -> Void
+    @Environment(\.openURL) private var openURL
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: DCTheme.space2) {
+            Image(systemName: "mic.slash")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(DCTheme.cinnabar)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: DCTheme.space1) {
+                Text(verbatim: failure.message)
+                    .font(.footnote)
+                    .foregroundStyle(DCTheme.inkMuted)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("dictationNoticeText")
+                if failure.offersSettings {
+                    Button {
+                        if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
+                    } label: {
+                        Text("Open Settings", comment: "Link in the dictation notice that opens the iOS Settings app")
+                            .font(.footnote.weight(.semibold))
+                            .foregroundStyle(DCTheme.goldInk)
+                    }
+                    .accessibilityIdentifier("dictationOpenSettings")
+                }
+            }
+            Spacer(minLength: 0)
+            Button(action: onDismiss) {
+                Image(systemName: "xmark")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(DCTheme.inkFaint)
+                    .frame(width: 28, height: 28)
+                    .contentShape(Rectangle())
+            }
+            .accessibilityLabel(Text("Dismiss", comment: "Dictation notice close button"))
+            .accessibilityIdentifier("dictationNoticeDismiss")
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("dictationNotice")
     }
 }

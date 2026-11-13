@@ -6294,6 +6294,23 @@
         }
       }
     },
+    "Dictation isn't available right now." : {
+      "comment" : "Dictation failure: no speech recognizer",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "现在无法听写。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "現在無法聽寫。"
+          }
+        }
+      }
+    },
     "Digest Settings" : {
       "localizations" : {
         "zh-Hans" : {
@@ -6396,7 +6413,7 @@
       }
     },
     "Dismiss" : {
-      "comment" : "Dismisses a status banner or toast",
+      "comment" : "Dictation notice close button\nDismisses a status banner or toast",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -6795,6 +6812,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已啟用"
+          }
+        }
+      }
+    },
+    "End the voice session before dictating." : {
+      "comment" : "Dictation failure: a voice session is using the microphone",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请先结束语音对话，再听写。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請先結束語音對話，再聽寫。"
           }
         }
       }
@@ -8470,6 +8504,23 @@
         }
       }
     },
+    "I didn't hear anything. Tap the microphone to try again." : {
+      "comment" : "Dictation failure: nothing was said",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有听到声音。点按麦克风再试一次。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "沒有聽到聲音。點一下麥克風再試一次。"
+          }
+        }
+      }
+    },
     "Illustration: the share sheet with WukongMind in the row of apps, next to More." : {
       "localizations" : {
         "zh-Hans" : {
@@ -9345,6 +9396,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在聆聽"
+          }
+        }
+      }
+    },
+    "Listening…" : {
+      "comment" : "Composer placeholder while the microphone is dictating",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在聆听…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在聆聽…"
           }
         }
       }
@@ -11170,6 +11238,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "打開位置"
+          }
+        }
+      }
+    },
+    "Open Settings" : {
+      "comment" : "Link in the dictation notice that opens the iOS Settings app",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开设置"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打開設定"
           }
         }
       }
@@ -15914,6 +15999,23 @@
         }
       }
     },
+    "Stop dictating" : {
+      "comment" : "Composer button label while the microphone is dictating",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "停止听写"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "停止聽寫"
+          }
+        }
+      }
+    },
     "Stop loading" : {
       "localizations" : {
         "zh-Hans" : {
@@ -17219,6 +17321,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "最近 7 份摘要儲存在這台裝置上。向左滑動即可刪除。"
+          }
+        }
+      }
+    },
+    "The microphone couldn't start. Check that no other app is using it." : {
+      "comment" : "Dictation failure: audio engine or session error",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "麦克风无法启动。请确认没有其他 App 正在使用它。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "麥克風無法啟動。請確認沒有其他 App 正在使用它。"
           }
         }
       }
@@ -18537,6 +18656,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "開啟「與 iCloud 同步」，讓你的論壇、摘要和聊天同時保存在 iPhone 和 iPad 上。"
+          }
+        }
+      }
+    },
+    "Turn on speech recognition for WukongMind in Settings to dictate." : {
+      "comment" : "Dictation failure: speech recognition permission denied; a Settings link follows",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请在“设置”中为 WukongMind 打开语音识别，才能听写。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請在「設定」中為 WukongMind 打開語音辨識，才能聽寫。"
+          }
+        }
+      }
+    },
+    "Turn on the microphone for WukongMind in Settings to dictate." : {
+      "comment" : "Dictation failure: microphone permission denied; a Settings link follows",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请在“设置”中为 WukongMind 打开麦克风，才能听写。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請在「設定」中為 WukongMind 打開麥克風，才能聽寫。"
           }
         }
       }

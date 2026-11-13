@@ -39,7 +39,17 @@ struct AssistantPanel: View {
     @State private var showsCitationTip = false
     @State private var renderedSummary: ThrottledParse<DrawerSummarySections.Input, (sections: Int, hasCitations: Bool, rows: [MarkdownRow])>?
     @State private var agentDraft = ""
+    /// The composer's microphone: speech to text in `agentDraft`, nothing else.
+    @State private var dictation = DictationController(backend: DictationBackends.make())
+    /// What was typed when dictation began; the transcript is added after it.
+    /// Nil when no dictation owns the draft.
+    @State private var dictationBase: String?
+    /// Dictation paused the podcast and owes it a resume.
+    @State private var dictationSuspendedPodcast = false
+    /// The draft as dictation last wrote it; typing makes it differ.
+    @State private var dictatedDraft = ""
     @FocusState private var composerFocused: Bool
+    @Environment(\.scenePhase) private var scenePhase
     @State private var isKeyboardVisible = false
     @State private var showsPageCapabilitiesPopover = false
     @State private var showsCompletedStatus = false
@@ -191,6 +201,7 @@ struct AssistantPanel: View {
         .onDisappear {
             completedStatusTask?.cancel()
             completedStatusTask = nil
+            stopDictation(keepingText: true)
         }
         .fileExporter(
             isPresented: $exporting,
@@ -655,14 +666,46 @@ struct AssistantPanel: View {
                     .transition(.opacity)
             }
 
+            if let failure = dictation.failure {
+                DictationNotice(failure: failure) { dictation.dismissFailure() }
+                    .transition(.opacity)
+            }
+
             AssistantComposer(
                 draft: $agentDraft,
                 focused: $composerFocused,
                 isRunning: browserAgent.isRunning,
                 onSend: sendAgentPrompt,
-                onStop: { browserAgent.stop() }
+                onStop: { browserAgent.stop() },
+                isListening: dictation.isBusy,
+                onDictate: startDictation,
+                onStopDictation: { dictation.toggle(voiceBusy: false) }
             )
         }
+        .onChange(of: dictation.transcript) { applyDictation() }
+        .onChange(of: dictation.phase) { _, phase in
+            if phase == .idle {
+                // Last words, then the draft is the user's again.
+                applyDictation()
+                dictationBase = nil
+                resumePodcastAfterDictation()
+            }
+        }
+        // A voice session takes the microphone: dictation steps aside.
+        .onChange(of: app.voice.isActive) { _, active in
+            if active { stopDictation(keepingText: false) }
+        }
+        .onChange(of: agentDraft) { _, draft in
+            // Typing while listening: the typed text wins, listening ends.
+            if dictation.isListening, draft != dictatedDraft {
+                dictationBase = nil
+                dictation.toggle(voiceBusy: false)
+            }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active { stopDictation(keepingText: true) }
+        }
+        .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: dictation.failure)
         // A question kept for later (Shortcuts, examples) lands in the composer.
         .onChange(of: app.drafts.goal, initial: true) { _, goal in
             guard !goal.isEmpty else { return }
@@ -677,6 +720,56 @@ struct AssistantPanel: View {
         .dcStickyFooter()
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("askBox")
+    }
+
+    private func startDictation() {
+        guard !dictation.isBusy else { return }
+        composerFocused = false
+        dictationBase = agentDraft
+        dictatedDraft = agentDraft
+        // Dictation takes the shared audio session: an episode pauses, like
+        // for a voice session, and goes on afterwards.
+        let podcast = app.podcast.player
+        if !app.voice.isActive, !podcast.isSuspendedForVoice {
+            podcast.suspendForVoice()
+            dictationSuspendedPodcast = true
+        }
+        dictation.toggle(voiceBusy: app.voice.isActive)
+        // Nothing started (voice busy): no draft to own.
+        if dictation.phase == .idle {
+            dictationBase = nil
+            resumePodcastAfterDictation()
+        }
+    }
+
+    private func resumePodcastAfterDictation() {
+        guard dictationSuspendedPodcast else { return }
+        dictationSuspendedPodcast = false
+        let player = app.podcast.player
+        Task { await player.resumeAfterVoice() }
+    }
+
+    private func applyDictation() {
+        guard let base = dictationBase, !dictation.transcript.isEmpty else { return }
+        let text = DictationText.joined(base: base, transcript: dictation.transcript)
+        dictatedDraft = text
+        agentDraft = text
+    }
+
+    /// Ends dictation. Words already heard stay in the box when asked to.
+    private func stopDictation(keepingText: Bool) {
+        guard dictation.isBusy || dictation.phase == .finishing else { return }
+        if keepingText {
+            if dictation.isListening {
+                dictation.toggle(voiceBusy: false)
+            } else {
+                dictation.cancel()
+                dictationBase = nil
+            }
+        } else {
+            dictationBase = nil
+            dictation.cancel()
+        }
     }
 
     // MARK: Suggestions
@@ -738,6 +831,8 @@ struct AssistantPanel: View {
     private func sendAgentPrompt(_ text: String) {
         let prompt = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !prompt.isEmpty, !browserAgent.isRunning else { return }
+        // Sending takes what is in the box; the microphone closes.
+        stopDictation(keepingText: false)
         if app.researchFillPending {
             app.researchFillPending = false
             if let query = PageSuggestions.researchQuery(from: prompt),
