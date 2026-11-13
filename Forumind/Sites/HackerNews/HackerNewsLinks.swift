@@ -22,4 +22,5 @@ struct HackerNewsLinks: SiteLinks {
         HackerNewsRecognizer().looseTopicID(in: url).map { SiteLink(topicID: $0, slug: nil, postNumber: nil) }
     }
     func lastPostURL(topicURL: URL) -> URL? { nil }
+    func postAnchor(number: Int, id: Int) -> String? { id > 0 ? String(id) : nil }
 }

@@ -136,15 +136,6 @@ struct NowPlayingView: View {
                     .disabled(!podcast.canMake && podcast.episode == nil)
                     .accessibilityIdentifier("makePodcast")
                 }
-                if let target = app.aiOutputReport(for: episode, chapter: podcast.currentChapter) {
-                    Button {
-                        dismiss()
-                        app.report(target)
-                    } label: {
-                        Label("Report Podcast…", systemImage: "flag")
-                    }
-                    .accessibilityIdentifier("reportPodcast")
-                }
             } label: {
                 Image(systemName: "ellipsis")
             }

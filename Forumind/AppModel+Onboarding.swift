@@ -77,10 +77,9 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Hashable, Comparable {
         }
     }
 
-    /// Where the top "Skip" goes: the Terms of Use can't be skipped, so it
-    /// stops at Privacy first, then finishes.
+    /// Where the top "Skip" goes.
     var skipTarget: OnboardingStep {
-        self < .privacy ? .privacy : .done
+        .done
     }
 
     /// Steps with text fields, where swiping between pages is disabled so
@@ -100,15 +99,9 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Hashable, Comparable {
 }
 
 extension AppModel {
-    /// The walkthrough's top Skip from `step` (`OnboardingStep.skipTarget`):
-    /// on to Privacy, since the Terms of Use can't be skipped; from Privacy
-    /// to Done once they are agreed, which accepts them. nil: stay.
-    func skipOnboarding(from step: OnboardingStep, termsAgreed: Bool) -> OnboardingStep? {
-        let target = step.skipTarget
-        guard target == .done else { return target }
-        guard termsAgreed else { return nil }
-        acceptTerms()
-        return target
+    /// The walkthrough's top Skip from `step` (`OnboardingStep.skipTarget`).
+    func skipOnboarding(from step: OnboardingStep) -> OnboardingStep {
+        step.skipTarget
     }
 
     /// "Try It in Safari" on the Share how-to opens this page.
@@ -428,7 +421,6 @@ extension AppModel {
     /// - `-dc-show-settings <page>` Settings on launch (root, provider, forums, …)
     /// - `-dc-panel-settings [page]` opens Settings (a sheet) once the page is up
     /// - `-dc-keychain-sync-probe` also skips the walkthrough so the probe alert shows
-    /// - `-dc-terms-gate`          shows the Terms of Use sheet past the walkthrough
     func applyOnboardingDebugArguments() {
         let arguments = OnboardingDebug.arguments
         if arguments.contains("-dc-panel-settings") {
@@ -437,17 +429,11 @@ extension AppModel {
         }
         if arguments.contains("-dc-reset") || OnboardingDebug.initialStep != nil {
             settings.hasCompletedOnboarding = false
-            settings.acceptedTermsVersion = 0
         }
         // The keychain probe's alert can't show over the walkthrough cover.
         if arguments.contains("-dc-skip-onboarding") || OnboardingDebug.settingsPage != nil
             || arguments.contains(KeychainSyncProbe.launchArgument) {
             settings.hasCompletedOnboarding = true
-        }
-        // Launches that skip the walkthrough (UI tests, samples, screenshots)
-        // also skip the Terms of Use; `-dc-terms-gate` shows them instead.
-        if settings.hasCompletedOnboarding {
-            settings.acceptedTermsVersion = arguments.contains("-dc-terms-gate") ? 0 : ModerationTerms.currentVersion
         }
         applyDrawerDebugArguments()
     }

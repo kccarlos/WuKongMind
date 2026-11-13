@@ -161,8 +161,6 @@ final class TodayUITests: DCUITestCase {
         let mic = app.buttons.matching(identifier: "voiceButton").firstMatch
         XCTAssertTrue(waitForBarItem(mic, timeout: 10))
         tapBarItem(mic)
-        let agree = app.buttons["voiceConsentAgree"]
-        if agree.waitForExistence(timeout: 10) { agree.tap() }
         XCTAssertTrue(any(app, "voiceBar").waitForExistence(timeout: 10))
 
         openToday(in: app)
@@ -236,12 +234,11 @@ final class TodayUITests: DCUITestCase {
         let menu = app.buttons["todayMenu"]
         XCTAssertTrue(waitForHittable(menu, timeout: 5))
         menu.tap()
-        let reportPodcastOffered = app.buttons["reportPodcast"].waitForExistence(timeout: 2)
-        let remakePodcastOffered = app.buttons["Make Podcast Again"].exists
+        let remakePodcastOffered = app.buttons["Make Podcast Again"].waitForExistence(timeout: 2)
 
         XCTAssertTrue(
-            reportPodcastOffered && remakePodcastOffered,
-            "TodayPage's ⋯ menu omitted Report Podcast… (\(reportPodcastOffered)) and Make Podcast Again (\(remakePodcastOffered)) after generating podcast"
+            remakePodcastOffered,
+            "TodayPage's ⋯ menu omitted Make Podcast Again after generating podcast"
         )
     }
 

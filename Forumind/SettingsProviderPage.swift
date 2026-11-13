@@ -315,7 +315,6 @@ struct ModelRolePage: View {
     @ObservedObject var app: AppModel
     let role: ModelRole
     @State private var testState: ProviderTestState = .idle
-    @State private var allowing: AIProvider?
 
     private var scope: ModelScope { .role(role) }
     private var selection: ModelSelection { app.selection(for: role) }
@@ -326,19 +325,8 @@ struct ModelRolePage: View {
         Form {
             Section {
                 header
-                if app.readiness(of: selection) == .aiConsentDeclined {
-                    Button(ModelSetupAction.allow(provider).title) {
-                        allowing = provider
-                    }
-                    .accessibilityIdentifier("allowProviderConsent")
-                }
             } footer: {
-                if app.readiness(of: selection) == .aiConsentDeclined,
-                   let message = AssistantError.aiConsentDeclined(provider).errorDescription {
-                    Text(message)
-                } else {
-                    Text(role.hint)
-                }
+                Text(role.hint)
             }
 
             Section {
@@ -472,21 +460,6 @@ struct ModelRolePage: View {
         .navigationBarTitleDisplayMode(.inline)
         .onChange(of: selection) { testState = .idle }
         .onDisappear { app.saveSettings() }
-        .sheet(item: $allowing) { provider in
-            AIDataConsentPage(
-                provider: provider,
-                onAllow: {
-                    app.answerAIConsent(provider, allow: true)
-                    testState = .idle
-                    allowing = nil
-                },
-                onDecline: {
-                    app.answerAIConsent(provider, allow: false)
-                    allowing = nil
-                },
-                onCancel: { allowing = nil }
-            )
-        }
     }
 
     private var header: some View {
@@ -526,7 +499,6 @@ struct ProviderSettingsPage: View {
     @ObservedObject var app: AppModel
     let provider: AIProvider
     @State private var testState: ProviderTestState = .idle
-    @State private var allowing: AIProvider?
 
     private var bindings: ProviderBindings { ProviderBindings(app: app, provider: provider) }
     private var guide: ProviderGuide { ProviderGuide.guide(for: provider) }
@@ -563,19 +535,8 @@ struct ProviderSettingsPage: View {
                 if !provider.requiresAPIKey {
                     guideLink
                 }
-                if case .declined = app.aiConsentState(for: provider) {
-                    Button(ModelSetupAction.allow(provider).title) {
-                        allowing = provider
-                    }
-                    .accessibilityIdentifier("allowProviderConsent")
-                }
             } footer: {
-                if case .declined = app.aiConsentState(for: provider),
-                   let message = AssistantError.aiConsentDeclined(provider).errorDescription {
-                    Text(message)
-                } else {
-                    Text(guide.blurb)
-                }
+                Text(guide.blurb)
             }
 
             if provider.isAppleIntelligence {
@@ -652,20 +613,5 @@ struct ProviderSettingsPage: View {
         .navigationBarTitleDisplayMode(.inline)
         .onChange(of: bindings.configuration) { testState = .idle }
         .onDisappear { app.saveSettings() }
-        .sheet(item: $allowing) { provider in
-            AIDataConsentPage(
-                provider: provider,
-                onAllow: {
-                    app.answerAIConsent(provider, allow: true)
-                    testState = .idle
-                    allowing = nil
-                },
-                onDecline: {
-                    app.answerAIConsent(provider, allow: false)
-                    allowing = nil
-                },
-                onCancel: { allowing = nil }
-            )
-        }
     }
 }

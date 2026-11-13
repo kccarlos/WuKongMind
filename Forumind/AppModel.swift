@@ -183,10 +183,6 @@ final class AppModel: ObservableObject {
     /// Errors waiting for the root alert, oldest first: one shows at a time
     /// and a newer one never replaces it (`presentError`).
     @Published private(set) var errorQueue: [PresentedError] = []
-    /// The developer's moderation list (last good copy; see Moderation.swift).
-    @Published var remoteModeration: RemoteModerationList? = RemoteModerationCache.load() {
-        didSet { remoteModerationDidChange() }
-    }
     @Published var settingsStatus = ""
     /// Models each provider offers, from the last successful load.
     @Published var discoveredModels: [AIProvider: [String]] = [:]
@@ -261,7 +257,7 @@ final class AppModel: ObservableObject {
         let session = currentSession
         return TopicExportPayload(
             summary: session?.summary ?? "",
-            source: currentModeratedSource,
+            source: session?.source ?? "",
             title: session?.title ?? currentTopic?.title ?? "",
             url: session?.url ?? currentTopic?.url,
             history: session?.history ?? [],
@@ -294,9 +290,6 @@ final class AppModel: ObservableObject {
     /// Root sheets, covers and alerts, and the iPhone AI drawer
     /// (PresentationRouter.swift).
     let router = PresentationRouter()
-    /// Requests waiting for an answer on the AI data consent page
-    /// (AIDataConsent.swift).
-    let aiConsent = AIConsentGate()
     /// iCloud (CloudKit) sync (see CloudSyncController.swift).
     let cloudSync: CloudSyncController
 
@@ -643,7 +636,6 @@ final class AppModel: ObservableObject {
         self.browser.homeSiteURL = currentSiteURL
         // Ad/tracker blocking starts before the first page load.
         configureContentBlocking()
-        applyModerationRules()
         // (DEBUG samples load only their own page: a restored forum's load
         // failing late would replace it with the Forums home.)
         if self.browser.webView.url == nil, !Self.loadsOnlySamplePage, !Self.isRunningTests {
@@ -712,18 +704,12 @@ final class AppModel: ObservableObject {
             self.browser.homeSiteURL = nil
         }
         applyStateDebugScript()
-        // A scripted voice run starts from the consent sheet.
-        if VoiceDebug.isFake { settings.voiceConsent = [:] }
+        if VoiceDebug.isFake { settings.voiceEnabled = true }
         #endif
         // Launch: what grew while the app ran last (and data from before
         // sessions were pruned at all) goes before anything reads it.
         pruneSessions()
         self.cloudSync.attach(self)
-        // The consent backstop before every third-party AI request.
-        aiService.consentCheck = { [weak self] provider, configuration in
-            guard let self else { throw AssistantError.aiConsentRequired(provider) }
-            try self.settings.requireAIConsent(for: provider, baseURL: configuration.baseURL)
-        }
         // Launch: bring Spotlight up to date (only the difference, or
         // everything once after a new index version).
         spotlightDataDidChange()
@@ -770,8 +756,8 @@ final class AppModel: ObservableObject {
     /// Hand-off from the share extension or a deep link. A request is handled
     /// once even when it arrives both ways (inbox and URL). `autoRun: false`
     /// opens the page and Assistant without starting a summary or pull; before
-    /// onboarding and the Terms of Use are done (`acceptsSystemWork`), AI work
-    /// never starts automatically either.
+    /// onboarding is done (`acceptsSystemWork`), AI work never starts
+    /// automatically either.
     func handle(_ request: IncomingLinkRequest, autoRun: Bool = true) {
         guard handledShareIDs.insert(request.id).inserted else { return }
         noteExternalEntry()
@@ -1054,8 +1040,8 @@ final class AppModel: ObservableObject {
                 return
             }
             // A deep link that did not come from the share extension — or a
-            // hand-off before onboarding and the Terms of Use are done — only
-            // opens the Assistant; the user starts the work.
+            // hand-off before onboarding is done — only opens the Assistant;
+            // the user starts the work.
             guard pending.autoRun, acceptsSystemWork else { return }
             if pending.action == .summary {
                 // The same topic shared again while its summary runs: show it.
@@ -1851,7 +1837,7 @@ final class AppModel: ObservableObject {
             }
         }
         // Without a connected provider the refresh would only fail (and alert).
-        if reason != .background, settings.watchAutoRefreshSummaries, canRunUnattended(.assistant) {
+        if reason != .background, settings.watchAutoRefreshSummaries, isProviderReady(for: .assistant) {
             for (watched, _) in arrivals
             where isWatched(topicKey: watched.topicKey) && sessions[watched.topicKey]?.hasSummary == true {
                 enqueueSummary(
@@ -2299,10 +2285,10 @@ final class AppModel: ObservableObject {
         contentBlockingSettingsDidChange(from: old)
         digestSettingsDidChange(from: old)
         systemSettingsDidChange(from: old)
-        if old.blockedUsers != settings.blockedUsers
-            || old.blockedPosts != settings.blockedPosts
-            || old.filteredWords != settings.filteredWords {
-            applyModerationRules()
+        let hadVoiceKey = !old.configuration(for: .gemini).apiKey.isEmpty || !old.configuration(for: .vertexAI).apiKey.isEmpty
+        let hasVoiceKey = !settings.configuration(for: .gemini).apiKey.isEmpty || !settings.configuration(for: .vertexAI).apiKey.isEmpty
+        if !hadVoiceKey, hasVoiceKey, !settings.voiceEnabled {
+            settings.voiceEnabled = true
         }
         if old.voiceEnabled, !settings.voiceEnabled {
             voice.end()
@@ -2327,15 +2313,6 @@ final class AppModel: ObservableObject {
         var fresh = AppSettings()
         fresh.hasCompletedOnboarding = settings.hasCompletedOnboarding
         fresh.syncAPIKeys = settings.syncAPIKeys
-        // Moderation is the user's safety choice, not a preference to reset.
-        fresh.acceptedTermsVersion = settings.acceptedTermsVersion
-        fresh.blockedUsers = settings.blockedUsers
-        fresh.blockedPosts = settings.blockedPosts
-        fresh.filteredWords = settings.filteredWords
-        // So is what the person agreed to send where.
-        fresh.aiConsent = settings.aiConsent
-        fresh.voiceConsent = settings.voiceConsent
-        fresh.podcastConsent = settings.podcastConsent
         settings = fresh
         discoveredModels = [:]
         settingsStatus = ""
@@ -2415,14 +2392,6 @@ final class AppModel: ObservableObject {
     ) async -> ProviderCheckResult {
         connectionTestGeneration[provider, default: 0] &+= 1
         let generation = connectionTestGeneration[provider, default: 0]
-        if case .declined = aiConsentState(for: provider) {
-            if !settings.hasCompletedOnboarding {
-                settings.aiConsent.removeValue(forKey: provider.rawValue)
-            } else {
-                settingsStatus = String(localized: "Connection failed")
-                return .failure(AssistantError.aiConsentDeclined(provider).localizedDescription)
-            }
-        }
         activeConnectionTestGeneration[provider] = generation
         if let (targetRole, selection) = role {
             activeRoleConnectionTests[targetRole] = (provider, generation, selection)
@@ -2697,33 +2666,6 @@ final class AppModel: ObservableObject {
         store.flush()
     }
 
-    /// The developer's list changed (a daily refresh). Output made under
-    /// the old rules is dropped by each job's rules guard; the work the user
-    /// asked for then runs again under the new rules instead of ending as
-    /// cancelled. A block the user makes cancels instead (`block`), and Ask
-    /// the forum runs still stop: they keep earlier observations, which a
-    /// list without block dates cannot recheck.
-    func remoteModerationDidChange() {
-        let old = browser.moderationRules
-        applyModerationRules()
-        guard browser.moderationRules != old else { return }
-        for record in activities where !record.status.isTerminal {
-            // A resumed Ask the forum run would replay what it read to its
-            // planner, and the list has no block date to filter that by: its
-            // turn starts again from scratch (a paused one when it resumes).
-            if record.type == .agent { mutateAgentRun(for: record) { $0.restartTurn() } }
-            guard runningTasks[record.id] != nil else { continue }
-            pause(recordID: record.id)
-            mutateRecord(record.id) { $0.statusText = WorkRecord.waitingStatusText }
-            launch(recordID: record.id)
-        }
-        if digestTask != nil {
-            pauseDigest()
-            makeTodaysDigest()
-        }
-        podcast.restartGeneration()
-    }
-
     private func pause(recordID: UUID) {
         runningTasks[recordID]?.task.cancel()
         runningTasks.removeValue(forKey: recordID)
@@ -2828,18 +2770,6 @@ final class AppModel: ObservableObject {
         do {
             if record.type != .pull {
                 try context.requireReadyProvider()
-                // Work the user started waits for the consent page; work the
-                // app started by itself never shows it.
-                try await authorizeSending(
-                    to: context.provider,
-                    baseURL: context.configuration.baseURL,
-                    mayAsk: record.origin == .user
-                ) {
-                    mutateRecord(recordID) {
-                        $0.statusText = String(localized: "Waiting for your OK to send forum content to \(context.provider.displayName)…", comment: "Status of AI work while the AI data consent page is up; the placeholder is an AI provider's name")
-                    }
-                }
-                try ensureLive(recordID)
             }
             switch record.type {
             case .summary:
@@ -2919,9 +2849,8 @@ final class AppModel: ObservableObject {
                     $0.completedAt = Date()
                 }
             }
-            // Work the app started by itself shows its failure in Activity;
-            // a consent block shows in place (the not-ready card).
-            if record.origin == .user, !error.isAIConsentError { presentError(error.localizedDescription) }
+            // Work the app started by itself shows its failure in Activity.
+            if record.origin == .user { presentError(error.localizedDescription) }
         }
         if isCurrentLaunch(recordID, token: token) {
             streams.remove(recordID)
@@ -3015,7 +2944,7 @@ final class AppModel: ObservableObject {
 
         if fetch.unchanged,
            record.regenerate != true,
-           canUseSummaryAsContext(session),
+           session.hasSummary,
            session.summaryPostCount == fetch.totalPosts {
             mutateRecord(recordID) {
                 $0.statusText = String(localized: "Saved summary already includes every reply.")
@@ -3029,8 +2958,7 @@ final class AppModel: ObservableObject {
                 ? String(localized: "Updating summary with \(fetch.newPosts) new posts…", comment: "Status while a saved summary is updated with the topic's new replies")
                 : String(localized: "Generating summary…")
         }
-        let rules = browser.moderationRules
-        let content = moderated(fetch.content, siteURL: session.siteURL, topicID: session.topicID)
+        let content = fetch.content
         feed.setInputCharacters(content.count)
         streams.start(recordID)
         let summary = try await aiService.generateSummary(
@@ -3049,7 +2977,6 @@ final class AppModel: ObservableObject {
         )
 
         try ensureLive(recordID)
-        guard rules == browser.moderationRules else { throw CancellationError() }
         feed.finish()
         session = sessions[record.topicKey] ?? session
         session.summary = summary
@@ -3123,15 +3050,11 @@ final class AppModel: ObservableObject {
             return
         }
         streams.start(recordID)
-        let useSummary = canUseSummaryAsContext(session)
-        let rules = browser.moderationRules
-        let blockedAt = latestBlockDate(on: session.siteURL)
+        let useSummary = session.hasSummary
         let answer = try await aiService.answer(
-            source: moderated(session.source, siteURL: session.siteURL, topicID: session.topicID),
+            source: session.source,
             summary: useSummary ? session.summary : "",
-            history: session.history.filter { message in
-                message.role != .assistant || blockedAt.map { message.createdAt > $0 } ?? true
-            },
+            history: session.history,
             contextLimit: context.contextLimit,
             customPrompt: context.topicInstructions,
             discussion: adapter.discussion,
@@ -3145,7 +3068,6 @@ final class AppModel: ObservableObject {
         )
 
         try ensureLive(recordID)
-        guard rules == browser.moderationRules else { throw CancellationError() }
         session = sessions[record.topicKey] ?? session
         // The chat was cleared, or the question edited, while it was being
         // answered: the answer no longer belongs to the conversation.
@@ -3226,21 +3148,13 @@ final class AppModel: ObservableObject {
             if outOfBudget {
                 run.transcript.append(AgentPrompt.outOfBudgetMessage())
             }
-            let rules = browser.moderationRules
-            let blockedAt = latestBlockDate(on: run.siteURL)
             let action = try await planner.nextAction(
                 system: system,
-                transcript: run.transcript.filter { message in
-                    guard let blockedAt, message.createdAt <= blockedAt else { return true }
-                    return message.role == .user
-                        && !message.content.hasPrefix("OBSERVATION from ")
-                        && !message.content.hasPrefix("ERROR from ")
-                },
+                transcript: run.transcript,
                 configuration: configuration,
                 provider: context.provider
             )
             try ensureLive(recordID)
-            guard rules == browser.moderationRules else { throw CancellationError() }
             stepsUsed += 1
             run.transcript.append(ChatMessage(role: .assistant, content: Self.encode(action)))
             var step = AgentStep(tool: action.tool, arguments: action.arguments, thought: action.thought)
@@ -3285,7 +3199,6 @@ final class AppModel: ObservableObject {
                         WorkProgress.agent(completedSteps: completedSteps, maxSteps: maxSteps, within: within)
                     }
                 )
-                guard rules == browser.moderationRules else { throw CancellationError() }
                 step.outcome = outcome
                 step.topicID = action.arguments["topic_id"]
                 if let topicID = try? requiredTopicID(action) {
@@ -3391,12 +3304,6 @@ final class AppModel: ObservableObject {
             // topic instead.
             let summarizer = context.summarizer
             try RunSettings.requireReady(provider: summarizer.provider, configuration: summarizer.configuration)
-            try await authorizeSending(
-                to: summarizer.provider,
-                baseURL: summarizer.configuration.baseURL,
-                mayAsk: activities.first(where: { $0.id == recordID })?.origin == .user
-            )
-            try ensureLive(recordID)
             var session = try await readTopicForAgent(
                 action, adapter: adapter, run: &run, recordID: recordID, context: context,
                 progress: { stepProgress(0.1 + 0.3 * $0) }
@@ -3404,8 +3311,7 @@ final class AppModel: ObservableObject {
             mutateRecord(recordID) {
                 $0.statusText = String(localized: "Summarizing \(session.title)…", comment: "Status; the placeholder is a forum topic's title")
             }
-            let rules = browser.moderationRules
-            let content = moderated(session.source, siteURL: session.siteURL, topicID: session.topicID)
+            let content = session.source
             let tracker = SummaryProgressTracker(
                 inputCharacters: content.count,
                 previousSummaryCharacters: session.hasSummary ? session.summary.count : nil
@@ -3426,8 +3332,6 @@ final class AppModel: ObservableObject {
                 onProgress: { feed.handle($0) }
             )
             try ensureLive(recordID)
-            guard rules == browser.moderationRules else { throw CancellationError() }
-            try settings.requireAIConsent(for: summarizer.provider, baseURL: summarizer.configuration.baseURL)
             feed.finish()
             session = sessions[session.topicKey] ?? session
             session.summary = summary
@@ -3440,20 +3344,19 @@ final class AppModel: ObservableObject {
             sessions[session.topicKey] = session
             return (
                 String(localized: "Summarized \(session.totalPosts ?? 0) posts", comment: "Ask the forum step outcome: number of posts summarized in a topic"),
-                "Summary of \(moderatedTopicTitle(session.title, siteURL: session.siteURL, topicID: session.topicID)) (\(session.url.absoluteString)):\n\n\(summary)"
+                "Summary of \(session.title) (\(session.url.absoluteString)):\n\n\(summary)"
             )
 
         case .savedSummaries:
             let query = action.arguments["query"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
             let saved = sessions.values
-                .filter { $0.siteURL == siteURL && canUseSummaryAsContext($0) }
+                .filter { $0.siteURL == siteURL && $0.hasSummary }
                 .filter { query.isEmpty || $0.title.localizedCaseInsensitiveContains(query)
                     || $0.summary.localizedCaseInsensitiveContains(query) }
                 .sorted { $0.updatedAt > $1.updatedAt }
             guard !saved.isEmpty else { return (String(localized: "None found", comment: "Ask the forum step outcome: no saved summaries matched"), "No saved summaries match.") }
             let text = saved.prefix(query.isEmpty ? 40 : 6).map { session in
-                let title = moderatedTopicTitle(session.title, siteURL: session.siteURL, topicID: session.topicID)
-                var line = "- id \(session.topicID): \(title) — "
+                var line = "- id \(session.topicID): \(session.title) — "
                     + "\(session.summaryPostCount ?? session.totalPosts ?? 0) posts — "
                     + session.url.absoluteString
                 if !query.isEmpty { line += "\n\(session.summary.prefix(3_000))" }
@@ -3505,60 +3408,7 @@ final class AppModel: ObservableObject {
         pace: ForumRequestPace
     ) async throws -> SiteQueryResult {
         let query = try adapter.agent.query(tool, action.arguments)
-        let raw = try await adapter.run(query, net: await network(for: siteURL, pace: pace))
-        return moderatedSiteQueryResult(raw, siteURL: siteURL)
-    }
-
-    func moderatedSiteQueryResult(_ result: SiteQueryResult, siteURL: String) -> SiteQueryResult {
-        let rules = browser.moderationRules
-        let hits = result.hits.filter { hit in
-            !(hit.username.map { rules.hidesUser($0, siteURL: siteURL) } ?? false)
-                && !isSearchHitPostHidden(hit, siteURL: siteURL, rules: rules)
-                && !(hit.blurb.map(rules.hidesText) ?? false)
-                && !rules.hidesText(hit.topic.title)
-        }.map { hit in
-            var copy = hit
-            copy.topic.title = moderatedTopicTitle(hit.topic.title, siteURL: siteURL, topicID: hit.topic.topicID, openingPoster: hit.topic.author)
-            return copy
-        }
-        let hadHitsByTopic = Set(result.hits.map(\.topic.topicID))
-        let keptHitsByTopic = Dictionary(grouping: hits, by: \.topic.topicID)
-        let topics = result.topics.compactMap { topic -> ForumTopicListing? in
-            guard !rules.hidesText(topic.title) else { return nil }
-            if hadHitsByTopic.contains(topic.topicID), keptHitsByTopic[topic.topicID] == nil {
-                return nil
-            }
-            var copy = topic
-            copy.title = moderatedTopicTitle(topic.title, siteURL: siteURL, topicID: topic.topicID, openingPoster: topic.author)
-            if hadHitsByTopic.contains(topic.topicID) {
-                copy.excerpt = keptHitsByTopic[topic.topicID]?.first?.blurb
-            } else if isPostOneHidden(siteURL: siteURL, topicID: topic.topicID, rules: rules) {
-                copy.excerpt = nil
-            } else if let excerpt = copy.excerpt, rules.hidesText(excerpt) {
-                copy.excerpt = nil
-            }
-            return copy
-        }
-        return SiteQueryResult(topics: topics, hits: hits)
-    }
-
-    private func isSearchHitPostHidden(_ hit: ForumSearchHit, siteURL: String, rules: ModerationRules) -> Bool {
-        let topicID = hit.topic.topicID
-        let key = TopicIdentity.key(siteURL: siteURL, topicID: topicID)
-        let block = hit.url.fragment.flatMap { anchor in
-            sessions[key]?.rawPages.lazy.flatMap(\.blocks).first { $0.anchor == anchor }
-        }
-        if let block, rules.hidesUser(block.author, siteURL: siteURL) { return true }
-        if let anchor = hit.url.fragment,
-           let id = adapter(for: siteURL)?.capabilities.postIdentity.id(anchor: anchor) {
-            return rules.hidesPost(id, siteURL: siteURL, topicID: topicID)
-        }
-        let rules = topicModerationRules(siteURL: siteURL, topicID: topicID, rules: rules)
-        if let number = hit.postNumber {
-            return rules.hidesPost(number, siteURL: siteURL, topicID: topicID)
-        }
-        if let block { return rules.hidesPost(block.number, siteURL: siteURL, topicID: topicID) }
-        return browser.moderationRules.hasHiddenPosts(siteURL: siteURL, topicID: topicID)
+        return try await adapter.run(query, net: await network(for: siteURL, pace: pace))
     }
 
     private func formatAgentTopicRead(
@@ -3587,31 +3437,28 @@ final class AppModel: ObservableObject {
 
         let query = (action.arguments["query"] ?? action.arguments["q"] ?? "")
             .trimmingCharacters(in: .whitespacesAndNewlines)
-        let fullModerated = moderated(session.source, siteURL: session.siteURL, topicID: session.topicID)
-        let title = moderatedTopicTitle(session.title, siteURL: session.siteURL, topicID: session.topicID)
+        let title = session.title
         let headerBase = (title.isEmpty ? "" : "Topic: \(title)\n") + "URL: \(session.url.absoluteString)"
             + " \(profile.postLinkHint(session.url))"
 
         if !query.isEmpty {
-            let targetModerated: String
+            let targetSource: String
             if let page = pageNumber {
-                let rawPageText = RawTopicFormat.pageText(page, pages: session.rawPages, fallbackText: session.source)
-                targetModerated = moderated(rawPageText, siteURL: session.siteURL, topicID: session.topicID)
+                targetSource = RawTopicFormat.pageText(page, pages: session.rawPages, fallbackText: session.source)
             } else {
-                targetModerated = fullModerated
+                targetSource = session.source
             }
-            let openingPost = RawTopicFormat.postBlocks(fullModerated).first
+            let openingPost = RawTopicFormat.postBlocks(session.source).first
             var (op, matches, opMatched) = RawTopicFormat.matchingBlocks(
-                in: targetModerated,
+                in: targetSource,
                 query: query,
                 openingPost: openingPost
             )
             if matches.isEmpty, pageNumber == nil, totalPages > 1 {
                 let net = await network(for: session.siteURL, pace: context.forumRequestPace)
                 if let searchResult = try? await adapter.run(.search(text: query, scope: .topic(id: session.topicID)), net: net) {
-                    let moderatedSearch = moderatedSiteQueryResult(searchResult, siteURL: session.siteURL)
                     var seen: Set<Int> = []
-                    let hits = moderatedSearch.hits.filter { hit in
+                    let hits = searchResult.hits.filter { hit in
                         guard hit.topic.topicID == session.topicID,
                               let num = hit.postNumber, num > 1,
                               seen.insert(num).inserted
@@ -3620,7 +3467,6 @@ final class AppModel: ObservableObject {
                     }.prefix(20)
                     let numbers = hits.compactMap(\.postNumber)
                     if !numbers.isEmpty {
-                        let rules = aiModerationRules
                         if let lookup = adapter.capabilities.postLookup,
                            let facts = (try? await adapter.overview(TopicRef(siteURL: session.siteURL, topicID: session.topicID), net: net))?.facts,
                            let fetched = try? await lookup.posts(
@@ -3631,11 +3477,7 @@ final class AppModel: ObservableObject {
                            ),
                            !fetched.isEmpty {
                             matches = fetched.compactMap { post in
-                                guard post.number > 1,
-                                      !rules.hidesUser(post.username, siteURL: session.siteURL),
-                                      !browser.moderationRules.hidesPost(adapter.capabilities.postIdentity.id(number: post.number, nativeID: post.id), siteURL: session.siteURL, topicID: session.topicID),
-                                      !rules.hidesText(post.text)
-                                else { return nil }
+                                guard post.number > 1 else { return nil }
                                 return "\(RawTopicFormat.authorToken(post.username)) | #\(post.number)\n\(RawTopicFormat.sanitizedBody(post.text))"
                             }
                         } else {
@@ -3672,8 +3514,7 @@ final class AppModel: ObservableObject {
 
         if let page = pageNumber {
             let rawPageText = RawTopicFormat.pageText(page, pages: session.rawPages, fallbackText: session.source)
-            let pageModerated = moderated(rawPageText, siteURL: session.siteURL, topicID: session.topicID)
-            let bounded = PromptBuilder.boundedForumContext(pageModerated, limit: context.agentReadLimit)
+            let bounded = PromptBuilder.boundedForumContext(rawPageText, limit: context.agentReadLimit)
             return (
                 String(localized: "Read page \(page) of \(totalPages)", comment: "Ask the forum step outcome: page read in a topic"),
                 "\(headerBase)\nShowing: page \(page) of \(totalPages)\n\n\(bounded)"
@@ -3681,7 +3522,7 @@ final class AppModel: ObservableObject {
         }
 
         let bounded = PromptBuilder.boundedForumContext(
-            fullModerated,
+            session.source,
             limit: context.agentReadLimit,
             totalPages: totalPages
         )

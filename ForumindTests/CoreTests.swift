@@ -727,7 +727,6 @@ final class CoreTests: XCTestCase {
         app.browser.stopLoading()
         let handler = app.browser.onPageContextChanged
         app.browser.onPageContextChanged = nil
-        app.allowAllAIProviders()
         app.selectModel(ModelSelection(provider: .ollama, model: "test-model"), for: .both)
         let page = PageContext(url: url, site: .discourse, siteURL: siteURL, forumName: "Forum", topic: topic, state: .topic)
         app.browser.setPageContext(page)
@@ -1212,7 +1211,7 @@ final class CoreTests: XCTestCase {
             """
             return Self.response(request, status: 200, body: body)
         }
-        let service = AIService.allowingAll(session: session)
+        let service = AIService(session: session)
         let answer = try await service.answer(
             source: "forum",
             summary: "summary",
@@ -1248,7 +1247,7 @@ final class CoreTests: XCTestCase {
                 body: "data: {\"choices\":[{\"delta\":{\"content\":\"Summary\"}}]}\n\ndata: [DONE]\n"
             )
         }
-        let service = AIService.allowingAll(session: session)
+        let service = AIService(session: session)
 
         let summary = try await service.generateSummary(
             content: "forum source",
@@ -1567,7 +1566,6 @@ final class CoreTests: XCTestCase {
             planner: planner
         )
         app.usesDirectForumRequests = true
-        app.allowAllAIProviders()
         var settings = app.settings
         settings.configurations["openrouter"] = ProviderConfiguration(
             model: "test-model", baseURL: "https://example.com/v1", apiKey: "key"
@@ -1696,7 +1694,7 @@ final class CoreTests: XCTestCase {
             ].joined(separator: "\n")
             return Self.response(request, status: 200, body: events)
         }
-        let text = try await AIService.allowingAll(session: session).complete(
+        let text = try await AIService(session: session).complete(
             system: "Be brief.",
             messages: [ChatMessage(role: .user, content: "Hi")],
             configuration: configuration,
@@ -2124,7 +2122,6 @@ final class LazyMarkdownTests: XCTestCase {
         app.browser.stopLoading()
         let handler = app.browser.onPageContextChanged
         app.browser.onPageContextChanged = nil
-        app.allowAllAIProviders()
         app.selectModel(ModelSelection(provider: .ollama, model: "test-model"), for: .both)
         let pageA = PageContext(url: urlA, site: .discourse, siteURL: siteURL, forumName: "Forum", topic: topicA, state: .topic)
         app.browser.setPageContext(pageA)
@@ -2909,7 +2906,6 @@ final class LazyMarkdownTests: XCTestCase {
         let app = AppModel(store: store, forumService: forumService, aiService: ai, planner: planner)
         app.usesDirectForumRequests = true
         app.browser.stopLoading()
-        app.allowAllAIProviders()
         app.selectModel(ModelSelection(provider: .ollama, model: "test-model"), for: .both)
         app.browser.onPageContextChanged = nil
         app.settings.agentReadLimit = 10_000

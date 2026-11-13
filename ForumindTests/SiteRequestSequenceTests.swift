@@ -152,7 +152,6 @@ final class SiteRequestSequenceTests: XCTestCase {
             planner: planner
         )
         app.usesDirectForumRequests = true
-        app.allowAllAIProviders()
         var provider = app.settings.configuration(for: .ollama)
         provider.apiKey = ""
         app.setConfiguration(provider, for: .ollama)

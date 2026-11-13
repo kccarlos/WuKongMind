@@ -7,15 +7,13 @@ import WebKit
 /// script is the site's (`PageBridgeProfile.bridgeInstaller`; Discourse's is
 /// `DiscourseDOM`); this is the Swift side of its interface.
 ///
-/// It runs as a third user script, main frame only, in its own content
-/// world, so page scripts can neither call it nor fake its messages. It uses
-/// the moderation script's selectors (`article[id^="post_"]` inside a
-/// `[data-post-number]` wrapper, the author's `a[data-user-card]`, the
-/// `.cooked` body) and its MutationObserver + requestAnimationFrame pattern.
-/// The DOM is shared across worlds, so a post the moderation script hid
-/// (`data-forumind-hidden`) is never scrolled to, highlighted or returned.
+/// It runs as a user script, main frame only, in its own content world, so
+/// page scripts can neither call it nor fake its messages. It inspects
+/// `article[id^="post_"]` inside `[data-post-number]`, the author's
+/// `a[data-user-card]`, and the `.cooked` body via MutationObserver +
+/// requestAnimationFrame.
 ///
-/// - `scrollToPost(n, smooth)` "shown", "hidden" or "missing" (not rendered:
+/// - `scrollToPost(n, smooth)` "shown" or "missing" (not rendered:
 ///                       Discourse cloaks far-off posts; the app then loads
 ///                       `/t/slug/id/N`)
 /// - `highlight([n], flash)` marks posts (re-applied when Discourse
@@ -37,6 +35,15 @@ enum BrowseScript {
     static let timeout: Duration = .seconds(2)
 }
 
+/// A post currently visible in the browser viewport.
+struct VisiblePost: Codable, Equatable, Identifiable {
+    var number: Int
+    var username: String
+    var excerpt: String
+
+    var id: Int { number }
+}
+
 /// A rendered post's plain text, from the bridge or from `/posts.json`.
 struct BrowsePostText: Codable, Equatable {
     var number: Int
@@ -50,8 +57,6 @@ enum BrowseScrollOutcome: String, Equatable {
     case shown
     /// Not rendered (or cloaked): load `/t/slug/id/N` instead.
     case missing
-    /// Hidden by moderation: never shown.
-    case hidden
     /// The page is not a topic, or the bridge didn't answer in time.
     case unavailable
 }

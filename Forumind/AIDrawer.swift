@@ -270,9 +270,6 @@ struct AIDrawerCoordinator: ViewModifier {
                     app.syncDrawer()
                 }
             }
-            .onReceive(app.voice.$consentProvider) { _ in Task { @MainActor in app.syncDrawer() } }
-            .onReceive(app.podcast.$consentProvider) { _ in Task { @MainActor in app.syncDrawer() } }
-            .onReceive(app.aiConsent.$queue) { _ in Task { @MainActor in app.syncDrawer() } }
     }
 
     private struct TopicMode: Equatable {

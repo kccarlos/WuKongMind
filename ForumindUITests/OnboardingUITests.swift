@@ -39,11 +39,9 @@ final class OnboardingUITests: DCUITestCase {
         skipStep.tap()
         assertStep(5, progress)
 
-        // Privacy needs the Terms of Use accepted; the iCloud toggle is here.
+        // Privacy: the iCloud toggle is here, and Continue is enabled immediately.
         XCTAssertTrue(app.switches["onboardingSyncToggle"].waitForExistence(timeout: 5))
         XCTAssertFalse(skipStep.exists, "Only the provider, forums and daily steps can be skipped.")
-        XCTAssertFalse(next.isEnabled, "Continue works before the Terms of Use are accepted.")
-        acceptTerms(app)
         XCTAssertTrue(waitForHittable(next))
         next.tap()
 
@@ -59,18 +57,11 @@ final class OnboardingUITests: DCUITestCase {
         XCTAssertTrue(app.buttons["forumSwitcher"].exists)
     }
 
-    func testSkipStopsAtTheTermsThenJumpsToTheLastStep() throws {
+    func testSkipJumpsDirectlyToTheLastStep() throws {
         let app = launch(["-dc-onboarding-step", "daily"])
 
         let skipAll = app.buttons["onboardingSkipAll"]
         XCTAssertTrue(waitForHittable(skipAll, timeout: 20), "Skip is missing on a middle step.")
-        skipAll.tap()
-        // The Terms of Use can't be skipped.
-        assertStep(5, any(app, "onboardingProgress"))
-        XCTAssertFalse(app.buttons["onboardingContinue"].isEnabled)
-        skipAll.tap()
-        assertStep(5, any(app, "onboardingProgress"))
-        acceptTerms(app)
         skipAll.tap()
         let browse = app.buttons["onboardingBrowseForums"]
         XCTAssertTrue(waitForHittable(browse), "Skip did not jump to the last step.")
@@ -92,13 +83,8 @@ final class OnboardingUITests: DCUITestCase {
         XCTAssertTrue(waitForHittable(back))
         back.tap()
         assertStep(2, progress)
-        // Leave the walkthrough completed for the other tests (Skip stops
-        // at the Terms of Use first).
+        // Leave the walkthrough completed for the other tests.
         let skipAll = app.buttons["onboardingSkipAll"]
-        XCTAssertTrue(waitForHittable(skipAll))
-        skipAll.tap()
-        assertStep(5, progress)
-        acceptTerms(app)
         XCTAssertTrue(waitForHittable(skipAll))
         skipAll.tap()
         let browse = app.buttons["onboardingBrowseForums"]
@@ -167,8 +153,6 @@ final class OnboardingUITests: DCUITestCase {
         let skipAll = app.buttons["onboardingSkipAll"]
         XCTAssertTrue(waitForHittable(skipAll, timeout: 10))
         skipAll.tap()
-        XCTAssertTrue(waitForHittable(continueBtn, timeout: 10))
-        continueBtn.tap()
 
         let returnButton = app.buttons["onboardingReturn"]
         XCTAssertTrue(waitForHittable(returnButton, timeout: 10))
@@ -210,7 +194,6 @@ final class OnboardingUITests: DCUITestCase {
         XCTAssertTrue(waitForHittable(skipStep, timeout: 5))
         skipStep.tap()
 
-        acceptTerms(app)
         let continueBtn = app.buttons["onboardingContinue"]
         XCTAssertTrue(waitForHittable(continueBtn, timeout: 5))
         continueBtn.tap()
@@ -286,23 +269,5 @@ final class OnboardingUITests: DCUITestCase {
             file: file,
             line: line
         )
-    }
-
-    private func acceptTerms(_ app: XCUIApplication) {
-        let agree = app.switches["termsAgree"]
-        for _ in 0..<6 where !agree.isHittable {
-            app.swipeUp()
-        }
-        XCTAssertTrue(waitForHittable(agree), "The Terms of Use toggle is missing.")
-        // "Hittable" under the floating Continue bar too: clear of it first.
-        let bottomBar = app.buttons["onboardingContinue"]
-        for _ in 0..<4 where bottomBar.exists && agree.frame.maxY > bottomBar.frame.minY - 8 {
-            app.swipeUp()
-        }
-        // Tap the switch itself (right edge), not its label; again if missed.
-        for _ in 0..<2 where (agree.value as? String) != "1" {
-            agree.coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap()
-            _ = wait(timeout: 2) { (agree.value as? String) == "1" }
-        }
     }
 }

@@ -340,22 +340,6 @@ final class SiteContractTests: XCTestCase {
         }
     }
 
-    func testModerationHidesABlockedAuthorsBlockExactly() async throws {
-        for fixture in allFixtures() {
-            let result = try await fixture.adapter.readTopic(
-                readRequest(fixture), net: fixture.network(), progress: { _ in }, onPage: nil
-            )
-            let rules = ModerationRules(blockedUsers: [fixture.siteURL: [fixture.replyAuthor]])
-            let filtered = ModerationFilter.filter(
-                result.content, siteURL: fixture.siteURL, topicID: fixture.topicID, rules: rules
-            )
-            XCTAssertTrue(filtered.contains("\(fixture.openingAuthor) | "), fixture.name)
-            XCTAssertFalse(filtered.contains("\(fixture.replyAuthor) | "), fixture.name)
-            XCTAssertFalse(filtered.contains(fixture.replyText), fixture.name)
-            XCTAssertTrue(filtered.contains(fixture.openingText), fixture.name)
-        }
-    }
-
     func testSecondReadWithCachedPagesMakesTheDeclaredRequests() async throws {
         for fixture in allFixtures() {
             let first = try await fixture.adapter.readTopic(
@@ -409,11 +393,8 @@ final class SiteContractTests: XCTestCase {
             if let search = capabilities.searchPageURL {
                 XCTAssertNotNil(search(fixture.siteURL, "words"), fixture.name)
             }
-            if let bridge = capabilities.pageBridge {
-                if let installer = bridge.bridgeInstaller {
-                    XCTAssertFalse(installer.isEmpty, fixture.name)
-                }
-                XCTAssertFalse(bridge.moderationInstaller.isEmpty, fixture.name)
+            if let bridge = capabilities.pageBridge, let installer = bridge.bridgeInstaller {
+                XCTAssertFalse(installer.isEmpty, fixture.name)
             }
             if let filters = capabilities.topicFilters {
                 for filter in [TopicFilter.top, .author("alice")] {

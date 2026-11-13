@@ -3,7 +3,7 @@ import XCTest
 
 /// The voice session with a fake transport, fake audio and a manual clock:
 /// the tool-response hold, scheduling, briefings, silent notes, grounding,
-/// resumption and refresh, stalls, idle, consent, mute and comfort noise,
+/// resumption and refresh, stalls, idle, mute and comfort noise,
 /// typed input and the cost guard.
 @MainActor
 final class VoiceSessionTests: XCTestCase {
@@ -19,17 +19,13 @@ final class VoiceSessionTests: XCTestCase {
         navigator = FakeVoiceNavigator()
     }
 
-    // MARK: Start and consent
+    // MARK: Start
 
-    func testStartIsBlockedWithoutConsent() async {
-        let session = makeSession(consent: false)
-        await session.start()
-        XCTAssertEqual(session.state, .failed(.noConsent))
-        XCTAssertTrue(transports.isEmpty, "Nothing connects before consent")
-
+    func testStartIsBlockedWithoutKey() async {
         let keyless = makeSession(key: "")
         await keyless.start()
         XCTAssertEqual(keyless.state, .failed(.noKey))
+        XCTAssertTrue(transports.isEmpty)
     }
 
     func testStartSendsTheSetupAndSeedsTheContext() async throws {
@@ -626,12 +622,11 @@ final class VoiceSessionTests: XCTestCase {
     private func makeSession(
         endpoint: GeminiLive.Endpoint = .aiStudio,
         key: String = "test-key",
-        consent: Bool = true,
         settings: VoiceSettings = VoiceSettings(),
         usage: VoiceUsageStore? = nil
     ) -> VoiceSession {
         VoiceSession(
-            configuration: .init(endpoint: endpoint, apiKey: key, settings: settings, hasConsent: consent),
+            configuration: .init(endpoint: endpoint, apiKey: key, settings: settings),
             transport: { [unowned self] in
                 let transport = FakeLiveTransport()
                 self.transports.append(transport)

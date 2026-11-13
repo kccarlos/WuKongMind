@@ -75,7 +75,6 @@ final class VoiceSession: ObservableObject {
     enum Failure: Error, Equatable {
         /// Voice is off on this device (Settings).
         case disabled
-        case noConsent
         case noKey
         case noVertexProject
         case microphone
@@ -91,8 +90,6 @@ final class VoiceSession: ObservableObject {
             switch self {
             case .disabled:
                 String(localized: "Turn on voice in Settings first.", comment: "Voice session error: voice is off on this device")
-            case .noConsent:
-                String(localized: "Voice needs your permission to send audio to Google first.", comment: "Voice session error: the user hasn't agreed to send audio to the provider yet")
             case .noKey:
                 String(localized: "Add a Google Gemini or Vertex AI key in Settings › AI models to use voice.", comment: "Voice session error. Settings › AI models names the app's own Settings pages.")
             case .noVertexProject:
@@ -114,8 +111,6 @@ final class VoiceSession: ObservableObject {
         var apiKey: String
         var model = GeminiLive.model
         var settings = VoiceSettings()
-        /// The user agreed to send audio to this provider (the consent gate).
-        var hasConsent: Bool
 
         /// The cost guard's limits in seconds (nil: no limit).
         var sessionLimit: TimeInterval? { VoiceSettings.limit(settings.sessionLimitMinutes) }
@@ -255,14 +250,9 @@ final class VoiceSession: ObservableObject {
 
     // MARK: Lifecycle
 
-    /// Opens the session (on demand: the first tap). Blocked without the
-    /// user's consent for this provider.
+    /// Opens the session (on demand: the first tap).
     func start() async {
         guard state == .idle else { return }
-        guard configuration.hasConsent else {
-            state = .failed(.noConsent)
-            return
-        }
         guard !configuration.apiKey.isEmpty else {
             state = .failed(.noKey)
             return

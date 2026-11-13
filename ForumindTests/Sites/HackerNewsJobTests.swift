@@ -6,7 +6,7 @@ import XCTest
 final class HackerNewsJobTests: XCTestCase {
     private let site = HackerNewsFixture.site
     private var topic: ForumTopic { .init(siteURL: site, topicID: "1", url: URL(string: site + "/item?id=1")!, title: "Y Combinator") }
-    private func harness(actions: [AgentAction] = [], blocked: Bool = false, watched: Bool = false,
+    private func harness(actions: [AgentAction] = [], watched: Bool = false,
                          aiService: AIService? = nil) throws -> (AppModel, StateAIStub, ScriptedAgentPlanner, HackerNewsFixture) {
         // Fails before implementation without changing any existing site's baseline.
         _ = try XCTUnwrap(SiteRegistry.standard.adapter(for: SiteKind("hackernews")))
@@ -15,10 +15,6 @@ final class HackerNewsJobTests: XCTestCase {
         let store = PersistentStore(fileURL: directory.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore())
         var snapshot = AppSnapshot(forums: [Forum(siteURL: site, kind: SiteKind("hackernews"), name: "Hacker News")])
         if watched { snapshot.watchedTopics = [.init(siteURL: site, topicID: "1", url: topic.url, title: topic.title, knownPostCount: 1)] }
-        // A pre-existing block, before this run. Persisted timestamps have
-        // whole-second precision; a block from this second conservatively
-        // invalidates observations until that second ends.
-        if blocked { snapshot.settings.blockedUsers = [BlockedUser(siteURL: site, username: "sama", blockedAt: Date(timeIntervalSince1970: 1))] }
         try store.save(snapshot)
         addTeardownBlock { try? FileManager.default.removeItem(at: directory) }
         let ai = StateAIStub(); ai.gated = false
@@ -28,7 +24,6 @@ final class HackerNewsJobTests: XCTestCase {
                            podcastDirectory: directory.appendingPathComponent("Podcasts"))
         app.usesDirectForumRequests = true
         app.browser.stopLoading()
-        app.allowAllAIProviders()
         app.selectModel(.init(provider: .ollama, model: "model-a"), for: .both)
         app.browser.onPageContextChanged = nil
         app.settings.forumRequestPace = .fast
@@ -48,27 +43,24 @@ final class HackerNewsJobTests: XCTestCase {
             try await Task.sleep(for: .milliseconds(20))
         }
     }
-    func testSummaryChatAndVoiceReadUseModeratedNestedText() async throws {
-        let (app, ai, _, _) = try harness(blocked: true)
+    func testSummaryChatAndVoiceReadUseNestedText() async throws {
+        let (app, ai, _, _) = try harness()
         app.select(topic: topic)
         XCTAssertTrue(app.enqueueSummary(for: topic))
         try await wait { app.activities.allSatisfy(\.status.isTerminal) }
         XCTAssertEqual(app.activities.first?.status, .completed, app.activities.first?.error ?? "")
         let summary = try XCTUnwrap(ai.calls.first)
-        XCTAssertFalse(summary.content.contains("sama |"))
+        XCTAssertTrue(summary.content.contains("sama |"))
         XCTAssertTrue(summary.content.contains("[Reply to #2; item 15]"))
         app.drafts.chat = "Explain the nested replies"
         app.sendChat()
         try await wait { app.activities.allSatisfy(\.status.isTerminal) }
         XCTAssertEqual(ai.calls.last?.kind, "chat")
-        XCTAssertFalse(ai.calls.last?.content.contains("sama |") ?? true)
+        XCTAssertTrue(ai.calls.last?.content.contains("[Reply to #2; item 15]") ?? false)
         app.browser.setPageContext(.init(url: topic.url, site: SiteKind("hackernews"), siteURL: site, forumName: "Hacker News", topic: topic, state: .topic))
         let facts = TopicFacts(postsCount: 4, highestPostNumber: 4)
-        let hidden = await app.postText(2, in: .init(siteURL: site, topicID: "1"), facts: facts)
-        if case .shown = hidden { XCTFail("voice must not read a blocked user") }
         let visible = await app.postText(3, in: .init(siteURL: site, topicID: "1"), facts: facts)
-        if case .shown(let text) = visible { XCTAssertTrue(text.text.contains("[Reply to #2; item 15]")) }
-        else { XCTFail("nested comment should be readable by voice") }
+        XCTAssertTrue(visible?.text.contains("[Reply to #2; item 15]") ?? false)
     }
     func testAgentSearchLatestReadPageAndQueryThenCite() async throws {
         func action(_ tool: String, _ args: [String: String] = [:]) -> AgentAction { .init(thought: "", tool: tool, arguments: args) }
@@ -77,7 +69,7 @@ final class HackerNewsJobTests: XCTestCase {
             action("read_topic", ["topic_id": "1", "page": "1", "query": "Sandhill"]),
             action("read_topic", ["topic_id": "1", "page": "2"]),
             action("final_answer", ["answer": "See [the story](https://news.ycombinator.com/item?id=1)."])
-        ], blocked: true)
+        ])
         app.startAgentRun(goal: "Find and read", siteURL: site)
         try await wait { app.agentRuns.first?.isFinished ?? false }
         let run = try XCTUnwrap(app.agentRuns.first)
@@ -86,7 +78,6 @@ final class HackerNewsJobTests: XCTestCase {
         let read = planner.transcripts.flatMap { $0 }.map(\.content).joined(separator: "\n")
         XCTAssertTrue(read.contains("Sandhill"), read)
         XCTAssertTrue(read.contains("[Reply to #2; item 15]"), read)
-        XCTAssertFalse(read.contains("sama |"))
         XCTAssertTrue(run.knownLinks.values.contains("1"))
         XCTAssertTrue(run.steps.contains { $0.arguments["page"] == "2" && $0.isError }, "Story 1 has only one logical page")
     }
@@ -116,23 +107,21 @@ final class HackerNewsJobTests: XCTestCase {
         XCTAssertFalse(app.agentRuns.first?.steps.first?.isError ?? true)
     }
 
-    func testDigestAndPodcastModelInputsKeepParentsAndExcludeBlockedText() async throws {
+    func testDigestAndPodcastModelInputsKeepParents() async throws {
         let ai = HNPipelineAI()
-        let (app, _, _, _) = try harness(blocked: true, watched: true, aiService: ai)
+        let (app, _, _, _) = try harness(watched: true, aiService: ai)
         app.settings.hasCompletedOnboarding = true
         app.settings.dailyDigestIncludesTrending = false
         app.makeTodaysDigest()
         try await wait { app.todaysDigest?.isComplete == true && app.digestActivity == .idle }
         XCTAssertEqual(app.todaysDigest?.cards.count, 1)
         XCTAssertTrue(ai.summaries.joined().contains("[Reply to #2; item 15]"))
-        XCTAssertFalse(ai.summaries.joined().contains("rising star"))
         app.settings.podcast.engine = .onDevice
         app.podcast.makeEngine = { _, _, _ in FakeSpeechEngine() }
         app.podcast.make(play: false)
         try await wait { app.podcast.episode?.isComplete == true && !app.podcast.activity.isRunning }
         XCTAssertFalse(ai.prompts.isEmpty)
         XCTAssertTrue(ai.prompts.joined().contains("[Reply to #2; item 15]"))
-        XCTAssertFalse(ai.prompts.joined().contains("rising star"))
         app.podcast.player.unload()
     }
 
@@ -228,106 +217,6 @@ final class HackerNewsJobTests: XCTestCase {
         }
     }
 
-    func testTrendingDigestAndPodcastExcludeBlockedOpeningAuthor() async throws {
-        let ai = HNPipelineAI()
-        let (app, _, _, fixture) = try harness(aiService: ai)
-        // Keep a visible control so the entire digest and podcast pipeline runs.
-        fixture.search = Data(#"{"hits":[{"objectID":"27016630","author":"phiresky","title":"Hosting SQLite databases on GitHub Pages","num_comments":0},{"objectID":"1","author":"pg","title":"Y Combinator","num_comments":3}]}"#.utf8)
-        app.pin(Forum(siteURL: site, kind: .hackerNews, name: "Hacker News"))
-        app.settings.hasCompletedOnboarding = true
-        app.acceptTerms()
-        app.settings.dailyDigestIncludesWatched = false
-        app.settings.dailyDigestIncludesTrending = true
-        app.settings.dailyDigestMaxCards = 3
-        // Pre-existing block on "phiresky" (author of 27016630)
-        app.settings.blockedUsers = [BlockedUser(siteURL: site, username: "phiresky", blockedAt: Date(timeIntervalSince1970: 1))]
-        app.applyModerationRules()
-
-        app.makeTodaysDigest()
-        try await wait { app.todaysDigest?.isComplete == true && app.digestActivity == .idle }
-
-        app.settings.podcast.engine = .onDevice
-        app.podcast.makeEngine = { _, _, _ in FakeSpeechEngine() }
-        app.podcast.make(play: false)
-        try await wait { app.podcast.episode?.isComplete == true && !app.podcast.activity.isRunning }
-        let introText = app.podcast.episode?.entries.first?.chapter.spokenText ?? ""
-        let podcastPrompts = ai.prompts.joined(separator: "\n")
-        app.podcast.player.unload()
-
-        XCTAssertEqual(app.todaysDigest?.cards.map(\.topicID), ["1"])
-        XCTAssertFalse(ai.prompts.isEmpty)
-        XCTAssertFalse(fixture.requests.contains { $0.url?.path == "/api/v1/items/27016630" })
-        XCTAssertFalse(app.todaysDigest?.cards.map(\.topicID).contains("27016630") == true,
-                       "Blocked author phiresky's story 27016630 became a Trending Digest card")
-        XCTAssertFalse(podcastPrompts.contains("Hosting SQLite databases on GitHub Pages"),
-                       "Blocked author phiresky's story title was sent to Podcast LLM")
-        XCTAssertFalse(introText.contains("Hosting SQLite databases on GitHub Pages"),
-                       "Blocked author phiresky's story title was spoken in Podcast intro")
-    }
-
-    func testVoiceBriefAndAgentReadExcludeHiddenTitles() async throws {
-        for rule in ["word", "author", "post"] {
-            let (app, _, planner, _) = try harness(actions: [
-                .init(thought: "", tool: "read_topic", arguments: ["topic_id": "1"]),
-                .init(thought: "", tool: "summarize_topic", arguments: ["topic_id": "1"]),
-                .init(thought: "", tool: "saved_summaries", arguments: [:]),
-                .init(thought: "", tool: "final_answer", arguments: ["answer": "Done."])
-            ])
-            switch rule {
-            case "word": _ = app.addFilteredWord("Combinator")
-            case "author": app.block("pg", on: site)
-            default: app.blockPost(1, topicID: "1", on: site)
-            }
-            app.browser.setPageContext(.init(url: topic.url, site: .hackerNews, siteURL: site, forumName: "Hacker News", topic: topic, state: .topic))
-            let result = await app.voiceTopicBrief()
-            let brief = try XCTUnwrap(result)
-            var voiceContext = VoiceContext()
-            let note = voiceContext.topicBriefNote(brief) ?? ""
-            XCTAssertFalse(note.contains("Combinator"), rule + ": " + note)
-            app.startAgentRun(goal: "Check story 1", siteURL: site)
-            try await wait { app.agentRuns.first?.isFinished == true }
-            let observation = planner.transcripts.flatMap { $0 }.map(\.content).joined(separator: "\n")
-            XCTAssertTrue(observation.contains("dmon |"), "The read must retain visible replies")
-            XCTAssertFalse(observation.contains("Combinator"), rule + ": " + observation)
-        }
-    }
-
-    func testOverviewBlocksCommentNavigationBeforeSessionExists() async throws {
-        let (app, _, _, _) = try harness(blocked: true)
-        app.browser.setPageContext(.init(url: topic.url, site: .hackerNews, siteURL: site, forumName: "Hacker News", topic: topic, state: .topic))
-        // PhoneBrowser sets barShowsTopicFacts = true, which prefetches topicOverview
-        _ = await app.topicOverview(siteURL: site, topicID: "1")
-        XCTAssertNil(app.currentSession)
-        // Post #2 on story 1 is authored by blocked user "sama"
-        let result = await app.openTopic(.topic("1"), at: .post(2), includeContent: false)
-        XCTAssertEqual(result.status, .hidden)
-        app.select(topic: topic)
-        XCTAssertEqual(app.currentSession?.source, "")
-        XCTAssertTrue(app.currentHiddenPosts.contains(2))
-    }
-
-    func testDigestRejectsHiddenTrendingOpeningAndEmptyWatchedContent() async throws {
-        for trending in [false, true] {
-            let (app, ai, _, fixture) = try harness()
-            if trending {
-                // No overview was prefetched. Visible replies must not resurrect a blocked author's trending story.
-                app.block("pg", on: site)
-            } else {
-                fixture.item = Data(#"{"id":1,"type":"story","author":"alice","title":"Hidden story","children":[]}"#.utf8)
-                app.blockPost(1, topicID: "1", on: site)
-            }
-            let card = DigestCard(siteURL: site, topicID: "1", title: "Hidden story",
-                                  reason: trending ? .trending : .newReplies(1), postCount: 1)
-            do {
-                _ = try await app.summarizeDigestCard(card, digestID: UUID(), context: app.runSettings(role: .assistant, topicKey: card.topicKey))
-                XCTFail("A hidden trending opening or empty moderated topic cannot become a completed card")
-            } catch AssistantError.emptyResponse {
-                // Expected: no model request, even when prefetch metadata was absent.
-            }
-            XCTAssertTrue(ai.calls.isEmpty)
-        }
-    }
-
     func testHTTPSharedStoryStartsSummaryAfterHTTPSRedirect() async throws {
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         let store = PersistentStore(fileURL: dir.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore())
@@ -336,7 +225,6 @@ final class HackerNewsJobTests: XCTestCase {
             Forum(siteURL: "https://forum.example.com", kind: .discourse, name: "Example")
         ])
         snap.settings.hasCompletedOnboarding = true
-        snap.settings.acceptedTermsVersion = ModerationTerms.currentVersion
         try store.save(snap)
         addTeardownBlock { try? FileManager.default.removeItem(at: dir) }
 
@@ -344,7 +232,6 @@ final class HackerNewsJobTests: XCTestCase {
         let ai = StateAIStub(); ai.gated = false
         let liveApp = AppModel(store: store, forumService: fixture.network().service, sites: .standard, aiService: ai)
         liveApp.usesDirectForumRequests = true
-        liveApp.allowAllAIProviders()
         liveApp.selectModel(.init(provider: .ollama, model: "model-a"), for: .both)
         let onPage = liveApp.browser.onPageContextChanged
         liveApp.browser.onPageContextChanged = nil
@@ -375,7 +262,7 @@ final class HackerNewsJobTests: XCTestCase {
     }
 }
 
-private final class HNPipelineAI: AIService {
+private final class HNPipelineAI: AIService, @unchecked Sendable {
     @MainActor var summaries: [String] = []
     @MainActor var prompts: [String] = []
     override func generateSummary(content: String, configuration: ProviderConfiguration, provider: AIProvider,

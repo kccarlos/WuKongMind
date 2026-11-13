@@ -353,8 +353,6 @@ final class VoiceToolBridge {
             return "There is nothing further that way. Tell the user in a few words."
         case .emptyList:
             return "There is no list to move along yet. Tell the user and offer to search." + refusal
-        case .hidden:
-            return "It's hidden by the user's own blocks or filters, so it was not shown or read. Say so; never guess what it says." + refusal
         case .notFound, .unavailable, .failed:
             return "It didn't work: the shown text says why." + refusal
         }

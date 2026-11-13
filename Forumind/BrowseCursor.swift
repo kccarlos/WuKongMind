@@ -217,8 +217,6 @@ struct BrowseResult: Codable, Equatable {
         case emptyList
         /// The post or topic doesn't exist (or isn't readable).
         case notFound
-        /// Hidden by the user's blocks or filters: never shown or read.
-        case hidden
         /// Not possible here: no forum, not a topic, offline.
         case unavailable
         case failed

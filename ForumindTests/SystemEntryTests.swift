@@ -159,19 +159,6 @@ final class SystemEntryTests: XCTestCase {
         for record in app.activities where !record.status.isTerminal { app.cancel(record: record) }
     }
 
-    func testBeforeTheTermsAreAcceptedNothingIsSpent() throws {
-        let app = makeApp(ready: true)
-        app.settings.acceptedTermsVersion = 0
-        app.perform(.summarize(topicURL))
-        deliverTopicPage(to: app)
-        XCTAssertGreaterThan(app.assistantRequest, 0)
-        XCTAssertFalse(app.activities.contains { $0.type == .summary })
-
-        app.perform(.ask(siteURL: site, question: "Why?"))
-        XCTAssertTrue(app.agentRuns.isEmpty)
-        XCTAssertEqual(app.drafts.goal, "Why?")
-    }
-
     func testAskStartsAskTheForumOnThatForum() throws {
         let app = makeApp(ready: true)
         app.perform(.ask(siteURL: site, question: "Did anyone fix it?"))
@@ -209,16 +196,17 @@ final class SystemEntryTests: XCTestCase {
         XCTAssertFalse(app.voice.isActive)
     }
 
-    func testVoiceWithAKeyAsksForConsentFirst() {
+    func testVoiceWithAKeyStartsDirectly() {
         let app = makeApp(ready: true)
+        app.voice.useScriptedSession = true
         var gemini = app.settings.configuration(for: VoiceProvider.aiStudio.keyProvider)
         gemini.apiKey = "test-key"
         app.settings.setConfiguration(gemini, for: VoiceProvider.aiStudio.keyProvider)
-        app.settings.voiceConsent = [:]
         app.perform(.startVoice)
-        XCTAssertEqual(app.voice.consentProvider, .aiStudio, "the consent gate, before any audio")
         XCTAssertNil(app.requestedSettingsPage)
-        XCTAssertFalse(app.voice.isActive)
+        XCTAssertTrue(app.voice.isActive)
+        app.voice.end()
+        app.voice.dismiss()
     }
 
     // MARK: Siri suggestions
@@ -257,7 +245,6 @@ final class SystemEntryTests: XCTestCase {
         )
         app.usesDirectForumRequests = true
         app.settings.hasCompletedOnboarding = true
-        app.settings.acceptedTermsVersion = ModerationTerms.currentVersion
         if ready {
             app.selectModel(ModelSelection(provider: .ollama, model: "llama3.2"), for: .both)
         }

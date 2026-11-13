@@ -5,14 +5,6 @@ class AIService: @unchecked Sendable {
     private let session: URLSession
     /// The Apple Intelligence provider (FoundationModels); tests pass a fake.
     let appleIntelligence: AppleIntelligenceServing
-    /// The AI data consent backstop (`AIDataConsent.swift`), checked before
-    /// every request that sends forum content to a third-party provider. It
-    /// never asks; until `AppModel` installs its check, nothing goes.
-    var consentCheck: @MainActor (AIProvider, ProviderConfiguration) throws -> Void = { provider, configuration in
-        if provider.requiresDataConsent(baseURL: configuration.baseURL) {
-            throw AssistantError.aiConsentRequired(provider)
-        }
-    }
 
     init(
         session: URLSession = .shared,
@@ -364,8 +356,6 @@ class AIService: @unchecked Sendable {
                 onDelta: onDelta
             )
         }
-        // Every third-party request that carries forum content comes here.
-        try await consentCheck(provider, configuration)
         try validate(configuration: configuration, provider: provider)
         var tokenBudgets: [Int] = [
             maxTokens,

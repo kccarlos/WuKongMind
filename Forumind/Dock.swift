@@ -147,7 +147,6 @@ extension AppModel {
             pageState: assistantPageState,
             mode: assistantMode,
             providerReady: isProviderReady(for: role),
-            consentDeclined: readiness(of: selection(for: role)) == .aiConsentDeclined,
             hasSummary: session?.hasSummary ?? false,
             summaryRunning: activities.contains {
                 $0.topicKey == topicKey && ($0.type == .summary || $0.type == .pull) && !$0.status.isTerminal
@@ -191,7 +190,7 @@ extension AppModel {
         case .summarize, .checkNew:
             guard currentTopic != nil, !drawerHintInput.summaryRunning else { return }
             startSummary()
-        case .setUpAI, .allowAI:
+        case .setUpAI:
             let role = currentRole
             let selection = selection(for: role)
             perform(ModelSetupAction(readiness(of: selection), provider: selection.provider), for: role)

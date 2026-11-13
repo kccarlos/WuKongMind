@@ -14,7 +14,7 @@ enum VoiceDebug {
     }
 
     /// `-dc-voice-fake`: a scripted session with no network, microphone or
-    /// key (UI tests and screenshots). Voice consent starts cleared.
+    /// key (UI tests and screenshots).
     static var isFake: Bool {
         #if DEBUG
         AssistantDebug.has("-dc-voice-fake")

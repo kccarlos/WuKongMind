@@ -99,7 +99,7 @@ final class DockTests: XCTestCase {
     }
 
     @MainActor
-    func testVoiceDrawerFailureVisibilityDoubleTapVertexConsentAndPodcastChapterLine() throws {
+    func testVoiceDrawerFailureVisibilityDoubleTapAndPodcastChapterLine() throws {
         // 1. Voice failure / ended state while AI drawer is open shows in DrawerStatusRow, and clears when closing the drawer.
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
         addTeardownBlock { try? FileManager.default.removeItem(at: directory) }
@@ -129,7 +129,6 @@ final class DockTests: XCTestCase {
         var gemini = app.settings.configuration(for: .gemini)
         gemini.apiKey = "test-gemini-key"
         app.settings.setConfiguration(gemini, for: .gemini)
-        app.grantVoiceConsent(.aiStudio)
         app.voice.useScriptedSession = true
 
         app.voice.toggle()
@@ -139,22 +138,7 @@ final class DockTests: XCTestCase {
         XCTAssertFalse(app.voice.isActive)
         app.voice.dismiss()
 
-        // 3. `VoiceConsentSheet` reflects Vertex AI and warns when the Google Cloud project ID is missing.
-        let missingProject = VoiceConsentSheet(provider: .vertex, settings: VoiceSettings(), vertexBaseURL: "", onAgree: {}, onCancel: {})
-        XCTAssertFalse(missingProject.statusLine.isReady)
-        XCTAssertEqual(missingProject.statusLine.text, VoiceSession.Failure.noVertexProject.message)
-
-        var withProjectSettings = VoiceSettings()
-        withProjectSettings.vertexProject = "my-gcp-project"
-        let readyVertex = VoiceConsentSheet(provider: .vertex, settings: withProjectSettings, vertexBaseURL: "", onAgree: {}, onCancel: {})
-        XCTAssertTrue(readyVertex.statusLine.isReady)
-        XCTAssertEqual(readyVertex.statusLine.text, "Voice uses Google Vertex AI. Key ready.")
-
-        let readyGemini = VoiceConsentSheet(provider: .aiStudio, settings: VoiceSettings(), vertexBaseURL: "", onAgree: {}, onCancel: {})
-        XCTAssertTrue(readyGemini.statusLine.isReady)
-        XCTAssertEqual(readyGemini.statusLine.text, "Voice uses Google Gemini. Key ready.")
-
-        // 4. `DockText.podcastLine` labels Welcome / Wrap-up and counts only topic chapters (matching NowPlayingView).
+        // 3. `DockText.podcastLine` labels Welcome / Wrap-up and counts only topic chapters (matching NowPlayingView).
         let defaults = try XCTUnwrap(UserDefaults(suiteName: "dock-podcast-\(UUID().uuidString)"))
         let audio = FakePodcastAudio()
         let player = PodcastPlayer(audio: audio, session: FakePodcastSession(), positions: PodcastPositionStore(defaults: defaults))

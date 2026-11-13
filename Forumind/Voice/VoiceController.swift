@@ -1,20 +1,17 @@
 import Combine
 import Foundation
 
-/// Starts and ends voice sessions for the UI: the browser bar's microphone,
-/// the consent sheet (once per provider) and the voice bar. AppModel owns
-/// one; the session itself is in `VoiceSession`.
+/// Starts and ends voice sessions for the UI: the browser bar's microphone
+/// and the voice bar. AppModel owns one; the session itself is in `VoiceSession`.
 @MainActor
 final class VoiceController: ObservableObject {
     /// The running session, or the last one while its bar still shows
     /// how it ended.
     @Published private(set) var session: VoiceSession?
-    /// Asks the user to agree before the first session with this provider.
-    @Published var consentProvider: VoiceProvider?
     /// Why a session couldn't start (no key, voice off), shown in the bar.
     @Published private(set) var startFailure: VoiceSession.Failure?
-    /// Called once a session is over, the consent was declined, or a
-    /// session couldn't start (the podcast's "Ask about this" resumes then).
+    /// Called once a session is over or a session couldn't start (the
+    /// podcast's "Ask about this" resumes then).
     var onFinished: (() -> Void)?
     #if DEBUG
     /// Unit tests: uses `SilentVoiceAudio` and `ScriptedLiveTransport`.
@@ -72,12 +69,8 @@ final class VoiceController: ObservableObject {
     func start() {
         guard let app, !isActive else { return }
         startFailure = nil
-        guard let provider = app.voiceProvider else {
+        guard app.voiceProvider != nil else {
             show(.noKey)
-            return
-        }
-        guard VoiceConsent.isGranted(provider, in: app.settings) else {
-            consentProvider = provider
             return
         }
         // Tapping the microphone is asking for voice.
@@ -107,32 +100,8 @@ final class VoiceController: ObservableObject {
         }
     }
 
-    /// The consent sheet's Agree.
-    func agree(_ provider: VoiceProvider) {
-        guard let app else { return }
-        app.grantVoiceConsent(provider)
-        app.settings.voiceEnabled = true
-        consentProvider = nil
-        start()
-    }
-
-    func declineConsent() {
-        consentProvider = nil
-        finished()
-    }
-
     func end() {
         session?.stop()
-    }
-
-    var canReportCurrentAnswer: Bool {
-        guard let session else { return false }
-        return app?.aiOutputReport(for: session) != nil
-    }
-
-    func reportCurrentAnswer() {
-        guard let app, let session, let target = app.aiOutputReport(for: session) else { return }
-        app.report(target)
     }
 
     /// Closes the bar of a session that is over.

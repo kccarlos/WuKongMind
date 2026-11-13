@@ -151,39 +151,21 @@ struct DigestTopicFacts: Codable, Equatable {
         self.openingPoster = openingPoster
     }
 
-    init(overview: ForumTopicOverview, rules: ModerationRules = .none) {
-        let accepted = overview.facts?.acceptedAnswer.flatMap { answer -> Int? in
-            if rules.hidesPost(answer.postNumber, siteURL: overview.siteURL, topicID: overview.topicID) {
-                return nil
-            }
-            if let user = answer.username, rules.hidesUser(user, siteURL: overview.siteURL) {
-                return nil
-            }
-            if let post = overview.facts?.posts.first(where: { $0.number == answer.postNumber }),
-               rules.hidesUser(post.username, siteURL: overview.siteURL) {
-                return nil
-            }
-            return answer.postNumber
-        }
+    init(overview: ForumTopicOverview) {
         self.init(
             title: overview.title,
             slug: overview.slug,
             postCount: overview.postCount,
-            acceptedAnswerPost: accepted,
-            topPost: overview.facts.flatMap { Self.topPost($0, siteURL: overview.siteURL, topicID: overview.topicID, rules: rules) },
+            acceptedAnswerPost: overview.facts?.acceptedAnswer?.postNumber,
+            topPost: overview.facts.flatMap(Self.topPost),
             openingPoster: overview.facts?.openingPoster ?? overview.facts?.posts.first(where: { $0.number == 1 })?.username
         )
     }
 
-    /// The most liked reply (not the opening post) among the included posts.
-    static func topPost(_ facts: TopicFacts, siteURL: String = "", topicID: String = "", rules: ModerationRules = .none) -> Int? {
+    /// The most liked reply (not the opening post).
+    static func topPost(_ facts: TopicFacts) -> Int? {
         facts.posts
-            .filter {
-                $0.number > 1
-                    && ($0.likeCount ?? 0) > 0
-                    && !rules.hidesUser($0.username, siteURL: siteURL)
-                    && !rules.hidesPost($0.number, siteURL: siteURL, topicID: topicID)
-            }
+            .filter { $0.number > 1 && ($0.likeCount ?? 0) > 0 }
             .max { ($0.likeCount ?? 0, -$0.number) < ($1.likeCount ?? 0, -$1.number) }?
             .number
     }
@@ -259,7 +241,6 @@ enum DigestPlanner {
         trending: [(siteURL: String, topics: [ForumTopicListing])],
         facts: [String: DigestTopicFacts] = [:],
         options: Options,
-        rules: ModerationRules = .none,
         slug: (WatchedTopic) -> String?
     ) -> [DigestCard] {
         let cap = DigestLimits.clampCards(options.maxCards)
@@ -282,7 +263,6 @@ enum DigestPlanner {
                     firstNewPost: base + 1
                 )
                 if let known = facts[topic.topicKey] { card.apply(known) }
-                card.sanitize(rules: rules)
                 return (offset, card)
             }
             .sorted { lhs, rhs in
@@ -299,11 +279,6 @@ enum DigestPlanner {
             let lists = trending.map { list in
                 list.topics.filter { topic in
                     topic.isPinned != true
-                        && !rules.hidesTopicTitle(topic.title, siteURL: topic.siteURL, topicID: topic.topicID, openingPoster: topic.author)
-                        && !(facts[TopicIdentity.key(siteURL: topic.siteURL, topicID: topic.topicID)].map {
-                            rules.hidesTopicTitle($0.title, siteURL: list.siteURL, topicID: topic.topicID, openingPoster: $0.openingPoster)
-                        } ?? false)
-                        && !(topic.excerpt.map(rules.hidesText) ?? false)
                         && !used.contains(TopicIdentity.key(siteURL: topic.siteURL, topicID: topic.topicID))
                 }
             }
@@ -321,7 +296,6 @@ enum DigestPlanner {
                     )
                     guard used.insert(card.topicKey).inserted else { continue }
                     if let known = facts[card.topicKey] { card.apply(known) }
-                    card.sanitize(rules: rules)
                     cards.append(card)
                 }
                 position += 1
@@ -335,25 +309,6 @@ extension DigestCard {
     var newReplies: Int {
         if case .newReplies(let count) = reason { return count }
         return 0
-    }
-
-    mutating func sanitize(
-        rules: ModerationRules,
-        isPostHidden: (Int) -> Bool = { _ in false }
-    ) {
-        func hidden(_ post: Int) -> Bool {
-            rules.hidesPost(post, siteURL: siteURL, topicID: topicID) || isPostHidden(post)
-        }
-        if let first = firstNewPost {
-            let end = max(first, postCount)
-            firstNewPost = (first...end).first { !hidden($0) }
-        }
-        if let accepted = acceptedAnswerPost, hidden(accepted) {
-            acceptedAnswerPost = nil
-        }
-        if let top = topPost, hidden(top) {
-            topPost = nil
-        }
     }
 }
 

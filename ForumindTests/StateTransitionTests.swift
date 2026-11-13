@@ -741,7 +741,6 @@ final class StateTransitionTests: XCTestCase {
         let harness = makeHarness()
         let app = harness.app
         app.settings.hasCompletedOnboarding = true
-        app.acceptTerms()
         select(app, .ollama, model: "model-a")
         app.panelRoute = .history
 
@@ -1112,7 +1111,6 @@ final class StateTransitionTests: XCTestCase {
             aiService: relaunchAI
         )
         relaunched.usesDirectForumRequests = true
-        relaunched.allowAllAIProviders()
         relaunched.browser.onPageContextChanged = nil
 
         let restoredBeforeRun = try XCTUnwrap(relaunched.activities.first { $0.id == liveID })
@@ -1693,8 +1691,6 @@ final class StateTransitionTests: XCTestCase {
         )
         app.usesDirectForumRequests = true
         app.browser.stopLoading()
-        // Consent has its own tests (AIDataConsentTests).
-        app.allowAllAIProviders()
         let handler = app.browser.onPageContextChanged
         app.browser.onPageContextChanged = nil
         addTeardownBlock { @MainActor in
@@ -2207,7 +2203,6 @@ final class StateTransitionTests: XCTestCase {
         let harness = makeHarness()
         let app = harness.app
         app.settings.hasCompletedOnboarding = true
-        app.acceptTerms()
         app.browser.load(URL(string: "about:blank")!)
         harness.deliver(topicPage(topic("70")))
 
@@ -2230,7 +2225,7 @@ final class StateTransitionTests: XCTestCase {
 
         // Render WorkspaceView at Split View width: AssistantPanel must NOT mount beside WKWebView while the compact drawer is .shown.
         let actions = BrowserActions(
-            showLoginInfo: {}, addForum: {}, report: { _ in }, translatePosts: {},
+            showLoginInfo: {}, addForum: {}, translatePosts: {},
             openAssistant: {}, openPanel: { _ in }, openForum: { _ in }, showForumsHome: {},
             openDigestLink: { _, _ in }, openHistory: {}, openSettings: {}, showShareHowTo: {}
         )
@@ -2289,7 +2284,6 @@ final class StateTransitionTests: XCTestCase {
         let harness = makeHarness(snapshot: AppSnapshot(watchedTopics: [watched]))
         let app = harness.app
         app.settings.hasCompletedOnboarding = true
-        app.acceptTerms()
 
         // 1. Manual watch check publishes `isCheckingWatches` while in flight, and opening a watched topic dismisses Settings.
         StateForumStub.postCounts = ["88": 5]
@@ -2425,8 +2419,6 @@ final class StateTransitionTests: XCTestCase {
         let handler2 = app2.browser.onPageContextChanged
         app2.browser.onPageContextChanged = nil
         app2.settings.hasCompletedOnboarding = true
-        app2.acceptTerms()
-        app2.allowAllAIProviders()
         let anthropicConfig = ProviderConfiguration(model: "claude-sonnet-4-6", baseURL: "https://api.example.com/v1", apiKey: "sk-ant")
         app2.setConfiguration(anthropicConfig, for: .anthropic)
         app2.selectModel(ModelSelection(provider: .anthropic, model: "claude-sonnet-4-6"), for: .both)
@@ -2456,7 +2448,7 @@ final class StateTransitionTests: XCTestCase {
         )
     }
 
-    func testChatEditInteractionsWithOpenAgentRunScopeSwitchSuggestionChipAndReports() async throws {
+    func testChatEditInteractionsWithOpenAgentRunScopeSwitchAndSuggestionChip() async throws {
         let planner = RolePlanner(actions: [
             AgentAction(thought: "Answer", tool: "final_answer", arguments: ["answer": "Agent reply"])
         ])
@@ -2485,7 +2477,7 @@ final class StateTransitionTests: XCTestCase {
         try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
         XCTAssertEqual(app.sessions[t1.topicKey]?.history.count, 4)
 
-        // Subcase A (Finding 11): Edit Q2 -> Q2', gate AI, cancel Q2', then report the latest chat answer (which is now A1 by model-a).
+        // Subcase A: Edit Q2 -> Q2', gate AI, cancel Q2', then rebuild Turn 2.
         let q2ID = try XCTUnwrap(app.sessions[t1.topicKey]?.history[2].id)
         app.editChat(messageID: q2ID)
         h.ai.gated = true
@@ -2497,34 +2489,17 @@ final class StateTransitionTests: XCTestCase {
         }
         h.ai.gated = false
         h.ai.releaseAll()
-
-        let chatReport = try XCTUnwrap(app.currentAIOutputReport(feature: .chatAnswer))
-        var reportedChatModel = ""
-        if case .aiOutput(let output) = chatReport.kind {
-            reportedChatModel = output.model
-        }
+        XCTAssertEqual(app.sessions[t1.topicKey]?.history.count, 2)
 
         // Rebuild Turn 2 so history has [Q1, A1, Q2, A2] again:
         app.drafts.chat = "Q2"
         app.sendChat()
         try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
 
-        // Subcase B (Finding 11): Run initial Agent on ollama/model-a, then switch Agent role to lmStudio/model-b for follow-up, and inspect report!
+        // Run an Agent session for openAgentRun interactions below:
         app.selectModel(ModelSelection(provider: .ollama, model: "model-a"), for: .role(.agent))
         _ = try await app.performAgentRun(goal: "Initial forum goal", siteURL: site)
         let runID = try XCTUnwrap(app.agentRuns.first?.id)
-        planner.restart()
-        app.selectModel(ModelSelection(provider: .lmStudio, model: "model-b"), for: .role(.agent))
-        app.continueAgentRun(id: runID, question: "Follow-up forum question?")
-        try await waitUntil { app.agentRuns.first(where: { $0.id == runID })?.isFinished == true }
-        let updatedRun = try XCTUnwrap(app.agentRuns.first(where: { $0.id == runID }))
-        let agentFollowUpReport = app.aiOutputReport(for: updatedRun, answer: "Agent reply")
-        var reportedAgentQuestion = ""
-        var reportedAgentModel = ""
-        if case .aiOutput(let output) = agentFollowUpReport.kind {
-            reportedAgentQuestion = output.question ?? ""
-            reportedAgentModel = output.model
-        }
 
         // Subcase C (Finding 9): Carrying ask text when destination draft is non-empty restores previousDraft!
         let q1ID = try XCTUnwrap(app.sessions[t1.topicKey]?.history.first?.id)
@@ -2560,19 +2535,6 @@ final class StateTransitionTests: XCTestCase {
         try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
         let countAfterChip = app.sessions[t1.topicKey]?.history.count ?? 0
 
-        XCTAssertTrue(
-            reportedChatModel.contains("model-a"),
-            "After editing & cancelling Turn 2, reporting A1 attributed it to '\(reportedChatModel)' instead of Turn 1's 'Ollama · model-a'"
-        )
-        XCTAssertEqual(
-            reportedAgentQuestion,
-            "Follow-up forum question?",
-            "Reporting an Agent follow-up answer recorded run.goal ('\(reportedAgentQuestion)') instead of the follow-up question"
-        )
-        XCTAssertTrue(
-            reportedAgentModel.contains("model-b"),
-            "Reporting an Agent follow-up answer recorded initial model '\(reportedAgentModel)' instead of follow-up model 'LM Studio · model-b'"
-        )
         XCTAssertEqual(editStateAfterBlockedCarry, .none)
         XCTAssertEqual(
             draftAfterBlockedCarry,
@@ -2587,64 +2549,12 @@ final class StateTransitionTests: XCTestCase {
         XCTAssertEqual(countAfterChip, countBeforeChip + 2, "Suggestion chip must append a turn rather than truncating history")
     }
 
-    func testAnswerAIConsentDismissesModalWhenRequirementTurnsFalse() async throws {
-        let app = makeHarness().app
-        app.settings.hasCompletedOnboarding = true
-        app.acceptTerms()
-        app.settings.aiConsent = [:]
-        let remoteConfig = ProviderConfiguration(model: "llama3", baseURL: "https://remote-ollama.example.com", apiKey: "")
-        app.setConfiguration(remoteConfig, for: .ollama)
-        app.selectModel(ModelSelection(provider: .ollama, model: "llama3"), for: .both)
-
-        app.aiConsent.ask(.ollama)
-        XCTAssertEqual(app.rootPresentation, .aiConsent(.ollama))
-
-        let localConfig = ProviderConfiguration(model: "llama3", baseURL: "http://localhost:11434", apiKey: "")
-        app.setConfiguration(localConfig, for: .ollama)
-
-        app.answerAIConsent(.ollama, allow: false)
-        app.answerAIConsent(.ollama, allow: true)
-
-        XCTAssertNil(
-            app.aiConsent.asking,
-            "answerAIConsent must resolve aiConsent even if requiresAIConsent became false while presented"
-        )
-    }
-
-    func testOnboardingDeclinedConsentAllowsRetestAndResetsToUndecided() async throws {
-        let h1 = makeHarness()
-        let app1 = h1.app
-        h1.ai.gated = false
-        app1.settings.hasCompletedOnboarding = false
-        app1.settings.aiConsent = [:]
-        var geminiConfig = app1.settings.configuration(for: .gemini)
-        geminiConfig.apiKey = "gemini-key"
-        app1.setConfiguration(geminiConfig, for: .gemini)
-        app1.selectModel(ModelSelection(provider: .gemini, model: "gemini-2.5-flash"), for: .both)
-
-        app1.aiConsent.ask(.gemini)
-        app1.answerAIConsent(.gemini, allow: false)
-        XCTAssertFalse(app1.isProviderReady)
-        let checkResultDuringOnboarding = await app1.testAndSaveProvider(scope: .both)
-        var hintDuringOnboarding = ""
-        if case .failure(let message) = checkResultDuringOnboarding {
-            hintDuringOnboarding = message
-        }
-
-        XCTAssertFalse(
-            !app1.settings.hasCompletedOnboarding && hintDuringOnboarding.contains("Settings"),
-            "Declining consent during onboarding locks out Test & Continue with '\(hintDuringOnboarding)' while Settings is unreachable"
-        )
-        XCTAssertEqual(app1.aiConsentState(for: .gemini), .undecided)
-    }
-
     func testAgentFollowUpKillPreservesStepsUsedAgainstBudget() async throws {
         let planner = RolePlanner(actions: [
             AgentAction(thought: "Step", tool: "saved_summaries", arguments: [:])
         ])
         var settings = AppSettings()
         settings.hasCompletedOnboarding = true
-        settings.acceptedTermsVersion = ModerationTerms.currentVersion
         settings.assistantModel = ModelSelection(provider: .ollama, model: "m")
         settings.agentModel = ModelSelection(provider: .ollama, model: "m")
         settings.agentMaxSteps = 3
@@ -2692,13 +2602,11 @@ final class StateTransitionTests: XCTestCase {
         )
     }
 
-    func testNowPlayingSheetPresentsMissingGoogleKeyAlertAndPodcastConsent() async throws {
+    func testNowPlayingSheetPresentsMissingGoogleKeyAlert() async throws {
         let h = makeHarness()
         let app = h.app
         h.ai.gated = false
         app.settings.hasCompletedOnboarding = true
-        app.acceptTerms()
-        app.allowAllAIProviders()
         app.selectModel(ModelSelection(provider: .ollama, model: "llama-local"), for: .both)
         let gatedSpeech = GatedSpeechEngine()
         app.podcast.makeEngine = { _, _, _ in gatedSpeech }
@@ -2752,25 +2660,10 @@ final class StateTransitionTests: XCTestCase {
             try await Task.sleep(for: .milliseconds(30))
             rootHost.view.layoutIfNeeded()
         }
-        window.isHidden = true
-        window.rootViewController = nil
-
-        app.router.item = .nowPlaying
-        var geminiConfig = app.settings.configuration(for: .gemini)
-        geminiConfig.apiKey = "gemini-key"
-        app.setConfiguration(geminiConfig, for: .gemini)
-        app.settings.podcastConsent = [:]
-        app.podcast.make(play: false)
-        let activePresentationWhileNowPlayingOpen = app.rootPresentation
 
         XCTAssertTrue(
             alertVisibleOverSheet,
             "Missing Google API key alert attached to RouterHost behind presented NowPlayingView sheet was dropped by UIKit"
-        )
-        XCTAssertEqual(
-            activePresentationWhileNowPlayingOpen,
-            .podcastConsent(.aiStudio),
-            "Tapping Make Podcast inside NowPlayingView must present .podcastConsent(.aiStudio) over .nowPlaying"
         )
     }
 
@@ -2780,8 +2673,6 @@ final class StateTransitionTests: XCTestCase {
         let app = h.app
         h.ai.gated = false
         app.settings.hasCompletedOnboarding = true
-        app.acceptTerms()
-        app.allowAllAIProviders()
         app.selectModel(ModelSelection(provider: .ollama, model: "llama-local"), for: .both)
         app.settings.dailyDigestEnabled = true
         app.settings.podcastDailyEnabled = true
@@ -2847,8 +2738,6 @@ final class StateTransitionTests: XCTestCase {
         let hChat = makeHarness(snapshot: AppSnapshot(sessions: [session]))
         let chatApp = hChat.app
         chatApp.settings.hasCompletedOnboarding = true
-        chatApp.acceptTerms()
-        chatApp.allowAllAIProviders()
         chatApp.selectModel(ModelSelection(provider: .ollama, model: "llama-local"), for: .both)
         hChat.deliver(PageContext(url: t1.url, site: .discourse, siteURL: site, forumName: "Stub", topic: t1, state: .topic))
         chatApp.assistantMode = .chat
@@ -2900,8 +2789,6 @@ final class StateTransitionTests: XCTestCase {
         let h = makeHarness(snapshot: AppSnapshot(sessions: [session]))
         let app = h.app
         app.settings.hasCompletedOnboarding = true
-        app.acceptTerms()
-        app.allowAllAIProviders()
         app.selectModel(ModelSelection(provider: .ollama, model: "llama-local"), for: .both)
         h.deliver(PageContext(url: t1.url, site: .discourse, siteURL: site, forumName: "Stub", topic: t1, state: .topic))
         app.assistantMode = .chat
@@ -2992,7 +2879,7 @@ private final class ProviderModelsStubProtocol: URLProtocol {
 /// one delta, then (while `gated`) waits until the test releases it —
 /// ignoring task cancellation, like a provider that answers anyway. Also
 /// used by DailyDigestTests.
-final class StateAIStub: AIService {
+final class StateAIStub: AIService, @unchecked Sendable {
     struct Call {
         var kind: String
         var provider: AIProvider
@@ -3390,428 +3277,4 @@ private final class ChatPayloadInspectorStub: URLProtocol {
     }
 
     override func stopLoading() {}
-}
-
-
-// Requests must respect consent and moderation even when saved or in flight.
-@MainActor
-final class AIContextValidityTests: XCTestCase {
-    let siteURL = "https://forum.example.com"
-    var deliverPage: ((PageContext) -> Void)?
-
-    func makeApp(ai: AIService, snapshot: AppSnapshot? = nil, service: ForumService? = nil, planner: AgentPlanner? = nil) throws -> AppModel {
-        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-        let store = PersistentStore(fileURL: directory.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore())
-        var seeded = snapshot ?? AppSnapshot()
-        if snapshot == nil { seeded.ensureForum(siteURL) }
-        try store.save(seeded)
-        addTeardownBlock { try? FileManager.default.removeItem(at: directory) }
-        let cfg = URLSessionConfiguration.ephemeral
-        cfg.protocolClasses = [StateForumStub.self]
-        let app = AppModel(
-            store: store,
-            forumService: service ?? ForumService(session: URLSession(configuration: cfg), pacer: ForumRequestPacer(clock: InstantPacingClock())),
-            aiService: ai,
-            planner: planner,
-            podcastDirectory: directory.appendingPathComponent("Podcasts", isDirectory: true),
-            spotlightIndex: FakeSpotlightIndex(),
-            topicActivityDonor: FakeTopicActivityDonor()
-        )
-        app.usesDirectForumRequests = true
-        app.browser.stopLoading()
-        app.settings.hasCompletedOnboarding = true
-        app.acceptTerms()
-        app.allowAllAIProviders()
-        app.selectModel(ModelSelection(provider: .ollama, model: "test-model"), for: .both)
-        let handler = app.browser.onPageContextChanged
-        app.browser.onPageContextChanged = nil
-        deliverPage = { app.browser.setPageContext($0); handler?($0) }
-        addTeardownBlock { @MainActor in
-            for record in app.activities where !record.status.isTerminal { app.cancel(record: record) }
-            app.browser.stopLoading()
-            app.pauseDigest()
-            app.podcast.pauseGeneration()
-            if let ai = ai as? StateAIStub { ai.gated = false; ai.releaseAll() }
-            StateForumStub.release()
-        }
-        return app
-    }
-
-    /// Polls until `condition` holds. The bound only catches a hang: public
-    /// CI ran this suite 30 times slower than a Mac (one test took 24 s), so
-    /// it sits far above any healthy run. A timeout names the waiting line.
-    func waitUntil(file: StaticString = #filePath, line: UInt = #line, _ condition: @escaping () -> Bool) async throws {
-        let deadline = Date().addingTimeInterval(60)
-        while !condition() {
-            if Date() > deadline {
-                XCTFail("Timed out waiting for work", file: file, line: line)
-                throw CancellationError()
-            }
-            try await Task.sleep(for: .milliseconds(20))
-        }
-    }
-
-    func testBlockWhileSummaryInFlightDoesNotCertifyBlockedOutput() async throws {
-        StateForumStub.reset()
-        let ai = StateAIStub()
-        ai.echoContentInSummary = true
-        let planner = ScriptedAgentPlanner(actions: [
-            AgentAction(thought: "", tool: "saved_summaries", arguments: ["query": "Topic"]),
-            AgentAction(thought: "", tool: AgentPrompt.finalAnswerTool, arguments: ["answer": "Done"])
-        ])
-        let topic = ForumTopic(siteURL: siteURL, topicID: "1", url: URL(string: siteURL + "/t/topic-1/1")!, title: "Topic 1")
-        var earlier = TopicSession(siteURL: siteURL, topicID: topic.topicID, url: topic.url, title: topic.title)
-        earlier.summary = "Earlier saved summary"
-        let app = try makeApp(ai: ai, snapshot: AppSnapshot(sessions: [earlier], forums: [Forum(siteURL: siteURL, kind: .discourse, name: "Forum")]), planner: planner)
-        XCTAssertTrue(app.enqueueSummary(for: topic, regenerate: true))
-        try await waitUntil { ai.waiting == 1 }
-        XCTAssertTrue(ai.calls[0].content.contains("Post 2"))
-        app.blockPost(2, topicID: "1", on: siteURL)
-        ai.gated = false
-        ai.releaseAll()
-        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
-        let saved = try XCTUnwrap(app.sessions[topic.topicKey])
-        XCTAssertEqual(saved.summary, earlier.summary, "An obsolete response must not replace saved reader text")
-        XCTAssertFalse(app.canUseSummaryAsContext(saved))
-        _ = try await app.performAgentRun(goal: "Read saved summaries", siteURL: siteURL)
-        let observation = planner.transcripts.flatMap { $0 }.map(\.content).joined(separator: "\n")
-        XCTAssertFalse(observation.contains("Post 2"), "Post blocked during summary generation reached the planner via saved_summaries; canUse=\(app.canUseSummaryAsContext(saved))")
-    }
-
-    func testAgentSummaryCompletedAfterBlockIsDiscarded() async throws {
-        StateForumStub.reset()
-        let ai = StateAIStub()
-        ai.echoContentInSummary = true
-        let planner = ScriptedAgentPlanner(actions: [
-            AgentAction(thought: "", tool: "summarize_topic", arguments: ["topic_id": "1"]),
-            AgentAction(thought: "", tool: AgentPrompt.finalAnswerTool, arguments: ["answer": "Done"])
-        ])
-        let app = try makeApp(ai: ai, planner: planner)
-        app.startAgentRun(goal: "Summarize topic one", siteURL: siteURL)
-        try await waitUntil { ai.waiting == 1 }
-        XCTAssertTrue(ai.calls[0].content.contains("Post 2"))
-        app.blockPost(2, topicID: "1", on: siteURL)
-        ai.gated = false
-        ai.releaseAll()
-        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
-        XCTAssertEqual(app.activities.first?.status, .cancelled)
-        XCTAssertFalse(app.sessions[TopicIdentity.key(siteURL: siteURL, topicID: "1")]?.hasSummary == true)
-        XCTAssertFalse(planner.transcripts.flatMap { $0 }.map(\.content).joined().contains("Post 2"))
-    }
-
-    func testBlockedSavedSummaryInPriorAgentTranscriptDoesNotReachFollowUpPlanner() async throws {
-        StateForumStub.reset()
-        let ai = StateAIStub()
-        ai.gated = false
-        ai.echoContentInSummary = true
-        let planner = ScriptedAgentPlanner(actions: [
-            AgentAction(thought: "", tool: "saved_summaries", arguments: ["query": "Topic"]),
-            AgentAction(thought: "", tool: AgentPrompt.finalAnswerTool, arguments: ["answer": "Initial answer"]),
-            AgentAction(thought: "", tool: AgentPrompt.finalAnswerTool, arguments: ["answer": "Follow-up answer"])
-        ])
-        let app = try makeApp(ai: ai, planner: planner)
-        let topic = ForumTopic(siteURL: siteURL, topicID: "1", url: URL(string: siteURL + "/t/topic-1/1")!, title: "Topic 1")
-        XCTAssertTrue(app.enqueueSummary(for: topic))
-        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
-        let initial = try await app.performAgentRun(goal: "Read saved Topic summaries", siteURL: siteURL)
-        let runID = initial.runID
-        XCTAssertTrue(planner.transcripts.last?.map(\.content).joined().contains("Post 2") == true)
-        app.blockPost(2, topicID: "1", on: siteURL)
-        XCTAssertFalse(app.canUseSummaryAsContext(try XCTUnwrap(app.sessions[topic.topicKey])))
-        app.continueAgentRun(id: runID, question: "Anything else?")
-        try await waitUntil { app.agentRuns.first(where: { $0.id == runID })?.isFinished == true }
-        let replayed = planner.transcripts.last?.map(\.content).joined(separator: "\n") ?? ""
-        XCTAssertTrue(app.agentRuns.first(where: { $0.id == runID })?.transcript.map(\.content).joined().contains("Post 2") == true, "The saved transcript stays visible")
-        XCTAssertFalse(replayed.contains("Post 2"), "Agent follow-up replayed the pre-block saved_summaries observation despite rejecting the saved summary itself")
-    }
-
-    func testPodcastDoesNotSendPreBlockDigestSummary() async throws {
-        StateForumStub.reset()
-        let ai = CapturingPodcastPromptAI()
-        let app = try makeApp(ai: ai)
-        var card = DigestCard(siteURL: siteURL, topicID: "1", title: "Topic 1", reason: .trending, postCount: 2)
-        card.state = .done
-        card.summary = "BLOCKED_POST_TWO_SECRET from post two."
-        app.digests = [DailyDigest(day: DailyDigest.dayKey(for: Date()), completedAt: Date(), cards: [card])]
-        app.blockPost(2, topicID: "1", on: siteURL)
-        app.settings.podcast.engine = .onDevice
-        app.podcast.makeEngine = { _, _, _ in SilentSpeechEngine() }
-        app.podcast.make(play: false)
-        try await waitUntil { !ai.prompts.isEmpty && !app.podcast.activity.isRunning }
-        XCTAssertFalse(app.podcast.episode?.entries.map { $0.chapter.spokenText }.joined().contains("BLOCKED_POST_TWO_SECRET") == true, "Fallback speech also uses the regenerated card")
-        XCTAssertEqual(app.todaysDigest?.cards.first?.summary, card.summary, "Saved text remains visible")
-        XCTAssertFalse(ai.prompts.joined().contains("BLOCKED_POST_TWO_SECRET"), "Podcast complete() sent pre-block digest summary to script model")
-    }
-
-    func testResumedPodcastRegeneratesPreBlockScriptBeforeSpeech() async throws {
-        StateForumStub.reset()
-        let ai = CapturingPodcastPromptAI()
-        let app = try makeApp(ai: ai)
-        var card = DigestCard(siteURL: siteURL, topicID: "1", title: "Topic 1", reason: .trending, postCount: 2)
-        card.state = .done
-        card.summary = "BLOCKED_POST_TWO_SECRET"
-        let digest = DailyDigest(day: DailyDigest.dayKey(for: Date()), completedAt: Date(), cards: [card])
-        app.digests = [digest]
-        var chapter = PodcastChapter(card: card)
-        chapter.turns = PodcastScript.fallbackTurns(for: card)
-        app.podcast.store.save(PodcastEpisode(
-            digestID: digest.id, day: digest.day, title: "Podcast", language: "en", hosts: app.settings.podcast.hosts,
-            engine: .onDevice, minutesPerChapter: 1, entries: [PodcastEpisode.Entry(chapter: chapter)]
-        ))
-        app.blockPost(2, topicID: "1", on: siteURL)
-        app.settings.podcast.engine = .onDevice
-        app.podcast.makeEngine = { _, _, _ in SilentSpeechEngine() }
-        app.podcast.make(play: false)
-        try await waitUntil { !ai.prompts.isEmpty && !app.podcast.activity.isRunning }
-        XCTAssertFalse(ai.prompts.joined().contains("BLOCKED_POST_TWO_SECRET"))
-        XCTAssertFalse(app.podcast.episode?.entries.map { $0.chapter.spokenText }.joined().contains("BLOCKED_POST_TWO_SECRET") == true)
-    }
-
-    func testWithdrawCancelsCrossRoleSummaryAfterAssistantSwitch() async throws {
-        StateForumStub.reset()
-        let ai = CancellableSummaryAI()
-        let planner = ScriptedAgentPlanner(actions: [
-            AgentAction(thought: "", tool: "summarize_topic", arguments: ["topic_id": "1"]),
-            AgentAction(thought: "", tool: AgentPrompt.finalAnswerTool, arguments: ["answer": "Done"])
-        ])
-        let app = try makeApp(ai: ai, planner: planner)
-        var configuration = app.settings.configuration(for: .openAI)
-        configuration.apiKey = "test-key"
-        app.setConfiguration(configuration, for: .openAI)
-        app.selectModel(ModelSelection(provider: .openAI, model: "test-model"), for: .role(.assistant))
-        app.startAgentRun(goal: "Summarize topic one", siteURL: siteURL)
-        try await waitUntil { ai.waiting == 1 }
-        XCTAssertEqual(ai.provider, .openAI)
-        app.selectModel(ModelSelection(provider: .lmStudio, model: "local-model"), for: .role(.assistant))
-        app.withdrawAIConsent(.openAI)
-        XCTAssertEqual(app.activities.first?.status, .cancelled, "Cross-role OpenAI summary still running after withdrawal because live assistant role has switched")
-        try await Task.sleep(for: .milliseconds(100))
-        XCTAssertTrue(ai.cancelled, "In-flight summarizer task received no cancellation after consent withdrawal")
-        ai.release()
-        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
-    }
-
-    func testBlockedContentInPreviousChatAnswerDoesNotReachNextChat() async throws {
-        try await assertPriorChatAnswerIsExcluded(synced: false)
-    }
-
-    func testSyncedBlockExcludesPreviousChatAnswerFromNextRequest() async throws {
-        try XCTSkipIf(ProcessInfo.processInfo.environment["CI"] != nil, "Timing-sensitive multi-turn chat and sync block race on 3-vCPU CI simulator (see docs/wukongmind/flaky-tests.md)")
-        try await assertPriorChatAnswerIsExcluded(synced: true)
-    }
-
-    private func assertPriorChatAnswerIsExcluded(synced: Bool) async throws {
-        StateForumStub.reset()
-        let ai = EchoingChatContextAI()
-        let app = try makeApp(ai: ai)
-        let topic = ForumTopic(siteURL: siteURL, topicID: "1", url: URL(string: siteURL + "/t/topic-1/1")!, title: "Topic 1")
-        deliverPage?(PageContext(url: topic.url, site: .discourse, siteURL: siteURL, forumName: "Forum", topic: topic, state: .topic))
-        app.drafts.chat = "Quote the replies"
-        app.sendChat()
-        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
-        XCTAssertTrue(app.sessions[topic.topicKey]?.history.last?.content.contains("Post 2") == true)
-        if synced {
-            var remote = app.settings
-            // Another device blocked it in the answer's second; sync drops fractions.
-            let blockedAt = SyncCoding.stamp(try XCTUnwrap(app.sessions[topic.topicKey]?.history.last).createdAt)
-            remote.blockedPosts.append(BlockedPost(siteURL: siteURL, topicID: "1", postNumber: 2, blockedAt: blockedAt))
-            let skipped = app.applyRemote(SyncChanges(settings: SyncSettingsChange(expected: app.settings.persistable, units: try SyncSchema.settingsUnits(remote))))
-            XCTAssertTrue(skipped.isEmpty)
-        } else {
-            app.blockPost(2, topicID: "1", on: siteURL)
-        }
-        app.drafts.chat = "What else?"
-        app.sendChat()
-        try await waitUntil { ai.histories.count == 2 && app.activities.allSatisfy(\.status.isTerminal) }
-        XCTAssertFalse(ai.sources.last?.contains("Post 2") == true, "Raw source is correctly moderated")
-        XCTAssertFalse(ai.histories.last?.contains("Post 2") == true, "Previous AI answer quoting blocked post two was sent back in next chat history")
-        XCTAssertTrue(app.sessions[topic.topicKey]?.history.first(where: { $0.role == .assistant })?.content.contains("Post 2") == true, "Saved answers stay visible")
-    }
-
-    /// The developer's list refreshes while a chat is answered: the chat is
-    /// asked again under the new list instead of ending as "Cancelled".
-    func testRemoteListArrivingMidChatAnswersUnderTheNewList() async throws {
-        StateForumStub.reset()
-        let ai = StateAIStub()
-        let app = try makeApp(ai: ai)
-        let topic = ForumTopic(siteURL: siteURL, topicID: "1", url: URL(string: siteURL + "/t/topic-1/1")!, title: "Topic 1")
-        deliverPage?(PageContext(url: topic.url, site: .discourse, siteURL: siteURL, forumName: "Forum", topic: topic, state: .topic))
-        app.drafts.chat = "Quote the replies"
-        app.sendChat()
-        try await waitUntil { ai.waiting == 1 }
-        XCTAssertTrue(ai.calls.last?.content.contains("Post 2") == true)
-        app.remoteModeration = RemoteModerationList(posts: [.init(site: siteURL, topic: 1, post: 2)])
-        ai.gated = false
-        ai.releaseAll()
-        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
-        XCTAssertEqual(app.activities.first { $0.type == .chat }?.status, .completed, "A list refresh must not cancel the user's chat")
-        XCTAssertEqual(app.sessions[topic.topicKey]?.history.last?.role, .assistant)
-        XCTAssertFalse(ai.calls.last?.content.contains("Post 2") == true, "The answer kept was asked under the new list")
-    }
-
-    /// The developer's list refreshes while Ask the forum runs: the run starts
-    /// again from scratch under the new list (a resume would replay what it
-    /// read before) and answers, instead of ending as "Cancelled".
-    func testRemoteListArrivingMidAgentRunRestartsItFromScratch() async throws {
-        StateForumStub.reset()
-        let ai = StateAIStub()
-        ai.echoContentInSummary = true
-        let planner = ScriptedAgentPlanner(actions: [
-            AgentAction(thought: "", tool: "read_topic", arguments: ["topic_id": "1"]),
-            AgentAction(thought: "", tool: "summarize_topic", arguments: ["topic_id": "1"]),
-            AgentAction(thought: "", tool: "read_topic", arguments: ["topic_id": "1"]),
-            AgentAction(thought: "", tool: AgentPrompt.finalAnswerTool, arguments: ["answer": "Done"])
-        ])
-        let app = try makeApp(ai: ai, planner: planner)
-        var outcomes: [AgentRunOutcome] = []
-        let goal = "Read topic one"
-        let runID = try app.startAgentRun(goal: goal, siteURL: siteURL) { outcomes.append($0) }
-        try await waitUntil { ai.waiting == 1 }
-        XCTAssertTrue(planner.transcripts[1].map(\.content).joined().contains("Post 2"), "The first run read post two")
-        let restartIndex = planner.transcripts.count
-        app.remoteModeration = RemoteModerationList(posts: [.init(site: siteURL, topic: 1, post: 2)])
-        ai.gated = false
-        ai.releaseAll()
-        try await waitUntil { !outcomes.isEmpty && app.activities.allSatisfy(\.status.isTerminal) }
-        XCTAssertEqual(outcomes.map(\.status), [.completed], "A list refresh must not cancel the run")
-        XCTAssertEqual(outcomes.first?.answer, "Done")
-        let run = try XCTUnwrap(app.agentRuns.first { $0.id == runID })
-        XCTAssertEqual(run.steps.map(\.tool), ["read_topic", AgentPrompt.finalAnswerTool], "Only the restarted run's steps are kept")
-        let restarted = Array(planner.transcripts[restartIndex...])
-        XCTAssertEqual(restarted.first?.map(\.content), [AgentPrompt.goalMessage(goal).content], "The restarted run begins at step 0 with only the goal")
-        XCTAssertFalse(restarted.flatMap { $0 }.map(\.content).joined(separator: "\n").contains("Post 2"), "The restarted run's planner saw a post the new list hides")
-    }
-
-    /// A follow-up the list interrupts restarts as that follow-up: the
-    /// earlier answer stays, the planner gets only the questions.
-    func testRemoteListArrivingMidFollowUpRestartsThatFollowUp() async throws {
-        StateForumStub.reset()
-        let ai = StateAIStub()
-        ai.echoContentInSummary = true
-        let planner = ScriptedAgentPlanner(actions: [
-            AgentAction(thought: "", tool: "read_topic", arguments: ["topic_id": "1"]),
-            AgentAction(thought: "", tool: AgentPrompt.finalAnswerTool, arguments: ["answer": "Initial"]),
-            AgentAction(thought: "", tool: "summarize_topic", arguments: ["topic_id": "1"]),
-            AgentAction(thought: "", tool: AgentPrompt.finalAnswerTool, arguments: ["answer": "Follow-up answer"])
-        ])
-        let app = try makeApp(ai: ai, planner: planner)
-        let goal = "Read topic one"
-        let runID = try await app.performAgentRun(goal: goal, siteURL: siteURL).runID
-        app.continueAgentRun(id: runID, question: "Anything else?")
-        try await waitUntil { ai.waiting == 1 }
-        let restartIndex = planner.transcripts.count
-        app.remoteModeration = RemoteModerationList(posts: [.init(site: siteURL, topic: 1, post: 2)])
-        ai.gated = false
-        ai.releaseAll()
-        try await waitUntil { app.agentRuns.first { $0.id == runID }?.isFinished == true && app.activities.allSatisfy(\.status.isTerminal) }
-        let run = try XCTUnwrap(app.agentRuns.first { $0.id == runID })
-        XCTAssertEqual(run.result, .completed)
-        XCTAssertEqual(run.initialAnswer, "Initial")
-        XCTAssertEqual(run.followUps.map(\.content), ["Anything else?", "Follow-up answer"])
-        XCTAssertEqual(run.steps.map(\.tool), ["read_topic", AgentPrompt.finalAnswerTool, AgentPrompt.finalAnswerTool], "The first turn's steps stay; the interrupted turn's are dropped")
-        let restarted = Array(planner.transcripts[restartIndex...])
-        XCTAssertEqual(restarted.first?.map(\.content), [AgentPrompt.goalMessage(goal).content, AgentPrompt.followUpMessage("Anything else?").content])
-        XCTAssertFalse(restarted.flatMap { $0 }.map(\.content).joined(separator: "\n").contains("Post 2"))
-    }
-
-    func testSyncedConsentWithdrawalDoesNotLeaveDigestCardWorkingForever() async throws {
-        StateForumStub.reset()
-        let ai = StateAIStub()
-        let topicURL = URL(string: siteURL + "/t/topic-1/1")!
-        let watched = WatchedTopic(siteURL: siteURL, topicID: "1", url: topicURL, title: "Topic 1", knownPostCount: 1)
-        let app = try makeApp(ai: ai, snapshot: AppSnapshot(watchedTopics: [watched], forums: [Forum(siteURL: siteURL, kind: .discourse, name: "Forum")]))
-        var configuration = app.settings.configuration(for: .openAI)
-        configuration.apiKey = "test-key"
-        app.setConfiguration(configuration, for: .openAI)
-        app.selectModel(ModelSelection(provider: .openAI, model: "test-model"), for: .role(.assistant))
-        app.makeTodaysDigest()
-        try await waitUntil { ai.waiting == 1 }
-        // Exercise the actual remote-settings apply path, as another device's withdrawal would.
-        var remote = app.settings
-        remote.aiConsent[AIProvider.openAI.rawValue] = .declined(Date())
-        let skipped = app.applyRemote(SyncChanges(settings: SyncSettingsChange(expected: app.settings.persistable, units: try SyncSchema.settingsUnits(remote))))
-        XCTAssertTrue(skipped.isEmpty)
-        guard case .declined = app.aiConsentState(for: .openAI) else { return XCTFail("Remote withdrawal did not apply") }
-        ai.gated = false
-        ai.releaseAll()
-        try await waitUntil { !app.digestActivity.isRunning }
-        let afterWithdrawal = app.todaysDigest?.cards.first?.state
-        app.settings.aiConsent[AIProvider.openAI.rawValue] = .allowed(Date())
-        app.makeTodaysDigest()
-        try await Task.sleep(for: .milliseconds(200))
-        XCTAssertEqual(afterWithdrawal, .failed, "The failed card offers retry after consent withdrawal")
-        XCTAssertNotEqual(app.todaysDigest?.cards.first?.state, .working, "Re-allow and resume still leave the card working, with no digest task")
-        app.retryDigestCard(try XCTUnwrap(app.todaysDigest?.cards.first))
-        try await waitUntil { app.todaysDigest?.cards.first?.state == .done && !app.digestActivity.isRunning }
-    }
-
-    func testWordPressBlockedAuthorWithoutCachedArticleDoesNotReachPlanner() async throws {
-        let wp = WordPressFixtureSite(commentCount: 0)
-        var posts = wp.posts
-        posts[0]["_embedded"] = ["author": [["name": "alice"]]]
-        posts[0]["author"] = 1
-        wp.posts = posts
-        let site = WordPressFixtureSite.siteURL
-        let ai = StateAIStub()
-        ai.gated = false
-        let planner = ScriptedAgentPlanner(actions: [
-            AgentAction(thought: "", tool: "search_forum", arguments: ["query": "Opening post"]),
-            AgentAction(thought: "", tool: AgentPrompt.finalAnswerTool, arguments: ["answer": "Done"])
-        ])
-        let app = try makeApp(ai: ai, snapshot: AppSnapshot(forums: [Forum(siteURL: site, kind: .wordpress, name: "Blog")]), service: wp.service(), planner: planner)
-        // The listing and article identify the same author, without a cached read.
-        let article = try XCTUnwrap(WordPressParsing.parseArticle(WordPressFixtureSite.fixtureObject("article-1001")))
-        XCTAssertEqual(article.author, "alice")
-        app.block("alice", on: site)
-        _ = try await app.performAgentRun(goal: "Find the opening post", siteURL: site)
-        let observation = planner.transcripts.flatMap { $0 }.map(\.content).joined(separator: "\n")
-        XCTAssertFalse(observation.contains("Opening post: the card is offering"), "Blocked author alice's article excerpt reached planner without cached author metadata")
-    }
-}
-
-private final class CapturingPodcastPromptAI: AIService {
-    override func generateSummary(content: String, configuration: ProviderConfiguration, provider: AIProvider, customPrompt: String, discussion: DiscussionProfile, batchLimit: Int = SummaryBatchLimit.default, onDelta: @escaping @MainActor (String) -> Void, onProgress: @escaping @MainActor (SummaryProgressEvent) -> Void = { _ in }) async throws -> String {
-        return "Fresh digest: " + content
-    }
-    @MainActor var prompts: [String] = []
-    override func complete(system: String, messages: [ChatMessage], configuration: ProviderConfiguration, provider: AIProvider, maxTokens: Int = 512) async throws -> String {
-        await MainActor.run { prompts.append(messages.map(\.content).joined(separator: "\n")) }
-        throw AssistantError.http(400, "Prompt captured; no network request")
-    }
-}
-
-private final class EchoingChatContextAI: AIService {
-    @MainActor var histories: [String] = []
-    @MainActor var sources: [String] = []
-    override func answer(source: String, summary: String, history: [ChatMessage], contextLimit: Int, customPrompt: String, discussion: DiscussionProfile, configuration: ProviderConfiguration, provider: AIProvider, onDelta: @escaping @MainActor (String) -> Void, summaryIsStale: Bool = false) async throws -> String {
-        await MainActor.run {
-            histories.append(history.map(\.content).joined(separator: "\n"))
-            sources.append(source)
-        }
-        return "Quoted replies: " + source
-    }
-}
-
-private final class CancellableSummaryAI: AIService {
-    @MainActor var provider: AIProvider?
-    @MainActor var waiting = 0
-    @MainActor var cancelled = false
-    @MainActor private var continuation: CheckedContinuation<Void, Never>?
-    @MainActor func release() { continuation?.resume(); continuation = nil }
-    override func generateSummary(content: String, configuration: ProviderConfiguration, provider: AIProvider, customPrompt: String, discussion: DiscussionProfile, batchLimit: Int = SummaryBatchLimit.default, onDelta: @escaping @MainActor (String) -> Void, onProgress: @escaping @MainActor (SummaryProgressEvent) -> Void = { _ in }) async throws -> String {
-        await withTaskCancellationHandler {
-            await MainActor.run { self.provider = provider }
-            await hold()
-        } onCancel: {
-            Task { @MainActor in self.cancelled = true; self.release() }
-        }
-        try Task.checkCancellation()
-        return "Summary"
-    }
-    @MainActor private func hold() async {
-        await withCheckedContinuation { continuation in
-            self.continuation = continuation
-            waiting += 1
-        }
-    }
 }

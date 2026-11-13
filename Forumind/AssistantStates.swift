@@ -180,8 +180,6 @@ struct ProviderSetupCard: View {
         var lines: [String] = []
         if case .appleIntelligence(let reason) = readiness {
             lines.append(reason.title)
-        } else if readiness == .aiConsentDeclined {
-            lines.append(String(localized: "You chose not to send forum content to \(selection.provider.displayName). Allow it, or switch to another model.", comment: "Model not ready card: consent was declined. The placeholder is a provider name."))
         } else {
             lines.append(String(localized: "Pick a model or add its key in Settings › AI models.", comment: "Model not ready card: how to fix it"))
         }

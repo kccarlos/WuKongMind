@@ -18,11 +18,10 @@ final class OnboardingTests: XCTestCase {
         XCTAssertEqual(OnboardingStep.allCases.filter(\.hasTextInput), [.provider, .forums])
     }
 
-    func testSkipStopsAtPrivacyThenFinishes() {
-        for step in [OnboardingStep.welcome, .provider, .forums, .daily] {
-            XCTAssertEqual(step.skipTarget, .privacy, "\(step)")
+    func testSkipFinishesDirectly() {
+        for step in [OnboardingStep.welcome, .provider, .forums, .daily, .privacy] {
+            XCTAssertEqual(step.skipTarget, .done, "\(step)")
         }
-        XCTAssertEqual(OnboardingStep.privacy.skipTarget, .done)
     }
 
     func testProgressAndLabels() {
@@ -53,15 +52,6 @@ final class OnboardingTests: XCTestCase {
         let english = AppModel.onboardingSuggestions(chineseFirst: false)
         XCTAssertEqual(english, AppModel.suggestedForums)
         XCTAssertTrue(SiteRegistry.standard.adapters.flatMap(\.suggestedForums.chinese).allSatisfy { ForumSite.normalizeSiteURL($0.siteURL) == $0.siteURL })
-    }
-
-    func testConsentIsAskedOnlyForThirdPartyProviders() {
-        XCTAssertTrue(AIProvider.gemini.requiresDataConsent)
-        XCTAssertTrue(AIProvider.openRouter.requiresDataConsent)
-        XCTAssertFalse(AIProvider.appleIntelligence.requiresDataConsent)
-        XCTAssertFalse(AIProvider.ollama.requiresDataConsent)
-        XCTAssertEqual(AppSettings().aiConsentState(for: .gemini), .undecided)
-        XCTAssertEqual(AppSettings().aiConsentState(for: .appleIntelligence), .notNeeded)
     }
 
     func testEveryProviderHasGuidance() {
@@ -139,7 +129,6 @@ final class OnboardingReplayTests: XCTestCase {
         let store = PersistentStore(fileURL: directory.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore())
         let app = AppModel(store: store)
         app.settings.hasCompletedOnboarding = true
-        app.acceptTerms()
         return app
     }
 
@@ -189,18 +178,12 @@ final class OnboardingReplayTests: XCTestCase {
 /// The walkthrough's top Skip is a model intent on `skipTarget` (audit A12).
 @MainActor
 final class OnboardingSkipTests: XCTestCase {
-    func testSkipGoesToPrivacyThenFinishesOnceTheTermsAreAgreed() throws {
+    func testSkipFinishesDirectlyFromAnyStep() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
         addTeardownBlock { try? FileManager.default.removeItem(at: directory) }
         let app = AppModel(store: PersistentStore(fileURL: directory.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore()))
-        app.settings.acceptedTermsVersion = 0
-        for step in [OnboardingStep.welcome, .provider, .forums, .daily] {
-            XCTAssertEqual(app.skipOnboarding(from: step, termsAgreed: false), .privacy, "\(step)")
+        for step in [OnboardingStep.welcome, .provider, .forums, .daily, .privacy] {
+            XCTAssertEqual(app.skipOnboarding(from: step), .done, "\(step)")
         }
-        XCTAssertTrue(app.needsTermsAcceptance, "skipping to Privacy accepts nothing")
-        XCTAssertNil(app.skipOnboarding(from: .privacy, termsAgreed: false), "not past the Terms unagreed")
-        XCTAssertTrue(app.needsTermsAcceptance)
-        XCTAssertEqual(app.skipOnboarding(from: .privacy, termsAgreed: true), .done)
-        XCTAssertFalse(app.needsTermsAcceptance, "agreed and skipped: accepted")
     }
 }

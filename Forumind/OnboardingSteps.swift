@@ -745,7 +745,6 @@ struct ShareActionsIllustration: View {
 
 struct OnboardingPrivacyPage: View {
     @ObservedObject var app: AppModel
-    @Binding var termsAgreed: Bool
 
     var body: some View {
         OnboardingPage {
@@ -759,10 +758,6 @@ struct OnboardingPrivacyPage: View {
             }
             .dcCard()
             OnboardingSyncCard(app: app)
-            Text("Terms of Use")
-                .font(.title3.weight(.bold))
-                .accessibilityAddTraits(.isHeader)
-            TermsAgreementCard(agreed: $termsAgreed)
         }
     }
 }
@@ -786,7 +781,7 @@ struct PrivacyPoints: View {
             symbol: "arrow.left.arrow.right",
             tint: DCTheme.chatTint,
             title: String(localized: "Only where it needs to go"),
-            detail: String(localized: "Requests go only to the forum you’re reading and the AI provider you chose. Sync uses your own iCloud. Once a day the app downloads Forumind’s public list of removed content, sending nothing about you.")
+            detail: String(localized: "Requests go only to the forum you’re reading and the AI provider you chose. Sync uses your own iCloud.")
         )
         OnboardingFeatureRow(
             symbol: "eye.slash.fill",

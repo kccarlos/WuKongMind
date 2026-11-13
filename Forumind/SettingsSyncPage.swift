@@ -203,7 +203,7 @@ struct SettingsSyncPage: View {
                     .font(.subheadline)
             }
             Section("Stays on this device") {
-                Text("Daily digests and podcasts · voice minutes and consent · daily digest on/off and notifications · browser bar position")
+                Text("Daily digests and podcasts · voice minutes · daily digest on/off and notifications · browser bar position")
                     .font(.subheadline)
             }
 

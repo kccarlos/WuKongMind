@@ -319,7 +319,6 @@ extension AppModel {
         guard wantsBrowserAgentDebug else { return }
 
         settings.hasCompletedOnboarding = true
-        settings.acceptedTermsVersion = ModerationTerms.currentVersion
         needsProviderSetup = nil
         let usesCustomOpenPage = hasCustomOpenURL
             && !AssistantDebug.has("-dc-browser-agent-fixture-page")
@@ -334,8 +333,6 @@ extension AppModel {
         panelRoute = .topic
 
         if let demoMode {
-            let now = Date()
-            settings.aiConsent[AIProvider.anthropic.rawValue] = .allowed(now)
             var config = settings.configuration(for: .anthropic)
             config.apiKey = "demo-key"
             config.model = "claude-haiku-5-5"
@@ -378,7 +375,6 @@ extension AppModel {
             let env = ProcessInfo.processInfo.environment
             let apiKey = (env["ANTHROPIC_API_KEY"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
             let modelID = AssistantDebug.value("-dc-browser-agent-live-model") ?? "claude-haiku-5-5"
-            settings.aiConsent[AIProvider.anthropic.rawValue] = .allowed(Date())
             settings.browserAgentMaxSteps = min(settings.browserAgentMaxSteps, 10)
             var config = settings.configuration(for: .anthropic)
             config.apiKey = apiKey
@@ -473,7 +469,6 @@ extension AppModel {
         guard AssistantDebug.has("-dc-scripts-sample") else { return }
         let variant = AssistantDebug.value("-dc-scripts-sample") ?? "manager"
         settings.hasCompletedOnboarding = true
-        settings.acceptedTermsVersion = ModerationTerms.currentVersion
         needsProviderSetup = nil
 
         if variant == "empty" {

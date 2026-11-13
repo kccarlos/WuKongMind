@@ -783,8 +783,7 @@ struct NewRepliesDot: View {
 // MARK: - Forum menu
 
 /// The forum avatar; its menu (spec §4.3): the forum and account, page
-/// navigation, page actions, ad blocking, report or block, other forums and
-/// Home.
+/// navigation, page actions, ad blocking, other forums and Home.
 struct ForumMenuButton: View {
     @ObservedObject var app: AppModel
     @ObservedObject var browser: ForumBrowserModel
@@ -841,16 +840,6 @@ struct ForumMenuButton: View {
                     Label("Share", systemImage: "square.and.arrow.up")
                 }
                 .accessibilityIdentifier("forumMenuShare")
-            }
-            Section {
-                if let topic {
-                    Button {
-                        actions.report(topic)
-                    } label: {
-                        Label("Report or block…", systemImage: "flag")
-                    }
-                    .accessibilityIdentifier("menuReportOrBlock")
-                }
             }
             Section {
                 Button { actions.openPanel(.history) } label: {

@@ -34,10 +34,7 @@ What differs from Discourse, and the rule each difference follows:
   a failure; any other error on a later page fails the read. Closed comments
   (401/403/404) are a post without comments, and a comment search that is
   closed is the `COMMENTS_UNAVAILABLE` observation, after which the run goes on.
-- **No bridge navigation.** With no `pageBridge`, the app never scripts a
-  WordPress page: opening a post loads its URL, and moderation applies to read
-  text only. `loginURL` and `session` are nil, and `searchPageURL` is the
-  site's own `?s=` page.
+- **No Discourse DOM bridge.** WordPress uses `PageBridgeProfile.commentAnchors(...)` for comment anchor scrolling, while `loginURL` and `session` are nil and `searchPageURL` is the site's own `?s=` page.
 - **Own tools.** `search_comments` is a WordPress tool beside `search_forum`
   and `list_latest`; a Discourse run that asks for it gets the usual refusal
   that lists its own tools. Apple Intelligence's guided tool list is a literal
@@ -85,13 +82,10 @@ A genuine challenge document without the site's markup still fails validation.
   either present and working or `nil`. No capability says yes and then throws.
   The UI reads the capability and hides or falls back when it is nil.
 - Only `Forumind/Sites/` may name a platform (see "The layering guard").
-- Output must follow the shared raw text shape below, so summaries, chat,
-  moderation and exports need no per-site code.
+- Output must follow the shared raw text shape below, so summaries, chat and
+  exports need no per-site code.
 - Preserve author evidence in `TopicFacts.posts` and, when available, the
-  listing's `author`. Titles belong to post #1 and must follow its blocks in
-  AI context as well as in the body text. Digest prefetches retain the opening
-  author, rather than a saved moderation decision, so later blocks apply to
-  cached data. An empty moderated topic must never trigger an AI request.
+  listing's `author`.
 - Unit tests must not request system permissions. Seed watched topics in the
   snapshot and use fake voice audio; a permission dialog stalls a fresh simulator.
 
@@ -152,7 +146,7 @@ caller has it; a platform that links by number can ignore it.
 | `activeTopics` | the site can list recently active topics cheaply (`activeTopics(siteURL:budget:net:)`, at most `budget` requests, reporting how many it used) | The daily digest and podcast skip the site. |
 | `postLookup` | a single post's text can be fetched by number when the page lacks it | Reading a post uses only text already on the page or read. |
 | `topicFilters` | a topic can be narrowed to its top posts or one author (`url`, `isFiltered`, `overview(filter:)`) | The `top` landing opens the topic; the voice agent loses its `user` and `op` focus modes. |
-| `pageBridge` | the app can script the page (`bridgeInstaller` and `moderationInstaller`, JavaScript that defines `window.__forumindBrowse` and `window.__forumindModeration`) | No script is ever sent to the page; moderation applies to read text only, and scrolling to a post loads its URL. |
+| `pageBridge` | the app can script the page (`bridgeInstaller`, JavaScript that defines `window.__forumindBrowse`) | No script is ever sent to the page, and scrolling to a post loads its URL. |
 | `loginURL` | the site has a sign-in page | The forum menu hides Sign in and Sign-in help. |
 | `searchPageURL` | the site has its own search page for typed words | Words typed in the iPhone bar are treated as an address and fail as one. |
 | `session` | signed-in state and the username can be read from page facts (`session(from:)`) | The browser never shows a signed-in state for the site. |

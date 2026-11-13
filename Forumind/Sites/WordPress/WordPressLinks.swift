@@ -52,4 +52,8 @@ struct WordPressLinks: SiteLinks {
 
     /// There is no stable "newest comment" address (`#comments` depends on the theme).
     func lastPostURL(topicURL: URL) -> URL? { nil }
+
+    func postAnchor(number: Int, id: Int) -> String? {
+        number > 1 && id > 0 ? "comment-\(id)" : nil
+    }
 }

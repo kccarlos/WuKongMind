@@ -564,13 +564,6 @@ struct AgentView: View {
                     ShareLink(item: answer) {
                         Label("Share", systemImage: "square.and.arrow.up")
                     }
-                    Button {
-                        app.report(app.aiOutputReport(for: run, answer: answer, isInitial: true))
-                    } label: {
-                        Label(String(localized: "Report This Answer…", comment: "Assistant menu: report the AI's latest chat answer"), systemImage: "flag")
-                    }
-                    .disabled(answer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                    .accessibilityIdentifier("reportAgentAnswer")
                     if run.isFinished {
                         Button(role: .destructive) {
                             app.deleteAgentRun(id: run.id)
@@ -704,12 +697,6 @@ struct AgentView: View {
                             ShareLink(item: message.content) {
                                 Label("Share", systemImage: "square.and.arrow.up")
                             }
-                            Button {
-                                app.report(app.aiOutputReport(for: run, answer: message.content))
-                            } label: {
-                                Label(String(localized: "Report This Answer…", comment: "Assistant menu: report the AI's latest chat answer"), systemImage: "flag")
-                            }
-                            .disabled(message.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                         } label: {
                             Image(systemName: "ellipsis.circle")
                         }

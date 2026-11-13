@@ -458,15 +458,6 @@ final class DrawerUITests: DCUITestCase {
         XCTAssertTrue(drawerState(in: app).waitForExistence(timeout: 10), "The drawer did not come up.")
     }
 
-    /// Report or block (a routed sheet).
-    func testReportSheetShowsOverTheDrawer() throws {
-        let app = try launchWithDrawer(presenting: "report", at: "large")
-        let sheet = app.navigationBars["Report or block"]
-        XCTAssertTrue(waitOrDump(sheet, timeout: 20, in: app), "The report sheet did not show over the drawer.")
-        sheet.buttons["Done"].tap()
-        assertDrawer(at: "large", in: app, after: sheet)
-    }
-
     /// Two heights, no peek: the AI button opens the drawer at medium and a
     /// swipe down from medium closes it; from large a slow drag stops at
     /// medium and a flick closes it.

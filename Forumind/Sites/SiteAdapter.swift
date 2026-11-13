@@ -142,9 +142,13 @@ protocol SiteLinks: Sendable {
     func parse(_ url: URL, basePath: String) -> SiteLink?
     /// Lands on the newest post when its number is unknown (Discourse `/last`), else nil.
     func lastPostURL(topicURL: URL) -> URL?
+    /// Native DOM anchor for post `number` with native item/comment `id`, when the site uses fragment anchors.
+    func postAnchor(number: Int, id: Int) -> String?
 }
 
 extension SiteLinks {
+    func postAnchor(number: Int, id: Int) -> String? { nil }
+
     /// The page address without query and fragment.
     func canonicalPageURL(_ url: URL) -> URL {
         ForumSite.withoutQueryAndFragment(url)

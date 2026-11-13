@@ -276,27 +276,17 @@ final class ForumBrowserModel: NSObject, ObservableObject {
                 forMainFrameOnly: true
             )
         )
-        // The in-page scripts of every registered site: the first hides blocked
-        // and filtered posts (the rules arrive per page, `applyModerationToPage`);
-        // the second scrolls to, highlights and reads posts, in its own content world.
-        for bridge in sites.adapters.compactMap(\.capabilities.pageBridge) {
+        // The in-page bridge scripts of every registered site scroll to,
+        // highlight and read posts, in their own content world.
+        for installer in sites.adapters.compactMap({ $0.capabilities.pageBridge?.bridgeInstaller }) {
             configuration.userContentController.addUserScript(
                 WKUserScript(
-                    source: bridge.moderationInstaller,
+                    source: installer,
                     injectionTime: .atDocumentStart,
-                    forMainFrameOnly: true
+                    forMainFrameOnly: true,
+                    in: BrowseScript.world
                 )
             )
-            if let installer = bridge.bridgeInstaller {
-                configuration.userContentController.addUserScript(
-                    WKUserScript(
-                        source: installer,
-                        injectionTime: .atDocumentStart,
-                        forMainFrameOnly: true,
-                        in: BrowseScript.world
-                    )
-                )
-            }
         }
 
         webView = WKWebView(frame: .zero, configuration: configuration)
@@ -891,8 +881,7 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     }
 
     #if DEBUG
-    /// Tests: sees every script about to go into the page (bridge calls and
-    /// moderation), before the web view is asked.
+    /// Tests: sees every script about to go into the page, before the web view is asked.
     var scriptSpy: ((String) -> Void)?
 
     /// Tests: the page context the web view would have reported, set without
@@ -906,9 +895,6 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     /// route, the cheap one when only the position fields changed.
     private func publish(_ context: PageContext) {
         guard context != pageContext else { return }
-        let siteChanged = context.siteURL != pageContext.siteURL
-        // The bridge belongs to the recognized site: a page that turns out to be one needs the rules too.
-        let kindChanged = context.site != pageContext.site
         let topicChanged = context.topic?.topicKey != pageContext.topic?.topicKey
             || context.state != pageContext.state
         let positionOnly = context.sameDocument(as: pageContext)
@@ -918,7 +904,6 @@ final class ForumBrowserModel: NSObject, ObservableObject {
         } else {
             onPageContextChanged?(context)
         }
-        if siteChanged || kindChanged { applyModerationToPage() }
         if topicChanged { applyPendingHighlight() }
     }
 
@@ -938,15 +923,6 @@ final class ForumBrowserModel: NSObject, ObservableObject {
         ))
     }
 
-    /// Blocked users, filtered words and the developer's list (AppModel
-    /// keeps this current). Changes apply to the page at once.
-    var moderationRules: ModerationRules = .none {
-        didSet {
-            guard moderationRules != oldValue else { return }
-            applyModerationToPage()
-        }
-    }
-
     /// The page's own site's DOM scripts; nil on a page that is not a forum
     /// or whose site has none. Every script call into the page needs it.
     var pageBridge: PageBridgeProfile? {
@@ -956,34 +932,6 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     /// Whether visible-post translation is available on the current page.
     var canTranslatePostsOnScreen: Bool {
         !isForumsHomeRequested && pageContext.topic != nil && pageBridge?.bridgeInstaller != nil && ReadingLanguage.isTranslationAvailable
-    }
-
-    func applyModerationToPage() {
-        guard let pageBridge else { return }
-        let config = ModerationScript.config(rules: moderationRules, siteURL: pageContext.siteURL)
-        let script = ModerationScript.source(config: config, object: pageBridge.moderationObject)
-        #if DEBUG
-        scriptSpy?(script)
-        #endif
-        guard webView.url.map(Self.isBrowsableURL) == true else { return }
-        webView.evaluateJavaScript(script, completionHandler: nil)
-    }
-
-    /// Posts on screen now (not hidden), newest layout first; for reporting.
-    func visiblePosts() async -> [VisiblePost] {
-        guard let pageBridge else { return [] }
-        let object = "window.\(pageBridge.moderationObject)"
-        let script = "\(object) ? JSON.stringify(\(object).posts()) : '[]'"
-        #if DEBUG
-        scriptSpy?(script)
-        #endif
-        guard let json = try? await webView.evaluateJavaScript(script) as? String,
-              let data = json.data(using: .utf8),
-              let posts = try? JSONDecoder().decode([VisiblePost].self, from: data)
-        else {
-            return []
-        }
-        return posts
     }
 
     /// Pages the browser may show: http and https.
@@ -1112,7 +1060,6 @@ extension ForumBrowserModel: WKNavigationDelegate {
         suppressLoadError = false
         if showsCrashNotice { showsCrashNotice = false }
         updateNavigationState()
-        applyModerationToPage()
         Task { @MainActor in
             guard self.deferredLoad == nil, self.activeNavigation == nil else { return }
             // A full load starts a fresh bridge: mark the landing post again.

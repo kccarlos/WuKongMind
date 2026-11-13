@@ -1,4 +1,6 @@
 import Combine
+import UIKit
+import WebKit
 import XCTest
 @testable import Forumind
 
@@ -198,23 +200,21 @@ final class BrowseNavigationTests: XCTestCase {
     // MARK: Find and read
 
     @MainActor
-    func testFindFillsTheCursorWithoutHiddenAuthors() async throws {
+    func testFindFillsTheCursor() async throws {
         PostLevelURLStub.handler = { request in
             PostLevelURLStub.requests.append(request.url!)
             return (200, DiscourseFixtures.search)
         }
         let app = makeApp()
         app.recordVisit(siteURL: site, kind: .discourse, name: "Example", iconURL: nil)
-        app.browser.moderationRules = ModerationRules(blockedUsers: [site: ["carol"]])
 
         let result = await app.find("badges")
         XCTAssertEqual(result.status, .found)
-        XCTAssertEqual(app.browseCursor.items.map(\.postNumber), [1, 5, 10])
-        XCTAssertFalse(app.browseCursor.items.contains { $0.username == "carol" })
+        XCTAssertEqual(app.browseCursor.items.map(\.postNumber), [1, 5, 13, 10])
         XCTAssertNil(app.browseCursor.index)
         XCTAssertEqual(app.browseCursor.origin, .search("badges"))
         XCTAssertEqual(app.browseCursor.cards, .expanded)
-        XCTAssertEqual(result.hits?.map(\.number), [1, 2, 3])
+        XCTAssertEqual(result.hits?.map(\.number), [1, 2, 3, 4])
         XCTAssertEqual(result.hits?.first?.username, "alice")
         XCTAssertEqual(PostLevelURLStub.requests.first?.path, "/search.json")
 
@@ -228,16 +228,17 @@ final class BrowseNavigationTests: XCTestCase {
         // Next walks the hits; the end says so.
         let first = await app.next()
         XCTAssertEqual(first.status, .moved)
-        XCTAssertTrue(first.shown.hasPrefix("1 of 3: "), first.shown)
+        XCTAssertTrue(first.shown.hasPrefix("1 of 4: "), first.shown)
+        _ = await app.next()
         _ = await app.next()
         _ = await app.next()
         let end = await app.next()
         XCTAssertEqual(end.status, .endOfList)
-        XCTAssertEqual(app.browseCursor.index, 2)
+        XCTAssertEqual(app.browseCursor.index, 3)
     }
 
     @MainActor
-    func testReadFallsBackToPostsJSONAndRespectsModeration() async throws {
+    func testReadFallsBackToPostsJSON() async throws {
         PostLevelURLStub.handler = { request in
             PostLevelURLStub.requests.append(request.url!)
             switch request.url!.path {
@@ -257,13 +258,6 @@ final class BrowseNavigationTests: XCTestCase {
         _ = await app.read(post: 10)
         XCTAssertEqual(PostLevelURLStub.requests.filter { $0.path == "/t/240488.json" }.count, 1)
 
-        app.browser.moderationRules = ModerationRules(blockedUsers: [site: ["bob"]])
-        let blocked = await app.read(post: 5)
-        XCTAssertEqual(blocked.status, .hidden)
-        app.browser.moderationRules = ModerationRules(filteredWords: ["hide it"])
-        let filtered = await app.read(post: 5)
-        XCTAssertEqual(filtered.status, .hidden)
-        app.browser.moderationRules = .none
         let missing = await app.read(post: 2)
         XCTAssertEqual(missing.status, .notFound)
     }
@@ -440,5 +434,126 @@ private final class BrowsePlanner: AgentPlanner, @unchecked Sendable {
             return AgentAction(thought: "", tool: AgentPrompt.finalAnswerTool, arguments: ["answer": "Late"])
         }
         return AgentAction(thought: "", tool: AgentPrompt.finalAnswerTool, arguments: ["answer": answer])
+    }
+}
+
+@MainActor
+final class CommentBridgeAnchorTests: XCTestCase {
+    private var windows: [ObjectIdentifier: UIWindow] = [:]
+
+    func testPendingAnchorScrollOnStoryPageFlashesOnce() async throws {
+        let url = HackerNewsLinks().postURL(topicURL: URL(string: "https://news.ycombinator.com/item?id=268566")!, number: 3, anchor: "50431178")
+        let browser = try await load(HackerNewsAdapter(), url: url.absoluteString, topicID: "268566", html: liveFixture("hn-story-live"))
+        defer { teardown(browser) }
+        _ = try await browser.webView.evaluateJavaScript("""
+        document.body.insertAdjacentHTML('afterbegin', '<div style=height:4000px></div>');
+        document.body.insertAdjacentHTML('beforeend', '<div style=height:4000px></div>');
+        window.scrollTo(0, 0);
+        window.citationFlashes = 0;
+        const target = document.getElementById('50431178').querySelector('.commtext');
+        target.animate = () => { window.citationFlashes++; };
+        true;
+        """)
+        let readyContext = browser.pageContext
+        browser.setPageContext(PageContext(url: url, state: .maybe))
+        browser.highlightAfterLoad([3], topicID: "268566", anchor: "50431178")
+        browser.applyPendingHighlight()
+        XCTAssertNotNil(browser.pendingHighlight, "Keep the landing anchor until the loaded page has been recognized")
+        browser.setPageContext(readyContext)
+        browser.applyPendingHighlight(afterLoad: true)
+        browser.applyPendingHighlight(afterLoad: true)
+        for _ in 0..<80 {
+            let currentFlashes = (try await browser.webView.evaluateJavaScript("window.citationFlashes") as? Int) ?? 0
+            let currentOffset = (try await browser.webView.evaluateJavaScript("window.scrollY") as? Double) ?? 0
+            if currentFlashes >= 1, currentOffset > 0 { break }
+            try await Task.sleep(for: .milliseconds(50))
+        }
+        try await Task.sleep(for: .milliseconds(50))
+        let flashes = try await browser.webView.evaluateJavaScript("window.citationFlashes") as? Int
+        let offset = try await browser.webView.evaluateJavaScript("window.scrollY") as? Double
+        XCTAssertEqual(flashes, 1)
+        XCTAssertGreaterThan(offset ?? 0, 0)
+        XCTAssertNil(browser.pendingHighlight)
+    }
+
+    func testFirstPostScrollsToTopWithoutNavigation() async throws {
+        for (adapter, url, html): (any SiteAdapter, String, String) in [
+            (HackerNewsAdapter(), "https://news.ycombinator.com/item?id=268566",
+             "<table><tr class='athing submission' id='268566'><td>Story</td></tr></table>"),
+            (WordPressAdapter(), "https://wp.example/?p=268566", "<article><h1>Article</h1></article>")
+        ] {
+            let browser = try await load(adapter, url: url, topicID: "268566", html: html + "<div style='height:6000px'></div>")
+            defer { teardown(browser) }
+            _ = try await browser.webView.evaluateJavaScript("window.scrollTo(0, 2000); true;")
+            var before: Double?
+            for _ in 0..<60 {
+                before = try await browser.webView.evaluateJavaScript("window.scrollY") as? Double
+                if (before ?? 0) > 0 { break }
+                try await Task.sleep(for: .milliseconds(50))
+            }
+            XCTAssertGreaterThan(before ?? 0, 0)
+            let destination = browser.webView.url
+            let outcome = await browser.scrollToPost(1, anchor: adapter.kind == .hackerNews ? "268566" : "")
+            XCTAssertEqual(outcome, .shown)
+            var after: Double?
+            for _ in 0..<60 {
+                after = try await browser.webView.evaluateJavaScript("window.scrollY") as? Double
+                if after == 0 { break }
+                try await Task.sleep(for: .milliseconds(50))
+            }
+            XCTAssertEqual(after, 0)
+            XCTAssertEqual(browser.webView.url, destination)
+        }
+    }
+
+    func testUnrenderedCommentIsMissing() async throws {
+        let browser = try await load(HackerNewsAdapter(), url: "https://news.ycombinator.com/item?id=268566", topicID: "268566", html: liveFixture("hn-story-live"))
+        defer { teardown(browser) }
+        _ = try await browser.webView.evaluateJavaScript("document.getElementById('50431178').style.display = 'none'; true;")
+        let outcome = await browser.scrollToPost(3, anchor: "50431178")
+        XCTAssertEqual(outcome, .missing)
+    }
+
+    private func liveFixture(_ name: String) throws -> String {
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+        return try String(contentsOf: root.appendingPathComponent("Fixtures/\(name).html"), encoding: .utf8)
+    }
+
+    private func load(_ adapter: any SiteAdapter, url: String, topicID: String, html: String) async throws -> ForumBrowserModel {
+        let browser = ForumBrowserModel()
+        browser.webView.navigationDelegate = nil
+        browser.webView.configuration.userContentController.removeScriptMessageHandler(forName: "dcRouteChanged")
+        let pageURL = try XCTUnwrap(URL(string: url))
+        let siteURL = "\(pageURL.scheme!)://\(pageURL.host!)"
+        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.frame = CGRect(x: 0, y: 0, width: 390, height: 844)
+        let host = UIViewController()
+        host.view.frame = window.bounds
+        window.rootViewController = host
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        browser.webView.frame = host.view.bounds
+        host.view.addSubview(browser.webView)
+        windows[ObjectIdentifier(browser)] = window
+        browser.webView.loadHTMLString(html, baseURL: pageURL)
+        for _ in 0..<100 {
+            if (try? await browser.webView.evaluateJavaScript("document.readyState === 'complete' && document.body != null && document.body.children.length > 0")) as? Bool == true { break }
+            try await Task.sleep(for: .milliseconds(50))
+        }
+        try await Task.sleep(for: .milliseconds(500))
+        browser.setPageContext(PageContext(url: pageURL, site: adapter.kind, siteURL: siteURL,
+            topic: ForumTopic(siteURL: siteURL, topicID: topicID, url: pageURL, title: "Fixture"), state: .topic))
+        return browser
+    }
+
+    private func teardown(_ browser: ForumBrowserModel) {
+        browser.webView.stopLoading()
+        browser.webView.removeFromSuperview()
+        if let window = windows.removeValue(forKey: ObjectIdentifier(browser)) {
+            window.isHidden = true
+            window.rootViewController = nil
+            window.windowScene = nil
+        }
     }
 }

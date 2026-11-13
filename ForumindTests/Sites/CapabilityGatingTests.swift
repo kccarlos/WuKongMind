@@ -66,7 +66,7 @@ final class CapabilityGatingTests: XCTestCase {
         let ref = BrowseTopicRef(siteURL: fakeSite, topicID: "42")
         let facts = TopicFacts(postsCount: 2, highestPostNumber: 2, stream: [1, 2], posts: [.init(id: 1, number: 1, username: "alice")])
         let lookup = await app.postText(1, in: ref, facts: facts)
-        XCTAssertEqual(lookup, .missing)
+        XCTAssertNil(lookup)
     }
 
     // MARK: pageBridge
@@ -79,19 +79,17 @@ final class CapabilityGatingTests: XCTestCase {
         XCTAssertNil(browser.pageBridge)
         XCTAssertFalse(browser.canTranslatePostsOnScreen)
 
-        browser.applyModerationToPage()
         _ = await browser.highlight([1])
         await browser.clearHighlight()
         _ = await browser.postsOnScreen()
         _ = await browser.postText(1)
         _ = await browser.scrollToPost(1)
-        _ = await browser.visiblePosts()
-        XCTAssertEqual(scripts, [], "no bridge call, no moderation call")
+        XCTAssertEqual(scripts, [], "no bridge call")
     }
 
     func testAPageWithABridgeGetsItsScripts() async {
         var fake = FakeSiteAdapter()
-        fake.pageBridge = PageBridgeProfile(bridgeInstaller: "", moderationInstaller: "")
+        fake.pageBridge = PageBridgeProfile(bridgeInstaller: "")
         let browser = ForumBrowserModel(sites: SiteRegistry(adapters: [DiscourseAdapter(), fake]))
         var scripts: [String] = []
         browser.scriptSpy = { scripts.append($0) }
@@ -99,11 +97,9 @@ final class CapabilityGatingTests: XCTestCase {
         XCTAssertNotNil(browser.pageBridge)
         XCTAssertEqual(browser.canTranslatePostsOnScreen, ReadingLanguage.isTranslationAvailable)
 
-        browser.applyModerationToPage()
-        _ = await browser.visiblePosts()
+        _ = await browser.postsOnScreen()
         _ = await browser.highlight([1])
-        XCTAssertEqual(scripts.count, 3)
-        XCTAssertTrue(scripts[0].contains("__forumindModeration"))
+        XCTAssertEqual(scripts.count, 2)
     }
 
     func testAPageThatIsNoForumHasNoBridge() {
