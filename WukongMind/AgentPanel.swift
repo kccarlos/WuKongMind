@@ -427,116 +427,39 @@ struct AgentView: View {
     }
 
     private func stepTimeline(_ run: AgentRun) -> some View {
-        let expanded = isStepsExpanded(run)
-        return VStack(alignment: .leading, spacing: 0) {
-            Button {
-                withAnimation(DCMotion.respecting(reduceMotion)) {
-                    stepsExpanded = !expanded
-                }
-            } label: {
-                HStack(spacing: 8) {
-                    Text("Steps")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.primary)
-                    Text("\(run.steps.count)")
-                        .font(.caption.weight(.bold).monospacedDigit())
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal, 7)
-                        .padding(.vertical, 2)
-                        .background(Color.primary.opacity(0.07), in: Capsule())
-                    if !expanded {
-                        toolStrip(run)
-                    }
-                    Spacer(minLength: 0)
-                    Image(systemName: "chevron.down")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.secondary)
-                        .rotationEffect(.degrees(expanded ? 180 : 0))
-                }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityValue(expanded ? "Expanded" : "Collapsed")
-            .accessibilityIdentifier("agentStepsToggle")
-
-            if expanded {
-                VStack(alignment: .leading, spacing: 0) {
-                    ForEach(Array(run.steps.enumerated()), id: \.element.id) { index, step in
-                        stepRow(
-                            step,
-                            isLast: index == run.steps.count - 1,
-                            isActive: !run.isFinished && index == run.steps.count - 1
-                        )
-                    }
-                }
-                .padding(.top, 12)
-                .transition(.opacity)
+        let developerMode = app.settings.developerMode
+        let rows = VStack(alignment: .leading, spacing: 0) {
+            ForEach(Array(run.steps.enumerated()), id: \.element.id) { index, step in
+                stepRow(step, isActive: !run.isFinished && index == run.steps.count - 1, developerMode: developerMode)
             }
         }
-        .dcCard()
+        return Group {
+            if !run.isFinished || run.steps.count == 1 {
+                rows
+            } else {
+                DCStepsFold(
+                    count: run.steps.count,
+                    errorCount: run.steps.filter(\.isError).count,
+                    isExpanded: stepsExpanded ?? false,
+                    onToggle: {
+                        withAnimation(DCMotion.respecting(reduceMotion)) { stepsExpanded = !(stepsExpanded ?? false) }
+                    }
+                ) { rows.transition(.opacity) }
+            }
+        }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("agentStepLog")
     }
 
-    /// Collapsed timeline: one tinted icon per step.
-    private func toolStrip(_ run: AgentRun) -> some View {
-        HStack(spacing: -4) {
-            ForEach(run.steps.suffix(7)) { step in
-                Image(systemName: toolIcon(step.tool))
-                    .font(.system(size: 9, weight: .bold))
-                    .foregroundStyle(step.isError ? DCTheme.danger : toolTint(step.tool))
-                    .frame(width: 18, height: 18)
-                    .background(step.isError ? DCTheme.cinnabarWash : DCTheme.surfaceRaised, in: Circle())
-                    .overlay { Circle().stroke(DCTheme.surface, lineWidth: 1.5) }
-            }
-        }
-        .accessibilityHidden(true)
-    }
-
-    private func stepRow(_ step: AgentStep, isLast: Bool, isActive: Bool) -> some View {
-        HStack(alignment: .top, spacing: 12) {
-            VStack(spacing: 0) {
-                ZStack {
-                    Circle()
-                        .fill((step.isError ? DCTheme.danger : toolTint(step.tool)).opacity(0.15))
-                    if isActive {
-                        ProgressView().controlSize(.mini)
-                    } else {
-                        Image(systemName: toolIcon(step.tool))
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundStyle(step.isError ? DCTheme.danger : toolTint(step.tool))
-                    }
-                }
-                .frame(width: 28, height: 28)
-                if !isLast {
-                    Rectangle()
-                        .fill(DCTheme.border)
-                        .frame(width: 2)
-                        .frame(maxHeight: .infinity)
-                }
-            }
-            VStack(alignment: .leading, spacing: 3) {
-                Text(toolTitle(step))
-                    .font(.subheadline.weight(.medium))
-                    .lineLimit(3)
-                    .fixedSize(horizontal: false, vertical: true)
-                if !step.thought.isEmpty {
-                    Text(step.thought)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(3)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                if !step.outcome.isEmpty {
-                    Text(step.outcome)
-                        .font(.caption.weight(.medium))
-                        .foregroundStyle(step.isError ? DCTheme.danger : toolTint(step.tool))
-                        .lineLimit(3)
-                }
-            }
-            .padding(.top, 4)
-            .padding(.bottom, isLast ? 0 : 14)
-            Spacer(minLength: 0)
+    private func stepRow(_ step: AgentStep, isActive: Bool, developerMode: Bool) -> some View {
+        HStack(alignment: .center, spacing: 4) {
+            DCToolRow(
+                label: toolTitle(step, running: isActive),
+                codeName: developerMode ? step.tool : nil,
+                duration: developerMode ? step.finishedAt.map { BrowserAgentPanelView.formatDuration($0.timeIntervalSince(step.startedAt)) } : nil,
+                summary: isActive ? "" : step.outcome,
+                state: isActive ? .running : (step.isError ? .error : .done)
+            )
             if let topicKey = step.topicKey, let session = app.sessions[topicKey] {
                 Button {
                     onOpenTopic(session.url)
@@ -548,8 +471,6 @@ struct AgentView: View {
                 .accessibilityLabel("Open \(session.title) in Browse")
             }
         }
-        .fixedSize(horizontal: false, vertical: true)
-        .accessibilityElement(children: .combine)
         .accessibilityIdentifier("agentStep")
     }
 
@@ -558,57 +479,38 @@ struct AgentView: View {
     private func answerSection(_ run: AgentRun) -> some View {
         let answer = run.initialAnswer.isEmpty ? run.answer : run.initialAnswer
         let sources = AgentSources.extract(from: answer, run: run, sessions: app.sessions, parse: app.linkParser(for: run))
-        return VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 10) {
-                Image(systemName: "text.bubble.fill")
-                    .font(.subheadline)
-                    .foregroundStyle(DCTheme.agentTint)
-                    .frame(width: 32, height: 32)
-                    .background(DCTheme.agentTint.opacity(0.12), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
-                    .accessibilityHidden(true)
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("Answer")
-                        .font(.headline)
-                        .accessibilityAddTraits(.isHeader)
-                    HStack(spacing: 6) {
-                        AssistantForumPill(forum: app.forumInfo(siteURL: run.siteURL))
-                        if !sources.isEmpty {
-                            Text("\(sources.count) sources")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                }
-                Spacer(minLength: 0)
-                if run.isFinished {
-                    TranslateButton(app: app, title: String(localized: "Answer"), text: answer, compact: true)
-                        .buttonStyle(DCIconButtonStyle())
-                }
-                Menu {
-                    Button {
-                        UIPasteboard.general.string = answer
-                        DCHaptics.success()
-                    } label: {
-                        Label("Copy answer", systemImage: "doc.on.doc")
-                    }
-                    ShareLink(item: answer) {
-                        Label("Share", systemImage: "square.and.arrow.up")
-                    }
-                    if run.isFinished {
-                        Button(role: .destructive) {
-                            app.deleteAgentRun(id: run.id)
-                        } label: {
-                            Label("Delete run", systemImage: "trash")
-                        }
-                    }
-                } label: {
-                    Image(systemName: "ellipsis.circle")
-                }
-                .buttonStyle(DCIconButtonStyle())
-                .accessibilityLabel("Answer actions")
-                .accessibilityIdentifier("agentAnswerMenu")
+        let label = sources.isEmpty
+            ? String(localized: "Answer")
+            : String(localized: "Answer · \(sources.count) sources", comment: "Answer card header; the placeholder is the number of sources")
+        return DCResultCard(label: label, systemImage: "text.bubble") {
+            if run.isFinished {
+                TranslateButton(app: app, title: String(localized: "Answer"), text: answer, compact: true)
+                    .buttonStyle(DCIconButtonStyle())
             }
-
+            Menu {
+                Button {
+                    UIPasteboard.general.string = answer
+                    DCHaptics.success()
+                } label: {
+                    Label("Copy answer", systemImage: "doc.on.doc")
+                }
+                ShareLink(item: answer) {
+                    Label("Share", systemImage: "square.and.arrow.up")
+                }
+                if run.isFinished {
+                    Button(role: .destructive) {
+                        app.deleteAgentRun(id: run.id)
+                    } label: {
+                        Label("Delete run", systemImage: "trash")
+                    }
+                }
+            } label: {
+                Image(systemName: "ellipsis.circle")
+            }
+            .buttonStyle(DCIconButtonStyle())
+            .accessibilityLabel("Answer actions")
+            .accessibilityIdentifier("agentAnswerMenu")
+        } content: {
             MarkdownView(AgentSources.annotate(answer, sources: sources, parse: app.linkParser(for: run)))
                 .textSelection(.enabled)
                 .accessibilityIdentifier("agentAnswer")
@@ -627,7 +529,6 @@ struct AgentView: View {
                 .padding(.top, 4)
             }
         }
-        .dcCard()
     }
 
     private func sourcesList(_ sources: [AgentSources.Source]) -> some View {
@@ -644,12 +545,7 @@ struct AgentView: View {
                     onOpenTopic(source.url)
                 } label: {
                     HStack(alignment: .top, spacing: 10) {
-                        Text(source.label)
-                            .font(.caption.weight(.bold).monospacedDigit())
-                            .foregroundStyle(DCTheme.agentTint)
-                            .padding(.horizontal, 7)
-                            .padding(.vertical, 3)
-                            .background(DCTheme.agentTint.opacity(0.14), in: Capsule())
+                        DCCitationChip(number: source.label)
                         VStack(alignment: .leading, spacing: 2) {
                             Text(source.title)
                                 .font(.subheadline.weight(.medium))
@@ -667,8 +563,8 @@ struct AgentView: View {
                             .foregroundStyle(DCTheme.jade)
                     }
                     .padding(10)
-                    .background(Color.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                    .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .background(DCTheme.surfaceRaised.opacity(0.5), in: RoundedRectangle(cornerRadius: DCTheme.radiusMd, style: .continuous))
+                    .contentShape(RoundedRectangle(cornerRadius: DCTheme.radiusMd, style: .continuous))
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Source \(source.number): \(source.title)")
@@ -742,28 +638,15 @@ struct AgentView: View {
 
     // MARK: Presentation helpers
 
-    private func toolIcon(_ tool: String) -> String {
-        AgentToolName(rawValue: tool)?.symbol ?? "questionmark"
-    }
-
-    private func toolTint(_ tool: String) -> Color {
-        switch AgentToolName(rawValue: tool)?.tint {
-        case .search?: DCTheme.jade
-        case .read?: DCTheme.chatTint
-        case .summarize?: DCTheme.agentTint
-        case .watch?: DCTheme.warning
-        case .answer?: DCTheme.success
-        case nil: .secondary
-        }
-    }
-
-    private func toolTitle(_ step: AgentStep) -> String {
+    private func toolTitle(_ step: AgentStep, running: Bool) -> String {
         guard let tool = AgentToolName(rawValue: step.tool) else { return step.tool }
-        return tool.title(query: step.arguments["query"] ?? "") {
+        let topic: () -> String = {
             if let topicKey = step.topicKey, let title = app.sessions[topicKey]?.title { return title }
             let id = step.arguments["topic_id"] ?? ""
             return String(localized: "topic \(id)", comment: "A topic without a known title; the placeholder is its number")
         }
+        let query = step.arguments["query"] ?? ""
+        return running ? tool.runningTitle(query: query, topic: topic) : tool.title(query: query, topic: topic)
     }
 
     private func statusIcon(_ status: WorkStatus) -> String {
@@ -903,7 +786,6 @@ struct BrowserAgentRunsView: View {
     @ObservedObject var app: AppModel
     let session: BrowserAgentSession
     @Binding var expandedToolRowIDs: Set<UUID>
-    @State private var collapsedRunIDs: Set<UUID> = []
     @State private var manuallyExpandedRunIDs: Set<UUID> = []
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -923,14 +805,16 @@ struct BrowserAgentRunsView: View {
             userBubble(run.prompt)
 
             if !run.toolCalls.isEmpty {
-                toolCallsSection(for: run, isLatest: isLatest)
+                toolCallsSection(for: run)
             }
 
             let savedEntries = savedScriptEntries(in: run)
             if !savedEntries.isEmpty {
                 ForEach(savedEntries) { entry in
                     AgentScriptCardView(app: app, entry: entry)
+                        .dcRiseIn()
                 }
+                DCSavedNote()
             }
 
             let reply = run.assistantText.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -990,138 +874,113 @@ struct BrowserAgentRunsView: View {
                 .textSelection(.enabled)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)
-                .background(
-                    DCTheme.surfaceRaised,
-                    in: RoundedRectangle(cornerRadius: DCTheme.radiusLg, style: .continuous)
-                )
+                .background(DCTheme.surfaceRaised, in: DCUserBubbleShape())
                 .accessibilityIdentifier("agentUserMessage")
         }
     }
 
-    private func isRunStepsExpanded(_ run: BrowserAgentRun, isLatest: Bool) -> Bool {
-        if case .running = run.state { return true }
-        if collapsedRunIDs.contains(run.id) { return false }
-        if manuallyExpandedRunIDs.contains(run.id) { return true }
-        return isLatest
+    private func isRunStepsExpanded(_ run: BrowserAgentRun) -> Bool {
+        manuallyExpandedRunIDs.contains(run.id)
     }
 
-    private func toggleRunSteps(_ run: BrowserAgentRun, isLatest: Bool) {
-        let currentlyExpanded = isRunStepsExpanded(run, isLatest: isLatest)
+    private func toggleRunSteps(_ run: BrowserAgentRun) {
         withAnimation(DCMotion.respecting(reduceMotion, DCMotion.quick)) {
-            if currentlyExpanded {
-                collapsedRunIDs.insert(run.id)
+            if manuallyExpandedRunIDs.contains(run.id) {
                 manuallyExpandedRunIDs.remove(run.id)
             } else {
-                collapsedRunIDs.remove(run.id)
                 manuallyExpandedRunIDs.insert(run.id)
             }
         }
     }
 
+    /// While the run goes, and for a run of one step, the rows show directly.
+    /// Two or more steps fold into "Steps N" once the run ends.
     @ViewBuilder
-    private func toolCallsSection(for run: BrowserAgentRun, isLatest: Bool) -> some View {
+    private func toolCallsSection(for run: BrowserAgentRun) -> some View {
         let isRunning: Bool = {
             if case .running = run.state { return true }
             return false
         }()
-        let expanded = isRunStepsExpanded(run, isLatest: isLatest)
-
-        if isRunning {
-            if app.router.usesDrawer {
-                VStack(alignment: .leading, spacing: 0) {
-                    toolRowList(run.toolCalls)
-                }
-            } else {
-                toolGroupContainer {
-                    toolRowList(run.toolCalls)
-                }
-            }
+        if isRunning || run.toolCalls.count == 1 {
+            VStack(alignment: .leading, spacing: 0) { toolRowList(run.toolCalls) }
         } else {
-            toolGroupContainer {
-                Button {
+            DCStepsFold(
+                count: run.toolCalls.count,
+                errorCount: run.errorCount,
+                isExpanded: isRunStepsExpanded(run),
+                onToggle: {
                     DCHaptics.tap()
-                    toggleRunSteps(run, isLatest: isLatest)
-                } label: {
-                    HStack(spacing: 8) {
-                        Text("Steps \(run.toolCalls.count)", comment: "Folded browser agent steps header showing the number of tool calls")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(.primary)
-                        toolIconStrip(run.toolCalls)
-                        if run.errorCount > 0 {
-                            Text("\(run.errorCount) errors", comment: "Browser agent steps header: tool error count")
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(DCTheme.danger)
-                        }
-                        Spacer(minLength: 4)
-                        Image(systemName: expanded ? "chevron.up" : "chevron.down")
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(.secondary)
-                    }
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 10)
-                    .frame(minHeight: DCTheme.controlHeight)
-                    .contentShape(Rectangle())
+                    toggleRunSteps(run)
                 }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("agentStepsSummary")
-
-                if expanded {
-                    Divider()
-                    toolRowList(run.toolCalls)
-                }
+            ) {
+                toolRowList(run.toolCalls)
             }
-        }
-    }
-
-    private func toolGroupContainer<Content: View>(@ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            content()
-        }
-        .background(
-            DCTheme.surface,
-            in: RoundedRectangle(cornerRadius: DCTheme.cardCornerRadius, style: .continuous)
-        )
-        .overlay {
-            RoundedRectangle(cornerRadius: DCTheme.cardCornerRadius, style: .continuous)
-                .strokeBorder(DCTheme.border, lineWidth: 1)
         }
     }
 
     @ViewBuilder
     private func toolRowList(_ rows: [BrowserAgentToolCallRow]) -> some View {
-        ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
-            if index > 0 {
-                Divider()
-            }
-            BrowserAgentToolRowView(
-                row: row,
-                isExpanded: expandedToolRowIDs.contains(row.id),
+        let developerMode = app.settings.developerMode
+        ForEach(rows) { row in
+            let expanded = expandedToolRowIDs.contains(row.id)
+            DCToolRow(
+                label: DCToolLabel.browser(row.toolName, running: row.isRunning),
+                codeName: developerMode ? row.toolName : nil,
+                duration: developerMode ? row.duration.map(BrowserAgentPanelView.formatDuration) : nil,
+                summary: row.isRunning ? "" : row.resultSummary,
+                state: row.isRunning ? .running : (row.isError ? .error : .done),
+                isExpanded: expanded,
                 onToggle: {
                     DCHaptics.tap()
                     withAnimation(DCMotion.respecting(reduceMotion, DCMotion.quick)) {
-                        if expandedToolRowIDs.contains(row.id) {
-                            expandedToolRowIDs.remove(row.id)
-                        } else {
-                            expandedToolRowIDs.insert(row.id)
-                        }
+                        if expanded { expandedToolRowIDs.remove(row.id) } else { expandedToolRowIDs.insert(row.id) }
                     }
                 }
-            )
+            ) {
+                toolRowDetail(row, developerMode: developerMode)
+            }
         }
     }
 
-    private func toolIconStrip(_ rows: [BrowserAgentToolCallRow]) -> some View {
-        HStack(spacing: 4) {
-            ForEach(Array(rows.prefix(6))) { row in
-                let style = BrowserAgentToolStyle.resolve(toolName: row.toolName, isError: row.isError)
-                Image(systemName: style.symbol)
-                    .font(.caption2.weight(.semibold))
-                    .foregroundStyle(style.tint)
-                    .frame(width: 20, height: 20)
-                    .background(style.tint.opacity(0.14), in: Circle())
+    private func toolRowDetail(_ row: BrowserAgentToolCallRow, developerMode: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if developerMode {
+                codeBlock(row.argumentsJSON, id: "agentToolArguments")
+            }
+            codeBlock(row.resultText.isEmpty ? row.resultSummary : row.resultText, id: "agentToolResult")
+            HStack {
+                if row.wasTruncated {
+                    Text("Truncated · \(row.totalCharacterCount) characters in total", comment: "Footer under a truncated browser agent tool output showing the original character count")
+                        .font(.caption)
+                        .foregroundStyle(DCTheme.inkMuted)
+                        .accessibilityIdentifier("agentToolTruncatedNote")
+                }
+                Spacer(minLength: 0)
+                if !row.resultText.isEmpty {
+                    Button {
+                        UIPasteboard.general.string = row.resultText
+                        DCHaptics.success()
+                    } label: {
+                        Label(String(localized: "Copy", comment: "Button to copy tool call result text"), systemImage: "doc.on.doc")
+                            .font(.caption.weight(.semibold))
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(DCTheme.goldInk)
+                    .accessibilityIdentifier("agentToolCopyResult")
+                }
             }
         }
-        .accessibilityHidden(true)
+    }
+
+    private func codeBlock(_ text: String, id: String) -> some View {
+        Text(verbatim: text)
+            .font(.caption.monospaced())
+            .foregroundStyle(DCTheme.ink)
+            .textSelection(.enabled)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(10)
+            .background(DCTheme.surfaceRaised, in: RoundedRectangle(cornerRadius: DCTheme.radiusMd, style: .continuous))
+            .accessibilityIdentifier(id)
     }
 
     private func stepLimitCard(limit: Int) -> some View {
@@ -1201,190 +1060,11 @@ struct BrowserAgentRunsView: View {
                 .accessibilityIdentifier("agentCheckKeyButton")
             }
         }
-        .dcCard(tint: DCTheme.danger)
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(DCTheme.cinnabarWash, in: RoundedRectangle(cornerRadius: DCTheme.radiusLg, style: .continuous))
+        .dcRiseIn()
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("agentErrorCard")
-    }
-}
-
-enum BrowserAgentToolStyle {
-    struct Style {
-        let symbol: String
-        let tint: Color
-    }
-
-    static func resolve(toolName: String, isError: Bool) -> Style {
-        if isError {
-            return Style(symbol: "exclamationmark.triangle.fill", tint: DCTheme.danger)
-        }
-        switch toolName {
-        case "read_page":
-            return Style(symbol: "doc.text", tint: DCTheme.ink)
-        case "run_js":
-            return Style(symbol: "curlybraces", tint: DCTheme.ink)
-        case "inject_css":
-            return Style(symbol: "drop", tint: DCTheme.ink)
-        case "wait_for":
-            return Style(symbol: "clock", tint: DCTheme.inkMuted)
-        case "script_save":
-            return Style(symbol: "square.and.arrow.down", tint: DCTheme.ink)
-        case "script_list":
-            return Style(symbol: "list.bullet.rectangle", tint: DCTheme.ink)
-        case "script_read":
-            return Style(symbol: "doc.plaintext", tint: DCTheme.ink)
-        case "script_update":
-            return Style(symbol: "arrow.triangle.2.circlepath", tint: DCTheme.ink)
-        case "script_delete":
-            return Style(symbol: "trash", tint: DCTheme.danger)
-        default:
-            return Style(symbol: "wrench.and.screwdriver", tint: DCTheme.ink)
-        }
-    }
-}
-
-private struct BrowserAgentToolRowView: View {
-    let row: BrowserAgentToolCallRow
-    let isExpanded: Bool
-    let onToggle: () -> Void
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-
-    private var style: BrowserAgentToolStyle.Style {
-        BrowserAgentToolStyle.resolve(toolName: row.toolName, isError: row.isError)
-    }
-
-    var body: some View {
-        let singleLineLimit: Int? = dynamicTypeSize.isAccessibilitySize ? nil : 1
-        let summaryLineLimit: Int? = dynamicTypeSize.isAccessibilitySize ? nil : 2
-        let headerLayout = dynamicTypeSize.isAccessibilitySize
-            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 2))
-            : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 6))
-        VStack(alignment: .leading, spacing: 0) {
-            Button(action: onToggle) {
-                HStack(alignment: .center, spacing: 10) {
-                    RoundedRectangle(cornerRadius: DCTheme.radiusSm, style: .continuous)
-                        .fill(DCTheme.surfaceRaised)
-                        .frame(width: 28, height: 28)
-                        .overlay {
-                            if row.isRunning {
-                                DCAgentRing(size: 16, lineWidth: DCTheme.ringWidth, isTurning: true)
-                            } else {
-                                Image(systemName: style.symbol)
-                                    .font(.caption.weight(.semibold))
-                                    .foregroundStyle(style.tint)
-                            }
-                        }
-                        .accessibilityHidden(true)
-
-                    VStack(alignment: .leading, spacing: 2) {
-                        headerLayout {
-                            Text(verbatim: row.toolName)
-                                .font(.subheadline.weight(.semibold).monospaced())
-                                .foregroundStyle(.primary)
-                                .lineLimit(singleLineLimit)
-                            if !row.argumentSummary.isEmpty {
-                                Text(verbatim: row.argumentSummary)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                    .lineLimit(singleLineLimit)
-                                    .truncationMode(.tail)
-                            }
-                        }
-                        Text(
-                            row.isRunning
-                                ? String(localized: "Running…", comment: "Browser agent tool row status while running")
-                                : row.resultSummary
-                        )
-                        .font(.caption.weight(.medium))
-                        .foregroundStyle(row.isError ? DCTheme.danger : (row.isRunning ? DCTheme.goldInk : DCTheme.inkMuted))
-                        .lineLimit(summaryLineLimit)
-                        .multilineTextAlignment(.leading)
-                    }
-
-                    Spacer(minLength: 4)
-
-                    if let duration = row.duration {
-                        Text(verbatim: BrowserAgentPanelView.formatDuration(duration))
-                            .font(.caption.monospacedDigit())
-                            .foregroundStyle(.secondary)
-                    }
-
-                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                        .font(.caption2.weight(.semibold))
-                        .foregroundStyle(.secondary)
-                        .accessibilityHidden(true)
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 10)
-                .frame(minHeight: DCTheme.controlHeight)
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityIdentifier("agentToolRow")
-
-            if isExpanded {
-                VStack(alignment: .leading, spacing: 10) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("ARGUMENTS", comment: "Expanded browser agent tool call section header for tool arguments JSON")
-                            .font(.caption2.weight(.semibold))
-                            .foregroundStyle(.secondary)
-                        Text(verbatim: row.argumentsJSON)
-                            .font(.caption.monospaced())
-                            .foregroundStyle(.primary)
-                            .textSelection(.enabled)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(10)
-                            .background(
-                                DCTheme.raisedSurface,
-                                in: RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            )
-                            .accessibilityIdentifier("agentToolArguments")
-                    }
-
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack {
-                            Text("RESULT", comment: "Expanded browser agent tool call section header for tool result output")
-                                .font(.caption2.weight(.semibold))
-                                .foregroundStyle(.secondary)
-                            Spacer(minLength: 0)
-                            if !row.resultText.isEmpty {
-                                Button {
-                                    UIPasteboard.general.string = row.resultText
-                                    DCHaptics.success()
-                                } label: {
-                                    Label(
-                                        String(localized: "Copy", comment: "Button to copy tool call result text"),
-                                        systemImage: "doc.on.doc"
-                                    )
-                                    .font(.caption.weight(.semibold))
-                                }
-                                .buttonStyle(.plain)
-                                .foregroundStyle(DCTheme.goldInk)
-                                .accessibilityIdentifier("agentToolCopyResult")
-                            }
-                        }
-                        Text(verbatim: row.resultText.isEmpty ? row.resultSummary : row.resultText)
-                            .font(.caption.monospaced())
-                            .foregroundStyle(.primary)
-                            .textSelection(.enabled)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(10)
-                            .background(
-                                DCTheme.raisedSurface,
-                                in: RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            )
-                            .accessibilityIdentifier("agentToolResult")
-
-                        if row.wasTruncated {
-                            Text("Truncated · \(row.totalCharacterCount) characters in total", comment: "Footer under a truncated browser agent tool output showing the original character count")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .accessibilityIdentifier("agentToolTruncatedNote")
-                        }
-                    }
-                }
-                .padding(.horizontal, 12)
-                .padding(.bottom, 12)
-            }
-        }
     }
 }

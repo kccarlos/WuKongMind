@@ -56,4 +56,26 @@ extension AgentToolName {
             String(localized: "Wrote the answer", comment: "Agent step")
         }
     }
+
+    /// The step's title while it runs (present progressive).
+    func runningTitle(query: String, topic: () -> String) -> String {
+        switch self {
+        case .searchForum:
+            String(localized: "Searching “\(query)”", comment: "Agent step while running; the placeholder is the search query")
+        case .searchComments:
+            String(localized: "Searching comments for “\(query)”", comment: "Agent step while running; the placeholder is the search query")
+        case .listLatest:
+            String(localized: "Listing the latest", comment: "Agent step while running")
+        case .readTopic:
+            String(localized: "Reading \(topic())", comment: "Agent step while running; the placeholder is a topic title")
+        case .summarizeTopic:
+            String(localized: "Summarizing \(topic())", comment: "Agent step while running; the placeholder is a topic title")
+        case .savedSummaries:
+            String(localized: "Checking saved summaries", comment: "Agent step while running")
+        case .watchTopic:
+            String(localized: "Following \(topic())", comment: "Agent step while running; the placeholder is a topic title")
+        case .finalAnswer:
+            String(localized: "Writing the answer", comment: "Agent step while running")
+        }
+    }
 }
