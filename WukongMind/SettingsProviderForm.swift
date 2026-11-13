@@ -66,22 +66,22 @@ struct ProviderBadge: View {
 
     var body: some View {
         let local = provider.isLocalServer
-        RoundedRectangle(cornerRadius: size * 0.26, style: .continuous)
-            .fill(local ? AnyShapeStyle(DCTheme.chatTint) : AnyShapeStyle(DCTheme.brandGradient))
+        RoundedRectangle(cornerRadius: DCTheme.radiusSm, style: .continuous)
+            .fill(DCTheme.ink)
             .frame(width: size, height: size)
             .overlay {
                 if provider.isAppleIntelligence {
-                    Image(systemName: "sparkles")
+                    Image(systemName: "apple.intelligence")
                         .font(.system(size: size * 0.46, weight: .semibold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(DCTheme.ground)
                 } else if local {
                     Image(systemName: "desktopcomputer")
                         .font(.system(size: size * 0.44, weight: .semibold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(DCTheme.ground)
                 } else {
                     Text(String(provider.displayName.prefix(1)))
                         .font(.system(size: size * 0.48, weight: .bold, design: .rounded))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(DCTheme.ground)
                 }
             }
             .accessibilityHidden(true)
@@ -194,7 +194,7 @@ struct APIKeyField: View {
             .labelStyle(.iconOnly)
             .buttonBorderShape(.roundedRectangle)
             .controlSize(.small)
-            .tint(DCTheme.brandBlue)
+            .tint(DCTheme.goldInk)
             .accessibilityIdentifier("pasteAPIKey")
         }
     }
@@ -228,7 +228,7 @@ struct ModelField: View {
             .buttonStyle(.bordered)
             .buttonBorderShape(.roundedRectangle)
             .controlSize(.small)
-            .tint(DCTheme.brandBlue)
+            .tint(DCTheme.goldInk)
             .accessibilityLabel("Choose from list")
             .accessibilityIdentifier("chooseModel")
         }
@@ -338,7 +338,7 @@ struct ModelListSheet: View {
                     .lineLimit(2)
                 Spacer()
                 if model == bindings.selection.model {
-                    Image(systemName: "checkmark").foregroundStyle(DCTheme.brandBlue)
+                    Image(systemName: "checkmark").foregroundStyle(DCTheme.goldInk)
                 }
             }
         }
@@ -575,7 +575,7 @@ struct ProviderSetupForm: View {
             } label: {
                 HStack(spacing: DCTheme.spacingS) {
                     if state == .testing {
-                        ProgressView().tint(DCTheme.brandBlue)
+                        ProgressView().tint(DCTheme.goldInk)
                     } else {
                         Image(systemName: state == .success ? "checkmark.circle.fill" : "bolt.horizontal.circle")
                     }

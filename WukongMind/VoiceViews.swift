@@ -19,7 +19,7 @@ struct VoiceBarButton: View {
             voice.toggle()
         } label: {
             Image(systemName: voice.isActive ? "mic.fill" : "mic")
-                .foregroundStyle(voice.isActive ? AnyShapeStyle(DCTheme.brandGradient) : AnyShapeStyle(.primary))
+                .foregroundStyle(voice.isActive ? DCTheme.goldInk : DCTheme.ink)
                 .symbolEffect(.pulse, isActive: voice.isActive)
         }
         .buttonStyle(DCIconButtonStyle())
@@ -125,7 +125,7 @@ struct VoiceSessionBar: View {
                         if !session.state.isOver {
                             Text(timeLine)
                                 .font(.footnote.monospacedDigit())
-                                .foregroundStyle(DCTheme.brandInk.opacity(0.78))
+                                .foregroundStyle(DCTheme.ink.opacity(0.78))
                                 .accessibilityIdentifier("voiceTimeLine")
                         }
                     }
@@ -162,9 +162,9 @@ struct VoiceSessionBar: View {
                     voice.end()
                 } label: {
                     Image(systemName: "phone.down.fill")
-                        .foregroundStyle(.white)
+                        .foregroundStyle(DCTheme.onCinnabar)
                         .frame(width: 34, height: 34)
-                        .background(DCTheme.danger, in: Circle())
+                        .background(DCTheme.cinnabar, in: Circle())
                 }
                 .buttonStyle(DCIconButtonStyle())
                 .accessibilityLabel(Text("End voice"))
@@ -279,9 +279,9 @@ struct VoiceSessionBar: View {
     private var stateTint: Color {
         switch session.state {
         case .failed: DCTheme.warning
-        case .ended: DCTheme.brandBlue
-        case .speaking: DCTheme.brandPurple
-        default: DCTheme.brandBlue
+        case .ended: DCTheme.inkMuted
+        case .speaking: DCTheme.gold
+        default: DCTheme.gold
         }
     }
 }
@@ -414,7 +414,7 @@ struct SettingsVoicePage: View {
                             .foregroundStyle(.secondary)
                     }
                 }
-                .tint(DCTheme.brandBlue)
+                .tint(DCTheme.goldInk)
                 .accessibilityIdentifier("voiceEnabled")
             } footer: {
                 Text("Voice uses Google Gemini Live with your own Google Gemini or Vertex AI key. This setting is kept on this device.")

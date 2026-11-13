@@ -1,84 +1,62 @@
-// Renders the WukongMind app icon PNGs from the in-app brand mark code.
-//
-// Run from the repository root (macOS 14+, Xcode command line tools):
-//
-//   scripts/brand/render_app_icon.sh
-//
-// which compiles this file together with WukongMind/BrandMarkShapes.swift and
-// WukongMind/BrandMark.swift (the same shapes the app draws) and writes:
-//
-//   WukongMind/Assets.xcassets/AppIcon.appiconset/AppIcon.png         light, opaque
-//   WukongMind/Assets.xcassets/AppIcon.appiconset/AppIcon-Dark.png    dark, opaque
-//   WukongMind/Assets.xcassets/AppIcon.appiconset/AppIcon-Tinted.png  tinted, grayscale
-//   docs/brand/wukongmind-icon-1024.png                                copy of the light icon
-
 import AppKit
-import CoreGraphics
-import ImageIO
 import SwiftUI
-import UniformTypeIdentifiers
+
+// Regenerates the PNG and SVG brand assets from SwiftUI shapes.
+//
+// Invoked by `scripts/brand/render_app_icon.sh`, which compiles this file
+// together with `WukongMind/BrandMarkShapes.swift` and `WukongMind/BrandMark.swift`.
+
+@MainActor
+private func writePNG<V: View>(_ view: V, pixels: Int, to url: URL, opaque: Bool) throws {
+    let renderer = ImageRenderer(content: view)
+    renderer.scale = 1
+    renderer.isOpaque = opaque
+    guard let cgImage = renderer.cgImage else {
+        throw CocoaError(.coderInvalidValue)
+    }
+    let bitmap = NSBitmapImageRep(cgImage: cgImage)
+    bitmap.size = NSSize(width: pixels, height: pixels)
+    guard let png = bitmap.representation(using: .png, properties: [:]) else {
+        throw CocoaError(.coderInvalidValue)
+    }
+    try FileManager.default.createDirectory(
+        at: url.deletingLastPathComponent(),
+        withIntermediateDirectories: true
+    )
+    try png.write(to: url, options: .atomic)
+}
+
+private func markSVG() -> String {
+    """
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024"><clipPath id="c"><rect width="1024" height="1024" rx="230"></rect></clipPath><g clip-path="url(#c)"><rect width="512" height="1024" fill="\(BrandPalette.inkHex)"></rect><rect x="512" width="512" height="1024" fill="\(BrandPalette.goldHex)"></rect><clipPath id="l"><rect width="512" height="1024"></rect></clipPath><clipPath id="r"><rect x="512" width="512" height="1024"></rect></clipPath><g clip-path="url(#l)"><circle cx="512" cy="512" r="130" fill="none" stroke="\(BrandPalette.goldHex)" stroke-width="28"></circle><circle cx="512" cy="512" r="235" fill="none" stroke="\(BrandPalette.goldHex)" stroke-width="28"></circle><circle cx="512" cy="512" r="340" fill="none" stroke="\(BrandPalette.goldHex)" stroke-width="28"></circle></g><g clip-path="url(#r)"><circle cx="512" cy="512" r="130" fill="none" stroke="\(BrandPalette.inkHex)" stroke-width="28"></circle><circle cx="512" cy="512" r="235" fill="none" stroke="\(BrandPalette.inkHex)" stroke-width="28"></circle><circle cx="512" cy="512" r="340" fill="none" stroke="\(BrandPalette.inkHex)" stroke-width="28"></circle></g></g></svg>
+    """
+}
 
 @main
-struct RenderAppIcon {
-    @MainActor
+enum RenderAppIcon {
     static func main() throws {
-        let args = CommandLine.arguments.dropFirst()
-        let root = URL(fileURLWithPath: args.first ?? FileManager.default.currentDirectoryPath)
-        let iconSet = root.appendingPathComponent("WukongMind/Assets.xcassets/AppIcon.appiconset")
-        let docs = root.appendingPathComponent("docs/brand")
-        try FileManager.default.createDirectory(at: docs, withIntermediateDirectories: true)
+        let root = URL(
+            fileURLWithPath: CommandLine.arguments.dropFirst().first
+                ?? FileManager.default.currentDirectoryPath
+        )
 
-        let size: CGFloat = 1024
-        let light = try render(BrandAppIcon(size: size, appearance: .light), size: size)
-        try writePNG(light, to: iconSet.appendingPathComponent("AppIcon.png"), grayscale: false)
-        try writePNG(light, to: docs.appendingPathComponent("wukongmind-icon-1024.png"), grayscale: false)
-        let dark = try render(BrandAppIcon(size: size, appearance: .dark), size: size)
-        try writePNG(dark, to: iconSet.appendingPathComponent("AppIcon-Dark.png"), grayscale: false)
-        let tinted = try render(BrandAppIcon(size: size, appearance: .tinted), size: size)
-        try writePNG(tinted, to: iconSet.appendingPathComponent("AppIcon-Tinted.png"), grayscale: true)
-        print("Wrote app icons to \(iconSet.path) and \(docs.path)")
-    }
+        let icon = BrandAppIcon(size: 1024)
+        let appIconURL = root.appendingPathComponent("WukongMind/Assets.xcassets/AppIcon.appiconset/AppIcon.png")
+        let docsIconURL = root.appendingPathComponent("docs/brand/wukongmind-icon-1024.png")
+        let docsSVGURL = root.appendingPathComponent("docs/brand/wukongmind-mark.svg")
 
-    @MainActor
-    static func render(_ view: some View, size: CGFloat) throws -> CGImage {
-        let renderer = ImageRenderer(content: view.environment(\.colorScheme, .light))
-        renderer.scale = 1
-        renderer.proposedSize = ProposedViewSize(width: size, height: size)
-        guard let image = renderer.cgImage else { throw RenderError.render }
-        return image
-    }
-
-    /// Redraws into a context with no alpha channel (App Store icons must be
-    /// opaque) and writes a PNG.
-    static func writePNG(_ image: CGImage, to url: URL, grayscale: Bool) throws {
-        let width = image.width, height = image.height
-        let context: CGContext?
-        if grayscale {
-            context = CGContext(
-                data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 0,
-                space: CGColorSpaceCreateDeviceGray(),
-                bitmapInfo: CGImageAlphaInfo.none.rawValue
-            )
-        } else {
-            context = CGContext(
-                data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 0,
-                space: CGColorSpace(name: CGColorSpace.sRGB)!,
-                bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue
-            )
+        try MainActor.assumeIsolated {
+            try writePNG(icon, pixels: 1024, to: appIconURL, opaque: true)
+            try writePNG(icon, pixels: 1024, to: docsIconURL, opaque: true)
         }
-        guard let context else { throw RenderError.context }
-        context.setFillColor(CGColor(gray: 0, alpha: 1))
-        context.fill(CGRect(x: 0, y: 0, width: width, height: height))
-        context.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
-        guard let opaque = context.makeImage(),
-              let destination = CGImageDestinationCreateWithURL(url as CFURL, UTType.png.identifier as CFString, 1, nil)
-        else { throw RenderError.write(url.path) }
-        CGImageDestinationAddImage(destination, opaque, nil)
-        guard CGImageDestinationFinalize(destination) else { throw RenderError.write(url.path) }
-    }
+        try FileManager.default.createDirectory(
+            at: docsSVGURL.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
+        try Data(markSVG().utf8).write(to: docsSVGURL, options: .atomic)
 
-    enum RenderError: Error {
-        case render, context
-        case write(String)
+        for url in [appIconURL, docsIconURL, docsSVGURL] {
+            print("wrote \(url.path)")
+        }
     }
 }

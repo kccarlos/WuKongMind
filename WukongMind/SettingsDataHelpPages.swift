@@ -167,7 +167,6 @@ struct SettingsHelpPage: View {
             Section {
                 VStack(spacing: DCTheme.spacingM) {
                     BrandMark(size: 84)
-                        .shadow(color: Color(hex: 0x4A6BFF, opacity: 0.3), radius: 12, y: 6)
                     Text("WukongMind").font(.title3.weight(.bold))
                     Text("Summaries, chat, and answers for any forum or article.")
                         .font(.subheadline)
@@ -192,7 +191,7 @@ struct SettingsHelpPage: View {
                     replayOnboarding()
                 } label: {
                     HStack(spacing: DCTheme.spacingM) {
-                        SettingsIcon(symbol: "play.fill", tint: DCTheme.brandPurple)
+                        SettingsIcon(symbol: "play.fill", tint: DCTheme.ink)
                         Text("Show onboarding again").foregroundStyle(.primary)
                     }
                 }

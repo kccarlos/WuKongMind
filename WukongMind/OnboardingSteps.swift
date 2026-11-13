@@ -43,11 +43,11 @@ struct OnboardingHeader: View {
                 Text(eyebrow.uppercased())
                     .font(.caption.weight(.bold))
                     .tracking(0.8)
-                    .foregroundStyle(DCTheme.brandBlue)
+                    .foregroundStyle(DCTheme.goldInk)
             }
             Text(title)
                 .font(titleFont)
-                .foregroundStyle(DCTheme.brandInk)
+                .foregroundStyle(DCTheme.ink)
                 .fixedSize(horizontal: false, vertical: true)
             if let subtitle {
                 Text(subtitle)
@@ -71,13 +71,13 @@ struct OnboardingIconTile: View {
     var filled = false
 
     var body: some View {
-        RoundedRectangle(cornerRadius: size * 0.28, style: .continuous)
-            .fill(filled ? AnyShapeStyle(tint.gradient) : AnyShapeStyle(tint.opacity(0.14)))
+        RoundedRectangle(cornerRadius: DCTheme.radiusSm, style: .continuous)
+            .fill(filled ? DCTheme.ink : tint.opacity(0.14))
             .frame(width: size, height: size)
             .overlay {
                 Image(systemName: symbol)
                     .font(.system(size: size * 0.44, weight: .semibold))
-                    .foregroundStyle(filled ? Color.white : tint)
+                    .foregroundStyle(filled ? DCTheme.ground : tint)
             }
             .accessibilityHidden(true)
     }
@@ -142,9 +142,8 @@ struct OnboardingWelcomePage: View {
 
     private var hero: some View {
         BrandMark(size: 164)
-            .shadow(color: Color(hex: 0x4A6BFF, opacity: 0.35), radius: 24, y: 12)
             .padding(.vertical, DCTheme.spacingS)
-        .accessibilityHidden(true)
+            .accessibilityHidden(true)
     }
 }
 
@@ -197,17 +196,17 @@ struct OnboardingProviderPage: View {
                         if recommended {
                             Text("Recommended", comment: "Walkthrough: badge on the suggested AI provider")
                                 .font(.caption2.weight(.bold))
-                                .foregroundStyle(DCTheme.brandBlue)
+                                .foregroundStyle(DCTheme.goldInk)
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 2)
-                                .background(DCTheme.brandBlue.opacity(0.12), in: Capsule())
+                                .background(DCTheme.goldWash, in: RoundedRectangle(cornerRadius: DCTheme.radiusSm, style: .continuous))
                         }
                     }
                     Text(detail).font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.leading)
                 }
                 Spacer(minLength: 0)
                 Image(systemName: isOn ? "checkmark.circle.fill" : "circle")
-                    .foregroundStyle(isOn ? DCTheme.brandBlue : Color.secondary)
+                    .foregroundStyle(isOn ? DCTheme.goldInk : Color.secondary)
             }
             .contentShape(Rectangle())
             .dcCard()
@@ -313,12 +312,13 @@ struct OnboardingForumsPage: View {
                     Text(isOn ? "Pinned" : "Pin")
                 }
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(isOn ? Color.white : DCTheme.brandBlue)
+                .foregroundStyle(isOn ? DCTheme.onGold : DCTheme.goldInk)
                 .padding(.horizontal, 10)
                 .frame(height: 30)
                 .fixedSize()
                 .background {
-                    Capsule().fill(isOn ? AnyShapeStyle(DCTheme.brandGradient) : AnyShapeStyle(DCTheme.brandBlue.opacity(0.12)))
+                    RoundedRectangle(cornerRadius: DCTheme.radiusSm, style: .continuous)
+                        .fill(isOn ? DCTheme.gold : DCTheme.goldWash)
                 }
             }
             .padding(.vertical, 10)
@@ -349,7 +349,7 @@ struct OnboardingForumsPage: View {
                 Button(action: add) {
                     Group {
                         if adding {
-                            ProgressView().tint(.white)
+                            ProgressView().tint(DCTheme.onGold)
                         } else {
                             Text("Add")
                         }
@@ -413,7 +413,7 @@ struct OnboardingForumIcon: View {
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: size * 0.26, style: .continuous)
         ZStack {
-            shape.fill(DCTheme.forumTint(for: siteURL).gradient)
+            shape.fill(DCTheme.forumTint(for: siteURL))
             Text(String(name.trimmingCharacters(in: .whitespaces).prefix(1)).uppercased())
                 .font(.system(size: size * 0.46, weight: .bold, design: .rounded))
                 .foregroundStyle(.white)
@@ -496,7 +496,7 @@ struct OnboardingDailyPage: View {
                 }
             }
         }
-        .tint(DCTheme.brandBlue)
+        .tint(DCTheme.goldInk)
         .padding(.vertical, 8)
         .accessibilityIdentifier(id)
     }
@@ -624,9 +624,9 @@ struct ShareStepRow: View {
         HStack(alignment: .top, spacing: DCTheme.spacingM) {
             Text("\(number)")
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(.white)
+                .foregroundStyle(DCTheme.onGold)
                 .frame(width: 28, height: 28)
-                .background(DCTheme.brandGradient, in: Circle())
+                .background(DCTheme.gold, in: Circle())
             Text(text)
                 .font(.subheadline)
                 .fixedSize(horizontal: false, vertical: true)
@@ -646,9 +646,9 @@ struct ShareSheetIllustration: View {
                 .frame(width: 36, height: 5)
             HStack(spacing: DCTheme.spacingM) {
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(DCTheme.brandBlue.opacity(0.15))
+                    .fill(DCTheme.goldWash)
                     .frame(width: 38, height: 38)
-                    .overlay { Image(systemName: "safari").foregroundStyle(DCTheme.brandBlue) }
+                    .overlay { Image(systemName: "safari").foregroundStyle(DCTheme.goldInk) }
                 VStack(alignment: .leading, spacing: 4) {
                     RoundedRectangle(cornerRadius: 3).fill(Color.primary.opacity(0.7)).frame(width: 150, height: 8)
                     RoundedRectangle(cornerRadius: 3).fill(Color.secondary.opacity(0.4)).frame(width: 100, height: 7)
@@ -680,11 +680,11 @@ struct ShareSheetIllustration: View {
                 .padding(3)
                 .overlay {
                     RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(DCTheme.brandBlue, lineWidth: 2.5)
+                        .stroke(DCTheme.gold, lineWidth: 2.5)
                 }
             Text("WukongMind")
                 .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(DCTheme.brandBlue)
+                .foregroundStyle(DCTheme.goldInk)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
         }
@@ -694,7 +694,7 @@ struct ShareSheetIllustration: View {
     private func appIcon(symbol: String, tint: Color, label: String, plain: Bool = false) -> some View {
         VStack(spacing: 6) {
             RoundedRectangle(cornerRadius: 13, style: .continuous)
-                .fill(plain ? AnyShapeStyle(Color.secondary.opacity(0.15)) : AnyShapeStyle(tint.gradient))
+                .fill(plain ? Color.secondary.opacity(0.15) : tint)
                 .frame(width: 52, height: 52)
                 .overlay {
                     Image(systemName: symbol)
@@ -726,12 +726,12 @@ struct ShareActionsIllustration: View {
             ForEach(actions, id: \.0) { title, symbol, tint in
                 HStack(spacing: 10) {
                     RoundedRectangle(cornerRadius: 7, style: .continuous)
-                        .fill(tint.gradient)
+                        .fill(DCTheme.ink)
                         .frame(width: 26, height: 26)
                         .overlay {
                             Image(systemName: symbol)
                                 .font(.system(size: 12, weight: .semibold))
-                                .foregroundStyle(.white)
+                                .foregroundStyle(DCTheme.ground)
                         }
                     Text(title).font(.subheadline.weight(.medium))
                 }
@@ -767,13 +767,13 @@ struct PrivacyPoints: View {
     var body: some View {
         OnboardingFeatureRow(
             symbol: "key.fill",
-            tint: DCTheme.brandPurple,
+            tint: DCTheme.goldInk,
             title: String(localized: "Keys in your Keychain"),
             detail: String(localized: "Keys are kept in your Keychain and, with Sync API keys on, in iCloud Keychain. They’re sent only to the provider they belong to.")
         )
         OnboardingFeatureRow(
             symbol: "iphone",
-            tint: DCTheme.brandBlue,
+            tint: DCTheme.goldInk,
             title: String(localized: "Saved on your devices"),
             detail: String(localized: "Summaries, chats, and answers are stored on your device and, with sync, end-to-end encrypted in your own iCloud. Delete them any time in Settings.")
         )
@@ -809,15 +809,13 @@ struct OnboardingDonePage: View {
     var body: some View {
         OnboardingPage(alignment: .center, spacing: DCTheme.spacingM) {
             Circle()
-                .fill(DCTheme.brandGradient)
+                .fill(DCTheme.gold)
                 .frame(width: 60, height: 60)
                 .overlay {
                     Image(systemName: "checkmark")
                         .font(.system(size: 28, weight: .bold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(DCTheme.onGold)
                 }
-                .shadow(color: Color(hex: 0x4A6BFF, opacity: 0.3), radius: 20, y: 10)
-                .scaleEffect(appeared || reduceMotion ? 1 : 0.6)
                 .opacity(appeared ? 1 : 0)
                 .accessibilityHidden(true)
             OnboardingHeader(

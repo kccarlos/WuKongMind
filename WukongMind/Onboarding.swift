@@ -170,15 +170,10 @@ struct OnboardingFlow: View {
         .frame(maxWidth: 520)
         .frame(maxWidth: .infinity)
         .background {
-            Rectangle()
-                .fill(.bar)
-                .mask(
-                    LinearGradient(
-                        stops: [.init(color: .clear, location: 0), .init(color: .black, location: 0.12)],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
+            DCTheme.ground
+                .overlay(alignment: .top) {
+                    Rectangle().fill(DCTheme.hairline).frame(height: DCTheme.hairlineWidth)
+                }
                 .ignoresSafeArea()
         }
     }
@@ -384,26 +379,12 @@ struct OnboardingFlow: View {
     }
 }
 
-/// Soft brand-tinted page background.
+/// Warm paper (`ground`) / lacquer black page background (no gradient blobs).
 struct OnboardingBackdrop: View {
     var body: some View {
-        ZStack {
-            DCTheme.pageBackground
-            GeometryReader { proxy in
-                Circle()
-                    .fill(Color(hex: 0x4A6BFF, opacity: 0.16))
-                    .frame(width: proxy.size.width * 0.9)
-                    .blur(radius: 80)
-                    .offset(x: -proxy.size.width * 0.3, y: -proxy.size.height * 0.15)
-                Circle()
-                    .fill(Color(hex: 0xC13AE0, opacity: 0.12))
-                    .frame(width: proxy.size.width * 0.8)
-                    .blur(radius: 90)
-                    .offset(x: proxy.size.width * 0.45, y: proxy.size.height * 0.55)
-            }
-        }
-        .ignoresSafeArea()
-        .accessibilityHidden(true)
+        DCTheme.ground
+            .ignoresSafeArea()
+            .accessibilityHidden(true)
     }
 }
 
@@ -414,7 +395,7 @@ struct OnboardingProgressDots: View {
         HStack(spacing: 6) {
             ForEach(OnboardingStep.allCases) { step in
                 Capsule()
-                    .fill(step == current ? AnyShapeStyle(DCTheme.brandGradient) : AnyShapeStyle(Color.secondary.opacity(step.rawValue < current.rawValue ? 0.5 : 0.22)))
+                    .fill(step == current ? DCTheme.gold : DCTheme.inkFaint.opacity(step.rawValue < current.rawValue ? 0.55 : 0.28))
                     .frame(width: step == current ? 22 : 7, height: 7)
             }
         }

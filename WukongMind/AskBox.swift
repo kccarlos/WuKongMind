@@ -607,9 +607,9 @@ struct AskBox: View {
         } label: {
             Image(systemName: "arrow.up")
                 .font(.system(size: 16, weight: .bold))
-                .foregroundStyle(.white)
+                .foregroundStyle(canSend ? DCTheme.onGold : DCTheme.inkFaint)
                 .frame(width: 32, height: 32)
-                .background(canSend ? AnyShapeStyle(tint) : AnyShapeStyle(Color.secondary.opacity(0.35)), in: Circle())
+                .background(canSend ? DCTheme.gold : DCTheme.surfaceRaised, in: Circle())
                 .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
                 .contentShape(Rectangle())
         }

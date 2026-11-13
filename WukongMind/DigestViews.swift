@@ -7,20 +7,12 @@ struct DigestIcon: View {
     var size: CGFloat = 36
 
     var body: some View {
-        RoundedRectangle(cornerRadius: size * 0.26, style: .continuous)
-            .fill(DigestStyle.tint.gradient)
-            .frame(width: size, height: size)
-            .overlay {
-                Image(systemName: "sun.max.fill")
-                    .font(.system(size: size * 0.5, weight: .semibold))
-                    .foregroundStyle(.white)
-            }
-            .accessibilityHidden(true)
+        DCListIconTile(kind: .ink(symbol: "sun.max.fill"), size: size)
     }
 }
 
 enum DigestStyle {
-    static let tint = Color(light: 0xD9730D, dark: 0xFFA94D)
+    static let tint = DCTheme.goldInk
 }
 
 // MARK: - Today page
@@ -411,7 +403,7 @@ struct DigestCardView: View {
         switch card.reason {
         case .newReplies(let count):
             DCPill(text: String(localized: "\(count) new replies", comment: "Digest card: why a watched topic is in the digest"),
-                   systemImage: "bell.badge", tint: DCTheme.brandBlue)
+                   systemImage: "bell.badge", tint: DCTheme.goldInk)
         case .trending:
             DCPill(text: String(localized: "Trending", comment: "Digest card: the topic is among today's top topics of a pinned forum"),
                    systemImage: "flame", tint: DigestStyle.tint)
@@ -521,7 +513,7 @@ struct SettingsDigestPage: View {
                             .foregroundStyle(.secondary)
                     }
                 }
-                .tint(DCTheme.brandBlue)
+                .tint(DCTheme.goldInk)
                 .accessibilityIdentifier("digestEnabled")
             } header: {
                 Text("Daily digest")
@@ -531,10 +523,10 @@ struct SettingsDigestPage: View {
 
             Section {
                 Toggle("Watched topics with new replies", isOn: $app.settings.dailyDigestIncludesWatched)
-                    .tint(DCTheme.brandBlue)
+                    .tint(DCTheme.goldInk)
                     .accessibilityIdentifier("digestIncludesWatched")
                 Toggle("Today’s top topics on pinned forums", isOn: $app.settings.dailyDigestIncludesTrending)
-                    .tint(DCTheme.brandBlue)
+                    .tint(DCTheme.goldInk)
                     .accessibilityIdentifier("digestIncludesTrending")
                 Stepper(value: $app.settings.dailyDigestMaxCards, in: DigestLimits.cardRange) {
                     Text("Up to \(app.settings.dailyDigestMaxCards) topics", comment: "Daily digest settings: the maximum number of cards")
@@ -555,7 +547,7 @@ struct SettingsDigestPage: View {
                             .foregroundStyle(.secondary)
                     }
                 }
-                .tint(DCTheme.brandBlue)
+                .tint(DCTheme.goldInk)
                 .disabled(!app.settings.dailyDigestEnabled)
                 .accessibilityIdentifier("digestNotifies")
             }

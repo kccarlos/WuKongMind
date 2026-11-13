@@ -1664,7 +1664,7 @@ struct ChatBubble: View {
                 if isUser {
                     Text(message.content)
                         .font(.body)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(DCTheme.ink)
                         .textSelection(.enabled)
                         .fixedSize(horizontal: false, vertical: true)
                 } else {
@@ -1675,11 +1675,11 @@ struct ChatBubble: View {
                 if isUser, let onEdit {
                     Button(action: onEdit) {
                         Label("Edit", systemImage: "pencil")
-                            .font(.caption.weight(.semibold))
+                            .font(DCType.caption)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 3)
-                            .background(.white.opacity(0.2), in: Capsule())
-                            .foregroundStyle(.white)
+                            .background(DCTheme.surface, in: RoundedRectangle(cornerRadius: DCTheme.radiusSm, style: .continuous))
+                            .foregroundStyle(DCTheme.goldInk)
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Edit")
@@ -1694,11 +1694,7 @@ struct ChatBubble: View {
             .background {
                 if isUser {
                     ChatBubbleShape(isUser: true)
-                        .fill(LinearGradient(
-                            colors: [DCTheme.brandBlue, Color(light: 0x4A57E8, dark: 0x5B6FE0)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ))
+                        .fill(DCTheme.surfaceRaised)
                 } else {
                     ChatBubbleShape(isUser: false).fill(DCTheme.surface)
                 }
@@ -1962,9 +1958,9 @@ private struct DrawerVoiceStatus: View {
             .padding(.top, 10)
             Button(action: end) {
                 Image(systemName: "phone.down.fill")
-                    .foregroundStyle(.white)
+                    .foregroundStyle(DCTheme.onCinnabar)
                     .frame(width: 34, height: 34)
-                    .background(DCTheme.danger, in: Circle())
+                    .background(DCTheme.cinnabar, in: Circle())
             }
             .buttonStyle(DCIconButtonStyle())
             .accessibilityLabel(Text("End voice"))
@@ -2013,7 +2009,7 @@ private struct DrawerStatusLabel: View {
     var body: some View {
         HStack(spacing: 10) {
             Image(systemName: systemImage)
-                .foregroundStyle(DCTheme.brandBlue)
+                .foregroundStyle(DCTheme.goldInk)
                 .accessibilityHidden(true)
             Text(verbatim: text)
                 .font(.subheadline.weight(.medium))
@@ -2022,7 +2018,7 @@ private struct DrawerStatusLabel: View {
             if let progress {
                 ProgressView(value: progress)
                     .frame(width: 44)
-                    .tint(DCTheme.brandBlue)
+                    .tint(DCTheme.goldInk)
             }
             if showsChevron {
                 Image(systemName: "chevron.right")

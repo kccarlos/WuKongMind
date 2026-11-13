@@ -54,23 +54,23 @@ extension AppModel {
 /// `SplitPanelToggle` (`design-m1.md` §3).
 struct ScriptCountBadge: View {
     let summary: ToolbarScriptBadgeSummary
-    @Environment(\.colorScheme) private var colorScheme
 
     private var fillColor: Color {
         if !summary.isGlobalEnabled {
-            return Color(light: 0x6B7280, dark: 0xA1A8B3)
+            return DCTheme.inkMuted
         }
         if summary.errorCount > 0 {
-            return DCTheme.danger
+            return DCTheme.cinnabar
         }
-        return DCTheme.agentTint
+        return DCTheme.ink
     }
 
     private var textColor: Color {
-        colorScheme == .dark ? .black : .white
+        summary.errorCount > 0 && summary.isGlobalEnabled ? DCTheme.onCinnabar : DCTheme.ground
     }
 
     var body: some View {
+        let shape = RoundedRectangle(cornerRadius: DCTheme.radiusSm, style: .continuous)
         if summary.isVisible {
             Text(verbatim: "\(summary.count)")
                 .font(.caption2.weight(.bold).monospacedDigit())
@@ -78,11 +78,11 @@ struct ScriptCountBadge: View {
                 .padding(.horizontal, 5)
                 .padding(.vertical, 1.5)
                 .frame(minWidth: 16)
-                .background(fillColor, in: Capsule())
+                .background(fillColor, in: shape)
                 .background(
-                    Capsule()
-                        .fill(Color(uiColor: .systemBackground))
-                        .padding(-2)
+                    RoundedRectangle(cornerRadius: DCTheme.radiusSm + 1.5, style: .continuous)
+                        .fill(DCTheme.surface)
+                        .padding(-1.5)
                 )
                 .padding(.top, 3)
                 .padding(.trailing, 2)
@@ -684,7 +684,7 @@ struct PageScriptsPopover: View {
                 HStack {
                     Text("Manage scripts", comment: "Footer button in Scripts on this page popover opening Settings › Scripts")
                         .font(.subheadline.weight(.medium))
-                        .foregroundStyle(DCTheme.brandBlue)
+                        .foregroundStyle(DCTheme.goldInk)
                     Spacer()
                     Image(systemName: "chevron.right")
                         .font(.caption.weight(.semibold))
@@ -749,7 +749,7 @@ struct PageScriptsPopover: View {
                 )
             )
             .labelsHidden()
-            .tint(DCTheme.brandBlue)
+            .tint(DCTheme.gold)
             .disabled(!isGlobalOn)
             .frame(minWidth: 51, minHeight: 44)
             .accessibilityIdentifier("pageScriptToggle-\(script.id)")
@@ -856,7 +856,7 @@ struct ScriptManagerView: View {
                     HStack(spacing: DCTheme.spacingM) {
                         SettingsIcon(
                             symbol: "curlybraces",
-                            tint: isGlobalOn ? DCTheme.agentTint : Color(light: 0x6B7280, dark: 0x8E96A3)
+                            tint: DCTheme.ink
                         )
                         Text("Run scripts", comment: "Settings › Scripts: master switch that enables or pauses all userscripts")
                     }
@@ -1000,7 +1000,7 @@ struct ScriptManagerView: View {
             )
         )
         .labelsHidden()
-        .tint(DCTheme.brandBlue)
+        .tint(DCTheme.gold)
         .disabled(!isGlobalOn)
         .opacity(isGlobalOn ? 1 : 0.45)
         .accessibilityIdentifier("scriptToggle-\(script.id)")
@@ -2306,16 +2306,12 @@ struct ScriptHistoryView: View {
             } label: {
                 HStack(alignment: .top, spacing: 12) {
                     Circle()
-                        .fill(entry.isCurrent ? DCTheme.agentTint : DCTheme.agentTint.opacity(0.12))
+                        .fill(entry.isCurrent ? DCTheme.gold : DCTheme.goldWash)
                         .frame(width: 32, height: 32)
                         .overlay {
                             Text(verbatim: "\(entry.version)")
                                 .font(.footnote.weight(.bold).monospacedDigit())
-                                .foregroundStyle(
-                                    entry.isCurrent
-                                        ? (colorScheme == .dark ? Color.black : Color.white)
-                                        : DCTheme.agentTint
-                                )
+                                .foregroundStyle(entry.isCurrent ? DCTheme.onGold : DCTheme.goldInk)
                         }
                         .accessibilityHidden(true)
 

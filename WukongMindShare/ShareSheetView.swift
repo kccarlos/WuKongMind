@@ -263,11 +263,11 @@ private struct ShareActionLabel: View {
     var body: some View {
         HStack(spacing: 14) {
             ZStack {
-                RoundedRectangle(cornerRadius: iconSize * 0.3, style: .continuous)
-                    .fill(action.tint.gradient)
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .fill(BrandPalette.ink)
                 Image(systemName: action.symbol)
                     .font(.system(size: iconSize * 0.45, weight: .semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(BrandPalette.paper)
             }
             .frame(width: iconSize, height: iconSize)
             .accessibilityHidden(true)

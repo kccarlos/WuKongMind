@@ -108,7 +108,8 @@ final class DrawerUITests: DCUITestCase {
                 for x in 0..<w {
                     let i = (y * w + x) * 4
                     let r = Int(px[i]), g = Int(px[i + 1]), b = Int(px[i + 2])
-                    if r > 220 && g > 220 && b > 245 && b - r > 8 {
+                    // Light-mode `DCTheme.jadeWash` (#DCEFEB = 220, 239, 235) citation seal fill.
+                    if abs(r - 220) <= 14 && abs(g - 239) <= 14 && abs(b - 235) <= 14 && g - r >= 10 {
                         pillMinX = min(pillMinX ?? x, x)
                         pillMaxX = max(pillMaxX ?? x, x)
                     }

@@ -551,7 +551,7 @@ struct MarkdownBlockView: View, Equatable {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(verbatim: number.map { "\($0)." } ?? "•")
                     .font(ordered ? .body.weight(.semibold).monospacedDigit() : .body.weight(.heavy))
-                    .foregroundStyle(DCTheme.brandBlue)
+                    .foregroundStyle(DCTheme.jade)
                     .frame(minWidth: ordered ? 20 : 12, alignment: ordered ? .trailing : .center)
                     .accessibilityHidden(!ordered)
                 inline(text)
@@ -562,7 +562,7 @@ struct MarkdownBlockView: View, Equatable {
         case .quote(let text):
             HStack(alignment: .top, spacing: 10) {
                 RoundedRectangle(cornerRadius: 2)
-                    .fill(DCTheme.brandGradient)
+                    .fill(DCTheme.jade)
                     .frame(width: 3)
                 MarkdownInline.text(text)
                     .font(.callout)
@@ -575,7 +575,7 @@ struct MarkdownBlockView: View, Equatable {
             .padding(.trailing, 10)
             .padding(.leading, 2)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(DCTheme.brandBlue.opacity(0.06), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .background(DCTheme.jadeWash, in: RoundedRectangle(cornerRadius: DCTheme.radiusSm, style: .continuous))
         case .code(let language, let content):
             VStack(alignment: .leading, spacing: 6) {
                 if let language {
@@ -678,7 +678,7 @@ enum MarkdownInline {
                     value[range].foregroundColor = DCTheme.citationText
                     value[range].backgroundColor = DCTheme.postHighlightBackground
                 } else {
-                    value[range].foregroundColor = DCTheme.brandBlue
+                    value[range].foregroundColor = DCTheme.jade
                     value[range].underlineStyle = .single
                 }
             }
@@ -900,12 +900,12 @@ struct CitationChip: View {
             Text(verbatim: "#\(number)")
                 .font(.footnote.weight(.bold).monospacedDigit())
                 .fixedSize()
-                .foregroundStyle(isActive ? Color.white : DCTheme.citationText)
+                .foregroundStyle(isActive ? DCTheme.ground : DCTheme.jade)
                 .padding(.horizontal, 8)
                 .frame(minWidth: 36, minHeight: 28)
                 .background(
-                    isActive ? AnyShapeStyle(DCTheme.brandBlue) : AnyShapeStyle(DCTheme.postHighlightBackground),
-                    in: RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    isActive ? DCTheme.ink : DCTheme.jadeWash,
+                    in: RoundedRectangle(cornerRadius: DCTheme.radiusSm, style: .continuous)
                 )
                 // At least 44 pt wide in the line so neighbouring hit areas
                 // never overlap, and 44 pt high to tap

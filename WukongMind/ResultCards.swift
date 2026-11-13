@@ -261,8 +261,8 @@ extension BrowseCursor {
 
     var tint: Color {
         switch origin {
-        case .research, .sources: DCTheme.agentTint
-        case .search, .focus, .none: DCTheme.brandBlue
+        case .research, .sources: DCTheme.goldInk
+        case .search, .focus, .none: DCTheme.jade
         }
     }
 }
@@ -356,11 +356,15 @@ private struct ResultCard: View {
         Button(action: action) {
             VStack(alignment: .leading, spacing: 3) {
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    let wash = tint == DCTheme.goldInk ? DCTheme.goldWash : DCTheme.jadeWash
                     Text(verbatim: "\(number)")
                         .font(.caption2.weight(.bold).monospacedDigit())
-                        .foregroundStyle(isCurrent ? Color.white : tint)
-                        .frame(minWidth: 18, minHeight: 18)
-                        .background(isCurrent ? tint : tint.opacity(0.14), in: Circle())
+                        .foregroundStyle(isCurrent ? DCTheme.onGold : tint)
+                        .frame(minWidth: 20, minHeight: 20)
+                        .background(
+                            isCurrent ? DCTheme.gold : wash,
+                            in: RoundedRectangle(cornerRadius: DCTheme.radiusSm, style: .continuous)
+                        )
                     Text(item.title.isEmpty ? detail : item.title)
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(.primary)
