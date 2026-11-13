@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Glossary</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.sf{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,"Helvetica Neue",sans-serif;-webkit-font-smoothing:antialiased}
+.mono{font-family:ui-monospace,"SF Mono",Menlo,monospace}
+.rw{display:grid;grid-template-columns:170px minmax(0,1.6fr) minmax(0,.9fr) minmax(0,1.1fr);gap:16px;padding:11px 18px;border-top:1px solid rgba(26,22,18,.12);align-items:start}
+.w{font-size:16px;font-weight:600;color:#1a1612}
+.m{font-size:14px;line-height:1.4;color:#5f574c}
+.n{font-size:13px;line-height:1.4;color:#b3321f}
+.c{font-size:12px;line-height:1.45;color:#5f574c;word-break:break-word}
+</style>
+</helmet>
+<div class="sf" style="width: 1440px; height: 1300px; box-sizing: border-box; padding: 48px 56px; background: #f7f3ea; display: flex; flex-direction: column; gap: 20px;">
+  <div style="display: flex; flex-direction: column; gap: 6px;">
+    <h1 style="margin: 0; font-size: 34px; font-weight: 700; color: #1a1612;">Glossary: one word per thing</h1>
+    <p style="margin: 0; font-size: 15px; color: #5f574c;">These words go into the UI and the docs. The code column shows today's names, which this design doesn't change. Code renames are decided separately, in the cleanup's rename task.</p>
+  </div>
+  <div style="background: #fffdf8; border-radius: 16px; overflow: hidden;">
+    <div class="rw" style="border-top: 0; background: #efe9dc;"><span class="m" style="font-weight: 600;">Word</span><span class="m" style="font-weight: 600;">Means</span><span class="m" style="font-weight: 600;">Not called</span><span class="m" style="font-weight: 600;">Code today</span></div>
+    <sc-for list="{{terms}}" as="t" hint-placeholder-count="12">
+      <div class="rw"><span class="w" style="{{t.color}}">{{t.word}}</span><span class="m">{{t.means}}</span><span class="n">{{t.not}}</span><span class="c mono">{{t.code}}</span></div>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1300}}'>
+class Component extends DCLogic {
+renderVals() {
+  const P = 'color:#8a6200', B = 'color:#8a6200', N = '';
+  const t = (word, means, not, code, color) => ({ word, means, not, code, color: color || N });
+  return { terms: [
+    t('Agent', 'The one loop with tools behind the input box. It reads and changes pages, and (from One loop) summarizes, searches forums and makes podcasts with tools. The only thing called Agent; the only thing in gold with the ring.', 'browser agent (in the UI), assistant', 'BrowserAgent, ToolRegistry, ModelRole.browserAgent', P),
+    t('Suggestion', 'A question above the input box that you could type or say yourself. A tap sends it; one ending in … fills the box. Shown only where it applies.', 'quick action, mode, shortcut', 'new'),
+    t('Conversation', 'Everything in the panel: your messages, the Agent’s tool rows and replies, and tool results (summary card, answer with numbered sources, podcast row). Holds one or more tasks. One Agent remembers it; in One panel a tapped forum result reaches it as attached context.', 'mode, chat, session', 'BrowserAgentSession'),
+    t('Summary', 'A structured summary of a thread or page, shown as the summary card.', '', 'unchanged'),
+    t('Podcast', 'A spoken version of a thread, answer or Today. Asked for with “Read it to me”.', 'Listen (as a button)', 'Podcast/'),
+    t('Voice', 'Talking to the Agent. One panel: the mic dictates into the box. One loop: the mic opens the voice session, which shares the Agent’s tools; its turns join the conversation.', 'Listen', 'Voice*'),
+    t('Follow', 'Get told when a topic has new replies.', 'Watch', 'watchedTopics'),
+    t('Site', 'Any website.', '', ''),
+    t('Forum', 'A site with a built-in adapter (Discourse, WordPress, Hacker News), or, from Learn on ask, one the page check recognises. Its grey speech-bubble badge shows only on Home’s site tiles.', '', 'SiteAdapter, Forum'),
+    t('This page', 'What is saved for the current page and site: Follow, scripts, tools, site switches.', 'page info', 'new: PageCapabilitiesView'),
+    t('Script', 'Saved JS/CSS that runs on matching pages. It changes the page (M2) or registers tools (Learn on ask).', 'extension; "userscript" only for import/export', 'ScriptStore'),
+    t('Tool', 'A function the Agent can call: built-in, from a script, or from the site (WebMCP).', 'action, command', 'ToolRegistry'),
+    t('Task', 'One request and the Agent’s run for it, from your message to the final result. The unit of task export (M3, developer mode).', 'job, run', 'one run in BrowserAgentSession'),
+    t('History', 'All conversations and results. Home’s Recent shows its newest items.', 'recent tasks', 'HistoryView'),
+    t('Home', 'The browser’s start page.', '', 'HomeView'),
+    t('Workspace (M3) / Audit log (M3)', 'The Agent’s file folder / the record of every tool call.', 'history', ''),
+    t('Developer mode (M3)', 'A switch in Settings › Agent that shows raw requests, tokens per step, task export and, later, the site inspector.', 'debug', '')
+  ] };
+}
+}
+</script>
+</body>
+</html>

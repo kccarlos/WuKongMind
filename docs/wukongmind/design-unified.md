@@ -1,5 +1,7 @@
 # Unified interface design (whole app)
 
+Exported boards and the design system: [docs/wukongmind/design/](design/README.md).
+
 The One panel milestone builds against this page and the design canvas:
 **https://claude.ai/artifact/Daefr4AsZcSm2EWbTLU9uK**. The canvas has the information architecture, the answers to the six directions, artboards for iPhone and iPad in light and dark (the assistant panel on a forum thread and on an ordinary page, tool results in the conversation, the suggestion row, keyboard up, "This page", Home, Settings, the three onboarding steps), motion storyboards, the migration list and the glossary.
 

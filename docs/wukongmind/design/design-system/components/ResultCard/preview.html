@@ -1,0 +1,37 @@
+<!-- @dsCard group="Conversation" height=420 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ResultCard</title>
+<style>
+body{margin:0;padding:16px;background:var(--ground);color:var(--ink);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+.r{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.c{display:flex;flex-direction:column;gap:12px;max-width:390px}
+.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+button{font-family:inherit}
+.mono{font-family:var(--font-mono)}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+.k{background:var(--surface);border:var(--hairline-width) solid var(--hairline);border-radius:var(--radius-lg);overflow:hidden}
+.h{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--jade-wash);color:var(--jade);font-size:12px;font-weight:600}
+.h .i{width:15px;height:15px}
+.bd{padding:12px;font-size:15px;line-height:21px}
+.bd ol{margin:0;padding-left:20px}
+.ci{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 5px;border-radius:var(--radius-sm);background:var(--jade-wash);color:var(--jade);font-size:11px;font-weight:700;border:0;vertical-align:1px}
+.pl{display:flex;align-items:center;gap:12px;padding:12px}
+.pb{width:40px;height:40px;border-radius:var(--radius-full);background:var(--ink);color:var(--ground);border:0;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.bar{height:4px;border-radius:2px;background:var(--surface-raised);overflow:hidden}
+.bar span{display:block;width:35%;height:100%;background:var(--gold)}
+
+</style>
+</head>
+<body>
+<div class="c">
+<div class="k"><div class="h"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 10h10M4 14h16M4 18h10"/></svg><span style="flex:1">Summary · 84 posts</span><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px"><path d="M9 6l6 6-6 6"/></svg></div><div class="bd"><ol><li>N100 boxes win on idle power (6–8 W) and silence.</li><li>Avoid soldered eMMC for always-on logging.</li></ol></div></div>
+<div class="k"><div class="h"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6"/><path d="M20 20l-5-5"/></svg><span style="flex:1">Searched this forum · read 6 topics</span></div><div class="bd">Two models with soldered eMMC wore out within two years <button class="ci" aria-label="Source 1">1</button> <button class="ci" aria-label="Source 2">2</button>.</div></div>
+<div class="k"><div class="pl"><button class="pb" aria-label="Play"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5l11 7-11 7z" fill="currentColor"/></svg></button><div style="flex:1;display:flex;flex-direction:column;gap:6px"><span style="font-size:15px;font-weight:600">Fanless builds compared</span><div class="bar" role="progressbar" aria-label="Playback" aria-valuenow="35" aria-valuemin="0" aria-valuemax="100"><span></span></div></div><span style="font-size:12px;color:var(--ink-muted);font-variant-numeric:tabular-nums">3:10 / 9:02</span></div></div>
+</div>
+</body>
+</html>

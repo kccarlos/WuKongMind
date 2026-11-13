@@ -1,0 +1,31 @@
+<!-- @dsCard group="Navigation" height=150 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>BrowserBar</title>
+<style>
+body{margin:0;padding:16px;background:var(--ground);color:var(--ink);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+.r{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.c{display:flex;flex-direction:column;gap:12px;max-width:390px}
+.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+button{font-family:inherit}
+.mono{font-family:var(--font-mono)}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+.bar{display:flex;align-items:center;gap:6px;height:56px;padding:0 6px;border-radius:var(--radius-lg);background:var(--surface);box-shadow:var(--shadow-pop);max-width:390px}
+.ib{width:44px;height:44px;border:0;background:none;color:var(--ink);display:flex;align-items:center;justify-content:center;border-radius:var(--radius-md)}
+.ad{flex:1;height:38px;border-radius:var(--radius-md);background:var(--surface-raised);display:flex;align-items:center;justify-content:center;gap:6px;font-size:15px;color:var(--ink);min-width:0}
+.ring{width:44px;height:44px;border-radius:var(--radius-full);border:3px solid var(--gold);background:none;color:var(--gold-ink);display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0}
+.cnt{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;border-radius:var(--radius-sm);background:var(--ink);color:var(--ground);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px}
+
+</style>
+</head>
+<body>
+<div class="c" style="gap:20px">
+<div class="bar"><button class="ib" aria-label="Back"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><div class="ad"><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">talk.example.org</span></div><button class="ring" aria-label="Agent, 2 scripts on this page"><span class="cnt" aria-hidden="true">2</span></button></div>
+<div class="bar"><button class="ib" aria-label="Back" style="color:var(--ink-faint)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><div class="ad" style="color:var(--ink-faint)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6"/><path d="M20 20l-5-5"/></svg>Search or enter address</div><button class="ring" aria-label="Agent"></button></div>
+</div>
+</body>
+</html>

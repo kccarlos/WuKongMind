@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Settings Agent</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.lt{--ground:#f7f3ea;--bg:#fffdf8;--page:#f7f3ea;--surface:#fffdf8;--raised:#efe9dc;--label:#1a1612;--sec:#5f574c;--ter:#756c5f;--border:rgba(26,22,18,.14);--strong:#8c8375;--blue:#8a6200;--purple:#8a6200;--gold:#b07f0c;--ongold:#1a1612;--goldwash:#f6ecd0;--teal:#1f6f66;--jade:#1f6f66;--jadewash:#dcefeb;--danger:#b3321f;--cin:#b3321f;--oncin:#ffffff;--cinwash:#f9e1da;--success:#356f1b;--warning:#a34a08;--fill:#efe9dc;--pop:#fffdf8;--toggleoff:#fffdf8;--bar:#fffdf8;--scrim:rgba(20,17,14,.4);--badgebg:#f6ecd0;--badgetx:#8a6200;--canvas:#e8e1d2;--kb:#d6d0c4;--key:#fffdf8}
+.dk{--ground:#14110e;--bg:#1f1b16;--page:#14110e;--surface:#1f1b16;--raised:#2a251e;--label:#f4eee2;--sec:#b3a998;--ter:#8f8676;--border:rgba(244,238,226,.16);--strong:#7d7567;--blue:#e8bd55;--purple:#e8bd55;--gold:#e0b040;--ongold:#1a1612;--goldwash:#3a2f14;--teal:#6fd0c2;--jade:#6fd0c2;--jadewash:#12302c;--danger:#ff7a5c;--cin:#ff7a5c;--oncin:#1a1612;--cinwash:#3d1a12;--success:#8fd66b;--warning:#ffb070;--fill:#2a251e;--pop:#1f1b16;--toggleoff:#1f1b16;--bar:#1f1b16;--scrim:rgba(0,0,0,.5);--badgebg:#3a2f14;--badgetx:#e8bd55;--canvas:#0c0a08;--kb:#2a251e;--key:#4a433a}
+.sf{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,"Helvetica Neue",sans-serif;color:var(--label);-webkit-font-smoothing:antialiased}
+.ico{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.sh{font-size:13px;color:var(--sec);padding:0 16px 6px;text-transform:uppercase;letter-spacing:.02em}
+.ft{font-size:13px;line-height:1.35;color:var(--sec);padding:6px 16px 0}
+.sec{background:var(--surface);border-radius:14px;overflow:hidden}
+.r{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 14px;font-size:17px}
+.r+.r{border-top:1px solid var(--border)}
+.v{margin-left:auto;color:var(--sec)}
+.st{display:flex;border-radius:8px;overflow:hidden;background:var(--fill)}
+.st button{width:46px;height:32px;border:0;background:none;color:var(--label);font-size:20px}
+.tg{width:51px;height:31px;border-radius:16px;position:relative;flex-shrink:0;border:0;padding:0;margin-left:auto}
+.tg span{position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:14px;background:var(--ongold);box-shadow:none}
+.ph{border:1.5px dashed var(--ter);border-radius:14px;overflow:hidden}
+.m3{font-size:11px;font-weight:700;color:var(--sec);padding:2px 6px;border-radius:6px;background:var(--goldwash)}
+.tg[style*="toggleoff"] span{background:var(--sec)!important}
+</style>
+</helmet>
+<div class="sf {{theme}}" style="width: 390px; height: 844px; position: relative; overflow: hidden; background: var(--page);">
+  <div style="display: flex; align-items: center; padding: 54px 8px 8px; min-height: 44px;">
+    <a href="#" style="display: flex; align-items: center; gap: 4px; color: var(--blue); text-decoration: none; font-size: 17px; min-height: 44px; padding: 0 8px;"><svg class="ico" viewBox="0 0 24 24" style="width: 20px; height: 20px;" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>Settings</a>
+    <span style="flex-grow: 1; text-align: center; font-size: 17px; font-weight: 600; margin-right: 80px;">Agent</span>
+  </div>
+  <div style="padding: 8px 16px 0; display: flex; flex-direction: column; gap: 18px;">
+    <div style="display: flex; gap: 12px; align-items: center; padding: 4px 4px 0;">
+      <span style="width: 44px; height: 44px; border-radius: 6px; background: var(--gold); color: var(--ongold); display: flex; align-items: center; justify-content: center;"><svg class="ico" viewBox="0 0 24 24" style="width: 22px; height: 22px;" aria-hidden="true"><circle cx="12" cy="12" r="8"/></svg></span>
+      <span style="font-size: 15px; line-height: 1.35; color: var(--sec);">Claude Sonnet 5.5 · <a href="#" style="color: var(--blue);">Change</a></span>
+    </div>
+    <div>
+      <div class="sh">Runs</div>
+      <div class="sec">
+        <div class="r">Step limit<span class="v">30</span><span class="st"><button aria-label="Fewer steps">−</button><button aria-label="More steps">+</button></span></div>
+        <div class="r">Result size<span class="v">20,000 characters</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="sh">Forum search</div>
+      <div class="sec">
+        <div class="r">Search steps<span class="v">15</span></div>
+        <div class="r">Topics to read<span class="v">8</span></div>
+        <div class="r">Read size<span class="v">30,000 characters</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="sh">Safety</div>
+      <div class="ph"><div class="r" style="opacity: .55;">Confirm before writes <span class="m3">M3</span><button class="tg" aria-label="Confirm before writes" style="background: var(--toggleoff); box-shadow: inset 0 0 0 1px var(--strong);"><span></span></button></div></div>
+    </div>
+    <div>
+      <div class="sh">Records</div>
+      <div class="ph">
+        <div class="r" style="opacity: .55;">Audit log <span class="m3">M3</span></div>
+        <div class="r" style="opacity: .55;">Workspace <span class="m3">M3</span><span class="v" style="font-size: 15px;">Also in Files</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="sh">Developer</div>
+      <div class="ph"><div class="r" style="opacity: .55;">Developer mode <span class="m3">M3</span><button class="tg" aria-label="Developer mode" style="background: var(--toggleoff); box-shadow: inset 0 0 0 1px var(--strong); margin-left: auto;"><span></span></button></div></div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["lt","dk"],"default":"lt"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() { return { theme: this.props.theme ?? 'lt' }; }
+}
+</script>
+</body>
+</html>
