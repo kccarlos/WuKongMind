@@ -205,6 +205,25 @@ struct DCResultCard<Trailing: View, Content: View>: View {
     }
 }
 
+/// The jade header strip of a ResultCard on its own, for results whose rows must stay lazy.
+struct DCResultHeader: View {
+    let label: String
+    var systemImage = "doc.text"
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: systemImage).font(.caption.weight(.semibold)).accessibilityHidden(true)
+            Text(verbatim: label).font(.caption.weight(.semibold)).accessibilityAddTraits(.isHeader)
+            Spacer(minLength: 0)
+        }
+        .foregroundStyle(DCTheme.jade)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background(DCTheme.jadeWash, in: RoundedRectangle(cornerRadius: DCTheme.radiusMd, style: .continuous))
+        .dcRiseIn()
+    }
+}
+
 /// A numbered citation: jade-wash square, jade number, at least 20 pt.
 struct DCCitationChip: View {
     let number: String

@@ -894,17 +894,17 @@ struct AssistantPanel: View {
                         .transition(.asymmetric(insertion: .opacity, removal: .identity))
                 }
             }
-            DCResultCard(label: String(localized: "Summary", comment: "Summary result card header"), systemImage: "doc.text") {
-                EmptyView()
-            } content: {
-                DrawerSummarySections(
-                    rows: rows,
-                    layout: app.router.usesWideDrawerSummary && app.router.drawerDetent == .medium
-                        ? .twoColumns
-                        : .singleColumn
-                )
-                .accessibilityIdentifier("summaryContent")
-            }
+            // The summary's rows stay direct children of the lazy transcript (a long
+            // summary lays out only what is on screen), so only the jade header is a card piece.
+            DCResultHeader(label: String(localized: "Summary", comment: "Summary result card header"), systemImage: "doc.text")
+                .padding(.top, 4)
+            DrawerSummarySections(
+                rows: rows,
+                layout: app.router.usesWideDrawerSummary && app.router.drawerDetent == .medium
+                    ? .twoColumns
+                    : .singleColumn
+            )
+            .accessibilityIdentifier("summaryContent")
             .transition(.identity)
             if activeSummary == nil {
                 if showsCitationTip {
@@ -1992,8 +1992,8 @@ struct ChatBubble: View {
                         .scaleEffect(0.8, anchor: .leading)
                 }
             }
-            .padding(.horizontal, isUser ? 14 : 0)
-            .padding(.vertical, isUser ? 11 : 2)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 11)
             .background {
                 if isUser { DCUserBubbleShape().fill(DCTheme.surfaceRaised) }
             }
