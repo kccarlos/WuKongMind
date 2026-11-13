@@ -103,7 +103,7 @@ The same script also keeps a **console buffer** (the newest 200 `console.*` line
 - **Paths** are relative to the workspace root, at most 255 characters, with no absolute paths and no `..`. A path is resolved and standardised, and refused unless it is still inside the root (which stops symlink escapes).
 - **Text only.** `file_read` decodes UTF-8. A binary file returns "binary file, N bytes, <type>".
 - **Size caps.** One file is at most 50 MB and the whole workspace at most 1 GB. Going over returns an error that names the cap.
-- **Writes are atomic** (`Data.write(options: .atomic)`; `append` uses a `FileHandle` and then `synchronize()`), so a kill mid-task never leaves a half-written file.
+- **Writes are atomic.** `overwrite` uses `Data.write(options: .atomic)`. `append` reads the current file, adds the new text, and writes the whole result to a temporary file that atomically replaces the old one, so it is atomic too; one serial queue per workspace orders writes. A kill mid-task leaves each file either as it was or with the write complete, never half-written. Appends cost a copy of the file, which the 50 MB cap keeps bounded.
 - **No delete tool.** The user deletes files in the Files app. Requirements and the roadmap list none.
 - **Code:** `AgentWorkspace` (new, `AgentWorkspace.swift`) holds every rule above; `ToolRegistry+Workspace.swift` holds the tools.
 
@@ -117,7 +117,7 @@ The same script also keeps a **console buffer** (the newest 200 `console.*` line
 
   `ToolDispatchResult` keeps `wasTruncated`/`totalCharacterCount` and gains `savedPath`. If the workspace is unavailable (full, or the write fails), it falls back to today's truncation marker.
 - **`save_to`.** `read_page`, `run_js` and `http_request` take an optional `save_to`, which writes the full result straight to a workspace file and returns only the path, the size and the preview. That is the direct way from tool to file. It costs the model no output tokens, so it doesn't need `file_write`.
-- **Isolated-world file helper.** Code run by `run_js` in the isolated world (its default) gets `wukong.files.write(path, text)` and `wukong.files.append(path, text)`. They go through the existing `wukongAgent` reply handler (`AgentBridge.replyRouter`) to `AgentWorkspace`, with the same rules and caps. The helper is defined inside each `run_js` call's wrapper and sends a per-call token that the router checks, so saved userscripts (which share the isolated world) and the page world can't write files. One `run_js` with `timeout: 120` (its maximum; the default is 10 s) can fetch pages 1 to 25 of a thread (same-origin `fetch` with the page's cookies) and save each one, all in one step. In-page fetches don't go through the forum request pacing.
+- **Isolated-world file helper.** Code run by `run_js` in the isolated world (its default) gets `wukong.files.write(path, text)` and `wukong.files.append(path, text)`. They go through the existing `wukongAgent` reply handler (`AgentBridge.replyRouter`) to `AgentWorkspace`, with the same rules and caps. The helper is defined inside each `run_js` call's wrapper and sends a per-call token that the router checks, so saved userscripts (which share the isolated world) and the page world can't write files. The same wrapper also gets `wukong.fetch(url)`, which returns the body text through the native `AgentHTTPClient` with the site's cookies (as `http_request` with `send_cookies`) and **with the per-forum request pacing** (`ForumRequestPacing.swift`; requirements §2), unless the Settings switch turns pacing off. One `run_js` with `timeout: 120` (its maximum; the default is 10 s) can then fetch pages 1 to 25 of a thread and save each one, all in one step: at the default "gentle" pace of one request a second per host, 25 pages take about 25 s plus load time. The prompt tells the model to crawl with `wukong.fetch`, not the page's own `fetch`. `run_js` keeps full power, so a raw `fetch` can't be blocked; the prompt rule and the audit log (which records `wukong.fetch` URLs like `http_request`) are what keep crawls paced.
 - **The layout is agreed in the prompt only** (roadmap §7). `BrowserAgentPrompt.system` gains a short "Workspace" section:
   - put a crawl's raw pages in `crawls/<host>/<slug>/page-001.txt`, and so on;
   - in the same script, also write the extracted posts compactly (number, author, plain body) to `thread.md` beside them, and summarise from that file, not the raw pages;
@@ -126,7 +126,7 @@ The same script also keeps a **console buffer** (the newest 200 `console.*` line
   - read big files back with `file_read` ranges, then write the summary.
 
   The code knows only `results/`. Everything else is a convention the model follows.
-- **Crawl arithmetic** (default limits). Opening steps: `read_page` (1), one or two `run_js` crawls that save the raw pages and `thread.md` (2), then `script_save` for the reader (1). Reading back: 25 pages × about 20 posts × about 400 characters is about 200,000 characters of `thread.md`, so 10 `file_read` calls of 20,000 characters each. That is about 14 steps, well under 30. A user who raises Result size reads it back in fewer steps. History isn't trimmed today, so those 200,000 characters (about 50,000 tokens) are resent on every later turn. That is acceptable for the check; trimming old tool results is not in M3.
+- **Crawl arithmetic** (default limits). Opening steps: `read_page` (1), one or two `run_js` crawls that fetch with `wukong.fetch` and save the raw pages and `thread.md` (2), then `script_save` for the reader (1). Reading back: 25 pages × about 20 posts × about 400 characters is about 200,000 characters of `thread.md`, so 10 `file_read` calls of 20,000 characters each. That is about 14 steps, well under 30. A user who raises Result size reads it back in fewer steps. History isn't trimmed today, so those 200,000 characters (about 50,000 tokens) are resent on every later turn. That is acceptable for the check; trimming old tool results is not in M3.
 - **Kill mid-task.** Every file write is atomic and done before the tool returns, so whatever was written stays. The conversation itself stays in memory, as today. After a relaunch the task is in the audit log and can be exported from there (see [Audit log](#audit-log)).
 
 ## Confirm before writes
@@ -172,8 +172,13 @@ Task export needs more than the audit log has: every model request and response 
   - `request`: turn number, the history length at that turn (the full request is `system` + `tools` + the first N history turns), and a hash of the system prompt and tool list. Each new system prompt or tool list is written once.
   - `raw_request` and `raw_response`: the provider's HTTP bodies, verbatim (see [Developer mode](#developer-mode-part-1)).
   - `response`: the parsed `AgentModelTurnResponse` (text, tool calls, stop reason, tokens), with the model and provider.
-  - `tool_result`: the call ID, name, arguments, the output before wrapping (`ToolDispatchResult.output`, already redacted and truncated), images, error flag, saved path and duration. The wrapped `modelContent` is not stored: replay rebuilds it through `makeResult`.
-- **Cookies are scrubbed when each line is written**, not at export. The store keeps the set of hosts the task touched (page loads, `navigate`, `http_request`, `cookies_get`) and, before writing a line, reads those hosts' current cookie values from `WKHTTPCookieStore` and replaces each value of 8 or more characters in the line's decoded strings with `[cookie]`, plus its JSON-escaped form (`/` as `\/`) inside raw bodies. Cookies that rotate later were scrubbed while they were live, so an export after a relaunch is still clean. `cookies_get` values become `"[cookie]"`, and `Cookie` and `Set-Cookie` headers are dropped. The live conversation is not changed; only the record is.
+  - `tool_result`: the call ID, name, arguments, the output before wrapping (`ToolDispatchResult.output`: redacted, and already truncated or replaced by the saved-file notice and preview), together with the dispatch metadata (`wasTruncated`, `totalCharacterCount`, `savedPath`, `resultSummary`), images, error flag and duration. The wrapped `modelContent` is not stored, since `UntrustedWebContent.wrap` rebuilds it exactly. The saved file itself isn't needed for replay: whatever the model later read from it is recorded as `file_read` results.
+- **Cookies are scrubbed when each line is written**, not at export. The store keeps the set of hosts the task touched (page loads, `navigate`, `http_request`, `wukong.fetch`, `cookies_get`) and an in-memory set of every cookie (name and value) seen for those hosts during the task: it reads `WKHTTPCookieStore` when a host is first touched and again before each line is written, and never forgets a value, so a cookie that rotates mid-task is scrubbed in both its old and new form. Before a line is written:
+  - structured places are cleared whatever the value's length: `cookies_get` values become `"[cookie]"`, `Cookie` and `Set-Cookie` headers are dropped, and every `name=value` pair whose name is a known cookie name (as in `document.cookie` output) becomes `name=[cookie]`;
+  - every known value of 8 or more characters is replaced anywhere in the line's decoded strings, and in raw bodies in both its plain and JSON-escaped forms;
+  - a known value under 8 characters is replaced only in those structured places. A bare 1 to 7 character string elsewhere ("1", "en", "dark") can't be told apart from ordinary text, and replacing it would corrupt the record.
+
+  If the cookie store can't be read when a line is written, the line is marked `"cookies_scrubbed": false`. The live conversation is not changed; only the record is.
 - **Retention:** the newest 50 tasks or 200 MB. Older records are deleted at launch. The audit log outlives them, so an old step keeps its summary and loses only its export.
 - **Codable gaps:** `AgentModelTurnResponse` and `AgentToolDefinition` are not Codable today, while `AgentModelTurn`, `AgentModelToolCall` and `AgentModelToolResult` are. Task 6 makes both Codable. `AgentToolDefinition` encodes as name, description and `inputSchema`.
 - **Code:** `TaskRecordStore` (new, `TaskRecord.swift`).
@@ -213,18 +218,19 @@ It never stores request headers, so `x-api-key`, `x-goog-api-key` and `Authoriza
   - `history` (the full `[AgentModelTurn]` transcript);
   - `turns[]`: each turn's request reference (system hash, tool set hash, history length), `raw_request`, `raw_response`, the parsed `response`, and that turn's `tool_results` (with images as base64 JPEG).
 - **"Every turn's full request"** (roadmap §8) is kept by reference: system + tools + the first N turns of `history` rebuild the exact request, and `makeToolRequest` turns that back into the provider body. The raw bodies are kept as well while the file stays under 25 MB. Past that, the raw request bodies of the middle turns are dropped (first and last kept) and listed in `omitted_raw_requests`; the responses are always kept. Repeating every full body would grow with the square of the steps.
-- **Prompt before export** (roadmap §8): an alert. Title "Export this task?". Message: "The file includes the pages and results the Agent read. API keys and cookies are removed as far as the app can tell." Buttons: **Export** and **Cancel**.
+- **Prompt before export** (roadmap §8): an alert. Title "Export this task?". Message: "The file includes the pages and results the Agent read. API keys and cookies are removed." Buttons: **Export** and **Cancel**.
 - **No API keys:**
   - keys are never captured (see the raw capture above);
   - the exporter also runs `redactSecrets` over the whole file with every configured key;
   - a unit test checks that no key string survives.
-- **No cookies.** Cookies can enter through `cookies_get`, through `Cookie` headers the model wrote in `http_request`, and through `document.cookie` read by `run_js`, and then they repeat in every later request. The task record is already scrubbed as each line is written (see [Task records](#task-records)). The exporter runs the same scrub once more with the cookie values current at export time. A limit: a cookie value shorter than 8 characters, or one changed by the page before it was ever stored, can survive. The export alert says cookies are removed "as far as the app can tell".
+- **No cookies.** Cookies can enter through `cookies_get`, through `Cookie` headers the model wrote in `http_request`, and through `document.cookie` read by `run_js`, and then they repeat in every later request. The task record is already scrubbed as each line is written (see [Task records](#task-records)). The exporter runs the same scrub once more with the cookie values current at export time, then checks the result: if any line is marked `"cookies_scrubbed": false`, or any current cookie value for the task's hosts (8 or more characters), or any `name=value` pair of a current cookie, is still in the file, **export is refused** with "This task can't be exported without cookies in it." and the file is not written.
 - **Replay.** `RecordedModelClient` is a private class inside `AgentLoopTests` today. Task 7 moves it to `WukongMindTests/Support/RecordedModelClient.swift` (new). It also adds:
   - `TaskExport.load(_:) -> (responses: [AgentModelTurnResponse], toolResults: [String: AgentModelToolResult], …)` in the app target (`TaskExport.swift`), so the app and the tests decode with the same code;
-  - `ReplayToolRegistry` (test support). It registers every tool named in the file with that tool's recorded definition. Because `AgentTool.execute` gets only the arguments, each tool replays its recorded results in recorded order, and fails if the arguments differ from the recorded call. It returns the pre-wrap output, so `makeResult` wraps it exactly once, as it did live. The replay runs with a temporary workspace and the recorded task ID, so saved-result paths come out the same.
+  - a small seam: `AgentLoop` takes a `ToolDispatching` protocol (new: `definitions` and `dispatch(toolName:arguments:)`), which `ToolRegistry` adopts unchanged;
+  - `ReplayToolDispatcher` (test support), which adopts it. It returns the recorded definitions, and for each call returns the recorded dispatch result in recorded order per tool, failing if the name or arguments differ. It rebuilds `modelContent` with `UntrustedWebContent.wrap` and doesn't run `makeResult`, so truncation, saved paths, sizes and previews come back exactly as recorded, with no second truncation.
 
   Tool results replay from the record and don't run live, because the page isn't there. Redacted placeholders don't matter, because the model's replies are recorded too. A replay test feeds the file to `AgentLoop` and asserts:
-  - the history the loop builds equals the recorded `history` turn by turn (this checks wrapping, truncation, saving and the prompt code, which the scripted replies don't fix);
+  - the history the loop builds equals the recorded `history` turn by turn (this checks the loop, the wrapping and how results enter history, which the scripted replies don't fix; truncation and saving have their own unit tests in task 1);
   - the tool-call sequence and the final text and step count match;
   - the file holds no configured key and no `[cookie]`-replaced value.
 
@@ -256,7 +262,7 @@ From next-phase §7 (marked "added") and requirements §9 M3, which still holds:
 
 1. **Thread crawl.** On a non-Discourse forum thread of 20 or more pages, say "read the whole thread and summarize it". The raw pages land in the workspace (visible in Files), and the summary covers every page.
    - Check: every page file exists, and the summary cites something from each page range.
-   - Expected path: `read_page`, then one or two `run_js` calls that fetch and save pages with `wukong.files`, then `file_read` ranges and the summary. That stays well under 30 steps.
+   - Expected path: `read_page`, then one or two `run_js` calls that fetch pages with the paced `wukong.fetch` and save them with `wukong.files`, then `file_read` ranges and the summary. That stays well under 30 steps.
    - The local check uses a fixture forum with 25 pages served by the existing UI-test fixture server (`WukongMindUITests/FixtureSpaForumServer.swift`). The live check uses a real forum on the device.
 2. **Files survive a kill.** Kill the app mid-crawl and reopen it: the files written before the kill are there and whole, and the task shows in the audit log.
 3. **Export replays.** Export that task (or a shorter recorded one) and add it as a fixture: a unit test replays it through `RecordedModelClient` and passes. The file holds no API key or cookie value.
@@ -286,6 +292,7 @@ Seven implementation tasks and one acceptance task. Sizes count changed lines, t
 - **Done when:**
   - `file_read` (ranges), `file_write` (overwrite and append) and `file_list` work under the path rules and caps;
   - `..`, absolute paths and symlink escapes are refused (tests);
+  - an `append` interrupted before its atomic replace leaves the old file whole (test);
   - an over-limit result is saved under `results/`, and the model gets the path, a preview and the size (test);
   - `save_to` works on `read_page` and `run_js` through one helper that task 5 reuses for `http_request`;
   - `wukong.files.write` from isolated-world `run_js` writes a file, while a userscript and the page world can't (an `AgentBridgeTests` fixture);
@@ -325,12 +332,13 @@ Seven implementation tasks and one acceptance task. Sizes count changed lines, t
 
 ### 5. M3 5: `http_request`, `cookies_get` and confirm before writes
 - **Read:** design-m3.md: `http_request`, `cookies_get`, Confirm before writes.
-- **Scope:** `AgentNetworkTools.swift` (new: `AgentHTTPClient`, building cookie headers, pacing); `ToolRegistry+Network.swift`; `AgentConfirmationGate.swift` (new); `ForumBrowser.swift` (only the form-submit hold in `decidePolicyFor`); `SummaryPanel.swift` (rendering the confirmation card); `SettingsAssistantPages.swift` (removing the Safety seal and footer). Tests: `AgentNetworkToolsTests.swift` (new, with a `URLProtocol` stub).
+- **Scope:** `AgentNetworkTools.swift` (new: `AgentHTTPClient`, building cookie headers, pacing); `AgentBridge.swift` (only the paced `wukong.fetch` route, beside task 1's `wukong.files`); `ToolRegistry+Network.swift`; `AgentConfirmationGate.swift` (new); `ForumBrowser.swift` (only the form-submit hold in `decidePolicyFor`); `SummaryPanel.swift` (rendering the confirmation card); `SettingsAssistantPages.swift` (removing the Safety seal and footer). Tests: `AgentNetworkToolsTests.swift` (new, with a `URLProtocol` stub).
 - **Size:** about 550. **Depends on:** 1 (`save_to` and saving).
 - **Done when:**
   - methods, headers, body, timeout, redirects, the 20 MB cap and binary bodies work;
   - `send_cookies` attaches httpOnly cookies, and `Set-Cookie` is neither returned nor stored;
   - `cookies_get` matches parent domains;
+  - `wukong.fetch` from `run_js` waits for the per-forum pace between requests to one forum host and skips it when pacing is off (test with a fake clock);
   - with the switch on, both tools and a fixture form submit wait for Allow, and Don't allow returns the declined error (tests);
   - a fixture test records whether a scripted `form.submit()` is caught, and the result is noted in the PR.
 
@@ -342,19 +350,19 @@ Seven implementation tasks and one acceptance task. Sizes count changed lines, t
   - every tool call writes one line with the fields the Audit log section lists, and `http_request` lines hold the full URL;
   - the retention rules hold (a test with a fake clock);
   - the log and task records survive reopening the store (test);
-  - a record line holds no seeded cookie value (test);
+  - a record line holds no seeded cookie value, including one that rotated mid-task and a short value inside `document.cookie` output (tests);
   - the page groups by day and then by task;
   - a record file reads back into the same turns.
 
 ### 7. M3 7: Developer mode part 1 and task export
 - **Read:** design-m3.md: Developer mode part 1, Task export, UI touch points.
-- **Scope:** `AIService.swift` (`AgentWireRecorder`); `TaskExport.swift` (new: build, redact, load); `BrowserAgent.swift` (per-turn model and tokens on the rows); `AgentPanel.swift` (the ToolRow's developer mode: code name, duration, the Model step section, Details); `SummaryPanel.swift` (⋯ › Export task and the alert); `ScriptViews.swift` (`PageCapabilitiesView`, the This page popover: the Console and Network rows); `Models.swift` (folding `developerMode` in); `SettingsAssistantPages.swift` (the switch's text). Tests: `WukongMindTests/Support/RecordedModelClient.swift` (moved from `AgentLoopTests`), `ReplayToolRegistry`, `TaskExportTests.swift` (new), `Fixtures/TaskExports/` (one recorded task).
+- **Scope:** `AIService.swift` (`AgentWireRecorder`); `TaskExport.swift` (new: build, redact, check, load); `BrowserAgent.swift` also gets the `ToolDispatching` seam; `BrowserAgent.swift` (per-turn model and tokens on the rows); `AgentPanel.swift` (the ToolRow's developer mode: code name, duration, the Model step section, Details); `SummaryPanel.swift` (⋯ › Export task and the alert); `ScriptViews.swift` (`PageCapabilitiesView`, the This page popover: the Console and Network rows); `Models.swift` (folding `developerMode` in); `SettingsAssistantPages.swift` (the switch's text). Tests: `WukongMindTests/Support/RecordedModelClient.swift` (moved from `AgentLoopTests`), `ReplayToolDispatcher`, `TaskExportTests.swift` (new), `Fixtures/TaskExports/` (one recorded task).
 - **Size:** about 600. **Depends on:** 6 (records) and 2 (the console and network buffers).
 - **Done when:**
   - with the switch off, no developer entry shows (a UI test);
   - with it on, the raw request and response, and the turn's model and tokens, show for a step;
   - the export alert appears, and the share sheet gets one JSON file;
-  - the file holds no API key, including Gemini's URL key (test), and no seeded cookie value (test);
+  - the file holds no API key, including Gemini's URL key (test), and no seeded cookie value (test); a record with an unscrubbed line is refused (test);
   - the fixture replays through `RecordedModelClient`: the rebuilt history equals the recorded one, and the tool sequence and final text match.
 
 ### 8. M3 acceptance and 1.2.0
