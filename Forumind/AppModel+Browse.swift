@@ -309,16 +309,27 @@ extension AppModel {
     func applyBrowserAgentDebugArguments() {
         let demoMode = AssistantDebug.value("-dc-browser-agent-demo")
         let livePrompt = AssistantDebug.value("-dc-browser-agent-live-prompt")
-        let wantsFixturePage = AssistantDebug.has("-dc-browser-agent-fixture-page")
+        let hasLiveKey = AssistantDebug.has("-dc-browser-agent-live-key")
+        let hasCustomOpenURL = AssistantDebug.value("-dc-open") != nil
+        let wantsBrowserAgentDebug = AssistantDebug.has("-dc-browser-agent-fixture-page")
             || demoMode != nil
             || livePrompt != nil
+            || hasLiveKey
 
-        guard wantsFixturePage else { return }
+        guard wantsBrowserAgentDebug else { return }
 
         settings.hasCompletedOnboarding = true
         settings.acceptedTermsVersion = ModerationTerms.currentVersion
         needsProviderSetup = nil
-        loadBrowserAgentFixturePage()
+        let usesCustomOpenPage = hasCustomOpenURL
+            && !AssistantDebug.has("-dc-browser-agent-fixture-page")
+            && (livePrompt != nil || hasLiveKey || demoMode == "spa-op-only")
+        if usesCustomOpenPage {
+            browser.ignoresNavigationFailures = true
+            browser.hideForumsHome()
+        } else {
+            loadBrowserAgentFixturePage()
+        }
         assistantMode = .browserAgent
         panelRoute = .topic
 
@@ -342,6 +353,7 @@ extension AppModel {
                     browserAgent.configureDebugModelClient(BrowserAgentDemoClient(mode: parsed))
                 }
             }
+            guard demoMode != "spa-op-only" else { return }
             Task { @MainActor [weak self] in
                 for delay in [500, 1200] {
                     try? await Task.sleep(for: .milliseconds(delay))
@@ -362,12 +374,12 @@ extension AppModel {
             return
         }
 
-        if let livePrompt {
+        if livePrompt != nil || hasLiveKey {
             let env = ProcessInfo.processInfo.environment
             let apiKey = (env["ANTHROPIC_API_KEY"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
             let modelID = AssistantDebug.value("-dc-browser-agent-live-model") ?? "claude-haiku-5-5"
             settings.aiConsent[AIProvider.anthropic.rawValue] = .allowed(Date())
-            settings.browserAgentMaxSteps = min(settings.browserAgentMaxSteps, 8)
+            settings.browserAgentMaxSteps = min(settings.browserAgentMaxSteps, 10)
             var config = settings.configuration(for: .anthropic)
             config.apiKey = apiKey
             config.model = modelID
@@ -375,6 +387,9 @@ extension AppModel {
             settings.setModel(ModelSelection(provider: .anthropic, model: modelID), for: .assistant)
             settings.setModel(ModelSelection(provider: .anthropic, model: modelID), for: .agent)
             settings.setModel(ModelSelection(provider: .anthropic, model: modelID), for: .browserAgent)
+        }
+
+        if let livePrompt {
             let resultFile = AssistantDebug.value("-dc-browser-agent-result-file")
 
             Task { @MainActor [weak self] in

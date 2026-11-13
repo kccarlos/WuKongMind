@@ -881,6 +881,23 @@ final class PhysicalDeviceSmokeTests: DCUITestCase {
         app.terminate()
     }
 
+    func testLiveM2PersistToggleAndSpaRoute() throws {
+        let apiKey = (ProcessInfo.processInfo.environment["ANTHROPIC_API_KEY"] ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !apiKey.isEmpty else {
+            throw XCTSkip("Set TEST_RUNNER_ANTHROPIC_API_KEY to run the live M2 browser agent acceptance check.")
+        }
+
+        try runM2SpaForumAcceptanceFlow(
+            launchExtra: [
+                "-dc-browser-agent-live-key",
+                "-dc-browser-agent-live-model", "claude-haiku-5-5"
+            ],
+            environment: ["ANTHROPIC_API_KEY": apiKey],
+            screenshotPrefix: "m2"
+        )
+    }
+
     func testPhoneKeepsTheAIDrawerInLandscape() throws {
         try skipUnlessPhone("The AI drawer is an iPhone behavior.")
         let app = launch(["-dc-open", Self.forumLatest], orientation: .landscapeRight)

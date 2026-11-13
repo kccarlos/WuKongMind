@@ -99,6 +99,12 @@ final class ScriptManagerUITests: DCUITestCase {
         )
     }
 
+    func testSpaForumPersistReloadReopenRouteAndManagerToggleOff() throws {
+        try runM2SpaForumAcceptanceFlow(
+            launchExtra: ["-dc-browser-agent-demo", "spa-op-only"]
+        )
+    }
+
     func testCaptureM2ProofScreenshots() throws {
         guard ProcessInfo.processInfo.environment["DC_SCREENSHOT_DIR"] != nil else {
             throw XCTSkip("Set TEST_RUNNER_DC_SCREENSHOT_DIR to capture M2 proof screenshots.")
