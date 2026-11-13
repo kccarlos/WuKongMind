@@ -42,6 +42,15 @@ enum DCToolLabel {
         case "script_read": running ? String(localized: "Reading script") : String(localized: "Read script")
         case "script_update": running ? String(localized: "Updating script") : String(localized: "Updated script")
         case "script_delete": running ? String(localized: "Deleting script") : String(localized: "Deleted script")
+        case "screenshot": running ? String(localized: "Taking screenshot") : String(localized: "Took screenshot")
+        case "network_log": running ? String(localized: "Reading network log") : String(localized: "Read network log")
+        case "navigate": running ? String(localized: "Opening page") : String(localized: "Opened page")
+        case "reload_page": running ? String(localized: "Reloading page") : String(localized: "Reloaded page")
+        case "http_request": running ? String(localized: "Sending request") : String(localized: "Sent request")
+        case "cookies_get": running ? String(localized: "Reading cookies") : String(localized: "Read cookies")
+        case "file_read": running ? String(localized: "Reading file") : String(localized: "Read file")
+        case "file_write": running ? String(localized: "Writing file") : String(localized: "Wrote file")
+        case "file_list": running ? String(localized: "Listing files") : String(localized: "Listed files")
         default: running ? String(localized: "Using a tool") : String(localized: "Used a tool")
         }
     }

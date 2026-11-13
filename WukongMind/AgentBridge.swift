@@ -130,6 +130,11 @@ final class AgentBridge: NSObject, AgentPageDriving {
     /// userscript `GM_*` calls). Built-in `"ping"` and `"pageInfo"` actions are
     /// always handled even when `replyRouter` is `nil`.
     var replyRouter: (([String: Any]) async throws -> Any?)?
+    /// The Agent's workspace, reached by `wukong.files` in isolated `run_js` code.
+    var workspace: AgentWorkspace?
+    /// Tokens of the `run_js` calls running now; the `files` route accepts only
+    /// these, so saved userscripts (same world) and the page world can't use it.
+    private var activeCallTokens: Set<String> = []
 
     private let replyMessageHandler = AgentReplyMessageHandler()
     private var nextGeneratedSheetIndex = 0
@@ -190,13 +195,18 @@ final class AgentBridge: NSObject, AgentPageDriving {
     ) async throws -> JSExecutionResult {
         let effectiveTimeout = timeout > 0 ? timeout : Self.defaultJSTimeout
         let world = contentWorld(for: environment)
-        let wrapped = Self.wrappedExecutionScript(userBody: code)
+        // Isolated calls get the workspace helpers and a token valid only until
+        // this call returns or times out.
+        let token: String? = (environment == .isolated && workspace != nil) ? UUID().uuidString : nil
+        let wrapped = Self.wrappedExecutionScript(userBody: code, withHelpers: token != nil)
+        if let token { activeCallTokens.insert(token) }
+        defer { if let token { activeCallTokens.remove(token) } }
 
         let raw: Any?
         do {
             raw = try await callAsyncJS(
                 script: wrapped,
-                arguments: [:],
+                arguments: token.map { ["__wukongCallToken": $0] } ?? [:],
                 world: world,
                 timeout: effectiveTimeout
             )
@@ -406,6 +416,8 @@ final class AgentBridge: NSObject, AgentPageDriving {
         case "pageInfo":
             let meta = await currentPageMetadata()
             return (["url": meta.url, "title": meta.title], nil)
+        case "files":
+            return await handleFilesMessage(payload)
         default:
             if let replyRouter {
                 do {
@@ -416,6 +428,29 @@ final class AgentBridge: NSObject, AgentPageDriving {
                 }
             }
             return (nil, "Unsupported isolated bridge action '\(action)'.")
+        }
+    }
+
+    /// `wukong.files.write` / `append` from an isolated `run_js` call.
+    private func handleFilesMessage(_ payload: [String: Any]) async -> (Any?, String?) {
+        guard let token = payload["token"] as? String, activeCallTokens.contains(token) else {
+            return (nil, "wukong.files is only available inside the Agent's run_js.")
+        }
+        guard let workspace else {
+            return (nil, "The workspace is unavailable.")
+        }
+        let op = (payload["op"] as? String) ?? ""
+        guard op == "write" || op == "append" else {
+            return (nil, "Unsupported wukong.files operation '\(op)'.")
+        }
+        guard let path = payload["path"] as? String, let text = payload["text"] as? String else {
+            return (nil, "wukong.files.\(op) needs a path and text.")
+        }
+        do {
+            let written = try await workspace.write(path: path, content: text, append: op == "append")
+            return (["path": written.path, "bytes_written": written.bytesWritten, "size": written.size], nil)
+        } catch {
+            return (nil, error.localizedDescription)
         }
     }
 
@@ -559,8 +594,22 @@ private final class AgentReplyMessageHandler: NSObject, WKScriptMessageHandlerWi
 // MARK: - Injected JavaScript Helpers
 
 extension AgentBridge {
-    fileprivate static func wrappedExecutionScript(userBody: String) -> String {
+    /// Defined inside each isolated `run_js` call only. `__wukongCallToken` is a
+    /// `callAsyncJavaScript` argument, so it never exists outside that call.
+    fileprivate static let helpersScript = """
+        const wukong = (() => {
+          const handler = window.webkit.messageHandlers.wukongAgent;
+          const token = __wukongCallToken;
+          const files = (op) => (path, text) => handler.postMessage({
+            action: "files", op, token, path: String(path), text: String(text)
+          });
+          return Object.freeze({ files: Object.freeze({ write: files("write"), append: files("append") }) });
+        })();
         """
+
+    fileprivate static func wrappedExecutionScript(userBody: String, withHelpers: Bool = false) -> String {
+        """
+        \(withHelpers ? helpersScript : "")
         const __wukongLogs = [];
         const __wukongFormat = (value) => {
           if (typeof value === "string") return value;

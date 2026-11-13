@@ -423,22 +423,29 @@ final class AppModel: ObservableObject {
             guard let self else {
                 return ToolRegistry.m1(bridge: bridge, truncationLimit: limit, redactedSecrets: secrets)
             }
-            return ToolRegistry.m2(
+            return ToolRegistry.m3(context: AgentToolContext(
                 bridge: bridge,
+                workspace: self.agentWorkspace,
                 scriptStore: self.scriptStore,
                 liveApplier: self.scriptWebController,
                 currentUserPrompt: { [weak self] in
                     self?.browserAgent.lastUserPrompt
                 },
-                truncationLimit: limit,
-                redactedSecrets: secrets
-            )
+                settings: AgentToolSettings(
+                    truncationLimit: limit,
+                    redactedSecrets: secrets,
+                    supportsImageInput: self.settings.browserAgentModel?.supportsImageInput ?? false,
+                    confirmBeforeWrites: self.settings.agentConfirmBeforeWrites
+                )
+            ))
         },
         auditLog: auditLog,
         taskRecords: taskRecordStore
     )
     /// Where podcast audio is cached (`Caches/Podcasts`; tests pass their own).
     let podcastDirectory: URL
+    /// The browser Agent's files: `Documents/`, shown in the Files app (tests pass their own).
+    let agentWorkspace: AgentWorkspace
     /// Read topics and summaries in Spotlight (AppModel+System.swift).
     let spotlight: SpotlightIndexer
     /// Siri suggestions for the topics the user reads.
@@ -474,17 +481,19 @@ final class AppModel: ObservableObject {
         cloudSync: CloudSyncController? = nil,
         backgroundScheduler: BackgroundTaskScheduling = BGTaskScheduler.shared,
         podcastDirectory: URL? = nil,
+        workspaceDirectory: URL? = nil,
         spotlightIndex: SpotlightIndexing? = nil,
         topicActivityDonor: TopicActivityDonating? = nil,
         backgroundGrace: BackgroundGracing? = nil,
         scriptStore: ScriptStore? = nil
     ) {
         self.store = store
+        let workspaceRoot = workspaceDirectory ?? AgentWorkspace.defaultRoot
+        agentWorkspace = AgentWorkspace(root: workspaceRoot)
         let auditLog = AuditLog(directory: store.directoryURL.appendingPathComponent("AuditLog", isDirectory: true))
         let taskRecordStore = TaskRecordStore(
             directory: store.directoryURL.appendingPathComponent("Tasks", isDirectory: true),
-            resultsRoot: FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?
-                .appendingPathComponent("results", isDirectory: true),
+            resultsRoot: workspaceRoot.appendingPathComponent(AgentWorkspace.resultsFolder, isDirectory: true),
             cookieSource: WebKitTaskCookieSource()
         )
         self.auditLog = auditLog
@@ -580,6 +589,7 @@ final class AppModel: ObservableObject {
             )
         }
         self.scriptStore = resolvedScriptStore
+        resolvedBrowser.agentBridge.workspace = agentWorkspace
         self.scriptWebController = ScriptWebController(
             webView: resolvedBrowser.webView,
             store: resolvedScriptStore,
