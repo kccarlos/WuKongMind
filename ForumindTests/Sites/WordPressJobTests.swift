@@ -43,7 +43,6 @@ final class WordPressJobTests: XCTestCase {
         )
         app.usesDirectForumRequests = true
         app.browser.stopLoading()
-        app.allowAllAIProviders()
         var provider = app.settings.configuration(for: .ollama)
         provider.apiKey = ""
         app.setConfiguration(provider, for: .ollama)

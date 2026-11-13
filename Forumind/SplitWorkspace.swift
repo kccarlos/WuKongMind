@@ -66,18 +66,12 @@ struct SplitMoreMenu: View {
                     Label("Settings", systemImage: "gearshape")
                 }
             }
-            if let topic = browser.pageContext.topic, !browser.showsForumsHome {
+            if browser.pageContext.topic != nil, !browser.showsForumsHome, browser.canTranslatePostsOnScreen {
                 Section {
-                    if browser.canTranslatePostsOnScreen {
-                        Button(action: actions.translatePosts) {
-                            Label("Translate Posts on Screen", systemImage: "translate")
-                        }
-                        .accessibilityIdentifier("menuTranslatePosts")
+                    Button(action: actions.translatePosts) {
+                        Label("Translate Posts on Screen", systemImage: "translate")
                     }
-                    Button { actions.report(topic) } label: {
-                        Label("Report or block…", systemImage: "flag")
-                    }
-                    .accessibilityIdentifier("menuReportOrBlock")
+                    .accessibilityIdentifier("menuTranslatePosts")
                 }
             }
         } label: {

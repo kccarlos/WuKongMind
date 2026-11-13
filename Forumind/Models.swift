@@ -87,16 +87,11 @@ struct AppSettings: Codable, Equatable {
     /// default. Turning it off keeps a local copy and leaves the synced item
     /// in place for the user's other devices.
     var syncAPIKeys = true
+    /// Whether per-forum request spacing and concurrency limits are active.
+    /// On by default; turning it off sends forum requests immediately.
+    var forumRateLimitingEnabled = true
     /// How quickly requests go to one forum (see ForumRequestPacing.swift).
     var forumRequestPace: ForumRequestPace = .default
-    /// Users whose posts are hidden, per forum (see Moderation.swift).
-    var blockedUsers: [BlockedUser] = []
-    /// Posts hidden per forum topic (see Moderation.swift).
-    var blockedPosts: [BlockedPost] = []
-    /// Words and phrases whose posts are hidden on every forum.
-    var filteredWords: [String] = []
-    /// The Terms of Use version accepted on this device (0: none yet).
-    var acceptedTermsVersion = 0
     /// Daily digest (see DailyDigest.swift). Off by default: making it
     /// spends the user's AI credits. On/off and the notification are per
     /// device (each device spends and schedules on its own); what goes in
@@ -106,17 +101,13 @@ struct AppSettings: Codable, Equatable {
     var dailyDigestIncludesWatched = true
     var dailyDigestIncludesTrending = true
     var dailyDigestMaxCards = DigestLimits.defaultCards
-    /// Live voice (Forumind/Voice). Off until the user turns it on on this
-    /// device; the consent per provider is this device's too (App Review
-    /// 5.1.2: asked before the first session sends audio).
+    /// Live voice (Forumind/Voice). Off until turned on on this device.
     var voiceEnabled = false
-    var voiceConsent: [String: Date] = [:]
     var voice = VoiceSettings()
     /// The daily podcast (Forumind/Podcast): made right after the digest
     /// finishes on open. Off by default (it spends AI and TTS credits); the
-    /// switch and the consent to send the script to Google are per device.
+    /// switch is per device.
     var podcastDailyEnabled = false
-    var podcastConsent: [String: Date] = [:]
     var podcast = PodcastSettings()
     /// The language summaries, digest cards and posts are translated into
     /// (Translation/ReadingLanguage.swift), and the podcast's script
@@ -128,13 +119,8 @@ struct AppSettings: Codable, Equatable {
     /// Topics the user reads are offered to Siri suggestions
     /// (`NSUserActivity`). On by default; per device.
     var donatesTopicActivity = true
-    /// AI data consent per provider (`AIDataConsent.swift`), keyed by the
-    /// provider's raw value. Syncs, one unit per provider.
-    var aiConsent: [String: AIConsentDecision] = [:]
 
     init() {}
-
-    var hasAcceptedCurrentTerms: Bool { acceptedTermsVersion >= ModerationTerms.currentVersion }
 
     private enum CodingKeys: String, CodingKey {
         case assistantModel
@@ -159,26 +145,20 @@ struct AppSettings: Codable, Equatable {
         case blockTrackers
         case adBlockAllowedSites
         case syncAPIKeys
+        case forumRateLimitingEnabled
         case forumRequestPace
-        case blockedUsers
-        case blockedPosts
-        case filteredWords
-        case acceptedTermsVersion
         case dailyDigestEnabled
         case dailyDigestNotifies
         case dailyDigestIncludesWatched
         case dailyDigestIncludesTrending
         case dailyDigestMaxCards
         case voiceEnabled
-        case voiceConsent
         case voice
         case podcastDailyEnabled
-        case podcastConsent
         case podcast
         case readingLanguage
         case spotlightEnabled
         case donatesTopicActivity
-        case aiConsent
     }
 
     // A missing key takes its default; an unreadable value fails the decode
@@ -249,11 +229,8 @@ struct AppSettings: Codable, Equatable {
         adBlockAllowedSites = (try container.decodeIfPresent([String].self, forKey: .adBlockAllowedSites) ?? [])
             .compactMap(ContentBlockingRules.normalizedHost)
         syncAPIKeys = try container.decodeIfPresent(Bool.self, forKey: .syncAPIKeys) ?? true
+        forumRateLimitingEnabled = try container.decodeIfPresent(Bool.self, forKey: .forumRateLimitingEnabled) ?? true
         forumRequestPace = try container.decodeIfPresent(ForumRequestPace.self, forKey: .forumRequestPace) ?? .default
-        blockedUsers = try container.decodeIfPresent([BlockedUser].self, forKey: .blockedUsers) ?? []
-        blockedPosts = try container.decodeIfPresent([BlockedPost].self, forKey: .blockedPosts) ?? []
-        filteredWords = try container.decodeIfPresent([String].self, forKey: .filteredWords) ?? []
-        acceptedTermsVersion = try container.decodeIfPresent(Int.self, forKey: .acceptedTermsVersion) ?? 0
         dailyDigestEnabled = try container.decodeIfPresent(Bool.self, forKey: .dailyDigestEnabled) ?? false
         dailyDigestNotifies = try container.decodeIfPresent(Bool.self, forKey: .dailyDigestNotifies) ?? false
         dailyDigestIncludesWatched = try container.decodeIfPresent(Bool.self, forKey: .dailyDigestIncludesWatched) ?? true
@@ -262,15 +239,12 @@ struct AppSettings: Codable, Equatable {
             try container.decodeIfPresent(Int.self, forKey: .dailyDigestMaxCards) ?? DigestLimits.defaultCards
         )
         voiceEnabled = try container.decodeIfPresent(Bool.self, forKey: .voiceEnabled) ?? false
-        voiceConsent = try container.decodeIfPresent([String: Date].self, forKey: .voiceConsent) ?? [:]
         voice = try container.decodeIfPresent(VoiceSettings.self, forKey: .voice) ?? VoiceSettings()
         podcastDailyEnabled = try container.decodeIfPresent(Bool.self, forKey: .podcastDailyEnabled) ?? false
-        podcastConsent = try container.decodeIfPresent([String: Date].self, forKey: .podcastConsent) ?? [:]
         podcast = try container.decodeIfPresent(PodcastSettings.self, forKey: .podcast) ?? PodcastSettings()
         readingLanguage = try container.decodeIfPresent(String.self, forKey: .readingLanguage) ?? ""
         spotlightEnabled = try container.decodeIfPresent(Bool.self, forKey: .spotlightEnabled) ?? true
         donatesTopicActivity = try container.decodeIfPresent(Bool.self, forKey: .donatesTopicActivity) ?? true
-        aiConsent = try container.decodeIfPresent([String: AIConsentDecision].self, forKey: .aiConsent) ?? [:]
     }
 
     func configuration(for provider: AIProvider) -> ProviderConfiguration {
@@ -747,24 +721,6 @@ struct AgentRun: Codable, Identifiable, Equatable {
 
     var isFinished: Bool { result != nil }
 
-    /// Starts the live turn again from scratch (the moderation rules changed
-    /// mid-turn): only the questions stay in the transcript, so nothing read
-    /// under the old rules reaches the planner again. A follow-up restarts as
-    /// that follow-up and keeps the answers already given; the first turn
-    /// also drops its steps and topic reads.
-    mutating func restartTurn() {
-        transcript = transcript.filter(AgentPrompt.isQuestion)
-        if let asked = followUps.last(where: { $0.role == .user })?.createdAt {
-            steps.removeAll { $0.startedAt >= asked }
-        } else {
-            steps = []
-            topicIDs = []
-            answer = ""
-            initialAnswer = ""
-        }
-        error = ""
-    }
-
     init(id: UUID = UUID(), siteURL: String, goal: String, provider: AIProvider, model: String, origin: AgentRunOrigin = .typed) {
         self.id = id
         self.origin = origin
@@ -1060,11 +1016,6 @@ enum AssistantError: LocalizedError {
     case http(Int, String)
     case emptyResponse
     case cancelled
-    /// Forum content can't go to this provider before the person agrees
-    /// (`AIDataConsent.swift`); work the app starts by itself waits.
-    case aiConsentRequired(AIProvider)
-    /// The person chose Don't Allow (or withdrew consent) for this provider.
-    case aiConsentDeclined(AIProvider)
 
     var errorDescription: String? {
         switch self {
@@ -1082,10 +1033,6 @@ enum AssistantError: LocalizedError {
             String(localized: "The AI provider returned an empty response.")
         case .cancelled:
             String(localized: "The operation was cancelled.")
-        case .aiConsentRequired(let provider):
-            String(localized: "Waiting for your OK to send forum content to \(provider.displayName). Start a summary or a question to answer, or allow it in Settings › Data & privacy.", comment: "Error; the placeholder is an AI provider's name. Settings › Data & privacy names the app's own Settings page.")
-        case .aiConsentDeclined(let provider):
-            String(localized: "You chose not to send forum content to \(provider.displayName). To use it, allow it in Settings › Data & privacy.", comment: "Error; the placeholder is an AI provider's name. Settings › Data & privacy names the app's own Settings page.")
         }
     }
 }

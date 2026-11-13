@@ -20,7 +20,7 @@ enum SystemEntryAction: Equatable {
     case openToday
     /// Play today's episode if there is one, else open Today.
     case playToday
-    /// Start voice through its consent gate, or open Settings › Voice.
+    /// Start voice, or open Settings › Voice.
     case startVoice
     /// A topic from Spotlight, a Siri suggestion or Open Topic.
     case openTopic(topicKey: String)

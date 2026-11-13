@@ -24,7 +24,6 @@ final class DrawerHintTests: XCTestCase {
         XCTAssertNil(action(.topic) { $0.summaryRunning = true })
         XCTAssertNil(action(.topic) { $0.mode = .agent })
         XCTAssertEqual(action(.topic) { $0.providerReady = false }, .setUpAI)
-        XCTAssertEqual(action(.topic) { $0.providerReady = false; $0.consentDeclined = true }, .allowAI)
         for state in [PageContext.State.notForum, .maybe, .forumHome, .loading] {
             XCTAssertNil(action(state), "\(state)")
             XCTAssertNil(action(state) { $0.providerReady = false }, "\(state)")
@@ -36,11 +35,11 @@ final class DrawerHintTests: XCTestCase {
         XCTAssertEqual(DrawerHint.Action.summarize.symbol, "sparkles")
         XCTAssertEqual(DrawerHint.Action.checkNew(6).symbol, "arrow.clockwise")
         XCTAssertEqual(DrawerHint.Action.setUpAI.symbol, "key.fill")
-        XCTAssertTrue(DrawerHint.Action.allowAI.needsAttention)
+        XCTAssertTrue(DrawerHint.Action.setUpAI.needsAttention)
     }
 
     /// The row shows only when needed: the first-run tip, new replies, or AI
-    /// to set up or allow. Otherwise none.
+    /// to set up. Otherwise none.
     func testTheRowShowsOnlyWhenNeeded() {
         // A topic without a summary: only as the one-time tip.
         XCTAssertEqual(row(.topic, tip: true), DrawerHint.Row(action: .summarize, isTip: true))
@@ -51,9 +50,8 @@ final class DrawerHintTests: XCTestCase {
         XCTAssertEqual(stale, DrawerHint.Row(action: .checkNew(12), isTip: false))
         XCTAssertEqual(stale?.text, "12 new replies")
         XCTAssertEqual(row(.topic) { $0.hasSummary = true; $0.totalPosts = 15; $0.summaryPostCount = 14 }?.text, "1 new reply")
-        // AI not set up or not allowed.
+        // AI not set up.
         XCTAssertEqual(row(.topic) { $0.providerReady = false }?.text, "Set up AI")
-        XCTAssertEqual(row(.topic) { $0.providerReady = false; $0.consentDeclined = true }?.action, .allowAI)
         // Nothing to say: no row.
         XCTAssertNil(row(.topic, tip: true) { $0.hasSummary = true; $0.totalPosts = 14; $0.summaryPostCount = 14 })
         XCTAssertNil(row(.topic, tip: true) { $0.summaryRunning = true })
@@ -155,8 +153,8 @@ final class DrawerHintTests: XCTestCase {
     }
 
     @MainActor
-    func testTopicChatModePreservesNewRepliesHintAndReportTargets() throws {
-        // 1. DrawerHint and split-panel dot treat `.chat` the same as `.summary` (unified topic view).
+    func testTopicChatModePreservesNewRepliesHint() throws {
+        // DrawerHint and split-panel dot treat `.chat` the same as `.summary` (unified topic view).
         XCTAssertEqual(
             action(.topic) { $0.mode = .chat; $0.hasSummary = true; $0.totalPosts = 20; $0.summaryPostCount = 14 },
             .checkNew(6)
@@ -169,59 +167,6 @@ final class DrawerHintTests: XCTestCase {
         XCTAssertTrue(DrawerHint.showsSplitNewRepliesDot(staleChat, panelShown: false))
         staleChat.mode = .agent
         XCTAssertFalse(DrawerHint.showsSplitNewRepliesDot(staleChat, panelShown: false))
-
-        // 2. Topic `···` report targets cover all present AI outputs regardless of `.summary` vs `.chat`.
-        let site = "https://forum.example.com"
-        let topicA = ForumTopic(siteURL: site, topicID: "10", url: URL(string: "\(site)/t/a/10")!, title: "Chat Only")
-        var chatOnly = TopicSession(siteURL: site, topicID: "10", url: topicA.url, title: topicA.title)
-        chatOnly.history = [
-            ChatMessage(role: .user, content: "What happened?"),
-            ChatMessage(role: .assistant, content: "The AI answered this.")
-        ]
-
-        let topicB = ForumTopic(siteURL: site, topicID: "11", url: URL(string: "\(site)/t/b/11")!, title: "Summary Only")
-        var summaryOnly = TopicSession(siteURL: site, topicID: "11", url: topicB.url, title: topicB.title)
-        summaryOnly.summary = "The AI summarized this."
-
-        let topicC = ForumTopic(siteURL: site, topicID: "12", url: URL(string: "\(site)/t/c/12")!, title: "Both")
-        var both = TopicSession(siteURL: site, topicID: "12", url: topicC.url, title: topicC.title)
-        both.summary = "Summary text."
-        both.history = [ChatMessage(role: .assistant, content: "Answer text.")]
-
-        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-        let store = PersistentStore(fileURL: directory.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore())
-        try store.save(AppSnapshot(sessions: [chatOnly, summaryOnly, both]))
-
-        let app = AppModel(store: store)
-        app.browser.onPageContextChanged = nil
-        let panel = AssistantPanel(app: app, onExpand: { _ in })
-
-        func features(_ targets: [ReportTarget]) -> [AIOutput.Feature] {
-            targets.compactMap { target in
-                if case .aiOutput(let output) = target.kind { return output.feature }
-                return nil
-            }
-        }
-
-        // Topic with chat answer only, while assistantMode == .summary: chat answer must still be reportable.
-        app.select(topic: topicA)
-        app.assistantMode = .summary
-        XCTAssertEqual(features(panel.reportTargets), [.chatAnswer])
-
-        // Topic with summary only, while assistantMode == .chat: summary must still be reportable.
-        app.select(topic: topicB)
-        app.assistantMode = .chat
-        XCTAssertEqual(features(panel.reportTargets), [.summary])
-
-        // Topic with both summary and chat answer: both must be reportable in `.summary` and `.chat`, none in `.agent`.
-        app.select(topic: topicC)
-        app.assistantMode = .summary
-        XCTAssertEqual(features(panel.reportTargets), [.summary, .chatAnswer])
-        app.assistantMode = .chat
-        XCTAssertEqual(features(panel.reportTargets), [.summary, .chatAnswer])
-        app.assistantMode = .agent
-        XCTAssertEqual(features(panel.reportTargets), [])
     }
 
     @MainActor

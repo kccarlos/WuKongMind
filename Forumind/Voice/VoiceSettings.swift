@@ -72,8 +72,7 @@ enum VoiceEyesFree: String, Codable, CaseIterable, Identifiable {
 }
 
 /// Voice preferences (they sync with the other settings). Whether voice is
-/// on, and the consent, are per device (`AppSettings.voiceEnabled`,
-/// `voiceConsent`).
+/// on is per device (`AppSettings.voiceEnabled`).
 struct VoiceSettings: Codable, Equatable {
     var provider: VoiceProvider = .aiStudio
     /// A prebuilt Gemini voice (`VoiceCatalog`); empty keeps Google's default.
@@ -168,21 +167,6 @@ enum VoiceCatalog {
         ("Sadaltager", "Knowledgeable"), ("Schedar", "Even"), ("Sulafat", "Warm"), ("Umbriel", "Easy-going"),
         ("Vindemiatrix", "Gentle"), ("Zephyr", "Bright"), ("Zubenelgenubi", "Casual")
     ].map { Voice(name: $0.0, style: $0.1) }
-}
-
-// MARK: - Consent (App Review 5.1.2)
-
-/// Explicit consent to send audio and page content to the provider, asked
-/// once per provider before its first session and kept on this device.
-enum VoiceConsent {
-    /// What the user agrees to (shown on the consent sheet).
-    static var text: String {
-        String(localized: "Audio and the page content you ask about are sent to Google.", comment: "Voice consent: what a live voice session sends, and to whom")
-    }
-
-    static func isGranted(_ provider: VoiceProvider, in settings: AppSettings) -> Bool {
-        settings.voiceConsent[provider.rawValue] != nil
-    }
 }
 
 // MARK: - Minutes used

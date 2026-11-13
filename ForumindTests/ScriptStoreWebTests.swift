@@ -1067,7 +1067,6 @@ final class ScriptStoreWebTests: XCTestCase {
             anthropicConfig.model = "claude-haiku-5-5"
             app.settings.setConfiguration(anthropicConfig, for: .anthropic)
             app.settings.setModel(ModelSelection(provider: .anthropic, model: "claude-haiku-5-5"), for: .browserAgent)
-            app.settings.aiConsent[AIProvider.anthropic.rawValue] = .allowed(Date())
 
             let fakeClient = RecordedAppModelScriptClient()
             app.browserAgent.configureDebugModelClient(fakeClient)

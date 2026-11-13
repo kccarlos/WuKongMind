@@ -22,14 +22,14 @@ extension AppModel: VoiceNavigator {
         return BrowseResult(status: .read, shown: "Posts \(numbers) on screen", content: texts.joined(separator: "\n\n"))
     }
 
-    /// The posts on screen (at most `limit`) with their text, without
-    /// hidden ones: the voice `read` tool and Translate Posts on Screen.
+    /// The posts on screen (at most `limit`) with their text: the voice
+    /// `read` tool and Translate Posts on Screen.
     func postsOnScreenWithText(limit: Int) async -> [BrowsePostText] {
         guard let ref = currentTopicRef else { return [] }
         let posts = await postsOnScreen()
         var texts: [BrowsePostText] = []
         for post in posts.prefix(limit) {
-            if case .shown(let text) = await postText(post.number, in: ref, facts: topicOverviews[ref.topicKey]?.facts) {
+            if let text = await postText(post.number, in: ref, facts: topicOverviews[ref.topicKey]?.facts) {
                 texts.append(text)
             }
         }
@@ -61,70 +61,51 @@ extension AppModel: VoiceNavigator {
         guard let ref = currentTopicRef else { return nil }
         let overview = await topicOverview(siteURL: ref.siteURL, topicID: ref.topicID)
         let facts = overview?.facts
-        var opening: String?
-        if let facts, case .shown(let text) = await postText(1, in: ref, facts: facts) {
-            opening = text.text
-        }
-        let rules = topicModerationRules(siteURL: ref.siteURL, topicID: ref.topicID, facts: facts)
+        let opening = facts != nil ? await postText(1, in: ref, facts: facts)?.text : nil
         let top = (facts?.posts ?? [])
-            .filter {
-                ($0.likeCount ?? 0) > 0
-                    && !rules.hidesUser($0.username, siteURL: ref.siteURL)
-                    && !rules.hidesPost($0.number, siteURL: ref.siteURL, topicID: ref.topicID)
-            }
+            .filter { ($0.likeCount ?? 0) > 0 }
             .sorted { ($0.likeCount ?? 0) > ($1.likeCount ?? 0) }
             .prefix(5)
             .map { VoiceTopicBrief.Post(number: $0.number, username: $0.username, likes: $0.likeCount) }
-        let solution = facts?.acceptedAnswer.flatMap { answer -> VoiceTopicBrief.Post? in
-            guard !rules.hidesPost(answer.postNumber, siteURL: ref.siteURL, topicID: ref.topicID) else { return nil }
+        let solution = facts?.acceptedAnswer.map { answer in
             let username = answer.username ?? facts?.posts.first { $0.number == answer.postNumber }?.username ?? "someone"
-            guard !rules.hidesUser(username, siteURL: ref.siteURL) else { return nil }
             return VoiceTopicBrief.Post(number: answer.postNumber, username: username)
         }
-        let openingPoster = facts?.openingPoster.flatMap { poster -> String? in
-            guard !rules.hidesUser(poster, siteURL: ref.siteURL),
-                  !rules.hidesPost(1, siteURL: ref.siteURL, topicID: ref.topicID)
-            else { return nil }
-            return poster
+        let summary = sessions[ref.topicKey].flatMap { session in
+            let trimmed = session.summary.trimmingCharacters(in: .whitespacesAndNewlines)
+            return trimmed.isEmpty ? nil : session.summary
         }
-        let session = sessions[ref.topicKey]
         return VoiceTopicBrief(
             topicKey: ref.topicKey,
-            title: moderatedTopicTitle(ref.title ?? overview?.title ?? "", siteURL: ref.siteURL,
-                                       topicID: ref.topicID, openingPoster: facts?.openingPoster),
+            title: ref.title ?? overview?.title ?? "",
             forumName: pageContext.forumName,
             opening: opening,
-            openingPoster: openingPoster,
+            openingPoster: facts?.openingPoster,
             postCount: facts?.postsCount ?? overview?.postCount,
             solution: solution,
             topPosts: Array(top),
-            summary: session.flatMap { canUseSummaryAsContext($0) ? $0.summary : nil }
+            summary: summary
         )
     }
 
     func postsOnScreen() async -> [VisiblePost] {
-        let posts = await browser.postsOnScreen()
-        let rules = aiModerationRules
-        guard !rules.isEmpty else { return posts }
-        let siteURL = currentTopicRef?.siteURL ?? pageContext.siteURL ?? ""
-        let topicID = currentTopicRef?.topicID ?? ""
-        return posts.filter {
-            !rules.hidesUser($0.username, siteURL: siteURL)
-                && (topicID.isEmpty || !rules.hidesPost($0.number, siteURL: siteURL, topicID: topicID))
-                && !rules.hidesText($0.excerpt)
-        }
+        await browser.postsOnScreen()
     }
 
     /// Queues the topic's summary in the existing pipeline and waits for it
     /// (at most two minutes).
     func quickSummary(topicKey: String) async -> String? {
-        if let saved = sessions[topicKey], canUseSummaryAsContext(saved) { return saved.summary }
+        if let saved = sessions[topicKey], !saved.summary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return saved.summary
+        }
         guard let topic = pageContext.topic, topic.topicKey == topicKey else { return nil }
         enqueueSummary(for: topic)
         for _ in 0..<120 {
             try? await Task.sleep(for: .seconds(1))
             if Task.isCancelled { return nil }
-            if let session = sessions[topicKey], canUseSummaryAsContext(session) { return session.summary }
+            if let session = sessions[topicKey], !session.summary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                return session.summary
+            }
             if !activities.contains(where: { $0.topicKey == topicKey && $0.type == .summary && !$0.status.isTerminal }) {
                 return nil
             }
@@ -146,22 +127,9 @@ extension AppModel: VoiceNavigator {
         return available.contains(settings.voice.provider) ? settings.voice.provider : available.first
     }
 
-    /// The browser bar shows the microphone: voice is on, or a Gemini or
-    /// Vertex key is there and voice was never agreed to and turned off.
+    /// The browser bar shows the microphone when voice is enabled on this device.
     var showsVoiceButton: Bool {
-        settings.voiceEnabled || (!availableVoiceProviders.isEmpty && settings.voiceConsent.isEmpty)
-    }
-
-    /// Records the user's consent for `provider` on this device.
-    func grantVoiceConsent(_ provider: VoiceProvider) {
-        settings.voiceConsent[provider.rawValue] = Date()
-        saveSettings()
-    }
-
-    func revokeVoiceConsent(_ provider: VoiceProvider) {
-        settings.voiceConsent[provider.rawValue] = nil
-        voice.end()
-        saveSettings()
+        settings.voiceEnabled
     }
 
     /// The configuration for a session with the chosen provider (falling
@@ -169,9 +137,8 @@ extension AppModel: VoiceNavigator {
     func voiceConfiguration() -> Result<VoiceSession.Configuration, VoiceSession.Failure> {
         guard settings.voiceEnabled else { return .failure(.disabled) }
         guard let provider = voiceProvider else { return .failure(.noKey) }
-        guard VoiceConsent.isGranted(provider, in: settings) else { return .failure(.noConsent) }
         if VoiceDebug.isFake {
-            return .success(VoiceSession.Configuration(endpoint: .aiStudio, apiKey: "fake-key", settings: settings.voice, hasConsent: true))
+            return .success(VoiceSession.Configuration(endpoint: .aiStudio, apiKey: "fake-key", settings: settings.voice))
         }
         let configuration = settings.configuration(for: provider.keyProvider)
         let endpoint: GeminiLive.Endpoint
@@ -187,8 +154,7 @@ extension AppModel: VoiceNavigator {
         return .success(VoiceSession.Configuration(
             endpoint: endpoint,
             apiKey: configuration.apiKey,
-            settings: settings.voice,
-            hasConsent: true
+            settings: settings.voice
         ))
     }
 

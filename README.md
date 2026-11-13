@@ -237,7 +237,7 @@ The architectural and development guides below are inherited from Forumind and s
 - [docs/APPLE_INTELLIGENCE.md](docs/APPLE_INTELLIGENCE.md) — on-device and Private Cloud Compute integration
 - [docs/CI.md](docs/CI.md) — GitHub Actions workflows
 
-*(Inherited App Store files such as [PRIVACY.md](PRIVACY.md), [TERMS.md](TERMS.md), and [docs/APP_STORE.md](docs/APP_STORE.md) belong to Forumind's store distribution and are retained in the repository for reference; WukongMind itself is self-built and not on the App Store.)*
+*(Inherited App Store files such as [PRIVACY.md](PRIVACY.md) and [docs/APP_STORE.md](docs/APP_STORE.md) belong to Forumind's store distribution and are retained in the repository for reference; WukongMind itself is self-built and not on the App Store.)*
 
 ---
 

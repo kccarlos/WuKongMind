@@ -14,8 +14,7 @@ struct DiscourseAdapter: SiteAdapter {
             postLookup: DiscoursePostLookup(),
             topicFilters: DiscourseTopicFilters(),
             pageBridge: PageBridgeProfile(
-                bridgeInstaller: DiscourseDOM.bridgeInstaller,
-                moderationInstaller: DiscourseDOM.moderationInstaller
+                bridgeInstaller: DiscourseDOM.bridgeInstaller
             ),
             loginURL: { DiscourseRoutes.loginURL(siteURL: $0) },
             accountURL: { DiscourseRoutes.accountURL(siteURL: $0, username: $1) },

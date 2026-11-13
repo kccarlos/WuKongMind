@@ -92,6 +92,9 @@ final class ForumService: Sendable {
     /// backoff) and tries again, up to `maximumRetries` times. The one request
     /// path: adapters reach it through `SiteNetwork.data` and `.response`.
     func response(_ url: URL, accept: String? = nil, context: SiteRequestContext) async throws -> ForumHTTPResponse {
+        guard context.isPaced else {
+            return try await unpacedResponse(url, accept: accept, context: context)
+        }
         let pace = context.pace
         var rateLimited = 0
         var transient = 0
@@ -141,6 +144,44 @@ final class ForumService: Sendable {
     /// Same request as `response`, the body only.
     func data(_ url: URL, accept: String? = nil, context: SiteRequestContext) async throws -> Data {
         try await response(url, accept: accept, context: context).data
+    }
+
+    private func unpacedResponse(_ url: URL, accept: String?, context: SiteRequestContext) async throws -> ForumHTTPResponse {
+        var rateLimited = 0
+        var transient = 0
+        while true {
+            try Task.checkCancellation()
+            let outcome: Outcome
+            do {
+                outcome = try await attemptRequest(url: url, accept: accept, context: context)
+            } catch {
+                if !Task.isCancelled, transient < maximumTransientRetries,
+                   NetworkFailure.classify(error) == .transient {
+                    transient += 1
+                    try await pacer.clock.sleep(until: pacer.clock.now() + pow(2, Double(transient - 1)))
+                    continue
+                }
+                throw error
+            }
+
+            switch outcome {
+            case .success(let response):
+                return response
+            case .failure(let status, let detail, let retryAfter):
+                if status == 429 && rateLimited < maximumRetries {
+                    rateLimited += 1
+                    let wait = min(60, max(1, Double(retryAfter ?? "") ?? pow(2, Double(rateLimited))))
+                    try await pacer.clock.sleep(until: pacer.clock.now() + wait)
+                    continue
+                }
+                if NetworkFailure.gatewayStatuses.contains(status), transient < maximumTransientRetries {
+                    transient += 1
+                    try await pacer.clock.sleep(until: pacer.clock.now() + pow(2, Double(transient - 1)))
+                    continue
+                }
+                throw AssistantError.http(status, String(detail.prefix(300)))
+            }
+        }
     }
 
     private enum Outcome {

@@ -342,9 +342,6 @@ enum ModelReadiness: Equatable {
     case needsKey
     case needsModel
     case appleIntelligence(AppleIntelligenceUnavailableReason)
-    /// Don't Allow on the AI data consent page (or withdrawn): configured,
-    /// but no forum content goes to the provider.
-    case aiConsentDeclined
 
     /// Short state for menus and Settings rows.
     var title: String {
@@ -352,7 +349,6 @@ enum ModelReadiness: Equatable {
         case .ready: String(localized: "Ready", comment: "AI provider status pill")
         case .needsKey: String(localized: "Needs a key", comment: "AI model state: the provider's API key is missing")
         case .needsModel, .appleIntelligence: String(localized: "Not ready", comment: "AI model state: the model can't run yet (no model chosen, or Apple Intelligence unavailable)")
-        case .aiConsentDeclined: String(localized: "Not allowed", comment: "AI model state: the user chose not to send forum content to this provider")
         }
     }
 }
@@ -369,13 +365,11 @@ extension AppSettings {
             return .needsKey
         }
         if selection.model.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return .needsModel }
-        if case .declined = aiConsentState(for: selection.provider) { return .aiConsentDeclined }
         return .ready
     }
 
     /// Role-aware readiness check. `.browserAgent` starts with no preset model
-    /// (`browserAgentModel == nil`), requires `supportsToolCalling`, and is not
-    /// gated on Forumind's forum-data consent check.
+    /// (`browserAgentModel == nil`) and requires `supportsToolCalling`.
     func readiness(for role: ModelRole, appleIntelligence: AppleIntelligenceStatus) -> ModelReadiness {
         guard role == .browserAgent else {
             return readiness(of: model(for: role), appleIntelligence: appleIntelligence)
@@ -509,14 +503,11 @@ enum ModelSetupAction: Equatable {
     /// Apple Intelligence can't run: Settings › AI models explains why and
     /// offers the other providers.
     case aiModels
-    /// Consent declined: the AI data consent page again.
-    case allow(AIProvider)
 
     init(_ readiness: ModelReadiness, provider: AIProvider) {
         switch readiness {
         case .needsKey: self = .addKey(provider)
         case .needsModel: self = .chooseModel
-        case .aiConsentDeclined: self = .allow(provider)
         case .ready, .appleIntelligence: self = .aiModels
         }
     }
@@ -526,19 +517,17 @@ enum ModelSetupAction: Equatable {
         case .addKey(let provider): String(localized: "Add \(provider.displayName) Key", comment: "Model not ready: opens the API key setup. The placeholder is the provider's name, e.g. Google Gemini.")
         case .chooseModel: String(localized: "Choose a Model", comment: "Model not ready: opens model setup")
         case .aiModels: String(localized: "AI models…")
-        case .allow(let provider): String(localized: "Allow \(provider.displayName)…", comment: "Model not ready: shows the AI data consent page again. The placeholder is the provider's name, e.g. Google Gemini.")
         }
     }
 }
 
 extension AppModel {
-    /// Runs a "model not ready" fix: the setup sheet, Settings › AI models
-    /// (through the router, as the model pill's menu) or the consent page.
+    /// Runs a "model not ready" fix: the setup sheet or Settings › AI models
+    /// (through the router, as the model pill's menu).
     func perform(_ action: ModelSetupAction, for role: ModelRole) {
         switch action {
         case .addKey, .chooseModel: router.item = .providerSetup(role)
         case .aiModels: requestedSettingsPage = .provider
-        case .allow(let provider): aiConsent.ask(provider)
         }
     }
 }

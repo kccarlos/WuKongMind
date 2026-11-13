@@ -103,9 +103,6 @@ final class HackerNewsTests: XCTestCase {
         let cached = try await read(fixture, cached: result.rawPages)
         XCTAssertEqual(cached.content, result.content)
         XCTAssertTrue(cached.unchanged)
-        let filtered = ModerationFilter.filter(result.content, siteURL: HackerNewsFixture.site, topicID: "1", rules: .init(blockedUsers: [HackerNewsFixture.site: ["sama"]]))
-        XCTAssertFalse(filtered.contains("sama |"))
-        XCTAssertTrue(filtered.contains("[Reply to #2; item 15]"))
     }
     func testSearchLatestAndDigestUseAuthoredHitsAndBudget() async throws {
         let a = try adapter()

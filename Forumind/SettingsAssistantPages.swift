@@ -152,32 +152,41 @@ private struct ForumRequestPaceSection: View {
 
     var body: some View {
         Section {
-            Picker(selection: $app.settings.forumRequestPace) {
-                ForEach(ForumRequestPace.allCases) { pace in
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(pace.title)
-                        Text(pace.detail)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+            Toggle("Limit request rate", isOn: $app.settings.forumRateLimitingEnabled)
+                .tint(DCTheme.brandBlue)
+                .accessibilityIdentifier("forumRateLimitingEnabled")
+            if app.settings.forumRateLimitingEnabled {
+                Picker(selection: $app.settings.forumRequestPace) {
+                    ForEach(ForumRequestPace.allCases) { pace in
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(pace.title)
+                            Text(pace.detail)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        .tag(pace)
+                        .accessibilityIdentifier("forumRequestPace-\(pace.rawValue)")
                     }
-                    .tag(pace)
-                    .accessibilityIdentifier("forumRequestPace-\(pace.rawValue)")
+                } label: {
+                    Text("Reading pace")
                 }
-            } label: {
-                Text("Reading pace")
+                .pickerStyle(.inline)
+                .labelsHidden()
+                .accessibilityIdentifier("forumRequestPace")
             }
-            .pickerStyle(.inline)
-            .labelsHidden()
-            .accessibilityIdentifier("forumRequestPace")
         } header: {
             Text("Forum requests")
         } footer: {
             Text(footer)
         }
+        .onChange(of: app.settings.forumRateLimitingEnabled) { app.saveSettings() }
         .onChange(of: app.settings.forumRequestPace) { app.saveSettings() }
     }
 
     private var footer: String {
+        guard app.settings.forumRateLimitingEnabled else {
+            return String(localized: "Requests are sent immediately without per-forum spacing or concurrency limits. Work that’s already running keeps its pace.", comment: "Settings › Summaries & chat › Forum requests footer when rate limiting is off")
+        }
         var sentences = [
             String(localized: "Forums are run by people and communities who pay for their servers. Reading a topic one page at a time keeps Forumind a polite visitor and avoids being rate limited.", comment: "Settings › Summaries & chat › Forum requests footer")
         ]

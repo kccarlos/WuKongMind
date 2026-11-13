@@ -45,7 +45,6 @@ struct ContentView: View {
             }
             #endif
             app.restorePendingTasksIfNeeded()
-            await app.refreshRemoteModerationIfNeeded()
         }
         #if DEBUG
         .task { await app.runPresentationTestTrigger() }
@@ -147,7 +146,6 @@ struct ContentView: View {
         BrowserActions(
             showLoginInfo: { app.router.item = .loginInfo },
             addForum: { app.router.item = .addForum },
-            report: { topic in app.router.item = .report(topic) },
             translatePosts: { app.router.item = .translatePosts },
             openAssistant: openAssistant,
             openPanel: openPanelRoute,
@@ -242,8 +240,6 @@ struct ContentView: View {
 struct BrowserActions {
     var showLoginInfo: () -> Void
     var addForum: () -> Void
-    /// Report or block content in a topic.
-    var report: (ForumTopic) -> Void = { _ in }
     /// Translate the posts on screen into the reading language.
     var translatePosts: () -> Void = {}
     /// The bar's AI button: opens the drawer, or shows the panel.

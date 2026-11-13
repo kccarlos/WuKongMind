@@ -88,7 +88,7 @@ Contributors adding a platform: [ADDING_A_SITE.md](ADDING_A_SITE.md).
 | `Sites/Recognition/` | What the share extension also compiles, so nothing here may use an adapter or the network: `SiteRecognizer`, `SiteRecognizers.standard` (the one list of platforms), `PageFacts`/`PageFactKeys`, `PageFactsProbe` (builds the probe script), `DiscourseRecognizer`, `WordPressRecognizer`. |
 | `Sites/SiteNetwork.swift` | `SiteNetwork` (transport plus `SiteRequestContext`, scoped to one site; a URL outside the site is refused) and the context (cookies, in-page loader, pace) gathered once per job. |
 | `Sites/Shared/` | Code every adapter may use: `RawTopicFormat` (the one shape of a topic's AI-facing text), `PostBlock`, `PagedTopicFetch` (the paced page loop), `TopicFacts`. |
-| `Sites/Discourse/` | The Discourse adapter: `DiscourseAdapter`, `DiscourseAPI` (requests), `DiscourseRoutes` (URLs), `DiscourseParsing`, `DiscoursePagePlan` (which raw pages to fetch), `DiscourseDOM` (the in-page bridge and moderation scripts), `DiscourseAgent` (tool specs, voice words), `DiscourseSuggestions`. |
+| `Sites/Discourse/` | The Discourse adapter: `DiscourseAdapter`, `DiscourseAPI` (requests), `DiscourseRoutes` (URLs), `DiscourseParsing`, `DiscoursePagePlan` (which raw pages to fetch), `DiscourseDOM` (the in-page bridge script), `DiscourseAgent` (tool specs, voice words), `DiscourseSuggestions`. |
 | `Sites/WordPress/` | The WordPress adapter, a second worked example: `WordPressAdapter`, `WordPressAPI` (REST requests; paging read from `X-WP-Total` headers, closed comments and pages past the last read as empty), `WordPressLinks` (`/?p=ID`), `WordPressParsing` (article and comments into `RawTopicFormat`), `WordPressPagePlan`, `WordPressTools` (post and comment search, latest, post lookup), `WordPressActiveTopics` (digest: newest posts and recent comments), `WordPressAgent` (tool specs, voice and discussion profiles). It has no page bridge, sign-in page or session reader, so the app never scripts a WordPress page and navigates by URL. |
 
 **Layering.** Only `Forumind/Sites/` may name a platform.
@@ -139,7 +139,7 @@ and after every page, so the bar and status keep moving during long reads.
 | `DailyDigest.swift`, `AppModel+Digest.swift`, `DigestViews.swift` | The daily digest: cards, planning, the prefetch and its background task, storage; making the cards; the Today page and Settings › Daily digest. |
 | `AppModel+System.swift`, `System/*.swift` | System entry points: App Intents and Siri phrases, Spotlight, Siri suggestions (see below). |
 | `Translation/*.swift` | On-device translation: the reading language, the Translate button and sheet (see below). |
-| `Podcast/*.swift`, `PodcastViews.swift` | The podcast: settings and consent, the script and its checks, Gemini TTS and on-device speech, the episode cache, the player with Now Playing, the controller (making, Ask about this, read aloud); the Today page's mini player and chapter list, the consent sheet, the read-aloud button. |
+| `Podcast/*.swift`, `PodcastViews.swift` | The podcast: settings, the script and its checks, Gemini TTS and on-device speech, the episode cache, the player with Now Playing, the controller (making, Ask about this, read aloud); the Today page's mini player and chapter list, the read-aloud button. |
 
 **Work queue.** Summaries, chats, and agent runs are `WorkRecord`s. Two run at
 once (`TaskLimiter`), with per-topic ordering, up to 50 queued, progress and
@@ -329,8 +329,8 @@ sequenceDiagram
 | `ResultCards.swift` | The current list as numbered cards over the page. |
 
 This layer moves the page to a single post. What it needs from a platform is a
-capability of the adapter, present or nil: `pageBridge` (the in-page bridge and
-moderation scripts, `DiscourseDOM` for Discourse), `topicFilters` (top posts,
+capability of the adapter, present or nil: `pageBridge` (the in-page bridge
+script, `DiscourseDOM` for Discourse), `topicFilters` (top posts,
 one author), `postLookup` (post text by number from the API), `activeTopics`,
 `loginURL`, `searchPageURL` and `session`. The app gates on the capability: with
 no `pageBridge` no script is sent to the page, with no `topicFilters` the `top`
@@ -343,12 +343,12 @@ adapter that exists; they live in `Sites/Discourse/`. The voice agent's tools (`
 `open`, `move`, `focus`, `read`, `research`) are meant to call it, and it
 works without voice through the cards and post links.
 
-**Bridge.** A third user script, next to the route observer and the
-moderation script, runs in its own `WKContentWorld`, main frame only, and is
+**Bridge.** A user script, next to the route observer,
+runs in its own `WKContentWorld`, main frame only, and is
 called with `callAsyncJavaScript` (2 s timeout; nil when the page is not a
-topic). It uses the moderation script's selectors
+topic). It uses Discourse's post selectors
 (`article[id^="post_"]` in its `[data-post-number]` wrapper, `a[data-user-card]`,
-`.cooked`) and its MutationObserver + `requestAnimationFrame` pattern:
+`.cooked`) and a MutationObserver + `requestAnimationFrame` pattern:
 
 - `scrollToPost(n)` puts a rendered post under Discourse's fixed header. A
   post that isn't rendered (Discourse cloaks far-off posts) makes the app
@@ -360,11 +360,6 @@ topic). It uses the moderation script's selectors
   (`getBoundingClientRect`, minus the header and the cards).
 - `postText(n)` returns a rendered post's plain text. Otherwise the app reads
   the post from `/t/{id}/posts.json`.
-
-A post the moderation script hid (`data-forumind-hidden`; the DOM is shared
-between worlds) is never scrolled to, highlighted or returned. The Swift side
-checks the user's blocks and filters again on every hit, source and post text
-it gets from the forum's JSON.
 
 **Page position.** Discourse rewrites the URL to `/t/slug/id/N` while the
 reader scrolls, so `PageContext.postNumber` comes from the route observer.
@@ -442,11 +437,11 @@ follow them. Search keeps its own UI.
 | `Voice/VoiceActivityDetector.swift` | `VADTuning`, `VoiceActivityDetector`, `CaptureGate`. |
 | `Voice/PlaybackQueue.swift` | `PlaybackQueue` (jitter buffer), `PlaybackProfile`, `PlaybackRatePolicy` (time-stretch). |
 | `Voice/VoiceAudioHealth.swift` | `VoiceAudioHealth`, `VoiceProcessingStatus`, `MicSignalWatchdog`, `SpeakingHold`. |
-| `Voice/VoiceSettings.swift` | Voice settings, the voice list, consent, minutes per day. |
-| `Voice/VoiceController.swift` | Starts and ends sessions for the UI: the microphone, the consent sheet, the bar. |
+| `Voice/VoiceSettings.swift` | Voice settings, the voice list, minutes per day. |
+| `Voice/VoiceController.swift` | Starts and ends sessions for the UI: the microphone and the bar. |
 | `Voice/VoiceDebug.swift` | The typed-input switch and the scripted session for UI tests (`-dc-voice-fake`). |
-| `VoiceViews.swift` | The browser-bar microphone, the consent sheet, the voice bar with its Health row, Settings › Voice. |
-| `AppModel+Voice.swift` | AppModel as the navigator; the session's configuration and the consent gate. |
+| `VoiceViews.swift` | The browser-bar microphone, the voice bar with its Health row, Settings › Voice. |
+| `AppModel+Voice.swift` | AppModel as the navigator and the session's configuration. |
 
 The voice agent talks to Gemini Live (`gemini-3.8-live`) directly from the
 device with the user's own key: AI Studio with the Google Gemini key, or
@@ -521,8 +516,7 @@ cleared at start.
   back.
 
 **UI.** The microphone in the browser bar (both positions) shows while voice
-is on, or while a Gemini or Vertex key is there and voice was never agreed
-to. The first tap per provider opens the consent sheet. The voice bar sits
+is on. The voice bar sits
 over the bottom of the page under the result cards, also over the Forums
 home, and counts as covered page for the bridge. It shows the state, the
 last transcript line, mute and end; tapping the state opens the Health row
@@ -541,16 +535,11 @@ current list). When the user's words point at the screen ("this post",
 "他说的"), or the reader stops on a post for about 2 s, the focused post's
 full text is sent (both switchable). Posts are capped at about 800 tokens.
 
-**Consent.** Before the first session with a provider, the user must agree
-that audio and the page content they ask about go to Google (App Review
-5.1.2). The consent, like "voice on", is kept per device; the voice
-preferences sync. The session refuses to start without it.
-
 ### Podcast
 
 | File | Role |
 | --- | --- |
-| `Podcast/PodcastSettings.swift` | Hosts (ids `A`/`B`, default names per language), voices, engine choice, length; the TTS consent; engine selection. |
+| `Podcast/PodcastSettings.swift` | Hosts (ids `A`/`B`, default names per language), voices, engine choice, length, and engine selection. |
 | `Podcast/PodcastScript.swift` | Chapters, the fixed intro and outro, the chapter prompt, JSON parsing and the speech checks, the fallback chapter. |
 | `Podcast/PodcastSpeech.swift` | The speech-engine protocol, the Gemini TTS request, response decoding (WAV or L16), WAV reading and writing, retries. |
 | `Podcast/PodcastSystemSpeech.swift` | `AVSpeechSynthesizer` written to a file; picking two system voices. |
@@ -620,21 +609,7 @@ accepted answer, else the top post).
 
 The defaults are hosts Ava and Leo (localized names), voices Kore and Puck
 (Google's own multi-speaker pair, firm and upbeat), and 1 minute per topic.
-Automatic uses Google's voices when a key exists and the user agreed, and
-otherwise the device's.
-
-**Consent.** Google's voices send the script, which is text written from the
-digest and not audio, to Google with the user's key. The consent is separate
-from the voice consent (`podcastConsent`, per provider, on this device),
-because:
-
-- it covers different data (text, not microphone audio);
-- either one can be given or withdrawn without the other;
-- the microphone button's visibility depends on the voice consent alone.
-
-A tap on Make, Play or Listen asks once per provider, and the sheet also
-offers the device's voices. The daily podcast never asks: without consent
-it uses the device's voices.
+Automatic uses Google's voices when a key exists, and otherwise the device's.
 
 **When it runs.** The podcast is made only while the app is open:
 
@@ -671,10 +646,8 @@ at the cited post (`openDigestLink` → `openTopic(at:)`).
 
 1. The episode pauses (`suspendForVoice`).
 2. The Today page closes, and the chapter's topic opens at its post.
-3. After the page has gone, `VoiceController.start()` runs through the usual
-   consent gate. The opened topic is the session's first topic brief.
-4. `VoiceController.onFinished` fires when the session ends, the consent is
-   declined, or the start fails.
+3. After the page has gone, `VoiceController.start()` runs. The opened topic is the session's first topic brief.
+4. `VoiceController.onFinished` fires when the session ends or the start fails.
 5. The player then sets `.playback` / `.spokenAudio` again and waits up to
    2 s while the output is still Bluetooth HFP (AirPods switch back to A2DP
    once the microphone closes).
@@ -760,8 +733,7 @@ button; the deployment target stays iOS 17.
   line's text (each table cell) is one request in a batch. The result is
   shown with the original a tap away.
 - **Posts.** Translate Posts on Screen reads up to eight visible posts
-  through the browser bridge (`visible()` / `postText`, the same moderation
-  filtering as the voice `read` tool). Posts already in the reading
+  through the browser bridge (`visible()` / `postText`). Posts already in the reading
   language are left out. The sheet shows the rest; the page itself is never
   rewritten.
 
@@ -783,10 +755,9 @@ Start a Voice Chat, and Open Topic (a `TopicEntity`). All of them have
 - The AppModel reuses the existing paths. Summarize goes through
   `handle(IncomingLinkRequest)`, the share extension's path, and Ask starts
   Ask the forum on that forum. Play plays today's episode, or opens Today
-  when there is none. Voice goes through `VoiceController.start()` and its
-  consent gate; without a Gemini or Vertex key it opens Settings › Voice
+  when there is none. Voice goes through `VoiceController.start()`; without a Gemini or Vertex key it opens Settings › Voice
   (`requestedSettingsPage`).
-- No AI work starts before the walkthrough and the Terms of Use are done:
+- No AI work starts before the walkthrough is done:
   the app opens, and the question waits as a draft.
 - Siri, Shortcuts and the Action button can launch the app in the
   background just to list forums. So the forum query reads the AppModel
@@ -844,23 +815,6 @@ and sign-in) are declared by each adapter
 the rules. Details:
 [AD_BLOCKING.md](AD_BLOCKING.md).
 
-### Moderation
-
-App Store guideline 1.2 asks apps that show user-generated content for terms
-of use, reporting, blocking and filtering. `Moderation.swift` holds the model:
-`BlockedUser` and the filtered words live in `AppSettings` (synced; the
-accepted Terms of Use version is per device), `RemoteModerationList` is the
-developer's public list in [`moderation/`](../moderation/) (fetched at most
-daily), and `ModerationRules` combines them. `ModerationFilter` drops hidden
-posts from Discourse's `/raw` topic text where prompts are built
-(`AppModel.moderated(_:siteURL:topicID:)`), and `ModerationScript` hides them
-in the web view (by post author, number and text, with a `MutationObserver`).
-`ModerationViews.swift` has the Terms of Use card (walkthrough privacy step,
-and a sheet for anyone who hasn't accepted the current version), the Report
-or block sheet (browser ⋯ menu on a topic; reports are emails to the
-developer), and the Settings › Data & privacy sections. Terms:
-[TERMS.md](../TERMS.md).
-
 ### Sync
 
 iCloud sync through CloudKit, on by default when an iCloud account is
@@ -909,8 +863,8 @@ on launch and after each job).
 
 | Target | What it covers |
 | --- | --- |
-| `ForumindTests` | Unit tests: forum identity and URL building, forum request pacing (fake clock), the daily digest (card plan, prefetch cap, scheduling, resumable cards), the work queue and state transitions, incoming links, onboarding, agent sources (topic and post level), post-level browsing (the current list, landing URLs, page position and its debounce, find/read with moderation, research single-flight, result trimming), the podcast (script JSON and its speech checks, chapters from cards, the Gemini TTS request on both endpoints and responses from fixtures, retries, engine and system-voice selection, the player's timeline, chapter navigation and remembered position with fakes, Ask about this pausing and resuming, the opt-in defaults, cache cleanup), the voice agent offline (Gemini Live message fixtures, the session against a fake transport, fake audio and a manual clock, tool mapping, context notes, consent, typed input, the cost guard), the audio pipeline without hardware (sample-rate conversion, framing, the voice-activity detector on four short speech fixtures in `ForumindTests/Audio` mixed with generated noise, the jitter buffer and time-stretch replays, the time-pitch graph rendered offline, the microphone watchdog), post-level Discourse parsing (trimmed JSON fixtures in `DiscourseFixtures.swift`), content blocking (compiles every bundled chunk in WebKit), CloudKit sync against a fake transport (two simulated devices), Keychain sync, iPad layout math, String Catalog completeness (every key translated, matching format specifiers and intent placeholders, plural variations), App Intents (each intent's action through a fake router, the forum query's order, the AppModel carrying actions out), Spotlight against a fake index (items, identifiers, removal on every delete path and the switch), Siri-suggestion donations, and the reading-language decision and Markdown segmenting for translation. |
-| `ForumindUITests` | UI tests on simulators (Home, the Today page and its podcast on a fake engine, landing on a post and the result cards on a live topic, the voice consent sheet and bar on a scripted session, onboarding, settings navigation, share hand-off, iPad layouts) and smoke tests for physical devices. |
+| `ForumindTests` | Unit tests: forum identity and URL building, forum request pacing (fake clock), the daily digest (card plan, prefetch cap, scheduling, resumable cards), the work queue and state transitions, incoming links, onboarding, agent sources (topic and post level), post-level browsing (the current list, landing URLs, page position and its debounce, find/read, research single-flight, result trimming), the podcast (script JSON and its speech checks, chapters from cards, the Gemini TTS request on both endpoints and responses from fixtures, retries, engine and system-voice selection, the player's timeline, chapter navigation and remembered position with fakes, Ask about this pausing and resuming, the opt-in defaults, cache cleanup), the voice agent offline (Gemini Live message fixtures, the session against a fake transport, fake audio and a manual clock, tool mapping, context notes, typed input, the cost guard), the audio pipeline without hardware (sample-rate conversion, framing, the voice-activity detector on four short speech fixtures in `ForumindTests/Audio` mixed with generated noise, the jitter buffer and time-stretch replays, the time-pitch graph rendered offline, the microphone watchdog), post-level Discourse parsing (trimmed JSON fixtures in `DiscourseFixtures.swift`), content blocking (compiles every bundled chunk in WebKit), CloudKit sync against a fake transport (two simulated devices), Keychain sync, iPad layout math, String Catalog completeness (every key translated, matching format specifiers and intent placeholders, plural variations), App Intents (each intent's action through a fake router, the forum query's order, the AppModel carrying actions out), Spotlight against a fake index (items, identifiers, removal on every delete path and the switch), Siri-suggestion donations, and the reading-language decision and Markdown segmenting for translation. |
+| `ForumindUITests` | UI tests on simulators (Home, the Today page and its podcast on a fake engine, landing on a post and the result cards on a live topic, the voice bar on a scripted session, onboarding, settings navigation, share hand-off, iPad layouts) and smoke tests for physical devices. |
 
 The site layer has its own suites in `ForumindTests/Sites/`: `SiteContractTests`
 runs one generic suite over every adapter (Discourse and a made-up

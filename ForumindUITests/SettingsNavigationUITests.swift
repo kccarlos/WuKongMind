@@ -109,26 +109,6 @@ final class SettingsNavigationUITests: DCUITestCase {
         XCTAssertTrue(waitForGone(app.staticTexts["Delete iCloud data?"], timeout: 5))
     }
 
-    /// Data & privacy › Safety: Blocked users and Filtered words are pages of their own.
-    func testDataPageSafetyRowsOpenTheirPages() throws {
-        let app = launch(["-dc-sample", "-dc-show-settings", "data"])
-
-        XCTAssertTrue(app.navigationBars["Data & privacy"].waitForExistence(timeout: 20))
-        let blocked = app.buttons["blockedUsersRow"]
-        XCTAssertTrue(reveal(blocked, in: app, swipes: 6), "Safety has no Blocked users row.")
-        blocked.tap()
-        XCTAssertTrue(app.navigationBars["Blocked users"].waitForExistence(timeout: 10))
-        tapNavigationBack(in: app)
-
-        let words = app.buttons["filteredWordsRow"]
-        XCTAssertTrue(reveal(words, in: app, swipes: 6), "Safety has no Filtered words row.")
-        words.tap()
-        XCTAssertTrue(app.navigationBars["Filtered words"].waitForExistence(timeout: 10))
-        XCTAssertTrue(any(app, "filteredWordField").waitForExistence(timeout: 5))
-        tapNavigationBack(in: app)
-        XCTAssertTrue(app.navigationBars["Data & privacy"].waitForExistence(timeout: 10))
-    }
-
     func testSyncPageShowsAccountFix() throws {
         let app = launch(["-dc-sample", "-dc-show-settings", "sync", "-dc-sync-status", "noAccount"])
 
@@ -217,7 +197,7 @@ final class SettingsNavigationUITests: DCUITestCase {
         XCTAssertEqual(field.value as? String, "••••••", "Typing into a saved key's field should replace the key.")
     }
 
-    func testSettingsReadingLanguageSyncErrorReportAndSavedAPIKeyLayout() throws {
+    func testSettingsReadingLanguageSyncErrorAndSavedAPIKeyLayout() throws {
         let app = launch(["-dc-sample", "-dc-forums-home", "-dc-show-settings", "root"])
         XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 20))
         let readingLanguage = any(app, "settingsRow-readingLanguage")
@@ -244,35 +224,6 @@ final class SettingsNavigationUITests: DCUITestCase {
         capture("base_phone_sync-error")
         let syncNowButtons = syncApp.buttons.matching(NSPredicate(format: "label == 'Sync now'"))
         XCTAssertEqual(syncNowButtons.count, 1, "iCloud Sync error state should not show two duplicate Sync now buttons.")
-
-        let reportApp = launch(["-dc-sample", "-dc-drawer-first-run"])
-        let menu = reportApp.buttons["forumSwitcher"]
-        XCTAssertTrue(waitForBarItem(menu, timeout: 20))
-        let reportItem = reportApp.buttons["Report or block…"]
-        let reportPost = reportApp.buttons["reportPost1"]
-        let blockPost = reportApp.buttons["blockPost1"]
-        let blockUser = reportApp.buttons["blockUser1"]
-        for _ in 0..<4 where !reportPost.exists {
-            RunLoop.current.run(until: Date().addingTimeInterval(3))
-            _ = wait(timeout: 15) {
-                tapBarItem(menu)
-                if reportItem.waitForExistence(timeout: 3) { return true }
-                dismissMenu(in: reportApp)
-                return false
-            }
-            reportItem.tap()
-            if reportPost.waitForExistence(timeout: 6) { break }
-            if reportApp.buttons["Done"].firstMatch.exists {
-                reportApp.buttons["Done"].firstMatch.tap()
-            }
-        }
-        XCTAssertTrue(reportPost.waitForExistence(timeout: 10))
-        XCTAssertTrue(blockPost.exists)
-        XCTAssertTrue(blockUser.exists)
-        capture("base_phone_report-block-sheet")
-        XCTAssertLessThanOrEqual(abs(blockPost.frame.height - reportPost.frame.height), 4, "Block post button wrapped to two lines while Report post stayed on one.")
-        XCTAssertLessThanOrEqual(abs(blockUser.frame.height - reportPost.frame.height), 4, "Block user button wrapped to two lines while Report post stayed on one.")
-        XCTAssertLessThanOrEqual(abs(blockPost.frame.minY - reportPost.frame.minY), 4, "Post action buttons should sit on one line at standard Dynamic Type.")
 
         let zhApp = launch(["-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_Hans", "-dc-sample", "-dc-forums-home", "-dc-show-settings", "root"])
         XCTAssertTrue(any(zhApp, "settingsRow-readingLanguage").waitForExistence(timeout: 20))
@@ -368,6 +319,27 @@ final class SettingsNavigationUITests: DCUITestCase {
         app.buttons["favoriteModelActionsDone"].tap()
         XCTAssertTrue(waitForGone(sheet, timeout: 5))
         XCTAssertTrue(favorite.exists)
+    }
+
+    func testForumRequestRateLimitToggleShowsAndHidesPaceOptions() throws {
+        let app = launch(["-dc-sample", "-dc-show-settings", "summaries"])
+        XCTAssertTrue(app.navigationBars["Summaries & chat"].waitForExistence(timeout: 20))
+        let toggle = app.switches["forumRateLimitingEnabled"]
+        XCTAssertTrue(reveal(toggle, in: app, swipes: 4))
+        XCTAssertEqual(toggle.value as? String, "1", "Per-forum rate limiting is on by default.")
+        let gentle = any(app, "forumRequestPace-gentle")
+        XCTAssertTrue(reveal(gentle, in: app, swipes: 2))
+        capture("settings-rate-limit-on")
+
+        toggle.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
+        XCTAssertTrue(wait(timeout: 5) { (toggle.value as? String) == "0" })
+        XCTAssertTrue(waitForGone(gentle, timeout: 5))
+        capture("settings-rate-limit-off")
+
+        // Restore on so persisted simulator state stays at default.
+        toggle.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
+        XCTAssertTrue(wait(timeout: 5) { (toggle.value as? String) == "1" })
+        XCTAssertTrue(gentle.waitForExistence(timeout: 5))
     }
 
     /// Settings › AI models favorites (ModelSettings): tap = pick the role,
@@ -481,7 +453,7 @@ final class SettingsNavigationUITests: DCUITestCase {
         XCTAssertGreaterThanOrEqual(pin.frame.width, 44, "Pin")
     }
 
-    func testWatchedRowOpensTopicPodcastRequiresDigestAndBlockedUsersMentionsForumMenu() throws {
+    func testWatchedRowOpensTopicAndPodcastRequiresDigest() throws {
         let app = launch(["-dc-sample", "-dc-show-settings", "root", "-dc-test-present"])
         XCTAssertTrue(any(app, "settingsRoot").waitForExistence(timeout: 15))
 
@@ -503,19 +475,7 @@ final class SettingsNavigationUITests: DCUITestCase {
         XCTAssertEqual(podcastSwitch.value as? String, "0")
         tapNavigationBack(in: app)
 
-        // 2. Data & privacy › Blocked users mentions the forum menu as well as ⋯.
-        let dataRow = app.buttons["settingsRow-data"]
-        XCTAssertTrue(revealRow(dataRow, in: app))
-        dataRow.tap()
-        let blockedRow = app.buttons["blockedUsersRow"]
-        XCTAssertTrue(reveal(blockedRow, in: app, swipes: 6))
-        blockedRow.tap()
-        let copy = app.staticTexts.matching(NSPredicate(format: "label CONTAINS 'the forum menu or ⋯'")).firstMatch
-        XCTAssertTrue(copy.waitForExistence(timeout: 5))
-        tapNavigationBack(in: app)
-        tapNavigationBack(in: app)
-
-        // 3. Watched topics: tapping a watched topic row dismisses Settings to open the topic.
+        // 2. Watched topics: tapping a watched topic row dismisses Settings to open the topic.
         let watchedRow = app.buttons["settingsRow-watched"]
         XCTAssertTrue(revealRow(watchedRow, in: app))
         watchedRow.tap()

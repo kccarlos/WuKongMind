@@ -1,8 +1,8 @@
 import SwiftUI
 
-// The voice UI (plan B7): the browser bar's microphone, the consent sheet,
-// the voice bar over the page, and Settings › Voice. The session is in
-// Voice/VoiceSession.swift, started by `VoiceController`.
+// The voice UI (plan B7): the browser bar's microphone, the voice bar over
+// the page, and Settings › Voice. The session is in Voice/VoiceSession.swift,
+// started by `VoiceController`.
 
 // MARK: - Browser bar button
 
@@ -25,158 +25,6 @@ struct VoiceBarButton: View {
         .buttonStyle(DCIconButtonStyle())
         .accessibilityLabel(voice.isActive ? Text("End voice") : Text("Talk to Forumind", comment: "Browser bar button: start a live voice session"))
         .accessibilityIdentifier("voiceButton")
-    }
-}
-
-// MARK: - Consent (App Review 5.1.2)
-
-/// Asked once per provider before its first session: what goes to Google,
-/// with whose key, and what Google may do with it.
-struct VoiceConsentSheet: View {
-    let provider: VoiceProvider
-    let settings: VoiceSettings
-    var vertexBaseURL = ""
-    let onAgree: () -> Void
-    let onCancel: () -> Void
-
-    var statusLine: (text: String, isReady: Bool) {
-        switch provider {
-        case .aiStudio:
-            return (String(localized: "Voice uses Google Gemini. Key ready.", comment: "Voice first start: the provider and that its key is set up"), true)
-        case .vertex:
-            let project = GeminiLive.Endpoint.vertexProject(fromBaseURL: vertexBaseURL)
-                ?? settings.vertexProject.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !project.isEmpty else {
-                return (VoiceSession.Failure.noVertexProject.message, false)
-            }
-            return (String(localized: "Voice uses Google Vertex AI. Key ready.", comment: "Voice first start on Vertex AI: the provider and that its key and project are set up"), true)
-        }
-    }
-
-    var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: DCTheme.spacingL) {
-                    Image(systemName: "waveform.circle.fill")
-                        .font(.system(size: 52))
-                        .foregroundStyle(DCTheme.brandGradient)
-                        .accessibilityHidden(true)
-                    Text("Talk to Forumind", comment: "Voice first start: title")
-                        .font(.title2.weight(.bold))
-                    Text("A live conversation about the page you are reading. It can find, open and read posts for you, hands-free.", comment: "Voice first start: what voice does")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                    VStack(alignment: .leading, spacing: DCTheme.spacingXS) {
-                        Text("Try saying", comment: "Voice first start: heading of the examples")
-                            .font(.footnote.weight(.semibold))
-                            .foregroundStyle(.secondary)
-                        Text("“What is this thread about?”", comment: "Voice first start: example")
-                        Text("“Read the accepted answer.”", comment: "Voice first start: example")
-                        Text("“Find posts about backups.”", comment: "Voice first start: example")
-                    }
-                    .font(.subheadline)
-                    .accessibilityIdentifier("voiceTrySaying")
-                    let status = statusLine
-                    Label {
-                        Text(verbatim: status.text)
-                    } icon: {
-                        Image(systemName: status.isReady ? "checkmark.seal.fill" : "exclamationmark.triangle.fill")
-                            .foregroundStyle(status.isReady ? DCTheme.success : DCTheme.warning)
-                    }
-                    .font(.subheadline.weight(.semibold))
-                    VoiceDisclosure(provider: provider, settings: settings)
-                }
-                .padding(DCTheme.spacingXL)
-                .frame(maxWidth: DCTheme.contentMaxWidth, alignment: .leading)
-                .frame(maxWidth: .infinity)
-            }
-            .safeAreaInset(edge: .bottom) {
-                VStack(spacing: DCTheme.spacingS) {
-                    Button(action: onAgree) {
-                        Text("Agree and Start")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(DCPrimaryButtonStyle())
-                    .accessibilityIdentifier("voiceConsentAgree")
-                    Button(role: .cancel, action: onCancel) {
-                        Text("Not Now", comment: "Voice first start: decline")
-                    }
-                        .frame(minHeight: DCTheme.controlHeight)
-                        .accessibilityIdentifier("voiceConsentCancel")
-                }
-                .padding(.horizontal, DCTheme.spacingXL)
-                .padding(.vertical, DCTheme.spacingM)
-                .frame(maxWidth: DCTheme.contentMaxWidth)
-                .frame(maxWidth: .infinity)
-                .dcStickyFooter()
-            }
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel", action: onCancel)
-                }
-            }
-        }
-        .interactiveDismissDisabled()
-        .accessibilityIdentifier("voiceConsentSheet")
-    }
-}
-
-/// What voice sends where, shared by the consent sheet and Settings › Voice.
-struct VoiceDisclosure: View {
-    let provider: VoiceProvider
-    let settings: VoiceSettings
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: DCTheme.spacingM) {
-            point("arrow.up.forward.circle", Text("While you talk, your voice and the page content you ask about are sent to Google (\(provider.displayName)) with your own API key. There is no Forumind server: nothing goes through us.", comment: "Voice consent; the placeholder is Google AI Studio or Google Vertex AI"))
-            switch provider {
-            case .aiStudio:
-                point("person.2", Text("On the free tier of Google AI Studio, Google may use what you send to improve its products, and people may review it. Don’t say or open anything you want to keep private.", comment: "Voice consent: Google's free-tier data use"))
-            case .vertex:
-                point("building.columns", Text("On Vertex AI, your Google Cloud agreement decides how Google may use what you send.", comment: "Voice consent: data use on Vertex AI"))
-            }
-            point("creditcard", Text("Every connected minute is billed to your key, or counts against its free quota. \(limitText)", comment: "Voice consent; the placeholder is the cost-guard sentence"))
-            Link(destination: termsURL) {
-                Label("Google’s terms for this service", systemImage: "arrow.up.right.square")
-                    .font(.subheadline.weight(.semibold))
-            }
-            .accessibilityIdentifier("voiceTermsLink")
-        }
-    }
-
-    private var termsURL: URL {
-        switch provider {
-        case .aiStudio: URL(string: "https://ai.google.dev/gemini-api/terms")!
-        case .vertex: URL(string: "https://cloud.google.com/terms/service-terms")!
-        }
-    }
-
-    private var limitText: String {
-        let session = settings.sessionLimitMinutes
-        let day = settings.dailyLimitMinutes
-        switch (session > 0, day > 0) {
-        case (true, true):
-            return String(localized: "A session ends after \(session) minutes, and voice stops for the day after \(day) minutes. You can change this in Settings › Voice.", comment: "Voice cost guard; the placeholders are minutes")
-        case (true, false):
-            return String(localized: "A session ends after \(session) minutes. You can change this in Settings › Voice.", comment: "Voice cost guard; the placeholder is minutes")
-        case (false, true):
-            return String(localized: "Voice stops for the day after \(day) minutes. You can change this in Settings › Voice.", comment: "Voice cost guard; the placeholder is minutes")
-        case (false, false):
-            return String(localized: "There is no time limit. You can set one in Settings › Voice.", comment: "Voice cost guard is off")
-        }
-    }
-
-    private func point(_ symbol: String, _ text: Text) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: DCTheme.spacingM) {
-            Image(systemName: symbol)
-                .foregroundStyle(DCTheme.brandBlue)
-                .frame(width: 24)
-                .accessibilityHidden(true)
-            text
-                .font(.subheadline)
-                .fixedSize(horizontal: false, vertical: true)
-        }
     }
 }
 
@@ -295,18 +143,6 @@ struct VoiceSessionBar: View {
             .allowsHitTesting(voice.audioEngine != nil)
             .accessibilityHint(Text("Shows the audio health", comment: "Accessibility hint of the voice bar's state"))
             .padding(.leading, DCTheme.spacingM)
-
-            if !session.lastModelText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                Button {
-                    DCHaptics.tap()
-                    voice.reportCurrentAnswer()
-                } label: {
-                    Image(systemName: "flag")
-                }
-                .buttonStyle(DCIconButtonStyle())
-                .accessibilityLabel(Text("Report answer", comment: "Title of the form that reports an AI answer"))
-                .accessibilityIdentifier("voiceReport")
-            }
 
             if session.state.isOver {
                 VoiceBarCloseButton(action: voice.dismiss)
@@ -656,22 +492,6 @@ struct SettingsVoicePage: View {
                 Text("Time limit")
             } footer: {
                 Text("Every connected minute is billed to your key. At a limit, voice finishes its answer and ends. Minutes are counted on this device.")
-            }
-
-            if let provider = app.voiceProvider ?? providers.first {
-                Section {
-                    VoiceDisclosure(provider: provider, settings: app.settings.voice)
-                        .padding(.vertical, DCTheme.spacingXS)
-                    ForEach(VoiceProvider.allCases.filter { VoiceConsent.isGranted($0, in: app.settings) }) { granted in
-                        Button(role: .destructive) {
-                            app.revokeVoiceConsent(granted)
-                        } label: {
-                            Text("Withdraw consent for \(granted.displayName)", comment: "Settings › Voice; the placeholder is Google AI Studio or Google Vertex AI")
-                        }
-                    }
-                } header: {
-                    Text("Privacy")
-                }
             }
         }
         .formStyle(.grouped)

@@ -89,9 +89,9 @@ struct ForumindApp: App {
     }
 }
 
-/// ContentView plus the app-level hooks. The walkthrough, Terms of Use,
-/// provider setup and Settings presentations go through the presentation
-/// router (PresentationRouter.swift), which ContentView hosts.
+/// ContentView plus the app-level hooks. The walkthrough, provider setup and
+/// Settings presentations go through the presentation router
+/// (PresentationRouter.swift), which ContentView hosts.
 private struct RootView: View {
     @ObservedObject var app: AppModel
     @ObservedObject var router: PresentationRouter
@@ -105,9 +105,6 @@ private struct RootView: View {
         ContentView(app: app)
             .environment(\.replayOnboarding, ReplayOnboardingAction { app.replayOnboarding() })
             .onChange(of: app.settings.hasCompletedOnboarding) {
-                app.presentProviderSetupIfNeeded()
-            }
-            .onChange(of: app.settings.acceptedTermsVersion) {
                 app.presentProviderSetupIfNeeded()
             }
             .onChange(of: app.needsProviderSetup) { app.presentProviderSetupIfNeeded() }

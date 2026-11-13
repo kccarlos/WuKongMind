@@ -40,17 +40,6 @@ final class RawTopicFormatTests: XCTestCase {
         )
     }
 
-    func testModerationHidesABlockedAuthorsBlockExactly() {
-        let text = rendered()
-        let rules = ModerationRules(blockedUsers: ["https://example.com": ["bob_smith"]])
-        let filtered = ModerationFilter.filter(text, siteURL: "https://example.com", topicID: "1", rules: rules)
-        let expected = RawTopicFormat.render([
-            (block(1, "alice"), "Opening post. "),
-            (block(3, "alice"), "Alice again. ")
-        ])
-        XCTAssertEqual(filtered, expected)
-    }
-
     func testChunksCutOnlyAtBlockBoundaries() {
         let text = RawTopicFormat.join((1...6).map { page in
             RawTopicFormat.render([(block(page, "alice"), String(repeating: "x", count: 380))])

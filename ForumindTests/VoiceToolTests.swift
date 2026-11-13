@@ -3,8 +3,8 @@ import XCTest
 
 /// The voice tools on the navigation layer: arguments mapped to the
 /// navigator, results turned into function responses with a `message`,
-/// routing in code, the silent context's notes, the instructions, the
-/// settings and the consent gate.
+/// routing in code, the silent context's notes, the instructions and the
+/// settings.
 @MainActor
 final class VoiceToolTests: XCTestCase {
     // MARK: Mapping
@@ -72,11 +72,10 @@ final class VoiceToolTests: XCTestCase {
         XCTAssertTrue(hits["message"]?.stringValue?.contains("call open with its card number now") ?? false)
         XCTAssertNil(hits["content"])
 
-        for status: BrowseResult.Status in [.notFound, .unavailable, .failed, .hidden, .emptyList] {
+        for status: BrowseResult.Status in [.notFound, .unavailable, .failed, .emptyList] {
             let message = VoiceToolBridge.message(for: BrowseResult(status: status, shown: "x"), tool: .move, eyesFree: false)
             XCTAssertTrue(message.contains("Tell the user that instead") && message.contains("don't retry"), "\(status)")
         }
-        XCTAssertTrue(VoiceToolBridge.message(for: .init(status: .hidden, shown: ""), tool: .read, eyesFree: false).contains("never guess"))
         XCTAssertTrue(VoiceToolBridge.message(for: .init(status: .noSolution, shown: ""), tool: .open, eyesFree: false).contains("no accepted answer"))
     }
 
@@ -161,7 +160,7 @@ final class VoiceToolTests: XCTestCase {
         let note = try XCTUnwrap(context.fullTextNote(result, topicKey: "k", number: 5))
         XCTAssertLessThan(note.count, BrowseText.contentLimit + 200)
         XCTAssertTrue(context.hasFullText(topicKey: "k", number: 5))
-        XCTAssertNil(context.fullTextNote(BrowseResult(status: .hidden, shown: "x"), topicKey: "k", number: 6))
+        XCTAssertNil(context.fullTextNote(BrowseResult(status: .notFound, shown: "x"), topicKey: "k", number: 6))
     }
 
     // MARK: Instructions
@@ -267,7 +266,7 @@ final class VoiceToolTests: XCTestCase {
         XCTAssertEqual(SiteRegistry.standard.voiceFallback.profile, .neutral)
     }
 
-    // MARK: Settings and consent
+    // MARK: Settings and provider availability
 
     func testVoiceSettingsDecodeEachFieldOnItsOwnAndStayOnTheDevice() throws {
         let decoded = try JSONDecoder().decode(VoiceSettings.self, from: Data(#"{"answerLength":"loud","idleTimeout":5,"voiceName":"Puck"}"#.utf8))
@@ -279,16 +278,15 @@ final class VoiceToolTests: XCTestCase {
 
         let old = try JSONDecoder().decode(AppSettings.self, from: Data("{}".utf8))
         XCTAssertFalse(old.voiceEnabled)
-        XCTAssertTrue(old.voiceConsent.isEmpty)
         XCTAssertEqual(old.voice, VoiceSettings())
-        XCTAssertTrue(SyncSettings.deviceLocalKeys.isSuperset(of: ["voiceEnabled", "voiceConsent"]))
+        XCTAssertTrue(SyncSettings.deviceLocalKeys.contains("voiceEnabled"))
         XCTAssertFalse(SyncSettings.deviceLocalKeys.contains("voice"), "Preferences sync")
         XCTAssertTrue(VoiceEyesFree.auto.isActive(headphones: true))
         XCTAssertFalse(VoiceEyesFree.auto.isActive(headphones: false))
         XCTAssertFalse(VoiceEyesFree.off.isActive(headphones: true))
     }
 
-    func testConsentGateAndProviderAvailability() throws {
+    func testProviderAvailabilityAndEndpointResolution() throws {
         let app = makeApp()
         XCTAssertEqual(app.voiceConfiguration().failureValue, .disabled)
         app.settings.voiceEnabled = true
@@ -297,13 +295,8 @@ final class VoiceToolTests: XCTestCase {
         gemini.apiKey = "test-key"
         app.settings.setConfiguration(gemini, for: .gemini)
         XCTAssertEqual(app.availableVoiceProviders, [.aiStudio])
-        XCTAssertEqual(app.voiceConfiguration().failureValue, .noConsent)
-        XCTAssertFalse(VoiceConsent.isGranted(.aiStudio, in: app.settings))
-
-        app.grantVoiceConsent(.aiStudio)
         let configuration = try app.voiceConfiguration().get()
         XCTAssertEqual(configuration.endpoint, .aiStudio)
-        XCTAssertTrue(configuration.hasConsent)
         // Vertex is chosen but has no key: AI Studio is used.
         app.settings.voice.provider = .vertex
         XCTAssertEqual(try app.voiceConfiguration().get().endpoint, .aiStudio)
@@ -311,16 +304,12 @@ final class VoiceToolTests: XCTestCase {
         var vertex = app.settings.configuration(for: .vertexAI)
         vertex.apiKey = "vertex-key"
         app.settings.setConfiguration(vertex, for: .vertexAI)
-        XCTAssertEqual(app.voiceConfiguration().failureValue, .noConsent, "Consent is per provider")
-        app.grantVoiceConsent(.vertex)
         XCTAssertEqual(app.voiceConfiguration().failureValue, .noVertexProject, "Express mode has no project")
         app.settings.voice.vertexProject = "my-project"
         XCTAssertEqual(try app.voiceConfiguration().get().endpoint, .vertex(project: "my-project", location: "us-central1"))
         vertex.baseURL = "https://aiplatform.googleapis.com/v1/projects/from-url/locations/global"
         app.settings.setConfiguration(vertex, for: .vertexAI)
         XCTAssertEqual(try app.voiceConfiguration().get().endpoint, .vertex(project: "from-url", location: "us-central1"))
-        app.revokeVoiceConsent(.vertex)
-        XCTAssertEqual(app.voiceConfiguration().failureValue, .noConsent)
     }
 
     // MARK: Through AppModel

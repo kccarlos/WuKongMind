@@ -26,8 +26,7 @@ import SwiftUI
 // - `pageChanges`              page context changes, debounced
 //
 // AppModel and `browseCursor` own this state; every action returns a
-// `BrowseResult` (BrowseCursor.swift). Moderation applies throughout: a post
-// hidden by the user's blocks or filters is never opened, listed or read.
+// `BrowseResult` (BrowseCursor.swift).
 
 /// What `openTopic` opens.
 enum BrowseTarget: Equatable {
@@ -180,23 +179,11 @@ extension AppModel {
                 : "Opened \(quoted(title))."
             return BrowseResult(status: plan.status, shown: shown)
         }
-        if hidesPost(number, in: ref, username: facts?.posts.first { $0.number == number }?.username) {
-            return BrowseResult(status: .hidden, shown: "Post \(number) is hidden by your blocks or filters.")
-        }
-        switch await show(post: number, in: ref, url: plan.url) {
-        case .hidden:
-            return BrowseResult(status: .hidden, shown: "Post \(number) is hidden by your blocks or filters.")
-        case .shown, .missing, .unavailable:
-            break
-        }
+        _ = await show(post: number, in: ref, url: plan.url)
         guard includeContent else {
             return BrowseResult(status: plan.status, shown: "Opened \(quoted(title)) at post \(number).")
         }
-        let post = await postText(number, in: ref, facts: facts)
-        if case .hidden = post {
-            return BrowseResult(status: .hidden, shown: "Post \(number) is hidden by your blocks or filters.")
-        }
-        let text = post.text
+        let text = await postText(number, in: ref, facts: facts)
         let shown = BrowseText.postDescription(
             number: number,
             total: facts?.postsCount ?? facts?.highestPostNumber,
@@ -215,7 +202,6 @@ extension AppModel {
     /// the post (loading it first when it is outside the loaded range) and
     /// strokes it once.
     func jumpToCitation(_ number: Int) {
-        if let ref = currentTopicRef, hidesPost(number, in: ref) { return }
         if router.drawerPhase == .shown, router.drawerDetent == .large {
             withAnimation(DCMotion.respecting(UIAccessibility.isReduceMotionEnabled, DCMotion.smooth)) {
                 router.drawerDetent = .medium
@@ -248,7 +234,6 @@ extension AppModel {
         let onPage = pageContext.state == .topic && pageContext.topic?.topicKey == ref.topicKey
         if onPage {
             let outcome = await browser.scrollToPost(number, anchor: postAnchor(number, topicKey: ref.topicKey))
-            if outcome == .hidden { return .hidden }
             browser.highlightAfterLoad([number], topicID: ref.topicID)
             if outcome == .shown {
                 browser.hideForumsHome()
@@ -299,8 +284,7 @@ extension AppModel {
             return BrowseResult(status: .focused, shown: "Showing all of \(quoted(title)).")
 
         case .posts(let numbers):
-            let rules = topicModerationRules(siteURL: ref.siteURL, topicID: ref.topicID)
-            let wanted = numbers.filter { $0 >= 1 && !hidesPost($0, in: ref, rules: rules) }
+            let wanted = numbers.filter { $0 >= 1 }
             guard let first = wanted.first else {
                 return BrowseResult(status: .notFound, shown: "None of those posts can be shown.")
             }
@@ -319,22 +303,15 @@ extension AppModel {
             guard let filters = adapter(for: ref.siteURL)?.capabilities.topicFilters else {
                 return BrowseResult(status: .unavailable, shown: "This forum can't narrow a topic.")
             }
-            let rules = aiModerationRules
             let filter: TopicFilter
             let label: String
             switch focus {
             case .user(let name):
-                if rules.hidesUser(name, siteURL: ref.siteURL) {
-                    return BrowseResult(status: .hidden, shown: "Posts by \(name) are hidden by your blocks or filters.")
-                }
                 filter = .author(name)
                 label = "posts by \(name)"
             case .op:
                 guard let poster = overview?.facts?.openingPoster else {
                     return BrowseResult(status: .unavailable, shown: "The opening poster isn't known.")
-                }
-                if rules.hidesUser(poster, siteURL: ref.siteURL) || rules.hidesPost(1, siteURL: ref.siteURL, topicID: ref.topicID) {
-                    return BrowseResult(status: .hidden, shown: "Posts by \(poster) are hidden by your blocks or filters.")
                 }
                 filter = .author(poster)
                 label = "posts by the opening poster, \(poster)"
@@ -354,10 +331,7 @@ extension AppModel {
                 filter: filter,
                 net: await network(for: ref.siteURL, pace: settings.forumRequestPace)
             )
-            let posts = (filtered?.facts?.posts ?? []).filter {
-                !rules.hidesUser($0.username, siteURL: ref.siteURL)
-                    && !rules.hidesPost($0.number, siteURL: ref.siteURL, topicID: ref.topicID)
-            }
+            let posts = filtered?.facts?.posts ?? []
             let items = posts.map {
                 BrowseItem(
                     kind: .post, siteURL: ref.siteURL, topicID: ref.topicID, slug: slug,
@@ -370,7 +344,7 @@ extension AppModel {
             }
             var content: String?
             if let facts = filtered?.facts,
-               case .shown(let text) = await postText(first.number, in: ref, facts: facts) {
+               let text = await postText(first.number, in: ref, facts: facts) {
                 content = BrowseText.content(of: text)
             }
             return BrowseResult(
@@ -414,8 +388,7 @@ extension AppModel {
         } catch {
             return BrowseResult(status: .failed, shown: "The search didn't go through: \(error.localizedDescription)")
         }
-        let hits = moderatedSiteQueryResult(results, siteURL: siteURL).hits
-        let items = hits.prefix(Self.browseListLimit).map(BrowseItem.init(hit:))
+        let items = results.hits.prefix(Self.browseListLimit).map(BrowseItem.init(hit:))
         browseCursor.replace(with: Array(items), origin: .search(trimmed))
         // New cards: bring the bar back so they show expanded.
         browser.expandChrome()
@@ -505,9 +478,6 @@ extension AppModel {
     private func openFiltered(_ item: BrowseItem, number: Int) async -> BrowseResult {
         let ref = BrowseTopicRef(siteURL: item.siteURL, topicID: item.topicID, slug: item.slug, title: item.title)
         let outcome = await browser.scrollToPost(number)
-        if outcome == .hidden {
-            return BrowseResult(status: .hidden, shown: "Post \(number) is hidden by your blocks or filters.")
-        }
         if outcome == .shown {
             browser.hideForumsHome()
             homeVisibilityChanged()
@@ -525,10 +495,10 @@ extension AppModel {
         let shown = BrowseText.postDescription(
             number: number,
             total: facts?.postsCount,
-            username: post.text?.username ?? item.username,
+            username: post?.username ?? item.username,
             acceptedAnswer: facts?.acceptedAnswer?.postNumber
         )
-        return BrowseResult(status: .opened, shown: shown, content: post.text.map(BrowseText.content(of:)))
+        return BrowseResult(status: .opened, shown: shown, content: post.map(BrowseText.content(of:)))
     }
 
     /// The browser's back and forward.
@@ -561,62 +531,38 @@ extension AppModel {
         } else {
             facts = await topicOverview(siteURL: ref.siteURL, topicID: ref.topicID)?.facts
         }
-        switch await postText(number, in: ref, facts: facts) {
-        case .shown(let text):
-            return BrowseResult(
-                status: .read,
-                shown: BrowseText.postDescription(
-                    number: number,
-                    total: facts?.postsCount,
-                    username: text.username,
-                    acceptedAnswer: facts?.acceptedAnswer?.postNumber
-                ),
-                content: BrowseText.content(of: text)
-            )
-        case .hidden:
-            return BrowseResult(status: .hidden, shown: "Post \(number) is hidden by your blocks or filters.")
-        case .missing:
+        guard let text = await postText(number, in: ref, facts: facts) else {
             return BrowseResult(status: .notFound, shown: "Post \(number) couldn't be read.")
         }
-    }
-
-    enum PostTextLookup: Equatable {
-        case shown(BrowsePostText)
-        case hidden
-        case missing
-
-        var text: BrowsePostText? {
-            if case .shown(let text) = self { return text }
-            return nil
-        }
+        return BrowseResult(
+            status: .read,
+            shown: BrowseText.postDescription(
+                number: number,
+                total: facts?.postsCount,
+                username: text.username,
+                acceptedAnswer: facts?.acceptedAnswer?.postNumber
+            ),
+            content: BrowseText.content(of: text)
+        )
     }
 
     /// A post's text: from the page when it is rendered there, else from
-    /// `/posts.json` (with the topic's facts for the post id). Moderation is
-    /// checked again on the text itself.
-    func postText(_ number: Int, in ref: BrowseTopicRef, facts: TopicFacts?) async -> PostTextLookup {
-        let rules = topicModerationRules(siteURL: ref.siteURL, topicID: ref.topicID, facts: facts)
-        if rules.hidesPost(number, siteURL: ref.siteURL, topicID: ref.topicID) { return .hidden }
-        var post: BrowsePostText?
-        if pageContext.topic?.topicKey == ref.topicKey {
-            post = await browser.postText(number)
+    /// `/posts.json` (with the topic's facts for the post id).
+    func postText(_ number: Int, in ref: BrowseTopicRef, facts: TopicFacts?) async -> BrowsePostText? {
+        if pageContext.topic?.topicKey == ref.topicKey,
+           let post = await browser.postText(number) {
+            return post
         }
-        if post == nil, let facts, let lookup = adapter(for: ref.siteURL)?.capabilities.postLookup {
-            if let fetched = (try? await lookup.posts(
-                [number],
-                in: TopicRef(siteURL: ref.siteURL, topicID: ref.topicID),
-                facts: facts,
-                net: await network(for: ref.siteURL, pace: settings.forumRequestPace)
-            ))?.first {
-                let identity = adapter(for: ref.siteURL)?.capabilities.postIdentity ?? .number
-                if browser.moderationRules.hidesPost(identity.id(number: fetched.number, nativeID: fetched.id),
-                    siteURL: ref.siteURL, topicID: ref.topicID) { return .hidden }
-                post = BrowsePostText(number: fetched.number, username: fetched.username, text: fetched.text)
-            }
+        if let facts, let lookup = adapter(for: ref.siteURL)?.capabilities.postLookup,
+           let fetched = (try? await lookup.posts(
+               [number],
+               in: TopicRef(siteURL: ref.siteURL, topicID: ref.topicID),
+               facts: facts,
+               net: await network(for: ref.siteURL, pace: settings.forumRequestPace)
+           ))?.first {
+            return BrowsePostText(number: fetched.number, username: fetched.username, text: fetched.text)
         }
-        guard let post else { return .missing }
-        if rules.hidesUser(post.username, siteURL: ref.siteURL) || rules.hidesText(post.text) { return .hidden }
-        return .shown(post)
+        return nil
     }
 
     // MARK: Research
@@ -686,22 +632,14 @@ extension AppModel {
 
     var isResearching: Bool { researchTask != nil }
 
-    /// Agent sources as current-list items, without hidden posts.
+    /// Agent sources as current-list items.
     func sourceItems(_ sources: [AgentSources.Source], siteURL: String) -> [BrowseItem] {
-        let rules = aiModerationRules
         guard let adapter = adapter(for: siteURL) else { return [] }
-        return sources.compactMap { source -> BrowseItem? in
-            guard let item = BrowseItem(source: source, siteURL: siteURL, adapter: adapter) else { return nil }
-            if let anchor = source.url.fragment, let id = adapter.capabilities.postIdentity.id(anchor: anchor),
-               browser.moderationRules.hidesPost(id, siteURL: siteURL, topicID: item.topicID) { return nil }
-            return item
-        }
-            .filter { item in
-                !(item.postNumber.map { rules.hidesPost($0, siteURL: siteURL, topicID: item.topicID) } ?? false)
-                    && !rules.hidesText(item.title)
-            }
-            .prefix(Self.browseListLimit)
-            .map { $0 }
+        return Array(
+            sources
+                .compactMap { BrowseItem(source: $0, siteURL: siteURL, adapter: adapter) }
+                .prefix(Self.browseListLimit)
+        )
     }
 
     // MARK: Typed paths
@@ -799,7 +737,7 @@ extension AppModel {
         }
         guard let overview = topicOverviews[topicKey],
               let post = overview.facts?.posts.first(where: { $0.number == number }) else { return nil }
-        return adapter(for: overview.siteURL)?.capabilities.postIdentity.anchor(number: number, nativeID: post.id)
+        return adapter(for: overview.siteURL)?.links.postAnchor(number: number, id: post.id)
     }
 
     // MARK: Helpers
@@ -850,16 +788,6 @@ extension AppModel {
             title: ref.title ?? "",
             username: facts?.posts.first { $0.number == number }?.username
         )
-    }
-
-    private func hidesPost(_ number: Int, in ref: BrowseTopicRef, username: String? = nil, rules: ModerationRules? = nil) -> Bool {
-        let rules = rules ?? topicModerationRules(siteURL: ref.siteURL, topicID: ref.topicID)
-        if rules.hidesPost(number, siteURL: ref.siteURL, topicID: ref.topicID) { return true }
-        let resolvedUser = username
-            ?? topicOverviews[ref.topicKey]?.facts?.posts.first(where: { $0.number == number })?.username
-            ?? sessions[ref.topicKey]?.rawPages.lazy.flatMap(\.blocks).first(where: { $0.number == number })?.author
-        if let resolvedUser, rules.hidesUser(resolvedUser, siteURL: ref.siteURL) { return true }
-        return false
     }
 
     private func quoted(_ title: String?) -> String {

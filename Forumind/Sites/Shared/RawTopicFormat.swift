@@ -7,8 +7,8 @@ import Foundation
 /// - pages are joined with `blockSeparator` too;
 /// - no post contains `blockSeparator`.
 ///
-/// Prompts state this format, `ModerationFilter` hides posts by it and
-/// `PromptBuilder.splitForHierarchicalSummary` cuts at the separator.
+/// Prompts state this format and `PromptBuilder.splitForHierarchicalSummary`
+/// cuts at the separator.
 enum RawTopicFormat {
     static let blockSeparator = "\n\n\n"
 

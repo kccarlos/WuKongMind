@@ -38,7 +38,6 @@ final class WordPressAgentRunTests: XCTestCase {
             planner: planner
         )
         app.usesDirectForumRequests = true
-        app.allowAllAIProviders()
         var provider = app.settings.configuration(for: .ollama)
         provider.apiKey = ""
         app.setConfiguration(provider, for: .ollama)
@@ -171,11 +170,11 @@ final class WordPressAgentRunTests: XCTestCase {
         let harness = makeHarness(actions: [])
         let ref = BrowseTopicRef(siteURL: site, topicID: "1001")
         let lookup = await harness.app.postText(102, in: ref, facts: TopicFacts(postsCount: 251, highestPostNumber: 251))
-        XCTAssertEqual(lookup.text?.number, 102)
-        XCTAssertEqual(lookup.text?.username, "user101")
-        XCTAssertEqual(lookup.text?.text, "Comment number 101 … worth it?")
+        XCTAssertEqual(lookup?.number, 102)
+        XCTAssertEqual(lookup?.username, "user101")
+        XCTAssertEqual(lookup?.text, "Comment number 101 … worth it?")
         let missing = await harness.app.postText(400, in: ref, facts: TopicFacts(postsCount: 251, highestPostNumber: 251))
-        XCTAssertEqual(missing, .missing)
+        XCTAssertNil(missing)
     }
 
     func testADiscourseRunCannotAskForSearchComments() async throws {

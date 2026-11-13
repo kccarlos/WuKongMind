@@ -101,35 +101,6 @@ final class DailyDigestTests: XCTestCase {
         XCTAssertEqual(makeHarness().app.url(for: cards[0], atPost: 4).absoluteString, "\(site)/t/fresh/2/4")
     }
 
-    func testTrendingModerationUsesListingAndCachedOpeningAuthorsAcrossSites() throws {
-        for siteURL in [site, "https://wordpress.example.org", "https://news.ycombinator.com"] {
-            var fromListing = listing(siteURL, 1)
-            fromListing.author = "alice"
-            let fromOverview = listing(siteURL, 2)
-            let hiddenPost = listing(siteURL, 3)
-            let visible = listing(siteURL, 4)
-            let key = TopicIdentity.key(siteURL: siteURL, topicID: "2")
-            let overview = ForumTopicOverview(
-                siteURL: siteURL, topicID: "2", title: fromOverview.title, slug: "",
-                url: fromOverview.url, postCount: 2,
-                facts: TopicFacts(postsCount: 2, posts: [.init(id: 20, number: 1, username: "alice")])
-            )
-            // Prefetched before a block, then persisted and loaded after it.
-            let encoded = try JSONEncoder().encode(DigestTopicFacts(overview: overview))
-            let cached = try JSONDecoder().decode(DigestTopicFacts.self, from: encoded)
-            let rules = ModerationRules(blockedUsers: [siteURL: ["alice"]], hiddenPosts: ["\(siteURL)|3": [1]])
-            let cards = DigestPlanner.plan(
-                watched: [], baselines: [:],
-                trending: [(siteURL, [fromListing, fromOverview, hiddenPost, visible])],
-                facts: [key: cached], options: .init(), rules: rules, slug: slug
-            )
-            XCTAssertEqual(cards.map(\.topicID), ["4"], siteURL)
-        }
-        // Previously saved prefetches have no author key.
-        let legacy = try JSONDecoder().decode(DigestTopicFacts.self, from: Data(#"{"title":"Old","slug":"old","postCount":2}"#.utf8))
-        XCTAssertNil(legacy.openingPoster)
-    }
-
     // MARK: Background prefetch
 
     func testPrefetchStopsAtTheRequestCap() async throws {
@@ -331,28 +302,6 @@ final class DailyDigestTests: XCTestCase {
         // Removing the forum with its data removes its cards.
         app.removeForum(try XCTUnwrap(app.forum(for: site)), deleteData: true)
         XCTAssertEqual(app.todaysDigest?.cards, [])
-    }
-
-    func testReplacingDigestRegeneratesSummariesFromBeforeTheLatestBlock() async throws {
-        StateForumStub.lists["forum.example.com/top.json"] = topicList([21])
-        let harness = makeHarness(snapshot: AppSnapshot(forums: [pinned(site)]))
-        harness.ai.gated = false
-        harness.ai.echoContentInSummary = true
-        let app = harness.app
-        connect(app)
-        app.makeTodaysDigest()
-        try await waitUntil { app.todaysDigest?.isComplete == true && app.digestActivity == .idle }
-        let original = try XCTUnwrap(app.todaysDigest)
-        XCTAssertTrue(original.cards[0].summary.contains("Post 2"))
-
-        app.blockPost(2, topicID: "21", on: site)
-        app.makeTodaysDigest(replacing: true)
-        try await waitUntil { app.todaysDigest?.id != original.id && app.todaysDigest?.isComplete == true && app.digestActivity == .idle }
-
-        XCTAssertEqual(harness.ai.calls.count, 2)
-        XCTAssertEqual(app.todaysDigest?.cards.first?.source, .topic)
-        XCTAssertFalse(app.todaysDigest?.cards.first?.summary.contains("Post 2") == true)
-        XCTAssertFalse(harness.ai.calls.last?.content.contains("Post 2") == true)
     }
 
     func testWithoutAProviderNothingStarts() async throws {
@@ -565,8 +514,6 @@ final class DailyDigestTests: XCTestCase {
         )
         app.usesDirectForumRequests = true
         app.browser.onPageContextChanged = nil
-        // Consent has its own tests (AIDataConsentTests).
-        app.allowAllAIProviders()
         addTeardownBlock { @MainActor in
             app.pauseDigest()
             ai.gated = false

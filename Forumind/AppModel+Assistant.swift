@@ -262,7 +262,6 @@ struct AssistantDebugSeed {
 /// - `-dc-no-summary`                  the open topic has no summary yet
 /// - `-dc-fake-summary`                Create summary streams the sample summary (no network, no AI)
 /// - `-dc-fake-summary-fails`          with `-dc-fake-summary`: the first run fails, Retry works
-/// - `-dc-ask-ai-consent`              no AI data consent yet: the consent page comes first
 /// - `-dc-scroll-sources`              Agent: scrolls to the answer's sources
 /// - `-dc-history-segment <segment>`   History: all | summaries | asks | watching
 /// - `-dc-chat-typing`                 with `-dc-chat-streaming`: no text yet (typing dots)
@@ -615,13 +614,6 @@ extension AppModel {
             var configuration = sampleSettings.configuration(for: sampleAgent.provider)
             configuration.apiKey = AssistantDebug.has("-dc-no-agent-key") || AssistantDebug.has("-dc-no-provider") ? "" : "sample-key"
             sampleSettings.setConfiguration(configuration, for: sampleAgent.provider)
-        }
-        // The sample has agreed to send forum content, unless a test checks
-        // the consent page.
-        if !AssistantDebug.has("-dc-ask-ai-consent") {
-            for provider in AIProvider.allCases where provider.requiresDataConsent {
-                sampleSettings.aiConsent[provider.rawValue] = .allowed(now)
-            }
         }
         if sampleAgent != ModelSelection(provider: sampleProvider, model: sampleModel) {
             sampleSettings.favoriteModels = [ModelSelection(provider: sampleProvider, model: sampleModel), sampleAgent]

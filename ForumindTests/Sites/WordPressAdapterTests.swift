@@ -389,18 +389,6 @@ final class WordPressAdapterTests: XCTestCase {
         XCTAssertNil(WordPressParsing.date(gmt: ""))
     }
 
-    func testTheTextSurvivesModerationAndTheChunker() async throws {
-        let site = WordPressFixtureSite(comments: [
-            WordPressFixtureSite.comment(1, author: "bob"), WordPressFixtureSite.comment(2, parent: 5001, author: "carol")
-        ])
-        let result = try await read(site)
-        let rules = ModerationRules(blockedUsers: [siteURL: ["bob"]])
-        let filtered = ModerationFilter.filter(result.content, siteURL: siteURL, topicID: "1001", rules: rules)
-        XCTAssertFalse(filtered.contains("bob | "))
-        XCTAssertTrue(filtered.contains("carol | "))
-        XCTAssertTrue(filtered.contains("[Reply to #2]"), "a reply to a hidden comment keeps naming it")
-    }
-
     // MARK: Overview
 
     func testOverviewReadsTheTitleLinkAndCommentCount() async throws {

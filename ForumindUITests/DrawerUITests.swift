@@ -17,24 +17,6 @@ final class DrawerUITests: DCUITestCase {
         add(attachment)
     }
 
-    func testNativeAssistantMenuKeepsReportReachable() throws {
-        try skipUnlessPhone("Drawer variants")
-        let app = launch(sample)
-        XCTAssertTrue(drawerState(in: app).waitForExistence(timeout: 20))
-        captureAuditScreen("drawer-summary-medium", in: app)
-        app.buttons["assistantMoreMenu"].tap()
-        let report = app.buttons["Report This Summary…"].firstMatch
-        XCTAssertTrue(report.waitForExistence(timeout: 5))
-        captureAuditScreen("more-menu", in: app)
-        let menu = app.collectionViews.firstMatch
-        XCTAssertTrue(menu.waitForExistence(timeout: 5))
-        let start = menu.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.25))
-        let end = menu.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
-        start.press(forDuration: 0.1, thenDragTo: end)
-        XCTAssertTrue(waitForHittable(report), "Native menus must scroll to their final actions")
-        captureAuditScreen("more-menu-scrolled", in: app)
-    }
-
     func testFirstRunHintHasAnOpaqueReadingSurface() throws {
         try skipUnlessPhone("Drawer hint surface")
         let server = FixtureWordPressServer()
@@ -456,15 +438,6 @@ final class DrawerUITests: DCUITestCase {
         XCTAssertTrue(alert.staticTexts["Test error"].exists)
         alert.buttons["OK"].tap()
         XCTAssertTrue(drawerState(in: app).waitForExistence(timeout: 10), "The drawer did not come up.")
-    }
-
-    /// Report or block (a routed sheet).
-    func testReportSheetShowsOverTheDrawer() throws {
-        let app = try launchWithDrawer(presenting: "report", at: "large")
-        let sheet = app.navigationBars["Report or block"]
-        XCTAssertTrue(waitOrDump(sheet, timeout: 20, in: app), "The report sheet did not show over the drawer.")
-        sheet.buttons["Done"].tap()
-        assertDrawer(at: "large", in: app, after: sheet)
     }
 
     /// Two heights, no peek: the AI button opens the drawer at medium and a

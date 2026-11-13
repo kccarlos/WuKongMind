@@ -1,9 +1,9 @@
 import SwiftUI
 
 // The podcast UI: the Today page's podcast section (Make, Play and the row
-// that opens Now Playing, NowPlaying.swift), the consent sheet for Google's voices, the
-// read-aloud button, and the podcast part of Settings › Daily digest. The
-// logic is in Podcast/PodcastController.swift.
+// that opens Now Playing, NowPlaying.swift), the read-aloud button, and the
+// podcast part of Settings › Daily digest. The logic is in
+// Podcast/PodcastController.swift.
 
 // MARK: - Today page
 
@@ -49,7 +49,7 @@ struct PodcastTodaySection: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
-            if podcast.engineSelection(interactive: true) == .needsKey {
+            if podcast.engineSelection() == .needsKey {
                 Button {
                     DCHaptics.tap()
                     app.requestedSettingsPage = .provider
@@ -105,8 +105,8 @@ struct PodcastTodaySection: View {
         }
         let script = String(localized: "Each chapter is one request to your AI provider (\(app.providerSummary(for: .assistant))).", comment: "Today page: what making the podcast's script costs; the placeholder is the provider and model")
         let voices: String
-        switch podcast.engineSelection(interactive: true) {
-        case .engine(.aiStudio), .engine(.vertex), .needsConsent:
+        switch podcast.engineSelection() {
+        case .engine(.aiStudio), .engine(.vertex):
             voices = String(localized: "Google’s voices read it with your key.", comment: "Today page: the podcast is spoken by Gemini text-to-speech, billed to the user's key")
         case .needsKey:
             voices = String(localized: "Google’s voices need a Google Gemini or Vertex AI key.", comment: "Today page: Google voices are chosen without a saved key")
@@ -188,104 +188,6 @@ struct ReadAloudButton: View {
     }
 }
 
-// MARK: - Consent (App Review 5.1.2)
-
-/// Asked once per provider before the first Google-voiced episode or
-/// read-aloud: the script text (not audio) goes to Google with the user's
-/// key.
-struct PodcastConsentSheet: View {
-    let provider: VoiceProvider
-    let onAgree: () -> Void
-    let onDeviceVoices: () -> Void
-    let onCancel: () -> Void
-
-    var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: DCTheme.spacingL) {
-                    Image(systemName: "headphones.circle.fill")
-                        .font(.system(size: 52))
-                        .foregroundStyle(DigestStyle.tint.gradient)
-                        .accessibilityHidden(true)
-                    Text("The podcast uses Google’s voices")
-                        .font(.title2.weight(.bold))
-                    PodcastDisclosure(provider: provider)
-                }
-                .padding(DCTheme.spacingXL)
-                .frame(maxWidth: DCTheme.contentMaxWidth, alignment: .leading)
-                .frame(maxWidth: .infinity)
-            }
-            .safeAreaInset(edge: .bottom) {
-                VStack(spacing: DCTheme.spacingS) {
-                    Button(action: onAgree) {
-                        Text("Agree and Continue")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(DCPrimaryButtonStyle())
-                    .accessibilityIdentifier("podcastConsentAgree")
-                    Button(action: onDeviceVoices) {
-                        Text("Use This Device’s Voices")
-                            .frame(maxWidth: .infinity, minHeight: DCTheme.controlHeight)
-                    }
-                    .accessibilityIdentifier("podcastConsentOnDevice")
-                }
-                .padding(.horizontal, DCTheme.spacingXL)
-                .padding(.vertical, DCTheme.spacingM)
-                .frame(maxWidth: DCTheme.contentMaxWidth)
-                .frame(maxWidth: .infinity)
-                .background(.bar)
-            }
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel", action: onCancel)
-                }
-            }
-        }
-        .interactiveDismissDisabled()
-        .accessibilityIdentifier("podcastConsentSheet")
-    }
-}
-
-/// What Google's voices send where, shared by the sheet and Settings.
-struct PodcastDisclosure: View {
-    let provider: VoiceProvider
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: DCTheme.spacingM) {
-            point("arrow.up.forward.circle", Text("The podcast’s script (text written from your digest: topic titles, summaries and what the posts say) is sent to Google (\(provider.displayName)) with your own API key to be read aloud. No audio is recorded, and nothing goes through a Forumind server.", comment: "Podcast consent; the placeholder is Google AI Studio or Google Vertex AI"))
-            switch provider {
-            case .aiStudio:
-                point("person.2", Text("On the free tier of Google AI Studio, Google may use what you send to improve its products, and people may review it.", comment: "Podcast consent: Google's free-tier data use"))
-            case .vertex:
-                point("building.columns", Text("On Vertex AI, your Google Cloud agreement decides how Google may use what you send.", comment: "Voice consent: data use on Vertex AI"))
-            }
-            point("creditcard", Text("Each chapter is one text-to-speech request, billed to your key or counted against its free quota. This device’s voices are free and offline instead.", comment: "Podcast consent: cost"))
-            Link(destination: termsURL) {
-                Label("Google’s terms for this service", systemImage: "arrow.up.right.square")
-                    .font(.subheadline.weight(.semibold))
-            }
-        }
-    }
-
-    private var termsURL: URL {
-        switch provider {
-        case .aiStudio: URL(string: "https://ai.google.dev/gemini-api/terms")!
-        case .vertex: URL(string: "https://cloud.google.com/terms/service-terms")!
-        }
-    }
-
-    private func point(_ symbol: String, _ text: Text) -> some View {
-        Label {
-            text
-                .font(.subheadline)
-                .fixedSize(horizontal: false, vertical: true)
-        } icon: {
-            Image(systemName: symbol)
-                .foregroundStyle(DigestStyle.tint)
-        }
-    }
-}
-
 // MARK: - Settings
 
 /// The podcast part of Settings › Daily digest.
@@ -336,7 +238,7 @@ struct SettingsPodcastSections: View {
         } header: {
             Text("Podcast")
         } footer: {
-            Text("Automatic uses Google’s voices when you have a Google Gemini or Vertex AI key and have agreed to send the script to Google; otherwise this device’s voices. Nothing is made in the background. The daily switch is kept on this device.")
+            Text("Automatic uses Google’s voices when you have a Google Gemini or Vertex AI key; otherwise this device’s voices. Nothing is made in the background. The daily switch is kept on this device.")
         }
 
         Section {
@@ -346,23 +248,6 @@ struct SettingsPodcastSections: View {
             Text("Hosts")
         } footer: {
             Text("The first host guides the episode; the second asks what you might ask. Google’s voice names are used with Google’s voices; this device picks two of its own voices otherwise.")
-        }
-
-        let granted = VoiceProvider.allCases.filter { PodcastConsent.isGranted($0, in: app.settings) }
-        if let provider = granted.first ?? podcast.googleProviders.first {
-            Section {
-                PodcastDisclosure(provider: provider)
-                    .padding(.vertical, DCTheme.spacingXS)
-                ForEach(granted) { item in
-                    Button(role: .destructive) {
-                        podcast.revokeConsent(item)
-                    } label: {
-                        Text("Withdraw consent for \(item.displayName)", comment: "Settings › Voice; the placeholder is Google AI Studio or Google Vertex AI")
-                    }
-                }
-            } header: {
-                Text("Podcast privacy", comment: "Settings › Daily digest: what the podcast sends to Google")
-            }
         }
     }
 

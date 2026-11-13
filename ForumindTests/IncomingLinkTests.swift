@@ -250,47 +250,18 @@ final class IncomingLinkTests: XCTestCase {
             "Share deep link started AI summary before onboarding completed."
         )
 
-        // 2. After onboarding, before Terms of Use are accepted (`needsTermsAcceptance`): inbox drain must not auto-run.
-        let unaccepted = makeReadyApp()
-        unaccepted.settings.acceptedTermsVersion = 0
-        XCTAssertFalse(unaccepted.acceptsSystemWork)
-        let termsShare = IncomingLinkRequest(url: topicURL, action: .summary)
-        XCTAssertTrue(SharedInbox.enqueue(termsShare))
-        unaccepted.drainSharedInbox()
-        deliverTopicPage(to: unaccepted)
-        defer {
-            for record in unaccepted.activities where !record.status.isTerminal { unaccepted.cancel(record: record) }
-        }
-        XCTAssertFalse(
-            unaccepted.activities.contains { $0.type == .summary },
-            "Share inbox started AI summary before Terms of Use were accepted."
-        )
-
-        let chatShare = IncomingLinkRequest(url: topicURL, action: .chat)
-        XCTAssertTrue(SharedInbox.enqueue(chatShare))
-        unaccepted.drainSharedInbox()
-        deliverTopicPage(to: unaccepted)
-        XCTAssertFalse(
-            unaccepted.activities.contains { $0.type == .pull },
-            "Share inbox started topic pull before Terms of Use were accepted."
-        )
-
-        // 3. Without a configured provider, providerSetup waits until both onboarding and Terms are accepted.
+        // 2. Without a configured provider, providerSetup presents once onboarding is complete.
         let unconfigured = AppModel(
             store: PersistentStore(
                 fileURL: inboxDirectory.appendingPathComponent("unconfigured-state.json")
             )
         )
         unconfigured.settings.hasCompletedOnboarding = true
-        unconfigured.settings.acceptedTermsVersion = 0
         let unconfiguredShare = IncomingLinkRequest(url: topicURL, action: .summary)
         unconfigured.handle(unconfiguredShare)
         deliverTopicPage(to: unconfigured)
         unconfigured.presentProviderSetupIfNeeded()
         XCTAssertEqual(unconfigured.needsProviderSetup, .assistant)
-        XCTAssertNil(unconfigured.router.item, "Provider setup sheet must wait while Terms gate is active.")
-        unconfigured.acceptTerms()
-        unconfigured.presentProviderSetupIfNeeded()
         XCTAssertEqual(unconfigured.router.item, .providerSetup(.assistant))
     }
 
@@ -298,7 +269,6 @@ final class IncomingLinkTests: XCTestCase {
     func testWordPressSlugShareAndLinkDropOpenAssistantAndStartWork() throws {
         let app = makeReadyApp()
         app.settings.hasCompletedOnboarding = true
-        app.settings.acceptedTermsVersion = ModerationTerms.currentVersion
         defer {
             for record in app.activities where !record.status.isTerminal { app.cancel(record: record) }
         }
@@ -366,7 +336,6 @@ final class IncomingLinkTests: XCTestCase {
             )
         )
         app.settings.hasCompletedOnboarding = true
-        app.settings.acceptedTermsVersion = ModerationTerms.currentVersion
         app.selectModel(ModelSelection(provider: .ollama, model: "llama3.2"), for: .both)
         XCTAssertTrue(app.isProviderReady)
         return app

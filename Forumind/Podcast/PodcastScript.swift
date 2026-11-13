@@ -155,7 +155,7 @@ enum PodcastPrompt {
         var index: Int
         var count: Int
         var previousTitle: String?
-        /// A short excerpt of the topic's text (moderated, bounded), if read.
+        /// A short bounded excerpt of the topic's text, if read.
         var topicText: String
     }
 

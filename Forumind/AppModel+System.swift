@@ -11,10 +11,10 @@ import Foundation
 // - Siri suggestions: `topicActivityDidChange(_:)` donates the open topic
 
 extension AppModel: SystemEntryRouting {
-    /// An outside request may start AI work only once the walkthrough and
-    /// the Terms of Use are done; before that it only opens the app.
+    /// An outside request may start AI work only once the walkthrough is done;
+    /// before that it only opens the app.
     var acceptsSystemWork: Bool {
-        settings.hasCompletedOnboarding && settings.hasAcceptedCurrentTerms
+        settings.hasCompletedOnboarding
     }
 
     func perform(_ action: SystemEntryAction) {
@@ -60,8 +60,7 @@ extension AppModel: SystemEntryRouting {
         startAgentRun(goal: question, siteURL: siteURL, origin: .shortcut)
     }
 
-    /// Voice with its consent gate (`VoiceController.start()` asks once per
-    /// provider); without a Gemini or Vertex key, Settings › Voice.
+    /// Starts voice; without a Gemini or Vertex key, Settings › Voice.
     private func startVoiceFromSystem() {
         guard voiceProvider != nil else {
             requestedSettingsPage = .voice

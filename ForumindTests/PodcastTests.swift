@@ -266,28 +266,16 @@ final class PodcastTests: XCTestCase {
         XCTAssertNotEqual(PodcastEngineKind.vertex.label, PodcastEngineKind.onDevice.label)
     }
 
-    func testGoogleVoicesNeedAKeyAndConsentOtherwiseTheDeviceSpeaks() {
-        var settings = AppSettings()
+    func testGoogleVoicesNeedAKeyOtherwiseTheDeviceSpeaks() {
         // No key: Automatic uses the device's voices; explicit Google voices need a key.
-        XCTAssertEqual(PodcastEngineSelector.select(choice: .automatic, providers: [], settings: settings, interactive: true), .engine(.onDevice))
-        XCTAssertEqual(PodcastEngineSelector.select(choice: .automatic, providers: [], settings: settings, interactive: false), .engine(.onDevice))
-        XCTAssertEqual(PodcastEngineSelector.select(choice: .google, providers: [], settings: settings, interactive: true), .needsKey)
-        XCTAssertEqual(PodcastEngineSelector.select(choice: .google, providers: [], settings: settings, interactive: false), .needsKey)
-        // A key but no consent: a tap asks; Automatic's daily run uses the device's voices while explicit Google waits for consent.
-        XCTAssertEqual(PodcastEngineSelector.select(choice: .automatic, providers: [.aiStudio], settings: settings, interactive: true), .needsConsent(.aiStudio))
-        XCTAssertEqual(PodcastEngineSelector.select(choice: .automatic, providers: [.aiStudio], settings: settings, interactive: false), .engine(.onDevice))
-        XCTAssertEqual(PodcastEngineSelector.select(choice: .google, providers: [.aiStudio], settings: settings, interactive: true), .needsConsent(.aiStudio))
-        XCTAssertEqual(PodcastEngineSelector.select(choice: .google, providers: [.aiStudio], settings: settings, interactive: false), .needsConsent(.aiStudio))
-        // Agreed: Google, on the provider agreed to.
-        settings.podcastConsent["vertex"] = Date()
-        XCTAssertEqual(PodcastEngineSelector.select(choice: .automatic, providers: [.aiStudio, .vertex], settings: settings, interactive: false), .engine(.vertex))
-        XCTAssertEqual(PodcastEngineSelector.select(choice: .google, providers: [.aiStudio, .vertex], settings: settings, interactive: false), .engine(.vertex))
-        XCTAssertEqual(PodcastEngineSelector.select(choice: .onDevice, providers: [.vertex], settings: settings, interactive: true), .engine(.onDevice))
-        // Voice consent is separate: it doesn't cover the podcast.
-        var voiceOnly = AppSettings()
-        voiceOnly.voiceConsent["aistudio"] = Date()
-        XCTAssertEqual(PodcastEngineSelector.select(choice: .automatic, providers: [.aiStudio], settings: voiceOnly, interactive: false), .engine(.onDevice))
-        XCTAssertEqual(PodcastEngineSelector.select(choice: .google, providers: [.aiStudio], settings: voiceOnly, interactive: false), .needsConsent(.aiStudio))
+        XCTAssertEqual(PodcastEngineSelector.select(choice: .automatic, providers: []), .engine(.onDevice))
+        XCTAssertEqual(PodcastEngineSelector.select(choice: .google, providers: []), .needsKey)
+        // With a key: Automatic and Google pick the preferred Google provider; On-device stays on device.
+        XCTAssertEqual(PodcastEngineSelector.select(choice: .automatic, providers: [.aiStudio]), .engine(.aiStudio))
+        XCTAssertEqual(PodcastEngineSelector.select(choice: .google, providers: [.aiStudio]), .engine(.aiStudio))
+        XCTAssertEqual(PodcastEngineSelector.select(choice: .automatic, providers: [.vertex, .aiStudio]), .engine(.vertex))
+        XCTAssertEqual(PodcastEngineSelector.select(choice: .google, providers: [.vertex, .aiStudio]), .engine(.vertex))
+        XCTAssertEqual(PodcastEngineSelector.select(choice: .onDevice, providers: [.vertex]), .engine(.onDevice))
     }
 
     func testGoogleVoicesWithoutAKeyTellTheUserAndOpenSetupInsteadOfDeviceFallback() async throws {
@@ -374,10 +362,9 @@ final class PodcastTests: XCTestCase {
 
     // MARK: Settings
 
-    func testTheDailyPodcastIsOffByDefaultAndItsSwitchAndConsentStayOnTheDevice() throws {
+    func testTheDailyPodcastIsOffByDefaultAndItsSwitchStaysOnTheDevice() throws {
         let settings = AppSettings()
         XCTAssertFalse(settings.podcastDailyEnabled)
-        XCTAssertTrue(settings.podcastConsent.isEmpty)
         XCTAssertEqual(settings.podcast.engine, .automatic)
         XCTAssertEqual(settings.podcast.minutesPerChapter, 1)
         XCTAssertEqual(settings.podcast.voiceA, "Kore")
@@ -386,7 +373,7 @@ final class PodcastTests: XCTestCase {
         XCTAssertTrue(settings.podcast.hostA.isEmpty, "the default name follows the interface language")
         XCTAssertEqual(settings.podcast.hosts, PodcastHosts(a: PodcastSpeaker.a.defaultName, b: PodcastSpeaker.b.defaultName))
 
-        XCTAssertTrue(SyncSettings.deviceLocalKeys.isSuperset(of: ["podcastDailyEnabled", "podcastConsent"]))
+        XCTAssertTrue(SyncSettings.deviceLocalKeys.contains("podcastDailyEnabled"))
         XCTAssertFalse(SyncSettings.deviceLocalKeys.contains("podcast"))
 
         // Older snapshots decode with the defaults; bad values fall back one by one.
@@ -542,7 +529,7 @@ final class PodcastTests: XCTestCase {
         XCTAssertEqual(audio.loaded.last?.lastPathComponent, "1.wav")
         XCTAssertGreaterThanOrEqual(session.activations, 2, "back to .playback after the voice session")
 
-        // Declined consent (or a failed start) resumes too; a paused podcast stays paused.
+        // A failed start resumes too; a paused podcast stays paused.
         player.pause()
         controller.ask(about: chapter) { _ in }
         voice.finish()
@@ -551,18 +538,13 @@ final class PodcastTests: XCTestCase {
         XCTAssertEqual(player.state, .paused)
     }
 
-    func testTheVoiceControllerReportsADeclinedConsent() {
+    func testTheVoiceControllerReportsAFailedStart() {
         let harness = makeHarness()
         var finished = 0
         harness.app.voice.onFinished = { finished += 1 }
-        harness.app.voice.consentProvider = .aiStudio
-        harness.app.voice.declineConsent()
+        harness.app.voice.start()
         XCTAssertEqual(finished, 1)
         XCTAssertNil(harness.app.voice.onFinished, "called once")
-        // No key: the start fails, and that is reported as well.
-        harness.app.voice.onFinished = { finished += 1 }
-        harness.app.voice.start()
-        XCTAssertEqual(finished, 2)
     }
 
     // MARK: Making, storage
@@ -667,7 +649,7 @@ final class PodcastTests: XCTestCase {
         XCTAssertFalse(app.showsTodayPage)
     }
 
-    func testTheDailyPodcastIsMadeOnlyWhenTurnedOnAndNeverAsks() async throws {
+    func testTheDailyPodcastIsMadeOnlyWhenTurnedOn() async throws {
         let harness = makeHarness()
         let app = harness.app
         connect(app)
@@ -690,17 +672,8 @@ final class PodcastTests: XCTestCase {
         app.settings.podcastDailyEnabled = true
         app.podcast.digestCompleted(digest.id)
         try await waitUntil { app.podcast.episode?.isComplete == true }
-        XCTAssertNil(app.podcast.consentProvider, "the daily run never asks")
-        XCTAssertEqual(kinds, [.onDevice], "a key without consent: the device's voices")
-
-        // A tap asks for consent first; Agree records it on this device.
-        app.podcast.remake()
-        XCTAssertEqual(app.podcast.consentProvider, .aiStudio)
-        app.podcast.agree(.aiStudio)
-        XCTAssertNotNil(app.settings.podcastConsent["aistudio"])
-        XCTAssertTrue(app.settings.voiceConsent.isEmpty, "voice consent is separate")
-        try await waitUntil { app.podcast.episode?.isComplete == true }
-        XCTAssertEqual(kinds.last, .aiStudio)
+        XCTAssertEqual(kinds, [.aiStudio])
+        XCTAssertEqual(engine.spoken.count, 3)
     }
 
     func testTheDailyPodcastStartsRightAfterTheDigestFinishesOnOpen() async throws {
@@ -902,7 +875,6 @@ final class PodcastTests: XCTestCase {
         }
 
         connect(app)
-        app.allowAllAIProviders()
         app.digests = [completeDigest(cards: 1)]
 
         app.settings.podcast.engine = .onDevice
@@ -922,11 +894,10 @@ final class PodcastTests: XCTestCase {
         let missingKeyErrorPresented = app.presentedError != nil
         fakePlayer.unload()
 
-        // Subcase B: User now adds a Gemini API key and grants consent, then taps Make Podcast (`make(play: false)`):
+        // Subcase B: User now adds a Gemini API key, then taps Make Podcast (`make(play: false)`):
         var geminiConfig = app.settings.configuration(for: .gemini)
         geminiConfig.apiKey = "gemini-key"
         app.setConfiguration(geminiConfig, for: .gemini)
-        app.settings.podcastConsent[VoiceProvider.aiStudio.rawValue] = Date()
         engineKindsRequested.removeAll()
         fakePodcast.make(play: false)
         try await waitUntil { fakePodcast.episode?.isComplete == true }
@@ -998,8 +969,6 @@ final class PodcastTests: XCTestCase {
         )
         app.usesDirectForumRequests = true
         app.browser.onPageContextChanged = nil
-        // Consent has its own tests (AIDataConsentTests).
-        app.allowAllAIProviders()
         addTeardownBlock { @MainActor in
             app.podcast.pauseGeneration()
             app.podcast.player.unload()
@@ -1030,7 +999,7 @@ final class PodcastTests: XCTestCase {
 // MARK: - Fakes
 
 /// Answers `complete` from a list (the last one repeats) and records calls.
-final class PodcastAIStub: AIService {
+final class PodcastAIStub: AIService, @unchecked Sendable {
     struct Call {
         var system: String
         var messages: [ChatMessage]

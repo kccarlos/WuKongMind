@@ -4,15 +4,14 @@ import UIKit
 // MARK: - Presentation router
 //
 // Every sheet, full-screen cover and alert that used to hang off the root
-// (ForumindApp, ContentView, the voice and podcast consent modifiers) goes
-// through one host, `RouterHost`. SwiftUI presents one sheet per view level,
-// so while the iPhone AI drawer (itself a sheet) is up the host sits inside
-// the drawer's content; otherwise it sits on the root. Presenters nested
-// inside the panel or a routed sheet stay local.
+// (ForumindApp, ContentView) goes through one host, `RouterHost`. SwiftUI
+// presents one sheet per view level, so while the iPhone AI drawer (itself a
+// sheet) is up the host sits inside the drawer's content; otherwise it sits on
+// the root. Presenters nested inside the panel or a routed sheet stay local.
 //
 // - `RootPresentation`   what the host shows; derived from the app's own
-//                        triggers (`requestedSettingsPage`,
-//                        the consent providers, …) plus `PresentationRouter.item`
+//                        triggers (`requestedSettingsPage`, …) plus
+//                        `PresentationRouter.item`
 // - `RootAlert`          the root alert (an error; DEBUG: the keychain probe)
 // - `PresentationRouter` explicit routes, the walkthrough replay and the
 //                        drawer's state (open, detent, host location)
@@ -34,14 +33,10 @@ struct PresentedError: Identifiable, Equatable {
 /// A sheet or full-screen cover presented from the root.
 enum RootPresentation: Identifiable, Equatable {
     case onboarding
-    case termsGate
     case providerSetup(ModelRole)
     case settings(SettingsPage)
     case expanded(ExpandedPanelRoute)
     case loginInfo
-    case report(ForumTopic)
-    /// Report This Summary… / Report This Answer… (Moderation.swift).
-    case reportAIOutput(ReportTarget)
     case translatePosts
     case translateText(title: String, text: String, target: String)
     case pinnedForums
@@ -52,11 +47,6 @@ enum RootPresentation: Identifiable, Equatable {
     case shareHowTo
     /// The Today podcast's player (NowPlaying.swift).
     case nowPlaying
-    case voiceConsent(VoiceProvider)
-    case podcastConsent(VoiceProvider)
-    /// Before the first request that sends forum content to a third-party
-    /// AI provider (AIDataConsent.swift).
-    case aiConsent(AIProvider)
     #if DEBUG
     /// `-dc-show-settings <page>`: Settings as a cover (screenshots).
     case debugSettings(SettingsPage?)
@@ -65,13 +55,10 @@ enum RootPresentation: Identifiable, Equatable {
     var id: String {
         switch self {
         case .onboarding: "onboarding"
-        case .termsGate: "termsGate"
         case .providerSetup(let role): "providerSetup-\(role.rawValue)"
         case .settings(let page): "settings-\(page.rawValue)"
         case .expanded(let route): "expanded-\(route.rawValue)"
         case .loginInfo: "loginInfo"
-        case .report(let topic): "report-\(topic.id)"
-        case .reportAIOutput(let target): "reportAIOutput-\(target.id)"
         case .translatePosts: "translatePosts"
         case .translateText(let title, let text, let target): "translateText-\(target)-\(title.hashValue)-\(text.hashValue)"
         case .pinnedForums: "pinnedForums"
@@ -80,9 +67,6 @@ enum RootPresentation: Identifiable, Equatable {
         case .addForum: "addForum"
         case .shareHowTo: "shareHowTo"
         case .nowPlaying: "nowPlaying"
-        case .voiceConsent(let provider): "voiceConsent-\(provider.id)"
-        case .podcastConsent(let provider): "podcastConsent-\(provider.id)"
-        case .aiConsent(let provider): "aiConsent-\(provider.id)"
         #if DEBUG
         case .debugSettings(let page): "debugSettings-\(page?.rawValue ?? "root")"
         #endif
@@ -92,7 +76,7 @@ enum RootPresentation: Identifiable, Equatable {
     /// Covers the whole screen instead of a sheet.
     var isFullScreen: Bool {
         switch self {
-        case .onboarding, .termsGate: true
+        case .onboarding: true
         #if DEBUG
         case .debugSettings: true
         #endif
@@ -379,14 +363,6 @@ extension AppModel {
         if !settings.hasCompletedOnboarding || router.onboardingReplay == .showing { return .onboarding }
         // The sheet the replay was asked from is leaving: nothing else comes.
         if router.onboardingReplay == .waitingForSheet { return nil }
-        // Existing users (and a walkthrough closed early) accept the Terms of
-        // Use before using the app.
-        if needsTermsAcceptance { return .termsGate }
-        // A request is waiting for it: it goes over a routed sheet, which
-        // comes back once it is answered.
-        if let provider = aiConsent.asking { return .aiConsent(provider) }
-        if let provider = voice.consentProvider { return .voiceConsent(provider) }
-        if let provider = podcast.consentProvider { return .podcastConsent(provider) }
         if let item = router.item { return item }
         if let page = requestedSettingsPage { return .settings(page) }
         return nil
@@ -401,14 +377,6 @@ extension AppModel {
         case .settings:
             requestedSettingsPage = nil
             requestedScriptID = nil
-        case .voiceConsent:
-            voice.consentProvider = nil
-        case .podcastConsent:
-            podcast.consentProvider = nil
-        case .termsGate, .aiConsent:
-            // Shown while needed; only an answer closes it (a binding reset
-            // after one page is answered must not close the next).
-            break
         case .providerSetup:
             router.item = nil
             needsProviderSetup = nil
@@ -469,25 +437,14 @@ extension AppModel {
         dismissPresentedError()
     }
 
-    /// A shared link needs an AI provider first; not over the walkthrough or Terms gate.
+    /// A shared link needs an AI provider first; not over the walkthrough.
     func presentProviderSetupIfNeeded() {
         guard let role = needsProviderSetup, acceptsSystemWork, !router.replayingOnboarding else { return }
         if isProviderReady(for: role) {
             needsProviderSetup = nil
-        } else if readiness(of: selection(for: role)) == .aiConsentDeclined {
-            // Set up, but Don't Allow: the consent page again, not the key form.
-            needsProviderSetup = nil
-            aiConsent.ask(selection(for: role).provider)
         } else if router.item == nil {
             router.item = .providerSetup(role)
         }
-    }
-
-    /// Report or block: names the topic's forum.
-    func reportForumName(for topic: ForumTopic) -> String {
-        if let name = forum(for: topic.siteURL)?.displayName { return name }
-        let pageName = browser.pageContext.forumName
-        return pageName.isEmpty ? ForumSite.host(of: topic.siteURL) : pageName
     }
 }
 
@@ -498,9 +455,7 @@ extension AppModel {
 struct RouterHost: ViewModifier {
     @ObservedObject var app: AppModel
     @ObservedObject var router: PresentationRouter
-    @ObservedObject var voice: VoiceController
     @ObservedObject var podcast: PodcastController
-    @ObservedObject var aiConsent: AIConsentGate
     let active: Bool
     /// A forum was added from the Add forum sheet.
     var onForumAdded: (Forum) -> Void = { _ in }
@@ -512,9 +467,7 @@ struct RouterHost: ViewModifier {
     ) {
         self.app = app
         router = app.router
-        voice = app.voice
         podcast = app.podcast
-        aiConsent = app.aiConsent
         self.active = active
         self.onForumAdded = onForumAdded
     }
@@ -557,8 +510,6 @@ struct RouterHost: ViewModifier {
             OnboardingFlow(app: app, initialStep: initialOnboardingStep) {
                 router.onboardingReplay = .none
             }
-        case .termsGate:
-            TermsGateView(app: app)
         case .providerSetup(let role):
             ProviderSetupSheet(app: app, role: role)
         case .settings(let page):
@@ -580,10 +531,6 @@ struct RouterHost: ViewModifier {
             ExpandedPanel(app: app, route: route)
         case .loginInfo:
             LoginReadinessView(app: app)
-        case .report(let topic):
-            ReportSheet(app: app, topic: topic, forumName: app.reportForumName(for: topic))
-        case .reportAIOutput(let target):
-            AIOutputReportSheet(target: target)
         case .translatePosts:
             PostsTranslationSheet(app: app)
         case .translateText(let title, let text, let target):
@@ -605,28 +552,6 @@ struct RouterHost: ViewModifier {
         case .nowPlaying:
             NowPlayingView(app: app, podcast: podcast)
                 .nowPlayingZoomDestination()
-        case .voiceConsent(let provider):
-            VoiceConsentSheet(
-                provider: provider,
-                settings: app.settings.voice,
-                vertexBaseURL: app.settings.configuration(for: .vertexAI).baseURL,
-                onAgree: { voice.agree(provider) },
-                onCancel: { voice.declineConsent() }
-            )
-        case .podcastConsent(let provider):
-            PodcastConsentSheet(
-                provider: provider,
-                onAgree: { podcast.agree(provider) },
-                onDeviceVoices: { podcast.useOnDeviceVoices() },
-                onCancel: { podcast.declineConsent() }
-            )
-        case .aiConsent(let provider):
-            AIDataConsentPage(
-                provider: provider,
-                onAllow: { app.answerAIConsent(provider, allow: true) },
-                onDecline: { app.answerAIConsent(provider, allow: false) },
-                onCancel: { app.aiConsent.resolve(provider) }
-            )
         #if DEBUG
         case .debugSettings(let page):
             NavigationStack {
@@ -736,7 +661,7 @@ private struct RootAlertModifier: ViewModifier {
 ///                                 tests among them, count as having seen them)
 /// - `-dc-drawer-detent <detent>`  medium | large once the drawer is up
 /// - `-dc-test-present <kind>`     after `-dc-test-present-after <s>` (default 6):
-///                                 settings | cover | error | report | pending-drawer;
+///                                 settings | cover | error | pending-drawer;
 ///                                 drawer-on-voice: the drawer opens once voice runs
 ///                                 and result cards show
 /// - `-dc-drawer-drop-first`       the drawer's first presentation never reports
@@ -778,7 +703,6 @@ extension AppModel {
         case "settings": requestedSettingsPage = .voice
         case "cover": router.item = .debugSettings(nil)
         case "error": presentError("Test error")
-        case "report": router.item = currentTopic.map(RootPresentation.report)
         case "translate-posts": router.item = .translatePosts
         case "pending-drawer":
             // A root sheet up while the drawer is wanted; the UI test closes

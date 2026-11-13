@@ -1,11 +1,10 @@
 import XCTest
 
 /// The voice UI on a scripted session (`-dc-voice-fake`: a fake Gemini Live
-/// transport and silent audio inside the app): the consent sheet, the voice
-/// bar's states and transcript, the typed-input path and ending. No
-/// network, microphone or key.
+/// transport and silent audio inside the app): the voice bar's states and
+/// transcript, the typed-input path and ending. No network, microphone or key.
 final class VoiceUITests: DCUITestCase {
-    func testConsentThenTheVoiceBarTalksAndEnds() throws {
+    func testTheVoiceBarTalksAndEnds() throws {
         let app = launch(
             ["-dc-sample", "-dc-forums-home", "-dc-voice-fake"],
             orientation: isPhone ? .portrait : .landscapeLeft
@@ -16,17 +15,6 @@ final class VoiceUITests: DCUITestCase {
         showBrowser(in: app)
 
         startVoice(in: app)
-
-        // First session with this provider: consent first, naming Google.
-        let agree = app.buttons["voiceConsentAgree"]
-        XCTAssertTrue(agree.waitForExistence(timeout: 10), "The consent sheet did not appear.")
-        XCTAssertTrue(any(app, "voiceTermsLink").exists, "The sheet links to Google's terms.")
-        if isEnglish(app) {
-            XCTAssertTrue(app.staticTexts["Talk to Forumind"].exists)
-            XCTAssertTrue(any(app, "voiceTrySaying").exists, "The first-start page lists examples.")
-        }
-        capture("base_phone_voice-consent")
-        agree.tap()
 
         // The bar connects, listens and shows the model's greeting.
         let bar = any(app, "voiceBar")
@@ -63,10 +51,9 @@ final class VoiceUITests: DCUITestCase {
         // Ending returns the bar.
         if isPhone { XCTAssertTrue(waitForBarItem(app.buttons["forumSwitcher"], timeout: 10), "The bar did not come back.") }
 
-        // Consent is remembered: the next tap starts at once.
+        // Next tap starts again.
         startVoice(in: app)
         XCTAssertTrue(bar.waitForExistence(timeout: 10))
-        XCTAssertFalse(agree.exists)
         app.buttons["voiceEnd"].tap()
     }
 
@@ -89,8 +76,6 @@ final class VoiceUITests: DCUITestCase {
         let stripChip = app.buttons["resultCardsChip"]
         XCTAssertTrue(wait(timeout: 60) { strip.exists || stripChip.exists }, "No result cards after the search.")
         startVoice(in: app)
-        let agree = app.buttons["voiceConsentAgree"]
-        if agree.waitForExistence(timeout: 10) { agree.tap() }
         // The drawer opens a second after voice starts (the Dock goes under it).
         let chip = any(app, "drawerCardsChip")
         XCTAssertTrue(waitOrDump(chip, timeout: 30, in: app), "The drawer has no cards chip.")
@@ -121,8 +106,6 @@ final class VoiceUITests: DCUITestCase {
         XCTAssertTrue(waitOrDump(panel, timeout: 20, in: app))
         RunLoop.current.run(until: Date().addingTimeInterval(2))
         startVoice(in: app)
-        let agree = app.buttons["voiceConsentAgree"]
-        if agree.waitForExistence(timeout: 10) { agree.tap() }
         let mute = app.buttons["drawerVoiceMute"]
         XCTAssertTrue(waitOrDump(mute, timeout: 15, in: app), "No voice status row in the panel.")
 

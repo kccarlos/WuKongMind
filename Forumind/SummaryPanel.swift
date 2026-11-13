@@ -415,7 +415,7 @@ struct AssistantPanel: View {
                         Label("Post & Responses", systemImage: "text.bubble")
                     }
                     .accessibilityIdentifier("viewPost")
-                    .disabled(app.currentModeratedSource.isEmpty)
+                    .disabled((app.currentSession?.source ?? "").isEmpty)
 
                     Button {
                         app.pullTopic()
@@ -460,10 +460,6 @@ struct AssistantPanel: View {
                     .accessibilityIdentifier("openHistoryMenu")
                 }
 
-                if app.assistantMode != .agent {
-                    Section { reportAIOutputButtons }
-                }
-
                 if !(app.currentSession?.history.isEmpty ?? true) {
                     Section {
                         Button(role: .destructive) {
@@ -484,47 +480,6 @@ struct AssistantPanel: View {
         .buttonStyle(DCIconButtonStyle())
         .accessibilityLabel("More assistant actions")
         .accessibilityIdentifier("assistantMoreMenu")
-    }
-
-    /// Reportable AI outputs offered in the assistant `···` menu.
-    var reportTargets: [ReportTarget] { app.currentTopicAIOutputReports }
-
-    /// Report This Summary… and/or Report This Answer…: App Review 1.2.
-    /// Disabled until there is AI text to report.
-    @ViewBuilder
-    private var reportAIOutputButtons: some View {
-        let targets = reportTargets
-        if targets.isEmpty {
-            Button {} label: {
-                if app.assistantMode == .chat {
-                    Label(String(localized: "Report This Answer…", comment: "Assistant menu: report the AI's latest chat answer"), systemImage: "flag")
-                } else {
-                    Label(String(localized: "Report This Summary…", comment: "Assistant menu: report the AI summary"), systemImage: "flag")
-                }
-            }
-            .disabled(true)
-            .accessibilityIdentifier("reportAIOutput")
-        } else {
-            ForEach(targets) { target in
-                let isChatAnswer = if case .aiOutput(let output) = target.kind {
-                    output.feature == .chatAnswer
-                } else {
-                    false
-                }
-                Button {
-                    app.report(target)
-                } label: {
-                    if isChatAnswer {
-                        Label(String(localized: "Report This Answer…", comment: "Assistant menu: report the AI's latest chat answer"), systemImage: "flag")
-                    } else {
-                        Label(String(localized: "Report This Summary…", comment: "Assistant menu: report the AI summary"), systemImage: "flag")
-                    }
-                }
-                .accessibilityIdentifier(
-                    targets.count > 1 && isChatAnswer ? "reportAIChatAnswer" : "reportAIOutput"
-                )
-            }
-        }
     }
 
     /// The pill's menu (ModelMenu, ModelForum): the role, what it is used
@@ -679,9 +634,8 @@ struct AssistantPanel: View {
     /// §4.4: the summary, then the topic's conversation, with the chat input
     /// pinned at the bottom.
     private var drawerThread: some View {
-        let hiddenPosts = app.currentHiddenPosts
         let streamInput = streamedSummary.map {
-            DrawerSummarySections.Input(text: $0, maximumPost: app.currentSession?.totalPosts, hiddenPosts: hiddenPosts)
+            DrawerSummarySections.Input(text: $0, maximumPost: app.currentSession?.totalPosts)
         }
         let parsed: (sections: Int, hasCitations: Bool, rows: [MarkdownRow]) = if streamInput != nil,
             let renderedSummary,
@@ -691,7 +645,7 @@ struct AssistantPanel: View {
             (0, false, [])
         } else {
             DrawerSummarySections.parsed(
-                for: .init(text: visibleSummary, maximumPost: app.currentSession?.totalPosts, hiddenPosts: hiddenPosts)
+                for: .init(text: visibleSummary, maximumPost: app.currentSession?.totalPosts)
             )
         }
         let isLazy = parsed.hasCitations
@@ -725,7 +679,7 @@ struct AssistantPanel: View {
             // Once, with the first summary that has post numbers.
             let key = PresentationRouter.citationTipKey
             guard app.currentSession?.hasSummary == true, !UserDefaults.standard.bool(forKey: key),
-                  !PostCitations.numbers(in: app.currentSession?.summary ?? "", hidden: hiddenPosts).isEmpty else { return }
+                  !PostCitations.numbers(in: app.currentSession?.summary ?? "").isEmpty else { return }
             UserDefaults.standard.set(true, forKey: key)
             showsCitationTip = true
         }
@@ -1202,9 +1156,8 @@ private struct ChatThread<Leading: View>: View {
             conversationHeader
         }
 
-        let hiddenPosts = app.currentHiddenPosts
         ForEach(history) { message in
-            ChatBubble(message: message, maximumPost: app.currentSession?.totalPosts, hiddenPosts: hiddenPosts) {
+            ChatBubble(message: message, maximumPost: app.currentSession?.totalPosts) {
                 app.editChat(messageID: message.id)
             }
             .padding(.top, 4)
@@ -1218,7 +1171,6 @@ private struct ChatThread<Leading: View>: View {
             ChatBubble(
                 message: ChatMessage(role: .assistant, content: stream),
                 maximumPost: app.currentSession?.totalPosts,
-                hiddenPosts: hiddenPosts,
                 onEdit: nil,
                 isStreaming: true
             )
@@ -1454,7 +1406,7 @@ struct PostPreviewView: View {
     @State private var isExpanded = false
 
     var source: String {
-        app.currentModeratedSource
+        app.currentSession?.source ?? ""
     }
 
     var body: some View {
@@ -1700,7 +1652,6 @@ struct ChatBubbleShape: Shape {
 struct ChatBubble: View {
     let message: ChatMessage
     var maximumPost: Int? = nil
-    var hiddenPosts: Set<Int> = []
     var onEdit: (() -> Void)? = nil
     var isStreaming = false
 
@@ -1717,7 +1668,7 @@ struct ChatBubble: View {
                         .textSelection(.enabled)
                         .fixedSize(horizontal: false, vertical: true)
                 } else {
-                    let linked = DrawerSummarySections.link(message.content, maximum: maximumPost, hidden: hiddenPosts)
+                    let linked = DrawerSummarySections.link(message.content, maximum: maximumPost)
                     MarkdownView(linked, citations: linked.contains("](\(PostCitations.scheme):"))
                         .textSelection(.enabled)
                 }
@@ -2143,7 +2094,6 @@ struct DrawerSummarySections: View {
     struct Input: Equatable {
         let text: String
         let maximumPost: Int?
-        var hiddenPosts: Set<Int> = []
     }
 
     private static let linkedCache: NSCache<NSString, NSString> = {
@@ -2152,13 +2102,12 @@ struct DrawerSummarySections: View {
         return cache
     }()
 
-    static func link(_ text: String, maximum: Int?, hidden: Set<Int> = []) -> String {
-        let hiddenKey = hidden.isEmpty ? "" : hidden.sorted().map(String.init).joined(separator: ",")
-        let key = ("\(maximum ?? -1)|\(hiddenKey)|" + text) as NSString
+    static func link(_ text: String, maximum: Int?) -> String {
+        let key = ("\(maximum ?? -1)|" + text) as NSString
         if let cached = linkedCache.object(forKey: key) {
             return cached as String
         }
-        let value = PostCitations.linked(text, maximum: maximum, hidden: hidden)
+        let value = PostCitations.linked(text, maximum: maximum)
         linkedCache.setObject(value as NSString, forKey: key)
         return value
     }
@@ -2167,7 +2116,7 @@ struct DrawerSummarySections: View {
         let marker = "](\(PostCitations.scheme):"
         var hasCitations = false
         let linked = sections(of: input.text).map { section -> String in
-            let value = link(section, maximum: input.maximumPost, hidden: input.hiddenPosts)
+            let value = link(section, maximum: input.maximumPost)
             if !hasCitations, value.contains(marker) { hasCitations = true }
             return value
         }

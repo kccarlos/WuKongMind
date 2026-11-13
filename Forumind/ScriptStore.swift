@@ -2267,7 +2267,7 @@ final class ScriptWebController: ScriptLiveApplying {
 
     /// Rebuilds managed `WKUserScript`s on `webView.configuration.userContentController`
     /// while preserving all non-ScriptStore `WKUserScript`s (such as Forumind's
-    /// `routeObserverScript` and Discourse moderation/browse bridges).
+    /// `routeObserverScript` and Discourse browse bridges).
     func syncUserScripts() {
         guard let webView else { return }
         let enabledScripts = store.isGlobalEnabled ? store.scripts.filter(\.isEnabled) : []

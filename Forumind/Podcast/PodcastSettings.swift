@@ -3,9 +3,8 @@ import Foundation
 // MARK: - Podcast settings
 //
 // The podcast's preferences sync with the other settings (hosts, voices,
-// engine, length). Whether it is made every day, and the consent to send
-// the script to Google, are per device (`AppSettings.podcastDailyEnabled`,
-// `podcastConsent`; see `SyncSettings.deviceLocalKeys`).
+// engine, length). Whether it is made every day is per device
+// (`AppSettings.podcastDailyEnabled`; see `SyncSettings.deviceLocalKeys`).
 
 /// The two hosts. Their ids in the script and in the TTS request are the
 /// fixed ASCII "A" and "B"; the names the user sees and hears are separate,
@@ -56,10 +55,9 @@ struct PodcastHosts: Codable, Equatable {
 
 /// Which speech engine reads the podcast.
 enum PodcastEngineChoice: String, Codable, CaseIterable, Identifiable {
-    /// Google's voices when a Gemini or Vertex key is there (and agreed to),
-    /// otherwise the device's.
+    /// Google's voices when a Gemini or Vertex key is there, otherwise the device's.
     case automatic
-    /// Gemini TTS; asks for consent the first time.
+    /// Gemini TTS.
     case google
     /// `AVSpeechSynthesizer`: free and offline.
     case onDevice = "ondevice"
@@ -143,19 +141,6 @@ struct PodcastVoices: Codable, Equatable {
     }
 }
 
-// MARK: - Consent (App Review 5.1.2)
-
-/// Consent to send the podcast script (text, not audio) to Google for
-/// text-to-speech, asked once per provider before the first Google-voiced
-/// episode and kept on this device. Separate from the voice consent: voice
-/// sends the microphone audio, and either can be agreed to or withdrawn
-/// without the other.
-enum PodcastConsent {
-    static func isGranted(_ provider: VoiceProvider, in settings: AppSettings) -> Bool {
-        settings.podcastConsent[provider.rawValue] != nil
-    }
-}
-
 // MARK: - Engine selection
 
 /// The engine an episode (or a read-aloud) uses.
@@ -194,32 +179,18 @@ enum PodcastEngineSelection: Equatable {
     case engine(PodcastEngineKind)
     /// Google voices were asked for, and neither Google key is saved.
     case needsKey
-    /// Google voices were asked for, and this provider's consent is missing.
-    case needsConsent(VoiceProvider)
 }
 
 enum PodcastEngineSelector {
     /// - `providers`: the Google providers with a key, preferred first.
-    /// - `interactive`: the user tapped Make, Play or Listen. An unattended
-    ///   daily run never prompts: Automatic uses the device's voices, while
-    ///   an explicit Google choice waits for a key and consent.
     static func select(
         choice: PodcastEngineChoice,
-        providers: [VoiceProvider],
-        settings: AppSettings,
-        interactive: Bool
+        providers: [VoiceProvider]
     ) -> PodcastEngineSelection {
         if choice == .onDevice { return .engine(.onDevice) }
         guard let provider = providers.first else {
             return choice == .google ? .needsKey : .engine(.onDevice)
         }
-        if PodcastConsent.isGranted(provider, in: settings) { return .engine(PodcastEngineKind(provider)) }
-        if let agreed = providers.first(where: { PodcastConsent.isGranted($0, in: settings) }) {
-            return .engine(PodcastEngineKind(agreed))
-        }
-        if !interactive {
-            return choice == .google ? .needsConsent(provider) : .engine(.onDevice)
-        }
-        return .needsConsent(provider)
+        return .engine(PodcastEngineKind(provider))
     }
 }

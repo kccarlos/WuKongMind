@@ -10,15 +10,13 @@ import Foundation
 /// The row over the bar that says what the drawer can do for this topic,
 /// only when it is worth a look: the first topic ever opened (the one-time
 /// "Summarize this topic" tip), new replies since the summary, or AI not set
-/// up or not allowed. Otherwise there is no row.
+/// up. Otherwise there is no row.
 enum DrawerHint {
     struct Input: Equatable {
         var pageState: PageContext.State
         var mode: AssistantMode = .summary
         /// The AI provider for the mode is set up.
         var providerReady = true
-        /// The provider isn't ready because the AI data consent was declined.
-        var consentDeclined = false
         var hasSummary = false
         /// A summary (or a pull of the posts) runs for the topic.
         var summaryRunning = false
@@ -34,7 +32,6 @@ enum DrawerHint {
         /// row only comes with both counts).
         case checkNew(Int)
         case setUpAI
-        case allowAI
 
         /// Spoken label of the icon-only button.
         var title: String {
@@ -42,7 +39,6 @@ enum DrawerHint {
             case .summarize: String(localized: "Summarize this topic", comment: "Hint row over the bar on a topic without a summary, and its button")
             case .checkNew(let count): String(localized: "Check \(count) new replies", comment: "Button on the hint row over the bar; the placeholder is the number of replies since the summary")
             case .setUpAI: String(localized: "Set up AI", comment: "Hint row over the bar when no AI provider is set up, and its button")
-            case .allowAI: String(localized: "Allow AI", comment: "Hint row over the bar when the AI data consent was declined, and its button: show the consent again")
             }
         }
 
@@ -50,7 +46,7 @@ enum DrawerHint {
             switch self {
             case .summarize: "sparkles"
             case .checkNew: "arrow.clockwise"
-            case .setUpAI, .allowAI: "key.fill"
+            case .setUpAI: "key.fill"
             }
         }
 
@@ -60,7 +56,7 @@ enum DrawerHint {
             return count > 99 ? "99+" : "\(count)"
         }
 
-        var needsAttention: Bool { self == .setUpAI || self == .allowAI }
+        var needsAttention: Bool { self == .setUpAI }
     }
 
     /// The row: its text, and the button that does the action.
@@ -72,7 +68,7 @@ enum DrawerHint {
         var text: String {
             switch action {
             case .checkNew(let count): String(localized: "\(count) new replies")
-            case .summarize, .setUpAI, .allowAI: action.title
+            case .summarize, .setUpAI: action.title
             }
         }
     }
@@ -81,7 +77,7 @@ enum DrawerHint {
     /// nothing to do (no topic, a summary running or up to date, Ask the forum).
     static func action(_ input: Input) -> Action? {
         guard input.pageState == .topic else { return nil }
-        if !input.providerReady { return input.consentDeclined ? .allowAI : .setUpAI }
+        if !input.providerReady { return .setUpAI }
         guard input.mode != .agent, !input.summaryRunning else { return nil }
         if !input.hasSummary { return .summarize }
         if let total = input.totalPosts, let covered = input.summaryPostCount, total > covered {
@@ -131,10 +127,10 @@ enum PostCitations {
     }
 
     /// The cited post numbers in order of first appearance.
-    static func numbers(in text: String, maximum: Int? = nil, hidden: Set<Int> = []) -> [Int] {
+    static func numbers(in text: String, maximum: Int? = nil) -> [Int] {
         var seen: [Int] = []
         _ = MarkdownCodeSpans.transform(text) { segment in
-            for (_, number) in matches(in: segment, maximum: maximum, hidden: hidden) where !seen.contains(number) {
+            for (_, number) in matches(in: segment, maximum: maximum) where !seen.contains(number) {
                 seen.append(number)
             }
             return segment
@@ -143,13 +139,13 @@ enum PostCitations {
     }
 
     /// Rewrites `#37` as `[#37](forumind-post:37)` outside code. Numbers above
-    /// `maximum` (the topic's highest post) or in `hidden` stay plain text.
-    static func linked(_ markdown: String, maximum: Int? = nil, hidden: Set<Int> = []) -> String {
+    /// `maximum` (the topic's highest post) stay plain text.
+    static func linked(_ markdown: String, maximum: Int? = nil) -> String {
         MarkdownCodeSpans.transform(markdown) { line in
             let nsLine = line as NSString
             var result = ""
             var cursor = 0
-            for (range, number) in matches(in: line, maximum: maximum, hidden: hidden) {
+            for (range, number) in matches(in: line, maximum: maximum) {
                 result += nsLine.substring(with: NSRange(location: cursor, length: range.location - cursor))
                 result += "[#\(number)](\(scheme):\(number))"
                 cursor = range.location + range.length
@@ -187,13 +183,12 @@ enum PostCitations {
         }
     }
 
-    private static func matches(in text: String, maximum: Int?, hidden: Set<Int> = []) -> [(NSRange, Int)] {
+    private static func matches(in text: String, maximum: Int?) -> [(NSRange, Int)] {
         guard let pattern else { return [] }
         let nsText = text as NSString
         return pattern.matches(in: text, range: NSRange(location: 0, length: nsText.length)).compactMap { match in
             guard let number = Int(nsText.substring(with: match.range(at: 1))), number >= 1 else { return nil }
             if let maximum, maximum > 0, number > maximum { return nil }
-            if hidden.contains(number) { return nil }
             return (match.range, number)
         }
     }

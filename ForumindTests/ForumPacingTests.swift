@@ -102,6 +102,7 @@ final class ForumPacingTests: XCTestCase {
         _ service: ForumService,
         log: RequestLog,
         pace: ForumRequestPace,
+        isPaced: Bool = true,
         site: String? = nil,
         cachedPages: [RawForumPage] = [],
         knownTotalPosts: Int? = nil
@@ -113,7 +114,7 @@ final class ForumPacingTests: XCTestCase {
                 cachedPages: cachedPages,
                 knownTotalPosts: knownTotalPosts
             ),
-            net: service.net(site, resourceLoader: { url in try await log.loader(url) }, pace: pace),
+            net: service.net(site, resourceLoader: { url in try await log.loader(url) }, pace: pace, isPaced: isPaced),
             progress: { _ in },
             onPage: nil
         )
@@ -130,16 +131,23 @@ final class ForumPacingTests: XCTestCase {
     func testSettingDecodesMissingAsGentleAndRoundTrips() throws {
         let old = try JSONDecoder().decode(AppSettings.self, from: Data(#"{"systemPrompt":"x"}"#.utf8))
         XCTAssertEqual(old.forumRequestPace, .gentle, "a missing key takes the polite default")
+        XCTAssertTrue(old.forumRateLimitingEnabled, "a missing key keeps rate limiting on by default")
         XCTAssertThrowsError(try JSONDecoder().decode(AppSettings.self, from: Data(#"{"forumRequestPace":"warp"}"#.utf8)))
         XCTAssertEqual(AppSettings().forumRequestPace, .gentle)
+        XCTAssertTrue(AppSettings().forumRateLimitingEnabled)
 
         var settings = AppSettings()
         settings.forumRequestPace = .fast
+        settings.forumRateLimitingEnabled = false
         let decoded = try JSONDecoder().decode(AppSettings.self, from: JSONEncoder().encode(settings))
         XCTAssertEqual(decoded.forumRequestPace, .fast)
-        // It syncs (not a device-local setting).
+        XCTAssertFalse(decoded.forumRateLimitingEnabled)
+        // Both sync (not device-local settings).
         XCTAssertFalse(SyncSettings.deviceLocalKeys.contains("forumRequestPace"))
-        XCTAssertEqual(try SyncSchema.settingsUnits(settings)["forumRequestPace"], .string("fast"))
+        XCTAssertFalse(SyncSettings.deviceLocalKeys.contains("forumRateLimitingEnabled"))
+        let units = try SyncSchema.settingsUnits(settings)
+        XCTAssertEqual(units["forumRequestPace"], .string("fast"))
+        XCTAssertEqual(units["forumRateLimitingEnabled"], .bool(false))
     }
 
     // MARK: Spacing and concurrency
@@ -432,6 +440,46 @@ final class ForumPacingTests: XCTestCase {
         await pacer.release(next)
         let inFlight = await pacer.inFlight(for: url)
         XCTAssertEqual(inFlight, 0)
+    }
+
+    func testRateLimitingDisabledSendsAllPagesImmediatelyWithoutPacerCaps() async throws {
+        let clock = FakePacingClock()
+        let log = RequestLog(clock: clock)
+        let pacer = ForumRequestPacer(clock: clock)
+        let service = ForumService(pacer: pacer)
+        let result = try await fetch(service, log: log, pace: .gentle, isPaced: false)
+
+        XCTAssertEqual(result.rawPages.map(\.page), [1, 2, 3, 4, 5])
+        XCTAssertEqual(clock.sleeps, [], "no pacing sleep when rate limiting is off")
+        XCTAssertEqual(clock.now(), 0)
+        XCTAssertEqual(log.maxInFlight, 5, "even Gentle's 1-at-a-time and Fast's 4-at-a-time caps are bypassed")
+        let inFlight = await pacer.inFlight(for: URL(string: site)!)
+        XCTAssertEqual(inFlight, 0)
+
+        // An explicit 429 Retry-After from the server is still retried cleanly.
+        let retryClock = FakePacingClock()
+        let retryLog = RequestLog(clock: retryClock)
+        retryLog.postsCount = 150
+        retryLog.failures["/raw/7#1"] = [(429, "5")]
+        let retried = try await fetch(ForumService(pacer: ForumRequestPacer(clock: retryClock)), log: retryLog, pace: .gentle, isPaced: false)
+        XCTAssertEqual(retried.rawPages.map(\.page), [1, 2])
+        XCTAssertEqual(retryClock.sleeps, [5])
+    }
+
+    func testDisablingRateLimitingInAppSettingsRunsUnpaced() async throws {
+        let clock = FakePacingClock()
+        PacingURLStub.reset(clock: clock)
+        let topics = (1...30).map {
+            WatchedTopic(siteURL: site, topicID: "\($0)", url: URL(string: "\(site)/t/\($0)")!, title: "Topic \($0)", knownPostCount: 450)
+        }
+        var snapshot = AppSnapshot(watchedTopics: topics)
+        snapshot.settings.forumRequestPace = .gentle
+        snapshot.settings.forumRateLimitingEnabled = false
+        let app = makeApp(clock: clock, snapshot: snapshot)
+
+        await app.checkWatchedTopics(reason: .manual)
+        XCTAssertEqual(PacingURLStub.paths.count, 30)
+        XCTAssertEqual(clock.now(), 0, "all 30 watched topics checked without per-forum spacing")
     }
 
     // MARK: Helpers

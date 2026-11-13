@@ -403,7 +403,6 @@ final class HomeTests: XCTestCase {
         )
         app.usesDirectForumRequests = true
         app.settings.hasCompletedOnboarding = true
-        app.settings.acceptedTermsVersion = ModerationTerms.currentVersion
         return app
     }
 }

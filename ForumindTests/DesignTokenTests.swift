@@ -176,7 +176,7 @@ final class DesignTokenTests: XCTestCase {
     }
 
     @MainActor
-    func testVoiceDockSurfaceAndConsentFooterBackgrounds() throws {
+    func testVoiceDockSurfaceBackground() throws {
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: dir) }
@@ -192,7 +192,7 @@ final class DesignTokenTests: XCTestCase {
 
         let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
 
-        // 1. Voice dock over a black backdrop in light mode must stay opaque enough to prevent bleed-through.
+        // Voice dock over a black backdrop in light mode must stay opaque enough to prevent bleed-through.
         let dockSize = CGSize(width: 390, height: 120)
         let dockWindow = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(origin: .zero, size: dockSize))
         dockWindow.frame = CGRect(origin: .zero, size: dockSize)
@@ -242,48 +242,7 @@ final class DesignTokenTests: XCTestCase {
             }
         }
 
-        // 2. Consent sheet sticky footer in light mode must match the sheet background instead of drawing a grey band.
-        let sheetSize = CGSize(width: 390, height: 844)
-        let sheetWindow = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(origin: .zero, size: sheetSize))
-        sheetWindow.frame = CGRect(origin: .zero, size: sheetSize)
-        sheetWindow.overrideUserInterfaceStyle = .light
-        let sheetHost = UIHostingController(
-            rootView: VoiceConsentSheet(provider: .aiStudio, settings: VoiceSettings(), onAgree: {}, onCancel: {})
-                .environment(\.colorScheme, .light)
-        )
-        sheetHost.overrideUserInterfaceStyle = .light
-        sheetWindow.rootViewController = sheetHost
-        sheetWindow.makeKeyAndVisible()
-        sheetHost.view.frame = sheetWindow.bounds
-        sheetWindow.layoutIfNeeded()
-        RunLoop.current.run(until: Date().addingTimeInterval(0.08))
-        sheetWindow.layoutIfNeeded()
-
-        let sheetImage = UIGraphicsImageRenderer(size: sheetSize, format: format).image { ctx in
-            if !sheetWindow.drawHierarchy(in: sheetWindow.bounds, afterScreenUpdates: true) {
-                sheetWindow.layer.render(in: ctx.cgContext)
-            }
-        }
-        sheetWindow.isHidden = true
-        sheetWindow.rootViewController = nil
-        sheetWindow.windowScene = nil
-
-        guard let sheetCG = sheetImage.cgImage,
-              let sheetData = sheetCG.dataProvider?.data,
-              let sheetPtr = CFDataGetBytePtr(sheetData)
-        else {
-            XCTFail("Failed to capture VoiceConsentSheet bitmap.")
-            return
-        }
-        let sheetBpp = sheetCG.bitsPerPixel / 8
-        let sheetBpr = sheetCG.bytesPerRow
-        let bodyOffset = 200 * sheetBpr + 8 * sheetBpp
-        let footerOffset = 790 * sheetBpr + 8 * sheetBpp
-        let bodyGray = (Int(sheetPtr[bodyOffset]) + Int(sheetPtr[bodyOffset + 1]) + Int(sheetPtr[bodyOffset + 2])) / 3
-        let footerGray = (Int(sheetPtr[footerOffset]) + Int(sheetPtr[footerOffset + 1]) + Int(sheetPtr[footerOffset + 2])) / 3
-
         XCTAssertGreaterThanOrEqual(maxDockChannel, 230, "VoiceDock background let underlying dark content bleed through (max brightness \(maxDockChannel)).")
-        XCTAssertLessThanOrEqual(abs(bodyGray - footerGray), 3, "Consent sheet footer drew a contrasting grey band (\(footerGray)) against the sheet background (\(bodyGray)).")
     }
 
     @MainActor

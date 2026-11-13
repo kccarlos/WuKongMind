@@ -17,8 +17,6 @@ struct SettingsDataPage: View {
 
     var body: some View {
         Form {
-            AIDataFlowSection(app: app)
-
             Section {
                 Toggle(isOn: $app.settings.spotlightEnabled) {
                     VStack(alignment: .leading, spacing: 2) {
@@ -77,8 +75,6 @@ struct SettingsDataPage: View {
             } footer: {
                 Text("Clearing deletes saved summaries, chats, answers, and watched topics for that forum. The forum stays in your list.")
             }
-
-            ModerationSettingsSections(app: app)
 
             Section {
                 Button(role: .destructive) {

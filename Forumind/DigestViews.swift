@@ -91,23 +91,6 @@ struct TodayPage: View {
                             Label("Make Podcast Again", systemImage: "waveform")
                         }
                     }
-                    if let digest = app.todaysDigest, let target = app.aiOutputReport(for: digest) {
-                        Button {
-                            app.report(target)
-                        } label: {
-                            Label("Report Digest…", systemImage: "flag")
-                        }
-                        .accessibilityIdentifier("reportDigest")
-                    }
-                    if let episode = podcast.episode, episode.digestID == app.todaysDigest?.id,
-                       let target = app.aiOutputReport(for: episode) {
-                        Button {
-                            app.report(target)
-                        } label: {
-                            Label("Report Podcast…", systemImage: "flag")
-                        }
-                        .accessibilityIdentifier("reportPodcast")
-                    }
                     Button {
                         app.homePath.append(.digestSettings)
                     } label: {
@@ -120,7 +103,6 @@ struct TodayPage: View {
                 .accessibilityIdentifier("todayMenu")
             }
         }
-        // (The podcast's consent sheet comes from the presentation router.)
         .task {
             app.resumeDigestIfNeeded()
             app.podcast.resumeIfNeeded()
@@ -167,9 +149,7 @@ struct TodayPage: View {
                     action: ("Try again", { app.resumeDigestIfNeeded() })
                 )
             } else if !app.isProviderReady(for: .assistant) {
-                providerSection
-            } else if let provider = app.providerAwaitingConsent(for: .assistant) {
-                consentSection(provider)
+                connectSection
             }
         }
         if today.cards.isEmpty {
@@ -185,7 +165,6 @@ struct TodayPage: View {
                     DigestCardView(
                         app: app,
                         card: card,
-                        digest: today,
                         onOpen: { url in onOpen(url, card) },
                         onRetry: { app.retryDigestCard(card) }
                     )
@@ -221,9 +200,7 @@ struct TodayPage: View {
             )
         case .idle, .summarizing:
             if !app.isProviderReady(for: .assistant) {
-                providerSection
-            } else if let provider = app.providerAwaitingConsent(for: .assistant) {
-                consentSection(provider)
+                connectSection
             } else {
                 makeSection
             }
@@ -265,44 +242,12 @@ struct TodayPage: View {
         }
     }
 
-    @ViewBuilder
-    private var providerSection: some View {
-        let provider = app.selection(for: .assistant).provider
-        if app.readiness(of: app.selection(for: .assistant)) == .aiConsentDeclined {
-            noticeSection(
-                symbol: "hand.raised",
-                title: "Not allowed",
-                message: "You chose not to send forum content to \(provider.displayName). The digest needs it to summarize today’s topics.",
-                action: ("Allow…", { app.aiConsent.ask(provider) })
-            )
-        } else {
-            connectSection
-        }
-    }
-
     private var connectSection: some View {
         noticeSection(
             symbol: "cpu",
             title: "Connect an AI provider",
             message: "The digest’s summaries use your AI provider or Apple Intelligence.",
             action: ("Set up", { app.needsProviderSetup = .assistant })
-        )
-    }
-
-    /// The digest never shows the consent page by itself: it waits here
-    /// until the person answers it.
-    private func consentSection(_ provider: AIProvider) -> some View {
-        noticeSection(
-            symbol: "hand.raised",
-            title: "Waiting for your OK",
-            message: "The digest sends today’s topics to \(provider.displayName) to summarize them. It starts once you allow it.",
-            action: ("Review…", {
-                Task {
-                    try? await app.authorizeSending(to: provider, mayAsk: true)
-                    // A second tap waited on the same page: start once.
-                    if !app.digestActivity.isRunning { app.makeTodaysDigest() }
-                }
-            })
         )
     }
 
@@ -390,7 +335,7 @@ struct DigestHistoryPage: View {
     var body: some View {
         List {
             ForEach(digest.cards) { card in
-                DigestCardView(app: app, card: card, digest: digest, onOpen: { url in onOpen(url, card) }, onRetry: nil)
+                DigestCardView(app: app, card: card, onOpen: { url in onOpen(url, card) }, onRetry: nil)
                     .listRowBackground(Color.clear)
                     .listRowSeparator(.hidden)
                     .listRowInsets(EdgeInsets(top: DCTheme.spacingXS, leading: 0, bottom: DCTheme.spacingXS, trailing: 0))
@@ -401,18 +346,6 @@ struct DigestHistoryPage: View {
         .background(DCTheme.pageBackground)
         .navigationTitle(digest.createdAt.formatted(.dateTime.month(.abbreviated).day()))
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            if let target = app.aiOutputReport(for: digest) {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        app.report(target)
-                    } label: {
-                        Label("Report Digest…", systemImage: "flag")
-                    }
-                    .accessibilityIdentifier("reportDigest")
-                }
-            }
-        }
     }
 }
 
@@ -423,7 +356,6 @@ struct DigestHistoryPage: View {
 struct DigestCardView: View {
     @ObservedObject var app: AppModel
     let card: DigestCard
-    var digest: DailyDigest? = nil
     let onOpen: (URL) -> Void
     /// nil for earlier digests (read only).
     let onRetry: (() -> Void)?
@@ -447,18 +379,6 @@ struct DigestCardView: View {
                     TranslateButton(app: app, title: card.title, text: "## \(card.title)\n\n\(card.summary)", compact: true)
                         .font(.subheadline)
                         .buttonStyle(.borderless)
-                    if let target = app.aiOutputReport(for: card, digest: digest) {
-                        Button {
-                            DCHaptics.tap()
-                            app.report(target)
-                        } label: {
-                            Image(systemName: "flag")
-                        }
-                        .font(.subheadline)
-                        .buttonStyle(.borderless)
-                        .accessibilityLabel(Text("Report digest", comment: "Title of the form that reports an AI daily digest"))
-                        .accessibilityIdentifier("reportDigestCard-\(card.topicID)")
-                    }
                 }
                 reasonPill
             }
@@ -547,7 +467,6 @@ struct DigestCardView: View {
     }
 
     private var links: [Link] {
-        let card = app.sanitizedDigestCard(self.card)
         var result: [Link] = []
         if let first = card.firstNewPost, card.newReplies > 0 {
             result.append(Link(id: "first", title: String(localized: "First new reply", comment: "Digest card link: opens the topic at the first reply since the last digest"),

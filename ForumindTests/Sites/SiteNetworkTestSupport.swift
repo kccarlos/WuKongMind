@@ -7,12 +7,13 @@ extension ForumService {
         _ siteURL: String,
         cookieHeader: String? = nil,
         resourceLoader: (@MainActor @Sendable (URL) async throws -> ForumResourceResponse)? = nil,
-        pace: ForumRequestPace = .default
+        pace: ForumRequestPace = .default,
+        isPaced: Bool = true
     ) -> SiteNetwork {
         SiteNetwork(
             service: self,
             siteURL: siteURL,
-            context: SiteRequestContext(cookieHeader: cookieHeader, resourceLoader: resourceLoader, pace: pace)
+            context: SiteRequestContext(cookieHeader: cookieHeader, resourceLoader: resourceLoader, pace: pace, isPaced: isPaced)
         )
     }
 }
