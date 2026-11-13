@@ -454,7 +454,7 @@ final class DrawerUITests: DCUITestCase {
         defer { server.stop() }
 
         app = launch(["-dc-open", server.postURL, "-dc-fixture-model", server.baseURL])
-        XCTAssertTrue(waitOrDump(app.buttons["dockHintAction"].firstMatch, timeout: 25, in: app))
+        XCTAssertTrue(waitOrDump(app.buttons["forumSwitcher"].firstMatch, timeout: 25, in: app))
         openForumMenu(in: app)
         XCTAssertTrue(app.buttons["Watch this topic"].waitForExistence(timeout: 8))
         XCTAssertFalse(app.buttons["menuTranslatePosts"].exists)
