@@ -237,8 +237,6 @@ The architectural and development guides below are inherited from Forumind and s
 - [docs/APPLE_INTELLIGENCE.md](docs/APPLE_INTELLIGENCE.md) — on-device and Private Cloud Compute integration
 - [docs/CI.md](docs/CI.md) — GitHub Actions workflows
 
-*(Inherited App Store files such as [PRIVACY.md](PRIVACY.md) and [docs/APP_STORE.md](docs/APP_STORE.md) belong to Forumind's store distribution and are retained in the repository for reference; WukongMind itself is self-built and not on the App Store.)*
-
 ---
 
 ## Credits and License
@@ -246,5 +244,5 @@ The architectural and development guides below are inherited from Forumind and s
 WukongMind is forked from **[Forumind](https://github.com/kccarlos/forumind)** (`Copyright 2026 kccarlos and Forumind contributors`) and is licensed under the **[Apache License 2.0](LICENSE)**.
 
 - Optional ad and tracker blocking uses rules derived from [EasyList and EasyPrivacy](https://easylist.to/), licensed under CC BY-SA 3.0; see [NOTICE](NOTICE).
-- See [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), and [SECURITY.md](SECURITY.md) (inherited from Forumind; open issues and pull requests in [kccarlos/WuKongMind](https://github.com/kccarlos/WuKongMind)).
+- See [PRIVACY.md](PRIVACY.md), [SECURITY.md](SECURITY.md), [CONTRIBUTING.md](CONTRIBUTING.md), and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) (open issues and pull requests in [kccarlos/WuKongMind](https://github.com/kccarlos/WuKongMind)).
 - WukongMind is an independent open-source project and is not affiliated with or endorsed by Civilized Discourse Construction Kit, Inc. ("Discourse"), WordPress, Hacker News, or Tampermonkey.

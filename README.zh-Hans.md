@@ -163,6 +163,6 @@ scripts/adblock/run_tests.sh
 
 ## 文档与许可证
 
-详细设计、模块映射与开发文档（英文）请参阅英文主文档 [README.md](README.md#documentation)、[docs/wukongmind/requirements.md](docs/wukongmind/requirements.md) 与 [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)。（仓库中的 [PRIVACY.md](PRIVACY.md)、[TERMS.md](TERMS.md) 和 [docs/APP_STORE.md](docs/APP_STORE.md) 继承自 Forumind 的 App Store 版本并保留备查；WukongMind 本身不上架 App Store。）
+详细设计、模块映射与开发文档（英文）请参阅英文主文档 [README.md](README.md#documentation)、[docs/wukongmind/requirements.md](docs/wukongmind/requirements.md) 与 [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)；隐私与安全说明请参阅 [PRIVACY.md](PRIVACY.md) 与 [SECURITY.md](SECURITY.md)。
 
 WukongMind 派生自 **[Forumind](https://github.com/kccarlos/forumind)**（`Copyright 2026 kccarlos and Forumind contributors`），采用 **[Apache License 2.0](LICENSE)** 开源许可。可选广告与跟踪器拦截规则源自 [EasyList 和 EasyPrivacy](https://easylist.to/)（CC BY-SA 3.0，详见 [NOTICE](NOTICE)）。本项目与 Civilized Discourse Construction Kit, Inc.（"Discourse"）、WordPress、Hacker News 及 Tampermonkey 均无关联。

@@ -1,35 +1,24 @@
 # Security Policy
 
+WukongMind is a personal, self-use open-source browser for iOS and iPadOS, built from source and not distributed on the App Store.
+
 ## Reporting a vulnerability
 
-Please **don't open a public issue** for security problems. Report them
-privately through GitHub:
+Please **do not open a public issue** for security vulnerabilities. Report them privately through GitHub Security Advisories:
 
-1. Go to <https://github.com/kccarlos/forumind/security/advisories/new>
-   (the repository's **Security** tab › **Report a vulnerability**).
-2. Describe the issue, how to reproduce it, and what an attacker could do.
+- <https://github.com/kccarlos/WuKongMind/security/advisories/new> (**Security** › **Report a vulnerability**)
 
-Only the maintainers can see the report. You'll get a reply as soon as
-possible, usually within a week, and we'll keep you updated until it's fixed.
-If you'd like, you'll be credited in the advisory.
+Include steps to reproduce and the concrete impact. Reports are reviewed and fixed on the `main` branch on a best-effort basis.
 
-## Scope
+## Threat model and scope
 
-In scope: the iOS app, its share extension, and the build and release
-tooling in this repository. Examples of what we care about:
+Before reporting, review the [Risk Statement in README.md](README.md#risk-statement). By design, the browser agent runs unrestricted JavaScript (`run_js`) inside the active `WKWebView` session with no confirmation prompts by default. Untrusted page text steering the model (prompt injection) is an inherent risk of that design rather than a bug on its own — do not sign in to banking, payment, or primary email accounts in WukongMind.
 
-- API keys, forum cookies, or synced data leaking to anyone other than the
-  forum or AI provider the user chose
-- Deep links (`forumind://`) or shared content that start actions the
-  user didn't ask for
-- Weaknesses in the encryption of iCloud sync files
-- Ways for a web page in the built-in browser to reach the app's data
+**In scope (documented safety boundaries):**
 
-Out of scope: vulnerabilities in Discourse itself (report those to
-the Discourse team, see [meta.discourse.org](https://meta.discourse.org)), in
-AI providers' services,
-or in iOS.
+- Bypassing isolated-world bridge separation (`WKScriptMessageHandlerWithReply` in an isolated `WKContentWorld`) so a web page script can invoke native tools or spoof tool results
+- Leaking provider API keys from Keychain into page JavaScript contexts, conversations, tool outputs, or logs
+- Triggering unintended actions through external `wukongmind://` deep links or share hand-offs, or leaking cookies across origins in native HTTP helpers
+- Weaknesses in optional CloudKit payload encryption or repository build/release scripts
 
-## Supported versions
-
-Security fixes go into the latest App Store release and the `main` branch.
+**Out of scope:** Vulnerabilities in third-party websites, AI model providers, or iOS/WebKit itself.
