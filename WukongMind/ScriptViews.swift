@@ -392,21 +392,13 @@ struct AgentScriptCardView: View {
     private func activeCard(for script: UserScript) -> some View {
         let error = runtimeError
         let isEffectivelyOn = script.isEnabled && app.scriptStore.isGlobalEnabled
-        let cardTint: Color = {
-            if error != nil { return DCTheme.danger }
-            if !isEffectivelyOn { return .clear }
-            return DCTheme.agentTint
-        }()
-        let iconTint: Color = {
-            if error != nil { return DCTheme.danger }
-            if !isEffectivelyOn { return .secondary }
-            return DCTheme.agentTint
-        }()
+        let tileFill = error != nil ? DCTheme.cinnabarWash : (isEffectivelyOn ? DCTheme.goldWash : DCTheme.surfaceRaised)
+        let iconTint: Color = error != nil ? DCTheme.danger : (isEffectivelyOn ? DCTheme.goldInk : DCTheme.inkMuted)
 
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top, spacing: 10) {
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(iconTint.opacity(0.14))
+                RoundedRectangle(cornerRadius: DCTheme.radiusSm, style: .continuous)
+                    .fill(tileFill)
                     .frame(width: 32, height: 32)
                     .overlay {
                         Image(systemName: "curlybraces")
@@ -498,7 +490,12 @@ struct AgentScriptCardView: View {
                 .accessibilityIdentifier("agentScriptDeleteButton")
             }
         }
-        .dcCard(tint: cardTint)
+        .padding(14)
+        .background(DCTheme.surface, in: RoundedRectangle(cornerRadius: DCTheme.radiusLg, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: DCTheme.radiusLg, style: .continuous)
+                .strokeBorder(DCTheme.hairline, lineWidth: DCTheme.hairlineWidth)
+        }
     }
 
     private var deletedRow: some View {

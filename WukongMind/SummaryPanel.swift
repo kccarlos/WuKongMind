@@ -989,14 +989,18 @@ struct AssistantPanel: View {
                         .transition(.asymmetric(insertion: .opacity, removal: .identity))
                 }
             }
+            // The summary's rows stay direct children of the lazy transcript (a long
+            // summary lays out only what is on screen), so only the jade header is a card piece.
+            DCResultHeader(label: String(localized: "Summary", comment: "Summary result card header"), systemImage: "doc.text")
+                .padding(.top, 4)
             DrawerSummarySections(
                 rows: rows,
                 layout: app.router.usesWideDrawerSummary && app.router.drawerDetent == .medium
                     ? .twoColumns
                     : .singleColumn
             )
-                .accessibilityIdentifier("summaryContent")
-                .transition(.identity)
+            .accessibilityIdentifier("summaryContent")
+            .transition(.identity)
             if activeSummary == nil {
                 if showsCitationTip {
                     citationTip
@@ -1652,10 +1656,7 @@ private struct ChatThread<Leading: View>: View {
     private var typingBubble: some View {
         HStack {
             TypingIndicator(tint: DCTheme.chatTint)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 14)
-                .background(DCTheme.surface, in: ChatBubbleShape(isUser: false))
-                .overlay { ChatBubbleShape(isUser: false).stroke(DCTheme.border) }
+                .padding(.vertical, 8)
             Spacer(minLength: 34)
         }
         .transition(.opacity)
@@ -2046,25 +2047,6 @@ struct WorkProgressCard: View {
 }
 
 /// A chat bubble with a tail-side corner.
-struct ChatBubbleShape: Shape {
-    let isUser: Bool
-
-    func path(in rect: CGRect) -> Path {
-        let large: CGFloat = 18
-        let small: CGFloat = 6
-        return Path(
-            roundedRect: rect,
-            cornerRadii: RectangleCornerRadii(
-                topLeading: large,
-                bottomLeading: isUser ? large : small,
-                bottomTrailing: isUser ? small : large,
-                topTrailing: large
-            ),
-            style: .continuous
-        )
-    }
-}
-
 struct ChatBubble: View {
     let message: ChatMessage
     var maximumPost: Int? = nil
@@ -2108,17 +2090,7 @@ struct ChatBubble: View {
             .padding(.horizontal, 14)
             .padding(.vertical, 11)
             .background {
-                if isUser {
-                    ChatBubbleShape(isUser: true)
-                        .fill(DCTheme.surfaceRaised)
-                } else {
-                    ChatBubbleShape(isUser: false).fill(DCTheme.surface)
-                }
-            }
-            .overlay {
-                if !isUser {
-                    ChatBubbleShape(isUser: false).stroke(DCTheme.border)
-                }
+                if isUser { DCUserBubbleShape().fill(DCTheme.surfaceRaised) }
             }
             if !isUser { Spacer(minLength: 24) }
         }
@@ -2336,10 +2308,15 @@ private struct DrawerPodcastStatus: View {
     let action: () -> Void
 
     var body: some View {
-        let text = DockText.podcastLine(player: player, episode: episode)
         if player.isActive {
+            let timeline = PodcastTimeline(durations: episode.entries.map { $0.isReady ? $0.duration : nil })
             Button(action: action) {
-                DrawerStatusLabel(systemImage: "headphones", text: text, progress: nil)
+                DCListenRow(
+                    title: episode.title,
+                    detail: DockText.podcastLine(player: player, episode: episode),
+                    progress: timeline.total > 0 ? timeline.elapsed(player.position) / timeline.total : 0,
+                    isPlaying: true
+                )
             }
             .buttonStyle(.plain)
             .nowPlayingZoomSource()

@@ -507,7 +507,7 @@ extension DCUITestCase {
         XCTAssertGreaterThanOrEqual(toolRows.count, 1)
         let rowLabels = (0..<toolRows.count).map { "[\($0 + 1)] \(toolRows.element(boundBy: $0).label)" }
         XCTAssertTrue(
-            rowLabels.contains { $0.localizedCaseInsensitiveContains("script_save") },
+            rowLabels.contains { $0.localizedCaseInsensitiveContains("script_save") || $0.localizedCaseInsensitiveContains("Saved script") },
             "Expected script_save tool call in conversation, got: \(rowLabels)"
         )
 
