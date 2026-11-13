@@ -82,7 +82,7 @@ final class OnboardingTests: XCTestCase {
             XCTAssertFalse(page.systemImage.isEmpty)
         }
         // UI tests look for this row label on the Settings root.
-        XCTAssertEqual(SettingsPage.provider.title, "AI models")
+        XCTAssertEqual(SettingsPage.provider.title, "Models")
         XCTAssertEqual(SettingsPage.browser.title, "Browser")
     }
 
@@ -107,6 +107,56 @@ final class OnboardingTests: XCTestCase {
         XCTAssertNil(SyncDebug.parse("nope"))
         XCTAssertEqual(SettingsPage.parse("sync"), .sync)
         XCTAssertEqual(SettingsPage.sync.title, "iCloud Sync")
+        XCTAssertEqual(SettingsPage.parse("sites"), .sites)
+        XCTAssertEqual(SettingsPage.sites.title, "Sites")
+        XCTAssertEqual(SettingsPage.provider.title, "Models")
+        XCTAssertEqual(SettingsPage.agent.title, "Agent")
+        XCTAssertEqual(SettingsPage.scripts.title, "Scripts & tools")
+        XCTAssertEqual(SettingsPage.watched.title, "Following")
+        XCTAssertNil(SettingsPage.parse("summaries"), "Summaries & chat is folded into Models and Sites")
+        XCTAssertEqual(SettingsPage.agent.tint, DCTheme.gold)
+        XCTAssertEqual(SettingsPage.provider.tint, DCTheme.ink)
+    }
+
+    func testSearchEngineAndAgentSettingsDefaultsAndPersistence() throws {
+        let stock = AppSettings()
+        XCTAssertEqual(stock.searchEngine, .google)
+        XCTAssertFalse(stock.agentConfirmBeforeWrites)
+        XCTAssertFalse(stock.agentDeveloperMode)
+        XCTAssertTrue(SyncSettings.deviceLocalKeys.contains("agentDeveloperMode"))
+        XCTAssertFalse(SyncSettings.deviceLocalKeys.contains("searchEngine"))
+        XCTAssertFalse(SyncSettings.deviceLocalKeys.contains("agentConfirmBeforeWrites"))
+
+        XCTAssertEqual(
+            SearchEngine.google.searchURL(for: "swift concurrency")?.absoluteString,
+            "https://www.google.com/search?q=swift%20concurrency"
+        )
+        XCTAssertEqual(
+            SearchEngine.duckDuckGo.searchURL(for: "wukong")?.absoluteString,
+            "https://duckduckgo.com/?q=wukong"
+        )
+        XCTAssertEqual(
+            SearchEngine.bing.searchURL(for: "discourse")?.absoluteString,
+            "https://www.bing.com/search?q=discourse"
+        )
+        XCTAssertEqual(
+            SearchEngine.ecosia.searchURL(for: "trees")?.absoluteString,
+            "https://www.ecosia.org/search?q=trees"
+        )
+        XCTAssertNil(SearchEngine.google.searchURL(for: "   "))
+
+        // Existing saved JSON without the new keys decodes cleanly with stock defaults (no migration).
+        let bare = try JSONDecoder().decode(AppSettings.self, from: Data("{}".utf8))
+        XCTAssertEqual(bare, stock)
+
+        var edited = AppSettings()
+        edited.searchEngine = .duckDuckGo
+        edited.agentConfirmBeforeWrites = true
+        edited.agentDeveloperMode = true
+        let roundTrip = try JSONDecoder().decode(AppSettings.self, from: JSONEncoder().encode(edited))
+        XCTAssertEqual(roundTrip.searchEngine, .duckDuckGo)
+        XCTAssertTrue(roundTrip.agentConfirmBeforeWrites)
+        XCTAssertTrue(roundTrip.agentDeveloperMode)
     }
 
     func testVersionText() {

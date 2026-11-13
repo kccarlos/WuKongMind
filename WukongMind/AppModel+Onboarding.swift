@@ -219,15 +219,15 @@ struct ProviderGuide: Equatable {
 /// Settings sub-pages (navigation destinations).
 enum SettingsPage: String, CaseIterable, Identifiable, Hashable {
     case provider
-    case sync
-    case forums
-    case summaries
     case agent
     case scripts
-    case watched
-    case digest
-    case voice
+    case sites
     case browser
+    case forums
+    case watched
+    case voice
+    case digest
+    case sync
     case data
     case help
     case sharing
@@ -237,16 +237,16 @@ enum SettingsPage: String, CaseIterable, Identifiable, Hashable {
 
     var title: String {
         switch self {
-        case .provider: String(localized: "AI models", comment: "Settings page: the AI models for summaries & chat and for Ask the forum, and the providers' keys")
-        case .sync: String(localized: "iCloud Sync")
-        case .forums: String(localized: "Forums")
-        case .summaries: String(localized: "Summaries & chat")
-        case .agent: String(localized: "Ask the forum")
-        case .scripts: String(localized: "Scripts", comment: "Settings page: per-site userscripts saved by the browser agent")
-        case .watched: String(localized: "Watched topics")
-        case .digest: String(localized: "Daily digest & podcast", comment: "Settings page: the Today page's daily digest of watched and trending topics")
-        case .voice: String(localized: "Voice", comment: "Settings page: the live voice conversation with Google Gemini")
+        case .provider: String(localized: "Models", comment: "Settings page: AI models for Agent and Summaries, answer language, and provider keys")
+        case .agent: String(localized: "Agent", comment: "Settings page: Agent step limits, safety, audit log, developer mode and forum search")
+        case .scripts: String(localized: "Scripts & tools", comment: "Settings page: per-site userscripts and saved site tools")
+        case .sites: String(localized: "Sites", comment: "Settings page: saved forums, followed topics, reading pace and ad blocking")
         case .browser: String(localized: "Browser")
+        case .forums: String(localized: "Forums")
+        case .watched: String(localized: "Following", comment: "Settings page: followed topics and new-reply checks")
+        case .voice: String(localized: "Voice", comment: "Settings page: the live voice conversation with Google Gemini")
+        case .digest: String(localized: "Daily digest & podcast", comment: "Settings page: the Today page's daily digest of watched and trending topics")
+        case .sync: String(localized: "iCloud Sync")
         case .data: String(localized: "Data & privacy")
         case .help: String(localized: "Help & about")
         case .sharing: String(localized: "Share from Safari or Chrome")
@@ -257,19 +257,19 @@ enum SettingsPage: String, CaseIterable, Identifiable, Hashable {
     var systemImage: String {
         switch self {
         case .provider: "cpu"
-        case .sync: "icloud.fill"
-        case .forums: "bubble.left.and.bubble.right.fill"
-        case .summaries: "text.alignleft"
-        case .agent: "sparkle.magnifyingglass"
+        case .agent: "sparkles"
         case .scripts: "curlybraces"
-        case .watched: "bell.badge.fill"
-        case .digest: "sun.max.fill"
-        case .voice: "waveform"
+        case .sites: "globe"
         case .browser: "safari.fill"
+        case .forums: "bubble.left.and.bubble.right.fill"
+        case .watched: "bell.fill"
+        case .voice: "waveform"
+        case .digest: "sun.max.fill"
+        case .sync: "icloud.fill"
         case .data: "hand.raised.fill"
         case .help: "questionmark"
         case .sharing: "square.and.arrow.up"
-        case .acknowledgements: "text.book.closed.fill"
+        case .acknowledgements: "doc.text"
         }
     }
 

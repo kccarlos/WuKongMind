@@ -166,9 +166,9 @@ struct SettingsHelpPage: View {
         Form {
             Section {
                 VStack(spacing: DCTheme.spacingM) {
-                    BrandMark(size: 84)
+                    DCLogoView(variant: .mark, size: 64)
                     Text("WukongMind").font(.title3.weight(.bold))
-                    Text("Summaries, chat, and answers for any forum or article.")
+                    Text("Your agent browser for the web and every forum.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
@@ -177,6 +177,16 @@ struct SettingsHelpPage: View {
                 .padding(.vertical, DCTheme.spacingM)
                 LabeledContent("Version", value: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "—")
                 LabeledContent("Build", value: Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "—")
+            }
+
+            Section {
+                NavigationLink(value: SettingsPage.sharing) {
+                    SettingsRowLabel(page: .sharing)
+                }
+                .accessibilityIdentifier("settingsRow-sharing")
+                SettingsLanguageRow()
+            } footer: {
+                Text("iOS manages the app language. Change it in Settings › WukongMind › Language.")
             }
 
             Section("How it works") {

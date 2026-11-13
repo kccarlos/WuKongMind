@@ -1,7 +1,6 @@
 import SwiftUI
 
-// Settings › Summaries & chat, Ask the forum, Watched topics, Browser
-// (bar position, ad and tracker blocking).
+// Settings › Agent, Audit log, Sites, Following, and Browser.
 
 /// "55k characters" (shared with the summary batch label, so both read and
 /// translate the same way).
@@ -32,121 +31,65 @@ private struct SettingExplanation: View {
     }
 }
 
-// MARK: Summaries & chat
+// MARK: - Sites
 
-struct SettingsSummariesPage: View {
+struct SettingsSitesPage: View {
     @ObservedObject var app: AppModel
-    @FocusState private var editingInstructions: Bool
 
     var body: some View {
         Form {
             Section {
-                VStack(alignment: .leading, spacing: DCTheme.spacingS) {
-                    SettingExplanation(
-                        title: "Context per batch",
-                        value: SummaryBatchLimit.label(app.settings.summaryBatchLimit),
-                        detail: "How much of a long topic is summarized at once."
-                    )
-                    Slider(
-                        value: Binding(
-                            get: { Double(app.settings.summaryBatchLimit) },
-                            set: { app.settings.summaryBatchLimit = SummaryBatchLimit.normalized(Int($0)) }
-                        ),
-                        in: Double(SummaryBatchLimit.minimum)...Double(SummaryBatchLimit.maximum),
-                        step: Double(SummaryBatchLimit.step)
-                    )
-                    .accessibilityLabel("Context per summary batch")
-                    .tint(DCTheme.summaryTint)
-                    .accessibilityValue(SummaryBatchLimit.label(app.settings.summaryBatchLimit))
-                    .accessibilityIdentifier("summaryBatchLimit")
-                }
-                if app.settings.summaryBatchLimit != SummaryBatchLimit.default {
-                    Button("Use default (\(SummaryBatchLimit.label(SummaryBatchLimit.default)))") {
-                        app.settings.summaryBatchLimit = SummaryBatchLimit.default
+                NavigationLink(value: SettingsPage.forums) {
+                    SettingsIconRow {
+                        SettingsIcon(page: .forums)
+                    } title: {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Forums")
+                            Text("Saved sites, search & pins", comment: "Settings › Sites › Forums row subtitle")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    } trailing: {
+                        Text("\(app.forums.count)")
+                            .foregroundStyle(.secondary)
+                            .monospacedDigit()
                     }
                 }
-            } header: {
-                Text("Summary batching")
-            } footer: {
-                // One literal (not concatenated) so it's a localizable key.
-                Text("Longer discussions are split into batches of this size. Each batch is summarized, then the batch summaries are combined. Use smaller batches for models with small context windows. Hold Create summary to pick a size for one run.")
-            }
+                .accessibilityIdentifier("settingsRow-forums")
 
-            Section {
-                VStack(alignment: .leading, spacing: DCTheme.spacingS) {
-                    SettingExplanation(
-                        title: "Topic text per question",
-                        value: characters(app.settings.forumContextLimit),
-                        detail: "How much of the topic is sent along with each chat question."
-                    )
-                    Slider(
-                        value: Binding(
-                            get: { Double(app.settings.forumContextLimit) },
-                            set: { app.settings.forumContextLimit = Int($0) }
-                        ),
-                        in: 5_000...1_000_000,
-                        step: 5_000
-                    )
-                    .accessibilityLabel("Chat context size")
-                    .tint(DCTheme.chatTint)
-                    .accessibilityValue(characters(app.settings.forumContextLimit))
-                    .accessibilityIdentifier("chatContextLimit")
+                NavigationLink(value: SettingsPage.watched) {
+                    SettingsIconRow {
+                        SettingsIcon(page: .watched)
+                    } title: {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(SettingsPage.watched.title)
+                            Text("Check for new replies", comment: "Settings › Sites › Following row subtitle")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    } trailing: {
+                        if !app.watchedTopics.isEmpty {
+                            Text("\(app.watchedTopics.count)")
+                                .foregroundStyle(.secondary)
+                                .monospacedDigit()
+                        }
+                    }
                 }
+                .accessibilityIdentifier("settingsRow-watched")
             } header: {
-                Text("Chat context")
-            } footer: {
-                Text("More context gives better answers on long topics but uses more of your provider’s quota.")
+                Text("Forums")
             }
 
             ForumRequestPaceSection(app: app)
 
-            Section {
-                TextEditor(text: $app.settings.systemPrompt)
-                    .focused($editingInstructions)
-                    .frame(minHeight: 140)
-                    .overlay(alignment: .topLeading) {
-                        if app.settings.systemPrompt.isEmpty {
-                            Text("For example: Answer in English. Keep summaries under 200 words.",
-                                 comment: "Placeholder for custom AI instructions. Translations may name their own language instead of English.")
-                                .foregroundStyle(.tertiary)
-                                .padding(.top, 8)
-                                .padding(.leading, 5)
-                                .allowsHitTesting(false)
-                        }
-                    }
-                    .accessibilityLabel("Custom instructions")
-                    .accessibilityIdentifier("customInstructions")
-                if !app.settings.systemPrompt.isEmpty {
-                    Button("Use the built-in prompt", role: .destructive) {
-                        app.settings.systemPrompt = ""
-                        app.saveSettings()
-                    }
-                }
-            } header: {
-                Text("Custom instructions")
-            } footer: {
-                Text("Leave blank to use the built-in structured summary prompt. Custom instructions apply to summaries and chat. A topic’s own instructions (in the assistant’s ⋯ menu) take priority.")
-            }
+            ContentBlockingSettingsSections(app: app, rules: app.contentRules)
         }
         .formStyle(.grouped)
-        .scrollDismissesKeyboard(.interactively)
-        .toolbar {
-            if editingInstructions {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") {
-                        editingInstructions = false
-                        app.saveSettings()
-                    }
-                }
-            }
-        }
-        .onChange(of: app.settings.summaryBatchLimit) { app.saveSettings() }
-        .onChange(of: app.settings.forumContextLimit) { app.saveSettings() }
-        .onDisappear { app.saveSettings() }
+        .accessibilityIdentifier("sitesSettingsPage")
     }
 }
 
-/// Settings › Summaries & chat › Forum requests: how quickly topics are read.
+/// Settings › Sites › Reading pace: how quickly topics are read.
 private struct ForumRequestPaceSection: View {
     @ObservedObject var app: AppModel
 
@@ -175,7 +118,7 @@ private struct ForumRequestPaceSection: View {
                 .accessibilityIdentifier("forumRequestPace")
             }
         } header: {
-            Text("Forum requests")
+            Text("Reading pace")
         } footer: {
             Text(footer)
         }
@@ -203,89 +146,59 @@ private struct ForumRequestPaceSection: View {
     }
 }
 
-// MARK: Ask the forum
+// MARK: - Agent
 
 struct SettingsAgentPage: View {
     @ObservedObject var app: AppModel
 
+    private var auditStepCount: Int {
+        app.browserAgent.runs.reduce(0) { $0 + $1.toolCalls.count }
+    }
+
+    private var headerTitle: String {
+        app.hasConfiguredModel(for: .browserAgent)
+            ? app.modelLabel(for: .browserAgent)
+            : app.providerSummary(for: .browserAgent)
+    }
+
+    private var headerSubtitle: String {
+        let roleSubtitle = String(localized: "Agent model", comment: "Settings › Agent header subtitle under the selected model name")
+        guard app.hasConfiguredModel(for: .browserAgent) else { return roleSubtitle }
+        return "\(app.selection(for: .browserAgent).provider.displayName) · \(roleSubtitle)"
+    }
+
     var body: some View {
         Form {
-            Section {
-                HStack(alignment: .top, spacing: DCTheme.spacingM) {
-                    OnboardingIconTile(symbol: "text.magnifyingglass", tint: DCTheme.agentTint, size: 40, filled: true)
-                    Text("Ask a question and the assistant searches the forum, reads the most relevant topics, and answers with numbered sources. It only reads — it never posts.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .padding(.vertical, DCTheme.spacingXS)
-            }
-
-            Section {
-                Stepper(
-                    "Max tool steps per run: \(app.settings.agentMaxSteps)",
-                    value: Binding(
-                        get: { app.settings.agentMaxSteps },
-                        set: { app.settings.agentMaxSteps = AgentLimits.clampSteps($0) }
-                    ),
-                    in: AgentLimits.stepRange
-                )
-                .accessibilityIdentifier("agentMaxSteps")
-            } header: {
-                Text("Research steps")
-            } footer: {
-                Text("Each search or topic read is one step. More steps can find better answers but take longer and cost more. Default: \(AgentLimits.defaultMaxSteps).")
-            }
-
-            Section {
-                Stepper(
-                    "Max topics read per run: \(app.settings.agentMaxTopicReads)",
-                    value: Binding(
-                        get: { app.settings.agentMaxTopicReads },
-                        set: { app.settings.agentMaxTopicReads = AgentLimits.clampTopicReads($0) }
-                    ),
-                    in: AgentLimits.topicReadRange
-                )
-                .accessibilityIdentifier("agentMaxTopicReads")
-            } header: {
-                Text("Topics to read")
-            } footer: {
-                Text("How many full topics it may open to answer one question. Default: \(AgentLimits.defaultMaxTopicReads).")
-            }
-
-            Section {
-                VStack(alignment: .leading, spacing: DCTheme.spacingS) {
-                    SettingExplanation(
-                        title: "Context per topic read",
-                        value: characters(app.settings.agentReadLimit),
-                        detail: "How much of each topic it reads. Larger reads catch more detail in long threads."
-                    )
-                    Slider(
-                        value: Binding(
-                            get: { Double(app.settings.agentReadLimit) },
-                            set: { app.settings.agentReadLimit = AgentLimits.clampReadLimit(Int($0)) }
-                        ),
-                        in: Double(AgentLimits.readLimitRange.lowerBound)...Double(AgentLimits.readLimitRange.upperBound),
-                        step: 5_000
-                    )
-                    .tint(DCTheme.agentTint)
-                    .accessibilityLabel("Context per topic read")
-                    .accessibilityValue(characters(app.settings.agentReadLimit))
-                }
-            } header: {
-                Text("Read size")
-            }
-
             Section {
                 NavigationLink {
                     ModelRolePage(app: app, role: .browserAgent)
                 } label: {
-                    ModelRoleRow(app: app, role: .browserAgent)
+                    SettingsIconRow {
+                        DCListIconTile(kind: .agent, size: 44)
+                    } title: {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(headerTitle)
+                                .font(.subheadline.weight(.semibold))
+                                .lineLimit(1)
+                                .truncationMode(.middle)
+                            Text(headerSubtitle)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                        }
+                    } trailing: {
+                        Text("Change", comment: "Settings › Agent header link to change the Agent model")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(DCTheme.goldInk)
+                    }
+                    .padding(.vertical, DCTheme.spacingXS)
                 }
                 .accessibilityIdentifier("browserAgentModelRow")
+            }
 
+            Section {
                 Stepper(
-                    "Max browser agent steps: \(app.settings.browserAgentMaxSteps)",
+                    "Step limit: \(app.settings.browserAgentMaxSteps)",
                     value: Binding(
                         get: { app.settings.browserAgentMaxSteps },
                         set: { app.settings.browserAgentMaxSteps = BrowserAgentLimits.clampSteps($0) }
@@ -296,7 +209,7 @@ struct SettingsAgentPage: View {
 
                 VStack(alignment: .leading, spacing: DCTheme.spacingS) {
                     SettingExplanation(
-                        title: "Tool result truncation limit",
+                        title: "Result size",
                         value: characters(app.settings.browserAgentTruncationLimit),
                         detail: "Maximum size of each page read or JavaScript result sent back to the model."
                     )
@@ -308,15 +221,103 @@ struct SettingsAgentPage: View {
                         in: Double(BrowserAgentLimits.truncationRange.lowerBound)...Double(BrowserAgentLimits.truncationRange.upperBound),
                         step: 1_000
                     )
-                    .tint(DCTheme.agentTint)
-                    .accessibilityLabel("Tool result truncation limit")
+                    .tint(DCTheme.goldInk)
+                    .accessibilityLabel("Result size")
                     .accessibilityValue(characters(app.settings.browserAgentTruncationLimit))
                     .accessibilityIdentifier("browserAgentTruncationLimit")
                 }
             } header: {
-                Text("Browser agent")
+                Text("Runs", comment: "Settings › Agent section header for step and result limits")
             } footer: {
-                Text("The browser agent reads and modifies the active web page with tool calls. Defaults: \(BrowserAgentLimits.defaultMaxSteps) steps, \(characters(BrowserAgentLimits.defaultTruncationLimit)) per tool result.")
+                Text("Defaults: \(BrowserAgentLimits.defaultMaxSteps) steps, \(characters(BrowserAgentLimits.defaultTruncationLimit)) per tool result.")
+            }
+
+            Section {
+                Toggle("Confirm before writes", isOn: $app.settings.agentConfirmBeforeWrites)
+                    .accessibilityIdentifier("agentConfirmBeforeWrites")
+            } header: {
+                Text("Safety", comment: "Settings › Agent section header for confirmation settings")
+            } footer: {
+                Text("When on, network requests, cookie reads and actions that submit forms ask before running.")
+            }
+
+            Section {
+                NavigationLink {
+                    SettingsAuditLogPage(app: app)
+                } label: {
+                    SettingsIconRow {
+                        SettingsIcon(symbol: "list.bullet.clipboard", tint: DCTheme.ink)
+                    } title: {
+                        Text("Audit log", comment: "Settings › Agent › Records row opening the tool-call audit log")
+                    } trailing: {
+                        Text("\(auditStepCount)")
+                            .foregroundStyle(.secondary)
+                            .monospacedDigit()
+                    }
+                }
+                .accessibilityIdentifier("settingsRow-auditLog")
+            } header: {
+                Text("Records", comment: "Settings › Agent section header for the audit log")
+            }
+
+            Section {
+                Toggle(isOn: $app.settings.agentDeveloperMode) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Developer mode", comment: "Settings › Agent switch showing raw tool payloads")
+                        Text("Show raw tool arguments & results", comment: "Settings › Agent subtitle for Developer mode")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .accessibilityIdentifier("agentDeveloperMode")
+            } header: {
+                Text("Developer", comment: "Settings › Agent section header for developer diagnostics")
+            }
+
+            Section {
+                Stepper(
+                    "Search steps: \(app.settings.agentMaxSteps)",
+                    value: Binding(
+                        get: { app.settings.agentMaxSteps },
+                        set: { app.settings.agentMaxSteps = AgentLimits.clampSteps($0) }
+                    ),
+                    in: AgentLimits.stepRange
+                )
+                .accessibilityIdentifier("agentMaxSteps")
+
+                Stepper(
+                    "Topics to read: \(app.settings.agentMaxTopicReads)",
+                    value: Binding(
+                        get: { app.settings.agentMaxTopicReads },
+                        set: { app.settings.agentMaxTopicReads = AgentLimits.clampTopicReads($0) }
+                    ),
+                    in: AgentLimits.topicReadRange
+                )
+                .accessibilityIdentifier("agentMaxTopicReads")
+
+                VStack(alignment: .leading, spacing: DCTheme.spacingS) {
+                    SettingExplanation(
+                        title: "Read size",
+                        value: characters(app.settings.agentReadLimit),
+                        detail: "How much of each topic it reads. Larger reads catch more detail in long threads."
+                    )
+                    Slider(
+                        value: Binding(
+                            get: { Double(app.settings.agentReadLimit) },
+                            set: { app.settings.agentReadLimit = AgentLimits.clampReadLimit(Int($0)) }
+                        ),
+                        in: Double(AgentLimits.readLimitRange.lowerBound)...Double(AgentLimits.readLimitRange.upperBound),
+                        step: 5_000
+                    )
+                    .tint(DCTheme.goldInk)
+                    .accessibilityLabel("Context per topic read")
+                    .accessibilityValue(characters(app.settings.agentReadLimit))
+                    .accessibilityIdentifier("agentReadLimit")
+                }
+            } header: {
+                Text("Forum search", comment: "Settings › Agent section header for forum search limits")
+            } footer: {
+                Text("Used when searching across a forum. Defaults: \(AgentLimits.defaultMaxSteps) steps, \(AgentLimits.defaultMaxTopicReads) topics, \(characters(AgentLimits.defaultReadLimit)) per topic.")
             }
 
             if app.settings.agentMaxSteps != AgentLimits.defaultMaxSteps
@@ -332,10 +333,14 @@ struct SettingsAgentPage: View {
                         app.settings.browserAgentMaxSteps = BrowserAgentLimits.defaultMaxSteps
                         app.settings.browserAgentTruncationLimit = BrowserAgentLimits.defaultTruncationLimit
                     }
+                    .accessibilityIdentifier("restoreAgentDefaults")
                 }
             }
         }
         .formStyle(.grouped)
+        .accessibilityIdentifier("agentSettingsPage")
+        .onChange(of: app.settings.agentConfirmBeforeWrites) { app.saveSettings() }
+        .onChange(of: app.settings.agentDeveloperMode) { app.saveSettings() }
         .onChange(of: app.settings.agentMaxSteps) { app.saveSettings() }
         .onChange(of: app.settings.agentMaxTopicReads) { app.saveSettings() }
         .onChange(of: app.settings.agentReadLimit) { app.saveSettings() }
@@ -344,7 +349,77 @@ struct SettingsAgentPage: View {
     }
 }
 
-// MARK: Watched topics & notifications
+struct SettingsAuditLogPage: View {
+    @ObservedObject var app: AppModel
+
+    private var runsWithToolCalls: [BrowserAgentRun] {
+        app.browserAgent.runs.filter { !$0.toolCalls.isEmpty }.reversed()
+    }
+
+    var body: some View {
+        Form {
+            if runsWithToolCalls.isEmpty {
+                Section {
+                    Text("No tool calls recorded in this session yet.", comment: "Settings › Agent › Audit log empty state")
+                        .foregroundStyle(.secondary)
+                        .accessibilityIdentifier("auditLogEmptyState")
+                } footer: {
+                    Text("Every tool call's time, arguments and result summary appear here as the Agent works.")
+                }
+            } else {
+                ForEach(runsWithToolCalls) { run in
+                    Section {
+                        ForEach(run.toolCalls) { step in
+                            VStack(alignment: .leading, spacing: 4) {
+                                HStack {
+                                    Text(verbatim: step.toolName)
+                                        .font(DCType.code)
+                                    Spacer()
+                                    if step.isError {
+                                        DCSeal(
+                                            text: String(localized: "Error", comment: "Audit log badge for a failed tool call"),
+                                            variant: .state(.error)
+                                        )
+                                    } else {
+                                        DCSeal(text: "#\(step.stepNumber)", variant: .outline)
+                                    }
+                                }
+                                if !step.argumentSummary.isEmpty {
+                                    Text(verbatim: step.argumentSummary)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                        .lineLimit(2)
+                                }
+                                Text(verbatim: step.resultSummary)
+                                    .font(.caption)
+                                    .foregroundStyle(step.isError ? DCTheme.danger : .secondary)
+                                    .lineLimit(3)
+                                if app.settings.agentDeveloperMode {
+                                    Text(verbatim: step.argumentsJSON)
+                                        .font(DCType.code)
+                                        .foregroundStyle(.secondary)
+                                        .lineLimit(6)
+                                }
+                            }
+                            .padding(.vertical, 2)
+                        }
+                    } header: {
+                        Text(verbatim: "\(run.startedAt.formatted(date: .abbreviated, time: .shortened)) · \(run.prompt)")
+                            .lineLimit(1)
+                    }
+                }
+            }
+        }
+        .formStyle(.grouped)
+        .dcGroupedBackground()
+        .tint(DCTheme.goldInk)
+        .navigationTitle(Text("Audit log", comment: "Navigation bar title of the Agent audit log screen"))
+        .navigationBarTitleDisplayMode(.inline)
+        .accessibilityIdentifier("auditLogPage")
+    }
+}
+
+// MARK: - Following
 
 struct SettingsWatchedPage: View {
     @ObservedObject var app: AppModel
@@ -368,7 +443,7 @@ struct SettingsWatchedPage: View {
                 Toggle(isOn: $app.settings.watchAutoRefreshSummaries) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Refresh their summaries")
-                        Text("When new replies arrive, with your Summaries & chat model")
+                        Text("When new replies arrive, with your Summaries model", comment: "Settings › Sites › Following toggle subtitle")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -400,7 +475,10 @@ struct SettingsWatchedPage: View {
                                 }
                                 Spacer(minLength: DCTheme.spacingS)
                                 if watched.newReplies > 0 {
-                                    DCPill(text: String(localized: "\(watched.newReplies) new", comment: "Badge: number of new replies in a watched topic"), tint: DCTheme.goldInk)
+                                    DCSeal(
+                                        text: String(localized: "\(watched.newReplies) new", comment: "Badge: number of new replies in a watched topic"),
+                                        variant: .gold
+                                    )
                                 }
                                 Image(systemName: "arrow.up.right")
                                     .font(.caption.weight(.semibold))
@@ -445,13 +523,24 @@ struct SettingsWatchedPage: View {
     }
 }
 
-// MARK: Browser
+// MARK: - Browser
 
 struct SettingsBrowserPage: View {
     @ObservedObject var app: AppModel
 
     var body: some View {
         Form {
+            Section {
+                Picker("Search engine", selection: $app.settings.searchEngine) {
+                    ForEach(SearchEngine.allCases) { engine in
+                        Text(verbatim: engine.displayName).tag(engine)
+                    }
+                }
+                .accessibilityIdentifier("searchEnginePicker")
+            } header: {
+                Text("Search", comment: "Settings › Browser section header for the web search engine picker")
+            }
+
             Section {
                 HStack(spacing: DCTheme.spacingXL) {
                     ForEach(BrowserBarPosition.allCases) { position in
@@ -498,10 +587,9 @@ struct SettingsBrowserPage: View {
             } footer: {
                 Text("Automatic opens Home the first time each day when Today has a podcast or digest, and otherwise the forum you read last. Links, notifications, Siri and shared pages always open what they point to.")
             }
-
-            ContentBlockingSettingsSections(app: app, rules: app.contentRules)
         }
         .formStyle(.grouped)
+        .onChange(of: app.settings.searchEngine) { app.saveSettings() }
         .onChange(of: app.settings.browserBarPosition) { app.saveSettings() }
         .onChange(of: app.settings.launchDestination) { app.saveSettings() }
     }

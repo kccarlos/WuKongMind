@@ -598,6 +598,9 @@ extension AppModel {
         var sampleSettings = settings
         sampleSettings.setModel(ModelSelection(provider: sampleProvider, model: sampleModel), for: .assistant)
         sampleSettings.setModel(sampleAgent, for: .agent)
+        if !AssistantDebug.has("-dc-no-provider"), sampleAgent.provider.supportsToolCalling {
+            sampleSettings.setModel(sampleAgent, for: .browserAgent)
+        }
         // In memory only: never sent anywhere unless the user starts work.
         if AssistantDebug.has("-dc-no-provider") {
             for provider in AIProvider.allCases where provider.requiresAPIKey {
