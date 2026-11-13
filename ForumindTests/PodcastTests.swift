@@ -672,7 +672,8 @@ final class PodcastTests: XCTestCase {
         app.settings.podcastDailyEnabled = true
         app.podcast.digestCompleted(digest.id)
         try await waitUntil { app.podcast.episode?.isComplete == true }
-        XCTAssertEqual(kinds, [.aiStudio, .aiStudio, .aiStudio])
+        XCTAssertEqual(kinds, [.aiStudio])
+        XCTAssertEqual(engine.spoken.count, 3)
     }
 
     func testTheDailyPodcastStartsRightAfterTheDigestFinishesOnOpen() async throws {

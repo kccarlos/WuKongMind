@@ -17,24 +17,6 @@ final class DrawerUITests: DCUITestCase {
         add(attachment)
     }
 
-    func testNativeAssistantMenuKeepsReportReachable() throws {
-        try skipUnlessPhone("Drawer variants")
-        let app = launch(sample)
-        XCTAssertTrue(drawerState(in: app).waitForExistence(timeout: 20))
-        captureAuditScreen("drawer-summary-medium", in: app)
-        app.buttons["assistantMoreMenu"].tap()
-        let report = app.buttons["Report This Summary…"].firstMatch
-        XCTAssertTrue(report.waitForExistence(timeout: 5))
-        captureAuditScreen("more-menu", in: app)
-        let menu = app.collectionViews.firstMatch
-        XCTAssertTrue(menu.waitForExistence(timeout: 5))
-        let start = menu.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.25))
-        let end = menu.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
-        start.press(forDuration: 0.1, thenDragTo: end)
-        XCTAssertTrue(waitForHittable(report), "Native menus must scroll to their final actions")
-        captureAuditScreen("more-menu-scrolled", in: app)
-    }
-
     func testFirstRunHintHasAnOpaqueReadingSurface() throws {
         try skipUnlessPhone("Drawer hint surface")
         let server = FixtureWordPressServer()

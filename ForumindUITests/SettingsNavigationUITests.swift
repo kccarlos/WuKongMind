@@ -321,6 +321,27 @@ final class SettingsNavigationUITests: DCUITestCase {
         XCTAssertTrue(favorite.exists)
     }
 
+    func testForumRequestRateLimitToggleShowsAndHidesPaceOptions() throws {
+        let app = launch(["-dc-sample", "-dc-show-settings", "summaries"])
+        XCTAssertTrue(app.navigationBars["Summaries & chat"].waitForExistence(timeout: 20))
+        let toggle = app.switches["forumRateLimitingEnabled"]
+        XCTAssertTrue(reveal(toggle, in: app, swipes: 4))
+        XCTAssertEqual(toggle.value as? String, "1", "Per-forum rate limiting is on by default.")
+        let gentle = any(app, "forumRequestPace-gentle")
+        XCTAssertTrue(reveal(gentle, in: app, swipes: 2))
+        capture("settings-rate-limit-on")
+
+        toggle.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
+        XCTAssertTrue(wait(timeout: 5) { (toggle.value as? String) == "0" })
+        XCTAssertTrue(waitForGone(gentle, timeout: 5))
+        capture("settings-rate-limit-off")
+
+        // Restore on so persisted simulator state stays at default.
+        toggle.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
+        XCTAssertTrue(wait(timeout: 5) { (toggle.value as? String) == "1" })
+        XCTAssertTrue(gentle.waitForExistence(timeout: 5))
+    }
+
     /// Settings › AI models favorites (ModelSettings): tap = pick the role,
     /// hold = use for both, swipe = remove.
     func testFavoritesTapHoldAndSwipe() throws {

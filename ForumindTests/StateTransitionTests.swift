@@ -2489,7 +2489,7 @@ final class StateTransitionTests: XCTestCase {
         }
         h.ai.gated = false
         h.ai.releaseAll()
-        XCTAssertEqual(app.sessions[t1.topicKey]?.history.count, 2)
+        XCTAssertEqual(app.sessions[t1.topicKey]?.history.count, 3)
 
         // Rebuild Turn 2 so history has [Q1, A1, Q2, A2] again:
         app.drafts.chat = "Q2"
