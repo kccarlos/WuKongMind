@@ -102,7 +102,7 @@ Both act on the browser's single page (`ForumBrowserModel`). `ForumBrowserModel`
 | Arguments | `url` (required, `http`/`https`), `method` (`GET` (default), `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`), `headers` (object of strings), `body` (string), `send_cookies` (default false), `timeout` (1 to 120 s, default 30), `save_to` (an optional workspace path) |
 | Returns | `{status, url (after redirects), headers, body}` as text. With `save_to`, the body goes to that file, and the result holds the path, the size and a 500-character preview instead of `body`. A binary body without `save_to` returns `"binary, N bytes, <content-type>"` |
 | Limits | Downloads stop at 20 MB. A body over the limit is saved to `results/` automatically (see [Workspace](#workspace)). Redirects are followed, up to 10 |
-| Security | Runs on its own ephemeral `URLSession` with `httpShouldHandleCookies = false`, so browser cross-origin rules don't apply (requirements §4). With `send_cookies`, the app builds a `Cookie` header from `WKHTTPCookieStore` for the URL, httpOnly cookies included. A `Set-Cookie` in the response is not written back to the browser, and it is dropped from the returned headers. The model may set any header itself, `Cookie` included. On forum hosts the existing request pacing applies (`ForumRequestPacing.swift`) unless the Settings switch turns it off (requirements §2). The audit log records the full URL (requirements §8). When it asks first: see [Confirmations](#confirmations) |
+| Security | Runs on its own ephemeral `URLSession` with `httpShouldHandleCookies = false`, so browser cross-origin rules don't apply (requirements §4). With `send_cookies`, the app builds a `Cookie` header from `WKHTTPCookieStore` with the **target site's** cookies (the site the request goes to, never the current page's), httpOnly cookies included. So a cross-site request uses the person's login at the target site. A `Set-Cookie` in the response is not written back to the browser, and it is dropped from the returned headers. The model may set any header itself, `Cookie` included. On forum hosts the existing request pacing applies (`ForumRequestPacing.swift`) unless the Settings switch turns it off (requirements §2). The audit log records the full URL (requirements §8). When it asks first: see [Confirmations](#confirmations) |
 | Code | `AgentHTTPClient` (new, `AgentNetworkTools.swift`) and `ToolRegistry+Network.swift` |
 
 ### `cookies_get` (outside the page)
@@ -151,7 +151,7 @@ Both act on the browser's single page (`ForumBrowserModel`). `ForumBrowserModel`
 - **`save_to`.** `read_page`, `run_js` and `http_request` take an optional `save_to`. It writes the full result straight to a workspace file and returns only the path, the size and the preview. This direct route from tool to file costs the model no output tokens, so it doesn't need `file_write`.
 - **Isolated-world helpers.** Code run by `run_js` in the isolated world (its default) gets three helpers:
   - `wukong.files.write(path, text)` and `wukong.files.append(path, text)`. They go through the existing `wukongAgent` reply handler (`AgentBridge.replyRouter`) to `AgentWorkspace`, with the same rules and caps.
-  - `wukong.fetch(url)`, a GET that returns the body text through the native `AgentHTTPClient`. It sends cookies only when the URL is on the current page's site. It keeps the per-forum request pacing (`ForumRequestPacing.swift`; requirements §2) unless the Settings switch turns pacing off. While Confirm before writes is on, it is unavailable and returns an error that points to `http_request`, because a script can't pause for a confirmation card.
+  - `wukong.fetch(url)`, a GET that returns the body text through the native `AgentHTTPClient`. It sends cookies only when the URL is on the current page's site. It keeps the per-forum request pacing (`ForumRequestPacing.swift`; requirements §2) unless the Settings switch turns pacing off. While Confirm before writes is on, it stays available for the current page's own site, since a same-site GET is a read. A cross-site call then returns an error that points to `http_request`, because a script can't pause for a confirmation card.
 
   All three are defined inside each `run_js` call's wrapper and send a per-call token that the router checks. So saved userscripts (which share the isolated world) and the page world can't use them.
 
@@ -191,7 +191,7 @@ Everything in [page-feedback.md](page-feedback.md) is in M3, including its "othe
   - At 3, the script is disabled and gets a saved `disabledReason`: "Turned off after errors on 3 page loads in a row: <message>".
   - This page shows the reason under the script row, in `caption` style, with a quiet Button, **Let the Agent fix it**. The button sends "Fix the script <name>" to the panel, with the script's ID and latest error attached.
 - **Undo on the saved-script card.** `AgentScriptCardView` (`ScriptViews.swift:353`) gains a quiet **Undo** Button. It disables the script (it doesn't delete it) and reloads the page.
-- **"This page looks broken" suggestion.** When the current page has active scripts, `PageSuggestions` (`SuggestionRow.swift:81`) puts it first. Tapping it sends that sentence, and the app attaches the current snapshot, the active scripts (names and IDs) and their latest errors as a short block in the user turn.
+- **"This page looks broken" suggestion.** When the current page has active scripts, `PageSuggestions` (`SuggestionRow.swift:81`) adds it last in the row, and puts it first only when the current page's scripts have recorded errors. Tapping it sends that sentence, and the app attaches the current snapshot, the active scripts (names and IDs) and their latest errors as a short block in the user turn.
 - **Screenshots on a warning** (task 2, once `screenshot` exists). When the model supports images, page-changing tools also keep a visible-area screenshot from before they ran. It stays in memory and is dropped unless needed. On a warning, or a failed verify, the result carries the before and after screenshots as images. History trimming treats them like any other images.
 - **Developer mode:** the expanded ToolRow shows both snapshots' raw values and the rules that matched (task 7).
 
@@ -204,14 +204,14 @@ Everything in [page-feedback.md](page-feedback.md) is in M3, including its "othe
 | `cookies_get` | **Always asks** | Asks |
 | `http_request` with `send_cookies` to a site other than the current page's | **Always asks** | Asks |
 | Any other `http_request` | Runs | Asks |
-| `wukong.fetch` | Runs (cookies on the current page's site only) | Unavailable |
+| `wukong.fetch` | Runs (cookies on the current page's site only) | Same site: runs. Cross-site: error pointing to `http_request` |
 | `file_write`, form submits, everything else | Runs | Runs |
 
-- **Cookies to another site.** A `Cookie` header the model writes itself counts as `send_cookies`. A redirect that leaves the starting site drops the `Cookie` header, for `http_request` and `wukong.fetch` alike.
+- **Cookies to another site.** `send_cookies` always sends the target site's cookies, so this case uses the person's login at the target site. A `Cookie` header the model writes itself counts as `send_cookies`. A redirect that leaves the starting site drops the `Cookie` header, for `http_request` and `wukong.fetch` alike.
 - **"Site"** means the registrable domain, found with a small built-in rule: the last two labels of the host, or the last three when the second-to-last label is a common second-level label under a country code (`co.uk`, `com.au`, …). An unknown case counts as a different site, so it asks.
 - **No form-submit confirmation.** The owner removed it, so `ForumBrowser.swift`'s `decidePolicyFor` is untouched.
 - **How it asks.** The run pauses, and an inline card appears in the conversation under the pending ToolRow:
-  - the card shell holds the question in plain `ink` text, for example "Send a POST request to api.example.org/v1/items?", "Read 14 cookies for example.org?" or "Send your example.org cookies to other-site.net?";
+  - the card shell holds the question in plain `ink` text, for example "Send a POST request to api.example.org/v1/items?", "Read 14 cookies for example.org?" or "Send a request to other-site.net using your login there?";
   - beneath the text, the full URL in `code` style;
   - two Buttons: **Allow** (primary) and **Don't allow** (secondary).
 
@@ -489,7 +489,7 @@ Seven implementation tasks and one acceptance task. Sizes count changed lines, t
   - a script that empties the page is refused, then saved with `confirm_change: true` (test);
   - three erroring loads in a row disable a script, a clean load resets the count, and This page shows the reason (tests);
   - **Undo** disables the just-saved script and reloads the page;
-  - the suggestion shows only with an active script and attaches the snapshot, the scripts and their errors;
+  - the suggestion shows only with an active script, sits last in the row (first only when the page's scripts have recorded errors), and attaches the snapshot, the scripts and their errors;
   - if task 2 merged first: a failed verify carries both images (test).
 
 ### 5. M3 5: `http_request`, `cookies_get` and confirmations
@@ -505,11 +505,11 @@ Seven implementation tasks and one acceptance task. Sizes count changed lines, t
 - **Size:** about 550. **Depends on:** 1 (`save_to` and saving).
 - **Done when:**
   - methods, headers, body, timeout, redirects, the 20 MB cap and binary bodies work;
-  - `send_cookies` attaches httpOnly cookies, and `Set-Cookie` is neither returned nor stored;
+  - `send_cookies` attaches the target site's cookies (httpOnly included), never the current page's, and `Set-Cookie` is neither returned nor stored;
   - `cookies_get` matches parent domains;
   - with the switch off, `cookies_get` and a cross-site `send_cookies` (or a model-written `Cookie` header) still wait for Allow, a redirect off the site drops the cookies, and other requests run; with it on, every `http_request` waits; **Don't allow** returns the declined error (tests);
   - the site rule treats `a.example.org` and `b.example.org` as one site, and `example.co.uk` and `other.co.uk` as two (tests);
-  - `wukong.fetch` waits for the per-forum pace between requests to one forum host, skips it when pacing is off, sends cookies only on the current page's site, and is unavailable with the switch on (tests with a fake clock).
+  - `wukong.fetch` waits for the per-forum pace between requests to one forum host, skips it when pacing is off, sends cookies only on the current page's site, and with the switch on runs for the current page's site but returns the `http_request` error for another site (tests with a fake clock).
 
 ### 6. M3 6: Audit log on disk and task records
 - **Read:** design-m3.md: Audit log, Task records.
