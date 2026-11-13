@@ -37,7 +37,7 @@ struct HackerNewsAPI: Sendable {
         return item
     }
     /// Preorder preserves the nested thread. Parent numbers and original item ids
-    /// live in the body, so moderation, page slicing and query reads retain them.
+    /// live in the body, so page slicing and query reads retain them.
     static func posts(_ story: Item) -> [(block: PostBlock, body: String)] {
         var result: [(block: PostBlock, body: String)] = []
         func visit(_ item: Item, parentNumber: Int?, parentID: Int?) {

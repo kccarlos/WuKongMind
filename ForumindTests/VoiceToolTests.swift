@@ -3,8 +3,8 @@ import XCTest
 
 /// The voice tools on the navigation layer: arguments mapped to the
 /// navigator, results turned into function responses with a `message`,
-/// routing in code, the silent context's notes, the instructions, the
-/// settings and the consent gate.
+/// routing in code, the silent context's notes, the instructions and the
+/// settings.
 @MainActor
 final class VoiceToolTests: XCTestCase {
     // MARK: Mapping

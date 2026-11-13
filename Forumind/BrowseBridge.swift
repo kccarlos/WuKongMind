@@ -112,7 +112,7 @@ extension ForumBrowserModel {
         _ = await callBridge("return JSON.stringify(b.clearHighlight());")
     }
 
-    /// Posts in the viewport now, not hidden by moderation.
+    /// Posts in the viewport now.
     func postsOnScreen() async -> [VisiblePost] {
         #if DEBUG
         if let visiblePostsOverride { return visiblePostsOverride }

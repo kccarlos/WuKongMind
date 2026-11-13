@@ -101,12 +101,12 @@ final class WordPressToolsTests: XCTestCase {
         ])
     }
 
-    func testSearchWithUnverifiedAuthorWithholdsArticleExcerpt() async throws {
+    func testSearchWithoutEmbeddedAuthorKeepsArticleExcerpt() async throws {
         let site = WordPressFixtureSite()
         let result = try await adapter.run(.search(text: "cards", scope: .forum), net: site.network())
         XCTAssertEqual(result.topics.map(\.id), [1001])
-        XCTAssertNil(result.topics.first?.excerpt)
-        XCTAssertNil(result.hits.first?.blurb)
+        XCTAssertNotNil(result.topics.first?.excerpt)
+        XCTAssertEqual(result.hits.first?.blurb, result.topics.first?.excerpt)
         XCTAssertNil(result.hits.first?.username)
     }
 

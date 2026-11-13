@@ -134,16 +134,14 @@ extension WordPressAPI {
 
     // MARK: Requests
 
-    /// Article hits retain the embedded author so shared moderation can filter
-    /// them without requiring a previously cached article.
+    /// Article hits retain the embedded author when present without requiring
+    /// a previously cached article.
     private func postResults(query: [URLQueryItem]) async throws -> SiteQueryResult {
         let list = try await jsonList("/posts", query + [URLQueryItem(name: "_embed", value: "author")])
         let hits = list.compactMap { entry -> ForumSearchHit? in
             guard let json = entry as? [String: Any],
-                  var topic = WordPressParsing.listing(json, siteURL: net.siteURL) else { return nil }
+                  let topic = WordPressParsing.listing(json, siteURL: net.siteURL) else { return nil }
             let author = WordPressParsing.parseArticle(json)?.author
-            // A site may omit embedded authors; unverified excerpts stay out.
-            if author == nil { topic.excerpt = nil }
             return ForumSearchHit(topic: topic, postNumber: 1, username: author,
                                   blurb: topic.excerpt, postedAt: topic.lastPostedAt, url: topic.url)
         }
