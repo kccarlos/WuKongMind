@@ -3,15 +3,42 @@
 The One panel milestone builds against this page and the design canvas:
 **https://claude.ai/artifact/Daefr4AsZcSm2EWbTLU9uK**. The canvas has the information architecture, the answers to the six directions, artboards for iPhone and iPad in light and dark (the assistant panel on a forum thread and on an ordinary page, tool results in the conversation, the suggestion row, keyboard up, "This page", Home, Settings, the three onboarding steps), motion storyboards, the migration list and the glossary.
 
-It follows roadmap v2, "Just ask" ([next-phase.md](next-phase.md), which v2 replaces in full): the revision table in its section 2, the product rules in section 3, the end state in section 4, where each existing piece goes in section 6, the milestones in section 7 and developer mode in section 8. The roadmap wins where this page, [requirements.md](requirements.md) or [README.md](README.md) disagree. This page builds on [design-m1.md](design-m1.md) and [design-m2.md](design-m2.md) and their canvases. **This changes structure, not looks.** Every piece keeps Forumind's style: SF text styles, `DCTheme` tokens, `dcCard`, `DCPill`, `DCActionButtonStyle`, `Form(.grouped)`, `SettingsIcon`, `DCMotion` (`Forumind/DesignSystem.swift`, `Forumind/SettingsPanel.swift`). `brandBlue` is still the action colour, and the summary card keeps `summaryTint`.
+It follows roadmap v2, "Just ask" ([next-phase.md](next-phase.md), which v2 replaces in full): the revision table in its section 2, the product rules in section 3, the end state in section 4, where each existing piece goes in section 6, the milestones in section 7 and developer mode in section 8. The roadmap wins where this page, [requirements.md](requirements.md) or [README.md](README.md) disagree. This page builds on [design-m1.md](design-m1.md) and [design-m2.md](design-m2.md) and their canvases for structure.
+
+**Looks come from the WukongMind design system: https://claude.ai/artifact/5fGhnS4fmcmWYZbPoKTTZ2.** It replaces Forumind's `DCTheme` look (the blue-to-purple gradient, capsule pills, the purple Agent and the multicoloured tiles); its README has the table that maps each `DCTheme` token to its new token. Every board uses its tokens and components:
+- **Tokens.** Surfaces are `ground` (warm paper, or lacquer black in dark) and `surface`. Text is `ink`, `ink-muted` and `ink-faint`. Edges are `hairline`, and controls take `border-strong`. Radii are `radius-sm` 6, `radius-md` 10, `radius-lg` 14 and `radius-sheet` 28. Type uses the iOS text styles.
+- **Four colours, four meanings.**
+  - **Gold** (`gold`, `gold-ink`, `gold-wash`) is the Agent and the one primary action. Text on a gold fill is `on-gold`.
+  - **Jade** (`jade`, `jade-wash`) is content that came from a website: result card headers and citation numbers.
+  - **Cinnabar** is stop, delete and error, and nothing else.
+  - **Ink** is structure: text, seals and the settings icon tiles.
+  There are no gradients.
+- **Components.**
+  - The input box is the **Composer**. Its field is a rounded rectangle, and its one round ring button is an open gold ring with a mic when the box is empty, gold filled with an arrow to send, and cinnabar with a square to stop.
+  - **SuggestionRow** chips are outlined, `radius-md`, with an optional `gold-ink` icon.
+  - **ToolRow** has a 28 pt disc: a check when done, a turning gold ring while running, a cinnabar triangle on error. Tool names are monospaced.
+  - **ResultCard** shows the summary card, the answer with numbered sources and the listen row, each with a jade header.
+  - **ScriptCard** has a gold-wash braces tile.
+  - **Message** draws the user's bubble on `surface-raised`, the Agent's plain text and the gold "Saved. Faster next time." note.
+  - **Seal** labels are squared, never capsules: the ink This page seal, and the gold model seal.
+  - **Switch** has a gold track with a dark knob.
+  - Settings rows are **ListRow**s with ink tiles. The Agent's tile is gold with a ring.
+  - The **BrowserBar** carries the Agent ring.
+- **The Agent's mark is the thin gold ring.** It is the Agent button in the browser bar (44 pt, 3 pt `gold` stroke, empty centre, with an ink seal for the script count) and the composer's button, and it turns while a tool runs. There is no sparkle and no purple anywhere.
+- **Logo.** Onboarding step 1 shows the mark (the split ink and gold square with three thin rings), with "WukongMind" beside it in semibold `ink`.
+- **Mascot** (at most one per screen; the design system's Mascot README):
+  - `wave` (128 pt) fills the empty panel.
+  - While the Agent works, one 40 pt pose sits on the footer's top edge above the This page seal: `think` while waiting on the model, `run` while tools run, `search` while it reads the page, searches a site or learns one.
+  - `cheer` shows when a run ends, for about 3 seconds, and in onboarding's "You're set" card.
+  - It never appears in the bar, in buttons, in lists, beside every message or with errors.
+  - With Reduce Motion it doesn't change pose mid-run; it shows `think` until the result.
+- **Motion.** The design system limits motion to the turning ring and standard transitions. The motion table below uses only standard SwiftUI transitions (insertions, crossfades, the system popover and sheet), and the ring replaces `ResearchRing` and the status dot.
 
 **The end state in one line:** one input box and a mic on every page, no modes, no target switch, one Agent loop. Forum summary, search, podcast and voice become the Agent's tools. The boards draw that look, which the One panel milestone already ships. What changes between milestones is only what runs behind a tap (section 1, "Phases").
 
-**Purple and the sparkle mean only the Agent.** `agentTint` and the `sparkles` symbol appear only on Agent things: the toolbar Agent button and its badge, the Agent model pill, Agent conversations in Recent and History, and the Agent's own tool rows and status. Two things change to follow this rule:
-- **The This page chip** and its kind pill are neutral: `fill` background and label colour.
-- **Forums** are marked with a grey speech-bubble badge (`text.bubble.fill` on `systemGray`) instead of the purple sparkle.
-
-M1 and M2 screens that use `agentTint` for scripts (the script card, the script manager's header icon) finish as designed. Aligning them belongs to this design's implementation. Settings' Scripts & tools icon is already drawn grey.
+**Gold and the ring mean only the Agent.** That covers the bar's ring and its count, the composer's ring, the model seal, Agent conversations in Recent and History, a running tool row and the "saved" note.
+- **Site type is internal state.** The This page seal shows the host and the script count ("talk.example.org · 2 scripts"), never "Forum". The forum's grey speech-bubble badge stays only on Home's site tiles; onboarding's site list no longer has it.
+- **M1 and M2 screens** (script card, script manager, code editor) finish as designed. Moving them onto the design system belongs to this design's implementation.
 
 **What the boards draw that is not to be built as copy:**
 - **Placeholders.** Dashed, dimmed rows marked with a later milestone (M3, One loop, M4, Learn on ask) only show where that milestone's screen goes. The implementation ships no disabled rows: each milestone adds its own row in the place shown.
@@ -19,10 +46,10 @@ M1 and M2 screens that use `agentTint` for scripts (the script card, the script 
 
 **Two rules from the owner, for every screen:**
 - **Menus are native menus only.** A SwiftUI `Menu` (`UIMenu`) holds only these: buttons (a title, an SF Symbol and an optional subtitle), checkmark or toggle state, submenus, inline sections and dividers, the destructive role, and the small or medium palette sizes. It never holds custom views, switches, sliders, chips, badges or text fields. Here is where each of this design's menus stands:
-  - The model pill is a `Menu` of the Agent's models with a checkmark on the current one, plus "Models…".
+  - The model seal is a `Menu` of the Agent's models with a checkmark on the current one, plus "Models…".
   - The panel's ⋯ and the summary card's ⋯ hold buttons only. Export options… opens its sheet.
   - The iPhone browser menu and the iPad More menu hold buttons only.
-  - Follow, the script switches and "Block ads here" are real `Toggle`s, so they live in the This page **popover**, never in a menu.
+  - Following, the script switches and "Block ads here" are real `Toggle`s, so they live in the This page **popover**, never in a menu.
   - The tile actions on Home (Pin, Unpin, Remove) are a `contextMenu` of buttons.
   - Suggestions are plain buttons in a row, not a menu.
 - **The UI explains itself.** Labels stay short. Layout, icons and state carry the meaning. No line of copy explains how the screen works:
@@ -36,13 +63,13 @@ M1 and M2 screens that use `agentTint` for scripts (the script card, the script 
 
 ## The six directions, answered
 
-1. **One input box plus suggestions.** One panel (`AssistantPanel`) with one input box and one mic on every page. Its title is always **Agent**, and its model pill shows only the Agent's model. There are no modes and no target switch.
+1. **One input box plus suggestions.** One panel (`AssistantPanel`) with one input box and one mic on every page. Its title is always **Agent**, and its model seal shows only the Agent's model. There are no modes and no target switch.
    - **Suggestions.** A row of suggestions sits right above the input box. Each is a full question you could type or say yourself, and a tap sends it. A suggestion that ends in "…" only fills the box with the start of a sentence for you to finish. Typing or saying the same thing must do the same. A suggestion shows when it applies and is absent otherwise, with no grey or disabled state. At most four fit on screen, and more scroll sideways (section 1).
    - **One conversation.** Every result lands in one conversation from one Agent, and the Agent remembers what came before. "Summarize first, then look up the model from point 2, then highlight it on the page" is three messages in a row, with nothing to switch.
    - **Results keep Forumind's looks.** The summary card, the answer with numbered sources and the podcast row stay. They are now how Agent tool results display. Each tool call is one row by default, and a row expands.
    - **Mic.** The trailing button is a mic while the box is empty and Send once you type. In One panel it dictates into the box. From One loop it opens the voice session (section 1, "Voice").
-2. **Capabilities follow the page.** The M1 context row's chip ("N scripts on this page") becomes the neutral **This page** chip. It shows the site's kind and its script count ("Forum · 3 scripts"), and it opens the **This page** popover (`PageCapabilitiesView`, which grows from M2's `PageScriptsPopover`). The popover is the one place that shows what is saved for this site (roadmap rule 4). Its groups:
-   - **This topic**: the Follow switch (forum threads only).
+2. **Capabilities follow the page.** The M1 context row's chip ("N scripts on this page") and the host pill merge into one ink **This page** seal, "talk.example.org · 3 scripts". It sits at the trailing end of the status row, which saves the panel a row, and it opens the **This page** popover (`PageCapabilitiesView`, which grows from M2's `PageScriptsPopover`). The popover is the one place that shows what is saved for this site (roadmap rule 4). Its groups:
+   - **This topic**: the **Following** switch (forum threads only).
    - **Scripts on this page**: M2's rows and switches.
    - **Tools on this page**: a Learn on ask placeholder.
    - **This site**: block ads here, and a link to the site's settings.
@@ -63,10 +90,10 @@ M1 and M2 screens that use `agentTint` for scripts (the script card, the script 
    - **Your data**: iCloud Sync, Data & privacy.
    - **Help & about**.
    Models has two roles, Agent and Summaries. Every setting appears exactly once (the per-setting table below).
-5. **One vocabulary.** Only the Agent is called **Agent**, and only it is purple or carries the sparkle. No mode names are left in the UI: forum search is the suggestion "Search this forum…", and Topic chat has no entry. Script, tool, site, suggestion, conversation and History mean one thing each in the UI and the docs (glossary below).
+5. **One vocabulary.** Only the Agent is called **Agent**, and only it is gold or carries the ring. No mode names are left in the UI: forum search is the suggestion "Search this forum…", and Topic chat has no entry. Script, tool, site, suggestion, conversation and History mean one thing each in the UI and the docs (glossary below).
 6. **Onboarding in three steps.** 1 Pick a model, 2 Open a site, 3 Try the Agent. After that you're done. Welcome, Forums, Daily, Privacy and Done fold into these steps or move to Settings.
 
-**Proposals for the owner to confirm:**
+**Decided** (the owner agreed to all of these on 2026-11-12):
 - **Keyboard up** (artboard KeyboardUp): while the keyboard is up, the status line folds into the header beside "Agent". The suggestion row stays while the box is empty and hides once you type.
 - **Settings that survive the two deleted engines:**
   - The forum-search limits (search steps, topics to read, read size) move to Agent › Forum search.
@@ -77,7 +104,7 @@ M1 and M2 screens that use `agentTint` for scripts (the script card, the script 
 - **"Browser" stays a settings group of its own.** The bar position and what opens at launch fit no other group.
 - **The iPhone bar's forum menu (`ForumMenuButton`) becomes the browser menu.** It shows the site's icon. "Home" opens the start page, and the forum-only items move (migration list).
 - **The ad shield moves from the title capsule into This page.**
-- **"Watch" is renamed "Follow"**, and its suggestion reads "Notify me of new replies".
+- **"Watch" is renamed "Follow".** The suggestion reads "Notify me of new replies". The Agent's confirmation after it and the switch in This page both say **Following** ("Following. I'll tell you when new replies come in.").
 - **On iPad, onboarding steps 1 and 2 are a form sheet** instead of today's full-screen cover.
 
 ## Information architecture
@@ -96,7 +123,7 @@ flowchart TD
   end
 
   Bar -->|Home button| Home
-  Bar -->|sparkles button / badge| Panel
+  Bar -->|Agent ring / badge| Panel
   Bar -->|forum voice entry, unchanged| VoiceSession[Voice session · controls in the Dock]
   Home -->|address field / site tile / continue reading| Page
   Home -->|Recent item| Panel
@@ -106,13 +133,13 @@ flowchart TD
   Home -->|Add tile| AddSite[Add site sheet · suggestions]
 
   subgraph Panel[Assistant panel · iPhone drawer / iPad side panel]
-    Header[Header · Agent · Agent model pill · ⋯]
+    Header[Header · Agent · Agent model seal · ⋯]
     Conv[One conversation · messages, one row per tool call, replies, summary card, numbered sources, podcast row]
     Sugg[Suggestion row · per page, up to 4 on screen]
     Composer[Input box · mic dictates / Send / Stop]
   end
 
-  Panel -->|This page chip| ThisPage[This page popover]
+  Panel -->|This page seal| ThisPage[This page popover]
   Panel -->|summary card ⤢| Expanded[Expanded summary / post & responses]
   Panel -->|podcast row| NowPlaying[Now playing]
   Panel -->|⋯ History| History
@@ -156,7 +183,7 @@ Dashed links with double borders are **placeholders**: their place is reserved, 
 | M3 | Multiple tabs | A tab button in the browser bar, beside Home, opening a tab overview | The bar's slot. The panel works on the active tab |
 | M3 | Audit log, Workspace | Settings › Agent › Records; the panel's ⋯ › Audit log; "View in audit log" in an expanded tool row | The Records section on the Agent page, drawn dashed |
 | M3 | Confirm before writes | Settings › Agent › Safety | The Safety section, drawn dashed |
-| M3 | Developer mode, part 1 | Settings › Agent › Developer (the switch, default off). When it's on: raw request and reply, tokens and model per step in an expanded tool row, ⋯ › Export task | The Developer section on the Agent page, drawn dashed |
+| M3 | Developer mode, part 1 | Settings › Agent › Developer (the switch, default off). When it's on: the token count in the status row, raw request and reply, tokens and model per step in an expanded tool row, ⋯ › Export task | The Developer section on the Agent page, drawn dashed |
 | One loop | Forum, summary, podcast and follow tools | The suggestion row (taps only send their text) and the conversation (tool rows and results look the same) | Nothing new on screen: the boards already draw it |
 | One loop | Voice session from the mic | The mic in the input box; voice turns join the conversation | The mic's place |
 | M4 | `GM_ai` model | Settings › Models, a third role row "Scripts" ("Same as Summaries") | A dashed row on Models |
@@ -172,19 +199,20 @@ One view for both hosts. On iPhone it lives in the existing drawer (`AIDrawer.sw
 
 ```
 AssistantPanel                         // replaces the four modes and their views (SummaryPanel, AskBox, AgentPanel, BrowserAgentPanelView)
-├─ AssistantHeader                     // "Agent" · Agent model pill (Menu) · ⋯ menu; keyboard up: status folds in here
+├─ AssistantHeader                     // "Agent" · Agent model seal (Menu, gold) · ⋯ menu; keyboard up: status folds in here
 │    ⋯: New conversation, History, Audit log (M3), Export task (M3, developer mode), Settings
-├─ PageContextRow                      // host DCPill + neutral This page chip → PageCapabilitiesView (.popover, compact adaptation .popover)
 ├─ AssistantTranscript (ScrollView)    // one list, newest at the bottom (scrollToBottomEdge)
-│    ├─ user bubble · agent text · ToolCallRow (one per call, expands)          (M1)
+│    ├─ Message: user bubble (surface-raised) · agent text · "Saved" note
+│    ├─ ToolRow (one per call, expands; folds into "Steps N" when a run ends)   (M1 rows on the design system)
 │    ├─ ScriptCard                                              (M1/M2, unchanged)
-│    ├─ SummaryResultCard   dcCard(tint: summaryTint) · numbered points · ⤢ opens ExpandedPanel
-│    ├─ SourcedAnswer       agent text with CitationChip numbers → sources (Research's citation view, kept)
-│    └─ PodcastRow          PodcastNowPlayingRow
+│    ├─ ResultCard.summary  jade header · numbered points · chevron opens ExpandedPanel
+│    ├─ ResultCard.answer   jade header · citation seals → sources (Research's citation view, restyled)
+│    └─ ResultCard.listen   ink play button · gold progress (PodcastNowPlayingRow restyled)
 └─ AssistantFooter (dcStickyFooter)
-     ├─ status line                    // M1 status line; folds into the header while the keyboard is up
+     ├─ StatusRow                      // mascot pose on its top edge · "Done · 3 steps · 9 s" · trailing ink This page seal → PageCapabilitiesView (.popover)
+     │                                   // token count only in developer mode; folds into the header while the keyboard is up
      ├─ SuggestionRow                  // ScrollView(.horizontal); absent when there is nothing to suggest
-     └─ Composer (AskBox field shape)  // field [mic when empty | Send when typed | Stop while running]
+     └─ Composer                       // field (radius-md, border-strong) + ring button [gold ring + mic | gold fill + arrow | cinnabar + square]
 ```
 
 - **State.** `AssistantMode` (`summary`, `chat`, `agent`, `browserAgent`) goes. There is nothing to replace it with: the box always sends to the Agent. The panel's only new state is the list of suggestions for the current page, computed from the page and the site.
@@ -202,10 +230,17 @@ AssistantPanel                         // replaces the four modes and their view
   | Suggestions on other sites | Send their text to the Agent | Same |
   | Questions about the thread you type | The Agent reads the page with `read_page` (Topic chat has no entry) | The Agent uses the forum's read tool |
 
-  **Known gaps in One panel**, both closed by One loop:
+  **One panel's known gap and its requirement:**
   - **Tap versus type (accepted by the roadmap).** Tapping "Search this forum…" gives a good answer, while typing the same question goes to an Agent that has no forum tools yet and answers worse.
-  - **Memory.** A result from a tapped suggestion on a built-in forum comes from today's engine and shows in the conversation, but it isn't in the Agent's history, because the engines and the Agent stay untouched. A typed follow-up such as "which boxes from point 2…" goes to an Agent that hasn't seen the summary; it can still read the page. The roadmap drops shared results because one Agent remembers by itself, which is true from One loop. The PhoneResearch board draws One loop.
-- **Unfamiliar forums.** A forum without a built-in adapter gets the same thread and list suggestions. Today's detection (`MaybeForumState`, the "add this forum" check) decides that a page looks like a forum. In One panel those suggestions go to the Agent as text, which answers with `read_page`. With Learn on ask, the Agent first learns the site ("Let me see how this site reads"), then answers and saves the tool.
+  - **Memory (closed by an implementation requirement).** A result from a tapped suggestion on a built-in forum comes from today's engine, so the Agent hasn't seen it, and a typed follow-up such as "which boxes from point 2…" would fail. **Requirement for One panel:** after a tapped suggestion's engine returns, its result text is attached as context to the Agent's next message. That covers the summary's numbered points, the forum answer with its numbered source titles and URLs, and the podcast's title. The text goes in requirements section 8's untrusted-content delimiters, and the attached text is capped at the Agent's result size. It is attached once, then stays in the Agent's history like any tool result. In One loop the tools return these results to the Agent directly, and the attachment goes. The PhoneResearch board draws One loop.
+- **Unfamiliar forums.** How the app decides that a site without a built-in adapter is a forum:
+  - **Until Learn on ask (1.5.0) it can't.** Today's `.maybe` state (`MaybeForumState`) only means a URL looks like a topic of one of the three built-in platforms before the page check confirms it. That page shows the ordinary-page suggestions until the check reports, then switches to the forum ones or stays.
+  - **So until Learn on ask**, an unfamiliar forum gets the ordinary-page row (Summarize this page · Make it dark · Remove distractions), and those go to the Agent as text.
+  - **From Learn on ask**, a page-fact check that needs no model decides. It runs on the facts the probe already collects (`PageFacts`). Any one of these signals makes the page a thread:
+    - schema.org `DiscussionForumPosting` or `Comment` data;
+    - a known forum generator in the meta tags (phpBB, vBulletin, XenForo, Flarum, NodeBB, MyBB, Invision, Discuz);
+    - three or more repeated post blocks, each with an author and a time.
+    A list of thread links gives the forum-list row. The site's recorded shape state (roadmap section 5) then overrides the check: "learned" keeps the row, and "tried, failed" drops it. The first tap on "Summarize this thread and replies" makes the Agent learn the site, then answer.
 - **Page states.** Today's panel has page states besides the modes (`AssistantPanel.BodyKind` in `SummaryPanel.swift`):
   - `forumHome` (`ForumHomeState`) becomes the forum-list suggestions.
   - `notForum` (`NotForumState`) goes: an ordinary page shows its own suggestions.
@@ -215,7 +250,7 @@ AssistantPanel                         // replaces the four modes and their view
 
   | Where you are | Suggestions |
   |---|---|
-  | Forum thread (built-in or unfamiliar) | Summarize this thread and replies · Read it to me · Search this forum… · Notify me of new replies |
+  | Forum thread (built-in; unfamiliar ones from Learn on ask) | Summarize this thread and replies · Read it to me · Search this forum… · Notify me of new replies |
   | Forum list | What's worth reading today · Search this forum… |
   | Ordinary page | Summarize this page · Make it dark · Remove distractions |
   | A site you visit often | Also questions you asked here before, and questions for tools saved for this site |
@@ -228,17 +263,22 @@ AssistantPanel                         // replaces the four modes and their view
     - While its podcast is playing, "Read it to me" is gone.
     - With a dark script on, "Make it dark" is gone.
   - **No model.** Choosing a suggestion or sending with no model for the role it needs shows `ProviderSetupCard` for that role, as today.
-- **Suggestion look.** A suggestion is a capsule with the surface background, a hairline border and label-coloured text: 36 pt tall with a 44 pt hit area, `.subheadline`, no symbol. Suggestions are not tinted, because tint would mean a mode. One that ends in "…" looks the same; the ellipsis is the cue.
+- **Suggestion look (the design system's SuggestionRow).** A suggestion is a `surface` rounded rectangle (`radius-md`) with a `border-strong` edge and `ink` text in `.subheadline`, 36 pt tall with a 44 pt hit area. The built-in ones carry a 16 pt `gold-ink` symbol (summary lines, headphones, magnifier, bell); a past question or a saved tool's question has none. Suggestions are outlined, never filled, so they stay quieter than the composer's ring. One that ends in "…" looks the same; the ellipsis is the cue.
 - **Tap.** A full question sends at once: the chip moves up into your bubble, the tool row starts, and the row closes the gap. A "…" suggestion puts its text into the field with the caret at the end and raises the keyboard. Nothing is sent until you finish.
-- **Overflow (owner point 4, still applies).** The row is a `ScrollView(.horizontal)` with `.scrollIndicators(.hidden)`, 16 pt content margins and a short fade at the trailing edge when it scrolls. Labels never truncate. A chip is at most the row's width minus 44 pt, so the next one always peeks. A longer label wraps inside the chip, which then becomes a rounded rectangle; this only happens at accessibility sizes. Widths were measured with the system font (label plus 30 pt of padding and border; the row is 358 pt wide on a 390 pt iPhone and 438 pt in the iPad panel):
-  - **Default size (`.subheadline`, 15 pt).** "Summarize this thread and replies" is a 263 pt chip, and "Read it to me" (120 pt) peeks under the fade. Forum list: "What's worth reading today" (219 pt) fits, and "Search this forum…" peeks. Ordinary page: "Summarize this page" and "Make it dark" fit, and "Remove distractions" peeks. On the iPad panel the first two forum-thread chips fit.
-  - **Chinese at the default size.** "总结这个帖子和回复" (164 pt) and "念给我听" (90 pt) fit, and "搜索这个论坛…" peeks.
-  - **Accessibility Medium (25 pt).** "Summarize this thread and replies" would be 392 pt, wider than the row, so it wraps to two lines inside a 314 pt chip.
+- **Overflow (owner point 4, still applies).** The row is a `ScrollView(.horizontal)` with `.scrollIndicators(.hidden)`, 16 pt content margins and a short fade at the trailing edge when it scrolls. Labels never truncate. A chip is at most the row's width minus 44 pt, so the next one always peeks. A longer label wraps inside the chip, which then becomes a rounded rectangle; this only happens at accessibility sizes. Widths were measured with the system font. A chip is the label plus 26 pt of padding and border, plus 22 pt when it has a symbol. The row is 358 pt wide on a 390 pt iPhone and 438 pt in the iPad panel:
+  - **Default size (`.subheadline`, 15 pt).**
+    - Forum thread: "Summarize this thread and replies" is a 281 pt chip, and "Read it to me" (138 pt) peeks under the fade.
+    - Forum list: "What's worth reading today" (215 pt) fits, and "Search this forum…" (181 pt) peeks.
+    - Ordinary page: "Summarize this page" (192 pt) and "Make it dark" (110 pt) fit, and "Remove distractions" peeks.
+    - iPad panel: the first two forum-thread chips fit (427 of 438 pt).
+  - **Chinese at the default size.** "总结这个帖子和回复" (182 pt) and "念给我听" (108 pt) fit, and "搜索这个论坛…" peeks.
+  - **Accessibility Medium (25 pt).** "Summarize this thread and replies" would be about 425 pt, wider than the row, so it wraps to two lines inside a 314 pt chip.
   - **Accessibility XXL (42 pt).** The same label wraps to three lines in a 314 pt chip, and "Read it to me" (263 pt) peeks.
   At most four show on one screen; more scroll sideways.
-- **Tool rows (roadmap section 4).** Each tool call is one row: the tool's symbol, its name and a short result ("Read page · 84 posts", "Search forum · 14 topics"). Tapping a row expands it into M1's detail with arguments, result and time. M1's "Steps N" fold still folds a finished run. In developer mode (M3) the expanded row also shows the raw request and reply, and the tokens and model used.
+- **Status row and fixed height (owner feedback).** The footer's first row holds the status ("Done · 3 steps · 9 s"; a token count appears only in developer mode) and, at its trailing end, the This page seal. The mascot pose sits on the row's top edge, so it takes no width. Without the separate host row, the fixed part of a 500 pt iPhone panel is about 230 pt: grabber 15, header 44, status row 40, suggestions 36, composer 44, gaps 24 and the bottom inset 30. It was about 265 pt.
+- **Tool rows (roadmap section 4).** Each tool call is one ToolRow: its disc, its tool name in monospace and a short result ("read_page · 84 posts", "search_forum · 14 topics"). Tapping a row expands it into M1's detail with arguments, result and time. M1's "Steps N" fold still folds a finished run. In developer mode (M3) the expanded row also shows the raw request and reply, and the tokens and model used.
 - **Keyboard up** (artboard KeyboardUp, a proposal):
-  - **Status line.** When the field is focused and the keyboard is up, the status line folds into the header: a small spinner and "Step N" beside "Agent" while a run is going, and nothing when idle. It comes back when the keyboard goes down.
+  - **Status row.** When the field is focused and the keyboard is up, the status row (with the This page seal and the mascot) folds into the header: a small spinner and "Step N" beside "Agent" while a run is going, and nothing when idle. It comes back when the keyboard goes down.
   - **Suggestion row.** It stays while the field is empty, so a suggestion is still one tap away. It hides as soon as you type a character and comes back when the field is empty again.
   - **Trailing button.** It stays the mic, Send or Stop as usual.
   - **Space.** The conversation keeps the rest of the height and scrolls to the bottom.
@@ -254,13 +294,13 @@ AssistantPanel                         // replaces the four modes and their view
   | History, Settings | The panel's ⋯ |
   | Clear chat | ⋯ › New conversation |
   | Copy, Share, Export .txt, Export options…, Instructions & context, Pull post + replies only, Post & responses | The summary card's ⋯ menu |
-  | Watch topic / Unwatch topic | The suggestion "Notify me of new replies", and This page › Follow this topic |
+  | Watch topic / Unwatch topic | The suggestion "Notify me of new replies", and This page › Following |
   | Report this answer / summary | Deleted by the cleanup |
 - **Voice (roadmap section 7).**
   - **One panel.** The mic (`mic.fill`) shows while the field is empty and only dictates. System speech recognition (`SFSpeechRecognizer` with `AVAudioEngine`) fills the box as you speak, and you send as usual. Dictation is new: the app has no code for it today, and it needs the speech-recognition and microphone usage descriptions. Today's forum voice-session entry (`VoiceBarButton` in the bar) stays where it is, and the session's controls stay in the Dock.
   - **One loop.** The mic opens the voice session. The voice model shares the Agent's tool definitions and can hand multi-step requests to the Agent. Each voice turn joins the same conversation, so speaking can make the Agent act on any page.
 - **Accessibility.**
-  - **Labels.** The suggestion row is a group, "Suggestions", where each suggestion is a button labelled with its text; one ending in "…" adds the hint "Fills the message field". The mic reads "Dictate" in One panel and "Talk" from One loop. Tool rows read "Read page, 84 posts, collapsed".
+  - **Labels.** The This page seal reads "This page, talk.example.org, 2 scripts". The suggestion row is a group, "Suggestions", where each suggestion is a button labelled with its text; one ending in "…" adds the hint "Fills the message field". The mic reads "Dictate" in One panel and "Talk" from One loop. Tool rows read "Read page, 84 posts, collapsed".
   - **Identifiers.** `agentPanel` and `aiButton` stay. New ones: `suggestionRow`, `suggestion.summarizeThread` (one per built-in suggestion), `composerMic`, `toolCallRow`, `pageCapabilitiesChip`.
 
 ### 2. This page (`PageCapabilitiesView`)
@@ -269,26 +309,26 @@ This is a `.popover` with `.presentationCompactAdaptation(.popover)`, 320 to 340
 
 ```
 PageCapabilitiesView
-├─ header: site icon · host · kind DCPill (neutral: speech-bubble + "Forum · Discourse", or "Website") · page URL (mono, middle-truncated)
-├─ Section "This topic"              // forum threads only: Follow this topic (Toggle)
+├─ header: site icon · "This page" · page URL (mono, middle-truncated). No site type: it is internal state
+├─ Section "This topic"              // forum threads only: Following (Switch)
 ├─ Section "Scripts on this page"     // M2 PageScriptsPopover rows, Turn on box, Manage scripts — unchanged
 ├─ Section "Tools on this page"       // Learn on ask: the place only; not shipped before then
 ├─ Section "This site"                // Block ads here (Toggle; was AdShieldMenu) · Add as a forum (was MaybeForumState) · Site settings ›
 └─ Section "Developer"                // Learn on ask, developer mode only: site inspector (tools and their source, shape status and failure reasons, learning log, last check) · tool trial run
 ```
 
-The chip reads "Forum · 3 scripts" or "3 scripts" (an ordinary page), or just the host on a page with nothing else; it stays a button, because the site group always has something. Errors keep M2's danger form ("3 scripts · 1 error").
+The seal reads "talk.example.org · 3 scripts", or just the host on a page with no scripts. Long hosts truncate in the middle. It stays a button, because the site group always has something. Errors keep M2's form in `danger` ("3 scripts · 1 error").
 
 ### 3. Home (start page)
 
 ```
 HomeView (List, .insetGrouped, listSectionSpacing(.compact))
 ├─ header: "Home" · History · Settings      (unchanged buttons)
-├─ AddressField                              // 44 pt capsule, "Search or enter address" (searches with Browser › Search engine); focus shows suggestions
+├─ AddressField                              // 44 pt field (surface-raised, radius-md), "Search or enter address" (searches with Browser › Search engine); focus shows suggestions
 │                                            // the only address entry on Home: the bottom bar hides its address capsule while Home shows
 ├─ TodayModule / PodcastHomeCard / DigestStrip   // unchanged, only when there is something
 ├─ Section "Sites": SiteGrid                 // LazyVGrid, 4 columns on iPhone, adaptive 88 pt on iPad
-│    SiteTile: ForumIcon-style tile (DCTheme.forumTileIcon), name; forum → grey speech-bubble badge
+│    SiteTile: tile in the site's own colour (forumPalette, unchanged), name; forum → grey speech-bubble badge (the only place it shows)
 │    pinned first, then most visited; last tile "Add" → AddSiteSheet; context menu Pin/Unpin, Remove
 ├─ Section "Recent" + History link: RecentRow   // the newest 3 History items (first words, host, time) → page + panel
 ├─ Section "Continue reading": ContinueReadingRow   // unchanged, any site, keeps NewRepliesBadge
@@ -299,7 +339,7 @@ HomeView (List, .insetGrouped, listSectionSpacing(.compact))
   - **What it holds.** History holds all conversations and their results (roadmap section 4). Summaries, forum answers and topic chats saved before this design stay in History as they are.
   - **Recent.** Home's **Recent** is not a separate list: it is the newest History items, with a link to all of History. `HistoryView`'s segments become All, Conversations, Following (a proposal). Until M3, Conversations lists today's saved summaries and forum answers, each as a conversation of one result.
   - **Conversations.** They live in memory today (`BrowserAgentSession`). They join History once they are saved, which comes with M3's workspace (`tasks/`). Until then, Recent also shows this launch's current conversation, and the summaries in it are saved as today.
-- **The empty state** (no sites yet) is the address field plus a `dcCard`: three suggested sites, no explanatory text. The forums among them carry the speech-bubble badge. This replaces the forum-centred empty state and the suggestions section.
+- **The empty state** (no sites yet) is the address field plus a card: three suggested sites, no explanatory text. The forums among them carry the speech-bubble badge. This replaces the forum-centred empty state and the suggestions section.
 
 ### 4. Settings
 
@@ -309,7 +349,7 @@ The settings sheet keeps its host (`RootPresentation.settings(page)`, its own `N
 SettingsRootView (Form .grouped)
 ├─ Section "Assistant"
 │    Models            cpu            value: "2 roles" or "Agent: none"
-│    Agent             sparkles       agentTint
+│    Agent             ring           gold tile, on-gold ring (the one non-ink tile)
 │    Scripts & tools   curlybraces    systemGray, value: N / Off    (M2's row moves here)
 ├─ Section "Sites & browsing"
 │    Sites             globe          value: "N forums"
@@ -344,7 +384,7 @@ OnboardingFlow
 ├─ 2 OnboardingSitePage      // AddressField + suggested sites (forums with the speech-bubble badge, from ForumDirectory) ; Open
 └─ 3 OnboardingTryPage       // the chosen page behind a medium drawer: the real AssistantPanel with two suggestions
                              // ("Make this page easier to read", "Hide everything but the article"); after a run or Skip:
-                             // a dcCard "You're set" with Done, and rows "iCloud sync: On" and "Daily digest: in Settings"
+                             // a card with the cheer mascot, "You're set" and Done, and rows "iCloud sync: On" and "Daily digest: in Settings"
 ```
 
 "Later" on step 1 still goes on. Step 3 then shows the panel's no-model card instead of the prompts.
@@ -369,10 +409,10 @@ There are no new curves and no decorative motion. Every animation is short, star
 | Tap a suggestion ending in "…" | Its text drops into the field, the caret waits at the end and the keyboard rises | `matchedGeometryEffect` from the chip to the field text, `@FocusState`, `DCMotion.quick` | Shows the sentence is yours to finish |
 | Page changes (forum thread ↔ ordinary page) | The suggestions crossfade to the new page's set, and the row's height animates if the count changes. The header and input box stay still | `.transition(.opacity)` per chip with `.id(page)`, `DCMotion.smooth` | Only the part that differs moves, so the panel reads as the same panel |
 | Keyboard rises; you type | The status line folds into the header beside "Agent". The suggestion row folds away on the first character and returns when the field empties | `.transition(.opacity.combined(with: .move(edge: .bottom)))`, `DCMotion.smooth` | Keeps the conversation tall while you type |
-| This page chip and toolbar badge | The count rolls to its new value. The chip's tint crossfades to danger on an error | `.contentTransition(.numericText())`, `DCMotion.quick` | Shows that a script just applied or failed |
+| This page seal and the ring's badge | The count rolls to its new value. The seal's text turns `danger` on an error | `.contentTransition(.numericText())`, `DCMotion.quick` | Shows that a script just applied or failed |
 | Open This page | The system popover animation, nothing custom | `.popover` | Native behaviour |
-| Agent running | Unchanged from M1: tool rows slide in, `ResearchRing` turns around the toolbar button, and the run folds into "Steps N" when it ends. In One panel, a tapped suggestion's engine run gets the same ring | M1's `DCMotion.respecting` rules | One way to show "working" |
-| Run finishes | A success haptic, and the status line's dot morphs into the check. With the panel closed, the existing button bounce plays and the Dock shows "Answer ready" (`glassEffectID` morph) | `DCHaptics.success()`, `.symbolEffect(.bounce)` | Felt even when you aren't looking |
+| Agent running | Tool rows slide in, the running row's gold ring turns, and the bar's Agent ring turns (replacing `ResearchRing`); the mascot shows think, run or search, and the run folds into "Steps N" when it ends. In One panel, a tapped suggestion's engine run gets the same ring | M1's `DCMotion.respecting` rules | One way to show "working" |
+| Run finishes | A success haptic, the turning ring becomes the check, and the mascot shows `cheer` for about 3 s. With the panel closed, the existing button bounce plays and the Dock shows "Answer ready" (`glassEffectID` morph) | `DCHaptics.success()`, `.symbolEffect(.bounce)` | Felt even when you aren't looking |
 | Run fails or hits the step limit | A warning haptic. The card inserts as above and is announced | `DCHaptics.warning()`, the M1 announcement | Same rule for every result |
 | Home: open a site tile or a recent task | The tile zooms into the page. A recent task then raises the panel | `.navigationTransition(.zoom(sourceID: site.id, in: ns))`, the Now playing pattern. If the browser host can't take a navigation transition, a 0.22 s crossfade | Keeps your place: back returns to the tile |
 | Home: pin or unpin | The tile moves to or from the front of the grid | `withAnimation(DCMotion.spring)` on the grid order | Shows where it went |
@@ -380,7 +420,7 @@ There are no new curves and no decorative motion. Every animation is short, star
 | Settings | System push and pop only | — | Settings stay plain |
 
 **Reduce Motion.** Every row above goes through `DCMotion.respecting`:
-- Moves, scales, zooms and the pill and button morphs become a 0.2 s opacity crossfade.
+- Moves, scales, zooms and the chip and button morphs become a 0.2 s opacity crossfade, the ring stands still, and the mascot keeps one pose.
 - The progress ring and the bounce are off.
 - Number rolls become plain changes.
 - Haptics stay, because they aren't motion.
@@ -433,7 +473,7 @@ Per roadmap section 6: the four modes and their views become one conversation vi
 | `PostsTranslationSheet` (`.translatePosts`), `TranslationSheet` (`.translateText`) | keep | Unchanged triggers |
 | `ReadAloudButton` | keep | On summary cards |
 | M1 script card, View code sheet | keep | Unchanged |
-| M1 context row chip "N scripts on this page" | merge | The This page chip |
+| M1 context row chip "N scripts on this page" and the host pill | merge | One This page seal in the status row |
 | M2 `PageScriptsPopover` | merge | The "Scripts on this page" group inside `PageCapabilitiesView`, unchanged rows |
 
 ### Home and its sheets
@@ -512,10 +552,10 @@ One word per thing, the same in the UI and the docs. The code column shows today
 | **Summary** | A structured summary of a thread or page, shown as the summary card | | unchanged |
 | **Podcast** | A spoken version of a thread, an answer or Today. Asked for with "Read it to me" | Listen (as a button) | `Podcast/` |
 | **Voice** | Talking to the Agent. In One panel the mic dictates into the box. From One loop the mic opens the voice session, which shares the Agent's tools, and its turns join the conversation | Listen | `Voice*` views |
-| **Follow** | Get told when a thread has new replies. Asked for with "Notify me of new replies" | Watch | `watchedTopics` |
+| **Follow** | Get told when a thread has new replies. Asked for with "Notify me of new replies". The state, the switch and the confirmation say **Following** | Watch | `watchedTopics` |
 | **Site** | Any website | | — |
 | **Forum** | A site with a built-in adapter (Discourse, WordPress, Hacker News), or one that looks like a forum (it gets the same suggestions). Marked with a grey speech-bubble badge | | `SiteAdapter`, `Forum` |
-| **This page** | What is saved for the current page and site: Follow, scripts, tools, site switches | page info | new `PageCapabilitiesView` |
+| **This page** | What is saved for the current page and site: Following, scripts, tools, site switches. Its seal shows the host and script count | page info | new `PageCapabilitiesView` |
 | **Script** | Saved JavaScript/CSS in ScriptStore that runs on matching pages. It changes the page (M2) or registers tools (Learn on ask) | userscript (only in export/import), extension | `ScriptStore` |
 | **Tool** | A function the Agent can call. It comes from the app (built-in), a built-in adapter, a capability (summary, podcast, notify, follow), a script, or the site (WebMCP) | action, command | `ToolRegistry`; source prefixes per roadmap section 5 |
 | **History** | All conversations and results. Home's **Recent** shows its newest items | recent tasks | `HistoryView` |
@@ -530,7 +570,7 @@ One word per thing, the same in the UI and the docs. The code column shows today
 - **The same panel everywhere.** Opening the panel on a forum thread and on an ordinary page shows the same header ("Agent"), chip and input box with its mic. Only the suggestions differ (artboards 1 and 2). No mode or target switch appears anywhere.
 - **A tap equals typing.** Every suggestion's text, typed or said, asks for the same thing. In One panel the forum search gap above is the one accepted exception.
 - **No grey states.** No suggestion, row or button is drawn disabled outside the dashed placeholders.
-- **Purple means Agent.** No purple and no sparkle on anything that isn't the Agent.
+- **Gold means Agent.** No gold fill or ring on anything that isn't the Agent or the one primary action. No purple, sparkle, gradient or capsule anywhere.
 - **Order.** Implementation goes assistant panel, then settings, then home and onboarding. Each part ships alone within One panel (roadmap section 7).
 
 ## Owner review of 2026-11-12: what changed, and where
@@ -570,6 +610,20 @@ Rows 1, 2 and 4 and parts of 3 are superseded by roadmap v2 (next section): the 
 | 13 | Unchanged parts | Onboarding, other settings pages, This page, the vocabulary rule and purple-only-Agent are kept. Motion keeps its tokens; only the rows about deleted things were redrawn. The start page keeps its layout; two consequences are proposals: History's segments (All, Conversations, Following) and Recent rows showing conversations | PhoneHome, IPadHome (Recent rows) | Proposals; section 3 |
 | — | Developer mode switch | Settings › Agent › Developer (M3, default off) | PhoneAgentSettings, IA | Section 4; IA table |
 
+## Owner feedback on the third draft (2026-11-12): what changed, and where
+
+The owner agreed to all six proposals, which are now under "Decided".
+
+| # | Feedback | Change | Boards | Spec |
+|---|---|---|---|---|
+| 1 | Switch to the new design system | Every board uses its tokens: ink, gold, jade and cinnabar on warm paper or lacquer black, with no gradient, no purple and no capsule. Its components are used throughout: Composer, SuggestionRow, ToolRow, ResultCard, Message, Seal, Switch, ListRow and BrowserBar. The Agent's mark is the thin gold ring (bar, composer, running tool). The Logo is on onboarding step 1. The Mascot is in the panel states: wave when empty, think, run and search while working, cheer when done, at most one per screen | All boards; PanelStates (+Dark) is new; PhoneOnb1 (Logo); PhoneOnb3 (cheer) | Opening section; section 1 tree; Settings tree |
+| 2 | Token count only in developer mode | The status row shows "Done · 3 steps · 9 s"; tokens join it in developer mode | All panel boards | Section 1, status row; IA table (M3) |
+| 3 | Fixed part too tall | Host and This page merge into one seal at the end of the status row; the separate row is gone. The fixed part is about 230 of 500 pt, down from about 265 | All panel boards, PhoneThisPage, KeyboardUp | Direction 2; section 1, status row |
+| 4 | No "Forum ·" in the pill | The seal shows host and script count only; site type is internal. The grey badge stays only on Home's tiles (removed from onboarding) | Panel boards, PhoneThisPage, IPadPage, PhoneOnb2, IPadOnb | Opening rules; section 2 |
+| 5 | How an unfamiliar forum is recognised | Until Learn on ask it isn't, so the ordinary-page row shows. From Learn on ask a no-model page-fact check decides (schema.org, generator meta, repeated post blocks), and the site's shape state overrides it | SuggestionRow (two rows, by milestone) | Section 1, Unfamiliar forums |
+| 6 | One panel follow-ups fail | Requirement: a tapped suggestion's engine result text is attached as context to the Agent's next message (untrusted delimiters, capped). PhoneResearch is titled and noted as One loop | PhoneResearch (title, note) | Section 1, Phases |
+| 7 | Vocabulary: Follow / Following | The suggestion stays "Notify me of new replies"; the confirmation and the This page switch say "Following" | PhoneThisPage, IPadPage | Decided list; section 2; glossary |
+
 ## Appendix: every other view in the code
 
 Every public `struct …: View` / `ViewModifier` under `Forumind/` is named on this page. The ones the tables above don't name:
@@ -593,6 +647,7 @@ Every public `struct …: View` / `ViewModifier` under `Forumind/` is named on t
 | `AIDrawerModifier`, `AIDrawerCoordinator`, `PanelResizeHandle`, `DebugWindowWidth`, `RouterHost`, `HomeDestinations` | keep | Hosts and routing, unchanged |
 | `OnboardingFeatureRow`, `OnboardingIconTile` | keep | Onboarding building blocks |
 | `MarkdownView`, `MarkdownBlockView`, `CitationChip`, `TranslateButton`, `NewRepliesDot`, `BrandAppIcon`, `BrandGlyphLayout`, `BrandGlyphShape`, `DCCardModifier`, `DCSectionHeader`, `DCStatusChip` | keep | Shared components and the design system, unchanged |
+| `DCPill`, `SettingsIcon`, `ForumIcon` | keep (restyled) | `DCPill` becomes the design system's Seal, `SettingsIcon` its ListRow tile (ink; gold for the Agent), `ForumIcon` the site tile in its own colour |
 | `AIDataConsentPage`, `AIDataFlowSection`, `TermsGateView`, `TermsAgreementCard`, `TermsPoints`, `ReportForm`, `ReportEmailFallback`, `ModerationSettingsSections`, `BlockedUsersPage`, `FilteredWordsPage` | cleanup | Deleted with consent, terms and moderation |
 
 Private and file-private helper views travel with the screen that defines them.
