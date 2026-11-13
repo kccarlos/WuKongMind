@@ -48,8 +48,7 @@ final class DrawerStreamPerfUITests: DCUITestCase {
         server.streamedSummary = streaming ? (Self.longAnswer, 0.04) : nil
         // Clears the summary an earlier run saved.
         let app = launch(["-dc-open", server.postURL, "-dc-fixture-model", server.baseURL, "-dc-script", "clear-all-after:1"])
-        showAssistant(in: app)
-        let summarize = app.buttons["createSummary"].firstMatch
+        let summarize = app.buttons["dockHintAction"].firstMatch
         XCTAssertTrue(waitOrDump(summarize, timeout: 40, in: app), "No summary offered.")
         XCTAssertTrue(waitForHittable(summarize))
         summarize.tap()
@@ -70,8 +69,7 @@ final class DrawerStreamPerfUITests: DCUITestCase {
     func testDragLongTextIdle() {
         server.streamedSummary = (Self.longAnswer, 0.002)
         let app = launch(["-dc-open", server.postURL, "-dc-fixture-model", server.baseURL, "-dc-script", "clear-all-after:1"])
-        showAssistant(in: app)
-        let summarize = app.buttons["createSummary"].firstMatch
+        let summarize = app.buttons["dockHintAction"].firstMatch
         XCTAssertTrue(waitOrDump(summarize, timeout: 40, in: app), "No summary offered.")
         XCTAssertTrue(waitForHittable(summarize))
         summarize.tap()

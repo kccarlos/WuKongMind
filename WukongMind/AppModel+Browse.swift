@@ -312,6 +312,9 @@ extension AppModel {
     }
 
     func applyBrowserAgentDebugArguments() {
+        if AssistantDebug.has("-dc-developer-mode") {
+            settings.developerMode = true
+        }
         let demoMode = AssistantDebug.value("-dc-browser-agent-demo")
         let livePrompt = AssistantDebug.value("-dc-browser-agent-live-prompt")
         let hasLiveKey = AssistantDebug.has("-dc-browser-agent-live-key")
@@ -327,7 +330,7 @@ extension AppModel {
         needsProviderSetup = nil
         let usesCustomOpenPage = hasCustomOpenURL
             && !AssistantDebug.has("-dc-browser-agent-fixture-page")
-            && (livePrompt != nil || hasLiveKey || demoMode == "spa-op-only")
+            && (livePrompt != nil || hasLiveKey || demoMode != nil)
         if usesCustomOpenPage {
             browser.ignoresNavigationFailures = true
             browser.hideForumsHome()
@@ -351,9 +354,8 @@ extension AppModel {
                 if demoMode == "step-limit" {
                     settings.browserAgentMaxSteps = 2
                 }
-                if let parsed = BrowserAgentDemoClient.Mode(rawValue: demoMode) {
-                    browserAgent.configureDebugModelClient(BrowserAgentDemoClient(mode: parsed))
-                }
+                let clientMode = BrowserAgentDemoClient.Mode(rawValue: demoMode) ?? .recorded
+                browserAgent.configureDebugModelClient(BrowserAgentDemoClient(mode: clientMode))
             }
             guard demoMode != "spa-op-only" else { return }
             Task { @MainActor [weak self] in

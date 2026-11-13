@@ -631,53 +631,6 @@
         }
       }
     },
-    "%lld messages" : {
-      "comment" : "Number of chat messages",
-      "localizations" : {
-        "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld message"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld messages"
-                }
-              }
-            }
-          }
-        },
-        "zh-Hans" : {
-          "variations" : {
-            "plural" : {
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld 条消息"
-                }
-              }
-            }
-          }
-        },
-        "zh-Hant" : {
-          "variations" : {
-            "plural" : {
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld 則訊息"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "%lld new" : {
       "comment" : "Badge: number of new replies in a followed topic\nBadge: number of new replies in a watched topic",
       "localizations" : {
@@ -2045,23 +1998,6 @@
         }
       }
     },
-    "A change applies to your next question. The search running now keeps %@." : {
-      "comment" : "Ask the forum model menu while a search runs. The placeholder is the running search's model.",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "更改将用于你的下一个问题。正在进行的搜索继续使用 %@。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "變更將用於你的下一個問題。正在進行的搜尋繼續使用 %@。"
-          }
-        }
-      }
-    },
     "A forum topic’s web address. Leave empty to use the clipboard." : {
       "localizations" : {
         "zh-Hans" : {
@@ -2106,23 +2042,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "瀏覽器列中的麥克風會開始即時對話，幫你尋找、開啟和朗讀貼文。"
-          }
-        }
-      }
-    },
-    "AI assistant" : {
-      "comment" : "iPhone browser bar button that opens the AI drawer",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AI 助手"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AI 助理"
           }
         }
       }
@@ -2255,22 +2174,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "加入"
-          }
-        }
-      }
-    },
-    "Add %@" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "添加 %@"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "加入 %@"
           }
         }
       }
@@ -2474,6 +2377,23 @@
         }
       }
     },
+    "Add as a forum" : {
+      "comment" : "This page popover action to add an unconfirmed forum site",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "添加为论坛"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "加入為論壇"
+          }
+        }
+      }
+    },
     "Add at least one rule" : {
       "comment" : "Inline validation error when all @match rules have been removed",
       "localizations" : {
@@ -2504,22 +2424,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "新增規則"
-          }
-        }
-      }
-    },
-    "Add the forum — the app checks that it’s supported." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "添加论坛——App 会检查它是否受支持。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "加入論壇——App 會檢查它是否受支援。"
           }
         }
       }
@@ -2732,6 +2636,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "代理模型"
+          }
+        }
+      }
+    },
+    "Agent ready" : {
+      "comment" : "Empty Agent panel accessibility label",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "代理已就绪"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "代理已就緒"
           }
         }
       }
@@ -3552,23 +3473,6 @@
         }
       }
     },
-    "Ask %@ anything…" : {
-      "comment" : "Ask the forum placeholder; the placeholder is a forum name",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "向 %@ 提任何问题…"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "向 %@ 提出任何問題…"
-          }
-        }
-      }
-    },
     "Ask a Forum" : {
       "localizations" : {
         "zh-Hans" : {
@@ -3585,38 +3489,6 @@
         }
       }
     },
-    "Ask a follow-up question…" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "继续追问…"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "繼續追問…"
-          }
-        }
-      }
-    },
-    "Ask a follow-up…" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "继续追问…"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "繼續追問…"
-          }
-        }
-      }
-    },
     "Ask about this" : {
       "localizations" : {
         "zh-Hans" : {
@@ -3629,38 +3501,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "問問這個"
-          }
-        }
-      }
-    },
-    "Ask about this topic" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "就此话题提问"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "就這個話題提問"
-          }
-        }
-      }
-    },
-    "Ask another question…" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "提出其他问题…"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "提出其他問題…"
           }
         }
       }
@@ -3699,19 +3539,19 @@
         }
       }
     },
-    "Ask the agent to change this page…" : {
-      "comment" : "Browser agent composer placeholder when ready",
+    "Ask the Agent…" : {
+      "comment" : "Unified Agent panel composer placeholder",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "让代理修改此页面…"
+            "value" : "让代理帮你处理…"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "讓代理修改此頁面…"
+            "value" : "讓代理幫你處理…"
           }
         }
       }
@@ -3729,22 +3569,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "問論壇"
-          }
-        }
-      }
-    },
-    "Ask the forum anything…" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "向论坛提任何问题…"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "向論壇提出任何問題…"
           }
         }
       }
@@ -3795,40 +3619,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "論壇問答會搜尋並閱讀最相關的主題，並附上可開啟的編號來源作答。"
-          }
-        }
-      }
-    },
-    "Ask: %@" : {
-      "comment" : "Accessibility label of the Ask box's scope button; the placeholder is This topic or a forum name",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "提问：%@"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "提問：%@"
-          }
-        }
-      }
-    },
-    "Asked %@" : {
-      "comment" : "When a question to the forum was asked; the placeholder is a relative time such as “2 hours ago”",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "提问于%@"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "提問於%@"
           }
         }
       }
@@ -4188,6 +3978,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "阻擋廣告"
+          }
+        }
+      }
+    },
+    "Block ads here" : {
+      "comment" : "This page popover toggle: block ads on the current site",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在此屏蔽广告"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在此封鎖廣告"
           }
         }
       }
@@ -4559,23 +4366,6 @@
         }
       }
     },
-    "Change this page by asking" : {
-      "comment" : "Browser agent empty state card title",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "通过提问修改此页面"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "透過提問修改此頁面"
-          }
-        }
-      }
-    },
     "Changed by the agent" : {
       "comment" : "Version history row title when updated by the browser agent",
       "localizations" : {
@@ -4867,22 +4657,6 @@
         }
       }
     },
-    "Checking %@…" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在检查 %@…"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在檢查 %@…"
-          }
-        }
-      }
-    },
     "Checking the site…" : {
       "localizations" : {
         "zh-Hans" : {
@@ -4946,23 +4720,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "選擇模型"
-          }
-        }
-      }
-    },
-    "Choose a model first" : {
-      "comment" : "Browser agent composer placeholder when no model is configured",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请先选择模型"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "請先選擇模型"
           }
         }
       }
@@ -5144,22 +4901,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "清除所有已儲存的資料…"
-          }
-        }
-      }
-    },
-    "Clear Chat" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "清除对话"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "清除對話"
           }
         }
       }
@@ -6024,23 +5765,6 @@
         }
       }
     },
-    "Current page" : {
-      "comment" : "Browser agent context pill fallback when no host is available",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "当前页面"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "目前頁面"
-          }
-        }
-      }
-    },
     "Custom" : {
       "comment" : "Settings › Models › Summaries: custom instructions are set",
       "localizations" : {
@@ -6553,6 +6277,23 @@
         }
       }
     },
+    "Dictate" : {
+      "comment" : "Composer microphone button accessibility label in One panel",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "听写"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "聽寫"
+          }
+        }
+      }
+    },
     "Digest Settings" : {
       "localizations" : {
         "zh-Hans" : {
@@ -6986,23 +6727,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已編輯 · 尚未儲存。返回上一頁並點一下「儲存」。"
-          }
-        }
-      }
-    },
-    "Editing question" : {
-      "comment" : "Chat composer banner while editing a previously sent question",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在编辑问题"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在編輯問題"
           }
         }
       }
@@ -7701,7 +7425,7 @@
       }
     },
     "Following" : {
-      "comment" : "History segment: followed topics\nSettings page: followed topics and new-reply checks",
+      "comment" : "History segment: followed topics\nSettings page: followed topics and new-reply checks\nThis page popover toggle: follow new replies on the open forum topic",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -8811,23 +8535,6 @@
         }
       }
     },
-    "Increase the font size and widen the article" : {
-      "comment" : "Browser agent example prompt 3",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "增大字号并加宽文章区域"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "放大字型並加寬文章區域"
-          }
-        }
-      }
-    },
     "Initial version" : {
       "comment" : "Version history subtitle for version 1",
       "localizations" : {
@@ -8880,22 +8587,6 @@
       }
     },
     "Instructions & Context" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "指令与上下文"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "指示與上下文"
-          }
-        }
-      }
-    },
-    "Instructions and context" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -8974,22 +8665,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "參數「%@」無效:%@"
-          }
-        }
-      }
-    },
-    "Is this a supported site?" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "这是受支持的网站吗？"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "這是受支援的網站嗎？"
           }
         }
       }
@@ -9835,22 +9510,6 @@
         }
       }
     },
-    "Looks like a topic" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "看起来是一个话题"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "看起來是一個話題"
-          }
-        }
-      }
-    },
     "Made by the agent · %@" : {
       "comment" : "Source row in Script detail when created by the browser agent; placeholder is creation date",
       "localizations" : {
@@ -10015,23 +9674,6 @@
         }
       }
     },
-    "Make this page dark and hide the sidebar" : {
-      "comment" : "Browser agent example prompt 1",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "将此页面设为深色并隐藏侧边栏"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "將此頁面設為深色並隱藏側邊欄"
-          }
-        }
-      }
-    },
     "Make this page easier to read" : {
       "comment" : "First-run step 3 suggestion",
       "localizations" : {
@@ -10185,6 +9827,7 @@
       }
     },
     "Model" : {
+      "comment" : "Assistant more menu submenu for choosing the Agent model",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -10252,23 +9895,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%2$@ 未提供模型「%1$@」。"
-          }
-        }
-      }
-    },
-    "Model: %@" : {
-      "comment" : "Accessibility label of the AI drawer's model pill; the placeholder is the model name",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "模型：%@"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "模型：%@"
           }
         }
       }
@@ -10771,6 +10397,23 @@
         }
       }
     },
+    "No page open" : {
+      "comment" : "Browser agent context bar when no web page is loaded",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未打开网页"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未打開網頁"
+          }
+        }
+      }
+    },
     "No pinned forums" : {
       "localizations" : {
         "zh-Hans" : {
@@ -10866,22 +10509,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "此次工作階段尚未記錄任何工具呼叫。"
-          }
-        }
-      }
-    },
-    "No topic open" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "未打开话题"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "未開啟話題"
           }
         }
       }
@@ -11674,22 +11301,6 @@
         }
       }
     },
-    "Open a topic to summarize it, or ask the whole forum a question." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "打开话题即可总结，或者向整个论坛提问。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "打開話題即可產生摘要，或向整個論壇提問。"
-          }
-        }
-      }
-    },
     "Open account" : {
       "comment" : "Forum menu, in the account submenu: opens the signed-in account page",
       "localizations" : {
@@ -12408,22 +12019,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "釘選的論壇會依此順序顯示在「首頁」和每日摘要中。"
-          }
-        }
-      }
-    },
-    "Pinned · %@" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已置顶 · %@"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已釘選 · %@"
           }
         }
       }
@@ -13616,23 +13211,6 @@
         }
       }
     },
-    "Reads the page’s structure and text" : {
-      "comment" : "Browser agent empty state: first how-it-works bullet",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "读取页面的结构与正文"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "讀取頁面的結構與內文"
-          }
-        }
-      }
-    },
     "Ready" : {
       "comment" : "AI provider status pill",
       "localizations" : {
@@ -13712,23 +13290,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "最近活動"
-          }
-        }
-      }
-    },
-    "Recent on %@" : {
-      "comment" : "Section header; the placeholder is the forum name",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ 最近"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ 最近"
           }
         }
       }
@@ -14459,23 +14020,6 @@
         }
       }
     },
-    "Runs JavaScript and injects CSS live" : {
-      "comment" : "Browser agent empty state: second how-it-works bullet",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "实时运行 JavaScript 并注入 CSS"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "即時執行 JavaScript 並注入 CSS"
-          }
-        }
-      }
-    },
     "Runs at" : {
       "comment" : "Picker label in Script detail choosing when the script injects",
       "localizations" : {
@@ -15099,22 +14643,6 @@
         }
       }
     },
-    "Search this forum" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "搜索此论坛"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "搜尋此論壇"
-          }
-        }
-      }
-    },
     "Searched comments for “%@”" : {
       "comment" : "Agent step; the placeholder is the search query",
       "localizations" : {
@@ -15162,22 +14690,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在 %@ 中搜尋你的問題。"
-          }
-        }
-      }
-    },
-    "Searches and reads %@ on its own, then answers with sources. It never posts." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "自动搜索并阅读 %@，然后附上来源回答。从不发帖。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "自動搜尋並閱讀 %@，然後附上來源回答。絕不發文。"
           }
         }
       }
@@ -15278,38 +14790,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "從 Safari、Chrome 或其他 App 直接把任何論壇頁面傳送到 WukongMind。"
-          }
-        }
-      }
-    },
-    "Send follow-up" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "发送追问"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "傳送追問"
-          }
-        }
-      }
-    },
-    "Send question" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "发送问题"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "傳送問題"
           }
         }
       }
@@ -15883,6 +15363,23 @@
         }
       }
     },
+    "Site settings" : {
+      "comment" : "This page popover button opening site settings",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "网站设置"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "網站設定"
+          }
+        }
+      }
+    },
     "Sites" : {
       "comment" : "Settings page: saved forums, followed topics, reading pace and ad blocking",
       "localizations" : {
@@ -16153,6 +15650,23 @@
         }
       }
     },
+    "Step %lld" : {
+      "comment" : "Folded header status during an Agent run while the keyboard is up; placeholder is step number",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第 %lld 步"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第 %lld 步"
+          }
+        }
+      }
+    },
     "Step %lld of %lld: %@" : {
       "comment" : "First-run progress for VoiceOver: step number, total, step title",
       "localizations" : {
@@ -16314,6 +15828,53 @@
         }
       }
     },
+    "Stopped after %lld steps" : {
+      "comment" : "Browser agent step limit card title; placeholder is the step limit integer",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Stopped after %lld step"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Stopped after %lld steps"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "执行 %lld 步后已停止"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "執行 %lld 步後已停止"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "Stopped at the step budget" : {
       "comment" : "Ask the forum step outcome: the run used all its allowed steps",
       "localizations" : {
@@ -16348,23 +15909,6 @@
         }
       }
     },
-    "Stopped by you · step %lld" : {
-      "comment" : "Browser agent footer status when stopped by the user",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已由你停止 · 第 %lld 步"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已由你停止 · 第 %lld 步"
-          }
-        }
-      }
-    },
     "Stopped." : {
       "comment" : "First-run step 3: the user stopped the Agent",
       "localizations" : {
@@ -16378,23 +15922,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已停止。"
-          }
-        }
-      }
-    },
-    "Stops whenever you tap Stop" : {
-      "comment" : "Browser agent empty state: third how-it-works bullet",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "轻点“停止”即可随时终止"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "點一下「停止」即可隨時終止"
           }
         }
       }
@@ -16627,23 +16154,6 @@
         }
       }
     },
-    "Summarize the main points on this page" : {
-      "comment" : "Browser agent example prompt 2",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "总结此页面的主要内容"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "摘要此頁面的主要重點"
-          }
-        }
-      }
-    },
     "Summarize this link" : {
       "localizations" : {
         "zh-Hans" : {
@@ -16855,6 +16365,23 @@
         }
       }
     },
+    "Summary actions" : {
+      "comment" : "Accessibility label of the summary card's more menu",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "摘要操作"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "摘要操作"
+          }
+        }
+      }
+    },
     "Summary:\n%@" : {
       "comment" : "Exported text: heading followed by the AI summary",
       "localizations" : {
@@ -16932,23 +16459,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "上下滑動可調整大小，點兩下可重設。"
-          }
-        }
-      }
-    },
-    "Switches between this topic and the whole forum" : {
-      "comment" : "Accessibility hint of the Ask box's scope button",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在此话题和整个论坛之间切换"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在這個話題和整個論壇之間切換"
           }
         }
       }
@@ -17896,22 +17406,6 @@
         }
       }
     },
-    "Then create a summary or ask the forum a question." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "然后生成摘要，或向论坛提问。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "然後產生摘要，或向論壇提問。"
-          }
-        }
-      }
-    },
     "There’s no web link to summarize. Copy a forum topic’s link first, or choose one." : {
       "localizations" : {
         "zh-Hans" : {
@@ -17946,7 +17440,7 @@
       }
     },
     "Thinking…" : {
-      "comment" : "Voice bar state",
+      "comment" : "Agent status line while waiting on the first model step\nVoice bar state",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -17958,22 +17452,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在思考…"
-          }
-        }
-      }
-    },
-    "This Topic" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此话题"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "這個話題"
           }
         }
       }
@@ -18027,18 +17505,19 @@
         }
       }
     },
-    "This page isn’t a supported site" : {
+    "This page" : {
+      "comment" : "Popover header for page capabilities and scripts",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此页面不是受支持的网站"
+            "value" : "此页面"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此頁面不是受支援的網站"
+            "value" : "此頁面"
           }
         }
       }
@@ -18055,6 +17534,69 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "此頁面已停止回應"
+          }
+        }
+      }
+    },
+    "This page, %@" : {
+      "comment" : "Accessibility label of the This page seal when no scripts match; placeholder is the host",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此页面，%@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此頁面，%@"
+          }
+        }
+      }
+    },
+    "This page, %@, %@" : {
+      "comment" : "Accessibility label of the This page seal when scripts are active\nAccessibility label of the This page seal when scripts are turned off",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This page, %1$@, %2$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此页面，%1$@，%2$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此頁面，%1$@，%2$@"
+          }
+        }
+      }
+    },
+    "This page, %@, %@, %@" : {
+      "comment" : "Accessibility label of the This page seal when scripts have errors",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This page, %1$@, %2$@, %3$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此页面，%1$@，%2$@，%3$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此頁面，%1$@，%2$@，%3$@"
           }
         }
       }
@@ -18091,6 +17633,22 @@
         }
       }
     },
+    "This site" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此网站"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此網站"
+          }
+        }
+      }
+    },
     "This site does not allow searching comments. Use search_forum and read_topic instead." : {
       "comment" : "Ask the forum step error: the WordPress site closed its comment search",
       "localizations" : {
@@ -18121,23 +17679,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "這個話題"
-          }
-        }
-      }
-    },
-    "This topic / Whole forum" : {
-      "comment" : "One-time hint next to the Ask box's scope button: it switches between these two",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此话题 / 整个论坛"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "這個話題 / 整個論壇"
           }
         }
       }
@@ -18519,22 +18060,6 @@
         }
       }
     },
-    "Topics you summarize or chat about here, and your questions to the forum, show up here." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "你在这里总结或聊过的话题，以及你向论坛提出的问题，都会显示在这里。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "你在這裡摘要或聊過的話題，以及你向論壇提出的問題，都會顯示在這裡。"
-          }
-        }
-      }
-    },
     "Touch and hold to talk to WukongMind" : {
       "comment" : "Accessibility hint of the iPhone AI button when voice is set up",
       "localizations" : {
@@ -18796,38 +18321,6 @@
         }
       }
     },
-    "Try anyway — check the page again" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "仍然尝试 — 重新检查页面"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "仍要嘗試 — 重新檢查頁面"
-          }
-        }
-      }
-    },
-    "Try one of these" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "试试这些"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "試試這些"
-          }
-        }
-      }
-    },
     "Try the Agent once" : {
       "comment" : "First-run step 3\nFirst-run step 3 title",
       "localizations" : {
@@ -18841,23 +18334,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "試用一次代理"
-          }
-        }
-      }
-    },
-    "Turn failed" : {
-      "comment" : "Browser agent footer status when a turn fails",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "本轮失败"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "本輪失敗"
           }
         }
       }
@@ -18908,22 +18384,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "開啟「與 iCloud 同步」，讓你的論壇、摘要和聊天同時保存在 iPhone 和 iPad 上。"
-          }
-        }
-      }
-    },
-    "Turn on ad blocking" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "打开广告拦截"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "開啟廣告阻擋"
           }
         }
       }
@@ -19222,22 +18682,6 @@
         }
       }
     },
-    "Unwatch Topic" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "取消关注话题"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "取消關注話題"
-          }
-        }
-      }
-    },
     "Unwatch topic" : {
       "localizations" : {
         "zh-Hans" : {
@@ -19250,53 +18694,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "停止追蹤話題"
-          }
-        }
-      }
-    },
-    "Up to %lld steps. Change it in Settings." : {
-      "comment" : "Browser agent empty state footer showing the configured step limit and linking to Settings",
-      "localizations" : {
-        "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "Up to %lld step. Change it in Settings."
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "Up to %lld steps. Change it in Settings."
-                }
-              }
-            }
-          }
-        },
-        "zh-Hans" : {
-          "variations" : {
-            "plural" : {
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "最多 %lld 步。可在“设置”中修改。"
-                }
-              }
-            }
-          }
-        },
-        "zh-Hant" : {
-          "variations" : {
-            "plural" : {
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "最多 %lld 步。可在「設定」中修改。"
-                }
-              }
-            }
           }
         }
       }
@@ -19412,7 +18809,7 @@
       }
     },
     "Use %@ for both" : {
-      "comment" : "Model menu: gives the other role this model too. The placeholder is a model name, e.g. claude-opus.\nSettings › Models: gives both Agent and Summaries this model. The placeholder is a provider and model, e.g. OpenRouter · kimi-k2.",
+      "comment" : "Settings › Models: gives both Agent and Summaries this model. The placeholder is a provider and model, e.g. OpenRouter · kimi-k2.",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -19555,22 +18952,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用內建提示詞"
-          }
-        }
-      }
-    },
-    "Use this page’s forum" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "使用此页面所在的论坛"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "使用此頁面所在的論壇"
           }
         }
       }
@@ -20281,22 +19662,6 @@
         }
       }
     },
-    "Watch Topic" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "关注话题"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "關注話題"
-          }
-        }
-      }
-    },
     "Watch a topic from the Assistant menu, or let the agent watch one." : {
       "localizations" : {
         "zh-Hans" : {
@@ -20634,39 +19999,6 @@
         }
       }
     },
-    "Whole Forum" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "整个论坛"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "整個論壇"
-          }
-        }
-      }
-    },
-    "Whole forum" : {
-      "comment" : "Ask box scope: questions to the whole forum (Ask the forum)",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "整个论坛"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "整個論壇"
-          }
-        }
-      }
-    },
     "Whole topic" : {
       "comment" : "Result card for a source that is a whole topic, not one post",
       "localizations" : {
@@ -20768,19 +20100,19 @@
         }
       }
     },
-    "Working · step %lld of %lld" : {
-      "comment" : "Browser agent footer status while a run is working",
+    "Working · step %lld" : {
+      "comment" : "Agent status line while executing a step",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "运行中 · 第 %1$lld / %2$lld 步"
+            "value" : "处理中 · 第 %lld 步"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "執行中 · 第 %1$lld / %2$lld 步"
+            "value" : "處理中 · 第 %lld 步"
           }
         }
       }
@@ -20905,22 +20237,6 @@
     "WukongMind" : {
       "shouldTranslate" : false
     },
-    "WukongMind couldn’t confirm %@ yet. If it’s a %@ site, add it so the assistant can read topics with your current login." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "WukongMind 暂时无法确认 %@。如果它是 %@ 网站，请添加它，助手就能用你当前的登录身份阅读话题。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "WukongMind 暫時無法確認 %@。如果它是 %@ 網站，請加入它，助理就能用你目前的登入身分閱讀話題。"
-          }
-        }
-      }
-    },
     "WukongMind needs the microphone to hear you. Turn it on in Settings › Privacy & Security › Microphone." : {
       "comment" : "Voice error. The path names the iOS Settings app's pages.",
       "localizations" : {
@@ -20966,22 +20282,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "WukongMind 適用於 %@ 網站。它是一款獨立 App，與 Civilized Discourse Construction Kit, Inc. 無關聯，也未獲其認可。Discourse 是其各自所有者的商標。"
-          }
-        }
-      }
-    },
-    "WukongMind works with %@ sites. Open one to summarize topics, chat about them, or ask the whole forum a question." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "WukongMind 适用于 %@ 网站。打开一个，即可总结话题、围绕话题聊天，或向整个论坛提问。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "WukongMind 適用於 %@ 網站。打開一個，即可摘要話題、針對話題聊天，或向整個論壇提問。"
           }
         }
       }
@@ -21082,22 +20382,6 @@
         }
       }
     },
-    "Your forums" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "你的论坛"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "你的論壇"
-          }
-        }
-      }
-    },
     "Your iCloud storage is full." : {
       "comment" : "iCloud sync status message",
       "localizations" : {
@@ -21127,22 +20411,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "你還沒有追蹤任何話題。"
-          }
-        }
-      }
-    },
-    "You’re on %@" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "你正在浏览 %@"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "你正在瀏覽 %@"
           }
         }
       }
@@ -21677,22 +20945,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "論壇"
-          }
-        }
-      }
-    },
-    "this site" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此网站"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此網站"
           }
         }
       }

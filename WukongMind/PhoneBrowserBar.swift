@@ -363,9 +363,6 @@ struct PhoneTitleCapsule: View {
             if let answerPost {
                 answerChip(answerPost)
             }
-            if !showsHome, browser.currentURL != nil {
-                AdShieldMenu(app: app, browser: browser)
-            }
         }
         .padding(.leading, 12)
         .padding(.trailing, 4)
@@ -434,12 +431,11 @@ struct PhoneTitleCapsule: View {
         .contentShape(Rectangle())
     }
 
-    /// What the chip and the shield leave of the capsule (nil: no limit).
+    /// What the solved-answer chip leaves of the capsule (nil: no limit).
     private var titleWidth: CGFloat? {
         guard width > 0 else { return nil }
         var reserved: CGFloat = 16
         if answerPost != nil { reserved += 64 }
-        if !showsHome, browser.currentURL != nil { reserved += 34 }
         return max(60, width - reserved)
     }
 
@@ -511,46 +507,7 @@ struct PhoneTitleCapsule: View {
     }
 }
 
-/// Shield at the end of the title: shows whether ads are blocked here and
-/// toggles the site. Blocking is off by default; then the shield is neutral
-/// and offers to turn it on.
-struct AdShieldMenu: View {
-    @ObservedObject var app: AppModel
-    @ObservedObject var browser: ForumBrowserModel
-
-    var body: some View {
-        let blocking = SiteBlocking(app: app, url: browser.currentURL)
-        Menu {
-            Section(blocking.statusTitle) {
-                if blocking.status == .off {
-                    Button {
-                        DCHaptics.tap()
-                        app.turnOnContentBlocking()
-                    } label: {
-                        Label("Turn on ad blocking", systemImage: "shield.lefthalf.filled")
-                    }
-                    .accessibilityIdentifier("shieldTurnOnBlocking")
-                }
-                if let toggle = blocking.toggle {
-                    Button(action: toggle.action) {
-                        Label(toggle.title, systemImage: toggle.systemImage)
-                    }
-                    .accessibilityIdentifier("shieldToggleAdsOnSite")
-                }
-            }
-        } label: {
-            Image(systemName: blocking.symbol)
-                .font(.footnote.weight(.semibold))
-                .foregroundStyle(blocking.tint)
-                .frame(width: 30, height: DCTheme.controlHeight)
-                .contentShape(Rectangle())
-        }
-        .accessibilityLabel(blocking.statusTitle)
-        .accessibilityIdentifier("contentBlockingShield")
-    }
-}
-
-/// Ad blocking on the current site, for the shield and the forum menu.
+/// Ad blocking on the current site, for This page and the forum menu.
 @MainActor
 struct SiteBlocking {
     let app: AppModel
@@ -705,11 +662,7 @@ struct PhoneAIButton: View {
                 }
             }
             .accessibilityElement()
-            .accessibilityLabel(
-                app.toolbarOpensBrowserAgentByDefault || app.assistantMode == .browserAgent
-                    ? Text(verbatim: AssistantMode.browserAgent.title)
-                    : Text("AI assistant", comment: "iPhone browser bar button that opens the AI drawer")
-            )
+            .accessibilityLabel(Text(verbatim: AssistantMode.browserAgent.title))
             .accessibilityValue(accessibilityValueText)
             .accessibilityHint(canTalk ? Text("Touch and hold to talk to WukongMind", comment: "Accessibility hint of the iPhone AI button when voice is set up") : Text(verbatim: ""))
             .accessibilityAddTraits(.isButton)
