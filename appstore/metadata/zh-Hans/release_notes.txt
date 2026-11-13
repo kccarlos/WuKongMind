@@ -1,1 +1,0 @@
-Forumind 首个版本。为 Discourse、WordPress 和 Hacker News 提供摘要、聊天和问论坛。每日摘要与播客、实时语音、设备端翻译、Siri 与快捷指令，可使用 Apple 智能或你自己的 AI 提供方，并支持 iCloud 同步。

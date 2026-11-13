@@ -28,7 +28,7 @@ unless bundle_id_prefix.match?(/\A[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+\z/)
 end
 build_number = ENV["BUILD_NUMBER"].to_s.strip
 build_number = "1" if build_number.empty?
-marketing_version = "1.1.1"
+marketing_version = "1.1.2"
 
 # Settings every target shares. DC_APP_GROUP feeds the entitlements files;
 # DC_IDENTIFIER_PREFIX feeds the Info.plist keys AppIdentity.swift reads.
@@ -122,7 +122,7 @@ content_blocking.last_known_file_type = "folder"
 app_target.resources_build_phase.add_file_reference(content_blocking)
 app_group.new_file("Info.plist")
 app_group.new_file("Forumind.entitlements")
-# Privacy manifests (App Store requirement; see docs/APP_STORE.md).
+# Privacy manifests (declares required-reason APIs such as UserDefaults).
 app_privacy = app_group.new_file("PrivacyInfo.xcprivacy")
 app_privacy.last_known_file_type = "text.xml"
 app_target.resources_build_phase.add_file_reference(app_privacy)

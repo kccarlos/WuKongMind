@@ -10,7 +10,7 @@ organized, see [ARCHITECTURE.md](ARCHITECTURE.md).
 | **Xcode 27** (macOS 27 or later) | Builds the app. The deployment target is iOS 17; Apple Intelligence features need a newer iOS (see [APPLE_INTELLIGENCE.md](APPLE_INTELLIGENCE.md)). |
 | **Ruby** with the **`xcodeproj`** gem | Generates `Forumind.xcodeproj`. The system Ruby works: `gem install --user-install xcodeproj` (or use Homebrew/rbenv Ruby). |
 | Rust (optional) | Only to refresh the ad-blocking filter lists (`brew install rust` or rustup). See [AD_BLOCKING.md](AD_BLOCKING.md). |
-| Bundler + fastlane (optional) | Only for App Store uploads from your Mac (`bundle install`). CI does this for you. |
+| Bundler + fastlane (optional) | Only for TestFlight uploads from your Mac (`bundle install`). CI does this for you. |
 
 There are no Swift packages or other dependencies to fetch.
 
@@ -29,15 +29,6 @@ open Forumind.xcodeproj
 
 Don't edit build settings in Xcode's UI: the next generator run overwrites
 them. Change the script instead.
-
-## Website
-
-`mobile-site/` (https://mobile.forumind.top) has no build step: the English pages are
-edited by hand, with each element's Chinese in `data-zh` (inner HTML) or `data-zh-<attr>`.
-`scripts/site/render_site.py` writes the rest: the privacy body from `PRIVACY.md`, the
-supported-site list from `scripts/site/sites.json`, every page under `mobile-site/zh/`,
-the canonical and hreflang lines, and `sitemap.xml`. Run it after any edit and commit
-the result; CI (`scripts/ci/check-site.sh`) fails when a generated file is stale.
 
 ## Signing
 
@@ -485,76 +476,6 @@ It writes the light (opaque), dark and tinted 1024 px icons into
 `docs/brand/forumind-icon-1024.png`. Check the light icon has no alpha
 channel with `sips -g hasAlpha`. `docs/brand/forumind-mark.svg` uses the
 same coordinates; update it by hand.
-
-## App Store screenshots
-
-The App Store screenshots are rendered from raw simulator captures: a brand
-panel with a headline, a subline and the capture in a device frame, in
-English (`en-US`), Simplified Chinese (`zh-Hans`) and Traditional Chinese
-(`zh-Hant`). See [APP_STORE.md](APP_STORE.md#screenshots) for the captions
-and the capture list. To retake the captures, run:
-
-```sh
-brew install pngquant   # once; keeps the committed PNGs small
-scripts/brand/capture_store_screenshots.sh            # every language, or e.g. en-US
-```
-
-It builds the app for testing and runs `ForumindUITests/StoreScreenshotTests`
-on an iPhone 17 Pro Max (6.9") and an iPad Pro 13-inch (M5) simulator in each
-language (`IPHONE_SIM` / `IPAD_SIM` pick other simulators of those sizes (an empty one skips that device),
-`DERIVED_DATA` the build folder). Before each language it uninstalls the app
-for a clean state and sets the status bar to 9:41 and light appearance. The
-test launches the sample (`-dc-sample -dc-apple-intelligence on-device`, plus
-`-AppleLanguages`/`-AppleLocale` from `TEST_RUNNER_DC_SHOT_LANGUAGE`), waits
-for each screen, then until two screenshots a second apart are identical (animations, streaming text and drawer moves have settled), and writes it to `TEST_RUNNER_DC_SCREENSHOT_DIR`; it skips
-when that is not set, so normal test runs never take screenshots. The script
-copies the results into `appstore/screenshots-raw/<locale>/` and the README
-images into `docs/screenshots/`.
-
-| Capture | Arguments (with the sample) |
-| --- | --- |
-| `iphone-69-1-home` | `-dc-forums-home -dc-digest-sample done` |
-| `iphone-69-2-summary`, `ipad-13-1-home-summary` | `-dc-assistant-mode summary` (drawer at medium over the sample page; on iPad the panel) |
-| `iphone-69-3-chat`, `ipad-13-2-chat` | `-dc-assistant-mode chat` (iPhone: `-dc-drawer-detent large`) |
-| `iphone-69-4-agent`, `ipad-13-3-agent` | `-dc-assistant-mode agent` (iPhone: `-dc-drawer-detent large`) |
-| `iphone-69-5-privacy` | `-dc-onboarding-step privacy` |
-| `ipad-13-4-manage` | `-dc-open-history` |
-| `ipad-13-5-sync` | `-dc-panel-settings sync -dc-sync-status upToDate` |
-| `iphone-page` (README only) | `-dc-drawer-first-run -dc-no-summary`: the page with the bar's ✦ button and the hint row |
-
-Then re-render every language and check:
-
-```sh
-scripts/brand/render_store_screenshots.sh --preview "$TMPDIR/store-shots"
-scripts/ci/check-appstore-metadata.sh
-```
-
-`--preview` also writes small copies (`preview-<locale>-*.png`) and 3-up
-strips of the first three screenshots at search-result size, on white and
-on black (`strip-<locale>-<device>-<white|black>.png`).
-
-## README images
-
-The README screenshots in `docs/screenshots/` come from the same run as the
-App Store captures (`scripts/brand/capture_store_screenshots.sh`): the
-iPhone home, summary, Ask the forum and page captures, scaled to 720 px high
-and quantized, as `iphone-<name>.png` in English and
-`iphone-<name>-zh-Hans.png` / `-zh-Hant.png` for the Chinese READMEs.
-
-The README banner (`docs/brand/forumind-banner.png`, 1280 × 640, also the
-GitHub social preview) and its Chinese versions are rendered from the brand
-code and three captures it reads from `appstore/screenshots-raw/<locale>/`
-(see `BannerScreens` in `render_banner.swift`), so after new captures run:
-
-```sh
-brew install pngquant   # once; keeps the committed PNGs small
-scripts/brand/render_banner.sh --preview "$TMPDIR/banner"
-```
-
-The banner text lives in `scripts/brand/render_banner.swift`. `--preview`
-writes each banner at 600 px wide, the size chat apps show link previews
-at. The social preview is uploaded by hand in the GitHub repository's
-Settings › General › Social preview.
 
 ## Platform notes
 

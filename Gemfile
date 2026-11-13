@@ -1,7 +1,7 @@
-# Ruby tools for building and releasing Forumind.
+# Ruby tools for building and releasing WukongMind.
 #   bundle install
 #   ruby scripts/generate_project.rb   (xcodeproj)
-#   bundle exec fastlane beta|metadata (see fastlane/Fastfile, docs/CI.md)
+#   bundle exec fastlane beta          (see fastlane/Fastfile, docs/CI.md)
 source "https://rubygems.org"
 
 gem "fastlane", "~> 2.240"
