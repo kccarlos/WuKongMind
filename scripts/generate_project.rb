@@ -379,6 +379,26 @@ project.build_configurations.each do |configuration|
   settings["SWIFT_VERSION"] = "5.0"
 end
 
+# Stable object ids, derived from each object's place in the project tree
+# (parent path + role + name), so adding or removing a file changes only a few
+# lines of project.pbxproj. The gem's own hash also covers a container's
+# children, which would renumber every parent group when one file is added;
+# containers and proxies are keyed by name instead.
+class StableUUIDGenerator < Xcodeproj::Project::UUIDGenerator
+  private
+
+  def path_component_for_object(object)
+    if object.isa == "PBXTargetDependency"
+      "dependency:#{object.target&.name || object.name}"
+    elsif object.to_many_attributes.any? || object.isa == "PBXProject"
+      name = object.respond_to?(:display_name) ? object.display_name : ""
+      "#{object.isa}:#{name}"
+    else
+      super
+    end
+  end
+end
+StableUUIDGenerator.new([project]).generate!
 project.save
 
 workspace_path = File.join(project_path, "project.xcworkspace")
