@@ -502,10 +502,10 @@ extension View {
             presenting: forum.wrappedValue
         ) { target in
             Button("Remove Forum", role: .destructive) {
-                withAnimation(DCMotion.smooth) { app.removeForum(target, deleteData: false) }
+                app.removeForum(target, deleteData: false)
             }
             Button("Remove and Delete Its Data", role: .destructive) {
-                withAnimation(DCMotion.smooth) { app.removeForum(target, deleteData: true) }
+                app.removeForum(target, deleteData: true)
             }
             Button("Cancel", role: .cancel) {}
         } message: { _ in

@@ -1,15 +1,15 @@
 import SwiftUI
 
-// MARK: - Home (spec §7.1)
+// MARK: - Home, the start page (design-unified.md §3)
 //
-// Replaces the Forums home and the Today sheet. Fixed order: the Today module
-// (TodayModuleState, HomeState.swift), Continue reading, the pinned forums,
-// Watching, Recent, then suggested forums only while the user has few. With
-// no forums: Start with a forum, the suggestions and "Share from Safari or
-// Chrome". Shown over the web view (BrowserContent), which stays loaded under
-// it. Pages pushed over Home (`HomeRoute`) live in `AppModel.homePath`: on
-// iPhone in the bar's NavigationStack (PhoneBrowserBar.swift), on iPad in a
-// stack of Home's own.
+// Fixed order: the address field, the Today module (TodayModuleState,
+// HomeState.swift), Sites (pinned first, then most visited; forums are just
+// sites, with the grey badge only here), Recent (the newest History items),
+// Continue reading and Following. With no sites yet: the address field and a
+// card of three suggested sites. Shown over the web view (BrowserContent),
+// which stays loaded under it. Pages pushed over Home (`HomeRoute`) live in
+// `AppModel.homePath`: on iPhone in the bar's NavigationStack
+// (PhoneBrowserBar.swift), on iPad in a stack of Home's own.
 
 struct HomeView: View {
     @ObservedObject var app: AppModel
@@ -26,7 +26,7 @@ struct HomeView: View {
 
     var body: some View {
         // The pages pushed over Home go on the bar's stack (PhoneBrowser).
-        HomeList(app: app, browser: browser, podcast: podcast, actions: actions)
+        HomeList(app: app, browser: browser, podcast: podcast, siteVisits: app.siteVisits, actions: actions)
     }
 }
 
@@ -63,36 +63,35 @@ private struct HomeList: View {
     @ObservedObject var app: AppModel
     @ObservedObject var browser: ForumBrowserModel
     @ObservedObject var podcast: PodcastController
+    @ObservedObject var siteVisits: SiteVisitStore
     let actions: BrowserActions
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @ScaledMetric(relativeTo: .body) private var tileWidth: CGFloat = 104
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var forumToRemove: Forum?
-    @State private var addingSuggested: Set<String> = []
+    @State private var addressText = ""
+    @FocusState private var addressFocused: Bool
 
-    private var hasForums: Bool { !app.forums.isEmpty }
+    private var tiles: [HomeSite] { HomeSites.tiles(forums: app.forums, visits: siteVisits.visits) }
 
     var body: some View {
+        let tiles = tiles
         List {
             header
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
                 .listRowInsets(EdgeInsets(top: DCTheme.spacingS, leading: 4, bottom: 0, trailing: 4))
 
-            if hasForums {
-                TodayModule(app: app, podcast: podcast, onOpen: actions.openDigestLink)
-                continueReadingSection
-                pinnedSection
-                watchingSection
-                recentSection
-                if HomeSections.showsSuggestions(forumCount: app.forums.count) { suggestedSection }
+            addressSection(tiles: tiles)
+
+            if tiles.isEmpty {
+                suggestedCard
             } else {
-                welcome
-                    .listRowBackground(Color.clear)
-                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                suggestedSection
-                shareCard
+                if !app.forums.isEmpty { TodayModule(app: app, podcast: podcast, onOpen: actions.openDigestLink) }
+                sitesSection(tiles)
             }
+            recentSection
+            continueReadingSection
+            followingSection
         }
         .listStyle(.insetGrouped)
         .listSectionSpacing(.compact)
@@ -101,8 +100,6 @@ private struct HomeList: View {
         .frame(maxWidth: 760)
         .frame(maxWidth: .infinity)
         .background(DCTheme.pageBackground)
-        .animation(DCMotion.respecting(reduceMotion, DCMotion.smooth), value: app.forums)
-        .animation(DCMotion.respecting(reduceMotion, DCMotion.smooth), value: app.todayModuleState)
         .task { podcast.refresh() }
         .accessibilityIdentifier("home")
     }
@@ -110,26 +107,14 @@ private struct HomeList: View {
     // MARK: Header
 
     private var header: some View {
-        HStack(alignment: .bottom, spacing: DCTheme.spacingS) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(Date().formatted(
-                    dynamicTypeSize.isAccessibilitySize
-                        ? .dateTime.weekday(.abbreviated).month(.abbreviated).day()
-                        : .dateTime.weekday(.wide).month(.wide).day()
-                ).uppercased())
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.75)
-                Text("Home", comment: "Title of the Home screen")
-                    .font(DCType.largeTitle)
-                    .foregroundStyle(DCTheme.ink)
-            }
-            .accessibilityElement(children: .combine)
-            .accessibilityAddTraits(.isHeader)
-            .accessibilityIdentifier("homeHeader")
+        HStack(alignment: .center, spacing: DCTheme.spacingS) {
+            Text("Home", comment: "Title of the Home screen")
+                .font(DCType.largeTitle)
+                .foregroundStyle(DCTheme.ink)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityIdentifier("homeHeader")
             Spacer(minLength: 0)
-            headerButton("clock.arrow.circlepath", Text("History", comment: "Home button: the history of summaries, chats and Ask the forum runs"), id: "homeHistory", action: actions.openHistory)
+            headerButton("clock.arrow.circlepath", Text("History", comment: "Home button: the history of conversations and results"), id: "homeHistory", action: actions.openHistory)
             headerButton("gearshape", Text("Settings"), id: "homeSettings", action: actions.openSettings)
         }
         .padding(.bottom, DCTheme.spacingXS)
@@ -144,13 +129,314 @@ private struct HomeList: View {
                 .font(.title3.weight(.medium))
                 .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
                 .frame(minWidth: DCTheme.controlHeight, minHeight: DCTheme.controlHeight)
-                .contentShape(Circle())
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .hoverEffect(.highlight)
-        .foregroundStyle(.primary)
+        .foregroundStyle(DCTheme.ink)
         .accessibilityLabel(label)
         .accessibilityIdentifier(id)
+    }
+
+    // MARK: Address field
+
+    /// The only address entry on Home (the bar hides its own while Home shows).
+    /// Text that is not an address searches with Settings › Browser › Search
+    /// engine; while typing, the sites that match are offered.
+    @ViewBuilder
+    private func addressSection(tiles: [HomeSite]) -> some View {
+        Section {
+            HStack(spacing: DCTheme.spacingS) {
+                Image(systemName: "magnifyingglass")
+                    .font(.body)
+                    .foregroundStyle(DCTheme.inkFaint)
+                    .accessibilityHidden(true)
+                TextField(
+                    "",
+                    text: $addressText,
+                    prompt: Text("Search or enter address", comment: "Home address field placeholder").foregroundStyle(DCTheme.inkFaint)
+                )
+                .textContentType(.URL)
+                .keyboardType(.webSearch)
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.never)
+                .submitLabel(.go)
+                .focused($addressFocused)
+                .onSubmit(submitAddress)
+                .foregroundStyle(DCTheme.ink)
+                .accessibilityLabel(Text("Address", comment: "Accessibility label of Home's address field"))
+                .accessibilityIdentifier("homeAddress")
+                if !addressText.isEmpty {
+                    Button {
+                        addressText = ""
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(DCTheme.inkFaint)
+                            .frame(width: 30, height: 30)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Clear address")
+                }
+            }
+            .padding(.horizontal, 14)
+            .frame(minHeight: DCTheme.controlHeight)
+            .background(DCTheme.surfaceRaised, in: RoundedRectangle(cornerRadius: DCTheme.radiusMd, style: .continuous))
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+            .listRowInsets(EdgeInsets(top: DCTheme.spacingXS, leading: 0, bottom: DCTheme.spacingXS, trailing: 0))
+
+            if addressFocused {
+                ForEach(HomeSites.matches(tiles, for: addressText)) { site in
+                    Button { open(site) } label: {
+                        HStack(spacing: DCTheme.spacingM) {
+                            ForumIcon(siteURL: site.siteURL, name: site.name, iconURL: site.iconURL, size: 30)
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text(site.name).font(.subheadline.weight(.semibold)).foregroundStyle(DCTheme.ink).lineLimit(1)
+                                Text(site.host).font(.caption).foregroundStyle(DCTheme.inkMuted).lineLimit(1)
+                            }
+                            Spacer(minLength: 0)
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .listRowBackground(DCTheme.surface)
+                    .accessibilityIdentifier("homeMatch-\(site.host)")
+                }
+            }
+        }
+    }
+
+    private func submitAddress() {
+        let text = addressText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return }
+        if browser.open(address: text) {
+            finishAddress()
+        } else if let url = app.webSearchURL(query: text) {
+            browser.load(url)
+            finishAddress()
+        }
+    }
+
+    private func finishAddress() {
+        addressFocused = false
+        addressText = ""
+    }
+
+    // MARK: Sites
+
+    private var columns: [GridItem] {
+        if dynamicTypeSize.isAccessibilitySize {
+            return Array(repeating: GridItem(.flexible(), spacing: DCTheme.spacingS, alignment: .top), count: 2)
+        }
+        if horizontalSizeClass == .regular {
+            return [GridItem(.adaptive(minimum: 88), spacing: DCTheme.spacingS, alignment: .top)]
+        }
+        return Array(repeating: GridItem(.flexible(), spacing: DCTheme.spacingS, alignment: .top), count: 4)
+    }
+
+    private func sitesSection(_ tiles: [HomeSite]) -> some View {
+        Section {
+            LazyVGrid(columns: columns, alignment: .center, spacing: DCTheme.spacingL) {
+                ForEach(tiles) { site in
+                    siteButton(site)
+                }
+                Button(action: actions.addForum) {
+                    SiteTileLabel(title: String(localized: "Add", comment: "Home's last site tile: add a site")) { size in
+                        RoundedRectangle(cornerRadius: size * DCTheme.forumIconCornerRatio, style: .continuous)
+                            .fill(DCTheme.surfaceRaised)
+                            .frame(width: size, height: size)
+                            .overlay {
+                                Image(systemName: "plus")
+                                    .font(.system(size: size * 0.4, weight: .semibold))
+                                    .foregroundStyle(DCTheme.goldInk)
+                            }
+                    }
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Add a site")
+                .accessibilityIdentifier("homeAddSite")
+            }
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets(top: DCTheme.spacingXS, leading: 0, bottom: DCTheme.spacingXS, trailing: 0))
+        } header: {
+            sectionTitle("Sites", comment: "Home section: pinned and most visited sites")
+        }
+    }
+
+    @ViewBuilder
+    private func siteButton(_ site: HomeSite) -> some View {
+        let button = Button { open(site) } label: {
+            SiteTile(site: site, isCurrent: isCurrent(site))
+        }
+        .buttonStyle(.plain)
+        .hoverEffect(.highlight)
+        .contextMenu { siteMenu(site) }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(site.name)
+        .accessibilityValue(site.host)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction(named: site.isPinned ? "Unpin" : "Pin") { togglePin(site) }
+        .accessibilityAction(named: "Remove") { confirmRemoval(site) }
+        .accessibilityIdentifier("siteTile-\(site.host)")
+        if let forum = site.forum {
+            // The dialog is a popover on iPad; anchor it to this tile.
+            button.forumRemovalDialog($forumToRemove, app: app, for: forum)
+        } else {
+            button
+        }
+    }
+
+    /// Native menu, buttons only (design-unified.md, "Menus are native menus only").
+    @ViewBuilder
+    private func siteMenu(_ site: HomeSite) -> some View {
+        Button { togglePin(site) } label: {
+            if site.isPinned {
+                Label("Unpin", systemImage: "pin.slash")
+            } else {
+                Label("Pin", systemImage: "pin")
+            }
+        }
+        Divider()
+        Button(role: .destructive) { confirmRemoval(site) } label: {
+            Label("Remove", systemImage: "trash")
+        }
+    }
+
+    private func isCurrent(_ site: HomeSite) -> Bool {
+        guard browser.currentURL != nil else { return false }
+        if let forum = site.forum { return app.isCurrent(forum) }
+        return HomeSites.originOf(browser.currentURL) == site.siteURL
+    }
+
+    private func togglePin(_ site: HomeSite) {
+        DCHaptics.tap()
+        if let forum = site.forum {
+            site.isPinned ? app.unpin(forum) : app.pin(forum)
+        } else {
+            siteVisits.setPinned(!site.isPinned, siteURL: site.siteURL)
+        }
+    }
+
+    /// A forum asks what happens to its saved data; another site is just forgotten.
+    /// From a context menu the dialog presents once the menu has dismissed: set
+    /// during the dismissal, the dialog (a popover on iPad) is dropped and the
+    /// binding resets, so "Remove Forum" never appears.
+    private func confirmRemoval(_ site: HomeSite) {
+        guard let forum = site.forum else {
+            siteVisits.remove(siteURL: site.siteURL)
+            return
+        }
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(400))
+            forumToRemove = forum
+        }
+    }
+
+    private func open(_ site: HomeSite) {
+        DCHaptics.tap()
+        addressFocused = false
+        if let forum = site.forum {
+            actions.openForum(forum)
+        } else if let url = site.url {
+            siteVisits.noteVisit(siteURL: site.siteURL, name: site.name, isForum: false)
+            app.browser.load(url)
+        }
+    }
+
+    // MARK: No sites yet
+
+    /// Three suggested sites, no badge and no explanatory text.
+    @ViewBuilder
+    private var suggestedCard: some View {
+        let suggestions = Array(app.suggestedForumsToOffer.prefix(3))
+        if !suggestions.isEmpty {
+            Section {
+                ForEach(suggestions) { suggested in
+                    Button { app.openForum(suggested) } label: {
+                        HStack(spacing: DCTheme.spacingM) {
+                            ForumIcon(suggested: suggested, size: 40)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(suggested.name)
+                                    .font(.body.weight(.semibold))
+                                    .foregroundStyle(DCTheme.ink)
+                                    .lineLimit(1)
+                                Text(suggested.description)
+                                    .font(.footnote)
+                                    .foregroundStyle(DCTheme.inkMuted)
+                                    .lineLimit(dynamicTypeSize.isAccessibilitySize ? 3 : 1)
+                            }
+                            Spacer(minLength: 0)
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .listRowBackground(DCTheme.surface)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityHint("Opens \(suggested.host)")
+                    .accessibilityIdentifier("suggestedSite-\(suggested.host)")
+                }
+            }
+        }
+    }
+
+    // MARK: Recent
+
+    /// The newest History items; until conversations are saved (M3's
+    /// workspace) this launch's Agent conversation joins them.
+    private var recentItems: [HomeRecentItem] {
+        let run = app.browserAgent.runs.last
+        return HomeRecent.items(
+            sessions: Array(app.sessions.values),
+            runs: app.agentRuns,
+            conversation: run.map {
+                (prompt: $0.prompt, host: BrowserAddress.host(app.browser.currentURL), date: $0.startedAt)
+            }
+        )
+    }
+
+    @ViewBuilder
+    private var recentSection: some View {
+        let items = recentItems
+        if !items.isEmpty {
+            Section {
+                ForEach(items) { item in
+                    Button { openRecent(item) } label: {
+                        RecentRow(item: item)
+                    }
+                    .buttonStyle(.plain)
+                    .listRowBackground(DCTheme.surface)
+                    .accessibilityIdentifier("recent-\(item.id)")
+                }
+            } header: {
+                HStack(alignment: .firstTextBaseline) {
+                    sectionTitle("Recent", comment: "Home section: the newest conversations and results")
+                    Spacer()
+                    Button {
+                        DCHaptics.tap()
+                        actions.openHistory()
+                    } label: {
+                        Text("History", comment: "Home Recent: the link to all of History")
+                            .font(.body)
+                            .foregroundStyle(DCTheme.goldInk)
+                            .textCase(nil)
+                            .frame(minHeight: DCTheme.controlHeight)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("recentHistoryLink")
+                }
+            }
+        }
+    }
+
+    private func openRecent(_ item: HomeRecentItem) {
+        DCHaptics.tap()
+        switch item.target {
+        case .topic(let topicKey): app.openTopic(topicKey: topicKey)
+        case .askRun(let id): app.openAgentRun(id: id)
+        case .conversation:
+            if app.browser.currentURL != nil { app.browser.hideForumsHome() }
+            actions.openAssistant()
+        }
     }
 
     // MARK: Continue reading
@@ -168,142 +454,23 @@ private struct HomeList: View {
                         ContinueReadingRow(session: session, forum: app.forumInfo(siteURL: session.siteURL))
                     }
                     .tint(.primary)
+                    .listRowBackground(DCTheme.surface)
                     .accessibilityIdentifier("continueReading-\(session.topicID)")
                 }
             } header: {
-                Text("Continue reading", comment: "Home section: the topics read last")
+                sectionTitle("Continue reading", comment: "Home section: the topics read last")
             }
-            .headerProminence(.increased)
         }
     }
 
-    // MARK: Pinned
+    // MARK: Following
 
     @ViewBuilder
-    private var pinnedSection: some View {
-        Section {
-            if app.pinnedForums.isEmpty {
-                HStack(spacing: DCTheme.spacingM) {
-                    Image(systemName: "pin")
-                        .foregroundStyle(Color.accentColor)
-                        .frame(width: 36)
-                    Text("Pin forums you read often for one-tap access. Swipe right on a recent forum, or use its menu.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-                .padding(.vertical, DCTheme.spacingXS)
-            }
-            pinnedGrid
-                .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets(top: DCTheme.spacingXS, leading: 0, bottom: DCTheme.spacingXS, trailing: 0))
-        } header: {
-            HStack {
-                Text("Forums", comment: "Home section: the pinned forums")
-                Spacer()
-                if app.pinnedForums.count > 1 {
-                    Button("Edit") { app.router.item = .pinnedForums }
-                        .font(.subheadline.weight(.semibold))
-                        .textCase(nil)
-                        .accessibilityLabel("Edit pinned forums")
-                        .accessibilityIdentifier("editPinnedForums")
-                }
-            }
-        }
-        .headerProminence(.increased)
-    }
-
-    private var pinnedGrid: some View {
-        let width = dynamicTypeSize.isAccessibilitySize ? max(tileWidth, 150) : tileWidth
-        return LazyVGrid(
-            columns: [GridItem(.adaptive(minimum: width, maximum: width * 1.6), spacing: DCTheme.spacingM)],
-            spacing: DCTheme.spacingM
-        ) {
-            ForEach(app.pinnedForums) { forum in
-                Button { open(forum) } label: {
-                    ForumTile(forum: forum, isCurrent: browser.currentURL != nil && app.isCurrent(forum))
-                }
-                .buttonStyle(TilePressStyle())
-                .contextMenu { pinnedMenu(forum) } preview: {
-                    ForumTile(forum: forum).frame(width: 150, height: 150)
-                }
-                .draggable(forum.siteURL) {
-                    ForumIcon(forum: forum, size: 56)
-                }
-                .dropDestination(for: String.self) { items, _ in
-                    guard let dropped = items.first else { return false }
-                    return movePinned(dropped, onto: forum)
-                }
-                // The dialog is a popover on iPad; anchor it to this tile.
-                .forumRemovalDialog($forumToRemove, app: app, for: forum)
-                .accessibilityIdentifier("pinnedForum-\(forum.host)")
-                .accessibilityAction(named: "Unpin") { app.unpin(forum) }
-                .accessibilityAction(named: "Ask the forum") { app.askForum(forum) }
-            }
-            Button(action: actions.addForum) {
-                ForumTileLabel(title: String(localized: "Add a forum by address…")) { size in
-                    Image(systemName: "plus")
-                        .font(.system(size: size * 0.5, weight: .semibold))
-                        .foregroundStyle(Color.accentColor)
-                        .frame(width: size, height: size)
-                }
-            }
-            .buttonStyle(TilePressStyle())
-            .accessibilityLabel("Add a forum by address…")
-            .accessibilityIdentifier("homeAddForum")
-        }
-    }
-
-    @ViewBuilder
-    private func pinnedMenu(_ forum: Forum) -> some View {
-        Button { open(forum) } label: { Label("Open", systemImage: "arrow.up.forward.app") }
-        Button { app.askForum(forum) } label: { Label("Ask the Forum", systemImage: "sparkle.magnifyingglass") }
-        Button { withAnimation(DCMotion.smooth) { app.unpin(forum) } } label: {
-            Label("Unpin", systemImage: "pin.slash")
-        }
-        if app.pinnedForums.count > 1 {
-            Button { app.router.item = .pinnedForums } label: {
-                Label("Reorder Pinned…", systemImage: "arrow.up.arrow.down")
-            }
-        }
-        Divider()
-        Button(role: .destructive) { confirmRemoval(forum) } label: {
-            Label("Remove…", systemImage: "trash")
-        }
-    }
-
-    /// From a context menu: present the dialog once the menu has dismissed.
-    /// Set during the dismissal, the dialog (a popover on iPad) is dropped
-    /// and the binding resets, so "Remove Forum" never appears.
-    private func confirmRemoval(_ forum: Forum) {
-        Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(400))
-            forumToRemove = forum
-        }
-    }
-
-    private func movePinned(_ siteURL: String, onto target: Forum) -> Bool {
-        let pinned = app.pinnedForums
-        guard let from = pinned.firstIndex(where: { $0.siteURL == siteURL }),
-              let to = pinned.firstIndex(where: { $0.siteURL == target.siteURL }),
-              from != to
-        else {
-            return false
-        }
-        DCHaptics.tap()
-        withAnimation(DCMotion.respecting(reduceMotion, DCMotion.spring)) {
-            app.movePinned(fromOffsets: IndexSet(integer: from), toOffset: to > from ? to + 1 : to)
-        }
-        return true
-    }
-
-    // MARK: Watching
-
-    @ViewBuilder
-    private var watchingSection: some View {
-        let watching = HomeSections.watching(app.watchedTopics)
-        if !watching.isEmpty {
+    private var followingSection: some View {
+        let following = HomeSections.watching(app.watchedTopics)
+        if !following.isEmpty {
             Section {
-                ForEach(watching) { watched in
+                ForEach(following) { watched in
                     Button {
                         DCHaptics.tap()
                         app.openWatched(watched)
@@ -312,241 +479,151 @@ private struct HomeList: View {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(watched.title)
                                     .font(.subheadline.weight(.semibold))
-                                    .foregroundStyle(.primary)
+                                    .foregroundStyle(DCTheme.ink)
                                     .lineLimit(2)
                                 Text(app.forumInfo(siteURL: watched.siteURL).displayName)
                                     .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(DCTheme.inkMuted)
                                     .lineLimit(1)
                             }
                             Spacer(minLength: DCTheme.spacingS)
-                            NewRepliesBadge(text: String(localized: "\(watched.newReplies) new", comment: "Badge: number of new replies in a watched topic"))
+                            NewRepliesBadge(text: String(localized: "\(watched.newReplies) new", comment: "Badge: number of new replies in a followed topic"))
                         }
                         .contentShape(Rectangle())
                     }
                     .tint(.primary)
-                    .accessibilityIdentifier("watching-\(watched.topicID)")
+                    .listRowBackground(DCTheme.surface)
+                    .accessibilityIdentifier("following-\(watched.topicID)")
                 }
             } header: {
-                HStack {
-                    Text("Watching", comment: "Home section: watched topics with new replies")
-                    Spacer()
-                    Text("\(watching.count) with new replies", comment: "Home Watching section: how many watched topics have new replies")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                        .textCase(nil)
-                        .contentTransition(.numericText())
+                sectionTitle("Following", comment: "Home section: followed topics with new replies")
+            }
+        }
+    }
+
+    private func sectionTitle(_ key: LocalizedStringKey, comment: StaticString) -> some View {
+        Text(key, comment: comment)
+            .font(.title3.weight(.semibold))
+            .foregroundStyle(DCTheme.ink)
+            .textCase(nil)
+            .accessibilityAddTraits(.isHeader)
+    }
+}
+
+// MARK: - Site tiles
+
+/// One site on the grid: its own colour, its name, and (forums only) the grey
+/// speech-bubble badge, which shows nowhere else.
+private struct SiteTile: View {
+    let site: HomeSite
+    var isCurrent = false
+
+    var body: some View {
+        SiteTileLabel(title: site.name, isCurrent: isCurrent) { size in
+            ZStack(alignment: .bottomTrailing) {
+                ForumIcon(siteURL: site.siteURL, name: site.name, iconURL: site.iconURL, size: size)
+                if site.isForum {
+                    ForumBadge()
+                        .offset(x: 4, y: 4)
                 }
             }
-            .headerProminence(.increased)
         }
     }
+}
 
-    // MARK: Recent
+private struct SiteTileLabel<Icon: View>: View {
+    let title: String
+    var isCurrent = false
+    let icon: (CGFloat) -> Icon
+    @ScaledMetric(relativeTo: .body) private var iconSize: CGFloat = DCTheme.forumTileIcon
 
-    @ViewBuilder
-    private var recentSection: some View {
-        if !app.recentForums.isEmpty {
-            Section {
-                ForEach(app.recentForums) { forum in
-                    Button { open(forum) } label: {
-                        ForumRow(forum: forum, detail: visitedText(forum))
-                    }
-                    .tint(.primary)
-                    .swipeActions(edge: .leading, allowsFullSwipe: true) {
-                        Button { withAnimation(DCMotion.smooth) { app.pin(forum) } } label: {
-                            Label("Pin", systemImage: "pin")
-                        }
-                        .tint(DCTheme.goldInk)
-                    }
-                    .swipeActions(edge: .trailing) {
-                        Button(role: .destructive) { forumToRemove = forum } label: {
-                            Label("Remove", systemImage: "trash")
-                        }
-                    }
-                    .contextMenu {
-                        Button { open(forum) } label: { Label("Open", systemImage: "arrow.up.forward.app") }
-                        Button { app.askForum(forum) } label: {
-                            Label("Ask the Forum", systemImage: "sparkle.magnifyingglass")
-                        }
-                        Button { withAnimation(DCMotion.smooth) { app.pin(forum) } } label: {
-                            Label("Pin", systemImage: "pin")
-                        }
-                        Divider()
-                        Button(role: .destructive) { confirmRemoval(forum) } label: {
-                            Label("Remove…", systemImage: "trash")
-                        }
-                    } preview: {
-                        ForumTile(forum: forum).frame(width: 180, height: 150)
-                    }
-                    .forumRemovalDialog($forumToRemove, app: app, for: forum)
-                    .accessibilityAction(named: "Pin") { app.pin(forum) }
-                    .accessibilityAction(named: "Remove") { forumToRemove = forum }
-                    .accessibilityIdentifier("recentForum-\(forum.host)")
-                }
-            } header: {
-                Text("Recent")
+    var body: some View {
+        VStack(spacing: 6) {
+            icon(min(iconSize, 72))
+            Text(verbatim: title)
+                .font(.caption)
+                .foregroundStyle(DCTheme.ink)
+                .lineLimit(2, reservesSpace: true)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
+        }
+        .padding(.vertical, DCTheme.spacingXS)
+        .frame(maxWidth: .infinity, alignment: .top)
+        .contentShape(Rectangle())
+        .overlay(alignment: .top) {
+            if isCurrent {
+                RoundedRectangle(cornerRadius: DCTheme.radiusMd, style: .continuous)
+                    .strokeBorder(DCTheme.goldInk.opacity(0.55), lineWidth: 1.5)
+                    .padding(-2)
+                    .allowsHitTesting(false)
             }
-            .headerProminence(.increased)
         }
     }
+}
 
-    private func visitedText(_ forum: Forum) -> String {
-        guard let visited = forum.lastVisitedAt else { return forum.host }
-        if Date().timeIntervalSince(visited) < 60 {
-            return String(localized: "\(forum.host) · just now", comment: "Recent forum row: the forum's host, then when it was visited")
-        }
-        let relative = visited.formatted(.relative(presentation: .named, unitsStyle: .abbreviated))
-        return "\(forum.host) · \(relative)"
-    }
-
-    // MARK: Suggested
-
-    @ViewBuilder
-    private var suggestedSection: some View {
-        let suggestions = app.suggestedForumsToOffer
-        if !suggestions.isEmpty {
-            Section {
-                ForEach(suggestions) { suggested in
-                    suggestedRow(suggested)
-                }
-            } header: {
-                Text("Suggested")
-            } footer: {
-                if !hasForums {
-                    Text("Tap a forum to open it, or pin it to keep it here.")
-                }
+/// The forum badge: a grey disc with a speech bubble.
+private struct ForumBadge: View {
+    var body: some View {
+        Circle()
+            .fill(Color(light: 0x48484A, dark: 0x48484A))
+            .frame(width: 20, height: 20)
+            .overlay {
+                Image(systemName: "bubble.left.fill")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(.white)
             }
-            .headerProminence(.increased)
+            .overlay { Circle().strokeBorder(DCTheme.ground, lineWidth: 2).padding(-1) }
+            .accessibilityHidden(true)
+    }
+}
+
+/// A row of Recent: icon, the first words, then kind · host · time.
+private struct RecentRow: View {
+    let item: HomeRecentItem
+
+    private var kindLabel: String {
+        switch item.kind {
+        case .agent: String(localized: "Agent", comment: "Home Recent: an Agent conversation")
+        case .ask: String(localized: "Agent", comment: "Home Recent: a forum search the Agent ran")
+        case .summary: String(localized: "Summary", comment: "Home Recent: a saved summary")
+        case .chat: String(localized: "Chat", comment: "Home Recent: a saved chat")
         }
     }
 
-    private func suggestedRow(_ suggested: SuggestedForum) -> some View {
+    private var detail: String {
+        let when = Date().timeIntervalSince(item.date) < 60
+            ? String(localized: "just now", comment: "Home Recent: less than a minute ago")
+            : item.date.formatted(.relative(presentation: .named, unitsStyle: .abbreviated))
+        return [kindLabel, item.host, when].filter { !$0.isEmpty }.joined(separator: " · ")
+    }
+
+    var body: some View {
         HStack(spacing: DCTheme.spacingM) {
-            Button { app.openForum(suggested) } label: {
-                HStack(spacing: DCTheme.spacingM) {
-                    ForumIcon(suggested: suggested, size: 36)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(suggested.name)
-                            .font(.body.weight(.medium))
-                            .foregroundStyle(.primary)
-                            .lineLimit(1)
-                        Text(suggested.description)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(dynamicTypeSize.isAccessibilitySize ? 3 : 1)
-                    }
-                    Spacer(minLength: 0)
+            Group {
+                if item.isAgent {
+                    DCAgentRing(size: 20, lineWidth: DCTheme.ringWidth)
+                } else {
+                    Image(systemName: item.kind == .chat ? "bubble.left" : "doc.text")
+                        .font(.body)
+                        .foregroundStyle(DCTheme.ink)
                 }
-                .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
-            .accessibilityElement(children: .combine)
-            .accessibilityHint("Opens \(suggested.host)")
-
-            Button {
-                DCHaptics.tap()
-                withAnimation(DCMotion.respecting(reduceMotion)) { app.pinSuggested(suggested) }
-            } label: {
-                Text("Pin")
-                    .font(.subheadline.weight(.semibold))
-                    .padding(.horizontal, 14)
-                    .frame(minHeight: 34)
-                    .background(Color.accentColor.opacity(0.12), in: Capsule())
-                    .frame(minHeight: DCTheme.controlHeight)
-                    .contentShape(Rectangle())
+            .frame(width: 28)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(verbatim: item.title)
+                    .font(.subheadline)
+                    .foregroundStyle(DCTheme.ink)
+                    .lineLimit(1)
+                Text(verbatim: detail)
+                    .font(.footnote)
+                    .foregroundStyle(DCTheme.inkMuted)
+                    .lineLimit(1)
             }
-            .buttonStyle(.borderless)
-            .hoverEffect(.highlight)
-            .foregroundStyle(Color.accentColor)
-            .fixedSize()
-            .accessibilityLabel("Pin \(suggested.name)")
-            .accessibilityIdentifier("pinSuggested-\(suggested.host)")
+            Spacer(minLength: 0)
         }
-        .contextMenu {
-            Button { app.openForum(suggested) } label: { Label("Open", systemImage: "arrow.up.forward.app") }
-            Button { app.pinSuggested(suggested) } label: { Label("Pin", systemImage: "pin") }
-            Button { addSuggested(suggested) } label: { Label("Add to Recent", systemImage: "plus") }
-        }
-        .swipeActions(edge: .trailing) {
-            Button { addSuggested(suggested) } label: { Label("Add", systemImage: "plus") }
-                .tint(DCTheme.chatTint)
-        }
-    }
-
-    private func addSuggested(_ suggested: SuggestedForum) {
-        guard addingSuggested.insert(suggested.siteURL).inserted else { return }
-        Task {
-            _ = try? await app.addForum(fromAddress: suggested.siteURL, pin: false)
-            addingSuggested.remove(suggested.siteURL)
-        }
-    }
-
-    // MARK: No forums yet
-
-    private var welcome: some View {
-        VStack(alignment: .leading, spacing: DCTheme.spacingM) {
-            BrandMark(size: 52)
-            Text("Start with a forum")
-                .font(.title2.weight(.heavy))
-            Text("Open any forum or article to summarize long topics, chat about them, or ask the whole forum a question.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-            Button(action: actions.addForum) {
-                Text("Add a forum by address", comment: "Home with no forums: the main button")
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(DCPrimaryButtonStyle())
-            .accessibilityIdentifier("homeAddFirstForum")
-            .padding(.top, DCTheme.spacingXS)
-        }
-        .dcCard()
-        .padding(.vertical, DCTheme.spacingS)
-    }
-
-    /// "Share from Safari or Chrome": opens the Share how-to page.
-    private var shareCard: some View {
-        Section {
-            Button {
-                actions.showShareHowTo?()
-            } label: {
-                HStack(alignment: .top, spacing: DCTheme.spacingM) {
-                    Image(systemName: "square.and.arrow.up")
-                        .font(.body.weight(.semibold))
-                        .foregroundStyle(DCTheme.goldInk)
-                        .frame(width: 28)
-                        .accessibilityHidden(true)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Share from Safari or Chrome")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(.primary)
-                        Text("Share any forum page to WukongMind to open it here, summarize it, or ask about it.")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    Spacer(minLength: 0)
-                    if actions.showShareHowTo != nil {
-                        Image(systemName: "chevron.right")
-                            .font(.footnote.weight(.semibold))
-                            .foregroundStyle(Color(uiColor: .tertiaryLabel))
-                    }
-                }
-                .padding(.vertical, DCTheme.spacingXS)
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .disabled(actions.showShareHowTo == nil)
-            .accessibilityElement(children: .combine)
-            .accessibilityIdentifier("homeShareHowTo")
-        }
-        .listRowBackground(DCTheme.goldWash)
-    }
-
-    private func open(_ forum: Forum) {
-        DCHaptics.tap()
-        actions.openForum(forum)
+        .padding(.vertical, 2)
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -646,7 +723,6 @@ private struct TodayModule: View {
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .lineLimit(2)
-                            .contentTransition(.numericText())
                     }
                     Spacer(minLength: 0)
                 }
@@ -659,8 +735,7 @@ private struct TodayModule: View {
             if state == .digestReady {
                 ReadAloudButton(podcast: podcast, id: "today-digest", title: String(localized: "Today"), text: readAloudText(digest))
                     .font(.subheadline.weight(.semibold))
-                    .buttonStyle(.bordered)
-                    .buttonBorderShape(.capsule)
+                    .buttonStyle(DCButtonStyle(role: .secondary))
                     .fixedSize()
             } else if case .digestInProgress(offline: false) = state {
                 ProgressView()
@@ -749,12 +824,12 @@ private struct TodayModule: View {
                         .font(.subheadline.weight(.semibold))
                         .padding(.horizontal, 14)
                         .frame(minHeight: 34)
-                        .background(Color.accentColor.opacity(0.12), in: Capsule())
+                        .background(DCTheme.goldWash, in: RoundedRectangle(cornerRadius: DCTheme.radiusSm, style: .continuous))
                         .frame(minHeight: DCTheme.controlHeight)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.borderless)
-                .foregroundStyle(Color.accentColor)
+                .foregroundStyle(DCTheme.goldInk)
                 .fixedSize()
                 .accessibilityIdentifier(actionID ?? "")
             }
@@ -786,7 +861,6 @@ private struct PodcastHomeCard: View {
                         .foregroundStyle(HomeStyle.podcastCard)
                         .frame(width: 56, height: 56)
                         .background(.white, in: Circle())
-                        .contentTransition(.symbolEffect(.replace))
                 }
                 .buttonStyle(.plain)
                 .disabled(!episode.hasAudio)
@@ -800,7 +874,6 @@ private struct PodcastHomeCard: View {
                     subtitle
                         .font(.subheadline)
                         .foregroundStyle(.white.opacity(0.78))
-                        .contentTransition(.numericText())
                         .accessibilityIdentifier("homePodcastFacts")
                 }
                 Spacer(minLength: 0)
@@ -825,7 +898,7 @@ private struct PodcastHomeCard: View {
                         .font(.subheadline.weight(.semibold))
                         .padding(.horizontal, 14)
                         .frame(minHeight: 36)
-                        .background(.white.opacity(0.14), in: Capsule())
+                        .background(.white.opacity(0.14), in: RoundedRectangle(cornerRadius: DCTheme.radiusSm, style: .continuous))
                         .frame(minHeight: DCTheme.controlHeight)
                         .contentShape(Rectangle())
                 }
@@ -875,7 +948,6 @@ private struct DigestStrip: View {
                     Button { onOpen(app.url(for: card), card) } label: { cardView(card) }
                         .buttonStyle(.plain)
                         .accessibilityIdentifier("homeDigestCard-\(card.topicID)")
-                        .transition(.opacity.combined(with: .offset(y: 8)))
                 }
             }
             .padding(.trailing, DCTheme.spacingL)
@@ -953,7 +1025,6 @@ private struct ContinueReadingRow: View {
                     Text("\(newer) newer replies", comment: "Home Continue reading: posts added since the topic was summarized")
                         .font(.caption.weight(.medium))
                         .foregroundStyle(DCTheme.newRepliesBadgeText)
-                        .contentTransition(.numericText())
                 } else {
                     Text(verbatim: "\(forum.displayName) · \(session.lastSeenAt.formatted(.relative(presentation: .named, unitsStyle: .abbreviated)))")
                         .font(.caption)
@@ -987,14 +1058,4 @@ private struct NewRepliesBadge: View {
 enum HomeStyle {
     /// The podcast card: warm ink in light, raised warm surface in dark.
     static let podcastCard = Color(light: 0x1A1612, dark: 0x2A251E)
-}
-
-private struct TilePressStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .contentShape(.hoverEffect, RoundedRectangle(cornerRadius: DCTheme.cardCornerRadius, style: .continuous))
-            .hoverEffect(.lift)
-            .opacity(configuration.isPressed ? 0.85 : 1)
-            .animation(DCMotion.quick, value: configuration.isPressed)
-    }
 }

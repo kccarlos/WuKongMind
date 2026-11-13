@@ -5,7 +5,7 @@ import Foundation
 // - `HomeRoute`            pages pushed over Home (Today, an earlier digest,
 //                          Settings › Daily digest); `AppModel.homePath`
 // - `TodayModuleState`     which of the Today module's 7 states Home shows
-// - `HomeSections`         Continue reading, Watching, when to suggest forums
+// - `HomeSections`         Continue reading, Following
 // - `LaunchDestination`    Settings › Browser › When WukongMind opens
 // - `LaunchRule`           where a launch lands (Home or the last forum)
 
@@ -103,9 +103,6 @@ struct PodcastCardFacts: Equatable {
 enum HomeSections {
     /// Continue reading: the last topics the user opened, newest first.
     static let continueReadingLimit = 3
-    /// Suggested forums show below Recent only while the user has fewer
-    /// forums than this (never the main content, App Review 4.2).
-    static let suggestionsBelowForumCount = 3
 
     static func continueReading(_ sessions: [TopicSession], limit: Int = continueReadingLimit) -> [TopicSession] {
         Array(
@@ -123,13 +120,9 @@ enum HomeSections {
         return max(0, total - summarized)
     }
 
-    /// Watched topics with new replies, most first.
+    /// Followed topics with new replies, most first.
     static func watching(_ watched: [WatchedTopic]) -> [WatchedTopic] {
         watched.filter { $0.newReplies > 0 }.sorted { $0.newReplies > $1.newReplies }
-    }
-
-    static func showsSuggestions(forumCount: Int) -> Bool {
-        forumCount < suggestionsBelowForumCount
     }
 }
 
