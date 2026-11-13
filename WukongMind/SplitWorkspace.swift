@@ -169,11 +169,7 @@ struct SplitPanelToggle: View {
                 completedBrowserAgentBounce &+= 1
             }
         }
-        .accessibilityLabel(
-            app.toolbarOpensBrowserAgentByDefault || app.assistantMode == .browserAgent
-                ? Text(verbatim: AssistantMode.browserAgent.title)
-                : (isShown ? Text("Hide AI panel") : Text("Show AI panel"))
-        )
+        .accessibilityLabel(isShown ? Text("Hide AI panel") : Text("Show AI panel"))
         .accessibilityValue(Text(verbatim: accessibilityValue))
         .accessibilityActions {
             if browserAgent.isRunning {

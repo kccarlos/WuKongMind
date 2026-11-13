@@ -568,43 +568,147 @@ struct AgentScriptCardView: View {
     }
 }
 
-// MARK: - M2 §3 "Scripts on this page" Popover (`PageScriptsPopover`)
+// MARK: - This page Popover (`PageCapabilitiesView`)
 
-struct PageScriptsPopover: View {
+typealias PageScriptsPopover = PageCapabilitiesView
+
+struct PageCapabilitiesView: View {
     @ObservedObject var app: AppModel
     let pageURL: URL?
     @Binding var isPresented: Bool
     @State private var hasSwitchChanges = false
     @State private var turnedOffJSIDs: Set<String> = []
+    @State private var addingForum = false
+    @State private var addForumError: String?
+
+    private var effectiveURL: URL? {
+        pageURL ?? app.browser.currentURL ?? app.pageContext.url
+    }
 
     private var matchingScripts: [UserScript] {
-        guard let pageURL else { return [] }
-        return app.scriptStore.sortedMatchingScripts(for: pageURL, includeDisabled: true)
+        guard let effectiveURL else { return [] }
+        return app.scriptStore.sortedMatchingScripts(for: effectiveURL, includeDisabled: true)
     }
 
     private var isGlobalOn: Bool {
         app.scriptStore.isGlobalEnabled
     }
 
+    private var siteForum: Forum? {
+        app.barForum ?? app.assistantForum
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            VStack(alignment: .leading, spacing: 3) {
-                Text("Scripts on this page", comment: "Popover header listing userscripts matching the current page")
+            popoverHeader
+
+            Divider()
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    if let topic = app.currentTopic {
+                        topicSection(topic)
+                    }
+
+                    scriptsSection
+
+                    siteSection
+                }
+                .padding(.vertical, 12)
+            }
+            .frame(maxHeight: 400)
+        }
+        .frame(width: 332)
+        .background(DCTheme.surface)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("pageScriptsPopover")
+    }
+
+    private var popoverHeader: some View {
+        HStack(spacing: 10) {
+            if let forum = siteForum {
+                AssistantForumIcon(forum: forum, size: 32)
+            } else {
+                RoundedRectangle(cornerRadius: DCTheme.radiusSm, style: .continuous)
+                    .fill(DCTheme.surfaceRaised)
+                    .frame(width: 32, height: 32)
+                    .overlay {
+                        Image(systemName: "globe")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(DCTheme.inkMuted)
+                    }
+                    .accessibilityHidden(true)
+            }
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("This page", comment: "Popover header for page capabilities and scripts")
                     .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(DCTheme.ink)
                     .accessibilityAddTraits(.isHeader)
 
-                if let urlString = pageURL?.absoluteString, !urlString.isEmpty {
+                if let urlString = effectiveURL?.absoluteString, !urlString.isEmpty {
                     Text(verbatim: urlString)
                         .font(.caption.monospaced())
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(DCTheme.inkMuted)
                         .lineLimit(1)
                         .truncationMode(.middle)
                         .accessibilityLabel(Text(verbatim: urlString))
                 }
             }
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 14)
+        .padding(.top, 14)
+        .padding(.bottom, 10)
+    }
+
+    private func sectionCaption(_ title: LocalizedStringKey) -> some View {
+        Text(title)
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(DCTheme.inkMuted)
+            .textCase(.uppercase)
             .padding(.horizontal, 14)
-            .padding(.top, 14)
-            .padding(.bottom, 10)
+    }
+
+    private func topicSection(_ topic: ForumTopic) -> some View {
+        let isFollowing = app.isWatched(topicKey: topic.topicKey)
+        return VStack(alignment: .leading, spacing: 6) {
+            sectionCaption("This topic")
+            HStack(spacing: 10) {
+                Image(systemName: "bell")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(DCTheme.inkMuted)
+                    .frame(width: 20)
+                    .accessibilityHidden(true)
+                Text("Following", comment: "This page popover toggle: follow new replies on the open forum topic")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(DCTheme.ink)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Toggle(
+                    String(localized: "Following", comment: "This page popover toggle: follow new replies on the open forum topic"),
+                    isOn: Binding(
+                        get: { isFollowing },
+                        set: { newValue in
+                            guard newValue != isFollowing else { return }
+                            DCHaptics.tap()
+                            app.toggleWatchCurrentTopic()
+                        }
+                    )
+                )
+                .labelsHidden()
+                .tint(DCTheme.gold)
+                .frame(minWidth: 51, minHeight: 44)
+                .accessibilityIdentifier("pageTopicFollowing")
+            }
+            .padding(.horizontal, 14)
+            .frame(minHeight: 46)
+            Divider()
+        }
+    }
+
+    private var scriptsSection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            sectionCaption("Scripts on this page")
 
             if !isGlobalOn {
                 HStack(spacing: 10) {
@@ -628,20 +732,23 @@ struct PageScriptsPopover: View {
                 }
                 .padding(10)
                 .background(
-                    DCTheme.raisedSurface,
-                    in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    DCTheme.surfaceRaised,
+                    in: RoundedRectangle(cornerRadius: DCTheme.radiusMd, style: .continuous)
                 )
                 .overlay {
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    RoundedRectangle(cornerRadius: DCTheme.radiusMd, style: .continuous)
                         .stroke(DCTheme.border)
                 }
                 .padding(.horizontal, 14)
-                .padding(.bottom, 10)
             }
 
-            Divider()
-
-            ScrollView {
+            if matchingScripts.isEmpty {
+                Text("No scripts on this page", comment: "Browser agent context bar when zero saved scripts match the current page")
+                    .font(.caption)
+                    .foregroundStyle(DCTheme.inkMuted)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 4)
+            } else {
                 VStack(alignment: .leading, spacing: 0) {
                     ForEach(Array(matchingScripts.enumerated()), id: \.element.id) { index, script in
                         if index > 0 {
@@ -652,10 +759,8 @@ struct PageScriptsPopover: View {
                     }
                 }
             }
-            .frame(maxHeight: 300)
 
             if hasSwitchChanges {
-                Divider()
                 Button {
                     DCHaptics.tap()
                     hasSwitchChanges = false
@@ -672,10 +777,8 @@ struct PageScriptsPopover: View {
                 .buttonStyle(DCActionButtonStyle(prominent: true))
                 .accessibilityIdentifier("pageScriptsReload")
                 .padding(.horizontal, 14)
-                .padding(.vertical, 10)
+                .padding(.vertical, 4)
             }
-
-            Divider()
 
             Button {
                 DCHaptics.tap()
@@ -688,19 +791,137 @@ struct PageScriptsPopover: View {
                     Spacer()
                     Image(systemName: "chevron.right")
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(Color(uiColor: .tertiaryLabel))
+                        .foregroundStyle(DCTheme.inkFaint)
                         .accessibilityHidden(true)
                 }
                 .padding(.horizontal, 14)
-                .frame(minHeight: 46)
+                .frame(minHeight: 44)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .accessibilityIdentifier("pageScriptsManage")
+
+            Divider()
         }
-        .frame(width: 332)
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("pageScriptsPopover")
+    }
+
+    private var siteSection: some View {
+        let blocking = SiteBlocking(app: app, url: effectiveURL)
+        return VStack(alignment: .leading, spacing: 6) {
+            sectionCaption("This site")
+
+            if let isBlockingHere = blocking.isBlockingHere {
+                HStack(spacing: 10) {
+                    Image(systemName: "shield")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(DCTheme.inkMuted)
+                        .frame(width: 20)
+                        .accessibilityHidden(true)
+                    Text("Block ads here", comment: "This page popover toggle: block ads on the current site")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(DCTheme.ink)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    Toggle(
+                        String(localized: "Block ads here", comment: "This page popover toggle: block ads on the current site"),
+                        isOn: isBlockingHere
+                    )
+                    .labelsHidden()
+                    .tint(DCTheme.gold)
+                    .frame(minWidth: 51, minHeight: 44)
+                    .accessibilityIdentifier("pageBlockAdsToggle")
+                }
+                .padding(.horizontal, 14)
+                .frame(minHeight: 44)
+            }
+
+            if app.pageContext.state == .maybe, let url = effectiveURL {
+                VStack(alignment: .leading, spacing: 4) {
+                    Button {
+                        addCurrentSiteAsForum(url: url)
+                    } label: {
+                        HStack(spacing: 10) {
+                            if addingForum {
+                                ProgressView()
+                                    .controlSize(.small)
+                                    .frame(width: 20)
+                            } else {
+                                Image(systemName: "plus.bubble")
+                                    .font(.subheadline.weight(.medium))
+                                    .foregroundStyle(DCTheme.goldInk)
+                                    .frame(width: 20)
+                                    .accessibilityHidden(true)
+                            }
+                            Text("Add as a forum", comment: "This page popover action to add an unconfirmed forum site")
+                                .font(.subheadline.weight(.medium))
+                                .foregroundStyle(DCTheme.goldInk)
+                            Spacer()
+                        }
+                        .padding(.horizontal, 14)
+                        .frame(minHeight: 44)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(addingForum)
+                    .accessibilityIdentifier("maybeAddForum")
+
+                    if let addForumError {
+                        Text(addForumError)
+                            .font(.caption)
+                            .foregroundStyle(DCTheme.danger)
+                            .padding(.horizontal, 14)
+                    }
+                }
+            }
+
+            Button {
+                DCHaptics.tap()
+                openSettingsPage(.forums)
+            } label: {
+                HStack(spacing: 10) {
+                    Image(systemName: "slider.horizontal.3")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(DCTheme.inkMuted)
+                        .frame(width: 20)
+                        .accessibilityHidden(true)
+                    Text("Site settings", comment: "This page popover button opening site settings")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(DCTheme.ink)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(DCTheme.inkFaint)
+                        .accessibilityHidden(true)
+                }
+                .padding(.horizontal, 14)
+                .frame(minHeight: 44)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("pageSiteSettings")
+        }
+    }
+
+    private func addCurrentSiteAsForum(url: URL) {
+        addingForum = true
+        addForumError = nil
+        Task { @MainActor in
+            do {
+                try await app.addForum(fromAddress: url.absoluteString)
+                DCHaptics.success()
+            } catch {
+                addForumError = error.localizedDescription
+                DCHaptics.warning()
+            }
+            addingForum = false
+        }
+    }
+
+    private func openSettingsPage(_ page: SettingsPage) {
+        isPresented = false
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(350))
+            app.requestedSettingsPage = page
+        }
     }
 
     private func popoverScriptRow(_ script: UserScript) -> some View {

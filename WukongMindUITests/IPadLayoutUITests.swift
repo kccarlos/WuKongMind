@@ -315,8 +315,12 @@ final class IPadLayoutUITests: DCUITestCase {
         XCTAssertTrue(waitForHittable(continueRow, timeout: 5))
         continueRow.tap()
 
-        let instructions = app.buttons["chatInstructions"].firstMatch
-        XCTAssertTrue(waitForHittable(instructions, timeout: 10))
+        let summaryMenu = app.buttons["assistantMoreMenu"].firstMatch
+        XCTAssertTrue(waitForHittable(summaryMenu, timeout: 10))
+        summaryMenu.tap()
+        // Menu items lose their identifiers; match the label.
+        let instructions = app.buttons["Instructions & Context"].firstMatch
+        XCTAssertTrue(instructions.waitForExistence(timeout: 5))
         instructions.tap()
         let instructionsCancel = app.navigationBars["Instructions"].buttons["Cancel"]
         XCTAssertTrue(instructionsCancel.waitForExistence(timeout: 5))

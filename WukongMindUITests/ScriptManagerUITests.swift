@@ -40,8 +40,8 @@ final class ScriptManagerUITests: DCUITestCase {
             "-dc-drawer-detent", "large"
         ])
 
-        let chip = app.buttons["agentScriptsCount"].firstMatch
-        XCTAssertTrue(waitOrDump(chip, timeout: 15, in: app), "Scripts on this page chip did not appear.")
+        let chip = app.buttons["pageCapabilitiesSeal"].firstMatch
+        XCTAssertTrue(waitOrDump(chip, timeout: 15, in: app), "This page seal did not appear.")
         chip.tap()
 
         let popover = any(app, "pageScriptsPopover")

@@ -195,7 +195,6 @@ private struct ResizeHandleInteractionView: UIViewRepresentable {
 /// a notification (one scene), which owns the pane and address-bar state.
 enum WorkspaceCommand: String {
     case focusAddress, reload, back, forward, forumsHome, settings, history
-    case summary, chat, agent
     case togglePanel, nextResult, previousResult, playPause
 }
 
@@ -281,13 +280,6 @@ struct WorkspaceCommands: Commands {
         }
         CommandMenu("Assistant") {
             Group {
-                Button("Summary") { WorkspaceCommand.summary.post() }
-                    .keyboardShortcut("1", modifiers: .command)
-                Button("This Topic") { WorkspaceCommand.chat.post() }
-                    .keyboardShortcut("2", modifiers: .command)
-                Button("Whole Forum") { WorkspaceCommand.agent.post() }
-                    .keyboardShortcut("3", modifiers: .command)
-                Divider()
                 Button("History") { WorkspaceCommand.history.post() }
                     .keyboardShortcut("y", modifiers: [.command, .shift])
                 Button("Show or Hide AI Panel") { WorkspaceCommand.togglePanel.post() }

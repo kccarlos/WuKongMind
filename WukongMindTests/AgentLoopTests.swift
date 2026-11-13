@@ -723,8 +723,97 @@ final class AgentLoopTests: XCTestCase {
 
         XCTAssertEqual(BrowserAgentPanelView.formatTokens(420), "420")
         XCTAssertEqual(BrowserAgentPanelView.formatTokens(1_420), "1.4k")
-        XCTAssertEqual(BrowserAgentPanelView.formatDuration(0.34), "0.3s")
-        XCTAssertEqual(BrowserAgentPanelView.formatDuration(14.2), "14s")
+        XCTAssertEqual(BrowserAgentPanelView.formatDuration(0.34), "0.3 s")
+        XCTAssertEqual(BrowserAgentPanelView.formatDuration(9.0), "9 s")
+        XCTAssertEqual(BrowserAgentPanelView.formatDuration(14.2), "14 s")
+
+        // Unified status line: token count is hidden by default and shown only in developerMode.
+        XCTAssertFalse(AppSettings().developerMode)
+        XCTAssertEqual(
+            BrowserAgentPanelView.statusText(
+                runState: .completed(steps: 3, duration: 9),
+                developerMode: false,
+                totalTokens: 1_420
+            ),
+            "Done · 3 steps · 9 s"
+        )
+        XCTAssertEqual(
+            BrowserAgentPanelView.statusText(
+                runState: .completed(steps: 3, duration: 9),
+                developerMode: true,
+                totalTokens: 1_420
+            ),
+            "Done · 3 steps · 9 s · 1.4k tokens"
+        )
+        XCTAssertEqual(
+            BrowserAgentPanelView.statusText(
+                runState: .running(step: 2, maxSteps: 10),
+                developerMode: false,
+                totalTokens: 900
+            ),
+            "Working · step 2"
+        )
+        XCTAssertEqual(
+            BrowserAgentPanelView.statusText(
+                runState: .running(step: 2, maxSteps: 10),
+                developerMode: true,
+                totalTokens: 900
+            ),
+            "Working · step 2 · 900 tokens"
+        )
+        XCTAssertNil(
+            BrowserAgentPanelView.statusText(
+                runState: .idle,
+                developerMode: true,
+                totalTokens: 900
+            )
+        )
+        XCTAssertNil(
+            BrowserAgentPanelView.statusText(
+                runState: .failed(message: "Network error"),
+                developerMode: true,
+                totalTokens: 900
+            )
+        )
+
+        // Mascot pose transitions: think -> search/run -> cheer; Reduce Motion stays think; errors never show mascot.
+        let runID = UUID()
+        let readRow = BrowserAgentToolCallRow(
+            id: UUID(), callID: "c1", runID: runID, stepNumber: 1, toolName: "read_page",
+            argumentSummary: "", argumentsJSON: "{}", resultSummary: "", resultText: "",
+            duration: nil, isRunning: true, isError: false, wasTruncated: false, totalCharacterCount: 0
+        )
+        let jsRow = BrowserAgentToolCallRow(
+            id: UUID(), callID: "c2", runID: runID, stepNumber: 2, toolName: "run_js",
+            argumentSummary: "", argumentsJSON: "{}", resultSummary: "", resultText: "",
+            duration: nil, isRunning: true, isError: false, wasTruncated: false, totalCharacterCount: 0
+        )
+        XCTAssertEqual(
+            BrowserAgentPanelView.mascotPose(runState: .running(step: 0, maxSteps: 10), toolCalls: [], reduceMotion: false),
+            .think
+        )
+        XCTAssertEqual(
+            BrowserAgentPanelView.mascotPose(runState: .running(step: 1, maxSteps: 10), toolCalls: [readRow], reduceMotion: false),
+            .search
+        )
+        XCTAssertEqual(
+            BrowserAgentPanelView.mascotPose(runState: .running(step: 2, maxSteps: 10), toolCalls: [jsRow], reduceMotion: false),
+            .run
+        )
+        XCTAssertEqual(
+            BrowserAgentPanelView.mascotPose(runState: .running(step: 2, maxSteps: 10), toolCalls: [jsRow], reduceMotion: true),
+            .think
+        )
+        XCTAssertEqual(
+            BrowserAgentPanelView.mascotPose(runState: .completed(steps: 3, duration: 9), toolCalls: [], reduceMotion: false),
+            .cheer
+        )
+        XCTAssertNil(
+            BrowserAgentPanelView.mascotPose(runState: .failed(message: "Boom"), toolCalls: [], reduceMotion: false)
+        )
+        XCTAssertNil(
+            BrowserAgentPanelView.mascotPose(runState: .stepLimitReached(limit: 15), toolCalls: [], reduceMotion: false)
+        )
     }
     #endif
 }

@@ -49,7 +49,7 @@ final class WordPressUITests: DCUITestCase {
     func testCitationTapsWithKeyboardFocused() throws {
         let app = try citationSummary()
         assertCitationTaps(in: app, scenario: "keyboard") {
-            app.textFields["chatInput"].tap()
+            app.textFields["agentPromptInput"].tap()
         }
     }
 
@@ -78,8 +78,7 @@ final class WordPressUITests: DCUITestCase {
             ? ([text] + Array(repeating: " more", count: 3000), 0.12)
             : ([text + (long ? String(repeating: "\n\nReaders compare their experiences and discuss the options.", count: 40) : "")], 0.01)
         let app = launchOnPost()
-        showAssistant(in: app)
-        let summarize = app.buttons["createSummary"].firstMatch
+        let summarize = app.buttons["dockHintAction"].firstMatch
         XCTAssertTrue(waitOrDump(summarize, timeout: 30, in: app))
         summarize.tap()
         XCTAssertTrue(app.buttons["citation-1"].firstMatch.waitForExistence(timeout: 60))
@@ -147,8 +146,7 @@ final class WordPressUITests: DCUITestCase {
         """
         server.streamedSummary = (["Readers agree [#2 #3]."], 0.01)
         let app = launchOnPost()
-        showAssistant(in: app)
-        let summarize = app.buttons["createSummary"].firstMatch
+        let summarize = app.buttons["dockHintAction"].firstMatch
         XCTAssertTrue(waitOrDump(summarize, timeout: 30, in: app))
         summarize.tap()
         let first = app.buttons["citation-2"].firstMatch
@@ -166,12 +164,11 @@ final class WordPressUITests: DCUITestCase {
         capture("native-comment-after-jump")
     }
 
-    func testAWordPressPostIsRecognizedSummarizedAndAnsweredThroughTheInPageLoader() throws {
+    func testAWordPressPostIsRecognizedAndSummarizedThroughTheInPageLoader() throws {
         let app = launchOnPost()
-        showAssistant(in: app)
 
-        // Recognized: the post is a topic, so the assistant offers a summary.
-        let summarize = app.buttons["createSummary"].firstMatch
+        // Recognized: the post is a topic, so the Dock hint offers Summarize.
+        let summarize = app.buttons["dockHintAction"].firstMatch
         XCTAssertTrue(waitOrDump(summarize, timeout: 30, in: app), "A WordPress post offers no summary.")
         XCTAssertTrue(waitForHittable(summarize))
         summarize.tap()
@@ -199,17 +196,8 @@ final class WordPressUITests: DCUITestCase {
         XCTAssertTrue(comments.allSatisfy { $0.headers["referer"]?.hasPrefix(server.baseURL) == true },
                       "Comments were not read by the page's own fetch (the in-page loader).")
 
-        // A follow-up chat answers.
-        let input = app.textFields["chatInput"]
-        XCTAssertTrue(waitOrDump(input, timeout: 15, in: app), "The assistant has no chat input.")
-        input.tap()
-        input.typeText(FixtureWordPressServer.chatQuestion)
-        let send = app.buttons["Send question"].firstMatch
-        XCTAssertTrue(waitForHittable(send), "Send question is missing.")
-        send.tap()
-        XCTAssertTrue(
-            wait(timeout: 60) { app.staticTexts.containing(self.label(contains: FixtureWordPressServer.chatMarker)).firstMatch.exists },
-            "The chat answer did not appear."
-        )
+        // Unified Agent composer is pinned below the summary.
+        XCTAssertTrue(app.textFields["agentPromptInput"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["composerMic"].exists)
     }
 }

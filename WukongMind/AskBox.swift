@@ -195,255 +195,8 @@ extension EnvironmentValues {
     @Entry var composerBottomInset: CGFloat = 0
 }
 
-/// The field, its scope button and the controls around it. Hosted at the
-/// bottom of the iPhone drawer; one view so the iPad panel can host it too.
-struct AskBox: View {
-    @ObservedObject var app: AppModel
-    @ObservedObject private var drafts: ComposerDrafts
-    /// This topic: the instructions and chat context size sheet.
-    let onShowInstructions: () -> Void
-    @FocusState private var focused: Bool
-    @State private var showsScopeHint = false
-    @State private var keyboardVisible = false
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @Environment(\.composerBottomInset) private var bottomInset
-    @Environment(\.composerFocusChanged) private var composerFocusChanged
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    init(app: AppModel, onShowInstructions: @escaping () -> Void) {
-        self.app = app
-        self.onShowInstructions = onShowInstructions
-        _drafts = ObservedObject(wrappedValue: app.drafts)
-    }
-
-    private var scope: AskScope { app.askScope }
-    private var target: AskDraftTarget { app.askDraftTarget }
-    private var tint: Color { scope == .topic ? DCTheme.summaryTint : DCTheme.agentTint }
-
-    var body: some View {
-        let isEditingChat = scope == .topic && app.activeChatEdit != nil
-        VStack(alignment: .leading, spacing: 8) {
-            if showsSuggestions {
-                suggestionRow
-                    .transition(.opacity)
-            }
-            if showsScopeHint {
-                scopeHint
-                    .transition(.opacity)
-            }
-            if isEditingChat {
-                editingBar
-                    .transition(.opacity)
-            }
-            let layout = dynamicTypeSize.isAccessibilitySize
-                ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6))
-                : AnyLayout(HStackLayout(alignment: .bottom, spacing: 6))
-            layout {
-                HStack(spacing: 6) {
-                    scopeButton
-                    if scope == .topic {
-                        instructionsButton
-                            .transition(.opacity)
-                    }
-                    if dynamicTypeSize.isAccessibilitySize {
-                        Spacer(minLength: 0)
-                        if app.showsVoiceButton { VoiceBarButton(voice: app.voice) }
-                    }
-                }
-                field
-                    .frame(maxWidth: .infinity)
-                if !dynamicTypeSize.isAccessibilitySize, app.showsVoiceButton {
-                    VoiceBarButton(voice: app.voice)
-                }
-            }
-        }
-        .padding(.horizontal, 12)
-        .padding(.top, 8)
-        .padding(.bottom, 10 + (keyboardVisible ? 0 : bottomInset))
-        .background {
-            Rectangle()
-                .fill(.bar)
-                .overlay(alignment: .top) { Divider() }
-                .ignoresSafeArea(.container, edges: .bottom)
-        }
-        // Keep the drawn icons and divider in the same layer subtree as the
-        // field and menus while the sheet and keyboard change geometry.
-        .compositingGroup()
-        .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: scope)
-        .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: showsSuggestions)
-        .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: isEditingChat)
-        .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: keyboardVisible)
-        .sensoryFeedback(.selection, trigger: scope)
-        .onChange(of: scope) { showsScopeHint = false }
-        .onChange(of: app.askFocusRequest) { focused = true }
-        .dcKeyboardVisible($keyboardVisible)
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("askBox")
-    }
-
-    // MARK: Scope
-
-    private var scopeTitle: String {
-        switch scope {
-        case .topic: String(localized: "This topic", comment: "Ask box scope: questions about the open topic")
-        case .forum: app.agentForum?.displayName ?? String(localized: "Whole forum", comment: "Ask box scope: questions to the whole forum (Ask the forum)")
-        }
-    }
-
-    /// This topic / Whole forum, and which forum Whole forum asks.
-    private var scopeButton: some View {
-        Menu {
-            Section {
-                if app.currentTopic == nil, app.assistantPageState == .forumHome {
-                    Button {
-                        app.showForumOverview()
-                    } label: {
-                        scopeItem(String(localized: "Forum overview", comment: "Button: returns from Ask the forum to the forum home overview"),
-                                  systemImage: "rectangle.grid.1x2", checked: false)
-                    }
-                }
-                Button {
-                    app.setAskScope(.topic)
-                } label: {
-                    scopeItem(String(localized: "This topic", comment: "Ask box scope: questions about the open topic"),
-                              systemImage: "text.bubble", checked: scope == .topic)
-                }
-                .disabled(app.currentTopic == nil)
-                Button {
-                    app.setAskScope(.forum)
-                } label: {
-                    scopeItem(String(localized: "Whole forum", comment: "Ask box scope: questions to the whole forum (Ask the forum)"),
-                              systemImage: "sparkle.magnifyingglass", checked: scope == .forum)
-                }
-                Button {
-                    app.assistantMode = .browserAgent
-                } label: {
-                    scopeItem(AssistantMode.browserAgent.title,
-                              systemImage: AssistantMode.browserAgent.systemImage, checked: app.assistantMode == .browserAgent)
-                }
-                .accessibilityIdentifier("askScope-browserAgent")
-            }
-            Section("Search this forum") {
-                if let pageForum = app.assistantForum {
-                    Button {
-                        app.chooseAskForum(siteURL: nil)
-                    } label: {
-                        scopeItem(String(localized: "Use this page’s forum"), systemImage: "arrow.uturn.backward",
-                                  checked: scope == .forum && (app.agentSiteURL == nil || app.agentSiteURL == pageForum.siteURL))
-                    }
-                }
-                ForEach(app.pinnedForums + app.recentForums) { forum in
-                    Button {
-                        app.chooseAskForum(siteURL: forum.siteURL)
-                    } label: {
-                        scopeItem(forum.displayName, systemImage: forum.isPinned ? "pin" : "clock",
-                                  checked: scope == .forum && app.agentSiteURL == forum.siteURL)
-                    }
-                }
-            }
-        } label: {
-            HStack(spacing: 4) {
-                Text(verbatim: scopeTitle)
-                    .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .contentTransition(.opacity)
-                Image(systemName: "chevron.down")
-                    .font(.caption2.weight(.bold))
-            }
-            .font(.footnote.weight(.semibold))
-            .foregroundStyle(tint)
-            .padding(.horizontal, 12)
-            .frame(minHeight: 40)
-            .background(tint.opacity(0.12), in: Capsule())
-            .frame(minHeight: DCTheme.controlHeight)
-            .contentShape(Rectangle())
-        }
-        .frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? .infinity : 140, alignment: .leading)
-        .fixedSize(horizontal: !dynamicTypeSize.isAccessibilitySize, vertical: true)
-        .accessibilityLabel(Text("Ask: \(scopeTitle)", comment: "Accessibility label of the Ask box's scope button; the placeholder is This topic or a forum name"))
-        .accessibilityHint(Text("Switches between this topic and the whole forum", comment: "Accessibility hint of the Ask box's scope button"))
-        .accessibilityIdentifier("askScopeButton")
-    }
-
-    @ViewBuilder
-    private func scopeItem(_ title: String, systemImage: String, checked: Bool) -> some View {
-        if checked {
-            Label(title, systemImage: "checkmark")
-        } else {
-            Label(title, systemImage: systemImage)
-        }
-    }
-
-    /// Once, the first time the field is focused (§5).
-    private var scopeHint: some View {
-        Label {
-            Text("This topic / Whole forum", comment: "One-time hint next to the Ask box's scope button: it switches between these two")
-        } icon: {
-            Image(systemName: "arrow.turn.left.down")
-        }
-        .font(.caption.weight(.semibold))
-        .foregroundStyle(.secondary)
-        .padding(.leading, 12)
-        .accessibilityIdentifier("askScopeHint")
-    }
-
-    private var editingBar: some View {
-        let layout = dynamicTypeSize.isAccessibilitySize
-            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 0))
-            : AnyLayout(HStackLayout(spacing: 8))
-        return layout {
-            Label {
-                Text("Editing question", comment: "Chat composer banner while editing a previously sent question")
-                    .fixedSize(horizontal: false, vertical: true)
-            } icon: {
-                Image(systemName: "pencil")
-            }
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(tint)
-            .frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? .infinity : nil, alignment: .leading)
-            if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 8) }
-            Button {
-                DCHaptics.tap()
-                app.cancelEditChat()
-            } label: {
-                Text("Cancel")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 10)
-                    .frame(minWidth: DCTheme.controlHeight, minHeight: DCTheme.controlHeight)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? .infinity : nil, alignment: .trailing)
-            .accessibilityIdentifier("cancelChatEdit")
-        }
-        .padding(.leading, 12)
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("chatEditBanner")
-    }
-
-    // MARK: This topic
-
-    private var instructionsButton: some View {
-        Button(action: onShowInstructions) {
-            Image(systemName: app.currentSession?.hasInstructions == true ? "text.badge.checkmark" : "text.quote")
-                .foregroundStyle(app.currentSession?.hasInstructions == true ? tint : .secondary)
-        }
-        .buttonStyle(DCIconButtonStyle())
-        .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
-        .accessibilityLabel("Instructions and context")
-        .accessibilityIdentifier("chatInstructions")
-        .disabled(app.currentTopic == nil)
-    }
-
-    /// Empty This topic: key points, warnings, latest replies, disagreements.
-    private var showsSuggestions: Bool {
-        guard scope == .topic, let topicKey = app.currentTopic?.topicKey else { return false }
-        return (app.currentSession?.history.isEmpty ?? true) && !app.hasActiveWork(topicKey: topicKey, type: .chat)
-    }
-
-    /// (chip title, question put in the field). The question is sent as the
-    /// user's own words, so it is in the app's language.
+enum AskBox {
+    /// Kept for legacy `AppModel.applyChatSuggestion` engine tests until One loop.
     static var suggestions: [(String, String)] {
         [
             (
@@ -464,169 +217,165 @@ struct AskBox: View {
             )
         ]
     }
+}
 
-    private var suggestionRow: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ForEach(Self.suggestions, id: \.0) { suggestion in
-                    Button {
-                        DCHaptics.tap()
-                        app.applyChatSuggestion(suggestion.1)
-                        focused = true
-                    } label: {
-                        Label(suggestion.0, systemImage: "sparkle")
-                            .labelStyle(.titleAndIcon)
-                            .font(.footnote.weight(.semibold))
-                            .padding(.horizontal, 12)
-                            .frame(minHeight: 32)
-                            .foregroundStyle(tint)
-                            .background(tint.opacity(0.1), in: Capsule())
-                            .overlay { Capsule().stroke(tint.opacity(0.22)) }
-                            .frame(minHeight: DCTheme.controlHeight)
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityHint("Fills the question box")
-                }
-            }
-            .padding(.horizontal, 2)
-        }
-        .accessibilityIdentifier("askSuggestions")
+/// The unified WukongMind composer (`design-system/components/Composer`):
+/// one rounded-rectangle field (`DCTheme.surface`, `radiusMd`, `borderStrong`)
+/// and one 44 pt round button (open gold ring + `mic.fill` to dictate when
+/// empty, filled gold + `arrow.up` to send, filled cinnabar + `stop.fill` to stop).
+struct AssistantComposer: View {
+    @Binding var draft: String
+    @FocusState.Binding var focused: Bool
+    let isRunning: Bool
+    let onSend: () -> Void
+    let onStop: () -> Void
+    var onDictate: () -> Void = {}
+    @Environment(\.composerFocusChanged) private var composerFocusChanged
+
+    private var trimmedDraft: String {
+        draft.trimmingCharacters(in: .whitespacesAndNewlines)
     }
-
-    // MARK: Field
 
     private var placeholder: String {
-        switch target {
-        case .chat:
-            return app.currentSession?.history.isEmpty ?? true
-                ? String(localized: "Ask about this topic")
-                : String(localized: "Ask a follow-up question…")
-        case .goal:
-            if app.askWaitsForRun { return String(localized: "Ask another question…") }
-            if let name = app.agentForum?.displayName {
-                return String(localized: "Ask \(name) anything…", comment: "Ask the forum placeholder; the placeholder is a forum name")
-            }
-            return String(localized: "Ask the forum anything…")
-        case .followUp:
-            return String(localized: "Ask a follow-up…")
+        if isRunning {
+            return String(localized: "Write your next message…", comment: "Browser agent composer placeholder while a run is in progress")
+        }
+        return String(localized: "Ask the Agent…", comment: "Unified Agent panel composer placeholder")
+    }
+
+    var body: some View {
+        HStack(alignment: .bottom, spacing: DCTheme.space2) {
+            inputField
+            trailingRingButton
         }
     }
 
-    private var fieldIdentifier: String {
-        switch target {
-        case .chat: "chatInput"
-        case .goal: "agentGoalInput"
-        case .followUp: "agentFollowUpInput"
+    private var inputField: some View {
+        TextField(text: $draft, prompt: Text(verbatim: ""), axis: .vertical) {
+            Text(verbatim: placeholder)
         }
-    }
-
-    private var sendLabel: LocalizedStringKey {
-        switch target {
-        case .chat: "Send question"
-        case .goal: "Ask the forum"
-        case .followUp: "Send follow-up"
-        }
-    }
-
-    /// One TextField whatever the scope, so switching never drops the focus
-    /// or the keyboard; its draft, placeholder and identifier follow the scope.
-    private var field: some View {
-        HStack(alignment: .bottom, spacing: 4) {
-            TextField(text: $app.askDraft, prompt: Text(verbatim: ""), axis: .vertical) {
+        .font(.subheadline)
+        .foregroundStyle(DCTheme.ink)
+        .lineLimit(1...5)
+        .padding(.horizontal, DCTheme.space3)
+        .padding(.vertical, 11)
+        .frame(maxWidth: .infinity, minHeight: DCTheme.controlHeight, alignment: .leading)
+        .background(alignment: .topLeading) {
+            if draft.isEmpty {
                 Text(verbatim: placeholder)
+                    .font(.subheadline)
+                    .foregroundStyle(DCTheme.inkFaint)
+                    .lineLimit(1)
+                    .padding(.horizontal, DCTheme.space3)
+                    .padding(.vertical, 11)
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
             }
-            .lineLimit(1...6)
-            .padding(.leading, 14)
-            .padding(.vertical, 11)
-            // The placeholder cross-fades with the scope (a prompt would not).
-            .background(alignment: .topLeading) {
-                if app.askDraft.isEmpty {
-                    Text(verbatim: placeholder)
-                        .foregroundStyle(Color(uiColor: .placeholderText))
-                        .lineLimit(1)
-                        .padding(.leading, 14)
-                        .padding(.vertical, 11)
-                        .id(placeholder)
-                        .transition(.opacity)
-                        .allowsHitTesting(false)
-                        .accessibilityHidden(true)
-                }
-            }
-            .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: placeholder)
-            .focused($focused)
-            .onChange(of: focused) {
-                composerFocusChanged(focused)
-                if focused, !UserDefaults.standard.bool(forKey: PresentationRouter.askScopeHintKey) {
-                    UserDefaults.standard.set(true, forKey: PresentationRouter.askScopeHintKey)
-                    withAnimation(DCMotion.respecting(reduceMotion)) { showsScopeHint = true }
-                } else if !focused {
-                    withAnimation(DCMotion.respecting(reduceMotion)) { showsScopeHint = false }
-                }
-            }
-            // Esc leaves the field (a hardware keyboard). A key command, not
-            // onKeyPress: the text field's editor never hands Esc on.
-            .background {
-                if focused {
-                    Button { focused = false } label: { EmptyView() }
-                        .keyboardShortcut(.cancelAction)
-                        .opacity(0)
-                        .frame(width: 0, height: 0)
-                        .accessibilityHidden(true)
-                }
-            }
-            #if DEBUG
-            .task {
-                // `-dc-focus-chat`: raise the keyboard (QA screenshots).
-                if AssistantDebug.has("-dc-focus-chat") {
-                    try? await Task.sleep(for: .milliseconds(900))
-                    focused = true
-                }
-            }
-            #endif
-            .frame(maxWidth: .infinity)
-            .accessibilityIdentifier(fieldIdentifier)
-            .onSubmit {
-                if app.canSendAsk { send() }
-            }
-
-            sendButton
         }
-        .background(Color(uiColor: .systemBackground), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .background(
+            DCTheme.surface,
+            in: RoundedRectangle(cornerRadius: DCTheme.radiusMd, style: .continuous)
+        )
         .overlay {
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .stroke(focused ? tint : DCTheme.border, lineWidth: focused ? 1.5 : 1)
+            RoundedRectangle(cornerRadius: DCTheme.radiusMd, style: .continuous)
+                .strokeBorder(DCTheme.borderStrong, lineWidth: 1)
         }
-        .animation(DCMotion.quick, value: focused)
+        .dcFocusRing(focused, cornerRadius: DCTheme.radiusMd)
+        .focused($focused)
+        .submitLabel(.send)
+        .onChange(of: focused) {
+            composerFocusChanged(focused)
+        }
+        .onChange(of: draft) { oldValue, newValue in
+            guard focused,
+                  !isRunning,
+                  newValue.count == oldValue.count + 1,
+                  newValue.filter({ $0 == "\n" }).count == oldValue.filter({ $0 == "\n" }).count + 1
+            else { return }
+            draft = oldValue
+            if !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                onSend()
+            }
+        }
+        .onSubmit {
+            if !isRunning, !trimmedDraft.isEmpty {
+                onSend()
+            }
+        }
+        .background {
+            if focused {
+                Button { focused = false } label: { EmptyView() }
+                    .keyboardShortcut(.cancelAction)
+                    .opacity(0)
+                    .frame(width: 0, height: 0)
+                    .accessibilityHidden(true)
+            }
+        }
+        #if DEBUG
+        .task {
+            if AssistantDebug.has("-dc-focus-chat") {
+                try? await Task.sleep(for: .milliseconds(900))
+                focused = true
+            }
+        }
+        #endif
+        .accessibilityIdentifier("agentPromptInput")
     }
 
-    private var sendButton: some View {
-        let canSend = app.canSendAsk
-        return Button {
-            send()
-        } label: {
-            Image(systemName: "arrow.up")
-                .font(.system(size: 16, weight: .bold))
-                .foregroundStyle(canSend ? DCTheme.onGold : DCTheme.inkFaint)
-                .frame(width: 32, height: 32)
-                .background(canSend ? DCTheme.gold : DCTheme.surfaceRaised, in: Circle())
-                .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
-                .contentShape(Rectangle())
+    @ViewBuilder
+    private var trailingRingButton: some View {
+        if isRunning {
+            Button {
+                DCHaptics.tap()
+                onStop()
+            } label: {
+                Image(systemName: "stop.fill")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(DCTheme.onCinnabar)
+                    .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
+                    .background(DCTheme.cinnabar, in: Circle())
+                    .contentShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .keyboardShortcut(".", modifiers: .command)
+            .accessibilityLabel(Text("Stop", comment: "Browser agent stop button title"))
+            .accessibilityIdentifier("agentStopButton")
+        } else if !trimmedDraft.isEmpty {
+            Button {
+                onSend()
+            } label: {
+                Image(systemName: "arrow.up")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(DCTheme.onGold)
+                    .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
+                    .background(DCTheme.gold, in: Circle())
+                    .contentShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .hoverEffect(.highlight)
+            .dcSendShortcut()
+            .accessibilityLabel(Text("Send", comment: "Browser agent send button accessibility label"))
+            .accessibilityIdentifier("agentSendButton")
+        } else {
+            Button {
+                DCHaptics.tap()
+                onDictate()
+            } label: {
+                Image(systemName: "mic.fill")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(DCTheme.goldInk)
+                    .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
+                    .background(Color.clear, in: Circle())
+                    .overlay {
+                        Circle()
+                            .strokeBorder(DCTheme.gold, lineWidth: DCTheme.ringWidth)
+                    }
+                    .contentShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .hoverEffect(.highlight)
+            .accessibilityLabel(Text("Dictate", comment: "Composer microphone button accessibility label in One panel"))
+            .accessibilityIdentifier("composerMic")
         }
-        .buttonStyle(.plain)
-        .hoverEffect(.highlight)
-        .keyboardShortcut(.return, modifiers: .command)
-        .disabled(!canSend)
-        .accessibilityLabel(sendLabel)
-        // The old run button's identifier; the others are found by label.
-        .accessibilityIdentifier(target == .goal ? "runAgent" : "")
-        .animation(DCMotion.quick, value: canSend)
-    }
-
-    private func send() {
-        DCHaptics.tap()
-        // A forum question runs for a while: put the keyboard away.
-        if target != .chat { focused = false }
-        app.sendAsk()
     }
 }
