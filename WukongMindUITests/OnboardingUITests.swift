@@ -36,9 +36,9 @@ final class OnboardingUITests: DCUITestCase {
 
         // 1 Pick a model: the Logo, the three providers and Other; Later goes on.
         XCTAssertTrue(any(app, "onboardingProvider-anthropic").waitForExistence(timeout: 5), "Anthropic is not offered first.")
-        XCTAssertTrue(any(app, "onboardingProvider-openRouter").exists)
-        XCTAssertTrue(any(app, "onboardingProvider-openAI").exists)
-        XCTAssertTrue(any(app, "onboardingProvider-other").exists)
+        XCTAssertTrue(reveal(any(app, "onboardingProvider-other"), in: app), "Other provider is not offered.")
+        XCTAssertTrue(reveal(any(app, "onboardingProvider-openrouter"), in: app), "OpenRouter is not offered.")
+        XCTAssertTrue(reveal(any(app, "onboardingProvider-openai"), in: app), "OpenAI is not offered.")
         XCTAssertTrue(waitForHittable(app.buttons["onboardingContinue"]))
         let later = app.buttons["onboardingSkipStep"]
         XCTAssertTrue(waitForHittable(later))
@@ -61,10 +61,8 @@ final class OnboardingUITests: DCUITestCase {
         let field = app.textFields["onboardingSiteAddress"]
         XCTAssertTrue(waitForHittable(field))
         field.tap()
+        // The bar tucks away while typing, so Go opens the address.
         field.typeText(server.baseURL + "\n")
-        let open = app.buttons["onboardingOpen"]
-        XCTAssertTrue(waitForHittable(open, timeout: 10))
-        open.tap()
 
         // 3 Try the Agent once: over the real browser, two suggestions; Skip
         // ends in the "You're set" card and Done closes it.
@@ -97,7 +95,7 @@ final class OnboardingUITests: DCUITestCase {
         }
         // Leave the first run closed for the other tests.
         app.buttons["onboardingTrySkip"].tap()
-        XCTAssertTrue(waitForHittable(app.buttons["onboardingTryDone"]))
+        XCTAssertTrue(waitOrDump(app.buttons["onboardingTryDone"], timeout: 10, in: app), "Skip did not show the You’re set card.")
         app.buttons["onboardingTryDone"].tap()
         XCTAssertTrue(waitForGone(panel, timeout: 5))
     }

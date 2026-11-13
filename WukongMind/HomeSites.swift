@@ -132,6 +132,10 @@ final class SiteVisitStore: ObservableObject {
     nonisolated static let maximumSites = 200
 
     @Published private(set) var visits: [SiteVisit]
+    /// DEBUG `-dc-no-forums`: Home shows no visited sites (nothing is deleted).
+    var hidesVisits = false {
+        didSet { objectWillChange.send() }
+    }
     private let defaults: UserDefaults
     private let key: String
 
@@ -144,6 +148,9 @@ final class SiteVisitStore: ObservableObject {
             visits = []
         }
     }
+
+    /// The visits Home lists.
+    var shownVisits: [SiteVisit] { hidesVisits ? [] : visits }
 
     func visit(for siteURL: String) -> SiteVisit? {
         visits.first { $0.siteURL == siteURL }
@@ -166,8 +173,8 @@ final class SiteVisitStore: ObservableObject {
     /// Pins (or unpins) a web site. A pinned site goes last among the pinned ones.
     func setPinned(_ pinned: Bool, siteURL: String) {
         guard let index = visits.firstIndex(where: { $0.siteURL == siteURL }), visits[index].isPinned != pinned else { return }
-        visits[index].isPinned = pinned
         visits[index].pinOrder = pinned ? (visits.filter(\.isPinned).map(\.pinOrder).max() ?? -1) + 1 : 0
+        visits[index].isPinned = pinned
         save()
     }
 

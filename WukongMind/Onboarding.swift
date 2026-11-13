@@ -75,28 +75,32 @@ struct OnboardingFlow: View {
     }
 
     private var bottomBar: some View {
-        VStack(spacing: DCTheme.spacingXS) {
+        Group {
             switch step {
             case .model:
-                primaryButton(
-                    title: String(localized: "Continue"),
-                    isBusy: providerState == .testing,
-                    id: "onboardingContinue",
-                    action: continueFromModel
+                actions(
+                    primary: primaryButton(
+                        title: String(localized: "Continue"),
+                        isBusy: providerState == .testing,
+                        id: "onboardingContinue",
+                        action: continueFromModel
+                    ),
+                    quiet: quietButton(title: String(localized: "Later", comment: "First-run step 1: go on without a model"), id: "onboardingSkipStep") {
+                        go(to: .site)
+                    }
                 )
-                quietButton(title: String(localized: "Later", comment: "First-run step 1: go on without a model"), id: "onboardingSkipStep") {
-                    go(to: .site)
-                }
             case .site:
-                primaryButton(
-                    title: String(localized: "Open", comment: "First-run step 2: open the chosen site"),
-                    isBusy: false,
-                    id: "onboardingOpen",
-                    action: openSite
+                actions(
+                    primary: primaryButton(
+                        title: String(localized: "Open", comment: "First-run step 2: open the chosen site"),
+                        isBusy: false,
+                        id: "onboardingOpen",
+                        action: openSite
+                    ),
+                    quiet: quietButton(title: String(localized: "Back"), id: "onboardingBack") {
+                        go(to: .model)
+                    }
                 )
-                quietButton(title: String(localized: "Back"), id: "onboardingBack") {
-                    go(to: .model)
-                }
             case .tryAgent:
                 EmptyView()
             }
@@ -108,6 +112,22 @@ struct OnboardingFlow: View {
         .frame(maxWidth: 520)
         .frame(maxWidth: .infinity)
         .dcStickyFooter()
+    }
+
+    /// The primary button over the quiet one; side by side where height is short.
+    @ViewBuilder
+    private func actions(primary: some View, quiet: some View) -> some View {
+        if usesCompactChrome {
+            HStack(spacing: DCTheme.spacingM) {
+                quiet
+                primary
+            }
+        } else {
+            VStack(spacing: DCTheme.spacingXS) {
+                primary
+                quiet
+            }
+        }
     }
 
     private func primaryButton(title: String, isBusy: Bool, id: String, action: @escaping () -> Void) -> some View {

@@ -71,7 +71,7 @@ private struct HomeList: View {
     @State private var addressText = ""
     @FocusState private var addressFocused: Bool
 
-    private var tiles: [HomeSite] { HomeSites.tiles(forums: app.forums, visits: siteVisits.visits) }
+    private var tiles: [HomeSite] { HomeSites.tiles(forums: app.forums, visits: siteVisits.shownVisits) }
 
     var body: some View {
         let tiles = tiles
@@ -275,6 +275,8 @@ private struct HomeList: View {
         .accessibilityAction(named: site.isPinned ? "Unpin" : "Pin") { togglePin(site) }
         .accessibilityAction(named: "Remove") { confirmRemoval(site) }
         .accessibilityIdentifier("siteTile-\(site.host)")
+        // A new identity when the pin changes, so the menu is built afresh.
+        .id("\(site.siteURL)-\(site.isPinned)")
         if let forum = site.forum {
             // The dialog is a popover on iPad; anchor it to this tile.
             button.forumRemovalDialog($forumToRemove, app: app, for: forum)

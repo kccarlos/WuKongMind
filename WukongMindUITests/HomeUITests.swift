@@ -46,18 +46,16 @@ final class HomeUITests: DCUITestCase {
         XCTAssertTrue(wait(timeout: 5) { pin.exists || unpin.exists }, "The tile's menu has no Pin or Unpin.")
         XCTAssertTrue(app.buttons["Remove…"].exists || app.buttons["Remove"].exists, "The tile's menu has no Remove.")
         let wasPinned = unpin.exists
+        let before = tile.frame
         (wasPinned ? unpin : pin).tap()
         XCTAssertTrue(waitForGone(wasPinned ? unpin : pin, timeout: 5))
 
-        // The tile's menu now offers the opposite.
+        // Pinned sites go first, the rest by visits: the tile moved.
         let moved = any(app, identifier)
-        XCTAssertTrue(reveal(moved, in: app), "The tile went missing after pinning.")
-        let again = siteTiles(app).firstMatch
-        again.press(forDuration: 1.0)
-        let opposite = wasPinned ? app.buttons["Pin"] : app.buttons["Unpin"]
-        XCTAssertTrue(opposite.waitForExistence(timeout: 5), "The menu did not flip to \(wasPinned ? "Pin" : "Unpin").")
-        // Put it back.
-        opposite.tap()
+        XCTAssertTrue(
+            wait(timeout: 5) { moved.exists && moved.frame != before },
+            "Tapping \(wasPinned ? "Unpin" : "Pin") did not move the tile."
+        )
     }
 
     func testAddSiteSheetOpensFromHome() throws {

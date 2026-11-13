@@ -32,6 +32,9 @@ struct FirstRunHost: ViewModifier {
         .onChange(of: app.firstRun, initial: true) {
             if app.firstRun != nil { app.router.closeDrawer() }
         }
+        .onChange(of: app.router.wantsDrawer) {
+            if app.firstRun != nil, app.router.wantsDrawer { app.router.closeDrawer() }
+        }
     }
 }
 
@@ -350,6 +353,7 @@ struct OnboardingTryPanel: View {
         .overlay {
             RoundedRectangle(cornerRadius: DCTheme.radiusLg, style: .continuous).strokeBorder(DCTheme.hairline)
         }
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("onboardingTryDoneCard")
     }
 

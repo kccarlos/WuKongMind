@@ -704,6 +704,7 @@ final class AppModel: ObservableObject {
         // `-dc-no-forums`: the sample as a new user sees Home (never saved).
         if AssistantDebug.isActive, AssistantDebug.has("-dc-no-forums") {
             directory = ForumDirectory(forums: [])
+            siteVisits.hidesVisits = true
             currentSiteURL = nil
             self.browser.homeSiteURL = nil
         }
