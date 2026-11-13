@@ -3471,23 +3471,6 @@
         }
       }
     },
-    "Ask anything about this page…" : {
-      "comment" : "Placeholder of the Agent's input box",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "询问关于此页面的任何问题…"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "詢問關於此頁面的任何問題…"
-          }
-        }
-      }
-    },
     "Ask for a change and say “always” or “from now on”." : {
       "comment" : "Settings › Scripts empty state step 2",
       "localizations" : {
@@ -15978,23 +15961,6 @@
         }
       }
     },
-    "Stopped." : {
-      "comment" : "First-run step 3: the user stopped the Agent",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已停止。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已停止。"
-          }
-        }
-      }
-    },
     "Stored securely in iCloud Keychain" : {
       "localizations" : {
         "zh-Hans" : {
@@ -16924,23 +16890,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在測試連線…"
-          }
-        }
-      }
-    },
-    "That took more steps than allowed. Try something smaller." : {
-      "comment" : "First-run step 3: the Agent hit its step limit",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "这超出了允许的步数。试试更小的任务。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "這超出了允許的步數。試試更小的任務。"
           }
         }
       }
@@ -20199,23 +20148,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "執行中"
-          }
-        }
-      }
-    },
-    "Working on it…" : {
-      "comment" : "First-run step 3: the Agent is working",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在处理…"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在處理…"
           }
         }
       }
