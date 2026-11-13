@@ -782,6 +782,8 @@ struct AssistantPanel: View {
     }
 
     private var visibleSuggestions: [PageSuggestion] {
+        // The first run (step 3) offers its own two.
+        if app.firstRun == .prompts { return [.tryReadable, .tryHideClutter] }
         let isFollowing = app.currentTopic.map { app.isWatched(topicKey: $0.topicKey) } ?? false
         return PageSuggestions.suggestions(
             for: suggestionKind,
@@ -812,6 +814,16 @@ struct AssistantPanel: View {
             agentDraft = suggestion.composerText
             app.researchFillPending = true
             composerFocused = true
+        case .agent where app.firstRun != nil:
+            // Step 3 sends once the page has loaded.
+            Task { @MainActor in
+                var waited = 0
+                while browser.isLoading, waited < 50 {
+                    try? await Task.sleep(for: .milliseconds(200))
+                    waited += 1
+                }
+                sendAgentPrompt(suggestion.text)
+            }
         case .agent:
             if suggestion.fillsComposer {
                 agentDraft = suggestion.composerText

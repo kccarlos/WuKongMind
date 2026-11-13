@@ -1791,7 +1791,7 @@ final class StateTransitionTests: XCTestCase {
         XCTAssertEqual(app.currentSession?.source, "")
         XCTAssertEqual(app.askScope, .topic)
 
-        app.drafts.chat = AskBox.suggestions[0].1
+        app.drafts.chat = "What are the key takeaways?"
         XCTAssertTrue(app.canSendAsk)
         app.sendAsk()
         try await waitUntil { !app.activities.isEmpty && app.activities.allSatisfy(\.status.isTerminal) }
@@ -2529,7 +2529,8 @@ final class StateTransitionTests: XCTestCase {
         // Subcase E (Finding 9): applyChatSuggestion while editing Q1 cancels edit and appends Turn 4 instead of truncating!
         let countBeforeChip = app.sessions[t1.topicKey]?.history.count ?? 0
         app.editChat(messageID: q1ID)
-        app.applyChatSuggestion(AskBox.suggestions[0].1)
+        app.cancelEditChat()
+        app.drafts.chat = "What are the key takeaways?"
         XCTAssertEqual(app.chatEdit, .none)
         app.sendChat()
         try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }

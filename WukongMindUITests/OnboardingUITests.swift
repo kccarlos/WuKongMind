@@ -20,7 +20,7 @@ final class OnboardingUITests: DCUITestCase {
     }
 
     private func suggestionButtons(_ app: XCUIApplication) -> XCUIElementQuery {
-        app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'onboardingSuggestion-'"))
+        app.buttons.matching(NSPredicate(format: "identifier IN %@", ["suggestion-tryReadable", "suggestion-tryHideClutter"]))
     }
 
     /// Model → site → the Agent's first run over the browser.
@@ -88,10 +88,10 @@ final class OnboardingUITests: DCUITestCase {
         assertStep(3, any(app, "onboardingProgress"))
         XCTAssertTrue(app.buttons["onboardingTrySkip"].waitForExistence(timeout: 5))
         let hasSuggestions = suggestionButtons(app).count == 2
-        let choose = app.buttons["onboardingTryChooseModel"]
-        XCTAssertTrue(hasSuggestions || choose.exists, "Neither the suggestions nor the model choice showed.")
+        let setup = any(app, "providerSetupCard")
+        XCTAssertTrue(hasSuggestions || setup.exists, "Neither the suggestions nor the model setup card showed.")
         if hasSuggestions {
-            XCTAssertTrue(app.textFields["onboardingTryField"].exists, "The input box is missing.")
+            XCTAssertTrue(any(app, "agentPromptInput").exists, "The shared Agent input box is missing.")
         }
         // Leave the first run closed for the other tests.
         app.buttons["onboardingTrySkip"].tap()

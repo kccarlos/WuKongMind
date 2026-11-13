@@ -333,8 +333,7 @@ final class PresentationRouter: ObservableObject {
     static let summarizeTipKey = "dc.tipSummarizeShown"
     static let citationTipKey = "dc.tipCitationShown"
     /// "This topic / Whole forum" the first time the Ask box is focused (§5).
-    static let askScopeHintKey = "dc.tipAskScopeShown"
-    static let tipKeys = [summarizeTipKey, citationTipKey, askScopeHintKey]
+    static let tipKeys = [summarizeTipKey, citationTipKey]
 }
 
 /// A composer (chat, Ask the forum) gained or lost focus. The iPhone drawer
