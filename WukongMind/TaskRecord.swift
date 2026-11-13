@@ -5,7 +5,7 @@ import WebKit
 // MARK: - Events
 
 /// One line of `Application Support/WukongMind/Tasks/<task-id>.jsonl`.
-/// Types: `user`, `system`, `tools`, `request`, `raw_request`, `raw_response`, `response`, `tool_result`, `end`.
+/// Types: `history`, `system`, `tools`, `request`, `raw_request`, `raw_response`, `response`, `tool_result`, `end`.
 struct TaskRecordEvent: Codable, Equatable, Sendable {
     var type: String
     var time: Date
@@ -17,8 +17,9 @@ struct TaskRecordEvent: Codable, Equatable, Sendable {
         self.fields = fields
     }
 
-    static func user(_ text: String, time: Date) -> TaskRecordEvent {
-        TaskRecordEvent(type: "user", time: time, fields: ["text": .string(text)])
+    /// The history the task started from, including its own new user turn when it has one.
+    static func history(_ turns: [AgentModelTurn], time: Date) -> TaskRecordEvent {
+        TaskRecordEvent(type: "history", time: time, fields: ["turns": JSONValue.encoding(turns) ?? .array([])])
     }
 
     static func request(turn: Int, historyCount: Int, systemHash: String, toolsHash: String, time: Date) -> TaskRecordEvent {
@@ -320,7 +321,7 @@ actor TaskRecordStore {
         }
     }
 
-    /// Rebuilds the task's turns from its record: the prompt, each model response and the tool
+    /// Rebuilds the task's turns from its record: the history it started from, each model response and the tool
     /// results that followed it. A result's content is its output wrapped again.
     func turns(taskID: String) -> [AgentModelTurn] {
         var turns: [AgentModelTurn] = []
@@ -340,9 +341,9 @@ actor TaskRecordStore {
                     toolCallID: id, toolName: name,
                     content: UntrustedWebContent.wrap(output, toolName: name), isError: isError
                 ))
-            case "user":
+            case "history":
                 flush()
-                if case .string(let text)? = event.fields["text"] { turns.append(.user(text)) }
+                if let start = event.fields["turns"]?.decoded(as: [AgentModelTurn].self) { turns = start }
             case "response":
                 flush()
                 guard let response = event.fields["response"]?.decoded(as: AgentModelTurnResponse.self) else { continue }

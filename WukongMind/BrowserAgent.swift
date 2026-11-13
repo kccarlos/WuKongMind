@@ -921,7 +921,7 @@ final class BrowserAgentSession {
             ))
             if let taskRecords {
                 await taskRecords.touch(taskID: taskID, url: pageMeta.url)
-                await taskRecords.append(taskID: taskID, .user(modelPrompt ?? userPrompt, time: Date()))
+                await taskRecords.append(taskID: taskID, .history(startingHistory, time: Date()))
             }
 
             var events = AgentLoopEvents(

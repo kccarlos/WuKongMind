@@ -153,10 +153,10 @@ final class AuditLog: @unchecked Sendable {
 
     // MARK: Writing
 
-    /// Appends one line to the file for the line's day. Blocks until it is on disk, so it is
-    /// finished before the tool returns to the loop.
+    /// Appends one line to the file for the line's day on the serial queue. Reads wait on the same
+    /// queue, so they always see it; it never blocks the main actor.
     func append(_ line: AuditLine) {
-        queue.sync {
+        queue.async { [self] in
             guard let data = try? Self.encoder.encode(line) else { return }
             try? fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
             let url = fileURL(for: Self.dayKey(line.time))
@@ -180,7 +180,7 @@ final class AuditLog: @unchecked Sendable {
             for file in files where file.key < cutoff {
                 try? fileManager.removeItem(at: file.url)
             }
-            files = dayFiles()
+            files = dayFiles().sorted { $0.key < $1.key }
             var total = files.reduce(0) { $0 + $1.size }
             for file in files where total > maxBytes {
                 try? fileManager.removeItem(at: file.url)
@@ -188,6 +188,9 @@ final class AuditLog: @unchecked Sendable {
             }
         }
     }
+
+    /// Waits until every queued append is on disk.
+    func flush() { queue.sync {} }
 
     func clear() {
         queue.sync {

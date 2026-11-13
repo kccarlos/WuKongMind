@@ -151,9 +151,7 @@ private struct ForumRequestPaceSection: View {
 struct SettingsAgentPage: View {
     @ObservedObject var app: AppModel
 
-    private var auditStepCount: Int {
-        app.auditLog.stepCount
-    }
+    @State private var auditStepCount = 0
 
     private var headerTitle: String {
         app.hasConfiguredModel(for: .browserAgent)
@@ -346,6 +344,10 @@ struct SettingsAgentPage: View {
         }
         .formStyle(.grouped)
         .accessibilityIdentifier("agentSettingsPage")
+        .task {
+            let log = app.auditLog
+            auditStepCount = await Task.detached { log.stepCount }.value
+        }
         .onChange(of: app.settings.agentConfirmBeforeWrites) { app.saveSettings() }
         .onChange(of: app.settings.agentDeveloperMode) { app.saveSettings() }
         .onChange(of: app.settings.agentMaxSteps) { app.saveSettings() }

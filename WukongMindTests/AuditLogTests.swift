@@ -73,6 +73,7 @@ final class AuditLogTests: XCTestCase {
         let first = AuditLog(directory: dir)
         first.append(.taskStart(taskID: "T", time: date("2026-11-13T09:00:00Z"), prompt: "Hello", model: "m", provider: "p", pageURL: nil))
         first.append(.step(row: row("read_page"), taskID: "T", time: date("2026-11-13T09:00:01Z"), pageURL: nil))
+        first.flush()
         let second = AuditLog(directory: dir)
         XCTAssertEqual(second.allLines().map(\.kind), [.task, .step])
         XCTAssertEqual(second.stepCount, 1)
@@ -110,7 +111,7 @@ final class AuditLogTests: XCTestCase {
     func testRetentionBySize() {
         let clock = Clock(date("2026-11-13T12:00:00Z"))
         let log = AuditLog(directory: root.appendingPathComponent("size"), now: { clock.now }, maxBytes: 1_000)
-        for day in ["2026-11-10", "2026-11-11", "2026-11-12"] {
+        for day in ["2026-11-12", "2026-11-10", "2026-11-11"] {
             log.append(.taskStart(taskID: day, time: date("\(day)T12:00:00Z"), prompt: String(repeating: "p", count: 400), model: nil, provider: nil, pageURL: nil))
         }
         log.prune()
@@ -146,7 +147,7 @@ final class AuditLogTests: XCTestCase {
         let (store, results) = makeStore("ret", maxTasks: 2)
         let fm = FileManager.default
         for (index, id) in ["old", "mid", "new"].enumerated() {
-            await store.append(taskID: id, .user("hi", time: Date()))
+            await store.append(taskID: id, .history([.user("hi")], time: Date()))
             let folder = results.appendingPathComponent(id)
             try fm.createDirectory(at: folder, withIntermediateDirectories: true)
             try "saved".write(to: folder.appendingPathComponent("01-read_page.txt"), atomically: true, encoding: .utf8)
@@ -165,7 +166,7 @@ final class AuditLogTests: XCTestCase {
     func testRecordRetentionBySize() async throws {
         let (store, results) = makeStore("bytes", maxBytes: 600)
         for (index, id) in ["a", "b", "c"].enumerated() {
-            await store.append(taskID: id, .user(String(repeating: "x", count: 300), time: Date()))
+            await store.append(taskID: id, .history([.user(String(repeating: "x", count: 300))], time: Date()))
             try FileManager.default.createDirectory(at: results.appendingPathComponent(id), withIntermediateDirectories: true)
             try FileManager.default.setAttributes(
                 [.modificationDate: date("2026-11-1\(index)T00:00:00Z")],
@@ -180,10 +181,10 @@ final class AuditLogTests: XCTestCase {
 
     func testRecordsSurviveReopeningTheStore() async {
         let (store, _) = makeStore("reopen")
-        await store.append(taskID: "T", .user("Find posts", time: date("2026-11-13T10:00:00Z")))
+        await store.append(taskID: "T", .history([.user("Find posts")], time: date("2026-11-13T10:00:00Z")))
         let reopened = TaskRecordStore(directory: store.directory)
         let events = await reopened.events(taskID: "T")
-        XCTAssertEqual(events.map(\.type), ["user"])
+        XCTAssertEqual(events.map(\.type), ["history"])
         let turns = await reopened.turns(taskID: "T")
         XCTAssertEqual(turns, [.user("Find posts")])
     }
@@ -224,7 +225,7 @@ final class AuditLogTests: XCTestCase {
     func testUnreadableCookieStoreMarksTheLine() async {
         let (store, _) = makeStore("unreadable", cookies: [nil])
         await store.touch(taskID: "T", url: "https://forum.example/")
-        await store.append(taskID: "T", .user("hi", time: Date()))
+        await store.append(taskID: "T", .history([.user("hi")], time: Date()))
         XCTAssertTrue(recordText(store, "T").contains("\"cookies_scrubbed\":false"))
     }
 
@@ -275,9 +276,14 @@ final class AuditLogTests: XCTestCase {
                 savedPath: nil, resultSummary: row.resultSummary, time: Date()
             ))
         }
-        await store.append(taskID: "T", .user("Say hi", time: Date()))
+        let earlier: [AgentModelTurn] = [
+            .user("Earlier task"),
+            .assistant(text: "Earlier answer", toolCalls: []),
+            .user("Say hi")
+        ]
+        await store.append(taskID: "T", .history(earlier, time: Date()))
         let result = try await loop.run(
-            systemPrompt: "sys", initialHistory: [.user("Say hi")],
+            systemPrompt: "sys", initialHistory: earlier,
             configuration: ProviderConfiguration(model: "m", baseURL: AIProvider.anthropic.defaultBaseURL, apiKey: "fake"), provider: .anthropic, events: events
         )
         let rebuilt = await store.turns(taskID: "T")
