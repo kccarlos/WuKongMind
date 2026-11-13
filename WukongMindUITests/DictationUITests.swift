@@ -56,4 +56,37 @@ final class DictationUITests: DCUITestCase {
         app.buttons["dictationNoticeDismiss"].firstMatch.tap()
         XCTAssertTrue(waitForGone(notice, timeout: 5))
     }
+
+    /// Real speech through the system recognizer and the Mac's (simulator) or
+    /// the phone's microphone. Someone has to talk while it waits:
+    /// `TEST_RUNNER_DC_REAL_MIC=1`, then say a sentence.
+    func testRealSpeechReachesTheInputBox() throws {
+        guard ProcessInfo.processInfo.environment["DC_REAL_MIC"] != nil else {
+            throw XCTSkip("Set TEST_RUNNER_DC_REAL_MIC=1 and speak while the test waits.")
+        }
+        addUIInterruptionMonitor(withDescription: "Permission prompts") { alert in
+            for label in ["Allow", "OK", "Allow While Using App"] {
+                let button = alert.buttons[label].firstMatch
+                if button.exists {
+                    button.tap()
+                    return true
+                }
+            }
+            return false
+        }
+        let app = openPanel([])
+        let mic = app.buttons["composerMic"].firstMatch
+        XCTAssertTrue(waitForHittable(mic, timeout: 15))
+        mic.tap()
+        app.tap() // lets the interruption monitor answer the prompts
+
+        let input = app.textFields["agentPromptInput"].firstMatch
+        let heard = wait(timeout: 60) {
+            if app.alerts.count > 0 { app.tap() }
+            return !((input.value as? String) ?? "").isEmpty && (input.value as? String) != "Ask the Agent…" && (input.value as? String) != "Listening…"
+        }
+        capture("dictation-real-speech")
+        attachText(String(describing: input.value), named: "Recognized text")
+        XCTAssertTrue(heard, "Nothing was recognized: \(String(describing: input.value)) \(any(app, "dictationNoticeText").exists ? any(app, "dictationNoticeText").label : "")")
+    }
 }

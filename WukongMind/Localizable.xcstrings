@@ -6744,19 +6744,19 @@
         }
       }
     },
-    "Dictation isn't available for this language right now." : {
+    "Dictation isn't available right now." : {
       "comment" : "Dictation failure: no speech recognizer",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "目前无法用这种语言听写。"
+            "value" : "现在无法听写。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "目前無法用這種語言聽寫。"
+            "value" : "現在無法聽寫。"
           }
         }
       }

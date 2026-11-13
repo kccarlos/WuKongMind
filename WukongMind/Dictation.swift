@@ -34,7 +34,7 @@ enum DictationFailure: Equatable {
         case .speechDenied:
             String(localized: "Turn on speech recognition for WukongMind in Settings to dictate.", comment: "Dictation failure: speech recognition permission denied; a Settings link follows")
         case .unavailable:
-            String(localized: "Dictation isn't available for this language right now.", comment: "Dictation failure: no speech recognizer")
+            String(localized: "Dictation isn't available right now.", comment: "Dictation failure: no speech recognizer")
         case .voiceBusy:
             String(localized: "End the voice session before dictating.", comment: "Dictation failure: a voice session is using the microphone")
         case .noSpeech:

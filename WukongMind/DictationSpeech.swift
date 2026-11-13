@@ -1,5 +1,6 @@
 import AVFoundation
 import Foundation
+import OSLog
 import Speech
 
 // MARK: - System speech recognition for dictation
@@ -23,6 +24,8 @@ final class SystemDictationBackend: DictationBackend {
         }
     }
 
+    private static let log = Logger(subsystem: "io.github.kccarlos.wukongmind", category: "Dictation")
+
     private var engine: AVAudioEngine?
     private var request: SFSpeechAudioBufferRecognitionRequest?
     private var task: SFSpeechRecognitionTask?
@@ -39,6 +42,18 @@ final class SystemDictationBackend: DictationBackend {
     }
 
     func start(onUpdate: @escaping @MainActor (String) -> Void, onEnd: @escaping @MainActor (DictationFailure?) -> Void) {
+        begin(preferOnDevice: true, onUpdate: onUpdate, onEnd: onEnd)
+    }
+
+    /// `preferOnDevice`: audio stays on the phone where the language has an
+    /// on-device model. If that recognizer fails before the first word (a
+    /// missing model, the simulator), it is tried once more with Apple's
+    /// servers rather than giving up.
+    private func begin(
+        preferOnDevice: Bool,
+        onUpdate: @escaping @MainActor (String) -> Void,
+        onEnd: @escaping @MainActor (DictationFailure?) -> Void
+    ) {
         tearDown()
         runID += 1
         let id = runID
@@ -52,7 +67,8 @@ final class SystemDictationBackend: DictationBackend {
         let request = SFSpeechAudioBufferRecognitionRequest()
         request.shouldReportPartialResults = true
         request.addsPunctuation = true
-        if recognizer.supportsOnDeviceRecognition { request.requiresOnDeviceRecognition = true }
+        let onDevice = preferOnDevice && recognizer.supportsOnDeviceRecognition
+        if onDevice { request.requiresOnDeviceRecognition = true }
         self.request = request
 
         let session = AVAudioSession.sharedInstance()
@@ -63,6 +79,7 @@ final class SystemDictationBackend: DictationBackend {
             let input = engine.inputNode
             let format = input.outputFormat(forBus: 0)
             guard format.sampleRate > 0, format.channelCount > 0 else {
+                Self.log.error("No microphone input format (sample rate \(format.sampleRate), channels \(format.channelCount))")
                 tearDown()
                 onEnd(.audio)
                 return
@@ -71,17 +88,25 @@ final class SystemDictationBackend: DictationBackend {
             engine.prepare()
             try engine.start()
         } catch {
+            Self.log.error("Audio start failed: \(error.localizedDescription, privacy: .public)")
             tearDown()
             onEnd(.audio)
             return
         }
         self.engine = engine
 
+        var heardText = false
         task = recognizer.recognitionTask(
             with: request,
             resultHandler: Self.resultHandler { [weak self] text, isFinal, error in
                 guard let self, id == runID else { return }
+                if let text, !text.isEmpty { heardText = true }
                 if let text { onUpdate(text) }
+                if error != nil, !heardText, !isFinal, onDevice {
+                    Self.log.error("On-device recognition failed, trying the network recognizer")
+                    begin(preferOnDevice: false, onUpdate: onUpdate, onEnd: onEnd)
+                    return
+                }
                 if isFinal || error != nil {
                     tearDown()
                     onEnd(isFinal || text != nil ? nil : Self.failure(for: error))
@@ -124,9 +149,11 @@ final class SystemDictationBackend: DictationBackend {
     private static func failure(for error: Error?) -> DictationFailure {
         guard let error else { return .noSpeech }
         let nsError = error as NSError
+        log.error("Recognition failed: \(nsError.domain, privacy: .public) \(nsError.code)")
         // kAFAssistantErrorDomain 1110: no speech detected.
         if nsError.domain == "kAFAssistantErrorDomain", nsError.code == 1110 { return .noSpeech }
-        return .audio
+        // The microphone ran (the audio engine started); the recognizer did not.
+        return .unavailable
     }
 
     /// The tap runs on the audio thread: built outside the main actor so it
