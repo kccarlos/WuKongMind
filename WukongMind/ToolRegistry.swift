@@ -311,11 +311,20 @@ struct ToolExecutionOutput: Equatable, Sendable {
     var content: String
     var summary: String
     var isError: Bool
+    /// Page-changing tools' before/after comparison; its lines are added
+    /// after saving or truncation, so the model always sees them.
+    var pageFeedback: PageFeedbackReport?
 
-    init(content: String, summary: String? = nil, isError: Bool = false) {
+    init(
+        content: String,
+        summary: String? = nil,
+        isError: Bool = false,
+        pageFeedback: PageFeedbackReport? = nil
+    ) {
         self.content = content
         self.summary = summary ?? Self.defaultSummary(for: content)
         self.isError = isError
+        self.pageFeedback = pageFeedback
     }
 
     static func defaultSummary(for text: String, maxChars: Int = 96) -> String {
@@ -350,6 +359,7 @@ struct ToolDispatchResult: Equatable, Sendable {
     var wasTruncated: Bool
     var totalCharacterCount: Int
     var duration: TimeInterval
+    var pageFeedback: PageFeedbackReport? = nil
 }
 
 /// Validates tool arguments against JSON Schema, dispatches tool calls, converts
@@ -605,7 +615,8 @@ struct ToolRegistry: Sendable {
                 rawOutput: execution.content,
                 summary: execution.summary,
                 isError: execution.isError,
-                duration: Self.secondsElapsed(since: started)
+                duration: Self.secondsElapsed(since: started),
+                pageFeedback: execution.pageFeedback
             )
         } catch let cancellation as CancellationError {
             throw cancellation
@@ -630,16 +641,24 @@ struct ToolRegistry: Sendable {
         rawOutput: String,
         summary: String,
         isError: Bool,
-        duration: TimeInterval
+        duration: TimeInterval,
+        pageFeedback: PageFeedbackReport? = nil
     ) -> ToolDispatchResult {
         let scrubbedOutput = UntrustedWebContent.redactSecrets(in: rawOutput, secrets: redactedSecrets)
         let scrubbedSummary = UntrustedWebContent.redactSecrets(in: summary, secrets: redactedSecrets)
-        let (finalOutput, wasTruncated, totalCount) = Self.truncate(scrubbedOutput, limit: truncationLimit)
-        let finalSummary: String
+        let (truncatedOutput, wasTruncated, totalCount) = Self.truncate(scrubbedOutput, limit: truncationLimit)
+        var finalSummary: String
         if wasTruncated {
             finalSummary = "\(scrubbedSummary) (truncated, \(totalCount) chars total)"
         } else {
             finalSummary = scrubbedSummary
+        }
+        // Page feedback goes on after truncation (design-m3.md "Page feedback").
+        let finalOutput = pageFeedback.map {
+            UntrustedWebContent.redactSecrets(in: $0.decorate(truncatedOutput), secrets: redactedSecrets)
+        } ?? truncatedOutput
+        if pageFeedback?.isWarning == true {
+            finalSummary = "Page may be broken · \(finalSummary)"
         }
         let wrapped = UntrustedWebContent.wrap(
             finalOutput,
@@ -656,7 +675,8 @@ struct ToolRegistry: Sendable {
             isError: isError,
             wasTruncated: wasTruncated,
             totalCharacterCount: totalCount,
-            duration: duration
+            duration: duration,
+            pageFeedback: pageFeedback
         )
     }
 
@@ -801,7 +821,7 @@ extension ToolRegistry {
                 let env = args["environment"]?.stringValue ?? AgentExecutionEnvironment.defaultEnvironment.rawValue
                 return env == AgentExecutionEnvironment.page.rawValue ? "\(snippet) (page)" : snippet
             },
-            execute: { args in
+            execute: withPageFeedback(bridge: bridge) { args in
                 let code = args["code"]?.stringValue ?? ""
                 let envRaw = args["environment"]?.stringValue ?? AgentExecutionEnvironment.defaultEnvironment.rawValue
                 let env = AgentExecutionEnvironment(rawValue: envRaw) ?? .defaultEnvironment
@@ -878,7 +898,7 @@ extension ToolRegistry {
                 }
                 return snippet
             },
-            execute: { args in
+            execute: withPageFeedback(bridge: bridge) { args in
                 let css = args["css"]?.stringValue ?? ""
                 let id = args["id"]?.stringValue
                 let injected = try await bridge.injectCSS(css: css, id: id)
@@ -1004,6 +1024,12 @@ extension ToolRegistry {
                 liveApplier: liveApplier,
                 currentUserPrompt: currentUserPrompt
             )
+        )
+        allTools.append(
+            contentsOf: navigationTools(bridge: bridge) { url in
+                guard scriptStore.isGlobalEnabled else { return 0 }
+                return scriptStore.scripts.filter { $0.isEnabled && $0.matches(urlString: url) }.count
+            }
         )
         return ToolRegistry(
             tools: allTools,

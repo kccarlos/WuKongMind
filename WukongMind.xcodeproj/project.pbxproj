@@ -204,6 +204,7 @@
 		96CD047112D2A9A0DEFB6030D4253F36 /* speech-b.wav in Resources */ = {isa = PBXBuildFile; fileRef = 259F4FCAC50096E3460ECB7CA51F8A5A /* speech-b.wav */; };
 		9706B3591713B3757B90EDAA607C686A /* AssistantSourcesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A687AF6553AD4397043165F229AAF8 /* AssistantSourcesTests.swift */; };
 		98142E2BC4276D9AA3856C6BD6190975 /* SettingsSyncPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 693A2BBBA5C4B13290A7C6E5CF5143AE /* SettingsSyncPage.swift */; };
+		9939510049F93E2939D5B8E957D12709 /* ToolRegistry+Navigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 479C700D68ED1D64EABF400DA709B450 /* ToolRegistry+Navigation.swift */; };
 		9A49A4E4599F5C4EF8D6E545AF043D50 /* PromptBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 804E6ABAD39405362E4AFD6556C28028 /* PromptBuilder.swift */; };
 		9DE20C4981C53931784C01C33ECFD6D6 /* BrowseNavigationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3695C5224C5FAEE71E6036854ABC3EE8 /* BrowseNavigationTests.swift */; };
 		9E094565B97F596EE0F70667EF7B06A1 /* session.json in Resources */ = {isa = PBXBuildFile; fileRef = C8A193E982A774A48205C2A38317353A /* session.json */; };
@@ -214,6 +215,7 @@
 		A0C6AA68B2699E94B0491AF872978431 /* SiteRecognizers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1478B927A10DC034FA5DFA88DF727CE9 /* SiteRecognizers.swift */; };
 		A30EF4656EA2C6878126DBA950B68EB7 /* IncomingLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB2A0E67E59C4E5735632DA43E3E40B6 /* IncomingLink.swift */; };
 		A5C6CF0C7493063F35FC5270A1847852 /* PhoneBrowserBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A275DFBEDA606D99AF56B27EBD01D3A /* PhoneBrowserBar.swift */; };
+		A66348F48A1B7CB3992BA1A9B35BC947 /* PageFeedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = D59256ED4B84352DE57124694030422C /* PageFeedback.swift */; };
 		A6C289B0CB4FEF453826D7025467D37F /* AppModel+Voice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F8888ED2E95462757408468498E0B03 /* AppModel+Voice.swift */; };
 		A766E1ED9F81A1F029B487D7C4BF0F0B /* PodcastPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F5C86516B55FD859134518E719473EC /* PodcastPlayer.swift */; };
 		A7A63A993382B8D80F6563A992CB1694 /* VoiceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF83176EE4C36CE85A55CE415337089E /* VoiceController.swift */; };
@@ -452,6 +454,7 @@
 		45C4BB3AF8DA2076FAB867891CD63987 /* VoiceAudioFormatTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VoiceAudioFormatTests.swift; sourceTree = "<group>"; };
 		46B2BF9CDB6ADC11AFF8417AE52432E4 /* SystemEntryTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SystemEntryTests.swift; sourceTree = "<group>"; };
 		46F19077FE79CF712E0F992BEBB2BF0F /* PodcastController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PodcastController.swift; path = Podcast/PodcastController.swift; sourceTree = "<group>"; };
+		479C700D68ED1D64EABF400DA709B450 /* ToolRegistry+Navigation.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "ToolRegistry+Navigation.swift"; sourceTree = "<group>"; };
 		47E51659A896743CE7458812F5730AA1 /* BrowseUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BrowseUITests.swift; sourceTree = "<group>"; };
 		48DA60014A923A21112CA32238DA234C /* DiscourseAdapter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DiscourseAdapter.swift; path = Sites/Discourse/DiscourseAdapter.swift; sourceTree = "<group>"; };
 		49ACBEF5C3F23731890FB5D8A695896A /* WordPressUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WordPressUITests.swift; sourceTree = "<group>"; };
@@ -622,6 +625,7 @@
 		D430B405FC2361AC895CE3BA61F92646 /* CloudSyncFakes.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CloudSyncFakes.swift; sourceTree = "<group>"; };
 		D463BFC5BF14AE85F25FBFD19F9865B0 /* wordpress-post.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "wordpress-post.json"; path = "Fixtures/PageFacts/wordpress-post.json"; sourceTree = "<group>"; };
 		D58ED00A9469E49753D083C8F8F42346 /* AgentBridge.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AgentBridge.swift; sourceTree = "<group>"; };
+		D59256ED4B84352DE57124694030422C /* PageFeedback.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PageFeedback.swift; sourceTree = "<group>"; };
 		D65DE4066D1749FEAC9201CEA7A2AFB9 /* FixtureWordPressServer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FixtureWordPressServer.swift; sourceTree = "<group>"; };
 		D8C48FCA743BC8206BC5656C40FA0B35 /* PageContext.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PageContext.swift; sourceTree = "<group>"; };
 		DA037733188E9F819FFFE838366E781F /* FixtureSpaForumServer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FixtureSpaForumServer.swift; sourceTree = "<group>"; };
@@ -840,6 +844,7 @@
 				0BB9ED976AA730F8669BBE591B47FC4B /* OnboardingSteps.swift */,
 				F54B25AD6ECEA7DE424023984039172D /* OnboardingTry.swift */,
 				D8C48FCA743BC8206BC5656C40FA0B35 /* PageContext.swift */,
+				D59256ED4B84352DE57124694030422C /* PageFeedback.swift */,
 				00004CA949993446050494F100D6BA22 /* Persistence.swift */,
 				6A275DFBEDA606D99AF56B27EBD01D3A /* PhoneBrowserBar.swift */,
 				46F19077FE79CF712E0F992BEBB2BF0F /* PodcastController.swift */,
@@ -914,6 +919,7 @@
 				77153C07F2634A24DB09AA5C32E2EECE /* AppIntents.swift */,
 				34B1D263CE0E63204C93309E707823B7 /* Spotlight.swift */,
 				68DBA89C5AA481675E889573F9B9F5C4 /* SystemEntry.swift */,
+				479C700D68ED1D64EABF400DA709B450 /* ToolRegistry+Navigation.swift */,
 				3C6DB6050C22BC6A56887A6EA8CD49A2 /* ToolRegistry.swift */,
 				ED58D90CA04439105E0F52D10E777312 /* ReadingLanguage.swift */,
 				55548E189723CEBF1031A0F2220CB585 /* TranslationViews.swift */,
@@ -1497,6 +1503,7 @@
 				1B50FD246E9685CC18F84A7E74F492BA /* OnboardingSteps.swift in Sources */,
 				6338A07405B23F667A43798A6F4D9EA8 /* OnboardingTry.swift in Sources */,
 				CAFD4C5DD8DC46797D14360723990220 /* PageContext.swift in Sources */,
+				A66348F48A1B7CB3992BA1A9B35BC947 /* PageFeedback.swift in Sources */,
 				4142A1286420703AC2B5EF495807F60A /* Persistence.swift in Sources */,
 				A5C6CF0C7493063F35FC5270A1847852 /* PhoneBrowserBar.swift in Sources */,
 				52E0C285BACF97A92A6BFFF2D6D88651 /* PodcastController.swift in Sources */,
@@ -1571,6 +1578,7 @@
 				7504C2400117E20DD6158641AFD5EF15 /* AppIntents.swift in Sources */,
 				5683613F6ABFAECA8A65544A16A4DC44 /* Spotlight.swift in Sources */,
 				C92778E72BDB1B486CCE4854D48AF01B /* SystemEntry.swift in Sources */,
+				9939510049F93E2939D5B8E957D12709 /* ToolRegistry+Navigation.swift in Sources */,
 				5FC3DA4AF9DA762E8B5143C59BBC55BF /* ToolRegistry.swift in Sources */,
 				38DD3F514A1623D7A3ABE81EF43095AB /* ReadingLanguage.swift in Sources */,
 				7E59B224E2D1D713604736088013D640 /* TranslationViews.swift in Sources */,
@@ -1643,35 +1651,35 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		2066E541508F6CC7252BFF04D83A7E4E /* Debug */ = {
+		0CACB42BAAD0B07CA9F1EA9D52B81F11 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ENABLE_OBJC_WEAK = NO;
-				CODE_SIGN_ENTITLEMENTS = WukongMind/WukongMind.entitlements;
+				CODE_SIGN_ENTITLEMENTS = WukongMindShare/WukongMindShare.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DC_APP_GROUP = group.io.github.kccarlos.wukongmind;
 				DC_IDENTIFIER_PREFIX = io.github.kccarlos.wukongmind;
 				DEVELOPMENT_TEAM = GV776BZVA8;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = WukongMind/Info.plist;
+				INFOPLIST_FILE = WukongMindShare/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
 				MARKETING_VERSION = 1.1.5;
-				OTHER_SWIFT_FLAGS = "$(inherited)";
-				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind;
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind.share;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = minimal;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
 			};
-			name = Debug;
+			name = Release;
 		};
 		31BEAC3830519414D4289724B97DFB66 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -1809,96 +1817,6 @@
 			};
 			name = Release;
 		};
-		590112E6BBDB811662564238443C8A35 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				APPLICATION_EXTENSION_API_ONLY = YES;
-				CLANG_ENABLE_OBJC_WEAK = NO;
-				CODE_SIGN_ENTITLEMENTS = WukongMindShare/WukongMindShare.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DC_APP_GROUP = group.io.github.kccarlos.wukongmind;
-				DC_IDENTIFIER_PREFIX = io.github.kccarlos.wukongmind;
-				DEVELOPMENT_TEAM = GV776BZVA8;
-				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = WukongMindShare/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
-				MARKETING_VERSION = 1.1.5;
-				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind.share;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_STRICT_CONCURRENCY = minimal;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				VALIDATE_PRODUCT = YES;
-			};
-			name = Release;
-		};
-		71FB69C1BDB5BE83D137EEA01C474DBB /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CLANG_ENABLE_OBJC_WEAK = NO;
-				CODE_SIGN_ENTITLEMENTS = WukongMind/WukongMind.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DC_APP_GROUP = group.io.github.kccarlos.wukongmind;
-				DC_IDENTIFIER_PREFIX = io.github.kccarlos.wukongmind;
-				DEVELOPMENT_TEAM = GV776BZVA8;
-				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = WukongMind/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 1.1.5;
-				OTHER_SWIFT_FLAGS = "$(inherited)";
-				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_STRICT_CONCURRENCY = minimal;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				VALIDATE_PRODUCT = YES;
-			};
-			name = Release;
-		};
-		905B7A1966D82D315B2BA908A23C1210 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				APPLICATION_EXTENSION_API_ONLY = YES;
-				CLANG_ENABLE_OBJC_WEAK = NO;
-				CODE_SIGN_ENTITLEMENTS = WukongMindShare/WukongMindShare.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DC_APP_GROUP = group.io.github.kccarlos.wukongmind;
-				DC_IDENTIFIER_PREFIX = io.github.kccarlos.wukongmind;
-				DEVELOPMENT_TEAM = GV776BZVA8;
-				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = WukongMindShare/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
-				MARKETING_VERSION = 1.1.5;
-				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind.share;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_STRICT_CONCURRENCY = minimal;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
 		A17E747EE02E2D562FEB4A47D484B91D /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1951,6 +1869,35 @@
 			};
 			name = Debug;
 		};
+		B6A1F7BEC11FF6E27CD7C74F20DFD682 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = WukongMindShare/WukongMindShare.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DC_APP_GROUP = group.io.github.kccarlos.wukongmind;
+				DC_IDENTIFIER_PREFIX = io.github.kccarlos.wukongmind;
+				DEVELOPMENT_TEAM = GV776BZVA8;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = WukongMindShare/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				MARKETING_VERSION = 1.1.5;
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind.share;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
 		CE45AAF706AD2D3DF7D7F241BF21C72E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1992,6 +1939,67 @@
 			};
 			name = Release;
 		};
+		E949B769A798BFB5ACD4DF74133D3171 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = WukongMind/WukongMind.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DC_APP_GROUP = group.io.github.kccarlos.wukongmind;
+				DC_IDENTIFIER_PREFIX = io.github.kccarlos.wukongmind;
+				DEVELOPMENT_TEAM = GV776BZVA8;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = WukongMind/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 1.1.5;
+				OTHER_SWIFT_FLAGS = "$(inherited)";
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		F71BB9C650322C1C0A3AB6663B568DDE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = WukongMind/WukongMind.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DC_APP_GROUP = group.io.github.kccarlos.wukongmind;
+				DC_IDENTIFIER_PREFIX = io.github.kccarlos.wukongmind;
+				DEVELOPMENT_TEAM = GV776BZVA8;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = WukongMind/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 1.1.5;
+				OTHER_SWIFT_FLAGS = "$(inherited)";
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -2007,8 +2015,8 @@
 		7F47FA70E98716F0343E66C51BF1D32A /* Build configuration list for PBXNativeTarget "WukongMind" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				71FB69C1BDB5BE83D137EEA01C474DBB /* Release */,
-				2066E541508F6CC7252BFF04D83A7E4E /* Debug */,
+				E949B769A798BFB5ACD4DF74133D3171 /* Release */,
+				F71BB9C650322C1C0A3AB6663B568DDE /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -2043,8 +2051,8 @@
 		E4F9F055622E051509E620676B2CAF91 /* Build configuration list for PBXNativeTarget "WukongMindShare" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				590112E6BBDB811662564238443C8A35 /* Release */,
-				905B7A1966D82D315B2BA908A23C1210 /* Debug */,
+				0CACB42BAAD0B07CA9F1EA9D52B81F11 /* Release */,
+				B6A1F7BEC11FF6E27CD7C74F20DFD682 /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

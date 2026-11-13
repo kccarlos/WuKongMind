@@ -68,6 +68,7 @@ enum AgentBridgeError: LocalizedError, Equatable, Sendable {
     case javaScriptFailed(String)
     case timedOut(seconds: Double)
     case invalidWaitArguments
+    case navigationUnavailable
 
     var errorDescription: String? {
         switch self {
@@ -86,6 +87,8 @@ enum AgentBridgeError: LocalizedError, Equatable, Sendable {
             return "JavaScript execution timed out after \(formatted)s."
         case .invalidWaitArguments:
             return "wait_for requires a non-empty 'selector' or a positive 'ms' duration."
+        case .navigationUnavailable:
+            return "This browser can't open or reload pages for the agent."
         }
     }
 }
@@ -102,6 +105,47 @@ protocol AgentPageDriving: Sendable {
     ) async throws -> JSExecutionResult
     func injectCSS(css: String, id: String?) async throws -> CSSInjectionResult
     func waitFor(selector: String?, milliseconds: Int?) async throws -> WaitForResult
+    /// Page-feedback snapshot (PageFeedback.swift); nil when the page can't
+    /// be read, and then no "Page changes" lines are added.
+    func pageSnapshot() async -> PageStateSnapshot?
+    /// Opens `url` on the browser's one page. `wait: false` returns as soon
+    /// as the load starts; otherwise when it finishes, fails or times out.
+    func load(_ url: URL, wait: Bool, timeout: TimeInterval) async throws -> AgentNavigationOutcome
+    /// Reloads the page, dropping unsaved changes; saved scripts run again.
+    func reload(timeout: TimeInterval) async throws -> AgentNavigationOutcome
+}
+
+extension AgentPageDriving {
+    func pageSnapshot() async -> PageStateSnapshot? { nil }
+
+    func load(_ url: URL, wait: Bool, timeout: TimeInterval) async throws -> AgentNavigationOutcome {
+        throw AgentBridgeError.navigationUnavailable
+    }
+
+    func reload(timeout: TimeInterval) async throws -> AgentNavigationOutcome {
+        throw AgentBridgeError.navigationUnavailable
+    }
+}
+
+/// How a `navigate` or `reload_page` load ended.
+struct AgentNavigationOutcome: Equatable, Sendable {
+    var url: String
+    var title: String
+    /// The main document's HTTP status, when WebKit reported one.
+    var status: Int?
+    var loadMs: Int
+    var timedOut: Bool = false
+    /// Set when the load failed (no connection, a bad host); the page may
+    /// still show the previous document.
+    var failure: String?
+}
+
+/// The browser that owns the page: awaitable loads and reloads for the
+/// agent's `navigate` and `reload_page` (`ForumBrowserModel`).
+@MainActor
+protocol AgentPageNavigating: AnyObject {
+    func agentLoad(_ url: URL, wait: Bool, timeout: TimeInterval) async throws -> AgentNavigationOutcome
+    func agentReload(timeout: TimeInterval) async throws -> AgentNavigationOutcome
 }
 
 /// Bridges the browser agent's page tools (`read_page`, `run_js`, `inject_css`,
@@ -130,6 +174,9 @@ final class AgentBridge: NSObject, AgentPageDriving {
     /// userscript `GM_*` calls). Built-in `"ping"` and `"pageInfo"` actions are
     /// always handled even when `replyRouter` is `nil`.
     var replyRouter: (([String: Any]) async throws -> Any?)?
+    /// Loads and reloads for `navigate` and `reload_page`; set by the
+    /// browser that owns the web view.
+    weak var navigator: AgentPageNavigating?
 
     private let replyMessageHandler = AgentReplyMessageHandler()
     private var nextGeneratedSheetIndex = 0
@@ -148,6 +195,43 @@ final class AgentBridge: NSObject, AgentPageDriving {
             contentWorld: Self.isolatedWorld,
             name: Self.messageHandlerName
         )
+        // Page feedback's error counter (page world, document start).
+        controller.addUserScript(
+            WKUserScript(
+                source: PageFeedbackScripts.errorCounterSource,
+                injectionTime: .atDocumentStart,
+                forMainFrameOnly: true,
+                in: .page
+            )
+        )
+    }
+
+    // MARK: - Page feedback and navigation
+
+    func pageSnapshot() async -> PageStateSnapshot? {
+        guard let webView else { return nil }
+        guard let raw = try? await callAsyncJS(
+            script: PageFeedbackScripts.snapshotFunction,
+            arguments: [:],
+            world: Self.isolatedWorld,
+            timeout: 3
+        ) else { return nil }
+        let errors = (try? await webView.evaluateJavaScript(
+            PageFeedbackScripts.errorCounterRead,
+            in: nil,
+            contentWorld: .page
+        )) as? Int ?? 0
+        return PageFeedbackScripts.snapshot(from: raw, pageErrorCount: errors)
+    }
+
+    func load(_ url: URL, wait: Bool, timeout: TimeInterval) async throws -> AgentNavigationOutcome {
+        guard let navigator else { throw AgentBridgeError.navigationUnavailable }
+        return try await navigator.agentLoad(url, wait: wait, timeout: timeout)
+    }
+
+    func reload(timeout: TimeInterval) async throws -> AgentNavigationOutcome {
+        guard let navigator else { throw AgentBridgeError.navigationUnavailable }
+        return try await navigator.agentReload(timeout: timeout)
     }
 
     func contentWorld(for environment: AgentExecutionEnvironment) -> WKContentWorld {

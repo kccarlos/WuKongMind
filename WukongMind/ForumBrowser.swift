@@ -209,6 +209,10 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     /// superseded navigation cannot overwrite flags of a newer load.
     private var activeNavigation: WKNavigation?
     private var activeNavigationStarted = false
+    /// The agent's `navigate` or `reload_page` waiting for its load to end.
+    fileprivate var agentNavigationWaiter: AgentNavigationWaiter?
+    /// The main document's HTTP status of the latest response.
+    fileprivate var mainDocumentStatus: Int?
     /// The longest a load waits for rule-list lookups (never for compiling).
     static let ruleLookupWait: Duration = .milliseconds(300)
     /// Called whenever `pageContext` changes, apart from its position fields.
@@ -296,6 +300,7 @@ final class ForumBrowserModel: NSObject, ObservableObject {
             library: contentRules
         )
         super.init()
+        agentBridge.navigator = self
         routeMessageHandler.browser = self
         configuration.userContentController.add(
             routeMessageHandler,
@@ -545,6 +550,7 @@ final class ForumBrowserModel: NSObject, ObservableObject {
         activeNavigation = nil
         activeNavigationStarted = false
         webView.stopLoading()
+        finishAgentNavigation(.failed("Loading was stopped."))
     }
 
     /// Applies a new blocking policy right away. Returns true when it
@@ -977,8 +983,21 @@ private final class ForumRouteMessageHandler: NSObject, WKScriptMessageHandler {
 extension ForumBrowserModel: WKNavigationDelegate {
     func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
         Task { @MainActor in
+            self.finishAgentNavigation(.failed("The page's web process quit."))
             self.handleWebContentTermination()
         }
+    }
+
+    func webView(
+        _ webView: WKWebView,
+        decidePolicyFor navigationResponse: WKNavigationResponse,
+        decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void
+    ) {
+        if navigationResponse.isForMainFrame {
+            mainDocumentStatus = (navigationResponse.response as? HTTPURLResponse)?.statusCode
+        }
+        // WebKit's own default: show what it can show.
+        decisionHandler(navigationResponse.canShowMIMEType ? .allow : .cancel)
     }
 
     func webView(
@@ -1060,6 +1079,7 @@ extension ForumBrowserModel: WKNavigationDelegate {
         suppressLoadError = false
         if showsCrashNotice { showsCrashNotice = false }
         updateNavigationState()
+        finishAgentNavigation(.finished)
         Task { @MainActor in
             guard self.deferredLoad == nil, self.activeNavigation == nil else { return }
             // A full load starts a fresh bridge: mark the landing post again.
@@ -1091,6 +1111,7 @@ extension ForumBrowserModel: WKNavigationDelegate {
         holdsHomeOverLoad = false
         suppressLoadError = false
         updateNavigationState()
+        agentNavigationDidFail(error)
         guard !Self.isIgnorableNavigationError(error) else { return }
         #if DEBUG
         if ignoresNavigationFailures { return }
@@ -1116,6 +1137,7 @@ extension ForumBrowserModel: WKNavigationDelegate {
         holdsHomeOverLoad = false
         // The page did not change: back to its lists.
         contentBlocker.prepare(forTopURL: webView.url)
+        agentNavigationDidFail(error)
         let ignored = Self.isIgnorableNavigationError(error)
         if !ignored {
             suppressLoadError = false
@@ -1236,5 +1258,161 @@ struct ForumWebView: UIViewRepresentable {
 private extension String {
     var nonEmpty: String? {
         isEmpty ? nil : self
+    }
+}
+
+// MARK: - Awaitable loads for the agent (design-m3.md "navigate and reload_page")
+
+/// How an agent-awaited load ended.
+enum AgentNavigationEnding: Equatable {
+    case finished
+    case failed(String)
+    case timedOut
+    case cancelled
+}
+
+/// One awaited load: resumed exactly once, by the navigation delegate, a
+/// newer agent load, the timeout or cancellation.
+@MainActor
+final class AgentNavigationWaiter {
+    private var continuation: CheckedContinuation<AgentNavigationEnding, Never>?
+    private var pending: AgentNavigationEnding?
+    var timeoutTask: Task<Void, Never>?
+
+    func install(_ continuation: CheckedContinuation<AgentNavigationEnding, Never>) {
+        if let pending {
+            continuation.resume(returning: pending)
+        } else {
+            self.continuation = continuation
+        }
+    }
+
+    func finish(_ ending: AgentNavigationEnding) {
+        guard pending == nil else { return }
+        pending = ending
+        timeoutTask?.cancel()
+        timeoutTask = nil
+        if let continuation {
+            self.continuation = nil
+            continuation.resume(returning: ending)
+        }
+    }
+}
+
+extension ForumBrowserModel: AgentPageNavigating {
+    func agentLoad(_ url: URL, wait: Bool, timeout: TimeInterval) async throws -> AgentNavigationOutcome {
+        let isBlank = url.absoluteString == "about:blank"
+        guard isBlank || Self.isBrowsableURL(url) else {
+            return AgentNavigationOutcome(
+                url: webView.url?.absoluteString ?? "",
+                title: webView.title ?? "",
+                status: nil,
+                loadMs: 0,
+                failure: "Only http, https and about:blank addresses can be opened."
+            )
+        }
+        let start: () -> Bool = { [weak self] in
+            guard let self else { return false }
+            if isBlank {
+                self.deferredLoad = nil
+                self.hideForumsHome()
+                self.activeNavigation = self.webView.load(URLRequest(url: url))
+                self.activeNavigationStarted = false
+            } else {
+                self.load(url)
+            }
+            return true
+        }
+        guard wait else {
+            finishAgentNavigation(.cancelled)
+            mainDocumentStatus = nil
+            _ = start()
+            return AgentNavigationOutcome(url: url.absoluteString, title: "", status: nil, loadMs: 0)
+        }
+        return try await awaitAgentNavigation(timeout: timeout, start: start)
+    }
+
+    func agentReload(timeout: TimeInterval) async throws -> AgentNavigationOutcome {
+        try await awaitAgentNavigation(timeout: timeout) { [weak self] in
+            guard let self else { return false }
+            if self.webView.url != nil {
+                self.reload()
+                return true
+            }
+            if let url = self.currentURL, Self.isBrowsableURL(url) {
+                self.load(url)
+                return true
+            }
+            return false
+        }
+    }
+
+    private func awaitAgentNavigation(
+        timeout: TimeInterval,
+        start: @escaping () -> Bool
+    ) async throws -> AgentNavigationOutcome {
+        try Task.checkCancellation()
+        // A newer agent load supersedes an older one still waiting.
+        finishAgentNavigation(.cancelled)
+        let waiter = AgentNavigationWaiter()
+        agentNavigationWaiter = waiter
+        mainDocumentStatus = nil
+        let started = ContinuousClock.now
+        let effectiveTimeout = max(0.1, timeout)
+
+        let ending = await withTaskCancellationHandler {
+            await withCheckedContinuation { (continuation: CheckedContinuation<AgentNavigationEnding, Never>) in
+                waiter.install(continuation)
+                waiter.timeoutTask = Task { @MainActor [weak waiter] in
+                    try? await Task.sleep(for: .milliseconds(Int(effectiveTimeout * 1_000)))
+                    guard !Task.isCancelled else { return }
+                    waiter?.finish(.timedOut)
+                }
+                if !start() {
+                    waiter.finish(.failed("There is no page to reload."))
+                }
+            }
+        } onCancel: {
+            Task { @MainActor in waiter.finish(.cancelled) }
+        }
+        if agentNavigationWaiter === waiter { agentNavigationWaiter = nil }
+        if ending == .cancelled, Task.isCancelled { throw CancellationError() }
+
+        let elapsed = started.duration(to: .now)
+        let loadMs = Int(elapsed.components.seconds * 1_000)
+            + Int(elapsed.components.attoseconds / 1_000_000_000_000_000)
+        var outcome = AgentNavigationOutcome(
+            url: webView.url?.absoluteString ?? currentURL?.absoluteString ?? "",
+            title: webView.title ?? "",
+            status: mainDocumentStatus,
+            loadMs: loadMs
+        )
+        switch ending {
+        case .finished:
+            break
+        case .timedOut:
+            outcome.timedOut = true
+        case .failed(let message):
+            outcome.failure = message
+        case .cancelled:
+            outcome.failure = "Another page load took over."
+        }
+        return outcome
+    }
+
+    fileprivate func finishAgentNavigation(_ ending: AgentNavigationEnding) {
+        guard let waiter = agentNavigationWaiter else { return }
+        agentNavigationWaiter = nil
+        waiter.finish(ending)
+    }
+
+    /// A failed load ends the agent's wait, unless it was only cancelled by a
+    /// newer navigation still under way (that one's end resolves it).
+    fileprivate func agentNavigationDidFail(_ error: Error) {
+        guard agentNavigationWaiter != nil else { return }
+        if Self.isIgnorableNavigationError(error), webView.isLoading || deferredLoad != nil {
+            return
+        }
+        finishAgentNavigation(.failed(error.localizedDescription))
     }
 }
