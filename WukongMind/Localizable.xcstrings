@@ -7441,6 +7441,23 @@
         }
       }
     },
+    "Following. I'll tell you when new replies come in." : {
+      "comment" : "Agent confirmation after the Notify me of new replies suggestion",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已关注。有新回复时我会告诉你。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已追蹤。有新回覆時我會告訴你。"
+          }
+        }
+      }
+    },
     "For example: Answer in English. Keep summaries under 200 words." : {
       "comment" : "Placeholder for custom AI instructions. Translations may name their own language instead of English.",
       "localizations" : {
@@ -9658,6 +9675,23 @@
         }
       }
     },
+    "Make it dark" : {
+      "comment" : "Suggestion above the Agent composer on an ordinary web page",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切换为深色"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切換為深色"
+          }
+        }
+      }
+    },
     "Make the podcast every day" : {
       "localizations" : {
         "zh-Hans" : {
@@ -10855,6 +10889,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "通知"
+          }
+        }
+      }
+    },
+    "Notify me of new replies" : {
+      "comment" : "Suggestion above the Agent composer on a forum thread: follows it",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有新回复时通知我"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有新回覆時通知我"
           }
         }
       }
@@ -12901,6 +12952,23 @@
         }
       }
     },
+    "Read it to me" : {
+      "comment" : "Suggestion above the Agent composer on a forum thread: reads the summary aloud",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "读给我听"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "讀給我聽"
+          }
+        }
+      }
+    },
     "Read page %lld of %lld" : {
       "comment" : "Ask the forum step outcome: page read in a topic",
       "localizations" : {
@@ -13521,6 +13589,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "移除並刪除已儲存的資料"
+          }
+        }
+      }
+    },
+    "Remove distractions" : {
+      "comment" : "Suggestion above the Agent composer on an ordinary web page",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "去掉干扰内容"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除干擾內容"
           }
         }
       }
@@ -14639,6 +14724,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "搜尋步數：%lld"
+          }
+        }
+      }
+    },
+    "Search this forum…" : {
+      "comment" : "Suggestion above the Agent composer on a forum: fills the box to finish the search",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜索这个论坛…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜尋這個論壇…"
           }
         }
       }
@@ -15975,6 +16077,23 @@
         }
       }
     },
+    "Suggestions" : {
+      "comment" : "Accessibility label of the suggestion row above the Agent composer",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "建议"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "建議"
+          }
+        }
+      }
+    },
     "Summaries" : {
       "comment" : "AI model role: the model used for summaries, digests and reply checks",
       "localizations" : {
@@ -16170,6 +16289,23 @@
         }
       }
     },
+    "Summarize this page" : {
+      "comment" : "Suggestion above the Agent composer on an ordinary web page",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "总结这个页面"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "總結這個頁面"
+          }
+        }
+      }
+    },
     "Summarize this thread" : {
       "comment" : "Spoken label of the hint row's button on a thread without a summary",
       "localizations" : {
@@ -16183,6 +16319,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "為此話題產生摘要"
+          }
+        }
+      }
+    },
+    "Summarize this thread and replies" : {
+      "comment" : "Suggestion above the Agent composer on a forum thread",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "总结这个帖子和回复"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "總結這篇貼文和回覆"
           }
         }
       }
@@ -19929,6 +20082,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "同步的內容"
+          }
+        }
+      }
+    },
+    "What's worth reading today" : {
+      "comment" : "Suggestion above the Agent composer on a forum's topic list",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今天有什么值得读"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今天有什麼值得讀"
           }
         }
       }
