@@ -14,7 +14,7 @@
             buildForAnalyzing = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "CBEBA697F84FD40333849DC7"
+               BlueprintIdentifier = "B08457F8AD4646D1C68AAE43"
                BuildableName = "WukongMindAgentCoreTests.xctest"
                BlueprintName = "WukongMindAgentCoreTests"
                ReferencedContainer = "container:WukongMind.xcodeproj">
@@ -32,7 +32,7 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "CBEBA697F84FD40333849DC7"
+               BlueprintIdentifier = "B08457F8AD4646D1C68AAE43"
                BuildableName = "WukongMindAgentCoreTests.xctest"
                BlueprintName = "WukongMindAgentCoreTests"
                ReferencedContainer = "container:WukongMind.xcodeproj">

@@ -16,12 +16,6 @@ final class MotionTests: XCTestCase {
         XCTAssertEqual(ResultCardMotion.delay(order: 5, reduceMotion: true), 0)
     }
 
-    func testOnboardingChecksStaggerBy60MillisecondsOrAppearAtOnce() {
-        let first = ChecklistMotion.delay(order: 0, reduceMotion: false)
-        XCTAssertEqual(ChecklistMotion.delay(order: 3, reduceMotion: false) - first, 0.18, accuracy: 1e-9)
-        for order in 0..<4 { XCTAssertEqual(ChecklistMotion.delay(order: order, reduceMotion: true), 0) }
-    }
-
     /// The AI button bounces when its trigger (the finished answer's id)
     /// changes: a new answer is a new id; seen, it is none.
     func testTheAIButtonBouncesOnceForEachNewFinishedAnswer() throws {

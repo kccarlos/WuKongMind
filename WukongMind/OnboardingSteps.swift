@@ -1,7 +1,8 @@
 import SwiftUI
 
-// The eight walkthrough pages. Each page scrolls on its own so large text and
-// landscape phones never clip.
+// The first-run pages (design-unified.md §5): 1 pick a model, 2 open a site.
+// Step 3, the Agent's first run, is in OnboardingTry.swift. Each page scrolls on
+// its own so large text and landscape phones never clip.
 
 /// Scrolling, width-limited column shared by the pages.
 struct OnboardingPage<Content: View>: View {
@@ -106,299 +107,275 @@ struct OnboardingFeatureRow: View {
     }
 }
 
-// MARK: 1. Welcome
+// MARK: 1. Pick a model
 
-struct OnboardingWelcomePage: View {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var appeared = false
-
-    var body: some View {
-        OnboardingPage(alignment: .center) {
-            Spacer(minLength: DCTheme.spacingL)
-            hero
-                .scaleEffect(appeared || reduceMotion ? 1 : 0.86)
-                .opacity(appeared ? 1 : 0)
-            OnboardingHeader(
-                eyebrow: String(localized: "Welcome to WukongMind"),
-                title: String(localized: "Catch up on any forum or article in seconds"),
-                subtitle: String(localized: "Browse your forums, get clear summaries of long topics, and ask questions with answers that cite their sources."),
-                alignment: .center
-            )
-            .opacity(appeared ? 1 : 0)
-            .offset(y: appeared || reduceMotion ? 0 : 12)
-            HStack(spacing: DCTheme.spacingS) {
-                DCPill(text: String(localized: "Read", comment: "Walkthrough welcome: read forums"), systemImage: "book.fill", tint: DCTheme.summaryTint)
-                DCPill(text: String(localized: "Ask", comment: "Walkthrough welcome: ask questions"), systemImage: "sparkles", tint: DCTheme.chatTint)
-                DCPill(text: String(localized: "Listen", comment: "Walkthrough welcome: listen to the podcast"), systemImage: "headphones", tint: DCTheme.agentTint)
-            }
-            .opacity(appeared ? 1 : 0)
-        }
-        .onAppear {
-            withAnimation(reduceMotion ? .easeOut(duration: 0.2) : DCMotion.spring.delay(0.05)) {
-                appeared = true
-            }
-        }
-    }
-
-    private var hero: some View {
-        BrandMark(size: 164)
-            .padding(.vertical, DCTheme.spacingS)
-            .accessibilityHidden(true)
-    }
-}
-
-// MARK: 3. Connect an AI provider
-
-struct OnboardingProviderPage: View {
+/// Step 1: the mark, then the providers for the Agent as radio rows (only
+/// tool-calling models can be the Agent). The chosen row opens its key and
+/// model fields; Continue tests them (OnboardingFlow).
+struct OnboardingModelPage: View {
     @ObservedObject var app: AppModel
     @Binding var state: ProviderTestState
+    @State private var choosesOther = false
 
-    private var current: AIProvider { app.selection(for: .assistant).provider }
+    static let namedProviders: [AIProvider] = [.anthropic, .openRouter, .openAI]
+    private let scope = ModelScope.role(.browserAgent)
+
+    private var current: AIProvider { app.selection(for: .browserAgent).provider }
+    private var othersSelected: Bool { choosesOther || !Self.namedProviders.contains(current) }
 
     var body: some View {
-        OnboardingPage {
-            OnboardingHeader(
-                eyebrow: OnboardingStep.provider.stepLabel,
-                title: String(localized: "Choose your AI"),
-                subtitle: String(localized: "WukongMind doesn’t include its own AI. Pick one; you can change it any time in Settings.")
-            )
+        OnboardingPage(alignment: .center, spacing: DCTheme.spacingL) {
             VStack(spacing: DCTheme.spacingS) {
-                choice(.gemini, recommended: true,
-                       detail: String(localized: "Fast. Voice and podcast voices need it.", comment: "Walkthrough: why Google Gemini is recommended"))
-                if app.isAppleIntelligenceSupportedOnDevice {
-                    choice(.appleIntelligence, recommended: false,
-                           detail: String(localized: "Built in and private. No key.", comment: "Walkthrough: Apple Intelligence"))
-                }
+                DCLogoView(size: 56, showsWordmark: true)
+                    .padding(.bottom, DCTheme.spacingS)
+                Text("An agent for any web page", comment: "First-run step 1 title")
+                    .font(.title.weight(.bold))
+                    .foregroundStyle(DCTheme.ink)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityAddTraits(.isHeader)
+                Text("Pick a model for the Agent.", comment: "First-run step 1 subtitle")
+                    .font(.body)
+                    .foregroundStyle(DCTheme.inkMuted)
+                    .multilineTextAlignment(.center)
             }
-            // One model for everything to start; Settings › AI models can
-            // give Ask the forum its own later. The form's menu lists the
-            // other providers.
-            ProviderSetupForm(app: app, scope: .both, state: $state)
+            .frame(maxWidth: .infinity)
+            VStack(spacing: 0) {
+                ForEach(Self.namedProviders, id: \.self) { provider in
+                    row(provider)
+                    Divider().overlay(DCTheme.hairline)
+                }
+                otherRow
+            }
+            .background(DCTheme.surface, in: RoundedRectangle(cornerRadius: DCTheme.radiusLg, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: DCTheme.radiusLg, style: .continuous).strokeBorder(DCTheme.hairline)
+            }
+            Label {
+                Text("Keys stay in the Keychain", comment: "First-run step 1 footnote")
+            } icon: {
+                Image(systemName: "key.fill")
+            }
+            .font(.footnote)
+            .foregroundStyle(DCTheme.inkMuted)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, DCTheme.spacingS)
         }
         .onAppear {
-            if !app.isProviderReady, !app.appleIntelligenceStatus.isAvailable, current != .gemini {
-                app.selectProvider(.gemini, for: .both)
+            // The first provider is chosen, as the design draws it.
+            if app.settings.browserAgentModel == nil { app.selectProvider(Self.namedProviders[0], for: scope) }
+        }
+    }
+
+    private func row(_ provider: AIProvider) -> some View {
+        let isOn = !othersSelected && current == provider
+        return VStack(spacing: 0) {
+            radioRow(title: provider.displayName, isOn: isOn, id: "onboardingProvider-\(provider.rawValue)") {
+                choosesOther = false
+                state = .idle
+                app.selectProvider(provider, for: scope)
+            }
+            if isOn { form }
+        }
+    }
+
+    private var otherRow: some View {
+        VStack(spacing: 0) {
+            radioRow(
+                title: String(localized: "Other provider…", comment: "First-run step 1: the row that opens every other provider"),
+                isOn: othersSelected,
+                id: "onboardingProvider-other"
+            ) {
+                guard !othersSelected else { return }
+                choosesOther = true
+                state = .idle
+            }
+            if othersSelected {
+                VStack(alignment: .leading, spacing: DCTheme.spacingM) {
+                    ProviderMenu(app: app, scope: scope) {
+                        HStack(spacing: DCTheme.spacingM) {
+                            Text(Self.namedProviders.contains(current) ? String(localized: "Choose a provider", comment: "First-run step 1: the provider menu before one is chosen") : current.displayName)
+                                .font(.body)
+                                .foregroundStyle(DCTheme.ink)
+                            Spacer(minLength: 0)
+                            Image(systemName: "chevron.up.chevron.down")
+                                .font(.footnote.weight(.semibold))
+                                .foregroundStyle(DCTheme.inkFaint)
+                        }
+                        .padding(.horizontal, DCTheme.spacingM)
+                        .frame(minHeight: DCTheme.controlHeight)
+                        .background(DCTheme.surfaceRaised, in: RoundedRectangle(cornerRadius: DCTheme.radiusMd, style: .continuous))
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    if !Self.namedProviders.contains(current) { form }
+                }
+                .padding(.leading, 48)
+                .padding(.trailing, DCTheme.spacingL)
+                .padding(.bottom, DCTheme.spacingM)
             }
         }
     }
 
-    private func choice(_ provider: AIProvider, recommended: Bool, detail: String) -> some View {
-        let isOn = current == provider
-        return Button {
-            DCHaptics.tap()
-            app.selectProvider(provider, for: .both)
+    /// The key and model fields of the chosen provider.
+    private var form: some View {
+        ProviderSetupForm(app: app, scope: scope, state: $state, isCompact: true)
+            .padding(.leading, Self.namedProviders.contains(current) ? 48 : 0)
+            .padding(.trailing, Self.namedProviders.contains(current) ? DCTheme.spacingL : 0)
+            .padding(.bottom, DCTheme.spacingM)
+    }
+
+    private func radioRow(title: String, isOn: Bool, id: String, action: @escaping () -> Void) -> some View {
+        Button {
+            DCHaptics.selection()
+            action()
         } label: {
             HStack(spacing: DCTheme.spacingM) {
-                ProviderBadge(provider: provider)
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 6) {
-                        Text(provider.displayName).font(.body.weight(.semibold)).foregroundStyle(.primary)
-                        if recommended {
-                            Text("Recommended", comment: "Walkthrough: badge on the suggested AI provider")
-                                .font(.caption2.weight(.bold))
-                                .foregroundStyle(DCTheme.goldInk)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(DCTheme.goldWash, in: RoundedRectangle(cornerRadius: DCTheme.radiusSm, style: .continuous))
-                        }
-                    }
-                    Text(detail).font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.leading)
-                }
+                Circle()
+                    .strokeBorder(isOn ? DCTheme.gold : DCTheme.borderStrong, lineWidth: isOn ? 7 : 1.5)
+                    .frame(width: 24, height: 24)
+                Text(title)
+                    .font(.body)
+                    .foregroundStyle(DCTheme.ink)
                 Spacer(minLength: 0)
-                Image(systemName: isOn ? "checkmark.circle.fill" : "circle")
-                    .foregroundStyle(isOn ? DCTheme.goldInk : Color.secondary)
             }
+            .padding(.horizontal, DCTheme.spacingL)
+            .frame(minHeight: 52)
             .contentShape(Rectangle())
-            .dcCard()
         }
         .buttonStyle(.plain)
-        .accessibilityElement(children: .combine)
         .accessibilityAddTraits(isOn ? .isSelected : [])
-        .accessibilityIdentifier("onboardingProvider-\(provider.rawValue)")
+        .accessibilityIdentifier(id)
     }
 }
 
-// MARK: 4. Choose your forums
+// MARK: 2. Open a site
 
-struct OnboardingForumsPage: View {
-    @ObservedObject var app: AppModel
-    @Binding var selected: Set<String>
-    @State private var address = ""
-    @State private var adding = false
-    @State private var addError: String?
-    @State private var addedName: String?
-    @FocusState private var addressFocused: Bool
+/// Step 2: any address, or one of the suggested sites (no forum badge; each
+/// says what the site is about). `selectedSiteURL` is what Open opens when the
+/// address field is empty.
+struct OnboardingSitePage: View {
+    @Binding var address: String
+    @Binding var selectedSiteURL: String?
+    let onSubmit: () -> Void
+    @FocusState private var focused: Bool
 
-    /// Suggested forums plus any forums the user already has or just added.
-    private var rows: [(siteURL: String, name: String, detail: String)] {
-        var seen = Set<String>()
-        var result: [(siteURL: String, name: String, detail: String)] = []
-        let suggestions = AppModel.onboardingSuggestions()
-        for forum in app.forums where seen.insert(forum.siteURL).inserted {
-            let suggested = suggestions.first { $0.siteURL == forum.siteURL }
-            result.append((forum.siteURL, forum.displayName, suggested?.description ?? forum.host))
-        }
-        for suggested in suggestions where seen.insert(suggested.siteURL).inserted {
-            result.append((suggested.siteURL, suggested.name, suggested.description))
-        }
-        return result
-    }
+    static var suggestions: [SuggestedForum] { Array(AppModel.onboardingSuggestions().prefix(4)) }
 
     var body: some View {
-        OnboardingPage {
-            OnboardingHeader(
-                eyebrow: OnboardingStep.forums.stepLabel,
-                title: String(localized: "Choose your forums"),
-                subtitle: String(localized: "Pin the communities you read. Pinned forums stay at the top of your Forums screen. You can visit any other forum too.")
-            )
-            VStack(spacing: 0) {
-                ForEach(Array(rows.enumerated()), id: \.element.siteURL) { index, row in
-                    if index > 0 { Divider().padding(.leading, 64) }
-                    forumRow(row)
+        OnboardingPage(spacing: DCTheme.spacingXL) {
+            VStack(spacing: DCTheme.spacingS) {
+                Text("Open a site", comment: "First-run step 2 title")
+                    .font(.title.weight(.bold))
+                    .foregroundStyle(DCTheme.ink)
+                    .accessibilityAddTraits(.isHeader)
+                Text("Any address works.", comment: "First-run step 2 subtitle")
+                    .font(.body)
+                    .foregroundStyle(DCTheme.inkMuted)
+            }
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: .infinity)
+            addressField
+            VStack(alignment: .leading, spacing: DCTheme.spacingS) {
+                Text("Suggested", comment: "First-run step 2: the list of suggested sites")
+                    .font(.footnote)
+                    .textCase(.uppercase)
+                    .foregroundStyle(DCTheme.inkMuted)
+                    .padding(.horizontal, DCTheme.spacingL)
+                    .accessibilityAddTraits(.isHeader)
+                VStack(spacing: 0) {
+                    let rows = Self.suggestions
+                    ForEach(Array(rows.enumerated()), id: \.element.siteURL) { index, site in
+                        if index > 0 { Divider().overlay(DCTheme.hairline).padding(.leading, 68) }
+                        siteRow(site)
+                    }
+                }
+                .background(DCTheme.surface, in: RoundedRectangle(cornerRadius: DCTheme.radiusLg, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: DCTheme.radiusLg, style: .continuous).strokeBorder(DCTheme.hairline)
                 }
             }
-            .padding(.vertical, DCTheme.spacingXS)
-            .dcCard()
-            ScrollViewReader { proxy in
-                addForumCard
-                    .id("addForumCard")
-                    .onChange(of: addressFocused) {
-                        guard addressFocused else { return }
-                        // Keep the field and its hint above the keyboard.
-                        Task {
-                            try? await Task.sleep(for: .milliseconds(350))
-                            withAnimation(DCMotion.smooth) {
-                                proxy.scrollTo("addForumCard", anchor: .bottom)
-                            }
-                        }
-                    }
-            }
+        }
+        .onChange(of: address) {
+            if !address.isEmpty { selectedSiteURL = nil }
         }
         #if DEBUG
         .task {
             if OnboardingDebug.arguments.contains("-dc-focus") {
                 try? await Task.sleep(for: .milliseconds(600))
-                addressFocused = true
+                focused = true
             }
         }
         #endif
     }
 
-    private func forumRow(_ row: (siteURL: String, name: String, detail: String)) -> some View {
-        let isOn = selected.contains(row.siteURL)
-        return Button {
-            DCHaptics.tap()
-            withAnimation(DCMotion.quick) {
-                if isOn { selected.remove(row.siteURL) } else { selected.insert(row.siteURL) }
+    private var addressField: some View {
+        HStack(spacing: DCTheme.spacingS) {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(DCTheme.inkFaint)
+                .accessibilityHidden(true)
+            TextField(text: $address, prompt: Text("Search or enter address", comment: "Home address field placeholder").foregroundStyle(DCTheme.inkFaint)) {
+                Text("Address", comment: "Accessibility label of Home's address field")
             }
+            .keyboardType(.webSearch)
+            .textContentType(.URL)
+            .autocorrectionDisabled()
+            .textInputAutocapitalization(.never)
+            .submitLabel(.go)
+            .focused($focused)
+            .onSubmit {
+                focused = false
+                onSubmit()
+            }
+            .foregroundStyle(DCTheme.ink)
+            .accessibilityIdentifier("onboardingSiteAddress")
+        }
+        .padding(.horizontal, 14)
+        .frame(minHeight: 50)
+        .background(DCTheme.surface, in: RoundedRectangle(cornerRadius: DCTheme.radiusMd, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: DCTheme.radiusMd, style: .continuous)
+                .strokeBorder(focused ? DCTheme.goldInk : DCTheme.hairline, lineWidth: focused ? DCTheme.ringWidth : DCTheme.hairlineWidth)
+        }
+    }
+
+    private func siteRow(_ site: SuggestedForum) -> some View {
+        let isOn = selectedSiteURL == site.siteURL
+        return Button {
+            DCHaptics.selection()
+            focused = false
+            address = ""
+            selectedSiteURL = site.siteURL
         } label: {
             HStack(spacing: DCTheme.spacingM) {
-                OnboardingForumIcon(siteURL: row.siteURL, name: row.name, size: 40)
+                ForumIcon(suggested: site, size: 40)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(row.name)
+                    Text(site.name)
                         .font(.body.weight(.semibold))
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(DCTheme.ink)
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
-                    Text(row.detail)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    Text(site.description)
+                        .font(.footnote)
+                        .foregroundStyle(DCTheme.inkMuted)
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
                 }
                 Spacer(minLength: DCTheme.spacingS)
-                HStack(spacing: 4) {
-                    Image(systemName: isOn ? "pin.fill" : "pin")
-                    Text(isOn ? "Pinned" : "Pin")
-                }
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(isOn ? DCTheme.onGold : DCTheme.goldInk)
-                .padding(.horizontal, 10)
-                .frame(height: 30)
-                .fixedSize()
-                .background {
-                    RoundedRectangle(cornerRadius: DCTheme.radiusSm, style: .continuous)
-                        .fill(isOn ? DCTheme.gold : DCTheme.goldWash)
+                if isOn {
+                    Image(systemName: "checkmark")
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(DCTheme.goldInk)
+                        .accessibilityHidden(true)
                 }
             }
-            .padding(.vertical, 10)
+            .padding(.horizontal, DCTheme.spacingL)
+            .padding(.vertical, DCTheme.spacingM)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityElement(children: .combine)
-        .accessibilityValue(isOn ? "Pinned" : "Not pinned")
         .accessibilityAddTraits(isOn ? .isSelected : [])
-        .accessibilityIdentifier("onboardingForum-\(ForumSite.host(of: row.siteURL))")
-    }
-
-    private var addForumCard: some View {
-        VStack(alignment: .leading, spacing: DCTheme.spacingS) {
-            Text("Add another forum")
-                .font(.subheadline.weight(.semibold))
-            HStack(spacing: DCTheme.spacingS) {
-                TextField("forum.example.com", text: $address)
-                    .keyboardType(.URL)
-                    .textContentType(.URL)
-                    .autocorrectionDisabled()
-                    .textInputAutocapitalization(.never)
-                    .submitLabel(.go)
-                    .focused($addressFocused)
-                    .onSubmit(add)
-                    .fieldCard()
-                    .accessibilityIdentifier("onboardingForumAddress")
-                Button(action: add) {
-                    Group {
-                        if adding {
-                            ProgressView().tint(DCTheme.onGold)
-                        } else {
-                            Text("Add")
-                        }
-                    }
-                    .frame(minWidth: 44)
-                }
-                .buttonStyle(DCActionButtonStyle(prominent: true))
-                .disabled(adding || address.trimmingCharacters(in: .whitespaces).isEmpty)
-                .accessibilityIdentifier("onboardingAddForum")
-            }
-            if let addError {
-                Label(addError, systemImage: "exclamationmark.circle.fill")
-                    .font(.footnote)
-                    .foregroundStyle(DCTheme.danger)
-                    .fixedSize(horizontal: false, vertical: true)
-            } else if let addedName {
-                Label("Added and pinned \(addedName).", systemImage: "checkmark.circle.fill")
-                    .font(.footnote)
-                    .foregroundStyle(DCTheme.success)
-            } else {
-                Text("Paste the address of any supported site, or a link to one of its pages.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .animation(DCMotion.quick, value: addError)
-        .animation(DCMotion.quick, value: addedName)
-        .sensoryFeedback(.success, trigger: addedName) { _, new in new != nil }
-        .sensoryFeedback(.warning, trigger: addError) { _, new in new != nil }
-    }
-
-    private func add() {
-        let trimmed = address.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty, !adding else { return }
-        adding = true
-        addError = nil
-        addedName = nil
-        Task {
-            do {
-                let forum = try await app.addForum(fromAddress: trimmed, pin: false)
-                selected.insert(forum.siteURL)
-                addedName = forum.displayName
-                address = ""
-                addressFocused = false
-            } catch {
-                addError = error.localizedDescription
-            }
-            adding = false
-        }
+        .accessibilityIdentifier("onboardingSite-\(site.host)")
     }
 }
 
@@ -430,126 +407,6 @@ struct OnboardingForumIcon: View {
         .frame(width: size, height: size)
         .clipShape(shape)
         .accessibilityHidden(true)
-    }
-}
-
-// MARK: 4. Your day
-
-/// Optional daily digest and podcast; everything is off until chosen.
-struct OnboardingDailyPage: View {
-    @ObservedObject var app: AppModel
-
-    var body: some View {
-        OnboardingPage {
-            OnboardingHeader(
-                eyebrow: OnboardingStep.daily.stepLabel,
-                title: String(localized: "Your day"),
-                subtitle: String(localized: "Let WukongMind catch you up each morning. All of this is off until you turn it on, and you can change it in Settings.", comment: "Walkthrough: daily digest step")
-            )
-            VStack(spacing: 0) {
-                toggleRow(
-                    symbol: "newspaper.fill", tint: DCTheme.summaryTint,
-                    title: String(localized: "Daily digest", comment: "Walkthrough toggle"),
-                    detail: String(localized: "A summary of what’s new in your watched topics and top topics.", comment: "Walkthrough toggle"),
-                    isOn: $app.settings.dailyDigestEnabled, id: "onboardingDigest"
-                )
-                Divider().padding(.leading, 56)
-                toggleRow(
-                    symbol: "bell.fill", tint: DCTheme.warning,
-                    title: String(localized: "Notify me when it’s ready", comment: "Walkthrough toggle"),
-                    detail: String(localized: "One notification a day.", comment: "Walkthrough toggle"),
-                    isOn: $app.settings.dailyDigestNotifies, id: "onboardingDigestNotifies"
-                )
-                .disabled(!app.settings.dailyDigestEnabled)
-                Divider().padding(.leading, 56)
-                toggleRow(
-                    symbol: "headphones", tint: DCTheme.agentTint,
-                    title: String(localized: "Podcast every day", comment: "Walkthrough toggle"),
-                    detail: String(localized: "Two hosts talk through the digest.", comment: "Walkthrough toggle"),
-                    isOn: Binding(
-                        get: { app.settings.dailyDigestEnabled && app.settings.podcastDailyEnabled },
-                        set: { app.settings.podcastDailyEnabled = $0 }
-                    ),
-                    id: "onboardingPodcastDaily"
-                )
-                .disabled(!app.settings.dailyDigestEnabled)
-            }
-            .dcCard()
-            Label {
-                Text("Each digest and podcast sends a few requests to your AI provider. Google Gemini’s free tier covers it; other providers bill per request.", comment: "Walkthrough: cost of the daily digest")
-            } icon: {
-                Image(systemName: "info.circle")
-            }
-            .font(.footnote)
-            .foregroundStyle(.secondary)
-            .fixedSize(horizontal: false, vertical: true)
-        }
-    }
-
-    private func toggleRow(symbol: String, tint: Color, title: String, detail: String, isOn: Binding<Bool>, id: String) -> some View {
-        Toggle(isOn: isOn) {
-            HStack(spacing: DCTheme.spacingM) {
-                OnboardingIconTile(symbol: symbol, tint: tint, size: 32)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(title).font(.subheadline.weight(.semibold))
-                    Text(detail).font(.caption).foregroundStyle(.secondary)
-                }
-            }
-        }
-        .tint(DCTheme.goldInk)
-        .padding(.vertical, 8)
-        .accessibilityIdentifier(id)
-    }
-}
-
-// MARK: 5. Privacy and sync
-
-/// The iCloud Sync switch on the privacy step (on by default wherever iCloud
-/// is available).
-struct OnboardingSyncCard: View {
-    @ObservedObject private var sync: CloudSyncController
-
-    init(app: AppModel) {
-        self.sync = app.cloudSync
-    }
-
-    private var status: CloudSyncController.Status { SyncDebug.status(actual: sync.status) }
-    private var isEnabled: Bool { SyncDebug.isEnabled(actual: sync.isEnabled) }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: DCTheme.spacingM) {
-            Toggle(isOn: Binding(get: { isEnabled }, set: { sync.setEnabled($0) })) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Sync with iCloud")
-                        .font(.subheadline.weight(.semibold))
-                    Text("Forums, summaries and chats follow you across your devices, end-to-end encrypted in your own iCloud.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .tint(SettingsPage.sync.tint)
-            .accessibilityIdentifier("onboardingSyncToggle")
-            if isEnabled {
-                let presentation = SyncStatusPresentation(status)
-                HStack(alignment: .top, spacing: DCTheme.spacingM) {
-                    OnboardingIconTile(symbol: presentation.symbol, tint: presentation.tint, size: 32)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(presentation.title)
-                            .font(.subheadline.weight(.semibold))
-                        if let detail = presentation.detail {
-                            Text(detail)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                    }
-                    Spacer(minLength: 0)
-                }
-                .accessibilityElement(children: .combine)
-                .accessibilityIdentifier("onboardingSyncStatus")
-            }
-        }
-        .dcCard()
     }
 }
 
@@ -738,264 +595,5 @@ struct ShareActionsIllustration: View {
             }
         }
         .accessibilityElement(children: .combine)
-    }
-}
-
-// (continued) Privacy
-
-struct OnboardingPrivacyPage: View {
-    @ObservedObject var app: AppModel
-
-    var body: some View {
-        OnboardingPage {
-            OnboardingHeader(
-                eyebrow: String(localized: "Privacy"),
-                title: String(localized: "Your data stays yours"),
-                subtitle: String(localized: "No accounts, no analytics, no servers of ours in the middle.")
-            )
-            VStack(alignment: .leading, spacing: DCTheme.spacingL) {
-                PrivacyPoints()
-            }
-            .dcCard()
-            OnboardingSyncCard(app: app)
-        }
-    }
-}
-
-/// The privacy promises (onboarding and Settings › Data & privacy).
-struct PrivacyPoints: View {
-    var body: some View {
-        OnboardingFeatureRow(
-            symbol: "key.fill",
-            tint: DCTheme.goldInk,
-            title: String(localized: "Keys in your Keychain"),
-            detail: String(localized: "Keys are kept in your Keychain and, with Sync API keys on, in iCloud Keychain. They’re sent only to the provider they belong to.")
-        )
-        OnboardingFeatureRow(
-            symbol: "iphone",
-            tint: DCTheme.goldInk,
-            title: String(localized: "Saved on your devices"),
-            detail: String(localized: "Summaries, chats, and answers are stored on your device and, with sync, end-to-end encrypted in your own iCloud. Delete them any time in Settings.")
-        )
-        OnboardingFeatureRow(
-            symbol: "arrow.left.arrow.right",
-            tint: DCTheme.chatTint,
-            title: String(localized: "Only where it needs to go"),
-            detail: String(localized: "Requests go only to the forum you’re reading and the AI provider you chose. Sync uses your own iCloud.")
-        )
-        OnboardingFeatureRow(
-            symbol: "eye.slash.fill",
-            tint: DCTheme.warning,
-            title: String(localized: "No accounts or tracking"),
-            detail: String(localized: "There’s nothing to sign up for, and nothing about how you use the app is collected.")
-        )
-        OnboardingFeatureRow(
-            symbol: "shield.lefthalf.filled",
-            tint: DCTheme.success,
-            title: String(localized: "Optional ad blocking", comment: "Onboarding privacy row title"),
-            detail: String(localized: "Optional ad and tracker blocking in the built-in browser. It’s off by default; turn it on in Settings › Browser.", comment: "Onboarding privacy row")
-        )
-    }
-}
-
-// MARK: 6. Done
-
-struct OnboardingDonePage: View {
-    @ObservedObject var app: AppModel
-    var showShareHowTo: () -> Void = {}
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var appeared = false
-
-    var body: some View {
-        OnboardingPage(alignment: .center, spacing: DCTheme.spacingM) {
-            Circle()
-                .fill(DCTheme.gold)
-                .frame(width: 60, height: 60)
-                .overlay {
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 28, weight: .bold))
-                        .foregroundStyle(DCTheme.onGold)
-                }
-                .opacity(appeared ? 1 : 0)
-                .accessibilityHidden(true)
-            OnboardingHeader(
-                title: String(localized: "You’re all set"),
-                subtitle: String(localized: "Here is what you set up."),
-                alignment: .center
-            )
-            VStack(spacing: 0) {
-                checklistRow(
-                    order: 0,
-                    done: app.isProviderReady,
-                    title: app.isProviderReady
-                        ? String(localized: "AI provider: \(app.settings.assistantModel.provider.displayName)", comment: "Walkthrough checklist. The placeholder is the provider's name, e.g. OpenRouter.")
-                        : String(localized: "AI provider not connected"),
-                    detail: app.isProviderReady
-                        ? aiDetail
-                        : String(localized: "Add one any time in Settings › AI models.", comment: "Walkthrough checklist; Settings › AI models names the app's own Settings page")
-                )
-                Divider().padding(.leading, 48)
-                checklistRow(
-                    order: 1,
-                    done: !app.pinnedForums.isEmpty,
-                    title: app.pinnedForums.isEmpty ? String(localized: "No pinned forums yet") : pinnedTitle,
-                    detail: app.pinnedForums.isEmpty ? String(localized: "Pick from suggestions or add any forum by address.") : app.pinnedForums.map(\.displayName).joined(separator: ", ")
-                )
-                Divider().padding(.leading, 48)
-                checklistRow(
-                    order: 2,
-                    done: app.settings.dailyDigestEnabled,
-                    title: app.settings.dailyDigestEnabled ? String(localized: "Daily digest on", comment: "Walkthrough checklist") : String(localized: "Daily digest off", comment: "Walkthrough checklist"),
-                    detail: (app.settings.dailyDigestEnabled && app.settings.podcastDailyEnabled) ? String(localized: "With a daily podcast", comment: "Walkthrough checklist") : String(localized: "Change it in Settings › Daily digest & podcast.", comment: "Walkthrough checklist")
-                )
-                Divider().padding(.leading, 48)
-                OnboardingDoneSyncRow(app: app, order: 3)
-            }
-            .dcCard()
-            VStack(alignment: .leading, spacing: DCTheme.spacingS) {
-                Text("Try first", comment: "Walkthrough: first things to try")
-                    .font(.subheadline.weight(.semibold))
-                ShareStepRow(number: 1, symbol: "sparkles", text: "Open a topic and tap the AI button.")
-                ShareStepRow(number: 2, symbol: "number", text: "Tap a post number to jump to it.")
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .dcCard()
-            Button(action: showShareHowTo) {
-                HStack {
-                    Image(systemName: "square.and.arrow.up")
-                    Text("Open pages from Safari or Chrome")
-                    Spacer(minLength: 0)
-                    Image(systemName: "chevron.right").font(.footnote.weight(.semibold))
-                }
-                .font(.subheadline.weight(.semibold))
-                .contentShape(Rectangle())
-                .dcCard()
-            }
-            .buttonStyle(.plain)
-            .accessibilityIdentifier("onboardingShareHowTo")
-        }
-        .onAppear {
-            withAnimation(reduceMotion ? .easeOut(duration: 0.2) : DCMotion.spring.delay(0.1)) {
-                appeared = true
-            }
-        }
-    }
-
-    /// "Google Gemini · voice ready" and the like.
-    private var aiDetail: String {
-        let provider = app.settings.assistantModel.provider
-        if provider.isAppleIntelligence { return app.appleIntelligenceStatus.title }
-        if provider == .gemini { return String(localized: "\(app.selectedConfiguration.model) · voice ready", comment: "Walkthrough checklist: the model name, then that voice works with this provider") }
-        return app.selectedConfiguration.model
-    }
-
-    private var pinnedTitle: String {
-        let count = app.pinnedForums.count
-        return String(localized: "\(count) pinned forums", comment: "Walkthrough checklist: number of pinned forums")
-    }
-
-    private func checklistRow(order: Int, done: Bool, title: String, detail: String) -> some View {
-        HStack(alignment: .top, spacing: DCTheme.spacingM) {
-            ChecklistMark(done: done, order: order)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(.subheadline.weight(.semibold))
-                Text(detail)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(2)
-            }
-            Spacer(minLength: 0)
-        }
-        .padding(.vertical, 7)
-        .accessibilityElement(children: .combine)
-    }
-}
-
-/// Done page checklist row for sync.
-private struct OnboardingDoneSyncRow: View {
-    @ObservedObject private var sync: CloudSyncController
-
-    let order: Int
-
-    init(app: AppModel, order: Int) {
-        self.sync = app.cloudSync
-        self.order = order
-    }
-
-    var body: some View {
-        let status = SyncDebug.status(actual: sync.status)
-        let enabled = SyncDebug.isEnabled(actual: sync.isEnabled)
-        let on = enabled && [.syncing, .upToDate].contains(status)
-        HStack(alignment: .top, spacing: DCTheme.spacingM) {
-            ChecklistMark(done: on, order: order)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(on ? String(localized: "Syncing across your devices") : (enabled ? SyncStatusPresentation(status).title : String(localized: "Sync is off")))
-                    .font(.subheadline.weight(.semibold))
-                Text(on ? "Through your iCloud account" : "Check it any time in Settings › iCloud Sync.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(2)
-            }
-            Spacer(minLength: 0)
-        }
-        .padding(.vertical, 7)
-        .accessibilityElement(children: .combine)
-    }
-}
-
-/// The timing of the Done page's checks: one after another, 60 ms apart,
-/// or all at once with Reduce Motion.
-enum ChecklistMotion {
-    static let stagger: TimeInterval = 0.06
-    /// After the page's own badge has come in.
-    static let start: TimeInterval = 0.3
-
-    static func delay(order: Int, reduceMotion: Bool) -> TimeInterval {
-        reduceMotion ? 0 : start + stagger * Double(max(order, 0))
-    }
-}
-
-/// A Done page checklist mark: a done item's check draws on (iOS 26) or
-/// scales in and fades in (earlier); items that are not done stay dashed.
-private struct ChecklistMark: View {
-    let done: Bool
-    let order: Int
-    @State private var shown = false
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    var body: some View {
-        ZStack {
-            if done && shown {
-                check
-            } else {
-                Image(systemName: "circle.dashed")
-                    .foregroundStyle(Color.secondary)
-            }
-        }
-        .font(.title2)
-        .frame(width: 32)
-        .task(id: done) {
-            guard done else {
-                shown = false
-                return
-            }
-            if reduceMotion {
-                shown = true
-            } else {
-                withAnimation(DCMotion.spring.delay(ChecklistMotion.delay(order: order, reduceMotion: false))) { shown = true }
-            }
-        }
-    }
-
-    @ViewBuilder
-    private var check: some View {
-        let image = Image(systemName: "checkmark.circle.fill").foregroundStyle(DCTheme.success)
-        if reduceMotion {
-            image
-        } else if #available(iOS 26.0, *) {
-            image.transition(.symbolEffect(.drawOn))
-        } else {
-            image.transition(.scale(scale: 0.5).combined(with: .opacity))
-        }
     }
 }

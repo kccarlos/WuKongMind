@@ -545,8 +545,6 @@ struct SettingsBrowserPage: View {
                 .accessibilityIdentifier("searchEnginePicker")
             } header: {
                 Text("Search", comment: "Settings › Browser section header for the web search engine picker")
-            } footer: {
-                Text("Your choice is saved now. Web search from the address bar arrives with the unified address field.", comment: "Settings › Browser footer: search engine is not yet used by the address bar")
             }
 
             Section {

@@ -76,7 +76,8 @@ enum RootPresentation: Identifiable, Equatable {
     /// Covers the whole screen instead of a sheet.
     var isFullScreen: Bool {
         switch self {
-        case .onboarding: true
+        // iPhone: a cover. iPad: a form sheet over the browser.
+        case .onboarding: UIDevice.current.userInterfaceIdiom == .phone
         #if DEBUG
         case .debugSettings: true
         #endif
@@ -576,7 +577,7 @@ struct RouterHost: ViewModifier {
         #if DEBUG
         if let step = OnboardingDebug.initialStep, !router.replayingOnboarding { return step }
         #endif
-        return .welcome
+        return .model
     }
 }
 
