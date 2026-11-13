@@ -6744,6 +6744,23 @@
         }
       }
     },
+    "Dictation isn't available for this language right now." : {
+      "comment" : "Dictation failure: no speech recognizer",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目前无法用这种语言听写。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目前無法用這種語言聽寫。"
+          }
+        }
+      }
+    },
     "Digest Settings" : {
       "localizations" : {
         "zh-Hans" : {
@@ -6846,7 +6863,7 @@
       }
     },
     "Dismiss" : {
-      "comment" : "Dismisses a status banner or toast",
+      "comment" : "Dictation notice close button\nDismisses a status banner or toast",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -7278,6 +7295,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已啟用"
+          }
+        }
+      }
+    },
+    "End the voice session before dictating." : {
+      "comment" : "Dictation failure: a voice session is using the microphone",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请先结束语音对话，再听写。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請先結束語音對話，再聽寫。"
           }
         }
       }
@@ -7957,7 +7991,7 @@
       }
     },
     "Following" : {
-      "comment" : "Settings page: followed topics and new-reply checks",
+      "comment" : "Settings page: followed topics and new-reply checks\nThis page popover toggle: follow new replies on the open forum topic",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -9032,6 +9066,23 @@
         }
       }
     },
+    "I didn't hear anything. Tap the microphone to try again." : {
+      "comment" : "Dictation failure: nothing was said",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有听到声音。点按麦克风再试一次。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "沒有聽到聲音。點一下麥克風再試一次。"
+          }
+        }
+      }
+    },
     "Illustration: the share sheet with WukongMind in the row of apps, next to More." : {
       "localizations" : {
         "zh-Hans" : {
@@ -9938,6 +9989,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在聆聽"
+          }
+        }
+      }
+    },
+    "Listening…" : {
+      "comment" : "Composer placeholder while the microphone is dictating",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在聆听…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在聆聽…"
           }
         }
       }
@@ -11841,6 +11909,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "打開位置"
+          }
+        }
+      }
+    },
+    "Open Settings" : {
+      "comment" : "Link in the dictation notice that opens the iOS Settings app",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开设置"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打開設定"
           }
         }
       }
@@ -16797,6 +16882,23 @@
         }
       }
     },
+    "Stop dictating" : {
+      "comment" : "Composer button label while the microphone is dictating",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "停止听写"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "停止聽寫"
+          }
+        }
+      }
+    },
     "Stop loading" : {
       "localizations" : {
         "zh-Hans" : {
@@ -18080,6 +18182,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "最近 7 份摘要儲存在這台裝置上。向左滑動即可刪除。"
+          }
+        }
+      }
+    },
+    "The microphone couldn't start. Check that no other app is using it." : {
+      "comment" : "Dictation failure: audio engine or session error",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "麦克风无法启动。请确认没有其他 App 正在使用它。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "麥克風無法啟動。請確認沒有其他 App 正在使用它。"
           }
         }
       }
@@ -19434,6 +19553,40 @@
         }
       }
     },
+    "Turn on speech recognition for WukongMind in Settings to dictate." : {
+      "comment" : "Dictation failure: speech recognition permission denied; a Settings link follows",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请在“设置”中为 WukongMind 打开语音识别，才能听写。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請在「設定」中為 WukongMind 打開語音辨識，才能聽寫。"
+          }
+        }
+      }
+    },
+    "Turn on the microphone for WukongMind in Settings to dictate." : {
+      "comment" : "Dictation failure: microphone permission denied; a Settings link follows",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请在“设置”中为 WukongMind 打开麦克风，才能听写。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請在「設定」中為 WukongMind 打開麥克風，才能聽寫。"
+          }
+        }
+      }
+    },
     "Turn on voice in Settings first." : {
       "comment" : "Voice session error: voice is off on this device",
       "localizations" : {
@@ -19872,7 +20025,7 @@
       }
     },
     "Use %@ for both" : {
-      "comment" : "Model menu: gives the other role this model too. The placeholder is a model name, e.g. claude-opus.\nSettings › Models: gives both Agent and Summaries this model. The placeholder is a provider and model, e.g. OpenRouter · kimi-k2.",
+      "comment" : "Settings › Models: gives both Agent and Summaries this model. The placeholder is a provider and model, e.g. OpenRouter · kimi-k2.",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -21045,22 +21198,6 @@
         }
       }
     },
-    "When on, network requests, cookie reads and actions that submit forms ask before running." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "开启后，网络请求、读取 Cookie 以及提交表单的操作在运行前会先询问。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "開啟後，網路要求、讀取 Cookie 以及送出表單的操作在執行前會先詢問。"
-          }
-        }
-      }
-    },
     "Where do people disagree, and why?" : {
       "comment" : "Chat question filled in by the Disagreements chip",
       "localizations" : {
@@ -21441,6 +21578,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "專為網頁與各個論壇打造的代理瀏覽器。"
+          }
+        }
+      }
+    },
+    "Your choice is saved now. Asking before network requests, cookie reads and form submits starts working with the M3 safety update." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的选择已保存。网络请求、读取 Cookie 和提交表单前先询问的功能，将随 M3 安全更新生效。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的選擇已儲存。網路請求、讀取 Cookie 和送出表單前先詢問的功能，將隨 M3 安全更新生效。"
+          }
+        }
+      }
+    },
+    "Your choice is saved now. Web search from the address bar arrives with the unified address field." : {
+      "comment" : "Settings › Browser footer: search engine is not yet used by the address bar",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的选择已保存。地址栏中的网页搜索将随统一地址栏推出。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的選擇已儲存。網址列中的網頁搜尋將隨統一網址列推出。"
           }
         }
       }
