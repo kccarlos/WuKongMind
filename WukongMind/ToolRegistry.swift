@@ -210,7 +210,7 @@ struct ToolParameterSchema: Equatable, Sendable {
     }
 }
 
-struct AgentToolDefinition: Equatable, Sendable {
+struct AgentToolDefinition: Codable, Equatable, Sendable {
     var name: String
     var description: String
     var parameters: [ToolParameterSchema]
@@ -229,6 +229,67 @@ struct AgentToolDefinition: Equatable, Sendable {
         self.parameters = parameters
         self.required = required
         self.additionalProperties = additionalProperties
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case name, description, inputSchema
+    }
+
+    /// Encodes as name, description and `inputSchema`.
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(name, forKey: .name)
+        try container.encode(description, forKey: .description)
+        try container.encode(inputSchema, forKey: .inputSchema)
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let name = try container.decode(String.self, forKey: .name)
+        let description = try container.decode(String.self, forKey: .description)
+        let schema = try container.decode([String: JSONValue].self, forKey: .inputSchema)
+        var parameters: [ToolParameterSchema] = []
+        if case .object(let properties)? = schema["properties"] {
+            for key in properties.keys.sorted() {
+                guard case .object(let spec) = properties[key] else { continue }
+                var typeName = "string"
+                if case .string(let text)? = spec["type"] { typeName = text }
+                var detail = ""
+                if case .string(let text)? = spec["description"] { detail = text }
+                var enumValues: [String]?
+                if case .array(let items)? = spec["enum"] {
+                    enumValues = items.compactMap { if case .string(let text) = $0 { text } else { nil } }
+                }
+                var itemsType: ToolParameterType?
+                if case .object(let items)? = spec["items"], case .string(let text)? = items["type"] {
+                    itemsType = ToolParameterType(rawValue: text)
+                }
+                func number(_ value: JSONValue?) -> Double? {
+                    switch value {
+                    case .int(let number)?: Double(number)
+                    case .double(let number)?: number
+                    default: nil
+                    }
+                }
+                parameters.append(ToolParameterSchema(
+                    name: key,
+                    type: ToolParameterType(rawValue: typeName) ?? .string,
+                    description: detail,
+                    enumValues: enumValues,
+                    itemsType: itemsType,
+                    minLength: number(spec["minLength"]).map { Int($0) },
+                    minimum: number(spec["minimum"]),
+                    maximum: number(spec["maximum"])
+                ))
+            }
+        }
+        var required: [String] = []
+        if case .array(let items)? = schema["required"] {
+            required = items.compactMap { if case .string(let text) = $0 { text } else { nil } }
+        }
+        var extra = false
+        if case .bool(let flag)? = schema["additionalProperties"] { extra = flag }
+        self.init(name: name, description: description, parameters: parameters, required: required, additionalProperties: extra)
     }
 
     /// Standard JSON Schema object (`type: "object"`, `properties`, `required`,

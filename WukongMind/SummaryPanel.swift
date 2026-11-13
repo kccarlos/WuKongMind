@@ -568,6 +568,16 @@ struct AssistantPanel: View {
 
             Section {
                 Button {
+                    app.auditLogRequest = AuditLogRequest()
+                } label: {
+                    Label(
+                        String(localized: "Audit log", comment: "Assistant more menu: open the Agent's audit log"),
+                        systemImage: "list.bullet.clipboard"
+                    )
+                }
+                .accessibilityIdentifier("auditLogMenuItem")
+
+                Button {
                     withAnimation(DCMotion.respecting(reduceMotion)) { app.panelRoute = .history }
                 } label: {
                     Label("History", systemImage: "clock.arrow.circlepath")
@@ -588,6 +598,18 @@ struct AssistantPanel: View {
         .buttonStyle(DCIconButtonStyle())
         .accessibilityLabel("More assistant actions")
         .accessibilityIdentifier("assistantMoreMenu")
+        .sheet(item: $app.auditLogRequest) { request in
+            NavigationStack {
+                SettingsAuditLogPage(app: app, focus: request)
+                    .toolbar {
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button(String(localized: "Done", comment: "Closes the audit log sheet")) {
+                                app.auditLogRequest = nil
+                            }
+                        }
+                    }
+            }
+        }
     }
 
     @ViewBuilder
