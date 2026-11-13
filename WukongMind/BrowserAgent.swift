@@ -672,13 +672,37 @@ final class BrowserAgentSession {
         startTurn(userPrompt: trimmed, appendUserMessage: true)
     }
 
-    /// Awaits a full agent turn from start to completion; convenient for tests
-    /// and programmatic callers.
-    func sendAndWait(_ prompt: String) async {
+    /// Like `send(_:)`, with `context` (old-engine results from suggestions)
+    /// put before the question in the model's turn only; the bubble and the
+    /// run show the bare question.
+    func send(_ prompt: String, context: String?) {
         let trimmed = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, !isRunning else { return }
-        startTurn(userPrompt: trimmed, appendUserMessage: true)
+        startTurn(userPrompt: trimmed, appendUserMessage: true, modelPrompt: Self.modelPrompt(trimmed, context: context))
+    }
+
+    /// Awaits a full agent turn from start to completion; convenient for tests
+    /// and programmatic callers.
+    func sendAndWait(_ prompt: String, context: String? = nil) async {
+        let trimmed = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, !isRunning else { return }
+        startTurn(userPrompt: trimmed, appendUserMessage: true, modelPrompt: Self.modelPrompt(trimmed, context: context))
         await activeTask?.value
+    }
+
+    static func modelPrompt(_ prompt: String, context: String?) -> String {
+        guard let context, !context.isEmpty else { return prompt }
+        return "Context from earlier in this conversation (results the app showed the user):\n\(context)\n\nThe user's message:\n\(prompt)"
+    }
+
+    /// Shows a reply the app gave itself (a suggestion an existing feature
+    /// handled, such as follow) as a finished turn; the model never sees it.
+    func appendLocalReply(prompt: String, reply: String) {
+        guard !isRunning else { return }
+        runs.append(BrowserAgentRun(
+            id: UUID(), prompt: prompt, toolCalls: [], assistantText: reply,
+            state: .completed(steps: 0, duration: 0), tokenUsage: .zero, startedAt: Date(), duration: 0
+        ))
     }
 
     /// Grants another `maxSteps` budget after hitting `.stepLimitReached`.
@@ -764,7 +788,8 @@ final class BrowserAgentSession {
     private func startTurn(
         userPrompt: String,
         appendUserMessage: Bool,
-        appendToHistory: Bool = true
+        appendToHistory: Bool = true,
+        modelPrompt: String? = nil
     ) {
         let runtime = configProvider()
         maxSteps = BrowserAgentLimits.clampSteps(runtime.maxSteps)
@@ -795,7 +820,7 @@ final class BrowserAgentSession {
         }
 
         if appendToHistory {
-            history.append(.user(userPrompt))
+            history.append(.user(modelPrompt ?? userPrompt))
         }
 
         let runID = UUID()
