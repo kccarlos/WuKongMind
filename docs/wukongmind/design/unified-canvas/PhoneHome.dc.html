@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Home start page on iPhone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.lt{--ground:#f7f3ea;--bg:#fffdf8;--page:#f7f3ea;--surface:#fffdf8;--raised:#efe9dc;--label:#1a1612;--sec:#5f574c;--ter:#756c5f;--border:rgba(26,22,18,.14);--strong:#8c8375;--blue:#8a6200;--purple:#8a6200;--gold:#b07f0c;--ongold:#1a1612;--goldwash:#f6ecd0;--teal:#1f6f66;--jade:#1f6f66;--jadewash:#dcefeb;--danger:#b3321f;--cin:#b3321f;--oncin:#ffffff;--cinwash:#f9e1da;--success:#356f1b;--warning:#a34a08;--fill:#efe9dc;--pop:#fffdf8;--toggleoff:#fffdf8;--bar:#fffdf8;--scrim:rgba(20,17,14,.4);--badgebg:#f6ecd0;--badgetx:#8a6200;--canvas:#e8e1d2;--kb:#d6d0c4;--key:#fffdf8}
+.dk{--ground:#14110e;--bg:#1f1b16;--page:#14110e;--surface:#1f1b16;--raised:#2a251e;--label:#f4eee2;--sec:#b3a998;--ter:#8f8676;--border:rgba(244,238,226,.16);--strong:#7d7567;--blue:#e8bd55;--purple:#e8bd55;--gold:#e0b040;--ongold:#1a1612;--goldwash:#3a2f14;--teal:#6fd0c2;--jade:#6fd0c2;--jadewash:#12302c;--danger:#ff7a5c;--cin:#ff7a5c;--oncin:#1a1612;--cinwash:#3d1a12;--success:#8fd66b;--warning:#ffb070;--fill:#2a251e;--pop:#1f1b16;--toggleoff:#1f1b16;--bar:#1f1b16;--scrim:rgba(0,0,0,.5);--badgebg:#3a2f14;--badgetx:#e8bd55;--canvas:#0c0a08;--kb:#2a251e;--key:#4a433a}
+.sf{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,"Helvetica Neue",sans-serif;color:var(--label);-webkit-font-smoothing:antialiased}
+.ico{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.ibtn{width:44px;height:44px;border:0;background:none;color:var(--label);display:flex;align-items:center;justify-content:center;border-radius:22px;padding:0}
+.hd{font-size:20px;font-weight:600;padding:0 4px}
+.card{background:var(--surface);border-radius:14px;overflow:hidden}
+.tile{display:flex;flex-direction:column;align-items:center;gap:6px;text-decoration:none;color:var(--label);font-size:12px;position:relative}
+.ti{width:56px;height:56px;border-radius:15px;display:flex;align-items:center;justify-content:center;color:#FFFFFF;font-size:22px;font-weight:700;position:relative}
+.bd{position:absolute;right:-4px;bottom:-4px;width:20px;height:20px;border-radius:10px;background:#48484A;color:#FFFFFF;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px var(--page)}
+.rw{display:flex;align-items:center;gap:12px;min-height:56px;padding:6px 14px;border-top:1px solid var(--border)}
+</style>
+</helmet>
+<div class="sf {{theme}}" style="width: 390px; height: 844px; position: relative; overflow: hidden; background: var(--page);">
+  <div style="padding: 54px 16px 0; display: flex; flex-direction: column; gap: 16px;">
+    <div style="display: flex; align-items: center; gap: 4px;">
+      <h1 style="margin: 0; font-size: 34px; font-weight: 700; flex-grow: 1;">Home</h1>
+      <button class="ibtn" aria-label="History" style="color: var(--label);"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 2"/></svg></button>
+      <button class="ibtn" aria-label="Settings" style="color: var(--label);"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+    </div>
+    <label style="display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border-radius: 12px; background: var(--fill); color: var(--sec);">
+      <svg class="ico" viewBox="0 0 24 24" style="width: 17px; height: 17px;" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6"/><path d="M20 20l-5-5"/></svg>
+      <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Address</span>
+      <input placeholder="Search or enter address" style="border: 0; background: none; font: inherit; font-size: 17px; outline: none; width: 100%; color: var(--label);">
+    </label>
+
+    <div class="card" style="display: flex; align-items: center; gap: 12px; padding: 12px 14px;">
+      <span style="width: 36px; height: 36px; border-radius: 10px; background: color-mix(in srgb, var(--warning) 16%, transparent); color: var(--warning); display: flex; align-items: center; justify-content: center;"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></span>
+      <div style="flex-grow: 1; display: flex; flex-direction: column;"><span style="font-size: 15px; font-weight: 600;">Today · 5 topics · 9 min podcast</span><span style="font-size: 13px; color: var(--sec);">From the forums you follow</span></div>
+      <button class="ibtn" aria-label="Play podcast" style="background: var(--label); color: var(--ground); border-radius: 18px; width: 36px; height: 36px;"><svg class="ico" viewBox="0 0 24 24" style="width: 14px; height: 14px;" aria-hidden="true"><path d="M7 4l13 8-13 8z" fill="currentColor"/></svg></button>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <div class="hd">Sites</div>
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px 8px;">
+        <a class="tile" href="#"><span class="ti" style="background: #0E8A7E;">H<span class="bd" aria-label="Forum"><svg class="ico" viewBox="0 0 24 24" style="width: 11px; height: 11px;" aria-hidden="true"><path d="M4 5h12v8H9l-5 4z" fill="currentColor"/></svg></span></span>Home Lab Talk</a>
+        <a class="tile" href="#"><span class="ti" style="background: #7A2E1F;">N</span>Northwind</a>
+        <a class="tile" href="#"><span class="ti" style="background: #E06A1B;">Y<span class="bd" aria-label="Forum"><svg class="ico" viewBox="0 0 24 24" style="width: 11px; height: 11px;" aria-hidden="true"><path d="M4 5h12v8H9l-5 4z" fill="currentColor"/></svg></span></span>Hacker News</a>
+        <a class="tile" href="#"><span class="ti" style="background: #3A5BE0;">D</span>Docs</a>
+        <a class="tile" href="#"><span class="ti" style="background: #3A5BE0;">W<span class="bd" aria-label="Forum"><svg class="ico" viewBox="0 0 24 24" style="width: 11px; height: 11px;" aria-hidden="true"><path d="M4 5h12v8H9l-5 4z" fill="currentColor"/></svg></span></span>Garden Blog</a>
+        <a class="tile" href="#"><span class="ti" style="background: #5E5E66;">M</span>Maps</a>
+        <a class="tile" href="#"><span class="ti" style="background: #087A43;">R</span>Recipes</a>
+        <a class="tile" href="#"><span class="ti" style="background: var(--fill); color: var(--blue);"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span>Add</a>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <div class="hd" style="display: flex; align-items: baseline;">Recent<a href="#" style="margin-left: auto; font-size: 15px; font-weight: 400; color: var(--blue); text-decoration: none;">History</a></div>
+      <div class="card">
+        <div class="rw" style="border-top: 0;"><svg class="ico" viewBox="0 0 24 24" style="color: var(--purple);" aria-hidden="true"><circle cx="12" cy="12" r="8"/></svg><div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column;"><span style="font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Make this page dark and hide the sidebar</span><span style="font-size: 13px; color: var(--sec);">Agent · news.example.com · 10 min</span></div></div>
+        <div class="rw"><svg class="ico" viewBox="0 0 24 24" style="color: var(--purple);" aria-hidden="true"><circle cx="12" cy="12" r="8"/></svg><div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column;"><span style="font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Which fanless boxes do people regret?</span><span style="font-size: 13px; color: var(--sec);">Agent · Home Lab Talk · 1 h</span></div></div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <div class="hd">Continue reading</div>
+      <div class="card"><div class="rw" style="border-top: 0;"><span style="width: 28px; height: 28px; border-radius: 7px; background: #0E8A7E;"></span><div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column;"><span style="font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Which home server for a quiet closet?</span><span style="font-size: 13px; color: var(--sec);">Home Lab Talk</span></div><span style="font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 6px; white-space: nowrap; flex-shrink: 0; background: var(--badgebg); color: var(--badgetx);">12 new</span></div></div>
+    </div>
+  </div>
+
+  <div style="position: absolute; left: 12px; right: 12px; bottom: 28px; height: 52px; border-radius: 26px; background: var(--bg); box-shadow: 0 6px 24px rgba(0,0,0,.14); display: flex; align-items: center; padding: 0 4px; gap: 2px;">
+    <button class="ibtn" aria-label="Back" style="color: var(--ter);"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div style="flex-grow: 1;"></div>
+    <div style="width: 40px; height: 32px; border: 1.5px dashed var(--ter); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: var(--sec);">M3</div>
+    <button aria-label="Agent" style="position: relative; width: 44px; height: 44px; border-radius: 999px; border: 2px solid var(--gold); background: none; padding: 0; box-sizing: border-box; flex-shrink: 0;"></button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["lt","dk"],"default":"lt"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() { return { theme: this.props.theme ?? 'lt' }; }
+}
+</script>
+</body>
+</html>

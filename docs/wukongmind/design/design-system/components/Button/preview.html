@@ -1,0 +1,33 @@
+<!-- @dsCard group="Actions" height=170 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Button</title>
+<style>
+body{margin:0;padding:16px;background:var(--ground);color:var(--ink);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+.r{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.c{display:flex;flex-direction:column;gap:12px;max-width:390px}
+.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+button{font-family:inherit}
+.mono{font-family:var(--font-mono)}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+.b{min-height:44px;padding:0 18px;border-radius:var(--radius-md);border:0;font-size:17px;font-weight:600;display:inline-flex;align-items:center;gap:8px}
+.p{background:var(--gold);color:var(--on-gold)}
+.s{background:none;color:var(--ink);border:var(--hairline-width) solid var(--border-strong)}
+.q{background:none;color:var(--gold-ink);padding:0 8px}
+.d{background:var(--cinnabar);color:var(--on-cinnabar)}
+.x{background:var(--surface-raised);color:var(--ink-faint)}
+.b:focus-visible{outline:var(--ring-width) solid var(--gold-ink);outline-offset:2px}
+
+</style>
+</head>
+<body>
+<div class="c" style="max-width:none">
+<div class="r"><button class="b p">Save as script</button><button class="b s">View code</button><button class="b q">Manage scripts</button></div>
+<div class="r"><button class="b d"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="1.5" fill="currentColor"/></svg>Stop</button><button class="b s" style="color:var(--danger)">Delete script</button><button class="b x" disabled>Let the Agent fix</button></div>
+</div>
+</body>
+</html>

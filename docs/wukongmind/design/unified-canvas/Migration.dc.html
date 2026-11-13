@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Migration list</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.sf{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,"Helvetica Neue",sans-serif;-webkit-font-smoothing:antialiased}
+.mono{font-family:ui-monospace,"SF Mono",Menlo,monospace}
+.grp{background:#fffdf8;border-radius:16px;padding:16px 18px;display:flex;flex-direction:column;break-inside:avoid;margin-bottom:20px}
+.gh{font-size:17px;font-weight:600;color:#1a1612;padding-bottom:8px}
+.rw{display:grid;grid-template-columns:minmax(0,1.1fr) 72px minmax(0,1.3fr);gap:10px;padding:7px 0;border-top:1px solid rgba(26,22,18,.12);align-items:start}
+.ex{font-size:12.5px;line-height:1.35;color:#1a1612;word-break:break-word}
+.ld{font-size:13px;line-height:1.35;color:#5f574c}
+.k{font-size:11px;font-weight:700;padding:3px 0;border-radius:6px;text-align:center;letter-spacing:.03em}
+</style>
+</helmet>
+<div class="sf" style="width: 1440px; height: 2200px; box-sizing: border-box; padding: 48px 56px; background: #f7f3ea; display: flex; flex-direction: column; gap: 20px;">
+  <div style="display: flex; flex-direction: column; gap: 6px;">
+    <h1 style="margin: 0; font-size: 34px; font-weight: 700; color: #1a1612;">Migration list: every existing screen</h1>
+    <p style="margin: 0; font-size: 15px; line-height: 1.45; color: #5f574c; max-width: 1100px;">Keep: same place, maybe new words. Move: same view, new place. Merge: folded into another screen. Delete: gone (owner decides, or the roadmap's One loop). Cleanup: deleted by the cleanup milestone, no migration. "Owner" marks proposals beyond section 3. The full table, including every settings section, is in docs/wukongmind/design-unified.md.</p>
+  </div>
+  <div style="column-count: 2; column-gap: 20px;">
+    <sc-for list="{{groups}}" as="g" hint-placeholder-count="6">
+      <div class="grp">
+        <div class="gh">{{g.title}}</div>
+        <sc-for list="{{g.rows}}" as="r" hint-placeholder-count="6">
+          <div class="rw">
+            <span class="ex mono">{{r.name}}</span>
+            <span class="k" style="{{r.style}}">{{r.kind}}</span>
+            <span class="ld">{{r.lands}}</span>
+          </div>
+        </sc-for>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2200}}'>
+class Component extends DCLogic {
+renderVals() {
+  const S = {
+    KEEP: 'background:#dcefeb;color:#356f1b',
+    MOVE: 'background:#f6ecd0;color:#8a6200',
+    MERGE: 'background:#f6ecd0;color:#8a6200',
+    DELETE: 'background:#f9e1da;color:#b3321f',
+    CLEANUP: 'background:#efe9dc;color:#5f574c'
+  };
+  const g = (title, rows) => ({ title, rows: rows.map((r) => { return { name: r[0], kind: r[1], lands: r[2], style: S[r[1]] }; }) });
+  return { groups: [
+    g('Browser shell, bar and Dock', [
+      ['ContentView, BrowserContent, PhoneBrowser', 'KEEP', 'Unchanged hosts'],
+      ['PhoneTitleCapsule', 'KEEP', 'Shows the host'],
+      ['PhoneAIButton, SplitPanelToggle, ResearchRing', 'KEEP', 'Open the one panel; M1/M2 badge'],
+      ['AdShieldMenu', 'MOVE', 'This page › This site › Block ads here'],
+      ['ForumMenuButton (iPhone bar menu)', 'KEEP', 'Browser menu; Home opens the start page; Report goes with cleanup. Owner'],
+      ['ForumSwitcherPanel', 'DELETE', 'Unused today; Home Sites grid covers it'],
+      ['SplitMoreMenu (iPad ⋯)', 'KEEP', 'All forums → Home; Add forum → Add site; Report goes with cleanup'],
+      ['VoiceBarButton, VoiceDock, VoiceSessionBar', 'KEEP', 'Stays where it is in One panel (the input box mic only dictates); One loop: the mic opens it'],
+      ['DockLayer, HomeRouteDockModifier', 'KEEP', 'Unchanged'],
+      ['BottomLayer .bar .dock .barWithPodcast .drawer', 'KEEP', 'Unchanged'],
+      ['BottomLayer .barWithAnswerReady', 'KEEP', 'Any panel result'],
+      ['DrawerHint .summarize .checkNew .setUpAI', 'KEEP', 'New words; "Choose a model"'],
+      ['DrawerHint .allowAI', 'CLEANUP', 'Goes with AI data consent'],
+      ['WebContentCrashBanner, LoadingLine, LoginReadinessView', 'KEEP', 'Unchanged']
+    ]),
+    g('Assistant panel', [
+      ['AssistantMode (4 modes), SummaryPanel, AskBox, AIDrawer views', 'MERGE', 'One conversation view + one suggestion row (One panel)'],
+      ['AIDrawer, WorkspaceView side panel (containers)', 'KEEP', 'Same drawer and side panel'],
+      ['Summary mode', 'MERGE', 'Suggestion Summarize… → summary card (One panel: today\'s engine; One loop: summary tool)'],
+      ['Podcast (Listen)', 'MERGE', 'Suggestion Read it to me → podcast row (One loop: podcast tool)'],
+      ['Ask the forum (AgentPanel, AgentEngine)', 'DELETE', 'One panel: behind Search this forum…; One loop: deleted, rules become Agent text, numbered sources kept'],
+      ['Chat mode (sendChat)', 'DELETE', 'No entry in One panel (Agent reads the page); engine deleted in One loop'],
+      ['Watch topic (⋯ menu)', 'MOVE', 'Suggestion Notify me of new replies + This page › Follow'],
+      ['BrowserAgentPanelView', 'MERGE', 'The conversation itself: one row per tool call'],
+      ['ForumHomeState, NotForumState, MaybeForumState', 'MERGE', 'Suggestions per page; This page › Add as a forum'],
+      ['ModelRole (3 roles)', 'MERGE', 'Agent, Summaries (UI from One panel; code in One loop)'],
+      ['ExpandedPanelRoute .post .history .settings', 'MOVE', 'Summary card; ⋯ › History; ⋯ › Settings'],
+      ['ExpandedPanel, ResultCardsOverlay', 'KEEP', 'From ⤢; same overlay'],
+      ['ProviderSetupCard / Sheet', 'KEEP', 'For the Agent or Summaries role'],
+      ['InstructionsSheet, ExportOptionsSheet, ReadAloudButton', 'KEEP', 'Summary card ⋯'],
+      ['PostsTranslationSheet, TranslationSheet', 'KEEP', 'Unchanged'],
+      ['M1 script card, View code sheet', 'KEEP', 'Unchanged'],
+      ['M1 chip "N scripts on this page"', 'MERGE', 'This page chip'],
+      ['M2 PageScriptsPopover', 'MERGE', 'Scripts group of This page, same rows']
+    ]),
+    g('Home and its sheets', [
+      ['HomeView header (History, Settings)', 'KEEP', 'Unchanged'],
+      ['TodayModule, PodcastHomeCard, DigestStrip', 'KEEP', 'Below the address field when there is something'],
+      ['Continue reading', 'KEEP', 'Any site'],
+      ['Pinned forums section', 'MERGE', 'Sites grid, pinned first'],
+      ['Recent forums section', 'MERGE', 'Sites grid, frequent'],
+      ['Watching section', 'KEEP', 'Renamed Following'],
+      ['Suggested forums section', 'MOVE', 'Add site sheet + empty state'],
+      ['Share card', 'MOVE', 'Help & about'],
+      ['.pinnedForums, ForumDirectory', 'MOVE', 'Settings › Sites › Forums'],
+      ['AddForumSheet (.addForum)', 'KEEP', 'Renamed Add site'],
+      ['HistoryView', 'KEEP', 'Segments: All, Conversations, Following'],
+      ['TodayPage, DigestHistoryPage, DigestCardView', 'KEEP', 'Unchanged'],
+      ['NowPlayingView', 'KEEP', 'Unchanged']
+    ]),
+    g('Settings', [
+      ['Root: Voice row at the top', 'DELETE', 'Duplicate of Voice & digest › Voice'],
+      ['Root: ReadingLanguagePicker', 'MOVE', 'Models › Answer language'],
+      ['.provider "AI models"', 'KEEP', 'Titled Models: Agent, Summaries (case name unchanged)'],
+      ['.summaries batching, instructions', 'MOVE', 'Models › Summaries'],
+      ['.summaries chat context', 'DELETE', 'Goes with Topic chat'],
+      ['.summaries ForumRequestPaceSection', 'MOVE', 'Sites › Reading pace (+ switch)'],
+      ['.agent research steps, topics, read size', 'MOVE', 'Agent › Forum search'],
+      ['.agent "Browser agent" section', 'MOVE', 'Agent › Runs'],
+      ['.watched', 'MOVE', 'Sites › Following'],
+      ['.forums', 'MOVE', 'Sites › Forums'],
+      ['.digest, .voice, .sync, .data, .help', 'KEEP', 'Their groups'],
+      ['.browser bar position, start page', 'KEEP', 'Browser'],
+      ['.browser ads & trackers', 'MOVE', 'Sites › Ads & trackers'],
+      ['.sharing (root row)', 'MOVE', 'Inside Help & about'],
+      ['.acknowledgements', 'KEEP', 'Already in Help & about'],
+      ['.scripts (M2 manager, detail, editor, history)', 'MOVE', 'Assistant › Scripts & tools; pages unchanged'],
+      ['.debugSettings, ModelListSheet', 'KEEP', 'Unchanged']
+    ]),
+    g('Onboarding', [
+      ['OnboardingFlow, Page, Header, ProgressDots, Backdrop', 'KEEP', 'Three steps'],
+      ['OnboardingWelcomePage', 'MERGE', 'Step 1 header'],
+      ['OnboardingProviderPage', 'KEEP', 'Step 1, Agent role'],
+      ['OnboardingForumsPage, OnboardingForumIcon', 'MERGE', 'Step 2, any site'],
+      ['OnboardingDailyPage', 'MOVE', 'Settings › Daily digest & podcast'],
+      ['OnboardingSyncCard, DoneSyncRow, DonePage', 'MERGE', 'Step 3 "You’re set" card'],
+      ['OnboardingPrivacyPage, PrivacyPoints', 'CLEANUP', 'Goes with consent; key line stays'],
+      ['ShareHowToGuide / ShareHowToSheet', 'MOVE', 'Help & about']
+    ]),
+    g('Deleted by the cleanup', [
+      ['.termsGate, .aiConsent, AIDataConsentViews', 'CLEANUP', 'No migration'],
+      ['.voiceConsent, .podcastConsent', 'CLEANUP', 'No migration'],
+      ['.report, .reportAIOutput, ModerationViews', 'CLEANUP', 'No migration'],
+      ['ContentBlocker (ads, trackers)', 'KEEP', 'Not moderation: moves to Sites']
+    ])
+  ] };
+}
+}
+</script>
+</body>
+</html>

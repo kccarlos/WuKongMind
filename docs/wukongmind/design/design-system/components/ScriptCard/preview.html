@@ -1,0 +1,31 @@
+<!-- @dsCard group="Conversation" height=170 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ScriptCard</title>
+<style>
+body{margin:0;padding:16px;background:var(--ground);color:var(--ink);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+.r{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.c{display:flex;flex-direction:column;gap:12px;max-width:390px}
+.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+button{font-family:inherit}
+.mono{font-family:var(--font-mono)}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+.k{background:var(--surface);border:var(--hairline-width) solid var(--hairline);border-radius:var(--radius-lg);padding:12px;display:flex;flex-direction:column;gap:10px;max-width:390px}
+.tile{width:36px;height:36px;border-radius:var(--radius-sm);background:var(--gold-wash);color:var(--gold-ink);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sw{width:51px;height:31px;border-radius:var(--radius-full);background:var(--gold);border:0;position:relative;flex-shrink:0}
+.sw span{position:absolute;top:3px;right:3px;width:25px;height:25px;border-radius:var(--radius-full);background:var(--on-gold)}
+.b{min-height:36px;padding:0 12px;border-radius:var(--radius-md);background:none;border:var(--hairline-width) solid var(--border-strong);color:var(--ink);font-size:15px;font-weight:600}
+
+</style>
+</head>
+<body>
+<div class="k">
+<div class="r" style="flex-wrap:nowrap"><span class="tile"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4c-2 0-2 1.5-2 3v2c0 1.5-1 2-2 2 1 0 2 .5 2 2v3c0 1.5 0 3 2 3M15 4c2 0 2 1.5 2 3v2c0 1.5 1 2 2 2-1 0-2 .5-2 2v3c0 1.5 0 3-2 3"/></svg></span><div style="flex:1;min-width:0;display:flex;flex-direction:column"><span style="font-size:17px;font-weight:600">Hide signature images</span><span class="mono" style="font-size:13px;color:var(--ink-muted)">https://talk.example.org/*</span></div><button class="sw" role="switch" aria-checked="true" aria-label="Hide signature images"><span></span></button></div>
+<div class="r"><button class="b">View code</button><button class="b" style="border:0;color:var(--gold-ink)">Manage scripts</button></div>
+</div>
+</body>
+</html>

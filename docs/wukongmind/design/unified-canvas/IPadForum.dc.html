@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>iPad panel on a forum topic</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.lt{--ground:#f7f3ea;--bg:#fffdf8;--page:#f7f3ea;--surface:#fffdf8;--raised:#efe9dc;--label:#1a1612;--sec:#5f574c;--ter:#756c5f;--border:rgba(26,22,18,.14);--strong:#8c8375;--blue:#8a6200;--purple:#8a6200;--gold:#b07f0c;--ongold:#1a1612;--goldwash:#f6ecd0;--teal:#1f6f66;--jade:#1f6f66;--jadewash:#dcefeb;--danger:#b3321f;--cin:#b3321f;--oncin:#ffffff;--cinwash:#f9e1da;--success:#356f1b;--warning:#a34a08;--fill:#efe9dc;--pop:#fffdf8;--toggleoff:#fffdf8;--bar:#fffdf8;--scrim:rgba(20,17,14,.4);--badgebg:#f6ecd0;--badgetx:#8a6200;--canvas:#e8e1d2;--kb:#d6d0c4;--key:#fffdf8;--web:#FFFFFF;--webtext:#1E1E1E;--websec:#6B6B70;--webline:#E5E5EA}
+.dk{--ground:#14110e;--bg:#1f1b16;--page:#14110e;--surface:#1f1b16;--raised:#2a251e;--label:#f4eee2;--sec:#b3a998;--ter:#8f8676;--border:rgba(244,238,226,.16);--strong:#7d7567;--blue:#e8bd55;--purple:#e8bd55;--gold:#e0b040;--ongold:#1a1612;--goldwash:#3a2f14;--teal:#6fd0c2;--jade:#6fd0c2;--jadewash:#12302c;--danger:#ff7a5c;--cin:#ff7a5c;--oncin:#1a1612;--cinwash:#3d1a12;--success:#8fd66b;--warning:#ffb070;--fill:#2a251e;--pop:#1f1b16;--toggleoff:#1f1b16;--bar:#1f1b16;--scrim:rgba(0,0,0,.5);--badgebg:#3a2f14;--badgetx:#e8bd55;--canvas:#0c0a08;--kb:#2a251e;--key:#4a433a;--web:#16171A;--webtext:#E6E6E8;--websec:#A1A1A6;--webline:#2C2C30}
+.sf{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,"Helvetica Neue",sans-serif;color:var(--label);-webkit-font-smoothing:antialiased}
+.ico{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:4px 8px;border-radius:6px;border:0;font-family:inherit}
+.ibtn{width:44px;height:44px;border:0;background:none;color:var(--label);display:flex;align-items:center;justify-content:center;border-radius:11px;padding:0}
+.sg{display:inline-flex;align-items:center;height:36px;padding:0 14px;border-radius:10px;border:1px solid var(--strong);background:var(--surface);color:var(--label);font-family:inherit;font-size:15px;white-space:nowrap;flex-shrink:0}
+.tr{display:flex;align-items:center;gap:8px;min-height:30px;font-size:13px;color:var(--sec);padding:0 4px}
+.tr b{color:var(--label);font-weight:600}
+.av{width:32px;height:32px;border-radius:16px;flex-shrink:0}
+/*ds*/
+.seal{display:inline-flex;align-items:center;gap:4px;min-height:24px;padding:0 8px;border-radius:6px;font-size:12px;font-weight:600;border:0;font-family:inherit;white-space:nowrap;box-sizing:border-box}
+.seal.ink{background:var(--label);color:var(--ground)}
+.seal.gw{background:var(--goldwash);color:var(--blue)}
+.seal.out{border:1px solid var(--strong);color:var(--label);background:none}
+.seal svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.sg{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border-radius:10px;border:1px solid var(--strong);background:var(--surface);color:var(--label);font-family:inherit;font-size:15px;white-space:nowrap;flex-shrink:0;box-sizing:border-box}
+.sg svg{width:16px;height:16px;color:var(--blue);fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.sgrow{display:flex;gap:8px;padding:0 16px;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}
+.sgrow.fit{-webkit-mask-image:none;mask-image:none}
+.tl{display:flex;flex-direction:column}
+.t{display:flex;gap:10px;align-items:center;padding:6px 0;border-top:1px solid var(--border)}
+.t:first-child{border-top:0}
+.gd{width:28px;height:28px;border-radius:999px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--sec);background:var(--raised);box-sizing:border-box}
+.gd svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.gd.run{background:none;border:2px solid var(--gold);border-right-color:var(--border)}
+.t .m{flex:1;min-width:0;display:flex;flex-direction:column}
+.t .nm{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:13px;font-weight:600;color:var(--label)}
+.t .ar{font-size:12px;color:var(--sec);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t .du{font-size:12px;color:var(--sec);font-variant-numeric:tabular-nums}
+.t .cv{width:14px;height:14px;color:var(--ter);fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ub{align-self:flex-end;max-width:82%;background:var(--raised);color:var(--label);padding:9px 14px;border-radius:14px 14px 6px 14px;font-size:15px;line-height:20px}
+.at{font-size:15px;line-height:21px;color:var(--label)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.card .chd{display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--jadewash);color:var(--jade);font-size:12px;font-weight:600}
+.card .chd svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.card .cbd{padding:10px 12px;font-size:15px;line-height:21px}
+.card .cbd ol{margin:0;padding-left:20px}
+.ci{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 5px;border-radius:6px;background:var(--jadewash);color:var(--jade);font-size:11px;font-weight:700;vertical-align:1px}
+.note{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;background:var(--goldwash);color:var(--blue);font-size:12px;font-weight:600;padding:5px 10px;border-radius:6px}
+.fld{flex:1;display:flex;align-items:center;min-height:44px;padding:0 12px;border-radius:10px;background:var(--surface);border:1px solid var(--strong);font-size:15px;color:var(--ter);box-sizing:border-box}
+.fld .tx{color:var(--label)}
+.ringb{width:44px;height:44px;border-radius:999px;border:0;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-sizing:border-box;padding:0}
+.ringb svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ringb.mic{background:none;border:2px solid var(--gold);color:var(--blue)}
+.ringb.send{background:var(--gold);color:var(--ongold)}
+.ringb.stop{background:var(--cin);color:var(--oncin)}
+.strow{display:flex;align-items:center;gap:8px;padding:0 16px;min-height:40px;white-space:nowrap;font-size:12px;font-weight:600;color:var(--sec)}
+.strow .ok{color:var(--success);display:flex}
+.strow svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.masc{width:40px;height:40px;flex-shrink:0;object-fit:contain}
+.caret{display:inline-block;width:2px;height:18px;background:var(--gold);vertical-align:middle;margin-left:1px}
+.ibtn2{width:44px;height:44px;border:0;background:none;color:var(--label);display:flex;align-items:center;justify-content:center;padding:0}
+.ibtn2 svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.conv>*{flex-shrink:0}
+.t .lb{font-size:15px;font-weight:600;color:var(--label)}
+.fold{display:flex;align-items:center;gap:10px;background:var(--raised);border-radius:10px;padding:10px 12px;font-size:15px;font-weight:600;color:var(--label)}
+.fold svg{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+/*/ds*/
+</style>
+</helmet>
+<div class="sf {{theme}}" style="width: 1194px; height: 834px; display: flex; flex-direction: column; background: var(--page); overflow: hidden;">
+  <div style="height: 64px; padding: 14px 12px 6px; box-sizing: border-box; display: flex; align-items: center; gap: 4px; background: var(--bar); border-bottom: 1px solid var(--border);">
+    <button class="ibtn" aria-label="Back"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <button class="ibtn" aria-label="Forward" style="color: var(--ter);"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+    <button class="ibtn" aria-label="Home"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7M5 10v10h14V10"/></svg></button>
+    <div style="width: 44px; height: 32px; border: 1.5px dashed var(--ter); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: var(--sec);">M3</div>
+    <div style="flex-grow: 1; display: flex; justify-content: center;"><div style="width: 420px; height: 36px; border-radius: 10px; background: var(--fill); display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 15px;"><span style="width: 16px; height: 16px; border-radius: 4px; background: #0E8A7E;"></span>talk.example.org</div></div>
+    <button class="ibtn" aria-label="More"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><circle cx="8" cy="12" r=".6" fill="currentColor"/><circle cx="12" cy="12" r=".6" fill="currentColor"/><circle cx="16" cy="12" r=".6" fill="currentColor"/></svg></button>
+    <button aria-label="Agent, 2 scripts on this page" style="position: relative; width: 44px; height: 44px; border-radius: 999px; border: 2px solid var(--gold); background: none; padding: 0; box-sizing: border-box; flex-shrink: 0;"><span style="position: absolute; top: -2px; right: -2px; min-width: 16px; height: 16px; padding: 0 3px; box-sizing: border-box; border-radius: 4px; background: var(--label); color: var(--ground); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center;">2</span></button>
+  </div>
+  <div style="flex-grow: 1; display: flex; min-height: 0;">
+    <div style="flex-grow: 1; background: var(--web); color: var(--webtext); padding: 28px 40px; display: flex; flex-direction: column; gap: 14px; overflow: hidden;">
+      <div style="font-size: 13px; color: var(--websec);">Hardware</div>
+      <div style="font-size: 28px; line-height: 1.2; font-weight: 700;">Which home server for a quiet closet? Fanless builds compared</div>
+      <div style="font-size: 13px; color: var(--websec);">84 replies · 2.1k views</div>
+      <div style="height: 1px; background: var(--webline);"></div>
+      <div style="display: flex; gap: 12px;"><span class="av" style="background: #C8A2D8;"></span><div style="font-size: 16px; line-height: 1.5;"><b>[member]</b><br>I've had an N100 box running for a year. Idle at 6 W, no fan noise at all, but it throttles when the closet gets warm in summer. A small USB fan on a timer fixed it.</div></div>
+      <div style="display: flex; gap: 12px;"><span class="av" style="background: #9FC3E8;"></span><div style="font-size: 16px; line-height: 1.5;"><b>[member]</b><br>Counterpoint: a used mini PC with a big heatsink is cheaper, has proper SATA and you can still keep it quiet.</div></div>
+      <div style="display: flex; gap: 12px;"><span class="av" style="background: #E8C39F;"></span><div style="font-size: 16px; line-height: 1.5;"><b>[member]</b><br>Watch the storage. Mine had soldered eMMC and it wore out after two years of logs.</div></div>
+    </div>
+    <div style="width: 6px; background: var(--page); display: flex; align-items: center; justify-content: center;"><div style="width: 4px; height: 36px; border-radius: 2px; background: var(--ter); opacity: .5;"></div></div>
+    <section aria-label="Assistant panel" style="width: 470px; flex-shrink: 0; background: var(--surface); display: flex; flex-direction: column; border-left: 1px solid var(--border);"><header style="display: flex; align-items: center; gap: 8px; padding: 2px 4px 0 20px; min-height: 44px;"><h2 style="margin: 0; font-size: 17px; font-weight: 600; flex-shrink: 0;">Agent</h2><button class="seal ink" aria-label="This page: talk.example.org · 2 scripts" style="min-height: 28px; min-width: 0; overflow: hidden; text-overflow: ellipsis;">talk.example.org · 2 scripts<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><span style="flex: 1;"></span><button class="ibtn2" aria-label="More: model, new conversation, history, settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><circle cx="8" cy="12" r=".6" fill="currentColor"/><circle cx="12" cy="12" r=".6" fill="currentColor"/><circle cx="16" cy="12" r=".6" fill="currentColor"/></svg></button></header><div class="conv" style="flex: 1; overflow: hidden; padding: 4px 16px 8px; display: flex; flex-direction: column; justify-content: flex-end; gap: 10px;"><div class="ub">Summarize this thread and replies</div><div class="fold" role="button" aria-label="Steps 1, collapsed"><span>Steps 1</span><span style="flex: 1;"></span><svg style="width: 14px; height: 14px; color: var(--ter);" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></div><div class="card"><div class="chd"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 10h10M4 14h16M4 18h10"/></svg><span style="flex: 1;">Summary · 84 posts</span><svg style="width: 14px; height: 14px;" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></div><div class="cbd"><ol><li>N100 boxes win on idle power (6–8 W) and silence.</li><li>Throttling in warm closets is the common complaint; a timed USB fan fixes it.</li><li>Avoid soldered eMMC for always-on logging.</li></ol></div></div><div class="ub">Hide the signature images in every post</div><div class="fold" role="button" aria-label="Steps 3, collapsed"><span>Steps 3</span><span style="flex: 1;"></span><svg style="width: 14px; height: 14px; color: var(--ter);" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></div><div class="at">Done. Signature images are hidden on every topic here.</div><div class="card" style="padding: 12px; display: flex; flex-direction: column; gap: 10px;"><div style="display: flex; align-items: center; gap: 12px;"><span style="width: 36px; height: 36px; border-radius: 6px; background: var(--goldwash); color: var(--blue); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><svg viewBox="0 0 24 24" aria-hidden="true" style="width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;"><path d="M9 4c-2 0-2 1.5-2 3v2c0 1.5-1 2-2 2 1 0 2 .5 2 2v3c0 1.5 0 3 2 3M15 4c2 0 2 1.5 2 3v2c0 1.5 1 2 2 2-1 0-2 .5-2 2v3c0 1.5 0 3-2 3"/></svg></span><div style="flex: 1; min-width: 0; display: flex; flex-direction: column;"><span style="font-size: 17px; font-weight: 600;">Hide signature images</span><span style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 13px; color: var(--sec);">https://talk.example.org/*</span></div><button role="switch" aria-checked="true" aria-label="Hide signature images" style="width: 51px; height: 31px; border-radius: 999px; background: var(--gold); border: 0; position: relative; flex-shrink: 0; padding: 0;"><span style="position: absolute; top: 3px; right: 3px; width: 25px; height: 25px; border-radius: 999px; background: var(--ongold);"></span></button></div><div style="display: flex; gap: 12px;"><button style="min-height: 36px; padding: 0 12px; border-radius: 10px; background: none; border: 1px solid var(--strong); color: var(--label); font: inherit; font-size: 15px; font-weight: 600;">View code</button><button style="min-height: 36px; padding: 0 12px; border-radius: 10px; background: none; border: 0; color: var(--blue); font: inherit; font-size: 15px; font-weight: 600;">Manage scripts</button></div></div></div><div style="padding: 8px 0 18px; display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--border);"><div class="strow"><img class="masc" src="../design-system/assets/Mascot/cheer.svg" alt=""><span class="ok"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L19 7"/></svg></span><span style="flex: 1;">Done · 3 steps · 9 s</span></div><div role="group" aria-label="Suggestions" class="sgrow"><button class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 10h10M4 14h16M4 18h10"/></svg>Summarize the 12 new replies</button><button class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16v-4a8 8 0 0 1 16 0v4"/><rect x="3" y="15" width="4" height="6" rx="1.5"/><rect x="17" y="15" width="4" height="6" rx="1.5"/></svg>Read it to me</button><button class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6"/><path d="M20 20l-5-5"/></svg>Search this forum…</button><button class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>Notify me of new replies</button></div><div style="display: flex; align-items: center; gap: 8px; padding: 0 16px;"><div class="fld">Ask the Agent…</div><button class="ringb mic" aria-label="Dictate"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button></div></div></section>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["lt","dk"],"default":"lt"},"$preview":{"width":1194,"height":834}}'>
+class Component extends DCLogic {
+renderVals() { return { theme: this.props.theme ?? 'lt' }; }
+}
+</script>
+</body>
+</html>

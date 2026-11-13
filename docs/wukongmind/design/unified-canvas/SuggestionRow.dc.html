@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Suggestion row</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.sf{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",system-ui,"Helvetica Neue",sans-serif;-webkit-font-smoothing:antialiased;color:#1a1612}
+.ico{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.h{font-size:24px;font-weight:700}
+.lbl{font-size:13px;font-weight:600;color:#5f574c}
+.strip{width:390px;background:#fffdf8;border-radius:16px;padding:12px 0;display:flex;flex-direction:column;gap:8px;box-shadow:0 1px 0 rgba(26,22,18,.16);position:relative;overflow:hidden}
+.row{display:flex;gap:8px;padding:0 16px;overflow:hidden;white-space:nowrap;-webkit-mask-image:linear-gradient(90deg,#000 86%,transparent);mask-image:linear-gradient(90deg,#000 86%,transparent)}
+.row.fit{-webkit-mask-image:none;mask-image:none}
+.sg{display:inline-flex;align-items:center;gap:6px;min-height:36px;height:36px;padding:0 12px;border-radius:10px;border:1px solid #8c8375;background:#fffdf8;box-sizing:border-box;font-family:inherit;font-size:15px;white-space:nowrap;flex-shrink:0;color:#1a1612}
+.sg.on{box-shadow:0 0 0 2px #8a6200}
+.sg svg{width:16px;height:16px;color:#8a6200;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.field{margin:0 16px;min-height:44px;border-radius:10px;background:#fffdf8;border:1px solid #8c8375;box-sizing:border-box;display:flex;align-items:center;gap:8px;padding:0 6px 0 14px;color:#756c5f;font-size:15px}
+.field .t{flex-grow:1;color:#1a1612}
+.mic{width:32px;height:32px;border-radius:999px;background:none;border:2px solid #b07f0c;box-sizing:border-box;color:#8a6200;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ub{align-self:flex-end;margin-right:16px;background:#efe9dc;padding:8px 12px;border-radius:14px 14px 6px 14px;font-size:14px}
+.caret{display:inline-block;width:2px;height:18px;background:#b07f0c;vertical-align:middle;margin-left:1px}
+.col{display:flex;flex-direction:column;gap:18px}
+.blk{display:flex;flex-direction:column;gap:6px}
+</style>
+</helmet>
+<div class="sf" style="width: 1400px; height: 900px; box-sizing: border-box; padding: 40px 48px; background: #f7f3ea; display: flex; gap: 48px;">
+  <div class="col">
+    <div class="h">Fit at 390 pt</div>
+    <div class="blk">
+      <div class="lbl">Forum thread · default size · 281 pt chip, next peeks</div>
+      <div class="strip">
+        <div class="row"><span class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 10h10M4 14h16M4 18h10"/></svg>Summarize this thread and replies</span><span class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16v-4a8 8 0 0 1 16 0v4"/><rect x="3" y="15" width="4" height="6" rx="1.5"/><rect x="17" y="15" width="4" height="6" rx="1.5"/></svg>Read it to me</span><span class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6"/><path d="M20 20l-5-5"/></svg>Search this forum…</span><span class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>Notify me of new replies</span></div>
+        <div class="field"><span class="t" style="color: #756c5f;">Ask the Agent…</span><span class="mic"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></span></div>
+      </div>
+    </div>
+    <div class="blk">
+      <div class="lbl">Accessibility XXL (42 pt) · chip at most row width − 44 pt, label wraps</div>
+      <div class="strip">
+        <div class="row" style="align-items: flex-start;"><span class="sg" style="height: auto; max-width: 314px; box-sizing: border-box; white-space: normal; padding: 8px 14px; border-radius: 18px; font-size: 42px; line-height: 1.12;"><svg viewBox="0 0 24 24" style="width: 36px; height: 36px;" aria-hidden="true"><path d="M4 6h16M4 10h10M4 14h16M4 18h10"/></svg>Summarize this thread and replies</span><span class="sg" style="height: auto; padding: 8px 14px; border-radius: 18px; font-size: 42px; line-height: 1.12;"><svg viewBox="0 0 24 24" style="width: 36px; height: 36px;" aria-hidden="true"><path d="M4 16v-4a8 8 0 0 1 16 0v4"/><rect x="3" y="15" width="4" height="6" rx="1.5"/><rect x="17" y="15" width="4" height="6" rx="1.5"/></svg>Read it to me</span></div>
+        <div class="field" style="min-height: 60px; font-size: 40px;"><span class="t" style="color: #756c5f;">Ask…</span><span class="mic" style="width: 44px; height: 44px; border-radius: 22px;"><svg class="ico" viewBox="0 0 24 24" style="width: 22px; height: 22px;" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></span></div>
+      </div>
+    </div>
+    <div class="blk">
+      <div class="lbl">Chinese · first two fit, third peeks</div>
+      <div class="strip">
+        <div class="row"><span class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 10h10M4 14h16M4 18h10"/></svg>总结这个帖子和回复</span><span class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16v-4a8 8 0 0 1 16 0v4"/><rect x="3" y="15" width="4" height="6" rx="1.5"/><rect x="17" y="15" width="4" height="6" rx="1.5"/></svg>念给我听</span><span class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6"/><path d="M20 20l-5-5"/></svg>搜索这个论坛…</span><span class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>有新回复时通知我</span></div>
+        <div class="field"><span class="t" style="color: #756c5f;">问 Agent…</span><span class="mic"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="h">Tap</div>
+    <div class="blk">
+      <div class="lbl">Full question · sends at once</div>
+      <div class="strip">
+        <div class="row"><span class="sg on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 10h10M4 14h16M4 18h10"/></svg>Summarize this thread and replies</span><span class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16v-4a8 8 0 0 1 16 0v4"/><rect x="3" y="15" width="4" height="6" rx="1.5"/><rect x="17" y="15" width="4" height="6" rx="1.5"/></svg>Read it to me</span></div>
+        <div class="field"><span class="t" style="color: #756c5f;">Ask the Agent…</span><span class="mic"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></span></div>
+      </div>
+      <div style="text-align: center; color: #756c5f; font-size: 18px;">↓</div>
+      <div class="strip">
+        <div class="ub">Summarize this thread and replies</div>
+        <div class="row"><span class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16v-4a8 8 0 0 1 16 0v4"/><rect x="3" y="15" width="4" height="6" rx="1.5"/><rect x="17" y="15" width="4" height="6" rx="1.5"/></svg>Read it to me</span><span class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6"/><path d="M20 20l-5-5"/></svg>Search this forum…</span><span class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>Notify me of new replies</span></div>
+        <div class="field"><span class="t" style="color: #756c5f;">Ask the Agent…</span><span class="mic"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></span></div>
+      </div>
+    </div>
+    <div class="blk">
+      <div class="lbl">Ends with … · fills the box for you to finish</div>
+      <div class="strip">
+        <div class="row"><span class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16v-4a8 8 0 0 1 16 0v4"/><rect x="3" y="15" width="4" height="6" rx="1.5"/><rect x="17" y="15" width="4" height="6" rx="1.5"/></svg>Read it to me</span><span class="sg on"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6"/><path d="M20 20l-5-5"/></svg>Search this forum…</span><span class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>Notify me of new replies</span></div>
+        <div class="field"><span class="t" style="color: #756c5f;">Ask the Agent…</span><span class="mic"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></span></div>
+      </div>
+      <div style="text-align: center; color: #756c5f; font-size: 18px;">↓</div>
+      <div class="strip">
+        <div class="field"><span class="t">Search this forum for <span class="caret"></span></span><span class="mic" style="background: #b07f0c; border: 0; color: #1a1612;"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg></span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="h">Per page</div>
+    <div class="blk">
+      <div class="lbl">Forum list</div>
+      <div class="strip"><div class="row"><span class="sg">What's worth reading today</span><span class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6"/><path d="M20 20l-5-5"/></svg>Search this forum…</span></div></div>
+    </div>
+    <div class="blk">
+      <div class="lbl">Ordinary page</div>
+      <div class="strip"><div class="row"><span class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 10h10M4 14h16M4 18h10"/></svg>Summarize this page</span><span class="sg">Make it dark</span><span class="sg">Remove distractions</span></div></div>
+    </div>
+    <div class="blk">
+      <div class="lbl">Unfamiliar forum · until Learn on ask: ordinary-page row</div>
+      <div class="strip"><div class="row"><span class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 10h10M4 14h16M4 18h10"/></svg>Summarize this page</span><span class="sg">Make it dark</span><span class="sg">Remove distractions</span></div></div>
+    </div>
+    <div class="blk">
+      <div class="lbl">Unfamiliar forum · Learn on ask, forum signals found</div>
+      <div class="strip"><div class="row"><span class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 10h10M4 14h16M4 18h10"/></svg>Summarize this thread and replies</span><span class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16v-4a8 8 0 0 1 16 0v4"/><rect x="3" y="15" width="4" height="6" rx="1.5"/><rect x="17" y="15" width="4" height="6" rx="1.5"/></svg>Read it to me</span><span class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6"/><path d="M20 20l-5-5"/></svg>Search this forum…</span></div></div>
+    </div>
+    <div class="blk">
+      <div class="lbl">Frequent site · asked here before · saved tool</div>
+      <div class="strip"><div class="row"><span class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 10h10M4 14h16M4 18h10"/></svg>Summarize this page</span><span class="sg">Show only deals under €50</span><span class="sg">List new arrivals</span><span class="sg">Make it dark</span></div></div>
+    </div>
+    <div class="blk">
+      <div class="lbl">Forum thread, already followed</div>
+      <div class="strip"><div class="row"><span class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 10h10M4 14h16M4 18h10"/></svg>Summarize the 12 new replies</span><span class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16v-4a8 8 0 0 1 16 0v4"/><rect x="3" y="15" width="4" height="6" rx="1.5"/><rect x="17" y="15" width="4" height="6" rx="1.5"/></svg>Read it to me</span><span class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6"/><path d="M20 20l-5-5"/></svg>Search this forum…</span></div></div>
+    </div>
+    <div class="blk">
+      <div class="lbl">Page dark already</div>
+      <div class="strip"><div class="row fit"><span class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 10h10M4 14h16M4 18h10"/></svg>Summarize this page</span><span class="sg">Remove distractions</span></div></div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":900}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

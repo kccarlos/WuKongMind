@@ -1,0 +1,37 @@
+<!-- @dsCard group="Controls" height=230 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ListRow</title>
+<style>
+body{margin:0;padding:16px;background:var(--ground);color:var(--ink);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+.r{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.c{display:flex;flex-direction:column;gap:12px;max-width:390px}
+.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+button{font-family:inherit}
+.mono{font-family:var(--font-mono)}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+.sec{background:var(--surface);border-radius:var(--radius-lg);overflow:hidden;max-width:390px}
+.sh{font-size:12px;font-weight:600;color:var(--ink-muted);padding:0 16px 6px;letter-spacing:.04em;text-transform:uppercase}
+.rw{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 14px;color:var(--ink);text-decoration:none;font-size:17px}
+.rw+.rw{border-top:var(--hairline-width) solid var(--hairline)}
+.ic{width:29px;height:29px;border-radius:var(--radius-sm);background:var(--ink);color:var(--ground);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ic .i{width:16px;height:16px}
+.v{margin-left:auto;color:var(--ink-muted)}
+.ch{color:var(--ink-faint);display:flex}
+
+</style>
+</head>
+<body>
+<div class="sh">Assistant</div>
+<div class="sec">
+<a class="rw" href="#"><span class="ic"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></svg></span>Models<span class="v">2 roles</span><span class="ch"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px"><path d="M9 6l6 6-6 6"/></svg></span></a>
+<a class="rw" href="#"><span class="ic" style="background:var(--gold);color:var(--on-gold)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 8a8.5 8.5 0 1 0 1 4"/></svg></span>Agent<span class="v">30 steps</span><span class="ch"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px"><path d="M9 6l6 6-6 6"/></svg></span></a>
+<a class="rw" href="#"><span class="ic"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4c-2 0-2 1.5-2 3v2c0 1.5-1 2-2 2 1 0 2 .5 2 2v3c0 1.5 0 3 2 3M15 4c2 0 2 1.5 2 3v2c0 1.5 1 2 2 2-1 0-2 .5-2 2v3c0 1.5 0 3-2 3"/></svg></span>Scripts &amp; tools<span class="v">4</span><span class="ch"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px"><path d="M9 6l6 6-6 6"/></svg></span></a>
+<a class="rw" href="#"><span class="ic"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></span>Sites<span class="v">3 forums</span><span class="ch"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px"><path d="M9 6l6 6-6 6"/></svg></span></a>
+</div>
+</body>
+</html>

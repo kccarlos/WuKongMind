@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Motion</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.sf{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",system-ui,sans-serif;-webkit-font-smoothing:antialiased;color:#1a1612}
+.mono{font-family:ui-monospace,"SF Mono",Menlo,monospace}
+.card{background:#fffdf8;border:1px solid rgba(26,22,18,.14);border-radius:14px;padding:20px 22px;display:flex;flex-direction:column;gap:12px}
+.h{font-size:18px;font-weight:600}
+.p{font-size:15px;line-height:1.45;color:#5f574c;margin:0}
+.t{display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid rgba(26,22,18,.14)}
+.t:first-child{border-top:0}
+.gd{width:28px;height:28px;border-radius:999px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#5f574c;background:#efe9dc;box-sizing:border-box}
+.gd.run{background:none;border:2px solid #b07f0c;border-right-color:rgba(26,22,18,.14)}
+.nm{font-size:15px;font-weight:600}
+.ring{flex-shrink:0;width:44px;height:44px;border-radius:999px;border:2px solid #b07f0c;border-right-color:rgba(26,22,18,.14);box-sizing:border-box}
+ul{margin:0;padding-left:20px;font-size:15px;line-height:1.6;color:#5f574c}
+@media (prefers-reduced-motion: no-preference){.spin{animation:spin 1.1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}}
+.chip{display:inline-flex;align-items:center;min-height:30px;padding:0 10px;border-radius:10px;border:1px solid #8c8375;background:#fffdf8;font-size:13px;white-space:nowrap}
+.fld{display:flex;align-items:center;min-height:36px;padding:0 10px;border-radius:10px;border:1px solid #8c8375;background:#fffdf8;font-size:13px;color:#756c5f}
+.fr{position:relative;width:100%;height:120px;border-radius:10px;background:#efe9dc;overflow:hidden}
+.kf{font-size:11px;font-weight:700;color:#8a6200;letter-spacing:.04em}
+.rc{position:absolute;left:10px;right:10px;bottom:10px;border-radius:10px;border:1px solid rgba(26,22,18,.14);background:#fffdf8;overflow:hidden}
+.rc .hd{padding:6px 10px;background:#dcefeb;color:#1f6f66;font-size:11px;font-weight:600}
+@media (prefers-reduced-motion: no-preference){.fly{animation:fly 2.4s cubic-bezier(.2,.8,.2,1) infinite}@keyframes fly{0%,30%{transform:translate(0,0)}40%,85%{transform:translate(-4px,44px)}100%{transform:translate(0,0)}}
+.rise{animation:rise 2.4s cubic-bezier(.2,.8,.2,1) infinite}@keyframes rise{0%,30%{transform:translateY(24px);opacity:0}40%,90%{transform:translateY(0);opacity:1}100%{opacity:0}}}
+</style>
+</helmet>
+<div class="sf" style="width: 1440px; height: 760px; box-sizing: border-box; padding: 48px 56px; background: #f7f3ea; display: flex; flex-direction: column; gap: 20px;">
+  <div style="display: flex; flex-direction: column; gap: 6px;">
+    <h1 style="margin: 0; font-size: 34px; font-weight: 700;">Motion: one continuous ring, two short transitions</h1>
+    <p class="p">Owner's decision: the turning gold ring is the only continuous animation and means the Agent is working. Two transitions explain cause and effect, each at most 250 ms on a standard system curve, and each a fade under Reduce Motion. Haptics stay.</p>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px;">
+    <div class="card">
+      <div class="h">Moves: the ring</div>
+      <div style="display: flex; flex-direction: column;">
+        <div class="t"><span class="gd"><svg viewBox="0 0 24 24" style="width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2;" aria-hidden="true"><path d="M5 12l5 5L19 7"/></svg></span><span class="nm">Read page</span></div>
+        <div class="t"><span class="gd run spin" role="img" aria-label="Running"></span><span class="nm" style="color: #8a6200;">Running script</span></div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px;"><span class="ring spin" role="img" aria-label="Agent working"></span><span class="p">The bar's Agent ring turns while the panel is closed (replaces ResearchRing).</span></div>
+      <p class="p">When the run ends the ring stops and becomes the check, with a success haptic. The mascot swaps to cheer for about 3 s. That's a swap, not an animation.</p>
+      <p class="p mono" style="font-size: 12px;">rotationEffect · linear, repeating · still under Reduce Motion</p>
+    </div>
+    <div class="card">
+      <div class="h">Back: a suggestion flies into the box</div>
+      <div class="fr"><span class="chip fly" style="position: absolute; left: 10px; top: 14px;">Search this forum…</span><div class="fld" style="position: absolute; left: 10px; right: 10px; bottom: 12px;">Ask the Agent…</div></div>
+      <p class="p">A full question then sends and becomes your bubble; a "…" suggestion stays in the box with the caret at the end.</p>
+      <p class="p mono" style="font-size: 12px;">matchedGeometryEffect · ≤ 250 ms · .snappy · Reduce Motion: fade</p>
+      <div class="h" style="margin-top: 6px;">Back: results rise into view</div>
+      <div class="fr"><div class="rc rise"><div class="hd">Summary · 84 posts</div><div style="padding: 6px 10px; font-size: 12px;">1. N100 boxes win on idle power…</div></div></div>
+      <p class="p mono" style="font-size: 12px;">.move(edge: .bottom) + .opacity · ≤ 250 ms · then scroll to it · Reduce Motion: fade</p>
+    </div>
+    <div class="card" style="border-style: dashed; border-color: #756c5f;">
+      <div class="h">System transitions only</div>
+      <ul>
+        <li>This page: the system popover</li>
+        <li>Settings, code sheet, Now playing: system sheets; Settings push and pop</li>
+        <li>The drawer's detents and the keyboard</li>
+      </ul>
+      <div class="h" style="margin-top: 6px;">Still removed</div>
+      <ul>
+        <li>Rolling counts on the seal and badge (owner)</li>
+        <li>Home tile zoom (owner)</li>
+        <li>Suggestion crossfades; pin reorder</li>
+        <li>Dock glassEffectID morph; button bounce</li>
+        <li>Onboarding dot stretch; staggered prompts</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":760}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

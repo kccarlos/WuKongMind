@@ -1,0 +1,38 @@
+<!-- @dsCard group="Input" height=250 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Composer</title>
+<style>
+body{margin:0;padding:16px;background:var(--ground);color:var(--ink);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+.r{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.c{display:flex;flex-direction:column;gap:12px;max-width:390px}
+.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+button{font-family:inherit}
+.mono{font-family:var(--font-mono)}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+.f{flex:1;display:flex;align-items:center;min-height:44px;padding:0 12px;border-radius:var(--radius-md);background:var(--surface);border:var(--hairline-width) solid var(--border-strong);font-size:15px}
+.f input{border:0;background:none;font:inherit;color:var(--ink);outline:none;width:100%}
+.f input::placeholder{color:var(--ink-faint);opacity:1}
+.o{width:44px;height:44px;border-radius:var(--radius-full);border:0;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.mic{background:none;border:var(--ring-width) solid var(--gold);color:var(--gold-ink)}
+.send{background:var(--gold);color:var(--on-gold)}
+.stop{background:var(--cinnabar);color:var(--on-cinnabar)}
+.l{font-size:12px;font-weight:600;color:var(--ink-muted)}
+
+</style>
+</head>
+<body>
+<div class="c">
+<div class="l">Empty: the ring invites speech</div>
+<div class="r" style="flex-wrap:nowrap;gap:8px"><label class="f"><span class="vh">Message</span><input placeholder="Ask anything about this page…"></label><button class="o mic" aria-label="Talk"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button></div>
+<div class="l">Typed: the ring fills and sends</div>
+<div class="r" style="flex-wrap:nowrap;gap:8px"><label class="f"><span class="vh">Message</span><input value="Hide the signature images in every post"></label><button class="o send" aria-label="Send"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button></div>
+<div class="l">Running: the ring becomes Stop; the field stays editable as a draft</div>
+<div class="r" style="flex-wrap:nowrap;gap:8px"><label class="f"><span class="vh">Message</span><input placeholder="Write your next message…"></label><button class="o stop" aria-label="Stop"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="1.5" fill="currentColor"/></svg></button></div>
+</div>
+</body>
+</html>

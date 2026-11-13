@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Information architecture</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.sf{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,"Helvetica Neue",sans-serif;-webkit-font-smoothing:antialiased}
+.col{display:flex;flex-direction:column;gap:12px}
+.ch{font-size:13px;font-weight:700;letter-spacing:.06em;color:#5f574c}
+.bx{background:#fffdf8;border:1px solid rgba(26,22,18,.16);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.bt{font-size:15px;font-weight:600;color:#1a1612}
+.bs{font-size:12px;line-height:1.4;color:#5f574c}
+.go{font-size:12px;line-height:1.5;color:#8a6200}
+.ph{background:transparent;border:1.5px dashed #756c5f;border-radius:14px;padding:10px 14px;display:flex;flex-direction:column;gap:2px}
+.pt{font-size:14px;font-weight:600;color:#5f574c}
+.sub{margin-left:14px;border-left:2px solid rgba(26,22,18,.16);padding-left:12px;display:flex;flex-direction:column;gap:8px}
+</style>
+</helmet>
+<div class="sf" style="width: 1840px; height: 1180px; box-sizing: border-box; padding: 48px 56px; background: #f7f3ea; display: flex; flex-direction: column; gap: 24px;">
+  <div style="display: flex; align-items: baseline; gap: 24px;">
+    <h1 style="margin: 0; font-size: 34px; font-weight: 700; color: #1a1612;">Every screen and how you reach it</h1>
+    <span style="font-size: 15px; color: #5f574c;">Gold lines say where a screen leads. Dashed boxes are places reserved for later milestones (One panel, M3, One loop, M4, Learn on ask): only the place, no detail.</span>
+  </div>
+  <div style="display: grid; grid-template-columns: 1fr 1.15fr 1.35fr 1.35fr 1fr; gap: 24px; align-items: start;">
+    <div class="col">
+      <div class="ch">FIRST RUN</div>
+      <div class="bx"><div class="bt">Launch</div><div class="go">→ first run: Onboarding 1</div><div class="go">→ later: Browser (Home or last page, per Browser › Open at launch)</div></div>
+      <div class="bx"><div class="bt">1 · Pick a model</div><div class="bs">Provider, key, Agent model</div><div class="go">→ 2</div></div>
+      <div class="bx"><div class="bt">2 · Open a site</div><div class="bs">Address field, suggested sites</div><div class="go">→ 3</div></div>
+      <div class="bx"><div class="bt">3 · Try the Agent</div><div class="bs">Real panel, two prompts, "You're set"</div><div class="go">→ Browser on that page</div></div>
+      <div class="ch" style="margin-top: 12px;">DELETED BY THE CLEANUP</div>
+      <div class="bx" style="opacity: .7;"><div class="bs">Terms gate · AI data consent · voice and podcast consent · report sheets · moderation UI. No migration.</div></div>
+    </div>
+    <div class="col">
+      <div class="ch">BROWSER · ContentView</div>
+      <div class="bx"><div class="bt">Browser bar</div><div class="bs">Back, forward, title capsule, Home, ⋯ (iPad: Split more menu)</div><div class="go">→ Home button: Home</div><div class="go">→ ring button / badge: Assistant panel</div><div class="go">→ address: suggestions (sites, history)</div></div>
+      <div class="ph"><div class="pt">M3 · Tab button → Tab overview</div></div>
+      <div class="bx"><div class="bt">Web page</div><div class="bs">WKWebView, scripts injected, result cards overlay</div></div>
+      <div class="bx"><div class="bt">Bottom layer (Dock)</div><div class="bs">Hint row, Answer ready, podcast row, voice controls</div><div class="go">→ Answer ready: panel · podcast: Now playing</div></div>
+      <div class="bx"><div class="bt">Home · start page</div><div class="bs">Address field (the only address on Home), Today, Sites grid, Recent (newest History items), Continue reading, Following</div><div class="go">→ site / topic: Web page</div><div class="go">→ Recent item: page + panel · History: all</div><div class="go">→ Today card: Today page, digest history</div><div class="go">→ Add tile: Add site sheet</div><div class="go">→ History · Settings</div></div>
+      <div class="bx"><div class="bt">History</div><div class="bs">All · Conversations · Following</div></div>
+      <div class="bx"><div class="bt">Now playing</div><div class="bs">Podcast player</div></div>
+    </div>
+    <div class="col">
+      <div class="ch">ASSISTANT PANEL · drawer / side panel</div>
+      <div class="bx"><div class="bt">Header</div><div class="bs">Title always "Agent" · the Agent's model pill · ⋯</div><div class="go">→ ⋯: New conversation, History, Settings</div></div>
+      <div class="ph"><div class="pt">M3 · ⋯ › Audit log · tool row › View in audit log</div></div>
+      <div class="bx"><div class="bt">This page chip → This page popover</div>
+        <div class="sub">
+          <div class="bs"><b>This topic</b>: Follow (switch)</div>
+          <div class="bs"><b>Scripts on this page</b> (M2 rows) <span style="color:#8a6200;">→ Manage scripts: Settings › Scripts &amp; tools · name: script detail</span></div>
+          <div class="ph"><div class="pt">Learn on ask · Tools on this page</div></div>
+          <div class="bs"><b>This site</b>: Block ads here · <span style="color:#8a6200;">→ Site settings: Settings › Sites</span></div>
+          <div class="ph"><div class="pt">Learn on ask · Site inspector (developer mode)</div></div>
+        </div>
+      </div>
+      <div class="bx"><div class="bt">One conversation</div><div class="bs">Your messages · one row per tool call (expands) · Agent replies · script card · tool results shown as: summary card, answer with numbered sources, podcast row</div><div class="go">→ script card: View code sheet</div><div class="go">→ summary ⤢ / citation: Expanded panel (post &amp; responses)</div><div class="go">→ summary ⋯: Instructions, Export, Translate</div></div>
+      <div class="bx"><div class="bt">Suggestion row</div><div class="bs">Questions you could ask; a tap sends one, one ending in … fills the box. Forum thread: Summarize this thread and replies · Read it to me · Search this forum… · Notify me of new replies. Forum list: What's worth reading today · Search this forum… Ordinary page: Summarize this page · Make it dark · Remove distractions. Up to 4 on screen, more scroll.</div></div>
+      <div class="ph"><div class="pt">Learn on ask · suggestions from saved and site tools</div><div class="bs">Same row, also fed by tools saved for the site and by the site's WebMCP tools</div></div>
+      <div class="bx"><div class="bt">Input box</div><div class="bs">One box on every page, no modes · mic when empty, Send when typed, Stop while running</div><div class="go">→ mic: dictation into the box</div><div class="ph"><div class="pt">One loop · mic opens the voice session, sharing the Agent's tools</div></div><div class="go">→ no model: model setup card → Provider setup sheet</div></div>
+    </div>
+    <div class="col">
+      <div class="ch">SETTINGS SHEET</div>
+      <div class="bx"><div class="bt">Assistant</div>
+        <div class="sub">
+          <div class="bs"><b>Models</b>: Agent, Summaries · summary batching, instructions · answer language · providers &amp; keys</div>
+          <div class="ph"><div class="pt">M4 · Scripts (GM_ai) model row, same as Summaries</div></div>
+          <div class="bs"><b>Agent</b>: step limit, result size · forum search limits</div>
+          <div class="ph"><div class="pt">M3 · Confirm before writes · Audit log · Workspace · Developer mode switch</div></div>
+          <div class="bs"><b>Scripts &amp; tools</b>: M2 manager → detail → code editor, version history</div>
+          <div class="ph"><div class="pt">Learn on ask · Tools section · "Registers N tools" in detail</div></div>
+        </div>
+      </div>
+      <div class="bx"><div class="bt">Sites &amp; browsing</div>
+        <div class="sub">
+          <div class="bs"><b>Sites</b>: Forums › (add, all forums) · Following › · Reading pace (switch) · Ads &amp; trackers</div>
+          <div class="bs"><b>Browser</b>: search engine, bar position, open at launch</div>
+        </div>
+      </div>
+      <div class="bx"><div class="bt">Voice &amp; digest</div><div class="sub"><div class="bs"><b>Voice</b> · <b>Daily digest &amp; podcast</b></div></div></div>
+      <div class="bx"><div class="bt">Your data</div><div class="sub"><div class="bs"><b>iCloud Sync</b> · <b>Data &amp; privacy</b></div></div></div>
+      <div class="bx"><div class="bt">Help &amp; about</div><div class="sub"><div class="bs">Share from Safari or Chrome · Licences</div></div></div>
+    </div>
+    <div class="col">
+      <div class="ch">RESERVED PLACES · BY MILESTONE</div>
+      <div class="ph"><div class="pt">One panel · this design</div><div class="bs">Suggestion row (taps route to today's engines on the three built-in forums) · mic dictates · forum voice entry stays in the bar.</div></div>
+      <div class="ph"><div class="pt">M3 · Full capability</div><div class="bs">Tab button → tab overview · Audit log · Workspace (also in Files) · Confirm before writes · Developer mode: raw requests, tokens per step, task export.</div></div>
+      <div class="ph"><div class="pt">One loop</div><div class="bs">Forum reading, search, summary, podcast and follow become Agent tools; suggestions only send · mic opens the voice session · model roles in code go to two.</div></div>
+      <div class="ph"><div class="pt">M4 · Self-extension</div><div class="bs">Settings › Models › Scripts row (GM_ai), same as Summaries by default.</div></div>
+      <div class="ph"><div class="pt">Learn on ask</div><div class="bs">This page › Tools on this page · Scripts &amp; tools › Tools · suggestions from learned and site tools · developer mode: site inspector, tool trial run.</div></div>
+      <div class="bx" style="margin-top: 8px;"><div class="bt">Rule from here on</div><div class="bs">Each milestone's design draws only its increment and names its place on this map.</div></div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1840,"height":1180}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
