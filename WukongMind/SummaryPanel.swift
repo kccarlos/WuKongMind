@@ -44,6 +44,8 @@ struct AssistantPanel: View {
     /// What was typed when dictation began; the transcript is added after it.
     /// Nil when no dictation owns the draft.
     @State private var dictationBase: String?
+    /// Dictation paused the podcast and owes it a resume.
+    @State private var dictationSuspendedPodcast = false
     /// The draft as dictation last wrote it; typing makes it differ.
     @State private var dictatedDraft = ""
     @FocusState private var composerFocused: Bool
@@ -667,7 +669,12 @@ struct AssistantPanel: View {
                 // Last words, then the draft is the user's again.
                 applyDictation()
                 dictationBase = nil
+                resumePodcastAfterDictation()
             }
+        }
+        // A voice session takes the microphone: dictation steps aside.
+        .onChange(of: app.voice.isActive) { _, active in
+            if active { stopDictation(keepingText: false) }
         }
         .onChange(of: agentDraft) { _, draft in
             // Typing while listening: the typed text wins, listening ends.
@@ -700,9 +707,26 @@ struct AssistantPanel: View {
         composerFocused = false
         dictationBase = agentDraft
         dictatedDraft = agentDraft
+        // Dictation takes the shared audio session: an episode pauses, like
+        // for a voice session, and goes on afterwards.
+        let podcast = app.podcast.player
+        if !app.voice.isActive, !podcast.isSuspendedForVoice {
+            podcast.suspendForVoice()
+            dictationSuspendedPodcast = true
+        }
         dictation.toggle(voiceBusy: app.voice.isActive)
         // Nothing started (voice busy): no draft to own.
-        if dictation.phase == .idle { dictationBase = nil }
+        if dictation.phase == .idle {
+            dictationBase = nil
+            resumePodcastAfterDictation()
+        }
+    }
+
+    private func resumePodcastAfterDictation() {
+        guard dictationSuspendedPodcast else { return }
+        dictationSuspendedPodcast = false
+        let player = app.podcast.player
+        Task { await player.resumeAfterVoice() }
     }
 
     private func applyDictation() {

@@ -31,6 +31,8 @@ final class SystemDictationBackend: DictationBackend {
     private var task: SFSpeechRecognitionTask?
     private var recognizer: SFSpeechRecognizer?
     private var runID = 0
+    /// The user stopped listening: no new run may open the microphone.
+    private var isFinishing = false
 
     func requestPermission() async -> DictationPermission {
         let speech = await withCheckedContinuation { continuation in
@@ -56,6 +58,7 @@ final class SystemDictationBackend: DictationBackend {
     ) {
         tearDown()
         runID += 1
+        isFinishing = false
         let id = runID
         let locale = Self.recognizerLocale(appLanguage: AppLanguage.current)
         guard let recognizer = SFSpeechRecognizer(locale: locale), recognizer.isAvailable else {
@@ -102,7 +105,7 @@ final class SystemDictationBackend: DictationBackend {
                 guard let self, id == runID else { return }
                 if let text, !text.isEmpty { heardText = true }
                 if let text { onUpdate(text) }
-                if error != nil, !heardText, !isFinal, onDevice {
+                if error != nil, !heardText, !isFinal, onDevice, !isFinishing {
                     Self.log.error("On-device recognition failed, trying the network recognizer")
                     begin(preferOnDevice: false, onUpdate: onUpdate, onEnd: onEnd)
                     return
@@ -117,6 +120,7 @@ final class SystemDictationBackend: DictationBackend {
 
     func finish() {
         // No more audio; the recognizer delivers its final result.
+        isFinishing = true
         stopEngine()
         request?.endAudio()
     }
