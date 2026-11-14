@@ -161,7 +161,8 @@ enum SpikeTools {
 
     // MARK: Instructions
 
-    /// Today's instruction with the research and precedence parts rewritten for the One loop names.
+    /// Today's instruction parts with precedence and research rewritten for the One loop names. The
+    /// language part is left out (one forum language), so its token count differs from today's.
     /// Added after Q3's first pass sent "what do people here think of X" to search_forum 3 of 3 times.
     static let opinionRule = """
     Questions about what people think or recommend, or anything that needs reading several threads, go to \
