@@ -2130,6 +2130,8 @@ struct AgentToolContext: Sendable {
     var confirmations: AgentConfirmationGate?
     /// The recognized forum for this run (`search_forum`, `read_topic`, …).
     var forum: ForumToolContext?
+    /// Summarize, read aloud, follow, and local notification capabilities.
+    var capabilities: CapabilityToolContext?
 
     init(
         bridge: AgentPageDriving,
@@ -2142,7 +2144,8 @@ struct AgentToolContext: Sendable {
         settings: AgentToolSettings = AgentToolSettings(),
         network: AgentHTTPClient? = nil,
         confirmations: AgentConfirmationGate? = nil,
-        forum: ForumToolContext? = nil
+        forum: ForumToolContext? = nil,
+        capabilities: CapabilityToolContext? = nil
     ) {
         self.bridge = bridge
         self.workspace = workspace
@@ -2155,6 +2158,7 @@ struct AgentToolContext: Sendable {
         self.network = network
         self.confirmations = confirmations
         self.forum = forum
+        self.capabilities = capabilities
     }
 }
 
@@ -2183,6 +2187,7 @@ extension ToolRegistry {
         tools += navigationTools(context: context)
         tools += networkTools(context: context)
         tools += forumTools(context: context)
+        tools += capabilityTools(context: context)
         return ToolRegistry(
             tools: tools,
             truncationLimit: context.settings.truncationLimit,

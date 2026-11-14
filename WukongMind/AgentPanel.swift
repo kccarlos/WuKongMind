@@ -916,42 +916,59 @@ struct BrowserAgentRunsView: View {
             return false
         }()
         if isRunning || run.toolCalls.count == 1 {
-            VStack(alignment: .leading, spacing: 0) { toolRowList(run.toolCalls) }
+            VStack(alignment: .leading, spacing: 8) {
+                toolRowList(run.toolCalls, inlineCapabilityCards: true)
+            }
         } else {
-            DCStepsFold(
-                count: run.toolCalls.count,
-                errorCount: run.errorCount,
-                isExpanded: isRunStepsExpanded(run),
-                onToggle: {
-                    DCHaptics.tap()
-                    toggleRunSteps(run)
+            let stepsExpanded = isRunStepsExpanded(run)
+            VStack(alignment: .leading, spacing: 10) {
+                DCStepsFold(
+                    count: run.toolCalls.count,
+                    errorCount: run.errorCount,
+                    isExpanded: stepsExpanded,
+                    onToggle: {
+                        DCHaptics.tap()
+                        toggleRunSteps(run)
+                    }
+                ) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        toolRowList(run.toolCalls, inlineCapabilityCards: true)
+                    }
                 }
-            ) {
-                toolRowList(run.toolCalls)
+                if !stepsExpanded {
+                    ForEach(Self.capabilityEntries(in: run.toolCalls)) { entry in
+                        capabilityCard(for: entry)
+                    }
+                }
             }
         }
     }
 
     @ViewBuilder
-    private func toolRowList(_ rows: [BrowserAgentToolCallRow]) -> some View {
+    private func toolRowList(_ rows: [BrowserAgentToolCallRow], inlineCapabilityCards: Bool) -> some View {
         let developerMode = app.settings.agentDeveloperMode
         ForEach(rows) { row in
             let expanded = expandedToolRowIDs.contains(row.id)
-            DCToolRow(
-                label: DCToolLabel.browser(row.toolName, running: row.isRunning),
-                codeName: developerMode ? row.toolName : nil,
-                duration: developerMode ? row.duration.map(BrowserAgentPanelView.formatDuration) : nil,
-                summary: row.isRunning ? "" : row.resultSummary,
-                state: row.isRunning ? .running : (row.isError ? .error : (row.isPageWarning ? .warning : .done)),
-                isExpanded: expanded,
-                onToggle: {
-                    DCHaptics.tap()
-                    withAnimation(DCMotion.respecting(reduceMotion, DCMotion.quick)) {
-                        if expanded { expandedToolRowIDs.remove(row.id) } else { expandedToolRowIDs.insert(row.id) }
+            VStack(alignment: .leading, spacing: inlineCapabilityCards ? 8 : 0) {
+                DCToolRow(
+                    label: DCToolLabel.browser(row.toolName, running: row.isRunning),
+                    codeName: developerMode ? row.toolName : nil,
+                    duration: developerMode ? row.duration.map(BrowserAgentPanelView.formatDuration) : nil,
+                    summary: row.isRunning ? "" : row.resultSummary,
+                    state: row.isRunning ? .running : (row.isError ? .error : (row.isPageWarning ? .warning : .done)),
+                    isExpanded: expanded,
+                    onToggle: {
+                        DCHaptics.tap()
+                        withAnimation(DCMotion.respecting(reduceMotion, DCMotion.quick)) {
+                            if expanded { expandedToolRowIDs.remove(row.id) } else { expandedToolRowIDs.insert(row.id) }
+                        }
                     }
+                ) {
+                    toolRowDetail(row, developerMode: developerMode)
                 }
-            ) {
-                toolRowDetail(row, developerMode: developerMode)
+                if inlineCapabilityCards, let entry = Self.capabilityEntry(for: row) {
+                    capabilityCard(for: entry)
+                }
             }
         }
     }
@@ -1105,5 +1122,159 @@ struct BrowserAgentRunsView: View {
         .dcRiseIn()
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("agentErrorCard")
+    }
+
+    // MARK: Capability Cards
+
+    enum CapabilityResultEntry: Identifiable, Equatable {
+        case threadSummary(id: UUID, thread: ThreadShape, fallbackText: String)
+        case textSummary(id: UUID, title: String, markdown: String)
+        case listen(id: UUID, thread: ThreadShape?, explicitID: String?, title: String, fallbackDetail: String, rawText: String?, workspacePath: String?)
+
+        var id: UUID {
+            switch self {
+            case .threadSummary(let id, _, _), .textSummary(let id, _, _), .listen(let id, _, _, _, _, _, _): id
+            }
+        }
+    }
+
+    static func capabilityEntries(in rows: [BrowserAgentToolCallRow]) -> [CapabilityResultEntry] {
+        rows.compactMap(capabilityEntry(for:))
+    }
+
+    static func capabilityEntry(for row: BrowserAgentToolCallRow) -> CapabilityResultEntry? {
+        guard !row.isRunning, !row.isError else { return nil }
+        switch row.toolName {
+        case "summarize_topic":
+            if case .thread(let thread) = row.shape {
+                return .threadSummary(id: row.id, thread: thread, fallbackText: stripThreadSummaryHeader(row.resultText))
+            }
+            let markdown = row.resultText.trimmingCharacters(in: .whitespacesAndNewlines)
+            return markdown.isEmpty ? nil : .textSummary(id: row.id, title: row.resultSummary, markdown: markdown)
+        case "read_aloud":
+            let detail = stripReadAloudPrefix(row.resultText, title: row.resultSummary)
+            if case .thread(let thread) = row.shape {
+                let title = row.resultSummary.isEmpty ? thread.title : row.resultSummary
+                return .listen(id: row.id, thread: thread, explicitID: nil, title: title, fallbackDetail: detail, rawText: nil, workspacePath: nil)
+            }
+            let args = try? JSONValue.parseObjectJSON(row.argumentsJSON)
+            let rawText = args?["text"]?.stringValue
+            let path = args?["path"]?.stringValue.flatMap { $0.isEmpty ? nil : $0 }
+            let explicitID = if let path {
+                CapabilityReadAloud.pathID(path)
+            } else if let rawText {
+                CapabilityReadAloud.textID(PostCitations.stripped(rawText).trimmingCharacters(in: .whitespacesAndNewlines))
+            } else {
+                Optional<String>.none
+            }
+            return .listen(id: row.id, thread: nil, explicitID: explicitID, title: row.resultSummary, fallbackDetail: detail, rawText: rawText, workspacePath: path)
+        default:
+            return nil
+        }
+    }
+
+    private static func stripThreadSummaryHeader(_ text: String) -> String {
+        guard text.hasPrefix("Summary of "), let range = text.range(of: ":\n\n") else { return text }
+        return String(text[range.upperBound...])
+    }
+
+    private static func stripReadAloudPrefix(_ text: String, title: String) -> String {
+        let prefix = "Reading aloud: \(title), "
+        guard text.hasPrefix(prefix) else { return text }
+        let suffix = String(text.dropFirst(prefix.count))
+        return suffix.prefix(1).uppercased() + suffix.dropFirst()
+    }
+
+    @ViewBuilder
+    private func capabilityCard(for entry: CapabilityResultEntry) -> some View {
+        switch entry {
+        case .threadSummary(_, let thread, let fallbackText):
+            CapabilityThreadSummaryCard(app: app, thread: thread, fallbackText: fallbackText)
+        case .textSummary(_, let title, let markdown):
+            DCResultCard(label: String(localized: "Summary", comment: "Summary result card header"), systemImage: "doc.text") {
+                if !title.isEmpty { Text(verbatim: title).font(.caption).lineLimit(1) }
+            } content: {
+                MarkdownView(markdown).textSelection(.enabled)
+            }
+            .accessibilityIdentifier("capabilityTextSummaryCard")
+        case .listen(_, let thread, let explicitID, let title, let fallbackDetail, let rawText, let workspacePath):
+            CapabilityListenCard(app: app, podcast: app.podcast, player: app.podcast.player,
+                                 thread: thread, explicitID: explicitID, title: title, fallbackDetail: fallbackDetail, rawText: rawText, workspacePath: workspacePath)
+        }
+    }
+}
+
+private struct CapabilityThreadSummaryCard: View {
+    @ObservedObject var app: AppModel
+    let thread: ThreadShape
+    let fallbackText: String
+
+    var body: some View {
+        let session = app.session(forThreadShape: thread)
+        let summaryText = (session?.hasSummary == true ? session?.summary : nil) ?? fallbackText
+        let maxPost = session?.totalPosts ?? thread.totalPosts
+        let count = session?.summaryPostCount ?? maxPost
+        let parsed = DrawerSummarySections.parsed(for: .init(text: summaryText, maximumPost: maxPost))
+        if !parsed.rows.isEmpty {
+            DCResultCard(label: String(localized: "Summary", comment: "Summary result card header"), systemImage: "doc.text") {
+                if let count, count > 0 { Text(String(localized: "\(count) posts")).font(.caption) }
+            } content: {
+                DrawerSummarySections(rows: parsed.rows, layout: .singleColumn)
+            }
+            .environment(\.openURL, OpenURLAction { url in
+                if let number = PostCitations.postNumber(from: url) {
+                    if let session, session.topicKey == app.currentTopic?.topicKey {
+                        app.jumpToCitation(number)
+                    } else if let target = session?.url ?? URL(string: thread.url) {
+                        app.browser.load(target)
+                    }
+                    return .handled
+                }
+                guard ForumBrowserModel.isBrowsableURL(url) else { return .systemAction }
+                app.browser.load(url)
+                return .handled
+            })
+            .accessibilityIdentifier("capabilityThreadSummaryCard")
+        }
+    }
+}
+
+private struct CapabilityListenCard: View {
+    @ObservedObject var app: AppModel
+    @ObservedObject var podcast: PodcastController
+    @ObservedObject var player: PodcastPlayer
+    let thread: ThreadShape?
+    let explicitID: String?
+    let title: String
+    let fallbackDetail: String
+    let rawText: String?
+    let workspacePath: String?
+
+    var body: some View {
+        let session = thread.flatMap { app.session(forThreadShape: $0) }
+        let readID = session?.topicKey ?? explicitID ?? ""
+        let matches = !readID.isEmpty && player.playlist?.id == PodcastController.readAloudPlaylistID(readID)
+        let timeline = player.timeline
+        let progress = matches && timeline.total > 0 ? timeline.elapsed(player.position) / timeline.total : 0
+        let detail = matches && timeline.total > 0
+            ? "\(DockText.clock(timeline.elapsed(player.position))) / \(DockText.clock(timeline.total))"
+            : fallbackDetail
+        let speakText = session.map { PostCitations.stripped($0.summary) } ?? rawText.map { PostCitations.stripped($0) }
+        Button {
+            DCHaptics.tap()
+            if matches { player.toggle() }
+            else if !readID.isEmpty, let speakText, !speakText.isEmpty { podcast.readAloud(id: readID, title: title, text: speakText) }
+            else if !readID.isEmpty, let workspacePath {
+                Task { @MainActor in
+                    guard let read = try? await app.agentWorkspace.read(path: workspacePath, offset: 0, length: Int.max) else { return }
+                    let cleaned = PostCitations.stripped(read.text).trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !cleaned.isEmpty { podcast.readAloud(id: readID, title: title, text: cleaned) }
+                }
+            }
+        } label: {
+            DCListenRow(title: title, detail: detail, progress: progress, isPlaying: matches && player.isActive)
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("capabilityListenRow")
     }
 }

@@ -241,6 +241,7 @@
 		A6C289B0CB4FEF453826D7025467D37F /* AppModel+Voice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F8888ED2E95462757408468498E0B03 /* AppModel+Voice.swift */; };
 		A766E1ED9F81A1F029B487D7C4BF0F0B /* PodcastPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F5C86516B55FD859134518E719473EC /* PodcastPlayer.swift */; };
 		A7A63A993382B8D80F6563A992CB1694 /* VoiceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF83176EE4C36CE85A55CE415337089E /* VoiceController.swift */; };
+		A8AAA62AC8C54276CF0E2C2B121C9BDB /* CapabilityToolsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9A9A51D1AC93A59F420D663180340FE /* CapabilityToolsTests.swift */; };
 		AAA41970AE39D2D07CA89A697B83E6D0 /* BrowseCursor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C8200158B6FBD4EDE4A883F946FEBE8 /* BrowseCursor.swift */; };
 		AB700387B963121F63239A96B37BE6FF /* PageFeedbackTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6573B3C082932F953A1BDEF72C5B7741 /* PageFeedbackTests.swift */; };
 		ABDF94546AF07D7DD3529080117D4445 /* MotionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F18A2099A62261F77EF0EA1A232B793 /* MotionTests.swift */; };
@@ -331,6 +332,7 @@
 		DA5799B0AF84A878D78E18B43A344481 /* AppModel+System.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE3513E81E2886F181E96F0F77602859 /* AppModel+System.swift */; };
 		DACA4C9A0469CF27F9E019AD01E031D8 /* UITestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F4B3792BA75FC60588AF7ECFF560D22 /* UITestSupport.swift */; };
 		DB4D2EC7AAA70C2494939573D86952D6 /* wordpress-home.json in Resources */ = {isa = PBXBuildFile; fileRef = 4D6047907AA24ADADD0C72A163D0D9A3 /* wordpress-home.json */; };
+		DCA1FC26E6C9CBD10F79FA35F8B16097 /* ToolRegistry+Capabilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEDA3707A8EEA6013A5C95D0F16BCA53 /* ToolRegistry+Capabilities.swift */; };
 		DCA33F67D250278B534B5E3D31A8CA5B /* SiteKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = D041ED83FE3D7F318AF06938D4E11406 /* SiteKind.swift */; };
 		DD1DE24D90EEEE5830677748BD7D6226 /* NetworkFailure.swift in Sources */ = {isa = PBXBuildFile; fileRef = 788BFB36EB704BBDA3C18F3A823BC730 /* NetworkFailure.swift */; };
 		DE9D9056298B8F9EAABC29490E0335B3 /* SharedPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 069671F1B18DD7D0849D3EDDC3631F32 /* SharedPageTests.swift */; };
@@ -740,11 +742,13 @@
 		F676B9353BCBA02767DD33CCA35040FF /* WordPressRecognizer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WordPressRecognizer.swift; path = Sites/Recognition/WordPressRecognizer.swift; sourceTree = "<group>"; };
 		F6E11F3BB41B93049BC23C2097EAEAE1 /* ProviderModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProviderModels.swift; sourceTree = "<group>"; };
 		F92F04857C59DA9C695FF87B86AE4719 /* WorkspaceLayout.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WorkspaceLayout.swift; sourceTree = "<group>"; };
+		F9A9A51D1AC93A59F420D663180340FE /* CapabilityToolsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CapabilityToolsTests.swift; sourceTree = "<group>"; };
 		FAADF85DE900B61834F1CD302535F4D0 /* speech-a.wav */ = {isa = PBXFileReference; includeInIndex = 1; name = "speech-a.wav"; path = "Audio/speech-a.wav"; sourceTree = "<group>"; };
 		FADC5982425C8F528B82C256F7B400B8 /* ForumTransportTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ForumTransportTests.swift; sourceTree = "<group>"; };
 		FB2759631A71C867AD0687BA24E19024 /* CloudSyncEngine.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CloudSyncEngine.swift; sourceTree = "<group>"; };
 		FDCFFB2F74334A9338A90AEC538DF3B3 /* HackerNewsAgent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HackerNewsAgent.swift; path = Sites/HackerNews/HackerNewsAgent.swift; sourceTree = "<group>"; };
 		FE38D73A8610ED7AD5F3A19A230D994C /* AIDrawer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AIDrawer.swift; sourceTree = "<group>"; };
+		FEDA3707A8EEA6013A5C95D0F16BCA53 /* ToolRegistry+Capabilities.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "ToolRegistry+Capabilities.swift"; sourceTree = "<group>"; };
 		FF227D658A4552E42CDAA68A615FE954 /* AIService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AIService.swift; sourceTree = "<group>"; };
 		FF304334B495DE6F732FFA6C2682ACCC /* discourse-discourse-fixture-test-raw-42-a699eb05f449.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "discourse-discourse-fixture-test-raw-42-a699eb05f449.json"; path = "Fixtures/Comparison/discourse/discourse-discourse-fixture-test-raw-42-a699eb05f449.json"; sourceTree = "<group>"; };
 		FF691968783B407193F50291AA90A19B /* ForumSnapshotProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ForumSnapshotProtocol.swift; path = Support/ForumSnapshotProtocol.swift; sourceTree = "<group>"; };
@@ -1008,6 +1012,7 @@
 				68DBA89C5AA481675E889573F9B9F5C4 /* SystemEntry.swift */,
 				D5632CF2CC3890AFFB6970E9CACDE047 /* TaskExport.swift */,
 				86E73247D68601ECFA7E10C5D68D750C /* TaskRecord.swift */,
+				FEDA3707A8EEA6013A5C95D0F16BCA53 /* ToolRegistry+Capabilities.swift */,
 				F29DD93ECE0A31AA8F8ED6BA0DFC891D /* ToolRegistry+Capture.swift */,
 				31546D10924EAA70ED8FD0788A65EF48 /* ToolRegistry+Forum.swift */,
 				479C700D68ED1D64EABF400DA709B450 /* ToolRegistry+Navigation.swift */,
@@ -1090,6 +1095,7 @@
 				90F45C5304E27921350E43811E0CCA08 /* AuditLogTests.swift */,
 				3695C5224C5FAEE71E6036854ABC3EE8 /* BrowseNavigationTests.swift */,
 				5C43CDB5BFF36DA709CC1DFE2790BB9F /* BrowserToolsTests.swift */,
+				F9A9A51D1AC93A59F420D663180340FE /* CapabilityToolsTests.swift */,
 				D430B405FC2361AC895CE3BA61F92646 /* CloudSyncFakes.swift */,
 				514228D7C2B8964E9164E10C1E143698 /* CloudSyncTests.swift */,
 				5188FADE4AC87BDE19D872C1649C17E9 /* ComparisonSnapshotTests.swift */,
@@ -1485,6 +1491,7 @@
 				1AD67B9B74C776E17BE7660B313ED939 /* AuditLogTests.swift in Sources */,
 				9DE20C4981C53931784C01C33ECFD6D6 /* BrowseNavigationTests.swift in Sources */,
 				9CC4C20859AEF783A4446C841097CBDB /* BrowserToolsTests.swift in Sources */,
+				A8AAA62AC8C54276CF0E2C2B121C9BDB /* CapabilityToolsTests.swift in Sources */,
 				C7A944031147F4644046D0815300C243 /* CloudSyncFakes.swift in Sources */,
 				CC533C043AA3FA93E2D064239A1F934E /* CloudSyncTests.swift in Sources */,
 				BB7C8F588FC2AF60601CDE895BCE19EA /* ComparisonSnapshotTests.swift in Sources */,
@@ -1724,6 +1731,7 @@
 				C92778E72BDB1B486CCE4854D48AF01B /* SystemEntry.swift in Sources */,
 				C173A2D8AE250646B53FA262852C85C9 /* TaskExport.swift in Sources */,
 				CB7A36159F6DEA47BED5AFE84863CBFA /* TaskRecord.swift in Sources */,
+				DCA1FC26E6C9CBD10F79FA35F8B16097 /* ToolRegistry+Capabilities.swift in Sources */,
 				C2B07219C2836B90015BB2D691DD0053 /* ToolRegistry+Capture.swift in Sources */,
 				B8E05EFAE9C744A31CDF34298F0D1E33 /* ToolRegistry+Forum.swift in Sources */,
 				9939510049F93E2939D5B8E957D12709 /* ToolRegistry+Navigation.swift in Sources */,

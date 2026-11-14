@@ -2,11 +2,38 @@ import BackgroundTasks
 import Foundation
 import UserNotifications
 
-/// Local notifications for watched topics and the daily digest. Tapping a
-/// watched topic's opens it in the embedded browser via
-/// `openURLNotification`; the digest's opens the Today page
-/// (`openTodayNotification`).
-final class WatchNotifier: NSObject, UNUserNotificationCenterDelegate {
+/// Local notifications for watched topics, the daily digest, and the Agent's `notify` tool.
+/// Tapping a watched topic's opens it in the embedded browser via `openURLNotification`;
+/// the digest's opens the Today page (`openTodayNotification`).
+final class WatchNotifier: NSObject, UNUserNotificationCenterDelegate, @unchecked Sendable {
+    struct NotificationBackend: Sendable {
+        var authorizationStatus: @Sendable () async -> UNAuthorizationStatus
+        var requestAuthorization: @Sendable () async throws -> Bool
+        var add: @Sendable (UNNotificationRequest) async throws -> Void
+
+        static let system = NotificationBackend(
+            authorizationStatus: {
+                guard !AppModel.isRunningTests else { return .denied }
+                return (await UNUserNotificationCenter.current().notificationSettings()).authorizationStatus
+            },
+            requestAuthorization: {
+                guard !AppModel.isRunningTests else { return false }
+                return try await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge])
+            },
+            add: { request in
+                guard !AppModel.isRunningTests else { return }
+                try await UNUserNotificationCenter.current().add(request)
+            }
+        )
+    }
+
+    enum NotifyError: LocalizedError, Equatable {
+        case permissionDenied
+        var errorDescription: String? {
+            String(localized: "Notifications are turned off for WukongMind. Turn them on in Settings to receive alerts.")
+        }
+    }
+
     static let shared = WatchNotifier()
     static let openURLNotification = Notification.Name(AppIdentity.identifier("openURL"))
     static let openTodayNotification = Notification.Name(AppIdentity.identifier("openToday"))
@@ -16,22 +43,29 @@ final class WatchNotifier: NSObject, UNUserNotificationCenterDelegate {
     /// A digest notification was tapped before the app model observed it
     /// (cold launch); the model opens the Today page when it's ready.
     @MainActor static var pendingTodayOpen = false
+    let backend: NotificationBackend
 
-    func isAuthorized() async -> Bool {
-        guard !AppModel.isRunningTests else { return false }
-        let settings = await UNUserNotificationCenter.current().notificationSettings()
-        return settings.authorizationStatus == .authorized
-            || settings.authorizationStatus == .provisional
+    init(backend: NotificationBackend = .system) {
+        self.backend = backend
+        super.init()
     }
 
-    func requestAuthorization() async -> Bool {
-        guard !AppModel.isRunningTests else { return false }
-        do {
-            return try await UNUserNotificationCenter.current()
-                .requestAuthorization(options: [.alert, .sound, .badge])
-        } catch {
-            return false
+    func isAuthorized() async -> Bool {
+        let status = await backend.authorizationStatus()
+        return status == .authorized || status == .provisional || status == .ephemeral
+    }
+
+    func requestAuthorization() async -> Bool { (try? await backend.requestAuthorization()) ?? false }
+
+    func notify(title: String, body: String) async throws {
+        switch await backend.authorizationStatus() {
+        case .notDetermined: guard await requestAuthorization() else { throw NotifyError.permissionDenied }
+        case .authorized, .provisional, .ephemeral: break
+        default: throw NotifyError.permissionDenied
         }
+        let content = UNMutableNotificationContent()
+        content.title = title; content.body = body; content.sound = .default
+        try await backend.add(UNNotificationRequest(identifier: "agent-\(UUID().uuidString)", content: content, trigger: nil))
     }
 
     func notifyNewReplies(topic: WatchedTopic, count: Int) async {
@@ -50,7 +84,7 @@ final class WatchNotifier: NSObject, UNUserNotificationCenterDelegate {
             content: content,
             trigger: nil
         )
-        try? await UNUserNotificationCenter.current().add(request)
+        try? await backend.add(request)
     }
 
     /// "Today's digest is ready to make": the forum data is fetched, the
@@ -67,7 +101,7 @@ final class WatchNotifier: NSObject, UNUserNotificationCenterDelegate {
         content.userInfo = [Self.routeKey: Self.todayRoute]
         content.threadIdentifier = "digest"
         let request = UNNotificationRequest(identifier: "digest-ready", content: content, trigger: nil)
-        try? await UNUserNotificationCenter.current().add(request)
+        try? await backend.add(request)
     }
 
     // MARK: UNUserNotificationCenterDelegate
