@@ -820,7 +820,7 @@ struct BrowserAgentRunsView: View {
             }
         }.first
         let siteURL = sample.flatMap { app.siteURL(containing: $0) } ?? ""
-        let parse = app.linkParser(siteURL: siteURL)
+        let parse = app.linkParser(siteURL: siteURL, shapes: shapes)
         let sources = AgentSources.extract(from: reply, visits: AgentSources.visits(of: shapes), parse: parse)
         return (sources, siteURL, parse)
     }

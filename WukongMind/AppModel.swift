@@ -466,8 +466,7 @@ final class AppModel: ObservableObject {
             guard let self else {
                 return ToolRegistry.m1(bridge: bridge, truncationLimit: limit, redactedSecrets: secrets)
             }
-            let forum = self.makeForumToolContext()
-            var registry = ToolRegistry.m3(context: AgentToolContext(
+            return ToolRegistry.m3(context: AgentToolContext(
                 bridge: bridge,
                 workspace: self.agentWorkspace,
                 scriptStore: self.scriptStore,
@@ -489,16 +488,9 @@ final class AppModel: ObservableObject {
                 ),
                 network: self.agentHTTPClient,
                 confirmations: self.agentConfirmations,
-                forum: forum,
+                forum: self.makeForumToolContext(),
                 capabilities: self.capabilityToolContext
             ))
-            registry.forumPrompt = forum.map {
-                ForumPromptContext(
-                    forumName: $0.forumName, siteURL: $0.scope.siteURL, adapter: $0.scope.adapter,
-                    maxTopicReads: $0.scope.readBudget()
-                )
-            }
-            return registry
         },
         auditLog: auditLog,
         taskRecords: taskRecordStore
@@ -1059,6 +1051,24 @@ final class AppModel: ObservableObject {
     /// carry no topic id.
     func linkParser(for run: AgentRun) -> AgentSources.Parse {
         linkParser(siteURL: run.siteURL, known: run.knownLinks)
+    }
+
+    /// The parser of an Agent run's links: the permalinks its forum results
+    /// showed (thread and list shapes) stand in for `AgentRun.knownLinks`.
+    func linkParser(siteURL: String, shapes: [ForumShape]) -> AgentSources.Parse {
+        guard let links = adapter(for: siteURL)?.links else { return linkParser(siteURL: siteURL) }
+        var known: [String: String] = [:]
+        func note(_ urlText: String, _ id: String?) {
+            guard let id, !id.isEmpty, known.count < AgentRun.knownLinkLimit, let url = URL(string: urlText) else { return }
+            known[AgentSources.knownKey(url, links: links)] = id
+        }
+        for shape in shapes {
+            switch shape {
+            case .thread(let thread): note(thread.url, thread.id)
+            case .list(let list): list.items.forEach { note($0.url, $0.id) }
+            }
+        }
+        return linkParser(siteURL: siteURL, known: known)
     }
 
     private func linkParser(siteURL: String, known: [String: String]) -> AgentSources.Parse {

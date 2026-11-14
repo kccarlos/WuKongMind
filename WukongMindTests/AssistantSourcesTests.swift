@@ -194,4 +194,32 @@ final class AssistantSourcesTests: XCTestCase {
         XCTAssertTrue(sources.isEmpty)
         XCTAssertEqual(AgentSources.annotate("No links here.", sources: sources, parse: parse), "No links here.")
     }
+
+    @MainActor
+    func testWordPressSlugPermalinksResolveFromTheRunsShapes() throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("wukong-src-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        addTeardownBlock { try? FileManager.default.removeItem(at: dir) }
+        let wp = WordPressFixtureSite(commentCount: 1)
+        let store = PersistentStore(fileURL: dir.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore())
+        try store.save(AppSnapshot(forums: [Forum(siteURL: WordPressFixtureSite.siteURL, kind: .wordpress, name: "Example Blog")]))
+        let app = AppModel(
+            store: store,
+            forumService: wp.service(), sites: SiteRegistry.standard, aiService: StateAIStub(),
+            workspaceDirectory: dir.appendingPathComponent("ws", isDirectory: true)
+        )
+        let site = WordPressFixtureSite.siteURL
+        let article = "https://example.com/2026/05/sample-cards-and-notes/"
+        let listed = "https://example.com/2026/p1002/"
+        let shapes: [ForumShape] = [
+            .list(ListShape(items: [.init(id: "1002", title: "Hotel Points Guide", url: listed)])),
+            .thread(ThreadShape(id: "1001", title: "Sample", url: article, posts: []))
+        ]
+        let parse = app.linkParser(siteURL: site, shapes: shapes)
+        let reply = "See [Hotel Points Guide](\(listed)#comment-6001) and [the article](\(article.dropLast())#comment-5001)."
+        let sources = AgentSources.extract(from: reply, visits: AgentSources.visits(of: shapes), parse: parse)
+        XCTAssertEqual(sources.map(\.topicID), ["1002", "1001"])
+        XCTAssertEqual(sources.map(\.cited), [true, true], "the read article is not listed again")
+        XCTAssertNil(app.linkParser(siteURL: site)(try XCTUnwrap(URL(string: article))))
+    }
 }
