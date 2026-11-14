@@ -28,7 +28,7 @@ unless bundle_id_prefix.match?(/\A[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+\z/)
 end
 build_number = ENV["BUILD_NUMBER"].to_s.strip
 build_number = "1" if build_number.empty?
-marketing_version = "1.1.5"
+marketing_version = "1.2.0"
 
 # Settings every target shares. DC_APP_GROUP feeds the entitlements files;
 # DC_IDENTIFIER_PREFIX feeds the Info.plist keys AppIdentity.swift reads.

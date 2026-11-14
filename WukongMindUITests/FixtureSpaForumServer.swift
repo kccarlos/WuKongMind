@@ -107,6 +107,15 @@ final class FixtureSpaForumServer: @unchecked Sendable {
             return Data(headers.utf8)
         }
 
+        if path.hasPrefix("/crawl/page-"), let page = Self.crawlPage(path) {
+            lock.withLock { pathCounts[path, default: 0] += 1 }
+            let head = [
+                "HTTP/1.1 200 OK", "Content-Type: text/html; charset=utf-8", "Cache-Control: no-store",
+                "Content-Length: \(page.count)", "Connection: close", "", ""
+            ].joined(separator: "\r\n")
+            return Data(head.utf8) + page
+        }
+
         let initialThreadID = path.hasSuffix("/102") ? 102 : 101
         let loadNumber: Int = lock.withLock {
             pathCounts[path, default: 0] += 1
@@ -125,6 +134,15 @@ final class FixtureSpaForumServer: @unchecked Sendable {
             ""
         ].joined(separator: "\r\n")
         return Data(head.utf8) + body
+    }
+
+    /// The 25-page crawl fixture (M3 acceptance check 1), read from the checked-in files.
+    private static func crawlPage(_ path: String) -> Data? {
+        let name = String(path.dropFirst("/crawl/".count))
+        guard name.range(of: #"^page-(0[1-9]|1[0-9]|2[0-5])\.html$"#, options: .regularExpression) != nil else { return nil }
+        let url = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+            .appendingPathComponent("WukongMindTests/Fixtures/CrawlForum/\(name)")
+        return try? Data(contentsOf: url)
     }
 
     private static func pageHTML(initialThreadID: Int, loadNumber: Int) -> String {

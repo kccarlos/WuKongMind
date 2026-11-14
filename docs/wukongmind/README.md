@@ -33,10 +33,10 @@ Marketing versions follow milestones on the `1.x` line (see [section 7 of next-p
 | Milestone | Marketing version | Status / notes |
 |---|---|---|
 | M1 | `1.0.0` | Shipped (TestFlight builds 104, 105) |
-| M2 | `1.1.0` | In progress — persistence (userscripts); flaky-test fixes and unified UI design have no release |
+| M2 | `1.1.0` | Done (no separate release; shipped in 1.2.0). Was: in progress — persistence (userscripts); flaky-test fixes and unified UI design have no release |
 | Cleanup | `1.1.x` | Four cleanup tasks (remove App Store review/listing code, rename to WukongMind, drop CI test retries) |
 | One panel | `1.1.x` | Unified conversation view, suggestion row, start page, settings and onboarding (engines unchanged) |
-| M3 | `1.2.0` | Full abilities, workspace, developer mode part 1 (raw request inspection and task export) |
+| M3 | `1.2.0` | Accepted on recorded tests, version bumped ([m3-acceptance.md](m3-acceptance.md)); live checks left to the trial. Full abilities, workspace, developer mode part 1 (raw request inspection and task export) |
 | One loop | `1.3.0` | Merge into one Agent loop; adapters and capabilities become Agent tools; voice shares tools |
 | M4 | `1.4.0` | Self-extension, Tampermonkey compatibility and `GM_ai` |
 | Trial | No release | Two-week daily-use trial (`docs/wukongmind/trial-notes.md` and task exports) |
