@@ -1,0 +1,25 @@
+{
+  "body": {
+    "author": "pg_test",
+    "children": [
+      {
+        "author": "commenter1",
+        "created_at_i": 1772360100,
+        "id": 99999902,
+        "text": "<p>Litestream replicates the WAL cleanly on a single node.</p>",
+        "type": "comment"
+      }
+    ],
+    "created_at_i": 1772360000,
+    "id": 99999901,
+    "points": 88,
+    "title": "Running SQLite on one server",
+    "type": "story",
+    "url": "https://example.com/sqlite"
+  },
+  "headers": {
+    "content-type": "application/json; charset=utf-8"
+  },
+  "status": 200,
+  "url": "https://hn.algolia.com/api/v1/items/99999901"
+}

@@ -1,0 +1,20 @@
+{
+  "body": [
+    {
+      "author_name": "Justine",
+      "content": {
+        "rendered": "<p>Three hotel nights in one cart counted as one transaction.</p>"
+      },
+      "date_gmt": "2026-03-01T13:00:00",
+      "id": 7701,
+      "parent": 0
+    }
+  ],
+  "headers": {
+    "content-type": "application/json; charset=UTF-8",
+    "x-wp-total": "1",
+    "x-wp-totalpages": "1"
+  },
+  "status": 200,
+  "url": "https://wordpress.fixture.test/wp-json/wp/v2/comments?post=77&per_page=100&page=1&order=asc&orderby=date_gmt&_fields=id,parent,author_name,date_gmt,content"
+}
