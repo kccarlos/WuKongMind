@@ -5,6 +5,7 @@ WukongMind is a fork of Forumind into a self-use, open-source iOS/iPadOS browser
 - The full requirements are in [requirements.md](requirements.md). [next-phase.md](next-phase.md) supplements them and wins where they conflict (including the rule that Forumind's features and tests must keep passing: features the cleanup deletes take their tests with them).
 - The unified interface design is in [design-unified.md](design-unified.md); exported boards and the design system are in [design/README.md](design/README.md).
 - The M3 "Full abilities" (1.2.0) design and its task split are in [design-m3.md](design-m3.md). M3 also includes page feedback, specified in [page-feedback.md](page-feedback.md).
+- The One loop (1.3.0) design, comparison test and task split are in [design-one-loop.md](design-one-loop.md). Deleting the old Research loop and Topic chat waits for the owner's approval of that comparison.
 - English first: code, docs, commits and pull requests are in English.
 - This repo started as a copy of Forumind `main` (e046b43). The `forumind` remote is fetch-only; never push to it.
 - Milestones run in order per [section 7 of next-phase.md](next-phase.md#7-milestones); each needs the owner's acceptance before the next.
