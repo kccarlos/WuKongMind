@@ -17,7 +17,7 @@ extension ModelRole {
     /// browser agent each have their own model.
     init(mode: AssistantMode) {
         switch mode {
-        case .summary, .chat: self = .assistant
+        case .summary: self = .assistant
         case .agent: self = .agent
         case .browserAgent: self = .browserAgent
         }

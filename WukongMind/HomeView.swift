@@ -579,7 +579,6 @@ private struct RecentRow: View {
         case .agent: String(localized: "Agent", comment: "Home Recent: a saved Agent answer")
         case .ask: String(localized: "Agent", comment: "Home Recent: a forum search the Agent ran")
         case .summary: String(localized: "Summary", comment: "Home Recent: a saved summary")
-        case .chat: String(localized: "Chat", comment: "Home Recent: a saved chat")
         }
     }
 
@@ -596,7 +595,7 @@ private struct RecentRow: View {
                 if item.isAgent {
                     DCAgentRing(size: 20, lineWidth: DCTheme.ringWidth)
                 } else {
-                    Image(systemName: item.kind == .chat ? "bubble.left" : "doc.text")
+                    Image(systemName: "doc.text")
                         .font(.body)
                         .foregroundStyle(DCTheme.ink)
                 }

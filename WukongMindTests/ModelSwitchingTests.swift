@@ -33,7 +33,6 @@ final class ModelSwitchingTests: XCTestCase {
 
     func testPillFollowsTheScopesRole() {
         XCTAssertEqual(ModelPill.role(for: .summary), .assistant)
-        XCTAssertEqual(ModelPill.role(for: .chat), .assistant, "This topic")
         XCTAssertEqual(ModelPill.role(for: .agent), .agent, "Whole forum")
     }
 

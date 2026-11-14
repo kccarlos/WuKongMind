@@ -9,7 +9,6 @@ extension AssistantMode {
     var title: String {
         switch self {
         case .summary: String(localized: "Summary", comment: "Assistant mode: the topic's AI summary")
-        case .chat: String(localized: "Chat", comment: "Assistant mode: chat about the open topic")
         case .agent: String(localized: "Ask the forum", comment: "Assistant mode: the research agent that searches the whole forum")
         case .browserAgent:
             String(
@@ -25,7 +24,6 @@ extension AssistantMode {
     var accessibilityTitle: String {
         switch self {
         case .summary: String(localized: "Summary", comment: "Assistant mode: the topic's AI summary")
-        case .chat: String(localized: "Chat", comment: "Assistant mode: chat about the open topic")
         case .agent: String(localized: "Agent", comment: "VoiceOver name of the “Ask the forum” assistant mode (the research agent)")
         case .browserAgent: title
         }
@@ -35,7 +33,6 @@ extension AssistantMode {
     var shortTitle: String {
         switch self {
         case .summary: String(localized: "Summary", comment: "Assistant mode: the topic's AI summary")
-        case .chat: String(localized: "Chat", comment: "Assistant mode: chat about the open topic")
         case .agent: String(localized: "Ask", comment: "Short form of the “Ask the forum” assistant mode, for narrow switchers")
         case .browserAgent: title
         }
@@ -44,7 +41,6 @@ extension AssistantMode {
     var systemImage: String {
         switch self {
         case .summary: "text.alignleft"
-        case .chat: "bubble.left.and.bubble.right"
         case .agent: "sparkle.magnifyingglass"
         case .browserAgent: "sparkles"
         }
@@ -53,7 +49,6 @@ extension AssistantMode {
     var tint: Color {
         switch self {
         case .summary: DCTheme.summaryTint
-        case .chat: DCTheme.chatTint
         case .agent, .browserAgent: DCTheme.agentTint
         }
     }

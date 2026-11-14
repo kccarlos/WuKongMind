@@ -739,42 +739,23 @@ final class MultiForumTests: XCTestCase {
         app.askDraft = "typing on"
         XCTAssertEqual(draftChanges, 2)
         XCTAssertEqual(appChanges, 0)
-        app.setAskScope(.forum)
-        app.setAskScope(.topic)
         XCTAssertEqual(app.askDraft, "typing on")
         withExtendedLifetime((appToken, draftToken)) {}
     }
 
-    /// Switching the Ask box between This topic and Whole forum (and to a
-    /// new question) carries the typed text along, without overwriting text
-    /// the other draft already has.
+    /// Choosing a forum for the Ask box keeps the typed text, without
+    /// overwriting text another draft already has.
     @MainActor
-    func testSwitchingTheAskScopeKeepsTheTypedText() {
+    func testChoosingTheAskForumKeepsTheTypedText() {
         let app = AppModel(store: temporaryStore())
-        XCTAssertEqual(app.askScope, .topic)
         app.askDraft = "half-typed question"
-        XCTAssertEqual(app.drafts.chat, "half-typed question")
-
-        app.setAskScope(.forum)
-        XCTAssertEqual(app.assistantMode, .agent)
-        XCTAssertEqual(app.askDraftTarget, .goal)
-        XCTAssertEqual(app.askDraft, "half-typed question")
-        XCTAssertEqual(app.drafts.chat, "")
+        XCTAssertEqual(app.drafts.goal, "half-typed question")
 
         app.chooseAskForum(siteURL: meta)
+        XCTAssertEqual(app.assistantMode, .agent)
+        XCTAssertEqual(app.askDraftTarget, .goal)
         XCTAssertEqual(app.agentSiteURL, meta)
         XCTAssertEqual(app.askDraft, "half-typed question")
-
-        app.setAskScope(.topic)
-        XCTAssertEqual(app.askScope, .topic)
-        XCTAssertEqual(app.drafts.chat, "half-typed question")
-        XCTAssertEqual(app.drafts.goal, "")
-
-        // Text of its own in the other draft stays; nothing is lost.
-        app.drafts.goal = "older goal"
-        app.setAskScope(.forum)
-        XCTAssertEqual(app.askDraft, "older goal")
-        XCTAssertEqual(app.drafts.chat, "half-typed question")
     }
 
     /// A Whole forum question from the Ask box starts an agent run on the
@@ -798,7 +779,7 @@ final class MultiForumTests: XCTestCase {
         useLocalProvider(app)
 
         app.chooseAskForum(siteURL: meta)
-        XCTAssertEqual(app.askScope, .forum)
+        XCTAssertEqual(app.assistantMode, .agent)
         XCTAssertFalse(app.canSendAsk)
         app.askDraft = "Anything new this week?"
         XCTAssertTrue(app.canSendAsk)

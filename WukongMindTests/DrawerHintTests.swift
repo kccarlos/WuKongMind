@@ -153,24 +153,7 @@ final class DrawerHintTests: XCTestCase {
     }
 
     @MainActor
-    func testTopicChatModePreservesNewRepliesHint() throws {
-        // DrawerHint and split-panel dot treat `.chat` the same as `.summary` (unified topic view).
-        XCTAssertEqual(
-            action(.topic) { $0.mode = .chat; $0.hasSummary = true; $0.totalPosts = 20; $0.summaryPostCount = 14 },
-            .checkNew(6)
-        )
-        XCTAssertEqual(
-            row(.topic, tip: true) { $0.mode = .chat },
-            DrawerHint.Row(action: .summarize, isTip: true)
-        )
-        var staleChat = DrawerHint.Input(pageState: .topic, mode: .chat, hasSummary: true, totalPosts: 20, summaryPostCount: 14)
-        XCTAssertTrue(DrawerHint.showsSplitNewRepliesDot(staleChat, panelShown: false))
-        staleChat.mode = .agent
-        XCTAssertFalse(DrawerHint.showsSplitNewRepliesDot(staleChat, panelShown: false))
-    }
-
-    @MainActor
-    func testFollowUpChatAnswersLinkPostCitationsAndJumpToPost() throws {
+    func testAnswersLinkPostCitationsAndJumpToPost() throws {
         let linked = DrawerSummarySections.link("See #12 and #37; ignore `#5` and #500.", maximum: 100)
         XCTAssertTrue(linked.contains("[#12](wukongmind-post:12)"), linked)
         XCTAssertTrue(linked.contains("[#37](wukongmind-post:37)"), linked)
@@ -195,9 +178,6 @@ final class DrawerHintTests: XCTestCase {
         let app = AppModel(store: store)
         app.browser.onPageContextChanged = nil
         app.select(topic: topic)
-
-        let bubble = ChatBubble(message: session.history[1], maximumPost: session.totalPosts)
-        XCTAssertEqual(bubble.maximumPost, 50)
 
         let citationURL = try XCTUnwrap(PostCitations.url(post: 37))
         let postNumber = try XCTUnwrap(PostCitations.postNumber(from: citationURL))

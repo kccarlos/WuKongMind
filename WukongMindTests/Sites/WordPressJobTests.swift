@@ -92,9 +92,9 @@ final class WordPressJobTests: XCTestCase {
         XCTAssertEqual(again.siteURL, siteURL)
     }
 
-    // MARK: Summary, chat, watch
+    // MARK: Summary, watch
 
-    func testASummaryThenAFollowUpChatReadTheArticleAndEveryComment() async throws {
+    func testASummaryReadsTheArticleAndEveryComment() async throws {
         let harness = makeHarness()
         let app = harness.app
         app.select(topic: topic)
@@ -108,13 +108,6 @@ final class WordPressJobTests: XCTestCase {
         let session = try XCTUnwrap(app.sessions[topic.topicKey])
         XCTAssertEqual(session.totalPosts, 251)
         XCTAssertEqual(harness.wordpress.commentPages, [1, 2, 3])
-
-        app.drafts.chat = "What do readers think?"
-        app.sendChat()
-        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
-        XCTAssertEqual(app.activities.first?.status, .completed, app.activities.first?.error ?? "")
-        XCTAssertEqual(harness.ai.calls.last?.kind, "chat")
-        XCTAssertEqual(app.sessions[topic.topicKey]?.history.last?.content, "Answer by ollama/model-a")
     }
 
     func testTheWatchCheckCountsNewCommentsFromTheOverview() async throws {

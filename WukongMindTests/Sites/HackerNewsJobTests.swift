@@ -43,7 +43,7 @@ final class HackerNewsJobTests: XCTestCase {
             try await Task.sleep(for: .milliseconds(20))
         }
     }
-    func testSummaryChatAndVoiceReadUseNestedText() async throws {
+    func testSummaryAndVoiceReadUseNestedText() async throws {
         let (app, ai, _, _) = try harness()
         app.select(topic: topic)
         XCTAssertTrue(app.enqueueSummary(for: topic))
@@ -52,11 +52,6 @@ final class HackerNewsJobTests: XCTestCase {
         let summary = try XCTUnwrap(ai.calls.first)
         XCTAssertTrue(summary.content.contains("sama |"))
         XCTAssertTrue(summary.content.contains("[Reply to #2; item 15]"))
-        app.drafts.chat = "Explain the nested replies"
-        app.sendChat()
-        try await wait { app.activities.allSatisfy(\.status.isTerminal) }
-        XCTAssertEqual(ai.calls.last?.kind, "chat")
-        XCTAssertTrue(ai.calls.last?.content.contains("[Reply to #2; item 15]") ?? false)
         app.browser.setPageContext(.init(url: topic.url, site: SiteKind("hackernews"), siteURL: site, forumName: "Hacker News", topic: topic, state: .topic))
         let facts = TopicFacts(postsCount: 4, highestPostNumber: 4)
         let visible = await app.postText(3, in: .init(siteURL: site, topicID: "1"), facts: facts)
