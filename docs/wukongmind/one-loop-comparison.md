@@ -1935,3 +1935,5 @@ Conditions, met before any deletion task (9, 10, 11, 13, 14) merges:
 Not blocking: D5 should surface the solved flag in search results (both sides); watch `summarize_topic` overuse (D4, H5) and the W3/H5 token spikes.
 
 Conditions 1-4: met on 2026-11-14 (WUKO-63; see [Re-record after gate 2 fixes](#re-record-after-gate-2-fixes)), pending the orchestrator's final check.
+
+Conditions 1-4 met, confirmed by the orchestrator for the owner, 2026-11-14.
