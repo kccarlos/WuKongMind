@@ -547,10 +547,12 @@ extension AppModel {
             id: "dark-thread",
             name: "Dark palette & wide thread",
             matchRules: ["*://news.example.org/*"],
-            js: """
-            const header = document.querySelector('header.site-header');
-            if (header) header.dataset.theme = 'dark';
-            """,
+            js: variant == "page-error"
+                ? "document.querySelector('.missing-header').classList.add('dark');"
+                : """
+                const header = document.querySelector('header.site-header');
+                if (header) header.dataset.theme = 'dark';
+                """,
             css: """
             html, body { background: #0f172a !important; color: #e2e8f0 !important; }
             """,
@@ -570,6 +572,17 @@ extension AppModel {
                 url: Self.browserAgentFixtureURL.absoluteString,
                 occurredAt: now.addingTimeInterval(-40)
             )
+        } else if variant == "auto-disabled" {
+            for load in ["load-1", "load-2", "load-3"] {
+                scriptStore.recordPageLoadError(
+                    scriptID: "dark-thread",
+                    message: "TypeError: Cannot read properties of null (reading 'classList')",
+                    line: 2,
+                    url: Self.browserAgentFixtureURL.absoluteString,
+                    loadID: load,
+                    occurredAt: now.addingTimeInterval(-40)
+                )
+            }
         }
 
         _ = try? scriptStore.create(

@@ -24,11 +24,19 @@ enum PageSuggestion: String, CaseIterable, Identifiable {
     case summarizePage
     case makeDark
     case removeDistractions
+    case pageBroken
     /// First-run step 3 (`AppModel.firstRunSuggestions`).
     case tryReadable
     case tryHideClutter
 
     var id: String { rawValue }
+
+    var accessibilityIdentifier: String {
+        switch self {
+        case .pageBroken: "suggestionPageBroken"
+        default: "suggestion-\(rawValue)"
+        }
+    }
 
     /// Exactly what gets sent (or, for `fillsComposer`, put in the box).
     var text: String {
@@ -41,6 +49,7 @@ enum PageSuggestion: String, CaseIterable, Identifiable {
         case .summarizePage: String(localized: "Summarize this page", comment: "Suggestion above the Agent composer on an ordinary web page")
         case .makeDark: String(localized: "Make it dark", comment: "Suggestion above the Agent composer on an ordinary web page")
         case .removeDistractions: String(localized: "Remove distractions", comment: "Suggestion above the Agent composer on an ordinary web page")
+        case .pageBroken: String(localized: "This page looks broken", comment: "Suggestion above the Agent composer when active scripts run on the current page")
         case .tryReadable: AppModel.firstRunSuggestions[0]
         case .tryHideClutter: AppModel.firstRunSuggestions[1]
         }
@@ -93,12 +102,17 @@ enum PageSuggestions {
 
     /// The suggestions for a page, in order. "Summarize" is absent while a
     /// summary is being written, "Notify me" once the thread is followed.
+    /// When the current page has active scripts, "This page looks broken" sits
+    /// last in the row, or first only when the current page's scripts have
+    /// recorded errors.
     static func suggestions(
         for kind: SuggestionPageKind?,
         isFollowing: Bool = false,
-        isSummarizing: Bool = false
+        isSummarizing: Bool = false,
+        hasActiveScripts: Bool = false,
+        hasScriptErrors: Bool = false
     ) -> [PageSuggestion] {
-        switch kind {
+        let base: [PageSuggestion] = switch kind {
         case .forumThread:
             (isSummarizing ? [] : [.summarizeThread]) + [.readAloud, .searchForum] + (isFollowing ? [] : [.followReplies])
         case .forumList:
@@ -108,6 +122,8 @@ enum PageSuggestions {
         case nil:
             []
         }
+        guard kind != nil, hasActiveScripts else { return base }
+        return hasScriptErrors ? [.pageBroken] + base : base + [.pageBroken]
     }
 
     /// Thread suggestions run the old engines; the rest go to the Agent.
@@ -195,6 +211,6 @@ struct SuggestionRowView: View {
         .buttonStyle(.plain)
         .offset(y: isFlying && !reduceMotion ? 44 : 0)
         .opacity(isFlying ? 0 : 1)
-        .accessibilityIdentifier("suggestion-\(suggestion.rawValue)")
+        .accessibilityIdentifier(suggestion.accessibilityIdentifier)
     }
 }
