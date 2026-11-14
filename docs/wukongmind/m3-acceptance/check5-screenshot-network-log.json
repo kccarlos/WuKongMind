@@ -1,0 +1,26 @@
+{
+  "assistantReply" : "**Screenshot:** The page is a plain, unstyled white page with a large bold serif heading, \"Network fixture,\" and a smaller line of text beneath it reading \"fetched 731.\" Nothing else is visible. There are no images, navigation, or other controls.\n\n**Network log:** Two requests were captured, both GET and both returning 200:\n\n1. **fetch**: `http:\/\/127.0.0.1:8765\/crawl\/page-01.html`. Content type text\/html, 733 bytes, 67 ms.\n2. **XHR**: `http:\/\/127.0.0.1:8765\/crawl\/page-02.html`. Content type text\/html, 701 bytes, 49 ms.\n\nBoth requests were to the same local server. The log doesn't show whether the page or an earlier action triggered them.",
+  "bodyBackground" : "\"rgba(0, 0, 0, 0)\"",
+  "savedScriptCount" : 0,
+  "savedScripts" : [
+
+  ],
+  "sidebarDisplay" : "\"removed\"",
+  "state" : "completed(steps: 2, duration: 2.933388709)",
+  "stepCount" : 2,
+  "tools" : [
+    {
+      "argumentSummary" : "",
+      "isError" : false,
+      "name" : "screenshot",
+      "resultSummary" : "402×812 pt"
+    },
+    {
+      "argumentSummary" : "",
+      "isError" : false,
+      "name" : "network_log",
+      "resultSummary" : "2"
+    }
+  ],
+  "totalTokens" : 19281
+}

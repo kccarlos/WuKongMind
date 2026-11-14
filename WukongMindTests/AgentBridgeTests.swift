@@ -754,3 +754,64 @@ final class AgentBridgeTests: XCTestCase {
     }
     #endif
 }
+
+// MARK: - M3 acceptance check 1 through real WebKit
+
+extension AgentBridgeTests {
+    /// The 25-page crawl fixture forum served over loopback, crawled by isolated `run_js` code that
+    /// uses the real `wukong.fetch` (the native `AgentHTTPClient`) and `wukong.files` (`AgentWorkspace`).
+    func testCrawlOf25FixturePagesThroughWukongFetchAndFilesInRealWebKit() async throws {
+        var routes: [String: LoopbackFixtureServer.Route] = [:]
+        for page in 1...25 {
+            let name = String(format: "page-%02d.html", page)
+            routes["/crawl/\(name)"] = .init(body: Data(try CrawlAcceptanceTests.pageText(page).utf8))
+        }
+        routes["/crawl/page-26.html"] = .init(status: 404, body: Data("gone".utf8))
+        let server = try LoopbackFixtureServer(routes: routes)
+        let baseURL = try await server.start()
+        defer { server.stop() }
+
+        let (webView, bridge, waiter) = makeHostedWebView()
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("CrawlWebKit-\(UUID().uuidString)", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        bridge.workspace = AgentWorkspace(root: root)
+        let client = AgentHTTPClient(environment: AgentNetworkEnvironment(
+            currentPageURL: { URL(string: "\(baseURL.absoluteString)/crawl/page-01.html") },
+            pacing: { (false, .gentle) }
+        ))
+        bridge.fetchHandler = { url in try await client.scriptFetch(url) }
+        try await waiter.waitForLoad {
+            webView.load(URLRequest(url: baseURL.appendingPathComponent("crawl/page-01.html")))
+        }
+
+        for (low, high) in [(1, 13), (14, 25)] {
+            let result = try await bridge.runAgentJS(
+                code: """
+                for (let p = \(low); p <= \(high); p++) {
+                  const n = String(p).padStart(2, '0');
+                  const body = await wukong.fetch(location.origin + `/crawl/page-${n}.html`);
+                  await wukong.files.write(`crawls/fixture/thread-1/page-${n}.txt`, body);
+                }
+                return \(high);
+                """,
+                environment: .isolated
+            )
+            XCTAssertNil(result.error)
+        }
+        for page in 1...25 {
+            let saved = try String(
+                contentsOf: root.appendingPathComponent(String(format: "crawls/fixture/thread-1/page-%02d.txt", page)),
+                encoding: .utf8
+            )
+            XCTAssertEqual(saved, try CrawlAcceptanceTests.pageText(page), "page \(page) is whole")
+        }
+
+        // A missing page comes back as an error the script sees, not a silent empty file.
+        let missing = try await bridge.runAgentJS(
+            code: "try { await wukong.fetch(location.origin + '/crawl/page-26.html'); return 'no error'; } catch (e) { return String(e.message || e); }",
+            environment: .isolated
+        )
+        XCTAssertTrue(missing.valueJSON?.contains("404") == true, missing.valueJSON ?? "nil")
+    }
+}

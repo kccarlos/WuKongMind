@@ -21,6 +21,7 @@
 		076D9400B81F2565307EE176FAB685F5 /* plain-page.json in Resources */ = {isa = PBXBuildFile; fileRef = D3FC0872C0297FCDC3FEC740E25C7E95 /* plain-page.json */; };
 		07D7E572C4DB940C358B4B95B5BE0EB7 /* ComposerDrafts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41716F259E9267FE4C15A39D85C2F08B /* ComposerDrafts.swift */; };
 		07EF01665EDA27758ADCB0D6E0D8C35D /* AppModel+Assistant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61B03F6A24CA01BC4ED220AEF1F03988 /* AppModel+Assistant.swift */; };
+		08A4E386B2F5A2547A76376635F6E90C /* page-25.html in Resources */ = {isa = PBXBuildFile; fileRef = 6D17122DDE8B6D466BECB2DC48850169 /* page-25.html */; };
 		09C9E9041A0E61A73D3F2A9AE16ECFED /* IncomingLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB2A0E67E59C4E5735632DA43E3E40B6 /* IncomingLink.swift */; };
 		09F53215859B399EFBA28D1B85B6604B /* PageFactsProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 802D39790336D353506CDBCD08EA9D26 /* PageFactsProbe.swift */; };
 		0A66BB7181C5C69CE08AEF2093268475 /* ForumComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 557363749BF84BC717CF8A0605452ED4 /* ForumComponents.swift */; };
@@ -32,13 +33,16 @@
 		0D2110B6230AE5D82698B211EC261149 /* SessionRetentionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DACAEAF9391D3320C22267D0D791454 /* SessionRetentionTests.swift */; };
 		0D465CFC38D6AC344CC12DE7B2C6C894 /* ScreenshotThumbnailUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 663B3C44910C1E58D7135AB30D03EBB3 /* ScreenshotThumbnailUITests.swift */; };
 		0DA6391517E2F2FCDCA67AC2486B7217 /* VoiceAudio.swift in Sources */ = {isa = PBXBuildFile; fileRef = DECF51CC4B7AB6738CC762DD739A9714 /* VoiceAudio.swift */; };
+		0E876B8039D77890E8CE284BB1965A81 /* page-11.html in Resources */ = {isa = PBXBuildFile; fileRef = 76F81EB8A141106655183475795302BD /* page-11.html */; };
 		0EC89464EBB3A72CC847936DDC1317C2 /* VoiceFakes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F07EF460B9877232CC2B21D6218424 /* VoiceFakes.swift */; };
 		0FE6A522598624B59479354A1E07D5AF /* ToolRegistryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 065432396298F266F2CA4AEB2B832916 /* ToolRegistryTests.swift */; };
 		1034580113370B51337E086F4278E3BD /* FixtureWordPressServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D65DE4066D1749FEAC9201CEA7A2AFB9 /* FixtureWordPressServer.swift */; };
 		103E1A5498325CA8AD8498A775C08F01 /* SyncRecords.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEF8E2CE992B7C57DE4AF80E53787E97 /* SyncRecords.swift */; };
 		10968BF4FE4643C27BCE500964E38EFB /* VoiceSite.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EC6BBCB98CCAB973C590CA89C1076D3 /* VoiceSite.swift */; };
+		10E0EC3D1D73900ACDD91DF1598924F6 /* CrawlAcceptanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8482EF9E5F4E293723AA653CF598B2B /* CrawlAcceptanceTests.swift */; };
 		12B8AB99274B7A2B72F26CBA59648C9F /* article.html in Resources */ = {isa = PBXBuildFile; fileRef = 5B7BA30CDF14F89D5E5CF7DC8D040C88 /* article.html */; };
 		13ED7824A3F7CB1B702A24AC547D51FF /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = CC181FA7B93BE98FE491F7F254A60FD4 /* Localizable.xcstrings */; };
+		141EF5BA7B9F010C1AAF58BD0CC1A887 /* page-17.html in Resources */ = {isa = PBXBuildFile; fileRef = B2994AE29B720FAD5E5940F09FDC61C0 /* page-17.html */; };
 		1431EBDF53F88243F26849BD234D0F79 /* hn-search.json in Resources */ = {isa = PBXBuildFile; fileRef = F5B8554068DA86A182D9ECE592A80DDC /* hn-search.json */; };
 		150E53EA6AC7F729EDFAAC6D0AF755A3 /* page-2002.json in Resources */ = {isa = PBXBuildFile; fileRef = 6A8596809F3E79EC44CAC7E3FD746834 /* page-2002.json */; };
 		1574DC0D506B5A3227309F349F6A30E2 /* SiteRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20147E4CF8C2DED582424D78881712CB /* SiteRegistry.swift */; };
@@ -59,11 +63,13 @@
 		207F7F3903ECDD1DD9C74D4A2F1836A4 /* TopicFacts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04849E0D80F7214F5A11854D5DEC1741 /* TopicFacts.swift */; };
 		21587B35D5D5FDF7EFBB71914A3967E9 /* LiveTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F79CFBA17FF2FE131555DCBD2DF4A7D /* LiveTransport.swift */; };
 		21A83FDA5B67C49FBB012F14A6FA07BE /* TranslationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C01106314F61214B73D5ACD1B4A378C /* TranslationTests.swift */; };
+		21CEA2B8238EE8453237594DE8899168 /* page-09.html in Resources */ = {isa = PBXBuildFile; fileRef = 6768B53638A83EDE2063E96139A9AEC1 /* page-09.html */; };
 		21EE50F222E8AF5B45D214C675DBC821 /* AgentBridgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24B0C2FB36BA2E98A308AB2C453E19DD /* AgentBridgeTests.swift */; };
 		222A063D31DF1B858C5A61F881D5C47F /* HistoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86CCFF833B924FC450400E3FD57BF0E3 /* HistoryTests.swift */; };
 		227792419E8FEFA4323650A6D570D08E /* HomeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7DA7F02CEF4E15B83224E12636BCF7C /* HomeTests.swift */; };
 		22A2FB110A1CBEE4BA57B40A1DF68958 /* DiscourseFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF31D098E2A1F02BC7A01008E516F09F /* DiscourseFixtures.swift */; };
 		235994E1934450B837E72DC6967E4C99 /* VoiceViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D9A703F20D2A2715DD4FAF71BE00C67 /* VoiceViews.swift */; };
+		2399B7911AF51C9B6B0958D0C102D860 /* page-02.html in Resources */ = {isa = PBXBuildFile; fileRef = 77B8A112B1AA870CD33ACB6198EC42EB /* page-02.html */; };
 		25A6088D8B62FC2B4F73827D58398A6F /* speech-c.wav in Resources */ = {isa = PBXBuildFile; fileRef = 2D2018B6BC765648EC6782CC392BE9EC /* speech-c.wav */; };
 		268C441CA4142A970A5EFCC71448A3ED /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C0DDC71D0091D54C7BDCD777D5554545 /* Foundation.framework */; };
 		26E7F97DC5174862B345D475C61ECD9B /* ScriptStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 631A00951BD9A89EAF5F5B1B1474EF8A /* ScriptStore.swift */; };
@@ -87,8 +93,10 @@
 		33EBF7F6A20AD2B7E3EBED579E2B3D34 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B4F4CF5E7764A7252532B907DB3B580B /* PrivacyInfo.xcprivacy */; };
 		347D314DA8C94D5AD8A9FFA34D3258E2 /* PageFactsFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 755A400DBC897659474638512EE0C13B /* PageFactsFixtures.swift */; };
 		355A31F6C4ABCEC108B79BBB954283B9 /* JSONValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBD41785CFAF3BCAFF126EA98623AB47 /* JSONValue.swift */; };
+		361578210D58DA40813B2793BEBDC853 /* page-23.html in Resources */ = {isa = PBXBuildFile; fileRef = 8BF35D9A60DBEA1E1953FCB6A2286DC8 /* page-23.html */; };
 		36543B576AACAFBF5C7B696F788AAE0F /* CloudKitTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = C28FD63B417435C8C45EEE2761CF1B9E /* CloudKitTransport.swift */; };
 		366FBCFCA4E25D3CF42B0542826605CF /* root-index.json in Resources */ = {isa = PBXBuildFile; fileRef = 04D2751EE329611616775058596A6A2D /* root-index.json */; };
+		36EAC0A68F995F3AF0E5DDED4CB20718 /* page-07.html in Resources */ = {isa = PBXBuildFile; fileRef = FBCA00C9374D371AD2F64CF203DB0F42 /* page-07.html */; };
 		371E2DFBED29A91AA1DC7AB603EF8A18 /* LiveProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82F80EAB843FF0C9CC6FC5285E87EED9 /* LiveProtocol.swift */; };
 		37C93F810128017584A98F16D1C19444 /* PodcastSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56646D128952DD033CF775FC6AE91EB2 /* PodcastSettings.swift */; };
 		382244CE78684865ADA8D92D457357E8 /* WordPressLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = A88498FBF765751CCE32B8497C1E032D /* WordPressLinks.swift */; };
@@ -99,7 +107,9 @@
 		3BB15BBD4AD493D8B3A85E9920CB7D6D /* ForumToolService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A9B5133B1BC0358662960E760C2F859 /* ForumToolService.swift */; };
 		3BD88005C32986645C5BA2A3A6DBF9F9 /* AppleIntelligenceClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ACC8307C9B1A2B8F5BECD1610072AE6 /* AppleIntelligenceClient.swift */; };
 		3C39B044EB9E86D66F800C4DB2ED9430 /* WordPressAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27656DCCB7A908B612238A9E6A3793E1 /* WordPressAPI.swift */; };
+		3DC4DF68B188E41827E8768745D8C8C5 /* page-18.html in Resources */ = {isa = PBXBuildFile; fileRef = 12946A4D5E2E27E3935885F2B4680464 /* page-18.html */; };
 		3EABE68DA2F6A1A0B1AEB709E8A70A1E /* PlaybackQueueTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 243484A000BE1D6A052C7247846A6B71 /* PlaybackQueueTests.swift */; };
+		3F74A0108A0FED44FE5DB2D87E533522 /* page-10.html in Resources */ = {isa = PBXBuildFile; fileRef = 3ACBBD7A60D97DCDF088BAE32D61B60B /* page-10.html */; };
 		40DB6A68AF4C96C8D029D75D1A6EFF1C /* SiteRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05FEC46E87199683FB81F0AA650B8910 /* SiteRecognizer.swift */; };
 		40FD63E7AE2B01F88527C6D6198573B7 /* IncomingLinkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF5DDF9DF30237F043D7BDE1646076B /* IncomingLinkTests.swift */; };
 		4136C08FFCF39E5BB543EEE07038EE31 /* RawTopicFormatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0C4FEF913013B4A8730DEE1D9C9DBDE /* RawTopicFormatTests.swift */; };
@@ -118,6 +128,7 @@
 		483D37488104A2EAAE71BD0569AEFC6A /* discourse-discourse-fixture-test-raw-42-a699eb05f449.json in Resources */ = {isa = PBXBuildFile; fileRef = FF304334B495DE6F732FFA6C2682ACCC /* discourse-discourse-fixture-test-raw-42-a699eb05f449.json */; };
 		48BCB4F726F2349757D2B5E296054FC5 /* DeveloperViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80B22BF88488FB5FE63B2C83C003CFA0 /* DeveloperViews.swift */; };
 		4AB80485F25E85FBAD68A4AFDC9C2BE2 /* AppModel+CloudSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DFD4744959405B0B94EE13F13C59048 /* AppModel+CloudSync.swift */; };
+		4BFD3ADBEE65829DE69A5A3F4B50F3E9 /* page-05.html in Resources */ = {isa = PBXBuildFile; fileRef = 87132EB75964CCA11C42674F38532127 /* page-05.html */; };
 		4C968F738A2F7E3D35CC4B1A1844970C /* SuggestionRowUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61AFF5CC06D315E2ED1CCC3D0A0EE629 /* SuggestionRowUITests.swift */; };
 		4D1579E4A00EE5FB9BF7543970FABB8A /* WorkProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FC0EA634048D8134D691BEEB5622EAC /* WorkProgress.swift */; };
 		4E396B46B6E5BBFE3D8950A27D199F59 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70BB50B909F0F2CD9DA4DDD20BA889C7 /* HistoryView.swift */; };
@@ -131,6 +142,7 @@
 		52272A4B65D3F24717C36DB8EA24E85A /* AgentConfirmationGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7AC1E93B14F1C11D0B611569E4558DB /* AgentConfirmationGate.swift */; };
 		52E0C285BACF97A92A6BFFF2D6D88651 /* PodcastController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46F19077FE79CF712E0F992BEBB2BF0F /* PodcastController.swift */; };
 		53EBA5662F300594E3A3C120B7DA52EB /* ContentBlockingRulesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA30CB7626D1EDAEA4171CFC55300B09 /* ContentBlockingRulesTests.swift */; };
+		5409394DB0D315D1CBDC4B33022E3B9A /* page-13.html in Resources */ = {isa = PBXBuildFile; fileRef = 3AC2E21E18BA2EF6546AFAF358B3C291 /* page-13.html */; };
 		54D6D85D1689DB6EDBACCD50C0BAEE3A /* SettingsPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29E0E644FE41CC94CF9D5C7D9B20ED6E /* SettingsPanel.swift */; };
 		562B66EA43F8D657B8E6B6EFBD52485B /* speech-d.wav in Resources */ = {isa = PBXBuildFile; fileRef = 1099FD69F91DA8B9654A020C7A5F21CE /* speech-d.wav */; };
 		5683613F6ABFAECA8A65544A16A4DC44 /* Spotlight.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34B1D263CE0E63204C93309E707823B7 /* Spotlight.swift */; };
@@ -148,6 +160,9 @@
 		6046307C7B79F385A1D6B1DC7326676A /* WatchSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D78589B1253828530E4E4BD22ADCF2C /* WatchSupport.swift */; };
 		608EA2754FB1747DDEE82639FF2526C3 /* TimePitchGraphTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 333279B0FBF8704C930B1BC73A91F76A /* TimePitchGraphTests.swift */; };
 		60E5BB3F67176EDE44AE6BC70480A982 /* StateTransitionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D033E2EDD22D4FE7525C2B6D9366FF65 /* StateTransitionTests.swift */; };
+		612C5D36618BEEC1A8192BA73421204C /* page-12.html in Resources */ = {isa = PBXBuildFile; fileRef = EB72B827E1E8586A4BEA7DE9CBCD9BEA /* page-12.html */; };
+		613F68F794E1BB01FD27E94C98D37250 /* page-24.html in Resources */ = {isa = PBXBuildFile; fileRef = E094357C8E6DF80E0A157132513C5905 /* page-24.html */; };
+		62BD946351D41845A8D4C16F76107742 /* net.html in Resources */ = {isa = PBXBuildFile; fileRef = 553A1487B656060D41C60B317A2C12E8 /* net.html */; };
 		6325463D5648CD15ACEC4AC86282FA3A /* PodcastStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69236EC4176D10C64C14FAD6F79321A4 /* PodcastStore.swift */; };
 		6338A07405B23F667A43798A6F4D9EA8 /* OnboardingTry.swift in Sources */ = {isa = PBXBuildFile; fileRef = F54B25AD6ECEA7DE424023984039172D /* OnboardingTry.swift */; };
 		6352FF1ED16CAA45341B678F2FF3DD80 /* DiscoursePagePlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 457052E0DF146A4E415191621D888675 /* DiscoursePagePlan.swift */; };
@@ -183,6 +198,7 @@
 		779E864DE4EB4F729D21175933D8BDA3 /* SharedPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B870A37925CE8404FEEDECD6A666B8A5 /* SharedPage.swift */; };
 		792DD5B8D932849E781FAAD2AF84914C /* PodcastSpeech.swift in Sources */ = {isa = PBXBuildFile; fileRef = 711864C6BE6902DB103EDA4D7AD2F5C4 /* PodcastSpeech.swift */; };
 		799CB7AE649382AA818B9E502D41EFBF /* hn-latest.json in Resources */ = {isa = PBXBuildFile; fileRef = BB2A62E72BBE13D0ABF8D27359465AA1 /* hn-latest.json */; };
+		7B8B9C887B996382FFA0DA362C4952F3 /* page-22.html in Resources */ = {isa = PBXBuildFile; fileRef = C2B1C675DB83CEE859C551CF79FC0611 /* page-22.html */; };
 		7BF5A672E4865D0E387F2CD76D2F41BA /* ScreenshotViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DE07A33247E2438D2D655AE85ECB88 /* ScreenshotViews.swift */; };
 		7C2B3447CC3ABA8472CBD4219FFC7763 /* WordPressRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F676B9353BCBA02767DD33CCA35040FF /* WordPressRecognizer.swift */; };
 		7C6934B37DEAFA65BB581F0D43D569DA /* HackerNewsAgent.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDCFFB2F74334A9338A90AEC538DF3B3 /* HackerNewsAgent.swift */; };
@@ -204,6 +220,7 @@
 		86E372ACD28C197ED44161F614318457 /* AgentBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = D58ED00A9469E49753D083C8F8F42346 /* AgentBridge.swift */; };
 		879780B1B2FF5F30EFDB2192E80E84F7 /* VoiceSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21EA39A15597B44D8695693EA0B90EE2 /* VoiceSettings.swift */; };
 		87ED3C3AB9AA42B6D6F7748F2C8D951F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7B2C34B97E75859B9AE9234F606FE327 /* Assets.xcassets */; };
+		8836E5EAF99D388073A45E2294BCCBCE /* page-16.html in Resources */ = {isa = PBXBuildFile; fileRef = BB5E509523E7B1DD5FD94A8842184E43 /* page-16.html */; };
 		891FC10DFCE97AF75724F61C699D9417 /* HackerNewsAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97448C612A021D63853EF309FE756889 /* HackerNewsAPI.swift */; };
 		8C6C7C7B3313FCB31C6400638C3A9251 /* WordPressTools.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7329E0F73064ABC3E0FDD459FED28367 /* WordPressTools.swift */; };
 		8C7962CB89351CEF0B25639FB317F57D /* PodcastScript.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02F2BA4BB60FF61FEAE840ED4E7E3223 /* PodcastScript.swift */; };
@@ -249,14 +266,19 @@
 		ABF656743A0EFF0F880DCF88547F99B9 /* ToolRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C6DB6050C22BC6A56887A6EA8CD49A2 /* ToolRegistry.swift */; };
 		AC12262C3B75BDDD9E3102CD4E94D22E /* WordPressAdapterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD67F4BF654B74EC20E80C550A19A724 /* WordPressAdapterTests.swift */; };
 		AC4BDC6C0BDC08265E0120F5AF084054 /* SiteNetwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60133DECB491C07ABD9D94269FDCC973 /* SiteNetwork.swift */; };
+		AD0067B5577325C9225AD2F3503520B4 /* page-14.html in Resources */ = {isa = PBXBuildFile; fileRef = F49592A81D13BE8E0CFC5B7CEE0483F5 /* page-14.html */; };
 		AD1C9BC03E811A227BEEEBFB6F5DA9A6 /* AgentLoopTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F0FB74CC34BC8F8DC6C691AD6AB0DB8 /* AgentLoopTests.swift */; };
 		AD2823150F6BF553A75332399B88431B /* PageFacts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E7CDC03FCF48139BC82B90685417D6F /* PageFacts.swift */; };
 		AE23187775C237B7FD4FB120D50DCED4 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = BEF345A55E460D777898FA934434E79A /* InfoPlist.xcstrings */; };
+		AE51256631C63822ACE73682D344A580 /* page-04.html in Resources */ = {isa = PBXBuildFile; fileRef = CDFA5502358931968A1B57AE3B526484 /* page-04.html */; };
 		AE5389061C1F0F84774AA29BF89987EA /* MarkdownView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42B44508A2AFBB701C6F905BFAA60698 /* MarkdownView.swift */; };
 		AF4434FD2CF6009292FAD930F0EFDB80 /* WordPressParsing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B08CBEBFA83902493429CFEB51C5E75 /* WordPressParsing.swift */; };
 		AF9038F5D36440C9A2AE500A8CB206EA /* ForumRobustnessTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BB1212F236BD11B37DC2A412EBDD6E2 /* ForumRobustnessTests.swift */; };
 		AFF671572CE5D5CA5E7BC17F2D5140E1 /* VADTestAudio.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92FCD08621164F6D54B69D9C502F4EBF /* VADTestAudio.swift */; };
+		AFFD720FAE08C925F2DAAE6D31D3EAE2 /* page-01.html in Resources */ = {isa = PBXBuildFile; fileRef = FF5BF97BCF94A72315B9FB4097731AB5 /* page-01.html */; };
 		B16E9B269FFDE23369D5B8755F344977 /* AppModel+StateDebug.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0743D57BFC229854302B3DA2C7ACED31 /* AppModel+StateDebug.swift */; };
+		B237FB19A00BE101C21D545BC9DFCFD9 /* M3LiveAcceptanceUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C1786083E0440C2BB771A21E0515729 /* M3LiveAcceptanceUITests.swift */; };
+		B24CD5D03D68E079C3F4E04DCA7B990F /* page-06.html in Resources */ = {isa = PBXBuildFile; fileRef = 58EE6F96B857C22BAE05990D741B70F9 /* page-06.html */; };
 		B4E6E3F27CAF9BE9EA8743FE04386770 /* DictationSpeech.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8565E1F931445D7D7B98146BE2BF6C7 /* DictationSpeech.swift */; };
 		B58A5AD055E19FB24AA945E7785981C8 /* VoiceAudioHealthTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEE5ED42E693A86905D51D9E8BA12E07 /* VoiceAudioHealthTests.swift */; };
 		B58FF03A3D968F169AE82E3ADD263A5E /* VoiceAudioHealth.swift in Sources */ = {isa = PBXBuildFile; fileRef = D15FFE873F33F44041FCDE60CD0A975B /* VoiceAudioHealth.swift */; };
@@ -268,6 +290,7 @@
 		B8E05EFAE9C744A31CDF34298F0D1E33 /* ToolRegistry+Forum.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31546D10924EAA70ED8FD0788A65EF48 /* ToolRegistry+Forum.swift */; };
 		B952A4800AAC95C332D93580B8453429 /* AIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF227D658A4552E42CDAA68A615FE954 /* AIService.swift */; };
 		BA82D441CA4C4688FC268E54EFDECCB9 /* discourse-discourse-fixture-test-t-42-json-fc7c8044d31e.json in Resources */ = {isa = PBXBuildFile; fileRef = CC373F97345DFE06A375AE191E1D9507 /* discourse-discourse-fixture-test-t-42-json-fc7c8044d31e.json */; };
+		BABBBD2BDED243343312651CF4FE7638 /* crawl-25-pages.json in Resources */ = {isa = PBXBuildFile; fileRef = E04605948EAB0D53F8C7577AAF37C207 /* crawl-25-pages.json */; };
 		BB0D1C2E9CF15F3F8EE3F0984A223B7C /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2068ADD737872238EE103444C2749001 /* HomeView.swift */; };
 		BB3E6DEBA308EAAF60970199F62522FA /* PodcastTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95A52481633C55E6F306274C26E44FD0 /* PodcastTests.swift */; };
 		BB7C8F588FC2AF60601CDE895BCE19EA /* ComparisonSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5188FADE4AC87BDE19D872C1649C17E9 /* ComparisonSnapshotTests.swift */; };
@@ -307,12 +330,15 @@
 		CC533C043AA3FA93E2D064239A1F934E /* CloudSyncTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 514228D7C2B8964E9164E10C1E143698 /* CloudSyncTests.swift */; };
 		CC68B972A41BFFA847782A575B317144 /* VoiceActivityDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C455D46F26B218371C134EEBC5E1625 /* VoiceActivityDetector.swift */; };
 		CD9E88F979E25B980E43E7E18C8A7989 /* BrowseBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8554F474FD544292F77B55E0BD2AB2E8 /* BrowseBridge.swift */; };
+		CDA6433F92D61E00004A4213E0B7E84A /* page-19.html in Resources */ = {isa = PBXBuildFile; fileRef = AC714EEA571654539F7CB9C460125A7A /* page-19.html */; };
 		CE8075056B25C9FEC7BFE05904A17441 /* DrawerHint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 889E38D74D6BC87CF2A2CDFEE8D67F9E /* DrawerHint.swift */; };
 		CEF4EE088A49192D151BEC217AEA19ED /* ProviderModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6E11F3BB41B93049BC23C2097EAEAE1 /* ProviderModels.swift */; };
+		D00CBE5C86C0689F80FB1D2199939E5C /* page-03.html in Resources */ = {isa = PBXBuildFile; fileRef = B20E82529A8806CBA1F06F0456CCF64E /* page-03.html */; };
 		D02F1A85553B8E0109B60B2D86D14CF7 /* FixturePageDriver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8685F87FB8AD262E728B8C0951D0B6E6 /* FixturePageDriver.swift */; };
 		D0719CE23B0A43971E77003B95112FD8 /* CoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1046C99B5BE99CA2B444C1BA50AE3EFA /* CoreTests.swift */; };
 		D318654FDA46607D8757CA7660424B44 /* WordPressFixtureSite.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ABDC44644064E27B8540DD0B8103C6B /* WordPressFixtureSite.swift */; };
 		D39DD63E4CE7D59731A81057242748D6 /* DiscourseDOM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B3AC1550C9C79631F847269BA441AFF /* DiscourseDOM.swift */; };
+		D3DD024EAEFC7AAA88F231DAB5176B63 /* page-15.html in Resources */ = {isa = PBXBuildFile; fileRef = A1AC3213DB361D520352CC22D003DFB2 /* page-15.html */; };
 		D45578DB5749C264BE1F8A2CDE319589 /* ScriptStoreCoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42E7F87CC093D2F7EFD1ADA1611E4BB2 /* ScriptStoreCoreTests.swift */; };
 		D46E5283E576C5ED98AE43AEAAF88D10 /* ScriptManagerUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1529C84C46C81C78A95198E48682016D /* ScriptManagerUITests.swift */; };
 		D48310536BF77D969000D18A6BC3EF08 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 896D7FD3130A89A5D2D0368FD7434E73 /* Cocoa.framework */; };
@@ -321,6 +347,7 @@
 		D5BFCC83BB35BD5E86A0AE77D65E8994 /* SuggestionRoutingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 977B891A3C6B18DDF0DA1A8E0BDA2E4A /* SuggestionRoutingTests.swift */; };
 		D6290960A06428CE9A2B9419063D1D6C /* DigestViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = B05EC736C0DD6E2C14612B8231D2858A /* DigestViews.swift */; };
 		D6A11EB450936E0A32DC3CC88DF965AC /* VoiceContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DDEA0FB479A93EAAE0740AF9693C476 /* VoiceContext.swift */; };
+		D7C877B2424B09590A2998A36318DA22 /* page-20.html in Resources */ = {isa = PBXBuildFile; fileRef = 74CED0968322843C7E8E86F8A7C914E3 /* page-20.html */; };
 		D81994DE82541B9484AB011C89BA15E5 /* HackerNewsJobTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6A266C1739A7427BDA7091E6054628 /* HackerNewsJobTests.swift */; };
 		D830376B7C9B70568C1778E12BB593F0 /* CloudSyncTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF873830D2247F33AEC0B18972EA868F /* CloudSyncTransport.swift */; };
 		D8FE77C80C9F4C792106660676B28956 /* ForumShapes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D40D79CBC33A838189898994F637B0B2 /* ForumShapes.swift */; };
@@ -334,6 +361,7 @@
 		DB4D2EC7AAA70C2494939573D86952D6 /* wordpress-home.json in Resources */ = {isa = PBXBuildFile; fileRef = 4D6047907AA24ADADD0C72A163D0D9A3 /* wordpress-home.json */; };
 		DCA1FC26E6C9CBD10F79FA35F8B16097 /* ToolRegistry+Capabilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEDA3707A8EEA6013A5C95D0F16BCA53 /* ToolRegistry+Capabilities.swift */; };
 		DCA33F67D250278B534B5E3D31A8CA5B /* SiteKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = D041ED83FE3D7F318AF06938D4E11406 /* SiteKind.swift */; };
+		DCDAA38C686ECD49B73F4EF0E816775E /* page-08.html in Resources */ = {isa = PBXBuildFile; fileRef = 8F779B4016851EBB308EEF760DE7779D /* page-08.html */; };
 		DD1DE24D90EEEE5830677748BD7D6226 /* NetworkFailure.swift in Sources */ = {isa = PBXBuildFile; fileRef = 788BFB36EB704BBDA3C18F3A823BC730 /* NetworkFailure.swift */; };
 		DE9D9056298B8F9EAABC29490E0335B3 /* SharedPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 069671F1B18DD7D0849D3EDDC3631F32 /* SharedPageTests.swift */; };
 		DEB4242DE36FE86D8E1142BFF36326E3 /* SiteRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05FEC46E87199683FB81F0AA650B8910 /* SiteRecognizer.swift */; };
@@ -378,6 +406,7 @@
 		F95DFDFF9870DE809B7AEC95A392D741 /* ScriptStoreWebTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50EB265697F82AF4AEF5D348A0C73F37 /* ScriptStoreWebTests.swift */; };
 		FB761578986498DC36111BA83E611E55 /* WordPressUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49ACBEF5C3F23731890FB5D8A695896A /* WordPressUITests.swift */; };
 		FBB2E59F1D195CB291FA62E32CCAB66E /* DiscourseSuggestions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17551BDF76305BD55363ACEF267510D5 /* DiscourseSuggestions.swift */; };
+		FD9DC200999F053A24029E382C176744 /* page-21.html in Resources */ = {isa = PBXBuildFile; fileRef = F65F2714C12D8BADCE36454491616612 /* page-21.html */; };
 		FF675C257CFBE930D866393A83D509CB /* IPadLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BDA17EE0B24B071D63CA3AA13B40C08 /* IPadLayoutTests.swift */; };
 /* End PBXBuildFile section */
 
@@ -418,6 +447,7 @@
 		0BA19B15208A32888168B59BB5293328 /* AppModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		0BB1212F236BD11B37DC2A412EBDD6E2 /* ForumRobustnessTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ForumRobustnessTests.swift; sourceTree = "<group>"; };
 		0BB9ED976AA730F8669BBE591B47FC4B /* OnboardingSteps.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingSteps.swift; sourceTree = "<group>"; };
+		0C1786083E0440C2BB771A21E0515729 /* M3LiveAcceptanceUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = M3LiveAcceptanceUITests.swift; sourceTree = "<group>"; };
 		0C455D46F26B218371C134EEBC5E1625 /* VoiceActivityDetector.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VoiceActivityDetector.swift; path = Voice/VoiceActivityDetector.swift; sourceTree = "<group>"; };
 		0C63F649FF661F8D5C3735A7FE6171DC /* SiteGoldenTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SiteGoldenTests.swift; sourceTree = "<group>"; };
 		0C8200158B6FBD4EDE4A883F946FEBE8 /* BrowseCursor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BrowseCursor.swift; sourceTree = "<group>"; };
@@ -429,6 +459,7 @@
 		1099FD69F91DA8B9654A020C7A5F21CE /* speech-d.wav */ = {isa = PBXFileReference; includeInIndex = 1; name = "speech-d.wav"; path = "Audio/speech-d.wav"; sourceTree = "<group>"; };
 		11416D49C54EDE9F1EB2BAA8E0A19CCF /* SiteRecognitionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SiteRecognitionTests.swift; path = Sites/SiteRecognitionTests.swift; sourceTree = "<group>"; };
 		120D7DA36418876DD2AFDFDCAA2F1681 /* OnboardingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingTests.swift; sourceTree = "<group>"; };
+		12946A4D5E2E27E3935885F2B4680464 /* page-18.html */ = {isa = PBXFileReference; includeInIndex = 1; name = "page-18.html"; path = "Fixtures/CrawlForum/page-18.html"; sourceTree = "<group>"; };
 		1478B927A10DC034FA5DFA88DF727CE9 /* SiteRecognizers.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SiteRecognizers.swift; path = Sites/Recognition/SiteRecognizers.swift; sourceTree = "<group>"; };
 		1529C84C46C81C78A95198E48682016D /* ScriptManagerUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScriptManagerUITests.swift; sourceTree = "<group>"; };
 		161A46B5355DDD0B106C777621940C10 /* TodayUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TodayUITests.swift; sourceTree = "<group>"; };
@@ -481,6 +512,8 @@
 		383E39C86FBA1F528B2DC1CBCFB403BF /* DiscourseAgent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DiscourseAgent.swift; path = Sites/Discourse/DiscourseAgent.swift; sourceTree = "<group>"; };
 		39869077B6D891A2F1033B70F3B7DC48 /* HackerNewsRecognizer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HackerNewsRecognizer.swift; path = Sites/HackerNews/HackerNewsRecognizer.swift; sourceTree = "<group>"; };
 		3A0E59E9BD2E1C9F3945F4E578E9BC9F /* AppLanguage.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppLanguage.swift; sourceTree = "<group>"; };
+		3AC2E21E18BA2EF6546AFAF358B3C291 /* page-13.html */ = {isa = PBXFileReference; includeInIndex = 1; name = "page-13.html"; path = "Fixtures/CrawlForum/page-13.html"; sourceTree = "<group>"; };
+		3ACBBD7A60D97DCDF088BAE32D61B60B /* page-10.html */ = {isa = PBXFileReference; includeInIndex = 1; name = "page-10.html"; path = "Fixtures/CrawlForum/page-10.html"; sourceTree = "<group>"; };
 		3BB8A53AB3208A8C49BB119D017F7FCF /* WordPressRecognitionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WordPressRecognitionTests.swift; path = Sites/WordPressRecognitionTests.swift; sourceTree = "<group>"; };
 		3C31DD017E2B791002E7AF4F33020DC5 /* BrowserAgent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BrowserAgent.swift; sourceTree = "<group>"; };
 		3C6DB6050C22BC6A56887A6EA8CD49A2 /* ToolRegistry.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ToolRegistry.swift; sourceTree = "<group>"; };
@@ -519,12 +552,14 @@
 		5188FADE4AC87BDE19D872C1649C17E9 /* ComparisonSnapshotTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ComparisonSnapshotTests.swift; sourceTree = "<group>"; };
 		527DA8FED3478F1F4C7649330DD9A967 /* PhysicalDeviceSmokeTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PhysicalDeviceSmokeTests.swift; sourceTree = "<group>"; };
 		552EEF322DE43B40F1CF2BC18F06C750 /* VoiceAudioFormat.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VoiceAudioFormat.swift; path = Voice/VoiceAudioFormat.swift; sourceTree = "<group>"; };
+		553A1487B656060D41C60B317A2C12E8 /* net.html */ = {isa = PBXFileReference; includeInIndex = 1; name = net.html; path = Fixtures/CrawlForum/net.html; sourceTree = "<group>"; };
 		55548E189723CEBF1031A0F2220CB585 /* TranslationViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TranslationViews.swift; path = Translation/TranslationViews.swift; sourceTree = "<group>"; };
 		557363749BF84BC717CF8A0605452ED4 /* ForumComponents.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ForumComponents.swift; sourceTree = "<group>"; };
 		56646D128952DD033CF775FC6AE91EB2 /* PodcastSettings.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PodcastSettings.swift; path = Podcast/PodcastSettings.swift; sourceTree = "<group>"; };
 		56A687AF6553AD4397043165F229AAF8 /* AssistantSourcesTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AssistantSourcesTests.swift; sourceTree = "<group>"; };
 		56DE07A33247E2438D2D655AE85ECB88 /* ScreenshotViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScreenshotViews.swift; sourceTree = "<group>"; };
 		580CF74E1CE2A559EF49D8CBA530FDC2 /* WorkProgressTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WorkProgressTests.swift; sourceTree = "<group>"; };
+		58EE6F96B857C22BAE05990D741B70F9 /* page-06.html */ = {isa = PBXFileReference; includeInIndex = 1; name = "page-06.html"; path = "Fixtures/CrawlForum/page-06.html"; sourceTree = "<group>"; };
 		5B3AC1550C9C79631F847269BA441AFF /* DiscourseDOM.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DiscourseDOM.swift; path = Sites/Discourse/DiscourseDOM.swift; sourceTree = "<group>"; };
 		5B7BA30CDF14F89D5E5CF7DC8D040C88 /* article.html */ = {isa = PBXFileReference; includeInIndex = 1; name = article.html; path = Fixtures/AgentBridge/article.html; sourceTree = "<group>"; };
 		5C43CDB5BFF36DA709CC1DFE2790BB9F /* BrowserToolsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BrowserToolsTests.swift; sourceTree = "<group>"; };
@@ -542,6 +577,7 @@
 		66421541FD3A96CCE4B1EF025F18E7A0 /* CloudSyncController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CloudSyncController.swift; sourceTree = "<group>"; };
 		6692BE82964817D280FDFAF63D29DB3E /* ConversationViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ConversationViews.swift; sourceTree = "<group>"; };
 		671F3696A347612984C7A1F71414AD9D /* WukongMindTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WukongMindTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		6768B53638A83EDE2063E96139A9AEC1 /* page-09.html */ = {isa = PBXFileReference; includeInIndex = 1; name = "page-09.html"; path = "Fixtures/CrawlForum/page-09.html"; sourceTree = "<group>"; };
 		68DBA89C5AA481675E889573F9B9F5C4 /* SystemEntry.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SystemEntry.swift; path = System/SystemEntry.swift; sourceTree = "<group>"; };
 		69236EC4176D10C64C14FAD6F79321A4 /* PodcastStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PodcastStore.swift; path = Podcast/PodcastStore.swift; sourceTree = "<group>"; };
 		693A2BBBA5C4B13290A7C6E5CF5143AE /* SettingsSyncPage.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettingsSyncPage.swift; sourceTree = "<group>"; };
@@ -551,6 +587,7 @@
 		6A30F9D46F1D1DE9CDE69CC3D8270F13 /* VoiceProtocolTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VoiceProtocolTests.swift; sourceTree = "<group>"; };
 		6A8596809F3E79EC44CAC7E3FD746834 /* page-2002.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "page-2002.json"; path = "Fixtures/WordPress/page-2002.json"; sourceTree = "<group>"; };
 		6CB8D0081FB29D0C0B5B535953B6C26E /* ForumToolsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ForumToolsTests.swift; sourceTree = "<group>"; };
+		6D17122DDE8B6D466BECB2DC48850169 /* page-25.html */ = {isa = PBXFileReference; includeInIndex = 1; name = "page-25.html"; path = "Fixtures/CrawlForum/page-25.html"; sourceTree = "<group>"; };
 		6D9A703F20D2A2715DD4FAF71BE00C67 /* VoiceViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VoiceViews.swift; sourceTree = "<group>"; };
 		6DB62B52E30088BF4E7CEA7B3F6B1B7C /* PageFactsProbe.js */ = {isa = PBXFileReference; includeInIndex = 1; path = PageFactsProbe.js; sourceTree = "<group>"; };
 		6DFD4744959405B0B94EE13F13C59048 /* AppModel+CloudSync.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "AppModel+CloudSync.swift"; sourceTree = "<group>"; };
@@ -562,9 +599,12 @@
 		711864C6BE6902DB103EDA4D7AD2F5C4 /* PodcastSpeech.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PodcastSpeech.swift; path = Podcast/PodcastSpeech.swift; sourceTree = "<group>"; };
 		7329E0F73064ABC3E0FDD459FED28367 /* WordPressTools.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WordPressTools.swift; path = Sites/WordPress/WordPressTools.swift; sourceTree = "<group>"; };
 		743887598349975475CE2EB4D571C6B7 /* WordPressAgent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WordPressAgent.swift; path = Sites/WordPress/WordPressAgent.swift; sourceTree = "<group>"; };
+		74CED0968322843C7E8E86F8A7C914E3 /* page-20.html */ = {isa = PBXFileReference; includeInIndex = 1; name = "page-20.html"; path = "Fixtures/CrawlForum/page-20.html"; sourceTree = "<group>"; };
 		755A400DBC897659474638512EE0C13B /* PageFactsFixtures.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PageFactsFixtures.swift; path = Sites/PageFactsFixtures.swift; sourceTree = "<group>"; };
 		765E77039D9CA26DBA1EF6CF5CFF6919 /* VoiceUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VoiceUITests.swift; sourceTree = "<group>"; };
+		76F81EB8A141106655183475795302BD /* page-11.html */ = {isa = PBXFileReference; includeInIndex = 1; name = "page-11.html"; path = "Fixtures/CrawlForum/page-11.html"; sourceTree = "<group>"; };
 		77153C07F2634A24DB09AA5C32E2EECE /* AppIntents.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppIntents.swift; path = System/AppIntents.swift; sourceTree = "<group>"; };
+		77B8A112B1AA870CD33ACB6198EC42EB /* page-02.html */ = {isa = PBXFileReference; includeInIndex = 1; name = "page-02.html"; path = "Fixtures/CrawlForum/page-02.html"; sourceTree = "<group>"; };
 		788BFB36EB704BBDA3C18F3A823BC730 /* NetworkFailure.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NetworkFailure.swift; sourceTree = "<group>"; };
 		788E5004281BC54D493160D0C4983732 /* AgentWorkspaceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AgentWorkspaceTests.swift; sourceTree = "<group>"; };
 		7AC3F4101F1974F01DD46CCEAC20629F /* error-invalid-id.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "error-invalid-id.json"; path = "Fixtures/WordPress/error-invalid-id.json"; sourceTree = "<group>"; };
@@ -590,6 +630,7 @@
 		8685F87FB8AD262E728B8C0951D0B6E6 /* FixturePageDriver.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FixturePageDriver.swift; path = Support/FixturePageDriver.swift; sourceTree = "<group>"; };
 		86CCFF833B924FC450400E3FD57BF0E3 /* HistoryTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HistoryTests.swift; sourceTree = "<group>"; };
 		86E73247D68601ECFA7E10C5D68D750C /* TaskRecord.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TaskRecord.swift; sourceTree = "<group>"; };
+		87132EB75964CCA11C42674F38532127 /* page-05.html */ = {isa = PBXFileReference; includeInIndex = 1; name = "page-05.html"; path = "Fixtures/CrawlForum/page-05.html"; sourceTree = "<group>"; };
 		8747819C675D4F2ADB034CB22369FE03 /* WukongMindShare.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; name = WukongMindShare.appex; path = WukongMindShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		876B01E3169FE1ECBD6C8F8F04BCBE29 /* PostLevelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PostLevelTests.swift; sourceTree = "<group>"; };
 		87DA14DFC9ED9B3C936FB14DC62D1DA2 /* wordpress-wordpress-fixture-test-wp-json-wp-v2-43a45d480692.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "wordpress-wordpress-fixture-test-wp-json-wp-v2-43a45d480692.json"; path = "Fixtures/Comparison/wordpress/wordpress-wordpress-fixture-test-wp-json-wp-v2-43a45d480692.json"; sourceTree = "<group>"; };
@@ -599,6 +640,7 @@
 		896D7FD3130A89A5D2D0368FD7434E73 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.0.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
 		89E4AE30DB6F7FBCC7D414FF17B07A3F /* ShareSheetView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ShareSheetView.swift; sourceTree = "<group>"; };
 		89E74BD676D2AF4A4276B9E46D45B061 /* Dock.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Dock.swift; sourceTree = "<group>"; };
+		8BF35D9A60DBEA1E1953FCB6A2286DC8 /* page-23.html */ = {isa = PBXFileReference; includeInIndex = 1; name = "page-23.html"; path = "Fixtures/CrawlForum/page-23.html"; sourceTree = "<group>"; };
 		8D00DFF8AB68F2700D6018FB4E24FA3B /* PodcastSystemSpeech.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PodcastSystemSpeech.swift; path = Podcast/PodcastSystemSpeech.swift; sourceTree = "<group>"; };
 		8D474888BBB14794C0448E3FB26CC5E1 /* DeveloperModeUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DeveloperModeUITests.swift; sourceTree = "<group>"; };
 		8D78589B1253828530E4E4BD22ADCF2C /* WatchSupport.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WatchSupport.swift; sourceTree = "<group>"; };
@@ -606,6 +648,7 @@
 		8EC0023E329ED6C4B2E95B3BE9E4892D /* WukongMind.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = WukongMind.app; path = WukongMind.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8F18A2099A62261F77EF0EA1A232B793 /* MotionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MotionTests.swift; sourceTree = "<group>"; };
 		8F4C46F8663159759D69BB2BA6E2F6DD /* ReplayToolDispatcher.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ReplayToolDispatcher.swift; path = Support/ReplayToolDispatcher.swift; sourceTree = "<group>"; };
+		8F779B4016851EBB308EEF760DE7779D /* page-08.html */ = {isa = PBXFileReference; includeInIndex = 1; name = "page-08.html"; path = "Fixtures/CrawlForum/page-08.html"; sourceTree = "<group>"; };
 		90F45C5304E27921350E43811E0CCA08 /* AuditLogTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AuditLogTests.swift; sourceTree = "<group>"; };
 		92B492FB1DC30F5D930C19FE12DA126B /* comments-sample.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "comments-sample.json"; path = "Fixtures/WordPress/comments-sample.json"; sourceTree = "<group>"; };
 		92FCD08621164F6D54B69D9C502F4EBF /* VADTestAudio.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VADTestAudio.swift; sourceTree = "<group>"; };
@@ -624,6 +667,7 @@
 		9ACC8307C9B1A2B8F5BECD1610072AE6 /* AppleIntelligenceClient.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppleIntelligenceClient.swift; sourceTree = "<group>"; };
 		9AFD9E04A4D5F587109261A35034F9AE /* hn-item-2.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "hn-item-2.json"; path = "Fixtures/HackerNews/hn-item-2.json"; sourceTree = "<group>"; };
 		9F64306EC5AB0CCCC98FE6B6487B62C2 /* hackernews-hn-algolia-com-api-v1-items-99999901-2af01e08e909.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "hackernews-hn-algolia-com-api-v1-items-99999901-2af01e08e909.json"; path = "Fixtures/Comparison/hackernews/hackernews-hn-algolia-com-api-v1-items-99999901-2af01e08e909.json"; sourceTree = "<group>"; };
+		A1AC3213DB361D520352CC22D003DFB2 /* page-15.html */ = {isa = PBXFileReference; includeInIndex = 1; name = "page-15.html"; path = "Fixtures/CrawlForum/page-15.html"; sourceTree = "<group>"; };
 		A1ECA22832CBAC2B715FAB9F2705EECE /* WukongMindShare.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = WukongMindShare.entitlements; sourceTree = "<group>"; };
 		A351A98E10156B9BDD4A5FB451E28982 /* WordPressJobTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WordPressJobTests.swift; path = Sites/WordPressJobTests.swift; sourceTree = "<group>"; };
 		A375DACD56E47289CD53B4911B7F30F3 /* ForumService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ForumService.swift; sourceTree = "<group>"; };
@@ -632,12 +676,15 @@
 		A88498FBF765751CCE32B8497C1E032D /* WordPressLinks.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WordPressLinks.swift; path = Sites/WordPress/WordPressLinks.swift; sourceTree = "<group>"; };
 		AA30CB7626D1EDAEA4171CFC55300B09 /* ContentBlockingRulesTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ContentBlockingRulesTests.swift; sourceTree = "<group>"; };
 		ABC6B5132F29689D04757B33B0AB4A8E /* AgentPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AgentPanel.swift; sourceTree = "<group>"; };
+		AC714EEA571654539F7CB9C460125A7A /* page-19.html */ = {isa = PBXFileReference; includeInIndex = 1; name = "page-19.html"; path = "Fixtures/CrawlForum/page-19.html"; sourceTree = "<group>"; };
 		AEAE2FC55A78267EC9E009AADC24230F /* AppShortcuts.xcstrings */ = {isa = PBXFileReference; includeInIndex = 1; path = AppShortcuts.xcstrings; sourceTree = "<group>"; };
 		AFF843AECB3DFE74608E16CC89C9846A /* VoiceInstructions.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VoiceInstructions.swift; path = Voice/VoiceInstructions.swift; sourceTree = "<group>"; };
 		B05EC736C0DD6E2C14612B8231D2858A /* DigestViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DigestViews.swift; sourceTree = "<group>"; };
 		B081A2AC288D9C743A1B522B55E19691 /* PagedTopicFetch.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PagedTopicFetch.swift; path = Sites/Shared/PagedTopicFetch.swift; sourceTree = "<group>"; };
 		B0F98153D4173C05DAA33F1BCDEA64D4 /* PodcastViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PodcastViews.swift; sourceTree = "<group>"; };
+		B20E82529A8806CBA1F06F0456CCF64E /* page-03.html */ = {isa = PBXFileReference; includeInIndex = 1; name = "page-03.html"; path = "Fixtures/CrawlForum/page-03.html"; sourceTree = "<group>"; };
 		B2206AC7495FCCDC44AC0044065CA9F3 /* SettingsForumsPage.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettingsForumsPage.swift; sourceTree = "<group>"; };
+		B2994AE29B720FAD5E5940F09FDC61C0 /* page-17.html */ = {isa = PBXFileReference; includeInIndex = 1; name = "page-17.html"; path = "Fixtures/CrawlForum/page-17.html"; sourceTree = "<group>"; };
 		B34D999F36951F82529F549C4CE4A53A /* article-1001.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "article-1001.json"; path = "Fixtures/WordPress/article-1001.json"; sourceTree = "<group>"; };
 		B36630B4C78CDC352CF516FA1F9F6CD9 /* VoiceSessionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VoiceSessionTests.swift; sourceTree = "<group>"; };
 		B47098DBDFDEC1EFEAF31D1EE7DADF2E /* AssistantStates.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AssistantStates.swift; sourceTree = "<group>"; };
@@ -651,6 +698,7 @@
 		B870A37925CE8404FEEDECD6A666B8A5 /* SharedPage.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SharedPage.swift; sourceTree = "<group>"; };
 		BAC2CD2822659EB194AD27F6A090248C /* ModelSwitchingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ModelSwitchingTests.swift; sourceTree = "<group>"; };
 		BB2A62E72BBE13D0ABF8D27359465AA1 /* hn-latest.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "hn-latest.json"; path = "Fixtures/HackerNews/hn-latest.json"; sourceTree = "<group>"; };
+		BB5E509523E7B1DD5FD94A8842184E43 /* page-16.html */ = {isa = PBXFileReference; includeInIndex = 1; name = "page-16.html"; path = "Fixtures/CrawlForum/page-16.html"; sourceTree = "<group>"; };
 		BBB2E1070CE2E45EB28D4C038BFD2456 /* discourse-topic.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "discourse-topic.json"; path = "Fixtures/PageFacts/discourse-topic.json"; sourceTree = "<group>"; };
 		BC425710B085727E2C37BFC951EACD60 /* WukongMindApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WukongMindApp.swift; sourceTree = "<group>"; };
 		BCFB4777B3B21C2C678AFB0CCB918AA2 /* AppModel+Onboarding.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "AppModel+Onboarding.swift"; sourceTree = "<group>"; };
@@ -665,6 +713,7 @@
 		C00EDB2B1AE5354C7F60897CD5C714F2 /* DiscussionProfile.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DiscussionProfile.swift; path = Sites/DiscussionProfile.swift; sourceTree = "<group>"; };
 		C0DDC71D0091D54C7BDCD777D5554545 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		C28FD63B417435C8C45EEE2761CF1B9E /* CloudKitTransport.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CloudKitTransport.swift; sourceTree = "<group>"; };
+		C2B1C675DB83CEE859C551CF79FC0611 /* page-22.html */ = {isa = PBXFileReference; includeInIndex = 1; name = "page-22.html"; path = "Fixtures/CrawlForum/page-22.html"; sourceTree = "<group>"; };
 		C2C8C53F0CA9A01547D8CCC51D6ED969 /* AppleIntelligenceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppleIntelligenceTests.swift; sourceTree = "<group>"; };
 		C34CD463066373C1265F0744A04155C4 /* VoiceTools.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VoiceTools.swift; path = Voice/VoiceTools.swift; sourceTree = "<group>"; };
 		C3AD53391B5D1F60F206B82633889BD9 /* AppModel+Models.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "AppModel+Models.swift"; sourceTree = "<group>"; };
@@ -681,6 +730,7 @@
 		CCBFCC0E2BF6B1315F382EC616FB0DFB /* PresentationRouter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PresentationRouter.swift; sourceTree = "<group>"; };
 		CD67F4BF654B74EC20E80C550A19A724 /* WordPressAdapterTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WordPressAdapterTests.swift; path = Sites/WordPressAdapterTests.swift; sourceTree = "<group>"; };
 		CD8619631EB38DD41ADBD8419A336BFA /* HackerNewsLinks.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HackerNewsLinks.swift; path = Sites/HackerNews/HackerNewsLinks.swift; sourceTree = "<group>"; };
+		CDFA5502358931968A1B57AE3B526484 /* page-04.html */ = {isa = PBXFileReference; includeInIndex = 1; name = "page-04.html"; path = "Fixtures/CrawlForum/page-04.html"; sourceTree = "<group>"; };
 		CF31D098E2A1F02BC7A01008E516F09F /* DiscourseFixtures.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DiscourseFixtures.swift; sourceTree = "<group>"; };
 		D033E2EDD22D4FE7525C2B6D9366FF65 /* StateTransitionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StateTransitionTests.swift; sourceTree = "<group>"; };
 		D041ED83FE3D7F318AF06938D4E11406 /* SiteKind.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SiteKind.swift; path = Sites/Recognition/SiteKind.swift; sourceTree = "<group>"; };
@@ -698,6 +748,7 @@
 		D65DE4066D1749FEAC9201CEA7A2AFB9 /* FixtureWordPressServer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FixtureWordPressServer.swift; sourceTree = "<group>"; };
 		D684E83D5E2AF7774033B51AB099CF73 /* AgentPageCaptureTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AgentPageCaptureTests.swift; sourceTree = "<group>"; };
 		D6AFED5F4B830E86D37F6A8E3A091297 /* AgentNetworkTools.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AgentNetworkTools.swift; sourceTree = "<group>"; };
+		D8482EF9E5F4E293723AA653CF598B2B /* CrawlAcceptanceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CrawlAcceptanceTests.swift; sourceTree = "<group>"; };
 		D8C48FCA743BC8206BC5656C40FA0B35 /* PageContext.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PageContext.swift; sourceTree = "<group>"; };
 		DA037733188E9F819FFFE838366E781F /* FixtureSpaForumServer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FixtureSpaForumServer.swift; sourceTree = "<group>"; };
 		DA494D499CB5DB4AB685A785B5075921 /* OnboardingUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingUITests.swift; sourceTree = "<group>"; };
@@ -711,6 +762,8 @@
 		DDB1ECDB28823EDC3E961DDB5DC57C0D /* MultiForumTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MultiForumTests.swift; sourceTree = "<group>"; };
 		DE71ED8B9C98AAD87DAAE1495ED8A779 /* WukongMindAgentCoreTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WukongMindAgentCoreTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DECF51CC4B7AB6738CC762DD739A9714 /* VoiceAudio.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VoiceAudio.swift; path = Voice/VoiceAudio.swift; sourceTree = "<group>"; };
+		E04605948EAB0D53F8C7577AAF37C207 /* crawl-25-pages.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "crawl-25-pages.json"; path = "Fixtures/TaskExports/crawl-25-pages.json"; sourceTree = "<group>"; };
+		E094357C8E6DF80E0A157132513C5905 /* page-24.html */ = {isa = PBXFileReference; includeInIndex = 1; name = "page-24.html"; path = "Fixtures/CrawlForum/page-24.html"; sourceTree = "<group>"; };
 		E0C4FEF913013B4A8730DEE1D9C9DBDE /* RawTopicFormatTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RawTopicFormatTests.swift; path = Sites/RawTopicFormatTests.swift; sourceTree = "<group>"; };
 		E20BC17D4BC0B080F732FA36A508EFA2 /* SettingsProviderForm.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettingsProviderForm.swift; sourceTree = "<group>"; };
 		E2647DC110FA1B137CBF43464E0A0631 /* AppModel+Suggestions.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "AppModel+Suggestions.swift"; sourceTree = "<group>"; };
@@ -722,6 +775,7 @@
 		E89F8793D577530E9D44548AA5801926 /* WordPressToolsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WordPressToolsTests.swift; path = Sites/WordPressToolsTests.swift; sourceTree = "<group>"; };
 		EA11E387DEDB34139851BE5CE52DE24F /* SiteAddress.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SiteAddress.swift; path = Sites/Shared/SiteAddress.swift; sourceTree = "<group>"; };
 		EAF5DDF9DF30237F043D7BDE1646076B /* IncomingLinkTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = IncomingLinkTests.swift; sourceTree = "<group>"; };
+		EB72B827E1E8586A4BEA7DE9CBCD9BEA /* page-12.html */ = {isa = PBXFileReference; includeInIndex = 1; name = "page-12.html"; path = "Fixtures/CrawlForum/page-12.html"; sourceTree = "<group>"; };
 		EC82CADDE415A1F2ABBF6D04FCAB0F73 /* WordPressPagePlan.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WordPressPagePlan.swift; path = Sites/WordPress/WordPressPagePlan.swift; sourceTree = "<group>"; };
 		ED58D90CA04439105E0F52D10E777312 /* ReadingLanguage.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ReadingLanguage.swift; path = Translation/ReadingLanguage.swift; sourceTree = "<group>"; };
 		ED8EAAAF4F7F20AA48A899C470F0AA21 /* AppModel+Navigation.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "AppModel+Navigation.swift"; sourceTree = "<group>"; };
@@ -736,9 +790,11 @@
 		F2762D65E5CAFC8252641937B0EF1D6B /* TimeStretchTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TimeStretchTests.swift; sourceTree = "<group>"; };
 		F29DD93ECE0A31AA8F8ED6BA0DFC891D /* ToolRegistry+Capture.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "ToolRegistry+Capture.swift"; sourceTree = "<group>"; };
 		F38B5C07A0D01AF2ECAE6453B90F717A /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		F49592A81D13BE8E0CFC5B7CEE0483F5 /* page-14.html */ = {isa = PBXFileReference; includeInIndex = 1; name = "page-14.html"; path = "Fixtures/CrawlForum/page-14.html"; sourceTree = "<group>"; };
 		F54B25AD6ECEA7DE424023984039172D /* OnboardingTry.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingTry.swift; sourceTree = "<group>"; };
 		F5B8554068DA86A182D9ECE592A80DDC /* hn-search.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "hn-search.json"; path = "Fixtures/HackerNews/hn-search.json"; sourceTree = "<group>"; };
 		F5FE079D17A1390396B346A8C6CFD017 /* ForumBrowser.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ForumBrowser.swift; sourceTree = "<group>"; };
+		F65F2714C12D8BADCE36454491616612 /* page-21.html */ = {isa = PBXFileReference; includeInIndex = 1; name = "page-21.html"; path = "Fixtures/CrawlForum/page-21.html"; sourceTree = "<group>"; };
 		F676B9353BCBA02767DD33CCA35040FF /* WordPressRecognizer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WordPressRecognizer.swift; path = Sites/Recognition/WordPressRecognizer.swift; sourceTree = "<group>"; };
 		F6E11F3BB41B93049BC23C2097EAEAE1 /* ProviderModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProviderModels.swift; sourceTree = "<group>"; };
 		F92F04857C59DA9C695FF87B86AE4719 /* WorkspaceLayout.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WorkspaceLayout.swift; sourceTree = "<group>"; };
@@ -746,11 +802,13 @@
 		FAADF85DE900B61834F1CD302535F4D0 /* speech-a.wav */ = {isa = PBXFileReference; includeInIndex = 1; name = "speech-a.wav"; path = "Audio/speech-a.wav"; sourceTree = "<group>"; };
 		FADC5982425C8F528B82C256F7B400B8 /* ForumTransportTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ForumTransportTests.swift; sourceTree = "<group>"; };
 		FB2759631A71C867AD0687BA24E19024 /* CloudSyncEngine.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CloudSyncEngine.swift; sourceTree = "<group>"; };
+		FBCA00C9374D371AD2F64CF203DB0F42 /* page-07.html */ = {isa = PBXFileReference; includeInIndex = 1; name = "page-07.html"; path = "Fixtures/CrawlForum/page-07.html"; sourceTree = "<group>"; };
 		FDCFFB2F74334A9338A90AEC538DF3B3 /* HackerNewsAgent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HackerNewsAgent.swift; path = Sites/HackerNews/HackerNewsAgent.swift; sourceTree = "<group>"; };
 		FE38D73A8610ED7AD5F3A19A230D994C /* AIDrawer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AIDrawer.swift; sourceTree = "<group>"; };
 		FEDA3707A8EEA6013A5C95D0F16BCA53 /* ToolRegistry+Capabilities.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "ToolRegistry+Capabilities.swift"; sourceTree = "<group>"; };
 		FF227D658A4552E42CDAA68A615FE954 /* AIService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AIService.swift; sourceTree = "<group>"; };
 		FF304334B495DE6F732FFA6C2682ACCC /* discourse-discourse-fixture-test-raw-42-a699eb05f449.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "discourse-discourse-fixture-test-raw-42-a699eb05f449.json"; path = "Fixtures/Comparison/discourse/discourse-discourse-fixture-test-raw-42-a699eb05f449.json"; sourceTree = "<group>"; };
+		FF5BF97BCF94A72315B9FB4097731AB5 /* page-01.html */ = {isa = PBXFileReference; includeInIndex = 1; name = "page-01.html"; path = "Fixtures/CrawlForum/page-01.html"; sourceTree = "<group>"; };
 		FF691968783B407193F50291AA90A19B /* ForumSnapshotProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ForumSnapshotProtocol.swift; path = Support/ForumSnapshotProtocol.swift; sourceTree = "<group>"; };
 		FFE5272C2A38B83D495166117C8844B0 /* SuggestionRow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SuggestionRow.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -840,6 +898,7 @@
 				DAF3AE5C6FB321E40E4D9DCC691837FE /* HistoryUITests.swift */,
 				C7D800716807CECAC51BCF32D045EF0D /* HomeUITests.swift */,
 				EF40ADF0AF8AFD61BA28EEE78E6E54DA /* IPadLayoutUITests.swift */,
+				0C1786083E0440C2BB771A21E0515729 /* M3LiveAcceptanceUITests.swift */,
 				DA494D499CB5DB4AB685A785B5075921 /* OnboardingUITests.swift */,
 				527DA8FED3478F1F4C7649330DD9A967 /* PhysicalDeviceSmokeTests.swift */,
 				663B3C44910C1E58D7135AB30D03EBB3 /* ScreenshotThumbnailUITests.swift */,
@@ -1102,6 +1161,7 @@
 				CC17B40AB586A93C2E230196E4D4D669 /* ContentBlockerTests.swift */,
 				AA30CB7626D1EDAEA4171CFC55300B09 /* ContentBlockingRulesTests.swift */,
 				1046C99B5BE99CA2B444C1BA50AE3EFA /* CoreTests.swift */,
+				D8482EF9E5F4E293723AA653CF598B2B /* CrawlAcceptanceTests.swift */,
 				1C5924D0993404BAD453B2A6AA580AD4 /* DailyDigestTests.swift */,
 				4C22A900EA243F40EA39566328B949FA /* DesignTokenTests.swift */,
 				27B2184F376A32E8A68E7F297D97C4AF /* DictationTests.swift */,
@@ -1186,6 +1246,32 @@
 				9F64306EC5AB0CCCC98FE6B6487B62C2 /* hackernews-hn-algolia-com-api-v1-items-99999901-2af01e08e909.json */,
 				87DA14DFC9ED9B3C936FB14DC62D1DA2 /* wordpress-wordpress-fixture-test-wp-json-wp-v2-43a45d480692.json */,
 				8431F436C4B9B473AC1BE77E26DAAEFE /* wordpress-wordpress-fixture-test-wp-json-wp-v2-6a6dded6e905.json */,
+				553A1487B656060D41C60B317A2C12E8 /* net.html */,
+				FF5BF97BCF94A72315B9FB4097731AB5 /* page-01.html */,
+				77B8A112B1AA870CD33ACB6198EC42EB /* page-02.html */,
+				B20E82529A8806CBA1F06F0456CCF64E /* page-03.html */,
+				CDFA5502358931968A1B57AE3B526484 /* page-04.html */,
+				87132EB75964CCA11C42674F38532127 /* page-05.html */,
+				58EE6F96B857C22BAE05990D741B70F9 /* page-06.html */,
+				FBCA00C9374D371AD2F64CF203DB0F42 /* page-07.html */,
+				8F779B4016851EBB308EEF760DE7779D /* page-08.html */,
+				6768B53638A83EDE2063E96139A9AEC1 /* page-09.html */,
+				3ACBBD7A60D97DCDF088BAE32D61B60B /* page-10.html */,
+				76F81EB8A141106655183475795302BD /* page-11.html */,
+				EB72B827E1E8586A4BEA7DE9CBCD9BEA /* page-12.html */,
+				3AC2E21E18BA2EF6546AFAF358B3C291 /* page-13.html */,
+				F49592A81D13BE8E0CFC5B7CEE0483F5 /* page-14.html */,
+				A1AC3213DB361D520352CC22D003DFB2 /* page-15.html */,
+				BB5E509523E7B1DD5FD94A8842184E43 /* page-16.html */,
+				B2994AE29B720FAD5E5940F09FDC61C0 /* page-17.html */,
+				12946A4D5E2E27E3935885F2B4680464 /* page-18.html */,
+				AC714EEA571654539F7CB9C460125A7A /* page-19.html */,
+				74CED0968322843C7E8E86F8A7C914E3 /* page-20.html */,
+				F65F2714C12D8BADCE36454491616612 /* page-21.html */,
+				C2B1C675DB83CEE859C551CF79FC0611 /* page-22.html */,
+				8BF35D9A60DBEA1E1953FCB6A2286DC8 /* page-23.html */,
+				E094357C8E6DF80E0A157132513C5905 /* page-24.html */,
+				6D17122DDE8B6D466BECB2DC48850169 /* page-25.html */,
 				7CC0592C769221DC7728295B86EDF24F /* hn-comments.json */,
 				292CEE566E7480BA4AD5DEED758FEB32 /* hn-html.json */,
 				6995A087A9A4CF6FF8D3B3293CA27F3C /* hn-item-1.json */,
@@ -1202,6 +1288,7 @@
 				C8A193E982A774A48205C2A38317353A /* session.json */,
 				05AAA61A90847C42A11F1677FD367921 /* state.json */,
 				457EDE7DFE54232239F94532DC62A0CA /* spa-thread.html */,
+				E04605948EAB0D53F8C7577AAF37C207 /* crawl-25-pages.json */,
 				B77701EEA51A573ECF1E102D0C715453 /* read-headline.json */,
 				B34D999F36951F82529F549C4CE4A53A /* article-1001.json */,
 				92B492FB1DC30F5D930C19FE12DA126B /* comments-sample.json */,
@@ -1379,6 +1466,32 @@
 				E135D057949A5F5E8F3362F347F567C8 /* hackernews-hn-algolia-com-api-v1-items-99999901-2af01e08e909.json in Resources */,
 				03BC6119914A88D47C76ACFCC73ED68C /* wordpress-wordpress-fixture-test-wp-json-wp-v2-43a45d480692.json in Resources */,
 				BD055DB9926A01419552B16A31157D49 /* wordpress-wordpress-fixture-test-wp-json-wp-v2-6a6dded6e905.json in Resources */,
+				62BD946351D41845A8D4C16F76107742 /* net.html in Resources */,
+				AFFD720FAE08C925F2DAAE6D31D3EAE2 /* page-01.html in Resources */,
+				2399B7911AF51C9B6B0958D0C102D860 /* page-02.html in Resources */,
+				D00CBE5C86C0689F80FB1D2199939E5C /* page-03.html in Resources */,
+				AE51256631C63822ACE73682D344A580 /* page-04.html in Resources */,
+				4BFD3ADBEE65829DE69A5A3F4B50F3E9 /* page-05.html in Resources */,
+				B24CD5D03D68E079C3F4E04DCA7B990F /* page-06.html in Resources */,
+				36EAC0A68F995F3AF0E5DDED4CB20718 /* page-07.html in Resources */,
+				DCDAA38C686ECD49B73F4EF0E816775E /* page-08.html in Resources */,
+				21CEA2B8238EE8453237594DE8899168 /* page-09.html in Resources */,
+				3F74A0108A0FED44FE5DB2D87E533522 /* page-10.html in Resources */,
+				0E876B8039D77890E8CE284BB1965A81 /* page-11.html in Resources */,
+				612C5D36618BEEC1A8192BA73421204C /* page-12.html in Resources */,
+				5409394DB0D315D1CBDC4B33022E3B9A /* page-13.html in Resources */,
+				AD0067B5577325C9225AD2F3503520B4 /* page-14.html in Resources */,
+				D3DD024EAEFC7AAA88F231DAB5176B63 /* page-15.html in Resources */,
+				8836E5EAF99D388073A45E2294BCCBCE /* page-16.html in Resources */,
+				141EF5BA7B9F010C1AAF58BD0CC1A887 /* page-17.html in Resources */,
+				3DC4DF68B188E41827E8768745D8C8C5 /* page-18.html in Resources */,
+				CDA6433F92D61E00004A4213E0B7E84A /* page-19.html in Resources */,
+				D7C877B2424B09590A2998A36318DA22 /* page-20.html in Resources */,
+				FD9DC200999F053A24029E382C176744 /* page-21.html in Resources */,
+				7B8B9C887B996382FFA0DA362C4952F3 /* page-22.html in Resources */,
+				361578210D58DA40813B2793BEBDC853 /* page-23.html in Resources */,
+				613F68F794E1BB01FD27E94C98D37250 /* page-24.html in Resources */,
+				08A4E386B2F5A2547A76376635F6E90C /* page-25.html in Resources */,
 				9563D5BD1278AB3F92BDF4461CA1E3F5 /* hn-comments.json in Resources */,
 				EA595C71895C92F15AD1F1CD33BB9B0B /* hn-html.json in Resources */,
 				15A27FB0072BE7231C553CBC9A84512E /* hn-item-1.json in Resources */,
@@ -1395,6 +1508,7 @@
 				9E094565B97F596EE0F70667EF7B06A1 /* session.json in Resources */,
 				8F3D3BBFD3905DB973FBF9AFD744C6FA /* state.json in Resources */,
 				E4BD1C554D83D66B3A417C6AFB6EB73A /* spa-thread.html in Resources */,
+				BABBBD2BDED243343312651CF4FE7638 /* crawl-25-pages.json in Resources */,
 				9FB940BC712413CF9919FF58BE6966F3 /* read-headline.json in Resources */,
 				6CEF4E2ACB5F6C6C3CD8EEC14FE73188 /* article-1001.json in Resources */,
 				5EA1B2B64ABC59C175164FEE08A76CF1 /* comments-sample.json in Resources */,
@@ -1498,6 +1612,7 @@
 				C5CC577494455B98A8A3A323A2FE2351 /* ContentBlockerTests.swift in Sources */,
 				53EBA5662F300594E3A3C120B7DA52EB /* ContentBlockingRulesTests.swift in Sources */,
 				D0719CE23B0A43971E77003B95112FD8 /* CoreTests.swift in Sources */,
+				10E0EC3D1D73900ACDD91DF1598924F6 /* CrawlAcceptanceTests.swift in Sources */,
 				D9C3334AF854F720B396666F88342F81 /* DailyDigestTests.swift in Sources */,
 				33C9162E3E86436208232A07CA8BE600 /* DesignTokenTests.swift in Sources */,
 				515ED78F8565EA165B187DF3C0C11B9C /* DictationTests.swift in Sources */,
@@ -1779,6 +1894,7 @@
 				C93C24E2DD2F5366F00FC3722E557948 /* HistoryUITests.swift in Sources */,
 				A03B070C1279C334246D3493C38F6AAB /* HomeUITests.swift in Sources */,
 				0D0FD1A5631857AE79D4C809F0C496CF /* IPadLayoutUITests.swift in Sources */,
+				B237FB19A00BE101C21D545BC9DFCFD9 /* M3LiveAcceptanceUITests.swift in Sources */,
 				BC92CE11BB3041522ADF62345084D4CE /* OnboardingUITests.swift in Sources */,
 				67B1B32B469282F9641117E6D7318A9A /* PhysicalDeviceSmokeTests.swift in Sources */,
 				0D465CFC38D6AC344CC12DE7B2C6C894 /* ScreenshotThumbnailUITests.swift in Sources */,
@@ -1811,36 +1927,6 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		0CACB42BAAD0B07CA9F1EA9D52B81F11 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				APPLICATION_EXTENSION_API_ONLY = YES;
-				CLANG_ENABLE_OBJC_WEAK = NO;
-				CODE_SIGN_ENTITLEMENTS = WukongMindShare/WukongMindShare.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DC_APP_GROUP = group.io.github.kccarlos.wukongmind;
-				DC_IDENTIFIER_PREFIX = io.github.kccarlos.wukongmind;
-				DEVELOPMENT_TEAM = GV776BZVA8;
-				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = WukongMindShare/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
-				MARKETING_VERSION = 1.1.5;
-				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind.share;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_STRICT_CONCURRENCY = minimal;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				VALIDATE_PRODUCT = YES;
-			};
-			name = Release;
-		};
 		31BEAC3830519414D4289724B97DFB66 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1977,6 +2063,36 @@
 			};
 			name = Release;
 		};
+		921F41719DC751842C5996767559FF20 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = WukongMind/WukongMind.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DC_APP_GROUP = group.io.github.kccarlos.wukongmind;
+				DC_IDENTIFIER_PREFIX = io.github.kccarlos.wukongmind;
+				DEVELOPMENT_TEAM = GV776BZVA8;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = WukongMind/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 1.2.0;
+				OTHER_SWIFT_FLAGS = "$(inherited)";
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
 		A17E747EE02E2D562FEB4A47D484B91D /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1990,6 +2106,36 @@
 				SDKROOT = macosx;
 				SWIFT_STRICT_CONCURRENCY = minimal;
 				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		A4683B0B64A52A38CCBEE2272BA06E0E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = WukongMindShare/WukongMindShare.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DC_APP_GROUP = group.io.github.kccarlos.wukongmind;
+				DC_IDENTIFIER_PREFIX = io.github.kccarlos.wukongmind;
+				DEVELOPMENT_TEAM = GV776BZVA8;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = WukongMindShare/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				MARKETING_VERSION = 1.2.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind.share;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
 		};
@@ -2029,34 +2175,36 @@
 			};
 			name = Debug;
 		};
-		B6A1F7BEC11FF6E27CD7C74F20DFD682 /* Debug */ = {
+		BAC5AE89C0FB99B5A9C3F9E914BDA4A1 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				APPLICATION_EXTENSION_API_ONLY = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_OBJC_WEAK = NO;
-				CODE_SIGN_ENTITLEMENTS = WukongMindShare/WukongMindShare.entitlements;
+				CODE_SIGN_ENTITLEMENTS = WukongMind/WukongMind.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DC_APP_GROUP = group.io.github.kccarlos.wukongmind;
 				DC_IDENTIFIER_PREFIX = io.github.kccarlos.wukongmind;
 				DEVELOPMENT_TEAM = GV776BZVA8;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = WukongMindShare/Info.plist;
+				INFOPLIST_FILE = WukongMind/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
-				MARKETING_VERSION = 1.1.5;
-				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind.share;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 1.2.0;
+				OTHER_SWIFT_FLAGS = "$(inherited)";
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = minimal;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
 			};
-			name = Debug;
+			name = Release;
 		};
 		CE45AAF706AD2D3DF7D7F241BF21C72E /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -2099,58 +2247,26 @@
 			};
 			name = Release;
 		};
-		E949B769A798BFB5ACD4DF74133D3171 /* Release */ = {
+		F348EDCAA365367D7AC766F947B58DEB /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ENABLE_OBJC_WEAK = NO;
-				CODE_SIGN_ENTITLEMENTS = WukongMind/WukongMind.entitlements;
+				CODE_SIGN_ENTITLEMENTS = WukongMindShare/WukongMindShare.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DC_APP_GROUP = group.io.github.kccarlos.wukongmind;
 				DC_IDENTIFIER_PREFIX = io.github.kccarlos.wukongmind;
 				DEVELOPMENT_TEAM = GV776BZVA8;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = WukongMind/Info.plist;
+				INFOPLIST_FILE = WukongMindShare/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 1.1.5;
-				OTHER_SWIFT_FLAGS = "$(inherited)";
-				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				MARKETING_VERSION = 1.2.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind.share;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_STRICT_CONCURRENCY = minimal;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				VALIDATE_PRODUCT = YES;
-			};
-			name = Release;
-		};
-		F71BB9C650322C1C0A3AB6663B568DDE /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CLANG_ENABLE_OBJC_WEAK = NO;
-				CODE_SIGN_ENTITLEMENTS = WukongMind/WukongMind.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DC_APP_GROUP = group.io.github.kccarlos.wukongmind;
-				DC_IDENTIFIER_PREFIX = io.github.kccarlos.wukongmind;
-				DEVELOPMENT_TEAM = GV776BZVA8;
-				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = WukongMind/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 1.1.5;
-				OTHER_SWIFT_FLAGS = "$(inherited)";
-				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -2175,8 +2291,8 @@
 		7F47FA70E98716F0343E66C51BF1D32A /* Build configuration list for PBXNativeTarget "WukongMind" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				E949B769A798BFB5ACD4DF74133D3171 /* Release */,
-				F71BB9C650322C1C0A3AB6663B568DDE /* Debug */,
+				BAC5AE89C0FB99B5A9C3F9E914BDA4A1 /* Release */,
+				921F41719DC751842C5996767559FF20 /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -2211,8 +2327,8 @@
 		E4F9F055622E051509E620676B2CAF91 /* Build configuration list for PBXNativeTarget "WukongMindShare" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				0CACB42BAAD0B07CA9F1EA9D52B81F11 /* Release */,
-				B6A1F7BEC11FF6E27CD7C74F20DFD682 /* Debug */,
+				A4683B0B64A52A38CCBEE2272BA06E0E /* Release */,
+				F348EDCAA365367D7AC766F947B58DEB /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

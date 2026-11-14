@@ -1,0 +1,5 @@
+--- scripts dir after launch 1 ---
+total 8
+drwxr-xr-x@  3 kc  staff    96 Nov 14 00:38 .
+drwxr-xr-x@ 11 kc  staff   352 Nov 14 00:38 ..
+-rw-r--r--   1 kc  staff  1401 Nov 14 00:38 indieboard-crawl-thread-reader-8a3e32.user.js
