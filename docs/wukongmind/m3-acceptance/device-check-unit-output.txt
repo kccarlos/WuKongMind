@@ -1,0 +1,128 @@
+device-run.log:	 Executed 10 tests, with 0 failures (0 unexpected) in 1.499 (1.503) seconds
+device-run.log:	 Executed 15 tests, with 0 failures (0 unexpected) in 2.392 (2.396) seconds
+device-run.log:	 Executed 19 tests, with 0 failures (0 unexpected) in 2.315 (2.320) seconds
+device-run.log:	 Executed 3 tests, with 0 failures (0 unexpected) in 0.557 (0.558) seconds
+device-run.log:	 Executed 55 tests, with 0 failures (0 unexpected) in 7.263 (7.280) seconds
+device-run.log:	 Executed 55 tests, with 0 failures (0 unexpected) in 7.263 (7.281) seconds
+device-run.log:	 Executed 7 tests, with 0 failures (0 unexpected) in 0.103 (0.104) seconds
+device-run.log:[device-check 00:52:33] lock taken: /Volumes/Ext/dev/locks/00008110-001614E8368A601E.lock
+device-run.log:[device-check 00:52:47] lock released: /Volumes/Ext/dev/locks/00008110-001614E8368A601E.lock
+device-run.log:** TEST EXECUTE SUCCEEDED **
+device-run.log:Test Case '-[WukongMindTests.AgentBridgeTests testCrawlOf25FixturePagesThroughWukongFetchAndFilesInRealWebKit]' passed (0.398 seconds).
+device-run.log:Test Case '-[WukongMindTests.AgentNetworkToolsTests testBodyStopsAtTwentyMegabytesAndBinaryIsDescribed]' passed (1.259 seconds).
+device-run.log:Test Case '-[WukongMindTests.AgentNetworkToolsTests testConfirmationMatrixWithTheSwitchOff]' passed (0.058 seconds).
+device-run.log:Test Case '-[WukongMindTests.AgentNetworkToolsTests testConfirmationWithTheSwitchOnAsksForEveryRequest]' passed (0.013 seconds).
+device-run.log:Test Case '-[WukongMindTests.AgentNetworkToolsTests testCookiesGetMatchesParentDomainsAndAlwaysAsks]' passed (0.025 seconds).
+device-run.log:Test Case '-[WukongMindTests.AgentNetworkToolsTests testMethodHeadersBodyAndSetCookieDropped]' passed (0.002 seconds).
+device-run.log:Test Case '-[WukongMindTests.AgentNetworkToolsTests testRedirectOffTheSiteDropsTheCookieHeader]' passed (0.002 seconds).
+device-run.log:Test Case '-[WukongMindTests.AgentNetworkToolsTests testRedirectsAreFollowedAndCapped]' passed (0.004 seconds).
+device-run.log:Test Case '-[WukongMindTests.AgentNetworkToolsTests testSaveToWritesTheBodyToTheWorkspace]' passed (0.013 seconds).
+device-run.log:Test Case '-[WukongMindTests.AgentNetworkToolsTests testScriptFetchSendsCookiesOnlyOnTheCurrentSite]' passed (0.002 seconds).
+device-run.log:Test Case '-[WukongMindTests.AgentNetworkToolsTests testScriptFetchWaitsForThePaceOnForumHostsAndSkipsItWhenOff]' passed (0.002 seconds).
+device-run.log:Test Case '-[WukongMindTests.AgentNetworkToolsTests testScriptFetchWithConfirmOnRunsSameSiteAndRefusesAnotherSite]' passed (0.001 seconds).
+device-run.log:Test Case '-[WukongMindTests.AgentNetworkToolsTests testSendCookiesUsesTheTargetSiteNotTheCurrentPageHttpOnlyIncluded]' passed (0.001 seconds).
+device-run.log:Test Case '-[WukongMindTests.AgentNetworkToolsTests testSiteRule]' passed (0.001 seconds).
+device-run.log:Test Case '-[WukongMindTests.AgentNetworkToolsTests testStopCancelsTheCard]' passed (0.007 seconds).
+device-run.log:Test Case '-[WukongMindTests.AgentNetworkToolsTests testTimeoutReturnsAnError]' passed (1.004 seconds).
+device-run.log:Test Case '-[WukongMindTests.BrowserToolsTests testAFailedLoadIsAnErrorResultWithoutAnAlert]' passed (0.105 seconds).
+device-run.log:Test Case '-[WukongMindTests.BrowserToolsTests testDriverWithoutNavigationReportsAnError]' passed (0.022 seconds).
+device-run.log:Test Case '-[WukongMindTests.BrowserToolsTests testNavigateOpensAboutBlank]' passed (0.058 seconds).
+device-run.log:Test Case '-[WukongMindTests.BrowserToolsTests testNavigateRefusesOtherSchemes]' passed (0.018 seconds).
+device-run.log:Test Case '-[WukongMindTests.BrowserToolsTests testNavigateReturnsFinalURLTitleAndStatus]' passed (0.095 seconds).
+device-run.log:Test Case '-[WukongMindTests.BrowserToolsTests testNavigateTimesOutCleanly]' passed (1.053 seconds).
+device-run.log:Test Case '-[WukongMindTests.BrowserToolsTests testNavigateWithWaitNoneReturnsAtOnce]' passed (0.030 seconds).
+device-run.log:Test Case '-[WukongMindTests.BrowserToolsTests testReloadDropsUnsavedCSSAndInjectsSavedScriptsAgain]' passed (0.079 seconds).
+device-run.log:Test Case '-[WukongMindTests.BrowserToolsTests testReloadWithNoPageFails]' passed (0.015 seconds).
+device-run.log:Test Case '-[WukongMindTests.BrowserToolsTests testWarningLeadsTheAgentToReadThePageInsteadOfAnsweringDone]' passed (0.025 seconds).
+device-run.log:Test Case '-[WukongMindTests.CrawlAcceptanceTests testCheckedInCrawlFixtureReplaysThroughRecordedModelClient]' passed (0.022 seconds).
+device-run.log:Test Case '-[WukongMindTests.CrawlAcceptanceTests testCrawlSavesEveryPageSummaryCoversThemAndFilesSurviveARelaunch]' passed (0.250 seconds).
+device-run.log:Test Case '-[WukongMindTests.CrawlAcceptanceTests testExportedCrawlHasNoSecretsAndReplays]' passed (0.285 seconds).
+device-run.log:Test Case '-[WukongMindTests.PageFeedbackTests testAChangeThatAltersNothingAddsOneLine]' passed (0.066 seconds).
+device-run.log:Test Case '-[WukongMindTests.PageFeedbackTests testAPageErrorWarns]' passed (0.057 seconds).
+device-run.log:Test Case '-[WukongMindTests.PageFeedbackTests testAScriptErrorStillReportsWhatChanged]' passed (0.055 seconds).
+device-run.log:Test Case '-[WukongMindTests.PageFeedbackTests testChangesLineListsOnlyChangedValuesWithGrouping]' passed (0.001 seconds).
+device-run.log:Test Case '-[WukongMindTests.PageFeedbackTests testEachRuleMatchesOnItsOwn]' passed (0.004 seconds).
+device-run.log:Test Case '-[WukongMindTests.PageFeedbackTests testEmptyingTheBodyWarns]' passed (0.061 seconds).
+device-run.log:Test Case '-[WukongMindTests.PageFeedbackTests testExactlyHalfAndSmallPagesDoNotWarn]' passed (0.001 seconds).
+device-run.log:Test Case '-[WukongMindTests.PageFeedbackTests testFailedVerifyCarriesBothImagesForImageModelAndNoneForTextModel]' passed (0.552 seconds).
+device-run.log:Test Case '-[WukongMindTests.PageFeedbackTests testFeedbackLinesAreAddedAfterTruncation]' passed (0.002 seconds).
+device-run.log:Test Case '-[WukongMindTests.PageFeedbackTests testHalvingTheHeightWarns]' passed (0.057 seconds).
+device-run.log:Test Case '-[WukongMindTests.PageFeedbackTests testMakingThePageUnscrollableWarns]' passed (0.056 seconds).
+device-run.log:Test Case '-[WukongMindTests.PageFeedbackTests testNoChangeAddsOneLineAndURLChangeSkipsTheComparison]' passed (0.001 seconds).
+device-run.log:Test Case '-[WukongMindTests.PageFeedbackTests testReadOnlyToolsTakeNoSnapshot]' passed (0.085 seconds).
+device-run.log:Test Case '-[WukongMindTests.PageFeedbackTests testRecordedReplayRefusedSaveComparesAgainstRunBaselineAndSavesNarrowerFix]' passed (0.310 seconds).
+device-run.log:Test Case '-[WukongMindTests.PageFeedbackTests testRefusedSaveRestoresPageAndRefusesRepeatedUnconfirmedRetry]' passed (0.333 seconds).
+device-run.log:Test Case '-[WukongMindTests.PageFeedbackTests testRemovingTheLinksWarns]' passed (0.061 seconds).
+device-run.log:Test Case '-[WukongMindTests.PageFeedbackTests testSavingAScriptThatThrowsIsRefusedEvenWithConfirmChange]' passed (0.209 seconds).
+device-run.log:Test Case '-[WukongMindTests.PageFeedbackTests testScriptThatEmptiesPageIsRefusedThenSavedWithConfirmChangeAndUnmatchedSavesUnverified]' passed (0.346 seconds).
+device-run.log:Test Case '-[WukongMindTests.PageFeedbackTests testSnapshotReadsTheSevenNumbers]' passed (0.058 seconds).
+device-run.log:Test Case '-[WukongMindTests.TaskExportTests testFixtureReplaysThroughRecordedModelClient]' passed (0.005 seconds).
+device-run.log:Test Case '-[WukongMindTests.TaskExportTests testGeminiKeyNeverReachesTheRecorder]' passed (0.001 seconds).
+device-run.log:Test Case '-[WukongMindTests.TaskExportTests testOldDeveloperModeKeyTurnsOnTheSwitchAndIsDropped]' passed (0.005 seconds).
+device-run.log:Test Case '-[WukongMindTests.TaskExportTests testRecordedSessionExportsWithoutKeysOrCookiesAndReplays]' passed (0.088 seconds).
+device-run.log:Test Case '-[WukongMindTests.TaskExportTests testRecordWithAnUnscrubbedLineIsRefused]' passed (0.001 seconds).
+device-run.log:Test Case '-[WukongMindTests.TaskExportTests testSurvivingCookieValuesAreFound]' passed (0.001 seconds).
+device-run.log:Test Case '-[WukongMindTests.TaskExportTests testUnreadableCookieStoreRefusesTheExport]' passed (0.002 seconds).
+device/test.log:	 Executed 10 tests, with 0 failures (0 unexpected) in 1.499 (1.503) seconds
+device/test.log:	 Executed 15 tests, with 0 failures (0 unexpected) in 2.392 (2.396) seconds
+device/test.log:	 Executed 19 tests, with 0 failures (0 unexpected) in 2.315 (2.320) seconds
+device/test.log:	 Executed 3 tests, with 0 failures (0 unexpected) in 0.557 (0.558) seconds
+device/test.log:	 Executed 55 tests, with 0 failures (0 unexpected) in 7.263 (7.280) seconds
+device/test.log:	 Executed 55 tests, with 0 failures (0 unexpected) in 7.263 (7.281) seconds
+device/test.log:	 Executed 7 tests, with 0 failures (0 unexpected) in 0.103 (0.104) seconds
+device/test.log:** TEST EXECUTE SUCCEEDED **
+device/test.log:Test Case '-[WukongMindTests.AgentBridgeTests testCrawlOf25FixturePagesThroughWukongFetchAndFilesInRealWebKit]' passed (0.398 seconds).
+device/test.log:Test Case '-[WukongMindTests.AgentNetworkToolsTests testBodyStopsAtTwentyMegabytesAndBinaryIsDescribed]' passed (1.259 seconds).
+device/test.log:Test Case '-[WukongMindTests.AgentNetworkToolsTests testConfirmationMatrixWithTheSwitchOff]' passed (0.058 seconds).
+device/test.log:Test Case '-[WukongMindTests.AgentNetworkToolsTests testConfirmationWithTheSwitchOnAsksForEveryRequest]' passed (0.013 seconds).
+device/test.log:Test Case '-[WukongMindTests.AgentNetworkToolsTests testCookiesGetMatchesParentDomainsAndAlwaysAsks]' passed (0.025 seconds).
+device/test.log:Test Case '-[WukongMindTests.AgentNetworkToolsTests testMethodHeadersBodyAndSetCookieDropped]' passed (0.002 seconds).
+device/test.log:Test Case '-[WukongMindTests.AgentNetworkToolsTests testRedirectOffTheSiteDropsTheCookieHeader]' passed (0.002 seconds).
+device/test.log:Test Case '-[WukongMindTests.AgentNetworkToolsTests testRedirectsAreFollowedAndCapped]' passed (0.004 seconds).
+device/test.log:Test Case '-[WukongMindTests.AgentNetworkToolsTests testSaveToWritesTheBodyToTheWorkspace]' passed (0.013 seconds).
+device/test.log:Test Case '-[WukongMindTests.AgentNetworkToolsTests testScriptFetchSendsCookiesOnlyOnTheCurrentSite]' passed (0.002 seconds).
+device/test.log:Test Case '-[WukongMindTests.AgentNetworkToolsTests testScriptFetchWaitsForThePaceOnForumHostsAndSkipsItWhenOff]' passed (0.002 seconds).
+device/test.log:Test Case '-[WukongMindTests.AgentNetworkToolsTests testScriptFetchWithConfirmOnRunsSameSiteAndRefusesAnotherSite]' passed (0.001 seconds).
+device/test.log:Test Case '-[WukongMindTests.AgentNetworkToolsTests testSendCookiesUsesTheTargetSiteNotTheCurrentPageHttpOnlyIncluded]' passed (0.001 seconds).
+device/test.log:Test Case '-[WukongMindTests.AgentNetworkToolsTests testSiteRule]' passed (0.001 seconds).
+device/test.log:Test Case '-[WukongMindTests.AgentNetworkToolsTests testStopCancelsTheCard]' passed (0.007 seconds).
+device/test.log:Test Case '-[WukongMindTests.AgentNetworkToolsTests testTimeoutReturnsAnError]' passed (1.004 seconds).
+device/test.log:Test Case '-[WukongMindTests.BrowserToolsTests testAFailedLoadIsAnErrorResultWithoutAnAlert]' passed (0.105 seconds).
+device/test.log:Test Case '-[WukongMindTests.BrowserToolsTests testDriverWithoutNavigationReportsAnError]' passed (0.022 seconds).
+device/test.log:Test Case '-[WukongMindTests.BrowserToolsTests testNavigateOpensAboutBlank]' passed (0.058 seconds).
+device/test.log:Test Case '-[WukongMindTests.BrowserToolsTests testNavigateRefusesOtherSchemes]' passed (0.018 seconds).
+device/test.log:Test Case '-[WukongMindTests.BrowserToolsTests testNavigateReturnsFinalURLTitleAndStatus]' passed (0.095 seconds).
+device/test.log:Test Case '-[WukongMindTests.BrowserToolsTests testNavigateTimesOutCleanly]' passed (1.053 seconds).
+device/test.log:Test Case '-[WukongMindTests.BrowserToolsTests testNavigateWithWaitNoneReturnsAtOnce]' passed (0.030 seconds).
+device/test.log:Test Case '-[WukongMindTests.BrowserToolsTests testReloadDropsUnsavedCSSAndInjectsSavedScriptsAgain]' passed (0.079 seconds).
+device/test.log:Test Case '-[WukongMindTests.BrowserToolsTests testReloadWithNoPageFails]' passed (0.015 seconds).
+device/test.log:Test Case '-[WukongMindTests.BrowserToolsTests testWarningLeadsTheAgentToReadThePageInsteadOfAnsweringDone]' passed (0.025 seconds).
+device/test.log:Test Case '-[WukongMindTests.CrawlAcceptanceTests testCheckedInCrawlFixtureReplaysThroughRecordedModelClient]' passed (0.022 seconds).
+device/test.log:Test Case '-[WukongMindTests.CrawlAcceptanceTests testCrawlSavesEveryPageSummaryCoversThemAndFilesSurviveARelaunch]' passed (0.250 seconds).
+device/test.log:Test Case '-[WukongMindTests.CrawlAcceptanceTests testExportedCrawlHasNoSecretsAndReplays]' passed (0.285 seconds).
+device/test.log:Test Case '-[WukongMindTests.PageFeedbackTests testAChangeThatAltersNothingAddsOneLine]' passed (0.066 seconds).
+device/test.log:Test Case '-[WukongMindTests.PageFeedbackTests testAPageErrorWarns]' passed (0.057 seconds).
+device/test.log:Test Case '-[WukongMindTests.PageFeedbackTests testAScriptErrorStillReportsWhatChanged]' passed (0.055 seconds).
+device/test.log:Test Case '-[WukongMindTests.PageFeedbackTests testChangesLineListsOnlyChangedValuesWithGrouping]' passed (0.001 seconds).
+device/test.log:Test Case '-[WukongMindTests.PageFeedbackTests testEachRuleMatchesOnItsOwn]' passed (0.004 seconds).
+device/test.log:Test Case '-[WukongMindTests.PageFeedbackTests testEmptyingTheBodyWarns]' passed (0.061 seconds).
+device/test.log:Test Case '-[WukongMindTests.PageFeedbackTests testExactlyHalfAndSmallPagesDoNotWarn]' passed (0.001 seconds).
+device/test.log:Test Case '-[WukongMindTests.PageFeedbackTests testFailedVerifyCarriesBothImagesForImageModelAndNoneForTextModel]' passed (0.552 seconds).
+device/test.log:Test Case '-[WukongMindTests.PageFeedbackTests testFeedbackLinesAreAddedAfterTruncation]' passed (0.002 seconds).
+device/test.log:Test Case '-[WukongMindTests.PageFeedbackTests testHalvingTheHeightWarns]' passed (0.057 seconds).
+device/test.log:Test Case '-[WukongMindTests.PageFeedbackTests testMakingThePageUnscrollableWarns]' passed (0.056 seconds).
+device/test.log:Test Case '-[WukongMindTests.PageFeedbackTests testNoChangeAddsOneLineAndURLChangeSkipsTheComparison]' passed (0.001 seconds).
+device/test.log:Test Case '-[WukongMindTests.PageFeedbackTests testReadOnlyToolsTakeNoSnapshot]' passed (0.085 seconds).
+device/test.log:Test Case '-[WukongMindTests.PageFeedbackTests testRecordedReplayRefusedSaveComparesAgainstRunBaselineAndSavesNarrowerFix]' passed (0.310 seconds).
+device/test.log:Test Case '-[WukongMindTests.PageFeedbackTests testRefusedSaveRestoresPageAndRefusesRepeatedUnconfirmedRetry]' passed (0.333 seconds).
+device/test.log:Test Case '-[WukongMindTests.PageFeedbackTests testRemovingTheLinksWarns]' passed (0.061 seconds).
+device/test.log:Test Case '-[WukongMindTests.PageFeedbackTests testSavingAScriptThatThrowsIsRefusedEvenWithConfirmChange]' passed (0.209 seconds).
+device/test.log:Test Case '-[WukongMindTests.PageFeedbackTests testScriptThatEmptiesPageIsRefusedThenSavedWithConfirmChangeAndUnmatchedSavesUnverified]' passed (0.346 seconds).
+device/test.log:Test Case '-[WukongMindTests.PageFeedbackTests testSnapshotReadsTheSevenNumbers]' passed (0.058 seconds).
+device/test.log:Test Case '-[WukongMindTests.TaskExportTests testFixtureReplaysThroughRecordedModelClient]' passed (0.005 seconds).
+device/test.log:Test Case '-[WukongMindTests.TaskExportTests testGeminiKeyNeverReachesTheRecorder]' passed (0.001 seconds).
+device/test.log:Test Case '-[WukongMindTests.TaskExportTests testOldDeveloperModeKeyTurnsOnTheSwitchAndIsDropped]' passed (0.005 seconds).
+device/test.log:Test Case '-[WukongMindTests.TaskExportTests testRecordedSessionExportsWithoutKeysOrCookiesAndReplays]' passed (0.088 seconds).
+device/test.log:Test Case '-[WukongMindTests.TaskExportTests testRecordWithAnUnscrubbedLineIsRefused]' passed (0.001 seconds).
+device/test.log:Test Case '-[WukongMindTests.TaskExportTests testSurvivingCookieValuesAreFound]' passed (0.001 seconds).
+device/test.log:Test Case '-[WukongMindTests.TaskExportTests testUnreadableCookieStoreRefusesTheExport]' passed (0.002 seconds).

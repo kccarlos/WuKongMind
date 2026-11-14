@@ -18,9 +18,11 @@ Live runs used **claude-haiku-5-5 only** (`-dc-browser-agent-live-model claude-h
 
 Note on check 5: `http_request` asks only with Confirm before writes on (the default is off), so the live card test uses `cookies_get`, which always asks. A first attempt with a POST ran without a card for that reason.
 
-**On the owner's iPhone** (`scripts/device-check.sh`, 3 tests, 0 failures; output in `device-check-output.txt`): `testAssistantPageStatesOffline`, `testManageRowsUseMailStyleSwipeActions`, `ScreenshotThumbnailUITests.testScreenshotThumbnailOpensSheet`. These are offline UI tests. No live-model run was made on the phone: the fixture forum is served from the Mac, which the phone can't reach, so the live checks ran on the simulator.
+**On the owner's iPhone** (`scripts/device-check.sh`, simulator-free):
+- **Offline UI subset** (3 tests, 0 failures; `m3-acceptance/device-check-output.txt`): `testAssistantPageStatesOffline`, `testManageRowsUseMailStyleSwipeActions`, `ScreenshotThumbnailUITests.testScreenshotThumbnailOpensSheet`.
+- **M3 checks that need no network or key** (55 tests, 0 failures; `m3-acceptance/device-check-unit-output.txt`): `CrawlAcceptanceTests` (checks 1 to 3, with the checked-in replay fixture), `AgentBridgeTests.testCrawlOf25FixturePagesThroughWukongFetchAndFilesInRealWebKit` (check 1 in real WebKit on the phone, with an in-process loopback server), `TaskExportTests` (check 3), `PageFeedbackTests` (check 6), `AgentNetworkToolsTests` and `BrowserToolsTests` (check 5). A first run failed two tests because the crawl fixture pages were read from the Mac's source path; they now load from the test bundle, and the second run passed.
 
-**Gaps:** none of the seven checks has an open gap except the live model on the phone itself, which the owner may accept on the `v1.2.0` approval card.
+**Gaps (for the `v1.2.0` approval card).** What did **not** run on the phone: the live-model checks. That is live check 1 (crawl of the fixture forum by a real model), check 2 (real app kill mid-crawl), check 4 (saved reader across a relaunch), check 5's live parts (screenshot description, `network_log` on `net.html`, `cookies_get` Don't allow then the Agent explains) and check 6's live row tap. All of these passed on the simulator on Haiku 5.5 (table above). They need the fixture forum served from the Mac, which the phone can't reach, plus an API key on the phone.
 
 ## Fixtures added
 
