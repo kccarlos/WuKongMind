@@ -787,6 +787,7 @@ struct BrowserAgentRunsView: View {
     let session: BrowserAgentSession
     @Binding var expandedToolRowIDs: Set<UUID>
     @State private var manuallyExpandedRunIDs: Set<UUID> = []
+    @State private var screenshotSheet: ScreenshotSheetItem?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var isProviderReady: Bool { app.isProviderReady(for: .browserAgent) }
@@ -796,6 +797,9 @@ struct BrowserAgentRunsView: View {
             ForEach(Array(session.runs.enumerated()), id: \.element.id) { index, run in
                 runSection(run, isLatest: index == session.runs.count - 1)
             }
+        }
+        .sheet(item: $screenshotSheet) { item in
+            DCScreenshotSheet(item: item)
         }
     }
 
@@ -938,7 +942,7 @@ struct BrowserAgentRunsView: View {
                 codeName: developerMode ? row.toolName : nil,
                 duration: developerMode ? row.duration.map(BrowserAgentPanelView.formatDuration) : nil,
                 summary: row.isRunning ? "" : row.resultSummary,
-                state: row.isRunning ? .running : (row.isError ? .error : .done),
+                state: row.isRunning ? .running : (row.isError ? .error : (row.isPageWarning ? .warning : .done)),
                 isExpanded: expanded,
                 onToggle: {
                     DCHaptics.tap()
@@ -963,7 +967,8 @@ struct BrowserAgentRunsView: View {
                     DevSnapshotsView(report: report)
                 }
             }
-            codeBlock(row.resultText.isEmpty ? row.resultSummary : row.resultText, id: "agentToolResult")
+            codeBlock(row.resultText.isEmpty ? row.resultSummary : row.resultText, id: "agentToolResult", warning: row.isPageWarning,
+                      images: row.carriesImages ? row : nil)
             HStack {
                 if row.wasTruncated {
                     Text("Truncated · \(row.totalCharacterCount) characters in total", comment: "Footer under a truncated browser agent tool output showing the original character count")
@@ -1001,15 +1006,20 @@ struct BrowserAgentRunsView: View {
         }
     }
 
-    private func codeBlock(_ text: String, id: String) -> some View {
-        Text(verbatim: text)
-            .font(.caption.monospaced())
-            .foregroundStyle(DCTheme.ink)
-            .textSelection(.enabled)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(10)
-            .background(DCTheme.surfaceRaised, in: RoundedRectangle(cornerRadius: DCTheme.radiusMd, style: .continuous))
-            .accessibilityIdentifier(id)
+    private func codeBlock(_ text: String, id: String, warning: Bool = false, images: BrowserAgentToolCallRow? = nil) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(verbatim: text)
+                .font(.caption.monospaced())
+                .foregroundStyle(warning ? DCTheme.warning : DCTheme.ink)
+                .textSelection(.enabled)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityIdentifier(id)
+            if let images {
+                DCScreenshotStrip(row: images) { screenshotSheet = $0 }
+            }
+        }
+        .padding(10)
+        .background(DCTheme.surfaceRaised, in: RoundedRectangle(cornerRadius: DCTheme.radiusMd, style: .continuous))
     }
 
     private func stepLimitCard(limit: Int) -> some View {

@@ -59,7 +59,7 @@ enum DCToolLabel {
 /// One step as a single line: a 28 pt disc (check, turning gold ring or cinnabar triangle),
 /// a plain label, an optional summary; tap expands `detail`.
 struct DCToolRow<Detail: View>: View {
-    enum State { case running, done, error }
+    enum State { case running, done, warning, error }
 
     let label: String
     var codeName: String?
@@ -86,7 +86,7 @@ struct DCToolRow<Detail: View>: View {
                         if !summary.isEmpty {
                             Text(verbatim: summary)
                                 .font(.caption)
-                                .foregroundStyle(state == .error ? DCTheme.danger : DCTheme.inkMuted)
+                                .foregroundStyle(state == .error ? DCTheme.danger : (state == .warning ? DCTheme.warning : DCTheme.inkMuted))
                                 .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 2)
                                 .multilineTextAlignment(.leading)
                         }
@@ -127,6 +127,9 @@ struct DCToolRow<Detail: View>: View {
         case .done:
             Circle().fill(DCTheme.surfaceRaised).frame(width: 28, height: 28)
                 .overlay { Image(systemName: "checkmark").font(.caption.weight(.bold)).foregroundStyle(DCTheme.inkMuted) }
+        case .warning:
+            Circle().fill(DCTheme.surfaceRaised).frame(width: 28, height: 28)
+                .overlay { Image(systemName: "exclamationmark.triangle").font(.caption.weight(.bold)).foregroundStyle(DCTheme.warning) }
         case .error:
             Circle().fill(DCTheme.cinnabarWash).frame(width: 28, height: 28)
                 .overlay { Image(systemName: "exclamationmark.triangle.fill").font(.caption.weight(.bold)).foregroundStyle(DCTheme.danger) }

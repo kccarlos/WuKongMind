@@ -1421,6 +1421,7 @@ actor BrowserAgentDemoClient: AgentModelClient {
         case running
         case stepLimit = "step-limit"
         case error
+        case screenshot
     }
 
     let mode: Mode
@@ -1582,6 +1583,31 @@ actor BrowserAgentDemoClient: AgentModelClient {
                 )
             }
 
+        case .screenshot:
+            switch turn {
+            case 1:
+                return AgentModelTurnResponse(
+                    text: "",
+                    toolCalls: [AgentModelToolCall(id: "call_read_1", name: "read_page", arguments: ["mode": .string("structure")])],
+                    stopReason: "tool_use",
+                    usage: AgentTokenUsage(inputTokens: 480, outputTokens: 68)
+                )
+            case 2:
+                return AgentModelTurnResponse(
+                    text: "",
+                    toolCalls: [AgentModelToolCall(id: "call_shot_2", name: "screenshot", arguments: [:])],
+                    stopReason: "tool_use",
+                    usage: AgentTokenUsage(inputTokens: 600, outputTokens: 40)
+                )
+            default:
+                return AgentModelTurnResponse(
+                    text: "No. The header stays above the menu; nothing overlaps on this page.",
+                    toolCalls: [],
+                    stopReason: "end_turn",
+                    usage: AgentTokenUsage(inputTokens: 900, outputTokens: 30)
+                )
+            }
+
         case .savedScript:
             switch turn {
             case 1:
@@ -1688,3 +1714,13 @@ actor BrowserAgentDemoClient: AgentModelClient {
     }
 }
 #endif
+
+
+extension BrowserAgentToolCallRow {
+    /// A page-feedback warning ("Page may be broken") is not a failure: it takes the
+    /// warning look, never the error one (owner's rule 2026-11-13).
+    var isPageWarning: Bool { !isError && pageFeedback?.isWarning == true }
+    /// Whether the expanded row shows screenshot thumbnails (a `screenshot` result or
+    /// the before and after of a warning).
+    var carriesImages: Bool { !isRunning && !images.isEmpty }
+}
