@@ -50,7 +50,20 @@ final class SuggestionRowUITests: DCUITestCase {
         let app = launch(["-dc-sample", "-dc-page-state", "notForum"])
         showAssistant(in: app)
         expectChips(["summarizePage", "makeDark", "removeDistractions"], absent: ["summarizeThread", "searchForum"], in: app)
+        XCTAssertFalse(app.buttons["suggestionPageBroken"].exists, "suggestionPageBroken must not show without active scripts.")
         capture("suggestions-ordinary-page")
+    }
+
+    func testPageBrokenSuggestionPromotesFirstWhenCurrentPageScriptsHaveErrors() {
+        let app = launch([
+            "-dc-browser-agent-demo", "empty",
+            "-dc-scripts-sample", "page-error",
+            "-dc-drawer-detent", "large"
+        ])
+        showAssistant(in: app)
+        let broken = app.buttons["suggestionPageBroken"].firstMatch
+        XCTAssertTrue(waitOrDump(broken, timeout: 20, in: app), "Missing suggestionPageBroken.")
+        XCTAssertTrue(waitForHittable(broken), "suggestionPageBroken must sit first and hittable without scrolling when scripts have errors.")
     }
 
     /// Summarize runs the summary engine; Read it to me then reads it aloud.

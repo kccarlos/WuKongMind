@@ -20,6 +20,14 @@ final class ScriptManagerUITests: DCUITestCase {
 
         let toggleButton = app.buttons["agentScriptToggleButton"].firstMatch
         XCTAssertTrue(toggleButton.waitForExistence(timeout: 5))
+
+        let undoSavedButton = app.buttons["agentScriptUndo"].firstMatch
+        XCTAssertTrue(undoSavedButton.waitForExistence(timeout: 5), "Saved script card Undo button did not appear.")
+        undoSavedButton.tap()
+        XCTAssertTrue(waitForGone(undoSavedButton, timeout: 5), "Undo did not disable the saved script.")
+        XCTAssertTrue(card.exists, "Undo must disable the saved script without deleting its card.")
+        toggleButton.tap()
+
         toggleButton.tap()
         toggleButton.tap()
 
@@ -64,6 +72,39 @@ final class ScriptManagerUITests: DCUITestCase {
         XCTAssertTrue(
             waitOrDump(any(app, "scriptManager"), timeout: 10, in: app),
             "Manage scripts did not open Settings › Scripts."
+        )
+    }
+
+    func testAutoDisabledScriptShowsReasonAndFixButtonInThisPage() throws {
+        let app = launch([
+            "-dc-browser-agent-demo", "empty",
+            "-dc-scripts-sample", "auto-disabled",
+            "-dc-drawer-detent", "large"
+        ])
+
+        let chip = app.buttons["pageCapabilitiesSeal"].firstMatch
+        XCTAssertTrue(waitOrDump(chip, timeout: 15, in: app), "This page seal did not appear.")
+        chip.tap()
+
+        let popover = any(app, "pageScriptsPopover")
+        XCTAssertTrue(waitOrDump(popover, timeout: 8, in: app), "Page scripts popover did not open.")
+
+        let reason = any(app, "thisPageDisabledReason-dark-thread")
+        XCTAssertTrue(waitOrDump(reason, timeout: 5, in: app), "Auto-disabled reason text is missing in This page.")
+        XCTAssertTrue(
+            reason.label.contains("Turned off after errors on 3 page loads in a row: TypeError: Cannot read properties of null (reading 'classList')"),
+            "Unexpected disabled reason label: \(reason.label)"
+        )
+
+        let fixButton = app.buttons["thisPageLetAgentFix-dark-thread"].firstMatch
+        XCTAssertTrue(waitOrDump(fixButton, timeout: 5, in: app), "Let the Agent fix it button is missing in This page.")
+        fixButton.tap()
+
+        XCTAssertTrue(waitForGone(popover, timeout: 5), "Tapping Let the Agent fix it did not close This page.")
+        let promptMessage = app.staticTexts.matching(label(contains: "Fix the script Dark palette & wide thread")).firstMatch
+        XCTAssertTrue(
+            waitOrDump(promptMessage, timeout: 8, in: app),
+            "Let the Agent fix it did not send the repair prompt to the Agent."
         )
     }
 

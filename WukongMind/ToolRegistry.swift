@@ -1983,6 +1983,7 @@ extension ToolRegistry {
             throw cancellation
         } catch {
             _ = await liveApplier?.endCandidateVerification()
+            await restorePageAfterRefusedCandidate(bridge: bridge, liveApplier: liveApplier)
             return .refused(
                 message: "Error: Not saved: could not reload the page to verify the script (\(error.localizedDescription)).",
                 summary: "Not saved · reload failed",
@@ -1992,6 +1993,7 @@ extension ToolRegistry {
 
         if let failure = reloadOutcome.failure {
             _ = await liveApplier?.endCandidateVerification()
+            await restorePageAfterRefusedCandidate(bridge: bridge, liveApplier: liveApplier)
             return .refused(
                 message: "Error: Not saved: could not reload the page to verify the script (\(failure)).",
                 summary: "Not saved · reload failed",
@@ -2018,6 +2020,7 @@ extension ToolRegistry {
             let images = supportsImageInput
                 ? await warningScreenshots(beforeImage: beforeImage, bridge: bridge)
                 : []
+            await restorePageAfterRefusedCandidate(bridge: bridge, liveApplier: liveApplier)
             return .refused(
                 message: "Error: Not saved: runtime error: \(detail). Fix the script and call again.",
                 summary: "Not saved · runtime error: \(condenseInline(capturedError.message, maxChars: 48))",
@@ -2033,6 +2036,7 @@ extension ToolRegistry {
                 let images = supportsImageInput
                     ? await warningScreenshots(beforeImage: beforeImage, bridge: bridge)
                     : []
+                await restorePageAfterRefusedCandidate(bridge: bridge, liveApplier: liveApplier)
                 return .refused(
                     message: "Error: Not saved: \(reasons). If this change is what the user asked for, call again with confirm_change: true.",
                     summary: "Not saved · \(condenseInline(reasons, maxChars: 56))",
@@ -2042,6 +2046,23 @@ extension ToolRegistry {
         }
 
         return .verifiedOnCurrentPage
+    }
+
+    /// Reloads the page without the refused candidate so the user never sees a
+    /// rejected script's DOM state and a follow-up verify measures the clean page.
+    private static func restorePageAfterRefusedCandidate(
+        bridge: AgentPageDriving,
+        liveApplier: ScriptLiveApplying?
+    ) async {
+        guard !Task.isCancelled else { return }
+        _ = try? await bridge.reload(timeout: ToolRegistry.navigationTimeout)
+        if liveApplier != nil, !Task.isCancelled {
+            _ = try? await bridge.runJS(
+                code: "await new Promise(r => setTimeout(r, 30)); return true;",
+                environment: .isolated,
+                timeout: 2
+            )
+        }
     }
 }
 

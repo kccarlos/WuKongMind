@@ -553,6 +553,60 @@ final class PageFeedbackTests: XCTestCase {
         XCTAssertTrue(unverifiedJSON["verification_note"]?.stringValue?.contains("do not cover the current page") == true)
     }
 
+    func testRefusedSaveRestoresPageAndRefusesRepeatedUnconfirmedRetry() async throws {
+        let (browser, store, _, registry, _) = try await makeVerifiedBrowserHarness()
+
+        let firstRefused = try await registry.dispatch(toolName: "script_save", arguments: [
+            "name": .string("Empty Retry Check"),
+            "match_rules": .array([.string("*://127.0.0.1/*")]),
+            "css": .string("main { display: none !important; }")
+        ])
+        XCTAssertTrue(firstRefused.isError, firstRefused.output)
+        XCTAssertTrue(firstRefused.output.contains("visible text dropped"), firstRefused.output)
+        XCTAssertTrue(store.scripts.isEmpty)
+
+        let rawFirst = await browser.agentBridge.pageSnapshot()
+        let afterFirstRefusal = try XCTUnwrap(rawFirst)
+        XCTAssertGreaterThan(
+            afterFirstRefusal.textLength,
+            200,
+            "Refused script_save must reload the page without the candidate so the refused state does not stay on screen."
+        )
+
+        let secondRefused = try await registry.dispatch(toolName: "script_save", arguments: [
+            "name": .string("Empty Retry Check"),
+            "match_rules": .array([.string("*://127.0.0.1/*")]),
+            "css": .string("main { display: none !important; }")
+        ])
+        XCTAssertTrue(secondRefused.isError, secondRefused.output)
+        XCTAssertTrue(secondRefused.output.contains("visible text dropped"), secondRefused.output)
+        XCTAssertTrue(store.scripts.isEmpty)
+
+        let savedClean = try await registry.dispatch(toolName: "script_save", arguments: [
+            "name": .string("Hide Boom Cleanly"),
+            "match_rules": .array([.string("*://127.0.0.1/*")]),
+            "css": .string("#boom { display: none !important; }")
+        ])
+        XCTAssertFalse(savedClean.isError, savedClean.output)
+        let savedID = try XCTUnwrap(JSONValue.parseObjectJSON(savedClean.output)["script_id"]?.stringValue)
+
+        let refusedUpdate = try await registry.dispatch(toolName: "script_update", arguments: [
+            "script_id": .string(savedID),
+            "js": .string("document.body.innerHTML = '';")
+        ])
+        XCTAssertTrue(refusedUpdate.isError, refusedUpdate.output)
+
+        let rawUpdate = await browser.agentBridge.pageSnapshot()
+        let afterUpdateRefusal = try XCTUnwrap(rawUpdate)
+        XCTAssertGreaterThan(afterUpdateRefusal.textLength, 200)
+        let boomDisplay = try await browser.agentBridge.runJS(
+            code: "return getComputedStyle(document.getElementById('boom')).display;",
+            environment: .isolated,
+            timeout: 2
+        ).valueJSON
+        XCTAssertEqual(boomDisplay, "\"none\"", "Refused script_update must restore the previously saved script's effect.")
+    }
+
     private final class RecordedRefusedSaveClient: AgentModelClient, @unchecked Sendable {
         private let lock = NSLock()
         private var responses: [AgentModelTurnResponse]
