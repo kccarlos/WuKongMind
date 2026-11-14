@@ -71,7 +71,7 @@ struct TaskRecordEvent: Codable, Equatable, Sendable {
     static func toolResult(
         call: AgentModelToolCall, output: String, isError: Bool, duration: TimeInterval?,
         wasTruncated: Bool, totalCharacterCount: Int, savedPath: String?, resultSummary: String,
-        images: [AgentImage] = [], time: Date
+        images: [AgentImage] = [], shape: ForumShape? = nil, time: Date
     ) -> TaskRecordEvent {
         var fields: [String: JSONValue] = [
             "callID": .string(call.id),
@@ -87,6 +87,7 @@ struct TaskRecordEvent: Codable, Equatable, Sendable {
         if let raw = call.rawArgumentsJSON { fields["rawArgumentsJSON"] = .string(raw) }
         if let duration { fields["durationMs"] = .int(Int64(duration * 1000)) }
         if let savedPath { fields["savedPath"] = .string(savedPath) }
+        if let shape, let encoded = JSONValue.encoding(shape) { fields["shape"] = encoded }
         return TaskRecordEvent(type: "tool_result", time: time, fields: fields)
     }
 }

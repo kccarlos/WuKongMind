@@ -3313,7 +3313,7 @@ final class AppModel: ObservableObject {
                 )
                 step.outcome = outcome
                 step.topicID = action.arguments["topic_id"]
-                if let topicID = try? requiredTopicID(action) {
+                if let topicID = try? ForumToolService.requiredTopicID(action.arguments) {
                     step.topicID = topicID
                     step.topicKey = ForumSite.topicKey(siteURL: run.siteURL, topicID: topicID)
                 }
@@ -3368,6 +3368,20 @@ final class AppModel: ObservableObject {
         return detail.isEmpty ? action.tool : "\(action.tool) \(detail)"
     }
 
+    var forumToolService: ForumToolService {
+        ForumToolService(
+            sessionLookup: { [unowned self] key in self.sessions[key] },
+            sessionWrite: { [unowned self] key, session in self.sessions[key] = session },
+            persist: { [unowned self] in self.save() },
+            makeNetwork: { [unowned self] siteURL, pace, isPaced in
+                await self.network(for: siteURL, pace: pace, isPaced: isPaced)
+            },
+            watchTopic: { [unowned self] siteURL, topicID, url, title, count in
+                await self.watch(siteURL: siteURL, topicID: topicID, url: url, title: title, knownPostCount: count)
+            }
+        )
+    }
+
     /// Runs one tool. Returns a short outcome for the step log and the full
     /// observation handed back to the model.
     private func executeAgentTool(
@@ -3386,29 +3400,60 @@ final class AppModel: ObservableObject {
             throw AgentError.unknownTool(action.tool, available: available)
         }
 
-        switch tool {
-        case .searchForum, .searchComments:
-            let results = try await runSiteQuery(tool, action, adapter: adapter, siteURL: siteURL, pace: context.forumRequestPace, isPaced: context.forumRateLimitingEnabled)
-            run.remember(results.topics.map { ($0.url, $0.topicID) } + results.hits.map { ($0.url, $0.topic.topicID) }, links: adapter.links)
-            return (
-                String(localized: "\(results.topics.count) topics", comment: "Ask the forum step outcome: number of topics found"),
-                AgentPrompt.format(listings: results.topics, hits: results.hits)
+        let service = forumToolService
+        let scope = ForumRunScope(
+            adapter: adapter,
+            siteURL: siteURL,
+            topicIDs: run.topicIDs,
+            readBudget: { [unowned self] in min(context.agentMaxTopicReads, self.settings.agentMaxTopicReads) },
+            readLimit: context.agentReadLimit,
+            pace: context.forumRequestPace,
+            isPaced: context.forumRateLimitingEnabled
+        )
+        defer {
+            run.topicIDs = scope.topicIDs
+            if !scope.visitedTopics.isEmpty {
+                run.remember(scope.visitedTopics, links: adapter.links)
+            }
+        }
+        func makeCallbacks(progressScale: @escaping @Sendable (Double) -> Double = { $0 }) -> ForumToolService.Callbacks {
+            ForumToolService.Callbacks(
+                onStatus: { [unowned self] status in
+                    self.mutateRecord(recordID) { $0.statusText = status }
+                },
+                onFetchProgress: { [unowned self] fetchProgress in
+                    await self.advanceProgress(recordID: recordID, to: progressScale(fetchProgress.fraction))
+                },
+                onPage: { [unowned self] page, template in
+                    await self.keepFetchedPage(page, recordID: recordID, into: template)
+                },
+                ensureLive: { [unowned self] in
+                    try self.ensureLive(recordID)
+                }
             )
+        }
+
+        switch tool {
+        case .searchForum:
+            let result = try await service.search(arguments: action.arguments, scope: scope)
+            return (result.outcome, result.content)
+
+        case .searchComments:
+            let result = try await service.searchComments(arguments: action.arguments, scope: scope)
+            return (result.outcome, result.content)
 
         case .listLatest:
-            let listings = try await runSiteQuery(tool, action, adapter: adapter, siteURL: siteURL, pace: context.forumRequestPace, isPaced: context.forumRateLimitingEnabled).topics
-            run.remember(listings.map { ($0.url, $0.topicID) }, links: adapter.links)
-            return (String(localized: "\(listings.count) topics", comment: "Ask the forum step outcome: number of topics found"), AgentPrompt.format(listings: listings, limit: 30))
+            let result = try await service.listLatest(arguments: action.arguments, scope: scope)
+            return (result.outcome, result.content)
 
         case .readTopic:
-            let session = try await readTopicForAgent(
-                action, adapter: adapter, run: &run, recordID: recordID, context: context,
-                progress: { stepProgress(0.1 + 0.8 * $0) }
+            let result = try await service.readTopic(
+                arguments: action.arguments,
+                scope: scope,
+                persistsOnComplete: false,
+                callbacks: makeCallbacks { stepProgress(0.1 + 0.8 * $0) }
             )
-            run.remember([(session.url, session.topicID)], links: adapter.links)
-            return try await formatAgentTopicRead(
-                action, session: session, adapter: adapter, profile: profile, context: context
-            )
+            return (result.outcome, result.content)
 
         case .summarizeTopic:
             // Bulk summarizing runs on the assistant (low-cost) model. When
@@ -3416,9 +3461,12 @@ final class AppModel: ObservableObject {
             // topic instead.
             let summarizer = context.summarizer
             try RunSettings.requireReady(provider: summarizer.provider, configuration: summarizer.configuration)
-            var session = try await readTopicForAgent(
-                action, adapter: adapter, run: &run, recordID: recordID, context: context,
-                progress: { stepProgress(0.1 + 0.3 * $0) }
+            var session = try await service.pullTopic(
+                arguments: action.arguments,
+                validatePageArgument: false,
+                persistsOnComplete: false,
+                scope: scope,
+                callbacks: makeCallbacks { stepProgress(0.1 + 0.3 * $0) }
             )
             mutateRecord(recordID) {
                 $0.statusText = String(localized: "Summarizing \(session.title)…", comment: "Status; the placeholder is a forum topic's title")
@@ -3477,246 +3525,17 @@ final class AppModel: ObservableObject {
             return (String(localized: "\(saved.count) saved", comment: "Ask the forum step outcome: number of saved summaries found"), text)
 
         case .watchTopic:
-            let topicID = try requiredTopicID(action)
-            let topicKey = TopicIdentity.key(siteURL: siteURL, topicID: topicID)
-            if let session = sessions[topicKey] {
-                try ensureLive(recordID)
-                await watch(
-                    siteURL: siteURL,
-                    topicID: topicID,
-                    url: session.url,
-                    title: session.title,
-                    knownPostCount: session.totalPosts ?? 0
-                )
-            } else {
-                let overview = try await adapter.overview(
-                    TopicRef(siteURL: siteURL, topicID: topicID),
-                    net: await network(for: siteURL, pace: context.forumRequestPace, isPaced: context.forumRateLimitingEnabled)
-                )
-                try ensureLive(recordID)
-                await watch(
-                    siteURL: siteURL,
-                    topicID: topicID,
-                    url: overview.url,
-                    title: overview.title,
-                    knownPostCount: overview.postCount
-                )
-            }
-            return (String(localized: "Watching", comment: "Ask the forum step outcome: the topic was added to the watch list"), "Topic \(topicID) is now on the watch list.")
+            let result = try await service.follow(
+                arguments: action.arguments,
+                scope: scope,
+                callbacks: makeCallbacks()
+            )
+            return (result.outcome, result.content)
 
         case .finalAnswer:
             // The run loop ends on it before any tool runs.
             throw AgentError.unknownTool(action.tool, available: available)
         }
-    }
-
-    /// A site tool of the agent run through the run's adapter, which turns the
-    /// arguments into its query.
-    private func runSiteQuery(
-        _ tool: AgentToolName,
-        _ action: AgentAction,
-        adapter: any SiteAdapter,
-        siteURL: String,
-        pace: ForumRequestPace,
-        isPaced: Bool
-    ) async throws -> SiteQueryResult {
-        let query = try adapter.agent.query(tool, action.arguments)
-        return try await adapter.run(query, net: await network(for: siteURL, pace: pace, isPaced: isPaced))
-    }
-
-    private func formatAgentTopicRead(
-        _ action: AgentAction,
-        session: TopicSession,
-        adapter: any SiteAdapter,
-        profile: AgentSiteProfile,
-        context: RunSettings
-    ) async throws -> (String, String) {
-        let totalPages = max(
-            1,
-            session.rawPages.isEmpty
-                ? RawTopicFormat.pageCount(of: session.source)
-                : session.rawPages.count
-        )
-        let rawPage = action.arguments["page"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        let pageNumber: Int?
-        if !rawPage.isEmpty {
-            guard let parsed = Int(rawPage), (1...totalPages).contains(parsed) else {
-                throw AgentError.invalidArgument("page", reason: "use a number from 1 to \(totalPages).")
-            }
-            pageNumber = parsed
-        } else {
-            pageNumber = nil
-        }
-
-        let query = (action.arguments["query"] ?? action.arguments["q"] ?? "")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        let title = session.title
-        let headerBase = (title.isEmpty ? "" : "Topic: \(title)\n") + "URL: \(session.url.absoluteString)"
-            + " \(profile.postLinkHint(session.url))"
-
-        if !query.isEmpty {
-            let targetSource: String
-            if let page = pageNumber {
-                targetSource = RawTopicFormat.pageText(page, pages: session.rawPages, fallbackText: session.source)
-            } else {
-                targetSource = session.source
-            }
-            let openingPost = RawTopicFormat.postBlocks(session.source).first
-            var (op, matches, opMatched) = RawTopicFormat.matchingBlocks(
-                in: targetSource,
-                query: query,
-                openingPost: openingPost
-            )
-            if matches.isEmpty, pageNumber == nil, totalPages > 1 {
-                let net = await network(for: session.siteURL, pace: context.forumRequestPace, isPaced: context.forumRateLimitingEnabled)
-                if let searchResult = try? await adapter.run(.search(text: query, scope: .topic(id: session.topicID)), net: net) {
-                    var seen: Set<Int> = []
-                    let hits = searchResult.hits.filter { hit in
-                        guard hit.topic.topicID == session.topicID,
-                              let num = hit.postNumber, num > 1,
-                              seen.insert(num).inserted
-                        else { return false }
-                        return true
-                    }.prefix(20)
-                    let numbers = hits.compactMap(\.postNumber)
-                    if !numbers.isEmpty {
-                        if let lookup = adapter.capabilities.postLookup,
-                           let facts = (try? await adapter.overview(TopicRef(siteURL: session.siteURL, topicID: session.topicID), net: net))?.facts,
-                           let fetched = try? await lookup.posts(
-                               Array(numbers),
-                               in: TopicRef(siteURL: session.siteURL, topicID: session.topicID),
-                               facts: facts,
-                               net: net
-                           ),
-                           !fetched.isEmpty {
-                            matches = fetched.compactMap { post in
-                                guard post.number > 1 else { return nil }
-                                return "\(RawTopicFormat.authorToken(post.username)) | #\(post.number)\n\(RawTopicFormat.sanitizedBody(post.text))"
-                            }
-                        } else {
-                            matches = hits.compactMap { hit in
-                                guard let number = hit.postNumber,
-                                      let blurb = hit.blurb, !blurb.isEmpty
-                                else { return nil }
-                                let author = RawTopicFormat.authorToken(hit.username ?? "unknown")
-                                return "\(author) | #\(number)\n\(RawTopicFormat.sanitizedBody(blurb))"
-                            }
-                        }
-                    }
-                }
-            }
-            if !matches.isEmpty {
-                let combined = ([op].compactMap { $0 } + matches).joined(separator: RawTopicFormat.blockSeparator)
-                let bounded = PromptBuilder.boundedForumContext(combined, limit: context.agentReadLimit)
-                let noun = matches.count == 1 ? "matching post" : "matching posts"
-                let suffix = pageNumber.map { " on page \($0) of \(totalPages)" }
-                    ?? (session.totalPosts.map { " (of \($0) posts)" } ?? "")
-                return (
-                    String(localized: "Read \(matches.count) matching posts", comment: "Ask the forum step outcome: number of posts matching a query in a topic"),
-                    "\(headerBase)\nShowing: \(matches.count) \(noun) for \"\(query)\"\(suffix)\n\n\(bounded)"
-                )
-            } else if !opMatched {
-                let body = op.map { PromptBuilder.boundedForumContext($0, limit: context.agentReadLimit) } ?? ""
-                let suffix = pageNumber.map { " on page \($0) of \(totalPages)" } ?? ""
-                return (
-                    String(localized: "Read 0 matching posts", comment: "Ask the forum step outcome: number of posts matching a query in a topic"),
-                    "\(headerBase)\nShowing: 0 matching posts for \"\(query)\"\(suffix)\n\n\(body)"
-                )
-            }
-        }
-
-        if let page = pageNumber {
-            let rawPageText = RawTopicFormat.pageText(page, pages: session.rawPages, fallbackText: session.source)
-            let bounded = PromptBuilder.boundedForumContext(rawPageText, limit: context.agentReadLimit)
-            return (
-                String(localized: "Read page \(page) of \(totalPages)", comment: "Ask the forum step outcome: page read in a topic"),
-                "\(headerBase)\nShowing: page \(page) of \(totalPages)\n\n\(bounded)"
-            )
-        }
-
-        let bounded = PromptBuilder.boundedForumContext(
-            session.source,
-            limit: context.agentReadLimit,
-            totalPages: totalPages
-        )
-        return (
-            String(localized: "Read \(session.totalPosts ?? 0) posts", comment: "Ask the forum step outcome: number of posts read in a topic"),
-            "\(headerBase)\n\n\(bounded)"
-        )
-    }
-
-    private func requiredTopicID(_ action: AgentAction) throws -> String {
-        let raw = action.arguments["topic_id"] ?? action.arguments["id"] ?? ""
-        let digits = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-            .components(separatedBy: "/").last?
-            .filter(\.isNumber) ?? ""
-        guard !digits.isEmpty else { throw AgentError.missingArgument("topic_id") }
-        return digits
-    }
-
-    /// Pulls a topic for the agent (cached pages are reused), enforcing the
-    /// per-run topic-read budget, and records the topic on the run.
-    private func readTopicForAgent(
-        _ action: AgentAction,
-        adapter: any SiteAdapter,
-        run: inout AgentRun,
-        recordID: UUID,
-        context: RunSettings,
-        progress: @escaping @Sendable (_ fetched: Double) -> Double
-    ) async throws -> TopicSession {
-        let topicID = try requiredTopicID(action)
-        if action.tool == AgentToolName.readTopic.rawValue,
-           let rawPage = action.arguments["page"]?.trimmingCharacters(in: .whitespacesAndNewlines),
-           !rawPage.isEmpty {
-            guard let parsed = Int(rawPage), parsed >= 1 else {
-                throw AgentError.invalidArgument("page", reason: "use a positive integer.")
-            }
-        }
-        let alreadyRead = run.topicIDs.contains(topicID)
-        if !alreadyRead {
-            let limit = min(context.agentMaxTopicReads, settings.agentMaxTopicReads)
-            guard run.topicIDs.count < limit else {
-                throw AgentError.topicBudgetExhausted(limit)
-            }
-        }
-        let siteURL = run.siteURL
-        let topicKey = TopicIdentity.key(siteURL: siteURL, topicID: topicID)
-        if alreadyRead, let existing = sessions[topicKey], !existing.source.isEmpty {
-            return existing
-        }
-        var session: TopicSession
-        if let existing = sessions[topicKey] {
-            session = existing
-        } else {
-            let overview = try await adapter.overview(
-                TopicRef(siteURL: siteURL, topicID: topicID),
-                net: await network(for: siteURL, pace: context.forumRequestPace, isPaced: context.forumRateLimitingEnabled)
-            )
-            session = TopicSession(
-                siteURL: siteURL,
-                topicID: topicID,
-                url: overview.url,
-                title: overview.title
-            )
-        }
-        mutateRecord(recordID) {
-            $0.statusText = String(localized: "Reading \(session.title)…", comment: "Status; the placeholder is a forum topic's title")
-        }
-        let fetch = try await fetchTopicPages(of: session, adapter: adapter, recordID: recordID, pace: context.forumRequestPace, isPaced: context.forumRateLimitingEnabled) { fetchProgress in
-            await self.advanceProgress(recordID: recordID, to: progress(fetchProgress.fraction))
-        }
-        // Cancelled (or its forum's data deleted) while the page fetch was
-        // finishing: do not write the session back.
-        try ensureLive(recordID)
-        session = sessions[topicKey] ?? session
-        let now = Date()
-        session.apply(fetch, at: now)
-        session.updatedAt = now
-        sessions[topicKey] = session
-        if !run.topicIDs.contains(topicID) {
-            run.topicIDs.append(topicID)
-        }
-        return session
     }
 
     /// Reads a job's topic, cached pages reused. Every new page goes into

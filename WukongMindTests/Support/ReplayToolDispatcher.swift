@@ -57,7 +57,7 @@ final class ReplayToolDispatcher: ToolDispatching, @unchecked Sendable {
                 isError: recorded.isError, wasTruncated: recorded.wasTruncated,
                 totalCharacterCount: recorded.totalCharacterCount,
                 duration: Double(recorded.durationMs ?? 0) / 1000,
-                savedPath: recorded.savedPath, images: recorded.images
+                savedPath: recorded.savedPath, images: recorded.images, shape: recorded.shape
             )
         }
     }

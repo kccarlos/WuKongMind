@@ -36,6 +36,7 @@ struct TaskExportDocument: Codable, Equatable, Sendable {
         var savedPath: String?
         var resultSummary: String
         var images: [AgentImage]
+        var shape: ForumShape?
     }
 
     struct Turn: Codable, Equatable, Sendable {

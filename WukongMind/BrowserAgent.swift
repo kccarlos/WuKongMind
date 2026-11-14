@@ -347,6 +347,8 @@ struct BrowserAgentToolCallRow: Identifiable, Equatable, Sendable {
     var savedPath: String?
     /// Images attached to the tool result (`screenshot`, or warning screenshots).
     var images: [AgentImage] = []
+    /// Structured forum thread or list shape carried beside rendered text.
+    var shape: ForumShape?
     /// The model turn that asked for this call (developer mode's "Model step").
     var modelTurn: AgentTurnInfo?
 
@@ -727,6 +729,7 @@ struct AgentLoop: Sendable {
                     row.pageFeedback = dispatchResult.pageFeedback
                     row.savedPath = dispatchResult.savedPath
                     row.images = dispatchResult.images
+                    row.shape = dispatchResult.shape
                     toolRows[rowIndex] = row
                     await events.onStepFinished(row)
                     await events.onToolResult(call, row, true)
@@ -1267,7 +1270,7 @@ final class BrowserAgentSession {
                         call: call, output: output, isError: row.isError, duration: row.duration,
                         wasTruncated: row.wasTruncated, totalCharacterCount: row.totalCharacterCount,
                         savedPath: row.savedPath, resultSummary: row.resultSummary,
-                        images: row.images, time: Date()
+                        images: row.images, shape: row.shape, time: Date()
                     ))
                 }
                 if executed {

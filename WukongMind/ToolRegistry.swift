@@ -382,6 +382,8 @@ struct ToolExecutionOutput: Equatable, Sendable {
     var isRanged: Bool
     /// Images carried with the tool result (`screenshot`, or warning screenshots).
     var images: [AgentImage]
+    /// Structured forum thread or list shape carried beside rendered text (`design-one-loop.md`).
+    var shape: ForumShape?
 
     init(
         content: String,
@@ -390,7 +392,8 @@ struct ToolExecutionOutput: Equatable, Sendable {
         pageFeedback: PageFeedbackReport? = nil,
         savedPath: String? = nil,
         isRanged: Bool = false,
-        images: [AgentImage] = []
+        images: [AgentImage] = [],
+        shape: ForumShape? = nil
     ) {
         self.content = content
         self.summary = summary ?? Self.defaultSummary(for: content)
@@ -399,6 +402,7 @@ struct ToolExecutionOutput: Equatable, Sendable {
         self.savedPath = savedPath
         self.isRanged = isRanged
         self.images = images
+        self.shape = shape
     }
 
     static func defaultSummary(for text: String, maxChars: Int = 96) -> String {
@@ -438,6 +442,7 @@ struct ToolDispatchResult: Equatable, Sendable {
     /// limit, or `save_to`); `output` then holds the notice and preview.
     var savedPath: String? = nil
     var images: [AgentImage] = []
+    var shape: ForumShape? = nil
 }
 
 /// Validates tool arguments against JSON Schema, dispatches tool calls, converts
@@ -705,6 +710,7 @@ struct ToolRegistry: Sendable {
                 savedPath: execution.savedPath,
                 isRanged: execution.isRanged,
                 images: execution.images,
+                shape: execution.shape,
                 step: step
             )
         } catch let cancellation as CancellationError {
@@ -735,6 +741,7 @@ struct ToolRegistry: Sendable {
         savedPath: String? = nil,
         isRanged: Bool = false,
         images: [AgentImage] = [],
+        shape: ForumShape? = nil,
         step: Int? = nil
     ) async -> ToolDispatchResult {
         let scrubbedOutput = UntrustedWebContent.redactSecrets(in: rawOutput, secrets: redactedSecrets)
@@ -789,7 +796,8 @@ struct ToolRegistry: Sendable {
             duration: duration,
             pageFeedback: pageFeedback,
             savedPath: finalSavedPath,
-            images: images
+            images: images,
+            shape: shape
         )
     }
 
