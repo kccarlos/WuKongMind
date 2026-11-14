@@ -416,11 +416,20 @@ struct ToolExecutionOutput: Equatable, Sendable {
     }
 }
 
+struct ToolCallContext: Sendable {
+    var workspace: AgentWorkspace?
+    var taskID: String?
+    var step: Int?
+    var truncationLimit: Int
+    var redactedSecrets: [String]
+}
+
 struct AgentTool: Sendable {
     var definition: AgentToolDefinition
     var customValidate: (@Sendable ([String: JSONValue]) throws -> Void)?
     var summarizeArguments: @Sendable ([String: JSONValue]) -> String
     var execute: @Sendable ([String: JSONValue]) async throws -> ToolExecutionOutput
+    var executeWithContext: (@Sendable ([String: JSONValue], ToolCallContext) async throws -> ToolExecutionOutput)? = nil
 }
 
 struct ToolDispatchResult: Equatable, Sendable {
@@ -696,7 +705,19 @@ struct ToolRegistry: Sendable {
 
         do {
             try validateArguments(arguments, for: toolName)
-            let execution = try await tool.execute(arguments)
+            let execution: ToolExecutionOutput
+            if let executeWithContext = tool.executeWithContext {
+                let callContext = ToolCallContext(
+                    workspace: workspace,
+                    taskID: taskID,
+                    step: step,
+                    truncationLimit: truncationLimit,
+                    redactedSecrets: redactedSecrets
+                )
+                execution = try await executeWithContext(arguments, callContext)
+            } else {
+                execution = try await tool.execute(arguments)
+            }
             try Task.checkCancellation()
             return await makeResult(
                 toolName: toolName,
@@ -2084,6 +2105,13 @@ struct AgentToolSettings: Equatable, Sendable {
     var confirmBeforeWrites = false
 }
 
+/// Recognized forum services and run scope when the Agent starts on a forum page.
+struct ForumToolContext: Sendable {
+    var service: ForumToolService
+    var scope: ForumRunScope
+    var forumName: String
+}
+
 /// Everything an M3 tool family needs, handed to each `ToolRegistry+*.swift`
 /// file by `ToolRegistry.m3`. Later tasks add their own fields (the cookie
 /// store and the confirmation gate) with defaults, so call sites stay put.
@@ -2100,6 +2128,8 @@ struct AgentToolContext: Sendable {
     var network: AgentHTTPClient?
     /// Where confirmation cards wait for an answer.
     var confirmations: AgentConfirmationGate?
+    /// The recognized forum for this run (`search_forum`, `read_topic`, …).
+    var forum: ForumToolContext?
 
     init(
         bridge: AgentPageDriving,
@@ -2111,7 +2141,8 @@ struct AgentToolContext: Sendable {
         pageBaselineImage: (@MainActor @Sendable () -> AgentImage?)? = nil,
         settings: AgentToolSettings = AgentToolSettings(),
         network: AgentHTTPClient? = nil,
-        confirmations: AgentConfirmationGate? = nil
+        confirmations: AgentConfirmationGate? = nil,
+        forum: ForumToolContext? = nil
     ) {
         self.bridge = bridge
         self.workspace = workspace
@@ -2123,6 +2154,7 @@ struct AgentToolContext: Sendable {
         self.settings = settings
         self.network = network
         self.confirmations = confirmations
+        self.forum = forum
     }
 }
 
@@ -2150,6 +2182,7 @@ extension ToolRegistry {
         tools += captureTools(context: context)
         tools += navigationTools(context: context)
         tools += networkTools(context: context)
+        tools += forumTools(context: context)
         return ToolRegistry(
             tools: tools,
             truncationLimit: context.settings.truncationLimit,

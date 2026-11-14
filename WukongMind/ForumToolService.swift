@@ -3,8 +3,8 @@ import Foundation
 /// Per-run forum state shared across tool calls (`design-one-loop.md` "Decisions").
 @MainActor
 final class ForumRunScope {
-    let adapter: any SiteAdapter
-    let siteURL: String
+    nonisolated let adapter: any SiteAdapter
+    nonisolated let siteURL: String
     var topicIDs: [String]
     let readBudget: () -> Int
     var readLimit: Int

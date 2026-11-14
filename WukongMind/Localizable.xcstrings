@@ -9705,6 +9705,22 @@
         }
       }
     },
+    "Listed latest" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已列出最新内容"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已列出最新內容"
+          }
+        }
+      }
+    },
     "Listed scripts" : {
       "localizations" : {
         "zh-Hans" : {
@@ -9818,6 +9834,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在列出檔案"
+          }
+        }
+      }
+    },
+    "Listing latest" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在列出最新内容"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在列出最新內容"
           }
         }
       }
@@ -13830,6 +13862,22 @@
         }
       }
     },
+    "Read thread" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已读取话题"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已讀取話題"
+          }
+        }
+      }
+    },
     "Read, not cited · %@" : {
       "comment" : "Source the agent read but didn't cite; the placeholder is the forum host",
       "localizations" : {
@@ -14075,6 +14123,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在閱讀第 %1$lld 部分（共 %2$lld 部分）…"
+          }
+        }
+      }
+    },
+    "Reading thread" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在读取话题"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在讀取話題"
           }
         }
       }
@@ -15840,6 +15904,22 @@
         }
       }
     },
+    "Searched comments" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已搜索评论"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已搜尋留言"
+          }
+        }
+      }
+    },
     "Searched comments for “%@”" : {
       "comment" : "Agent step; the placeholder is the search query",
       "localizations" : {
@@ -15853,6 +15933,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已搜尋留言「%@」"
+          }
+        }
+      }
+    },
+    "Searched forum" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已搜索论坛"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已搜尋論壇"
           }
         }
       }
@@ -15907,6 +16003,22 @@
         }
       }
     },
+    "Searching comments" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在搜索评论"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在搜尋留言"
+          }
+        }
+      }
+    },
     "Searching comments for “%@”" : {
       "comment" : "Agent step while running; the placeholder is the search query",
       "localizations" : {
@@ -15920,6 +16032,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在搜尋留言：「%@」"
+          }
+        }
+      }
+    },
+    "Searching forum" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在搜索论坛"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在搜尋論壇"
           }
         }
       }
