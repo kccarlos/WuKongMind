@@ -221,6 +221,44 @@ Notes:
 - To start from a clean slate, uninstall the app:
   `xcrun simctl uninstall <udid> io.github.kccarlos.wukongmind`.
 
+### The shared test iPhone
+
+KC's iPhone 13 (`00008110-001614E8368A601E`) stays plugged into the build Mac
+and is shared by agents on several projects. **Agents must use only
+`scripts/device-check.sh` for the physical device**: never run `devicectl`,
+`xcodebuild -destination id=...` or Xcode against it directly, not even for a
+quick look.
+
+```sh
+# Offline smoke test (no AI calls)
+scripts/device-check.sh test -only-testing:WukongMindUITests/PhysicalDeviceSmokeTests/testAssistantPageStatesOffline
+# Live browser-agent check (the key reaches the tests via TEST_RUNNER_*)
+TEST_RUNNER_ANTHROPIC_API_KEY=... scripts/device-check.sh test -only-testing:WukongMindUITests/PhysicalDeviceSmokeTests/testLiveBrowserAgentDarkAndHideSidebar
+# Install, launch with arguments, capture the console for 30 s, terminate
+scripts/device-check.sh launch --seconds 30 -- -dc-apple-intelligence off
+scripts/device-check.sh --help        # every option
+scripts/device-check.sh --self-test   # lock logic, no phone needed
+```
+
+The script builds first (signed, `-allowProvisioningUpdates`, own derived data
+under `/Volumes/Ext/dev/build/wukongmind-dd/device-check`) without touching the
+phone, then takes the lock, and holds it only for device time:
+
+- **Lock:** `mkdir /Volumes/Ext/dev/locks/<udid>.lock` succeeds for exactly one
+  holder, and an `owner` file inside records the task, branch, PID and start
+  time. While it is held, the script retries every 20 s and prints who holds it.
+  A lock older than 45 minutes (by mtime) is dead and is taken over. The lock
+  is released on exit, failure, Ctrl-C and TERM, and only if this script took it.
+- **Fails clearly** (after releasing the lock) if the phone is not connected,
+  not paired (`xcrun devicectl manage pair --device <udid>`, then Trust on the
+  phone) or locked.
+- **Output:** `build.log`, `test.log` or `launch.log`, and `test.xcresult`
+  (screenshots and attachments) in `--out` (default under `$TMPDIR`); the paths
+  are printed at the end.
+- It never uninstalls the app and never erases or resets anything. `--reboot`
+  (off by default) reboots the phone first, to clear System Data after heavy
+  recording.
+
 ## DEBUG launch arguments
 
 DEBUG builds read these arguments for QA and screenshots. Set them in Xcode
