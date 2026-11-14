@@ -4,13 +4,14 @@ One loop turns Forumind's forum features into tools of the one Agent. Forum sear
 
 Sources, in order of precedence: [next-phase.md](next-phase.md) (§5 Architecture, §6 dispositions, §7 "One loop", §9 old code, §11 defaults), then [design-m3.md](design-m3.md) (the registry, workspace, task records and replay that One loop builds on), then [requirements.md](requirements.md) (§4, §6, §8, §9 engineering rules), then [design-unified.md](design-unified.md) for the UI touch points. The format follows design-m3.md. Where the sources disagree, the conflict is named in [Conflicts](#conflicts-called-out) rather than settled silently.
 
-Code references are as of `ea30337` (main when this was written). M3 tasks 2, 4 and 7 had not merged yet. This page relies on what design-m3.md specifies for them, chiefly task 7's `ToolDispatching` seam, `ReplayToolDispatcher`, `TaskExport.load` and the shared `RecordedModelClient`.
+Code references are as of `ea30337` (main when this was written). M3 tasks 2, 4 and 7 had not merged yet. This page relies on what design-m3.md specifies for them, chiefly task 7's shared `RecordedModelClient` (moved to `WukongMindTests/Support/`) and the `ToolDispatching` seam.
 
 **There is no new visual design.** The summary card (`DrawerSummarySections`), the numbered sources list (today's in `AgentView`), the podcast row (`DCListenRow`), ToolRow (`DCToolRow`) and the citation chip (`DCCitationChip`) already exist, and design-unified says they are how Agent tool results look from One loop on.
 
 ## Decisions
 
-- **One seam for forum work.** Today the forum operations live in `AppModel.executeAgentTool` (`AppModel.swift:3367`). It is private and tied to the old run: it takes `AgentRun`, a `WorkRecord` ID for progress and `RunSettings`. Task 1 moves the bodies into `ForumToolService` (new, `ForumToolService.swift`). That is a `@MainActor` type, with one method per operation: `search`, `searchComments`, `listLatest`, `readTopic`, `summarize`, `follow`. It takes a `ForumRunScope` (new): the adapter, the site URL, the topics read so far, the read budget and the read size. The old loop calls the service from then on, so both loops run **the same implementations** until the old one is deleted. The comparison then compares loops, not tool code.
+- **One seam for forum work.** Today the forum operations live in `AppModel.executeAgentTool` (`AppModel.swift:3367`). It is private and tied to the old run: it takes `AgentRun`, a `WorkRecord` ID for progress and `RunSettings`. Task 1 moves the bodies into `ForumToolService` (new, `ForumToolService.swift`). That is a `@MainActor` type, with one method per operation: `search`, `searchComments`, `listLatest`, `readTopic`, `follow`. It takes a `ForumRunScope` (new): the adapter, the site URL, the topics read so far, the read budget and the read size. The old loop calls the service from then on, so both loops run **the same implementations** until the old one is deleted. The comparison then compares loops, not tool code.
+  - **One exception: summaries.** The old `summarize_topic` calls `generateSummary` directly on the topic it has read. The new tool goes through the summary engine (see [Capability tools](#capability-tools)), because the roadmap asks for the engine and its cache. Both use `generateSummary` with the Summary model. The comparison starts both sides with no saved summaries (see [Comparison test](#comparison-test)), so neither side gets a cached summary for free.
 - **Tool names stay.** `search_forum`, `search_comments`, `list_latest`, `read_topic`, `summarize_topic` and `watch_topic` keep their names (roadmap §7). Two capabilities are new: `read_aloud` and `notify`. `final_answer` goes, because the native loop ends on plain text. `saved_summaries` goes too: it is in neither roadmap list, and `summarize_topic` returns a cached summary at once.
 - **Where the tools live.** There are two new families in the M3 pattern:
   - `ToolRegistry+Forum.swift` holds the four adapter tools;
@@ -36,7 +37,7 @@ Code references are as of `ea30337` (main when this was written). M3 tasks 2, 4 
   | `search_forum` | Searching forum | Searched forum | "12 threads" |
   | `search_comments` | Searching comments | Searched comments | "10 comments" |
   | `list_latest` | Listing latest | Listed latest | "30 threads" |
-  | `read_topic` | Reading thread | Read thread | "84 posts" or "saved to crawls/…" |
+  | `read_topic` | Reading thread | Read thread | "84 posts" or "saved to results/…" |
   | `summarize_topic` | Summarizing thread | Summarized thread | the thread's title |
   | `read_aloud` | Starting reading aloud | Reading aloud | the title |
   | `watch_topic` | Following thread | Following thread | the title |
@@ -62,15 +63,15 @@ The two shapes are the stable inputs that capabilities and suggestions read (roa
 ## Long threads land in the workspace
 
 - `read_topic` with no `page` and no `query`, on a thread whose rendered posts exceed the truncation limit, works like this:
-  - it writes the whole compact thread to `crawls/<host>/<topic-id>/thread.md` through `AgentWorkspace`. That follows M3's prompt convention, with the topic ID instead of a slug so the path is stable. The format is one post per block, with the `RawTopicFormat` header ("author | date | #N") and the body.
-  - the model gets the header, "Full thread: 1,240 posts, 412,000 characters, saved to crawls/…/thread.md", today's bounded view (the beginning and the newest replies), and "Read any part with file_read(path, offset)".
-- The file is rewritten when the thread has grown, so the next read sees new posts. A thread under the limit returns inline as today.
+  - it writes the whole compact thread to `results/<task-id>/<step>-read_topic.txt`, with the same helper `makeResult` uses for over-limit output (`saveOutput`, `resultPath`). The code knows only `results/` (roadmap §7, design-m3 "Workspace"). The format is one post per block, with the `RawTopicFormat` header ("author | date | #N") and the body.
+  - the model gets the header, "Full thread: 1,240 posts, 412,000 characters, saved to results/…/07-read_topic.txt", today's bounded view (the beginning and the newest replies), and "Read any part with file_read(path, offset)". This differs from plain over-limit saving, which returns a 2,000-character preview: the bounded view is what Research answers from today.
+- The file belongs to the task, and retention deletes it with the task record, as for every saved result. To keep a thread, the model copies it into `crawls/…` by the prompt's convention. A thread under the limit returns inline as today.
 - Without a workspace, today's bounded view is the fallback.
 - `summarize_topic` doesn't use the file. The summary engine has its own page cache and batching (`TopicSession.rawPages`, `SummaryBatchLimit`).
 
 ## Capability tools
 
-All four live in `ToolRegistry+Capabilities.swift`. Each takes **one** input from: `topic_id` (a thread on the run's forum), `url` (a thread on any forum of the three kinds that the app can read), `path` (a workspace file) or `text`.
+All four live in `ToolRegistry+Capabilities.swift`. `summarize_topic` and `read_aloud` take **one** input from: `topic_id` (a thread on the run's forum), `url` (a thread on any forum of the three kinds that the app can read), `path` (a workspace file) or `text`. `watch_topic` takes `topic_id` or `url`, and `notify` takes `title` and `body`.
 
 ### `summarize_topic`
 - **Thread input** (`topic_id` or `url`) uses the existing engine, unchanged.
@@ -80,13 +81,13 @@ All four live in `ToolRegistry+Capabilities.swift`. Each takes **one** input fro
   - Stop cancels the wait, not the summary, which finishes and stays cached.
 - **Returns** "Summary of <title> (<url>), <N> posts:" and then the summary text, keeping its `#N` citations, plus the Thread shape's title and URL.
 - **The transcript renders the summary card** (`DrawerSummarySections` for that topic key) under the ToolRow, in place of plain text, as the suggestion does today. The Agent's next message can refer to "point 2".
-- **`text` or `path` input** goes to `aiService.generateSummary` with the Summary model and the neutral `DiscussionProfile`. There is no cache, and the result shows in a `DCResultCard`.
+- **`text` or `path` input** goes to `aiService.generateSummary` with the Summary model and a generic `DiscussionProfile` (new, `DiscussionProfile.genericText`: "a web page or text the user gave"). There is no cache, and the result shows in a `DCResultCard`.
 - **Apple Intelligence** still works here: the Summary role may be Apple Intelligence, and the engine already supports it.
 
 ### `read_aloud`
 - It reads one text aloud with today's player, `podcast.readAloud(id:title:text:)`. The input is `text`, `path`, or a thread's summary (`topic_id` or `url`, summarizing first if there is none, like `suggestReadAloud`). Citations are removed with `PostCitations.stripped`.
 - It returns at once ("Reading aloud: <title>, about 4 minutes"). The podcast row (`DCListenRow`) shows in the conversation.
-- The multi-chapter daily podcast stays a daily digest feature.
+- The multi-chapter podcast stays a daily digest feature. `PodcastController.make` builds only today's digest episode, so making a podcast from any thread is a bigger change than "wrapped as a tool" (see [Conflicts](#conflicts-called-out)).
 
 ### `watch_topic`
 - It follows a thread with `AppModel.watch(siteURL:topicID:url:title:knownPostCount:)` (`AppModel.swift:1827`), the same path as `executeAgentTool`'s `watchTopic` today. It never unfollows, like `suggestFollow`.
@@ -132,7 +133,7 @@ The roadmap's gate: answer one question set with old Research and with the new A
 | 4 | Latest | "What's worth reading today?" | `list_latest` |
 | 5 | Kind-specific | Discourse: a category or date filter. HN and WordPress: "what do commenters say about …" | `search_forum` syntax, `search_comments` |
 
-Each question names its starting page (a thread or the forum home) and the forum. The forums are proposed by task 6 and confirmed with the questions.
+Each question names its forum and starting page (a thread or the forum home). Old Research gets no current page: `startAgentRun(goal:siteURL:)` and `AgentPrompt.system` carry only the forum. So **a question about a thread names it in its text**, by title and URL ("In the thread "Fan noise after 5.2" (https://…/t/…/123), which fix worked for most people?"). Both sides get exactly the same text. The forums are proposed by task 6 and confirmed with the questions.
 
 **Two phases.**
 1. **Record** (task 8, once, with real quota). It runs on a simulator, in the XCTest `OneLoopComparisonTests` (new, `WukongMindTests`), in record mode: `ONE_LOOP_RECORD=1` with `TEST_RUNNER_ANTHROPIC_API_KEY`, the pattern in CLAUDE.md. Who runs it: the task 8 agent, with the key via `herdr-secret`. For each question:
@@ -141,16 +142,17 @@ Each question names its starting page (a thread or the forum home) and the forum
    - **Forum traffic**: the old run goes first, through `ForumSnapshotProtocol` (new `URLProtocol`, record mode) on the forum `URLSession`, and every response is saved by URL. The new run is served from that snapshot. A URL it misses is fetched live and saved, and it's counted as a miss in the report. So both runs read the same data.
    - **The page**: the new Agent gets `FixturePageDriver` (new `AgentPageDriving`). It serves `read_page` from the saved start page and refuses page-changing tools with an error. Old Research has no page tools, so the comparison is about forum work.
    - **The model is the same on both sides**: the Agent role's model, with the Research role (`ModelRole.agent`) set to it. The Summary role is the same for both. Defaults are in [Open questions](#open-questions).
-2. **Replay** (CI, no network, no quota). The same test with no flag replays each recorded run:
+   - **Fresh state.** Each side of each question runs on a new `AppModel` with empty `sessions` (no saved topics or summaries) and a new workspace folder. So neither side reuses the other's cached pages or summaries.
+2. **Replay** (CI, no network, no quota). The same test with no flag replays each recorded run with the **real tools**:
    - forum traffic comes from the snapshot, which fails on an unknown URL;
-   - the new side's model responses go through `RecordedModelClient` and `ReplayToolDispatcher` (M3 task 7);
-   - the old side's go through `RecordedAgentPlanner` (new) and a recorded summary client.
+   - the new side runs the real registry (forum, capability and workspace tools over the snapshot), with model responses from `RecordedModelClient` (M3 task 7);
+   - the old side runs the real loop with `RecordedAgentPlanner` (new) and a recorded summary client.
 
-   It asserts the same tool sequence and the same final text. After the deletion, the new side's replays stay as regression tests, and the old side's fixtures go with the old loop.
+   So replay tests the forum tools themselves, not only the loop. It asserts the same tool sequence and the same final text. After the deletion, the new side's replays stay as regression tests, and the old side's fixtures go with the old loop.
 
 **Token reporting.**
 - The new side already reports usage per turn (`AgentTokenUsage`).
-- The old side has none: `AIService.complete` returns only text (`AIService.swift:213`). Task 7 adds an optional `TokenUsageSink` to `AIService.streamText`. It is filled from each family's last stream event: Anthropic `message_delta.usage`, OpenAI-compatible `usage` (with `stream_options.include_usage`), and Gemini `usageMetadata`. The planner and `generateSummary` pass it in.
+- The old side has none: `AIService.complete` returns only text (`AIService.swift:213`). Task 7 adds an optional `TokenUsageSink` to `AIService.streamText`. It is filled from the usage that each provider family's stream reports, read the way `completeToolTurn` already reads non-streamed usage. Where a family needs a request option to report usage in a stream, task 7 sets it. The planner and `generateSummary` pass the sink in.
 - Tokens are reported **per role**: the loop model (planner or Agent) and the Summary model, each split into input and output. A provider that reports nothing shows "n/a", never 0.
 
 **The report** is `docs/wukongmind/one-loop-comparison.md`, generated by the record run and committed by task 8:
@@ -171,16 +173,17 @@ Each question names its starting page (a thread or the forum home) and the forum
 
 ## After approval
 
-These four changes depend on the gate:
+These changes depend on the gate. So does voice's hand-off (task 10, in [Voice](#voice)): it sends spoken requests to the new Agent in place of Research, and that must wait until the new Agent's quality is approved.
 - **Suggestions only send their text** (roadmap §4). `PageSuggestions.route(for:on:)` keeps only two routes:
   - `.agent`: send the suggestion's text;
   - `.fill`: "Search this forum…" fills the box, and Send goes to the Agent.
 
-  These go: `SuggestionRoute.summary`, `.podcast`, `.follow` and `.fillForResearch`; `AgentHandoff`; `takeAgentHandoffContext`; `startSuggestedResearch`; and `pendingReadAloudTopicKey`. The whole of `AppModel+Suggestions.swift` goes, apart from what "This page looks broken" needs (design-m3).
+  These go: `SuggestionRoute.summary`, `.podcast`, `.follow` and `.fillForResearch`; `AgentHandoff`; `takeAgentHandoffContext`; `startSuggestedResearch`; and `pendingReadAloudTopicKey`. The whole of `AppModel+Suggestions.swift` goes. The "This page looks broken" suggestion is in `SuggestionRow.swift` and `SummaryPanel.swift` (design-m3), and it stays.
 - **The old Research loop is deleted**:
   - `AgentEngine.swift`, all of it: `AgentPlanner`, `PromptAgentPlanner`, `AgentActionParser` and `AgentPrompt`. `AgentToolSpec` moves to `Sites/SiteAdapter.swift`, since the adapters' profiles use it.
   - `AgentToolName` becomes plain name constants in `ToolRegistry+Forum.swift`. `Sites/AgentToolPresentation.swift` goes, because the ToolRow table replaces it.
-  - In `AppModel.swift`: `startAgentRun`, `runAgent` and their helpers, `agentRuns` state and the `.agent` work type.
+  - In `AppModel.swift`: `startAgentRun`, `runAgent` and their helpers, and running new runs (`WorkType.agent` records are no longer created).
+  - **Saved runs stay as data.** `AgentRun` and `agentRuns` stay as stored, read-only records, so Persistence, iCloud sync, `SessionRetention`, Home's Recent (`HomeSites`) and History keep working. Nothing new is added to them. History's `openAgentRun` opens a small read-only view, `SavedAnswerView` (new: the goal, then `MarkdownView` of the answer with `DCSourcesList`), in place of `AgentView`. Removing the stored runs altogether is a later cleanup (see [Open questions](#open-questions)).
   - `AppleIntelligenceAgentPlanner`.
   - `AgentView` in `AgentPanel.swift`. The file also holds the Agent's own views (`AgentStatusLine`, `BrowserAgentRunsView`), which stay.
   - `AssistantMode.agent` and `AppModel+Navigation.research(_:siteURL:)` (voice's research, replaced first by the hand-off).
@@ -242,7 +245,7 @@ From roadmap §7 "One loop", plus the gate and the parts this design adds.
    - Saying "Switch to dark mode" on an ordinary page takes effect (on the device).
 4. **Background features unaffected.** The daily digest and follow notifications still call the adapters directly. Their existing tests pass, and a followed thread with a new reply notifies (manual).
 5. **The comparison came first.** `one-loop-comparison.md` carries the owner's approval line. Every deletion pull request merged after that date and links it.
-6. **Long threads.** `read_topic` on a thread over the limit writes `crawls/<host>/<id>/thread.md` and returns the path, the size and the bounded view (unit test, and visible in Files).
+6. **Long threads.** `read_topic` on a thread over the limit writes the whole thread under `results/<task-id>/` and returns the path, the size and the bounded view (unit test, and visible in Files).
 7. **Two model roles.** Settings › Models shows Agent and Summaries. A saved `agent` selection decodes and is dropped. With Apple Intelligence as Summaries, summaries still work.
 8. **No regressions.** All unit tests pass, and the new side's comparison replays pass in CI.
 
@@ -259,8 +262,8 @@ Thirteen implementation tasks and one acceptance task. Sizes count changed lines
 
 **Waves.**
 - **A:** tasks 1, 5 and 6. Task 6 ends at owner gate 1, the confirmed question set.
-- **B:** tasks 2 and 4, after 1.
-- **C:** tasks 3 and 7. Task 7 needs 2, 3, 4, 6 and M3 task 7.
+- **B:** tasks 2, 3 and 4, after 1. Task 3 merges after 2.
+- **C:** task 7, which needs 2, 3, 4, 6 and M3 task 7.
 - **D:** task 8, which ends at **owner gate 2**.
 - **E, gated:** tasks 9, 10 and 11.
 - **F, gated:** task 12 (after 9 and 10), then 13 (after 11 and 12).
@@ -297,7 +300,7 @@ Thirteen implementation tasks and one acceptance task. Sizes count changed lines
   - the tools are present only on recognized forum pages, and `search_comments` only for HN and WordPress (tests);
   - each returns the right shape and today's rendering;
   - the read budget errors as today;
-  - a long thread is saved to `crawls/<host>/<id>/thread.md` with the notice and bounded view, and falls back without a workspace (tests);
+  - a long thread is saved to `results/<task-id>/<step>-read_topic.txt` with the notice and bounded view, and falls back without a workspace (tests);
   - the ported tests cover the same requests and parsing as the originals.
 
 ### 3. One loop 3: Research rules prompt and numbered sources
@@ -308,7 +311,7 @@ Thirteen implementation tasks and one acceptance task. Sizes count changed lines
   - `AgentPanel.swift`: `AgentView` passes visits from `AgentRun`, and `sourcesList` moves out.
   - `ConversationViews.swift`: `DCSourcesList`, and the Agent message rendering.
   - Tests: `AgentLoopTests.swift` (the prompt section is present only with forum tools), `AssistantSourcesTests.swift`.
-- **Size:** about 400. **Depends on:** 2 (merges after it).
+- **Size:** about 400. **Depends on:** 1 (merges after 2).
 - **Done when:**
   - the section appears only when `search_forum` is registered and carries the adapter's sentences (test);
   - a recorded run citing two threads shows numbered chips and a sources list that open them;
@@ -421,7 +424,7 @@ Thirteen implementation tasks and one acceptance task. Sizes count changed lines
   - `AgentEngine.swift` (deleted; `AgentToolSpec` moves to `Sites/SiteAdapter.swift`);
   - `Sites/AgentToolPresentation.swift` (deleted);
   - `AppModel.swift` (the run code);
-  - `AgentPanel.swift` (`AgentView` only);
+  - `AgentPanel.swift` (`AgentView` only), and `SavedAnswerView` (new) for History;
   - `AppleIntelligenceService.swift` (the planner);
   - `AppModel+Navigation.swift`, `AppModel+System.swift`, `AppModel+Browse.swift` (the reroutes);
   - the HN profile's examples;
@@ -430,7 +433,7 @@ Thirteen implementation tasks and one acceptance task. Sizes count changed lines
 - **Done when:**
   - the acceptance 3 grep is empty;
   - Ask a Forum and Home's forum entry reach the Agent (tests);
-  - saved forum answers still decode for History (see [Open questions](#open-questions));
+  - saved forum answers still decode, sync and open read-only from History in `SavedAnswerView` (tests);
   - the tool-level tests from task 2 still pass.
 
 ### 13. One loop 13: two model roles and the leftover settings (gated)
@@ -462,6 +465,7 @@ Thirteen implementation tasks and one acceptance task. Sizes count changed lines
 - **"Present when the site is recognized"** (roadmap §5) against Gemini Live fixing declarations at connect: voice declares tools when the session starts (see Voice). Text runs rebuild the registry each run, so they follow it exactly.
 - **`notify`.** Requirements §9 puts `notify` in M4, while roadmap §5 and §7 put the notification capability in One loop. One loop builds it, and M4's script API reuses it.
 - **Real quota for the comparison.** Requirements §9 says model calls in tests are recorded and spend no quota. The comparison needs one live record run (task 8). CI only replays.
+- **"Generate a podcast"** (roadmap §4, the Discourse scenario) against the code: `PodcastController.make` builds only the daily digest's episode. `read_aloud` reads one text aloud with the podcast player and row, which matches today's "Read it to me". A multi-chapter podcast from any thread would be new work, so it is left out (see [Open questions](#open-questions)).
 - **`saved_summaries` and `final_answer`** are Research tools that neither roadmap list carries. Both are dropped (see Decisions).
 - **Agent conversations in History.** design-m3 deferred them "to One loop". Neither the roadmap's One loop list nor this brief includes them, so they are not in this split (see [Open questions](#open-questions)).
 - **`AgentPanel.swift`.** design-unified marks `AgentView` for deletion. The same file holds the Agent's status line and run views, so only `AgentView` goes.
@@ -475,6 +479,7 @@ Each has a recommended default that stands until the owner answers.
 2. **Pass bar.** Default: the owner judges by hand. The suggested bar is new no worse on at least 12 of 15, and no answer newly wrong. Tokens are reported with no limit.
 3. **Fixture forums.** Default: task 6 proposes one public forum per kind (Discourse, Hacker News, a WordPress blog with comments), and the owner confirms it with the questions.
 4. **Forum search settings.** Default: keep Topics to read and Read size as forum tool limits, and drop Search steps.
-5. **Old records in History.** Default: saved forum answers and topic chats stay readable in History, read-only, and nothing new is written. Agent conversations in History are a later task, outside One loop.
+5. **Old records in History.** Default: saved forum answers stay readable in History, read-only (`SavedAnswerView`), and saved topic chats stay stored but are no longer shown. Nothing new is written to either, and removing them is a later cleanup. Agent conversations in History are a later task, outside One loop.
 6. **The mic.** Default: tap opens voice when a Gemini or Vertex key is set, and otherwise dictates. Long-press always dictates.
 7. **Page changes by voice.** Default: always through `hand_off_to_agent`. The spike may allow a direct `inject_css`.
+8. **Podcast from a thread.** Default: `read_aloud` only, as today's "Read it to me". A multi-chapter podcast of any thread waits for a real need.
