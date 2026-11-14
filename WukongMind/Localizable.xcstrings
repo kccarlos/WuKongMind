@@ -15954,19 +15954,19 @@
         }
       }
     },
-    "Show raw tool arguments & results" : {
+    "Show raw requests, tokens per step and task export" : {
       "comment" : "Settings › Agent subtitle for Developer mode",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "显示原始工具参数与结果"
+            "value" : "显示原始请求、每步词元数和任务导出"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "顯示原始工具參數與結果"
+            "value" : "顯示原始請求、每步詞元數和任務匯出"
           }
         }
       }
