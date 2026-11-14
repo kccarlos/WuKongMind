@@ -1493,6 +1493,9 @@ private struct ChatThread<Leading: View>: View {
                         metricsBox.pinningBottom = false
                         scrollTask?.cancel()
                         scrollTask = nil
+                        #if DEBUG
+                        ChatScrollProbe.reset()
+                        #endif
                     }
                 }, onStateChange: { old, new in
                     let movedUp = scrollTask == nil
@@ -1556,6 +1559,9 @@ private struct ChatThread<Leading: View>: View {
                     guard browserAgent.runs.isEmpty else { return }
                     scrollTask?.cancel()
                     scrollTask = nil
+                    #if DEBUG
+                    ChatScrollProbe.reset()
+                    #endif
                     userScrolling = false
                     metricsBox.contentHeight = 0
                     metricsBox.scrolledUp = false
@@ -1569,15 +1575,13 @@ private struct ChatThread<Leading: View>: View {
                     guard old.topicKey == new.topicKey else { return }
                     if new.lastID != old.lastID, history.last?.role == .user {
                         jumpToBottom(proxy: proxy)
-                    } else if new.count > old.count, atBottom, !userScrolling {
-                        metricsBox.scrolledUp = false
+                    } else if new.count > old.count, atBottom, !userScrolling, !metricsBox.scrolledUp {
                         scrollUnanimated(proxy: proxy)
                     }
                 }
                 .onChange(of: stream) {
                     // Follow the answer only while the reader is at the bottom.
-                    if atBottom, !userScrolling {
-                        metricsBox.scrolledUp = false
+                    if atBottom, !userScrolling, !metricsBox.scrolledUp {
                         scrollUnanimated(proxy: proxy)
                     }
                 }
@@ -1594,15 +1598,18 @@ private struct ChatThread<Leading: View>: View {
                         expandedToolRowIDs.insert(first.id)
                     }
                     #endif
-                    if atBottom, !userScrolling { scrollUnanimated(proxy: proxy) }
+                    if atBottom, !userScrolling, !metricsBox.scrolledUp { scrollUnanimated(proxy: proxy) }
                 }
                 .onChange(of: browserAgent.runState) { _, newState in
-                    if atBottom, !userScrolling { scrollUnanimated(proxy: proxy) }
+                    if atBottom, !userScrolling, !metricsBox.scrolledUp { scrollUnanimated(proxy: proxy) }
                     announceAgentStateIfNeeded(newState)
                 }
                 .onDisappear {
                     scrollTask?.cancel()
                     scrollTask = nil
+                    #if DEBUG
+                    ChatScrollProbe.reset()
+                    #endif
                 }
                 if !atBottom, hasConversationEntries {
                     Button {
@@ -1655,7 +1662,14 @@ private struct ChatThread<Leading: View>: View {
         scrollTask?.cancel()
         metricsBox.scrolledUp = false
         atBottom = true
+        #if DEBUG
+        let probeToken = UUID()
+        ChatScrollProbe.begin(probeToken)
+        #endif
         scrollTask = Task { @MainActor in
+            #if DEBUG
+            defer { ChatScrollProbe.end(probeToken) }
+            #endif
             await settleScroll(reduceMotion: reduceMotion, shouldStop: { userScrolling }) {
                 proxy.scrollTo("chatBottom", anchor: .bottom)
             }
@@ -2161,6 +2175,29 @@ struct ChatBubble: View {
         .accessibilityIdentifier("chatMessage-\(message.role.rawValue)")
     }
 }
+
+#if DEBUG
+@MainActor
+enum ChatScrollProbe {
+    private static var activeToken: UUID?
+
+    static var isSettling: Bool { activeToken != nil }
+
+    static func begin(_ token: UUID) {
+        activeToken = token
+    }
+
+    static func end(_ token: UUID) {
+        if activeToken == token {
+            activeToken = nil
+        }
+    }
+
+    static func reset() {
+        activeToken = nil
+    }
+}
+#endif
 
 private final class ScrollMetricsBox {
     var nearBottom = true
