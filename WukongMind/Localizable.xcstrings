@@ -354,6 +354,28 @@
         }
       }
     },
+    "%@, %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@, %2$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@，%@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@，%@"
+          }
+        }
+      }
+    },
     "%@, %@, version %lld" : {
       "comment" : "Combined accessibility label for the Script detail header: script name, state (on/off/error), and version",
       "localizations" : {
@@ -538,7 +560,7 @@
       }
     },
     "%lld lines" : {
-      "comment" : "Code row trailing label showing line count",
+      "comment" : "Code row trailing label showing line count\nThis page › Console row: number of captured console lines",
       "localizations" : {
         "en" : {
           "variations" : {
@@ -1030,6 +1052,53 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%lld 則貼文"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld requests" : {
+      "comment" : "This page › Network row: number of captured requests",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld request"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld requests"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld 个请求"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld 個請求"
                 }
               }
             }
@@ -4245,8 +4314,25 @@
         }
       }
     },
+    "Can't export this task" : {
+      "comment" : "Task export failure title",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法导出此任务"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法匯出此任務"
+          }
+        }
+      }
+    },
     "Cancel" : {
-      "comment" : "Cancel button when editing a script draft",
+      "comment" : "Cancel button when editing a script draft\nTask export alert cancel",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -5402,6 +5488,23 @@
         }
       }
     },
+    "Console" : {
+      "comment" : "Developer mode sheet title\nThis page developer row",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "控制台"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "主控台"
+          }
+        }
+      }
+    },
     "Context per batch" : {
       "localizations" : {
         "zh-Hans" : {
@@ -6321,8 +6424,25 @@
         }
       }
     },
+    "Details" : {
+      "comment" : "Developer mode sheet title\nDeveloper mode: opens the final reply's model step",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "详情"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "詳細資料"
+          }
+        }
+      }
+    },
     "Developer" : {
-      "comment" : "Settings › Agent section header for developer diagnostics",
+      "comment" : "Settings › Agent section header for developer diagnostics\nThis page popover group title, developer mode only",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -7306,7 +7426,7 @@
       }
     },
     "Export" : {
-      "comment" : "Context menu action to export a .user.js file",
+      "comment" : "Audit log task page: export this task as a file (developer mode)\nContext menu action to export a .user.js file\nTask export alert confirm",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -7383,6 +7503,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "匯出選項"
+          }
+        }
+      }
+    },
+    "Export task" : {
+      "comment" : "Assistant more menu: export the last task as a file (developer mode)",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导出任务"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "匯出任務"
+          }
+        }
+      }
+    },
+    "Export this task?" : {
+      "comment" : "Task export alert title",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导出此任务？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "匯出此任務？"
           }
         }
       }
@@ -10205,6 +10359,23 @@
         }
       }
     },
+    "Model step" : {
+      "comment" : "Developer mode section title in an expanded tool row",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模型步骤"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模型步驟"
+          }
+        }
+      }
+    },
     "Model “%@” isn’t available from %@." : {
       "comment" : "Error when Test Connection finds the server reachable but the chosen model ID is not in its model list; arguments are model name and provider name",
       "localizations" : {
@@ -10390,6 +10561,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "需要支援 Apple Intelligence 且執行 iOS 26 或以上版本的裝置，並在設定中開啟 Apple Intelligence。"
+          }
+        }
+      }
+    },
+    "Network" : {
+      "comment" : "Developer mode sheet title\nThis page developer row",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "网络"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "網路"
           }
         }
       }
@@ -10791,6 +10979,23 @@
         }
       }
     },
+    "No record of this task was found." : {
+      "comment" : "Task export: record missing",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "找不到此任务的记录。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "找不到此任務的記錄。"
+          }
+        }
+      }
+    },
     "No scripts on this page" : {
       "comment" : "Browser agent context bar when zero saved scripts match the current page",
       "localizations" : {
@@ -11139,6 +11344,23 @@
         }
       }
     },
+    "Nothing captured on this page yet." : {
+      "comment" : "Developer mode: empty console or network list",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此页面尚未捕获任何内容。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此頁面尚未擷取任何內容。"
+          }
+        }
+      }
+    },
     "Nothing new today" : {
       "comment" : "Daily digest with no topics",
       "localizations" : {
@@ -11168,6 +11390,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "還沒有儲存任何內容。摘要、聊天和回答會依論壇顯示在這裡。"
+          }
+        }
+      }
+    },
+    "Nothing was recorded for this turn." : {
+      "comment" : "Developer mode: no raw body in the task record",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此回合没有记录。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此回合沒有記錄。"
           }
         }
       }
@@ -12087,6 +12326,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "頁面環境"
+          }
+        }
+      }
+    },
+    "Page snapshots" : {
+      "comment" : "Developer mode section title in an expanded tool row",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "页面快照"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "頁面快照"
           }
         }
       }
@@ -14321,6 +14577,23 @@
         }
       }
     },
+    "Request" : {
+      "comment" : "Developer mode row: the raw model request\nDeveloper mode sheet title",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请求"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請求"
+          }
+        }
+      }
+    },
     "Requests are sent immediately without per-forum spacing or concurrency limits. Work that’s already running keeps its pace." : {
       "comment" : "Settings › Summaries & chat › Forum requests footer when rate limiting is off",
       "localizations" : {
@@ -14447,6 +14720,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "重置設定會保留你的論壇和已儲存的資料。API 金鑰會被移除，包括你其他裝置上 iCloud 鑰匙圈中的金鑰。"
+          }
+        }
+      }
+    },
+    "Response" : {
+      "comment" : "Developer mode row: the raw model response\nDeveloper mode sheet title",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "响应"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "回應"
           }
         }
       }
@@ -17731,6 +18021,23 @@
         }
       }
     },
+    "Task file ready" : {
+      "comment" : "Task export share sheet title",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "任务文件已就绪"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "任務檔案已就緒"
+          }
+        }
+      }
+    },
     "Test & Save" : {
       "localizations" : {
         "zh-Hans" : {
@@ -17939,6 +18246,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "每日摘要使用你的 AI 供應商或 Apple Intelligence 產生。"
+          }
+        }
+      }
+    },
+    "The file includes the pages and results the Agent read. API keys and cookies are removed." : {
+      "comment" : "Task export alert message",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文件包含智能体读取的页面和结果。API 密钥和 Cookie 已移除。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "檔案包含智慧代理讀取的頁面和結果。API 金鑰和 Cookie 已移除。"
           }
         }
       }
@@ -18274,6 +18598,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "摘要產生失敗。"
+          }
+        }
+      }
+    },
+    "The task file could not be built." : {
+      "comment" : "Task export failed",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法生成任务文件。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法產生任務檔案。"
           }
         }
       }
@@ -18650,6 +18991,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "此網站不允許搜尋留言。請改用 search_forum 和 read_topic。"
+          }
+        }
+      }
+    },
+    "This task can't be exported without cookies in it." : {
+      "comment" : "Task export refused",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此任务含有 Cookie，无法导出。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此任務含有 Cookie，無法匯出。"
           }
         }
       }
@@ -19338,6 +19696,29 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "試用一次代理"
+          }
+        }
+      }
+    },
+    "Turn %lld · %@ · %@ in · %@ out" : {
+      "comment" : "Developer mode: one model turn, its model and token counts",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Turn %1$lld · %2$@ · %3$@ in · %4$@ out"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第 %lld 回合 · %@ · 输入 %@ · 输出 %@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第 %lld 回合 · %@ · 輸入 %@ · 輸出 %@"
           }
         }
       }

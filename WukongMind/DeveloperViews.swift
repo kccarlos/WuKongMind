@@ -256,9 +256,11 @@ struct DevPageLogRows: View {
                 .textCase(.uppercase)
                 .padding(.horizontal, 14)
             row(.console, title: String(localized: "Console", comment: "This page developer row"),
-                count: counts[.console], unit: String(localized: "lines"), id: "thisPageConsole")
+                detail: counts[.console].map { String(localized: "\($0) lines", comment: "This page › Console row: number of captured console lines") },
+                id: "thisPageConsole")
             row(.network, title: String(localized: "Network", comment: "This page developer row"),
-                count: counts[.network], unit: String(localized: "requests"), id: "thisPageNetwork")
+                detail: counts[.network].map { String(localized: "\($0) requests", comment: "This page › Network row: number of captured requests") },
+                id: "thisPageNetwork")
         }
         .task {
             for kind in [DevPageLogSheet.Kind.console, .network] {
@@ -268,13 +270,13 @@ struct DevPageLogRows: View {
         .sheet(item: $shown) { DevPageLogSheet(app: app, kind: $0) }
     }
 
-    private func row(_ kind: DevPageLogSheet.Kind, title: String, count: Int?, unit: String, id: String) -> some View {
+    private func row(_ kind: DevPageLogSheet.Kind, title: String, detail: String?, id: String) -> some View {
         Button { shown = kind } label: {
             HStack {
                 Text(verbatim: title).font(.subheadline.weight(.medium)).foregroundStyle(DCTheme.ink)
                 Spacer(minLength: 8)
-                if let count {
-                    Text(verbatim: "\(count) \(unit)").font(.caption).foregroundStyle(DCTheme.inkMuted)
+                if let detail {
+                    Text(verbatim: detail).font(.caption).foregroundStyle(DCTheme.inkMuted)
                 }
                 Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(.tertiary)
             }
