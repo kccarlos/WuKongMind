@@ -10,7 +10,7 @@ import SwiftUI
 // - `applyLaunchRuleIfNeeded()`    the first activation: Home or the last forum
 // - `suggestedForumsToOffer`       suggested forums not added yet
 // - `pinSuggested(_:)`             pins a suggested forum at once, then fetches its name/icon
-// - `askForum(_:)`                 opens the forum and the Agent ("Ask the forum") for it
+// - `askForum(_:)`                 opens the forum and the Agent, "Search this forum…" in the box
 // - `isCurrent(_:)`                forum of the current page (or the current forum)
 
 extension AppModel {
@@ -162,16 +162,17 @@ extension AppModel {
         refreshForumInfo(siteURL: suggested.siteURL)
     }
 
-    /// "Ask the forum": opens the forum and prepares the Agent for it.
+    /// "Ask the forum": opens the forum and the Agent, with "Search this
+    /// forum…" started in the composer; Send goes to the Agent.
     func askForum(_ forum: Forum) {
         if !isCurrent(forum) || browser.showsForumsHome {
             openForum(forum)
         }
-        agentSiteURL = forum.siteURL
-        assistantMode = .agent
+        assistantMode = .browserAgent
         panelRoute = .topic
+        drafts.goal = PageSuggestion.searchForum.composerText
         requestAssistant()
-        if !isProviderReady(for: .agent) { needsProviderSetup = .agent }
+        if !isProviderReady(for: .browserAgent) { needsProviderSetup = .browserAgent }
     }
 
     /// The forum of the current page (or, off-forum, the current forum).

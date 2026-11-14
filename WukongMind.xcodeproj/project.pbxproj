@@ -303,7 +303,6 @@
 		6F3AC8A69851ACFFEE173EEAC1D73D70 /* AppIdentityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40E310E63E3A1E56048C2CDB4ADB8461 /* AppIdentityTests.swift */; };
 		6FB212E9E646E3A769E43E46FAF73A4B /* ReplayToolDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F4C46F8663159759D69BB2BA6E2F6DD /* ReplayToolDispatcher.swift */; };
 		6FF07B2A5E0E8FD006FD2A91CE3F972C /* BrowserAgent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C31DD017E2B791002E7AF4F33020DC5 /* BrowserAgent.swift */; };
-		703E896E617B84C9900B964C85204B3C /* AgentEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A1D4A7537BAA4BE1B82A0338057FFA9 /* AgentEngine.swift */; };
 		708E0C8C3C64D9696878D41A8A872E69 /* PodcastSystemSpeech.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D00DFF8AB68F2700D6018FB4E24FA3B /* PodcastSystemSpeech.swift */; };
 		70B0F7BE6872B258564B979AC012857B /* WukongMindApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC425710B085727E2C37BFC951EACD60 /* WukongMindApp.swift */; };
 		70E3F794367AC3306192888873B7D506 /* HackerNewsRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39869077B6D891A2F1033B70F3B7DC48 /* HackerNewsRecognizer.swift */; };
@@ -338,7 +337,6 @@
 		7C6934B37DEAFA65BB581F0D43D569DA /* HackerNewsAgent.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDCFFB2F74334A9338A90AEC538DF3B3 /* HackerNewsAgent.swift */; };
 		7E431CA739DDD5FEA6630C4FC0068C5F /* run-H3.json in Resources */ = {isa = PBXBuildFile; fileRef = 735AC0FFD61E1F45EF2B5450797964EF /* run-H3.json */; };
 		7E59B224E2D1D713604736088013D640 /* TranslationViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55548E189723CEBF1031A0F2220CB585 /* TranslationViews.swift */; };
-		7E6192E5AB852B572511675CB7CF26BC /* AgentToolPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B1B32CB105CC5F01DB257F5317EA2E7 /* AgentToolPresentation.swift */; };
 		7E84683372C5246F8834F8228A5F4103 /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-a6bf7e392bb6.json in Resources */ = {isa = PBXBuildFile; fileRef = CAFABC04AE3F8E3725D4227B07D057DC /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-a6bf7e392bb6.json */; };
 		7EBDF6AE5F3C66721098BC3BE71B8958 /* HackerNewsLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD8619631EB38DD41ADBD8419A336BFA /* HackerNewsLinks.swift */; };
 		7EE9C6161DF0CD52DB76F5720E5394FC /* SettingsDataHelpPages.swift in Sources */ = {isa = PBXBuildFile; fileRef = 196972F7081D784276E3A60B277902D2 /* SettingsDataHelpPages.swift */; };
@@ -788,7 +786,6 @@
 		194B03CB35445A352A9A3196124C198A /* DesignSystem.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
 		194FD6F9E47938AFC40DE1BBFA91D579 /* run-H1.summaries.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "run-H1.summaries.json"; path = "Fixtures/Comparison/runs/run-H1.summaries.json"; sourceTree = "<group>"; };
 		196972F7081D784276E3A60B277902D2 /* SettingsDataHelpPages.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettingsDataHelpPages.swift; sourceTree = "<group>"; };
-		1A1D4A7537BAA4BE1B82A0338057FFA9 /* AgentEngine.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AgentEngine.swift; sourceTree = "<group>"; };
 		1AE3260BD498F975159AFC3CE8605FA9 /* VoiceActivityDetectorTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VoiceActivityDetectorTests.swift; sourceTree = "<group>"; };
 		1AF20B08A209A4BAF93CDF4FB41DF59D /* hackernews-hn-algolia-com-api-v1-items-50109715-0a0e72469410.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "hackernews-hn-algolia-com-api-v1-items-50109715-0a0e72469410.json"; path = "Fixtures/Comparison/hackernews/hackernews-hn-algolia-com-api-v1-items-50109715-0a0e72469410.json"; sourceTree = "<group>"; };
 		1BC8EE8612AC9C866B8CC91EDA6D2E7F /* discourse-meta-appinn-net-raw-47457-c92e9fb6252e.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "discourse-meta-appinn-net-raw-47457-c92e9fb6252e.json"; path = "Fixtures/Comparison/discourse/discourse-meta-appinn-net-raw-47457-c92e9fb6252e.json"; sourceTree = "<group>"; };
@@ -1047,7 +1044,6 @@
 		7AB96F29B8D54289D42AB8D92A02C104 /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-d89eae096fd0.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "wordpress-www-doctorofcredit-com-wp-json-wp-v2-d89eae096fd0.json"; path = "Fixtures/Comparison/wordpress/wordpress-www-doctorofcredit-com-wp-json-wp-v2-d89eae096fd0.json"; sourceTree = "<group>"; };
 		7AC3F4101F1974F01DD46CCEAC20629F /* error-invalid-id.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "error-invalid-id.json"; path = "Fixtures/WordPress/error-invalid-id.json"; sourceTree = "<group>"; };
 		7B08CBEBFA83902493429CFEB51C5E75 /* WordPressParsing.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WordPressParsing.swift; path = Sites/WordPress/WordPressParsing.swift; sourceTree = "<group>"; };
-		7B1B32CB105CC5F01DB257F5317EA2E7 /* AgentToolPresentation.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AgentToolPresentation.swift; path = Sites/AgentToolPresentation.swift; sourceTree = "<group>"; };
 		7B2C34B97E75859B9AE9234F606FE327 /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		7B4C5F8FCF1176AA320C5E36938C183E /* BrandMarkShapes.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BrandMarkShapes.swift; sourceTree = "<group>"; };
 		7BE5C439AD2BD2EFB6025E6C71DB9070 /* run-W2.summaries.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "run-W2.summaries.json"; path = "Fixtures/Comparison/runs/run-W2.summaries.json"; sourceTree = "<group>"; };
@@ -1504,7 +1500,6 @@
 				FF227D658A4552E42CDAA68A615FE954 /* AIService.swift */,
 				D58ED00A9469E49753D083C8F8F42346 /* AgentBridge.swift */,
 				C7AC1E93B14F1C11D0B611569E4558DB /* AgentConfirmationGate.swift */,
-				1A1D4A7537BAA4BE1B82A0338057FFA9 /* AgentEngine.swift */,
 				D6AFED5F4B830E86D37F6A8E3A091297 /* AgentNetworkTools.swift */,
 				36F8AB8ED452D079C28CBB306504F1E7 /* AgentPageCapture.swift */,
 				ABC6B5132F29689D04757B33B0AB4A8E /* AgentPanel.swift */,
@@ -1603,7 +1598,6 @@
 				EE6EDC7420A93DC0F94B655EBDD766A8 /* SettingsProviderPage.swift */,
 				693A2BBBA5C4B13290A7C6E5CF5143AE /* SettingsSyncPage.swift */,
 				B870A37925CE8404FEEDECD6A666B8A5 /* SharedPage.swift */,
-				7B1B32CB105CC5F01DB257F5317EA2E7 /* AgentToolPresentation.swift */,
 				80719BFC45BEA89BAC009FC9D5830E3A /* DiscourseAPI.swift */,
 				48DA60014A923A21112CA32238DA234C /* DiscourseAdapter.swift */,
 				383E39C86FBA1F528B2DC1CBCFB403BF /* DiscourseAgent.swift */,
@@ -2860,7 +2854,6 @@
 				B952A4800AAC95C332D93580B8453429 /* AIService.swift in Sources */,
 				86E372ACD28C197ED44161F614318457 /* AgentBridge.swift in Sources */,
 				52272A4B65D3F24717C36DB8EA24E85A /* AgentConfirmationGate.swift in Sources */,
-				703E896E617B84C9900B964C85204B3C /* AgentEngine.swift in Sources */,
 				5150348A737851029D12DFE8B63902FA /* AgentNetworkTools.swift in Sources */,
 				98C1B52CE24AD0A6EBFCC148AA7B3696 /* AgentPageCapture.swift in Sources */,
 				769AE67F8F55955AA902F949E05196A8 /* AgentPanel.swift in Sources */,
@@ -2959,7 +2952,6 @@
 				2CE9FD68FAEF8A4F3B4E274505E9A174 /* SettingsProviderPage.swift in Sources */,
 				98142E2BC4276D9AA3856C6BD6190975 /* SettingsSyncPage.swift in Sources */,
 				779E864DE4EB4F729D21175933D8BDA3 /* SharedPage.swift in Sources */,
-				7E6192E5AB852B572511675CB7CF26BC /* AgentToolPresentation.swift in Sources */,
 				431C102DC3583E38FFD28715FFB1AF97 /* DiscourseAPI.swift in Sources */,
 				DF5FC00C8E7B05480A80CCD00782214B /* DiscourseAdapter.swift in Sources */,
 				B5CDF31B2FDC49E514D0EC03741E2BF3 /* DiscourseAgent.swift in Sources */,

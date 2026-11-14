@@ -412,32 +412,6 @@ enum AppleIntelligenceStreaming {
     }
 }
 
-// MARK: - Agent actions
-
-/// A guided-generation action before it becomes an `AgentAction`.
-struct AppleIntelligenceActionDraft: Equatable {
-    struct Argument: Equatable {
-        var name: String
-        var value: String
-    }
-
-    var thought: String
-    var tool: String
-    var arguments: [Argument]
-
-    func agentAction() throws -> AgentAction {
-        let tool = tool.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !tool.isEmpty else { throw AgentActionParseError.missingTool }
-        var values: [String: String] = [:]
-        for argument in arguments {
-            let name = argument.name.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !name.isEmpty else { continue }
-            values[name] = argument.value
-        }
-        return AgentAction(thought: thought, tool: tool, arguments: values)
-    }
-}
-
 // MARK: - Service seam
 
 /// What `AIService` needs from Apple Intelligence; the real implementation is
@@ -454,13 +428,6 @@ protocol AppleIntelligenceServing: AnyObject {
         maxResponseTokens: Int,
         onDelta: @escaping @MainActor (String) -> Void
     ) async throws -> String
-    /// One agent action via guided generation; throws
-    /// `AppleIntelligenceError.guidedGenerationFailed` when it can't.
-    func generateAgentAction(
-        backend: AppleIntelligenceBackend,
-        instructions: String,
-        prompt: String
-    ) async throws -> AppleIntelligenceActionDraft
 }
 
 extension AppleIntelligenceServing {

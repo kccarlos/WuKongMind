@@ -98,68 +98,9 @@ final class AppleIntelligenceClient: AppleIntelligenceServing {
         #endif
         throw AppleIntelligenceError.unavailable(.requiresNewerOS)
     }
-
-    func generateAgentAction(
-        backend: AppleIntelligenceBackend,
-        instructions: String,
-        prompt: String
-    ) async throws -> AppleIntelligenceActionDraft {
-        #if canImport(FoundationModels)
-        if #available(iOS 26.0, *) {
-            do {
-                return try await FoundationModelsBridge.generateAgentAction(
-                    backend: backend,
-                    instructions: instructions,
-                    prompt: prompt
-                )
-            } catch {
-                throw FoundationModelsBridge.mapped(error)
-            }
-        }
-        #endif
-        throw AppleIntelligenceError.unavailable(.requiresNewerOS)
-    }
 }
 
 #if canImport(FoundationModels)
-
-/// Guided-generation schema for one agent step (`[String: String]` isn't
-/// Generable, so arguments are name/value pairs).
-@available(iOS 26.0, *)
-@Generable(description: "The research agent's next step: one tool call.")
-struct AppleIntelligenceGeneratedAction {
-    @Guide(description: "One short sentence of reasoning for this step.")
-    var thought: String
-
-    @Guide(
-        description: "The tool to call.",
-        .anyOf([
-            "search_forum", "list_latest", "search_comments", "read_topic", "summarize_topic",
-            "saved_summaries", "watch_topic", "final_answer"
-        ])
-    )
-    var tool: String
-
-    @Guide(description: "The tool's arguments as name/value pairs, for example name \"query\" or \"topic_id\" or \"answer\". Empty when the tool takes none.")
-    var arguments: [AppleIntelligenceGeneratedArgument]
-
-    var draft: AppleIntelligenceActionDraft {
-        AppleIntelligenceActionDraft(
-            thought: thought,
-            tool: tool,
-            arguments: arguments.map { .init(name: $0.name, value: $0.value) }
-        )
-    }
-}
-
-@available(iOS 26.0, *)
-@Generable(description: "One tool argument.")
-struct AppleIntelligenceGeneratedArgument {
-    @Guide(description: "Argument name, such as query, topic_id or answer.")
-    var name: String
-    @Guide(description: "Argument value as text.")
-    var value: String
-}
 
 @available(iOS 26.0, *)
 enum FoundationModelsBridge {
@@ -265,22 +206,6 @@ enum FoundationModelsBridge {
         }
         try Task.checkCancellation()
         return text
-    }
-
-    static func generateAgentAction(
-        backend: AppleIntelligenceBackend,
-        instructions: String,
-        prompt: String
-    ) async throws -> AppleIntelligenceActionDraft {
-        let session = session(backend: backend, instructions: instructions, permissive: false)
-        let options = GenerationOptions(temperature: 0.2, maximumResponseTokens: 1_024)
-        let response = try await session.respond(
-            to: prompt,
-            generating: AppleIntelligenceGeneratedAction.self,
-            options: options
-        )
-        try Task.checkCancellation()
-        return response.content.draft
     }
 
     /// Maps FoundationModels errors (iOS 26 `GenerationError`, iOS 27

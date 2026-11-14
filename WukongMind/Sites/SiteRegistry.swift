@@ -84,13 +84,4 @@ struct SiteRegistry: Sendable {
         var seen = Set<String>()
         return adapters.flatMap(\.capabilities.firstPartyPathPatterns).filter { seen.insert($0).inserted }
     }
-
-    /// Tool names any registered adapter offers (in registry order), then the
-    /// app tools (in `AgentPrompt` order): Apple Intelligence's guided enum.
-    var allAgentToolNames: [String] {
-        var seen = Set<String>()
-        let siteNames = adapters.flatMap { $0.agent.siteTools.map(\.name) }
-        let appNames = AgentToolName.appTools.map(\.rawValue)
-        return (siteNames + appNames).filter { seen.insert($0).inserted }
-    }
 }

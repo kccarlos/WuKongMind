@@ -171,21 +171,27 @@ struct SiteLink: Equatable, Sendable {
     var postNumber: Int?
 }
 
-/// Stable tool names shared by every site (the model, the transcript and Apple Intelligence's
-/// guided enum use them). Adding one is a deliberate app change, not an adapter's.
-enum AgentToolName: String, CaseIterable, Sendable {
-    case searchForum = "search_forum", searchComments = "search_comments", listLatest = "list_latest"
-    case readTopic = "read_topic", summarizeTopic = "summarize_topic", savedSummaries = "saved_summaries"
-    case watchTopic = "watch_topic", finalAnswer = "final_answer"
+/// A site tool an adapter specifies: its name (one of `ForumToolName`), what
+/// it does and its parameters. `ToolRegistry.forumTools` turns it into an
+/// Agent tool definition. `requiresApproval` marks tools whose effects leave
+/// the app (none today; forum writes would set it).
+struct AgentToolSpec: Equatable, Sendable {
+    struct Parameter: Equatable, Sendable {
+        var name: String
+        var description: String
+        var required: Bool
+    }
 
-    /// Specified and run by the app, whatever the site, in `AgentPrompt` order.
-    static let appTools: [AgentToolName] = [.readTopic, .summarizeTopic, .savedSummaries, .watchTopic, .finalAnswer]
+    var name: String
+    var description: String
+    var parameters: [Parameter]
+    var requiresApproval = false
 }
 
 /// A site's part of the agent: the phrases its prompt uses, the tools it
 /// specifies and how their arguments become a typed query.
 struct AgentSiteProfile: Sendable {
-    /// "a Discourse forum": completes "a research agent for <name> (<url>), …".
+    /// "a Discourse forum": completes "You are on <name> (<url>), …" in the Agent's forum section.
     var siteDescription: String
     /// "forum": what the run's site is called in the prompt and tool texts.
     var siteNoun: String
@@ -193,12 +199,13 @@ struct AgentSiteProfile: Sendable {
     var topicNoun: String
     /// The prompt's rule on post numbers and how to cite one (the whole sentence).
     var postNumbering: String
-    /// The `final_answer` sentence on citing a post.
+    /// The forum section's sentence on citing a post.
     var postCitation: String
     /// Ordered; the site's search and list tools.
     var siteTools: [AgentToolSpec]
     /// Arguments of a site tool → query; throws `AgentError.missingArgument`.
-    var query: @Sendable (_ tool: AgentToolName, _ arguments: [String: String]) throws -> SiteQuery
+    /// `tool` is a `ForumToolName`; any other name throws `SiteQueryError.unsupported`.
+    var query: @Sendable (_ tool: String, _ arguments: [String: String]) throws -> SiteQuery
     /// "(post N: <topic page>/N)": how the model builds a link to one post.
     var postLinkHint: @Sendable (_ topicURL: URL) -> String
 }

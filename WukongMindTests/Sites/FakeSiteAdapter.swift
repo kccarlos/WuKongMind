@@ -65,7 +65,7 @@ struct FakeSiteAdapter: SiteAdapter {
             postCitation: "When a point comes from a specific post, cite it as [title](url#pN).",
             siteTools: [
                 AgentToolSpec(
-                    name: AgentToolName.searchComments.rawValue,
+                    name: ForumToolName.searchComments,
                     description: "Search the comments of this site.",
                     parameters: [
                         .init(name: "query", description: "Search text", required: true),
@@ -77,7 +77,7 @@ struct FakeSiteAdapter: SiteAdapter {
                 )
             ],
             query: { tool, arguments in
-                guard tool == .searchComments else { throw SiteQueryError.unsupported }
+                guard tool == ForumToolName.searchComments else { throw SiteQueryError.unsupported }
                 guard let text = arguments["query"], !text.isEmpty else { throw AgentError.missingArgument("query") }
                 return .search(text: text, scope: .comments, options: try SearchOptions(arguments: arguments))
             },

@@ -105,9 +105,6 @@ struct AssistantPanel: View {
     }
 
     private var providerSetupRole: ModelRole? {
-        if app.assistantMode == .agent, !app.isProviderReady(for: .agent) {
-            return .agent
-        }
         if !app.isProviderReady(for: .browserAgent),
            requestedProviderSetup || !app.isProviderReady(for: .assistant) {
             return .browserAgent
@@ -554,9 +551,6 @@ struct AssistantPanel: View {
                 Button {
                     DCHaptics.tap()
                     browserAgent.resetConversation()
-                    if app.assistantMode == .agent {
-                        app.assistantMode = .summary
-                    }
                 } label: {
                     Label(
                         String(localized: "New conversation", comment: "Browser agent menu action: clear the conversation and start fresh"),
@@ -564,7 +558,7 @@ struct AssistantPanel: View {
                     )
                 }
                 .accessibilityIdentifier("agentNewConversation")
-                .disabled(browserAgent.runs.isEmpty && browserAgent.messages.isEmpty && !browserAgent.isRunning && app.assistantMode != .agent)
+                .disabled(browserAgent.runs.isEmpty && browserAgent.messages.isEmpty && !browserAgent.isRunning)
             }
 
             Section {
@@ -1352,16 +1346,12 @@ private struct ChatThread<Leading: View>: View {
         self.leading = leading()
     }
 
-    private var showsEmbeddedForumRun: Bool {
-        app.assistantMode == .agent && app.selectedAgentRun != nil
-    }
-
     private var hasConversationEntries: Bool {
         browserAgent.hasConversation
     }
 
     private var isCompletelyEmpty: Bool {
-        !hasLeadingContent && !hasConversationEntries && !showsEmbeddedForumRun
+        !hasLeadingContent && !hasConversationEntries
     }
 
     var body: some View {
@@ -1387,16 +1377,6 @@ private struct ChatThread<Leading: View>: View {
                                     }
                                     .transition(.identity)
                                 }
-                            }
-
-                            if showsEmbeddedForumRun {
-                                AgentView(
-                                    app: app,
-                                    showsProviderCard: false,
-                                    embeddedInTranscript: true,
-                                    onOpenTopic: onOpenURL
-                                )
-                                .transition(.identity)
                             }
 
                             if browserAgent.hasConversation {
@@ -2084,8 +2064,6 @@ struct DrawerStatusRow: View {
         return voice.inactiveBarMessage
     }
 
-    private var inAgentMode: Bool { app.assistantMode == .agent }
-
     private var research: WorkRecord? { app.activeResearch }
     private var readyAnswer: WorkRecord? { app.readyAnswer }
 
@@ -2104,11 +2082,11 @@ struct DrawerStatusRow: View {
                 )
             } else if voiceOnly {
                 EmptyView()
-            } else if !inAgentMode, let research {
+            } else if let research {
                 DrawerResearchStatus(record: research, progress: app.progress) {
                     showAnswer(for: research)
                 }
-            } else if !inAgentMode, let readyAnswer {
+            } else if let readyAnswer {
                 row(
                     systemImage: "checkmark.circle.fill",
                     text: String(localized: "Answer ready", comment: "AI drawer status row: an Ask the forum answer finished")
@@ -2124,12 +2102,6 @@ struct DrawerStatusRow: View {
             if !voiceOnly, app.isAIViewShown, app.browseCursor.showsInDrawer {
                 DrawerCardsChip(app: app, router: router)
             }
-        }
-        .onAppear {
-            if inAgentMode, !voiceOnly { router.answersSeenAt = Date() }
-        }
-        .onChange(of: app.assistantMode) {
-            if inAgentMode { router.answersSeenAt = Date() }
         }
     }
 

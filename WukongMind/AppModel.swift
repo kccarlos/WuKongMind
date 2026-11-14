@@ -25,13 +25,8 @@ import UserNotifications
 // - `currentTopic`, `currentSession` topic of the page and its saved session
 // - `isProviderReady(for:)`         a role's model can run (key present when required);
 //                                   roles and model selection: AppModel+Models.swift
-// - `agentSiteURL`                  forum the next agent run targets (nil → current forum)
-// - `startAgentRun(goal:siteURL:)`  runs are scoped to one forum (`AgentRun.siteURL`)
-// - `startAgentRun(goal:siteURL:completion:)` / `performAgentRun(goal:siteURL:)`
-//                                   a run started from code (no panel, selection or draft
-//                                   change) that hands back `AgentRunOutcome`
-// - `cancelAgentRun(id:)`           stops a queued or running run
-// - `sendAsk()` the unified Ask box (AskBox.swift)
+// - `agentRuns`                     saved answers (old Research runs and Agent answers),
+//                                   read-only in History's `SavedAnswerView`
 // - `sessions` is keyed by topic key (`host[/basePath]/t/{id}`); per-topic calls take
 //   `topicKey:` (`setKept`, `deleteSession`, `setInstructions`, `isWatched`, `unwatch`,
 //   `markWatchedSeen`)
@@ -49,7 +44,7 @@ import UserNotifications
 //
 // Post-level browsing (AppModel+Navigation.swift): `openTopic(_:at:)`,
 // `focus(_:)`, `find(_:scope:)`, `next()` / `previous()`, `read(post:)`,
-// `research(_:)` / `cancelResearch()`, `openLink(_:)`; the current list is
+// `openLink(_:)`; the current list is
 // `browseCursor`, page changes for the voice layer arrive on `pageChanges`.
 
 /// What the AI view shows: the topic, or (split layout) History in place.
@@ -69,21 +64,9 @@ struct AuditLogRequest: Identifiable, Equatable {
 
 enum AssistantMode: String, CaseIterable, Identifiable {
     case summary = "Summary"
-    case agent = "Agent"
     case browserAgent = "BrowserAgent"
 
     var id: String { rawValue }
-}
-
-/// What an agent run started from code hands back once it ends: the answer
-/// and its sources (topics, or single posts with `postNumber`), or why there
-/// is none (`status` cancelled or failed, `error`).
-struct AgentRunOutcome: Equatable {
-    var runID: UUID
-    var status: WorkStatus
-    var answer: String
-    var sources: [AgentSources.Source]
-    var error: String
 }
 
 enum AgentError: LocalizedError {
@@ -187,17 +170,8 @@ final class AppModel: ObservableObject {
     @Published var discoveredModels: [AIProvider: [String]] = [:]
     /// The saved Agent answer History shows (`SavedAnswerView`); nil shows the list.
     @Published var savedAnswerRunID: UUID?
-    @Published private(set) var agentRuns: [AgentRun] {
-        didSet { deliverAgentRunOutcomes() }
-    }
+    @Published private(set) var agentRuns: [AgentRun]
     @Published private(set) var watchedTopics: [WatchedTopic]
-    @Published var selectedAgentRunID: UUID? {
-        // Picking or starting a run shows it (AskBox.swift).
-        didSet { agentComposesNewQuestion = false }
-    }
-    /// The Ask box's Whole forum scope starts a new run instead of following
-    /// up the selected one (its examples and recent runs show).
-    @Published var agentComposesNewQuestion = false
     /// Bumped to focus the Ask box (⌘2, ⌘3).
     @Published var askFocusRequest = 0
     @Published private(set) var notificationsAuthorized = false
@@ -212,15 +186,10 @@ final class AppModel: ObservableObject {
     }
     /// The forum of the current page, or the last forum shown.
     @Published private(set) var currentSiteURL: String?
-    /// Last site URL delivered by `handlePageContext` so forum-home switches
-    /// can exit a previous forum's `.agent` mode.
-    private var lastPageSiteURL: String?
     /// Where Add forum is: detecting the platform of an address, then the
     /// outcome. One detection per address at a time.
     @Published private(set) var addForumPhase = AddForumPhase.idle
     private var addForumTask: (key: AddForumRequest, task: Task<Forum, Error>)?
-    /// Forum the next agent run targets; nil means `currentForum`.
-    @Published var agentSiteURL: String?
     /// Bumped when a hand-off (shared link, Siri, Spotlight) wants the
     /// Assistant shown (`requestAssistant()`); the root view shows it once
     /// per new value.
@@ -302,7 +271,6 @@ final class AppModel: ObservableObject {
     /// Every platform this build reads; tests inject their own.
     let sites: SiteRegistry
     let aiService: AIService
-    private let planner: AgentPlanner
     let notifier: WatchNotifier
     /// The daily digest's files and background task (AppModel+Digest.swift).
     let digestStore: DigestStore
@@ -352,16 +320,12 @@ final class AppModel: ObservableObject {
     private static let watchInterval: TimeInterval = 30 * 60
     static let agentTopicPrefix = "agent:"
     /// Runs started from code that wait for their outcome (in memory only).
-    private var agentRunCompletions: [UUID: (AgentRunOutcome) -> Void] = [:]
     /// When true, agent tools and watch checks call the forum through
     /// ForumService's URLSession instead of the embedded web view (tests).
     var usesDirectForumRequests = false
     /// Topic overviews (title, slug, facts) by topic key, fetched once per
     /// topic for navigation (AppModel+Navigation.swift).
     var topicOverviews: [String: ForumTopicOverview] = [:]
-    /// The running `research(_:)` and its generation; a newer one wins.
-    var researchTask: Task<AgentRunOutcome, Error>?
-    var researchGeneration = 0
     /// Voice's hand-off to the Agent (`hand_off_to_agent`).
     private(set) lazy var agentHandOff = AgentHandOff(agent: browserAgent)
     /// Feeds the voice session's silent context (AppModel+Voice.swift).
@@ -518,7 +482,6 @@ final class AppModel: ObservableObject {
         sites: SiteRegistry = .standard,
         aiService: AIService = AIService(),
         browser: ForumBrowserModel? = nil,
-        planner: AgentPlanner? = nil,
         notifier: WatchNotifier = .shared,
         cloudSync: CloudSyncController? = nil,
         backgroundScheduler: BackgroundTaskScheduling = BGTaskScheduler.shared,
@@ -556,7 +519,6 @@ final class AppModel: ObservableObject {
         self.aiService = aiService
         let resolvedBrowser = browser ?? ForumBrowserModel(sites: sites)
         self.browser = resolvedBrowser
-        self.planner = planner ?? PromptAgentPlanner(aiService: aiService)
         self.notifier = notifier
 
         let snapshot = store.load()
@@ -564,7 +526,6 @@ final class AppModel: ObservableObject {
         let loadedRuns = snapshot.agentRuns.sorted { $0.createdAt > $1.createdAt }
         agentRuns = loadedRuns
         watchedTopics = snapshot.watchedTopics
-        selectedAgentRunID = loadedRuns.first { $0.loop == .research }?.id
         var loadedSettings = snapshot.settings
         var loadedKeys: [AIProvider: String] = [:]
         for provider in AIProvider.allCases {
@@ -652,7 +613,6 @@ final class AppModel: ObservableObject {
             },
             uniquingKeysWith: { first, second in first.updatedAt >= second.updatedAt ? first : second }
         )
-        let voiceRunIDs = Set(loadedRuns.filter { $0.origin == .voice }.map(\.id))
         activities = snapshot.activities
             .filter {
                 !$0.status.isTerminal
@@ -661,9 +621,9 @@ final class AppModel: ObservableObject {
             .map {
                 guard !$0.status.isTerminal else { return $0 }
                 var interrupted = $0
-                if interrupted.type == .agent,
-                   let runID = UUID(uuidString: String(interrupted.topicID.dropFirst(Self.agentTopicPrefix.count))),
-                   voiceRunIDs.contains(runID) {
+                // The old Research loop is gone: an interrupted run's record
+                // never runs again.
+                if interrupted.type == .agent {
                     interrupted.status = .cancelled
                     interrupted.statusText = String(localized: "Cancelled", comment: "Status of AI work the user cancelled")
                     interrupted.completedAt = now
@@ -675,26 +635,18 @@ final class AppModel: ObservableObject {
             }
             .sorted { $0.createdAt > $1.createdAt }
 
-        // Interrupted agent runs resume with their re-queued record (their
-        // status is the record's); a run whose record is gone cannot resume
-        // and is closed out instead of spinning.
-        let restorableRunIDs = Set(
-            activities
-                .filter { $0.type == .agent && !$0.status.isTerminal }
-                .compactMap { UUID(uuidString: String($0.topicID.dropFirst(Self.agentTopicPrefix.count))) }
-        )
+        // An old Research run that never finished is closed out instead of
+        // spinning: the loop that ran it is gone.
         agentRuns = agentRuns.map { run in
             guard !run.isFinished else { return run }
             var updated = run
-            if !restorableRunIDs.contains(run.id) {
-                if !updated.initialAnswer.isEmpty {
-                    updated.result = .completed
-                    updated.completedAt = updated.completedAt ?? now
-                } else {
-                    updated.result = .cancelled
-                    updated.error = String(localized: "Interrupted before the run could finish.", comment: "Ask the forum: a research run stopped when the app quit")
-                    updated.completedAt = now
-                }
+            if !updated.initialAnswer.isEmpty {
+                updated.result = .completed
+                updated.completedAt = updated.completedAt ?? now
+            } else {
+                updated.result = .cancelled
+                updated.error = String(localized: "Interrupted before the run could finish.", comment: "Ask the forum: a research run stopped when the app quit")
+                updated.completedAt = now
             }
             return updated
         }
@@ -983,19 +935,6 @@ final class AppModel: ObservableObject {
 
     private func handlePageContext(_ context: PageContext) {
         objectWillChange.send()
-        let previousSiteURL = lastPageSiteURL
-        if let siteURL = context.siteURL {
-            lastPageSiteURL = siteURL
-        }
-        if context.topic == nil,
-           context.state == .forumHome,
-           assistantMode == .agent,
-           let previousSiteURL,
-           let newSiteURL = context.siteURL,
-           previousSiteURL != newSiteURL {
-            assistantMode = .summary
-            agentSiteURL = nil
-        }
         if let suppressed = suppressedAutoAddSiteURL {
             // A forum removed while its page is open stays removed until the
             // browser settles on another forum or a non-forum page.
@@ -1126,12 +1065,12 @@ final class AppModel: ObservableObject {
         case .open:
             pendingShare = nil
         case .agent:
+            // The Agent, with this forum's tools (the old Research loop is gone).
             pendingShare = nil
-            agentSiteURL = context.siteURL
-            assistantMode = .agent
+            assistantMode = .browserAgent
             panelRoute = .topic
             requestAssistant()
-            if !isProviderReady(for: .agent) { needsProviderSetup = .agent }
+            if !isProviderReady(for: .browserAgent) { needsProviderSetup = .browserAgent }
         case .summary, .chat:
             guard topicMatches else {
                 // A Discourse page that is not the shared topic: stop waiting
@@ -1308,16 +1247,6 @@ final class AppModel: ObservableObject {
     /// always come from the directory.
     var currentForum: Forum? {
         currentSiteURL.map { forumInfo(siteURL: $0) }
-    }
-
-    /// After runs were deleted: select a remaining run, and drop a follow-up
-    /// draft that belonged to a deleted one.
-    func reconcileAgentSelection() {
-        guard let selectedAgentRunID, !researchRuns.contains(where: { $0.id == selectedAgentRunID }) else {
-            return
-        }
-        self.selectedAgentRunID = researchRuns.first?.id
-        drafts.followUp = ""
     }
 
     func hasActiveWork(topicKey: String, type: WorkType) -> Bool {
@@ -1521,7 +1450,6 @@ final class AppModel: ObservableObject {
             activities.removeAll { $0.siteURL == siteURL }
             agentRuns.removeAll { $0.siteURL == siteURL }
             watchedTopics.removeAll { $0.siteURL == siteURL }
-            reconcileAgentSelection()
             removeDigestCards(siteURL: siteURL)
         }
         if pageContext.siteURL == siteURL { suppressedAutoAddSiteURL = siteURL }
@@ -1534,7 +1462,6 @@ final class AppModel: ObservableObject {
             currentSiteURL = (pageContext.siteURL.flatMap { self.directory.forum(siteURL: $0) }
                 ?? Self.startForum(in: forums))?.siteURL
         }
-        if agentSiteURL == siteURL { agentSiteURL = nil }
         if browser.homeSiteURL == siteURL, (pageContext.siteURL != siteURL || browser.showsForumsHome) {
             browser.homeSiteURL = currentSiteURL
         }
@@ -1553,13 +1480,6 @@ final class AppModel: ObservableObject {
                 $0.statusText = String(localized: "Failed", comment: "Status of AI work that failed")
                 $0.error = error.localizedDescription
                 $0.completedAt = Date()
-            }
-            if record.type == .agent {
-                mutateAgentRun(for: record) {
-                    $0.result = .failed
-                    $0.error = error.localizedDescription
-                    $0.completedAt = Date()
-                }
             }
             if record.origin == .user { presentError(error.localizedDescription) }
         }
@@ -1581,98 +1501,7 @@ final class AppModel: ObservableObject {
         openForum(Forum(siteURL: suggested.siteURL, kind: suggested.kind, name: suggested.name))
     }
 
-    // MARK: Agent runs
-
-    /// Starts an agent run on `siteURL` (default: `agentSiteURL`, else the
-    /// current forum). Every tool call and follow-up stays on that forum.
-    func startAgentRun(goal rawGoal: String, siteURL: String? = nil, origin: AgentRunOrigin = .typed) {
-        guard !rawGoal.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
-        do {
-            selectedAgentRunID = try enqueueAgentRun(goal: rawGoal, siteURL: siteURL, origin: origin)
-            drafts.goal = ""
-        } catch {
-            presentError(error.localizedDescription)
-        }
-    }
-
-    /// Starts an agent run from code (the voice `research` tool): it goes
-    /// through the same work queue and loop, shows up in Ask the forum and
-    /// Manage, but leaves the panel, the selected run and the drafts alone.
-    /// `completion` gets the outcome once, on the main actor, when the run
-    /// completes, fails, is cancelled or is deleted. Throws instead of
-    /// showing an alert when it cannot start.
-    @discardableResult
-    func startAgentRun(
-        goal: String,
-        siteURL: String? = nil,
-        origin: AgentRunOrigin = .typed,
-        completion: @escaping (AgentRunOutcome) -> Void
-    ) throws -> UUID {
-        let id = try enqueueAgentRun(goal: goal, siteURL: siteURL, origin: origin)
-        agentRunCompletions[id] = completion
-        return id
-    }
-
-    /// `startAgentRun(goal:siteURL:completion:)` as an async call. Cancelling
-    /// the calling task cancels the run.
-    func performAgentRun(goal: String, siteURL: String? = nil, origin: AgentRunOrigin = .typed) async throws -> AgentRunOutcome {
-        let started = StartedRun()
-        return try await withTaskCancellationHandler {
-            try await withCheckedThrowingContinuation { continuation in
-                do {
-                    let id = try startAgentRun(goal: goal, siteURL: siteURL, origin: origin) { continuation.resume(returning: $0) }
-                    started.id = id
-                    // Cancelled before the run existed: the handler saw no id.
-                    if Task.isCancelled { cancelAgentRun(id: id) }
-                } catch {
-                    continuation.resume(throwing: error)
-                }
-            }
-        } onCancel: {
-            Task { @MainActor [weak self] in
-                if let id = started.id { self?.cancelAgentRun(id: id) }
-            }
-        }
-    }
-
-    /// The run id `performAgentRun` shares with its cancellation handler.
-    private final class StartedRun: @unchecked Sendable {
-        private let lock = NSLock()
-        private var value: UUID?
-        var id: UUID? {
-            get { lock.withLock { value } }
-            set { lock.withLock { value = newValue } }
-        }
-    }
-
-    /// Cancels a queued or running agent run (its work record).
-    func cancelAgentRun(id: UUID) {
-        guard let record = activeRecord(forAgentRun: id) else { return }
-        cancel(record: record)
-    }
-
-    private func enqueueAgentRun(goal rawGoal: String, siteURL: String?, origin: AgentRunOrigin) throws -> UUID {
-        let goal = rawGoal.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !goal.isEmpty else { throw AgentError.missingArgument("goal") }
-        guard let forumSiteURL = (siteURL ?? agentSiteURL ?? currentForum?.siteURL)
-            .flatMap(ForumSite.normalizeSiteURL)
-        else {
-            throw AssistantError.noForum
-        }
-        guard activeTaskCount < 50 else { throw AgentError.queueFull }
-        let selection = selection(for: .agent)
-        var run = AgentRun(
-            siteURL: forumSiteURL,
-            goal: goal,
-            provider: selection.provider,
-            model: selection.model,
-            origin: origin
-        )
-        run.transcript = [AgentPrompt.goalMessage(goal)]
-        insertAgentRun(run)
-        launchAgentRecord(for: run, title: goal)
-        return run.id
-    }
+    // MARK: Saved answers
 
     /// The newest records kept in `agentRuns`, Research and Agent together.
     static let agentRunLimit = 50
@@ -1683,10 +1512,6 @@ final class AppModel: ObservableObject {
         cloudSync.notePruned(kind: .run, ids: agentRuns.dropFirst(Self.agentRunLimit).map(\.id.uuidString))
         agentRuns = Array(agentRuns.prefix(Self.agentRunLimit))
     }
-
-    /// The old Research runs. The panel's run lists, the selection and the
-    /// follow-ups read these only; Agent records open in `SavedAnswerView`.
-    var researchRuns: [AgentRun] { agentRuns.filter { $0.loop == .research } }
 
     /// Whether an answer needs saving: it cites a source (a Markdown link; a
     /// plain-text URL is none), or is long enough to be worth coming back to.
@@ -1773,97 +1598,20 @@ final class AppModel: ObservableObject {
         run.loop == .research || forum(for: run.siteURL) != nil || adapter(for: run.siteURL) != nil
     }
 
-    /// Hands each waiting run that has ended (or is gone) its outcome, once.
-    /// Called on every change to `agentRuns`; delivered on the next main-actor
-    /// turn so a completion never runs inside that change.
-    private func deliverAgentRunOutcomes() {
-        guard !agentRunCompletions.isEmpty else { return }
-        for (id, completion) in agentRunCompletions {
-            let outcome: AgentRunOutcome
-            if let run = agentRuns.first(where: { $0.id == id }) {
-                guard let result = run.result else { continue }
-                outcome = AgentRunOutcome(
-                    runID: id,
-                    status: result.workStatus,
-                    answer: result == .completed ? run.answer : "",
-                    sources: result == .completed
-                        ? AgentSources.extract(
-                            from: run.answer, run: run, sessions: sessions, parse: linkParser(for: run)
-                        )
-                        : [],
-                    error: run.error
-                )
-            } else {
-                outcome = AgentRunOutcome(
-                    runID: id, status: .cancelled, answer: "", sources: [],
-                    error: AgentError.runNotFound.localizedDescription
-                )
-            }
-            agentRunCompletions.removeValue(forKey: id)
-            Task { @MainActor in completion(outcome) }
-        }
-    }
-
-    /// Continues a finished run with a follow-up question; the agent keeps the
-    /// topics it already read and may call tools again.
-    func continueAgentRun(id: UUID, question rawQuestion: String) {
-        let question = rawQuestion.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !question.isEmpty,
-              let index = agentRuns.firstIndex(where: { $0.id == id }),
-              agentRuns[index].isFinished,
-              agentRuns[index].loop == .research
-        else {
-            return
-        }
-        guard activeTaskCount < 50 else {
-            presentError(String(localized: "The task queue is full. Cancel or wait for an existing task."))
-            return
-        }
-        agentRuns[index].followUps.append(ChatMessage(role: .user, content: question))
-        agentRuns[index].transcript.append(AgentPrompt.followUpMessage(question))
-        agentRuns[index].result = nil
-        agentRuns[index].error = ""
-        agentRuns[index].updatedAt = Date()
-        drafts.followUp = ""
-        selectedAgentRunID = id
-        launchAgentRecord(for: agentRuns[index], title: question)
-    }
-
     func deleteAgentRun(id: UUID) {
         guard let run = agentRuns.first(where: { $0.id == id }), run.isFinished else {
             return
         }
         agentRuns.removeAll { $0.id == id }
-        reconcileAgentSelection()
         save()
     }
 
+    /// Every saved answer, an old Research run or an Agent answer, opens
+    /// read-only in History (`SavedAnswerView`).
     func openAgentRun(id: UUID) {
-        // A saved Agent answer opens read-only in History (`SavedAnswerView`).
-        if let saved = agentRuns.first(where: { $0.id == id }), saved.loop == .agent {
-            savedAnswerRunID = id
-            openPanelRoute(.history)
-            return
-        }
-        dismissHistoryIfNeeded()
-        if let run = agentRuns.first(where: { $0.id == id }) {
-            agentSiteURL = run.siteURL
-            if browser.showsForumsHome {
-                lastPageSiteURL = run.siteURL
-                let forum = forumInfo(siteURL: run.siteURL)
-                if isCurrent(forum), browser.currentURL != nil {
-                    browser.hideForumsHome()
-                } else if sites.adapter(for: forum.kind) != nil {
-                    openForum(forum)
-                } else if let url = adapter(for: run.siteURL)?.links.homeURL(siteURL: run.siteURL) ?? URL(string: run.siteURL) {
-                    browser.load(url)
-                }
-            }
-        }
-        selectedAgentRunID = id
-        showSelectedAgentRun()
-        panelRoute = .topic
-        showAIView()
+        guard agentRuns.contains(where: { $0.id == id }) else { return }
+        savedAnswerRunID = id
+        openPanelRoute(.history)
     }
 
     /// A source tapped in `SavedAnswerView`: the sources become the current
@@ -1891,43 +1639,12 @@ final class AppModel: ObservableObject {
     func showForumOverview() {
         guard currentTopic == nil, assistantPageState == .forumHome else { return }
         assistantMode = .summary
-        agentSiteURL = nil
     }
 
-    var selectedAgentRun: AgentRun? {
-        let runs = researchRuns
-        guard let selectedAgentRunID else { return runs.first }
-        return runs.first { $0.id == selectedAgentRunID } ?? runs.first
-    }
-
-    /// The run's status: its outcome once it ended, else its work record's
-    /// (queued, running, or paused; the record is the only live state).
+    /// A saved run's outcome. Nothing runs them any more: one with no
+    /// result was closed out at launch, so this is only a fallback.
     func status(of run: AgentRun) -> WorkStatus {
-        if let result = run.result { return result.workStatus }
-        return activeRecord(forAgentRun: run.id)?.status ?? .queued
-    }
-
-    func activeRecord(forAgentRun id: UUID) -> WorkRecord? {
-        activities.first {
-            $0.type == .agent && $0.topicID == Self.agentTopicPrefix + id.uuidString
-                && !$0.status.isTerminal
-        }
-    }
-
-    private func launchAgentRecord(for run: AgentRun, title: String) {
-        let record = WorkRecord(
-            type: .agent,
-            siteURL: run.siteURL,
-            topicID: Self.agentTopicPrefix + run.id.uuidString,
-            title: title,
-            url: adapter(for: run.siteURL)?.links.homeURL(siteURL: run.siteURL) ?? URL(string: run.siteURL)
-                ?? URL(string: "about:blank")!,
-            provider: run.provider,
-            model: run.model
-        )
-        activities.insert(record, at: 0)
-        save()
-        launch(recordID: record.id)
+        run.result?.workStatus ?? .cancelled
     }
 
     // MARK: Watched topics
@@ -2243,12 +1960,6 @@ final class AppModel: ObservableObject {
             $0.status = .cancelled
             $0.statusText = String(localized: "Cancelled", comment: "Status of AI work the user cancelled")
             $0.completedAt = Date()
-        }
-        if record.type == .agent {
-            mutateAgentRun(for: record) {
-                $0.result = .cancelled
-                $0.completedAt = Date()
-            }
         }
         resumeRecordWaiters(record.id, with: activities.first { $0.id == record.id })
         save()
@@ -2613,7 +2324,6 @@ final class AppModel: ObservableObject {
         currentTopic = seed.currentTopic
         currentSiteURL = seed.currentForum?.siteURL
         seededPageContext = seed.pageContext
-        selectedAgentRunID = seed.agentRuns.first { $0.loop == .research }?.id
         // No automatic watch check (network, summary refresh) for the seed.
         lastWatchCheck = Date()
     }
@@ -2795,12 +2505,10 @@ final class AppModel: ObservableObject {
     /// limits and instructions then. Edits made while it runs apply to the
     /// next job. Agent step and topic budgets can still be lowered mid-run.
     ///
-    /// Ask the forum runs with the agent model, everything else with the
-    /// assistant model; the agent's `summarize_topic` tool also uses the
-    /// assistant model (`summarizer`).
+    /// Queued work (summaries and pulls) runs with the assistant model.
     private func runSettings(for record: WorkRecord) -> RunSettings {
         runSettings(
-            role: record.type == .agent ? .agent : .assistant,
+            role: .assistant,
             topicKey: record.topicKey,
             batchLimit: record.batchLimit
         )
@@ -2855,8 +2563,9 @@ final class AppModel: ObservableObject {
         else {
             return
         }
-        // Topic chat is gone: a chat record saved by an older version never runs.
-        if record.type == .chat {
+        // Topic chat and the old Research loop are gone: a chat or Research
+        // record saved by an older version never runs.
+        if record.type == .chat || record.type == .agent {
             mutateRecord(recordID) {
                 $0.status = .cancelled
                 $0.statusText = String(localized: "Cancelled", comment: "Status of AI work the user cancelled")
@@ -2878,15 +2587,6 @@ final class AppModel: ObservableObject {
             $0.provider = context.provider
             $0.model = context.configuration.model
         }
-        if record.type == .agent {
-            // The run keeps the provider of its first answer; each turn's
-            // record (Manage) shows what that turn used.
-            mutateAgentRun(for: record) {
-                guard $0.followUps.isEmpty else { return }
-                $0.provider = context.provider
-                $0.model = context.configuration.model
-            }
-        }
         save()
 
         do {
@@ -2898,27 +2598,16 @@ final class AppModel: ObservableObject {
                 try await runSummary(recordID: recordID, record: record, context: context)
             case .pull:
                 try await runPull(recordID: recordID, record: record, context: context)
-            case .chat:
+            case .chat, .agent:
                 break
-            case .agent:
-                try await runAgent(recordID: recordID, record: record, context: context)
             }
             // Finished after it was cancelled (a provider that ignores
             // cancellation): it stays cancelled.
             try ensureLive(recordID)
-            let completedAt = Date()
             mutateRecord(recordID) {
                 $0.status = .completed
                 $0.statusText = String(localized: "Completed", comment: "Status of finished AI work")
-                $0.completedAt = completedAt
-            }
-            if record.type == .agent,
-               isAIViewShown,
-               assistantMode == .agent,
-               panelRoute == .topic,
-               !agentComposesNewQuestion,
-               agentRunID(for: record) == selectedAgentRunID {
-                router.answersSeenAt = max(router.answersSeenAt, completedAt)
+                $0.completedAt = Date()
             }
         } catch is CancellationError {
             // A paused job is back in the queue (or already running again):
@@ -2929,12 +2618,6 @@ final class AppModel: ObservableObject {
                     $0.status = .cancelled
                     $0.statusText = String(localized: "Cancelled", comment: "Status of AI work the user cancelled")
                     $0.completedAt = Date()
-                }
-                if record.type == .agent {
-                    mutateAgentRun(for: record) {
-                        $0.result = .cancelled
-                        $0.completedAt = Date()
-                    }
                 }
             }
         } catch where backgroundWork != nil && isLive(recordID) && NetworkFailure.isUnreachable(error) {
@@ -2950,12 +2633,6 @@ final class AppModel: ObservableObject {
                     $0.statusText = String(localized: "Cancelled", comment: "Status of AI work the user cancelled")
                     $0.completedAt = Date()
                 }
-                if record.type == .agent {
-                    mutateAgentRun(for: record) {
-                        $0.result = .cancelled
-                        $0.completedAt = Date()
-                    }
-                }
             }
         } catch {
             mutateRecord(recordID) {
@@ -2963,13 +2640,6 @@ final class AppModel: ObservableObject {
                 $0.statusText = String(localized: "Failed", comment: "Status of AI work that failed")
                 $0.error = error.localizedDescription
                 $0.completedAt = Date()
-            }
-            if record.type == .agent {
-                mutateAgentRun(for: record) {
-                    $0.result = .failed
-                    $0.error = error.localizedDescription
-                    $0.completedAt = Date()
-                }
             }
             // Work the app started by itself shows its failure in Activity.
             if record.origin == .user { presentError(error.localizedDescription) }
@@ -3140,178 +2810,12 @@ final class AppModel: ObservableObject {
     }
     #endif
 
-    // MARK: Agent runner
+    // MARK: Forum tools
 
+    /// The saved run an old Research work record belongs to.
     func agentRunID(for record: WorkRecord) -> UUID? {
         guard record.topicID.hasPrefix(Self.agentTopicPrefix) else { return nil }
         return UUID(uuidString: String(record.topicID.dropFirst(Self.agentTopicPrefix.count)))
-    }
-
-    private func mutateAgentRun(for record: WorkRecord, mutation: (inout AgentRun) -> Void) {
-        guard let id = agentRunID(for: record),
-              let index = agentRuns.firstIndex(where: { $0.id == id })
-        else {
-            return
-        }
-        mutation(&agentRuns[index])
-        agentRuns[index].updatedAt = Date()
-    }
-
-    private func runAgent(recordID: UUID, record: WorkRecord, context: RunSettings) async throws {
-        guard let runID = agentRunID(for: record),
-              var run = agentRuns.first(where: { $0.id == runID })
-        else {
-            throw AgentError.runNotFound
-        }
-        guard let adapter = adapter(for: run.siteURL) else { throw AssistantError.noForum }
-        let profile = adapter.agent
-        run.result = nil
-        run.error = ""
-        storeAgentRun(run)
-        mutateRecord(recordID) {
-            $0.statusText = String(localized: "Planning…", comment: "Ask the forum: the AI is deciding its first step")
-        }
-        let isFollowUp = !run.followUps.isEmpty && run.followUps.last?.role == .user
-        var stepsUsed: Int
-        if isFollowUp {
-            if let followUpIndex = run.transcript.lastIndex(where: AgentPrompt.isFollowUp) {
-                stepsUsed = run.transcript[(followUpIndex + 1)...].filter { $0.role == .assistant }.count
-            } else {
-                stepsUsed = 0
-            }
-        } else {
-            stepsUsed = run.steps.count
-        }
-        progress.advance(recordID, to: WorkProgress.agent(completedSteps: stepsUsed, maxSteps: context.agentMaxSteps))
-
-        let configuration = context.configuration
-        let forumName = forum(for: run.siteURL)?.displayName
-            ?? ForumSite.displayName(siteURL: run.siteURL, name: nil)
-        let system = AgentPrompt.system(
-            profile: profile,
-            forumName: forumName,
-            siteURL: run.siteURL,
-            maxSteps: context.agentMaxSteps,
-            maxTopicReads: context.agentMaxTopicReads,
-            customInstructions: context.globalInstructions
-        )
-
-        while true {
-            try ensureLive(recordID)
-            // Budgets are spending caps: lowering one in Settings mid-run
-            // takes effect at the next step (the run then answers with what
-            // it has); raising one only affects later runs.
-            let maxSteps = min(context.agentMaxSteps, settings.agentMaxSteps)
-            let outOfBudget = stepsUsed >= maxSteps
-            if outOfBudget {
-                run.transcript.append(AgentPrompt.outOfBudgetMessage())
-            }
-            let action = try await planner.nextAction(
-                system: system,
-                transcript: run.transcript,
-                configuration: configuration,
-                provider: context.provider
-            )
-            try ensureLive(recordID)
-            stepsUsed += 1
-            run.transcript.append(ChatMessage(role: .assistant, content: Self.encode(action)))
-            var step = AgentStep(tool: action.tool, arguments: action.arguments, thought: action.thought)
-            mutateRecord(recordID) {
-                $0.statusText = String(localized: "Step \(stepsUsed): \(Self.describe(action))", comment: "Ask the forum progress: step number, then the tool being used (a technical name such as search_forum) and its argument")
-            }
-            progress.advance(
-                recordID,
-                to: WorkProgress.agent(completedSteps: stepsUsed - 1, maxSteps: maxSteps, within: 0.1)
-            )
-
-            if action.tool == AgentPrompt.finalAnswerTool || outOfBudget {
-                let answer = action.arguments["answer"]?.trimmingCharacters(in: .whitespacesAndNewlines)
-                    ?? action.thought
-                step.outcome = action.tool == AgentPrompt.finalAnswerTool
-                    ? String(localized: "Answered", comment: "Ask the forum step outcome: the final answer was written")
-                    : String(localized: "Stopped at the step budget", comment: "Ask the forum step outcome: the run used all its allowed steps")
-                step.finishedAt = Date()
-                run.steps.append(step)
-                run.answer = answer
-                if isFollowUp {
-                    run.followUps.append(ChatMessage(role: .assistant, content: answer))
-                } else {
-                    run.initialAnswer = answer
-                }
-                run.result = .completed
-                run.completedAt = Date()
-                storeAgentRun(run)
-                save()
-                return
-            }
-
-            let completedSteps = stepsUsed - 1
-            do {
-                let (outcome, observation) = try await executeAgentTool(
-                    action,
-                    adapter: adapter,
-                    run: &run,
-                    recordID: recordID,
-                    context: context,
-                    stepProgress: { within in
-                        WorkProgress.agent(completedSteps: completedSteps, maxSteps: maxSteps, within: within)
-                    }
-                )
-                step.outcome = outcome
-                step.topicID = action.arguments["topic_id"]
-                if let topicID = try? ForumToolService.requiredTopicID(action.arguments) {
-                    step.topicID = topicID
-                    step.topicKey = ForumSite.topicKey(siteURL: run.siteURL, topicID: topicID)
-                }
-                run.transcript.append(
-                    AgentPrompt.observation(tool: action.tool, result: observation, isError: false)
-                )
-            } catch is CancellationError {
-                throw CancellationError()
-            } catch where !isLive(recordID) {
-                throw CancellationError()
-            } catch {
-                step.isError = true
-                step.outcome = error.localizedDescription
-                run.transcript.append(
-                    AgentPrompt.observation(
-                        tool: action.tool,
-                        result: (error as? AgentError)?.modelDescription ?? error.localizedDescription,
-                        isError: true
-                    )
-                )
-            }
-            try ensureLive(recordID)
-            step.finishedAt = Date()
-            run.steps.append(step)
-            storeAgentRun(run)
-            progress.advance(recordID, to: WorkProgress.agent(completedSteps: stepsUsed, maxSteps: maxSteps))
-            save()
-        }
-    }
-
-    private func storeAgentRun(_ run: AgentRun) {
-        var updated = run
-        updated.updatedAt = Date()
-        // Runs are inserted when started; one that is gone was deleted (e.g.
-        // with its forum) while its task was finishing, so it stays deleted.
-        guard let index = agentRuns.firstIndex(where: { $0.id == run.id }) else { return }
-        agentRuns[index] = updated
-    }
-
-    private static func encode(_ action: AgentAction) -> String {
-        let object: [String: Any] = [
-            "thought": action.thought,
-            "tool": action.tool,
-            "arguments": action.arguments
-        ]
-        return (try? JSONSerialization.data(withJSONObject: object, options: [.sortedKeys]))
-            .flatMap { String(data: $0, encoding: .utf8) } ?? "{\"tool\": \"\(action.tool)\"}"
-    }
-
-    private static func describe(_ action: AgentAction) -> String {
-        let detail = action.arguments["query"] ?? action.arguments["topic_id"] ?? ""
-        return detail.isEmpty ? action.tool : "\(action.tool) \(detail)"
     }
 
     var forumToolService: ForumToolService {
@@ -3351,162 +2855,6 @@ final class AppModel: ObservableObject {
             isPaced: settings.forumRateLimitingEnabled
         )
         return ForumToolContext(service: forumToolService, scope: scope, forumName: forumName)
-    }
-
-    /// Runs one tool. Returns a short outcome for the step log and the full
-    /// observation handed back to the model.
-    private func executeAgentTool(
-        _ action: AgentAction,
-        adapter: any SiteAdapter,
-        run: inout AgentRun,
-        recordID: UUID,
-        context: RunSettings,
-        stepProgress: @escaping @Sendable (_ within: Double) -> Double
-    ) async throws -> (String, String) {
-        let siteURL = run.siteURL
-        let profile = adapter.agent
-        // Only the run's own tools exist for the model, whatever the app knows.
-        let available = AgentPrompt.tools(for: profile).map(\.name)
-        guard let tool = AgentToolName(rawValue: action.tool), available.contains(action.tool) else {
-            throw AgentError.unknownTool(action.tool, available: available)
-        }
-
-        let service = forumToolService
-        let scope = ForumRunScope(
-            adapter: adapter,
-            siteURL: siteURL,
-            topicIDs: run.topicIDs,
-            readBudget: { [unowned self] in min(context.agentMaxTopicReads, self.settings.agentMaxTopicReads) },
-            readLimit: context.agentReadLimit,
-            pace: context.forumRequestPace,
-            isPaced: context.forumRateLimitingEnabled
-        )
-        defer {
-            run.topicIDs = scope.topicIDs
-            if !scope.visitedTopics.isEmpty {
-                run.remember(scope.visitedTopics, links: adapter.links)
-            }
-        }
-        func makeCallbacks(progressScale: @escaping @Sendable (Double) -> Double = { $0 }) -> ForumToolService.Callbacks {
-            ForumToolService.Callbacks(
-                onStatus: { [unowned self] status in
-                    self.mutateRecord(recordID) { $0.statusText = status }
-                },
-                onFetchProgress: { [unowned self] fetchProgress in
-                    await self.advanceProgress(recordID: recordID, to: progressScale(fetchProgress.fraction))
-                },
-                onPage: { [unowned self] page, template in
-                    await self.keepFetchedPage(page, recordID: recordID, into: template)
-                },
-                ensureLive: { [unowned self] in
-                    try self.ensureLive(recordID)
-                }
-            )
-        }
-
-        switch tool {
-        case .searchForum:
-            let result = try await service.search(arguments: action.arguments, scope: scope)
-            return (result.outcome, result.content)
-
-        case .searchComments:
-            let result = try await service.searchComments(arguments: action.arguments, scope: scope)
-            return (result.outcome, result.content)
-
-        case .listLatest:
-            let result = try await service.listLatest(arguments: action.arguments, scope: scope)
-            return (result.outcome, result.content)
-
-        case .readTopic:
-            let result = try await service.readTopic(
-                arguments: action.arguments,
-                scope: scope,
-                persistsOnComplete: false,
-                callbacks: makeCallbacks { stepProgress(0.1 + 0.8 * $0) }
-            )
-            return (result.outcome, result.content)
-
-        case .summarizeTopic:
-            // Bulk summarizing runs on the assistant (low-cost) model. When
-            // that one isn't ready, the tool fails and the agent can read the
-            // topic instead.
-            let summarizer = context.summarizer
-            try RunSettings.requireReady(provider: summarizer.provider, configuration: summarizer.configuration)
-            var session = try await service.pullTopic(
-                arguments: action.arguments,
-                validatePageArgument: false,
-                persistsOnComplete: false,
-                scope: scope,
-                callbacks: makeCallbacks { stepProgress(0.1 + 0.3 * $0) }
-            )
-            mutateRecord(recordID) {
-                $0.statusText = String(localized: "Summarizing \(session.title)…", comment: "Status; the placeholder is a forum topic's title")
-            }
-            let content = session.source
-            let tracker = SummaryProgressTracker(
-                inputCharacters: content.count,
-                previousSummaryCharacters: session.hasSummary ? session.summary.count : nil
-            )
-            let feed = startSummaryFeed(recordID: recordID, tracker: tracker, keepsStatusText: true) { stepProgress(0.4 + 0.55 * $0) }
-            defer { stopSummaryFeed(recordID, feed) }
-            let summary = try await aiService.generateSummary(
-                content: content,
-                configuration: summarizer.configuration,
-                provider: summarizer.provider,
-                customPrompt: PromptBuilder.effectiveInstructions(
-                    topic: session.instructions,
-                    global: context.globalInstructions
-                ),
-                discussion: adapter.discussion,
-                batchLimit: context.batchLimit,
-                onDelta: { _ in },
-                onProgress: { feed.handle($0) }
-            )
-            try ensureLive(recordID)
-            feed.finish()
-            session = sessions[session.topicKey] ?? session
-            session.summary = summary
-            session.summaryPostCount = session.totalPosts
-            session.provider = summarizer.provider
-            session.model = summarizer.configuration.model
-            let finishedAt = Date()
-            session.summaryUpdatedAt = finishedAt
-            session.updatedAt = finishedAt
-            sessions[session.topicKey] = session
-            return (
-                String(localized: "Summarized \(session.totalPosts ?? 0) posts", comment: "Ask the forum step outcome: number of posts summarized in a topic"),
-                "Summary of \(session.title) (\(session.url.absoluteString)):\n\n\(summary)"
-            )
-
-        case .savedSummaries:
-            let query = action.arguments["query"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-            let saved = sessions.values
-                .filter { $0.siteURL == siteURL && $0.hasSummary }
-                .filter { query.isEmpty || $0.title.localizedCaseInsensitiveContains(query)
-                    || $0.summary.localizedCaseInsensitiveContains(query) }
-                .sorted { $0.updatedAt > $1.updatedAt }
-            guard !saved.isEmpty else { return (String(localized: "None found", comment: "Ask the forum step outcome: no saved summaries matched"), "No saved summaries match.") }
-            let text = saved.prefix(query.isEmpty ? 40 : 6).map { session in
-                var line = "- id \(session.topicID): \(session.title) — "
-                    + "\(session.summaryPostCount ?? session.totalPosts ?? 0) posts — "
-                    + session.url.absoluteString
-                if !query.isEmpty { line += "\n\(session.summary.prefix(3_000))" }
-                return line
-            }.joined(separator: "\n\n")
-            return (String(localized: "\(saved.count) saved", comment: "Ask the forum step outcome: number of saved summaries found"), text)
-
-        case .watchTopic:
-            let result = try await service.follow(
-                arguments: action.arguments,
-                scope: scope,
-                callbacks: makeCallbacks()
-            )
-            return (result.outcome, result.content)
-
-        case .finalAnswer:
-            // The run loop ends on it before any tool runs.
-            throw AgentError.unknownTool(action.tool, available: available)
-        }
     }
 
     /// Reads a job's topic, cached pages reused. Every new page goes into
@@ -3668,7 +3016,6 @@ final class AppModel: ObservableObject {
         }
         if self.agentRuns != agentRuns {
             self.agentRuns = agentRuns
-            reconcileAgentSelection()
         }
         if self.watchedTopics != watchedTopics { self.watchedTopics = watchedTopics }
         if self.forums != forums {
@@ -3679,7 +3026,6 @@ final class AppModel: ObservableObject {
             if let page = pageContext.siteURL, removed.contains(page) { suppressedAutoAddSiteURL = page }
             if let current = currentSiteURL, forum(for: current) == nil {
                 currentSiteURL = (pageContext.siteURL.flatMap { forum(for: $0) } ?? Self.startForum(in: forums))?.siteURL
-                if agentSiteURL == current { agentSiteURL = nil }
                 if browser.homeSiteURL == current, (pageContext.siteURL != current || browser.showsForumsHome) {
                     browser.homeSiteURL = currentSiteURL
                 }

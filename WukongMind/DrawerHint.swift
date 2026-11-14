@@ -75,11 +75,11 @@ enum DrawerHint {
     }
 
     /// What the drawer's main action is for a page state; nil when there is
-    /// nothing to do (no topic, a summary running or up to date, Ask the forum).
+    /// nothing to do (no topic, a summary running or up to date).
     static func action(_ input: Input) -> Action? {
         guard input.pageState == .topic else { return nil }
         if !input.providerReady { return .setUpAI }
-        guard input.mode != .agent, !input.summaryRunning else { return nil }
+        guard !input.summaryRunning else { return nil }
         if !input.hasSummary { return .summarize }
         if let total = input.totalPosts, let covered = input.summaryPostCount, total > covered {
             return .checkNew(total - covered)

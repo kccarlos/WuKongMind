@@ -270,15 +270,15 @@ final class ForumToolService {
     }
 
     func search(arguments: [String: String], scope: ForumRunScope) async throws -> ListResult {
-        try await runQuery(.searchForum, arguments: arguments, scope: scope)
+        try await runQuery(ForumToolName.searchForum, arguments: arguments, scope: scope)
     }
 
     func searchComments(arguments: [String: String], scope: ForumRunScope) async throws -> ListResult {
-        try await runQuery(.searchComments, arguments: arguments, scope: scope)
+        try await runQuery(ForumToolName.searchComments, arguments: arguments, scope: scope)
     }
 
     func listLatest(arguments: [String: String] = [:], scope: ForumRunScope) async throws -> ListResult {
-        let listings = try await executeSiteQuery(.listLatest, arguments: arguments, scope: scope).topics
+        let listings = try await executeSiteQuery(ForumToolName.listLatest, arguments: arguments, scope: scope).topics
         scope.remember(listings.map { ($0.url, $0.topicID) })
         return ListResult(
             outcome: String(localized: "\(listings.count) topics", comment: "Ask the forum step outcome: number of topics found"),
@@ -414,7 +414,7 @@ final class ForumToolService {
         throw AgentError.missingArgument("topic_id")
     }
 
-    private func runQuery(_ tool: AgentToolName, arguments: [String: String], scope: ForumRunScope) async throws -> ListResult {
+    private func runQuery(_ tool: String, arguments: [String: String], scope: ForumRunScope) async throws -> ListResult {
         let results = try await executeSiteQuery(tool, arguments: arguments, scope: scope)
         scope.remember(results.topics.map { ($0.url, $0.topicID) } + results.hits.map { ($0.url, $0.topic.topicID) })
         let parts = ForumRendering.formatParts(listings: results.topics, hits: results.hits)
@@ -426,7 +426,7 @@ final class ForumToolService {
         )
     }
 
-    private func executeSiteQuery(_ tool: AgentToolName, arguments: [String: String], scope: ForumRunScope) async throws -> SiteQueryResult {
+    private func executeSiteQuery(_ tool: String, arguments: [String: String], scope: ForumRunScope) async throws -> SiteQueryResult {
         let query = try scope.adapter.agent.query(tool, arguments)
         return try await scope.adapter.run(query, net: await makeNetwork(scope.siteURL, scope.pace, scope.isPaced))
     }
