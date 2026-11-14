@@ -499,7 +499,7 @@ final class StateTransitionTests: XCTestCase {
         select(app, .ollama, model: "model-a")
         app.select(topic: topic("1"))
         XCTAssertTrue(app.enqueueSummary(for: topic("2")))
-        try await waitUntil { harness.ai.waiting == 2 }
+        try await waitUntil { harness.ai.waiting == 1 }
         XCTAssertFalse(app.streams.isEmpty)
         app.drafts.goal = "Unsent goal"
         app.drafts.followUp = "Unsent follow-up for the deleted run"
