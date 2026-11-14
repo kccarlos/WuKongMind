@@ -1,3 +1,5 @@
+import UIKit
+import WebKit
 import XCTest
 @testable import WukongMind
 
@@ -5,6 +7,7 @@ import XCTest
 /// HomeState.swift and their wiring in AppModel.
 @MainActor
 final class HomeTests: XCTestCase {
+    private static let sharedDataStore = WKWebsiteDataStore.nonPersistent()
     private let site = "https://forum.example.org"
 
     // MARK: Launch rule
@@ -399,7 +402,7 @@ final class HomeTests: XCTestCase {
 
     func testFailedNavigationFromHomePreservesHomeAndPresentsError() async throws {
         let app = makeApp()
-        addTeardownBlock { @MainActor in app.browser.stopLoading() }
+        hostBrowser(app.browser)
         app.browser.showForumsHome()
         XCTAssertTrue(app.browser.showsForumsHome)
         XCTAssertNil(app.browser.currentURL)
@@ -448,6 +451,7 @@ final class HomeTests: XCTestCase {
 
     func testCitationJumpWhileOnHomeDismissesHomeAndShowsTopic() async throws {
         let app = makeApp()
+        hostBrowser(app.browser)
         let site = "http://127.0.0.1:18992"
         let topicURL = URL(string: "\(site)/t/layer-shifts/42")!
         let html = """
@@ -456,8 +460,8 @@ final class HomeTests: XCTestCase {
         <article data-post-number="2" id="post_2"><p>Second post</p></article></body></html>
         """
         app.browser.webView.loadHTMLString(html, baseURL: topicURL)
-        let settle = ContinuousClock.now + .seconds(5)
-        while app.pageContext.state != .topic, ContinuousClock.now < settle {
+        let settle = ContinuousClock.now + .seconds(30)
+        while (app.pageContext.state != .topic || app.browser.isLoading), ContinuousClock.now < settle {
             try await Task.sleep(for: .milliseconds(50))
         }
         XCTAssertEqual(app.pageContext.state, .topic)
@@ -467,8 +471,9 @@ final class HomeTests: XCTestCase {
         XCTAssertTrue(app.showsTodayPage)
 
         app.jumpToCitation(2)
-        let jumpDeadline = ContinuousClock.now + .seconds(5)
-        while app.browser.pendingJump != nil, ContinuousClock.now < jumpDeadline {
+        let jumpDeadline = ContinuousClock.now + .seconds(30)
+        while (app.browser.pendingJump != nil || app.browser.showsForumsHome || app.showsTodayPage),
+              ContinuousClock.now < jumpDeadline {
             try await Task.sleep(for: .milliseconds(50))
         }
         XCTAssertFalse(
@@ -496,17 +501,57 @@ final class HomeTests: XCTestCase {
     }
 
     private func makeApp() -> AppModel {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("HomeTests-\(UUID().uuidString)", isDirectory: true)
+        let browser = ForumBrowserModel(
+            contentRules: ContentRuleLibrary(store: nil, directory: nil),
+            websiteDataStore: Self.sharedDataStore
+        )
         let app = AppModel(
             store: PersistentStore(
-                fileURL: FileManager.default.temporaryDirectory
-                    .appendingPathComponent(UUID().uuidString, isDirectory: true)
-                    .appendingPathComponent("state.json")
+                fileURL: directory.appendingPathComponent("state.json"),
+                keys: InMemoryProviderKeyStore()
             ),
+            browser: browser,
+            cloudSync: CloudSyncController(
+                transport: nil,
+                files: nil,
+                defaults: nil,
+                schedulesAutomatically: false
+            ),
+            podcastDirectory: directory.appendingPathComponent("Podcasts", isDirectory: true),
+            workspaceDirectory: directory.appendingPathComponent("Workspace", isDirectory: true),
             spotlightIndex: FakeSpotlightIndex(),
             topicActivityDonor: FakeTopicActivityDonor()
         )
         app.usesDirectForumRequests = true
         app.settings.hasCompletedOnboarding = true
+        addTeardownBlock { @MainActor in
+            app.browser.stopLoading()
+            app.scriptWebController.detach()
+            try? FileManager.default.removeItem(at: directory)
+        }
         return app
+    }
+
+    private func hostBrowser(_ browser: ForumBrowserModel) {
+        let frame = CGRect(x: 0, y: 0, width: 390, height: 844)
+        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: frame)
+        window.frame = frame
+        let controller = UIViewController()
+        controller.view.frame = window.bounds
+        browser.webView.frame = controller.view.bounds
+        controller.view.addSubview(browser.webView)
+        window.rootViewController = controller
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        addTeardownBlock { @MainActor in
+            browser.stopLoading()
+            browser.webView.removeFromSuperview()
+            window.isHidden = true
+            window.rootViewController = nil
+            window.windowScene = nil
+        }
     }
 }

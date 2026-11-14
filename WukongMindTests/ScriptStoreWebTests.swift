@@ -16,10 +16,25 @@ final class ScriptStoreWebTests: XCTestCase {
     private final class NavigationWaiter: NSObject, WKNavigationDelegate {
         private var continuation: CheckedContinuation<Void, Error>?
         private var timeoutTask: Task<Void, Never>?
+        private var activeNavigation: WKNavigation?
+        private var waitingForStart = false
 
-        func waitForLoad(timeoutSeconds: Double = 30, _ start: () -> Void) async throws {
+        func cancelPending() {
+            timeoutTask?.cancel()
+            timeoutTask = nil
+            activeNavigation = nil
+            waitingForStart = false
+            if let cont = continuation {
+                continuation = nil
+                cont.resume(throwing: CancellationError())
+            }
+        }
+
+        func waitForLoad(timeoutSeconds: Double = 45, _ start: () -> Void) async throws {
             try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
                 self.continuation = cont
+                self.activeNavigation = nil
+                self.waitingForStart = true
                 self.timeoutTask = Task { @MainActor [weak self] in
                     try? await Task.sleep(nanoseconds: UInt64(timeoutSeconds * 1_000_000_000))
                     guard !Task.isCancelled else { return }
@@ -38,6 +53,8 @@ final class ScriptStoreWebTests: XCTestCase {
         private func finish(with error: Error? = nil) {
             timeoutTask?.cancel()
             timeoutTask = nil
+            activeNavigation = nil
+            waitingForStart = false
             guard let cont = continuation else { return }
             continuation = nil
             if let error {
@@ -45,6 +62,14 @@ final class ScriptStoreWebTests: XCTestCase {
             } else {
                 cont.resume()
             }
+        }
+
+        private func matchesActiveNavigation(_ navigation: WKNavigation?) -> Bool {
+            guard continuation != nil else { return false }
+            if let activeNavigation {
+                return activeNavigation == navigation
+            }
+            return true
         }
 
         func webView(
@@ -55,11 +80,20 @@ final class ScriptStoreWebTests: XCTestCase {
             decisionHandler(.allow)
         }
 
+        func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
+            guard continuation != nil, waitingForStart else { return }
+            activeNavigation = navigation
+            waitingForStart = false
+        }
+
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            guard !waitingForStart, matchesActiveNavigation(navigation) else { return }
             finish()
         }
 
         func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+            if waitingForStart, (error as NSError).code == NSURLErrorCancelled { return }
+            guard matchesActiveNavigation(navigation) else { return }
             finish(with: error)
         }
 
@@ -68,7 +102,19 @@ final class ScriptStoreWebTests: XCTestCase {
             didFailProvisionalNavigation navigation: WKNavigation!,
             withError error: Error
         ) {
+            if waitingForStart, (error as NSError).code == NSURLErrorCancelled { return }
+            guard matchesActiveNavigation(navigation) else { return }
             finish(with: error)
+        }
+
+        func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+            finish(
+                with: NSError(
+                    domain: "ScriptStoreWebTests",
+                    code: 3,
+                    userInfo: [NSLocalizedDescriptionKey: "WebContent process terminated during navigation"]
+                )
+            )
         }
     }
 
@@ -156,7 +202,11 @@ final class ScriptStoreWebTests: XCTestCase {
                 }
             }
             self.port = readyPort
-            return URL(string: "http://127.0.0.1:\(readyPort)")!
+            let baseURL = URL(string: "http://127.0.0.1:\(readyPort)")!
+            let probeSession = URLSession(configuration: .ephemeral)
+            defer { probeSession.invalidateAndCancel() }
+            _ = try await probeSession.data(from: baseURL.appendingPathComponent("__ready"))
+            return baseURL
         }
 
         func stop() {
@@ -193,7 +243,7 @@ final class ScriptStoreWebTests: XCTestCase {
                 }
                 if let rawRequest = String(data: buffer, encoding: .utf8),
                    rawRequest.contains("\r\n\r\n") {
-                    respond(to: rawRequest, on: connection, routeResolver: routeResolver)
+                    respond(to: rawRequest, on: connection, routeResolver: routeResolver, queue: queue)
                 } else if !isComplete, error == nil {
                     receive(on: connection, buffer: buffer, routeResolver: routeResolver, queue: queue)
                 } else {
@@ -205,7 +255,8 @@ final class ScriptStoreWebTests: XCTestCase {
         private static func respond(
             to rawRequest: String,
             on connection: NWConnection,
-            routeResolver: @escaping @Sendable (String) -> Route?
+            routeResolver: @escaping @Sendable (String) -> Route?,
+            queue: DispatchQueue
         ) {
             let firstLine = rawRequest.split(separator: "\r\n", maxSplits: 1).first ?? ""
             let parts = firstLine.split(separator: " ")
@@ -232,9 +283,16 @@ final class ScriptStoreWebTests: XCTestCase {
             var payload = Data((headerLines.joined(separator: "\r\n") + "\r\n\r\n").utf8)
             payload.append(route.body)
 
-            connection.send(content: payload, completion: .contentProcessed { _ in
-                connection.cancel()
-            })
+            connection.send(
+                content: payload,
+                contentContext: .finalMessage,
+                isComplete: true,
+                completion: .contentProcessed { _ in
+                    queue.asyncAfter(deadline: .now() + 2) {
+                        connection.cancel()
+                    }
+                }
+            )
         }
     }
 
@@ -266,12 +324,29 @@ final class ScriptStoreWebTests: XCTestCase {
     private static var sharedServer: LoopbackFixtureServer?
     private static var sharedBaseURL: URL?
     private static var sharedWebView: WKWebView?
+    private static var sharedWindow: UIWindow?
     private static var sharedBridge: AgentBridge?
     private static var sharedWaiter: NavigationWaiter?
 
     private var tempDirectory: URL!
     private var dedicatedWebViews: [WKWebView] = []
+    private var dedicatedWindows: [UIWindow] = []
     private var activeControllers: [ScriptWebController] = []
+
+    private static func makeHostWindow(for webView: WKWebView) -> UIWindow {
+        let frame = CGRect(x: 0, y: 0, width: 390, height: 844)
+        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: frame)
+        window.frame = frame
+        let controller = UIViewController()
+        controller.view.frame = window.bounds
+        webView.frame = controller.view.bounds
+        controller.view.addSubview(webView)
+        window.rootViewController = controller
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        return window
+    }
 
     override func setUpWithError() throws {
         try super.setUpWithError()
@@ -285,6 +360,7 @@ final class ScriptStoreWebTests: XCTestCase {
         }
         activeControllers.removeAll()
 
+        Self.sharedWaiter?.cancelPending()
         if let sharedWebView = Self.sharedWebView {
             sharedWebView.stopLoading()
             sharedWebView.configuration.userContentController.removeAllUserScripts()
@@ -299,6 +375,13 @@ final class ScriptStoreWebTests: XCTestCase {
         }
         dedicatedWebViews.removeAll()
 
+        for window in dedicatedWindows {
+            window.isHidden = true
+            window.rootViewController = nil
+            window.windowScene = nil
+        }
+        dedicatedWindows.removeAll()
+
         if let tempDirectory, FileManager.default.fileExists(atPath: tempDirectory.path) {
             try? FileManager.default.removeItem(at: tempDirectory)
         }
@@ -309,6 +392,7 @@ final class ScriptStoreWebTests: XCTestCase {
     nonisolated override class func tearDown() {
         if Thread.isMainThread {
             MainActor.assumeIsolated {
+                sharedWaiter?.cancelPending()
                 if let webView = sharedWebView {
                     webView.stopLoading()
                     webView.navigationDelegate = nil
@@ -316,6 +400,12 @@ final class ScriptStoreWebTests: XCTestCase {
                     webView.configuration.userContentController.removeAllScriptMessageHandlers()
                     webView.removeFromSuperview()
                 }
+                if let window = sharedWindow {
+                    window.isHidden = true
+                    window.rootViewController = nil
+                    window.windowScene = nil
+                }
+                sharedWindow = nil
                 sharedWebView = nil
                 sharedBridge = nil
                 sharedWaiter = nil
@@ -395,11 +485,13 @@ final class ScriptStoreWebTests: XCTestCase {
             }
 
             let webView = WKWebView(frame: CGRect(x: 0, y: 0, width: 390, height: 844), configuration: config)
+            let window = Self.makeHostWindow(for: webView)
             let bridge = AgentBridge(webView: webView)
             let controller = ScriptWebController(webView: webView, store: store, agentBridge: bridge)
             let waiter = NavigationWaiter()
             webView.navigationDelegate = waiter
 
+            dedicatedWindows.append(window)
             dedicatedWebViews.append(webView)
             activeControllers.append(controller)
             return WebHarness(webView: webView, bridge: bridge, controller: controller, waiter: waiter)
@@ -419,17 +511,23 @@ final class ScriptStoreWebTests: XCTestCase {
             webView = existingWebView
             bridge = existingBridge
             waiter = existingWaiter
+            waiter.cancelPending()
             webView.stopLoading()
             webView.configuration.userContentController.removeAllUserScripts()
+            if Self.sharedWindow == nil || webView.window == nil {
+                Self.sharedWindow = Self.makeHostWindow(for: webView)
+            }
         } else {
             let config = WKWebViewConfiguration()
             config.websiteDataStore = Self.sharedDataStore
             config.defaultWebpagePreferences.allowsContentJavaScript = true
             ForumBrowserModel.disableWebKitScreenTimeForTesting(in: config)
             let createdWebView = WKWebView(frame: CGRect(x: 0, y: 0, width: 390, height: 844), configuration: config)
+            let createdWindow = Self.makeHostWindow(for: createdWebView)
             let createdBridge = AgentBridge(webView: createdWebView)
             let createdWaiter = NavigationWaiter()
             createdWebView.navigationDelegate = createdWaiter
+            Self.sharedWindow = createdWindow
             Self.sharedWebView = createdWebView
             Self.sharedBridge = createdBridge
             Self.sharedWaiter = createdWaiter
@@ -989,8 +1087,9 @@ final class ScriptStoreWebTests: XCTestCase {
         let keys = InMemoryProviderKeyStore()
         let forumConfig = URLSessionConfiguration.ephemeral
         forumConfig.protocolClasses = [OfflineForumURLProtocol.self]
+        let stubForumSession = URLSession(configuration: forumConfig)
         let stubForumService = ForumService(
-            session: URLSession(configuration: forumConfig),
+            session: stubForumSession,
             pacer: ForumRequestPacer(clock: InstantPacingClock())
         )
         let podcastDirectory = tempDirectory.appendingPathComponent("Podcasts", isDirectory: true)
@@ -998,14 +1097,19 @@ final class ScriptStoreWebTests: XCTestCase {
             contentRules: ContentRuleLibrary(store: nil, directory: nil),
             websiteDataStore: Self.sharedDataStore
         )
-        sharedBrowser.webView.frame = CGRect(x: 0, y: 0, width: 390, height: 844)
+        let browserWindow = Self.makeHostWindow(for: sharedBrowser.webView)
         defer {
+            stubForumSession.invalidateAndCancel()
             sharedBrowser.stopLoading()
             sharedBrowser.onPageContextChanged = nil
             sharedBrowser.webView.navigationDelegate = nil
             sharedBrowser.webView.uiDelegate = nil
             sharedBrowser.webView.configuration.userContentController.removeAllUserScripts()
             sharedBrowser.webView.configuration.userContentController.removeAllScriptMessageHandlers()
+            sharedBrowser.webView.removeFromSuperview()
+            browserWindow.isHidden = true
+            browserWindow.rootViewController = nil
+            browserWindow.windowScene = nil
         }
 
         var activeApp: AppModel?

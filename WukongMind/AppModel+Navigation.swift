@@ -234,10 +234,12 @@ extension AppModel {
         let onPage = pageContext.state == .topic && pageContext.topic?.topicKey == ref.topicKey
         if onPage {
             let outcome = await browser.scrollToPost(number, anchor: postAnchor(number, topicKey: ref.topicKey))
-            browser.highlightAfterLoad([number], topicID: ref.topicID)
             if outcome == .shown {
                 browser.hideForumsHome()
                 homeVisibilityChanged()
+            }
+            browser.highlightAfterLoad([number], topicID: ref.topicID)
+            if outcome == .shown {
                 return .shown
             }
         } else {

@@ -6,6 +6,7 @@ import XCTest
 final class CoreTests: XCTestCase {
     override func tearDown() {
         URLProtocolStub.handler = nil
+        MainActor.assumeIsolated { ChatScrollProbe.reset() }
         super.tearDown()
     }
 
@@ -2011,6 +2012,7 @@ private final class HeldChatAIStub: AIService, @unchecked Sendable {
 final class LazyMarkdownTests: XCTestCase {
     override func tearDown() {
         URLProtocolStub.handler = nil
+        MainActor.assumeIsolated { ChatScrollProbe.reset() }
         super.tearDown()
     }
 
@@ -2142,21 +2144,20 @@ final class LazyMarkdownTests: XCTestCase {
     }
 
     @MainActor
-    private func waitForChatBottom(scrollView: UIScrollView, window: UIWindow, app: AppModel, ai: HeldChatAIStub, timeout: TimeInterval = 10) {
-        let start = Date()
-        let deadline = start.addingTimeInterval(timeout)
+    private func waitForChatBottom(scrollView: UIScrollView, window: UIWindow, app: AppModel, ai: HeldChatAIStub, timeout: TimeInterval = 30) {
+        let deadline = Date().addingTimeInterval(timeout)
         while Date() < deadline {
             RunLoop.current.run(until: Date().addingTimeInterval(0.02))
             window.layoutIfNeeded()
             let running = app.activities.contains { $0.type == .chat && $0.status == .running }
             let distance = scrollView.contentSize.height - (scrollView.contentOffset.y + scrollView.bounds.height)
-            if running, ai.isWaiting, Date().timeIntervalSince(start) >= 1.0, scrollView.contentOffset.y > 0, distance < 48 {
-                for _ in 0..<6 {
-                    RunLoop.current.run(until: Date().addingTimeInterval(0.025))
+            if running, ai.isWaiting, !ChatScrollProbe.isSettling, scrollView.contentOffset.y > 0, distance < 48 {
+                for _ in 0..<4 {
+                    RunLoop.current.run(until: Date().addingTimeInterval(0.02))
                     window.layoutIfNeeded()
                 }
                 let confirmed = scrollView.contentSize.height - (scrollView.contentOffset.y + scrollView.bounds.height)
-                if confirmed < 48 {
+                if !ChatScrollProbe.isSettling, confirmed < 48 {
                     return
                 }
             }
@@ -2347,13 +2348,19 @@ final class LazyMarkdownTests: XCTestCase {
 
         let chatRecord = try XCTUnwrap(app.activities.first { $0.type == .chat })
         for line in 1...6 {
+            let heightBeforeLine = scrollView.contentSize.height
             app.streams.append("Streaming paragraph \(line) with enough detail to wrap onto multiple lines in the bubble.\n\n", to: chatRecord.id)
-            RunLoop.current.run(until: Date().addingTimeInterval(0.14))
-            window.layoutIfNeeded()
+            app.streams.flush()
+            let lineDeadline = Date().addingTimeInterval(10)
+            while Date() < lineDeadline {
+                RunLoop.current.run(until: Date().addingTimeInterval(0.015))
+                window.layoutIfNeeded()
+                let distance = scrollView.contentSize.height - (scrollView.contentOffset.y + scrollView.bounds.height)
+                if scrollView.contentSize.height > heightBeforeLine, distance < 48, !ChatScrollProbe.isSettling {
+                    break
+                }
+            }
         }
-        app.streams.flush()
-        RunLoop.current.run(until: Date().addingTimeInterval(0.25))
-        window.layoutIfNeeded()
 
         // Simulate 90 frames of smooth upward scrolling at 1.8 pt/frame (~162 pt total, > 3x the 48 pt threshold).
         for _ in 1...90 {
@@ -2365,9 +2372,19 @@ final class LazyMarkdownTests: XCTestCase {
         let distanceAfterUserDrag = scrollView.contentSize.height - (scrollView.contentOffset.y + scrollView.bounds.height)
         XCTAssertGreaterThan(distanceAfterUserDrag, 100, "User scrolled ~162 pt away from bottom")
 
+        let heightBeforeNextToken = scrollView.contentSize.height
         app.streams.append("Next token arriving after user dragged upward smoothly.\n\n", to: chatRecord.id)
-        RunLoop.current.run(until: Date().addingTimeInterval(0.15))
-        window.layoutIfNeeded()
+        let tokenDeadline = Date().addingTimeInterval(10)
+        while Date() < tokenDeadline {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.015))
+            window.layoutIfNeeded()
+            if app.streams.texts[chatRecord.id]?.contains("Next token arriving") == true,
+               scrollView.contentSize.height > heightBeforeNextToken {
+                RunLoop.current.run(until: Date().addingTimeInterval(0.015))
+                window.layoutIfNeeded()
+                break
+            }
+        }
 
         let distanceAfterNextToken = scrollView.contentSize.height - (scrollView.contentOffset.y + scrollView.bounds.height)
         ai.finish()
