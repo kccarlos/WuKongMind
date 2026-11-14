@@ -6,7 +6,7 @@ One loop turns Forumind's forum features into tools of the one Agent. Forum sear
 
 Sources, in order of precedence: [next-phase.md](next-phase.md) (§5 Architecture, §6 dispositions, §7 "One loop", §9 old code, §11 defaults), then [design-m3.md](design-m3.md) (the registry, workspace, task records and replay that One loop builds on), then [requirements.md](requirements.md) (§4, §6, §8, §9 engineering rules), then [design-unified.md](design-unified.md) for the UI touch points. The format follows design-m3.md. Where the sources disagree, the conflict is named in [Conflicts](#conflicts-called-out) rather than settled silently.
 
-Code references are as of `ea30337` (main when this was written); those added for task 12 are as of `09a1460`. M3 tasks 2, 4 and 7 had not merged yet. This page relies on what design-m3.md specifies for them, chiefly task 7's shared `RecordedModelClient` (moved to `WukongMindTests/Support/`) and the `ToolDispatching` seam.
+Code references are as of `ea30337` (main when this was written); those added for task 12 are as of `09a1460`. M3 tasks 2, 4 and 7 had not merged when it was first written. This page relies on what design-m3.md specifies for them, chiefly task 7's shared `RecordedModelClient` (moved to `WukongMindTests/Support/`) and the `ToolDispatching` seam.
 
 **Visual design.** Most of what One loop shows already exists: the summary card (`DrawerSummarySections`), the numbered sources list (today's in `AgentView`), the podcast row (`DCListenRow`), ToolRow (`DCToolRow`) and the citation chip (`DCCitationChip`). design-unified says they are how Agent tool results look from One loop on. Two screens are new: the read-only answer page (`SavedAnswerView`, task 12) and the voice bubble in the conversation (task 10). A separate Claude design task, WUKO-48, draws them on the design canvas. The tasks that build them follow the exported artboards under `docs/wukongmind/design/` and their PNGs (`unified-canvas/png/`), and neither starts before WUKO-48 is accepted (see [README](README.md) "Where design output lives").
 
@@ -130,10 +130,12 @@ When an Agent turn ends with a final answer, the app saves **one record**: the q
   - `loop: AgentRunLoop` (`.research` or `.agent`, default `.research`);
   - `sources: [SavedSource]` (number, title, URL; at most 30), a snapshot of the sources list at the end of the turn, so a saved answer still shows its sources after the topic pages are pruned.
 
-  An Agent record sets `goal` to the turn's request, `answer` and `initialAnswer` to the final text, `result` to `.completed`, the run's provider and model, `origin` (`.typed`, or `.voice` for a hand-off run), and `topicIDs` and `knownLinks` from the run's visits (see [Numbered sources](#numbered-sources-on-agent-answers)), so retention keeps the cited topics as it does for Research. `steps`, `transcript` and `followUps` stay empty.
+  An Agent record sets `goal` to the turn's request, `answer` and `initialAnswer` to the final text, `result` to `.completed`, the run's provider and model, `origin` (`.typed`, or `.voice` for a hand-off run), and `topicIDs` and `knownLinks` from the run's visits on its forum (see [Numbered sources](#numbered-sources-on-agent-answers)), so retention keeps those cited topics as it does for Research. `topicKeys(citedBy:)` keys by the record's one `siteURL`, so a thread from another forum (`summarize_topic` with a `url`) isn't kept; the `sources` snapshot still shows it. `steps`, `transcript` and `followUps` stay empty.
 - **`siteURL`** is the run's forum site URL when forum tools ran, and otherwise the current page's origin (scheme and host).
 - **When it is saved.** One record per turn, so a follow-up question is its own record. A turn that fails, is stopped or ends with empty text saves nothing. A voice exchange that never reached the Agent saves nothing.
-- **History.** Agent records join the Asks segment. Today `HistoryFeed.grouped` drops items whose site isn't a listed forum, so records from ordinary pages get an "Other sites" group after the forums. A forum filter hides them. Deleting a forum deletes its records, as today.
+- **History.** Agent records join the Asks segment. `AppModel.manageForums` (the forums History groups by, and the forum list in Settings) collects every run's `siteURL`, so it skips Agent records from ordinary pages: a page someone asked about must not become a forum. Those records get an "Other sites" group after the forums, and a forum filter hides them. Deleting a forum's saved data deletes its records, as today.
+- **The old Research UI ignores them.** Until task 13, the places that list, select or continue Research runs (`AgentPanel`'s run lists, `AskBox`, `AIDrawer`, `selectedAgentRunID` and the follow-up path in `AppModel`) read only `.research` records. An Agent record has no follow-ups.
+- **The shared cap.** Agent and Research records share the newest-50 cap, so new Agent answers push the oldest Research answers out over time. That is accepted: Research stops writing records once it is deleted.
 - **Home's Recent.** `HomeRecent.items` lists the saved records, and its `conversation:` placeholder for this launch's run goes.
 - **Opening.** `SavedAnswerView` (new) shows the question, then `MarkdownView` of the answer with its citation chips and `DCSourcesList`, read-only, with no composer. Tapping a source opens it in the browser. Its layout follows WUKO-48's artboard. Until task 13, Research records still open `AgentView`.
 
@@ -154,7 +156,7 @@ The roadmap's gate: answer one question set with old Research and with the new A
 Each question names its forum and starting page (a thread or the forum home). Old Research gets no current page: `startAgentRun(goal:siteURL:)` and `AgentPrompt.system` carry only the forum. So **a question about a thread names it in its text**, by title and URL ("In the thread "Fan noise after 5.2" (https://…/t/…/123), which fix worked for most people?"). Both sides get exactly the same text. The forums are proposed by task 6 and confirmed with the questions.
 
 **Two phases.**
-1. **Record** (task 8, once, with real quota). It runs on a simulator, in the XCTest `OneLoopComparisonTests` (new, `WukongMindTests`), in record mode: `ONE_LOOP_RECORD=1` with `TEST_RUNNER_ANTHROPIC_API_KEY`, the pattern in CLAUDE.md. Who runs it: the task 8 agent, with the key via `herdr-secret`. For each question:
+1. **Record** (task 8, once, with real quota). It runs on a simulator, in the XCTest `OneLoopComparisonTests` (new, `WukongMindTests`), in record mode: `ONE_LOOP_RECORD=1` with `TEST_RUNNER_ANTHROPIC_API_KEY` (or the comparison provider's key), the pattern in CLAUDE.md. Who runs it: the task 8 agent, with the key via `herdr-secret`. For each question:
    - **Old** runs `AppModel.startAgentRun` on the question's forum, with the real planner. This is the old side's only run: a single live pass whose tool sequence, answer and tokens go into the report. Its model responses are not saved, and it is never replayed.
    - **New** runs `BrowserAgentSession` with the same text, starting from the same page.
    - **Forum traffic**: the old run goes first, through `ForumSnapshotProtocol` (new `URLProtocol`, record mode) on the forum `URLSession`, and every response is saved by URL. The new run is served from that snapshot. A URL it misses is fetched live and saved, and it's counted as a miss in the report. So both runs read the same data.
@@ -202,7 +204,7 @@ These changes depend on the gate. So does voice's hand-off (task 10, in [Voice](
   - `AgentEngine.swift`, all of it: `AgentPlanner`, `PromptAgentPlanner`, `AgentActionParser` and `AgentPrompt`. `AgentToolSpec` moves to `Sites/SiteAdapter.swift`, since the adapters' profiles use it.
   - `AgentToolName` becomes plain name constants in `ToolRegistry+Forum.swift`. `Sites/AgentToolPresentation.swift` goes, because the ToolRow table replaces it.
   - In `AppModel.swift`: `startAgentRun`, `runAgent` and their helpers, and running new runs (`WorkType.agent` records are no longer created).
-  - **Saved runs stay as data.** `AgentRun` and `agentRuns` stay as stored, read-only records, so Persistence, iCloud sync, `SessionRetention`, Home's Recent (`HomeSites`) and History keep working. From task 12 on, the new Agent's answers are saved into the same store (see [Agent answers in History](#agent-answers-in-history)), so old Research answers and new Agent answers sit side by side. History's `openAgentRun` opens every saved answer in `SavedAnswerView` (built in task 12), in place of `AgentView`. Saved Research runs are never removed by One loop.
+  - **Saved runs stay as data.** `AgentRun` and `agentRuns` stay, so Persistence, iCloud sync, `SessionRetention`, Home's Recent (`HomeSites`) and History keep working. Saved Research runs become read-only. From task 12 on, the new Agent's answers are saved into the same store (see [Agent answers in History](#agent-answers-in-history)), so both sit side by side under the shared newest-50 cap, and new answers push the oldest Research ones out over time. History's `openAgentRun` opens every saved answer in `SavedAnswerView` (built in task 12), in place of `AgentView`. One loop never deletes saved Research runs on purpose.
   - `AppleIntelligenceAgentPlanner`.
   - `AgentView` in `AgentPanel.swift`. The file also holds the Agent's own views (`AgentStatusLine`, `BrowserAgentRunsView`), which stay.
   - `AssistantMode.agent` and `AppModel+Navigation.research(_:siteURL:)` (voice's research, replaced first by the hand-off).
@@ -390,7 +392,7 @@ Fourteen implementation tasks and one acceptance task. Sizes count changed lines
 - **Size:** about 400. **Depends on:** 2, 3, 4, 6, and M3 task 7 (replay seam).
 - **Done when:**
   - usage is parsed for the comparison model's family, and every other family shows "n/a" (tests);
-  - a dry record run against one fixture question writes both sides into a report in the specified format, with recorded models;
+  - a dry record run of the new side against one fixture question, with recorded model responses, writes its run; the report writer, given that run and a canned old-side result, writes a report in the specified format;
   - the new side's replay asserts the tool sequence and the final text.
 
 ### 8. One loop 8: record the comparison (owner gate 2)
@@ -453,14 +455,16 @@ Fourteen implementation tasks and one acceptance task. Sizes count changed lines
   - `BrowserAgent.swift` and `AppModel.swift`: at the end of a turn with a final answer, save one `AgentRun` record (the question, the answer, the sources snapshot, the visits as `topicIDs` and `knownLinks`, provider, model and origin) through the existing insert, cap and sync path;
   - `SavedAnswerView.swift` (new): the read-only answer page, following WUKO-48's exported artboard;
   - `HistoryView.swift`: Agent records in Asks, the "Other sites" group, and `openAgentRun` opening Agent records in `SavedAnswerView`;
+  - `AppModel+Assistant.swift` (`manageForums` skips ordinary-page Agent records), and `AgentPanel.swift`, `AskBox.swift`, `AIDrawer.swift` and `AppModel.swift` (the Research run lists, selection and follow-ups read only `.research` records);
   - `HomeSites.swift` and `HomeView.swift`: Recent lists the saved records, and the `conversation:` placeholder goes;
   - Tests: `AgentAnswerHistoryTests.swift` (new), plus updates to the History and Home Recent tests.
-- **Size:** about 400. **Depends on:** 3 (visits and `DCSourcesList`) and WUKO-48 (the `SavedAnswerView` artboard). It needs no gate.
+- **Size:** about 500. If it runs over, split the Research-UI filtering into a follow-up and tell the Assistant. **Depends on:** 3 (visits and `DCSourcesList`) and WUKO-48 (the `SavedAnswerView` artboard). It needs no gate.
 - **Done when:**
   - a completed turn saves one record with the question, the final answer and its sources, and no tool log; a failed, stopped or empty turn saves none (tests);
   - a hand-off run saves with origin voice (test);
   - a store written before this task, and one with Agent records, both decode, and an old app's record without the new fields decodes (tests);
   - the record keeps the 50-record cap and sync prune, and retention keeps the topics it cites (tests);
+  - an ordinary-page record adds no forum to `manageForums`, and the Research panel doesn't list or continue Agent records (tests);
   - Agent records from a forum and from an ordinary page show in History and Home's Recent, and open in `SavedAnswerView` with chips and sources (tests, and screenshots matching the artboard's PNG in light and dark in the proof).
 
 ### 13. One loop 13: delete the old Research loop (gated)
