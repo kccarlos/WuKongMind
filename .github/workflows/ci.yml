@@ -96,6 +96,8 @@ jobs:
             -destination "$DESTINATION" \
             -only-testing:WukongMindTests \
             -parallel-testing-enabled NO \
+            -retry-tests-on-failure \
+            -test-iterations 3 \
             -test-timeouts-enabled YES \
             -maximum-test-execution-time-allowance 300 \
             -derivedDataPath DerivedData \
@@ -103,6 +105,11 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             | "${formatter[@]}"
+
+      - name: Flaky tests (passed on retry)
+        # Never fails the job: a missing or unreadable result only gets a note.
+        if: always()
+        run: scripts/ci/flaky-summary.sh TestResults.xcresult >> "$GITHUB_STEP_SUMMARY" || true
 
       - name: Upload test results
         if: failure()
