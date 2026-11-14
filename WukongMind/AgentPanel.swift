@@ -958,7 +958,7 @@ struct BrowserAgentRunsView: View {
                     DevSnapshotsView(report: report)
                 }
             }
-            codeBlock(row.resultText.isEmpty ? row.resultSummary : row.resultText, id: "agentToolResult", warning: row.isPageWarning,
+            codeBlock(row.displayText.isEmpty ? row.resultSummary : row.displayText, id: "agentToolResult", warning: row.isPageWarning,
                       images: row.carriesImages ? row : nil)
             HStack {
                 if row.wasTruncated {
@@ -981,9 +981,9 @@ struct BrowserAgentRunsView: View {
                     .padding(.trailing, 8)
                     .accessibilityIdentifier("agentToolViewInAuditLog")
                 }
-                if !row.resultText.isEmpty {
+                if !row.displayText.isEmpty {
                     Button {
-                        UIPasteboard.general.string = row.resultText
+                        UIPasteboard.general.string = row.displayText
                         DCHaptics.success()
                     } label: {
                         Label(String(localized: "Copy", comment: "Button to copy tool call result text"), systemImage: "doc.on.doc")

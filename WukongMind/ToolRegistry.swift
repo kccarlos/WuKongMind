@@ -364,6 +364,68 @@ enum UntrustedWebContent {
         </untrusted_web_content>
         """
     }
+
+    /// What the model gets back for one tool call: the app's own notes first, outside the wrapper,
+    /// then the tool output wrapped (design-one-loop.md "Tool notes"). The one place every path
+    /// (live run, resumed task, export history) builds a tool result's content.
+    static func modelContent(_ output: String, toolName: String, notes: [ToolNote] = [], secrets: [String] = []) -> String {
+        let wrapped = wrap(output, toolName: toolName, secrets: secrets)
+        guard !notes.isEmpty else { return wrapped }
+        return notes.map { "\(ToolNote.label) \($0.text)" }.joined(separator: "\n") + "\n" + wrapped
+    }
+}
+
+/// A note the app itself adds to a tool result (a hint or page-feedback line), sent outside the
+/// `<untrusted_web_content>` wrapper. Only the factories below make one, from app constants and
+/// app-computed numbers, so no page text can reach this channel. (Decoding exists for the app's
+/// own task records, which saved these same notes.)
+struct ToolNote: Codable, Equatable, Sendable {
+    static let label = "Tool note (from WukongMind, trusted):"
+
+    let text: String
+
+    private init(_ text: String) {
+        // One line each: the notes block ends where the wrapper starts.
+        self.text = text.split(whereSeparator: \.isNewline).joined(separator: " ")
+    }
+
+    init(from decoder: Decoder) throws {
+        self.init(try decoder.singleValueContainer().decode(String.self))
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(text)
+    }
+
+    /// `list_latest`: titles only, read before recommending (gate 2, H4). `topic` is the site
+    /// adapter's constant noun ("topic", "story", "post").
+    static func latestList(topic: String) -> ToolNote {
+        ToolNote("These are titles and excerpts only. Before recommending any, read or summarize at least one "
+            + "promising \(topic) (`read_topic`), and say which ones you only saw listed.")
+    }
+
+    /// `read_topic` with a query: matches inside one thread only (gate 2, H3).
+    static func queryInTopic(topic: String) -> ToolNote {
+        ToolNote("These are matches inside this \(topic) only. To find what others say about it in other "
+            + "\(topic)s, search the forum (`search_forum`) too.")
+    }
+
+    /// `search_forum` / `search_comments` showed a hit without a post number.
+    static let unnumberedHits = ToolNote(ForumRendering.unnumberedHitsNote)
+
+    /// `run_js` in the page world failed on the page's Content Security Policy.
+    static let pageWorldCSP = ToolNote("The page's Content Security Policy restricts eval or cross-origin requests "
+        + "in the 'page' world; retry with environment: 'isolated' unless you specifically need page JS globals.")
+
+    /// Page feedback (page-feedback.md): the warning, then the changes. Reasons and changes are
+    /// fixed rule texts with numbers; a changed address is only named, its URL stays in the output.
+    static func pageFeedback(_ report: PageFeedbackReport) -> [ToolNote] {
+        var notes: [ToolNote] = []
+        if let warning = report.warningLine { notes.append(ToolNote(warning)) }
+        notes.append(ToolNote(report.changesNote))
+        return notes
+    }
 }
 
 // MARK: - Tool Execution & Dispatch
@@ -384,6 +446,8 @@ struct ToolExecutionOutput: Equatable, Sendable {
     var images: [AgentImage]
     /// Structured forum thread or list shape carried beside rendered text (`design-one-loop.md`).
     var shape: ForumShape?
+    /// The app's own notes, sent before the untrusted wrapper (`ToolNote`).
+    var notes: [ToolNote]
 
     init(
         content: String,
@@ -393,7 +457,8 @@ struct ToolExecutionOutput: Equatable, Sendable {
         savedPath: String? = nil,
         isRanged: Bool = false,
         images: [AgentImage] = [],
-        shape: ForumShape? = nil
+        shape: ForumShape? = nil,
+        notes: [ToolNote] = []
     ) {
         self.content = content
         self.summary = summary ?? Self.defaultSummary(for: content)
@@ -403,6 +468,7 @@ struct ToolExecutionOutput: Equatable, Sendable {
         self.isRanged = isRanged
         self.images = images
         self.shape = shape
+        self.notes = notes
     }
 
     static func defaultSummary(for text: String, maxChars: Int = 96) -> String {
@@ -440,7 +506,7 @@ struct ToolDispatchResult: Equatable, Sendable {
     var output: String
     /// Compact one-line summary for the collapsed tool-call row.
     var resultSummary: String
-    /// `output` wrapped in `<untrusted_web_content>` delimiters for the model.
+    /// `notes`, then `output` wrapped in `<untrusted_web_content>` delimiters, for the model.
     var modelContent: String
     var isError: Bool
     var wasTruncated: Bool
@@ -452,6 +518,8 @@ struct ToolDispatchResult: Equatable, Sendable {
     var savedPath: String? = nil
     var images: [AgentImage] = []
     var shape: ForumShape? = nil
+    /// The app's own notes (hints, page feedback), outside the wrapper in `modelContent`.
+    var notes: [ToolNote] = []
 }
 
 /// Validates tool arguments against JSON Schema, dispatches tool calls, converts
@@ -735,6 +803,7 @@ struct ToolRegistry: Sendable {
                 isRanged: execution.isRanged,
                 images: execution.images,
                 shape: execution.shape,
+                notes: execution.notes,
                 step: step
             )
         } catch let cancellation as CancellationError {
@@ -766,6 +835,7 @@ struct ToolRegistry: Sendable {
         isRanged: Bool = false,
         images: [AgentImage] = [],
         shape: ForumShape? = nil,
+        notes: [ToolNote] = [],
         step: Int? = nil
     ) async -> ToolDispatchResult {
         let scrubbedOutput = UntrustedWebContent.redactSecrets(in: rawOutput, secrets: redactedSecrets)
@@ -793,7 +863,10 @@ struct ToolRegistry: Sendable {
         }
         // Page feedback goes on after saving or truncation (design-m3.md
         // "Page feedback"): the model always sees it, and a saved file stays raw.
+        // Its lines are trusted notes; only a new page address stays in the output.
+        var notes = notes
         if let pageFeedback {
+            notes += ToolNote.pageFeedback(pageFeedback)
             finalOutput = UntrustedWebContent.redactSecrets(
                 in: pageFeedback.decorate(finalOutput),
                 secrets: redactedSecrets
@@ -802,9 +875,10 @@ struct ToolRegistry: Sendable {
         if pageFeedback?.isWarning == true {
             finalSummary = "Page may be broken · \(finalSummary)"
         }
-        let wrapped = UntrustedWebContent.wrap(
+        let wrapped = UntrustedWebContent.modelContent(
             finalOutput,
             toolName: toolName,
+            notes: notes,
             secrets: redactedSecrets
         )
         return ToolDispatchResult(
@@ -821,7 +895,8 @@ struct ToolRegistry: Sendable {
             pageFeedback: pageFeedback,
             savedPath: finalSavedPath,
             images: images,
-            shape: shape
+            shape: shape,
+            notes: notes
         )
     }
 
@@ -1004,7 +1079,8 @@ extension ToolRegistry {
                     return ToolExecutionOutput(
                         content: sections.joined(separator: "\n\n"),
                         summary: "Error: \(condenseInline(errorMessage, maxChars: 72))",
-                        isError: true
+                        isError: true,
+                        notes: AgentBridge.isPageWorldCSPError(errorMessage, environment: env) ? [.pageWorldCSP] : []
                     )
                 }
 

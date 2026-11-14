@@ -1613,7 +1613,7 @@ WUKO-63 fixed the tools and the prompt for conditions 1-3 (commit 3877948), then
 
 Verdicts by the WUKO-63 agent from the answers below, for the orchestrator's final check.
 
-**For the orchestrator.** The tool notes on `list_latest` and on in-thread queries reach the model inside the `<untrusted_web_content>` wrapper, which the system prompt says never to take instructions from. The model followed them anyway, and the prompt rules say the same thing. Moving the notes outside the wrapper would make the shipped tool output differ from these recordings, so it is left as recorded.
+**For the orchestrator.** The tool notes on `list_latest` and on in-thread queries reach the model inside the `<untrusted_web_content>` wrapper, which the system prompt says never to take instructions from. The model followed them anyway, and the prompt rules say the same thing. Moving the notes outside the wrapper would make the shipped tool output differ from these recordings, so it is left as recorded. WUKO-69 has since moved them before the wrapper as trusted tool notes (design-one-loop.md "Tool notes"). The replays compare calls, arguments, errors and final text, not the tool-result text, so the recordings still replay.
 
 ### Questions (re-record)
 

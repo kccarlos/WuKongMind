@@ -289,7 +289,9 @@ final class ForumToolsTests: XCTestCase {
 
         let comments = try await registry.dispatch(toolName: "search_comments", arguments: ["query": .string("wal")])
         XCTAssertFalse(comments.isError)
-        XCTAssertTrue(comments.output.contains(ForumRendering.unnumberedHitsNote))
+        XCTAssertFalse(comments.output.contains(ForumRendering.unnumberedHitsNote), "the note is a trusted tool note now")
+        XCTAssertEqual(comments.notes, [.unnumberedHits])
+        XCTAssertTrue(comments.modelContent.hasPrefix("\(ToolNote.label) \(ForumRendering.unnumberedHitsNote)\n<untrusted_web_content"))
         XCTAssertTrue(comments.resultSummary.contains("comment"))
 
         let latest = try await registry.dispatch(toolName: "list_latest", arguments: [:])

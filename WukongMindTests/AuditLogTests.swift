@@ -254,7 +254,10 @@ final class AuditLogTests: XCTestCase {
             ], required: ["text"]),
             customValidate: nil,
             summarizeArguments: { _ in "" },
-            execute: { args in ToolExecutionOutput(content: "echo: \(args["text"]?.stringValue ?? "")") }
+            // A trusted tool note rides along: the record keeps it, so the rebuilt content matches.
+            execute: { args in
+                ToolExecutionOutput(content: "echo: \(args["text"]?.stringValue ?? "")", notes: [.queryInTopic(topic: "topic")])
+            }
         )
         let registry = ToolRegistry(tools: [echo])
         let client = ScriptedClient([
@@ -273,7 +276,7 @@ final class AuditLogTests: XCTestCase {
             await store.append(taskID: "T", .toolResult(
                 call: call, output: row.resultText, isError: row.isError, duration: row.duration,
                 wasTruncated: row.wasTruncated, totalCharacterCount: row.totalCharacterCount,
-                savedPath: nil, resultSummary: row.resultSummary, time: Date()
+                savedPath: nil, resultSummary: row.resultSummary, notes: row.notes, time: Date()
             ))
         }
         let earlier: [AgentModelTurn] = [
@@ -288,6 +291,11 @@ final class AuditLogTests: XCTestCase {
         )
         let rebuilt = await store.turns(taskID: "T")
         XCTAssertEqual(rebuilt, result.history)
+        let contents = rebuilt.flatMap { turn -> [String] in
+            if case .toolResults(let list) = turn { return list.map(\.content) }
+            return []
+        }
+        XCTAssertTrue(contents.first?.hasPrefix(ToolNote.label) == true, contents.first ?? "")
     }
 }
 

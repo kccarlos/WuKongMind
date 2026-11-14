@@ -108,7 +108,8 @@ final class PageFeedbackTests: XCTestCase {
     func testNoChangeAddsOneLineAndURLChangeSkipsTheComparison() {
         let unchanged = PageFeedbackRules.compare(before: snapshot(), after: snapshot())
         XCTAssertNil(unchanged.warningLine)
-        XCTAssertEqual(unchanged.decorate("true"), "true\n\nPage changes: none")
+        XCTAssertEqual(unchanged.decorate("true"), "true", "the lines are tool notes now")
+        XCTAssertEqual(ToolNote.pageFeedback(unchanged).map(\.text), ["Page changes: none"])
 
         let moved = PageFeedbackRules.compare(
             before: snapshot(),
@@ -120,6 +121,9 @@ final class PageFeedbackTests: XCTestCase {
             moved.changesLine,
             "Page changes: not compared, the page address changed to https://fixture.local/other."
         )
+        // The trusted note only names the change; the page-controlled URL stays in the wrapped output.
+        XCTAssertFalse(ToolNote.pageFeedback(moved).map(\.text).joined().contains("fixture.local"))
+        XCTAssertEqual(moved.decorate("true"), "true\n\nNew page address: https://fixture.local/other")
 
         let unreadable = PageFeedbackRules.compare(before: snapshot(), after: nil)
         XCTAssertTrue(unreadable.reasons.isEmpty)
@@ -138,10 +142,10 @@ final class PageFeedbackTests: XCTestCase {
         let registry = ToolRegistry(tools: [tool], truncationLimit: 100)
         let result = try await registry.dispatch(toolName: "big_change", arguments: [:])
         XCTAssertTrue(result.wasTruncated)
-        XCTAssertTrue(result.output.hasPrefix("The page may be broken: visible text dropped"))
-        XCTAssertTrue(result.output.hasSuffix("Page changes: text 5,000 → 10"))
+        XCTAssertTrue(result.notes.first?.text.hasPrefix("The page may be broken: visible text dropped") == true)
+        XCTAssertEqual(result.notes.last?.text, "Page changes: text 5,000 → 10")
         XCTAssertTrue(result.output.contains("[truncated, 500 characters in total]"))
-        XCTAssertTrue(result.modelContent.contains("The page may be broken"))
+        XCTAssertTrue(result.modelContent.hasPrefix("\(ToolNote.label) The page may be broken"))
         XCTAssertTrue(result.resultSummary.hasPrefix("Page may be broken"))
         XCTAssertFalse(result.isError, "A warning is not an error")
         XCTAssertEqual(result.pageFeedback, feedback)
@@ -280,19 +284,20 @@ final class PageFeedbackTests: XCTestCase {
     func testEmptyingTheBodyWarns() async throws {
         let (_, registry, _) = await makePage(Self.articleHTML)
         let result = try await runJS("document.body.innerHTML = ''; return 'emptied';", on: registry)
-        XCTAssertTrue(result.output.hasPrefix("The page may be broken: "), result.output)
-        XCTAssertTrue(result.output.contains("visible text dropped"), result.output)
-        XCTAssertTrue(result.output.contains("links dropped from 10 to 0"), result.output)
-        XCTAssertTrue(result.output.contains("\"emptied\""))
-        XCTAssertTrue(result.output.hasSuffix(result.pageFeedback?.changesLine ?? "missing"))
-        XCTAssertTrue(result.modelContent.contains("The page may be broken"))
+        let warning = result.notes.first?.text ?? ""
+        XCTAssertTrue(warning.hasPrefix("The page may be broken: "), warning)
+        XCTAssertTrue(warning.contains("visible text dropped"), warning)
+        XCTAssertTrue(warning.contains("links dropped from 10 to 0"), warning)
+        XCTAssertEqual(result.output, "\"emptied\"")
+        XCTAssertEqual(result.notes.last?.text, result.pageFeedback?.changesLine)
+        XCTAssertTrue(result.modelContent.hasPrefix("\(ToolNote.label) The page may be broken"))
     }
 
     func testHalvingTheHeightWarns() async throws {
         let (_, registry, _) = await makePage(Self.articleHTML)
         let result = try await runJS("document.getElementById('spacer').style.height = '200px';", on: registry)
         XCTAssertEqual(result.pageFeedback?.reasons.count, 1, result.output)
-        XCTAssertTrue(result.output.hasPrefix("The page may be broken: page height dropped from "), result.output)
+        XCTAssertTrue(result.notes.first?.text.hasPrefix("The page may be broken: page height dropped from ") == true, result.output)
     }
 
     func testMakingThePageUnscrollableWarns() async throws {
@@ -302,9 +307,9 @@ final class PageFeedbackTests: XCTestCase {
             arguments: ["css": .string("html, body { overflow: hidden !important; }")]
         )
         XCTAssertEqual(result.pageFeedback?.reasons, ["the page can no longer scroll"], result.output)
-        XCTAssertTrue(result.output.hasPrefix("The page may be broken: the page can no longer scroll."))
+        XCTAssertEqual(result.notes.first?.text, "The page may be broken: the page can no longer scroll.")
         // The body becomes its own formatting context, so the height can move a few points.
-        XCTAssertTrue(result.output.contains("scrollable yes → no"), result.output)
+        XCTAssertTrue(result.notes.last?.text.contains("scrollable yes → no") == true, result.output)
     }
 
     func testRemovingTheLinksWarns() async throws {
@@ -320,35 +325,35 @@ final class PageFeedbackTests: XCTestCase {
             on: registry
         )
         XCTAssertEqual(result.pageFeedback?.reasons, ["links dropped from 10 to 0"], result.output)
-        XCTAssertTrue(result.output.hasPrefix("The page may be broken: links dropped from 10 to 0."))
+        XCTAssertEqual(result.notes.first?.text, "The page may be broken: links dropped from 10 to 0.")
     }
 
     func testAPageErrorWarns() async throws {
         let (_, registry, _) = await makePage(Self.articleHTML)
         let result = try await runJS("document.getElementById('boom').click(); return 'clicked';", on: registry)
         XCTAssertEqual(result.pageFeedback?.reasons, ["a new page error appeared"], result.output)
-        XCTAssertTrue(result.output.hasSuffix("Page changes: page errors 0 → 1"), result.output)
+        XCTAssertEqual(result.notes.last?.text, "Page changes: page errors 0 → 1", result.output)
     }
 
     func testAChangeThatAltersNothingAddsOneLine() async throws {
         let (_, registry, _) = await makePage(Self.articleHTML)
         let read = try await runJS("return document.title;", on: registry)
-        XCTAssertEqual(read.output, "\"Fixture\"\n\nPage changes: none")
+        XCTAssertEqual(read.output, "\"Fixture\"")
+        XCTAssertEqual(read.notes.map(\.text), ["Page changes: none"])
 
         let css = try await registry.dispatch(
             toolName: "inject_css",
             arguments: ["css": .string("h1 { color: rgb(200, 0, 0); }")]
         )
-        let lines = css.output.components(separatedBy: "\n").filter { !$0.isEmpty }
-        XCTAssertEqual(lines.count, 2, css.output)
-        XCTAssertEqual(lines.last, "Page changes: none")
+        XCTAssertEqual(css.output.components(separatedBy: "\n").filter { !$0.isEmpty }.count, 1, css.output)
+        XCTAssertEqual(css.notes.map(\.text), ["Page changes: none"])
     }
 
     func testAScriptErrorStillReportsWhatChanged() async throws {
         let (_, registry, _) = await makePage(Self.articleHTML)
         let result = try await runJS("document.body.innerHTML = ''; throw new Error('half done');", on: registry)
         XCTAssertTrue(result.isError)
-        XCTAssertTrue(result.output.hasPrefix("The page may be broken: "), result.output)
+        XCTAssertTrue(result.notes.first?.text.hasPrefix("The page may be broken: ") == true, result.output)
         XCTAssertTrue(result.output.contains("half done"))
     }
 
@@ -357,6 +362,7 @@ final class PageFeedbackTests: XCTestCase {
         let result = try await registry.dispatch(toolName: "read_page", arguments: ["mode": .string("text")])
         XCTAssertNil(result.pageFeedback)
         XCTAssertFalse(result.output.contains("Page changes"))
+        XCTAssertEqual(result.notes, [])
     }
 
     // MARK: - Verify before saving & recorded replay (M3 Task 4)
