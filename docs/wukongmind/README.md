@@ -5,13 +5,26 @@ WukongMind is a fork of Forumind into a self-use, open-source iOS/iPadOS browser
 - The full requirements are in [requirements.md](requirements.md). [next-phase.md](next-phase.md) supplements them and wins where they conflict (including the rule that Forumind's features and tests must keep passing: features the cleanup deletes take their tests with them).
 - The unified interface design is in [design-unified.md](design-unified.md); exported boards and the design system are in [design/README.md](design/README.md).
 - The M3 "Full abilities" (1.2.0) design and its task split are in [design-m3.md](design-m3.md). M3 also includes page feedback, specified in [page-feedback.md](page-feedback.md).
-- The One loop (1.3.0) design, comparison test and task split are in [design-one-loop.md](design-one-loop.md). Deleting the old Research loop and Topic chat waits for the owner's approval of that comparison.
+- The One loop (1.3.0) design, comparison test and task split are in [design-one-loop.md](design-one-loop.md) (owner-approved and final, 2026-11-13). Deleting the old Research loop and Topic chat waits for the owner's approval of that comparison.
 - English first: code, docs, commits and pull requests are in English.
 - This repo started as a copy of Forumind `main` (e046b43). The `forumind` remote is fetch-only; never push to it.
 - Milestones run in order per [section 7 of next-phase.md](next-phase.md#7-milestones); each needs the owner's acceptance before the next.
 - Open questions in section 11 of the requirements use their stated defaults until the owner decides: a separate repo (this one), separate bundle ID and iCloud container, no preset agent model.
 - The share extension and iCloud sync are disabled in the initial `io.github.kccarlos.wukongmind` build (`DC_ENABLE_SHARE_EXTENSION` and `DC_ENABLE_CLOUDKIT` default to `NO` in `scripts/generate_project.rb`): re-enabling them later requires the owner to register the new App Group (`group.io.github.kccarlos.wukongmind`) and iCloud container (`iCloud.io.github.kccarlos.wukongmind`) on the Apple Developer portal.
 - Forumind's own docs, AGENTS/CLAUDE rules and tests still apply; how its existing features and tests are kept, rewired or deleted is governed by [sections 6](next-phase.md#6-where-every-existing-piece-goes) and [9](next-phase.md#9-handling-old-code) of [next-phase.md](next-phase.md).
+
+## Where design output lives
+
+The owner's three rules:
+
+1. **Technical design** (architecture, tools, task split, acceptance) is written as documents under `docs/wukongmind/`.
+2. **Visual design is changed only in the artifacts**: the unified design canvas (https://claude.ai/artifact/Daefr4AsZcSm2EWbTLU9uK) and the design system (https://claude.ai/artifact/5fGhnS4fmcmWYZbPoKTTZ2). Any new screen the design system doesn't have gets an artboard drawn on the design canvas by a design agent first, before the implementation task starts.
+3. **`docs/wukongmind/design/` is a read-only export of the artifacts**, never edited by hand. Re-export after every artifact change. Each export includes a PNG of every new or changed artboard, so workers and reviewers who aren't on Claude can check the UI against the picture without opening the artifact.
+
+## Who reviews what
+
+- **Visual design tasks** (adding or changing artboards in the design artifacts): the worker and the reviewers run on Claude, because only Claude can open the artifacts. One Claude reviewer is enough.
+- **Technical design and implementation**: any model.
 
 ## Versions and releases
 
