@@ -1711,8 +1711,9 @@ final class AppModel: ObservableObject {
     /// follow-ups read these only; Agent records open in `SavedAnswerView`.
     var researchRuns: [AgentRun] { agentRuns.filter { $0.loop == .research } }
 
-    /// Whether an answer needs saving: it cites a source, or is long enough to
-    /// be worth coming back to. "Done, the page is dark now" is not.
+    /// Whether an answer needs saving: it cites a source (a Markdown link; a
+    /// plain-text URL is none), or is long enough to be worth coming back to.
+    /// "Done, the page is dark now" is not.
     static let savedAnswerMinimumLength = 200
 
     static func shouldSaveAnswer(text: String, sourceCount: Int) -> Bool {
@@ -1745,7 +1746,8 @@ final class AppModel: ObservableObject {
             sources = AgentSources.extract(from: text, visits: visits, parse: parse)
                 .prefix(SavedSource.limit).map(SavedSource.init)
         }
-        guard Self.shouldSaveAnswer(text: text, sourceCount: sources.count) else { return nil }
+        // Only cited Markdown links count; topics read but not linked are listed, not "sources".
+        guard Self.shouldSaveAnswer(text: text, sourceCount: sources.filter(\.cited).count) else { return nil }
 
         var run = AgentRun(
             siteURL: siteURL, goal: answer.question, provider: answer.provider, model: answer.model, origin: answer.origin

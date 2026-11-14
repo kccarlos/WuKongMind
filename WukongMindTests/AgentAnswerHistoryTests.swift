@@ -151,6 +151,9 @@ final class AgentAnswerHistoryTests: XCTestCase {
         XCTAssertNil(app.saveAgentAnswer(answer(String(repeating: "x", count: 199))))
         XCTAssertNil(app.saveAgentAnswer(answer("   ")))
         XCTAssertEqual(app.agentRuns.count, before)
+        // Gate 2: a forum turn that read a thread but cites it only as a plain URL has no source.
+        XCTAssertNil(app.saveAgentAnswer(answer("Yes, see \(article)", shapes: forumShapes, page: site)))
+        XCTAssertEqual(app.agentRuns.count, before)
         XCTAssertFalse(AppModel.shouldSaveAnswer(text: "short", sourceCount: 0))
         XCTAssertTrue(AppModel.shouldSaveAnswer(text: "short", sourceCount: 1))
     }

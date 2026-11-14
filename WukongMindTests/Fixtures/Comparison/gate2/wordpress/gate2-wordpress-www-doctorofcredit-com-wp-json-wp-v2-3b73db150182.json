@@ -1,0 +1,12 @@
+{
+  "body" : [
+
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "0",
+    "x-wp-totalpages" : "0"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/posts?search=Chase%20Travel%20$600%20$100%20back%20multiple%20bookings%20cart&per_page=20&page=1&_fields=id,title,link,date_gmt,excerpt,author,_embedded,_links&_embed=author"
+}

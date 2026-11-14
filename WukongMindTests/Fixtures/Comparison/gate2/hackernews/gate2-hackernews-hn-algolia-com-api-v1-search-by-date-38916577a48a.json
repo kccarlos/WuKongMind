@@ -1,0 +1,284 @@
+{
+  "body" : {
+    "hits" : [
+      {
+        "author" : "ibn_khaldun",
+        "created_at" : "2026-11-14T16:46:31Z",
+        "num_comments" : 0,
+        "objectID" : "50498437",
+        "points" : 1,
+        "story_id" : 50498437,
+        "title" : "A short history of the honey trap"
+      },
+      {
+        "author" : "notfried",
+        "created_at" : "2026-11-14T16:45:44Z",
+        "num_comments" : 0,
+        "objectID" : "50498429",
+        "points" : 2,
+        "story_id" : 50498429,
+        "title" : "Ops Needs Friction"
+      },
+      {
+        "author" : "vavkamil",
+        "created_at" : "2026-11-14T16:42:15Z",
+        "num_comments" : 0,
+        "objectID" : "50498398",
+        "points" : 1,
+        "story_id" : 50498398,
+        "title" : "Show HN: Linux CLI for Cricut StickerPix"
+      },
+      {
+        "author" : "bookofjoe",
+        "created_at" : "2026-11-14T16:40:09Z",
+        "num_comments" : 3,
+        "objectID" : "50498380",
+        "points" : 2,
+        "story_id" : 50498380,
+        "title" : "The Mystery Behind a 50-Year-Old Factory Part Flying Off the Shelves"
+      },
+      {
+        "author" : "yakkomajuri",
+        "created_at" : "2026-11-14T16:34:40Z",
+        "num_comments" : 0,
+        "objectID" : "50498346",
+        "points" : 3,
+        "story_id" : 50498346,
+        "title" : "Docs for Humans"
+      },
+      {
+        "author" : "BinRoo",
+        "created_at" : "2026-11-14T16:31:48Z",
+        "num_comments" : 0,
+        "objectID" : "50498325",
+        "points" : 2,
+        "story_id" : 50498325,
+        "title" : "Preventing an AI catastrophe, a brief into to analysis by synthesis"
+      },
+      {
+        "author" : "KinetiNode",
+        "created_at" : "2026-11-14T16:30:59Z",
+        "num_comments" : 1,
+        "objectID" : "50498316",
+        "points" : 1,
+        "story_id" : 50498316,
+        "title" : "ask HN: Do you think everyone is going too far with Jensen Huang?"
+      },
+      {
+        "author" : "aidotguru",
+        "created_at" : "2026-11-14T16:30:57Z",
+        "num_comments" : 0,
+        "objectID" : "50498314",
+        "points" : 2,
+        "story_id" : 50498314,
+        "title" : "Llama.cpp v1.0 on an RTX 3090: up to 55% faster with speculative decoding"
+      },
+      {
+        "author" : "Bluestein",
+        "created_at" : "2026-11-14T16:30:03Z",
+        "num_comments" : 0,
+        "objectID" : "50498304",
+        "points" : 1,
+        "story_id" : 50498304,
+        "title" : "Training and Inference on Huawei Ascend NPUs"
+      },
+      {
+        "author" : "gdgghhhhh",
+        "created_at" : "2026-11-14T16:29:05Z",
+        "num_comments" : 0,
+        "objectID" : "50498295",
+        "points" : 1,
+        "story_id" : 50498295,
+        "title" : "Creating a self booting ZIP archive"
+      },
+      {
+        "author" : "ckw19810413",
+        "created_at" : "2026-11-14T16:27:00Z",
+        "num_comments" : 0,
+        "objectID" : "50498282",
+        "points" : 1,
+        "story_id" : 50498282,
+        "title" : "Cowork – Self-hosted task queue and dashboard for Claude, Codex, and AI agents"
+      },
+      {
+        "author" : "higginsniggins",
+        "created_at" : "2026-11-14T16:26:05Z",
+        "num_comments" : 1,
+        "objectID" : "50498273",
+        "points" : 4,
+        "story_id" : 50498273,
+        "title" : "EU institutions survive Microsoft outage unscathed"
+      },
+      {
+        "author" : "whiteros_e",
+        "created_at" : "2026-11-14T16:23:05Z",
+        "num_comments" : 0,
+        "objectID" : "50498252",
+        "points" : 1,
+        "story_id" : 50498252,
+        "title" : "Thinking Machines: End‑to‑End 4‑Bit Training"
+      },
+      {
+        "author" : "danielberanek",
+        "created_at" : "2026-11-14T16:23:05Z",
+        "num_comments" : 0,
+        "objectID" : "50498251",
+        "points" : 2,
+        "story_id" : 50498251,
+        "title" : "The Missing Ring-0 Protections for AI Agents"
+      },
+      {
+        "author" : "chillax",
+        "created_at" : "2026-11-14T16:20:12Z",
+        "num_comments" : 0,
+        "objectID" : "50498231",
+        "points" : 1,
+        "story_id" : 50498231,
+        "title" : "Project Theseus, Starting with Challoc"
+      },
+      {
+        "author" : "Arshad-Talpur",
+        "created_at" : "2026-11-14T16:19:29Z",
+        "num_comments" : 1,
+        "objectID" : "50498225",
+        "points" : 1,
+        "story_id" : 50498225,
+        "title" : "ZizkaDB × Redu Cloud: Bringing Operational Intelligence and Agent-Native Infra"
+      },
+      {
+        "author" : "matyyyy",
+        "created_at" : "2026-11-14T16:16:37Z",
+        "num_comments" : 0,
+        "objectID" : "50498201",
+        "points" : 1,
+        "story_id" : 50498201,
+        "story_text" : "Hi HN!<p>I&#x27;ve been software engineer for about 15 years. For me this industry was always about learning. To be honest, I don&#x27;t feel this anymore. I see more and more people delegating most of their work to LLMs. We rarely talk about software design or architecture, because Claude is such a great companion, so most of the workers don&#x27;t need these technical discussions.<p>Sometimes I feel a bit lost. I am not sure, what should I learn to stay in the industry and to have opportunity to work on interesting problems.<p>I always saw HN as a place full of ambitious and creatives people. Inspired by hackertube.org and hackerbooks.org, I scanned HN comments in 2026 to extract learning materials recommended by community here, to help me decide with the next steps in my learning journey.<p>Best,\nMateusz",
+        "title" : "Show HN: What HN community recommended learning in 2026"
+      },
+      {
+        "author" : "petecooper",
+        "created_at" : "2026-11-14T16:16:34Z",
+        "num_comments" : 0,
+        "objectID" : "50498200",
+        "points" : 1,
+        "story_id" : 50498200,
+        "story_text" : "Which open source projects have notably good online documentation?\nBonus points: what makes the documentation so good?<p>Note: I&#x27;m asking about online docs in a browser sense, not a top-tier man page.<p>I&#x27;m considering options for a revamped&#x2F;reworked documentation site for an open source project next year, and seeing some candidates that do docs really well would be very helpful.<p>Thank you.",
+        "title" : "Ask HN: Open-source projects with notably good online documentation"
+      },
+      {
+        "author" : "bryanrasmussen",
+        "created_at" : "2026-11-14T16:14:46Z",
+        "num_comments" : 1,
+        "objectID" : "50498183",
+        "points" : 1,
+        "story_id" : 50498183,
+        "title" : "CRISPR-A rescues haploinsufficiency and mutant phenotypes in models of autism"
+      },
+      {
+        "author" : "antagma",
+        "created_at" : "2026-11-14T16:14:06Z",
+        "num_comments" : 0,
+        "objectID" : "50498176",
+        "points" : 1,
+        "story_id" : 50498176,
+        "title" : "Generative UI: C++ is still the King"
+      },
+      {
+        "author" : "kunalkushwaha",
+        "created_at" : "2026-11-14T16:14:06Z",
+        "num_comments" : 0,
+        "objectID" : "50498175",
+        "points" : 1,
+        "story_id" : 50498175,
+        "title" : "Before I Trust an Agent, I Try to Break Its Box"
+      },
+      {
+        "author" : "levicanskij",
+        "created_at" : "2026-11-14T16:10:57Z",
+        "num_comments" : 1,
+        "objectID" : "50498151",
+        "points" : 3,
+        "story_id" : 50498151,
+        "title" : "The Cloud Is Just Someone Else's Computer – They Let It Burn"
+      },
+      {
+        "author" : "bcye",
+        "created_at" : "2026-11-14T16:10:43Z",
+        "num_comments" : 0,
+        "objectID" : "50498150",
+        "points" : 1,
+        "story_id" : 50498150,
+        "story_text" : "Hi HN!<p>I was missing a (travel) planning tool that would let me plan at any detail level and start with a rough sketch. I wanted the flexibility to just put post-its on parts that are not planned (in detail) and a more detailed plan for other parts.<p>So I built a map that you can mark up with drawings, markers and post-its. Additionally you can link to different boards from markers to i.e. plan a city within a larger trip.<p>It&#x27;s built using Maplibre, with self-hosted Protomaps for the tiles and Yjs for state. Currently, state is saved locally in the browser with no login and you can ex- and import your boards as json files. In the future I will want to add some form of collaboration and sync though.<p>I&#x27;m very curious to hear how it fits your (travel and non-travel) use case and what features you still need.",
+        "title" : "Show HN: Mapboard – Excalidraw, but on a Map"
+      },
+      {
+        "author" : "randycupertino",
+        "created_at" : "2026-11-14T16:08:58Z",
+        "num_comments" : 1,
+        "objectID" : "50498135",
+        "points" : 6,
+        "story_id" : 50498135,
+        "title" : "Robot startup cant pay staff after founder takes $4.6M from company to buy home"
+      },
+      {
+        "author" : "_Microft",
+        "created_at" : "2026-11-14T16:08:23Z",
+        "num_comments" : 0,
+        "objectID" : "50498130",
+        "points" : 3,
+        "story_id" : 50498130,
+        "title" : "Anthropic: Mythos got Claude running on AMD chips in 3 days instead of months"
+      },
+      {
+        "author" : "amichail",
+        "created_at" : "2026-11-14T16:07:57Z",
+        "num_comments" : 0,
+        "objectID" : "50498127",
+        "points" : 1,
+        "story_id" : 50498127,
+        "title" : "Scientists Identified a Biological Signature of Tinnitus, and It's in Your Blood"
+      },
+      {
+        "author" : "atomU235",
+        "created_at" : "2026-11-14T16:07:33Z",
+        "num_comments" : 1,
+        "objectID" : "50498124",
+        "points" : 1,
+        "story_id" : 50498124,
+        "title" : "Lustro, unified deterministic stream engine (hash/prng/xof)"
+      },
+      {
+        "author" : "cickpass_broken",
+        "created_at" : "2026-11-14T16:06:37Z",
+        "num_comments" : 0,
+        "objectID" : "50498118",
+        "points" : 2,
+        "story_id" : 50498118,
+        "title" : "LLMs: Do the Benefits Outweigh the Costs?"
+      },
+      {
+        "author" : "fagnerbrack",
+        "created_at" : "2026-11-14T16:01:04Z",
+        "num_comments" : 0,
+        "objectID" : "50498073",
+        "points" : 3,
+        "story_id" : 50498073,
+        "title" : "How to Create Your Own Decentralized Messenger Protocol"
+      },
+      {
+        "author" : "TechTechTech",
+        "created_at" : "2026-11-14T16:00:27Z",
+        "num_comments" : 0,
+        "objectID" : "50498068",
+        "points" : 2,
+        "story_id" : 50498068,
+        "title" : "The first unofficial native PS5-to-PC game port has arrived"
+      }
+    ]
+  },
+  "headers" : {
+    "content-type" : "application/json"
+  },
+  "status" : 200,
+  "url" : "https://hn.algolia.com/api/v1/search_by_date?tags=story&query=&page=0&hitsPerPage=30"
+}

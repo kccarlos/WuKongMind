@@ -1,0 +1,24 @@
+{
+  "body" : {
+    "author" : "KinetiNode",
+    "children" : [
+      {
+        "author" : "verdverm",
+        "created_at_i" : 1794674785,
+        "id" : 50498435,
+        "text" : "In which direction?<p>I&#x27;m generally a yes for one (defense), no for the other (consequences). There is a lot more to this story, better to wait for more facts, rather than jump to a conclusion.",
+        "type" : "comment"
+      }
+    ],
+    "created_at_i" : 1794673859,
+    "id" : 50498316,
+    "points" : 1,
+    "title" : "ask HN: Do you think everyone is going too far with Jensen Huang?",
+    "type" : "story"
+  },
+  "headers" : {
+    "content-type" : "application/json"
+  },
+  "status" : 200,
+  "url" : "https://hn.algolia.com/api/v1/items/50498316"
+}

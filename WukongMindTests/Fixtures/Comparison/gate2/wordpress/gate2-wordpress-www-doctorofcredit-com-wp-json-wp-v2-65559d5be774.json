@@ -1,0 +1,155 @@
+{
+  "body" : [
+    {
+      "author_name" : "Khakaan",
+      "content" : {
+        "rendered" : "<p>Got it on my Freedom Unlimited. Made purchase on 9/26 and credit posted 9/29.</p>\n"
+      },
+      "date_gmt" : "2026-10-02T15:39:18",
+      "id" : 2426041,
+      "parent" : 0
+    },
+    {
+      "author_name" : "John John",
+      "content" : {
+        "rendered" : "<p>Has anyone received this offer twice? I hit this on 10 cards a year ago and haven&#8217;t received it since. It seems Chase doesn&#8217;t love me anymore.</p>\n"
+      },
+      "date_gmt" : "2026-10-06T23:54:40",
+      "id" : 2429028,
+      "parent" : 0
+    },
+    {
+      "author_name" : "ctj",
+      "content" : {
+        "rendered" : "<p>i used this offer twice last year, and have it currently on two cards as well. i don&#8217;t know if it matters, but it was on four different accounts: mine (CFU), spouse&#8217;s (freedom), my business ink, and my spouse&#8217;s business ink.</p>\n"
+      },
+      "date_gmt" : "2026-10-07T03:14:28",
+      "id" : 2429156,
+      "parent" : 2429028
+    },
+    {
+      "author_name" : "mark",
+      "content" : {
+        "rendered" : "<p>Same here.</p>\n"
+      },
+      "date_gmt" : "2026-10-07T12:13:45",
+      "id" : 2429345,
+      "parent" : 2429028
+    },
+    {
+      "author_name" : "Paul5795",
+      "content" : {
+        "rendered" : "<p>What is the reference to Freedom Flex 9x?  The Q4 bonus does not include hotels.  What am I missing?</p>\n"
+      },
+      "date_gmt" : "2026-10-07T18:24:16",
+      "id" : 2429689,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Bobthebuildet",
+      "content" : {
+        "rendered" : "<p>can’t find a use for it. Too many good deals elsewhere</p>\n"
+      },
+      "date_gmt" : "2026-10-08T00:52:59",
+      "id" : 2430054,
+      "parent" : 0
+    },
+    {
+      "author_name" : "JV",
+      "content" : {
+        "rendered" : "<p>Have $100 off of $800 on Freedom</p>\n"
+      },
+      "date_gmt" : "2026-11-01T20:51:00",
+      "id" : 2447187,
+      "parent" : 0
+    },
+    {
+      "author_name" : "David",
+      "content" : {
+        "rendered" : "<p>I finally got it but note the spending requirement has increased from 600 to 800.</p>\n"
+      },
+      "date_gmt" : "2026-11-01T20:54:30",
+      "id" : 2447191,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Jarrett",
+      "content" : {
+        "rendered" : "<p>Same.</p>\n"
+      },
+      "date_gmt" : "2026-11-01T21:53:19",
+      "id" : 2447217,
+      "parent" : 2447191
+    },
+    {
+      "author_name" : "Jay",
+      "content" : {
+        "rendered" : "<p>I have this on freedom and CIC, both are 100 off 600.</p>\n"
+      },
+      "date_gmt" : "2026-11-02T02:40:24",
+      "id" : 2447364,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Dobby",
+      "content" : {
+        "rendered" : "<p>Easy one to use on a real trip. Two midweek nights in Boston or DC clear $600 without trying, esp around conference season. Just remember portal bookings usually don’t earn hotel points or elite nights, so if you’re chasing status the $100 has to beat that. Price the exact room on the hotel’s own site first and only use the portal if it’s still ahead after the $100!</p>\n"
+      },
+      "date_gmt" : "2026-11-02T17:24:09",
+      "id" : 2447615,
+      "parent" : 0
+    },
+    {
+      "author_name" : "F",
+      "content" : {
+        "rendered" : "<p>Targeted means sent to me via email?</p>\n"
+      },
+      "date_gmt" : "2026-11-02T18:01:44",
+      "id" : 2447639,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Celia 🔗",
+      "content" : {
+        "rendered" : "<p>Targeted as in your account.</p>\n<p>The Offer:<br />\n<span>Check your Chase Offers for…</span></p>\n"
+      },
+      "date_gmt" : "2026-11-02T19:03:42",
+      "id" : 2447671,
+      "parent" : 2447639
+    },
+    {
+      "author_name" : "F",
+      "content" : {
+        "rendered" : "<p>I see it now, thank you!</p>\n"
+      },
+      "date_gmt" : "2026-11-02T21:06:42",
+      "id" : 2447791,
+      "parent" : 2447671
+    },
+    {
+      "author_name" : "Justine",
+      "content" : {
+        "rendered" : "<p>Did you ever figure this out?</p>\n"
+      },
+      "date_gmt" : "2026-11-05T22:03:39",
+      "id" : 2449959,
+      "parent" : 2414513
+    },
+    {
+      "author_name" : "Justine",
+      "content" : {
+        "rendered" : "<p>FYI, I bought 3 different nights at 3 different hotels and had it in my cart, checked out in one transaction. It posted as one transaction over $600 and I got the $100 back!</p>\n"
+      },
+      "date_gmt" : "2026-11-12T03:48:35",
+      "id" : 2453302,
+      "parent" : 0
+    }
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "316",
+    "x-wp-totalpages" : "4"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/comments?post=229112&per_page=100&page=4&order=asc&orderby=date_gmt&_fields=id,parent,author_name,date_gmt,content"
+}

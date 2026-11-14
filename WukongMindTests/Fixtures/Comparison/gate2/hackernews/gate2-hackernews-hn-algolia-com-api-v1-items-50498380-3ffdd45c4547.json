@@ -1,0 +1,41 @@
+{
+  "body" : {
+    "author" : "bookofjoe",
+    "children" : [
+      {
+        "author" : "bookofjoe",
+        "children" : [
+          {
+            "author" : "allears",
+            "created_at_i" : 1794674742,
+            "id" : 50498428,
+            "text" : "This is just the same link as the title, and requires a subscription. Is it possible to post a &#x27;gift&#x27; link?",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1794674417,
+        "id" : 50498383,
+        "text" : "<a href=\"https:&#x2F;&#x2F;www.wsj.com&#x2F;business&#x2F;the-mystery-behind-a-50-year-old-factory-part-flying-off-the-shelves-087c1660?st=jpoPgT&amp;reflink=desktopwebshare_permalink\" rel=\"nofollow\">https:&#x2F;&#x2F;www.wsj.com&#x2F;business&#x2F;the-mystery-behind-a-50-year-ol...</a>",
+        "type" : "comment"
+      },
+      {
+        "author" : "gnabgib",
+        "created_at_i" : 1794674686,
+        "id" : 50498418,
+        "text" : "It&#x27;s air vents, apparently.  And they&#x27;re needed to cool data centers.<p>&gt; A Michigan maker of air vents suddenly was inundated with orders from mysterious buyers, setting off a frantic search for answers",
+        "type" : "comment"
+      }
+    ],
+    "created_at_i" : 1794674409,
+    "id" : 50498380,
+    "points" : 2,
+    "title" : "The Mystery Behind a 50-Year-Old Factory Part Flying Off the Shelves",
+    "type" : "story",
+    "url" : "https://www.wsj.com/business/the-mystery-behind-a-50-year-old-factory-part-flying-off-the-shelves-087c1660"
+  },
+  "headers" : {
+    "content-type" : "application/json"
+  },
+  "status" : 200,
+  "url" : "https://hn.algolia.com/api/v1/items/50498380"
+}

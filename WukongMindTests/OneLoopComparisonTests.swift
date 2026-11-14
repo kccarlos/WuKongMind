@@ -110,21 +110,44 @@ final class OneLoopComparisonTests: XCTestCase {
     }
 
     /// The saved new-side runs replay with the real registry: same calls, same errors, same final text.
+    /// Every recording set replays: task 8's, and each later re-record (`gate2`, WUKO-63) over its own snapshot.
     func testRecordedNewSideRunsReplay() async throws {
-        let runs = RecordedNewSide.defaultDirectory
         let questions = try ComparisonQuestion.confirmed()
         XCTAssertEqual(Dictionary(grouping: questions, by: \.kind).mapValues(\.count), ["discourse": 5, "hackernews": 5, "wordpress": 5])
-        let ids = questions.map(\.id).filter { FileManager.default.fileExists(atPath: runs.appendingPathComponent("run-\($0).json").path) }
-        guard !ids.isEmpty else { throw XCTSkip("No recorded new-side runs yet (task 8 records them).") }
-        for question in questions where ids.contains(question.id) {
-            let saved = try RecordedNewSide.load(from: runs, id: question.id)
-            try await Self.assertReplays(saved, question: question, folder: try temporaryFolder())
+        var replayed = 0
+        let sets = ComparisonSet.all()
+        let gate2 = ComparisonSet.named("gate2")
+        if FileManager.default.fileExists(atPath: gate2.runs.path) {
+            XCTAssertEqual(sets.map(\.name), ["main", "gate2"])
+            XCTAssertTrue(["W2", "H3", "H4"].allSatisfy { FileManager.default.fileExists(atPath: gate2.runFile($0).path) }, "the gate 2 re-record")
+        }
+        for set in sets {
+            for question in questions where FileManager.default.fileExists(atPath: set.runFile(question.id).path) {
+                let saved = try RecordedNewSide.load(from: set, id: question.id)
+                try await Self.assertReplays(saved, question: question, set: set, folder: try temporaryFolder())
+                if set.name == "gate2" { Self.assertGateTwo(saved, id: question.id) }
+                replayed += 1
+            }
+        }
+        guard replayed > 0 else { throw XCTSkip("No recorded new-side runs yet (task 8 records them).") }
+    }
+
+    /// Gate 2's conditions on the re-recorded runs: W2 cites a Markdown link, H3 searches beyond
+    /// the named thread, H4 reads at least one thread.
+    static func assertGateTwo(_ saved: RecordedNewSide, id: String) {
+        let tools = saved.document.turns.flatMap(\.toolResults).filter { !$0.isError }.map(\.name)
+        let answer = saved.document.turns.last?.response?.text ?? ""
+        switch id {
+        case "W2": XCTAssertFalse(ComparisonCitations.links(in: answer).isEmpty, "W2: no Markdown-link source")
+        case "H3": XCTAssertTrue(tools.contains { ["search_forum", "search_comments"].contains($0) }, "H3: no search beyond the thread: \(tools)")
+        case "H4": XCTAssertTrue(tools.contains { ["read_topic", "summarize_topic"].contains($0) }, "H4: no thread read: \(tools)")
+        default: break
         }
     }
 
-    static func assertReplays(_ saved: RecordedNewSide, question: ComparisonQuestion, folder: URL) async throws {
+    static func assertReplays(_ saved: RecordedNewSide, question: ComparisonQuestion, set: ComparisonSet = .main, folder: URL) async throws {
         let recordedResults = saved.document.turns.flatMap(\.toolResults)
-        let snapshot = try ForumSnapshot(kind: question.siteKind, mode: .replay)
+        let snapshot = try set.snapshot(question.siteKind, mode: .replay)
         let client = RecordedModelClient(export: saved.document)
         let responseCount = saved.document.turns.compactMap(\.response).count
         let replayed = try await NewSideRun.run(
@@ -139,12 +162,76 @@ final class OneLoopComparisonTests: XCTestCase {
         XCTAssertEqual(replayed.side.answer, saved.document.turns.last?.response?.text, "\(question.id): final text")
     }
 
+    // MARK: Gate 2 fixes (WUKO-63), over the recorded snapshot
+
+    /// Runs one recorded tool call through the real registry on a question's snapshot and returns
+    /// what the model was sent back, plus the run folder (for a result saved to the workspace).
+    private func toolResult(
+        _ id: String, tool: String, arguments: [String: JSONValue]
+    ) async throws -> (result: AgentModelToolResult, system: String, folder: URL) {
+        let question = try XCTUnwrap(ComparisonQuestion.confirmed().first { $0.id == id })
+        let folder = try temporaryFolder()
+        let snapshot = try ForumSnapshot(kind: question.siteKind, mode: .replay)
+        let client = RecordedModelClient([
+            .success(AgentModelTurnResponse(text: "", toolCalls: [AgentModelToolCall(id: "c1", name: tool, arguments: arguments)], stopReason: "tool_use")),
+            .success(AgentModelTurnResponse(text: "Done."))
+        ])
+        _ = try await NewSideRun.run(question, snapshot: snapshot, ai: ComparisonAIService(), modelClient: client, models: .offline, folder: folder)
+        XCTAssertEqual(snapshot.unmatchedURLs, [])
+        let request = try XCTUnwrap(client.recordedRequests.last)
+        let results = request.messages.compactMap { turn -> AgentModelToolResult? in
+            if case .toolResults(let list) = turn { return list.first }
+            return nil
+        }
+        return (try XCTUnwrap(results.first), request.system, folder)
+    }
+
+    /// W2: the recorded query ("multiple purchases one transaction cart total") matches 70 of the
+    /// thread's 317 comments on common words. In thread order the July 2026 terms (#261, "single
+    /// transaction") sat past the 12,000 characters the Agent read; best matches first, they lead.
+    func testThreadQueryPutsTheSingleTransactionTermsInTheFirstRead() async throws {
+        let read = try await toolResult("W2", tool: "read_topic", arguments: [
+            "topic_id": .string("229112"), "query": .string("multiple purchases one transaction cart total")
+        ])
+        let files = FileManager.default.enumerator(at: read.folder, includingPropertiesForKeys: nil)?.compactMap { $0 as? URL } ?? []
+        let saved = try XCTUnwrap(files.first { $0.lastPathComponent.hasSuffix("read_topic.txt") }, "the long result is saved to the workspace")
+        let text = try String(contentsOf: saved, encoding: .utf8)
+        XCTAssertTrue(text.contains("best matches first"))
+        let terms = try XCTUnwrap(text.range(of: "| #261\n"), "comment #261 matches")
+        XCTAssertTrue(text[terms.upperBound...].hasPrefix("This offer is back."))
+        XCTAssertLessThan(text.distance(from: text.startIndex, to: terms.lowerBound), 12_000, "#261 inside the first file_read window")
+        XCTAssertTrue(read.result.content.contains(ForumToolHint.queryInTopic(topic: "post")), "the hint survives the saved-file preview")
+    }
+
+    /// H3: a query inside the named thread tells the model it covers that thread only, and the
+    /// prompt's rule asks for a forum search beyond it.
+    func testInThreadQueryPointsToAForumSearch() async throws {
+        let read = try await toolResult("H3", tool: "read_topic", arguments: ["topic_id": .string("44809166"), "query": .string("funnel")])
+        XCTAssertTrue(read.result.content.contains(ForumToolHint.queryInTopic(topic: "story")), read.result.content.prefix(400).description)
+        XCTAssertTrue(read.system.contains("search the site for it (`search_forum`) beyond that story before answering"))
+    }
+
+    /// H4: the latest list says it is titles only and asks for a read before recommending.
+    func testLatestListAsksForAReadBeforeRecommending() async throws {
+        let list = try await toolResult("H4", tool: "list_latest", arguments: [:])
+        XCTAssertTrue(list.result.content.contains(ForumToolHint.latest(topic: "story")))
+        XCTAssertTrue(list.system.contains("never recommend from titles alone"))
+    }
+
     // MARK: Record (task 8)
 
     func testRecordComparison() async throws {
         let env = ProcessInfo.processInfo.environment
         guard env["ONE_LOOP_RECORD"] == "1" else { throw XCTSkip("Record mode only: ONE_LOOP_RECORD=1 (TEST_RUNNER_ONE_LOOP_RECORD).") }
         let models = try ComparisonModels.fromEnvironment(env)
+        // `ONE_LOOP_SET=<name>` records into Fixtures/Comparison/<name>/ (a fresh snapshot, runs and
+        // audit log) and writes the report to `ONE_LOOP_REPORT_OUT`, leaving task 8's files alone.
+        let set = env["ONE_LOOP_SET"].map(ComparisonSet.named) ?? .main
+        let reportURL = env["ONE_LOOP_REPORT_OUT"].map { URL(fileURLWithPath: $0) } ?? OneLoopReport.defaultURL
+        if set.name != "main" {
+            XCTAssertNotEqual(reportURL, OneLoopReport.defaultURL, "a re-record set needs ONE_LOOP_REPORT_OUT")
+            guard reportURL != OneLoopReport.defaultURL else { return }
+        }
         let only = env["ONE_LOOP_ONLY"].map { $0.split(separator: ",").map(String.init) }
         let questions = try ComparisonQuestion.confirmed().filter { question in only?.contains(question.id) ?? true }
         // Each finished question is saved at once (`ONE_LOOP_ROWS_DIR`, outside the repo: the old side
@@ -154,7 +241,7 @@ final class OneLoopComparisonTests: XCTestCase {
         var snapshots: [String: ForumSnapshot] = [:]
         var toolCost = (try? JSONDecoder().decode(SavedToolCost.self, from: Data(contentsOf: rowsDirectory.appendingPathComponent("tools.json")))) ?? SavedToolCost(count: 0, tokens: nil)
         func snapshot(for question: ComparisonQuestion) throws -> ForumSnapshot {
-            let value = try snapshots[question.kind] ?? ForumSnapshot(kind: question.siteKind, mode: .record)
+            let value = try snapshots[question.kind] ?? set.snapshot(question.siteKind, mode: .record)
             snapshots[question.kind] = value
             return value
         }
@@ -168,7 +255,7 @@ final class OneLoopComparisonTests: XCTestCase {
             let new = try await NewSideRun.run(
                 question, snapshot: snapshot, ai: ComparisonAIService(session: ModelAudit.session()), modelClient: nil, models: models, folder: try temporaryFolder()
             )
-            try new.write(to: RecordedNewSide.defaultDirectory, id: question.id)
+            try new.write(to: set, id: question.id)
             if toolCost.tokens == nil, let tools = new.document.toolSets.values.first {
                 toolCost = SavedToolCost(count: tools.count, tokens: try? await ToolDefinitionCost.anthropicTokens(tools: tools, models: models))
                 try JSONEncoder().encode(toolCost).write(to: rowsDirectory.appendingPathComponent("tools.json"))
@@ -200,14 +287,14 @@ final class OneLoopComparisonTests: XCTestCase {
         )
         XCTAssertFalse(audit.isEmpty)
         XCTAssertTrue(audit.allSatisfy { $0.model == ModelAudit.allowedModel }, "a call used a model other than \(ModelAudit.allowedModel)")
-        try ModelAudit.writeLog(audit, to: OneLoopReport.auditLogURL)
+        try ModelAudit.writeLog(audit, to: set.auditLog)
         let models_ = Dictionary(grouping: audit, by: \.model).mapValues(\.count).sorted { $0.key < $1.key }
             .map { "\($0.value) × `\($0.key)`" }.joined(separator: ", ")
         let auditSection = "\n## Model audit\n\nEvery model request of this record run (old loop, new loop, summaries and the tool-definition count) "
             + "passed through `ModelAudit`, which reads the request body's `model` and refuses anything but `\(ModelAudit.allowedModel)`. "
-            + "\(audit.count) calls: \(models_). The log (host, path, model, status; no keys) is `WukongMindTests/Fixtures/Comparison/model-audit.jsonl`; "
-            + "the recorded new-side runs under `Fixtures/Comparison/runs/` name the model per turn as well.\n"
-        try Data(report.replacingOccurrences(of: "\n## Approval", with: auditSection + "\n## Approval").utf8).write(to: OneLoopReport.defaultURL, options: .atomic)
+            + "\(audit.count) calls: \(models_). The log (host, path, model, status; no keys) is `\(set.relativePath)model-audit.jsonl`; "
+            + "the recorded new-side runs under `\(set.relativePath)runs/` name the model per turn as well.\n"
+        try Data(report.replacingOccurrences(of: "\n## Approval", with: auditSection + "\n## Approval").utf8).write(to: reportURL, options: .atomic)
     }
 }
 
@@ -447,6 +534,45 @@ private struct NoCookies: TaskCookieSource {
     func cookies(forHosts hosts: Set<String>) async -> [KnownCookie]? { [] }
 }
 
+/// Where one recording lives: a snapshot per forum kind, the new-side runs and the audit log.
+/// `main` is task 8's (WUKO-61). A named set (`gate2`, WUKO-63's re-record after the gate 2
+/// fixes) is `Fixtures/Comparison/<name>/`, its files prefixed `<name>-` so no bundle resource
+/// name repeats, and starts from an empty snapshot.
+struct ComparisonSet {
+    var name: String
+    var root: URL
+    var prefix: String
+    var runs: URL
+
+    static let comparisonRoot = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+        .appendingPathComponent("Fixtures/Comparison", isDirectory: true)
+    static let main = ComparisonSet(name: "main", root: comparisonRoot, prefix: "", runs: comparisonRoot.appendingPathComponent("runs", isDirectory: true))
+
+    static func named(_ name: String) -> ComparisonSet {
+        guard name != "main" else { return .main }
+        let root = comparisonRoot.appendingPathComponent(name, isDirectory: true)
+        return ComparisonSet(name: name, root: root, prefix: "\(name)-", runs: root.appendingPathComponent("runs", isDirectory: true))
+    }
+
+    /// `main` and every named set on disk (a folder of `Fixtures/Comparison` with `runs/`).
+    static func all() -> [ComparisonSet] {
+        let folders = (try? FileManager.default.contentsOfDirectory(at: comparisonRoot, includingPropertiesForKeys: nil)) ?? []
+        let named = folders.map(\.lastPathComponent).sorted()
+            .filter { FileManager.default.fileExists(atPath: comparisonRoot.appendingPathComponent("\($0)/runs").path) }
+        return [.main] + named.map(Self.named)
+    }
+
+    func runFile(_ id: String) -> URL { runs.appendingPathComponent("\(prefix)run-\(id).json") }
+    func summariesFile(_ id: String) -> URL { runs.appendingPathComponent("\(prefix)run-\(id).summaries.json") }
+    var auditLog: URL { root.appendingPathComponent("model-audit.jsonl") }
+    /// `WukongMindTests/Fixtures/Comparison/` plus the set's folder, as the report names it.
+    var relativePath: String { "WukongMindTests/Fixtures/Comparison/" + (name == "main" ? "" : "\(name)/") }
+
+    func snapshot(_ kind: SiteKind, mode: ForumSnapshot.Mode) throws -> ForumSnapshot {
+        try ForumSnapshot(kind: kind, mode: mode, directory: root.appendingPathComponent(kind.id, isDirectory: true), filePrefix: prefix)
+    }
+}
+
 /// One new-side run: what the report shows, its exported task record and its summaries.
 struct RecordedNewSide {
     var side: ComparisonSide
@@ -460,20 +586,26 @@ struct RecordedNewSide {
         }
     }
 
-    static let defaultDirectory = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
-        .appendingPathComponent("Fixtures/Comparison/runs", isDirectory: true)
+    static var defaultDirectory: URL { ComparisonSet.main.runs }
 
     /// `run-<id>.json` (the task export) and `run-<id>.summaries.json`, never a snapshot kind's prefix.
     func write(to folder: URL, id: String) throws {
-        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-        try TaskExport.encoder.encode(document).write(to: folder.appendingPathComponent("run-\(id).json"), options: .atomic)
-        try TaskExport.encoder.encode(summaries).write(to: folder.appendingPathComponent("run-\(id).summaries.json"), options: .atomic)
+        try write(to: ComparisonSet(name: "", root: folder.deletingLastPathComponent(), prefix: "", runs: folder), id: id)
+    }
+
+    func write(to set: ComparisonSet, id: String) throws {
+        try FileManager.default.createDirectory(at: set.runs, withIntermediateDirectories: true)
+        try TaskExport.encoder.encode(document).write(to: set.runFile(id), options: .atomic)
+        try TaskExport.encoder.encode(summaries).write(to: set.summariesFile(id), options: .atomic)
     }
 
     static func load(from folder: URL, id: String) throws -> RecordedNewSide {
-        func data(_ name: String) throws -> Data { try Data(contentsOf: folder.appendingPathComponent(name)) }
-        let document = try TaskExport.load(try data("run-\(id).json"))
-        let summaries = (try? JSONDecoder().decode([String].self, from: try data("run-\(id).summaries.json"))) ?? []
+        try load(from: ComparisonSet(name: "", root: folder.deletingLastPathComponent(), prefix: "", runs: folder), id: id)
+    }
+
+    static func load(from set: ComparisonSet, id: String) throws -> RecordedNewSide {
+        let document = try TaskExport.load(try Data(contentsOf: set.runFile(id)))
+        let summaries = (try? JSONDecoder().decode([String].self, from: try Data(contentsOf: set.summariesFile(id)))) ?? []
         return RecordedNewSide(
             side: ComparisonSide(calls: [], answer: document.turns.last?.response?.text ?? "", loopTokens: nil, summaryTokens: nil, topicsRead: 0, seconds: 0),
             document: document, summaries: summaries

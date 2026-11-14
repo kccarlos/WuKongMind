@@ -39,6 +39,9 @@ final class ForumSnapshot: @unchecked Sendable {
     let kind: SiteKind
     let mode: Mode
     let directory: URL
+    /// Put before each file name, so a second snapshot set (`gate2-`) never shares a bundle
+    /// resource name with the first.
+    let filePrefix: String
     let maxBytes: Int
     private let upstreamSession: URLSession
     private let lock = NSLock()
@@ -53,12 +56,13 @@ final class ForumSnapshot: @unchecked Sendable {
     }
 
     init(
-        kind: SiteKind, mode: Mode, directory: URL? = nil,
+        kind: SiteKind, mode: Mode, directory: URL? = nil, filePrefix: String = "",
         maxBytes: Int = ForumSnapshot.defaultMaxBytesPerKind, upstreamSession: URLSession? = nil
     ) throws {
         self.kind = kind
         self.mode = mode
         self.directory = directory ?? Self.defaultDirectory(for: kind)
+        self.filePrefix = filePrefix
         self.maxBytes = maxBytes
         if let upstreamSession {
             self.upstreamSession = upstreamSession
@@ -126,7 +130,7 @@ final class ForumSnapshot: @unchecked Sendable {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
         let fileData = try encoder.encode(entry)
-        let fileName = Self.fileName(forKey: key, url: url, kind: kind)
+        let fileName = filePrefix + Self.fileName(forKey: key, url: url, kind: kind)
 
         try lock.withLock {
             let existing = entriesByURL[key]?.byteCount ?? 0
@@ -147,7 +151,7 @@ final class ForumSnapshot: @unchecked Sendable {
         if let dirFiles = try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil) {
             files = dirFiles.filter { $0.pathExtension == "json" }
         } else if mode == .replay, let bundled = Bundle(for: ForumSnapshotProtocol.self).urls(forResourcesWithExtension: "json", subdirectory: nil) {
-            files = bundled.filter { $0.lastPathComponent.hasPrefix("\(kind.id)-") }
+            files = bundled.filter { $0.lastPathComponent.hasPrefix("\(filePrefix)\(kind.id)-") }
         }
         let decoder = JSONDecoder()
         for file in files.sorted(by: { $0.lastPathComponent < $1.lastPathComponent }) {

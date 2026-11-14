@@ -151,26 +151,40 @@ enum RawTopicFormat {
 
     /// Filters post blocks in `text` by whitespace-separated terms in `query`.
     /// Returns the opening post (`#1` / first block), matching reply blocks, and whether the opening post itself matched.
+    /// A reply matches on any term; the best matches come first (the whole query, then the most
+    /// distinct terms), thread order among equals. Common words match most replies of a long
+    /// thread, so in thread order the post that answers can land past what the model reads (W2).
     static func matchingBlocks(
         in text: String,
         query: String,
         openingPost: String? = nil
     ) -> (opening: String?, matches: [String], openingMatched: Bool) {
-        let terms = query.lowercased().split(whereSeparator: \.isWhitespace).map(String.init)
+        let phrase = query.lowercased().split(whereSeparator: \.isWhitespace).joined(separator: " ")
+        var terms: [String] = []
+        for term in phrase.split(separator: " ").map(String.init) where !terms.contains(term) { terms.append(term) }
         let blocks = postBlocks(text)
         let op = openingPost ?? blocks.first
         guard !terms.isEmpty else { return (op, [], false) }
-        func matchesQuery(_ block: String) -> Bool {
+        func score(_ block: String) -> Int {
             let lower = block.lowercased()
-            return terms.contains { lower.contains($0) }
+            let distinct = terms.filter { lower.contains($0) }.count
+            guard distinct > 0 else { return 0 }
+            return distinct + (terms.count > 1 && lower.contains(phrase) ? terms.count : 0)
         }
+        func matchesQuery(_ block: String) -> Bool { score(block) > 0 }
         let replyBlocks: [String]
         if let first = blocks.first, first == op {
             replyBlocks = Array(blocks.dropFirst())
         } else {
             replyBlocks = blocks.filter { $0 != op }
         }
-        let matchingReplies = replyBlocks.filter(matchesQuery)
+        var scored: [(index: Int, block: String, score: Int)] = []
+        for (index, block) in replyBlocks.enumerated() {
+            let value = score(block)
+            if value > 0 { scored.append((index, block, value)) }
+        }
+        scored.sort { lhs, rhs in lhs.score != rhs.score ? lhs.score > rhs.score : lhs.index < rhs.index }
+        let matchingReplies = scored.map { $0.block }
         let opMatched = op.map(matchesQuery) ?? false
         return (op, matchingReplies, opMatched)
     }

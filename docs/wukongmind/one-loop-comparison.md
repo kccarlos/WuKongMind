@@ -1574,6 +1574,351 @@ Source: [Has Chase Changed The 5/24 Rule For Sole Props? (3/24 For Sole Props)](
 
 Every model request of this record run (old loop, new loop, summaries and the tool-definition count) passed through `ModelAudit`, which reads the request body's `model` and refuses anything but `claude-haiku-5-5`. 140 calls: 140 × `claude-haiku-5-5`. The log (host, path, model, status; no keys) is `WukongMindTests/Fixtures/Comparison/model-audit.jsonl`; the recorded new-side runs under `Fixtures/Comparison/runs/` name the model per turn as well.
 
+## Re-record after gate 2 fixes
+
+WUKO-63 fixed the tools and the prompt for conditions 1-3 (commit 3877948), then re-recorded W2, H3 and H4 on both sides, once each, with no retry. The run started from a fresh, empty snapshot in its own set, `WukongMindTests/Fixtures/Comparison/gate2/` (`ONE_LOOP_SET=gate2`): new snapshot, runs and audit log, with files prefixed `gate2-`. Task 8's snapshot, runs and audit log above are unchanged. Both loops and the summaries used `claude-haiku-5-5` only. The forums were fetched live again on 2026-11-14, so the H4 list and some comment counts differ from the first run.
+
+| | |
+|---|---|
+| App commit | 3877948 |
+| Snapshot misses (new side fetched live) | H3: 0, H4: 3, W2: 1 |
+| Text Agent's tools on forum pages | 26 tools, 6833 tokens of definitions |
+
+**Why W2 missed the terms (condition 1).** The first `read_topic` of `?p=229112` showed the article, comments #2-45 and #276-317 inline, and saved the whole thread to a file. Comment #261 (Jarrett, July 2026: "A minimum spend of $600 must be met in a single transaction…") was not inline. The site-wide `search_comments` "single transaction cart" got an empty list back from the site, and #261 doesn't contain "cart". The in-thread `read_topic` query "multiple purchases one transaction cart total" matched any one word, so it returned 70 of 317 comments in thread order, and #261 started at character 18,698 of that result. The Agent read only the first 12,000 characters. **Fix:** query matches now come best first (the whole query, then the most distinct words, thread order among equals), and the set of matches is unchanged. On the recorded fixture, #261 now starts inside the first 12,000 characters; `testThreadQueryPutsTheSingleTransactionTermsInTheFirstRead` fails on the old code and passes on the new.
+
+**What else changed.**
+- **Sources (condition 1):** Only a Markdown link `[title](url)` is a cited source, in the numbered sources and in History's save rule. A plain URL is not a source. A thread that was read but not linked still shows in the list as "read, not cited", but it doesn't count for the save rule. A title may hold one level of brackets ("[Targeted] Chase Travel…"), which the old pattern didn't match.
+- **H3 (condition 2):** The prompt rule is "search the forum beyond that thread before answering". An in-thread `read_topic` query now opens with a note that it covers this thread only and points to `search_forum`.
+- **H4 (condition 3):** The prompt rule is "never recommend from titles alone". `list_latest` now opens with a note to read at least one thread first.
+- **Tests:** The replay test checks the re-recorded runs themselves: W2 has a Markdown-link source, H3 searches, H4 reads a thread.
+
+### Totals (re-record)
+
+| Kind | Side | Loop tokens in | Loop tokens out | Summary tokens in | Summary tokens out | Tool calls | Topics read | Median time |
+|---|---|---|---|---|---|---|---|---|
+| hackernews | Old Research | 55996 | 5362 | 0 | 0 | 6 | 4 | 16.4 s |
+| hackernews | New Agent | 79773 | 4487 | 19005 | 2385 | 9 | 7 | 24.3 s |
+| wordpress | Old Research | 15531 | 1978 | 0 | 0 | 1 | 1 | 17.5 s |
+| wordpress | New Agent | 47401 | 1518 | 0 | 0 | 3 | 1 | 18.5 s |
+| All | Old Research | 71527 | 7340 | 0 | 0 | 7 | 5 | 17.5 s |
+| All | New Agent | 127174 | 6005 | 19005 | 2385 | 12 | 8 | 18.5 s |
+
+### Verdicts (re-record)
+
+| Question | New better, same, or worse | First run |
+|---|---|---|
+| W2 | better | worse |
+| H3 | same | worse |
+| H4 | better | worse |
+
+Verdicts by the WUKO-63 agent from the answers below, for the orchestrator's final check.
+
+**For the orchestrator.** The tool notes on `list_latest` and on in-thread queries reach the model inside the `<untrusted_web_content>` wrapper, which the system prompt says never to take instructions from. The model followed them anyway, and the prompt rules say the same thing. Moving the notes outside the wrapper would make the shipped tool output differ from these recordings, so it is left as recorded.
+
+### Questions (re-record)
+
+#### H3
+
+**Question:** Summarize the thread "How I use Tailscale" (https://news.ycombinator.com/item?id=44809166), then find what others here say about exposing a service with `tailscale funnel`.
+
+**Starting page:** https://news.ycombinator.com/item?id=44809166
+
+##### Old Research
+
+**Tool calls:**
+
+1. `read_topic` topic_id=44809166 → Read 102 posts
+1. `search_comments` query=tailscale funnel → 5 topics
+1. `read_topic` query=funnel topic_id=49754785 → Read 7 matching posts
+
+**Answer:**
+
+## 1. Summary of "How I use Tailscale"
+
+The submission links to a personal write-up at [chameth.com/how-i-use-tailscale](https://chameth.com/how-i-use-tailscale/). The HN discussion is [How I use Tailscale](https://news.ycombinator.com/item?id=44809166). I read the thread, but the tool trimmed the middle replies, so this is not exhaustive. The blog post body itself was not retrieved, so I can't describe the author's setup beyond what commenters say.
+
+Main themes in the comments:
+- **Practical use:** Commenters use it for self-hosting, reaching Jellyfin or file servers away from home, exit nodes for home-network filtering (AdGuard Home/Pi-hole), and geo-access to banking or streaming. [#7](https://news.ycombinator.com/item?id=44809166#44819309), [#9](https://news.ycombinator.com/item?id=44809166#44819309), [#10](https://news.ycombinator.com/item?id=44809166#44818657)
+- **Alternatives:** ZeroTier, plain WireGuard, Nebula, Headscale, and NetBird come up repeatedly. [#3](https://news.ycombinator.com/item?id=44809166#44823629), [#20](https://news.ycombinator.com/item?id=44809166#44809166), [#86](https://news.ycombinator.com/item?id=44809166#44854176), [#95](https://news.ycombinator.com/item?id=44809166#44854509)
+- **Concerns:** Battery drain and WSL DNS breakage ([#2](https://news.ycombinator.com/item?id=44809166#44817950)). Tailscale SSH is seen as convenient but worrying for some ([#15](https://news.ycombinator.com/item?id=44809166#44823723)). One commenter wants tailnet lock to cover ACLs, not just nodes ([#101](https://news.ycombinator.com/item?id=44809166#44854509)). Another objects to DNS handling and telemetry-style logging ([#76](https://news.ycombinator.com/item?id=44809166#44857959), [#73](https://news.ycombinator.com/item?id=44809166#44852250)).
+
+## 2. What others say about `tailscale funnel`
+
+**Security and exposure (main HN thread on funnel, in [How I use Tailscale](https://news.ycombinator.com/item?id=44809166))**
+- A commenter ran `tailscale funnel` on a dummy `python -m http.server` and saw vulnerability scanners probing within about 10 seconds. The HTTPS certificate is recorded in a public Certificate Transparency log ([#21](https://news.ycombinator.com/item?id=44809166#44850881)).
+- Replies disagree on how much this matters. One says CT log consumers scan new hosts, and suggests non-standard ports to cut traffic ([#22](https://news.ycombinator.com/item?id=44809166#44851004)). Another notes that Tailscale proxies traffic, so the home IP isn't exposed, and that closing the funnel ends the load ([#23](https://news.ycombinator.com/item?id=44809166#44851004)). A third says port choice makes little difference, since IPv4 is scannable quickly ([#28](https://news.ycombinator.com/item?id=44809166#44853313)).
+- Mitigations proposed: use wildcard certificates if you manage your own certs ([#24](https://news.ycombinator.com/item?id=44809166#44851580)), and avoid revealing domain or owner details through the default-IP certificate ([#26](https://news.ycombinator.com/item?id=44809166#44852837)). One reply notes that a server with no matching certificate simply fails the TLS handshake ([#27](https://news.ycombinator.com/item?id=44809166#44852837)).
+
+**Usage and limits (from [Cloudflare Quick Tunnels](https://news.ycombinator.com/item?id=49754785))**
+- Commenters present Funnel as the Tailscale analogue of Cloudflare's public tunnels. One calls Cloudflare's offering "their version of Tailscale funnel" ([#21](https://news.ycombinator.com/item?id=49754785#21), [#142](https://news.ycombinator.com/item?id=49754785#142)).
+- Limit: one Funnel per Tailscale instance (per machine) on the HTTPS endpoint, so other apps use custom-port URLs ([#143](https://news.ycombinator.com/item?id=49754785#49758062)).
+- Workarounds: path-based routing to different local ports, shown with `tailscale funnel status` ([#145](https://news.ycombinator.com/item?id=49754785#49758062)). Another user runs a Tailscale container per Compose stack for separate funnels ([#147](https://news.ycombinator.com/item?id=49754785#49758062)). One user prefers the `tsnet` Go library to get more control ([#144](https://news.ycombinator.com/item?id=49754785#49758062)).
+- A tailnet alone won't serve a public endpoint, such as an MCP server for Claude.ai. Funnel or a similar public tunnel is needed ([#182](https://news.ycombinator.com/item?id=49754785#49758784)).
+
+**Other mentions (search excerpts only, not read in full)**
+- In a [Ask HN thread on $5 VPS projects](https://news.ycombinator.com/item?id=49985548), one user says Tailscale Funnel is "easy" for exposing things, compared with alternatives.
+- In a [SQLite WAL bug thread](https://news.ycombinator.com/item?id=49272832), a reply links to the Funnel CLI and feature docs, with notes on DNS names and supported ports.
+
+## Caveats
+- The site doesn't establish whether Funnel is safe for a given workload. Commenters disagree about how much the CT-log discovery matters.
+- The thread was trimmed, so some replies weren't seen.
+- Quotes from the excerpt-only threads are unverified beyond the search snippets.
+
+**Citations:** 24, 23 a thread in the snapshot
+
+- https://chameth.com/how-i-use-tailscale/: not in the snapshot
+- https://news.ycombinator.com/item?id=44809166: thread in the snapshot
+- https://news.ycombinator.com/item?id=44809166#44819309: thread in the snapshot
+- https://news.ycombinator.com/item?id=44809166#44818657: thread in the snapshot
+- https://news.ycombinator.com/item?id=44809166#44823629: thread in the snapshot
+- https://news.ycombinator.com/item?id=44809166#44809166: thread in the snapshot
+- https://news.ycombinator.com/item?id=44809166#44854176: thread in the snapshot
+- https://news.ycombinator.com/item?id=44809166#44854509: thread in the snapshot
+- https://news.ycombinator.com/item?id=44809166#44817950: thread in the snapshot
+- https://news.ycombinator.com/item?id=44809166#44823723: thread in the snapshot
+- https://news.ycombinator.com/item?id=44809166#44857959: thread in the snapshot
+- https://news.ycombinator.com/item?id=44809166#44852250: thread in the snapshot
+- https://news.ycombinator.com/item?id=44809166#44850881: thread in the snapshot
+- https://news.ycombinator.com/item?id=44809166#44851004: thread in the snapshot
+- https://news.ycombinator.com/item?id=44809166#44853313: thread in the snapshot
+- https://news.ycombinator.com/item?id=44809166#44851580: thread in the snapshot
+- https://news.ycombinator.com/item?id=44809166#44852837: thread in the snapshot
+- https://news.ycombinator.com/item?id=49754785: thread in the snapshot
+- https://news.ycombinator.com/item?id=49754785#21: thread in the snapshot
+- https://news.ycombinator.com/item?id=49754785#142: thread in the snapshot
+- https://news.ycombinator.com/item?id=49754785#49758062: thread in the snapshot
+- https://news.ycombinator.com/item?id=49754785#49758784: thread in the snapshot
+- https://news.ycombinator.com/item?id=49985548: thread in the snapshot
+- https://news.ycombinator.com/item?id=49272832: thread in the snapshot
+
+**Tokens:** loop 42862 in / 3742 out · summary 0 in / 0 out
+
+##### New Agent
+
+**Tool calls:**
+
+1. `summarize_topic` https://news.ycombinator.com/item?id=44809166 → How I use Tailscale
+1. `search_comments` "tailscale funnel" → 10 comments
+1. `read_topic` #49754785 · "funnel" → 317 posts
+
+**Answer:**
+
+## Summary of "How I use Tailscale"
+
+The [story](https://news.ycombinator.com/item?id=44809166) links to chameth.com, a personal Tailscale setup write-up. The thread (102 posts) mostly discusses the author's workflow, then moves to four topics: exposing services, alternatives, security, and privacy. The article itself isn't quoted in the thread.
+
+- **Uses:** Commenters use Tailscale to reach home services like Jellyfin and file servers from phones without making them public. Others use a home exit node for ad blocking, or for region-locked services while abroad.
+- **Alternatives:** Headscale, Netbird, Nebula, ZeroTier, Cloudflare Tunnels, and Plex's UPnP remote access were all suggested.
+- **Security:** Tailscale SSH worried some users, though others said it is opt-in. One commenter argued that ACLs aren't covered by tailnet lock, so a compromised coordination server could change access controls. Another warned against hosting your identity provider on the tailnet it authenticates.
+- **Telemetry:** This was the most heated part. One user said desktop clients stream connection open/close metadata by default and mobile clients can't opt out, and recommended `--no-logs-no-support`. Defenders said the logs are operational and the content is encrypted. Critics replied that metadata still reveals behavior.
+- **DNS:** One commenter said Tailscale takes over the resolver by default. Another found that on systemd-resolved, resolv.conf was untouched. The docs say local DNS is used unless "Override DNS servers" is enabled.
+
+Unresolved in the thread: whether default telemetry is acceptable, whether signed ACLs will arrive, and whether mobile clients will get an opt-out.
+
+## What others say about `tailscale funnel`
+
+**In this thread** (as summarized by the tool, not read post by post): a user who enabled Funnel on a test Python server saw vulnerability scanners probing within about 10 seconds, apparently triggered by certificate transparency logs. The thread split over whether this is just removing obscurity. Suggested mitigations were wildcard certificates, rejecting unknown SNI, and non-standard ports, though others said scanners find services on any port. The most common advice was to avoid Funnel for real services and stay on the tailnet. ([story](https://news.ycombinator.com/item?id=44809166))
+
+**In other threads**, the Funnel comments are more positive:
+
+- In the [Cloudflare Quick Tunnels](https://news.ycombinator.com/item?id=49754785) thread, one commenter called Tailscale Funnel the equivalent of Cloudflare's quick tunnels for public access. Another said you can only have one Funnel per machine's HTTPS endpoint, so other apps end up on custom-port URLs. A reply said the CLI is limited, and that they use `tsnet` directly to run many funnels. Another showed that path-based routing (`/foo`, `/bar`) to different local ports lets one machine serve several apps on a single funnel. A fourth said they run a Tailscale container per Docker Compose stack, which gives each stack its own funnel. One user noted that Funnel only helps with MCP-style public endpoints if the setup is exposed publicly, and that Cloudflare is the simpler route there.
+- In an [Ask HN thread about a $5 VPS](https://news.ycombinator.com/item?id=49985548), one commenter said Tailscale Funnel is easy, but I only saw the start of that comment, so I can't say more.
+
+I didn't read the comments in the first thread individually, so those points come from the summary. The Cloudflare thread's Funnel posts were read directly.
+
+**Citations:** 3, 3 a thread in the snapshot
+
+- https://news.ycombinator.com/item?id=44809166: thread in the snapshot
+- https://news.ycombinator.com/item?id=49754785: thread in the snapshot
+- https://news.ycombinator.com/item?id=49985548: thread in the snapshot
+
+**Tokens:** loop 34635 in / 2610 out · summary 19005 in / 2385 out
+
+| Owner verdict | |
+|---|---|
+| New better, same, or worse | same |
+| Note | Both sides now search beyond the named thread (`search_comments` "tailscale funnel") and read the Cloudflare Quick Tunnels thread. New no longer describes the article it did not fetch. Old still cites at post level (24 links) where new cites 3 threads, and new takes the in-thread Funnel points from its summary, which it says. |
+
+#### H4
+
+**Question:** What's worth reading today on Hacker News?
+
+**Starting page:** https://news.ycombinator.com/
+
+**Snapshot misses:** https://hn.algolia.com/api/v1/items/50498151, https://hn.algolia.com/api/v1/items/50498135, https://hn.algolia.com/api/v1/items/50498316
+
+##### Old Research
+
+**Tool calls:**
+
+1. `list_latest`  → 30 topics
+1. `read_topic` topic_id=50498380 → Read 4 posts
+1. `read_topic` topic_id=50498273 → Read 2 posts
+
+**Answer:**
+
+## What's worth reading today (Nov 14, 2026)
+
+I read only two threads in depth, so these picks are partly based on headlines. The list is mostly single-post stories with no discussion yet.
+
+**1. [The Mystery Behind a 50-Year-Old Factory Part Flying Off the Shelves](https://news.ycombinator.com/item?id=50498380)**
+The WSJ piece is about a Michigan air-vent maker that was suddenly flooded with orders from unknown buyers. A commenter says the vents are needed to cool data centers. The link is paywalled, and one commenter asked for a gift link. It's the most discussed story on the list (4 posts), and the discussion is short.
+
+**2. [EU institutions survive Microsoft outage unscathed](https://news.ycombinator.com/item?id=50498273)**
+Politico reports that EU institutions weren't badly hurt by a Microsoft outage. One commenter points out that the EU's legal database, EUR-Lex, has been mostly offline for unexplained reasons. The thread is brief, so treat the picture as incomplete.
+
+**Other headlines worth a look (unread, so judged only by title):**
+- [Thinking Machines: End-to-End 4-Bit Training](https://news.ycombinator.com/item?id=50498252): a technical ML topic.
+- [Llama.cpp v1.0 on an RTX 3090: up to 55% faster with speculative decoding](https://news.ycombinator.com/item?id=50498314): a local-inference benchmark claim.
+- [Training and Inference on Huawei Ascend NPUs](https://news.ycombinator.com/item?id=50498304).
+- [Anthropic: Mythos got Claude running on AMD chips in 3 days instead of months](https://news.ycombinator.com/item?id=50498130).
+- [Ask HN: Open-source projects with notably good online documentation](https://news.ycombinator.com/item?id=50498200): a question thread that may collect useful recommendations.
+
+The site listing doesn't say which of these are most valuable, and I didn't check the claims in any of them. If you want, I can read the technical items (the 4-bit training, llama.cpp, and Ascend posts) next.
+
+**Citations:** 7, 7 a thread in the snapshot
+
+- https://news.ycombinator.com/item?id=50498380: thread in the snapshot
+- https://news.ycombinator.com/item?id=50498273: thread in the snapshot
+- https://news.ycombinator.com/item?id=50498252: thread in the snapshot
+- https://news.ycombinator.com/item?id=50498314: thread in the snapshot
+- https://news.ycombinator.com/item?id=50498304: thread in the snapshot
+- https://news.ycombinator.com/item?id=50498130: thread in the snapshot
+- https://news.ycombinator.com/item?id=50498200: thread in the snapshot
+
+**Tokens:** loop 13134 in / 1620 out · summary 0 in / 0 out
+
+##### New Agent
+
+**Tool calls:**
+
+1. `list_latest`  → 30 threads
+1. `read_topic` #50498380 → 4 posts
+1. `read_topic` #50498273 → 2 posts
+1. `read_topic` #50498151 → 1 post
+1. `read_topic` #50498135 → 2 posts
+1. `read_topic` #50498316 → 2 posts
+
+**Answer:**
+
+I read five stories. The discussions are thin, so the linked articles carry most of the value. Here's what I found:
+
+**Worth a look**
+- [Robot startup cant pay staff after founder takes $4.6M from company to buy home](https://news.ycombinator.com/item?id=50498135): The comment quotes CNBC reporting that Foundation missed payroll on Oct. 30. It says CEO Sankaet Pathak borrowed $4.6M from the company in 2025 to buy a Sausalito home. I didn't open the CNBC article itself.
+- [The Mystery Behind a 50-Year-Old Factory Part Flying Off the Shelves](https://news.ycombinator.com/item?id=50498380): A commenter says the part is air vents, bought by unknown buyers, and that they're needed to cool data centers. The WSJ link is paywalled, and a commenter asked for a gift link.
+
+**Light on discussion**
+- [EU institutions survive Microsoft outage unscathed](https://news.ycombinator.com/item?id=50498273): The Politico piece says the EU institutions came through a Microsoft outage. A commenter adds that EUR-lex has been mostly offline for unknown reasons.
+- [Ask HN: Do you think everyone is going too far with Jensen Huang?](https://news.ycombinator.com/item?id=50498316): There's only one substantive reply, which says the answer depends on the direction and that more facts are needed.
+- [The Cloud Is Just Someone Else's Computer – They Let It Burn](https://news.ycombinator.com/item?id=50498151): The link goes to soargram.io, and the thread has no comments beyond the post itself.
+
+**Seen only in the list (not read)**
+Other items include "Llama.cpp v1.0 on an RTX 3090" ([link](https://news.ycombinator.com/item?id=50498314)), "Thinking Machines: End-to-End 4-Bit Training" ([link](https://news.ycombinator.com/item?id=50498252)), "Creating a self booting ZIP archive" ([link](https://news.ycombinator.com/item?id=50498295)), and "The first unofficial native PS5-to-PC game port has arrived" ([link](https://news.ycombinator.com/item?id=50498068)). I haven't checked these, so I can't say whether they're worth your time.
+
+If you want, I can read one of those next, or search the site for other discussion of the robot startup or the Microsoft outage.
+
+**Citations:** 9, 9 a thread in the snapshot
+
+- https://news.ycombinator.com/item?id=50498135: thread in the snapshot
+- https://news.ycombinator.com/item?id=50498380: thread in the snapshot
+- https://news.ycombinator.com/item?id=50498273: thread in the snapshot
+- https://news.ycombinator.com/item?id=50498316: thread in the snapshot
+- https://news.ycombinator.com/item?id=50498151: thread in the snapshot
+- https://news.ycombinator.com/item?id=50498314: thread in the snapshot
+- https://news.ycombinator.com/item?id=50498252: thread in the snapshot
+- https://news.ycombinator.com/item?id=50498295: thread in the snapshot
+- https://news.ycombinator.com/item?id=50498068: thread in the snapshot
+
+**Tokens:** loop 45138 in / 1877 out · summary 0 in / 0 out
+
+| Owner verdict | |
+|---|---|
+| New better, same, or worse | better |
+| Note | New read five stories before recommending (old read two) and lists the rest as "seen only in the list". Both separate what they read from what they only saw listed. |
+
+#### W2
+
+**Question:** In the post "[Targeted] Chase Travel: Spend $600+ & Receive $100 Back" (https://www.doctorofcredit.com/?p=229112), does checking out multiple separate hotel bookings together in one Chase Travel cart count as a single transaction to trigger the $100 credit?
+
+**Starting page:** https://www.doctorofcredit.com/?p=229112
+
+**Snapshot misses:** https://www.doctorofcredit.com/wp-json/wp/v2/posts?search=Chase%20Travel%20$600%20$100%20back%20multiple%20bookings%20cart&per_page=20&page=1&_fields=id,title,link,date_gmt,excerpt,author,_embedded,_links&_embed=author
+
+##### Old Research
+
+**Tool calls:**
+
+1. `read_topic` topic_id=229112 → Read 317 posts
+
+**Answer:**
+
+## Short answer
+
+The thread suggests **yes, it can work, but it is not guaranteed by the terms as quoted.** The evidence is one reader's successful report and reader-quoted terms that say the spend must be a single transaction.
+
+## What the evidence says
+
+- **Reader success report:** In comment #317, Justine says she booked three nights at three different hotels, had them all in her cart, and checked out in one transaction. It "posted as one transaction over $600" and she received the $100 back. This is a single anecdote, and the post doesn't say how Chase handled it at scale. ([Targeted] Chase Travel: Spend $600+ & Receive $100 Back, https://www.doctorofcredit.com/targeted-chase-travel-spend-500-receive-100-back/)
+- **Terms quoted by a reader (2026 version):** In comment #261 (July 2, 2026), Jarrett quotes the offer language: "A minimum spend of $600 must be met in a single transaction... multiple transactions totaling $600 do not qualify." That points against counting separate bookings as one qualifying spend, unless the cart checkout posts as one charge, which is what Justine reports. (Same post, comment #261.)
+- **Earlier reader comments are not conclusive:** In 2024 comments, a reader said a Chase representative told them several purchases could count (#48), while another asked the same question without a clear answer (#44, #57, #69). These predate the current terms and were for a different version of the offer.
+- **The article's own fine print is outdated:** The body of the post still shows 2024 terms (expiry 10/31/2024). The updates list later windows, and the quoted 2026 terms are from a reader comment, not the article.
+
+## Other things to check
+
+- **Spend amount may have changed:** Comments #308 to #310 (Nov 1, 2026) report the offer now requires **$800** on some cards, not $600. Confirm the amount shown in your own Chase Offers before booking.
+- **Offer is card-specific:** Comment #286 says the offer is targeted by card and is not extended to other cards on request.
+- **Qualifying charge must post:** Comment #288 describes a purchase where the offer disappeared after use. Comment #290 explains it is normal for an offer to leave the available list once used, and the credit posted a few days later.
+
+## Bottom line
+
+You can put multiple hotel bookings in one Chase Travel cart and pay in one checkout, which one reader reports posted as a single transaction over $600. Because the quoted terms say a single transaction is required, there is some risk that Chase treats separate reservations differently. Confirm the required amount in your offer, consider combining the bookings into a single charge at checkout, and keep records (screenshots of the offer and the receipt) in case you need to dispute it.
+
+Sources: [Targeted] Chase Travel: Spend $600+ & Receive $100 Back, https://www.doctorofcredit.com/targeted-chase-travel-spend-500-receive-100-back/ (comments #261, #286, #288, #290, #308–310, #317, and older comments #44, #48).
+
+**Citations:** 0, 0 a thread in the snapshot
+
+**Tokens:** loop 15531 in / 1978 out · summary 0 in / 0 out
+
+##### New Agent
+
+**Tool calls:**
+
+1. `read_topic` #229112 → saved to results/08083403-413D-476C-8BA1-7CF64937A5DC/01-read_topic.txt
+1. `search_forum` "Chase Travel $600 $100 back multiple bookings cart" → 0 threads
+1. `read_topic` #229112 · "multiple separate cart" → 317 posts
+
+**Answer:**
+
+**Probably yes, based on one reader report, but the terms say a single transaction is required, so it isn't guaranteed.**
+
+- **Reader report:** In the comments, Justine reports: "I bought 3 different nights at 3 different hotels and had it in my cart, checked out in one transaction. It posted as one transaction over $600 and I got the $100 back!" ([Targeted Chase Travel: Spend $600+ & Receive $100 Back](https://www.doctorofcredit.com/targeted-chase-travel-spend-500-receive-100-back/), comment #317, 2026-11-12). That is the closest match to your situation, and it is the most recent report on the page.
+- **Terms quoted in the comments:** Jarrett quoted the July 2026 offer terms: "A minimum spend of $600 must be met in a single transaction … multiple transactions totaling $600 do not qualify" (same post, comment #261, 2026-07-02). So what counts is the single transaction, and a single checkout that posts as one charge is the thing the offer describes.
+- **Gaps:** The article's own fine print is an outdated 2024 version, so I couldn't confirm the current terms from it. The site doesn't say how Chase treats a cart with separate bookings in terms of how it posts, and only one reader has reported this result. Earlier commenters asked the same question and got no definitive answer (for example, comment #57 and comment #60 in the same post).
+
+**Practical takeaway:** Put everything in one cart and check out once, so the charge posts as a single transaction of $600 or more after taxes and discounts. Keep a screenshot of the offer in your account before you buy, since several commenters had offers disappear after use or after a booking was cancelled.
+
+**Citations:** 1, 1 a thread in the snapshot
+
+- https://www.doctorofcredit.com/targeted-chase-travel-spend-500-receive-100-back/: thread in the snapshot
+
+**Tokens:** loop 47401 in / 1518 out · summary 0 in / 0 out
+
+| Owner verdict | |
+|---|---|
+| New better, same, or worse | better |
+| Note | Both now find the July 2026 "single transaction" terms (#261) and the cart report (#317). New cites the post as a Markdown link (1 source); old cites it only as a plain URL, which counts as zero sources. |
+
+### Model audit (re-record)
+
+Every model request of the re-record (old loop, new loop, summaries and the tool-definition count) passed through `ModelAudit`, which refuses any model but `claude-haiku-5-5`. 23 calls: 23 × `claude-haiku-5-5`. The log is `WukongMindTests/Fixtures/Comparison/gate2/model-audit.jsonl`; the runs under `Fixtures/Comparison/gate2/runs/` name the model on each turn.
+
+### Conditions
+
+1. **Met.** Agent sources are Markdown links only, in the numbered sources and in History's save rule (`AssistantSourcesTests`, `AgentAnswerHistoryTests`). The W2 miss is explained above and fixed in `read_topic` query matching, with a unit test on the recorded fixture.
+2. **Met for H3. D3 is covered by the prompt rule only.** H3's new side searched beyond the thread (`search_comments`, then `read_topic` on another thread). Covered by the prompt rule, the tool note, `testInThreadQueryPointsToAForumSearch` and the H3 replay. D3 was not re-recorded. Its first run summarized the thread without an in-thread query, so the tool note would not fire, and only the prompt rule covers it.
+3. **Met.** H4's new side read five threads. Covered by the prompt rule, the tool note, `testLatestListAsksForAReadBeforeRecommending` and the H4 replay.
+4. **Met, in the WUKO-63 agent's reading.** W2, H3 and H4 were re-recorded on both sides from a fresh, empty snapshot, and all 18 recorded new-side runs replay. The new side is no worse on all three (better, same, better). H3 "same" is the closest call: old cites 24 post-level links and new cites 3 threads. The one allowed retry was not used.
+
 ## Approval
 
 Gate 2 approved with conditions by the orchestrator for the owner, 2026-11-14; deletion tasks wait for conditions 1-4.
@@ -1588,3 +1933,7 @@ Conditions, met before any deletion task (9, 10, 11, 13, 14) merges:
 4. Then re-record W2, H3 and H4 with a fresh, empty snapshot (the current snapshot looks pre-filled by discarded attempts). The new side must be no worse than old on all three. Put the re-record in the report.
 
 Not blocking: D5 should surface the solved flag in search results (both sides); watch `summarize_topic` overuse (D4, H5) and the W3/H5 token spikes.
+
+Conditions 1-4: met on 2026-11-14 (WUKO-63; see [Re-record after gate 2 fixes](#re-record-after-gate-2-fixes)), pending the orchestrator's final check.
+
+Conditions 1-4 met, confirmed by the orchestrator for the owner, 2026-11-14.

@@ -123,8 +123,11 @@ enum AgentSources {
         return components.string ?? page.absoluteString
     }
 
+    /// A Markdown link `[title](url)`: the only form that counts as a source
+    /// (gate 2: a plain-text URL is zero sources). A title may hold one level
+    /// of brackets, as in "[Targeted] Chase Travel: …".
     private static let linkPattern = try? NSRegularExpression(
-        pattern: #"\[([^\]\n]+)\]\((https?://[^)\s]+)\)"#
+        pattern: #"\[((?:[^\[\]\n]|\[[^\[\]\n]*\])+)\]\((https?://[^)\s]+)\)"#
     )
 
     /// Same topic regardless of slug, post number, or query: the topic key

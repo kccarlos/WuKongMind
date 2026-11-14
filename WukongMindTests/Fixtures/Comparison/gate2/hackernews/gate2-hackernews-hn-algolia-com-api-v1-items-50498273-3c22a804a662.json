@@ -1,0 +1,25 @@
+{
+  "body" : {
+    "author" : "higginsniggins",
+    "children" : [
+      {
+        "author" : "robin_reala",
+        "created_at_i" : 1794674217,
+        "id" : 50498362,
+        "text" : "Not the ongoing security problems though. EUR-lex has been taken mostly offline for unknown reasons: <a href=\"https:&#x2F;&#x2F;eur-lex.europa.eu&#x2F;\" rel=\"nofollow\">https:&#x2F;&#x2F;eur-lex.europa.eu&#x2F;</a>",
+        "type" : "comment"
+      }
+    ],
+    "created_at_i" : 1794673565,
+    "id" : 50498273,
+    "points" : 4,
+    "title" : "EU institutions survive Microsoft outage unscathed",
+    "type" : "story",
+    "url" : "https://www.politico.eu/article/eu-institutions-survive-microsoft-outage-unscathed/"
+  },
+  "headers" : {
+    "content-type" : "application/json"
+  },
+  "status" : 200,
+  "url" : "https://hn.algolia.com/api/v1/items/50498273"
+}
