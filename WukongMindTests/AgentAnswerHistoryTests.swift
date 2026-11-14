@@ -303,7 +303,12 @@ final class AgentAnswerHistoryTests: XCTestCase {
         let app = try makeApp(snapshot: AppSnapshot(
             agentRuns: [research], forums: [Forum(siteURL: site, kind: .wordpress, name: "Example Blog")]
         ))
-        XCTAssertEqual(app.agentRuns, [research], "loads unchanged")
+        let loaded = try XCTUnwrap(app.agentRuns.first)
+        XCTAssertEqual(app.agentRuns.map(\.id), [research.id])
+        XCTAssertEqual(loaded.loop, .research)
+        XCTAssertEqual(loaded.initialAnswer, research.initialAnswer)
+        XCTAssertEqual(loaded.followUps.map(\.content), research.followUps.map(\.content))
+        XCTAssertEqual(loaded.result, .completed, "a finished run stays as it was")
 
         // Sync: the run rides the `.run` record kind as before.
         let units = try XCTUnwrap(SyncSchema.runUnits(research))
