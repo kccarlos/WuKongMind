@@ -148,22 +148,59 @@ enum AgentSources {
         return sources.first { topicIdentity(of: $0.url, parse: parse) == topic }
     }
 
+    /// A topic a run read or summarized: the topics that follow the cited
+    /// sources as "read, not cited".
+    struct Visit: Equatable, Sendable {
+        var url: URL
+        var topicID: String?
+        var title: String?
+
+        init(url: URL, topicID: String?, title: String? = nil) {
+            self.url = url
+            self.topicID = topicID
+            self.title = title
+        }
+    }
+
+    /// The old Research run's visits: the topics its steps read, titled from
+    /// the saved sessions.
+    static func visits(of run: AgentRun?, sessions: [String: TopicSession]) -> [Visit] {
+        (run?.steps ?? []).compactMap { step in
+            guard let topicKey = step.topicKey, let session = sessions[topicKey] else { return nil }
+            return Visit(url: session.url, topicID: session.topicID, title: session.title)
+        }
+    }
+
+    /// The Agent run's visits: one per thread shape its forum and capability
+    /// results carried (lists are search results, not reads).
+    static func visits(of shapes: [ForumShape]) -> [Visit] {
+        shapes.compactMap { shape in
+            guard case .thread(let thread) = shape, let url = URL(string: thread.url) else { return nil }
+            return Visit(url: url, topicID: thread.id, title: thread.title)
+        }
+    }
+
+    /// The Research run's other texts that cite sources: its first answer and
+    /// the assistant's follow-ups.
+    static func citingTexts(of run: AgentRun?) -> [String] {
+        var texts: [String] = []
+        if let initial = run?.initialAnswer, !initial.isEmpty { texts.append(initial) }
+        return texts
+    }
+
+    static func followUpTexts(of run: AgentRun?) -> [String] {
+        run?.followUps.filter { $0.role == .assistant }.map(\.content) ?? []
+    }
+
     static func extract(
         from answer: String,
-        run: AgentRun?,
-        sessions: [String: TopicSession],
+        visits: [Visit],
+        before earlierTexts: [String] = [],
+        after laterTexts: [String] = [],
         parse: Parse
     ) -> [Source] {
         var sources: [Source] = []
-        var answers: [String] = []
-        if let initial = run?.initialAnswer, !initial.isEmpty {
-            answers.append(initial)
-        }
-        answers.append(answer)
-        if let followUps = run?.followUps {
-            answers.append(contentsOf: followUps.filter { $0.role == .assistant }.map(\.content))
-        }
-        for text in answers {
+        for text in earlierTexts + [answer] + laterTexts {
             for (title, url) in links(in: text) where source(for: url, in: sources, parse: parse) == nil {
                 sources.append(Source(
                     number: sources.count + 1,
@@ -175,13 +212,24 @@ enum AgentSources {
                 ))
             }
         }
-        for step in run?.steps ?? [] {
-            guard let topicKey = step.topicKey, let session = sessions[topicKey] else { continue }
-            let topic = topicIdentity(of: session.url, parse: parse)
+        for visit in visits {
+            let topic = topicIdentity(of: visit.url, parse: parse)
             guard !sources.contains(where: { topicIdentity(of: $0.url, parse: parse) == topic }) else { continue }
-            sources.append(Source(number: sources.count + 1, title: session.title, url: session.url, topicID: session.topicID, cited: false))
+            sources.append(Source(
+                number: sources.count + 1,
+                title: visit.title ?? visit.url.host ?? visit.url.absoluteString,
+                url: visit.url, topicID: visit.topicID, cited: false
+            ))
         }
         return sources
+    }
+
+    /// The old Research answer's sources: its own texts and its read topics.
+    static func extract(from answer: String, run: AgentRun?, sessions: [String: TopicSession], parse: Parse) -> [Source] {
+        extract(
+            from: answer, visits: visits(of: run, sessions: sessions),
+            before: citingTexts(of: run), after: followUpTexts(of: run), parse: parse
+        )
     }
 
     /// Rewrites each `[title](url)` citation as `title [S1](url)`, so the

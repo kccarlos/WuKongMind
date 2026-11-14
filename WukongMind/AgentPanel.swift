@@ -516,8 +516,12 @@ struct AgentView: View {
                 .accessibilityIdentifier("agentAnswer")
 
             if !sources.isEmpty {
-                sourcesList(sources)
-                    .id("agentSources")
+                DCSourcesList(sources: sources) { source in
+                    // The sources become the current list (result cards, Next).
+                    app.followSources(sources, selecting: source, siteURL: run.siteURL)
+                    onOpenTopic(source.url)
+                }
+                .id("agentSources")
             }
 
             if !run.followUps.isEmpty {
@@ -529,66 +533,6 @@ struct AgentView: View {
                 .padding(.top, 4)
             }
         }
-    }
-
-    private func sourcesList(_ sources: [AgentSources.Source]) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Sources")
-                .font(.footnote.weight(.semibold))
-                .foregroundStyle(.secondary)
-                .accessibilityAddTraits(.isHeader)
-            ForEach(sources) { source in
-                Button {
-                    DCHaptics.tap()
-                    // The sources become the current list (result cards, Next).
-                    if let run { app.followSources(sources, selecting: source, siteURL: run.siteURL) }
-                    onOpenTopic(source.url)
-                } label: {
-                    HStack(alignment: .top, spacing: 10) {
-                        DCCitationChip(number: source.label)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(source.title)
-                                .font(.subheadline.weight(.medium))
-                                .foregroundStyle(.primary)
-                                .multilineTextAlignment(.leading)
-                                .lineLimit(2)
-                            Text(sourceDetail(source))
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(1)
-                        }
-                        Spacer(minLength: 4)
-                        Image(systemName: "arrow.up.right")
-                            .font(.caption.weight(.bold))
-                            .foregroundStyle(DCTheme.jade)
-                    }
-                    .padding(10)
-                    .background(DCTheme.surfaceRaised.opacity(0.5), in: RoundedRectangle(cornerRadius: DCTheme.radiusMd, style: .continuous))
-                    .contentShape(RoundedRectangle(cornerRadius: DCTheme.radiusMd, style: .continuous))
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Source \(source.number): \(source.title)")
-                .accessibilityValue(source.postNumber.map { String(localized: "Post \($0)", comment: "Accessibility value of an Ask the forum source that is one post of a topic; the number is the post number") } ?? "")
-                .accessibilityHint(
-                    source.postNumber == nil
-                        ? String(localized: "Opens the topic in the browser")
-                        : String(localized: "Opens the topic at this post in the browser", comment: "Accessibility hint of an Ask the forum source that is one post of a topic")
-                )
-                .accessibilityIdentifier("agentSource-\(source.number)")
-            }
-        }
-    }
-
-    /// The forum host, with the post number for a post-level source.
-    private func sourceDetail(_ source: AgentSources.Source) -> String {
-        let host = source.url.host ?? ""
-        if !source.cited {
-            return String(localized: "Read, not cited · \(host)", comment: "Source the agent read but didn't cite; the placeholder is the forum host")
-        }
-        if let post = source.postNumber {
-            return String(localized: "Post \(post) · \(host)", comment: "Ask the forum source that is one post of a topic; the number is the post number, the placeholder the forum host")
-        }
-        return host
     }
 
     private func followUpRow(_ message: ChatMessage, run: AgentRun, sources: [AgentSources.Source]) -> some View {
@@ -786,6 +730,8 @@ struct BrowserAgentRunsView: View {
     @ObservedObject var app: AppModel
     let session: BrowserAgentSession
     @Binding var expandedToolRowIDs: Set<UUID>
+    /// Opens a source of an answer in the browser.
+    var onOpenURL: ((URL) -> Void)?
     @State private var manuallyExpandedRunIDs: Set<UUID> = []
     @State private var screenshotSheet: ScreenshotSheetItem?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -830,11 +776,20 @@ struct BrowserAgentRunsView: View {
 
             let reply = run.assistantText.trimmingCharacters(in: .whitespacesAndNewlines)
             if !reply.isEmpty {
-                MarkdownView(reply)
+                let forum = forumSources(for: run, reply: reply)
+                MarkdownView(forum.map { AgentSources.annotate(reply, sources: $0.sources, parse: $0.parse) } ?? reply)
                     .font(.subheadline)
                     .textSelection(.enabled)
                     .padding(.vertical, 2)
                     .accessibilityIdentifier("agentAssistantReply")
+                if let forum, !forum.sources.isEmpty {
+                    DCSourcesList(sources: forum.sources) { source in
+                        // The sources become the current list (result cards, Next).
+                        app.followSources(forum.sources, selecting: source, siteURL: forum.siteURL)
+                        onOpenURL?(source.url)
+                    }
+                    .accessibilityIdentifier("agentSources")
+                }
                 if app.settings.agentDeveloperMode, let info = run.finalTurn {
                     DevDetailsButton(app: app, session: session, taskID: run.id.uuidString, info: info)
                 }
@@ -849,6 +804,25 @@ struct BrowserAgentRunsView: View {
                 EmptyView()
             }
         }
+    }
+
+    /// The numbered sources of an answer whose run used forum tools; nil for a
+    /// run without them, whose answer shows as written.
+    private func forumSources(
+        for run: BrowserAgentRun, reply: String
+    ) -> (sources: [AgentSources.Source], siteURL: String, parse: AgentSources.Parse)? {
+        let shapes = run.toolCalls.compactMap(\.shape)
+        guard !shapes.isEmpty else { return nil }
+        let sample = shapes.lazy.compactMap { shape -> URL? in
+            switch shape {
+            case .thread(let thread): URL(string: thread.url)
+            case .list(let list): list.items.first.flatMap { URL(string: $0.url) }
+            }
+        }.first
+        let siteURL = sample.flatMap { app.siteURL(containing: $0) } ?? ""
+        let parse = app.linkParser(siteURL: siteURL)
+        let sources = AgentSources.extract(from: reply, visits: AgentSources.visits(of: shapes), parse: parse)
+        return (sources, siteURL, parse)
     }
 
     private func savedScriptEntries(in run: BrowserAgentRun) -> [SavedScriptCardEntry] {

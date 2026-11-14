@@ -166,4 +166,32 @@ final class AssistantSourcesTests: XCTestCase {
         XCTAssertTrue(annotatedFollowUp.contains("Sidebar [S2](https://meta.discourse.org/t/sidebar/413150/3)"))
         XCTAssertTrue(annotatedFollowUp.contains("Unified new [S1](https://meta.discourse.org/t/unified-new/404728)"))
     }
+
+    func testVisitsFromThreadShapesNumberTwoCitedThreadsAndListThemAfter() throws {
+        let threads = [
+            ThreadShape(id: "1", title: "Fan noise", url: "\(site)/t/fan-noise/1", posts: []),
+            ThreadShape(id: "2", title: "Cooling", url: "\(site)/t/cooling/2", posts: []),
+            ThreadShape(id: "3", title: "Read only", url: "\(site)/t/read-only/3", posts: [])
+        ]
+        let list = ListShape(items: [.init(id: "9", title: "Not read", url: "\(site)/t/not-read/9")])
+        let visits = AgentSources.visits(of: threads.map(ForumShape.thread) + [.list(list)])
+        XCTAssertEqual(visits.map(\.topicID), ["1", "2", "3"])
+
+        let answer = "Fans are loud ([Fan noise](\(site)/t/fan-noise/1)); fix it ([Cooling](\(site)/t/cooling/2/4))."
+        let sources = AgentSources.extract(from: answer, visits: visits, parse: parse)
+        XCTAssertEqual(sources.map(\.label), ["S1", "S2", "S3"])
+        XCTAssertEqual(sources.map(\.cited), [true, true, false])
+        XCTAssertEqual(sources[2].title, "Read only")
+        XCTAssertEqual(sources[1].postNumber, 4)
+        let annotated = AgentSources.annotate(answer, sources: sources, parse: parse)
+        XCTAssertTrue(annotated.contains("Fan noise [S1]("))
+        XCTAssertTrue(annotated.contains("Cooling [S2]("))
+    }
+
+    func testAgentWithNoVisitsLeavesAnswerAsWritten() {
+        XCTAssertEqual(AgentSources.visits(of: []), [])
+        let sources = AgentSources.extract(from: "No links here.", visits: [], parse: parse)
+        XCTAssertTrue(sources.isEmpty)
+        XCTAssertEqual(AgentSources.annotate("No links here.", sources: sources, parse: parse), "No links here.")
+    }
 }

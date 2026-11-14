@@ -466,7 +466,8 @@ final class AppModel: ObservableObject {
             guard let self else {
                 return ToolRegistry.m1(bridge: bridge, truncationLimit: limit, redactedSecrets: secrets)
             }
-            return ToolRegistry.m3(context: AgentToolContext(
+            let forum = self.makeForumToolContext()
+            var registry = ToolRegistry.m3(context: AgentToolContext(
                 bridge: bridge,
                 workspace: self.agentWorkspace,
                 scriptStore: self.scriptStore,
@@ -488,9 +489,16 @@ final class AppModel: ObservableObject {
                 ),
                 network: self.agentHTTPClient,
                 confirmations: self.agentConfirmations,
-                forum: self.makeForumToolContext(),
+                forum: forum,
                 capabilities: self.capabilityToolContext
             ))
+            registry.forumPrompt = forum.map {
+                ForumPromptContext(
+                    forumName: $0.forumName, siteURL: $0.scope.siteURL, adapter: $0.scope.adapter,
+                    maxTopicReads: $0.scope.readBudget()
+                )
+            }
+            return registry
         },
         auditLog: auditLog,
         taskRecords: taskRecordStore

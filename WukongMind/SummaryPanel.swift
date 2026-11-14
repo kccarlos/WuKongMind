@@ -1459,7 +1459,8 @@ private struct ChatThread<Leading: View>: View {
                                 BrowserAgentRunsView(
                                     app: app,
                                     session: browserAgent,
-                                    expandedToolRowIDs: $expandedToolRowIDs
+                                    expandedToolRowIDs: $expandedToolRowIDs,
+                                    onOpenURL: onOpenURL
                                 )
                                 .transition(.identity)
                             }

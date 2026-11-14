@@ -468,6 +468,9 @@ struct ToolRegistry: Sendable {
     /// workspace or a task ID, output is truncated and marked instead.
     var workspace: AgentWorkspace?
     var taskID: String?
+    /// The run's forum, for the prompt's "Forum tools" section; set by the
+    /// builder next to the forum tools.
+    var forumPrompt: ForumPromptContext?
 
     init(
         tools: [AgentTool] = [],
