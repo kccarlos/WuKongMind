@@ -7,50 +7,7 @@ import XCTest
 /// Simulator-free unit tests for `AgentLoop`, `BrowserAgentSession`, recorded
 /// `AIService.completeToolTurn` wire formats, and browser-agent settings/modes.
 final class AgentLoopTests: XCTestCase {
-    // MARK: - Recorded Fake Model Client & Stub Driver
-
-    private final class RecordedModelClient: AgentModelClient, @unchecked Sendable {
-        private let lock = NSLock()
-        private var scriptedResponses: [Result<AgentModelTurnResponse, Error>]
-        private(set) var recordedRequests: [(system: String, messages: [AgentModelTurn], tools: [AgentToolDefinition])] = []
-        var onRequest: (@Sendable (Int) async throws -> Void)?
-
-        init(_ responses: [Result<AgentModelTurnResponse, Error>]) {
-            self.scriptedResponses = responses
-        }
-
-        func append(_ response: Result<AgentModelTurnResponse, Error>) {
-            lock.lock()
-            scriptedResponses.append(response)
-            lock.unlock()
-        }
-
-        func completeToolTurn(
-            system: String,
-            messages: [AgentModelTurn],
-            tools: [AgentToolDefinition],
-            configuration: ProviderConfiguration,
-            provider: AIProvider,
-            maxTokens: Int
-        ) async throws -> AgentModelTurnResponse {
-            let (callNumber, next): (Int, Result<AgentModelTurnResponse, Error>) = lock.withLock {
-                recordedRequests.append((system: system, messages: messages, tools: tools))
-                let count = recordedRequests.count
-                let item: Result<AgentModelTurnResponse, Error>
-                if scriptedResponses.isEmpty {
-                    item = .success(AgentModelTurnResponse(text: "Default fallback reply."))
-                } else {
-                    item = scriptedResponses.removeFirst()
-                }
-                return (count, item)
-            }
-
-            if let onRequest {
-                try await onRequest(callNumber)
-            }
-            return try next.get()
-        }
-    }
+    // MARK: - Stub Driver (RecordedModelClient is in Support/)
 
     private final class StubDriver: AgentPageDriving, @unchecked Sendable {
         var metadata = AgentPageMetadata(url: "https://news.example.org/story", title: "Example Story")
