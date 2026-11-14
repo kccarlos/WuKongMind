@@ -245,13 +245,20 @@ final class AgentPageCaptureTests: XCTestCase {
 
     func testNetworkLogAndConsoleCaptureFetchAndXHRWithoutCookieOrAuthHeaders() async throws {
         let registry = makeRegistry(supportsImageInput: true)
-        _ = try await browser.agentBridge.load(server.baseURL.appendingPathComponent("capture"), wait: true, timeout: 30)
-        _ = try await browser.agentBridge.waitFor(selector: "body[data-ready='1']", milliseconds: 15_000)
+        let outcome = try await browser.agentBridge.load(server.baseURL.appendingPathComponent("capture"), wait: true, timeout: 30)
+        let ready = try await browser.agentBridge.waitFor(selector: "body[data-ready='1']", milliseconds: 15_000)
+        // Say why when the fixture page never finished (a failed load or a slow runner) instead of
+        // reporting only an empty log.
+        XCTAssertTrue(ready.matched, "Fixture page never became ready. load: \(outcome)")
 
         let all = try await registry.dispatch(toolName: "network_log", arguments: [:])
         XCTAssertEqual(all.resultSummary, "2")
         let lines = all.output.split(separator: "\n").map(String.init)
         XCTAssertEqual(lines.count, 2)
+        guard lines.count == 2 else {
+            XCTFail("Network log has \(lines.count) entries, expected 2; output: \(all.output)")
+            return
+        }
         let newest = try JSONValue.parseObjectJSON(lines[0])
         let older = try JSONValue.parseObjectJSON(lines[1])
         XCTAssertEqual(newest["kind"], .string("xhr"))
