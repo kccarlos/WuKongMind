@@ -400,8 +400,6 @@ final class AppModel: ObservableObject {
     /// Set to open the audit log (optionally at one task and step) from the panel.
     @Published var auditLogRequest: AuditLogRequest?
     let scriptWebController: ScriptWebController
-    /// Observable browser agent session (`BrowserAgent.swift`) for page inspection,
-    /// JavaScript execution, CSS injection, userscript persistence, and multi-step
     /// Where the Agent's confirmation cards wait for Allow or Don't allow.
     private(set) lazy var agentConfirmations: AgentConfirmationGate = {
         let gate = AgentConfirmationGate()
@@ -444,6 +442,8 @@ final class AppModel: ObservableObject {
         return client
     }()
 
+    /// Observable browser agent session (`BrowserAgent.swift`) for page inspection,
+    /// JavaScript execution, CSS injection, userscript persistence, and multi-step
     /// tool calling on any page.
     private(set) lazy var browserAgent: BrowserAgentSession = BrowserAgentSession(
         pageDriver: browser.agentBridge,

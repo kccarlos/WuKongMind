@@ -50,11 +50,6 @@ final class AgentConfirmationGate {
         finish(id, result: .success(allow))
     }
 
-    /// Declines everything pending (a new conversation, for example).
-    func cancelAll() {
-        for item in pending { finish(item.id, result: .failure(CancellationError())) }
-    }
-
     private func finish(_ id: UUID, result: Result<Bool, Error>) {
         guard let continuation = continuations.removeValue(forKey: id),
               let index = pending.firstIndex(where: { $0.id == id })
@@ -96,14 +91,14 @@ struct AgentConfirmationCard: View {
                     Text("Allow", comment: "Confirmation card button that lets the Agent go ahead")
                 }
                 .buttonStyle(DCButtonStyle(role: .primary))
-                .accessibilityIdentifier("agentConfirmationAllow")
+                .accessibilityIdentifier("agentConfirmAllow")
                 Button {
                     gate.resolve(confirmation.id, allow: false)
                 } label: {
                     Text("Don't allow", comment: "Confirmation card button that stops the Agent from going ahead")
                 }
                 .buttonStyle(DCButtonStyle(role: .secondary))
-                .accessibilityIdentifier("agentConfirmationDeny")
+                .accessibilityIdentifier("agentConfirmDeny")
             }
         }
         .padding(DCTheme.spacingM)
@@ -114,6 +109,10 @@ struct AgentConfirmationCard: View {
                 .strokeBorder(DCTheme.hairline, lineWidth: DCTheme.hairlineWidth)
         }
         .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("agentConfirmationCard")
+        .accessibilityIdentifier("agentConfirmCard")
+        .onAppear {
+            // The run is paused: tell VoiceOver users why.
+            AccessibilityNotification.Announcement(confirmation.question).post()
+        }
     }
 }

@@ -146,7 +146,8 @@ extension ToolRegistry {
             "headers": response.headers
         ]
         if response.truncated { head["truncated"] = "The download stopped at 20 MB." }
-        let summary = "\(response.status) · \(response.data.count) bytes"
+        let size = ByteCountFormatter.string(fromByteCount: Int64(response.data.count), countStyle: .file)
+        let summary = "\(response.status) · \(size)"
 
         guard let text = response.text else {
             let kind = response.contentType ?? "unknown type"
@@ -239,6 +240,6 @@ extension ToolRegistry {
         if cookies.count > maxCookiesReturned {
             content += "\n\(cookies.count - maxCookiesReturned) more cookies not shown (limit \(maxCookiesReturned))."
         }
-        return ToolExecutionOutput(content: content, summary: "\(min(cookies.count, maxCookiesReturned)) cookies")
+        return ToolExecutionOutput(content: content, summary: "\(min(cookies.count, maxCookiesReturned))")
     }
 }
