@@ -4,6 +4,17 @@ import UIKit
 
 // Screenshot thumbnail and full-size sheet (design-m3.md, "Tool rows" and top Design notes).
 
+enum ScreenshotLabel {
+    case before, after
+
+    var text: String {
+        switch self {
+        case .before: String(localized: "Before", comment: "Label over the screenshot taken before a page change")
+        case .after: String(localized: "After", comment: "Label over the screenshot taken after a page change")
+        }
+    }
+}
+
 struct ScreenshotSheetItem: Identifiable {
     let id = UUID()
     var image: AgentImage
@@ -50,13 +61,13 @@ struct DCScreenshotStrip: View {
                 let label = Self.label(index: index, count: row.images.count)
                 VStack(alignment: .leading, spacing: 4) {
                     if let label {
-                        Text(label).font(.caption.weight(.semibold)).foregroundStyle(DCTheme.inkMuted)
+                        Text(verbatim: label.text).font(.caption.weight(.semibold)).foregroundStyle(DCTheme.inkMuted)
                     }
                     DCScreenshotThumbnail(image: image, label: label) {
                         onOpen(ScreenshotSheetItem(
                             image: image,
-                            title: label ?? String(localized: "Screenshot", comment: "Title of the full-size screenshot sheet"),
-                            subtitle: "\(row.resultSummary) · step \(row.stepNumber)"
+                            title: label?.text ?? String(localized: "Screenshot", comment: "Title of the full-size screenshot sheet"),
+                            subtitle: String(localized: "\(row.resultSummary) · step \(row.stepNumber)", comment: "Subtitle of the full-size screenshot sheet: the capture summary and the step number")
                         ))
                     }
                 }
@@ -65,20 +76,27 @@ struct DCScreenshotStrip: View {
         }
     }
 
-    static func label(index: Int, count: Int) -> String? {
+    static func label(index: Int, count: Int) -> ScreenshotLabel? {
         guard count == 2 else { return nil }
-        return index == 0
-            ? String(localized: "Before", comment: "Label over the screenshot taken before a page change")
-            : String(localized: "After", comment: "Label over the screenshot taken after a page change")
+        return index == 0 ? .before : .after
     }
 }
 
 struct DCScreenshotThumbnail: View {
     let image: AgentImage
-    var label: String?
+    var label: ScreenshotLabel?
     let onOpen: () -> Void
     @State private var loaded: UIImage?
     @State private var failed = false
+
+    private var accessibilityText: String {
+        if failed { return String(localized: "Screenshot unavailable", comment: "VoiceOver label of a screenshot thumbnail whose image is gone") }
+        switch label {
+        case .before: return String(localized: "Screenshot before the change, opens full size", comment: "VoiceOver label of the before thumbnail")
+        case .after: return String(localized: "Screenshot after the change, opens full size", comment: "VoiceOver label of the after thumbnail")
+        case nil: return String(localized: "Screenshot, opens full size", comment: "VoiceOver label of a screenshot thumbnail")
+        }
+    }
 
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: DCTheme.radiusMd, style: .continuous)
@@ -104,9 +122,7 @@ struct DCScreenshotThumbnail: View {
         }
         .buttonStyle(.plain)
         .disabled(failed)
-        .accessibilityLabel(Text(failed
-            ? "Screenshot unavailable"
-            : (label.map { "\($0) screenshot, opens full size" } ?? "Screenshot, opens full size")))
+        .accessibilityLabel(Text(verbatim: accessibilityText))
         .accessibilityIdentifier(failed ? "agentToolScreenshotMissing" : "agentToolScreenshot")
         .task(id: image.data.count) {
             loaded = await AgentImageLoader.thumbnail(image, maxPixel: 360)
@@ -136,21 +152,33 @@ struct DCScreenshotSheet: View {
                             .padding(16)
                             .accessibilityIdentifier("agentScreenshotImage")
                     } else {
-                        Text(failed ? "This screenshot is no longer available." : "")
-                            .font(.subheadline).foregroundStyle(DCTheme.inkMuted)
-                            .frame(width: geo.size.width, height: geo.size.height)
-                            .accessibilityIdentifier("agentScreenshotMissing")
+                        Group {
+                            if failed {
+                                Text("This screenshot is no longer available.", comment: "Shown in the full-size screenshot sheet when the image is gone")
+                                    .font(.subheadline).foregroundStyle(DCTheme.inkMuted)
+                                    .accessibilityIdentifier("agentScreenshotMissing")
+                            } else {
+                                ProgressView()
+                            }
+                        }
+                        .frame(width: geo.size.width, height: geo.size.height)
                     }
                 }
                 .gesture(MagnifyGesture().updating($pinch) { v, s, _ in s = v.magnification }
                     .onEnded { zoom = min(4, max(1, zoom * $0.magnification)) })
             }
-            .background(DCTheme.surfaceRaised)
-            .navigationTitle(item.title)
+            .background(DCTheme.ground)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    VStack(spacing: 1) {
+                        Text(verbatim: item.title).font(.headline)
+                        Text(verbatim: item.subtitle).font(.caption).foregroundStyle(DCTheme.inkMuted)
+                    }
+                    .accessibilityElement(children: .combine)
+                }
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button { dismiss() } label: { Text("Done", comment: "Closes the full-size screenshot sheet").bold() }
+                    Button { dismiss() } label: { Text("Done", comment: "Closes the full-size screenshot sheet").bold().foregroundStyle(DCTheme.goldInk) }
                         .accessibilityIdentifier("agentScreenshotDone")
                 }
             }

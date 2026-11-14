@@ -354,6 +354,29 @@
         }
       }
     },
+    "%@ · step %lld" : {
+      "comment" : "Subtitle of the full-size screenshot sheet: the capture summary and the step number",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · step %2$lld"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · 第 %2$lld 步"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · 第 %2$lld 步"
+          }
+        }
+      }
+    },
     "%@, %@" : {
       "localizations" : {
         "en" : {
@@ -2642,6 +2665,23 @@
         }
       }
     },
+    "After" : {
+      "comment" : "Label over the screenshot taken after a page change",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "之后"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "之後"
+          }
+        }
+      }
+    },
     "After the background check finds topics. Tap it to make the digest." : {
       "localizations" : {
         "zh-Hans" : {
@@ -4044,6 +4084,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "瀏覽器列自動放置"
+          }
+        }
+      }
+    },
+    "Before" : {
+      "comment" : "Label over the screenshot taken before a page change",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "之前"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "之前"
           }
         }
       }
@@ -6696,7 +6753,7 @@
       }
     },
     "Done" : {
-      "comment" : "Closes the audit log sheet\nFirst-run step 3: close the first run\nKeyboard toolbar button to dismiss the code keyboard",
+      "comment" : "Closes the audit log sheet\nCloses the full-size screenshot sheet\nFirst-run step 3: close the first run\nKeyboard toolbar button to dismiss the code keyboard",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -15346,6 +15403,91 @@
         }
       }
     },
+    "Screenshot" : {
+      "comment" : "Title of the full-size screenshot sheet",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "截图"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "截圖"
+          }
+        }
+      }
+    },
+    "Screenshot after the change, opens full size" : {
+      "comment" : "VoiceOver label of the after thumbnail",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更改后的截图，点按以查看大图"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更改後的截圖，點按以查看大圖"
+          }
+        }
+      }
+    },
+    "Screenshot before the change, opens full size" : {
+      "comment" : "VoiceOver label of the before thumbnail",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更改前的截图，点按以查看大图"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更改前的截圖，點按以查看大圖"
+          }
+        }
+      }
+    },
+    "Screenshot unavailable" : {
+      "comment" : "VoiceOver label of a screenshot thumbnail whose image is gone",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "截图不可用"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "截圖無法使用"
+          }
+        }
+      }
+    },
+    "Screenshot, opens full size" : {
+      "comment" : "VoiceOver label of a screenshot thumbnail",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "截图，点按以查看大图"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "截圖，點按以查看大圖"
+          }
+        }
+      }
+    },
     "Script" : {
       "comment" : "Navigation bar title of the single userscript detail screen",
       "localizations" : {
@@ -18942,6 +19084,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "這會移除本機儲存的摘要和聊天記錄。此動作無法還原。"
+          }
+        }
+      }
+    },
+    "This screenshot is no longer available." : {
+      "comment" : "Shown in the full-size screenshot sheet when the image is gone",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此截图已不可用。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此截圖已無法使用。"
           }
         }
       }

@@ -128,7 +128,7 @@ struct DCToolRow<Detail: View>: View {
             Circle().fill(DCTheme.surfaceRaised).frame(width: 28, height: 28)
                 .overlay { Image(systemName: "checkmark").font(.caption.weight(.bold)).foregroundStyle(DCTheme.inkMuted) }
         case .warning:
-            Circle().fill(DCTheme.warning.opacity(0.14)).frame(width: 28, height: 28)
+            Circle().fill(DCTheme.surfaceRaised).frame(width: 28, height: 28)
                 .overlay { Image(systemName: "exclamationmark.triangle").font(.caption.weight(.bold)).foregroundStyle(DCTheme.warning) }
         case .error:
             Circle().fill(DCTheme.cinnabarWash).frame(width: 28, height: 28)
