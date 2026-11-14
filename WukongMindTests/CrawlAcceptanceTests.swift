@@ -156,6 +156,10 @@ final class CrawlAcceptanceTests: XCTestCase {
 
     nonisolated static func pageText(_ page: Int) throws -> String {
         let name = String(format: "page-%02d.html", page)
+        // On a device the files are in the test bundle; on the simulator the source folder works too.
+        if let bundled = Bundle(for: CrawlAcceptanceTests.self).url(forResource: "page-\(String(format: "%02d", page))", withExtension: "html") {
+            return try String(contentsOf: bundled, encoding: .utf8)
+        }
         let url = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
             .appendingPathComponent("Fixtures/CrawlForum/\(name)")
         return try String(contentsOf: url, encoding: .utf8)
