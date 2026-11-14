@@ -3053,6 +3053,7 @@
       }
     },
     "Answer" : {
+      "comment" : "History: a saved Agent answer",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -3130,6 +3131,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "回答已就緒"
+          }
+        }
+      }
+    },
+    "Answer · %@" : {
+      "comment" : "Saved answer subtitle; the placeholder is the date, such as 12 Nov",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "回答 · %@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "回答 · %@"
           }
         }
       }
@@ -12430,6 +12448,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "其他供應商…"
+          }
+        }
+      }
+    },
+    "Other sites" : {
+      "comment" : "History: the group of saved answers from pages that are not forums",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "其他网站"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "其他網站"
           }
         }
       }

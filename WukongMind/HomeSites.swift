@@ -206,7 +206,7 @@ final class SiteVisitStore: ObservableObject {
 /// text is the first words of what was asked or summarized.
 struct HomeRecentItem: Identifiable, Equatable {
     enum Kind: Equatable {
-        /// This launch's Agent conversation (not saved until M3's workspace).
+        /// A saved Agent answer, from a forum or an ordinary page.
         case agent
         /// An "Ask the forum" run.
         case ask
@@ -217,7 +217,6 @@ struct HomeRecentItem: Identifiable, Equatable {
     enum Target: Equatable {
         case topic(String)
         case askRun(UUID)
-        case conversation
     }
 
     var id: String
@@ -235,12 +234,11 @@ enum HomeRecent {
     static let limit = 3
     static let titleLength = 80
 
-    /// The newest `limit` History items: saved summaries and chats, forum
-    /// answers, and this launch's Agent conversation.
+    /// The newest `limit` History items: saved summaries and chats, and the
+    /// saved answers (Research and Agent).
     static func items(
         sessions: [TopicSession],
         runs: [AgentRun],
-        conversation: (prompt: String, host: String, date: Date)?,
         limit: Int = limit
     ) -> [HomeRecentItem] {
         var items: [HomeRecentItem] = []
@@ -258,21 +256,11 @@ enum HomeRecent {
         for run in runs {
             items.append(HomeRecentItem(
                 id: "run-\(run.id.uuidString)",
-                kind: .ask,
+                kind: run.loop == .agent ? .agent : .ask,
                 title: firstWords(run.goal),
                 host: ForumSite.host(of: run.siteURL),
                 date: run.createdAt,
                 target: .askRun(run.id)
-            ))
-        }
-        if let conversation, !conversation.prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            items.append(HomeRecentItem(
-                id: "conversation",
-                kind: .agent,
-                title: firstWords(conversation.prompt),
-                host: conversation.host,
-                date: conversation.date,
-                target: .conversation
             ))
         }
         return Array(items.sorted { $0.date > $1.date }.prefix(limit))

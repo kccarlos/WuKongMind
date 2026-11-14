@@ -385,17 +385,9 @@ private struct HomeList: View {
 
     // MARK: Recent
 
-    /// The newest History items; until conversations are saved (M3's
-    /// workspace) this launch's Agent conversation joins them.
+    /// The newest History items: saved summaries, chats and answers.
     private var recentItems: [HomeRecentItem] {
-        let run = app.browserAgent.runs.last
-        return HomeRecent.items(
-            sessions: Array(app.sessions.values),
-            runs: app.agentRuns,
-            conversation: run.map {
-                (prompt: $0.prompt, host: BrowserAddress.host(app.browser.currentURL), date: $0.startedAt)
-            }
-        )
+        HomeRecent.items(sessions: Array(app.sessions.values), runs: app.agentRuns)
     }
 
     @ViewBuilder
@@ -437,9 +429,6 @@ private struct HomeList: View {
         switch item.target {
         case .topic(let topicKey): app.openTopic(topicKey: topicKey)
         case .askRun(let id): app.openAgentRun(id: id)
-        case .conversation:
-            if app.browser.currentURL != nil { app.browser.hideForumsHome() }
-            actions.openAssistant()
         }
     }
 
@@ -587,7 +576,7 @@ private struct RecentRow: View {
 
     private var kindLabel: String {
         switch item.kind {
-        case .agent: String(localized: "Agent", comment: "Home Recent: an Agent conversation")
+        case .agent: String(localized: "Agent", comment: "Home Recent: a saved Agent answer")
         case .ask: String(localized: "Agent", comment: "Home Recent: a forum search the Agent ran")
         case .summary: String(localized: "Summary", comment: "Home Recent: a saved summary")
         case .chat: String(localized: "Chat", comment: "Home Recent: a saved chat")

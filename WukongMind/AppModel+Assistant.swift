@@ -46,7 +46,7 @@ extension AppModel {
     var manageForums: [Forum] {
         var siteURLs = Set(sessions.values.map(\.siteURL))
         siteURLs.formUnion(activities.map(\.siteURL))
-        siteURLs.formUnion(agentRuns.map(\.siteURL))
+        siteURLs.formUnion(agentRuns.filter(isForumRecord).map(\.siteURL))
         siteURLs.formUnion(watchedTopics.map(\.siteURL))
         siteURLs.remove("")
         let known = siteURLs.map(forumInfo(siteURL:))

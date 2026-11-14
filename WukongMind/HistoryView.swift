@@ -130,7 +130,35 @@ struct HistoryView: View {
 
     // MARK: Body
 
+    /// The saved Agent answer being read, if one is open.
+    private var openAnswer: AgentRun? {
+        app.savedAnswerRunID.flatMap { id in app.agentRuns.first { $0.id == id && $0.loop == .agent } }
+    }
+
     var body: some View {
+        Group {
+            if let run = openAnswer {
+                SavedAnswerView(
+                    run: run,
+                    siteName: app.isForumRecord(run)
+                        ? app.forumInfo(siteURL: run.siteURL).displayName
+                        : ForumSite.host(of: run.siteURL),
+                    parse: app.linkParser(for: run),
+                    onBack: { app.savedAnswerRunID = nil },
+                    onOpenSource: { sources, source in
+                        app.openSavedSource(source, of: sources, siteURL: run.siteURL)
+                    }
+                )
+            } else {
+                listBody
+            }
+        }
+        // Closing History leaves the list, not the answer, for next time.
+        .onDisappear { app.savedAnswerRunID = nil }
+    }
+
+    @ViewBuilder
+    private var listBody: some View {
         let feed = feed
         VStack(spacing: 0) {
             filterBar(feed)
@@ -393,7 +421,13 @@ struct HistoryView: View {
             if items.isEmpty {
                 emptyRow("Questions you ask the forum will appear here.", systemImage: "sparkle.magnifyingglass")
             } else {
-                forumGrouped(items, siteURL: \.siteURL) { agentRunRow($0) }
+                // Answers from ordinary pages follow the forums, as "Other sites".
+                let otherSites = items.filter { !app.isForumRecord($0) }
+                forumGrouped(items.filter(app.isForumRecord), siteURL: \.siteURL) { agentRunRow($0) }
+                if !otherSites.isEmpty {
+                    otherSitesHeaderRow(count: otherSites.count)
+                    ForEach(otherSites) { agentRunRow($0) }
+                }
             }
         } header: {
             sectionHeader("Asks", count: items.count)
@@ -468,6 +502,29 @@ struct HistoryView: View {
                 row(item)
             }
         }
+    }
+
+    private func otherSitesHeaderRow(count: Int) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: "globe")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .frame(width: 20, height: 20)
+                .accessibilityHidden(true)
+            Text("Other sites", comment: "History: the group of saved answers from pages that are not forums")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.primary)
+                .lineLimit(1)
+            Spacer(minLength: 4)
+            Text("\(count)")
+                .font(.caption.weight(.semibold).monospacedDigit())
+                .foregroundStyle(.secondary)
+        }
+        .padding(.vertical, -2)
+        .listRowBackground(Color.primary.opacity(0.035))
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isHeader)
+        .accessibilityIdentifier("historyOtherSites")
     }
 
     private func forumHeaderRow(_ forum: Forum, count: Int) -> some View {
@@ -812,6 +869,14 @@ struct HistoryView: View {
 
     private func runDetail(_ run: AgentRun) -> String {
         var parts: [String] = []
+        if run.loop == .agent {
+            parts.append(String(localized: "Answer", comment: "History: a saved Agent answer"))
+            if !run.sources.isEmpty {
+                parts.append(String(localized: "\(run.sources.count) sources", comment: "History: how many sources a saved answer lists"))
+            }
+            parts.append(run.createdAt.formatted(.relative(presentation: .named)))
+            return parts.joined(separator: " · ")
+        }
         parts.append(statusTitle(app.status(of: run)))
         parts.append(String(localized: "\(run.steps.count) steps", comment: "Agent run detail: tool calls made"))
         parts.append(String(localized: "\(run.readTopicCount) topics", comment: "Agent run detail: topics read"))

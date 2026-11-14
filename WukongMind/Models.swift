@@ -715,6 +715,64 @@ enum AgentRunOrigin: String, Codable, CaseIterable {
     case typed, voice, shortcut
 }
 
+/// Which loop wrote a saved `AgentRun`. A record from before the Agent saved
+/// answers has no key and reads as `.research`.
+enum AgentRunLoop: String, Codable, CaseIterable {
+    case research, agent
+}
+
+/// One line of a saved answer's sources list (`AgentSources.Source`, as data):
+/// the snapshot an Agent record keeps, so the list still shows after the topic
+/// pages are pruned.
+struct SavedSource: Codable, Equatable {
+    var number: Int
+    var title: String
+    var url: String
+    var topicID: String?
+    var postNumber: Int?
+    var cited = true
+
+    /// More sources than an answer cites; a synced record stays small.
+    static let limit = 30
+
+    init(number: Int, title: String, url: String, topicID: String? = nil, postNumber: Int? = nil, cited: Bool = true) {
+        self.number = number
+        self.title = title
+        self.url = url
+        self.topicID = topicID
+        self.postNumber = postNumber
+        self.cited = cited
+    }
+
+    init(_ source: AgentSources.Source) {
+        self.init(
+            number: source.number, title: source.title, url: source.url.absoluteString,
+            topicID: source.topicID, postNumber: source.postNumber, cited: source.cited
+        )
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case number, title, url, topicID, postNumber, cited
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        number = try container.decode(Int.self, forKey: .number)
+        title = try container.decodeIfPresent(String.self, forKey: .title) ?? ""
+        url = try container.decode(String.self, forKey: .url)
+        topicID = try container.decodeIfPresent(String.self, forKey: .topicID)
+        postNumber = try container.decodeIfPresent(Int.self, forKey: .postNumber)
+        cited = try container.decodeIfPresent(Bool.self, forKey: .cited) ?? true
+    }
+
+    /// The row `DCSourcesList` shows; nil for a URL that no longer parses.
+    var source: AgentSources.Source? {
+        URL(string: url).map {
+            AgentSources.Source(number: number, title: title, url: $0, topicID: topicID, postNumber: postNumber, cited: cited)
+        }
+    }
+}
+
 /// A goal-driven run of the forum agent, kept so it can be reopened and
 /// continued with follow-up questions.
 /// The terminal outcome of an agent run.
@@ -759,6 +817,11 @@ struct AgentRun: Codable, Identifiable, Equatable {
     var provider: AIProvider
     var model: String
     var origin: AgentRunOrigin = .typed
+    /// `.agent` for an answer the browser Agent saved at the end of a turn
+    /// (`siteURL` is then the forum's, or the page's origin).
+    var loop: AgentRunLoop = .research
+    /// An Agent record's sources list as it stood at the end of the turn.
+    var sources: [SavedSource] = []
     var createdAt = Date()
     var updatedAt = Date()
     var completedAt: Date?
@@ -788,7 +851,7 @@ struct AgentRun: Codable, Identifiable, Equatable {
 
     private enum CodingKeys: String, CodingKey {
         case id, siteURL, goal, result, steps, transcript, answer, initialAnswer, followUps
-        case topicIDs, knownLinks, error, provider, model, origin, createdAt, updatedAt, completedAt
+        case topicIDs, knownLinks, error, provider, model, origin, loop, sources, createdAt, updatedAt, completedAt
     }
 
     init(from decoder: Decoder) throws {
@@ -808,6 +871,8 @@ struct AgentRun: Codable, Identifiable, Equatable {
         provider = try container.decode(AIProvider.self, forKey: .provider)
         model = try container.decode(String.self, forKey: .model)
         origin = try container.decode(AgentRunOrigin.self, forKey: .origin)
+        loop = try container.decodeIfPresent(AgentRunLoop.self, forKey: .loop) ?? .research
+        sources = try container.decodeIfPresent([SavedSource].self, forKey: .sources) ?? []
         createdAt = try container.decode(Date.self, forKey: .createdAt)
         updatedAt = try container.decode(Date.self, forKey: .updatedAt)
         completedAt = try container.decodeIfPresent(Date.self, forKey: .completedAt)

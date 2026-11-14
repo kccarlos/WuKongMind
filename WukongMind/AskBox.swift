@@ -57,7 +57,7 @@ extension AppModel {
 
     /// Whole forum shows its empty state: examples and recent runs.
     var asksNewForumQuestion: Bool {
-        agentComposesNewQuestion || agentRuns.isEmpty
+        agentComposesNewQuestion || researchRuns.isEmpty
     }
 
     /// The draft the box shows. Typed text stays in front: a run finishing
