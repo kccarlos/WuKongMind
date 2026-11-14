@@ -1,0 +1,9 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>IndieBoard · network fixture</title></head>
+<body><h1>Network fixture</h1><p id="out">loading</p>
+<script>
+fetch("/crawl/page-01.html").then(r => r.text()).then(t => { document.getElementById("out").textContent = "fetched " + t.length; });
+const x = new XMLHttpRequest();
+x.open("GET", "/crawl/page-02.html");
+x.send();
+</script></body></html>

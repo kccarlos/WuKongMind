@@ -1,0 +1,2 @@
+status: Done · 1 step · 4 s
+reply: I couldn't list the site's cookies. I called cookies_get for 127.0.0.1, and the request was declined. The tool asks for confirmation before reading cookies, and the confirmation was refused, so I didn't get any cookie data.

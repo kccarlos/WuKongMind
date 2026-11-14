@@ -1,0 +1,7 @@
+total 32
+drwxr-xr-x  6 kc  staff  192 Nov 14 00:39 .
+drwxr-xr-x  5 kc  staff  160 Nov 14 00:39 ..
+-rw-r--r--  1 kc  staff  733 Nov 14 00:39 page-001.txt
+-rw-r--r--  1 kc  staff  701 Nov 14 00:39 page-002.txt
+-rw-r--r--  1 kc  staff  697 Nov 14 00:39 page-003.txt
+-rw-r--r--  1 kc  staff  709 Nov 14 00:39 page-004.txt

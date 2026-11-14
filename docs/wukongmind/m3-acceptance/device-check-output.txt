@@ -1,0 +1,22 @@
+device/test.log:Test Case '-[WukongMindUITests.PhysicalDeviceSmokeTests testAssistantPageStatesOffline]' passed (16.067 seconds).
+device/test.log:Test Case '-[WukongMindUITests.PhysicalDeviceSmokeTests testManageRowsUseMailStyleSwipeActions]' passed (66.129 seconds).
+device/test.log:	 Executed 2 tests, with 0 failures (0 unexpected) in 82.195 (82.199) seconds
+device/test.log:Test Case '-[WukongMindUITests.ScreenshotThumbnailUITests testScreenshotThumbnailOpensSheet]' passed (12.410 seconds).
+device/test.log:	 Executed 1 test, with 0 failures (0 unexpected) in 12.410 (12.411) seconds
+device/test.log:	 Executed 3 tests, with 0 failures (0 unexpected) in 94.605 (94.612) seconds
+device/test.log:	 Executed 3 tests, with 0 failures (0 unexpected) in 94.605 (94.612) seconds
+device/test.log:** TEST EXECUTE SUCCEEDED **
+device-run.log:[device-check 00:40:46] lock taken: /Volumes/Ext/dev/locks/00008110-001614E8368A601E.lock
+device-run.log:Test Case '-[WukongMindUITests.PhysicalDeviceSmokeTests testAssistantPageStatesOffline]' passed (16.067 seconds).
+device-run.log:Test Case '-[WukongMindUITests.PhysicalDeviceSmokeTests testManageRowsUseMailStyleSwipeActions]' passed (66.129 seconds).
+device-run.log:	 Executed 2 tests, with 0 failures (0 unexpected) in 82.195 (82.199) seconds
+device-run.log:Test Case '-[WukongMindUITests.ScreenshotThumbnailUITests testScreenshotThumbnailOpensSheet]' passed (12.410 seconds).
+device-run.log:	 Executed 1 test, with 0 failures (0 unexpected) in 12.410 (12.411) seconds
+device-run.log:	 Executed 3 tests, with 0 failures (0 unexpected) in 94.605 (94.612) seconds
+device-run.log:	 Executed 3 tests, with 0 failures (0 unexpected) in 94.605 (94.612) seconds
+device-run.log:** TEST EXECUTE SUCCEEDED **
+device-run.log:	 Executed 1 test, with 0 failures (0 unexpected) in 12.410 (12.411) seconds
+device-run.log:	 Executed 3 tests, with 0 failures (0 unexpected) in 94.605 (94.612) seconds
+device-run.log:	 Executed 3 tests, with 0 failures (0 unexpected) in 94.605 (94.612) seconds
+device-run.log:** TEST EXECUTE SUCCEEDED **
+device-run.log:[device-check 00:42:26] lock released: /Volumes/Ext/dev/locks/00008110-001614E8368A601E.lock
