@@ -2536,9 +2536,6 @@ final class AppModel: ObservableObject {
             contextLimit: settings.forumContextLimit,
             topicInstructions: effectiveInstructions(for: topicKey),
             globalInstructions: settings.systemPrompt,
-            agentMaxSteps: settings.agentMaxSteps,
-            agentMaxTopicReads: settings.agentMaxTopicReads,
-            agentReadLimit: settings.agentReadLimit,
             forumRequestPace: settings.forumRequestPace,
             forumRateLimitingEnabled: settings.forumRateLimitingEnabled
         )
@@ -3249,9 +3246,6 @@ struct RunSettings {
     /// The topic's own instructions, else the global ones.
     var topicInstructions: String
     var globalInstructions: String
-    var agentMaxSteps: Int
-    var agentMaxTopicReads: Int
-    var agentReadLimit: Int
     /// How quickly this job's requests go to the forum (taken at the start).
     var forumRequestPace: ForumRequestPace = .default
     var forumRateLimitingEnabled = true

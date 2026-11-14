@@ -23,7 +23,7 @@ final class HackerNewsJobTests: XCTestCase {
                            podcastDirectory: directory.appendingPathComponent("Podcasts"))
         app.usesDirectForumRequests = true
         app.browser.stopLoading()
-        app.selectModel(.init(provider: .ollama, model: "model-a"), for: .both)
+        app.selectModel(.init(provider: .ollama, model: "model-a"), for: .role(.assistant))
         app.browser.onPageContextChanged = nil
         app.settings.forumRequestPace = .fast
         addTeardownBlock { @MainActor in
@@ -240,7 +240,7 @@ final class HackerNewsJobTests: XCTestCase {
         let ai = StateAIStub(); ai.gated = false
         let liveApp = AppModel(store: store, forumService: fixture.network().service, sites: .standard, aiService: ai)
         liveApp.usesDirectForumRequests = true
-        liveApp.selectModel(.init(provider: .ollama, model: "model-a"), for: .both)
+        liveApp.selectModel(.init(provider: .ollama, model: "model-a"), for: .role(.assistant))
         let onPage = liveApp.browser.onPageContextChanged
         liveApp.browser.onPageContextChanged = nil
         addTeardownBlock { @MainActor in

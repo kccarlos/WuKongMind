@@ -310,20 +310,20 @@ final class CloudSyncTests: XCTestCase {
     func testJoiningDeviceAdoptsTheCloudSettings() async throws {
         let a = try makeDevice()
         a.app.settings.systemPrompt = "Customized"
-        a.app.settings.agentMaxSteps = 25
+        a.app.settings.agentMaxTopicReads = 12
         a.app.flushPendingSaves()
         await sync(a)
         let b = try makeDevice()
         await sync(b, a)
         XCTAssertEqual(b.app.settings.systemPrompt, "Customized")
-        XCTAssertEqual(b.app.settings.agentMaxSteps, 25)
+        XCTAssertEqual(b.app.settings.agentMaxTopicReads, 12)
         XCTAssertEqual(a.app.settings.systemPrompt, "Customized")
     }
 
     // MARK: Model roles
 
     /// The two model roles are separate settings units: one device changes
-    /// the summaries & chat model, the other the Ask the forum model, and
+    /// the Summaries model, the other the Agent model, and
     /// both changes survive on both devices.
     func testTwoDevicesEditingDifferentModelRolesKeepBoth() async throws {
         let a = try makeDevice()
@@ -334,7 +334,7 @@ final class CloudSyncTests: XCTestCase {
         let agentic = ModelSelection(provider: .deepSeek, model: "deepseek-v4-flash")
         a.app.selectModel(cheap, for: .role(.assistant))
         a.app.flushPendingSaves()
-        b.app.selectModel(agentic, for: .role(.agent))
+        b.app.selectModel(agentic, for: .role(.browserAgent))
         b.app.flushPendingSaves()
         a.sync.clock = { Date().addingTimeInterval(2) }
         b.sync.clock = { Date().addingTimeInterval(3) }
@@ -342,11 +342,12 @@ final class CloudSyncTests: XCTestCase {
 
         for device in [a, b] {
             XCTAssertEqual(device.app.settings.assistantModel, cheap)
-            XCTAssertEqual(device.app.settings.agentModel, agentic)
+            XCTAssertEqual(device.app.settings.browserAgentModel, agentic)
         }
         let units = try SyncSchema.settingsUnits(a.app.settings)
         XCTAssertNotNil(units["assistantModel"])
-        XCTAssertNotNil(units["agentModel"])
+        XCTAssertNotNil(units["browserAgentModel"])
+        XCTAssertNil(units["agentModel"], "the Ask the forum model is gone")
         XCTAssertNil(units["selectedProvider"])
         let writes = await writes { await sync(a, b) }
         XCTAssertEqual(writes, 0, "the devices agree and stop sending")
@@ -357,18 +358,18 @@ final class CloudSyncTests: XCTestCase {
     func testSyncedRoleForAProviderWithoutAKeyHereOnlyAffectsThatRole() async throws {
         let a = try makeDevice(apiKeys: [.deepSeek: "sk-a"])
         let b = try makeDevice()
-        a.app.selectModel(ModelSelection(provider: .ollama, model: "llama3.2"), for: .both)
+        a.app.selectModel(ModelSelection(provider: .ollama, model: "llama3.2"), for: .role(.assistant))
         a.app.flushPendingSaves()
         await sync(a, b)
-        XCTAssertTrue(b.app.isProviderReady)
-
-        a.app.selectModel(ModelSelection(provider: .deepSeek, model: "deepseek-v4-flash"), for: .role(.agent))
-        a.app.flushPendingSaves()
-        await sync(a, b)
-        XCTAssertEqual(b.app.settings.agentModel.provider, .deepSeek)
-        XCTAssertFalse(b.app.isProviderReady(for: .agent))
         XCTAssertTrue(b.app.isProviderReady(for: .assistant))
-        XCTAssertTrue(a.app.isProviderReady(for: .agent))
+
+        a.app.selectModel(ModelSelection(provider: .deepSeek, model: "deepseek-v4-flash"), for: .role(.browserAgent))
+        a.app.flushPendingSaves()
+        await sync(a, b)
+        XCTAssertEqual(b.app.settings.browserAgentModel?.provider, .deepSeek)
+        XCTAssertFalse(b.app.isProviderReady(for: .browserAgent))
+        XCTAssertTrue(b.app.isProviderReady(for: .assistant))
+        XCTAssertTrue(a.app.isProviderReady(for: .browserAgent))
         XCTAssertEqual(b.app.settings.configuration(for: .deepSeek).apiKey, "")
     }
 
@@ -415,7 +416,8 @@ final class CloudSyncTests: XCTestCase {
         }
         a.sync.clock = { now }
         b.sync.clock = { now }
-        a.app.selectModel(ModelSelection(provider: .gemini, model: "gemini-old"), for: .both)
+        a.app.selectModel(ModelSelection(provider: .gemini, model: "gemini-old"), for: .role(.assistant))
+        a.app.selectModel(ModelSelection(provider: .gemini, model: "gemini-old"), for: .role(.browserAgent))
         a.app.flushPendingSaves()
         await sync(a, b, a)
         XCTAssertEqual(b.app.settings.assistantModel.model, "gemini-old")
@@ -434,7 +436,7 @@ final class CloudSyncTests: XCTestCase {
         try assertModelRolesConverged(a, b)
         for device in [a, b] {
             XCTAssertEqual(device.app.settings.configuration(for: .gemini).baseURL, "https://proxy.example.com/v1beta")
-            XCTAssertEqual(device.app.settings.agentModel, ModelSelection(provider: .gemini, model: "gemini-old"))
+            XCTAssertEqual(device.app.settings.browserAgentModel, ModelSelection(provider: .gemini, model: "gemini-old"))
         }
         let sent = await writes {
             for device in [b, a, b, a] { await fetchAndSend(device, at: next()) }
@@ -482,7 +484,7 @@ final class CloudSyncTests: XCTestCase {
     func testModelRolesAddNoPlainRecordFields() async throws {
         let a = try makeDevice()
         a.app.selectModel(ModelSelection(provider: .gemini, model: "gemini-3.1-flash-lite"), for: .role(.assistant))
-        a.app.selectModel(ModelSelection(provider: .deepSeek, model: "deepseek-v4-flash"), for: .role(.agent))
+        a.app.selectModel(ModelSelection(provider: .deepSeek, model: "deepseek-v4-flash"), for: .role(.browserAgent))
         a.app.flushPendingSaves()
         await sync(a)
 

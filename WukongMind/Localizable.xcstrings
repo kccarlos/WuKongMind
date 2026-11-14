@@ -3730,23 +3730,6 @@
         }
       }
     },
-    "Ask the forum model" : {
-      "comment" : "Assistant menu: switches the model used by Ask the forum",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "问论坛模型"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "問論壇模型"
-          }
-        }
-      }
-    },
     "Ask the forum searches, reads the most relevant topics and answers with numbered sources you can open." : {
       "localizations" : {
         "zh-Hans" : {
@@ -7994,23 +7977,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "論壇概覽"
-          }
-        }
-      }
-    },
-    "Forum search" : {
-      "comment" : "Settings › Agent section header for forum search limits",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "论坛搜索"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "論壇搜尋"
           }
         }
       }
@@ -12847,40 +12813,6 @@
         }
       }
     },
-    "Plans searches and writes the answer." : {
-      "comment" : "Model menu (Ask the forum): what this model is used for",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "规划搜索并撰写回答。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "規劃搜尋並撰寫回答。"
-          }
-        }
-      }
-    },
-    "Plans searches, reads topics, and writes answers. A stronger reasoning model works best." : {
-      "comment" : "Settings › AI models: what the Ask the forum model is used for",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "规划搜索、阅读话题并撰写回答。推理能力更强的模型效果最好。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "規劃搜尋、閱讀話題並撰寫回答。推理能力更強的模型效果最好。"
-          }
-        }
-      }
-    },
     "Play" : {
       "localizations" : {
         "zh-Hans" : {
@@ -15950,22 +15882,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "搜尋或輸入網址"
-          }
-        }
-      }
-    },
-    "Search steps: %lld" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "搜索步数：%lld"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "搜尋步數：%lld"
           }
         }
       }
@@ -21005,52 +20921,6 @@
         }
       }
     },
-    "Used when searching across a forum. Defaults: %lld steps, %lld topics, %@ per topic." : {
-      "localizations" : {
-        "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "Used when searching across a forum. Defaults: %1$lld step, %2$lld topics, %3$@ per topic."
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "Used when searching across a forum. Defaults: %1$lld steps, %2$lld topics, %3$@ per topic."
-                }
-              }
-            }
-          }
-        },
-        "zh-Hans" : {
-          "variations" : {
-            "plural" : {
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "用于跨全站搜索论坛。默认值：%1$lld 步、%2$lld 个话题，每个话题 %3$@。"
-                }
-              }
-            }
-          }
-        },
-        "zh-Hant" : {
-          "variations" : {
-            "plural" : {
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "用於跨全站搜尋論壇。預設值：%1$lld 步、%2$lld 個話題，每個話題 %3$@。"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "User" : {
       "comment" : "Exported chat transcript: label for the user's messages",
       "localizations" : {
@@ -22285,22 +22155,6 @@
         }
       }
     },
-    "WukongMind uses an AI provider you choose to summarize and answer. Connect one to continue." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "WukongMind 使用你选择的 AI 提供方来生成摘要和回答问题。请先连接一个以继续。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "WukongMind 使用你選擇的 AI 供應商來產生摘要和回答問題。請先連接一個以繼續。"
-          }
-        }
-      }
-    },
     "WukongMind works with %@ sites. It is an independent app and is not affiliated with or endorsed by Civilized Discourse Construction Kit, Inc. Discourse is a trademark of its respective owner." : {
       "localizations" : {
         "zh-Hans" : {
@@ -23028,6 +22882,69 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "「%@」"
+          }
+        }
+      }
+    },
+    "Forum tools" : {
+      "comment" : "Settings › Agent section header for the limits the forum tools read",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "论坛工具"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "論壇工具"
+          }
+        }
+      }
+    },
+    "Used when the Agent searches and reads a forum. Defaults: %lld topics, %@ per topic." : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Used when the Agent searches and reads a forum. Defaults: %1$lld topic, %2$@ per topic."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Used when the Agent searches and reads a forum. Defaults: %1$lld topics, %2$@ per topic."
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "用于智能体搜索和阅读论坛时。默认值：%1$lld 个话题，每个话题 %2$@。"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "用於智慧代理搜尋和閱讀論壇時。預設值：%1$lld 個話題，每個話題 %2$@。"
+                }
+              }
+            }
           }
         }
       }

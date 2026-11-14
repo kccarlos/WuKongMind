@@ -153,7 +153,7 @@ final class SiteRequestSequenceTests: XCTestCase {
         var provider = app.settings.configuration(for: .ollama)
         provider.apiKey = ""
         app.setConfiguration(provider, for: .ollama)
-        app.selectModel(ModelSelection(provider: .ollama, model: "model-a"), for: .both)
+        app.selectModel(ModelSelection(provider: .ollama, model: "model-a"), for: .role(.assistant))
         let handler = app.browser.onPageContextChanged
         app.browser.onPageContextChanged = nil
         addTeardownBlock { @MainActor in

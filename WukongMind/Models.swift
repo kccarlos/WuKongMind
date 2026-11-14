@@ -86,8 +86,6 @@ enum SearchEngine: String, Codable, CaseIterable, Identifiable, Sendable {
 struct AppSettings: Codable, Equatable {
     /// Summaries, chat and watched-topic refreshes.
     var assistantModel = ModelSelection(provider: .openRouter, model: AIProvider.openRouter.defaultModel)
-    /// Ask the forum: planning, answers and follow-ups.
-    var agentModel = ModelSelection(provider: .openRouter, model: AIProvider.openRouter.defaultModel)
     /// Browser agent model (`nil`: no preset model; user chooses a tool-calling model).
     var browserAgentModel: ModelSelection? = nil
     var browserAgentMaxSteps = BrowserAgentLimits.defaultMaxSteps
@@ -113,7 +111,6 @@ struct AppSettings: Codable, Equatable {
     /// Developer mode, the one switch (`Settings › Agent › Developer`): raw requests, tokens per step,
     /// tool code names and durations, and task export. Off by default; per device.
     var agentDeveloperMode = false
-    var agentMaxSteps = AgentLimits.defaultMaxSteps
     var agentMaxTopicReads = AgentLimits.defaultMaxTopicReads
     var agentReadLimit = AgentLimits.defaultReadLimit
     var watchAutoRefreshSummaries = true
@@ -166,7 +163,6 @@ struct AppSettings: Codable, Equatable {
 
     private enum CodingKeys: String, CodingKey {
         case assistantModel
-        case agentModel
         case browserAgentModel
         case browserAgentMaxSteps
         case browserAgentTruncationLimit
@@ -181,7 +177,6 @@ struct AppSettings: Codable, Equatable {
         case launchDestination
         case agentConfirmBeforeWrites
         case agentDeveloperMode
-        case agentMaxSteps
         case agentMaxTopicReads
         case agentReadLimit
         case watchAutoRefreshSummaries
@@ -231,7 +226,6 @@ struct AppSettings: Codable, Equatable {
             ?? []
         let stock = AppSettings()
         assistantModel = try container.decodeIfPresent(ModelSelection.self, forKey: .assistantModel) ?? stock.assistantModel
-        agentModel = try container.decodeIfPresent(ModelSelection.self, forKey: .agentModel) ?? stock.agentModel
         browserAgentModel = try container.decodeIfPresent(ModelSelection.self, forKey: .browserAgentModel)
         browserAgentMaxSteps = BrowserAgentLimits.clampSteps(
             try container.decodeIfPresent(Int.self, forKey: .browserAgentMaxSteps)
@@ -254,10 +248,6 @@ struct AppSettings: Codable, Equatable {
         launchDestination = try container.decodeIfPresent(LaunchDestination.self, forKey: .launchDestination) ?? stock.launchDestination
         agentConfirmBeforeWrites = try container.decodeIfPresent(Bool.self, forKey: .agentConfirmBeforeWrites) ?? stock.agentConfirmBeforeWrites
         agentDeveloperMode = try container.decodeIfPresent(Bool.self, forKey: .agentDeveloperMode) ?? stock.agentDeveloperMode
-        agentMaxSteps = AgentLimits.clampSteps(
-            try container.decodeIfPresent(Int.self, forKey: .agentMaxSteps)
-                ?? AgentLimits.defaultMaxSteps
-        )
         agentMaxTopicReads = AgentLimits.clampTopicReads(
             try container.decodeIfPresent(Int.self, forKey: .agentMaxTopicReads)
                 ?? AgentLimits.defaultMaxTopicReads
@@ -674,16 +664,10 @@ enum WorkType: String, Codable {
 /// Budget for one agent run. Steps count every tool call; topic reads count
 /// each distinct topic whose posts are pulled or summarized.
 enum AgentLimits {
-    static let defaultMaxSteps = 15
-    static let stepRange = 3...60
     static let defaultMaxTopicReads = 8
     static let topicReadRange = 1...30
     static let defaultReadLimit = 30_000
     static let readLimitRange = 10_000...200_000
-
-    static func clampSteps(_ value: Int) -> Int {
-        min(stepRange.upperBound, max(stepRange.lowerBound, value))
-    }
 
     static func clampTopicReads(_ value: Int) -> Int {
         min(topicReadRange.upperBound, max(topicReadRange.lowerBound, value))

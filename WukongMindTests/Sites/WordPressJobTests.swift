@@ -44,7 +44,7 @@ final class WordPressJobTests: XCTestCase {
         var provider = app.settings.configuration(for: .ollama)
         provider.apiKey = ""
         app.setConfiguration(provider, for: .ollama)
-        app.selectModel(ModelSelection(provider: .ollama, model: "model-a"), for: .both)
+        app.selectModel(ModelSelection(provider: .ollama, model: "model-a"), for: .role(.assistant))
         app.browser.onPageContextChanged = nil
         addTeardownBlock { @MainActor in
             for record in app.activities where !record.status.isTerminal { app.cancel(record: record) }

@@ -980,7 +980,7 @@ final class PodcastTests: XCTestCase {
         var configuration = app.settings.configuration(for: .openAI)
         configuration.apiKey = "key"
         app.setConfiguration(configuration, for: .openAI)
-        app.selectModel(ModelSelection(provider: .openAI, model: "gpt-test"), for: .both)
+        app.selectModel(ModelSelection(provider: .openAI, model: "gpt-test"), for: .role(.assistant))
         app.settings.hasCompletedOnboarding = true
     }
 

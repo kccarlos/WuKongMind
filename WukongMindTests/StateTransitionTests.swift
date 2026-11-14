@@ -65,7 +65,7 @@ final class StateTransitionTests: XCTestCase {
         let harness = makeHarness()
         let app = harness.app
         select(app, .openAI, model: "gpt-test", key: "key-1")
-        XCTAssertTrue(app.isProviderReady)
+        XCTAssertTrue(app.isProviderReady(for: .assistant))
 
         XCTAssertTrue(app.enqueueSummary(for: topic("1")))
         try await waitUntil { harness.ai.waiting == 1 }
@@ -74,7 +74,7 @@ final class StateTransitionTests: XCTestCase {
         configuration.baseURL = "https://proxy.example.com/v1"
         app.setConfiguration(configuration, for: .openAI)
         setKey(app, "")
-        XCTAssertFalse(app.isProviderReady)
+        XCTAssertFalse(app.isProviderReady(for: .assistant))
 
         harness.ai.gated = false
         harness.ai.releaseAll()
@@ -92,7 +92,7 @@ final class StateTransitionTests: XCTestCase {
         XCTAssertEqual(harness.ai.calls.count, 1)
 
         setKey(app, "key-3")
-        XCTAssertTrue(app.isProviderReady)
+        XCTAssertTrue(app.isProviderReady(for: .assistant))
     }
 
     /// Typing a key writes nothing per keystroke; the last value is written
@@ -523,7 +523,7 @@ final class StateTransitionTests: XCTestCase {
 
         app.resetSettings()
         XCTAssertEqual(app.settings.assistantModel.provider, AppSettings().assistantModel.provider)
-        XCTAssertFalse(app.isProviderReady)
+        XCTAssertFalse(app.isProviderReady(for: .assistant))
         XCTAssertTrue(app.discoveredModels.isEmpty)
         XCTAssertEqual(harness.keys.value(for: .openAI), "", "reset removes keys at once")
         XCTAssertTrue(app.settings.hasCompletedOnboarding)
@@ -572,7 +572,7 @@ final class StateTransitionTests: XCTestCase {
     func testProviderSetupRequestClearsOnceTheProviderIsReady() {
         let harness = makeHarness()
         let app = harness.app
-        app.needsProviderSetup = .agent
+        app.needsProviderSetup = .assistant
         select(app, .ollama, model: "model-a")
         XCTAssertNil(app.needsProviderSetup)
     }
@@ -1026,7 +1026,7 @@ final class StateTransitionTests: XCTestCase {
             app.assistantMode = mode
             app.activateFavorite(favorite, for: app.currentRole)
             XCTAssertEqual(app.settings.assistantModel, ModelSelection(provider: .openAI, model: "gpt-5-mini"))
-            XCTAssertEqual(app.settings.agentModel, agentic, "\(mode) never changes Ask the forum")
+            XCTAssertEqual(app.settings.browserAgentModel, agentic, "\(mode) never changes the Agent")
             XCTAssertEqual(app.settings.assistantModel.provider, .openAI)
             XCTAssertEqual(app.providerSummary, "OpenAI · gpt-5-mini")
         }
@@ -1050,12 +1050,11 @@ final class StateTransitionTests: XCTestCase {
         setKey(app, "sk-deepseek", for: .deepSeek)
         setRoles(app, assistant: ModelSelection(provider: .openAI, model: "gpt-5-mini"),
                  agent: ModelSelection(provider: .deepSeek, model: "deepseek-v4-flash"))
-        XCTAssertTrue(app.isProviderReady)
+        XCTAssertTrue(app.isProviderReady(for: .assistant))
 
         setKey(app, "", for: .deepSeek)
         XCTAssertTrue(app.isProviderReady(for: .assistant))
-        XCTAssertFalse(app.isProviderReady(for: .agent))
-        XCTAssertFalse(app.isProviderReady)
+        XCTAssertFalse(app.isProviderReady(for: .browserAgent))
         XCTAssertTrue(app.enqueueSummary(for: topic("1")))
         try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
         XCTAssertEqual(app.activities.first { $0.type == .summary }?.status, .completed)
@@ -1066,13 +1065,13 @@ final class StateTransitionTests: XCTestCase {
         let app = harness.app
         let favorite = FavoriteModel(provider: .deepSeek, model: "deepseek-v4-flash")
         app.settings.favoriteModels = [favorite, FavoriteModel(provider: .gemini, model: "gemini-3.1-flash-lite")]
-        app.activateFavorite(favorite, for: .agent)
+        app.activateFavorite(favorite, for: .browserAgent)
         app.activateFavorite(favorite, for: .assistant)
         app.removeFavorite(favorite)
         XCTAssertEqual(app.settings.favoriteModels.map(\.model), ["gemini-3.1-flash-lite"])
-        XCTAssertEqual(app.settings.agentModel, ModelSelection(provider: .deepSeek, model: "deepseek-v4-flash"))
+        XCTAssertEqual(app.settings.browserAgentModel, ModelSelection(provider: .deepSeek, model: "deepseek-v4-flash"))
         XCTAssertEqual(app.settings.assistantModel, ModelSelection(provider: .deepSeek, model: "deepseek-v4-flash"))
-        XCTAssertFalse(app.isFavorite(app.settings.agentModel))
+        XCTAssertFalse(app.isFavorite(try XCTUnwrap(app.settings.browserAgentModel)))
     }
 
     /// Asking the forum needs the Agent's model; a summary share only the
@@ -1099,7 +1098,7 @@ final class StateTransitionTests: XCTestCase {
     func testModelRolesRoundTripAndMissingKeysTakeDefaults() throws {
         var roles = AppSettings()
         roles.setModel(ModelSelection(provider: .gemini, model: "gemini-3.1-flash-lite"), for: .assistant)
-        roles.setModel(ModelSelection(provider: .deepSeek, model: "deepseek-v4-flash"), for: .agent)
+        roles.setModel(ModelSelection(provider: .deepSeek, model: "deepseek-v4-flash"), for: .browserAgent)
         let data = try JSONEncoder().encode(roles)
         let object = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
         XCTAssertNil(object["selectedProvider"])
@@ -1107,7 +1106,7 @@ final class StateTransitionTests: XCTestCase {
         XCTAssertNil(configurations["gemini"]?["model"])
         let decoded = try JSONDecoder().decode(AppSettings.self, from: data)
         XCTAssertEqual(decoded.assistantModel, roles.assistantModel)
-        XCTAssertEqual(decoded.agentModel, roles.agentModel)
+        XCTAssertEqual(decoded.browserAgentModel, roles.browserAgentModel)
 
         let bare = try JSONDecoder().decode(AppSettings.self, from: Data("{}".utf8))
         XCTAssertEqual(bare, AppSettings())
@@ -1402,12 +1401,12 @@ final class StateTransitionTests: XCTestCase {
         var configuration = app.settings.configuration(for: provider)
         configuration.apiKey = key
         app.setConfiguration(configuration, for: provider)
-        app.selectModel(ModelSelection(provider: provider, model: model), for: .both)
+        app.selectModel(ModelSelection(provider: provider, model: model), for: .role(.assistant))
     }
 
     private func setRoles(_ app: AppModel, assistant: ModelSelection, agent: ModelSelection) {
         app.selectModel(assistant, for: .role(.assistant))
-        app.selectModel(agent, for: .role(.agent))
+        app.selectModel(agent, for: .role(.browserAgent))
     }
 
     private func setKey(_ app: AppModel, _ key: String, for provider: AIProvider) {
@@ -1802,7 +1801,7 @@ final class StateTransitionTests: XCTestCase {
         let app = h.app
         h.ai.gated = false
         app.settings.hasCompletedOnboarding = true
-        app.selectModel(ModelSelection(provider: .ollama, model: "llama-local"), for: .both)
+        app.selectModel(ModelSelection(provider: .ollama, model: "llama-local"), for: .role(.assistant))
         let gatedSpeech = GatedSpeechEngine()
         app.podcast.makeEngine = { _, _, _ in gatedSpeech }
 

@@ -509,7 +509,7 @@ final class MultiForumTests: XCTestCase {
     /// Work only starts with a connected provider; a local one needs no key.
     @MainActor
     private func useLocalProvider(_ app: AppModel) {
-        app.selectModel(ModelSelection(provider: .ollama, model: "test-model"), for: .both)
+        app.selectModel(ModelSelection(provider: .ollama, model: "test-model"), for: .role(.assistant))
     }
 
     private func temporaryStore() -> PersistentStore {

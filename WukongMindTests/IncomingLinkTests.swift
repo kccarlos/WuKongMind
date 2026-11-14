@@ -336,8 +336,8 @@ final class IncomingLinkTests: XCTestCase {
             )
         )
         app.settings.hasCompletedOnboarding = true
-        app.selectModel(ModelSelection(provider: .ollama, model: "llama3.2"), for: .both)
-        XCTAssertTrue(app.isProviderReady)
+        app.selectModel(ModelSelection(provider: .ollama, model: "llama3.2"), for: .role(.assistant))
+        XCTAssertTrue(app.isProviderReady(for: .assistant))
         return app
     }
 

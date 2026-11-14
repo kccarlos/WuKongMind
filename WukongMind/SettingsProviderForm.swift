@@ -633,7 +633,7 @@ extension View {
 }
 
 /// Sheet shown when a shared link needs an AI provider first. It sets up
-/// the role the link needs, or both roles when neither is ready.
+/// the role the link needs.
 struct ProviderSetupSheet: View {
     @ObservedObject var app: AppModel
     @Environment(\.dismiss) private var dismiss
@@ -643,15 +643,13 @@ struct ProviderSetupSheet: View {
 
     init(app: AppModel, role: ModelRole) {
         self.app = app
-        _scope = State(initialValue: (role == .browserAgent || app.isProviderReady(for: role.other)) ? .role(role) : .both)
+        _scope = State(initialValue: .role(role))
     }
 
     private var intro: String {
         switch scope {
-        case .both:
-            String(localized: "WukongMind uses an AI provider you choose to summarize and answer. Connect one to continue.")
         case .role(let role):
-            String(localized: "\(role.title) uses its own model. Choose one to continue; you can change it in Settings › AI models.", comment: "Setup sheet for one model role. The placeholder is the role's name: Summaries & chat, or Ask the forum.")
+            String(localized: "\(role.title) uses its own model. Choose one to continue; you can change it in Settings › AI models.", comment: "Setup sheet for one model role. The placeholder is the role's name: Summaries or Agent.")
         }
     }
 
