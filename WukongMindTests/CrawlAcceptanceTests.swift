@@ -123,7 +123,7 @@ final class CrawlAcceptanceTests: XCTestCase {
         StubHTTP.reset([
             Self.reply([.text("Reading the first page."), .tool("t1", "read_page", ["mode": "text"])]),
             Self.reply([.tool("t2", "run_js", ["code": "/* PAGES:1-13 */ for (let p = 1; p <= 13; p++) { await wukong.files.write(`\(Self.threadDir)/page-${String(p).padStart(2, '0')}.txt`, await wukong.fetch(`/crawl/page-${String(p).padStart(2, '0')}.html`)); }"])]),
-            Self.reply([.tool("t3", "run_js", ["code": "/* PAGES:14-25 */ for (let p = 14; p <= 25; p++) { await wukong.files.write(`\(Self.threadDir)/page-${p}.txt`, await wukong.fetch(`/crawl/page-${p}.html`)); }"])]),
+            Self.reply([.tool("t3", "run_js", ["code": "/* PAGES:14-25 */ for (let p = 14; p <= 25; p++) { await wukong.files.write(`\(Self.threadDir)/page-${String(p).padStart(2, '0')}.txt`, await wukong.fetch(`/crawl/page-${String(p).padStart(2, '0')}.html`)); }"])]),
             Self.reply([.tool("t4", "file_read", ["path": "\(Self.threadDir)/index.txt"])]),
             Self.reply([.tool("t5", "file_read", ["path": "\(Self.threadDir)/page-25.txt", "length": 400])]),
             Self.reply([.text("The thread, page by page. \(summary)")], stop: "end_turn")
