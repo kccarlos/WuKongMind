@@ -402,6 +402,48 @@ final class AppModel: ObservableObject {
     let scriptWebController: ScriptWebController
     /// Observable browser agent session (`BrowserAgent.swift`) for page inspection,
     /// JavaScript execution, CSS injection, userscript persistence, and multi-step
+    /// Where the Agent's confirmation cards wait for Allow or Don't allow.
+    private(set) lazy var agentConfirmations: AgentConfirmationGate = {
+        let gate = AgentConfirmationGate()
+        gate.onAnswer = { [weak self] tool, question, answer in
+            self?.browserAgent.recordConfirmation(tool: tool, question: question, answer: answer)
+        }
+        return gate
+    }()
+
+    /// The HTTP client behind `http_request` and `wukong.fetch`: its own ephemeral session, the
+    /// forum pacer, and settings read at call time.
+    private(set) lazy var agentHTTPClient: AgentHTTPClient = {
+        let client = AgentHTTPClient(
+            pacer: forumService.pacer,
+            environment: AgentNetworkEnvironment(
+                cookies: { [weak self] in
+                    guard let self else { return [] }
+                    return await self.browser.webView.configuration.websiteDataStore.httpCookieStore.allCookies()
+                },
+                currentPageURL: { [weak self] in
+                    guard let self else { return nil }
+                    return await self.browser.webView.url
+                },
+                confirmBeforeWrites: { [weak self] in
+                    await self?.settings.agentConfirmBeforeWrites ?? false
+                },
+                pacing: { [weak self] in
+                    guard let self else { return (true, .gentle) }
+                    return await (self.settings.forumRateLimitingEnabled, self.settings.forumRequestPace)
+                },
+                isForumHost: { [weak self] url in
+                    await self?.directory.forum(containing: url) != nil
+                },
+                onFetch: { [weak self] url, pageURL in
+                    await self?.browserAgent.recordFetch(url: url, pageURL: pageURL)
+                }
+            )
+        )
+        browser.agentBridge.fetchHandler = { url in try await client.scriptFetch(url) }
+        return client
+    }()
+
     /// tool calling on any page.
     private(set) lazy var browserAgent: BrowserAgentSession = BrowserAgentSession(
         pageDriver: browser.agentBridge,
@@ -436,7 +478,9 @@ final class AppModel: ObservableObject {
                     redactedSecrets: secrets,
                     supportsImageInput: self.settings.browserAgentModel?.supportsImageInput ?? false,
                     confirmBeforeWrites: self.settings.agentConfirmBeforeWrites
-                )
+                ),
+                network: self.agentHTTPClient,
+                confirmations: self.agentConfirmations
             ))
         },
         auditLog: auditLog,

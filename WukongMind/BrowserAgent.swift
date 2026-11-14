@@ -153,7 +153,8 @@ enum BrowserAgentPrompt {
     the Files app. A result over the limit is saved under `results/` and you get its path; read it \
     with `file_read` ranges. `read_page` and `run_js` take `save_to` to send a full result straight \
     to a file, and `run_js` code in the isolated world can call `await wukong.files.write(path, text)` \
-    and `await wukong.files.append(path, text)`.
+    and `await wukong.files.append(path, text)`. Crawl with `await wukong.fetch(url)`, a paced GET \
+    that returns the body text, not the page's own `fetch`.
     - Put a crawl's raw pages in `crawls/<host>/<slug>/page-001.txt`, `page-002.txt`, and so on.
     - In the same script, also write the extracted posts compactly (number, author, plain body) to \
     `thread.md` beside them, and summarise from that file, not the raw pages.
@@ -1056,6 +1057,9 @@ final class BrowserAgentSession {
                     await taskRecords.touch(taskID: taskID, url: pageURL)
                     for case .string(let url)? in [call.arguments["url"]] {
                         await taskRecords.touch(taskID: taskID, url: url)
+                    }
+                    if case .string(let domain)? = call.arguments["domain"], call.name == "cookies_get" {
+                        await taskRecords.touch(taskID: taskID, url: "https://\(domain)")
                     }
                     await taskRecords.append(taskID: taskID, .toolResult(
                         call: call, output: output, isError: row.isError, duration: row.duration,

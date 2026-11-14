@@ -152,6 +152,8 @@ final class AgentBridge: NSObject, AgentPageDriving {
     /// Tokens of the `run_js` calls running now; the `files` route accepts only
     /// these, so saved userscripts (same world) and the page world can't use it.
     private var activeCallTokens: Set<String> = []
+    /// Answers `wukong.fetch(url)` (the native HTTP client, with its cookie, pacing and site rules).
+    var fetchHandler: (@Sendable (String) async throws -> String)?
 
     private let replyMessageHandler = AgentReplyMessageHandler()
     private var nextGeneratedSheetIndex = 0
@@ -231,7 +233,7 @@ final class AgentBridge: NSObject, AgentPageDriving {
         let world = contentWorld(for: environment)
         // The Agent's isolated calls get the workspace helpers and a token valid only until
         // this call returns or times out.
-        let token: String? = (withHelpers && environment == .isolated && workspace != nil) ? UUID().uuidString : nil
+        let token: String? = (withHelpers && environment == .isolated) ? UUID().uuidString : nil
         let wrapped = Self.wrappedExecutionScript(userBody: code, withHelpers: token != nil)
         if let token { activeCallTokens.insert(token) }
         defer { if let token { activeCallTokens.remove(token) } }
@@ -452,6 +454,8 @@ final class AgentBridge: NSObject, AgentPageDriving {
             return (["url": meta.url, "title": meta.title], nil)
         case "files":
             return await handleFilesMessage(payload)
+        case "fetch":
+            return await handleFetchMessage(payload)
         default:
             if let replyRouter {
                 do {
@@ -462,6 +466,24 @@ final class AgentBridge: NSObject, AgentPageDriving {
                 }
             }
             return (nil, "Unsupported isolated bridge action '\(action)'.")
+        }
+    }
+
+    /// `wukong.fetch(url)` from an isolated `run_js` call.
+    private func handleFetchMessage(_ payload: [String: Any]) async -> (Any?, String?) {
+        guard let token = payload["token"] as? String, activeCallTokens.contains(token) else {
+            return (nil, "wukong.fetch is only available inside the Agent's run_js.")
+        }
+        guard let fetchHandler else {
+            return (nil, "wukong.fetch is unavailable.")
+        }
+        guard let url = payload["url"] as? String else {
+            return (nil, "wukong.fetch needs a URL.")
+        }
+        do {
+            return (try await fetchHandler(url), nil)
+        } catch {
+            return (nil, error.localizedDescription)
         }
     }
 
@@ -637,7 +659,11 @@ extension AgentBridge {
           const files = (op) => (path, text) => handler.postMessage({
             action: "files", op, token, path: String(path), text: String(text)
           });
-          return Object.freeze({ files: Object.freeze({ write: files("write"), append: files("append") }) });
+          const fetchText = (url) => handler.postMessage({ action: "fetch", token, url: String(url) });
+          return Object.freeze({
+            files: Object.freeze({ write: files("write"), append: files("append") }),
+            fetch: fetchText
+          });
         })();
         """
 

@@ -231,15 +231,12 @@ struct SettingsAgentPage: View {
             }
 
             Section {
-                HStack {
-                    Toggle("Confirm before writes", isOn: $app.settings.agentConfirmBeforeWrites)
-                        .accessibilityIdentifier("agentConfirmBeforeWrites")
-                    DCSeal(text: "M3", variant: .outline)
-                }
+                Toggle("Confirm before writes", isOn: $app.settings.agentConfirmBeforeWrites)
+                    .accessibilityIdentifier("agentConfirmBeforeWrites")
             } header: {
                 Text("Safety", comment: "Settings › Agent section header for confirmation settings")
             } footer: {
-                Text("Your choice is saved now. Asking before network requests, cookie reads and form submits starts working with the M3 safety update.")
+                Text("Asks before the Agent sends a network request. Reading cookies, and sending your login to another site, always ask.")
             }
 
             Section {
