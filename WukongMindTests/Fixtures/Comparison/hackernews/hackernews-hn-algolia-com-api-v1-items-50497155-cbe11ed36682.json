@@ -1,0 +1,69 @@
+{
+  "body" : {
+    "author" : "wondersky",
+    "children" : [
+      {
+        "author" : "boodleboodle",
+        "children" : [
+          {
+            "author" : "gpugreg",
+            "created_at_i" : 1794667581,
+            "id" : 50497440,
+            "text" : "<p><pre><code>    &gt; Is there a reason they chose glm and not deepseek\n</code></pre>\nGLM-5.3&#x27;s architecture is simpler and it came out earlier.",
+            "type" : "comment"
+          },
+          {
+            "author" : "frogblast",
+            "created_at_i" : 1794668237,
+            "id" : 50497532,
+            "text" : "I haven’t used DS models myself to have an opinion on quality, but I have used GLM5.3 briefly and my first impressions were good.  So any statements below on quality are totally speculative.<p>But moren concretely on the hosting side DeepSeek’s claim to faim is massively shrinking the per-user memory footprint, enabling many more concurrent users in your fixed hardware footprint.  That’s why it is so cheap to host.<p>Having more concurrent users leads to much higher overall throughput on that same hardware.  See table 2 in this article to see the tradeoffs of overall throughput vs per user latency as an example.<p>Deepseek would let you host higher concurrency than GLM.<p>Presumably that compression doesn’t come for free on the quality side.<p>If you’ve got a small enough user count, perhaps there are tradeoffs in DeepSeek that are not buying you anything.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1794666867,
+        "id" : 50497326,
+        "text" : "Whats the best model i should be runnning with two dgxs? Is there a reason they chose glm and not deepseek",
+        "type" : "comment"
+      },
+      {
+        "author" : "walrus01",
+        "created_at_i" : 1794667258,
+        "id" : 50497382,
+        "text" : "I&#x27;ll get right on that after an elderly relative passes away and leaves me a valuable piece of real estate in a major city that will sell for enough money to buy two DGX stations in the current market. Or I win the lottery.",
+        "type" : "comment"
+      },
+      {
+        "author" : "flowerthoughts",
+        "created_at_i" : 1794667558,
+        "id" : 50497434,
+        "text" : "GB300 DGX. Each with 256 GiB of RAM and a price of $100k?<p>For an enterprise, that price seems doable. But if you want 50-100 tps like Claude does, and you only have 10 users, maybe you&#x27;re not an enterprise.<p>To pull a recent analogy, I guess we&#x27;re still at the early Model S stage of LLMs.",
+        "type" : "comment"
+      },
+      {
+        "author" : "jbellis",
+        "created_at_i" : 1794667604,
+        "id" : 50497443,
+        "text" : "This doesn&#x27;t seem all that impressive for $200k of hardware? You could serve 4bit off 8xB6000 for ~half the price. No idea what throughput you&#x27;d get tho so maybe that&#x27;s the flex.",
+        "type" : "comment"
+      },
+      {
+        "author" : "hkalbasi",
+        "created_at_i" : 1794667910,
+        "id" : 50497485,
+        "text" : "Assuming the DGX priced at $100K, and GLM-5.3 at $1.4&#x2F;M output token, this has ROI of ~7 years at maximum utilization (unlikely) and ignoring operational expenses like electricity. Which makes it economically unreasonable unless you want privacy or something like that.",
+        "type" : "comment"
+      }
+    ],
+    "created_at_i" : 1794665365,
+    "id" : 50497155,
+    "points" : 26,
+    "title" : "Serving GLM-5.3 at 607.8 tok/s across two Nvidia DGX stations with vLLM",
+    "type" : "story",
+    "url" : "https://developer.nvidia.com/blog/when-one-gpu-isnt-enough-serving-glm-5-3-across-two-nvidia-dgx-stations-with-vllm/"
+  },
+  "headers" : {
+    "content-type" : "application/json"
+  },
+  "status" : 200,
+  "url" : "https://hn.algolia.com/api/v1/items/50497155"
+}

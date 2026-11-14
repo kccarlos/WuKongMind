@@ -1,0 +1,551 @@
+{
+  "body" : [
+    {
+      "author_name" : "NukeNerd",
+      "content" : {
+        "rendered" : "<p>Netflix monthly subscription works</p>\n"
+      },
+      "date_gmt" : "2026-05-11T15:08:53",
+      "id" : 2319681,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Kafka",
+      "content" : {
+        "rendered" : "<p>I can personally confirm: Uber cash (though it may matter how you buy it), Netflix (US and Belgium), DoorDash gift card, Roku (positive for digital purchases but negative buying the physical stick, though I have seen a DP of physical working), Prime Video rentals, Orange Theory membership or punch cards, Fit Body, local gym. </p>\n<p>Lime scooters are super inconsistent. I was reimbursed 12 of 17, with no rhyme or reason between different US and European countries, currencies, amounts, etc. But I generally find both the air and lifestyle credits inconsistent. </p>\n<p>I&#8217;ve seen positive DPs of: Showtime, HBO Max, Redbox, Vudu, SlingTV, Beach Body, MyFitness Pal, Tonal, Lyft load. </p>\n<p>No: Audible, YouTube including TV, anything via Fluz (e.g. Netflix), gyms that code as community centers (supposedly some YMCA do and some don&#8217;t, JCC did not work).</p>\n"
+      },
+      "date_gmt" : "2026-05-11T15:17:51",
+      "id" : 2319688,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Phil",
+      "content" : {
+        "rendered" : "<p>Peloton membership works</p>\n"
+      },
+      "date_gmt" : "2026-05-11T15:23:53",
+      "id" : 2319697,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Rick",
+      "content" : {
+        "rendered" : "<p>I used this at PureGym in Tysons Corner for a year membership and it did reimburse. I eventually want to try this for my Equinox membership as well.</p>\n"
+      },
+      "date_gmt" : "2026-05-11T15:24:20",
+      "id" : 2319698,
+      "parent" : 0
+    },
+    {
+      "author_name" : "fearthez",
+      "content" : {
+        "rendered" : "<p>Thanks for putting this together! I spoke directly with BofA support for an Uber I called in the UK. These credits only work for domestic charges per CS</p>\n<p><a href=\"https://www.doctorofcredit.com/triggers-bank-america-premium-rewards-100-travel-credit/#comment-1804137\" rel=\"ugc\">https://www.doctorofcredit.com/triggers-bank-america-premium-rewards-100-travel-credit/#comment-1804137</a></p>\n"
+      },
+      "date_gmt" : "2026-05-11T15:26:37",
+      "id" : 2319700,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Eric",
+      "content" : {
+        "rendered" : "<p>Instacart doesn’t work</p>\n"
+      },
+      "date_gmt" : "2026-05-11T15:28:33",
+      "id" : 2319703,
+      "parent" : 0
+    },
+    {
+      "author_name" : "rana🔗 👈",
+      "content" : {
+        "rendered" : "<p>It works for Active&amp;Fit membership. I assume many people can use this through their employer. My gym charges 55 per month normally, and I get their membership at just $30 through <span>Active&amp;Fit.</span></p>\n"
+      },
+      "date_gmt" : "2026-05-11T15:30:32",
+      "id" : 2319705,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p>Netflix direct bill works. LA Fitness gym works</p>\n"
+      },
+      "date_gmt" : "2026-05-11T15:30:43",
+      "id" : 2319706,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Benny",
+      "content" : {
+        "rendered" : "<p>active and fit has been gutted. Used to be so good.</p>\n"
+      },
+      "date_gmt" : "2026-05-11T15:32:51",
+      "id" : 2319707,
+      "parent" : 2319705
+    },
+    {
+      "author_name" : "rana🔗 👈",
+      "content" : {
+        "rendered" : "<p>I agree, social media ruined it, but I still value it, as in my example.</p>\n"
+      },
+      "date_gmt" : "2026-05-11T15:42:26",
+      "id" : 2319713,
+      "parent" : 2319707
+    },
+    {
+      "author_name" : "TripleDipper2",
+      "content" : {
+        "rendered" : "<p>Best value if you don’t use it naturally is DoorDash Zift giftcards that you can deposit into your Amazon account balance. </p>\n<p>I feel like ubercash is overpriced, food costs more/rides costs more with ubercash, and costco has $80 for $100 gcs on discount. Amazon is more retained value.</p>\n"
+      },
+      "date_gmt" : "2026-05-11T15:45:00",
+      "id" : 2319717,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Matthew",
+      "content" : {
+        "rendered" : "<p>I just prepay my Planet Fitness membership. $150 should be good for 6 months if you have black membership or 1 year if you have the basic.</p>\n"
+      },
+      "date_gmt" : "2026-05-11T15:50:57",
+      "id" : 2319719,
+      "parent" : 0
+    },
+    {
+      "author_name" : "RC",
+      "content" : {
+        "rendered" : "<p>YMMV, not everyone can pay with a credit card per their contracts.</p>\n"
+      },
+      "date_gmt" : "2026-05-11T15:53:51",
+      "id" : 2319721,
+      "parent" : 2319719
+    },
+    {
+      "author_name" : "Sammy",
+      "content" : {
+        "rendered" : "<p>This. Just buy $150 in gift cards via DoorDash (double dip with the 10-15% discount they offer) and be done with it. I do this on Jan 2 each year and don’t think about it again until next year.</p>\n"
+      },
+      "date_gmt" : "2026-05-11T16:29:03",
+      "id" : 2319745,
+      "parent" : 2319717
+    },
+    {
+      "author_name" : "teamcashback",
+      "content" : {
+        "rendered" : "<p>Ubers abroad do not work (I tried in both UAE and Jordan) in mid-2025. </p>\n<p>I contacted customer service and it had to go to their research team, which sent me a letter stating these charges were not eligible.</p>\n"
+      },
+      "date_gmt" : "2026-05-11T16:49:52",
+      "id" : 2319765,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Rfclub",
+      "content" : {
+        "rendered" : "<p>you miss an important point:  International transactions that are made outside the domestic U.S. do not qualify for statement credit.</p>\n"
+      },
+      "date_gmt" : "2026-05-11T16:57:42",
+      "id" : 2319773,
+      "parent" : 0
+    },
+    {
+      "author_name" : "KS",
+      "content" : {
+        "rendered" : "<p>Chuze Fitness works well.</p>\n"
+      },
+      "date_gmt" : "2026-05-11T17:10:03",
+      "id" : 2319778,
+      "parent" : 0
+    },
+    {
+      "author_name" : "TJ",
+      "content" : {
+        "rendered" : "<p>I can confirm personally that Hulu when ordered directly from Hulu website works.</p>\n"
+      },
+      "date_gmt" : "2026-05-11T17:18:43",
+      "id" : 2319784,
+      "parent" : 0
+    },
+    {
+      "author_name" : "bdon",
+      "content" : {
+        "rendered" : "<p>i am new to it , what did I miss out on over the years?</p>\n"
+      },
+      "date_gmt" : "2026-05-11T17:28:43",
+      "id" : 2319793,
+      "parent" : 2319707
+    },
+    {
+      "author_name" : "VML",
+      "content" : {
+        "rendered" : "<p>HBO max works if purchased directly &#8211; I use it to prepay an annual sub.</p>\n"
+      },
+      "date_gmt" : "2026-05-11T17:31:55",
+      "id" : 2319795,
+      "parent" : 0
+    },
+    {
+      "author_name" : "ahl",
+      "content" : {
+        "rendered" : "<p>Smoothie bar at EOS/GOLDS fitness centers works</p>\n"
+      },
+      "date_gmt" : "2026-05-11T17:47:34",
+      "id" : 2319805,
+      "parent" : 0
+    },
+    {
+      "author_name" : "rana🔗 👈",
+      "content" : {
+        "rendered" : "<p>It used to be one membership for access to most standard gyms, but after it blew up on social media, they scaled it back. I once had 5 gym memberships for traveling, but now it’s 1 gym for $28 plus $23 for each additional gym. Still worth it since you avoid annual fees and the hassle of cancellation fees.</p>\n"
+      },
+      "date_gmt" : "2026-05-11T17:51:44",
+      "id" : 2319809,
+      "parent" : 2319793
+    },
+    {
+      "author_name" : "LX",
+      "content" : {
+        "rendered" : "<p>I like to purchase a $150 via doordash (totals to $156.95), it codes as travel/dining and the cashback covers most of the additional cost. Spent mine on utility bills.</p>\n"
+      },
+      "date_gmt" : "2026-05-11T18:26:10",
+      "id" : 2319848,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Jeff",
+      "content" : {
+        "rendered" : "<p>I use mine to reload Uber Eats to supplement the AmEx credits.</p>\n<p>Has anyone used it to indirectly pay a gym membership, for example through a health insurance discount program?  Such as Active&amp;Fit Direct</p>\n"
+      },
+      "date_gmt" : "2026-05-11T18:50:47",
+      "id" : 2319863,
+      "parent" : 0
+    },
+    {
+      "author_name" : "PB",
+      "content" : {
+        "rendered" : "<p>Can you clarify? What type of gift card? A Visa gift card to pay utility bills?</p>\n<p>And this is a physical gift card delivered as opposed to the digital gift cards Doordash offers?</p>\n"
+      },
+      "date_gmt" : "2026-05-11T19:11:44",
+      "id" : 2319884,
+      "parent" : 2319848
+    },
+    {
+      "author_name" : "PB",
+      "content" : {
+        "rendered" : "<p>And this is strictly delivered physical gift cards, right? Or does it work for digital gift cards as well?</p>\n"
+      },
+      "date_gmt" : "2026-05-11T19:12:35",
+      "id" : 2319885,
+      "parent" : 2319717
+    },
+    {
+      "author_name" : "PB",
+      "content" : {
+        "rendered" : "<p><span>And this is strictly delivered physical gift cards, right? Or does it work for digital gift cards as well?</span></p>\n"
+      },
+      "date_gmt" : "2026-05-11T19:12:55",
+      "id" : 2319886,
+      "parent" : 2319745
+    },
+    {
+      "author_name" : "LX",
+      "content" : {
+        "rendered" : "<p>Yes $150 visa gift card, not sure how I missed that. I think DD sells both digital and physical but I purchase the digital ones.</p>\n"
+      },
+      "date_gmt" : "2026-05-11T19:27:59",
+      "id" : 2319900,
+      "parent" : 2319884
+    },
+    {
+      "author_name" : "YF",
+      "content" : {
+        "rendered" : "<p>Bought $150 target e-gift cards from DoorDash at the beginning of the year and it triggered the credit. DO NOT buy the Zift gift card there. I was never able to claim the card number using the given link. Customer service is definitely not helpful about this.</p>\n"
+      },
+      "date_gmt" : "2026-05-11T19:54:51",
+      "id" : 2319919,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Raymond 🔗",
+      "content" : {
+        "rendered" : "<p>Same applies for flights. No credits for non US carriers like Emirates</p>\n"
+      },
+      "date_gmt" : "2026-05-11T20:12:17",
+      "id" : 2319938,
+      "parent" : 2319773
+    },
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>Normal lyft rides work, i used my whole credit that way last year.</p>\n"
+      },
+      "date_gmt" : "2026-05-11T21:32:07",
+      "id" : 2319994,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Fred",
+      "content" : {
+        "rendered" : "<p>Lifetime gym membership worked</p>\n"
+      },
+      "date_gmt" : "2026-05-11T23:56:59",
+      "id" : 2320094,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Kafka",
+      "content" : {
+        "rendered" : "<p>Rep told me the same, but several international Lime scooters (via Uber app) did trigger the credit even when billed in other currencies. Hit or miss.</p>\n"
+      },
+      "date_gmt" : "2026-05-12T00:03:27",
+      "id" : 2320102,
+      "parent" : 2319773
+    },
+    {
+      "author_name" : "CC",
+      "content" : {
+        "rendered" : "<p>Ubers abroad do not work + 1<br />\nUsed in several Asia countries and none tracked.</p>\n"
+      },
+      "date_gmt" : "2026-05-12T00:18:13",
+      "id" : 2320112,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Thanks, added.</p>\n"
+      },
+      "date_gmt" : "2026-05-12T00:58:44",
+      "id" : 2320140,
+      "parent" : 2319688
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p><span style=\"color: rgb(119, 119, 119);\">Thanks, added. </span></p>\n"
+      },
+      "date_gmt" : "2026-05-12T00:58:50",
+      "id" : 2320141,
+      "parent" : 2319697
+    },
+    {
+      "author_name" : "YK3",
+      "content" : {
+        "rendered" : "<p>Ive had no issues with this for multiple years.</p>\n"
+      },
+      "date_gmt" : "2026-05-12T03:18:05",
+      "id" : 2320223,
+      "parent" : 2319919
+    },
+    {
+      "author_name" : "TripleDipper2",
+      "content" : {
+        "rendered" : "<p>Digital</p>\n"
+      },
+      "date_gmt" : "2026-05-12T03:24:23",
+      "id" : 2320227,
+      "parent" : 2319885
+    },
+    {
+      "author_name" : "Sherry",
+      "content" : {
+        "rendered" : "<p><span>Instacart grocery delivery doesn’t work for me this year (three separate transactions)</span></p>\n"
+      },
+      "date_gmt" : "2026-05-12T04:56:07",
+      "id" : 2320267,
+      "parent" : 2319703
+    },
+    {
+      "author_name" : "TDD",
+      "content" : {
+        "rendered" : "<p>Uber Cash did work. I bought an Uber eGC in the app when they had the 15% discount promotion. Charge shows as &#8220;BC *UBER CASH&#8221;</p>\n<p>Can you add tags to the post? Same with the other post <a href=\"https://www.doctorofcredit.com/triggers-bank-america-premium-rewards-100-travel-credit/\" rel=\"ugc\">[2026 Reset] What Triggers The Bank of America Premium Rewards $100 Travel Credit? &#8211; Doctor Of Credit</a>?</p>\n<p>TIA</p>\n"
+      },
+      "date_gmt" : "2026-05-13T06:14:07",
+      "id" : 2321070,
+      "parent" : 0
+    },
+    {
+      "author_name" : "TripleDipper2",
+      "content" : {
+        "rendered" : "<p>Did you do amounts equal or less than $50?</p>\n"
+      },
+      "date_gmt" : "2026-05-13T17:45:22",
+      "id" : 2321336,
+      "parent" : 2321070
+    },
+    {
+      "author_name" : "funda",
+      "content" : {
+        "rendered" : "<p>Last year, I bought Starbucks GCs through DoorDash and it triggered the credit. This year, a $50 purchase did not trigger the credit but I will wait a few more days to see if it will work.</p>\n<p>Or start paying my Netflix bill with the PRE card</p>\n"
+      },
+      "date_gmt" : "2026-05-15T21:45:19",
+      "id" : 2322987,
+      "parent" : 0
+    },
+    {
+      "author_name" : "funda",
+      "content" : {
+        "rendered" : "<p>Meter moved today</p>\n"
+      },
+      "date_gmt" : "2026-05-17T00:10:09",
+      "id" : 2323672,
+      "parent" : 2322987
+    },
+    {
+      "author_name" : "TDD",
+      "content" : {
+        "rendered" : "<p><a class='wpd-umcguest'  href='https://www.doctorofcredit.com/maximizing-the-bank-of-america-premium-rewards-elite-lifestyle-credits/#comment-2319717'><img alt='' src='https://secure.gravatar.com/avatar/7e19a2873c6fd8de777938f045c30f31663c1b1242f05d74b5c4b3977ec52877?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/7e19a2873c6fd8de777938f045c30f31663c1b1242f05d74b5c4b3977ec52877?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>TripleDipper2</a> $500 for $425 (15% off)</p>\n"
+      },
+      "date_gmt" : "2026-05-18T02:19:26",
+      "id" : 2324131,
+      "parent" : 2321336
+    },
+    {
+      "author_name" : "fearthez",
+      "content" : {
+        "rendered" : "<p>Based on the DP I purchased a $75 Airbnb GC in app for $75 and sent it to myself on 5/12. Not seeing the meter update or any credit</p>\n"
+      },
+      "date_gmt" : "2026-05-18T16:46:41",
+      "id" : 2324364,
+      "parent" : 0
+    },
+    {
+      "author_name" : "a",
+      "content" : {
+        "rendered" : "<p>I think that DP may have been an airbnb purchase on doordash. Doesn&#8217;t say where it was bought&#8230;</p>\n"
+      },
+      "date_gmt" : "2026-05-20T20:30:42",
+      "id" : 2325849,
+      "parent" : 2324364
+    },
+    {
+      "author_name" : "TripleDipper2",
+      "content" : {
+        "rendered" : "<p>Yeah that’s why. Uber cash refills for 50$ or below. Can do multiple</p>\n"
+      },
+      "date_gmt" : "2026-05-25T02:10:45",
+      "id" : 2328287,
+      "parent" : 2324131
+    },
+    {
+      "author_name" : "TW",
+      "content" : {
+        "rendered" : "<p>I can confirm that Taiwan doesn&#8217;t work.</p>\n"
+      },
+      "date_gmt" : "2026-07-04T21:17:58",
+      "id" : 2359229,
+      "parent" : 2320112
+    },
+    {
+      "author_name" : "OR",
+      "content" : {
+        "rendered" : "<p>I can confirm multiple Uber rides in Costa Rica did NOT work</p>\n"
+      },
+      "date_gmt" : "2026-08-18T19:19:50",
+      "id" : 2392236,
+      "parent" : 2359229
+    },
+    {
+      "author_name" : "qume",
+      "content" : {
+        "rendered" : "<p>Did anybody try Epic resorts for season ski passes?</p>\n"
+      },
+      "date_gmt" : "2026-08-22T02:18:46",
+      "id" : 2394898,
+      "parent" : 0
+    },
+    {
+      "author_name" : "ORodz",
+      "content" : {
+        "rendered" : "<p>Has anyone tried Apple Music or Spotify to confirm if lifetime crédit would work?</p>\n"
+      },
+      "date_gmt" : "2026-09-03T20:23:46",
+      "id" : 2404668,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Kelly",
+      "content" : {
+        "rendered" : "<p>DoorDash gift card does not appear to work anymore.  9/14 transaction posted: $150 DD *DOORDASH GIFTCARDS DOORDASH.COM CA &#8211; No meter move, no credit as of 9/24.  Maybe smaller amounts?</p>\n"
+      },
+      "date_gmt" : "2026-09-24T19:24:17",
+      "id" : 2420516,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Kelly",
+      "content" : {
+        "rendered" : "<p>Update: Took 11 days, but meter moved for Doordash $150 gift card</p>\n"
+      },
+      "date_gmt" : "2026-09-25T23:35:45",
+      "id" : 2421569,
+      "parent" : 2420516
+    },
+    {
+      "author_name" : "qume",
+      "content" : {
+        "rendered" : "<p>I tried. denied.</p>\n"
+      },
+      "date_gmt" : "2026-10-28T00:50:07",
+      "id" : 2443939,
+      "parent" : 2394898
+    },
+    {
+      "author_name" : "Lou",
+      "content" : {
+        "rendered" : "<p>How are people getting DoorDash gift cards through? I always see &#8220;<span>Please use a different payment method to checkout.&#8221;</span></p>\n"
+      },
+      "date_gmt" : "2026-11-01T22:54:06",
+      "id" : 2447250,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Jess",
+      "content" : {
+        "rendered" : "<p>Running into the same issue 11/04</p>\n"
+      },
+      "date_gmt" : "2026-11-04T16:09:31",
+      "id" : 2448985,
+      "parent" : 2447250
+    },
+    {
+      "author_name" : "nik",
+      "content" : {
+        "rendered" : "<p>Yup. Same issue.</p>\n"
+      },
+      "date_gmt" : "2026-11-09T11:27:34",
+      "id" : 2451659,
+      "parent" : 2448985
+    },
+    {
+      "author_name" : "Kelly",
+      "content" : {
+        "rendered" : "<p>I remember that happening to me too, but can&#8217;t exactly remember the fix. I think it was multiple tries of desktop website versus app versus mobile web.</p>\n"
+      },
+      "date_gmt" : "2026-11-09T12:39:30",
+      "id" : 2451664,
+      "parent" : 2447250
+    },
+    {
+      "author_name" : "Jess",
+      "content" : {
+        "rendered" : "<p>Thank you! Desktop chrome and safari both did not work. I was able to complete the purchase on the mobile app.</p>\n"
+      },
+      "date_gmt" : "2026-11-09T20:36:07",
+      "id" : 2451845,
+      "parent" : 2451664
+    },
+    {
+      "author_name" : "Nik",
+      "content" : {
+        "rendered" : "<p>I tried it in the app and still wouldn&#8217;t work.  Is this the first time you are using the card? I wonder if there is a velocity limit.  2 cards every month or something.</p>\n"
+      },
+      "date_gmt" : "2026-11-10T03:36:20",
+      "id" : 2452105,
+      "parent" : 2451845
+    }
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "60",
+    "x-wp-totalpages" : "1"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/comments?post=257893&per_page=100&page=1&order=asc&orderby=date_gmt&_fields=id,parent,author_name,date_gmt,content"
+}

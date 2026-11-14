@@ -1,0 +1,162 @@
+{
+  "body" : {
+    "author" : "mtlynch",
+    "children" : [
+      {
+        "author" : "emschwartz",
+        "created_at_i" : 1760461113,
+        "id" : 45582319,
+        "text" : "Extremely helpful. I&#x27;ve been eagerly awaiting v0.5 but have been holding off on deploying it until I had more confidence that it would work and be stable. Reading this, I&#x27;m definitely glad that I waited.",
+        "type" : "comment"
+      },
+      {
+        "author" : "ComputerGuru",
+        "created_at_i" : 1760461251,
+        "id" : 45582344,
+        "text" : "No need for all the “I love Litestream” disclaimers, these are serious issues that speak for themselves.",
+        "type" : "comment"
+      },
+      {
+        "author" : "jasonthorsness",
+        "children" : [
+          {
+            "author" : "mtlynch",
+            "children" : [
+              {
+                "author" : "benbjohnson",
+                "created_at_i" : 1760464072,
+                "id" : 45582791,
+                "text" : "Litestream author here. Yes, that&#x27;s correct. LTX was the biggest hurdle to get over and was impossible to switch over incrementally. The storage layer change brings a lot of benefits and enables a lot of future work that we&#x27;re really excited about.<p>Thanks to mtlynch and everyone else who has submitted bug reports. We&#x27;re squashing issues and working to get everything stable as quickly as possible.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1760462744,
+            "id" : 45582606,
+            "text" : "I think the most disruptive part is the migration to the new LTX format,[0] which I&#x27;d imagine is hard to do incrementally.<p>[0] <a href=\"https:&#x2F;&#x2F;fly.io&#x2F;blog&#x2F;litestream-v050-is-here&#x2F;#the-ltx-file-format\">https:&#x2F;&#x2F;fly.io&#x2F;blog&#x2F;litestream-v050-is-here&#x2F;#the-ltx-file-fo...</a>",
+            "type" : "comment"
+          },
+          {
+            "author" : "liuliu",
+            "children" : [
+              {
+                "author" : "ncruces",
+                "created_at_i" : 1760473524,
+                "id" : 45584382,
+                "text" : "They jumped from v0.3.x to v0.5.0 after a couple of years of v0.3.x (with an unreleased v0.4.x in between).<p>That alone should hint everyone it was a big leap.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1760464861,
+            "id" : 45582926,
+            "text" : "Feels like a side-effect of forever 0.x version symptom (I am guilty of as well). Even though semi-ver says 0.x can do whatever, people don&#x27;t associate enough disruptive changes to it, whereas 0.4.x if it is 1.x, then it is much clearer this is a 2.x release.<p>All things considered, this is probably just a tiny footnote in this software&#x27;s life.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1760462541,
+        "id" : 45582582,
+        "text" : "The change log is massive, so this is not unexpected to have a few issues. Maybe the two-year backlog of features and updates should have been batched into a few releases instead of this one big one? But there was a beta, and this is ripping the bandaid.<p><a href=\"https:&#x2F;&#x2F;github.com&#x2F;benbjohnson&#x2F;litestream&#x2F;releases&#x2F;tag&#x2F;v0.5.0\" rel=\"nofollow\">https:&#x2F;&#x2F;github.com&#x2F;benbjohnson&#x2F;litestream&#x2F;releases&#x2F;tag&#x2F;v0.5....</a>",
+        "type" : "comment"
+      },
+      {
+        "author" : "ncruces",
+        "children" : [
+          {
+            "author" : "ncruces",
+            "created_at_i" : 1760474125,
+            "id" : 45584490,
+            "text" : "And, meanwhile, v0.5.1 has been released. :)",
+            "type" : "comment"
+          },
+          {
+            "author" : "jadbox",
+            "children" : [
+              {
+                "author" : "ncruces",
+                "children" : [
+                  {
+                    "author" : "jadbox",
+                    "children" : [
+                      {
+                        "author" : "ncruces",
+                        "created_at_i" : 1760516314,
+                        "id" : 45589499,
+                        "text" : "To clarify, SQLite does this for local databases in WAL mode, that&#x27;s what the shared memory WAL index file is for: it allows multiple processes to cooperate and figure out which pages changed since when, which also helps SQLite manage its page cache more efficiently.<p>Rollback mode needs to drop its page cache whenever there is any change to the database, because what changed – and what didn&#x27;t – is not stored anywhere.<p>Confusingly, the read-replica VFS needs to pretend the database is in rollback mode even if it isn&#x27;t. Otherwise, we&#x27;d have to fake a database file, a WAL and a WAL index, instead of just a database.",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1760481164,
+                    "id" : 45585839,
+                    "text" : "That&#x27;s a rabbit hole. Thank you for sharing so much context. I see clearly that SQLite needs a page-updated-aware page cache, even if it was optional.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1760477391,
+                "id" : 45585230,
+                "text" : "The idea behind Litestream is that you have a “primary” which has the SQLite database on a local disk, and you use Litestream to replicate it asynchronously to (e.g.) object storage.<p>What&#x27;s in object storage is not an SQLite file, but enough information to restore your SQLite file at various points in time. The way it&#x27;s stored is optimized for frequent incremental updates and less frequent point restores.<p>The lightweight read replicas VFS allows you open an SQLite database read-only directly from the data in object storage, <i>without</i> having to first do a point restore, downloading all the data, and creating a local copy of the database.<p>You “stream” the data directly from object storage as needed, get a consistent view of it, and can query it while the “primary” is concurrently updating it.<p>It works, but SQLite kinda expects data to be local and low latency, which this might not be.<p>SQLite has a page cache, which you can use, but everytime there is a write, the entire cache is dropped.<p>Which means if you poll for updates regularly (which for various reasons you have to) you&#x27;ll get frequent latency spikes.<p>One way to improve this is to add a page cache that has an understanding of which pages have changed and which have stayed the same. Prefetching would help to, but SQLite is really unhelpful there.<p>This is the piece I&#x27;m still missing. The rest mostly works already with Litestream v0.5.1.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1760474360,
+            "id" : 45584547,
+            "text" : "&quot;But the performance probably sucks&quot; The performance of what sucks? Replication? Why would you need to cache that?",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1760463390,
+        "id" : 45582697,
+        "text" : "I&#x27;ve been trying to get a headstart on the lightweight read replicas for my Go SQLite driver and, yes, there are issues.<p><a href=\"https:&#x2F;&#x2F;fly.io&#x2F;blog&#x2F;litestream-revamped&#x2F;#lightweight-read-replicas\">https:&#x2F;&#x2F;fly.io&#x2F;blog&#x2F;litestream-revamped&#x2F;#lightweight-read-re...</a><p>But the concept is really cool, and it&#x27;s workable. I already have a version that mostly works.<p><a href=\"https:&#x2F;&#x2F;github.com&#x2F;ncruces&#x2F;go-sqlite3&#x2F;tree&#x2F;litestream&#x2F;litestream\" rel=\"nofollow\">https:&#x2F;&#x2F;github.com&#x2F;ncruces&#x2F;go-sqlite3&#x2F;tree&#x2F;litestream&#x2F;litest...</a><p>With Litestream v0.5.0 doing the replication, you&#x27;ll get some transient read failures that really shouldn&#x27;t happen.<p>If you build Litestream from head (or wait for v0.5.1), that&#x27;ll be fixed. You&#x27;ll still have similar issues around the time of a snapshot, if you keep only one snapshot.<p>Other than that, I&#x27;m pretty confident it just works. But the performance probably sucks. I need to add a layer of caching. But that&#x27;s it.",
+        "type" : "comment"
+      },
+      {
+        "author" : "andersmurphy",
+        "created_at_i" : 1760463887,
+        "id" : 45582771,
+        "text" : "Thanks for the heads up. I encountered similar issues so staying on 0.3.13 for now. But excited to give 0.5.x a go once the dust settles.<p>Livestream, sqlite and caddy are incredibly at making single box&#x2F;vps ops a breeze.",
+        "type" : "comment"
+      },
+      {
+        "author" : "placardloop",
+        "children" : [
+          {
+            "author" : "mtlynch",
+            "created_at_i" : 1760468209,
+            "id" : 45583481,
+            "text" : "Oh, thanks for the correction! I can&#x27;t believe I never noticed that. I&#x27;ve updated the post.<p>After your comment, I thought, &quot;Oh, I should contribute a PR to the repo to add the Docker badge so the Docker image is obvious to everyone,&quot; but it turns out the badge has been right there for four years.[0]<p>What I suspect happened is that I tried to use the Litestream Docker image once, discovered that image was amd64-only (until 0.3.9), so I didn&#x27;t use it because I needed ARM, and then I just kept copy&#x2F;pasting my workaround from project to project.<p>[0] <a href=\"https:&#x2F;&#x2F;github.com&#x2F;benbjohnson&#x2F;litestream&#x2F;commit&#x2F;6acfbcbc64dbb0bbc9fee492d2ec804423de14ef\" rel=\"nofollow\">https:&#x2F;&#x2F;github.com&#x2F;benbjohnson&#x2F;litestream&#x2F;commit&#x2F;6acfbcbc64d...</a>",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1760467130,
+        "id" : 45583321,
+        "text" : "&gt; One of the benefits of Litestream 0.5.0 is that there’s now an official litestream Docker image. All of my previous Docker containers required a lot of boilerplate to download the correct version of Litestream and make it available in my container, but now it reduces to a single Dockerfile line<p>There’s been an official Litestream container image for over 3 years at this point (since version 0.3.4, it’s at the same Docker Hub as 0.5.0).",
+        "type" : "comment"
+      },
+      {
+        "author" : "acrispino",
+        "children" : [
+          {
+            "author" : "mtlynch",
+            "created_at_i" : 1760475460,
+            "id" : 45584765,
+            "text" : "No, I saw that bug in the issue log, but I never hit that personally.<p>If you&#x27;re running into it, I&#x27;d test again with the latest release (0.5.1) and see if it&#x27;s still present. If so, I suspect it would get more traction from the dev team if the report was complete, as it&#x27;s currently missing repro steps and the litestream.yml is not compatible with 0.5.0 (it still has &quot;replicas&quot; plural).",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1760473692,
+        "id" : 45584411,
+        "text" : "mtlynch, since you&#x27;re a litestream+backblaze user, did you encounter this with 0.5.0? <a href=\"https:&#x2F;&#x2F;github.com&#x2F;benbjohnson&#x2F;litestream&#x2F;issues&#x2F;747\" rel=\"nofollow\">https:&#x2F;&#x2F;github.com&#x2F;benbjohnson&#x2F;litestream&#x2F;issues&#x2F;747</a>",
+        "type" : "comment"
+      }
+    ],
+    "created_at_i" : 1760458227,
+    "id" : 45581761,
+    "points" : 96,
+    "title" : "Hold Off on Litestream 0.5.0",
+    "type" : "story",
+    "url" : "https://mtlynch.io/notes/hold-off-on-litestream-0.5.0/"
+  },
+  "headers" : {
+    "content-type" : "application/json"
+  },
+  "status" : 200,
+  "url" : "https://hn.algolia.com/api/v1/items/45581761"
+}

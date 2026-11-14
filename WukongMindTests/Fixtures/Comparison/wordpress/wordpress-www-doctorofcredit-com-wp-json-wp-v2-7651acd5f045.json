@@ -1,0 +1,911 @@
+{
+  "body" : [
+    {
+      "author_name" : "midas89",
+      "content" : {
+        "rendered" : "<p>Ha. I meant 6-figures of money. I better stop the early-morning cocktails. 😀</p>\n"
+      },
+      "date_gmt" : "2025-07-26T17:23:04",
+      "id" : 2106588,
+      "parent" : 2106550
+    },
+    {
+      "author_name" : "Guest",
+      "content" : {
+        "rendered" : "<p>I can understand the confusion. You need an actual payment method to backstop the PayPal wallet (e.g., any credit card, debit card, checking account, etc.). The PayPal MC is just like any other credit card. To get the 3% from the PayPal MC, you have to use the PayPal MC through the PayPal wallet. Using the PayPal MC directly only earns you 1.5%.</p>\n"
+      },
+      "date_gmt" : "2025-07-26T18:27:49",
+      "id" : 2106614,
+      "parent" : 2106553
+    },
+    {
+      "author_name" : "Queue_Underflow",
+      "content" : {
+        "rendered" : "<p>Inputting the PayPal MC card number directly on Pay1040 will only get you 1.5% back.</p>\n"
+      },
+      "date_gmt" : "2025-07-26T18:45:47",
+      "id" : 2106619,
+      "parent" : 2106553
+    },
+    {
+      "author_name" : "Kelly",
+      "content" : {
+        "rendered" : "<p>Correct me if I am wrong, if you buy the gift cards via Amazon or from the gift cards rack at stores that have gift cards rack, US bank would not know you bought a gift card since they would just see a purchase at Amazon and/or at a retail store? So then the 4% cash back rate would apply.</p>\n"
+      },
+      "date_gmt" : "2025-07-26T20:09:18",
+      "id" : 2106647,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Lrdx",
+      "content" : {
+        "rendered" : "<p>Edit: OH my god, sorry. That&#8217;s absolutely retarded.</p>\n<p>One needs to have the savings account AND put the money in the <strong>checking</strong>? Are you freaking kidding me? Why on Earth are you even require the savings then?</p>\n"
+      },
+      "date_gmt" : "2025-07-26T20:23:51",
+      "id" : 2106656,
+      "parent" : 2106468
+    },
+    {
+      "author_name" : "Lrdx",
+      "content" : {
+        "rendered" : "<p>The brokerage account doesn&#8217;t count, unless you had the old version of card which isn&#8217;t available since April.</p>\n"
+      },
+      "date_gmt" : "2025-07-26T20:26:05",
+      "id" : 2106658,
+      "parent" : 2106537
+    },
+    {
+      "author_name" : "Queue_Underflow",
+      "content" : {
+        "rendered" : "<p>Should be fine. Most likely they will just exclude transactions with the MCC &#8216;POI Funding Transactions&#8217; like giftcards.com, giftcards.kroger.com, PayPal Digital Gifts, etc.</p>\n"
+      },
+      "date_gmt" : "2025-07-26T20:48:35",
+      "id" : 2106660,
+      "parent" : 2106647
+    },
+    {
+      "author_name" : "Nate",
+      "content" : {
+        "rendered" : "<p>Worst CC launch ever, and an unfortunate use of a 5/24 slot.  It would be &#8220;fairer&#8221; that if you close a card within 24 months, it doesn&#8217;t count against your 5/24 status.</p>\n"
+      },
+      "date_gmt" : "2025-07-26T21:41:10",
+      "id" : 2106678,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Ben",
+      "content" : {
+        "rendered" : "<p>Yeah, the &#8220;does the brokerage count or not&#8221; is still the most substantial difference, and if that&#8217;s still grandfathered, it invalidates DoC&#8217;s summary of this new change.</p>\n"
+      },
+      "date_gmt" : "2025-07-26T21:42:33",
+      "id" : 2106680,
+      "parent" : 2106658
+    },
+    {
+      "author_name" : "midas89",
+      "content" : {
+        "rendered" : "<p><a class='wpd-umcguest'  href='https://www.doctorofcredit.com/u-s-bank-to-nerf-existing-smartly-cardholders-on-september-15/#comment-2106471'><img alt='' src='https://secure.gravatar.com/avatar/f3f38ad13076a93c826579be036a6b5add33a81b398231d139e8676611952cd0?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/f3f38ad13076a93c826579be036a6b5add33a81b398231d139e8676611952cd0?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>Seb</a> I apologize if I am wrong, but maybe Steve was referring to the fact you can pay your taxes and insurance with BofA versus US Bank and get 2.62% cash back, and the fact there is no $10,000 monthly cap.</p>\n"
+      },
+      "date_gmt" : "2025-07-26T22:22:10",
+      "id" : 2106701,
+      "parent" : 2106471
+    },
+    {
+      "author_name" : "Road_Dog",
+      "content" : {
+        "rendered" : "<p>The $10k spend cap is lame, but at least V1 can still have brokerage accounts count towards the $100k balance requirement.</p>\n"
+      },
+      "date_gmt" : "2025-07-26T22:30:17",
+      "id" : 2106703,
+      "parent" : 2106467
+    },
+    {
+      "author_name" : "midas89",
+      "content" : {
+        "rendered" : "<p><a class='wpd-umcguest'  href='https://www.doctorofcredit.com/u-s-bank-to-nerf-existing-smartly-cardholders-on-september-15/#comment-2106567'><img alt='' src='https://secure.gravatar.com/avatar/878cfcc6dc156f71fecf68a7530651a2289a791a80f568bb6a8ed3d6066c559a?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/878cfcc6dc156f71fecf68a7530651a2289a791a80f568bb6a8ed3d6066c559a?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>jj8a83</a> MCC Code 6300 – Insurance Sales, Underwriting, and Premiums:</p>\n<p>This is the most common MCC used for general insurance premium payments (life, auto, home, etc.)</p>\n"
+      },
+      "date_gmt" : "2025-07-26T22:35:08",
+      "id" : 2106706,
+      "parent" : 2106567
+    },
+    {
+      "author_name" : "Yoshi",
+      "content" : {
+        "rendered" : "<p>Not to mention that the Premium Rewards/PR Elite cards actually has Visa benefits (e.g. Extended Warranty/Purchase Protection/Return Protection) unlike the Smartly card which has none.</p>\n"
+      },
+      "date_gmt" : "2025-07-27T04:06:37",
+      "id" : 2106768,
+      "parent" : 2106499
+    },
+    {
+      "author_name" : "catfood",
+      "content" : {
+        "rendered" : "<p>USCF has some v1 Smartly people who got completely put on v2 terms&#8211;checking balance *only* for the qualifying $100k.  Read your letters carefully!</p>\n"
+      },
+      "date_gmt" : "2025-07-27T04:12:47",
+      "id" : 2106771,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Anthony Paganini",
+      "content" : {
+        "rendered" : "<p>Yes, have the old version. Picked it up just before the changeover and haven&#8217;t sorted whether it&#8217;s worth it to move brokerage.</p>\n"
+      },
+      "date_gmt" : "2025-07-27T04:37:54",
+      "id" : 2106774,
+      "parent" : 2106658
+    },
+    {
+      "author_name" : "Civlized Commenter",
+      "content" : {
+        "rendered" : "<p>This is actually not as bad as it could have been</p>\n<p>But it does make it a bit less compelling to have a $2400 cash back cap for sticking $100k in a brokerage system from the 1980s</p>\n"
+      },
+      "date_gmt" : "2025-07-27T05:01:44",
+      "id" : 2106780,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Yoshi",
+      "content" : {
+        "rendered" : "<p>Apparently some v1 user got the v2 treatment<br />\n<a href=\"https://www.bogleheads.org/forum/viewtopic.php?p=8457490#p8457490\" rel=\"nofollow ugc\">https://www.bogleheads.org/forum/viewtopic.php?p=8457490#p8457490</a></p>\n"
+      },
+      "date_gmt" : "2025-07-27T05:45:56",
+      "id" : 2106786,
+      "parent" : 0
+    },
+    {
+      "author_name" : "bob Johnson",
+      "content" : {
+        "rendered" : "<p>I&#8217;ve been using Pay1040 it is1.75%<br />\nCharged $70 on a $4000 payment<br />\n<a href=\"https://www.irs.gov/payments/pay-your-taxes-by-debit-or-credit-card\" rel=\"nofollow ugc\">https://www.irs.gov/payments/pay-your-taxes-by-debit-or-credit-card</a></p>\n"
+      },
+      "date_gmt" : "2025-07-27T07:50:54",
+      "id" : 2106789,
+      "parent" : 2106509
+    },
+    {
+      "author_name" : "bob Johnson",
+      "content" : {
+        "rendered" : "<p>If you use the PayPal MasterCard directly you get 1.5%, but if you go through PayPal wallet you get 3%</p>\n"
+      },
+      "date_gmt" : "2025-07-27T08:00:08",
+      "id" : 2106791,
+      "parent" : 2106553
+    },
+    {
+      "author_name" : "Frank",
+      "content" : {
+        "rendered" : "<p>So investment accounts still count? Still a solid card vs the v2 where they need to be in checking.</p>\n"
+      },
+      "date_gmt" : "2025-07-27T13:14:51",
+      "id" : 2106807,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Bill 8",
+      "content" : {
+        "rendered" : "<p>Hate seeing tax/insurance exclusions, fearing it could spill over into SUBs from any issuers</p>\n"
+      },
+      "date_gmt" : "2025-07-27T14:04:34",
+      "id" : 2106818,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Queue_Underflow",
+      "content" : {
+        "rendered" : "<p>On Pay1040 if you go to Taxpayer Tools-&gt;Convenience Fee Calculator they have an option for PayPal which gives 2.89%. It&#8217;s also mentioned at the top of <a href=\"https://www.doctorofcredit.com/a-complete-guide-to-paying-your-taxes-with-a-credit-card/\" rel=\"ugc\">https://www.doctorofcredit.com/a-complete-guide-to-paying-your-taxes-with-a-credit-card/</a>, and confirmed in many comments there.</p>\n"
+      },
+      "date_gmt" : "2025-07-27T15:16:22",
+      "id" : 2106830,
+      "parent" : 2106789
+    },
+    {
+      "author_name" : "ShadowRegent",
+      "content" : {
+        "rendered" : "<p>There are reports on the Bogleheads thread below of people receiving letters with different terms which don&#8217;t include investments as qualifying accounts.  One person posted a picture of the letter which only included checking account balances.</p>\n"
+      },
+      "date_gmt" : "2025-07-27T20:47:44",
+      "id" : 2106990,
+      "parent" : 2106807
+    },
+    {
+      "author_name" : "Tom",
+      "content" : {
+        "rendered" : "<p>So does this mean that tax charges that post before 9/15 will still get 4%, and those after just 2%?  So anything charged before 9/15 is on the old rules?</p>\n"
+      },
+      "date_gmt" : "2025-07-28T00:49:28",
+      "id" : 2107088,
+      "parent" : 0
+    },
+    {
+      "author_name" : "GundamWing01",
+      "content" : {
+        "rendered" : "<p>USB is in a class of its own. takes bullshit bank to the next level.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T00:54:55",
+      "id" : 2107095,
+      "parent" : 0
+    },
+    {
+      "author_name" : "bwicked1",
+      "content" : {
+        "rendered" : "<p>My letter is the exact same as the one linked to a few comments down.  It includes deposit, trust or investment accounts.  I currently have 100k in their investment account.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T01:12:50",
+      "id" : 2107108,
+      "parent" : 2106581
+    },
+    {
+      "author_name" : "Weregaruruman",
+      "content" : {
+        "rendered" : "<p>do payments from Clickpay ( we have to use to pay HOA fees ) qualify as <span>Transactions using third-party bill payment services.</span></p>\n"
+      },
+      "date_gmt" : "2025-07-28T02:08:34",
+      "id" : 2107135,
+      "parent" : 0
+    },
+    {
+      "author_name" : "midas89",
+      "content" : {
+        "rendered" : "<p>ClickPay is a third-party bill payment service, so that means it should be excluded from the 4% cash back rate, and only earn the 2% cash back rate.</p>\n<p>But of course, I am not sure. It could depend on the ClickPay MCC Code. If you download a CSV file of your US Bank transactions, you will see the MCC Code of ClickPay. And then you can research this further.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T02:18:14",
+      "id" : 2107139,
+      "parent" : 2107135
+    },
+    {
+      "author_name" : "midas89",
+      "content" : {
+        "rendered" : "<p>I agree. US Bank must be paying out a helluva lot of cash back money to the grandfathered people who are paying thousands in rent each month, so of course US Bank would want rent to be one of the exclusions, just like with taxes and insurance. If someone is paying their rent via a third party that collects it, I think for sure it will be excluded.</p>\n<p>It was nice while it lasted.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T03:01:26",
+      "id" : 2107150,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Mike",
+      "content" : {
+        "rendered" : "<p>Why the insurance exclusion? Maybe because of low interchange fees due to low fraud category?</p>\n"
+      },
+      "date_gmt" : "2025-07-28T03:54:48",
+      "id" : 2107164,
+      "parent" : 0
+    },
+    {
+      "author_name" : "GZG",
+      "content" : {
+        "rendered" : "<p>the fucking gall to change the terms differently for different people, who the hell do they think they are? jfc</p>\n"
+      },
+      "date_gmt" : "2025-07-28T03:55:35",
+      "id" : 2107165,
+      "parent" : 2107095
+    },
+    {
+      "author_name" : "bob Johnson",
+      "content" : {
+        "rendered" : "<p>The 2.89% is for commercial accounts. 1.75% for personal accounts.  I could show you my credit card statement where I paid $70 on $4,000 = 1.75%. Look at the top under consumer and personal it&#8217;s 1.75%. <a href=\"https://www.irs.gov/payments/pay-your-taxes-by-debit-or-credit-card\" rel=\"nofollow ugc\">https://www.irs.gov/payments/pay-your-taxes-by-debit-or-credit-card</a></p>\n"
+      },
+      "date_gmt" : "2025-07-28T04:40:58",
+      "id" : 2107174,
+      "parent" : 2106830
+    },
+    {
+      "author_name" : "GundamWing01",
+      "content" : {
+        "rendered" : "<p>exactly. at this point, pple should understand USB is a bitch. pretends to play and try to be cool. but shows up weak.</p>\n<p>the amount of work pple did to get this card makes me so pissed. and i dont even have this card. i learned my lesson after flexperks. no more USB.</p>\n<p>i say the same shit w/ BILT 2.0 cardless. pple never heard of First Electronic Bank. well, theyre about to find out.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T05:03:28",
+      "id" : 2107178,
+      "parent" : 2107165
+    },
+    {
+      "author_name" : "Nap",
+      "content" : {
+        "rendered" : "<p>Just churn their biz cards and call it a day.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T05:05:04",
+      "id" : 2107179,
+      "parent" : 2107178
+    },
+    {
+      "author_name" : "Queue_Underflow",
+      "content" : {
+        "rendered" : "<p>I just went through to the very last step for a personal estimated tax payment of $1000 at Pay1040 and it had a fee of $28.90 using the PayPal Mastercard via PayPal. Not sure how you got 1.75% but I wouldn&#8217;t count on continuing to do so going forward unless you have some trick, and if you do please let us know what it is!</p>\n"
+      },
+      "date_gmt" : "2025-07-28T05:09:36",
+      "id" : 2107180,
+      "parent" : 2107174
+    },
+    {
+      "author_name" : "GundamWing01",
+      "content" : {
+        "rendered" : "<p>no. its cuz USB is a bitch. they dont wanna pay. look at their exclusions. anything high volume. pple have huge insurance bills. thats why USB sent out warning letters threatening shutdown for biz spend. they only want you buying 7-11 cookies w/ this card. anything else is too much for them to handle.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T05:09:54",
+      "id" : 2107181,
+      "parent" : 2107164
+    },
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>Doesn&#8217;t sound so smart to have applied for that card now, does it?</p>\n"
+      },
+      "date_gmt" : "2025-07-28T05:20:03",
+      "id" : 2107182,
+      "parent" : 0
+    },
+    {
+      "author_name" : "midas89",
+      "content" : {
+        "rendered" : "<p>Hey,  <a class='wpd-umcguest'  href='https://www.doctorofcredit.com/u-s-bank-to-nerf-existing-smartly-cardholders-on-september-15/#comment-2107182'><img alt='' src='https://secure.gravatar.com/avatar/f0fcbe0aaa02e55639d236aeea87eadb9543b957d923e7e6c6d4992bad5a9b87?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/f0fcbe0aaa02e55639d236aeea87eadb9543b957d923e7e6c6d4992bad5a9b87?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>John</a>  for the 9 1/2 months I have had the 4% cash back, I made a big amount of big transactions monthly. So for me personally, it was worth it for the 9 1/2 months. </p>\n<p>I and so many others knew it could not be sustained financially by US Bank when we signed up, but we figured take advantage of it for as long as we could.</p>\n<p>It is sad that rent, mortgage, taxes, insurance, etc., won&#8217;t qualify for the 4% after Sept. 15th, of course, and I had hoped it would last a full year, but again, I feel I made the right decision getting the card and am not sorry I did.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T06:10:02",
+      "id" : 2107189,
+      "parent" : 2107182
+    },
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>Sounds like you don&#8217;t have any SUBs you&#8217;re working on to put non-category expenses on.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T06:15:55",
+      "id" : 2107190,
+      "parent" : 2107189
+    },
+    {
+      "author_name" : "midas89",
+      "content" : {
+        "rendered" : "<p>You are correct, John. No SUBs for me planned or desired; the last one I got was what US Bank automatically gave me when I opened up the US Bank Checking when I signed up for the Smartly Card.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T06:22:07",
+      "id" : 2107191,
+      "parent" : 2107190
+    },
+    {
+      "author_name" : "no name",
+      "content" : {
+        "rendered" : "<p>I&#8217;m not sure what you mean or what you&#8217;re looking for &#8211; the OP article has a screenshot of the letter, numerous comments here confirmed it, and there is an OP article edit that links Bogleheads with more reports, plus there is <a href=\"https://www.reddit.com/r/CreditCards/comments/1mas6fe/confirmed_slight_changes_to_the_smartly_v1/\" rel=\"nofollow ugc\">https://www.reddit.com/r/CreditCards/comments/1mas6fe/confirmed_slight_changes_to_the_smartly_v1/</a></p>\n"
+      },
+      "date_gmt" : "2025-07-28T07:25:12",
+      "id" : 2107193,
+      "parent" : 2106476
+    },
+    {
+      "author_name" : "no name",
+      "content" : {
+        "rendered" : "<p>&gt; Can someone provide a source for this?</p>\n<p><span>I&#8217;m not sure what you mean or what you&#8217;re looking for &#8211; the OP article has a photo of the letter, numerous comments here confirmed it, and there is an OP article edit that links Bogleheads with more reports, plus there is <a href=\"https://www.reddit.com/r/CreditCards/comments/1mas6fe/confirmed_slight_changes_to_the_smartly_v1/\" rel=\"nofollow ugc\">https://www.reddit.com/r/CreditCards/comments/1mas6fe/confirmed_slight_changes_to_the_smartly_v1/</a> </span></p>\n<p><span>&gt; </span><span>There is no letter or notice in my account. Was this printed on someone’s statement?</span></p>\n<p><span>Other reports have said no, it is not available online (yet?), even for paperless customers, and was not part of the last statement.</span></p>\n"
+      },
+      "date_gmt" : "2025-07-28T07:26:25",
+      "id" : 2107194,
+      "parent" : 2106469
+    },
+    {
+      "author_name" : "no name",
+      "content" : {
+        "rendered" : "<p>For anyone who got it, did it list US Bank on the outside of the envelope? Or what return address? Or any other promo text/graphics on the outside of the address? Thanks!</p>\n"
+      },
+      "date_gmt" : "2025-07-28T07:30:14",
+      "id" : 2107195,
+      "parent" : 0
+    },
+    {
+      "author_name" : "no name",
+      "content" : {
+        "rendered" : "<p>Or maybe the bonus points are applied as of *statement date*, so it does not apply if the charges are on a statement closing after 9/15 ? 😕</p>\n"
+      },
+      "date_gmt" : "2025-07-28T07:32:34",
+      "id" : 2107196,
+      "parent" : 2107088
+    },
+    {
+      "author_name" : "Chap",
+      "content" : {
+        "rendered" : "<p>Meanwhile RobinHood gold card still holding strong at 3% cashback all</p>\n<p>Coinbase might come through with 4% all though we&#8217;ll see</p>\n<p>US Bank 4% all still isn&#8217;t that bad for 100k holdings. I just wished they acquired a real broker instead of w/e they got now. </p>\n<p>Also, remove the FTF lol </p>\n<p>For 100k one could also do the Bank Of American for 5.25% on a category. Not sure which is better tbh, I kinda like the 4% all and just forget about wasting time on different categories</p>\n"
+      },
+      "date_gmt" : "2025-07-28T08:04:56",
+      "id" : 2107198,
+      "parent" : 0
+    },
+    {
+      "author_name" : "bob Johnson",
+      "content" : {
+        "rendered" : "<p>I don&#8217;t know what to tell you. I just went through PayPal wallet &#8211; no trick.   I reviewed four historical transactions.  Had one for $10,000 last year with $182 fee back when it was 1.82%.   They dropped fee to 1.75% which I was charged on next 3 1040ESPayments.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T08:23:05",
+      "id" : 2107200,
+      "parent" : 2107180
+    },
+    {
+      "author_name" : "atexit8",
+      "content" : {
+        "rendered" : "<p>think outside USBank &#8212;&gt; MCGC and VGC count as debit payments.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T11:43:24",
+      "id" : 2107212,
+      "parent" : 2107135
+    },
+    {
+      "author_name" : "longwood",
+      "content" : {
+        "rendered" : "<p>Some have more spending than subs could ever cover.  For us this card was very smart knowing it would only last for a limited time.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T12:38:44",
+      "id" : 2107216,
+      "parent" : 2107182
+    },
+    {
+      "author_name" : "Tom",
+      "content" : {
+        "rendered" : "<p>Different people have different objectives.  Knowing US Bank&#8217;s history, midas89 felt it was still worth it.  Knowing US Bank&#8217;s history, I will never do business with them.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T12:42:46",
+      "id" : 2107218,
+      "parent" : 2107182
+    },
+    {
+      "author_name" : "TJ",
+      "content" : {
+        "rendered" : "<p>So ANY paypal transaction will earn 3% if you use the PayPal MC within the PayPal website. Good to know.  It&#8217;s too bad they don&#8217;t have a SUB anymore.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T12:47:49",
+      "id" : 2107222,
+      "parent" : 2106614
+    },
+    {
+      "author_name" : "Gentleman Jack Darby",
+      "content" : {
+        "rendered" : "<p>Same with taxes &#8211; I make estimated tax payments and a SUB is a one-and-done transaction for me. Very easy, very quick, and no way to screw it up since I don&#8217;t have to track transaction amounts and posting dates.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T12:51:53",
+      "id" : 2107224,
+      "parent" : 2107164
+    },
+    {
+      "author_name" : "Frank",
+      "content" : {
+        "rendered" : "<p>Pulling every penny if I get &#8220;Letter #2&#8217;d&#8221;; It&#8217;s one thing to change your product in the future, its another to force the changes on people within the first 12 months of the card. Sad that&#8217;s allowed under the CARD act.</p>\n<p>Very unfortunate the CFPB died or this seems like the easiest &#8220;bait and switch&#8221; to prove</p>\n"
+      },
+      "date_gmt" : "2025-07-28T12:52:23",
+      "id" : 2107225,
+      "parent" : 0
+    },
+    {
+      "author_name" : "TS",
+      "content" : {
+        "rendered" : "<p>Safe to assume Bilt Rent Payments will categorize as &#8220;<span>Transactions using third-party bill payment services&#8221; ?</span></p>\n<p><span>Maybe time to apply for the Bilt card&#8230;</span></p>\n"
+      },
+      "date_gmt" : "2025-07-28T12:53:33",
+      "id" : 2107227,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Tom",
+      "content" : {
+        "rendered" : "<p>Next, US Bank will roll out another ooh-aah product and some will mistakenly think &#8220;this time will be different.&#8221;  Even if US Bank adopts transferable points, I will never trust them again.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T13:01:05",
+      "id" : 2107230,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Joe",
+      "content" : {
+        "rendered" : "<p>You are not grandfathered. They legally cannot change the terms. Having worked there, they will the second they can. They are a pretty good product development team but a terrible set of finance people who don&#8217;t understand the value of spend</p>\n"
+      },
+      "date_gmt" : "2025-07-28T13:25:48",
+      "id" : 2107246,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Brendan",
+      "content" : {
+        "rendered" : "<p>Can&#8217;t wait to hear US Bank talk about all the new cards they released in their next earnings call:</p>\n<p>Smartly v1.1, Smartly v1.2, Smartly v1.3, and Smartly v2</p>\n"
+      },
+      "date_gmt" : "2025-07-28T13:51:24",
+      "id" : 2107258,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Disruptings",
+      "content" : {
+        "rendered" : "<p>I see the letter in my informed delivery, will see what it says later today. Have checking, investing and savings account.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T14:14:43",
+      "id" : 2107264,
+      "parent" : 0
+    },
+    {
+      "author_name" : "JalenR",
+      "content" : {
+        "rendered" : "<p>shouldnt have trusted them in the first place.  they are a financial institution &#8211; they lie constantly</p>\n"
+      },
+      "date_gmt" : "2025-07-28T15:06:36",
+      "id" : 2107297,
+      "parent" : 2107230
+    },
+    {
+      "author_name" : "Mike",
+      "content" : {
+        "rendered" : "<p>I’ve put $25K in estimated taxes on this car every month since I got it and it’s been glorious. </p>\n<p>Nerfing is not surprising to me. But creating so many different categories of nerfing is totally insane.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T15:12:26",
+      "id" : 2107300,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Rob",
+      "content" : {
+        "rendered" : "<p>Looks like it&#8217;s time to submit the tax payments a bit early then probably close the credit, brokerage, checking and savings account.&nbsp;Was a fun few months lol</p>\n"
+      },
+      "date_gmt" : "2025-07-28T15:33:43",
+      "id" : 2107319,
+      "parent" : 0
+    },
+    {
+      "author_name" : "5150d",
+      "content" : {
+        "rendered" : "<p>I have not received any letters or anything in my secure messages.  I am V1 card so does this apply to me?</p>\n"
+      },
+      "date_gmt" : "2025-07-28T15:36:55",
+      "id" : 2107323,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Mark",
+      "content" : {
+        "rendered" : "<p>If I&#8217;m reading update from 7/27 correctly both letters require $100K for 4% but one appears to allow that balance to be investment and retirement accounts and the other is just deposit accounts?</p>\n"
+      },
+      "date_gmt" : "2025-07-28T15:48:23",
+      "id" : 2107331,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Yoshi",
+      "content" : {
+        "rendered" : "<p>Yes</p>\n"
+      },
+      "date_gmt" : "2025-07-28T15:54:47",
+      "id" : 2107340,
+      "parent" : 2107331
+    },
+    {
+      "author_name" : "David",
+      "content" : {
+        "rendered" : "<p>Just got our letter same as the one in this post. Clearly missing the investment verbiage for qualifying balances</p>\n"
+      },
+      "date_gmt" : "2025-07-28T15:58:12",
+      "id" : 2107344,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Mark",
+      "content" : {
+        "rendered" : "<p>I got less nerfy one &#8211; allowing me to use investment accounts.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T17:00:26",
+      "id" : 2107395,
+      "parent" : 2107331
+    },
+    {
+      "author_name" : "Queue_Underflow",
+      "content" : {
+        "rendered" : "<p>They started charging more for PayPal at the beginning of this year when they dropped to 1.75%. I encourage you to post your experience in the comments at <a href=\"https://www.doctorofcredit.com/a-complete-guide-to-paying-your-taxes-with-a-credit-card/\" rel=\"ugc\">https://www.doctorofcredit.com/a-complete-guide-to-paying-your-taxes-with-a-credit-card/</a> and see if anybody else is getting this.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T17:42:23",
+      "id" : 2107413,
+      "parent" : 2107200
+    },
+    {
+      "author_name" : "Alfonso",
+      "content" : {
+        "rendered" : "<p>Would $100k in a CD qualify you to get the 4% back?</p>\n"
+      },
+      "date_gmt" : "2025-07-28T17:43:46",
+      "id" : 2107414,
+      "parent" : 0
+    },
+    {
+      "author_name" : "gary",
+      "content" : {
+        "rendered" : "<p>same.  what bs.  meanwhile the webpage in my online banking clearly shows investment  accounts counting but doesnt show the chnages coming</p>\n"
+      },
+      "date_gmt" : "2025-07-28T17:44:23",
+      "id" : 2107416,
+      "parent" : 2107344
+    },
+    {
+      "author_name" : "Alfonso",
+      "content" : {
+        "rendered" : "<p>Does a CD qualify as an investment account?</p>\n"
+      },
+      "date_gmt" : "2025-07-28T17:45:09",
+      "id" : 2107419,
+      "parent" : 2107108
+    },
+    {
+      "author_name" : "bullfrog34",
+      "content" : {
+        "rendered" : "<p>We got our letter today and thankfully got the &#8220;U.S. Bank deposit, trust or investment accounts&#8221; language.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T17:51:29",
+      "id" : 2107425,
+      "parent" : 0
+    },
+    {
+      "author_name" : "askmrlee",
+      "content" : {
+        "rendered" : "<p>You said it yourself, $25K on taxes every month. Do you really expect them to pay you $12K/year in rewards just for your tax payments. And of course you&#8217;re not the only one funneling college tuition, etc.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T18:02:04",
+      "id" : 2107432,
+      "parent" : 2107300
+    },
+    {
+      "author_name" : "Mike",
+      "content" : {
+        "rendered" : "<p>I do not!</p>\n"
+      },
+      "date_gmt" : "2025-07-28T18:05:02",
+      "id" : 2107435,
+      "parent" : 2107432
+    },
+    {
+      "author_name" : "askmrlee",
+      "content" : {
+        "rendered" : "<p>They can change terms and close the account whenever they want. It&#8217;s standard T&amp;C.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T18:13:09",
+      "id" : 2107438,
+      "parent" : 2107246
+    },
+    {
+      "author_name" : "askmrlee",
+      "content" : {
+        "rendered" : "<p>I suspect that as new cardholders, many are also floating 0% for 12 months.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T18:15:15",
+      "id" : 2107440,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Tony",
+      "content" : {
+        "rendered" : "<p>Great time to transfer 100k out?  BOFA?</p>\n"
+      },
+      "date_gmt" : "2025-07-28T18:27:52",
+      "id" : 2107448,
+      "parent" : 0
+    },
+    {
+      "author_name" : "bwicked1",
+      "content" : {
+        "rendered" : "<p>In the fine print on my letter, a CD would count toward the Combined Qualifying Balances* &#8211; Consumer checking, money market savings, savings, CDs and/or IRAs, Investments and personal trust account(s).</p>\n"
+      },
+      "date_gmt" : "2025-07-28T19:13:57",
+      "id" : 2107475,
+      "parent" : 2107419
+    },
+    {
+      "author_name" : "midas89",
+      "content" : {
+        "rendered" : "<p><a class='wpd-umcguest'  href='https://www.doctorofcredit.com/u-s-bank-to-nerf-existing-smartly-cardholders-on-september-15/#comment-2106243'><img alt='' src='https://secure.gravatar.com/avatar/09827438ad0f75a8b6f64ad4ea1f990d3cc31d8c63e96b75b25813cb295698c1?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/09827438ad0f75a8b6f64ad4ea1f990d3cc31d8c63e96b75b25813cb295698c1?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>Tony</a> Since you asked about Bank of America: It isn&#8217;t just US Bank making a major change to rewards in September. Also in September, Alliant Credit Union&#8217;s 2.5% cash back Visa is dropping down to 1.67%.&nbsp;I&#8217;m not saying Bank of America will eventually nerf the 2.62% Unlimited Cash Back credit card, but there is valid concern that they might also pull a US Bank and one day add exclusions to it.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T19:27:51",
+      "id" : 2107484,
+      "parent" : 2107448
+    },
+    {
+      "author_name" : "Chad",
+      "content" : {
+        "rendered" : "<p>Everything in this game is statement to statement though, there&#8217;s always a risk something good gets nerfed.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T19:33:04",
+      "id" : 2107485,
+      "parent" : 2107484
+    },
+    {
+      "author_name" : "Chad",
+      "content" : {
+        "rendered" : "<p>I&#8217;d give it a week before you&#8217;re more confident.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T19:33:24",
+      "id" : 2107486,
+      "parent" : 2107323
+    },
+    {
+      "author_name" : "Chad",
+      "content" : {
+        "rendered" : "<p>For someone well off and likely able to naturally milk this thing a big insurance bill is probably one of the highest expenses people wouldn&#8217;t be able to easily put on another better card. Otherwise taxes and school tuition.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T19:36:52",
+      "id" : 2107487,
+      "parent" : 2107164
+    },
+    {
+      "author_name" : "Chad",
+      "content" : {
+        "rendered" : "<p>Yeah BOA elite rewards for the sub and then downgrade next year unless you have mega spemd</p>\n"
+      },
+      "date_gmt" : "2025-07-28T19:37:56",
+      "id" : 2107488,
+      "parent" : 2107448
+    },
+    {
+      "author_name" : "William",
+      "content" : {
+        "rendered" : "<p>Given that 5/24 is probably there to target churners, this would defeat the point of it for Chase 🙂</p>\n"
+      },
+      "date_gmt" : "2025-07-28T20:20:38",
+      "id" : 2107511,
+      "parent" : 2106678
+    },
+    {
+      "author_name" : "Esquiar",
+      "content" : {
+        "rendered" : "<p>It’s not malice. It’s incompetence</p>\n"
+      },
+      "date_gmt" : "2025-07-28T20:23:59",
+      "id" : 2107513,
+      "parent" : 2107297
+    },
+    {
+      "author_name" : "midas89",
+      "content" : {
+        "rendered" : "<p>Good question, because someone posted at Reddit that they pay thousands in rent monthly and make a 1% profit with the cash back, , as they pay 3% credit card surcharge, and they were thinking of paying October&#8217;s rent in advance before September 15. So yes, the question is if their payment posts to their credit card transactions list before September 15, does that guarantee the transaction will earn the 4% cash back? I would hope so.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T20:32:04",
+      "id" : 2107518,
+      "parent" : 2107196
+    },
+    {
+      "author_name" : "Robert",
+      "content" : {
+        "rendered" : "<p>My letter still lets me use investment accounts, etc.  and keeps the lowest +.5x at $5k.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T21:05:02",
+      "id" : 2107537,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Civilized Commenter",
+      "content" : {
+        "rendered" : "<p>Checked my USBank stocking stuffer and investment accounts remain but $10k per cycle bonus spend cap. </p>\n<p>I think they may specifically be targeting tax, insurance and third party churners with the different letters.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T21:09:20",
+      "id" : 2107540,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Blake",
+      "content" : {
+        "rendered" : "<p>My letter mentions “balances in U.S. Bank deposit, trust or investment accounts”. Does that mean that my Smartly Savings account balance qualifies?</p>\n"
+      },
+      "date_gmt" : "2025-07-28T21:11:27",
+      "id" : 2107541,
+      "parent" : 0
+    },
+    {
+      "author_name" : "MF",
+      "content" : {
+        "rendered" : "<p>Yes it did</p>\n"
+      },
+      "date_gmt" : "2025-07-28T21:11:50",
+      "id" : 2107542,
+      "parent" : 2107195
+    },
+    {
+      "author_name" : "Civilized Commenter",
+      "content" : {
+        "rendered" : "<p>Savings are considered deposit accounts. WIki is your friend.</p>\n<p><a href=\"https://en.wikipedia.org/wiki/Deposit_account\" rel=\"nofollow ugc\">https://en.wikipedia.org/wiki/Deposit_account</a></p>\n"
+      },
+      "date_gmt" : "2025-07-28T21:17:00",
+      "id" : 2107543,
+      "parent" : 2107541
+    },
+    {
+      "author_name" : "Charles D Clark",
+      "content" : {
+        "rendered" : "<p>You mean $4800 cap in 4% cash back spending?  Still a good card for those that can use investments to reach the $100,000 requirement.  But really glad to still have BOA preferred rewards.  Will have to move some more spending back to BOA cards.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T21:23:45",
+      "id" : 2107546,
+      "parent" : 2106780
+    },
+    {
+      "author_name" : "Evan",
+      "content" : {
+        "rendered" : "<p>Same here.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T21:26:14",
+      "id" : 2107549,
+      "parent" : 2107344
+    },
+    {
+      "author_name" : "Abby Normal",
+      "content" : {
+        "rendered" : "<p>Got mine in February with a $15k limit but filled it up by June so I paid it off. Now I’m letting it climb again.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T21:39:18",
+      "id" : 2107562,
+      "parent" : 2107440
+    },
+    {
+      "author_name" : "Abby Normal",
+      "content" : {
+        "rendered" : "<p>Yep. CD rates seem to be personalized somehow. I get close to 100k with an IRA then close the last of the gap with a CD ladder. Although I might just stop laddering if the market keeps going up.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T21:41:25",
+      "id" : 2107564,
+      "parent" : 2107414
+    },
+    {
+      "author_name" : "Chatan",
+      "content" : {
+        "rendered" : "<p>I got the the worse of the 2 letters today.  Such ass</p>\n"
+      },
+      "date_gmt" : "2025-07-28T22:13:09",
+      "id" : 2107582,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Smartly",
+      "content" : {
+        "rendered" : "<p>Just received the better of the three (?) letters. Im surprised they’d take three different approaches. Has anyone who’s gotten the bad letters checked the wording on the back that gets into the more technical details?</p>\n"
+      },
+      "date_gmt" : "2025-07-28T22:27:49",
+      "id" : 2107591,
+      "parent" : 0
+    },
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>DP: got the &#8220;better&#8221; option mailed today. I opened checking, and investment account right after I got approved for the card and ACAT&#8217;d 100k+ long term investments to the brokerage account.</p>\n<p>In case it matters, did not use the card for tax payments although I probably could/should have. Applied for and approved for smartly late 2024. I generally have 3-4k spend every month.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T22:47:07",
+      "id" : 2107598,
+      "parent" : 0
+    },
+    {
+      "author_name" : "mav",
+      "content" : {
+        "rendered" : "<p>They are coming snail mail.. USPS times vary greatly depending on location.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T22:47:11",
+      "id" : 2107599,
+      "parent" : 2107323
+    },
+    {
+      "author_name" : "David Pilcher",
+      "content" : {
+        "rendered" : "<p>Both P1 &amp; P2 got our letters today.<br />\nP1 &amp; P2 have been USBANK customers for 3+ years each.  Both have a checking, savings, and at least 2 USBANK credit cards total.</p>\n<p>P1 (Me) &#8211; Only had ~5k at one point in the savings (max 2.5%).  Never had an investment account.  I got the &#8220;good&#8221; letter where investments still count.</p>\n<p>P2 (Wife) &#8211; Has 100k+ in an investment account.  Heavy smartly user, but not an abuser.  Put maybe 40k total on it since last November.</p>\n<p>P2 got the checking &amp; savings only letter.</p>\n<p>Both of us got these cards (both converted from other USBANK products; P1 from Cash Plus, P2 from USBANK Shopper Rewards.</p>\n<p>This sucks.  It was a good run.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T22:53:39",
+      "id" : 2107605,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Disruptings",
+      "content" : {
+        "rendered" : "<p>Update: My letter says investment accounts count. </p>\n<p>I have definitely made some tax payment but not at the scale as some of the others.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T23:19:26",
+      "id" : 2107617,
+      "parent" : 2107264
+    },
+    {
+      "author_name" : "David Pilcher",
+      "content" : {
+        "rendered" : "<p>Maybe a poll would work?</p>\n<p>Card that wasn&#8217;t nerfed:<br />\nSchool payments:  No<br />\nTax payments:  No<br />\nInsurance Payments:  No</p>\n<p>Card that WAS nerfed:<br />\nSchool payments:  YES, about 18k<br />\nTax payments:  Yes, about 8.2k<br />\nInsurance Payments:  Yes, about 1.3k</p>\n"
+      },
+      "date_gmt" : "2025-07-28T23:21:37",
+      "id" : 2107619,
+      "parent" : 0
+    }
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "376",
+    "x-wp-totalpages" : "4"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/comments?post=241557&per_page=100&page=2&order=asc&orderby=date_gmt&_fields=id,parent,author_name,date_gmt,content"
+}

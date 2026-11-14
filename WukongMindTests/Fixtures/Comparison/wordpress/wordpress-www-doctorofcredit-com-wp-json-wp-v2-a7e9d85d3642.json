@@ -1,0 +1,74 @@
+{
+  "body" : [
+    {
+      "id" : 226038,
+      "link" : "https://www.doctorofcredit.com/u-s-bank-450-100-checking-bonus/",
+      "title" : {
+        "rendered" : "U.S. Bank $450 Checking Bonus"
+      }
+    },
+    {
+      "id" : 267097,
+      "link" : "https://www.doctorofcredit.com/u-s-bank-launches-new-bmw-credit-card/",
+      "title" : {
+        "rendered" : "U.S. Bank Launches New BMW Credit Card"
+      }
+    },
+    {
+      "id" : 65276,
+      "link" : "https://www.doctorofcredit.com/unitus-community-credit-union-200/",
+      "title" : {
+        "rendered" : "[OR &#038; WA only] Unitus Community Credit Union $300"
+      }
+    },
+    {
+      "id" : 254097,
+      "link" : "https://www.doctorofcredit.com/elon-musk-x-money-features-revealed-6-apy-debit-card-with-rewards-more/",
+      "title" : {
+        "rendered" : "[Available To All To Premium X.com Users] Elon Musk &#8216;X Money&#8217; Features Revealed (6% APY, Debit Card With Rewards &#038; More)"
+      }
+    },
+    {
+      "id" : 215946,
+      "link" : "https://www.doctorofcredit.com/chase-offers-bofa-aldi-10-back-6-cashback-max/",
+      "title" : {
+        "rendered" : "[Expired] Chase Offers/U.S. Bank: Aldi 7% Back ($4 Cashback Max)"
+      }
+    },
+    {
+      "id" : 262264,
+      "link" : "https://www.doctorofcredit.com/u-s-bank-converting-kroger-credit-cards-to-smartly/",
+      "title" : {
+        "rendered" : "U.S. Bank Converting Kroger Credit Cards To Smartly"
+      }
+    },
+    {
+      "id" : 260501,
+      "link" : "https://www.doctorofcredit.com/lowes-purchase-100-egiftcard-get-20-bonus-card-up-to-40-bonus/",
+      "title" : {
+        "rendered" : "[Expired] Lowe&#8217;s: Purchase $100+ eGiftcard &#038; Get 20% Bonus Card (Up to $40 Bonus)"
+      }
+    },
+    {
+      "id" : 253208,
+      "link" : "https://www.doctorofcredit.com/targeted-u-s-bank-smartly-savings-300-bonus-existing-account-holders/",
+      "title" : {
+        "rendered" : "[Expired] [Targeted] U.S. Bank Smartly Savings $300 Bonus (Existing Account Holders)"
+      }
+    },
+    {
+      "id" : 241557,
+      "link" : "https://www.doctorofcredit.com/u-s-bank-to-nerf-existing-smartly-cardholders-on-september-15/",
+      "title" : {
+        "rendered" : "[Update] U.S. Bank Nerfs Existing Smartly Cardholders On September 15, 2025"
+      }
+    }
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "9",
+    "x-wp-totalpages" : "1"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/posts?include=267097,262264,226038,254097,215946,241557,260501,65276,253208&per_page=9&_fields=id,title,link"
+}

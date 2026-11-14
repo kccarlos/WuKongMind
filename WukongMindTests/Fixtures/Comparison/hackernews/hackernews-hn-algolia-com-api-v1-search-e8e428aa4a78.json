@@ -1,0 +1,101 @@
+{
+  "body" : {
+    "hits" : [
+      {
+        "author" : "rapind",
+        "comment_text" : "The problem is &quot;remote&quot; SQLite. Just run a &quot;single&quot; beefier box with in-process SQLite and Litestream backups to object storage and never have to think about RDBMS again. I&#x27;d wager there are 90%+ applications that would be better served, more performant, and cheaper with this design.<p>I&#x27;m able to handle around 200k&#x2F;s on a sub $100 box.\n<a href=\"https:&#x2F;&#x2F;github.com&#x2F;pairshaped&#x2F;gleam_sqlite_benchmarks&#x2F;blob&#x2F;master&#x2F;REPORT.md\" rel=\"nofollow\">https:&#x2F;&#x2F;github.com&#x2F;pairshaped&#x2F;gleam_sqlite_benchmarks&#x2F;blob&#x2F;m...</a>",
+        "created_at" : "2026-10-24T21:08:52Z",
+        "objectID" : "50225312",
+        "parent_id" : 50219987,
+        "story_id" : 50217500,
+        "story_title" : "Twelve years of distributed SQLite"
+      },
+      {
+        "author" : "AgentME",
+        "comment_text" : "The comparisons between various projects, including between rqlite and Litestream, were interesting. (rqlite uses a consensus algorithm between nodes to keep them synced and allow changing the primary node, while Litestream just syncs itself to S3 so another node could take over with the data from there.)<p>I fully expected the article to get into D1 shortly and mention how that&#x27;s about the same relationship between Cloudflare Durable Objects (which D1 is based on) and celld, an open source reimplementation of Cloudflare Durable Objects which writes to S3. But then the article treats D1 with a very sudden snarky disinterest, and then the final section feels very awkwardly defensive of rqlite and defeatist.",
+        "created_at" : "2026-10-24T10:40:17Z",
+        "objectID" : "50219960",
+        "parent_id" : 50217500,
+        "story_id" : 50217500,
+        "story_title" : "Twelve years of distributed SQLite"
+      },
+      {
+        "author" : "gizzlon",
+        "comment_text" : "I&#x27;ve been looking for a reason to use rqlite, but so far sqlite + litestream have been safe enough (some dataloss acceptable in extreme cases)<p>My understanding is that rqlite gives you &quot;stored in more than place&quot; guarantees, which is nice if you need it. Much slower than a 1 node db though.",
+        "created_at" : "2026-10-24T08:31:01Z",
+        "objectID" : "50219277",
+        "parent_id" : 50217500,
+        "story_id" : 50217500,
+        "story_title" : "Twelve years of distributed SQLite"
+      },
+      {
+        "author" : "blactuary",
+        "comment_text" : "<a href=\"https:&#x2F;&#x2F;litestream.io&#x2F;\" rel=\"nofollow\">https:&#x2F;&#x2F;litestream.io&#x2F;</a>",
+        "created_at" : "2026-10-16T01:35:08Z",
+        "objectID" : "50112671",
+        "parent_id" : 50112148,
+        "story_id" : 50109715,
+        "story_title" : "What I self-host"
+      },
+      {
+        "author" : "skrtskrt",
+        "comment_text" : "SQLite has a bunch of cool stuff happening around it right now too like Turso and Litestream.",
+        "created_at" : "2026-10-16T00:05:34Z",
+        "objectID" : "50112028",
+        "parent_id" : 50111944,
+        "story_id" : 50109715,
+        "story_title" : "What I self-host"
+      },
+      {
+        "author" : "tilemarch",
+        "comment_text" : "Same experience here, from a multiplayer game server. Go, one SQLite file per game world, one process owns each file, all on a local SSD.<p>In a load test with 512 players all active on one world, command acks were 4-6 ms at the median and under 50 ms at p95, on a single Ryzen 9 3900X box. And most of that time is game logic and fanning out updates over websockets, not the database.<p>The part people worry about is durability, because SSDs have limited write cycles. So I took care to have backups of the state, recovery in short time etc.<p>I stream the WAL to object storage with Litestream, with one gotcha: I had to turn off SQLite’s own auto-checkpoint and let only Litestream checkpoint, or the two step on each other.",
+        "created_at" : "2026-10-12T13:50:55Z",
+        "objectID" : "50056473",
+        "parent_id" : 50053374,
+        "story_id" : 50052163,
+        "story_title" : "Postgres isn't slow, your storage is"
+      },
+      {
+        "author" : "hedgehog",
+        "comment_text" : "Does anyone here have experience using some of the newer S3 family API features like locking with any of the self-hostable options? After reading about celld&#x27;s Litestream + locking on S3 approach (<a href=\"https:&#x2F;&#x2F;github.com&#x2F;denoland&#x2F;celld\" rel=\"nofollow\">https:&#x2F;&#x2F;github.com&#x2F;denoland&#x2F;celld</a>) I got curious about that style of deployment as a way to consolidate small tools so their state is just centralize S3 buckets, but from a bit of reading support for the features like locking is uneven.",
+        "created_at" : "2026-09-15T16:24:56Z",
+        "objectID" : "49714930",
+        "parent_id" : 49709381,
+        "story_id" : 49709381,
+        "story_title" : "Alternatives to MinIO for single-node local S3"
+      },
+      {
+        "author" : "timgordontg",
+        "comment_text" : "it&#x27;s just a standard sqlite file in ~&#x2F;.engrim, so something like litestream or syncthing works fine. just have to make sure wal files get included if syncing live.",
+        "created_at" : "2026-09-10T02:50:17Z",
+        "objectID" : "49637768",
+        "parent_id" : 49600203,
+        "story_id" : 49594008,
+        "story_title" : "Show HN: Engrim – A universal, local-first SQLite memory engine for AI CLIs"
+      },
+      {
+        "author" : "jnbh",
+        "comment_text" : "<p><pre><code>                                   -- legacy -- - litelink -    file   byte\n  stream                     rows   files    GB files    GB   ratio  ratio\n  ------------------------------------------------------------------------\n  md&#x2F;asset-stats-1m   283,283,881   1,285  9.97   872 12.58      1x  0.79x\n  md&#x2F;trades-b         189,207,469  29,598 13.00 1,400 12.62     21x  1.03x\n  md&#x2F;trades-a          58,928,828  39,195  5.20   398  4.63     98x  1.12x\n  md&#x2F;depth             57,568,622  39,026 17.65 1,519 17.07     26x  1.03x\n  md&#x2F;instruments-a     41,384,403 200,360  9.27 1,514  1.19    132x  7.82x\n  md&#x2F;asset-stats        9,036,011  76,274  1.64    51  0.73  1,496x  2.25x\n  md&#x2F;instruments-b †    7,164,452   3,081  5.46 1,246  9.33      2x  0.59x\n  md&#x2F;depth-archive      6,326,501   2,002  0.53    20  0.58    100x  0.91x\n  md&#x2F;funding-pred       4,921,010  15,351  0.15    13  0.04  1,181x  3.44x\n  md&#x2F;candles-1h         1,216,025   9,668  0.14     4  0.07  2,417x  1.91x\n  md&#x2F;events             1,031,573  35,935  0.75    17  0.39  2,114x  1.91x\n  soc&#x2F;forum               778,702  19,945  0.86    32  0.03    623x  28.3x\n  md&#x2F;pools                433,499   7,513  0.27    11  0.14    683x  1.91x\n  soc&#x2F;posts-b             262,575  35,634  0.42     6  0.15  5,939x  2.75x\n  soc&#x2F;posts-a             249,136  51,914  0.77    24  0.01  2,163x  57.0x\n  md&#x2F;token-profiles       234,029  15,595  0.19     3  0.01  5,198x  21.7x\n  md&#x2F;token-boosts         231,719  15,441  0.21     3  0.00  5,147x  53.3x\n  soc&#x2F;counts              103,058     164  0.00     0  0.00     all  2.42x\n  md&#x2F;trending              39,149   5,207  0.10     1  0.03  5,207x  3.49x\n  soc&#x2F;messages             30,218   9,568  0.10     0  0.00     all  25.1x\n  soc&#x2F;posts-c              29,617  13,192  0.24     1  0.00 13,192x  86.7x\n  md&#x2F;holders                9,746      96  0.08     3  0.07     32x  1.11x\n  md&#x2F;authorities            9,644     137  0.00     0  0.00     all  2.23x\n  md&#x2F;universe               6,760      29  0.00     0  0.00     all  6.00x\n  soc&#x2F;stats                 6,690   6,690  0.03     0  0.00     all  68.4x\n  md&#x2F;funding                4,486   1,298  0.01     0  0.00     all  96.0x\n  soc&#x2F;polls                 2,050   2,114  0.01     0  0.00     all   199x\n  md&#x2F;candles-1d               191   1,597  0.03     0  0.00     all 2,363x\n  soc&#x2F;filter-a                 24      24  0.00     0  0.00     all  7.39x\n  soc&#x2F;filter-b                  1      23  0.00     0  0.00     all   490x\n  ------------------------------------------------------------------------\n  TOTAL (30 streams)  662,500,069 637,956 67.05 7,138 59.70     89x  1.12x\n</code></pre>\nNOTE: litelink auto-generates a `litelink_offset` column (unique, doesn&#x27;t compress). This column dominates bytes&#x2F;row in rows where the the byte ratio is &lt; 1 (litelink data is larger). The old, hand-rolled capture lacked any monotonically increasing offset. Also, for the rows that say byte ratio is&quot;all&quot; (reporting zero litelink files), this is because all of the data fits in litestream replicated WAL and there are not yet any compacted files",
+        "created_at" : "2026-09-03T13:37:56Z",
+        "objectID" : "49549786",
+        "parent_id" : 49549760,
+        "story_id" : 49549760,
+        "story_title" : "Show HN: Litelink – local-first, embedded stream capture into Iceberg tables"
+      },
+      {
+        "author" : "simonw",
+        "comment_text" : "Do you have any mechanisms in place to prevent two separate instances of OpenRun that share the same configuration from corrupting their shared S3 Litestream store?<p>UPDATE: Looks like you answered that here already: <a href=\"https:&#x2F;&#x2F;news.ycombinator.com&#x2F;item?id=49502025\">https:&#x2F;&#x2F;news.ycombinator.com&#x2F;item?id=49502025</a>",
+        "created_at" : "2026-08-30T20:17:51Z",
+        "objectID" : "49502335",
+        "parent_id" : 49501182,
+        "story_id" : 49501147,
+        "story_title" : "Running SQLite Apps on Docker and Kubernetes with Litestream"
+      }
+    ]
+  },
+  "headers" : {
+    "content-type" : "application/json"
+  },
+  "status" : 200,
+  "url" : "https://hn.algolia.com/api/v1/search?tags=comment&query=Litestream&page=0&hitsPerPage=10"
+}

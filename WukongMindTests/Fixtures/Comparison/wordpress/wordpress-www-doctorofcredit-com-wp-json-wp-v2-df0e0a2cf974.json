@@ -1,0 +1,60 @@
+{
+  "body" : [
+    {
+      "id" : 182792,
+      "link" : "https://www.doctorofcredit.com/staples-no-activation-fee-on-200-mastercard-gift-cards-12-5-12-11-limit-5-per-day/",
+      "title" : {
+        "rendered" : "Staples: No Activation Fee on $200 Mastercard Gift Cards (11/8-11/14)"
+      }
+    },
+    {
+      "id" : 268425,
+      "link" : "https://www.doctorofcredit.com/chase-to-add-10000-vacation-homes-to-the-edit/",
+      "title" : {
+        "rendered" : "Chase To Add 10,000 Vacation Homes To &#8216;The Edit&#8217;"
+      }
+    },
+    {
+      "id" : 268010,
+      "link" : "https://www.doctorofcredit.com/targeted-chase-ink-cash-unlimited-1200-bonus-ink-preferred-125000-points-bonus/",
+      "title" : {
+        "rendered" : "[Targeted] Chase INK Cash/Unlimited $1,200 Bonus; INK Preferred 125,000 Points Bonus"
+      }
+    },
+    {
+      "id" : 28140,
+      "link" : "https://www.doctorofcredit.com/best-current-credit-card-sign-bonuses/",
+      "title" : {
+        "rendered" : "Best Current Credit Card Sign Up Bonuses &#038; Offers For November, 2026"
+      }
+    },
+    {
+      "id" : 239572,
+      "link" : "https://www.doctorofcredit.com/ca-only-safe-credit-union-600-checking-bonus/",
+      "title" : {
+        "rendered" : "[CA only] SAFE Credit Union $300 Checking Bonus (Can Now Churn)"
+      }
+    },
+    {
+      "id" : 265381,
+      "link" : "https://www.doctorofcredit.com/limited-cities-in-mo-il-ar-ca-nv-tx-tn-communityamerica-credit-union-600-checking-bonus-requires-6000-in-debit-card-spend/",
+      "title" : {
+        "rendered" : "[Limited Cities In MO, IL, AR, CA, NV, TX, TN] CommunityAmerica Credit Union $600 Checking Bonus (Requires $6,000 In Debit Card Spend)"
+      }
+    },
+    {
+      "id" : 235450,
+      "link" : "https://www.doctorofcredit.com/elevations-credit-union-350-checking-bonus/",
+      "title" : {
+        "rendered" : "[CO Only] Elevations Credit Union $500 Checking Bonus"
+      }
+    }
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "7",
+    "x-wp-totalpages" : "1"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/posts?include=265381,182792,268425,235450,239572,28140,268010&per_page=7&_fields=id,title,link"
+}

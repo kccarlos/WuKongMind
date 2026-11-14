@@ -1,0 +1,893 @@
+{
+  "body" : [
+    {
+      "author_name" : "Midnight 🔗",
+      "content" : {
+        "rendered" : "<p>They are gonna open for 30 minutes and call it a day.</p>\n"
+      },
+      "date_gmt" : "2025-07-21T21:14:55",
+      "id" : 2103720,
+      "parent" : 2102972
+    },
+    {
+      "author_name" : "Stanley",
+      "content" : {
+        "rendered" : "<p>The fact that they call out Citi prestige 4th night free as not combinable with the strata elite benefit suggests the cards could run concurrently and they might not force-convert it.  We can only hope 🙂</p>\n"
+      },
+      "date_gmt" : "2025-07-21T22:09:02",
+      "id" : 2103753,
+      "parent" : 2103688
+    },
+    {
+      "author_name" : "DWT",
+      "content" : {
+        "rendered" : "<p>Link to the terms on Citi.com has now been found:</p>\n<p><a href=\"https://online.citi.com/US/ag/cards/displayterms?app=UNSOL&#038;HKOP=6f0eab35208d24750d9e645733b0c44a841349e0abc4bfefbb8539d60b60c8c2&#038;ID=3000\" rel=\"nofollow ugc\">https://online.citi.com/US/ag/cards/displayterms?app=UNSOL&#038;HKOP=6f0eab35208d24750d9e645733b0c44a841349e0abc4bfefbb8539d60b60c8c2&#038;ID=3000</a></p>\n"
+      },
+      "date_gmt" : "2025-07-21T22:26:56",
+      "id" : 2103765,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Dman",
+      "content" : {
+        "rendered" : "<p>Booking flights is currently unavailable from your location<br />\nDue to regulations, we are unable to provide online flight bookings in the country you are currently in. If you need booking assistance, please contact the Citi TravelR Service Center.</p>\n<p>This is what you get from the Citi travel portal when outside the US. Same is true for cars and experiences. Has not changed in the 13 months that I&#8217;ve had the SP.</p>\n"
+      },
+      "date_gmt" : "2025-07-21T22:47:35",
+      "id" : 2103775,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Daniel",
+      "content" : {
+        "rendered" : "<p>Terms posted indicate not being able to earn both a $300 credit and a fourth night free if you hold both Prestige cards. Perhaps that’s an acknowledgment of no forced conversions. </p>\n<p>Relatedly, it’s a $300 hotel credit, not a general travel credit. </p>\n<p>It also mentions at Citi Nights for restaurant bonus is when the transaction is initially authorized. (I’m skeptical and not impressed regardless.)</p>\n<p>There are also mention of Loyalty Points. That would be an interesting development.</p>\n<p>Also, the Priority Pass does not include restaurants but does include two guests. And you use your credit card for entry (but can get a digital card).</p>\n"
+      },
+      "date_gmt" : "2025-07-21T22:51:28",
+      "id" : 2103778,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Kimo C.",
+      "content" : {
+        "rendered" : "<p>It&#8217;s nice that they allow users to keep the Prestige but I would think that you would not be able to keep both the Prestige and Strata Elite so there would be no cannibalizing of benefits. Based on what I see it would be a bummer if there are forced conversions as the Prestige seems like a better card as structured.</p>\n"
+      },
+      "date_gmt" : "2025-07-21T22:57:08",
+      "id" : 2103780,
+      "parent" : 2103778
+    },
+    {
+      "author_name" : "Nick",
+      "content" : {
+        "rendered" : "<p>$5,000 minimum credit line is pretty low. And it&#8217;s a shame we didn&#8217;t get 3x on gas and groceries.</p>\n"
+      },
+      "date_gmt" : "2025-07-21T23:25:14",
+      "id" : 2103799,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Robert",
+      "content" : {
+        "rendered" : "<p>The 100k bonus WILL NOT be exclusive to citigold clients it will be open for all launch will be THIS SUNDAY. Authorized user fee will be $75 .<br />\nNo information provided on priority pass perks or transfers being allow to AA.</p>\n"
+      },
+      "date_gmt" : "2025-07-21T23:35:03",
+      "id" : 2103813,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Frito Pendejo",
+      "content" : {
+        "rendered" : "<p>I don&#8217;t get why upgrading an existing card would be worth it.  Even with doubled credits like the boa premiers it still seems crappy for $600af without the signup bonus.</p>\n"
+      },
+      "date_gmt" : "2025-07-21T23:36:16",
+      "id" : 2103817,
+      "parent" : 2103381
+    },
+    {
+      "author_name" : "Phil",
+      "content" : {
+        "rendered" : "<p>This card is awful.</p>\n"
+      },
+      "date_gmt" : "2025-07-21T23:36:52",
+      "id" : 2103818,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Jack",
+      "content" : {
+        "rendered" : "<p>On 27?</p>\n"
+      },
+      "date_gmt" : "2025-07-21T23:36:57",
+      "id" : 2103819,
+      "parent" : 2103813
+    },
+    {
+      "author_name" : "andy",
+      "content" : {
+        "rendered" : "<p>this has to be a joke right?!? I&#8217;d venture a guess they&#8217;ll lost 85% of customers after year 1&#8230;</p>\n"
+      },
+      "date_gmt" : "2025-07-21T23:37:39",
+      "id" : 2103821,
+      "parent" : 0
+    },
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>Please tell us the time-limited dining bonus is a joke; that’s absurd.</p>\n"
+      },
+      "date_gmt" : "2025-07-21T23:52:53",
+      "id" : 2103839,
+      "parent" : 0
+    },
+    {
+      "author_name" : "ab",
+      "content" : {
+        "rendered" : "<p>When is the annual fee typically charged? Currently Citigold but considering dropping</p>\n"
+      },
+      "date_gmt" : "2025-07-21T23:57:41",
+      "id" : 2103848,
+      "parent" : 0
+    },
+    {
+      "author_name" : "DWT",
+      "content" : {
+        "rendered" : "<p>For Priority Pass, T&amp;Cs say 2 guests included; lounges only, no restaurants like with the Prestige</p>\n"
+      },
+      "date_gmt" : "2025-07-21T23:59:50",
+      "id" : 2103853,
+      "parent" : 2103813
+    },
+    {
+      "author_name" : "Tom",
+      "content" : {
+        "rendered" : "<p>Hobbyists have a slanted view of banks and their products as well as loyalty programs.  And, we greatly overestimate our importance.</p>\n<p>The average customer doesn&#8217;t know and doesn&#8217;t care.  And, the banks and loyalty programs know this.  So, they are going to do what they are going to do.</p>\n<p>In a quarterly earnings conference call, the Amex CEO noted how consistent cardholder numbers and spending are.  In spite of hobbyist discontent, the needle isn&#8217;t moving.</p>\n<p>Marriott continues its path of devaluation. In spite of hobbyist discontent, this needle isn&#8217;t moving.</p>\n<p>The average person who gets this card will simply keep it and not give it a second thought.</p>\n"
+      },
+      "date_gmt" : "2025-07-22T00:11:06",
+      "id" : 2103862,
+      "parent" : 2103821
+    },
+    {
+      "author_name" : "Andrei",
+      "content" : {
+        "rendered" : "<p>*on qualified meals only. Meal can not include broccoli, green beans or avocado. Meals are not sharable or transferrable. Meals should be eaten at least 60%. Could not be taken away.</p>\n"
+      },
+      "date_gmt" : "2025-07-22T00:12:40",
+      "id" : 2103865,
+      "parent" : 2103839
+    },
+    {
+      "author_name" : "Darin",
+      "content" : {
+        "rendered" : "<p>The terms just revealed have language about the AAdvtantage program that don&#8217;t appear to have anything to do with the Splurge Credit (that credit is a merchant credit anyway, not accumulation in the mileage program), so it certainly seems like they&#8217;re announcing transfers to AA here.</p>\n"
+      },
+      "date_gmt" : "2025-07-22T00:13:26",
+      "id" : 2103866,
+      "parent" : 2103813
+    },
+    {
+      "author_name" : "Andy",
+      "content" : {
+        "rendered" : "<p>The average person isn&#8217;t getting credit cards with $600 annual fees broski. And certainly not this crap over what Amex and chase offer&#8230;</p>\n"
+      },
+      "date_gmt" : "2025-07-22T00:17:48",
+      "id" : 2103871,
+      "parent" : 2103862
+    },
+    {
+      "author_name" : "Darin",
+      "content" : {
+        "rendered" : "<p>Just to clarify, it says &#8220;The $300 Annual Hotel Benefit cannot be combined <strong>in the same transaction</strong> with the Citi Prestige®&nbsp;Card Complimentary 4th Night hotel benefit if you have both the Citi Strata Elite and Citi Prestige cards.&#8221; So you could presumably earn the $300 credit and 4th Night Free on separate stays. This doesn&#8217;t necessarily mean the Prestige is sticking around though. If they do a forced product change, it won&#8217;t be overnight, so there will be a period of time where people <em>could </em>hold both cards, even if eventually they&#8217;ll be merged.</p>\n<p>Regarding Loyalty Points, they&#8217;re only mentioned in boilerplate language with &#8220;learn more&#8221; about LPs &amp; AAdvantage miles. I wouldn&#8217;t take this as any indication that LPs are on offer here, it&#8217;s just standard language about the program.</p>\n"
+      },
+      "date_gmt" : "2025-07-22T00:18:30",
+      "id" : 2103872,
+      "parent" : 2103778
+    },
+    {
+      "author_name" : "Wesley",
+      "content" : {
+        "rendered" : "<p>VPN is highly recommended if you are traveling outside of the US. </p>\n<p>To me, it is a must.</p>\n"
+      },
+      "date_gmt" : "2025-07-22T00:24:16",
+      "id" : 2103876,
+      "parent" : 2103775
+    },
+    {
+      "author_name" : "Darin",
+      "content" : {
+        "rendered" : "<p>Terms confirm that Admiral&#8217;s Club passes are valid for 1 person only. It&#8217;s explicit that you can use up to 4 on a single visit to bring up to 3 guests with you.</p>\n"
+      },
+      "date_gmt" : "2025-07-22T00:24:35",
+      "id" : 2103877,
+      "parent" : 0
+    },
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>Phew! I’m on a bacon-only diet, so I should be just fine, as long as I don’t have a heart attack before this card finally accepts applications…</p>\n"
+      },
+      "date_gmt" : "2025-07-22T00:34:21",
+      "id" : 2103884,
+      "parent" : 2103865
+    },
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>So confident, yet so wrong.</p>\n"
+      },
+      "date_gmt" : "2025-07-22T00:35:11",
+      "id" : 2103886,
+      "parent" : 2103813
+    },
+    {
+      "author_name" : "Darin",
+      "content" : {
+        "rendered" : "<p>I generally agree with this, but Citi is not in this space currently and needs to provide a product that at least competes with the existing premium cards. Otherwise it&#8217;s just an add-on for Citigold or higher, and maybe that&#8217;s what they&#8217;re going for&#8230; a tool to make the high value customer programs seem more valuable.</p>\n"
+      },
+      "date_gmt" : "2025-07-22T00:48:31",
+      "id" : 2103894,
+      "parent" : 2103862
+    },
+    {
+      "author_name" : "whocares",
+      "content" : {
+        "rendered" : "<p>6x air travel credits only apply in the first half of a month. Days 1-15. 6x restaurant credits apply in the 2nd half of a month as well. 16-31.</p>\n"
+      },
+      "date_gmt" : "2025-07-22T01:02:55",
+      "id" : 2103903,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Andrew",
+      "content" : {
+        "rendered" : "<p>He said the average person <em>who gets this card</em>.  I think he is right.</p>\n"
+      },
+      "date_gmt" : "2025-07-22T01:15:19",
+      "id" : 2103913,
+      "parent" : 2103871
+    },
+    {
+      "author_name" : "Darwin",
+      "content" : {
+        "rendered" : "<p>Ticketmaster credit? Really?? I won&#8217;t be applying on principle.</p>\n"
+      },
+      "date_gmt" : "2025-07-22T01:24:30",
+      "id" : 2103918,
+      "parent" : 0
+    },
+    {
+      "author_name" : "MIke",
+      "content" : {
+        "rendered" : "<p>Why would someone get this card over the Strata Card  out today?</p>\n"
+      },
+      "date_gmt" : "2025-07-22T01:33:04",
+      "id" : 2103922,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Mike",
+      "content" : {
+        "rendered" : "<p>For CitiGold Private Clients, &#8220;Cardmembers paying an Annual Fee of $595 will earn a $595 statement credit in the first year of cardmembership and a $145 statement credit each year thereafter.&#8221;  Plus all the credits are calculated on a calendar year basis.  I&#8217;m in.</p>\n"
+      },
+      "date_gmt" : "2025-07-22T02:18:42",
+      "id" : 2103947,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Jeremy",
+      "content" : {
+        "rendered" : "<p>WTF?</p>\n"
+      },
+      "date_gmt" : "2025-07-22T02:34:25",
+      "id" : 2103953,
+      "parent" : 2103903
+    },
+    {
+      "author_name" : "Kafka",
+      "content" : {
+        "rendered" : "<p>And 3 kids per adult. Surprisingly generous as they take away the family part of Prestige&#8217;s Priority Pass (just 2 guests now).</p>\n"
+      },
+      "date_gmt" : "2025-07-22T02:54:10",
+      "id" : 2103959,
+      "parent" : 2103877
+    },
+    {
+      "author_name" : "Jon",
+      "content" : {
+        "rendered" : "<p>No, I read they get like 70% of the booked fee</p>\n"
+      },
+      "date_gmt" : "2025-07-22T02:55:39",
+      "id" : 2103960,
+      "parent" : 2103340
+    },
+    {
+      "author_name" : "Kafka",
+      "content" : {
+        "rendered" : "<p>Agreed. There was about a 60-day window where you could have held a Rewards+ that wasn&#8217;t yet converted and a Strata you opened. It seems wise not to change Prestige to this until 31 Dec so they aren&#8217;t taking away any unused annual credits. Of course it is Citi&#8230;</p>\n"
+      },
+      "date_gmt" : "2025-07-22T03:01:10",
+      "id" : 2103962,
+      "parent" : 2103872
+    },
+    {
+      "author_name" : "Erik",
+      "content" : {
+        "rendered" : "<p>So no 0% APR to float the $4,000 spend..<br />\nHow do we know that Best Buy will be added later for the Splurge credit??</p>\n"
+      },
+      "date_gmt" : "2025-07-22T03:33:56",
+      "id" : 2103971,
+      "parent" : 0
+    },
+    {
+      "author_name" : "cameron",
+      "content" : {
+        "rendered" : "<p>I wouldn’t</p>\n"
+      },
+      "date_gmt" : "2025-07-22T03:44:22",
+      "id" : 2103974,
+      "parent" : 2103922
+    },
+    {
+      "author_name" : "Too Many Cards",
+      "content" : {
+        "rendered" : "<p>If that&#8217;s the only benefit you use, the breakeven is about $9,916.67 in Friday and Saturday night restaurant spending per year.</p>\n"
+      },
+      "date_gmt" : "2025-07-22T04:00:56",
+      "id" : 2103976,
+      "parent" : 2103839
+    },
+    {
+      "author_name" : "Kimo C.",
+      "content" : {
+        "rendered" : "<p>Coupons are now being rationed out by time of day you can use. LMAO. Only Citi!</p>\n"
+      },
+      "date_gmt" : "2025-07-22T04:10:15",
+      "id" : 2103979,
+      "parent" : 2103903
+    },
+    {
+      "author_name" : "Curmudgeon",
+      "content" : {
+        "rendered" : "<p>Don&#8217;t think I&#8217;ve ever seen this before:</p>\n<p><strong>ABOUT USING YOUR MOBILE PHONE TO APPLY FOR AN ACCOUNT ONLINE</strong></p>\n<p>You authorize your wireless carrier to use or disclose information about your account and your wireless device, if available, to Citi or its service provider for the duration of your business relationship, solely to help them identify you or your wireless device and to prevent fraud.</p>\n<p>Separately, Citibank may obtain information about your mobile phone activity from third parties and use this information for its other everyday business purposes. For more information, see our U.S. Privacy Notice for Consumers.</p>\n"
+      },
+      "date_gmt" : "2025-07-22T04:21:31",
+      "id" : 2103983,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Chris",
+      "content" : {
+        "rendered" : "<p>If you go to my YouTube channel Jicks TV I made a video confirming it will drop really soon when I was talking to a citi representative.</p>\n"
+      },
+      "date_gmt" : "2025-07-22T04:22:18",
+      "id" : 2103985,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Yinjing (Jiba) (Xiaoniao)",
+      "content" : {
+        "rendered" : "<p>Uhh can you explain why I’d watch a video of that? I recommend you delete YouTube and study for the LSAT, try to get into a good law school and a good big law firm.</p>\n"
+      },
+      "date_gmt" : "2025-07-22T04:46:56",
+      "id" : 2103996,
+      "parent" : 2103985
+    },
+    {
+      "author_name" : "Jamez butts",
+      "content" : {
+        "rendered" : "<p>I guess how it works out for me is if I use the $300 travel credit, $200 Annual Splurge Credit on best buy, Four American Airlines Admirals Club® Citi Strata Elite* Passes Annually &#8211; $316<br />\nYou would make $221 on it, making it a keeper card.</p>\n"
+      },
+      "date_gmt" : "2025-07-22T04:51:36",
+      "id" : 2103998,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Robert",
+      "content" : {
+        "rendered" : "<p>I have been right about everything ? I don’t understand your comment</p>\n"
+      },
+      "date_gmt" : "2025-07-22T04:54:08",
+      "id" : 2103999,
+      "parent" : 2103886
+    },
+    {
+      "author_name" : "Esquiar",
+      "content" : {
+        "rendered" : "<p>Shiti Nights, Shiti Travel, Shiti Strata</p>\n"
+      },
+      "date_gmt" : "2025-07-22T05:28:51",
+      "id" : 2104006,
+      "parent" : 0
+    },
+    {
+      "author_name" : "inMD",
+      "content" : {
+        "rendered" : "<p>This seems to be another form of indirect authentication nowadays, in which I think cellular carriers are confirming to financial companies whether the phone number (or device ID/imei?) indeed matches the name of the customer/applicant. Perhaps others can chime in with specific card issuer data points.</p>\n"
+      },
+      "date_gmt" : "2025-07-22T05:57:46",
+      "id" : 2104013,
+      "parent" : 2103983
+    },
+    {
+      "author_name" : "Cate the MSer",
+      "content" : {
+        "rendered" : "<p>Who wants to bet 6x dining on Shiti night will be cancelled in few months?</p>\n"
+      },
+      "date_gmt" : "2025-07-22T06:25:50",
+      "id" : 2104018,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Yinjing (Jiba) (Xiaoniao)",
+      "content" : {
+        "rendered" : "<p>The terms don’t say anything about a cap. I routinely drop $1,000++ on drinks and dinner on friday and saturday nights. I like to give my dates the princess treatment. I look forward to earning 6,000 points or more per date. I might even start to lower my standards for the sole purpose of going on more dates to earn more points.</p>\n"
+      },
+      "date_gmt" : "2025-07-22T06:32:42",
+      "id" : 2104022,
+      "parent" : 2104006
+    },
+    {
+      "author_name" : "Morris",
+      "content" : {
+        "rendered" : "<p>If this card earned loyalty points on the base 1.5X, that could potentially be a saving grace.  I would probably get it and use it if that were the case.</p>\n"
+      },
+      "date_gmt" : "2025-07-22T06:37:22",
+      "id" : 2104025,
+      "parent" : 2103778
+    },
+    {
+      "author_name" : "AK",
+      "content" : {
+        "rendered" : "<p>Why I would anyone get Strata in the first place?</p>\n"
+      },
+      "date_gmt" : "2025-07-22T06:39:17",
+      "id" : 2104026,
+      "parent" : 2103922
+    },
+    {
+      "author_name" : "Scotty",
+      "content" : {
+        "rendered" : "<p>I doubt it. You get 5x on dining on the prestige all 168 hours in a week compared to 6x 24 hours and then 3x remaining on the strata elite. Without 6x those nights then this card earns 3x on dining and 1.5x everywhere, that&#8217;s it. The card has no multipliers outside of dining,  not including the portal garbage. The premier which is $500 cheaper earns 3x on dining, grocery, gas, broad travel, etc.</p>\n"
+      },
+      "date_gmt" : "2025-07-22T11:01:41",
+      "id" : 2104048,
+      "parent" : 2104018
+    },
+    {
+      "author_name" : "Seymour",
+      "content" : {
+        "rendered" : "<p>lol</p>\n"
+      },
+      "date_gmt" : "2025-07-22T11:04:55",
+      "id" : 2104049,
+      "parent" : 2104006
+    },
+    {
+      "author_name" : "mjonis",
+      "content" : {
+        "rendered" : "<p>Is it a $300 travel credit?  I see a $300 HOTEL credit good only if you book 2+ nights, AND only if booked through Citi Travel.</p>\n<p>What&#8217;s the little asterisk next to Best Buy though for Exclusions?</p>\n"
+      },
+      "date_gmt" : "2025-07-22T12:34:37",
+      "id" : 2104073,
+      "parent" : 2103998
+    },
+    {
+      "author_name" : "Chatan",
+      "content" : {
+        "rendered" : "<p>Citi definitely needs to add a Tinder subscription credit to pair with the CitiNights multiplier</p>\n"
+      },
+      "date_gmt" : "2025-07-22T13:02:25",
+      "id" : 2104083,
+      "parent" : 2104022
+    },
+    {
+      "author_name" : "Chatan",
+      "content" : {
+        "rendered" : "<p>Absolutely. I&#8217;m in the process of setting up a CitiGold Private Client relationship now. Hopefully both me and the P2 can get the Strata Elite for free</p>\n"
+      },
+      "date_gmt" : "2025-07-22T13:04:53",
+      "id" : 2104085,
+      "parent" : 2103947
+    },
+    {
+      "author_name" : "Esquiar",
+      "content" : {
+        "rendered" : "<p>Glad it works for you. Hope your return on spend is more than just ThankYou points</p>\n"
+      },
+      "date_gmt" : "2025-07-22T13:28:58",
+      "id" : 2104096,
+      "parent" : 2104022
+    },
+    {
+      "author_name" : "Not Sam",
+      "content" : {
+        "rendered" : "<p>They already have Blacklane for the chauffeur. Irs almost complete.</p>\n"
+      },
+      "date_gmt" : "2025-07-22T13:42:20",
+      "id" : 2104104,
+      "parent" : 2104083
+    },
+    {
+      "author_name" : "Not Sam",
+      "content" : {
+        "rendered" : "<p>U.S. Bank does this too. My Data was autofilled from just verifying a text.</p>\n"
+      },
+      "date_gmt" : "2025-07-22T13:44:16",
+      "id" : 2104107,
+      "parent" : 2104013
+    },
+    {
+      "author_name" : "Not Sam",
+      "content" : {
+        "rendered" : "<p>Strata Premier* is a solid earner. They probably forgot about the no AF strata.</p>\n"
+      },
+      "date_gmt" : "2025-07-22T13:45:18",
+      "id" : 2104108,
+      "parent" : 2104026
+    },
+    {
+      "author_name" : "Sooch",
+      "content" : {
+        "rendered" : "<p>I don&#8217;t see myself ever using a credit card company&#8217;s travel portal. Those kinds of credits are worthless to me.</p>\n"
+      },
+      "date_gmt" : "2025-07-22T13:49:08",
+      "id" : 2104114,
+      "parent" : 2103465
+    },
+    {
+      "author_name" : "G",
+      "content" : {
+        "rendered" : "<p>Not a fan of these &#8220;premium travel cards&#8221; earning 1x or 1.5x on miscellaneous travel while only being useful for portal bookings. One of the reasons I picked up a CSR a few years back was because it earned at least 3x on <em>all </em>forms of travel. I&#8217;d like to avoid coupons and portals when possible. My only keeper travel card looks like it&#8217;ll be the NFCU Flagship.</p>\n"
+      },
+      "date_gmt" : "2025-07-22T13:59:39",
+      "id" : 2104120,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Nick",
+      "content" : {
+        "rendered" : "<p>I believe so. T-Mobile has some new privacy options, and one of them says whether they can share information about you to minimize financial fraud. I opted out because it wasn&#8217;t unclear what information would be shared, when, and with whom.</p>\n"
+      },
+      "date_gmt" : "2025-07-22T14:09:42",
+      "id" : 2104124,
+      "parent" : 2104013
+    },
+    {
+      "author_name" : "blah blah",
+      "content" : {
+        "rendered" : "<p>potential alimony and child support</p>\n"
+      },
+      "date_gmt" : "2025-07-22T14:28:39",
+      "id" : 2104130,
+      "parent" : 2104096
+    },
+    {
+      "author_name" : "Jamez butts",
+      "content" : {
+        "rendered" : "<p>Honestly I rather get the strata, no af&#8230; and call it a day.</p>\n"
+      },
+      "date_gmt" : "2025-07-22T14:33:35",
+      "id" : 2104136,
+      "parent" : 0
+    },
+    {
+      "author_name" : "EP150",
+      "content" : {
+        "rendered" : "<p>Hotel, airfare and OTAs are not “broad” travel.</p>\n"
+      },
+      "date_gmt" : "2025-07-22T14:37:22",
+      "id" : 2104138,
+      "parent" : 2104048
+    },
+    {
+      "author_name" : "cowboy11578",
+      "content" : {
+        "rendered" : "<p>Link to the leaked details is no longer active. Now has a &#8221; &#8230; temporarily unavailable &#8230;&#8221; message.</p>\n"
+      },
+      "date_gmt" : "2025-07-22T14:59:03",
+      "id" : 2104149,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Kevin",
+      "content" : {
+        "rendered" : "<p>you sound like every Asian parent that ever existed.</p>\n"
+      },
+      "date_gmt" : "2025-07-22T16:31:02",
+      "id" : 2104209,
+      "parent" : 2103996
+    },
+    {
+      "author_name" : "Citi Fanboy",
+      "content" : {
+        "rendered" : "<p>Guys&#8230; I think this card looks pretty good to me. Can&#8217;t wait. Also, why are some of you misspelling our beloved bank&#8217;s name. Do you need spellcheck?</p>\n"
+      },
+      "date_gmt" : "2025-07-22T16:42:44",
+      "id" : 2104215,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Jon",
+      "content" : {
+        "rendered" : "<p>How can you seriously value the 300 credit at face value, when it needs to be through an OTA which offers less flexibility and often slightly higher prices, and only on 2+ nights bookings..</p>\n"
+      },
+      "date_gmt" : "2025-07-22T16:58:09",
+      "id" : 2104226,
+      "parent" : 2103998
+    },
+    {
+      "author_name" : "Yinjing (Jiba) (Xiaoniao)",
+      "content" : {
+        "rendered" : "<p>Yeah, shame on Asian parents for telling it straight and setting their kids up for success, right?</p>\n<p>Many immigrant Asian parents raise their kids in poverty. As we all know it&#8217;s extremely hard to move socioeconomic classes, meaning if you are a kid raised in poverty, statistically there is a good chance you will live your entire life in poverty. But, the one way to defy the odds and take control of your socioeconomic destiny is to invest in your education and set yourself up on the right career path.</p>\n<p>In this day and age of extreme income inequality, very few careers offer the chance at being something other than poor. We basically don&#8217;t have a middle class, anymore. You&#8217;re either poor or rich and the gap is widening in real time and shows no signs of stopping. I personally lament this, we&#8217;re a rich enough country to care for our poor people in much more empathetic ways such as single-payer healthcare and universal basic income, but there&#8217;s no political will to see these through. Meantime, you personally have to build a life. Are you going to be poor or are you going to be rich?</p>\n<p>That&#8217;s a no brainer where the only remaining question is how to be rich and what rich means. In the last decade FAANG engineering has been hot, offering $200-300k first-year total comp to 21 year olds straight outta undergrad, $500k in mid-career (L5) and $1-2M after a decade or so of experience. Seems like a good deal but it&#8217;s actually a recipe to become a HENRY &#8211; High Earner, Not Rich Yet.</p>\n<p>To be rich in the VHCOL places (otherwise known as places people actually want to live), the acronym you need to know is not FAANG but WLRK. They pay $500k to first year associates and $9m on average to partners. Partnership is achievable after a decade of billing &gt;3,000 hours a year, which sounds like hell on earth, unless you were raised under stereotypical Asian parenting in which case that&#8217;s life as you have always known it.</p>\n"
+      },
+      "date_gmt" : "2025-07-22T17:11:10",
+      "id" : 2104236,
+      "parent" : 2104209
+    },
+    {
+      "author_name" : "Pam",
+      "content" : {
+        "rendered" : "<p>Strata not available for new apps til later this year</p>\n"
+      },
+      "date_gmt" : "2025-07-22T17:19:51",
+      "id" : 2104242,
+      "parent" : 2103962
+    },
+    {
+      "author_name" : "Ben",
+      "content" : {
+        "rendered" : "<p>To me, it’s getting less and less exciting. They have kept the Rewards+ and not even bother with this.</p>\n"
+      },
+      "date_gmt" : "2025-07-22T17:46:33",
+      "id" : 2104262,
+      "parent" : 0
+    },
+    {
+      "author_name" : "GZG",
+      "content" : {
+        "rendered" : "<p>no best buy is confirmed for the splurge credit? </p>\n<p>that kills getting the card for me</p>\n"
+      },
+      "date_gmt" : "2025-07-22T18:10:02",
+      "id" : 2104285,
+      "parent" : 0
+    },
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>Umm, DoubleCash is still decent. No AF. 2% (I know, I know.. 1% when you purchase, 1% when you pay). If you&#8217;re a real simpleton, it&#8217;s great.</p>\n"
+      },
+      "date_gmt" : "2025-07-22T18:56:47",
+      "id" : 2104304,
+      "parent" : 2104262
+    },
+    {
+      "author_name" : "Jimmy",
+      "content" : {
+        "rendered" : "<p>I&#8217;m trying to figure out who would actually get approved for Citi cards these days.  My wife and I have both tried while under 5/24 for a good four years, even finding fairly good opportunities as inquiries aged here or there, tried too with utilization spiked a couple times.  I mean if no new accounts visible and not too bad with recent inquiries with 800 scores, I&#8217;m not sure what Citi is looking for.  We were both in on the AA ordeal but I don&#8217;t think we&#8217;re blacklisted.  It&#8217;s understandable that Citi changed up after probably getting raked over the coals because of the AA debacle but it seems ridiculous what it takes to get approved for their cards these days.  I mean I don&#8217;t care who you are if you are a Costco member with an 800 credit score and like 4 accounts in five years&#8230;Costco should tell Citi to approve all those people.  I can&#8217;t even get that card.  Can&#8217;t product change to it.</p>\n"
+      },
+      "date_gmt" : "2025-07-22T20:30:53",
+      "id" : 2104376,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Jags",
+      "content" : {
+        "rendered" : "<p>1:2 choice transfers</p>\n"
+      },
+      "date_gmt" : "2025-07-22T20:59:04",
+      "id" : 2104402,
+      "parent" : 2104026
+    },
+    {
+      "author_name" : "Billy",
+      "content" : {
+        "rendered" : "<p>Does anyone know when a Business version of the Citi Strata is expected to launch??</p>\n"
+      },
+      "date_gmt" : "2025-07-22T23:18:02",
+      "id" : 2104470,
+      "parent" : 0
+    },
+    {
+      "author_name" : "KS",
+      "content" : {
+        "rendered" : "<p>A typical lawyer. So much talk with so little actual content.</p>\n"
+      },
+      "date_gmt" : "2025-07-23T01:30:54",
+      "id" : 2104521,
+      "parent" : 2104236
+    },
+    {
+      "author_name" : "KS",
+      "content" : {
+        "rendered" : "<p>I hope it&#8217;s sarcasm. Otherwise, I feel really bad for your insecurity, no matter how much money you earn and spend.</p>\n"
+      },
+      "date_gmt" : "2025-07-23T01:31:30",
+      "id" : 2104522,
+      "parent" : 2104022
+    },
+    {
+      "author_name" : "Dman",
+      "content" : {
+        "rendered" : "<p>Same for me after the Strata Premier over 13 months ago. Can&#8217;t get the Custom Cash or the Rewards+ (before closing). I&#8217;ve had the double cash for 8 years which carried $25-$30k spend every year.<br />\nI guess paying my account balance on time and in full every month makes me unproductive. 800+ on all credit bureaus  with paid off home and car loans.</p>\n"
+      },
+      "date_gmt" : "2025-07-23T06:33:17",
+      "id" : 2104608,
+      "parent" : 2104376
+    },
+    {
+      "author_name" : "Morris",
+      "content" : {
+        "rendered" : "<p>Get Wells Fargo Autograph Journey (5X hotels, 4X flights, 3X travel (cruise, rental cars, OTAs, timeshares, campgrounds)/dining  That and Amex Green are the last two authentic travel cards pretty much.</p>\n"
+      },
+      "date_gmt" : "2025-07-23T10:50:00",
+      "id" : 2104627,
+      "parent" : 2104120
+    },
+    {
+      "author_name" : "Kevin",
+      "content" : {
+        "rendered" : "<p>and how many actually survive to partner or MD in big law, or banking, or consulting? less than 1%. What&#8217;s the rest of the us supposed to do? get a job in tech and be middle class.</p>\n"
+      },
+      "date_gmt" : "2025-07-23T13:41:09",
+      "id" : 2104681,
+      "parent" : 2104236
+    },
+    {
+      "author_name" : "Nick",
+      "content" : {
+        "rendered" : "<p>One of the people who leaked the info said more partners are coming, and BBY is among them.</p>\n"
+      },
+      "date_gmt" : "2025-07-23T14:47:56",
+      "id" : 2104718,
+      "parent" : 2104285
+    },
+    {
+      "author_name" : "Crandon Barter",
+      "content" : {
+        "rendered" : "<p>How do you opt out?</p>\n"
+      },
+      "date_gmt" : "2025-07-23T17:23:30",
+      "id" : 2104833,
+      "parent" : 2104124
+    },
+    {
+      "author_name" : "cameron",
+      "content" : {
+        "rendered" : "<p>the things you value at $816, I value at $0.</p>\n"
+      },
+      "date_gmt" : "2025-07-23T18:11:22",
+      "id" : 2104854,
+      "parent" : 2103998
+    },
+    {
+      "author_name" : "Justin",
+      "content" : {
+        "rendered" : "<p>Same here. I get a lot of new cards but almost all biz cards (4/24 for me and P2 is 3/24). I gave up trying to get Citi AA cards bc always got denied. Even had $2M+ with Citigold and asked my Private Client banker to plead my case and still denied. </p>\n<p>There is a possibility we are just shadow banned or they have finally figured out how to tell who is a churner and who is not. Or they have figured out we are unlikely to be a profitable customer and won&#8217;t offer the card as a result. Amazing that it&#8217;s like a lifetime ban though!</p>\n"
+      },
+      "date_gmt" : "2025-07-24T14:50:30",
+      "id" : 2105394,
+      "parent" : 2104376
+    },
+    {
+      "author_name" : "Jimmy",
+      "content" : {
+        "rendered" : "<p>I don&#8217;t think we&#8217;re banned.  I asked someone at Citi during a recon call and asked why it is so hard to get approved for Citi cards and she brought up that people were opening and closing cards so they had to change the process.  I&#8217;m convinced it is because of the AA debacle and no doubt, they got slapped hard for that.  But obviously they overswung.  I have to believe their business has significantly shrunk because of their new approval algorithm.  As I said, I&#8217;ve tried with all kinds of stats, like deliberately waiting until I had a balance post so my utilization was higher, while maintaining lower 5/24 stats and low recent inquiries.  I&#8217;ve tried during a range of my stats.  Can&#8217;t break through.  So if I&#8217;m having this problem and I&#8217;m not actually banned, I believe many ordinary folks are also having problems.  Things move slowly at Citi, more so than other big banks so I&#8217;m guessing it will take time for them to adjust back to what makes more sense.  After all, Citi couldn&#8217;t fix the AA situation on its end it seems, as AA had to take matters into its own hands.  It seems like it take years for Citi to pivot.</p>\n"
+      },
+      "date_gmt" : "2025-07-24T15:17:19",
+      "id" : 2105409,
+      "parent" : 2105394
+    },
+    {
+      "author_name" : "Rob",
+      "content" : {
+        "rendered" : "<p>I keep seeing this Citi-AA thing referenced, but can&#8217;t find what happened. Did Citi do something to piss off AA?</p>\n"
+      },
+      "date_gmt" : "2025-07-24T16:12:13",
+      "id" : 2105446,
+      "parent" : 2105409
+    },
+    {
+      "author_name" : "Frito Pendejo",
+      "content" : {
+        "rendered" : "<p>You could sign up for an AA card, get bonus, then citi would automatically upgrade your card to World Elite version (dunno why) and that conversion reset something that let you open another card for the bonus immediately.  You could have a ton of them with signup bonuses</p>\n"
+      },
+      "date_gmt" : "2025-07-25T14:50:27",
+      "id" : 2106010,
+      "parent" : 2105446
+    },
+    {
+      "author_name" : "Frito Pendejo",
+      "content" : {
+        "rendered" : "<p>Fidelity has a 2% card and fidelity is a better company than citi for sure</p>\n"
+      },
+      "date_gmt" : "2025-07-25T14:51:25",
+      "id" : 2106011,
+      "parent" : 2104304
+    },
+    {
+      "author_name" : "chase",
+      "content" : {
+        "rendered" : "<p>no best buy for the splurge, its like they are trying to make this card so bad that nobody will apply</p>\n"
+      },
+      "date_gmt" : "2025-07-27T04:07:30",
+      "id" : 2106769,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Josh",
+      "content" : {
+        "rendered" : "<p>It&#8217;s live: <a href=\"https://www.citi.com/credit-cards/citi-strata-elite-credit-card\" rel=\"nofollow ugc\">https://www.citi.com/credit-cards/citi-strata-elite-credit-card</a></p>\n"
+      },
+      "date_gmt" : "2025-07-27T05:40:13",
+      "id" : 2106785,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Ming",
+      "content" : {
+        "rendered" : "<p>AA as transfer partner, but it didn&#8217;t change for the Strata Premier. Hoping that it gets it&#8230;</p>\n"
+      },
+      "date_gmt" : "2025-07-27T06:14:35",
+      "id" : 2106788,
+      "parent" : 2106785
+    },
+    {
+      "author_name" : "Malik",
+      "content" : {
+        "rendered" : "<p>Greg from Frequent Miler thinks it might be a Strata Elite exclusive. Might be added but if that is the case may solve the devaluation problem.</p>\n"
+      },
+      "date_gmt" : "2025-07-27T11:43:27",
+      "id" : 2106797,
+      "parent" : 2106788
+    },
+    {
+      "author_name" : "Matt",
+      "content" : {
+        "rendered" : "<p>It&#8217;s live now for Premier as well.  I just moved 1k to see the speed &#8211; it was instant.</p>\n"
+      },
+      "date_gmt" : "2025-07-27T12:10:30",
+      "id" : 2106799,
+      "parent" : 2106788
+    },
+    {
+      "author_name" : "Rob",
+      "content" : {
+        "rendered" : "<p>Offer in branch is 100k , you can get your local branch to email you an application link and not have to step foot in branch</p>\n"
+      },
+      "date_gmt" : "2025-07-27T12:13:02",
+      "id" : 2106800,
+      "parent" : 0
+    },
+    {
+      "author_name" : "bungalo",
+      "content" : {
+        "rendered" : "<p>Tired of the multipliers being tied to each bank&#8217;s travel portal. Price just aren&#8217;t competitive and unless things have changed the majority of the time status isn&#8217;t respected when booking through them (or has to be argued).</p>\n"
+      },
+      "date_gmt" : "2025-07-27T16:11:49",
+      "id" : 2106864,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Got an copy of the e-mail?</p>\n"
+      },
+      "date_gmt" : "2025-07-27T23:17:41",
+      "id" : 2107048,
+      "parent" : 2106800
+    },
+    {
+      "author_name" : "Robert",
+      "content" : {
+        "rendered" : "<p>Hello Charles,It is tailored to every applicant, so email will have your full name pre filled in the application therefore not allowing you to modify it.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T15:23:04",
+      "id" : 2107309,
+      "parent" : 2107048
+    }
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "398",
+    "x-wp-totalpages" : "4"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/comments?post=241171&per_page=100&page=4&order=asc&orderby=date_gmt&_fields=id,parent,author_name,date_gmt,content"
+}

@@ -1,0 +1,27 @@
+{
+  "body" : {
+    "_embedded" : {
+      "author" : [
+        {
+          "name" : "William Charles"
+        }
+      ]
+    },
+    "author" : 2,
+    "content" : {
+      "rendered" : "<p>Update 3/14/25: Reddit user <a target=\"_blank\" class=\"author may-blank id-t2_iczj41d2\" href=\"https://www.reddit.com/user/Careless_Trash7702\">Careless_Trash7702</a> was told that applications for the card will be down for 3-4 weeks while it&#8217;s being reworked. My understanding is that if you apply now they can&#8217;t change the terms/benefits for a full 12 months but YMMV.</p>\n<p>File this under rumors, but a <a target=\"_blank\" href=\"https://www.reddit.com/r/CreditCards/comments/1j9iqxl/us_bank_rep_told_me_smartly_card_is_no_longer/\">reddit user</a> was told by a branch rep that they received an e-mail on Monday stating they could no longer apply for the U.S. Bank smartly card in branch and were surprised it was still available online (<a target=\"_blank\" href=\"https://www.reddit.com/r/CreditCards/comments/1j8w7x5/product_changes_to_us_bank_smartly_suspended/mhhbvly/\">confirmed by another user</a>). Another <a target=\"_blank\" href=\"https://www.reddit.com/r/CreditCards/comments/1j9iqxl/us_bank_rep_told_me_smartly_card_is_no_longer/mhfn2tb/\">reddit user</a> spoke to underwriting and were told this card would be discontinued in about a month. <a target=\"_blank\" href=\"https://www.reddit.com/r/CreditCards/comments/1j8w7x5/product_changes_to_us_bank_smartly_suspended/\">Another user</a> was told that product changes were suspended. <a href=\"https://www.doctorofcredit.com/u-s-bank-smartly-checking-account-monthly-fee-no-longer-waived-with-credit-card/\">U.S. Bank also tighten the fee waiver requirements on the Smartly checking account and</a> <a href=\"https://www.doctorofcredit.com/u-s-bank-sends-warning-message-to-some-smartly-cardholders-re-business-purchases/\">has sent out e-mail to some cardholders regarding business purchases</a>.</p>\n<p>For this to be true U.S. Bank must be losing a lot of money on this card already as the <a href=\"https://www.doctorofcredit.com/u-s-bank-to-launch-smartly-visa-signature-card-earn-up-to-4-back-on-all-purchases/\">card was only launched in November, 2024</a>.</p>\n"
+    },
+    "date_gmt" : "2025-03-14T20:45:45",
+    "id" : 235791,
+    "link" : "https://www.doctorofcredit.com/rumor-u-s-bank-smartly-visa-credit-card-to-be-discontinued/",
+    "modified_gmt" : "2025-03-14T20:41:08",
+    "title" : {
+      "rendered" : "[Rumor] U.S. Bank Smartly Visa Credit Card To Be Discontinued"
+    }
+  },
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/posts/235791?_fields=id,title,link,date_gmt,modified_gmt,content,author,_embedded,_links&_embed=author"
+}

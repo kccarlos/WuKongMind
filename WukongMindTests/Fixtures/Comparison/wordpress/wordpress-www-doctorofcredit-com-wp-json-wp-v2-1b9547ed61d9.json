@@ -1,0 +1,911 @@
+{
+  "body" : [
+    {
+      "author_name" : "Brian",
+      "content" : {
+        "rendered" : "<p>How are we thinking this compares to the revamped CSR offering?</p>\n"
+      },
+      "date_gmt" : "2025-09-18T15:13:55",
+      "id" : 2147964,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Lp",
+      "content" : {
+        "rendered" : "<p>Amex eating Chase’s lunch</p>\n"
+      },
+      "date_gmt" : "2025-09-18T15:14:14",
+      "id" : 2147966,
+      "parent" : 0
+    },
+    {
+      "author_name" : "chuck",
+      "content" : {
+        "rendered" : "<p>Given that it is Sept 18, does that mean we have 12 days to use this quarter&#8217;s new benefits?????</p>\n"
+      },
+      "date_gmt" : "2025-09-18T15:16:35",
+      "id" : 2147968,
+      "parent" : 0
+    },
+    {
+      "author_name" : "ben",
+      "content" : {
+        "rendered" : "<p>So pretty much the Business version of this card, in terms of benefits, is garbage compared to the consumer?</p>\n"
+      },
+      "date_gmt" : "2025-09-18T15:17:05",
+      "id" : 2147969,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p>Added a note with about comparison now in the verdict</p>\n"
+      },
+      "date_gmt" : "2025-09-18T15:18:27",
+      "id" : 2147970,
+      "parent" : 2147964
+    },
+    {
+      "author_name" : "14lopeza",
+      "content" : {
+        "rendered" : "<p>Slim Daddy Platy coming after Jamie Dimon&#8217;s CSR</p>\n"
+      },
+      "date_gmt" : "2025-09-18T15:18:58",
+      "id" : 2147973,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Jarrett",
+      "content" : {
+        "rendered" : "<p>Yes, the third quarter ends at the end of September.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T15:19:59",
+      "id" : 2147975,
+      "parent" : 2147968
+    },
+    {
+      "author_name" : "platty_holder",
+      "content" : {
+        "rendered" : "<p><strong>Leaders Club Sterling status</strong>&nbsp;is also available for Personal Platinum</p>\n"
+      },
+      "date_gmt" : "2025-09-18T15:20:38",
+      "id" : 2147976,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Jarrett",
+      "content" : {
+        "rendered" : "<p>Still quite annoyed about the change in the Business Platinum 35% MR refund benefit.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T15:21:21",
+      "id" : 2147977,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p>Let me add that</p>\n"
+      },
+      "date_gmt" : "2025-09-18T15:21:59",
+      "id" : 2147980,
+      "parent" : 2147976
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p>Let me add a note</p>\n"
+      },
+      "date_gmt" : "2025-09-18T15:22:28",
+      "id" : 2147981,
+      "parent" : 2147968
+    },
+    {
+      "author_name" : "T.",
+      "content" : {
+        "rendered" : "<p>I have never bothered using the Saks credit before. In practice, does buying a gift card work?</p>\n"
+      },
+      "date_gmt" : "2025-09-18T15:27:54",
+      "id" : 2147983,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Matty",
+      "content" : {
+        "rendered" : "<p>Granted, P2 and I play it simple, and focus on racking up Inks while we still can, so just reading through that list makes me anxious and stressed. Kudos to all of you who still do their best to maximize these coupons (and of course score the massive SUBs), but man, I just feel relief at not having to deal with managing all those credits.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T15:28:01",
+      "id" : 2147984,
+      "parent" : 0
+    },
+    {
+      "author_name" : "ben",
+      "content" : {
+        "rendered" : "<p>yea i dont get how Chase botched this so bad. These cards are still heavily lounge pass cards and Chase has like 3 lmao.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T15:30:39",
+      "id" : 2147990,
+      "parent" : 2147966
+    },
+    {
+      "author_name" : "Gooey2500",
+      "content" : {
+        "rendered" : "<p>You wrote the biz plat had $200 FHR credit previously, but don’t think it had any?</p>\n<p>Seems the main change for biz plat was +$600 FHR credit and large purchases being 2X instead of 1.5x</p>\n"
+      },
+      "date_gmt" : "2025-09-18T15:31:12",
+      "id" : 2147991,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Bigdog",
+      "content" : {
+        "rendered" : "<p>In store yes, online no as it goes through a 3rd party site for the GC.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T15:34:17",
+      "id" : 2147993,
+      "parent" : 2147983
+    },
+    {
+      "author_name" : "Jason",
+      "content" : {
+        "rendered" : "<p>There really aren&#8217;t as many Resy restaurants around as I thought (SF)</p>\n"
+      },
+      "date_gmt" : "2025-09-18T15:35:40",
+      "id" : 2147994,
+      "parent" : 0
+    },
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>Ya that is what I was thinking. Enrooled the lululemon credit and got the e-mail that it was active. After the e-mail from amex I did a order with Lululemon to use that credit this quarter. Pretty sure it will trigger for 3rd quarter.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T15:37:06",
+      "id" : 2147995,
+      "parent" : 2147968
+    },
+    {
+      "author_name" : "JohnWet",
+      "content" : {
+        "rendered" : "<p>I&#8217;ve signed up my wife 4 days ago and she is seeing all the new benefits without the upgraded AF of $200. I did post about this &#8216;risk&#8217; earlier so I guess it worked out well.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T15:40:37",
+      "id" : 2147996,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Phill",
+      "content" : {
+        "rendered" : "<p>that is how math works</p>\n"
+      },
+      "date_gmt" : "2025-09-18T15:43:09",
+      "id" : 2148000,
+      "parent" : 2147968
+    },
+    {
+      "author_name" : "Igor",
+      "content" : {
+        "rendered" : "<p>Interesting that customers like to prepay $900 for items that perhaps they would not purchase otherwise (at least not at these specific stores/products/conditions).</p>\n<p>That&#8217;s why the coupon book keeps increasing, now at other banks too.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T15:43:44",
+      "id" : 2148001,
+      "parent" : 0
+    },
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>For me the AMEX changes are night and day better. I will easily get more value out of the added credits then the extra cost of the annual fee. I already shop at LuLuLemon so that credit will be easy to use. The dinning credit as well. I&#8217;m planning on Changing my CSR to a CSP since they got rid of the 3x travel category and CSP still has 2x on all travel. The only new credit Chase added that I would use is the Apple one and even that one isn&#8217;t very useful to me since I use Tidal and only like a few shows on Apple TV. Said it in another post it really depends on the person. For me Chase really dropped the ball and AMEX gave me value.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T15:44:07",
+      "id" : 2148002,
+      "parent" : 2147964
+    },
+    {
+      "author_name" : "Keith M.",
+      "content" : {
+        "rendered" : "<p>Do you know how this works with Lululemon gift cards whether bought online or in store?</p>\n"
+      },
+      "date_gmt" : "2025-09-18T15:44:48",
+      "id" : 2148005,
+      "parent" : 2147983
+    },
+    {
+      "author_name" : "JP Morgan",
+      "content" : {
+        "rendered" : "<p>Is this confirmed?  The Amex app has a benefit tracker that shows how much of the credit can be earned for the rest of the year.  The quarterly benefits are only showing one quarter&#8217;s worth.  I would confirm with Amex before counting on getting an extra quarter in these last 12 days.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T15:45:52",
+      "id" : 2148007,
+      "parent" : 2147981
+    },
+    {
+      "author_name" : "avsterbone",
+      "content" : {
+        "rendered" : "<p>AskSebby already updated his calculators.</p>\n<p>Legend!</p>\n"
+      },
+      "date_gmt" : "2025-09-18T15:47:11",
+      "id" : 2148008,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Keith M.",
+      "content" : {
+        "rendered" : "<p>Let me know if it works.  Going to buy gift card online and will let you know if it qualifies for quarterly credit.  Have to use this quarter&#8217;s credit by 9/30/25.  If does not work the will try buying one in store.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T15:48:12",
+      "id" : 2148009,
+      "parent" : 2147995
+    },
+    {
+      "author_name" : "Eastman",
+      "content" : {
+        "rendered" : "<p>Any idea how to get a higher offer? I only got the 80k offer on the Personal.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T15:51:16",
+      "id" : 2148013,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Andrew",
+      "content" : {
+        "rendered" : "<p>Did Biz Plat always have the $200 FHR? I thought that was only for the personal version.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T15:52:18",
+      "id" : 2148015,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p>Let me fix, thx</p>\n"
+      },
+      "date_gmt" : "2025-09-18T15:52:20",
+      "id" : 2148016,
+      "parent" : 2147991
+    },
+    {
+      "author_name" : "JohnWet",
+      "content" : {
+        "rendered" : "<p>This card is for spenders, most of them won&#8217;t be even using some benefits.<br />\nWhen you&#8217;re buying a Porsche it doesn&#8217;t mean you&#8217;re going to drive it over 100mph.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T15:54:36",
+      "id" : 2148018,
+      "parent" : 2148001
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p>Fixed now</p>\n"
+      },
+      "date_gmt" : "2025-09-18T15:57:13",
+      "id" : 2148022,
+      "parent" : 2148015
+    },
+    {
+      "author_name" : "avsterbone",
+      "content" : {
+        "rendered" : "<p>I am genuinely blown away by this refresh. The amount of good &amp; useful credits on this card is insane. After running my situation through the calculator (<a href=\"https://www.asksebby.com/articles/amex-platinum-card\" rel=\"nofollow ugc\">https://www.asksebby.com/articles/amex-platinum-card</a>) I will personally be getting $369 in free value every single year on credits alone <em>(1,264 credits I value &#8211; 895 annual fee = 369 positive expected value)</em>.</p>\n<p>The Chase Sapphire Reserve doesn&#8217;t hold a candle to the refreshed Amex Platinum. I can confidently say this card is now S-tier without question.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T15:57:27",
+      "id" : 2148023,
+      "parent" : 2148008
+    },
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>Looking forward to hearing if a gift card works. I bought physical product and was able to enable online and got the e-mail that I was enrolled so thinking the credit will work and I will get another $75 on October 1st.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T15:58:12",
+      "id" : 2148024,
+      "parent" : 2148009
+    },
+    {
+      "author_name" : "mike",
+      "content" : {
+        "rendered" : "<p>Anyone think the Morgan Stanley branded cards will still get fully reimbursed by Morgan Stanley, or will they just raise their account fees to cover the difference as well.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:01:22",
+      "id" : 2148028,
+      "parent" : 0
+    },
+    {
+      "author_name" : "satellite",
+      "content" : {
+        "rendered" : "<p>300k signup bonus for Amex Biz Plat in incognito. DannyDealGuru posted about it already.  <a class='hint hint--right' data-ucm_user_id='6' href='https://www.doctorofcredit.com/author/chucksithe/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/6581771f6d6c07578202c34dd35680cd5e37f8e5b2b5af89f03bde48286dade3?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/6581771f6d6c07578202c34dd35680cd5e37f8e5b2b5af89f03bde48286dade3?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;Chuck</a> FYI</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:03:34",
+      "id" : 2148030,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Day",
+      "content" : {
+        "rendered" : "<p>Hi, so quarterly benefits (eg Resy, Lululemon) I can use today and also again starting October 1st for separate full credits?</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:04:42",
+      "id" : 2148034,
+      "parent" : 0
+    },
+    {
+      "author_name" : "haee",
+      "content" : {
+        "rendered" : "<ul>\n<li><strong>5x points on flights prepaid hotels bookings via Amex Travel; 1x points on other purchases</strong>&nbsp;– same as before</li>\n</ul>\n<p>on thePersonal&nbsp;  card its also didact wish airline no</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:05:09",
+      "id" : 2148035,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Mickey",
+      "content" : {
+        "rendered" : "<p>Do we still get 5X points when booking flights directly with the airline?</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:08:21",
+      "id" : 2148041,
+      "parent" : 0
+    },
+    {
+      "author_name" : "KK",
+      "content" : {
+        "rendered" : "<p>Is the higher bonus appearing for referral links as well?</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:11:11",
+      "id" : 2148052,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Day",
+      "content" : {
+        "rendered" : "<p>Regarding quarterly credits (eg Resy, Lululemon), if I purchase today and I purchase again starting October 1st, I will earn both credits back?</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:11:52",
+      "id" : 2148054,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p>Yep</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:14:47",
+      "id" : 2148058,
+      "parent" : 2148054
+    },
+    {
+      "author_name" : "Points Life",
+      "content" : {
+        "rendered" : "<p>Does the Resy credit start as of today? Is it possible to get an extra $100 if we use it this month that would be part of Q3 before Q4 starts next month?</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:15:14",
+      "id" : 2148061,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p>Is anyone actually seeing this?</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:15:53",
+      "id" : 2148063,
+      "parent" : 2148030
+    },
+    {
+      "author_name" : "ben",
+      "content" : {
+        "rendered" : "<p>So renewals from this point forward hit the new AF? I thought I saw somewhere new AF wont trigger until early Jan 2026&#8230;</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:16:34",
+      "id" : 2148064,
+      "parent" : 0
+    },
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>For people that live in a city I think the entertainment credit, Uber and Resy credits are super easy to use. Those alone already cover the annual fee of the card. I shop at LuLuLemon so that $300 credit will be easy for me to use also. I also easily use the airline credit and status with Hilton also. All of these are thing I would spend the money on anyway. Like I always say you have to do the math and see if the card works for you. I find it easy to get value out of this card and I feel the CSR changes made it of little value to me. I will be keeping this card and changing my CSR to a CSP.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:16:38",
+      "id" : 2148065,
+      "parent" : 2148001
+    },
+    {
+      "author_name" : "yvrite",
+      "content" : {
+        "rendered" : "<p>I switched over to cash back-(almost)-only some time ago and rarely have regretted it. I&#8217;m not a pro credit-card shill, my household economy doesn&#8217;t revolve around managing coupon books.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:17:22",
+      "id" : 2148067,
+      "parent" : 2147984
+    },
+    {
+      "author_name" : "HP",
+      "content" : {
+        "rendered" : "<p>Is there a NLL for 300k SUB?</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:17:56",
+      "id" : 2148068,
+      "parent" : 2148030
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p>Fixed</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:18:00",
+      "id" : 2148070,
+      "parent" : 2148035
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p>Yes, fixed</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:18:33",
+      "id" : 2148073,
+      "parent" : 2148041
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p><a href=\"https://www.doctorofcredit.com/existing-american-express-business-platinum-consumer-platinum-annual-fee-renewals-to-increase-after-december-2025-january-2026/\" rel=\"ugc\">https://www.doctorofcredit.com/existing-american-express-business-platinum-consumer-platinum-annual-fee-renewals-to-increase-after-december-2025-january-2026/</a></p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:19:04",
+      "id" : 2148074,
+      "parent" : 2148064
+    },
+    {
+      "author_name" : "tamago",
+      "content" : {
+        "rendered" : "<p>don&#8217;t forget to replace your cards for the mirror finish1!!!~~!!~!</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:24:18",
+      "id" : 2148081,
+      "parent" : 0
+    },
+    {
+      "author_name" : "LP",
+      "content" : {
+        "rendered" : "<p>I&#8217;m seeing the same when I click through.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:30:55",
+      "id" : 2148092,
+      "parent" : 2148013
+    },
+    {
+      "author_name" : "JohnWet",
+      "content" : {
+        "rendered" : "<p>Nope.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:30:57",
+      "id" : 2148093,
+      "parent" : 2148063
+    },
+    {
+      "author_name" : "John Cal",
+      "content" : {
+        "rendered" : "<p>I am not seeing it</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:31:43",
+      "id" : 2148094,
+      "parent" : 2148030
+    },
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>but, but.. the floral one is so nice..</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:34:47",
+      "id" : 2148100,
+      "parent" : 2148081
+    },
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>The business card got nerfed. Lost $250 dell credits, gained $600 hotel credits. Increase of $200 annual fee.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:37:41",
+      "id" : 2148103,
+      "parent" : 0
+    },
+    {
+      "author_name" : "hanchicago",
+      "content" : {
+        "rendered" : "<p>For established Amex Personal Plat cardholders, if we got credited for our $200 FHR credits pre-Sept. 18, 2025, do we now have an additional $300 FHR credit to use before Jan. 1, 2026? I guess it would be easy to tell by booking something cancellable, though I&#8217;d prefer to avoid Amex clawbacks.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:40:23",
+      "id" : 2148106,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Raol",
+      "content" : {
+        "rendered" : "<p>Personal Paltinum has no 175K bonus, it still shows 80K bonus, and some links show, get as high as 175k, apply to find that out. So where is confirmed link of 175K bonus for Personal Platinum?</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:41:53",
+      "id" : 2148108,
+      "parent" : 0
+    },
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>That&#8217;s what I read; just used my Platinum at a Resy restaurant for lunch today; will have to see whether it posts accordingly in the coming week(s).</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:44:34",
+      "id" : 2148110,
+      "parent" : 2148034
+    },
+    {
+      "author_name" : "Skyblue",
+      "content" : {
+        "rendered" : "<p>How does resy credit works? Do I need to have reservation in resy app? I dont see available slots for weekend before end of quarter for restaurant I’m intrested in. Wondering if walk in also works as long as paying with platinum.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:44:36",
+      "id" : 2148111,
+      "parent" : 0
+    },
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>Move to NYC; we have heaps.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:45:21",
+      "id" : 2148112,
+      "parent" : 2147994
+    },
+    {
+      "author_name" : "Tamago",
+      "content" : {
+        "rendered" : "<p>I actually did the floral one too lol but mirror looks cool</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:46:38",
+      "id" : 2148113,
+      "parent" : 2148100
+    },
+    {
+      "author_name" : "noobchurner",
+      "content" : {
+        "rendered" : "<p>yes</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:46:43",
+      "id" : 2148114,
+      "parent" : 2148061
+    },
+    {
+      "author_name" : "BulkyGlorly1",
+      "content" : {
+        "rendered" : "<p>I saw it in my benefits today when I logged for the card. You must enroll first but yes, you should get the Resy credit from today until the end of Sept and it will reset on 1 Oct</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:46:55",
+      "id" : 2148115,
+      "parent" : 2148061
+    },
+    {
+      "author_name" : "BulkyGlorly1",
+      "content" : {
+        "rendered" : "<p>yes</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:47:17",
+      "id" : 2148117,
+      "parent" : 2148034
+    },
+    {
+      "author_name" : "Doc Money",
+      "content" : {
+        "rendered" : "<p>The credit has existed for 3 hours. No one knows.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:47:51",
+      "id" : 2148120,
+      "parent" : 2148005
+    },
+    {
+      "author_name" : "Doc Money",
+      "content" : {
+        "rendered" : "<p>You had ample time to redeem everything at that rate this week.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:48:14",
+      "id" : 2148121,
+      "parent" : 2147977
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p>I wrote in the post that my understanding is that you do get the full $300 even if you already used the $200</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:50:33",
+      "id" : 2148128,
+      "parent" : 2148106
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p>Noted in the post that it&#8217;s &#8216;up to 175,000&#8217;</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:50:56",
+      "id" : 2148129,
+      "parent" : 2148108
+    },
+    {
+      "author_name" : "hanchicago",
+      "content" : {
+        "rendered" : "<p>You&#8217;re right: If you click FHR among the benefits, there is a tracker that shows you&#8217;ve got $300 in FHR credit left to spend.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:52:43",
+      "id" : 2148132,
+      "parent" : 2148128
+    },
+    {
+      "author_name" : "KK",
+      "content" : {
+        "rendered" : "<p>When I opened the sign up page from a Google search (the organic result, not the ad) on Chrome on iOS, it showed the 175,000 bonus offer (without the &#8220;up to&#8221; text). It also appeared in my Amex app. It&#8217;s not showing for referral links yet (i.e. I see the &#8220;up to&#8221; text).</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:52:55",
+      "id" : 2148133,
+      "parent" : 2148129
+    },
+    {
+      "author_name" : "Elaz",
+      "content" : {
+        "rendered" : "<p>I just checked and saw 200k</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:54:01",
+      "id" : 2148136,
+      "parent" : 2148074
+    },
+    {
+      "author_name" : "KK",
+      "content" : {
+        "rendered" : "<p>If you apply, can you use the card immediately, or do you have to wait for it to be mailed?</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:54:15",
+      "id" : 2148137,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Morgan",
+      "content" : {
+        "rendered" : "<p>No. Just pay with the card at the restaurant (after enrolling obviously). That&#8217;s all , no reservation needed.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:56:01",
+      "id" : 2148140,
+      "parent" : 2148111
+    },
+    {
+      "author_name" : "William",
+      "content" : {
+        "rendered" : "<p>The public link for me shows 80k. I got approved in the up to 175k link for 50k points :C. Should I just apply for the 80k? I could have gotten it at 695$ with 80k but I decided to wait for a better offer after release.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:56:32",
+      "id" : 2148142,
+      "parent" : 2148129
+    },
+    {
+      "author_name" : "Captainsave",
+      "content" : {
+        "rendered" : "<p>Was really excited for the $600 hotel credits. But just realized its only for the Fine hotel and Resorts which really make these credits useless too me</p>\n"
+      },
+      "date_gmt" : "2025-09-18T17:06:52",
+      "id" : 2148160,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Billy",
+      "content" : {
+        "rendered" : "<p>If they give you the option to receive a temporary card online you can use it immediately.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T17:14:21",
+      "id" : 2148173,
+      "parent" : 2148137
+    },
+    {
+      "author_name" : "Rob",
+      "content" : {
+        "rendered" : "<p>Any changes to the Schwab version?</p>\n"
+      },
+      "date_gmt" : "2025-09-18T17:19:01",
+      "id" : 2148182,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Alec",
+      "content" : {
+        "rendered" : "<p>Was hoping with the refresh that I would be out of PUJ, but unfortunately not&#8230; This refresh looks great though!</p>\n"
+      },
+      "date_gmt" : "2025-09-18T17:23:41",
+      "id" : 2148188,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Johnny111",
+      "content" : {
+        "rendered" : "<p>lululemon sells giftcards on their site, anyone confirm that $75 giftcards will code correctly for the credit?</p>\n"
+      },
+      "date_gmt" : "2025-09-18T17:27:20",
+      "id" : 2148194,
+      "parent" : 0
+    },
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>On this topic though AMEX at least lets you get the new design if you have the card vs Chase that makes you wait until your card expires&#8230;</p>\n"
+      },
+      "date_gmt" : "2025-09-18T17:28:30",
+      "id" : 2148195,
+      "parent" : 2148081
+    },
+    {
+      "author_name" : "zerosum",
+      "content" : {
+        "rendered" : "<p>Opened a biz gold and personal gold in Feb/March. When applying to the &#8220;up to 175k&#8221; offer im in pop up jail. When i sign in directly in the site, the offer is 80k. Ive tried the entire week to get a higher offer but never found anything different than 80k or up to offers. Looks like the same situation today post changes. They dont want me</p>\n"
+      },
+      "date_gmt" : "2025-09-18T17:30:34",
+      "id" : 2148197,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Scott",
+      "content" : {
+        "rendered" : "<p>The T&amp;C says that gift cards are excluded. I&#8217;d like to know about GC purchases in a store, particularly in conjunction with other purchases. I would like to see data points on whether that would work.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T17:32:10",
+      "id" : 2148200,
+      "parent" : 2148194
+    },
+    {
+      "author_name" : "Johnny111",
+      "content" : {
+        "rendered" : "<p>nevermind, just read the fine print and it is no</p>\n"
+      },
+      "date_gmt" : "2025-09-18T17:32:22",
+      "id" : 2148201,
+      "parent" : 2148194
+    },
+    {
+      "author_name" : "Donutello",
+      "content" : {
+        "rendered" : "<p>Currently I carry a personal and a Schwab Platinum. The Schwab one did not have an option to update to the mirror finish.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T17:32:49",
+      "id" : 2148203,
+      "parent" : 2148100
+    },
+    {
+      "author_name" : "noobchurner",
+      "content" : {
+        "rendered" : "<p>Any NLL links for personal plat? I need this!!!</p>\n"
+      },
+      "date_gmt" : "2025-09-18T17:34:32",
+      "id" : 2148205,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Abhi",
+      "content" : {
+        "rendered" : "<p>They should have at least given one free authorized user.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T17:39:44",
+      "id" : 2148213,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Matt Katakis",
+      "content" : {
+        "rendered" : "<p>Don&#8217;t forget about the flight point redemption/credit loss as well.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T17:43:02",
+      "id" : 2148217,
+      "parent" : 2148103
+    },
+    {
+      "author_name" : "Kiwi",
+      "content" : {
+        "rendered" : "<p><a href=\"https://www.americanexpress.com/us/credit-cards/card-application/apply/platinum-card/80018-10-0#/\" rel=\"nofollow ugc\">https://www.americanexpress.com/us/credit-cards/card-application/apply/platinum-card/80018-10-0#/</a></p>\n<p>that’s the only one I’ve found but it’s still 80k now it’s -105 vs a few days ago positive +105 probably should’ve taken it.</p>\n<p>hopefully somebody has a better one</p>\n"
+      },
+      "date_gmt" : "2025-09-18T17:48:38",
+      "id" : 2148223,
+      "parent" : 2148205
+    },
+    {
+      "author_name" : "Matt Katakis",
+      "content" : {
+        "rendered" : "<p>I agree with this.  I was on the fence before the refresh for my next renewal, but the addition of YouTube to the entertainment credit alone is worth $300 to me per year.  I use Uber and UberEats, but don&#8217;t prefer to, but having the Uber One monthly credit changes that for me some.  I don&#8217;t regularly shop at Lulu, but can use it.  The Resy credit, assuming restaurants here in NYC don&#8217;t flock back in droves to Opentable, is really nice.  I also love the FHR increase too.  The value is there now, at least for me.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T17:49:31",
+      "id" : 2148224,
+      "parent" : 2148065
+    },
+    {
+      "author_name" : "Skyblue",
+      "content" : {
+        "rendered" : "<p>Check this one showing 175k- <a href=\"https://www.americanexpress.com/us/credit-cards/card-application/apply/platinum-card/95669-10-0?intlink=US-MGM-MOBI_MEMBERSHIP-native-137-205937-K5SH:9972-137-K5SH:9873&#038;correlation_id=MGM~enUS~platinum-card~1758218428520#/\" rel=\"nofollow ugc\">https://www.americanexpress.com/us/credit-cards/card-application/apply/platinum-card/95669-10-0?intlink=US-MGM-MOBI_MEMBERSHIP-native-137-205937-K5SH:9972-137-K5SH:9873&#038;correlation_id=MGM~enUS~platinum-card~1758218428520#/</a></p>\n"
+      },
+      "date_gmt" : "2025-09-18T18:03:52",
+      "id" : 2148254,
+      "parent" : 2148205
+    },
+    {
+      "author_name" : "billybob",
+      "content" : {
+        "rendered" : "<p>it&#8217;s value lies in no hard pull or showing up on personal credit report. basically only a churn card now.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T18:17:48",
+      "id" : 2148280,
+      "parent" : 2148103
+    },
+    {
+      "author_name" : "Chris T.",
+      "content" : {
+        "rendered" : "<p>Wonder if the mirror finish will get all scratched up within a couple days or not.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T18:20:46",
+      "id" : 2148282,
+      "parent" : 2148081
+    },
+    {
+      "author_name" : "Sunnyboy1234",
+      "content" : {
+        "rendered" : "<p>Would have been nice addition to add free chatgpt or Grok or Gemini premium on the business platinum card. Pretty underwhelming on business tbh. Good for those with high spends and multiple 5k+ transactions, I guess those are who they are targeting.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T18:22:37",
+      "id" : 2148289,
+      "parent" : 0
+    },
+    {
+      "author_name" : "chuck",
+      "content" : {
+        "rendered" : "<p>Careful with that, the Resy site in my area is terrible.  I keep &#8220;finding&#8221; resturants as I search harder and harder.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T18:49:54",
+      "id" : 2148320,
+      "parent" : 2147994
+    },
+    {
+      "author_name" : "doesit",
+      "content" : {
+        "rendered" : "<p>For existing cardholders is there any way to tell if any of the old credits are refreshed or not? </p>\n<p>i.e. ABP Dell Credit, Airline incidentals, etc.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T19:03:38",
+      "id" : 2148343,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Wesley",
+      "content" : {
+        "rendered" : "<p>Eating out nowadays easily costs over $100 per meal.<br />\nI like that Resy provides me the incentive to explore new restaurants in town.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T19:23:52",
+      "id" : 2148369,
+      "parent" : 2148001
+    },
+    {
+      "author_name" : "Tony",
+      "content" : {
+        "rendered" : "<p>So would this work? Lets say I am trying to go on a 4-night Fine Hotel stay in August 2026.<br />\nCan i book 2 nights from July to December 2025. And then book another 2 nights from January- July 2026.</p>\n<p>Would i get the two, $300 credits this way?</p>\n"
+      },
+      "date_gmt" : "2025-09-18T19:27:09",
+      "id" : 2148377,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Jarrett",
+      "content" : {
+        "rendered" : "<p>Yes, all the same changes.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T19:32:26",
+      "id" : 2148384,
+      "parent" : 2148182
+    },
+    {
+      "author_name" : "Jarrett",
+      "content" : {
+        "rendered" : "<p>I don&#8217;t see the $300 Equinox credit listed anymore on my card benefits (via the desktop site), are you sure it&#8217;s the same as before?</p>\n"
+      },
+      "date_gmt" : "2025-09-18T19:37:51",
+      "id" : 2148394,
+      "parent" : 0
+    }
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "229",
+    "x-wp-totalpages" : "3"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/comments?post=244430&per_page=100&page=1&order=asc&orderby=date_gmt&_fields=id,parent,author_name,date_gmt,content"
+}

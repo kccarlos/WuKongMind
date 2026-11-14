@@ -1,0 +1,74 @@
+{
+  "body" : {
+    "hits" : [
+      {
+        "author" : "Glench",
+        "comment_text" : "I&#x27;ve been using SQLite&#x2F;Litestream for <a href=\"https:&#x2F;&#x2F;extensionpay.com\" rel=\"nofollow\">https:&#x2F;&#x2F;extensionpay.com</a> for about 3 years now! Serves about 120m requests per month (most of those are cached and don&#x27;t hit the db), but it&#x27;s been great!<p>I was convinced that SQLite could be a viable db option from this great post about it called Consider SQLite: <a href=\"https:&#x2F;&#x2F;blog.wesleyac.com&#x2F;posts&#x2F;consider-sqlite\" rel=\"nofollow\">https:&#x2F;&#x2F;blog.wesleyac.com&#x2F;posts&#x2F;consider-sqlite</a><p>Using SQLite with Litestream helped me to launch the site quickly without having to pay for or configure&#x2F;manage a db server, especially when I didn&#x27;t know if the site would make any money and didn&#x27;t have any personal experience with running production databases. Litestream streams to blackblaze b2 for literally $0 per month which is great. I already had a backblaze account for personal backups and it was easy to just add b2 storage. I&#x27;ve never had to restore from backup so far.<p>There&#x27;s a pleasing operational simplicity in this setup — one $14 DigitalOcean droplet serves my entire app (single-threaded still!) and it&#x27;s been easy to scale vertically by just upgrading the server to the next tier when I started pushing the limits of a droplet (or doing some obvious SQLite config optimizations). DigitalOcean&#x27;s &quot;premium&quot; intel and amd droplets use NVMe drives which seem to be especially good with SQLite.<p>One downside of using SQLite is that there&#x27;s just not as much community knowledge about using and tuning it for web applications. For example, I&#x27;m using it with SvelteKit and there&#x27;s not much written online about deploying multi-threaded SvelteKit apps with SQLite. Also, not many example configs to learn from. By far the biggest performance improvement I found was turning on memory mapping for SQLite.",
+        "created_at" : "2024-04-07T13:27:57Z",
+        "objectID" : "39960617",
+        "parent_id" : 39955288,
+        "story_id" : 39955288,
+        "story_title" : "Ask HN: SQLite in Production?"
+      },
+      {
+        "author" : "Glench",
+        "comment_text" : "copying and pasting from a different thread because this keeps coming up and I want to share my experience in case it&#x27;s helpful:<p>I use SQLite&#x2F;Litestream for <a href=\"https:&#x2F;&#x2F;extensionpay.com\" rel=\"nofollow\">https:&#x2F;&#x2F;extensionpay.com</a>! Serves about 120m requests per month (most of those are cached and don&#x27;t hit the db), but it&#x27;s been great!<p>I was convinced that SQLite could be a viable db option from this great post about it called Consider SQLite: <a href=\"https:&#x2F;&#x2F;blog.wesleyac.com&#x2F;posts&#x2F;consider-sqlite\" rel=\"nofollow\">https:&#x2F;&#x2F;blog.wesleyac.com&#x2F;posts&#x2F;consider-sqlite</a><p>Using SQLite with Litestream helped me to launch the site quickly without having to pay for or configure&#x2F;manage a db server, especially when I didn&#x27;t know if the site would make any money and didn&#x27;t have any personal experience with running production databases. Litestream streams to blackblaze b2 for literally $0 per month which is great. I already had a backblaze account for personal backups and it was easy to just add b2 storage. I&#x27;ve never had to restore from backup so far.<p>There&#x27;s a pleasing operational simplicity in this setup — one $14 DigitalOcean droplet serves my entire app (single-threaded still!) and it&#x27;s been easy to scale vertically by just upgrading the server to the next tier when I started pushing the limits of a droplet (or doing some obvious SQLite config optimizations). DigitalOcean&#x27;s &quot;premium&quot; intel and amd droplets use NVMe drives which seem to be especially good with SQLite.<p>One downside of using SQLite is that there&#x27;s just not as much community knowledge about using and tuning it for web applications. For example, I&#x27;m using it with SvelteKit and there&#x27;s not much written online about deploying multi-threaded SvelteKit apps with SQLite. Also, not many example configs to learn from. By far the biggest performance improvement I found was turning on memory mapping for SQLite.<p>Happy to answer any questions you might have!",
+        "created_at" : "2024-01-20T13:41:36Z",
+        "objectID" : "39067477",
+        "parent_id" : 39065201,
+        "story_id" : 39065201,
+        "story_title" : "Ask HN: Are you using SQLite and Litestream in production?"
+      },
+      {
+        "author" : "Glench",
+        "comment_text" : "copying and pasting from a different thread:<p>I use SQLite&#x2F;Litestream for <a href=\"https:&#x2F;&#x2F;extensionpay.com\" rel=\"nofollow\">https:&#x2F;&#x2F;extensionpay.com</a>! Serves about 120m requests per month (most of those are cached and don&#x27;t hit the db), but it&#x27;s been great!<p>I was convinced that SQLite could be a viable db option from this great post about it called Consider SQLite: <a href=\"https:&#x2F;&#x2F;blog.wesleyac.com&#x2F;posts&#x2F;consider-sqlite\" rel=\"nofollow\">https:&#x2F;&#x2F;blog.wesleyac.com&#x2F;posts&#x2F;consider-sqlite</a><p>Using SQLite with Litestream helped me to launch the site quickly without having to pay for or configure&#x2F;manage a db server, especially when I didn&#x27;t know if the site would make any money and didn&#x27;t have any personal experience with running production databases. Litestream streams to blackblaze b2 for literally $0 per month which is great. I already had a backblaze account for personal backups and it was easy to just add b2 storage. I&#x27;ve never had to restore from backup so far.<p>There&#x27;s a pleasing operational simplicity in this setup — one $14 DigitalOcean droplet serves my entire app (single-threaded still!) and it&#x27;s been easy to scale vertically by just upgrading the server to the next tier when I started pushing the limits of a droplet (or doing some obvious SQLite config optimizations). DigitalOcean&#x27;s &quot;premium&quot; intel and amd droplets use NVMe drives which seem to be especially good with SQLite.<p>One downside of using SQLite is that there&#x27;s just not as much community knowledge about using and tuning it for web applications. For example, I&#x27;m using it with SvelteKit and there&#x27;s not much written online about deploying multi-threaded SvelteKit apps with SQLite. Also, not many example configs to learn from. By far the biggest performance improvement I found was turning on memory mapping for SQLite.<p>Happy to answer any questions you might have!",
+        "created_at" : "2024-01-16T01:38:11Z",
+        "objectID" : "39008346",
+        "parent_id" : 39006347,
+        "story_id" : 39004963,
+        "story_title" : "SQLite 3.45 released with JSONB support"
+      },
+      {
+        "author" : "Glench",
+        "comment_text" : "I use SQLite&#x2F;Litestream for <a href=\"https:&#x2F;&#x2F;extensionpay.com\" rel=\"nofollow\">https:&#x2F;&#x2F;extensionpay.com</a>! Serves about 120m requests per month (most of those are cached and don&#x27;t hit the db), but it&#x27;s been great!<p>I have no affiliation with Litestream but I was convinced that SQLite could be a viable db option from this great post about it called Consider SQLite: <a href=\"https:&#x2F;&#x2F;blog.wesleyac.com&#x2F;posts&#x2F;consider-sqlite\" rel=\"nofollow\">https:&#x2F;&#x2F;blog.wesleyac.com&#x2F;posts&#x2F;consider-sqlite</a><p>Using SQLite with Litestream helped me to launch the site quickly without having to pay for or configure&#x2F;manage a db server, especially when I didn&#x27;t know if the site would make any money and didn&#x27;t have any personal experience with running production databases. Litestream streams to blackblaze b2 for literally $0 per month which is great. I already had a backblaze account for personal backups and it was easy to just add b2 storage. I&#x27;ve never had to restore from backup so far.<p>There&#x27;s a pleasing operational simplicity in this setup — one $14 DigitalOcean droplet serves my entire app (single-threaded still!) and it&#x27;s been easy to scale vertically by just upgrading the server to the next tier when I started pushing the limits of a droplet. DigitalOcean&#x27;s &quot;premium&quot; intel and amd droplets use NVMe drives which seem to be especially good with SQLite.<p>One downside of using SQLite is that there&#x27;s just not as much community knowledge about using and tuning it for web applications. For example, I&#x27;m using it with SvelteKit and there&#x27;s not much written online about deploying multi-threaded SvelteKit apps with SQLite. Also, not many example configs to learn from. By far the biggest performance improvement I found was turning on memory mapping for SQLite.<p>Happy to answer any questions you might have!",
+        "created_at" : "2024-01-02T16:54:00Z",
+        "objectID" : "38843770",
+        "parent_id" : 38838188,
+        "story_id" : 38837870,
+        "story_title" : "Litestream – Opensource disaster recovery and continuous replication for SQLite"
+      },
+      {
+        "author" : "dwighson",
+        "comment_text" : "BEAM distribution + consistent hashing. Entities are assigned to nodes by their ID. If a node goes down, the hash ring updates and surviving nodes pick up its entities. Litestream continuously streams SQLite WAL changes to S3 so you can restore from the last segment.<p>The clustering and rebalance coordinator are implemented and tested with multi-node BEAM peers, but I&#x27;ll be honest, I haven&#x27;t run it in a multi-server production deployment yet. Single-node with Litestream backup is what I&#x27;m running in production right now. Recovery from backup takes seconds, not minutes.<p>True multi-node HA is architecturally ready but not battle-tested at scale yet. v0.1.",
+        "created_at" : "2026-04-13T12:44:45Z",
+        "objectID" : "47751179",
+        "parent_id" : 47750653,
+        "story_id" : 47741527,
+        "story_title" : "Ask HN: What Are You Working On? (April 2026)"
+      },
+      {
+        "author" : "ajayvk",
+        "comment_text" : "I’ve been working on making SQLite a first-class production option in OpenRun. OpenRun is a self-hosted deployment platform for web apps and internal tools which I have been building as a side project for last three years. Built-in Litestream replication and automatic restore is a new feature I added, so apps can use SQLite while OpenRun handles backup&#x2F;recovery. This works on a single node with Docker&#x2F;Podman and also on Kubernetes.<p>You define the S3 config once on the server, and every SQLite app gets continuous replication and automatic restore using Litestream. The app image stays unchanged. The server&#x27;s own metadata is replicated too, through Litestream embedded as a Go library.",
+        "created_at" : "2026-08-26T18:37:14Z",
+        "objectID" : "49453746",
+        "parent_id" : 49453745,
+        "story_id" : 49453745,
+        "story_title" : "Automatic Litestream Replication for any SQLite app"
+      },
+      {
+        "author" : "xiaomai",
+        "comment_text" : "I&#x27;ve been running sqlite in production since 2014 (no litestream).<p>It&#x27;s mostly great. I love how easy it is to backup the database, mirror prod into my local environment for development, etc. Restoring things from backup is also quite nice: I can attach to the restored db and the prod db in the same sqlite session and update&#x2F;insert the necessary records (w&#x2F; joins&#x2F;etc.)<p>I&#x27;m starting to have to work around the single-writer limitation. I&#x27;ve got a web server and a set of background job workers. As my scale has increased, I&#x27;ve had to start working around write conflicts (I&#x27;m debating switching to postgres for this reason, but I know sqlite is working on concurrent writes, so I&#x27;m hoping they beat me to it).",
+        "created_at" : "2024-01-20T19:42:13Z",
+        "objectID" : "39071470",
+        "parent_id" : 39065201,
+        "story_id" : 39065201,
+        "story_title" : "Ask HN: Are you using SQLite and Litestream in production?"
+      }
+    ]
+  },
+  "headers" : {
+    "content-type" : "application/json"
+  },
+  "status" : 200,
+  "url" : "https://hn.algolia.com/api/v1/search?tags=comment&query=litestream%20production%20restore%20backup&page=0&hitsPerPage=10"
+}

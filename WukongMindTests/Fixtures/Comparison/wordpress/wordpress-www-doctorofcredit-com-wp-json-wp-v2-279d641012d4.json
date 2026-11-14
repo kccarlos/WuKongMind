@@ -1,0 +1,12 @@
+{
+  "body" : [
+
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "0",
+    "x-wp-totalpages" : "0"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/posts?search=double%20dip%20year-end%20Amex%20Platinum%20Citi%20Strata%20Elite%20Bank%20of%20America%20Premium%20Rewards%20Elite&per_page=20&page=1&_fields=id,title,link,date_gmt,excerpt,author,_embedded,_links&after=2025-06-01T00:00:00&_embed=author"
+}

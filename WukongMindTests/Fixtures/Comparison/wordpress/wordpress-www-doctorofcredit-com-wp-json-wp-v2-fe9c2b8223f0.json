@@ -1,0 +1,911 @@
+{
+  "body" : [
+    {
+      "author_name" : "Odd",
+      "content" : {
+        "rendered" : "<p>Have it on my CSP (6/24), also got the 20k UR offer from DoC&#8217;s post yesterday.</p>\n<p>Would it be stackable with CSPs $50 hotel credit, $100 off $500 and 20k UR?</p>\n"
+      },
+      "date_gmt" : "2024-09-27T13:03:55",
+      "id" : 1920316,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Chris H.",
+      "content" : {
+        "rendered" : "<p>Is this an email or a Chase Offer?</p>\n"
+      },
+      "date_gmt" : "2024-09-27T13:08:42",
+      "id" : 1920317,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Dumars",
+      "content" : {
+        "rendered" : "<p>Offer</p>\n"
+      },
+      "date_gmt" : "2024-09-27T13:15:31",
+      "id" : 1920321,
+      "parent" : 1920317
+    },
+    {
+      "author_name" : "B",
+      "content" : {
+        "rendered" : "<p>Will this stack with the 20k UR offer if I spend $500+ on hotels?</p>\n"
+      },
+      "date_gmt" : "2024-09-27T13:16:19",
+      "id" : 1920322,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Young",
+      "content" : {
+        "rendered" : "<p>Chase Offer got one on my Ink card LFG!</p>\n"
+      },
+      "date_gmt" : "2024-09-27T13:16:58",
+      "id" : 1920323,
+      "parent" : 1920317
+    },
+    {
+      "author_name" : "Loc A.",
+      "content" : {
+        "rendered" : "<p>does it stack with 20k for $500 hotel spend on portal? If so, it will be a big win because technically, 20k UR points for $400 of spending (after this targeted credit)!!</p>\n"
+      },
+      "date_gmt" : "2024-09-27T13:19:19",
+      "id" : 1920325,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Waldo",
+      "content" : {
+        "rendered" : "<p>Got this on all my cards that earn Chase Ultimate Rewards. Freedom Unlimited, Sapphire, Ink.</p>\n"
+      },
+      "date_gmt" : "2024-09-27T13:30:19",
+      "id" : 1920333,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Mike",
+      "content" : {
+        "rendered" : "<p>Will this stack with the UR bonus posted yesterday?</p>\n"
+      },
+      "date_gmt" : "2024-09-27T13:45:00",
+      "id" : 1920340,
+      "parent" : 0
+    },
+    {
+      "author_name" : "TT",
+      "content" : {
+        "rendered" : "<p>Would multiple purchases adding up to $500+ trigger this? I would assume not, but just in case.</p>\n"
+      },
+      "date_gmt" : "2024-09-27T13:45:37",
+      "id" : 1920341,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Bdon",
+      "content" : {
+        "rendered" : "<p>Offer, I got on Freedom Unlimited and Amazon</p>\n"
+      },
+      "date_gmt" : "2024-09-27T13:45:37",
+      "id" : 1920342,
+      "parent" : 1920317
+    },
+    {
+      "author_name" : "Rajat S.",
+      "content" : {
+        "rendered" : "<p>I got the offer and added it on my Freedom Flex and Freedom. Now it has disappeared from both 🙁</p>\n"
+      },
+      "date_gmt" : "2024-09-27T13:53:30",
+      "id" : 1920346,
+      "parent" : 0
+    },
+    {
+      "author_name" : "h1h0",
+      "content" : {
+        "rendered" : "<p>Same here, added to the Sapphire Reserve and Freedom earlier and both of them disappeared&#8230;</p>\n"
+      },
+      "date_gmt" : "2024-09-27T14:06:41",
+      "id" : 1920351,
+      "parent" : 1920346
+    },
+    {
+      "author_name" : "MDT",
+      "content" : {
+        "rendered" : "<p>same</p>\n"
+      },
+      "date_gmt" : "2024-09-27T14:19:03",
+      "id" : 1920359,
+      "parent" : 1920351
+    },
+    {
+      "author_name" : "travis",
+      "content" : {
+        "rendered" : "<p>Same thing for me. Added this morning. Gone later this morning. WTH?!</p>\n"
+      },
+      "date_gmt" : "2024-09-27T14:24:13",
+      "id" : 1920361,
+      "parent" : 1920346
+    },
+    {
+      "author_name" : "Clara",
+      "content" : {
+        "rendered" : "<p>Mine are still there, added last night</p>\n"
+      },
+      "date_gmt" : "2024-09-27T14:28:26",
+      "id" : 1920362,
+      "parent" : 1920346
+    },
+    {
+      "author_name" : "Clara",
+      "content" : {
+        "rendered" : "<p>Have the offer on all my other cards, except the Chase Sapphire Preferred which is my main travel card&#8230;</p>\n"
+      },
+      "date_gmt" : "2024-09-27T14:29:20",
+      "id" : 1920364,
+      "parent" : 1920333
+    },
+    {
+      "author_name" : "H XU",
+      "content" : {
+        "rendered" : "<p>same here</p>\n"
+      },
+      "date_gmt" : "2024-09-27T14:32:15",
+      "id" : 1920367,
+      "parent" : 1920346
+    },
+    {
+      "author_name" : "Abe",
+      "content" : {
+        "rendered" : "<p>What a scam added them on 5 cards last night and it’s not there anymore</p>\n"
+      },
+      "date_gmt" : "2024-09-27T14:36:15",
+      "id" : 1920370,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Spiel",
+      "content" : {
+        "rendered" : "<p>Where does the offer &#8220;appear&#8221; and &#8220;disappear&#8221; from once it&#8217;s already added?</p>\n"
+      },
+      "date_gmt" : "2024-09-27T14:45:23",
+      "id" : 1920380,
+      "parent" : 1920370
+    },
+    {
+      "author_name" : "Andy",
+      "content" : {
+        "rendered" : "<p>Offer got removed from all my cards that had it&#8230;.</p>\n"
+      },
+      "date_gmt" : "2024-09-27T14:50:14",
+      "id" : 1920384,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Sheng",
+      "content" : {
+        "rendered" : "<p>Same. I wonder it it&#8217;s like the offers from chase.com/mybonus where there is no way to see it once activated? Either way, I&#8217;m not risking it.</p>\n"
+      },
+      "date_gmt" : "2024-09-27T14:58:49",
+      "id" : 1920393,
+      "parent" : 1920346
+    },
+    {
+      "author_name" : "KT",
+      "content" : {
+        "rendered" : "<p>Booked a trip with the offer activated before it was clawed back this morning.. I will call customer service and hopefully get some kind of update.</p>\n"
+      },
+      "date_gmt" : "2024-09-27T15:03:50",
+      "id" : 1920397,
+      "parent" : 0
+    },
+    {
+      "author_name" : "NBG",
+      "content" : {
+        "rendered" : "<p>Where do you guys see this?. in the usual chase offers section?.</p>\n"
+      },
+      "date_gmt" : "2024-09-27T15:06:56",
+      "id" : 1920401,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Pedro",
+      "content" : {
+        "rendered" : "<p>Offer &#8220;dissappeared&#8221; on my Chase Saphire Preferred after adding it yesterday</p>\n"
+      },
+      "date_gmt" : "2024-09-27T15:32:33",
+      "id" : 1920410,
+      "parent" : 0
+    },
+    {
+      "author_name" : "someones1",
+      "content" : {
+        "rendered" : "<p>Added this last night and immediately bought a flight on the portal&#8230; hoping it still posts and stacks with the other bonus.  Wish I had of taken a screenshot.</p>\n"
+      },
+      "date_gmt" : "2024-09-27T15:51:14",
+      "id" : 1920436,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Yj32",
+      "content" : {
+        "rendered" : "<p>Yes, listed in the usual offer section, &#8216;travel&#8217;.</p>\n"
+      },
+      "date_gmt" : "2024-09-27T17:09:18",
+      "id" : 1920488,
+      "parent" : 1920401
+    },
+    {
+      "author_name" : "SF",
+      "content" : {
+        "rendered" : "<p>oh man all the ones i added yesterday after seeing the 20k offer also disappeared now&#8230;</p>\n"
+      },
+      "date_gmt" : "2024-09-27T17:11:39",
+      "id" : 1920491,
+      "parent" : 0
+    },
+    {
+      "author_name" : "IvesC",
+      "content" : {
+        "rendered" : "<p>added to my CFU this morning, now its gone after 3hrs</p>\n"
+      },
+      "date_gmt" : "2024-09-27T17:33:40",
+      "id" : 1920505,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Troy",
+      "content" : {
+        "rendered" : "<p>Chase offers occasionally disappear&#8230;<br />\nI&#8217;ve had Chase offers disappear on me before, but ended up automatically crediting. Last one that did this was a Newegg 6% offer that I added, purchased something a day later, then totally disappeared. Waited a couple weeks, contacted CS who said I never had the offer (so they apparently also didn&#8217;t see it). Then out of the blue 30 days after purchase the credit auto-posted.<br />\nIt&#8217;s almost like they pulled the offer but still had to pay out those who completed it&#8230;so they hide it hoping you don&#8217;t use it but pay if you do.<br />\nMy 2 cents of speculation anyway</p>\n"
+      },
+      "date_gmt" : "2024-09-27T17:39:53",
+      "id" : 1920511,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Yj32",
+      "content" : {
+        "rendered" : "<p>Fwiw, Costco membership offer disappeared. Nevertheless, $20 credited a few days later without any action on my part.</p>\n"
+      },
+      "date_gmt" : "2024-09-27T17:48:06",
+      "id" : 1920518,
+      "parent" : 0
+    },
+    {
+      "author_name" : "AP",
+      "content" : {
+        "rendered" : "<p>can you stack this with the 20K/10K offer?</p>\n"
+      },
+      "date_gmt" : "2024-09-27T17:57:38",
+      "id" : 1920532,
+      "parent" : 0
+    },
+    {
+      "author_name" : "daquan",
+      "content" : {
+        "rendered" : "<p>Everyone is asking the same question so I won&#8217;t bother.  My hotel stay is in January so I won&#8217;t know if I get both until sometime next year.  I too, wished I had taken screen shots.  I didn&#8217;t do it for either offer.  Old age sucks sometimes.</p>\n"
+      },
+      "date_gmt" : "2024-09-27T19:47:38",
+      "id" : 1920612,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Eric",
+      "content" : {
+        "rendered" : "<p>Where can I find the 20k/10k offer?</p>\n"
+      },
+      "date_gmt" : "2024-09-27T20:15:34",
+      "id" : 1920632,
+      "parent" : 1920532
+    },
+    {
+      "author_name" : "Eric",
+      "content" : {
+        "rendered" : "<p>It shows up in your chase offers now.  I just checked in the Chase app and it shows up.</p>\n"
+      },
+      "date_gmt" : "2024-09-27T20:23:59",
+      "id" : 1920643,
+      "parent" : 1920612
+    },
+    {
+      "author_name" : "Eric",
+      "content" : {
+        "rendered" : "<p>Check your account again.  I see the Chase Travel Chase offer available on most of my cards.</p>\n"
+      },
+      "date_gmt" : "2024-09-27T20:25:11",
+      "id" : 1920645,
+      "parent" : 1920505
+    },
+    {
+      "author_name" : "Christian Aviles",
+      "content" : {
+        "rendered" : "<p>I’m still seeing the 20k point offer show up to add even after adding this, I feel like it should stack</p>\n"
+      },
+      "date_gmt" : "2024-09-27T20:33:31",
+      "id" : 1920653,
+      "parent" : 0
+    },
+    {
+      "author_name" : "AdoptaPetInstead",
+      "content" : {
+        "rendered" : "<p>Still seeing it in my offers page, thankfully. Always screenshot when it comes to Chase they are the worst when it comes to managing promotions.</p>\n"
+      },
+      "date_gmt" : "2024-09-27T21:37:25",
+      "id" : 1920685,
+      "parent" : 1920380
+    },
+    {
+      "author_name" : "em",
+      "content" : {
+        "rendered" : "<p>Would you mind sharing if you purchased in store or online at Costco. My freedom flex has the offer, obviously purchasing in store is out of question since it&#8217;s a mastercard. Been thinking if buying a Costco gift card for the exact amount online would work.</p>\n"
+      },
+      "date_gmt" : "2024-09-27T21:52:34",
+      "id" : 1920696,
+      "parent" : 1920518
+    },
+    {
+      "author_name" : "Yj32",
+      "content" : {
+        "rendered" : "<p>Renewed membership online.</p>\n"
+      },
+      "date_gmt" : "2024-09-27T22:04:11",
+      "id" : 1920703,
+      "parent" : 1920696
+    },
+    {
+      "author_name" : "em",
+      "content" : {
+        "rendered" : "<p>Good to know, thanks a lot!!</p>\n"
+      },
+      "date_gmt" : "2024-09-27T22:21:54",
+      "id" : 1920720,
+      "parent" : 1920703
+    },
+    {
+      "author_name" : "Oleg",
+      "content" : {
+        "rendered" : "<p>I am curious , since I do not have any current plans, if I buy a flight ticket and get the credit, will I be able to cancel the flight with the airline for future funds?&nbsp;&nbsp;Then I could use the funds when it is time to travel.&nbsp;&nbsp;&nbsp;</p>\n"
+      },
+      "date_gmt" : "2024-09-27T22:39:59",
+      "id" : 1920733,
+      "parent" : 0
+    },
+    {
+      "author_name" : "REJECTION",
+      "content" : {
+        "rendered" : "<p>What offer is that?</p>\n"
+      },
+      "date_gmt" : "2024-09-28T06:07:08",
+      "id" : 1920912,
+      "parent" : 1920653
+    },
+    {
+      "author_name" : "Royal Green",
+      "content" : {
+        "rendered" : "<p>Does is have to be one single purchase of $500+ or can be over few purchases as long as total is $500+ by October 31?</p>\n"
+      },
+      "date_gmt" : "2024-09-28T08:20:05",
+      "id" : 1920933,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Cheeriochick",
+      "content" : {
+        "rendered" : "<p>I use the CardPointers Chrome extension to autoadd Chase and Amex offers to my accounts . The Chase offer didn&#8217;t show up on my Chase offers page, but when I ran the extension to add all of my current offers, it was there. I didn&#8217;t even know about this offer until I saw it on the extension. Nice surprise!</p>\n"
+      },
+      "date_gmt" : "2024-09-28T11:58:15",
+      "id" : 1920967,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Free3",
+      "content" : {
+        "rendered" : "<p>For me, the 20k offer did not/does not show up on the chase app even after<br />\nI signed up via the web link above.   But the $100 off flights did show up on the app, and not via the web link.</p>\n"
+      },
+      "date_gmt" : "2024-09-28T16:37:04",
+      "id" : 1921083,
+      "parent" : 1920643
+    },
+    {
+      "author_name" : "Coco",
+      "content" : {
+        "rendered" : "<p>I have an existing refundable reservation booked through the hotel. Booked another refundable room through the portal using the FU card. If all goes according to plan, I will come out $98 ahead including 5% points and this promo. And now, I get a free breakfast.</p>\n"
+      },
+      "date_gmt" : "2024-09-28T17:23:11",
+      "id" : 1921112,
+      "parent" : 0
+    },
+    {
+      "author_name" : "KS",
+      "content" : {
+        "rendered" : "<p>Based on my conversation with the Chase representative, it can be several purchases. He said I could also call them and ask to manually adjust it if the cashback did not get triggered right away, and it&#8217;d still be honored.</p>\n"
+      },
+      "date_gmt" : "2024-09-28T23:31:23",
+      "id" : 1921261,
+      "parent" : 1920933
+    },
+    {
+      "author_name" : "Enrico",
+      "content" : {
+        "rendered" : "<p>Strange the post from yesterday, none of my UR cards have the travel spending. Also this offer is on none of my 5 cards.</p>\n"
+      },
+      "date_gmt" : "2024-09-29T16:29:40",
+      "id" : 1921527,
+      "parent" : 0
+    },
+    {
+      "author_name" : "anneok",
+      "content" : {
+        "rendered" : "<p>Same here&#8230; I swore I added it on all my cards&#8230;. this morning it was still there&#8230; a few hours later&#8230; ALL GONE.</p>\n"
+      },
+      "date_gmt" : "2024-09-29T18:39:18",
+      "id" : 1921561,
+      "parent" : 1920505
+    },
+    {
+      "author_name" : "Abe",
+      "content" : {
+        "rendered" : "<p>Is there a way to combine this with points usage?</p>\n"
+      },
+      "date_gmt" : "2024-09-30T01:28:21",
+      "id" : 1921687,
+      "parent" : 0
+    },
+    {
+      "author_name" : "ChickenLittle",
+      "content" : {
+        "rendered" : "<p>It says purchase must be made by 10/31. For hotel bookings on Chase travel, does the transaction get charged at checkin or when you book the hotel?</p>\n"
+      },
+      "date_gmt" : "2024-09-30T06:52:40",
+      "id" : 1921746,
+      "parent" : 0
+    },
+    {
+      "author_name" : "ChickenLittle",
+      "content" : {
+        "rendered" : "<p>Yes, you just need to spend above 500 + whatever points you want to use.</p>\n"
+      },
+      "date_gmt" : "2024-09-30T06:52:56",
+      "id" : 1921747,
+      "parent" : 1921687
+    },
+    {
+      "author_name" : "TDD",
+      "content" : {
+        "rendered" : "<p>Interestingly, this offer showed up on my Chase Freedom and Amazon Prime cards under my merchant offers. The link to activate the offer did nothing for me.</p>\n"
+      },
+      "date_gmt" : "2024-09-30T14:23:35",
+      "id" : 1921844,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Penny",
+      "content" : {
+        "rendered" : "<p>terms states that the $500 charge needs to be made by 10/31. So you have to use the pay now and charge the $500 onto your card now to get it</p>\n"
+      },
+      "date_gmt" : "2024-09-30T17:03:19",
+      "id" : 1921943,
+      "parent" : 1921746
+    },
+    {
+      "author_name" : "Maggie",
+      "content" : {
+        "rendered" : "<p>Does this combine with the bonus point offer (spend $400 and get 10,000 bonus points)?</p>\n"
+      },
+      "date_gmt" : "2024-09-30T18:18:38",
+      "id" : 1921989,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Vik420",
+      "content" : {
+        "rendered" : "<p>Does the $500 amount have to be in one transaction or can it be split in multiple?<br />\nI need to book multiple flights but in different itineraries and they individually are not close to $500.</p>\n"
+      },
+      "date_gmt" : "2024-10-01T05:55:31",
+      "id" : 1922362,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Arley",
+      "content" : {
+        "rendered" : "<p>Does the Costco chase offer work on anything? It clearly says for membership.</p>\n"
+      },
+      "date_gmt" : "2024-10-01T11:33:34",
+      "id" : 1922437,
+      "parent" : 1920696
+    },
+    {
+      "author_name" : "daquan",
+      "content" : {
+        "rendered" : "<p>I booked a hotel on chase last week, paying $800 after I added the offer and now it no longer shows up in my offers.  I don&#8217;t know why I refuse to do screenshots.  I guess I&#8217;ll try to call them.</p>\n"
+      },
+      "date_gmt" : "2024-10-01T18:03:21",
+      "id" : 1922768,
+      "parent" : 0
+    },
+    {
+      "author_name" : "MMY",
+      "content" : {
+        "rendered" : "<p>My 3 Chase CCs have this offer and I will buy 4 family air tickets $2000+, does any one know if  I can use 3 cards during check out ? Or I have to buy 3 times separately? Many thanks!</p>\n"
+      },
+      "date_gmt" : "2024-10-02T18:30:39",
+      "id" : 1923741,
+      "parent" : 0
+    },
+    {
+      "author_name" : "daquan",
+      "content" : {
+        "rendered" : "<p>Just updating that I received an email stating that I had earned the $100.  It hasn&#8217;t posted yet but it looks like Chase is honoring it.</p>\n"
+      },
+      "date_gmt" : "2024-10-03T02:24:23",
+      "id" : 1924083,
+      "parent" : 1922768
+    },
+    {
+      "author_name" : "Tren",
+      "content" : {
+        "rendered" : "<p>did you call them before you got email? When did you book? I booked on Sep 29 and $100 offer disappeared today. No longer shows up in my added offers, not shows in redeemed offers as well</p>\n"
+      },
+      "date_gmt" : "2024-10-03T03:04:49",
+      "id" : 1924106,
+      "parent" : 1924083
+    },
+    {
+      "author_name" : "AA",
+      "content" : {
+        "rendered" : "<p>I saw this in my Chase Offers (merchant offers) on Chase Freedom and added it. A few days later, I noticed it was gone. Today, I noticed it&#8217;s showing up again (still added/enrolled from before).</p>\n"
+      },
+      "date_gmt" : "2024-10-04T16:59:21",
+      "id" : 1925591,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Tom",
+      "content" : {
+        "rendered" : "<p>Will they claw back the credit if I have to cancel the booking?</p>\n"
+      },
+      "date_gmt" : "2024-10-05T02:29:41",
+      "id" : 1925968,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Kyle",
+      "content" : {
+        "rendered" : "<p><a class='wpd-umcguest'  href='https://www.doctorofcredit.com/targeted-chase-travel-spend-500-receive-100-back/#comment-1921989'><img alt='' src='https://secure.gravatar.com/avatar/126642f24e4e68de06af35acaab84603f9bb659bbc6c314d9585af7420dfa417?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/126642f24e4e68de06af35acaab84603f9bb659bbc6c314d9585af7420dfa417?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>Maggie</a> I&#8217;m testing it out. Already received a congrats email for redeeming my Chase offer for $100. Just waiting to see if the UR points post.</p>\n"
+      },
+      "date_gmt" : "2024-10-08T17:11:04",
+      "id" : 1928184,
+      "parent" : 1921989
+    },
+    {
+      "author_name" : "Abe",
+      "content" : {
+        "rendered" : "<p>+1 for having had this offer and now it&#8217;s gone after booking. Anyone have luck in getting back?</p>\n"
+      },
+      "date_gmt" : "2024-10-10T19:00:32",
+      "id" : 1929769,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Lebronizpoormanjordan",
+      "content" : {
+        "rendered" : "<p>I used this on my personal card and the offer disappeared from my 2 business cards.</p>\n<p>Edit. The offers are showing on my business card again</p>\n"
+      },
+      "date_gmt" : "2024-10-13T00:29:57",
+      "id" : 1931253,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Eric",
+      "content" : {
+        "rendered" : "<p>Why do you want it back?</p>\n"
+      },
+      "date_gmt" : "2024-10-13T20:15:05",
+      "id" : 1931584,
+      "parent" : 1929769
+    },
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>I would like to know this too. Did you test this out?</p>\n"
+      },
+      "date_gmt" : "2024-10-15T02:25:45",
+      "id" : 1932251,
+      "parent" : 1922362
+    },
+    {
+      "author_name" : "BN",
+      "content" : {
+        "rendered" : "<p>Any update on the cash &amp; points stack ?</p>\n"
+      },
+      "date_gmt" : "2024-10-17T01:34:15",
+      "id" : 1933471,
+      "parent" : 1928184
+    },
+    {
+      "author_name" : "anita",
+      "content" : {
+        "rendered" : "<p><span>Can you get a travel credit to use later by booking and canceling a flight this month, eg on southwest?</span></p>\n"
+      },
+      "date_gmt" : "2024-10-17T17:37:25",
+      "id" : 1933781,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Dan",
+      "content" : {
+        "rendered" : "<p>Has anyone actually received the $100 for this offer yet? I booked a hotel on Oct 5 totaling more than $500, which was immediately charged to my Sapphire Preferred. My stay isn&#8217;t until November, however. A day after booking, the offer disappeared from my Chase Offers, but reappeared a day later. But now, 13 days after charging my card, the offer is still not showing as &#8220;redeemed.&#8221;</p>\n"
+      },
+      "date_gmt" : "2024-10-18T13:15:18",
+      "id" : 1934129,
+      "parent" : 0
+    },
+    {
+      "author_name" : "JW",
+      "content" : {
+        "rendered" : "<p>Want to know too. Did you try canceling?</p>\n"
+      },
+      "date_gmt" : "2024-10-21T00:32:27",
+      "id" : 1935172,
+      "parent" : 1925968
+    },
+    {
+      "author_name" : "Nitpicker",
+      "content" : {
+        "rendered" : "<p>I&#8217;m willing to bet they stack. Chase doesn&#8217;t seem to be as aggressive in blocking this kind of thing in general</p>\n"
+      },
+      "date_gmt" : "2024-10-21T19:46:28",
+      "id" : 1935678,
+      "parent" : 1921989
+    },
+    {
+      "author_name" : "Tenji",
+      "content" : {
+        "rendered" : "<p>I had the $100 deal across all 5 of my card. Csp, prime visa, ink unlimited, ink cash and ink prefer. I made all purchase back on the 18th and the $100 credit show up on 22th. The prime visa took an extra day and the offer initially disappear completely after I made purchase then reappear in the redeem on the 23rd. </p>\n<p>Also note that one of the chase travel purchase was cancel same day and I still got the $100 off credit. Let&#8217;s see if it&#8217;s claw back later or not.</p>\n"
+      },
+      "date_gmt" : "2024-10-23T22:20:08",
+      "id" : 1937197,
+      "parent" : 0
+    },
+    {
+      "author_name" : "ChickenLittle",
+      "content" : {
+        "rendered" : "<p>So you canceled it and it was refunded on your card?</p>\n"
+      },
+      "date_gmt" : "2024-10-28T05:13:23",
+      "id" : 1939521,
+      "parent" : 1937197
+    },
+    {
+      "author_name" : "Eric",
+      "content" : {
+        "rendered" : "<p>It has to be $500 or more in one transaction.</p>\n"
+      },
+      "date_gmt" : "2024-10-30T16:19:14",
+      "id" : 1941030,
+      "parent" : 1922362
+    },
+    {
+      "author_name" : "Eric",
+      "content" : {
+        "rendered" : "<p>Any update on your situation if there was anything clawed back?</p>\n"
+      },
+      "date_gmt" : "2024-10-30T16:20:11",
+      "id" : 1941031,
+      "parent" : 1937197
+    },
+    {
+      "author_name" : "AdoptaPetInstead",
+      "content" : {
+        "rendered" : "<p><span>Also interested in an update on this.</span></p>\n"
+      },
+      "date_gmt" : "2024-10-31T01:42:44",
+      "id" : 1941382,
+      "parent" : 1937197
+    },
+    {
+      "author_name" : "Eric",
+      "content" : {
+        "rendered" : "<p>Usually when you get the emails stating the Chase offer has been redeemed, it takes like 1 or 2 more business days for it to post to your Chase account.</p>\n"
+      },
+      "date_gmt" : "2024-10-31T19:15:38",
+      "id" : 1941858,
+      "parent" : 1924083
+    },
+    {
+      "author_name" : "BN",
+      "content" : {
+        "rendered" : "<p>Got my $100 as well. Also had the 10K points offer on the same card but that didn&#8217;t show up. Has anyone been able to stack the two offers ?</p>\n"
+      },
+      "date_gmt" : "2024-11-01T03:10:49",
+      "id" : 1942157,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Ffg",
+      "content" : {
+        "rendered" : "<p>Yes I see the offer applied in a few of my inks and csp. Just gotta wait. The 10k offer though I haven’t seen that.</p>\n"
+      },
+      "date_gmt" : "2024-11-01T11:59:40",
+      "id" : 1942302,
+      "parent" : 1934129
+    },
+    {
+      "author_name" : "Eric",
+      "content" : {
+        "rendered" : "<p>did you use it for hotels or flights for the $10K offer? It does say you need to 8 weeks for the points to credit from when the actual travel is realized. If this was legitimate spend then you don&#8217;t have to worry but if your plan was to cancel, I wouldn&#8217;t bother with it.</p>\n"
+      },
+      "date_gmt" : "2024-11-01T16:24:03",
+      "id" : 1942467,
+      "parent" : 1942157
+    },
+    {
+      "author_name" : "BN",
+      "content" : {
+        "rendered" : "<p>Flights and they are non-refundable. Will wait and see.</p>\n"
+      },
+      "date_gmt" : "2024-11-02T02:10:10",
+      "id" : 1943002,
+      "parent" : 1942467
+    },
+    {
+      "author_name" : "AdoptaPetInstead",
+      "content" : {
+        "rendered" : "<p>DP: I made my bookings on 10/30 (processed as 10/31) and they were pending transactions over the weekend. The offer went into the &#8220;expired&#8221; section. </p>\n<p>I received the email today that I triggered the offer and will receive it. I did this on three different cards (same scenario on each).</p>\n"
+      },
+      "date_gmt" : "2024-11-04T18:53:14",
+      "id" : 1944297,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Brian",
+      "content" : {
+        "rendered" : "<p>FYI &#8211; to get the $100 credit, you needed to have completed the $500 in spend on the travel portal in a single purchase. This is from a Chase Secure Message reply I received: </p>\n<p><span>&#8220;We are unable to issue a statement credit to your account</span><br />\n<span>because the $500.00 spend requirement must be met in a</span><br />\n<span>single purchase.&#8221;</span></p>\n"
+      },
+      "date_gmt" : "2024-11-11T15:39:52",
+      "id" : 1948900,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Eric",
+      "content" : {
+        "rendered" : "<p>That is how I read it to 100% be sure that it satisfies the criteria is that it has to be on a single transaction. I never bought into that it can be used over multiple transactions.</p>\n"
+      },
+      "date_gmt" : "2024-11-13T02:10:57",
+      "id" : 1949954,
+      "parent" : 1948900
+    },
+    {
+      "author_name" : "Eric",
+      "content" : {
+        "rendered" : "<p>Did you get the credit?</p>\n"
+      },
+      "date_gmt" : "2024-11-18T00:22:38",
+      "id" : 1953590,
+      "parent" : 1943002
+    },
+    {
+      "author_name" : "Eric",
+      "content" : {
+        "rendered" : "<p>So far so good on my end</p>\n"
+      },
+      "date_gmt" : "2024-11-20T19:23:58",
+      "id" : 1955705,
+      "parent" : 1941382
+    },
+    {
+      "author_name" : "AdoptaPetInstead",
+      "content" : {
+        "rendered" : "<p>Same here on all three cards. Although I didn&#8217;t cancel anything. Did you cancel and still get the credit?</p>\n"
+      },
+      "date_gmt" : "2024-11-20T21:46:28",
+      "id" : 1955786,
+      "parent" : 1955705
+    },
+    {
+      "author_name" : "Eric",
+      "content" : {
+        "rendered" : "<p>Yes. All but one were cancelled since the one are actually flights I am taking.</p>\n"
+      },
+      "date_gmt" : "2024-11-21T00:10:58",
+      "id" : 1955853,
+      "parent" : 1955786
+    },
+    {
+      "author_name" : "AdoptaPetInstead",
+      "content" : {
+        "rendered" : "<p>Oh wow, this is a good dp to know! I&#8217;m generally traveling as well, but good to know next time this offer comes around and I don&#8217;t have any travel plans in mind across my cards.</p>\n"
+      },
+      "date_gmt" : "2024-11-21T04:19:17",
+      "id" : 1955983,
+      "parent" : 1955853
+    },
+    {
+      "author_name" : "Eric",
+      "content" : {
+        "rendered" : "<p>I hope Chase this Chase Travel offer is brought back sometime in 2025.  I would love to use it again.</p>\n"
+      },
+      "date_gmt" : "2025-02-16T00:04:45",
+      "id" : 2005277,
+      "parent" : 0
+    },
+    {
+      "author_name" : "SP",
+      "content" : {
+        "rendered" : "<p>It&#8217;s back!</p>\n"
+      },
+      "date_gmt" : "2025-04-30T17:16:28",
+      "id" : 2052060,
+      "parent" : 2005277
+    },
+    {
+      "author_name" : "Holly",
+      "content" : {
+        "rendered" : "<p>Where exactly do we see this offer? Is it a card linked offer?</p>\n"
+      },
+      "date_gmt" : "2025-04-30T18:35:40",
+      "id" : 2052123,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Bulba",
+      "content" : {
+        "rendered" : "<p>0/5 this time for me.</p>\n"
+      },
+      "date_gmt" : "2025-04-30T19:15:37",
+      "id" : 2052148,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Ryan",
+      "content" : {
+        "rendered" : "<p>In the past I&#8217;ve seen it in the Offers section (where you typically get 5-15% back) through the app.</p>\n"
+      },
+      "date_gmt" : "2025-04-30T19:35:39",
+      "id" : 2052175,
+      "parent" : 2052123
+    },
+    {
+      "author_name" : "Kyle",
+      "content" : {
+        "rendered" : "<p>0/8 on P1 accounts but 6/7 on P2</p>\n"
+      },
+      "date_gmt" : "2025-04-30T19:45:13",
+      "id" : 2052183,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Celia",
+      "content" : {
+        "rendered" : "<p>It&#8217;s in the Chase offers section.</p>\n<p>6/8 for me.</p>\n"
+      },
+      "date_gmt" : "2025-04-30T20:18:35",
+      "id" : 2052199,
+      "parent" : 2052123
+    },
+    {
+      "author_name" : "Sebastian",
+      "content" : {
+        "rendered" : "<p>Is it an “add to card” offer or a chase my bonus offer where you put in your info?</p>\n"
+      },
+      "date_gmt" : "2025-04-30T20:30:01",
+      "id" : 2052211,
+      "parent" : 0
+    },
+    {
+      "author_name" : "churner_burner",
+      "content" : {
+        "rendered" : "<p>Does this stack with CSP annual hotel credit ? I assume it should but you never know.</p>\n"
+      },
+      "date_gmt" : "2025-04-30T20:52:31",
+      "id" : 2052226,
+      "parent" : 0
+    }
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "316",
+    "x-wp-totalpages" : "4"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/comments?post=229112&per_page=100&page=1&order=asc&orderby=date_gmt&_fields=id,parent,author_name,date_gmt,content"
+}

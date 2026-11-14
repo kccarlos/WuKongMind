@@ -1,0 +1,138 @@
+{
+  "body" : {
+    "details" : {
+      "created_by" : {
+        "username" : "Qingwa"
+      }
+    },
+    "fancy_title" : "离了个大谱：群晖，只有自家硬盘才能兼容并提供全方位的功能和支持",
+    "highest_post_number" : 10,
+    "id" : 70196,
+    "post_stream" : {
+      "posts" : [
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+            {
+              "count" : 1,
+              "id" : 2
+            }
+          ],
+          "id" : 259472,
+          "post_number" : 1,
+          "username" : "Qingwa"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+            {
+              "count" : 1,
+              "id" : 2
+            }
+          ],
+          "id" : 259475,
+          "post_number" : 2,
+          "username" : "chenyiping1995"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 259477,
+          "post_number" : 3,
+          "username" : "Heybright"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+            {
+              "count" : 2,
+              "id" : 2
+            }
+          ],
+          "id" : 259480,
+          "post_number" : 4,
+          "username" : "allor"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 259483,
+          "post_number" : 5,
+          "username" : "tjsky"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+            {
+              "count" : 1,
+              "id" : 2
+            }
+          ],
+          "id" : 259511,
+          "post_number" : 6,
+          "username" : "dawn"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 259773,
+          "post_number" : 7,
+          "username" : "tiger"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 259774,
+          "post_number" : 8,
+          "username" : "Qingwa"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 259793,
+          "post_number" : 9,
+          "username" : "hillsomec"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 260009,
+          "post_number" : 10,
+          "username" : "moecurl"
+        }
+      ],
+      "stream" : [
+        259472,
+        259475,
+        259477,
+        259480,
+        259483,
+        259511,
+        259773,
+        259774,
+        259793,
+        260009
+      ]
+    },
+    "posts_count" : 10,
+    "slug" : "topic",
+    "title" : "离了个大谱：群晖，只有自家硬盘才能兼容并提供全方位的功能和支持"
+  },
+  "headers" : {
+    "content-type" : "application/json; charset=utf-8"
+  },
+  "status" : 200,
+  "url" : "https://meta.appinn.net/t/70196.json"
+}

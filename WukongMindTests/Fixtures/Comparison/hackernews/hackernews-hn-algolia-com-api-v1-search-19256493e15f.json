@@ -1,0 +1,101 @@
+{
+  "body" : {
+    "hits" : [
+      {
+        "author" : "gwking",
+        "comment_text" : "The suitability of Litestream for production disaster recovery is also an open question in my mind. I used 0.3.x for several years and when I tried to upgrade to  the 0.5.x series there were runaway disk usage problems that would have caused downtime had they made it to prod. As far as I can tell these have not been entirely addressed, although recent bug reports suggest that they might be getting closer.<p>I want to love it, and I don&#x27;t take open source projects like this for granted. But during my last production upgrade I chose to decommission Litestream in favor of a dumber, less granular solution using sqlite3_rsync and nightly backups because there is no point in using a backup system that is not rock solid.",
+        "created_at" : "2026-05-29T18:24:51Z",
+        "objectID" : "48327247",
+        "parent_id" : 48326943,
+        "story_id" : 48326802,
+        "story_title" : "SQLite is all you need for durable workflows"
+      },
+      {
+        "author" : "gwking",
+        "comment_text" : "I depend on litestream for production backups and as the months wear on without any releases I am getting more nervous. To be clear, I don’t feel entitled to anything with an open source project like this, but bug reports and fixes seem to be accumulating. I have flirted with the idea of building from main.<p>I’ve also flirted with the idea of forking litestream and stripping it down dramatically. The reason why is that I don’t like the idea of the production server being in charge of rotation and deletion. It seems like the thing getting backed up shouldn’t have the privilege of deleting backups in case it gets compromised. I might even go so far as to propose that the “even liter stream” process merely writes to a different local volume and then some other process does the uploading but I haven’t gotten beyond the daydream stage.",
+        "created_at" : "2025-03-03T21:44:59Z",
+        "objectID" : "43247200",
+        "parent_id" : 43245121,
+        "story_id" : 43244307,
+        "story_title" : "SQLite-on-the-server is misunderstood: Better at hyper-scale than micro-scale"
+      },
+      {
+        "author" : "benbjohnson",
+        "comment_text" : "Litestream &amp; LiteFS author here. Tailscale has been using Litestream in production for a while and blogged about it in April 2022[1]. I&#x27;ve had a number of folks contact me out-of-band and tell me they&#x27;re using in production at a surprising scale.<p>As for LiteFS, it&#x27;s still early beta stage so I don&#x27;t know of many people using it in a production capacity. I would expect it to be another six months or year before confidence builds enough to see more regular usage.<p>[1]: <a href=\"https:&#x2F;&#x2F;tailscale.com&#x2F;blog&#x2F;database-for-2022&#x2F;\" rel=\"nofollow\">https:&#x2F;&#x2F;tailscale.com&#x2F;blog&#x2F;database-for-2022&#x2F;</a>",
+        "created_at" : "2023-01-04T16:24:46Z",
+        "objectID" : "34247574",
+        "parent_id" : 34245628,
+        "story_id" : 34238150,
+        "story_title" : "Migrating from AWS to Fly.io"
+      },
+      {
+        "author" : "sakopov",
+        "comment_text" : "I&#x27;ve become really interested in SQLite when I heard about Litestream. What kind of deployment strategies do folks use to deploy SQLite and Litestream for production use? Also, AFAIK writes can only be done via master instance, so how do you control read&#x2F;writes from multiple app instances?",
+        "created_at" : "2022-12-07T19:12:26Z",
+        "objectID" : "33898766",
+        "parent_id" : 33894995,
+        "story_id" : 33894995,
+        "story_title" : "Go and SQLite in the Cloud"
+      },
+      {
+        "author" : "mtlynch",
+        "comment_text" : "Very excited to see Fly restart development on Litestream after a 2ish year freeze!<p>I love Litestream and use it in every app I build now.<p>They advertise it as costing &quot;pennies per day,&quot; but it&#x27;s even less expensive than that. It obviously varies depending on how much storage you need, but I had a real app in production, and Litestream replication to S3 only cost me 2-3 cents ($0.02-$0.03) per month.[0]<p>[0] <a href=\"https:&#x2F;&#x2F;mtlynch.io&#x2F;litestream&#x2F;#using-logpaste-in-production\" rel=\"nofollow\">https:&#x2F;&#x2F;mtlynch.io&#x2F;litestream&#x2F;#using-logpaste-in-production</a>",
+        "created_at" : "2025-10-03T15:53:57Z",
+        "objectID" : "45464359",
+        "parent_id" : 45453936,
+        "story_id" : 45453936,
+        "story_title" : "Litestream v0.5.0"
+      },
+      {
+        "author" : "Glench",
+        "comment_text" : "I use Litestream for my production web app and stream to Backblaze B2. It&#x27;s S3 compatible and literally free!",
+        "created_at" : "2024-03-27T13:25:29Z",
+        "objectID" : "39838736",
+        "parent_id" : 39835936,
+        "story_id" : 39835496,
+        "story_title" : "How (and why) to run SQLite in production"
+      },
+      {
+        "author" : "nwienert",
+        "comment_text" : "That’s my point though, if you want to use SQLite in production &#x2F; with Litestream, you’re comparing two databases that need servers to function just implemented quite differently.<p>In the same vein as your article, it seems very fair to say that if the Litestream server went down in production you’d have a broken app for most use cases within a few minutes. So in practical effect, the server of Litestream is about as essential.",
+        "created_at" : "2022-05-10T17:35:09Z",
+        "objectID" : "31329876",
+        "parent_id" : 31322162,
+        "story_id" : 31318708,
+        "story_title" : "I'm all-in on server-side SQLite"
+      },
+      {
+        "author" : "mtlynch",
+        "comment_text" : "I don&#x27;t have to maintain state on GCP persistent disks. I can blow away a server without warning, and I&#x27;ll only lose a few seconds of data.<p>True, I have to maintain state on S3, but there&#x27;s not much work involved in that.<p>If I was maintaining my own database server, I have to manage upgrades, backups, and the complexity of running an additional server. With Litestream, I don&#x27;t have to manage upgrades because nothing bad happens if I don&#x27;t upgrade, whereas there are security risks running an unpatched MySQL&#x2F;Postgres server in production. Litestream has built-in snapshots and can replicate to multiple S3 backends, so I&#x27;m not too worried about backups. And there&#x27;s no server to maintain.<p>What operational complexity do you see in Litestream?",
+        "created_at" : "2021-04-08T21:48:17Z",
+        "objectID" : "26744230",
+        "parent_id" : 26743899,
+        "story_id" : 26737771,
+        "story_title" : "The architecture behind a one-person tech startup"
+      },
+      {
+        "author" : "Glench",
+        "comment_text" : "I&#x27;ve been using SQLite&#x2F;Litestream for <a href=\"https:&#x2F;&#x2F;extensionpay.com\" rel=\"nofollow\">https:&#x2F;&#x2F;extensionpay.com</a> for about 3 years now! Serves about 120m requests per month (most of those are cached and don&#x27;t hit the db), but it&#x27;s been great!<p>I was convinced that SQLite could be a viable db option from this great post about it called Consider SQLite: <a href=\"https:&#x2F;&#x2F;blog.wesleyac.com&#x2F;posts&#x2F;consider-sqlite\" rel=\"nofollow\">https:&#x2F;&#x2F;blog.wesleyac.com&#x2F;posts&#x2F;consider-sqlite</a><p>Using SQLite with Litestream helped me to launch the site quickly without having to pay for or configure&#x2F;manage a db server, especially when I didn&#x27;t know if the site would make any money and didn&#x27;t have any personal experience with running production databases. Litestream streams to blackblaze b2 for literally $0 per month which is great. I already had a backblaze account for personal backups and it was easy to just add b2 storage. I&#x27;ve never had to restore from backup so far.<p>There&#x27;s a pleasing operational simplicity in this setup — one $14 DigitalOcean droplet serves my entire app (single-threaded still!) and it&#x27;s been easy to scale vertically by just upgrading the server to the next tier when I started pushing the limits of a droplet (or doing some obvious SQLite config optimizations). DigitalOcean&#x27;s &quot;premium&quot; intel and amd droplets use NVMe drives which seem to be especially good with SQLite.<p>One downside of using SQLite is that there&#x27;s just not as much community knowledge about using and tuning it for web applications. For example, I&#x27;m using it with SvelteKit and there&#x27;s not much written online about deploying multi-threaded SvelteKit apps with SQLite. Also, not many example configs to learn from. By far the biggest performance improvement I found was turning on memory mapping for SQLite.",
+        "created_at" : "2024-04-07T13:27:57Z",
+        "objectID" : "39960617",
+        "parent_id" : 39955288,
+        "story_id" : 39955288,
+        "story_title" : "Ask HN: SQLite in Production?"
+      },
+      {
+        "author" : "ilrwbwrkhv",
+        "comment_text" : "I use sqlite with litestream through Pocketbase in production for around 2 years now on a site with 12,000 &#x2F; month traffic. Works flawlessly and I haven&#x27;t had to do anything to maintain it.",
+        "created_at" : "2024-01-20T18:23:20Z",
+        "objectID" : "39070636",
+        "parent_id" : 39065201,
+        "story_id" : 39065201,
+        "story_title" : "Ask HN: Are you using SQLite and Litestream in production?"
+      }
+    ]
+  },
+  "headers" : {
+    "content-type" : "application/json"
+  },
+  "status" : 200,
+  "url" : "https://hn.algolia.com/api/v1/search?tags=comment&query=Litestream%20production&page=0&hitsPerPage=10"
+}

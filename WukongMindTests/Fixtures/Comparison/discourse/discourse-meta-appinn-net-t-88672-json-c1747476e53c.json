@@ -1,0 +1,83 @@
+{
+  "body" : {
+    "accepted_answers" : [
+      {
+        "avatar_template" : "/user_avatar/meta.appinn.net/qingwa/{size}/58632_2.png",
+        "cooked" : "<p>仔细看看是不是哪里接触不良。这种清灰出问题多半是碰到哪里了</p>",
+        "created_at" : "2026-07-23T12:55:29.303Z",
+        "id" : 334081,
+        "name" : "青小蛙",
+        "post_number" : 2,
+        "topic_id" : 88672,
+        "url" : "/t/topic/88672/2",
+        "username" : "Qingwa"
+      }
+    ],
+    "details" : {
+      "created_by" : {
+        "username" : "hikingbear"
+      }
+    },
+    "fancy_title" : "求助！群晖NAS DS920+启动不了",
+    "highest_post_number" : 4,
+    "id" : 88672,
+    "post_stream" : {
+      "posts" : [
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 334079,
+          "post_number" : 1,
+          "topic_accepted_answer" : true,
+          "username" : "hikingbear"
+        },
+        {
+          "accepted_answer" : true,
+          "actions_summary" : [
+
+          ],
+          "id" : 334081,
+          "post_number" : 2,
+          "topic_accepted_answer" : true,
+          "username" : "Qingwa"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 334087,
+          "post_number" : 3,
+          "topic_accepted_answer" : true,
+          "username" : "TecNico"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 334101,
+          "post_number" : 4,
+          "topic_accepted_answer" : true,
+          "username" : "hikingbear"
+        }
+      ],
+      "stream" : [
+        334079,
+        334081,
+        334087,
+        334101
+      ]
+    },
+    "posts_count" : 4,
+    "slug" : "topic",
+    "title" : "求助！群晖NAS DS920+启动不了"
+  },
+  "headers" : {
+    "content-type" : "application/json; charset=utf-8"
+  },
+  "status" : 200,
+  "url" : "https://meta.appinn.net/t/88672.json"
+}

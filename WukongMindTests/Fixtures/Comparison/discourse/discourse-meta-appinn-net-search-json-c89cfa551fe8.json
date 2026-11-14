@@ -1,0 +1,49 @@
+{
+  "body" : {
+    "posts" : [
+      {
+        "blurb" : "同步删除什么的还是属于误操作的范畴吧 既然借着这个理由要搞NAS 那我也来说说我的个人理解 首先 搞nas之前得先弄清楚自己需求 需备份到总数据量有多少 除了数据备份 远程下载 还要跑那些业务 对设备性能有啥需求 比如是否有远程播放视频 实时解码的需求。搞明白需求之后就要做预算 按不算硬盘的价格来看 0-150 总数据量1T左右 推荐方案 斐讯N1 yyds 跑个局域网共享 数据同步的服务性能足够 其实就是个机顶盒 可以刷linux或者android 缺点是系统要自己折腾下而且只能接USB硬盘 硬盘得有外部供电,不然有概率掉盘 150-1000 总数据量1-4T 推荐方案 二手捡垃圾 二...",
+        "id" : 173883,
+        "post_number" : 26,
+        "topic_id" : 48996,
+        "username" : "tthy"
+      },
+      {
+        "blurb" : "原始链接在： https://www.appinn.com/wangyunchuan-com/ 没有公网 IP，如何低成本 8 年稳定远程访问内网 - 小众软件 很多人都想随时随地地 远程控制 在家或办公室的电脑，或者出门在外也能访问 NAS 里的文件、公司内部的 OA 系统，甚至小主机、路由器、打印机等设备。但由于没有公网 IP，这些设备都处于内网，无法直接访问。 内网穿透就可以解决这个问题 ，它能让你不受局域网的限制，在任何地点，用手机或电脑，也能访问家里或公司里的电脑、NAS、路由器等网络设备。 在2026年，内网穿透还意味着，你可以把办公室、家里的本地 AI 大模型也穿透出来，在...",
+        "id" : 304345,
+        "post_number" : 1,
+        "topic_id" : 81113,
+        "username" : "Qingwa"
+      }
+    ],
+    "topics" : [
+      {
+        "bumped_at" : "2024-04-03T06:19:31.167Z",
+        "fancy_title" : "有什么比较低成本的NAS？",
+        "has_accepted_answer" : false,
+        "id" : 48996,
+        "last_posted_at" : "2024-04-03T06:19:31.167Z",
+        "pinned" : false,
+        "posts_count" : 111,
+        "slug" : "topic",
+        "title" : "有什么比较低成本的NAS？"
+      },
+      {
+        "bumped_at" : "2026-02-03T09:24:38.350Z",
+        "fancy_title" : "没有公网 IP，如何低成本 8 年稳定远程访问内网",
+        "has_accepted_answer" : false,
+        "id" : 81113,
+        "last_posted_at" : "2026-02-03T09:24:38.350Z",
+        "pinned" : false,
+        "posts_count" : 10,
+        "slug" : "topic",
+        "title" : "没有公网 IP，如何低成本 8 年稳定远程访问内网"
+      }
+    ]
+  },
+  "headers" : {
+    "content-type" : "application/json; charset=utf-8"
+  },
+  "status" : 200,
+  "url" : "https://meta.appinn.net/search.json?q=NAS%20%E5%AE%B6%E7%94%A8%20%E6%8E%A8%E8%8D%90%20%E4%B9%B0"
+}

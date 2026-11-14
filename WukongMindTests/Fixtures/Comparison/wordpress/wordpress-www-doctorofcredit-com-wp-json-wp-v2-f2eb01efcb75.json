@@ -1,0 +1,695 @@
+{
+  "body" : [
+    {
+      "author_name" : "midas89",
+      "content" : {
+        "rendered" : "<p>Charlie, my BofA online Smartly Visa states that there is a $10,000 limit, so I think it is safe to be confident that our grandfathered accounts have been nerfed.</p>\n"
+      },
+      "date_gmt" : "2025-09-15T23:28:03",
+      "id" : 2145030,
+      "parent" : 2144828
+    },
+    {
+      "author_name" : "CD",
+      "content" : {
+        "rendered" : "<p>Midas, I think Charlie means our &#8220;bad nerf&#8221; letters now follow the terms of the &#8220;good nerf&#8221; letter.</p>\n"
+      },
+      "date_gmt" : "2025-09-16T00:20:26",
+      "id" : 2145066,
+      "parent" : 2145030
+    },
+    {
+      "author_name" : "midas89",
+      "content" : {
+        "rendered" : "<p>Thanks, CD. I was basing my reply on what Pat posted August 14th, where Pat said a rep said &#8220;<span>no monthly limit of $10k &#8230; letter sent in error.&#8221;</span> I will paste in exactly what Pat said on August 14th, which is what I thought Charlie was referring to with Charlie&#8217;s message of today. Sorry if I misinterpreted it. Here is what Pat wrote on 8/14/25:</p>\n<p>CROSS-POSTING HERE AND ON “My Plan Going Forward With U.S. Smartly 4% Card”</p>\n<p>&#8220;Don’t give up hope just yet – cardholders from before April 14, 2025 may be getting grandfathered in to the terms they signed up with.</p>\n<p>&#8220;I received the bad latter. I called in to customer service to see if the letter I got was in fact accurate. Rep said it was. It was a short conversation. I got a survey, filled it out and just got a phone call back. Per the rep that just called me – nothing should be changing on my card, investment account will still count towards qualifying balance, no monthly limit of $10k, etc – basically I was sent the letter in error and nothing is changing on my card.&#8221;</p>\n"
+      },
+      "date_gmt" : "2025-09-16T02:07:34",
+      "id" : 2145166,
+      "parent" : 2145066
+    },
+    {
+      "author_name" : "Charlie",
+      "content" : {
+        "rendered" : "<p>You are right, Midas, I was hoping Pat was right in that we had the original unlimited earnings at 4%. However I took a closer look and my fine print has the 10k per cycle language and exclusions as CD pointed out (the “good” nerf).<br />\ni was going to sock drawer my smartly card and go back to the BOA/merrill ecosystem for their 2.62% but I don’t mind the 10k limit and I don’t mind the exclusions.</p>\n"
+      },
+      "date_gmt" : "2025-09-16T05:05:06",
+      "id" : 2145313,
+      "parent" : 2145166
+    },
+    {
+      "author_name" : "midas89",
+      "content" : {
+        "rendered" : "<p>Thanks, Charlie. (Same as you, I have both Smartly and BofA 2.62% Unlimited Cash Rewards.) </p>\n<p>I could be wrong, but there&#8217;s a chance if you had decided to put your Smartly Visa in your sock drawer, your socks would have become electrically charged&#8230;and then eventually started to take charge.  </p>\n<p>Imagine the poor Smartly card, sitting in the sock drawer, whispering to your socks: “I used to be somebody…”</p>\n"
+      },
+      "date_gmt" : "2025-09-16T17:00:18",
+      "id" : 2145685,
+      "parent" : 2145313
+    },
+    {
+      "author_name" : "c3",
+      "content" : {
+        "rendered" : "<p>With $100K still in the brokerage, my 2% bonus is now gone from the &#8220;rewards &amp; benefits&#8221; page, consistent with the &#8220;bad nerf&#8221; letter.</p>\n"
+      },
+      "date_gmt" : "2025-09-17T08:22:13",
+      "id" : 2146423,
+      "parent" : 0
+    },
+    {
+      "author_name" : "M",
+      "content" : {
+        "rendered" : "<p>Same here. Transactions on 9/16 and beyond don&#8217;t receive any bonus. Program Rules still seem to indicate that they should still.</p>\n"
+      },
+      "date_gmt" : "2025-09-17T10:18:36",
+      "id" : 2146433,
+      "parent" : 2146423
+    },
+    {
+      "author_name" : "Chatan",
+      "content" : {
+        "rendered" : "<p>Seeing the same thing &#8211; message saying to increase my checking balance to earn 2.5%. Have a $145k+ in an IRA, where the verbiage yesterday made it look like everything was good. This bank is such trash 🗑️</p>\n"
+      },
+      "date_gmt" : "2025-09-17T12:21:55",
+      "id" : 2146486,
+      "parent" : 2146423
+    },
+    {
+      "author_name" : "gary",
+      "content" : {
+        "rendered" : "<p>this morning, they revised the language on the webpage to match the nerf letter so sock drawer here it goes</p>\n"
+      },
+      "date_gmt" : "2025-09-17T13:32:02",
+      "id" : 2146558,
+      "parent" : 2144533
+    },
+    {
+      "author_name" : "Charlie",
+      "content" : {
+        "rendered" : "<p>Yep, just checked today and the terms have updated for me on the app as well as of today. Back to BOA I go.</p>\n"
+      },
+      "date_gmt" : "2025-09-17T13:38:45",
+      "id" : 2146568,
+      "parent" : 2146423
+    },
+    {
+      "author_name" : "Rosco",
+      "content" : {
+        "rendered" : "<p><a class='hint hint--right' data-ucm_user_id='6' href='https://www.doctorofcredit.com/author/chucksithe/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/6581771f6d6c07578202c34dd35680cd5e37f8e5b2b5af89f03bde48286dade3?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/6581771f6d6c07578202c34dd35680cd5e37f8e5b2b5af89f03bde48286dade3?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;Chuck</a> I&#8217;m in the same boat and my first post-new terms charge only received 2% cash back.  I don&#8217;t believe the payment fell in an excluded category (it was a utility payment that does not appear to be third party), so looks like I&#8217;ll go back to using BoA Premium Rewards until the next statement cycle.</p>\n"
+      },
+      "date_gmt" : "2025-09-17T15:21:23",
+      "id" : 2146707,
+      "parent" : 2144122
+    },
+    {
+      "author_name" : "M",
+      "content" : {
+        "rendered" : "<p>Let me correct that &#8212; Program Rules now show &#8220;bad nerf&#8221; terms &#8212; only checking account balances qualify.</p>\n"
+      },
+      "date_gmt" : "2025-09-17T15:29:30",
+      "id" : 2146715,
+      "parent" : 2146433
+    },
+    {
+      "author_name" : "M",
+      "content" : {
+        "rendered" : "<p>Same here / I agree.</p>\n"
+      },
+      "date_gmt" : "2025-09-17T15:29:46",
+      "id" : 2146716,
+      "parent" : 2146486
+    },
+    {
+      "author_name" : "Bobson",
+      "content" : {
+        "rendered" : "<p>Can confirm it does not reset. My 9/15 purchases are 4% and my 9/16 purchases are 2%, having hit the $10k limit earlier.</p>\n"
+      },
+      "date_gmt" : "2025-09-17T18:12:39",
+      "id" : 2146891,
+      "parent" : 2144122
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p>Exact same by me &#8211; 9/11 paid taxes and 9/15 is showing the post date. I think transactions on 9/15 itself are past the cutoff? So I wonder if they&#8217;ll give me the 4%.</p>\n"
+      },
+      "date_gmt" : "2025-09-17T18:21:53",
+      "id" : 2146900,
+      "parent" : 2144728
+    },
+    {
+      "author_name" : "midas89",
+      "content" : {
+        "rendered" : "<p>I was told by two US Bank reps they will go by transaction date, but we all know that reps give info that turns out to be inaccurate way too much.  <a class='hint hint--right' data-ucm_user_id='6' href='https://www.doctorofcredit.com/author/chucksithe/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/6581771f6d6c07578202c34dd35680cd5e37f8e5b2b5af89f03bde48286dade3?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/6581771f6d6c07578202c34dd35680cd5e37f8e5b2b5af89f03bde48286dade3?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;Chuck</a> If you go to the account dashboard of your Visa at US Bank online, and then click &#8220;Go to rewards benefits&#8221;, you will see for sure what cash back percentage earned for all posted transactions. (If you already know this info, sorry.) The Rewards Benefits page is how I know that my tiny test payment for a rental I transacted on 9/15 is only earning 2% cash back.</p>\n"
+      },
+      "date_gmt" : "2025-09-17T18:38:24",
+      "id" : 2146923,
+      "parent" : 2146900
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p>I&#8217;ll add a note</p>\n"
+      },
+      "date_gmt" : "2025-09-17T18:39:52",
+      "id" : 2146927,
+      "parent" : 2146891
+    },
+    {
+      "author_name" : "14lopeza",
+      "content" : {
+        "rendered" : "<p>Anyone else switch to BofA?</p>\n"
+      },
+      "date_gmt" : "2025-09-17T18:42:22",
+      "id" : 2146933,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Ugh",
+      "content" : {
+        "rendered" : "<p>Lateral move. No advantage.</p>\n"
+      },
+      "date_gmt" : "2025-09-17T19:00:42",
+      "id" : 2146963,
+      "parent" : 2146933
+    },
+    {
+      "author_name" : "Peter",
+      "content" : {
+        "rendered" : "<p>After making some hefty tax payments that posted 9/15 and earned 4%, my statement cycle actually also ended 9/15, but a transaction that I made on 9/15 and posted 9/16 only earned 2%. Not sure if the MCC 4215 (Courier Services—Air or Ground and Freight Forwarders) is excluded, but I should technically be allowed to start with a fresh $10k monthly spend. It&#8217;s possible that they considered that a business transaction. According to some Bogleheads posts, it also appears that US Bank might be giving the extra 2% when the statement cycle closes now. Either way, I will probably use my BofA Elite until the dust settles and there are more DPs on how to properly earn 4%.</p>\n"
+      },
+      "date_gmt" : "2025-09-17T19:15:33",
+      "id" : 2146982,
+      "parent" : 0
+    },
+    {
+      "author_name" : "tig ol bitties",
+      "content" : {
+        "rendered" : "<p>Good job US Bank. My rewards show 2% + 2%, however i&#8217;m only earning 2% on transactions 9/16+</p>\n"
+      },
+      "date_gmt" : "2025-09-17T19:20:33",
+      "id" : 2146988,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Matt F",
+      "content" : {
+        "rendered" : "<p>I got the good nerf letter but am also not getting the extra 2% and have my 100k+ in an investment account. Does anyone know someone we can email at US Bank to see what&#8217;s up?</p>\n"
+      },
+      "date_gmt" : "2025-09-17T19:33:31",
+      "id" : 2147001,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Greg",
+      "content" : {
+        "rendered" : "<p>Got the bad nerf letter earlier with &gt;100k in a brokerage. All transactions from 9/16 onward showing at 2X under rewards. Are there people who got the good Nerf letter that are still earning 4%?</p>\n"
+      },
+      "date_gmt" : "2025-09-17T20:20:45",
+      "id" : 2147061,
+      "parent" : 0
+    },
+    {
+      "author_name" : "SU",
+      "content" : {
+        "rendered" : "<p>the USb D-day? if all &#8220;smartly&#8221; customers are treated the same, are those better letters just the old rev?</p>\n"
+      },
+      "date_gmt" : "2025-09-17T20:31:37",
+      "id" : 2147070,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Bballer",
+      "content" : {
+        "rendered" : "<p>FYI &#8211; I noticed&nbsp;a few weeks ago that my bonus 2% disappeared.  My letter stated that I HAD to have a savings account.  I did have one initially, but it got auto-closed a few weeks ago.  Turns out that killed my extra 2%.  I reapplied and got the savings account back open and now have my bonus 2% back.  There doesn&#8217;t seem to be any requirement about the balance needed in the account, just that one exists.  I earn aout 3% which isn&#8217;t terrible on it either, but all the real money will be in the brokerage.</p>\n"
+      },
+      "date_gmt" : "2025-09-17T20:42:45",
+      "id" : 2147079,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Gooey2500",
+      "content" : {
+        "rendered" : "<p>Same &#8211; 9/15 statement close, charge posted on 9/16 without the extra 2%. I’m guessing that they aren’t showing the extra 2% anymore until statement close. Makes sense to me since it’s probably too tricky for them to calculate the $10k limit per transaction on the spot (I’m sure it’s doable but they don’t seem to be the most savvy bank)</p>\n"
+      },
+      "date_gmt" : "2025-09-17T20:45:01",
+      "id" : 2147083,
+      "parent" : 2146982
+    },
+    {
+      "author_name" : "Gooey2500",
+      "content" : {
+        "rendered" : "<p>Does anyone have a charge posted on 9/16 that shows 2%+2% earned?</p>\n"
+      },
+      "date_gmt" : "2025-09-17T20:45:48",
+      "id" : 2147084,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Gooey2500",
+      "content" : {
+        "rendered" : "<p>This is what I see in my terms now. I think the last sentence means they aren’t going to show you which purchases earned the extra 2% until the end of the statement cycle…</p>\n<p>2% Smartly Earning Bonus<br />\non your first $10,000 in eligible Net Purchases each billing cycle because you have a U.S. Bank Smartly® Savings account and combined balances of $100,000 or more (earning you a total of 4 points/$1 spent). These points will be added to the Rewards activity section at the end of your statement cycle.</p>\n"
+      },
+      "date_gmt" : "2025-09-17T21:18:42",
+      "id" : 2147144,
+      "parent" : 2147084
+    },
+    {
+      "author_name" : "Pnyboy",
+      "content" : {
+        "rendered" : "<p>I have two that show. that said the transaction dates are before the 15th on those. I have two other charges that show on the 16th and transaction dates of the 15th, that only have 2% and should both be 4% (auto parts and groceries). My other data points are past the 10K for the billing cycle before the 15th and billing cycle closes approx 25th.</p>\n"
+      },
+      "date_gmt" : "2025-09-17T22:08:21",
+      "id" : 2147211,
+      "parent" : 2147084
+    },
+    {
+      "author_name" : "Pnyboy",
+      "content" : {
+        "rendered" : "<p>it would be useful to get a post/thread for mcc that don&#8217;t count from real world charges post changes</p>\n"
+      },
+      "date_gmt" : "2025-09-17T22:09:16",
+      "id" : 2147212,
+      "parent" : 0
+    },
+    {
+      "author_name" : "RJ",
+      "content" : {
+        "rendered" : "<p>I was already platinum honors. I ended up applying for another unlimited cash card to move my non category spend back. Should be 3.1% for the first year with the new intro offer posted here the other day.</p>\n"
+      },
+      "date_gmt" : "2025-09-17T22:17:41",
+      "id" : 2147219,
+      "parent" : 2146933
+    },
+    {
+      "author_name" : "TJ",
+      "content" : {
+        "rendered" : "<p>The terms now say that the bonus will show up at end of each statement cycle. That wasn&#8217;t in the original terms. So, panic if you don&#8217;t see it when the next statement posts. 🤷🏻‍♂️</p>\n"
+      },
+      "date_gmt" : "2025-09-17T22:20:57",
+      "id" : 2147221,
+      "parent" : 2147001
+    },
+    {
+      "author_name" : "Lil",
+      "content" : {
+        "rendered" : "<p>Mine are posted 9/16 and showing 4% now.</p>\n"
+      },
+      "date_gmt" : "2025-09-17T22:26:50",
+      "id" : 2147227,
+      "parent" : 2146900
+    },
+    {
+      "author_name" : "David",
+      "content" : {
+        "rendered" : "<p>I got the bad nerf letter but it still shows I&#8217;m earning 4 percent and program rules include brokerage funds. Hmm</p>\n"
+      },
+      "date_gmt" : "2025-09-17T22:34:39",
+      "id" : 2147239,
+      "parent" : 0
+    },
+    {
+      "author_name" : "RJ",
+      "content" : {
+        "rendered" : "<p>Called to product change from Smartly to a Cash+. From the reps view it looked as if I&#8217;d product changed yesterday. Assuming that was the rewards terms conversion. Didn&#8217;t have any options to swap. Was told to cal back in a week once the system was done processing yesterday&#8217;s change. Then it should be doable&#8230; not confident but we&#8217;ll see.</p>\n"
+      },
+      "date_gmt" : "2025-09-17T22:36:32",
+      "id" : 2147242,
+      "parent" : 0
+    },
+    {
+      "author_name" : "bob Johnson",
+      "content" : {
+        "rendered" : "<p>Data Point: Received &#8220;good nerf&#8221; with $100k+ in brokerage,<br />\n9/15 Walmart $3.18, 13 points 2% + 2%<br />\n9/15 Car Insurance $645. 1290 points, only 2% as expected by nerf<br />\n9/16 Walmart $2.97, 6 points, only 2% but expected to still get 2%+2% = 4%</p>\n"
+      },
+      "date_gmt" : "2025-09-17T23:09:31",
+      "id" : 2147269,
+      "parent" : 0
+    },
+    {
+      "author_name" : "14lopeza",
+      "content" : {
+        "rendered" : "<p>Thanks for the DP RJ! Keep up the HARD WORK on YT! &#8211; Red Sox Nation</p>\n"
+      },
+      "date_gmt" : "2025-09-17T23:16:52",
+      "id" : 2147278,
+      "parent" : 2147242
+    },
+    {
+      "author_name" : "Zorn",
+      "content" : {
+        "rendered" : "<p>Wow, how stupid. May as well just put banner ads for BoA on their homepage with this junk.</p>\n"
+      },
+      "date_gmt" : "2025-09-17T23:43:03",
+      "id" : 2147297,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Jason Alex",
+      "content" : {
+        "rendered" : "<p>I just keep $1 in it so that it doesn&#8217;t auto close and then feed the monthly rewards through it</p>\n"
+      },
+      "date_gmt" : "2025-09-18T00:11:18",
+      "id" : 2147312,
+      "parent" : 2147079
+    },
+    {
+      "author_name" : "mr.louboyle",
+      "content" : {
+        "rendered" : "<p>Hi Does anyone have a ny recent doctor charges? i was earning 4% now as of 9/16 its only 2% Everything else is still 4%&#8230;anyone experiencing this?</p>\n"
+      },
+      "date_gmt" : "2025-09-18T01:07:27",
+      "id" : 2147364,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Joe",
+      "content" : {
+        "rendered" : "<p>I think it’s just because you’ve already spent more than $10K this month so now every charge is 2%. Maybe?</p>\n"
+      },
+      "date_gmt" : "2025-09-18T01:18:06",
+      "id" : 2147376,
+      "parent" : 2147364
+    },
+    {
+      "author_name" : "mr.louboyle",
+      "content" : {
+        "rendered" : "<p>hi joe i dont come close to that 10k. i wonder if doctors are now just 2%</p>\n"
+      },
+      "date_gmt" : "2025-09-18T01:25:53",
+      "id" : 2147391,
+      "parent" : 2147376
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p>Thanks. I checked and see that I earned 4% on the 9/11 transaction, so they seem to have correctly gone with the transaction date. A separate 9/15 transaction earned 2% since I&#8217;m over the $10k limit and haven&#8217;t yet reset with the statement close.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T01:33:40",
+      "id" : 2147398,
+      "parent" : 2146923
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p>We&#8217;ll start a thread tomorrow, thanks</p>\n"
+      },
+      "date_gmt" : "2025-09-18T02:36:09",
+      "id" : 2147470,
+      "parent" : 2147212
+    },
+    {
+      "author_name" : "Joel",
+      "content" : {
+        "rendered" : "<p>the bonus points should be available on statement days according to the policy showing:</p>\n<p>2% unlimited cash back<br />\non every purchase<br />\n2% Smartly Earning Bonus<br />\non your first $10,000 in eligible Net Purchases each billing cycle because you have a U.S. Bank Smartly® Savings account and combined balances of $100,000 or more (earning you a total of 4 points/$1 spent). <strong>These points will be added to the Rewards activity section at the end of your statement cycle</strong>. Refer to Program Rules for complete details and a list of exclusions.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T03:04:21",
+      "id" : 2147508,
+      "parent" : 2147364
+    },
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>Same exact scenario for me. I received &#8220;good nerf&#8221; with $100K+ in brokerage. For all of my Walmart transactions prior to 9/15, I was receiving 4% cash back but my Walmart transaction on 9/16, only received 2%&#8230;wondering why? 🤔</p>\n"
+      },
+      "date_gmt" : "2025-09-18T03:15:33",
+      "id" : 2147516,
+      "parent" : 2147269
+    },
+    {
+      "author_name" : "Chatan",
+      "content" : {
+        "rendered" : "<p>If this doesn&#8217;t get clearly sorted out within 2 cycles, there is going to be a mass exodus of assets from US Bank by year&#8217;s end. Not being able to clearly articulate the mechanics of earnings and timing is such amateur bullshit</p>\n"
+      },
+      "date_gmt" : "2025-09-18T03:32:40",
+      "id" : 2147534,
+      "parent" : 2147297
+    },
+    {
+      "author_name" : "midas89",
+      "content" : {
+        "rendered" : "<p>John, there is a good chance your Walmart transaction will earn the full 4% cash back rate once the current billing cycle ends. Apparently, US Bank has decided they won&#8217;t let people know if their posted transactions will earn the bonus after posted. They used to notify you as soon as it posted, but now they&#8217;ve changed it to where they won&#8217;t let you know until after the billing cycle closes. </p>\n<p>Earlier today, I commented that MCC 6513 isn&#8217;t earning the full 4% after the nerf. I was basing what I wrote on the fact that my running tally only says 2% cash back. I had not yet read a different page where US Bank is now stating that any bonus will be applied after the billing cycle closes.&nbsp;There is still a chance that MCC 6513 will not qualify, but now I won&#8217;t find out for sure until after my current billing cycle closes, which unfortunately isn&#8217;t until October 9th.&nbsp;</p>\n"
+      },
+      "date_gmt" : "2025-09-18T03:52:30",
+      "id" : 2147549,
+      "parent" : 2147516
+    },
+    {
+      "author_name" : "Ftt55",
+      "content" : {
+        "rendered" : "<p>Now that we are beyond Sept 15, how&#8217;d it work out @pat</p>\n"
+      },
+      "date_gmt" : "2025-09-18T04:50:18",
+      "id" : 2147597,
+      "parent" : 2119380
+    },
+    {
+      "author_name" : "Stanley",
+      "content" : {
+        "rendered" : "<p>Just wanted to share a DP. I got a good nerf letter, and the website&#8217;s rules haven&#8217;t changed yet.<br />\nAfter I opened my US Bank account last year, I couldn&#8217;t make any transactions or move any money out of it. When I called, they told me it was restricted because a form was missing. Even though I opened it online like everyone else, I had to fill out a crazy 10+ page form by hand and email it to them. Apparently it was unrestricted after a couple of days.</p>\n<p>If you got a bad nerf letter, maybe check if your account is restricted?</p>\n<p>P.S. US Bank is the worst broker for everything. I have about 10 brokerage accounts, and none of the others even come close.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T05:02:52",
+      "id" : 2147603,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Good Cow",
+      "content" : {
+        "rendered" : "<p>You&#8217;re likely the worst customer. Who would need 10 brokerage accounts even if it&#8217;s free?</p>\n"
+      },
+      "date_gmt" : "2025-09-18T05:41:42",
+      "id" : 2147624,
+      "parent" : 2147603
+    },
+    {
+      "author_name" : "stee pedro",
+      "content" : {
+        "rendered" : "<p>I can see how you accumulate brokerage accounts. Over a number of years, incentives are offered, you try them out, some are appealing in certain aspects, others not so much.<br />\nI switched main brokerages because of an incentive, but did not cancel the old one as they offered value in other areas.<br />\nBusiness relationships may change over time, and some choose to sever them completely &#8211; yet others may not.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T06:02:58",
+      "id" : 2147637,
+      "parent" : 2147624
+    },
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>Ahh..Thank you! I will keep an eye out. My billing cycle closes Oct 2</p>\n"
+      },
+      "date_gmt" : "2025-09-18T10:59:49",
+      "id" : 2147709,
+      "parent" : 2147549
+    },
+    {
+      "author_name" : "Matt",
+      "content" : {
+        "rendered" : "<p>U.S. Bank is a disaster when it comes to this stuff. I didn&#8217;t participate in the Smartly product due to past experience. They offer too good to be true terms and then after a few months they realize how unsustainable it is and start pulling back benefits. I still use the Cash + for select categories, but I have no confidence in positive change on any product they offer.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T12:53:48",
+      "id" : 2147790,
+      "parent" : 2147534
+    },
+    {
+      "author_name" : "Pete",
+      "content" : {
+        "rendered" : "<p>My lawn care firm charge came in at only 2% on 9/15. Dont know if it&#8217;s because it&#8217;s not an eligible transaction or what.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T13:43:13",
+      "id" : 2147840,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Roy",
+      "content" : {
+        "rendered" : "<p>The more of these changes that happen across the industry the more I feel comfortable with sticking with my SoFi card.  Straight 2.2% with SoFi Plus (I have DD)</p>\n"
+      },
+      "date_gmt" : "2025-09-18T15:45:08",
+      "id" : 2148006,
+      "parent" : 0
+    },
+    {
+      "author_name" : "al8",
+      "content" : {
+        "rendered" : "<p>SMH us bank continuing its&#8217; downward spiral</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:23:25",
+      "id" : 2148079,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Artemis",
+      "content" : {
+        "rendered" : "<p>Received good nerf letter. Just had a transaction yesterday post with only 2% cash back. It was Chili’s so I’m pretty sure that’s supposed to be a valid transaction. Didn’t spend close to 10k this month.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T16:37:30",
+      "id" : 2148102,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Stanley",
+      "content" : {
+        "rendered" : "<p>Right. 401K/IRA/529 here and there, plus WF direct Sp500&#8230;</p>\n<p>Also many of them now have $50-$100 closure fee so I don&#8217;t want to close them.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T21:17:49",
+      "id" : 2148511,
+      "parent" : 2147637
+    },
+    {
+      "author_name" : "CK",
+      "content" : {
+        "rendered" : "<p>Same here &#8211; good nerf, nowhere near 10k, and all transactions say 2%. I’m hoping the “bonus 2%” get applied when statement gets produced. The description above the rewards transactions can be interpreted that way. Can whoever gets a statement produced soon confirm please?</p>\n"
+      },
+      "date_gmt" : "2025-09-20T22:30:15",
+      "id" : 2150305,
+      "parent" : 2148102
+    },
+    {
+      "author_name" : "CK",
+      "content" : {
+        "rendered" : "<p>Has anybody seen this happen yet (the bonus points applied)? It concerns me that some people say they see 4% when all I see is 2%.</p>\n"
+      },
+      "date_gmt" : "2025-09-20T22:32:33",
+      "id" : 2150307,
+      "parent" : 2147508
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p>It does, per the new terms. I&#8217;ll add a note.</p>\n"
+      },
+      "date_gmt" : "2025-09-21T03:59:56",
+      "id" : 2150445,
+      "parent" : 2150305
+    },
+    {
+      "author_name" : "David",
+      "content" : {
+        "rendered" : "<p>Anyone get bad nerf but website still shows brokerage counts? Wondering if they didn&#8217;t switch me over to the bad nerf. With them anything is possible.</p>\n"
+      },
+      "date_gmt" : "2025-09-25T12:48:06",
+      "id" : 2153421,
+      "parent" : 0
+    },
+    {
+      "author_name" : "midas89",
+      "content" : {
+        "rendered" : "<p>My billing period finally closed after the September 15th nerf. I am very disappointed that U.S. Bank does not make it easy at all to instantly figure out what transactions from 9/15/25 forward do not earn the 2% bonus, if any. I even tried to call them and see if they had it in their database, or even if they could just look up the MCC codes to see if they are excluded, and even got a supervisor on the phone who said, &#8220;U.S. Bank changed the whole system. They can&#8217;t tell what charges earn what percentage.&#8221; There is no PDF of excluded MCC codes for this specific card. This meant I had to do some complicated calculations because I had a lot of charges with some credits for returns added t the mix. All the US Bank online banking tells you is the total rewards points earned for that billing cycle and how many of those reward points earned the 2% bonus.</p>\n<p>Anyway, bottom line, my small test charge of MCC 6513, which is classified as mortgage or rent payment, did not earn the 2% bonus, but I pretty much expected that it wouldn&#8217;t. And my AT&amp;T Internet, T-Mobile cellular, and Electric bills all also failed to earn the 2% cashback bonus.&nbsp;</p>\n"
+      },
+      "date_gmt" : "2025-10-11T02:02:20",
+      "id" : 2164545,
+      "parent" : 0
+    },
+    {
+      "author_name" : "David",
+      "content" : {
+        "rendered" : "<p>Interesting, both direct rent and Bilt counted for bonus 2%. But it looks like GCX/Raise did not (gift cards).</p>\n"
+      },
+      "date_gmt" : "2025-10-17T02:56:34",
+      "id" : 2167472,
+      "parent" : 2164545
+    },
+    {
+      "author_name" : "midas89",
+      "content" : {
+        "rendered" : "<p><a class='wpd-umcguest'  href='https://www.doctorofcredit.com/u-s-bank-to-nerf-existing-smartly-cardholders-on-september-15/#comment-2106379'><img alt='' src='https://secure.gravatar.com/avatar/2418526d8259e73a9b6289d137afbf32148ec678ff991ee3ebd3537f483c4d82?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/2418526d8259e73a9b6289d137afbf32148ec678ff991ee3ebd3537f483c4d82?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>David</a> Thanks for your report. Hopefully it will continue for you after the second billing cycle subsequent to the Sept. 15th nerf date. I personally know 2 people with Smartly 4%, one got the 2% bonus, while the other did not for their rent payments. Different companies processing the payments. Neither use Bilt. I myself do not use Bilt.</p>\n"
+      },
+      "date_gmt" : "2025-10-17T03:41:06",
+      "id" : 2167482,
+      "parent" : 2167472
+    },
+    {
+      "author_name" : "David",
+      "content" : {
+        "rendered" : "<p>Both coded as MCC 6513..</p>\n"
+      },
+      "date_gmt" : "2025-10-17T06:05:37",
+      "id" : 2167519,
+      "parent" : 2167482
+    },
+    {
+      "author_name" : "Abby Normal",
+      "content" : {
+        "rendered" : "<p>Looking for a data point re: USAA auto insurance. Need to pay my six month premium and wondering if I’m going to get 2% or 4%.</p>\n"
+      },
+      "date_gmt" : "2025-12-25T13:38:51",
+      "id" : 2216390,
+      "parent" : 0
+    },
+    {
+      "author_name" : "hameshatumkochaha",
+      "content" : {
+        "rendered" : "<ol>\n<li>How do I find out whether I got good or bad nerf letter?  </li>\n<li>Has anyone figured out what caused one to get into good vs bad category and </li>\n<li>more importantly how to switch to good?  </li>\n</ol>\n<p>I certainly was grandfathered in the old program which did not keep the limit post April 2025 but now I am in the bad nerf category.  Makes no sense to keep $100k in checking with them.  Even if US Bank had allowed that in Smartly savings, I would have considered.  While I understand that they were not making too much money, I wonder why they are trying to get rid of customers which are hard to get back.</p>\n"
+      },
+      "date_gmt" : "2025-12-31T06:29:38",
+      "id" : 2219009,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Frank",
+      "content" : {
+        "rendered" : "<p>WARNING: if you care about having a nice card then don’t get a replacement. Prior card was quite nice but the replacement is somehow worse than typical credit cards (full plastic too)</p>\n"
+      },
+      "date_gmt" : "2026-02-10T14:33:50",
+      "id" : 2252401,
+      "parent" : 0
+    },
+    {
+      "author_name" : "midas89",
+      "content" : {
+        "rendered" : "<p>Frank, thanks for posting your comment. And yes, for people who really like the metal credit cards, they will be unhappy if they get the typical plastic card. For me personally, I actually prefer the typical plastic because I am one of those people that carry a minimalist wallet that can hold just a few cards. The metal card is thicker and heavier, of course.</p>\n<p>I called US Bank to see if I could get the plastic Smartly Visa card, and the rep told me her system shows they only have the metal card, and that if I order a replacement, I would get the metal. Of course, we all know that reps give out inaccurate info a lot, so maybe the rep is wrong.</p>\n"
+      },
+      "date_gmt" : "2026-02-10T18:28:04",
+      "id" : 2252620,
+      "parent" : 2252401
+    },
+    {
+      "author_name" : "midas89",
+      "content" : {
+        "rendered" : "<p><a class='wpd-umcguest'  href='https://www.doctorofcredit.com/u-s-bank-to-nerf-existing-smartly-cardholders-on-september-15/#comment-2252401'><img alt='' src='https://secure.gravatar.com/avatar/6c85e011e64a2c3cd139202800f0454fe5850ab627058d04dcf5e89712382bb3?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/6c85e011e64a2c3cd139202800f0454fe5850ab627058d04dcf5e89712382bb3?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>Frank</a> I called US Bank back later in the day. This second rep agreed with the first rep, but handed me off to a supervisor when I mentioned your comment, Frank. Supervisor said that the Smartly Visa card still is only available as metal, and that a replacement order will also be in metal. Also said 100% sure. And of course, this rep could also be misinformed, or the fact that plastic is now available is new, and has not been spread to the reps.</p>\n"
+      },
+      "date_gmt" : "2026-02-10T22:39:39",
+      "id" : 2252901,
+      "parent" : 2252401
+    },
+    {
+      "author_name" : "c3",
+      "content" : {
+        "rendered" : "<p>I have found the metal card more difficult to use for contactless payment.  I may have to hold the card longer, move it around, flip it, etc.</p>\n"
+      },
+      "date_gmt" : "2026-02-11T03:36:47",
+      "id" : 2253123,
+      "parent" : 2252401
+    },
+    {
+      "author_name" : "mdacguy",
+      "content" : {
+        "rendered" : "<p>I am grandfathered to the good version, i.e. earning 4% with 100K+ in investment account. Last year, I also opened a checking account to get the checking account bonus. As you know that checking account bonus is churnable. I am thinking to close the checking account now. Any one did this this year and still keep the good version( <span> i.e. earning 4% with 100K+ in investment account) after your checking account is closed. I don&#8217;t want to screwed up this so I am checking with folks here to make sure before I close the US Bank checking account.  Thanks.</span></p>\n"
+      },
+      "date_gmt" : "2026-07-08T18:04:42",
+      "id" : 2361729,
+      "parent" : 0
+    },
+    {
+      "author_name" : "mdacguy",
+      "content" : {
+        "rendered" : "<p>Hi&nbsp;<a class='wpd-umcguest'  href='https://www.doctorofcredit.com/u-s-bank-to-nerf-existing-smartly-cardholders-on-september-15/#comment-2106494'><img alt='' src='https://secure.gravatar.com/avatar/538f9a6dc01c43dfbda6d23b004d170bd325b716d8d0375a7a76bb657c1c8adc?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/538f9a6dc01c43dfbda6d23b004d170bd325b716d8d0375a7a76bb657c1c8adc?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>midas89</a> , I saw you post quite a lot here on the Smartly credit card threads. </p>\n<p>My situtation is: I am grandfathered to the good version, i.e. earning 4% with 100K+ in investment account. Last year, I also opened a US Bank Smartly checking account to get the checking account bonus. As you know that checking account bonus is churnable. I am thinking to close the checking account now.</p>\n<p>I was wondering if you churned Us Bank Checking account recently(in last 12 month). If so did you close your US bank smartly checking account and did it do any negative impact to your Smartly CC assuming you are grandfathered to the good version of the card too.&nbsp;&nbsp;</p>\n<p>Thanks.</p>\n"
+      },
+      "date_gmt" : "2026-07-08T19:38:22",
+      "id" : 2361828,
+      "parent" : 2164545
+    },
+    {
+      "author_name" : "midas89",
+      "content" : {
+        "rendered" : "<p><a class='wpd-umcguest'  href='https://www.doctorofcredit.com/u-s-bank-to-nerf-existing-smartly-cardholders-on-september-15/#comment-2107817'><img alt='' src='https://secure.gravatar.com/avatar/b40da54cb6eccb45dfbe5c5622ab8aa8b7fc69950cee28f364d2d374ba1f7648?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/b40da54cb6eccb45dfbe5c5622ab8aa8b7fc69950cee28f364d2d374ba1f7648?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>mdacguy</a> I am grandfathered, as you surmised.</p>\n<p>I haven’t personally churned my U.S. Bank checking account, but I’d be cautious about closing the Smartly checking account if it is part of your Smartly Visa setup. Current public Smartly terms are very different from the original V1 setup as you are aware, and U.S. Bank’s current language appears to tie the earning bonus to having Smartly Savings plus qualifying balances in open Smartly Checking and/or Safe Debit accounts. DoC also reported that existing cardholders were split into different “good nerf” and “bad nerf” groups, with some still able to count investment balances and others not.</p>\n<p>Because of that, I would not assume you can safely close the checking account, wait 12 months, reopen, and preserve the old investment-balance 4% treatment. Maybe it would be fine, but I personally would not risk a grandfathered 4% setup for a one-time checking bonus unless I had something in writing from U.S. Bank confirming that closing the checking account would not affect my Smartly Visa earning tier or grandfathered treatment.</p>\n"
+      },
+      "date_gmt" : "2026-07-08T23:28:26",
+      "id" : 2362025,
+      "parent" : 2361828
+    }
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "376",
+    "x-wp-totalpages" : "4"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/comments?post=241557&per_page=100&page=4&order=asc&orderby=date_gmt&_fields=id,parent,author_name,date_gmt,content"
+}

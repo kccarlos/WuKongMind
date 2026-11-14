@@ -1,0 +1,697 @@
+{
+  "body" : {
+    "posts" : [
+      {
+        "blurb" : "软件名称 DS Music - Synology群晖NAS音乐播放器 应用平台 iOS (支持 CarPlay) iPadOS macOS Apple TV Apple Vision 推荐类型 【开发者自荐】 一句简介 这是一个第三方开发的群晖NAS音乐播放器，功能强大，使用体验好，不需要订阅免费可以使用。 重点：如何下载 可以在我的网站 https://dsmusic.top 直接点击下载按钮跳转到 App Store 下载。 或者直接在 App Store 搜索关键字 “ds music”，按下面的图标来找哦。 可以在App内点击 “联系开发者” 按钮，获取 TestFlight 测...",
+        "id" : 207797,
+        "post_number" : 1,
+        "topic_id" : 57209,
+        "username" : "tongwanglin"
+      },
+      {
+        "blurb" : "注意： 除了在文件过滤器中指定不同步的文件名称及类型之外，共享文件夹中的子文件夹及文件都会同步。 建议不要在多台 Synology NAS 之间同步和协作处理 Synology Office 文件。通过不同 Synology NAS 修改同一份文件，可能会导致无法预计的同步问题。 在下列情况下，Synology Drive ShareSync 不会同步文件： 文件夹或文件路径包含任何以下字符： \\、/ 文件为以下类型： .tmp、.temp、.swp、.lnk 文件名以波浪号 (~) 开头 文件或文件夹名称为或包含下列字符： @tmp @eadir .SynologyWorkingDir...",
+        "id" : 174998,
+        "post_number" : 23,
+        "topic_id" : 48268,
+        "username" : "ypj034"
+      },
+      {
+        "blurb" : "不是，我看了是Synology NAS",
+        "id" : 263087,
+        "post_number" : 6,
+        "topic_id" : 71207,
+        "username" : "gsdg"
+      },
+      {
+        "blurb" : "虽然说是想要免费的，但毕竟多平台同步都是要有高成本的服务器稳定运转来完成的，如果数据量大，而且安全性要求高，想要真正的安全而且方便稳定的话，最终必然是要走自己部署服务器的路线。 比如我会把家里的物件拍照，然后放到群晖Nas的Synology Photos里，上面可以打无数标签，全平台秒同步，搜索标签也方便。",
+        "id" : 219170,
+        "post_number" : 27,
+        "topic_id" : 59610,
+        "username" : "artdupengyun"
+      },
+      {
+        "blurb" : "https://synocommunity.com/package/synocli-file synocommunity.com https://synocommunity.com/package/synocli-file SynoCommunity Community Packages for Synology NAS 似乎不支持 7.01 了",
+        "id" : 276336,
+        "post_number" : 5,
+        "topic_id" : 74146,
+        "username" : "Qingwa"
+      },
+      {
+        "blurb" : "软件名称 Swads 应用平台 iOS macOS 推荐类型 【开发者自荐】 一句简介 DSM Download Station 客户端，现代、原生、凭直觉再设计 应用简介 :collision: 极速原生，快麻了 现代应用，完全使用 Swift 编程语言构建。 :rocket: QuickConnect 快了 7 倍 改进的策略带来真正神奇的体验。 :satellite_antenna: 所有实例，一目了然 轻松切换或编辑多个实例，无论是 QuickConnect 还是主机地址。 :control_knobs: 任务详情 随时查看任务状态，包括：活动、Trackers、Peers、文件...",
+        "id" : 249890,
+        "post_number" : 1,
+        "topic_id" : 66934,
+        "username" : "shensven"
+      },
+      {
+        "blurb" : "原始链接在： https://www.appinn.com/synology-2025-plus/ 我一直以为是个段子，没想到是群晖在德国的官网上，发布的新闻稿： https://www.synology.com/de-de/company/news/article/DACH_VL_plus 捡重点的说： Synology 即将推出的 Plus 机型越来越依赖自己的生态系统 “通过将我们的集成生态系统扩展到 Plus 系列，我们的目标是为所有用户（从家庭用户到小型企业）提供最高级别的安全性和性能，同时提供更高效的支持。” 对于用户来说，这意味着从 2025 年发布的 Plus 系列机型开...",
+        "id" : 259472,
+        "post_number" : 1,
+        "topic_id" : 70196,
+        "username" : "Qingwa"
+      },
+      {
+        "blurb" : "https://blog.zhjh.top/archives/M8nBI5tjcxQe31DhiXqxy 群辉 Synology NAS Docker 安装 RustDesk-server 自建服务器只要一个容器-duanluan 的博客",
+        "id" : 225402,
+        "post_number" : 13,
+        "topic_id" : 61332,
+        "username" : "duanluan"
+      },
+      {
+        "blurb" : "自建 rustdesk。 https://blog.zhjh.top/archives/M8nBI5tjcxQe31DhiXqxy 群辉 Synology NAS Docker 安装 RustDesk-server 自建服务器只要一个容器-duanluan 的博客",
+        "id" : 218424,
+        "post_number" : 22,
+        "topic_id" : 59468,
+        "username" : "duanluan"
+      },
+      {
+        "blurb" : "原始链接在： https://www.appinn.com/dsm-7-1-ssd-cache-update/ 群晖 DSM 升级至 7.1，提示 SSD 缓存非最新版本 - 小众软件 今天青小蛙在查看群晖 DSM 存储管理器 里查看存储空间时，第一次见到「 非最新版本 」的提示，是因为 DSM 在升级 7.1 之后，SSD 缓存没有升级的缘故，那就升级一番。@ https://www.appinn.com/dsm-7.1-ssd-cache-update/ Appinn 实际上升级 DSM 7.1 是很久之前的事情了，但…从来没有发现过这个提示。要不是这两天在群里讨论 SSD 降价的问...",
+        "id" : 142233,
+        "post_number" : 1,
+        "topic_id" : 40828,
+        "username" : "Qingwa"
+      },
+      {
+        "blurb" : "企业微信20240529-095333@2x 如图所示 4 盘位的群晖 NAS，目前插了 3 块希捷的 8T 硬盘，RAID 选用的 SHR 总可用容量为 14.5T 保护容量为 7.3T 主要用来存放公司 4-5 个设计人员的工程文件（PS 相关的文件 PSB PSD）和产品资料（图片、视频） 现在空间快用完了，查看了下磁盘详细使用情况，发现上图中有一项【Synology Drive 数据库】占了 3.6T 之多 疑问： 1、这个 Synology Drive 数据库 是存放什么内容的？可以清理或者减少空间占用吗？ 2、RAID 下的保护容量 7.3T，这部分就相当于是实际 3 个硬盘...",
+        "id" : 207099,
+        "post_number" : 1,
+        "topic_id" : 57033,
+        "username" : "EddieX"
+      },
+      {
+        "blurb" : "原始链接在： https://www.appinn.com/synology-dsm73-hdd-limit-removed/ 群晖认怂！用户狂喷半年后，最新 DSM 7.3 终于低头：取消专用硬盘限制 - 小众软件 多家媒体确认，在经历了小半年的广泛批评以及销量不振之后， https://www.appinn.com/tag/%e7%be%a4%e6%99%96/ 群晖 Synology 终于要在最新的 DSM 7.3 系统中，取消专用硬盘限制，未来的 NAS 产品将恢复之前的状况，可以使用任何硬盘。@ https://www.appinn.com/synology-dsm73-hdd...",
+        "id" : 282488,
+        "post_number" : 1,
+        "topic_id" : 75519,
+        "username" : "Qingwa"
+      },
+      {
+        "blurb" : "06:10AM - 24 August 2024 https://neil.computer/notes/how-to-setup-minimal-zfs-nas-without-truenas/ Neil Panchal – 24 Aug 24 https://neil.computer/notes/how-to-setup-minimal-zfs-nas-without-truenas/ How to Build a Minimal ZFS NAS without Synology, QNAP, TrueNAS If you need a basic NAS and don't ca...",
+        "id" : 331587,
+        "post_number" : 1,
+        "topic_id" : 87972,
+        "username" : "Qingwa"
+      },
+      {
+        "blurb" : "就是 nextcloud 系啊，还有 owncloud、seafile。 当然还有NAS系列 Synology Drive。 以及微联通用户补充下",
+        "id" : 196499,
+        "post_number" : 14,
+        "topic_id" : 54493,
+        "username" : "Qingwa"
+      },
+      {
+        "blurb" : "原始链接在： https://www.appinn.com/synology-products-performance/ 群晖上线新的 NAS 性能对比页面 - 小众软件 群晖（Synology）最近上线了新的 NAS 性能对比页面，可以在不同的群晖 NAS 之间对比设备性能，包括磁盘读取速度、应用用户数量上限、同时访问用户数量等数据，方便用户筛选。@ https://www.appinn.com/synology-products-performance/ Appinn 主要是用来筛选、对比不同型号的群晖 NAS 性能： 能看到的具体数据包括： iSCSI：使用 SSD 的随机 IOP...",
+        "id" : 212595,
+        "post_number" : 1,
+        "topic_id" : 58281,
+        "username" : "Qingwa"
+      },
+      {
+        "blurb" : "原始链接在： https://www.appinn.com/synology-nas-2023march/ 群晖特价：DS420+ 历史低价 ￥3199 - 小众软件 收到群晖公众号的消息，从今天晚上8点开始到3月8日，春季焕新活动开始， https://u.jd.com/wQN7uYT 群晖京东天猫旗舰店 的热门机型直接 87 折，明星机型 DS420+ 直降后， 史低价￥3199 。 https://www.appinn.com/synology-nas-2023march/ @Appinn DS420+ 性价比四盘，历史低价 明星机型，家庭用户几乎一次到位的选择，四盘位可以用很久。...",
+        "id" : 143598,
+        "post_number" : 1,
+        "topic_id" : 41249,
+        "username" : "Qingwa"
+      },
+      {
+        "blurb" : "我是用 synology photos 同步到 nas 然后在 syncthing 到安卓的",
+        "id" : 266696,
+        "post_number" : 3,
+        "topic_id" : 71943,
+        "username" : "Qingwa"
+      },
+      {
+        "blurb" : "在NAS里面有一些下载的flac格式的音乐，但是在用播放器播放的时候没有歌词和封面，打算找一个软件直接封装在tag中。 【背景】群晖的NAS，放置在老家不在身边，也没有公网IP可以直接访问，所以方案最好能简单些。 【目前尝试过的方案】家里有一台台式机，安装了synology driver官方的同步软件，把NAS中对应的音乐文件同步到本地，然后通过win版的musictag批量更新，确实可行 【目前方案的问题】这种方案要先从NAS拉取文件到本地，通过musictag更新后，还要重新上传同步回NAS，网速受限，同步的速度太慢了。 【预想的方案】NAS自带的套件有container manag...",
+        "id" : 218883,
+        "post_number" : 1,
+        "topic_id" : 59733,
+        "username" : "hikingbear"
+      },
+      {
+        "blurb" : "原始链接在： https://www.appinn.com/synology-hdd-db/ Synology HDD db - 群晖第三方硬盘不再受限！一个脚本解锁所有第三方 HDD 兼容 - 小众软件 Synology HDD db 能让第三方硬盘在 2025 最新款的群晖设备中使用的开源项目，只需要执行一个脚本，即可不再受硬盘的兼容性列表影响，让任意硬盘都可以创建存储池。@ https://www.appinn.com/synology-hdd-db/ Appinn 是的，现在的新群晖不让第三方硬盘使用，很离谱。 前情回顾： https://www.appinn.com/synol...",
+        "id" : 272363,
+        "post_number" : 1,
+        "topic_id" : 73045,
+        "username" : "Qingwa"
+      },
+      {
+        "blurb" : "呃，为什么没有黑群呢，因为黑群由于有了白群，被雪藏了，已经很久没有开机了。 黑群的好处不少，比如在相同的成本下，获得性能更好的硬件，还可以使用着与白群一样的系统。 而白群，相比于黑群，最大的特点就是稳定性、功耗，以及安全性。 黑群需要破解，白群不需要 黑群无法很快升级到最新系统，白群分分钟升级 黑群功能少则几十瓦，多则几百瓦 白群功耗极低，以 218+ 为例，读取功耗 18 瓦不到 白群在系统出现故障的时候，Synology 可以远程协助解决问题 都说群晖是买软件送硬件，所以我觉得，折腾能力强的同学，可以先上黑群，预算富裕的同学，请直接上白群。 还是那句话，我们这些用着黑群的用户，都欠 ...",
+        "id" : 20177,
+        "post_number" : 1,
+        "topic_id" : 7930,
+        "username" : "Qingwa"
+      },
+      {
+        "blurb" : "比如：DS923+ 4盘位，配上 4 块16T硬盘，刚好1万块出头，然后你就能得到两个 16TB 的 RAID 存储池，一共 32TB，足够非视频企业使用很久很久了。做 RAID 1 有一块数据冗余，安全可靠。 最重要的是，出了问题群晖背锅。 【京东】群晖（Synology）DS923+ 4盘位 万兆扩展 NAS网络存储服务器 文件共享 自动备份 私有云 团队云盘， 抢购链接： https://u.jd.com/XiRw0po 全新正品西数HC550 WUH721816ALE6L4 16TB SATA 6Gb企业级硬盘16T【包邮】 【到手价】 1550.00 元 【下单链接】 http...",
+        "id" : 201583,
+        "post_number" : 13,
+        "topic_id" : 32602,
+        "username" : "Qingwa"
+      },
+      {
+        "blurb" : "如题，在用群晖NAS备份iPhone照片的时候遇到了一个问题。 我手机上的软件是Synology Drive，可以自动备份手机上的照片。 但是问题是，不能指定特定的文件夹。 比如我有一个相册，命名为“资料”，我只想将这个相册备份到NAS，而不需要将手机全部照片都备份。但是这个软件无法设置。 给他设置“读取部分相册”的选项，备份功能直接打不开；设置全部访问，就会全部都备份…… 所以有没有什么办法能指定文件夹备份？",
+        "id" : 208225,
+        "post_number" : 1,
+        "topic_id" : 57310,
+        "username" : "horee"
+      },
+      {
+        "blurb" : "原始链接在： https://www.appinn.com/synology-photos-1-9-0-10924/ Synology Photos 服务器端更新，新增收藏夹功能 - 小众软件 Synology Photos 的服务器端在上个月底为 DSM 7.2 更新了 1.9.0-10924 版本，而移动客户端的最近一次更新是2026年3月份。这对群晖的存量用户来说，意味着还可以放心的将照片保存在 Synology Photos 中，暂时不用迁移，不用折腾。 Synology Photos 1.9.0-10924 还新增了几个功能： 新功能 支持将照片标记为最爱，并可在最爱相册中查看...",
+        "id" : 319380,
+        "post_number" : 1,
+        "topic_id" : 84916,
+        "username" : "Qingwa"
+      },
+      {
+        "blurb" : "原始链接在： https://www.appinn.com/synology-office-suite-api/ 群晖发布 Office Suite API，打通办公套件与第三方系统的连接通道 - 小众软件 群晖于2025年2月18日正式发布 Office Suite API ，通过 API 接口打通群晖私有云办公套件与第三方系统的连接通道。该 API 包含 Drive（硬盘）、Office（办公软件）、MailPlus（邮件）和 Calendar（日历）四大核心组件，支持 DSM 7.2.2 nano3 以上系统。@ https://www.appinn.com/synology-of...",
+        "id" : 248939,
+        "post_number" : 1,
+        "topic_id" : 66727,
+        "username" : "Qingwa"
+      },
+      {
+        "blurb" : "背景： 之前在论坛发了一片求助帖，是请教个人一些文件该怎么跨平台便捷的访问和保存。 具体链接是： https://meta.appinn.net/t/topic/57031 求分享一款云存储工具 /c/wen-ti-qiu-zhu/7 在这里你可以提出任何问题，并标记你认为正确的答案。 问题求助❓ 具体背景是，因为工作需要，我会经常从windows，linux，macOS以及iPhone跨平台拷贝数据，主要是各种配置文件与工具。 所以需求是： 1、需要便捷，不要下载客户端才能访问的，这条限制基本排除了各类网盘 2、拷贝的文件不会很大，一般在100M以下 3、文件需要长期存储，至少能存储一...",
+        "id" : 208005,
+        "post_number" : 1,
+        "topic_id" : 57247,
+        "username" : "horee"
+      },
+      {
+        "blurb" : "原始链接在： https://www.appinn.com/synology-ransomware-attack-dsm-security-update/ 群晖发布公告：确认勒索病毒攻击利用了2024年12月已修复漏洞，请立即升级 DSM 到最新版 - 小众软件 群晖刚刚 https://www.synology.cn/zh-cn/company/news/article/C3RB3R 发布公告 ，确认本次《 https://www.appinn.com/synology-nas-ransomware-2026/ 勒索病毒攻击 》事件：恶意攻击者正利用 2024 年 12 月已完成修复的...",
+        "id" : 355819,
+        "post_number" : 1,
+        "topic_id" : 94828,
+        "username" : "Qingwa"
+      },
+      {
+        "blurb" : "OpenClaw 新版本新增了 Synology Chat 渠道，对于各大群晖用户，这是一个好消息。 安装 https://meta.appinn.net/t/topic/81196#p-304727-toc-h2--12 更新 OpenClaw 之后，直接运行： openclaw plugins install @openclaw/synology-chat openclaw gateway restart 重启完成之后，就安装好了插件。 配置 Synology Chat 渠道 在群晖 Chat 中，设置 Webhook 传入与传出 Screenshot-2026-02-24-14.1...",
+        "id" : 307643,
+        "post_number" : 1,
+        "topic_id" : 81875,
+        "username" : "Qingwa"
+      },
+      {
+        "blurb" : "原始链接在： https://www.appinn.com/active-backup-for-business-2-5-0-12631/ 群晖 Active Backup for Business 套件新增 macOS 整机备份功能，目前已支持个人电脑、物理服务器、文件服务器、虚拟机、NAS 备份 - 小众软件 Active Backup for Business 是著名的 NAS 提供商 https://www.appinn.com/tag/%E7%BE%A4%E6%99%96/ 群晖 自带的免费系统套件，它可以针对个人电脑（Windows、Linux、macOS）进行整机备份，还可...",
+        "id" : 136947,
+        "post_number" : 1,
+        "topic_id" : 39432,
+        "username" : "Qingwa"
+      },
+      {
+        "blurb" : "你还是218，我用的还是十年前的213J，更是没有 container 功能了，现在就是当做备份服务器用，唯一需要的功能就是 Synology Drive Server/Client 功能，你的 APP 很好，但我这里用不到影音视频功能啊……只能内心支持一下了",
+        "id" : 246921,
+        "post_number" : 10,
+        "topic_id" : 63035,
+        "username" : "jxcangel"
+      },
+      {
+        "blurb" : "谢谢诸位，已解决，在Synology Drive中获取链接，再生成二维码就行了",
+        "id" : 272386,
+        "post_number" : 6,
+        "topic_id" : 73023,
+        "username" : "TangXing"
+      },
+      {
+        "blurb" : "去年 https://t.me/amazonhotevery/761 这台机器 最低价 ¥1741，目前还贵着好几百呢。 Synology 群晖 DiskStation DS220+ 网络存储服务器 [2槽 / 配备四核CPU/搭载2GB内存] NAS套装 售价：¥1589.7，关税：¥153.96，到手价 ¥1741.7，国内参考价 ¥2780 购买地址： https://www.amazon.cn/dp/B087ZCBWFH?tag=personalass3288-23 &amp; th=1",
+        "id" : 132810,
+        "post_number" : 2,
+        "topic_id" : 38285,
+        "username" : "Qingwa"
+      },
+      {
+        "blurb" : "原始链接在： https://www.appinn.com/synology-nas-ransomware-protection-guide/ 就在刚刚，群晖在公众号中发布了一篇名为《保护您的 NAS 免受勒索软件攻击》的 https://mp.weixin.qq.com/s/955LZm_68obI8w1nWsXASg?scene=1 教程 ，强调三点： 使用安全顾问执行扫描 更新 DSM 建立异地别分 虽然这份教程，青小蛙觉得有些敷衍，因为它只是再次强调了使用 NAS 必须注意的事项：保持更新、注意备份。 但从中也可以看到，从10月29日最早爆出《 https://www.appin...",
+        "id" : 357236,
+        "post_number" : 1,
+        "topic_id" : 95327,
+        "username" : "Qingwa"
+      },
+      {
+        "blurb" : "原始链接在： https://www.appinn.com/synology-dsm-7-4/ 群晖 DSM 7.4 https://www.synology.cn/zh-cn/DSM74 正式发布 ，带来了 数据缩减功能 ，可在后台自动删除重复的数据块，并压缩文件大小。在硬盘价格疯涨的今天，为用户提供更多的可用存储空间。另外还有 AI 助手、AI 私有知识库、GPU 信息显示等功能。@ https://www.appinn.com/synology-dsm-7-4/ Appinn 另外，这个版本将是早期群晖设备的最后一个版本，包括 DS216+、DS916+、DS918+、DS1819...",
+        "id" : 332924,
+        "post_number" : 1,
+        "topic_id" : 88307,
+        "username" : "Qingwa"
+      },
+      {
+        "blurb" : "原始链接在： https://www.appinn.com/dsm-7-2-2-remove-video-station/ 群晖 DSM 7.2.2 更新，不再支持 Video Station 套件｜替代品如何选择？ - 小众软件 群晖在1个月前发布了 https://www.synology.cn/zh-cn/releaseNote/DSM#ver_72806 DSM 7.2.2-72806 的更新，并逐步开始推送。青小蛙最近才收到，更新前会提示不再支持 Video Station 套件，需要先卸载才能更新。原因是从这个版本起，视频的解码将从服务器端转移至终端（手机或电脑），以减少系统...",
+        "id" : 227983,
+        "post_number" : 1,
+        "topic_id" : 61994,
+        "username" : "Qingwa"
+      },
+      {
+        "blurb" : "原始链接在： https://www.appinn.com/synology-dsm-27-security-vulnerabilities-2026/ 群晖公布 27 个 DSM 安全漏洞，最高危 9.8 分！与此前勒索攻击有关吗？ - 小众软件 前不久，群晖发出紧急警告： https://www.appinn.com/synology-nas-ransomware-2026/ 部分 NAS 遭到 C3RB3R 勒索软件攻击 ，大量文件被加密，用户被要求支付赎金。 当时群晖特别强调，攻击者利用的是一个 https://www.appinn.com/synology-ransomware...",
+        "id" : 358531,
+        "post_number" : 1,
+        "topic_id" : 95756,
+        "username" : "Qingwa"
+      },
+      {
+        "blurb" : "原始链接在： https://www.appinn.com/synology-ds925-plus/ 群晖在公众号正式 https://mp.weixin.qq.com/s/djAXc-248vFHCotW-4p8Lg 发布 了最新的四盘位 NAS 产品： DS925+ ， 使用 AMD Ryzen​ :trade_mark: Embedded V1500B 处理器，4GB ECC 纠错内存，双 2.5G 网口，内置双 M.2 SSD 插槽，不支持第三方硬盘。@ https://www.appinn.com/synology-ds925-plus/ Appinn 虽然 https://w...",
+        "id" : 260866,
+        "post_number" : 1,
+        "topic_id" : 70679,
+        "username" : "Qingwa"
+      },
+      {
+        "blurb" : "原始链接在： https://www.appinn.com/daisydisk-for-macos/ DaisyDisk - 磁盘空间扫描工具：找出了 macOS 系统数据中的 269.4GB 垃圾文件，来自 APFS 快照文件 - 小众软件 DaisyDisk 是一款 Mac 下的磁盘空间扫描工具，它能帮你找出是什么占据了磁盘，支持隐藏空间，包括莫名其妙的 系统数据 ，总之能够真正的找到磁盘占用文件。 https://www.appinn.com/daisydisk-for-macos/ @Appinn 事情是这样的，青小蛙已经 https://twitter.com/scavin/s...",
+        "id" : 144424,
+        "post_number" : 1,
+        "topic_id" : 41461,
+        "username" : "Qingwa"
+      },
+      {
+        "blurb" : "最近在找这类软件，测试哪个最好用，如下： 序号 网盘/协议 开源 免费 无广告 视频 淡入淡出/无缝播放 特点 缺点 平台 1 Aplayer (remix.myplayer) webdav :white_check_mark: :white_check_mark: :white_check_mark: :cross_mark: :white_check_mark: 开源，摇一摇切歌，打开自动播放 被隐藏的文件夹不能扫描，通知没有关闭按钮，后台不能干掉只能从软件侧栏退出 安卓 2 AIMP FTP，smb，webdav(非通用 :cross_mark: :white_check_mark...",
+        "id" : 280693,
+        "post_number" : 1,
+        "topic_id" : 75082,
+        "username" : "oldsento"
+      }
+    ],
+    "topics" : [
+      {
+        "bumped_at" : "2026-08-12T01:05:33.978Z",
+        "fancy_title" : "【开发者自荐】DS Music - Synology群晖NAS音乐播放器",
+        "has_accepted_answer" : false,
+        "id" : 57209,
+        "last_posted_at" : "2026-08-12T01:05:33.978Z",
+        "pinned" : false,
+        "posts_count" : 5,
+        "slug" : "topic",
+        "title" : "【开发者自荐】DS Music - Synology群晖NAS音乐播放器"
+      },
+      {
+        "bumped_at" : "2023-11-27T03:17:40.407Z",
+        "fancy_title" : "同步类软件讨论",
+        "has_accepted_answer" : false,
+        "id" : 48268,
+        "last_posted_at" : "2023-11-27T03:17:40.407Z",
+        "pinned" : false,
+        "posts_count" : 32,
+        "slug" : "topic",
+        "title" : "同步类软件讨论"
+      },
+      {
+        "bumped_at" : "2025-05-10T09:06:53.274Z",
+        "fancy_title" : "有大量的文件需要索引，如何选择好用顺手的工具？",
+        "has_accepted_answer" : false,
+        "id" : 71207,
+        "last_posted_at" : "2025-05-10T09:06:53.274Z",
+        "pinned" : false,
+        "posts_count" : 17,
+        "slug" : "topic",
+        "title" : "有大量的文件需要索引，如何选择好用顺手的工具？"
+      },
+      {
+        "bumped_at" : "2025-01-16T03:38:44.013Z",
+        "fancy_title" : "求一个繁杂的物品管理工具",
+        "has_accepted_answer" : true,
+        "id" : 59610,
+        "last_posted_at" : "2025-01-16T03:38:44.013Z",
+        "pinned" : false,
+        "posts_count" : 33,
+        "slug" : "topic",
+        "title" : "求一个繁杂的物品管理工具"
+      },
+      {
+        "bumped_at" : "2025-08-11T08:12:41.441Z",
+        "fancy_title" : "SynoCli - 来自 SynoCommunity，为群晖 NAS 安装 110+ 款开发者工具",
+        "has_accepted_answer" : false,
+        "id" : 74146,
+        "last_posted_at" : "2025-08-11T08:12:41.441Z",
+        "pinned" : false,
+        "posts_count" : 6,
+        "slug" : "topic",
+        "title" : "SynoCli - 来自 SynoCommunity，为群晖 NAS 安装 110+ 款开发者工具"
+      },
+      {
+        "bumped_at" : "2025-05-12T15:53:34.965Z",
+        "fancy_title" : "【自荐】Swads - 群晖 Download Station 客户端（iOS，macOS）",
+        "has_accepted_answer" : false,
+        "id" : 66934,
+        "last_posted_at" : "2025-05-12T15:53:34.965Z",
+        "pinned" : false,
+        "posts_count" : 27,
+        "slug" : "topic",
+        "title" : "【自荐】Swads - 群晖 Download Station 客户端（iOS，macOS）"
+      },
+      {
+        "bumped_at" : "2025-04-19T03:17:22.446Z",
+        "fancy_title" : "离了个大谱：群晖，只有自家硬盘才能兼容并提供全方位的功能和支持",
+        "has_accepted_answer" : false,
+        "id" : 70196,
+        "last_posted_at" : "2025-04-19T03:17:22.446Z",
+        "pinned" : false,
+        "posts_count" : 10,
+        "slug" : "topic",
+        "title" : "离了个大谱：群晖，只有自家硬盘才能兼容并提供全方位的功能和支持"
+      },
+      {
+        "bumped_at" : "2024-09-27T06:43:11.177Z",
+        "fancy_title" : "自建开源的远程桌面",
+        "has_accepted_answer" : false,
+        "id" : 61332,
+        "last_posted_at" : "2024-09-27T06:43:11.177Z",
+        "pinned" : false,
+        "posts_count" : 14,
+        "slug" : "topic",
+        "title" : "自建开源的远程桌面"
+      },
+      {
+        "bumped_at" : "2024-08-06T09:17:27.780Z",
+        "fancy_title" : "求流畅好用的远程控制软件",
+        "has_accepted_answer" : false,
+        "id" : 59468,
+        "last_posted_at" : "2024-08-06T09:17:27.780Z",
+        "pinned" : false,
+        "posts_count" : 21,
+        "slug" : "topic",
+        "title" : "求流畅好用的远程控制软件"
+      },
+      {
+        "bumped_at" : "2023-02-20T03:37:09.464Z",
+        "fancy_title" : "群晖 DSM 升级至 7.1，提示 SSD 缓存非最新版本",
+        "has_accepted_answer" : false,
+        "id" : 40828,
+        "last_posted_at" : "2023-02-20T03:37:09.464Z",
+        "pinned" : false,
+        "posts_count" : 1,
+        "slug" : "topic",
+        "title" : "群晖 DSM 升级至 7.1，提示 SSD 缓存非最新版本"
+      },
+      {
+        "bumped_at" : "2024-05-29T07:56:06.188Z",
+        "fancy_title" : "Synology Drive 数据库是什么？可以清理或者减少空间占用吗？",
+        "has_accepted_answer" : true,
+        "id" : 57033,
+        "last_posted_at" : "2024-05-29T07:56:06.188Z",
+        "pinned" : false,
+        "posts_count" : 10,
+        "slug" : "topic",
+        "title" : "Synology Drive 数据库是什么？可以清理或者减少空间占用吗？"
+      },
+      {
+        "bumped_at" : "2025-11-09T07:45:22.937Z",
+        "fancy_title" : "群晖认怂！用户狂喷半年后，最新 DSM 7.3 终于低头：取消专用硬盘限制",
+        "has_accepted_answer" : false,
+        "id" : 75519,
+        "last_posted_at" : "2025-11-09T07:45:22.937Z",
+        "pinned" : false,
+        "posts_count" : 20,
+        "slug" : "topic",
+        "title" : "群晖认怂！用户狂喷半年后，最新 DSM 7.3 终于低头：取消专用硬盘限制"
+      },
+      {
+        "bumped_at" : "2026-07-09T11:20:16.833Z",
+        "fancy_title" : "最纯粹的 NAS：直接上 ZFS",
+        "has_accepted_answer" : false,
+        "id" : 87972,
+        "last_posted_at" : "2026-07-09T11:20:16.833Z",
+        "pinned" : false,
+        "posts_count" : 18,
+        "slug" : "topic",
+        "title" : "最纯粹的 NAS：直接上 ZFS"
+      },
+      {
+        "bumped_at" : "2024-03-31T14:14:07.802Z",
+        "fancy_title" : "有什么自建的网盘方案类似onedrive",
+        "has_accepted_answer" : false,
+        "id" : 54493,
+        "last_posted_at" : "2024-03-31T14:14:07.802Z",
+        "pinned" : false,
+        "posts_count" : 15,
+        "slug" : "topic",
+        "title" : "有什么自建的网盘方案类似onedrive"
+      },
+      {
+        "bumped_at" : "2024-07-03T03:39:38.775Z",
+        "fancy_title" : "群晖上线新的 NAS 性能对比页面",
+        "has_accepted_answer" : false,
+        "id" : 58281,
+        "last_posted_at" : "2024-07-03T03:39:38.775Z",
+        "pinned" : false,
+        "posts_count" : 7,
+        "slug" : "topic",
+        "title" : "群晖上线新的 NAS 性能对比页面"
+      },
+      {
+        "bumped_at" : "2023-03-06T04:23:20.232Z",
+        "fancy_title" : "群晖特价：DS420+ 历史低价 ￥3199",
+        "has_accepted_answer" : false,
+        "id" : 41249,
+        "last_posted_at" : "2023-03-06T04:23:20.232Z",
+        "pinned" : false,
+        "posts_count" : 15,
+        "slug" : "topic",
+        "title" : "群晖特价：DS420+ 历史低价 ￥3199"
+      },
+      {
+        "bumped_at" : "2025-11-03T05:56:30.788Z",
+        "fancy_title" : "著名开源文件同步工具 Syncthing 2 即将推出",
+        "has_accepted_answer" : false,
+        "id" : 71943,
+        "last_posted_at" : "2025-11-03T05:56:30.788Z",
+        "pinned" : false,
+        "posts_count" : 29,
+        "slug" : "topic",
+        "title" : "著名开源文件同步工具 Syncthing 2 即将推出"
+      },
+      {
+        "bumped_at" : "2024-08-09T15:11:08.377Z",
+        "fancy_title" : "求音乐标签批量更新软件（NAS可用）",
+        "has_accepted_answer" : true,
+        "id" : 59733,
+        "last_posted_at" : "2024-08-09T15:11:08.377Z",
+        "pinned" : false,
+        "posts_count" : 3,
+        "slug" : "topic",
+        "title" : "求音乐标签批量更新软件（NAS可用）"
+      },
+      {
+        "bumped_at" : "2025-07-25T15:47:47.780Z",
+        "fancy_title" : "Synology HDD db - 群晖第三方硬盘不再受限！一个脚本解锁所有第三方 HDD 兼容",
+        "has_accepted_answer" : false,
+        "id" : 73045,
+        "last_posted_at" : "2025-07-25T15:47:47.780Z",
+        "pinned" : false,
+        "posts_count" : 12,
+        "slug" : "topic",
+        "title" : "Synology HDD db - 群晖第三方硬盘不再受限！一个脚本解锁所有第三方 HDD 兼容"
+      },
+      {
+        "bumped_at" : "2019-01-22T13:26:21.298Z",
+        "fancy_title" : "我折腾过的群晖总结",
+        "has_accepted_answer" : false,
+        "id" : 7930,
+        "last_posted_at" : "2019-01-22T13:26:21.298Z",
+        "pinned" : false,
+        "posts_count" : 18,
+        "slug" : "topic",
+        "title" : "我折腾过的群晖总结"
+      },
+      {
+        "bumped_at" : "2024-05-11T08:32:38.364Z",
+        "fancy_title" : "求推荐私有企业级内部用的网盘",
+        "has_accepted_answer" : true,
+        "id" : 32602,
+        "last_posted_at" : "2024-05-11T08:32:38.364Z",
+        "pinned" : false,
+        "posts_count" : 14,
+        "slug" : "topic",
+        "title" : "求推荐私有企业级内部用的网盘"
+      },
+      {
+        "bumped_at" : "2024-06-06T01:37:49.386Z",
+        "fancy_title" : "群晖NAS备份Iphone相册如何指定文件夹",
+        "has_accepted_answer" : false,
+        "id" : 57310,
+        "last_posted_at" : "2024-06-06T01:37:49.386Z",
+        "pinned" : false,
+        "posts_count" : 2,
+        "slug" : "topic",
+        "title" : "群晖NAS备份Iphone相册如何指定文件夹"
+      },
+      {
+        "bumped_at" : "2026-05-10T15:30:47.321Z",
+        "fancy_title" : "Synology Photos 服务器端更新，新增收藏夹功能",
+        "has_accepted_answer" : false,
+        "id" : 84916,
+        "last_posted_at" : "2026-05-10T15:30:47.321Z",
+        "pinned" : false,
+        "posts_count" : 13,
+        "slug" : "topic",
+        "title" : "Synology Photos 服务器端更新，新增收藏夹功能"
+      },
+      {
+        "bumped_at" : "2025-04-17T07:15:19.813Z",
+        "fancy_title" : "群晖发布 Office Suite API，打通办公套件与第三方系统的连接通道",
+        "has_accepted_answer" : false,
+        "id" : 66727,
+        "last_posted_at" : "2025-04-17T07:15:19.813Z",
+        "pinned" : false,
+        "posts_count" : 9,
+        "slug" : "topic",
+        "title" : "群晖发布 Office Suite API，打通办公套件与第三方系统的连接通道"
+      },
+      {
+        "bumped_at" : "2024-06-03T08:40:30.432Z",
+        "fancy_title" : "关于个人网盘的折腾的一些分享",
+        "has_accepted_answer" : false,
+        "id" : 57247,
+        "last_posted_at" : "2024-06-03T08:40:30.432Z",
+        "pinned" : false,
+        "posts_count" : 1,
+        "slug" : "topic",
+        "title" : "关于个人网盘的折腾的一些分享"
+      },
+      {
+        "bumped_at" : "2026-11-09T05:14:27.980Z",
+        "fancy_title" : "群晖发布公告：确认勒索病毒攻击利用了2024年12月已修复漏洞，请立即升级 DSM 到最新版",
+        "has_accepted_answer" : false,
+        "id" : 94828,
+        "last_posted_at" : "2026-11-09T05:14:27.980Z",
+        "pinned" : false,
+        "posts_count" : 11,
+        "slug" : "topic",
+        "title" : "群晖发布公告：确认勒索病毒攻击利用了2024年12月已修复漏洞，请立即升级 DSM 到最新版"
+      },
+      {
+        "bumped_at" : "2026-03-10T13:02:10.758Z",
+        "fancy_title" : "为 OpenClaw 安装群晖 Chat 渠道：@openclaw/synology-chat",
+        "has_accepted_answer" : false,
+        "id" : 81875,
+        "last_posted_at" : "2026-03-10T13:02:10.758Z",
+        "pinned" : false,
+        "posts_count" : 11,
+        "slug" : "topic",
+        "title" : "为 OpenClaw 安装群晖 Chat 渠道：@openclaw/synology-chat"
+      },
+      {
+        "bumped_at" : "2023-01-11T10:06:12.887Z",
+        "fancy_title" : "群晖 Active Backup for Business 套件新增 macOS 整机备份功能，目前已支持个人电脑、物理服务器、文件服务器、虚拟机、NAS 备份",
+        "has_accepted_answer" : false,
+        "id" : 39432,
+        "last_posted_at" : "2023-01-11T10:06:12.887Z",
+        "pinned" : false,
+        "posts_count" : 3,
+        "slug" : "topic",
+        "title" : "群晖 Active Backup for Business 套件新增 macOS 整机备份功能，目前已支持个人电脑、物理服务器、文件服务器、虚拟机、NAS 备份"
+      },
+      {
+        "bumped_at" : "2025-02-08T09:30:32.457Z",
+        "fancy_title" : "从800元二手群晖到自研 App，一个程序员的 NAS 进化之路",
+        "has_accepted_answer" : false,
+        "id" : 63035,
+        "last_posted_at" : "2025-02-08T09:30:32.457Z",
+        "pinned" : false,
+        "posts_count" : 10,
+        "slug" : "topic",
+        "title" : "从800元二手群晖到自研 App，一个程序员的 NAS 进化之路"
+      },
+      {
+        "bumped_at" : "2025-07-11T01:36:23.285Z",
+        "fancy_title" : "群晖NAS，文件共享链接生成二维码，电脑识别二维码能下载文件，手机识别二维码不能下载，请指教",
+        "has_accepted_answer" : false,
+        "id" : 73023,
+        "last_posted_at" : "2025-07-11T01:36:23.285Z",
+        "pinned" : false,
+        "posts_count" : 6,
+        "slug" : "topic",
+        "title" : "群晖NAS，文件共享链接生成二维码，电脑识别二维码能下载文件，手机识别二维码不能下载，请指教"
+      },
+      {
+        "bumped_at" : "2022-11-23T06:20:58.787Z",
+        "fancy_title" : "黑五节买群晖有哪些优惠组合",
+        "has_accepted_answer" : false,
+        "id" : 38285,
+        "last_posted_at" : "2022-11-23T06:20:58.787Z",
+        "pinned" : false,
+        "posts_count" : 6,
+        "slug" : "topic",
+        "title" : "黑五节买群晖有哪些优惠组合"
+      },
+      {
+        "bumped_at" : "2026-11-08T07:49:19.567Z",
+        "fancy_title" : "群晖发布教程：保护 NAS 免受勒索软件攻击",
+        "has_accepted_answer" : false,
+        "id" : 95327,
+        "last_posted_at" : "2026-11-08T07:49:19.567Z",
+        "pinned" : false,
+        "posts_count" : 8,
+        "slug" : "topic",
+        "title" : "群晖发布教程：保护 NAS 免受勒索软件攻击"
+      },
+      {
+        "bumped_at" : "2026-07-18T00:31:13.758Z",
+        "fancy_title" : "群晖 DSM 7.4：原生数据去重/压缩功能，可节省硬盘空间。是 DS216+、DS918+ 的最后一个版本",
+        "has_accepted_answer" : false,
+        "id" : 88307,
+        "last_posted_at" : "2026-07-18T00:31:13.758Z",
+        "pinned" : false,
+        "posts_count" : 10,
+        "slug" : "topic",
+        "title" : "群晖 DSM 7.4：原生数据去重/压缩功能，可节省硬盘空间。是 DS216+、DS918+ 的最后一个版本"
+      },
+      {
+        "bumped_at" : "2024-10-22T03:10:37.445Z",
+        "fancy_title" : "群晖 DSM 7.2.2 更新，不再支持 Video Station 套件｜替代品如何选择？",
+        "has_accepted_answer" : false,
+        "id" : 61994,
+        "last_posted_at" : "2024-10-22T03:10:37.445Z",
+        "pinned" : false,
+        "posts_count" : 9,
+        "slug" : "topic",
+        "title" : "群晖 DSM 7.2.2 更新，不再支持 Video Station 套件｜替代品如何选择？"
+      },
+      {
+        "bumped_at" : "2026-11-12T07:18:31.950Z",
+        "fancy_title" : "群晖公布 27 个 DSM 安全漏洞，最高危 9.8 分！与此前勒索攻击有关吗？",
+        "has_accepted_answer" : false,
+        "id" : 95756,
+        "last_posted_at" : "2026-11-12T07:18:31.950Z",
+        "pinned" : false,
+        "posts_count" : 4,
+        "slug" : "topic",
+        "title" : "群晖公布 27 个 DSM 安全漏洞，最高危 9.8 分！与此前勒索攻击有关吗？"
+      },
+      {
+        "bumped_at" : "2025-04-25T03:58:51.197Z",
+        "fancy_title" : "群晖 DS925+ 正式发布，第一款不再支持第三方硬盘的 NAS 产品",
+        "has_accepted_answer" : false,
+        "id" : 70679,
+        "last_posted_at" : "2025-04-25T03:58:51.197Z",
+        "pinned" : false,
+        "posts_count" : 12,
+        "slug" : "topic",
+        "title" : "群晖 DS925+ 正式发布，第一款不再支持第三方硬盘的 NAS 产品"
+      },
+      {
+        "bumped_at" : "2023-10-13T09:46:56.485Z",
+        "fancy_title" : "DaisyDisk - 磁盘空间扫描工具：找出了 macOS 系统数据中的 269.4GB 垃圾文件，来自 APFS 快照文件",
+        "has_accepted_answer" : false,
+        "id" : 41461,
+        "last_posted_at" : "2023-10-13T09:46:56.485Z",
+        "pinned" : false,
+        "posts_count" : 8,
+        "slug" : "topic",
+        "title" : "DaisyDisk - 磁盘空间扫描工具：找出了 macOS 系统数据中的 269.4GB 垃圾文件，来自 APFS 快照文件"
+      },
+      {
+        "bumped_at" : "2026-04-27T04:02:29.608Z",
+        "fancy_title" : "支持webdav的音乐播放器汇总/列表",
+        "has_accepted_answer" : false,
+        "id" : 75082,
+        "last_posted_at" : "2026-04-27T04:02:29.608Z",
+        "pinned" : false,
+        "posts_count" : 28,
+        "slug" : "topic",
+        "title" : "支持webdav的音乐播放器汇总/列表"
+      }
+    ]
+  },
+  "headers" : {
+    "content-type" : "application/json; charset=utf-8"
+  },
+  "status" : 200,
+  "url" : "https://meta.appinn.net/search.json?q=NAS%20Synology"
+}

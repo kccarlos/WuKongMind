@@ -1,0 +1,27 @@
+{
+  "body" : {
+    "_embedded" : {
+      "author" : [
+        {
+          "name" : "Chuck"
+        }
+      ]
+    },
+    "author" : 6,
+    "content" : {
+      "rendered" : "<p>U.S. Bank <a href=\"https://www.doctorofcredit.com/u-s-bank-kroger-cards-no-longer-accepting-applications/\">stopped accepting applications</a> for the Kroger credit card back in May, and<a target=\"_blank\" href=\"https://www.usbank.com/credit-cards/splash/mysmartlyvisa.html\"> they&#8217;ve now announced</a> that the cards will transition to become the Smartly 2% card. Balances, credit limits, and rewards will also transfer over to Smartly.&nbsp;</p>\n<p style=\"text-align: right;\">Hat tip to reader <a href=\"https://www.doctorofcredit.com/u-s-bank-kroger-cards-no-longer-accepting-applications/#comment-2366934\">SW</a></p>\n<p><img loading=\"lazy\" decoding=\"async\" class=\"aligncenter wp-image-262265 size-large\" src=\"https://www.doctorofcredit.com/wp-content/uploads/2026/07/Screenshot-2026-07-15-at-2.44.28-PM-1024x934.png\" alt=\"\" width=\"810\" height=\"739\" srcset=\"https://www.doctorofcredit.com/wp-content/uploads/2026/07/Screenshot-2026-07-15-at-2.44.28-PM-1024x934.png 1024w, https://www.doctorofcredit.com/wp-content/uploads/2026/07/Screenshot-2026-07-15-at-2.44.28-PM-300x274.png 300w, https://www.doctorofcredit.com/wp-content/uploads/2026/07/Screenshot-2026-07-15-at-2.44.28-PM-768x701.png 768w, https://www.doctorofcredit.com/wp-content/uploads/2026/07/Screenshot-2026-07-15-at-2.44.28-PM-1536x1402.png 1536w, https://www.doctorofcredit.com/wp-content/uploads/2026/07/Screenshot-2026-07-15-at-2.44.28-PM-810x739.png 810w, https://www.doctorofcredit.com/wp-content/uploads/2026/07/Screenshot-2026-07-15-at-2.44.28-PM-1140x1040.png 1140w, https://www.doctorofcredit.com/wp-content/uploads/2026/07/Screenshot-2026-07-15-at-2.44.28-PM.png 1874w\" sizes=\"auto, (max-width: 810px) 100vw, 810px\" /></p>\n"
+    },
+    "date_gmt" : "2026-07-15T18:46:42",
+    "id" : 262264,
+    "link" : "https://www.doctorofcredit.com/u-s-bank-converting-kroger-credit-cards-to-smartly/",
+    "modified_gmt" : "2026-07-15T18:46:42",
+    "title" : {
+      "rendered" : "U.S. Bank Converting Kroger Credit Cards To Smartly"
+    }
+  },
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/posts/262264?_fields=id,title,link,date_gmt,modified_gmt,content,author,_embedded,_links&_embed=author"
+}

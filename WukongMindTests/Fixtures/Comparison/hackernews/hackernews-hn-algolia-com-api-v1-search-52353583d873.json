@@ -1,0 +1,192 @@
+{
+  "body" : {
+    "hits" : [
+      {
+        "author" : "benbjohnson",
+        "created_at" : "2021-02-11T16:46:42Z",
+        "num_comments" : 176,
+        "objectID" : "26103776",
+        "points" : 703,
+        "story_id" : 26103776,
+        "title" : "Why I Built Litestream"
+      },
+      {
+        "author" : "usrme",
+        "created_at" : "2025-05-20T19:58:27Z",
+        "num_comments" : 99,
+        "objectID" : "44045292",
+        "points" : 452,
+        "story_id" : 44045292,
+        "title" : "Litestream: Revamped"
+      },
+      {
+        "author" : "emschwartz",
+        "created_at" : "2025-10-02T19:02:57Z",
+        "num_comments" : 189,
+        "objectID" : "45453936",
+        "points" : 430,
+        "story_id" : 45453936,
+        "title" : "Litestream v0.5.0"
+      },
+      {
+        "author" : "emschwartz",
+        "created_at" : "2025-12-11T17:59:10Z",
+        "num_comments" : 83,
+        "objectID" : "46234710",
+        "points" : 377,
+        "story_id" : 46234710,
+        "title" : "Litestream VFS"
+      },
+      {
+        "author" : "esteer",
+        "created_at" : "2024-01-20T06:19:49Z",
+        "num_comments" : 25,
+        "objectID" : "39065201",
+        "points" : 98,
+        "story_id" : 39065201,
+        "story_text" : "What do you like&#x2F;dislike about the setup? How difficult was it get it right?",
+        "title" : "Ask HN: Are you using SQLite and Litestream in production?"
+      },
+      {
+        "author" : "mtlynch",
+        "created_at" : "2025-10-14T16:10:27Z",
+        "num_comments" : 18,
+        "objectID" : "45581761",
+        "points" : 96,
+        "story_id" : 45581761,
+        "title" : "Hold Off on Litestream 0.5.0"
+      },
+      {
+        "author" : "selvan",
+        "created_at" : "2024-01-02T03:48:23Z",
+        "num_comments" : 30,
+        "objectID" : "38837870",
+        "points" : 94,
+        "story_id" : 38837870,
+        "title" : "Litestream – Opensource disaster recovery and continuous replication for SQLite"
+      },
+      {
+        "author" : "mtlynch",
+        "created_at" : "2021-04-29T13:59:18Z",
+        "num_comments" : 25,
+        "objectID" : "26981239",
+        "points" : 92,
+        "story_id" : 26981239,
+        "title" : "Litestream Eliminated My Database Server for $0.03/Month"
+      },
+      {
+        "author" : "hardwaresofton",
+        "created_at" : "2022-10-14T14:53:56Z",
+        "num_comments" : 50,
+        "objectID" : "33204347",
+        "points" : 90,
+        "story_id" : 33204347,
+        "title" : "Litestream live replication has been moved to the LiteFS project"
+      },
+      {
+        "author" : "fmeringdal",
+        "created_at" : "2023-08-11T15:46:39Z",
+        "num_comments" : 2,
+        "objectID" : "37090024",
+        "points" : 54,
+        "story_id" : 37090024,
+        "title" : "Show HN: Covert – Rewrite of HashiCorp Vault Using Rust, SQLite and Litestream"
+      },
+      {
+        "author" : "ngrilly",
+        "created_at" : "2022-04-12T19:47:55Z",
+        "num_comments" : 15,
+        "objectID" : "31007426",
+        "points" : 44,
+        "story_id" : 31007426,
+        "title" : "LiteStream support for SQLite live read-only replicas"
+      },
+      {
+        "author" : "tosh",
+        "created_at" : "2021-10-08T21:15:00Z",
+        "num_comments" : 2,
+        "objectID" : "28804289",
+        "points" : 39,
+        "story_id" : 28804289,
+        "title" : "Litestream: Streaming Replication for SQLite"
+      },
+      {
+        "author" : "emschwartz",
+        "created_at" : "2026-02-04T23:03:58Z",
+        "num_comments" : 26,
+        "objectID" : "46893167",
+        "points" : 37,
+        "story_id" : 46893167,
+        "title" : "Litestream Writable VFS"
+      },
+      {
+        "author" : "ajayvk",
+        "created_at" : "2026-08-30T18:05:06Z",
+        "num_comments" : 14,
+        "objectID" : "49501147",
+        "points" : 30,
+        "story_id" : 49501147,
+        "title" : "Running SQLite Apps on Docker and Kubernetes with Litestream"
+      },
+      {
+        "author" : "Tomte",
+        "created_at" : "2021-04-15T21:07:47Z",
+        "num_comments" : 2,
+        "objectID" : "26826123",
+        "points" : 25,
+        "story_id" : 26826123,
+        "title" : "Litestream – Streaming SQLite Replication"
+      },
+      {
+        "author" : "ethanpil",
+        "created_at" : "2021-01-22T16:29:28Z",
+        "num_comments" : 2,
+        "objectID" : "25873068",
+        "points" : 8,
+        "story_id" : 25873068,
+        "title" : "Litestream – Streaming S3 Replication for SQLite"
+      },
+      {
+        "author" : "ingve",
+        "created_at" : "2024-01-09T18:08:55Z",
+        "num_comments" : 0,
+        "objectID" : "38929589",
+        "points" : 6,
+        "story_id" : 38929589,
+        "title" : "The Tiny Stack (Astro, SQLite, Litestream)"
+      },
+      {
+        "author" : "mvac",
+        "created_at" : "2023-02-11T15:27:24Z",
+        "num_comments" : 0,
+        "objectID" : "34753162",
+        "points" : 5,
+        "story_id" : 34753162,
+        "title" : "Litestream Eliminated My Database Server for $0.03/Month"
+      },
+      {
+        "author" : "nodesocket",
+        "created_at" : "2025-10-01T00:00:53Z",
+        "num_comments" : 2,
+        "objectID" : "45432783",
+        "points" : 4,
+        "story_id" : 45432783,
+        "title" : "Litestream (streaming replication for SQLite) v0.5.0 released"
+      },
+      {
+        "author" : "PKop",
+        "created_at" : "2022-02-19T20:24:07Z",
+        "num_comments" : 0,
+        "objectID" : "30400187",
+        "points" : 4,
+        "story_id" : 30400187,
+        "title" : "Litestream live read replicas for SQLite"
+      }
+    ]
+  },
+  "headers" : {
+    "content-type" : "application/json"
+  },
+  "status" : 200,
+  "url" : "https://hn.algolia.com/api/v1/search?tags=story&query=Litestream&page=0&hitsPerPage=20"
+}

@@ -1,0 +1,15 @@
+{
+  "body" : {
+    "id" : 249314,
+    "link" : "https://www.doctorofcredit.com/u-s-bank-smartly-brokerage-100-free-trades-benefit-ends-in-february-2026/",
+    "modified_gmt" : "2026-01-15T19:26:39",
+    "title" : {
+      "rendered" : "(Update: Correction) U.S. Bank Smartly: Brokerage 100 Free Trades Benefit Ends In February 2026"
+    }
+  },
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/posts/249314?_fields=id,title,link,modified_gmt"
+}

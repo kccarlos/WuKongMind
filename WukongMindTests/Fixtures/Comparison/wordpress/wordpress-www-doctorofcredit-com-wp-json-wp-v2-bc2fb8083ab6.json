@@ -1,0 +1,911 @@
+{
+  "body" : [
+    {
+      "author_name" : "budugu",
+      "content" : {
+        "rendered" : "<p>robin hood is just working by throttling apps.</p>\n"
+      },
+      "date_gmt" : "2025-07-28T23:34:18",
+      "id" : 2107632,
+      "parent" : 2107198
+    },
+    {
+      "author_name" : "Smartly",
+      "content" : {
+        "rendered" : "<p>Card that wasn’t nerfed:<br />\nSchool payments: No<br />\nTax payments: Similar<br />\nInsurance Payments: Similar</p>\n"
+      },
+      "date_gmt" : "2025-07-28T23:37:20",
+      "id" : 2107635,
+      "parent" : 2107619
+    },
+    {
+      "author_name" : "Disruptings",
+      "content" : {
+        "rendered" : "<p>Potential USBAR Nerfs I found on Reddit:</p>\n<p><a href=\"https://imgur.com/a/usbar-changes-60OaJ0W\" rel=\"nofollow ugc\">https://imgur.com/a/usbar-changes-60OaJ0W</a></p>\n"
+      },
+      "date_gmt" : "2025-07-28T23:44:50",
+      "id" : 2107639,
+      "parent" : 0
+    },
+    {
+      "author_name" : "TJ",
+      "content" : {
+        "rendered" : "<p>There is a checking and savings letter? So there are 3 versions? If savings counts that&#8217;s way better than just checking&#8230;. someone on bogleheads mentioned they got this but we assumed they were confused</p>\n"
+      },
+      "date_gmt" : "2025-07-28T23:46:57",
+      "id" : 2107644,
+      "parent" : 2107605
+    },
+    {
+      "author_name" : "TJ",
+      "content" : {
+        "rendered" : "<p>people mentioning the USBAR getting nerfed don&#8217;t realize outside of the travel categories with the real time rewards the points are now worth less than 1cpp, no transfer partners, closed applications, if airlines split taxes into multiple transactions for one booking you can only redeem on the final one and very limited international redemption use; it earns high but its already limited in its value so earn and burn while you can but its nothing like the 4% everything of smartly.</p>\n"
+      },
+      "date_gmt" : "2025-07-29T00:09:48",
+      "id" : 2107661,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Brendan",
+      "content" : {
+        "rendered" : "<p>Damn. 4.5% -&gt; 3% AND a $5k/statement cap AND a harder to use travel credit. Could have lived with the latter two, the first one is a deal breaker.</p>\n"
+      },
+      "date_gmt" : "2025-07-29T00:19:06",
+      "id" : 2107670,
+      "parent" : 2107639
+    },
+    {
+      "author_name" : "Peter",
+      "content" : {
+        "rendered" : "<p>got the letter today, no investment account counts, fairly heavy user of tax (income and property) payments.   back to BofA</p>\n"
+      },
+      "date_gmt" : "2025-07-29T00:19:17",
+      "id" : 2107672,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Yoshi",
+      "content" : {
+        "rendered" : "<p>I can’t deal with the forced travel portal credit, card will be dead to me in December</p>\n"
+      },
+      "date_gmt" : "2025-07-29T02:16:45",
+      "id" : 2107766,
+      "parent" : 2107670
+    },
+    {
+      "author_name" : "Paul",
+      "content" : {
+        "rendered" : "<p>Also got the no investment account version of the letter.  Only a few smaller tax payments.  Applied Dec 2024.  So annoyed by US Bank.</p>\n"
+      },
+      "date_gmt" : "2025-07-29T02:32:08",
+      "id" : 2107784,
+      "parent" : 2107672
+    },
+    {
+      "author_name" : "Greg",
+      "content" : {
+        "rendered" : "<p>Card that wasn&#8217;t nerfed (as much):<br />\nSchool: No<br />\nTax: Yes, the total CL, twice in a row after opening but not since<br />\nInsurance: No</p>\n"
+      },
+      "date_gmt" : "2025-07-29T02:44:10",
+      "id" : 2107797,
+      "parent" : 2107619
+    },
+    {
+      "author_name" : "drmolly",
+      "content" : {
+        "rendered" : "<p>Got my letter today. It was the better of the three letters. Still allowed to use investment accounts. Got this card in November, but was not a really heavy user. No tax payments or education payments although I was about to make huge ones of both next month. Deciding whether or not to actually do it or just use a different card.</p>\n"
+      },
+      "date_gmt" : "2025-07-29T03:04:14",
+      "id" : 2107807,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Chatan",
+      "content" : {
+        "rendered" : "<p>I&#8217;m exactly in the same setup, except my spend is north of $10k, yet I got the version of the letter where my IRA won&#8217;t count anymore</p>\n"
+      },
+      "date_gmt" : "2025-07-29T03:08:25",
+      "id" : 2107810,
+      "parent" : 2107598
+    },
+    {
+      "author_name" : "mdacguy",
+      "content" : {
+        "rendered" : "<p>I am a little confused here when Doc mentioned &#8216;<span>&nbsp;Some cardholders have received letters that are actually different than what is listed below and </span><strong>actually requires a $100,000 balance to earn the 4%</strong><span>.&#8217;  Isn&#8217;t always a requirement for</span><span> a $100,000 balance to earn the 4% ?</span></p>\n"
+      },
+      "date_gmt" : "2025-07-29T03:18:28",
+      "id" : 2107817,
+      "parent" : 0
+    },
+    {
+      "author_name" : "David",
+      "content" : {
+        "rendered" : "<p>Card that wasn’t nerfed (as much):<br />\n School payments: No<br />\n Tax payments: Yes, about 30k.<br />\n Insurance Payments: Yes, about 2k.<br />\nMy smartly was converted from Altitude Go.</p>\n"
+      },
+      "date_gmt" : "2025-07-29T03:22:14",
+      "id" : 2107820,
+      "parent" : 2107619
+    },
+    {
+      "author_name" : "Stanley",
+      "content" : {
+        "rendered" : "<p>Anybody know how the 9/15 is counted? E.g. If I make a tax payment on 9/10 but the billing cycle ends at 9/20, will it still count towards 4%?</p>\n"
+      },
+      "date_gmt" : "2025-07-29T03:30:48",
+      "id" : 2107823,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Gnarly Cow",
+      "content" : {
+        "rendered" : "<p>There are two versions of the letter.  The worse version requires $100k in the checking account to qualify for 4%; the better version allows $100k value across checking, savings, and brokerage accounts.  I personally received the worse version, so I&#8217;ll likely put this card in the sock drawer after Sep 15, since it&#8217;s not worth it to leave $100k in the checking account earning almost no interest for the extra 2% cashback.</p>\n"
+      },
+      "date_gmt" : "2025-07-29T04:19:21",
+      "id" : 2107845,
+      "parent" : 2107817
+    },
+    {
+      "author_name" : "Kelly",
+      "content" : {
+        "rendered" : "<p><span>Anyone figure out yet what the parameters are for deciding who gets the terrible Checking-Only $100K in order to get the 4% rate? Of course, US Bank knows people would be very foolish to leave that much in checking versus making good interest income or investment income with the money, which would far exceed their 4% on $10K purchases monthly. </span></p>\n"
+      },
+      "date_gmt" : "2025-07-29T05:23:41",
+      "id" : 2107863,
+      "parent" : 2107845
+    },
+    {
+      "author_name" : "tangosierra",
+      "content" : {
+        "rendered" : "<p>Is the &#8220;4% cash back&#8221; truly redeemable at 1cpp? </p>\n<p>USB Altitude Go recently devalued *redemptions*. This means that the &#8220;4x back on restaurants&#8221; is only wroth 0.75cpp, so it&#8217;s effectively 3% back on restaurants which kills that card.</p>\n"
+      },
+      "date_gmt" : "2025-07-29T06:09:24",
+      "id" : 2107883,
+      "parent" : 0
+    },
+    {
+      "author_name" : "mav",
+      "content" : {
+        "rendered" : "<p>Yes. Its just straight 4% cashback, no games, no portals, straight cash (to a us bank savings/checking acct)</p>\n"
+      },
+      "date_gmt" : "2025-07-29T06:19:09",
+      "id" : 2107886,
+      "parent" : 2107883
+    },
+    {
+      "author_name" : "mav",
+      "content" : {
+        "rendered" : "<p>as they say, smoke em while you got em</p>\n"
+      },
+      "date_gmt" : "2025-07-29T06:20:04",
+      "id" : 2107887,
+      "parent" : 2107807
+    },
+    {
+      "author_name" : "no name",
+      "content" : {
+        "rendered" : "<p>Lots of people posting their data points trying to figure that out on the bogleheads forum&#8230;</p>\n"
+      },
+      "date_gmt" : "2025-07-29T12:47:21",
+      "id" : 2107941,
+      "parent" : 2107863
+    },
+    {
+      "author_name" : "Jonathan",
+      "content" : {
+        "rendered" : "<p>Since your 2 player can&#8217;t you just move the investment to your account? Half the CL but still usable.</p>\n"
+      },
+      "date_gmt" : "2025-07-29T13:23:08",
+      "id" : 2107965,
+      "parent" : 2107605
+    },
+    {
+      "author_name" : "Jonathan",
+      "content" : {
+        "rendered" : "<p>Got the good letter today<br />\nPicture here for reference<br />\n<a href=\"https://ibb.co/2XQJMfd\" rel=\"nofollow ugc\">https://ibb.co/2XQJMfd</a></p>\n<p>I wonder if I can prepay my mortgage with a 3rd party bill pay service before the cut off. Does anybody know of a service through which that&#8217;s possible?</p>\n"
+      },
+      "date_gmt" : "2025-07-29T13:26:00",
+      "id" : 2107966,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Mikey",
+      "content" : {
+        "rendered" : "<p>I&#8217;m interested in knowing this too</p>\n"
+      },
+      "date_gmt" : "2025-07-29T13:40:02",
+      "id" : 2107972,
+      "parent" : 2107823
+    },
+    {
+      "author_name" : "AK43",
+      "content" : {
+        "rendered" : "<p>Yes, you can redeem as cash back into your Smartly accounts at 1 cpp (full 4% cash back value). I have done this several times.</p>\n"
+      },
+      "date_gmt" : "2025-07-29T13:42:12",
+      "id" : 2107975,
+      "parent" : 2107883
+    },
+    {
+      "author_name" : "Mikey",
+      "content" : {
+        "rendered" : "<p>If your huge payments are next month, why not use this card? The new changes kick in only on 9/15.</p>\n<p>I also got the better letter, and I had not used it for education/tax payments though I did use upto 80% of my CL each month. <span>Ironically, </span>now, I&#8217;m considering actually using it for large tax/education pre-payments and maximizing the rewards (perhaps even recycling the CL within a billing period by paying it off early) before 9/15 changes hit.</p>\n"
+      },
+      "date_gmt" : "2025-07-29T13:47:06",
+      "id" : 2107984,
+      "parent" : 2107807
+    },
+    {
+      "author_name" : "Mikey",
+      "content" : {
+        "rendered" : "<p>It&#8217;s not just categories, its also the $2500 quarterly cap in BofA on the card you are referring to (or 2.625% no cap, no categories on a few different BofA cards).</p>\n"
+      },
+      "date_gmt" : "2025-07-29T13:58:06",
+      "id" : 2107994,
+      "parent" : 2107198
+    },
+    {
+      "author_name" : "Peter",
+      "content" : {
+        "rendered" : "<p>I am in NY with no branches.  Not sure if relevant</p>\n"
+      },
+      "date_gmt" : "2025-07-29T14:23:48",
+      "id" : 2108018,
+      "parent" : 2107784
+    },
+    {
+      "author_name" : "gary",
+      "content" : {
+        "rendered" : "<p>nm</p>\n"
+      },
+      "date_gmt" : "2025-07-29T15:03:27",
+      "id" : 2108057,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Abby Normal",
+      "content" : {
+        "rendered" : "<p>I&#8217;ve yet to see anyone post a photo of a third letter.</p>\n"
+      },
+      "date_gmt" : "2025-07-29T15:25:50",
+      "id" : 2108071,
+      "parent" : 2107807
+    },
+    {
+      "author_name" : "gary",
+      "content" : {
+        "rendered" : "<p>most of what cfpb was force banks to sanswer but usually once they did the cfpb closed it.  had that happen to me with 2 complaints on closures where my points confiscated (not abusing card) yet answer from bank they can do so for any reason,  cfpb closed them both saying bank rspnded and did nothing else.  Still may file one so it would be publicized and maybe someone will pick up on it, who knwo class action for those that wasted a 5/24 for eith ebait and switch or maybe discrimination</p>\n"
+      },
+      "date_gmt" : "2025-07-29T16:23:35",
+      "id" : 2108116,
+      "parent" : 2107225
+    },
+    {
+      "author_name" : "gary",
+      "content" : {
+        "rendered" : "<p>card nerfed</p>\n<p>shool payments  no<br />\ntax payments yes (1/2) of credit line once<br />\ninsurance no</p>\n"
+      },
+      "date_gmt" : "2025-07-29T16:26:39",
+      "id" : 2108117,
+      "parent" : 2107619
+    },
+    {
+      "author_name" : "gary",
+      "content" : {
+        "rendered" : "<p>did anyone who got fully nerfd call ths probably useless customer service number asking why they got the fully nerfd letter while others that got a different letter for the same account that counts savings and investments.  i doubt they know but take a shot to see what they say, </p>\n<p>  I&#8217;m about to but it seems usbank has major system issues now so will do so once they are back up</p>\n"
+      },
+      "date_gmt" : "2025-07-29T16:33:20",
+      "id" : 2108122,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Pnyboy",
+      "content" : {
+        "rendered" : "<p>Ding. Heavy Hitters could never come close to what this did/does with subs.</p>\n"
+      },
+      "date_gmt" : "2025-07-29T17:38:27",
+      "id" : 2108180,
+      "parent" : 2107216
+    },
+    {
+      "author_name" : "bullfrog34",
+      "content" : {
+        "rendered" : "<p>While I too want to know the confirmed answer to this, the way that the card seems to work is that every individual transaction gets rewards credited unlike e.g. discover which seems to calculated rewards on the statement date, so I was assuming/hoping that it was going to be based on the transaction date and not the statement date.</p>\n<p>Another question would be when the $10k clock starts.  Does it start on my ~September 2nd statement opening date or on the 15th.</p>\n"
+      },
+      "date_gmt" : "2025-07-29T18:44:30",
+      "id" : 2108242,
+      "parent" : 2107823
+    },
+    {
+      "author_name" : "gary",
+      "content" : {
+        "rendered" : "<p>i was on the phone with cs for almost an hour.  switched 4 times. the last a manager did confirm two versions and stated the accounts were reviewed as to which version, called the same,  and it was decided through marketing and undrewriting which version of the letter you receive. when i asded her about qualifications to get either, she was actually getting me in touch with underwriting but they wouldnt talk to me, the answer they told her is that they will not discuss underwriting decisions as to how they chose one version over another.</p>\n<p>I dont know if what i was told was correct.  but the last 2 people i spoke to were very well versed on the changes. </p>\n<p>I did get the card along with my checking and invest account at the same time.  Had nothing with them when i applied for this card, (whether that meant anything???)</p>\n<p>I even asked her id i can apply for the other version , she was told no but they do an account revew every 6 months.</p>\n"
+      },
+      "date_gmt" : "2025-07-29T18:58:25",
+      "id" : 2108249,
+      "parent" : 2108122
+    },
+    {
+      "author_name" : "RJ",
+      "content" : {
+        "rendered" : "<p>Letter arrived today. Not nerfed; language INCLUDES “trust or investment accounts”</p>\n<p>Holder of Checking/Savings with very minimal use; mostly Fidelity ACH transfers for card payment.</p>\n<p>Holder of 100K+ No trade Roth IRA </p>\n<p>Smartly Card Member since late 24’</p>\n<p>Holder of Altitude Connect Visa for a handful of years.</p>\n<p>School payments: No<br />\nTax payments: No<br />\nInsurance Payments:  Very Minimal </p>\n<p>Medical/Dental premiums largest category. CL was low at 2K; very occasional mid-month payments to refresh limit when needed.</p>\n"
+      },
+      "date_gmt" : "2025-07-29T19:00:47",
+      "id" : 2108252,
+      "parent" : 0
+    },
+    {
+      "author_name" : "vrs",
+      "content" : {
+        "rendered" : "<p>You get the heavily nerfed/bad letter if you took advantage using the card heavily on taxes, education, rent, insurance, etc. You get the lightly nerfed/good if you didn&#8217;t or only lightly used it on the atypical categories. Nearly all the datapoints I saw support this theory. Investment account size doesn&#8217;t matter, how frequently you used the card doesn&#8217;t matter, how much you bought using the card doesn&#8217;t matter as long as it&#8217;s &#8220;normal&#8221; CC transactions. Underwriters only care about if you &#8220;abused&#8221; the card.</p>\n"
+      },
+      "date_gmt" : "2025-07-29T19:40:05",
+      "id" : 2108284,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Stanley",
+      "content" : {
+        "rendered" : "<p>I thought the good vs bad letter is decided by the rear, where they specify how the &#8220;qualifying balance&#8221; is decided? I got the same letter as you. And the back said the investment account still counts.</p>\n"
+      },
+      "date_gmt" : "2025-07-29T19:58:16",
+      "id" : 2108297,
+      "parent" : 2107966
+    },
+    {
+      "author_name" : "yo",
+      "content" : {
+        "rendered" : "<p>3rd letter doesn’t exist, whoever said that didn’t understand their letter. There’s just 2 versions</p>\n"
+      },
+      "date_gmt" : "2025-07-29T20:39:04",
+      "id" : 2108333,
+      "parent" : 2108071
+    },
+    {
+      "author_name" : "TJ",
+      "content" : {
+        "rendered" : "<p>Never heard of such a service existing.</p>\n"
+      },
+      "date_gmt" : "2025-07-29T21:13:42",
+      "id" : 2108349,
+      "parent" : 2107966
+    },
+    {
+      "author_name" : "TJ",
+      "content" : {
+        "rendered" : "<p>No, the bad one forces you to a 0% checking account. You don&#8217;t get to pick one of their good deposit accounts.</p>\n"
+      },
+      "date_gmt" : "2025-07-29T21:16:18",
+      "id" : 2108351,
+      "parent" : 2107331
+    },
+    {
+      "author_name" : "JD",
+      "content" : {
+        "rendered" : "<p>There is Plastiq, but they only allow MC and non-USB/Elan cards for mortgage payments.</p>\n"
+      },
+      "date_gmt" : "2025-07-29T22:08:18",
+      "id" : 2108389,
+      "parent" : 2107966
+    },
+    {
+      "author_name" : "Evan",
+      "content" : {
+        "rendered" : "<p>This was not true for me &#8211; I got the &#8220;bad letter&#8221; and only used it for typical expenses with none from the now-excluded categories. Moderate spend between 1-7k per month.</p>\n"
+      },
+      "date_gmt" : "2025-07-29T22:16:11",
+      "id" : 2108398,
+      "parent" : 2108284
+    },
+    {
+      "author_name" : "Joe",
+      "content" : {
+        "rendered" : "<p>I expected this to be the case but I got my letter today and got the “light nerfing” despite using almost my entire credit limit on estimated taxes six months in a row</p>\n"
+      },
+      "date_gmt" : "2025-07-29T22:34:01",
+      "id" : 2108406,
+      "parent" : 2108284
+    },
+    {
+      "author_name" : "Chatan",
+      "content" : {
+        "rendered" : "<p>With all the &#8220;versions&#8221; of the letters going out, it&#8217;ll be interesting to see what actually takes place with regard to TOTAL balances being taken into account for purposes of calculating the points escalators.</p>\n<p>I had moved some IRA assets to USB to meet the requirements for the V1 release, but will leave the funds there for the moment and see if/when I stop earning the higher multiplier.  It should become obvious very fast how people&#8217;s experience is going based on the letter we have each received.</p>\n<p>Full disclosure; I received the worst of the 3 nerf-notices, but never once did I use the card for tax payments, insurance payments, tuition or any of the other banned categories.</p>\n"
+      },
+      "date_gmt" : "2025-07-30T00:20:07",
+      "id" : 2108466,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Made clearer</p>\n"
+      },
+      "date_gmt" : "2025-07-30T01:54:24",
+      "id" : 2108530,
+      "parent" : 2107817
+    },
+    {
+      "author_name" : "Stanley",
+      "content" : {
+        "rendered" : "<p>I got the &#8220;better&#8221; version. Heavy tax payments (about $100k since open). Light school and insurance usage ($x,000).</p>\n<p>Transferred a little over $100k to investment. CL used to be $25k, increased to $35k later.</p>\n"
+      },
+      "date_gmt" : "2025-07-30T03:17:09",
+      "id" : 2108569,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Sly one",
+      "content" : {
+        "rendered" : "<p>Great question and the answer is yes! CD&#8217;s do count towards the $100,000 balance since they are also deposit accounts and that&#8217;s what I use rather than savings and investments. The rates seem to vary by customer and zip code. The 5 month CD is competitive for me so no lost opportunity cost. I&#8217;m getting 4.40% APY and some have reported as high as 4.55% APY.</p>\n<p>I got the best of the 3 NERF letters Savings,CD&#8217;s checking and investments allowed $10,000 new 4% cap per month&#8230;.no taxes yet&#8230;insurance heavy&#8230;churning yes&#8230;maxed the card out several times $20,000 CL and I&#8217;m at the 4% tier level</p>\n"
+      },
+      "date_gmt" : "2025-07-30T05:34:58",
+      "id" : 2108616,
+      "parent" : 2107414
+    },
+    {
+      "author_name" : "Peter Vargas",
+      "content" : {
+        "rendered" : "<p>I called. The rep just said &#8220;I told know why you got the worst letter, I have no idea what is going o:&#8221;</p>\n"
+      },
+      "date_gmt" : "2025-07-30T23:34:24",
+      "id" : 2109132,
+      "parent" : 2108122
+    },
+    {
+      "author_name" : "gary",
+      "content" : {
+        "rendered" : "<p>not true for these letters</p>\n"
+      },
+      "date_gmt" : "2025-07-31T01:24:54",
+      "id" : 2109182,
+      "parent" : 2108284
+    },
+    {
+      "author_name" : "gary",
+      "content" : {
+        "rendered" : "<p>initially they told me a few diffferent things, thought it may have to do with what act i deposited my rewards to.  it wasnt until the agent on her own, transferred me to a manager.   that manager knew about the different versions and decided to  do some more digging which is where she gave me the info about it being a marketing and underwrighting decsion and even said to me. i was told not to discuss any more details with you as how its determined is something they dont have to disclose.</p>\n"
+      },
+      "date_gmt" : "2025-07-31T01:28:44",
+      "id" : 2109184,
+      "parent" : 2109132
+    },
+    {
+      "author_name" : "Randor",
+      "content" : {
+        "rendered" : "<p>Card not nerfed<br />\nSchool: None<br />\nTax: $13K county property tax, no IRS payments<br />\nInsurance Payments: none<br />\nCard opened: Feb 2025 (I was not an early adopter)</p>\n"
+      },
+      "date_gmt" : "2025-07-31T05:00:14",
+      "id" : 2109273,
+      "parent" : 2107619
+    },
+    {
+      "author_name" : "William",
+      "content" : {
+        "rendered" : "<p>False.  I did 100k tax, 3k tuition, 0 insurance. 100k in brokerage, a few k in savings, no checking account. Got the more favorable letter</p>\n"
+      },
+      "date_gmt" : "2025-07-31T13:19:51",
+      "id" : 2109354,
+      "parent" : 2108284
+    },
+    {
+      "author_name" : "Matt",
+      "content" : {
+        "rendered" : "<p>Got the good version of the letter that includes investment accounts.</p>\n<p>I had transferred over an IRA back in January with &gt; $300k in assets and also switched to using US Bank as my primary checking and savings accounts, so maybe that has something to do with it. If I needed to put $100k in a checking account to get 4% back, I&#8217;d close all those down, so they&#8217;d lose assets.</p>\n<p>I&#8217;ve been using the card mostly normally &#8211; only excluded category I&#8217;ve taken advantage of has been paying my kids&#8217; school tuition through a third party bill pay service, but nothing that would be manufactured spend or that I&#8217;d think of as abusing the system.</p>\n<p>If this is how it stays, I&#8217;m happy. I don&#8217;t spend more than $10k a month, and I don&#8217;t do manufactured spend as that feels unethical to me. I don&#8217;t mind them making these changes to prevent themselves from losing tons of money. I&#8217;ll lose the ability to make a small reward on my kids&#8217; tuition, but if I get to keep my 4% card for everyday spend, I&#8217;m happy to make that tradeoff.</p>\n"
+      },
+      "date_gmt" : "2025-07-31T14:26:28",
+      "id" : 2109387,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Peter Vargas",
+      "content" : {
+        "rendered" : "<p>Same here. Never abused. Payed pharmacy, doctors, restaurants and retail.<br />\nGot the bad nerf.</p>\n"
+      },
+      "date_gmt" : "2025-07-31T15:45:04",
+      "id" : 2109435,
+      "parent" : 2108466
+    },
+    {
+      "author_name" : "bullfrog34",
+      "content" : {
+        "rendered" : "<p>We got the good version of the letter a few days ago and now the same letter has shown up via email.</p>\n"
+      },
+      "date_gmt" : "2025-08-01T14:07:03",
+      "id" : 2110248,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Disruptings",
+      "content" : {
+        "rendered" : "<p>Same, along with the USBAR email.</p>\n"
+      },
+      "date_gmt" : "2025-08-01T15:04:25",
+      "id" : 2110320,
+      "parent" : 2110248
+    },
+    {
+      "author_name" : "RJ",
+      "content" : {
+        "rendered" : "<p>Looks like email is now also happening for many. Came this morning for me as well.</p>\n"
+      },
+      "date_gmt" : "2025-08-01T15:16:55",
+      "id" : 2110340,
+      "parent" : 2110248
+    },
+    {
+      "author_name" : "Joe",
+      "content" : {
+        "rendered" : "<p>So have we determined why some got the bad letter? Maybe not related to USB specifically but to credit report?</p>\n"
+      },
+      "date_gmt" : "2025-08-01T16:31:34",
+      "id" : 2110430,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Jeff Star",
+      "content" : {
+        "rendered" : "<p>+1 to this datapoint, very similar situation here and I got the good nerf</p>\n"
+      },
+      "date_gmt" : "2025-08-01T16:58:13",
+      "id" : 2110454,
+      "parent" : 2109387
+    },
+    {
+      "author_name" : "Michael",
+      "content" : {
+        "rendered" : "<p>What&#8217;s the best way to dissolve the investment account assuming it&#8217;s mostly sgov? Transfer assets and pay a fee to close or liquadate, transfer cash out, and then close?</p>\n"
+      },
+      "date_gmt" : "2025-08-01T17:00:12",
+      "id" : 2110456,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Al C",
+      "content" : {
+        "rendered" : "<p>Depending on how long you&#8217;ve had the card, you don&#8217;t seem to understand what &#8220;abuse&#8221; means.</p>\n"
+      },
+      "date_gmt" : "2025-08-01T17:07:43",
+      "id" : 2110464,
+      "parent" : 2109354
+    },
+    {
+      "author_name" : "Tim R",
+      "content" : {
+        "rendered" : "<p>Did you have $100k+ in an investment account? I wonder if they&#8217;re giving the bad letter to someone who will pull out their investments, or people who haven&#8217;t taken (full) advantage of the setup. It&#8217;s the only thing I haven&#8217;t seen data points on.</p>\n"
+      },
+      "date_gmt" : "2025-08-01T17:18:50",
+      "id" : 2110470,
+      "parent" : 2108398
+    },
+    {
+      "author_name" : "Bdon",
+      "content" : {
+        "rendered" : "<p>Seems like a coin flip to me. I didnt even get to max out 4% this year since my investment dipped in march from the sell off. So my rate was 2%-3% for quite a bit. Ive barely used the card on the excluded items, mainly for every day use.</p>\n"
+      },
+      "date_gmt" : "2025-08-01T18:24:04",
+      "id" : 2110533,
+      "parent" : 2110430
+    },
+    {
+      "author_name" : "Harold",
+      "content" : {
+        "rendered" : "<p>This is also not true for me.&nbsp;I received the “good” letter even though I spent $30,000 on tax payments and merely $3,000 on everything else.</p>\n"
+      },
+      "date_gmt" : "2025-08-01T18:38:51",
+      "id" : 2110553,
+      "parent" : 2108284
+    },
+    {
+      "author_name" : "Justin",
+      "content" : {
+        "rendered" : "<p>I&#8217;m also in NY and was wondering if that was part of the decision to give me the &#8220;no investment accounts&#8221; version. I only use the card for real spend, though that does include my HOA. I&#8217;ve also been carrying a balance because of a 0% interest offer and I&#8217;d rather keep the cash in a MMF.</p>\n<p>I basically kept the checking/savings open and relied on a 125k investment account for the balance.</p>\n"
+      },
+      "date_gmt" : "2025-08-01T18:53:10",
+      "id" : 2110566,
+      "parent" : 2108018
+    },
+    {
+      "author_name" : "Robert",
+      "content" : {
+        "rendered" : "<p>What’s the third version? Besides investments and no investments?</p>\n"
+      },
+      "date_gmt" : "2025-08-01T19:37:49",
+      "id" : 2110621,
+      "parent" : 2108466
+    },
+    {
+      "author_name" : "P.G.",
+      "content" : {
+        "rendered" : "<p>I would rather get 2% rollover match on $100k investment balance than getting additional 2% cashback for rollover $100k investment balance and spend $100k.</p>\n"
+      },
+      "date_gmt" : "2025-08-01T20:16:40",
+      "id" : 2110657,
+      "parent" : 0
+    },
+    {
+      "author_name" : "David Pilcher",
+      "content" : {
+        "rendered" : "<p>No, it&#8217;s a rollover IRA in her name only.  Not a joint brokerage.</p>\n"
+      },
+      "date_gmt" : "2025-08-02T00:42:17",
+      "id" : 2110881,
+      "parent" : 2107965
+    },
+    {
+      "author_name" : "Jonathan",
+      "content" : {
+        "rendered" : "<p>I&#8217;m not sure but you might be able to make your account a joint account and then move the IRA to your joint account</p>\n"
+      },
+      "date_gmt" : "2025-08-02T01:10:35",
+      "id" : 2110888,
+      "parent" : 2110881
+    },
+    {
+      "author_name" : "AlertTip",
+      "content" : {
+        "rendered" : "<p>ACATS transfer to Robinhood. They are offering a 0.5% match and will reimburse your outgoing transfer fee.</p>\n"
+      },
+      "date_gmt" : "2025-08-02T01:40:24",
+      "id" : 2110906,
+      "parent" : 2110456
+    },
+    {
+      "author_name" : "Civilized Commenter",
+      "content" : {
+        "rendered" : "<p>This is the way. ACATS full transfer.</p>\n<p>Let the new brokerage and your feet do all the talking.</p>\n"
+      },
+      "date_gmt" : "2025-08-02T01:43:06",
+      "id" : 2110907,
+      "parent" : 2110906
+    },
+    {
+      "author_name" : "Abby",
+      "content" : {
+        "rendered" : "<p>Can anyone confirm if certificate of deposit is considered an investment account? Have 5 mo $100k CD.</p>\n"
+      },
+      "date_gmt" : "2025-08-02T15:24:39",
+      "id" : 2111075,
+      "parent" : 0
+    },
+    {
+      "author_name" : "gary",
+      "content" : {
+        "rendered" : "<p>i got the bad letter too and their explanation to me after an hour as to why i got a certain letter was as expected, &#8220;we dont disclose lending requirements&#8221; the most they gave me was that it was determined by their marketing and their underwriters.  Didnt abuse it then did it for everyday pruchases and one tax payment not even half the line.  i am now going to use it as much as psssible for the next month and starting to remove assets so right after 9/15/ my assets will total about $200.  currently its 150K mostly investments.  will close acct and transfer to fidelity to get the $95 acat fee reimbursed</p>\n"
+      },
+      "date_gmt" : "2025-08-02T15:41:47",
+      "id" : 2111081,
+      "parent" : 2108466
+    },
+    {
+      "author_name" : "Mike",
+      "content" : {
+        "rendered" : "<p>Yes. I&#8217;m using the CD as well to park the cash. Here&#8217;s the line from their fine print:<br />\n<span>Have “Combined Qualifying Balances” with U.S. Bank in open consumer checking account(s), money market savings account(s), savings account(s), CDs and/or IRAs, U.S. Bancorp Investments and personal trust account(s) (business accounts, commercial accounts, and the Trustee only (IFI) client relationship and other trust relationships do not qualify).</span></p>\n"
+      },
+      "date_gmt" : "2025-08-02T16:51:35",
+      "id" : 2111121,
+      "parent" : 2111075
+    },
+    {
+      "author_name" : "Alan W.",
+      "content" : {
+        "rendered" : "<p>NY here and I got the good letter</p>\n"
+      },
+      "date_gmt" : "2025-08-03T02:22:42",
+      "id" : 2111335,
+      "parent" : 2110566
+    },
+    {
+      "author_name" : "Kelly",
+      "content" : {
+        "rendered" : "<p>Now that US Bank Smartly is going to be nerfed for rent payments processed through third-party billers starting 9/15/25 for the 4% rate grandfathered people, I just opened up a third Bank of America Customized Cash Rewards Visa card. My third BofA CCR card will be 8.25% cash back rate in chosen category $2,500 max spend per quarter for one year, because of Platinum Rewards bump, and then be regular 5.25% rate after. It is currently 5.25% for my first two CCRs I opened in the past. From a rep on BofA phone call and from what I have seen posted elsewhere, if Travel category is selected, rent is covered as eligible for the higher cash back percentage if MCC Code is 6513. At least for now. </p>\n<p>Also, if $1,000 minimum is charged on the card within 90 days of opening, a $200 cash back bonus will be issued.</p>\n"
+      },
+      "date_gmt" : "2025-08-03T17:34:14",
+      "id" : 2111521,
+      "parent" : 0
+    },
+    {
+      "author_name" : "gnu",
+      "content" : {
+        "rendered" : "<p><a href=\"https://rewards.usbank.com/benefits/card/SmartlyBenefits/program-rules#rewards-summary\" rel=\"nofollow ugc\">https://rewards.usbank.com/benefits/card/SmartlyBenefits/program-rules#rewards-summary</a> doesn&#8217;t seem to match the letters (no 10k cap or tax/edu/etc exclusions)</p>\n"
+      },
+      "date_gmt" : "2025-08-03T18:29:58",
+      "id" : 2111538,
+      "parent" : 0
+    },
+    {
+      "author_name" : "gg",
+      "content" : {
+        "rendered" : "<p>can you share the good nerf letter as well?</p>\n"
+      },
+      "date_gmt" : "2025-08-08T00:39:36",
+      "id" : 2114392,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Scoobs",
+      "content" : {
+        "rendered" : "<p>Got the bad nerf letter. Had about $175k in spend on this card so far this year (tons of legit spend but also plenty of spend in their made up bad categories as I was putting any spend I could for my business on this card). Can&#8217;t say I&#8217;m surprised to be nerfed (beyond a general sense of surprise that they are actually somewhat good at filtering out people like me) but sure will be sad to see this one go. </p>\n<p>Bad nerf = close up shop I guess huh? Don&#8217;t see a point in keeping anything open with them if there&#8217;s no reasonable way to keep getting 4% cash back.</p>\n"
+      },
+      "date_gmt" : "2025-08-11T21:26:20",
+      "id" : 2116974,
+      "parent" : 0
+    },
+    {
+      "author_name" : "midas89",
+      "content" : {
+        "rendered" : "<p>Scoobs, thanks for sharing your experience. For sure, and as you expressed, it would not be recommend for someone to keep $100K in a nearly zero-interest checking account when we can make thousands of dollars in interest annually with that money elsewhere. We know for sure the Fed will lower the rate next month, but hopefully not too much. </p>\n<p>Hopefully you have at a minimum a 2% unlimited spend cc, with no exclusions. And then make whatever you can via CD or savings account, etc., elsewhere on the $100K that would have earned only 0.005% in a US Bank checking account.</p>\n"
+      },
+      "date_gmt" : "2025-08-12T00:41:40",
+      "id" : 2117107,
+      "parent" : 2116974
+    },
+    {
+      "author_name" : "Scoobs",
+      "content" : {
+        "rendered" : "<p>Yep makes sense. Back to the BofA card I suppose</p>\n"
+      },
+      "date_gmt" : "2025-08-14T15:36:09",
+      "id" : 2119248,
+      "parent" : 2117107
+    },
+    {
+      "author_name" : "Pat",
+      "content" : {
+        "rendered" : "<p>CROSS-POSTING HERE AND ON &#8220;My Plan Going Forward With U.S. Smartly 4% Card&#8221;</p>\n<p>Don’t give up hope just yet – cardholders from before April 14, 2025 may be getting grandfathered in to the terms they signed up with.</p>\n<p>I received the bad latter. I called in to customer service to see if the letter I got was in fact accurate. Rep said it was. It was a short conversation. I got a survey, filled it out and just got a phone call back. Per the rep that just called me – nothing should be changing on my card, investment account will still count towards qualifying balance, no monthly limit of $10k, etc – basically I was sent the letter in error and nothing is changing on my card.</p>\n<p>I guess we’ll wait to see what happens on September 16th. Perhaps this rep is mistaken, but she seemed to know her stuff and seemed pretty confident.</p>\n"
+      },
+      "date_gmt" : "2025-08-14T18:12:09",
+      "id" : 2119380,
+      "parent" : 0
+    },
+    {
+      "author_name" : "midas89",
+      "content" : {
+        "rendered" : "<p><a class='wpd-umcguest'  href='https://www.doctorofcredit.com/u-s-bank-to-nerf-existing-smartly-cardholders-on-september-15/#comment-2119380'><img alt='' src='https://secure.gravatar.com/avatar/80c61aba4951595d68a58e0c76e6606f60cb41e9fbf888aff430afc788444321?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/80c61aba4951595d68a58e0c76e6606f60cb41e9fbf888aff430afc788444321?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>Pat</a> I received both an email notification and a letter. The email specifically referenced the last 4 digits of my Visa account number. As did the letter. The email was dated August 1. If this was really a mistake, I would guess that someone at USB Bank would have been made aware by now, and that corrected communication would have been sent.</p>\n<p>Plus, if it was a mistake, that is a huge amount of letters &amp; emails that went out as a mistake. </p>\n<p>If I was forced to gamble, and I do not gamble, I would bet the info you were given by that rep will turn out to be the mistake. I am also considering how much info I have received from phone reps that turned out to be inaccurate.</p>\n<p>I hope I am wrong, and that the info you received turns out to be accurate.</p>\n"
+      },
+      "date_gmt" : "2025-08-14T21:43:54",
+      "id" : 2119547,
+      "parent" : 2119380
+    },
+    {
+      "author_name" : "Jeff",
+      "content" : {
+        "rendered" : "<p>Smartly Savings account rates just got cut, for those using that option like me for balances. 2% for $5,000. 2.5% for $50,000. 3.0% for $100,000. If you have another HYSA option over 4% and a flat 2% cash back credit card, you would now have to spend $4,000-$5,000 on the Smartly card per month just to break even due to the monthly interest loss.</p>\n"
+      },
+      "date_gmt" : "2025-08-15T12:27:45",
+      "id" : 2120038,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Bo",
+      "content" : {
+        "rendered" : "<p>What if you never receive any mail or email about the program change?</p>\n"
+      },
+      "date_gmt" : "2025-08-24T14:06:22",
+      "id" : 2127406,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Tim",
+      "content" : {
+        "rendered" : "<p>Anyone who got the good letter paid tax to IRS via the two processors in September 2025 ? Di you still get 4% back? Thanks.</p>\n"
+      },
+      "date_gmt" : "2025-09-07T00:12:35",
+      "id" : 2137800,
+      "parent" : 0
+    },
+    {
+      "author_name" : "c3",
+      "content" : {
+        "rendered" : "<p>Good/bad letter doesn&#8217;t matter until Sept 15.</p>\n"
+      },
+      "date_gmt" : "2025-09-10T08:51:08",
+      "id" : 2140529,
+      "parent" : 2137800
+    },
+    {
+      "author_name" : "Daniel",
+      "content" : {
+        "rendered" : "<p><span>I received &#8220;good&#8221; letter and email, brokage account still counts. I have kept most money in brokage and small amount in saving account. Do I still need to keep a checking account? I remember a checking account was required at application last year, but never used it after opening.</span></p>\n"
+      },
+      "date_gmt" : "2025-09-12T17:46:34",
+      "id" : 2142470,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p>With September 15th approaching &#8211; I wonder if from September 16 through the end of the billing cycle the $10k limit resets or if I already maxed out the $10k then I&#8217;ll have zero bandwidth left. Hmm, any thoughts?</p>\n"
+      },
+      "date_gmt" : "2025-09-15T02:58:30",
+      "id" : 2144122,
+      "parent" : 0
+    },
+    {
+      "author_name" : "midas89",
+      "content" : {
+        "rendered" : "<p><a class='hint hint--right' data-ucm_user_id='6' href='https://www.doctorofcredit.com/author/chucksithe/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/6581771f6d6c07578202c34dd35680cd5e37f8e5b2b5af89f03bde48286dade3?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/6581771f6d6c07578202c34dd35680cd5e37f8e5b2b5af89f03bde48286dade3?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;Chuck</a> Apologies in advance if I turn out to be wrong. </p>\n<p>Best Interpretation based on what is known:</p>\n<p>Because the rules say the cap is per Card Billing Cycle, and because there is no exception explicitly excluding the spend before Sept 15, the safest assumption is:</p>\n<p>The new $10,000 cap applies to all eligible spend in the billing cycle, including spend before September 15.</p>\n<p>The rule doesn’t appear to “restart” the cap as of September 15 for an ongoing cycle; instead, the entire billing cycle (from its start date through the close) will be governed by the $10,000 cap.</p>\n"
+      },
+      "date_gmt" : "2025-09-15T04:16:31",
+      "id" : 2144167,
+      "parent" : 2144122
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p>I&#8217;d guess the same. It&#8217;s a bummer cuz I&#8217;m maxed out on the $10k and now I&#8217;m in a dead zone from September 15 through September 25 when my statement closes.</p>\n"
+      },
+      "date_gmt" : "2025-09-15T04:22:31",
+      "id" : 2144168,
+      "parent" : 2144167
+    },
+    {
+      "author_name" : "Chatan",
+      "content" : {
+        "rendered" : "<p>So I checked my Smartly card today to see if any rewards language had changed. I had received the worst type of nerf notice where investments would NOT count towards the $100k threshold. However, this is the blurb I now see&#8230;</p>\n<p><em>2% Smartly Earning Bonus on your first $10,000 in eligible Net Purchases each billing cycle because you have a U.S. Bank Smartly® Savings account and combined balances of $100,000 or more (earning you a total of 4 points/$1 spent). These points will be added to the Rewards activity section at the end of your statement cycle. Refer to Program Rules for complete details and a list of exclusions.</em></p>\n<p>My statement closed on September 9, and I&#8217;ve already blown through the $10k monthly cap; however I have earned 4x on ALL purchases past the $10k limit. I have some transactions that were made on Sept 12, that have not settled, so we&#8217;ll see if those earn 4x as well.</p>\n"
+      },
+      "date_gmt" : "2025-09-15T12:00:36",
+      "id" : 2144309,
+      "parent" : 0
+    },
+    {
+      "author_name" : "CD",
+      "content" : {
+        "rendered" : "<p>Exact same situation here.  I had the worst nerf notice.  This morning, it appears I&#8217;m still earning 4% due to $100k+ in brokerage balances.</p>\n"
+      },
+      "date_gmt" : "2025-09-15T15:13:16",
+      "id" : 2144427,
+      "parent" : 2144309
+    },
+    {
+      "author_name" : "Gary",
+      "content" : {
+        "rendered" : "<p>Had same need letter  There’s a blurb in there that says will be adjusted. The letter also states that it will take. A few days after for everything to be updated and then adjusted. My statement closes today a little concerned by some of the language that seems to state the cap may take effect on the statement that closes today. Which would be an issue since I spent more than double that. All posted  before 9:15. But the language seems to now indicate that it’s in effect on transactions where the statement closes on or after 9/15 even if transaction was before.  If that happens. It will be an issue and one I would definitely complain aboutn</p>\n"
+      },
+      "date_gmt" : "2025-09-15T16:47:39",
+      "id" : 2144533,
+      "parent" : 2144427
+    },
+    {
+      "author_name" : "Roy",
+      "content" : {
+        "rendered" : "<p>Same bad nerf letter, in the 2% Smartly Earning Bonus, there is a link to Program Rules and for &#8220;Combined Qualifying Balances&#8221; it does includes CD/IRA and US Bancorp Investments and personal trust account for me (it wasn&#8217;t in the letter).</p>\n"
+      },
+      "date_gmt" : "2025-09-15T18:36:19",
+      "id" : 2144682,
+      "parent" : 2144533
+    },
+    {
+      "author_name" : "Test",
+      "content" : {
+        "rendered" : "<p>Paid tax on 09/11, but still in pending state on usbank website today. Wait to check whether they will get 4% rewards&#8230;</p>\n"
+      },
+      "date_gmt" : "2025-09-15T18:57:44",
+      "id" : 2144728,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Charlie",
+      "content" : {
+        "rendered" : "<p>Hoping this is the case. I received the bad letter and email. Now it is 9/15 and on my app it’s still saying I have qualifying funds (brokerage) for 4%. Will check again tomorrow.</p>\n"
+      },
+      "date_gmt" : "2025-09-15T19:58:45",
+      "id" : 2144819,
+      "parent" : 2119380
+    },
+    {
+      "author_name" : "Charlie",
+      "content" : {
+        "rendered" : "<p>Same. There is a report below by Pat that suggests we might be grand fathered in and that the bad letters/emails were sent in error. That would be great if true.</p>\n"
+      },
+      "date_gmt" : "2025-09-15T20:05:00",
+      "id" : 2144828,
+      "parent" : 2144427
+    }
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "376",
+    "x-wp-totalpages" : "4"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/comments?post=241557&per_page=100&page=3&order=asc&orderby=date_gmt&_fields=id,parent,author_name,date_gmt,content"
+}

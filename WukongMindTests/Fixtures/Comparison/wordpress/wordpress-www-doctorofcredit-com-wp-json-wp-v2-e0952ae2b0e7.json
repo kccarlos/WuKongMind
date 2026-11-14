@@ -1,0 +1,911 @@
+{
+  "body" : [
+    {
+      "author_name" : "Ba",
+      "content" : {
+        "rendered" : "<p>The United offer expired.</p>\n"
+      },
+      "date_gmt" : "2020-01-28T15:38:02",
+      "id" : 891104,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Richard",
+      "content" : {
+        "rendered" : "<p>New offer from US Bank: [affiliate link removed]</p>\n"
+      },
+      "date_gmt" : "2020-02-06T11:40:34",
+      "id" : 900280,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Richard",
+      "content" : {
+        "rendered" : "<p>TD Bank Credit Card offers:  <a href=\"https://www.td.com/us/en/personal-banking/credit-cards/credit-cards-all-lander/\" rel=\"nofollow ugc\">https://www.td.com/us/en/personal-banking/credit-cards/credit-cards-all-lander/</a></p>\n"
+      },
+      "date_gmt" : "2020-02-06T11:45:34",
+      "id" : 900281,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Richard",
+      "content" : {
+        "rendered" : "<p>ABOC Credit Card offer:  [affiliate link removed]</p>\n"
+      },
+      "date_gmt" : "2020-02-06T11:46:42",
+      "id" : 900284,
+      "parent" : 0
+    },
+    {
+      "author_name" : "TatyG",
+      "content" : {
+        "rendered" : "<p>Citi American airlines offer expired.</p>\n"
+      },
+      "date_gmt" : "2020-02-08T19:08:43",
+      "id" : 902816,
+      "parent" : 0
+    },
+    {
+      "author_name" : "justmeha",
+      "content" : {
+        "rendered" : "<p>amex biz gold dead ;'(</p>\n"
+      },
+      "date_gmt" : "2020-02-18T09:08:19",
+      "id" : 912094,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Kid Lightning",
+      "content" : {
+        "rendered" : "<p>Anybody have the 50K Amex gold offer without referral? Is this worth applying for?</p>\n"
+      },
+      "date_gmt" : "2020-02-19T22:37:08",
+      "id" : 913749,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Colin",
+      "content" : {
+        "rendered" : "<p>{oops. answered my own question}</p>\n"
+      },
+      "date_gmt" : "2020-02-24T04:29:24",
+      "id" : 918050,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Clarence Weatherspoon",
+      "content" : {
+        "rendered" : "<p>Not sure who is still following this post, but I have a question about the Chase Sapphire (Preferred or Reserve.. though I got the Reserve) card.. I have read about &#8220;double dipping&#8221; on the $300 annual travel credit before canceling the card. I&#8217;m just curious, because I got the Sapphire card for the first time last year. So say for example, I got the card on June 15, 2019. Would the annual fee come around June 15, 2020? I read that Chase gives us 60 days to call to cancel the card to have the annual fee refunded? First of all, is that still true?</p>\n<p>Also, would the timeline to maximize the travel credits in this example look like this (let me know if it&#8217;s wrong)?</p>\n<p>June 15 2019 &#8211; got the card</p>\n<p>did the $300 travel credit sometime in 2019</p>\n<p>around June 15, 2020 (earlier?) the annual fee gets charged</p>\n<p>after June 15, 2020 I can get the second $300 travel credit?</p>\n<p>do I have until August 15, 2020 to cancel the card and still have the annual fee refunded without any penalty?</p>\n<p>Thanks for any help with this question. Just trying to be prepared. Thank you</p>\n"
+      },
+      "date_gmt" : "2020-02-26T09:06:56",
+      "id" : 920338,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Triv",
+      "content" : {
+        "rendered" : "<p>&#8220;Southwest – 75,000 Points&#8221; &#8211; this is currently dead, right?</p>\n<p>P.S. is there any way of switching to showing more recent comments first?</p>\n"
+      },
+      "date_gmt" : "2020-02-29T03:41:39",
+      "id" : 923657,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Iggy",
+      "content" : {
+        "rendered" : "<p>I was able to get it through incognito without issue. Should be worth at least $750 and since I can use the $10 monthly food credit it&#8217;s only like a $130 annual fee (before the airline incidental reimbursement). For me it&#8217;s well worth using.</p>\n"
+      },
+      "date_gmt" : "2020-02-29T04:49:11",
+      "id" : 923697,
+      "parent" : 913749
+    },
+    {
+      "author_name" : "George",
+      "content" : {
+        "rendered" : "<p>There&#8217;s a &#8220;newest&#8221; button right below the text box&#8230;</p>\n"
+      },
+      "date_gmt" : "2020-02-29T05:58:44",
+      "id" : 923732,
+      "parent" : 923657
+    },
+    {
+      "author_name" : "George",
+      "content" : {
+        "rendered" : "<p>Cancel within 30 days from closing date of statement on which AF appears.</p>\n<p>AF will probably hit Jun 1 for you, and travel credit would probably reset Jun 15, giving you a couple weeks to use it.</p>\n"
+      },
+      "date_gmt" : "2020-02-29T06:00:45",
+      "id" : 923733,
+      "parent" : 920338
+    },
+    {
+      "author_name" : "Dean",
+      "content" : {
+        "rendered" : "<p>Just got an email offer to get a $150 statement credit after I upgrade my Amex Blue Cash Everyday to Blue Cash Preferred. I would have to spend $1,000 in 3 months. Not bad even after paying the $95 annual fee. On the downside I have spent considerably less at supermarkets after getting into intermittent fasting.</p>\n"
+      },
+      "date_gmt" : "2020-03-04T00:45:22",
+      "id" : 927089,
+      "parent" : 0
+    },
+    {
+      "author_name" : "SpicyPadThai",
+      "content" : {
+        "rendered" : "<p>I&#8217;ve opted in for $250 statement credit after 1k spending for BCP upgraded from BCE</p>\n"
+      },
+      "date_gmt" : "2020-03-04T00:47:24",
+      "id" : 927091,
+      "parent" : 927089
+    },
+    {
+      "author_name" : "momo",
+      "content" : {
+        "rendered" : "<p>I&#8217;ve been holding off and waiting for the $250 statement credit BCE-&gt;BCP upgrade offer for the past couple months and haven&#8217;t seen it offered lately. The last time I got this offer was July 2019, should&#8217;ve jumped on it then.</p>\n"
+      },
+      "date_gmt" : "2020-03-05T16:21:13",
+      "id" : 928732,
+      "parent" : 927091
+    },
+    {
+      "author_name" : "CottonAg",
+      "content" : {
+        "rendered" : "<p>Navy Federal Credit Union has brought back the 50,000 point bonus on their Visa Signature Flagship Visa.  Worth $500.00 with $4000 spend in 90 days. The $49.00 fee iss waived the first year</p>\n"
+      },
+      "date_gmt" : "2020-03-06T16:09:23",
+      "id" : 929695,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Dusty",
+      "content" : {
+        "rendered" : "<p>The Citi Business AAdvantage Platinum Select Card is expired or else it is the wrong link</p>\n"
+      },
+      "date_gmt" : "2020-03-07T10:19:21",
+      "id" : 930475,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Richard",
+      "content" : {
+        "rendered" : "<p>American Express Nationwide Credit Card Bonus $150.00.  <a href=\"https://www.americanexpress.com/us/credit-cards/card/blue-cash-everyday/?eep=25330&#038;linknav=US-Acq-Shop-Consumer-VAC-Prospect-ViewCardDetail-BCE\" rel=\"nofollow ugc\">https://www.americanexpress.com/us/credit-cards/card/blue-cash-everyday/?eep=25330&#038;linknav=US-Acq-Shop-Consumer-VAC-Prospect-ViewCardDetail-BCE</a></p>\n"
+      },
+      "date_gmt" : "2020-03-08T22:21:45",
+      "id" : 931650,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Joel",
+      "content" : {
+        "rendered" : "<p>Williams Charles,<br />\nWhat a great list! I am currently shopping for the best credit card with great cash/point bonus as I will be travelling a lot in the future. This list has made my search a lot easier.<br />\n-Joel</p>\n"
+      },
+      "date_gmt" : "2020-03-15T00:41:32",
+      "id" : 937605,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Feather09",
+      "content" : {
+        "rendered" : "<p>Just a heads up, the Wells Fargo Business Platinum mentions $300 for 3k spend but the link is $300 for 5k spend</p>\n"
+      },
+      "date_gmt" : "2020-03-15T14:49:12",
+      "id" : 938115,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Rashad",
+      "content" : {
+        "rendered" : "<p>Incredible post!</p>\n"
+      },
+      "date_gmt" : "2020-03-15T17:04:51",
+      "id" : 938219,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Let me update</p>\n"
+      },
+      "date_gmt" : "2020-03-15T21:48:21",
+      "id" : 938406,
+      "parent" : 938115
+    },
+    {
+      "author_name" : "Matt P",
+      "content" : {
+        "rendered" : "<p>Amex Biz Gold only showing 50k points on my wife&#8217;s referral from Blue biz card.</p>\n"
+      },
+      "date_gmt" : "2020-03-18T06:20:48",
+      "id" : 941660,
+      "parent" : 0
+    },
+    {
+      "author_name" : "anon",
+      "content" : {
+        "rendered" : "<p>Here&#8217;s a question that will generate much discussion.<br />\nWith the reduction and inability to travel, should banks rebate the annual fees for travel credit cards or make the terms less restrictive to meet requirements?<br />\nWith no global entry for NY, with limited flights to use incidental fee reimbursements, or vacations to use hotel statement credits, doesn&#8217;t the expected return of all of these cards drop tremendously?</p>\n"
+      },
+      "date_gmt" : "2020-03-22T18:32:26",
+      "id" : 943689,
+      "parent" : 938406
+    },
+    {
+      "author_name" : "David",
+      "content" : {
+        "rendered" : "<p>I think there are a couple of out dated info in the list. For example the southwest 75k is no longer available. Neither is the Amex biz gold 75k. Even each corresponding linked page is saying dead, you may also want to delete them from the list here</p>\n"
+      },
+      "date_gmt" : "2020-03-28T13:59:09",
+      "id" : 947366,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Paul",
+      "content" : {
+        "rendered" : "<p>Navy Federal Flagship offering $500 for $4000 spend</p>\n"
+      },
+      "date_gmt" : "2020-03-28T14:20:29",
+      "id" : 947373,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Vadim Mialik",
+      "content" : {
+        "rendered" : "<p>My P2 received a mailer for 80,000 point CSP offer, be on the lookout for that, YMMV</p>\n"
+      },
+      "date_gmt" : "2020-03-28T20:19:01",
+      "id" : 947455,
+      "parent" : 0
+    },
+    {
+      "author_name" : "DirtyLilRat",
+      "content" : {
+        "rendered" : "<p>Is the general rule of thumb still that one should open multiple cards in one day (rather than a longer period of time) in order to minimize the negative impact of your credit score?</p>\n"
+      },
+      "date_gmt" : "2020-03-28T23:14:09",
+      "id" : 947510,
+      "parent" : 0
+    },
+    {
+      "author_name" : "DirtyLilRat",
+      "content" : {
+        "rendered" : "<p>For the Ridgewood World Mastercard app, this message appears when clicking the &#8220;apply now&#8221; link:</p>\n<p>&#8220;Suspicious Web Page Detected</p>\n<p>Warning — You are discouraged from accessing this website.</p>\n<p>Targeted Attack Protection suspects that this page contains a threat.</p>\n<p>“Credential Phishing” suspected.</p>\n<p>Analysis results: “Website contains non-standard components indicative of phishing.”</p>\n<p>This page or link appears to be a forgery or imitation of another website, designed to trick users into sharing personal or financial information. Entering any personal information on this page may result in identity theft or other abuse.</p>\n<p>For additional information, please contact your IT administrator.&#8221;</p>\n<p>WTF??</p>\n"
+      },
+      "date_gmt" : "2020-04-03T15:18:25",
+      "id" : 951064,
+      "parent" : 0
+    },
+    {
+      "author_name" : "myearlyretirementjourney",
+      "content" : {
+        "rendered" : "<p>Wells Fargo Cash Wise Visa, $150 for spending $500 in 3 months</p>\n<p><a href=\"https://creditcards.wellsfargo.com/cash-wise-visa-card?sub_channel=SEM&#038;vendor_code=G&#038;placement_id=71700000060891584_43700050371082380&#038;HPKS4=HPCTL&#038;RMPMOD=MODCTL&#038;lp_cx_nm=HPCTL_LH&#038;intr_pg_nm=HPCTL_LH\" rel=\"nofollow ugc\">https://creditcards.wellsfargo.com/cash-wise-visa-card?sub_channel=SEM&#038;vendor_code=G&#038;placement_id=71700000060891584_43700050371082380&#038;HPKS4=HPCTL&#038;RMPMOD=MODCTL&#038;lp_cx_nm=HPCTL_LH&#038;intr_pg_nm=HPCTL_LH</a></p>\n"
+      },
+      "date_gmt" : "2020-04-11T18:13:15",
+      "id" : 955929,
+      "parent" : 0
+    },
+    {
+      "author_name" : "CGID",
+      "content" : {
+        "rendered" : "<p>The only reason I can think of here is that Age of Youngest Account is a FICO scoring factor.  Thus, if you opened four cards in a two year period, each six months apart, that would guarantee that you constantly had a fairly low AoYA, whereas by opening them all at once your AoYA would become much higher sooner,   There are many practical reasons not to open multiple cards on the same day, however &#8212; or the same week, same month, etc.</p>\n"
+      },
+      "date_gmt" : "2020-04-14T01:05:29",
+      "id" : 956841,
+      "parent" : 947510
+    },
+    {
+      "author_name" : "Jan B",
+      "content" : {
+        "rendered" : "<p>RE: TD Bank Cash Rewards Card with $500 spend bonus opportunity ($150). Dining: 3%, Grocery: 2%. </p>\n<p>I am getting snail mail solicitations for this about once a month. Starts out with 0% APR for 15 months. Great for $500 one time spend and then 0% APR on BTs for 15 months with 3% fee (an amount that is rarely available through banks these days). Apply through 06/05/20.</p>\n<p>It&#8217;s worth a look.</p>\n"
+      },
+      "date_gmt" : "2020-04-17T15:51:05",
+      "id" : 958852,
+      "parent" : 0
+    },
+    {
+      "author_name" : "messi",
+      "content" : {
+        "rendered" : "<p>NO I just got approved for a mortgage and applied a month before</p>\n"
+      },
+      "date_gmt" : "2020-04-25T03:48:11",
+      "id" : 964247,
+      "parent" : 780647
+    },
+    {
+      "author_name" : "Anon79",
+      "content" : {
+        "rendered" : "<p>I got three of these already from TD Bank.  One a month.  TD Bank is a lousy issuer and I would never use their products.  I used TD Bank for a previous bonus, and cashed out and card got cancelled for non use.  Horrible customer service and would never put regular spend on it.</p>\n"
+      },
+      "date_gmt" : "2020-04-25T21:28:58",
+      "id" : 964634,
+      "parent" : 958852
+    },
+    {
+      "author_name" : "Kafka",
+      "content" : {
+        "rendered" : "<p>Agreed. Talked to a Citi rep, they didn&#8217;t see the Double Cash bonus in their system at all. Same for the Rewards+ in-branch 30k or 15k+15k offers (mentioned on a separate DoC page). Citi Premier 65k in-branch was still valid.</p>\n"
+      },
+      "date_gmt" : "2020-04-28T13:49:02",
+      "id" : 966561,
+      "parent" : 947366
+    },
+    {
+      "author_name" : "Erin",
+      "content" : {
+        "rendered" : "<p>Idk the rules but I had this experience. I applied for Chase Freedom and Chase Freedom Unlimited the same day to receive 200*2 bonus for 500*2 spent. I called Chase in 2 days. They found my1st application but didn&#8217;t receive the 2nd. I applied again for the 2nd card and was approved for both. Creditkarma shows 1 hard pull from JPMorgan.<br />\nDoes anybody know similar promos? I have just letters from TD 150 for 500 spent. 200*2  for 500*2 from Chase was so sweet.</p>\n"
+      },
+      "date_gmt" : "2020-04-28T18:05:01",
+      "id" : 966744,
+      "parent" : 947510
+    },
+    {
+      "author_name" : "N",
+      "content" : {
+        "rendered" : "<p>IIRC Chase has been closing (1 or both) accounts opened in this fashion (was called double dipping) for some time now, maybe because it makes 5/24 harder to enforce.</p>\n"
+      },
+      "date_gmt" : "2020-04-29T07:30:07",
+      "id" : 967263,
+      "parent" : 966744
+    },
+    {
+      "author_name" : "d",
+      "content" : {
+        "rendered" : "<p>SW 75K expired and probably should be removed</p>\n"
+      },
+      "date_gmt" : "2020-04-30T15:35:34",
+      "id" : 968237,
+      "parent" : 0
+    },
+    {
+      "author_name" : "W",
+      "content" : {
+        "rendered" : "<p>New incognito Amex offers are up for me. 75k platinum bonus and 50k gold bonus w/ $4k in spend.</p>\n"
+      },
+      "date_gmt" : "2020-05-02T03:23:35",
+      "id" : 970039,
+      "parent" : 0
+    },
+    {
+      "author_name" : "sdsearch",
+      "content" : {
+        "rendered" : "<p>You have several Chase business cards on the list, but very few people can be approved for those these days, as pointed in this post from a couple weeks ago:</p>\n<p><a href=\"https://www.doctorofcredit.com/chase-seems-to-be-tightening-small-business-credit-card-application/\" rel=\"ugc\">https://www.doctorofcredit.com/chase-seems-to-be-tightening-small-business-credit-card-application/</a></p>\n"
+      },
+      "date_gmt" : "2020-05-07T15:16:59",
+      "id" : 974391,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Alex",
+      "content" : {
+        "rendered" : "<p>Savor AF no longer waived, should be removed.</p>\n"
+      },
+      "date_gmt" : "2020-05-07T18:36:27",
+      "id" : 974529,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p>Updated, thanks</p>\n"
+      },
+      "date_gmt" : "2020-05-07T18:59:25",
+      "id" : 974550,
+      "parent" : 974529
+    },
+    {
+      "author_name" : "Alex",
+      "content" : {
+        "rendered" : "<p>Is there a reason for keeping it in the &#8220;best sign-up bonuses&#8221; list? Current offer seems really weak.</p>\n"
+      },
+      "date_gmt" : "2020-05-08T22:08:59",
+      "id" : 975475,
+      "parent" : 974550
+    },
+    {
+      "author_name" : "Richard",
+      "content" : {
+        "rendered" : "<p>Credit Card $100.00 bonus from Penfed Credit Union   <a href=\"https://www.penfed.org/credit-cards/visa-gold-card\" rel=\"nofollow ugc\">https://www.penfed.org/credit-cards/visa-gold-card</a>   Spend $1500.00 in 90 days.</p>\n"
+      },
+      "date_gmt" : "2020-05-09T20:50:05",
+      "id" : 976365,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Abe",
+      "content" : {
+        "rendered" : "<p>The link for the Bank of America Cash Rewards – $500 is actually going to the ridgewood savings page <a class='hint hint--right' data-ucm_user_id='2' href='https://www.doctorofcredit.com/author/will/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;William Charles</a></p>\n"
+      },
+      "date_gmt" : "2020-05-10T01:04:19",
+      "id" : 976550,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>You sure? Looks fine to me</p>\n"
+      },
+      "date_gmt" : "2020-05-10T01:12:50",
+      "id" : 976555,
+      "parent" : 976550
+    },
+    {
+      "author_name" : "Richard",
+      "content" : {
+        "rendered" : "<p>New offer from Penfed:  <a href=\"https://www.penfed.org/credit-cards/visa-gold-card\" rel=\"nofollow ugc\">https://www.penfed.org/credit-cards/visa-gold-card</a>  Spend $1500.00 get $100.00 bonus.</p>\n"
+      },
+      "date_gmt" : "2020-05-18T23:51:11",
+      "id" : 982605,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Richard",
+      "content" : {
+        "rendered" : "<p>Same deal, but rewards card also:  <a href=\"https://www.penfed.org/credit-cards/platinum-rewards-visa-signature\" rel=\"nofollow ugc\">https://www.penfed.org/credit-cards/platinum-rewards-visa-signature</a></p>\n"
+      },
+      "date_gmt" : "2020-05-19T00:07:41",
+      "id" : 982611,
+      "parent" : 982605
+    },
+    {
+      "author_name" : "HAC",
+      "content" : {
+        "rendered" : "<p>How easy is it to cash out points for cash for these cards? I don&#8217;t travel, even before Covid19 so don&#8217;t see the point of point cards and mainly target cash bonus cards or bank accounts.</p>\n"
+      },
+      "date_gmt" : "2020-06-02T06:41:45",
+      "id" : 990788,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Ian",
+      "content" : {
+        "rendered" : "<p>I&#8217;m wondering if these card bonuses are churnable? Does it depend on the bank that issues it?</p>\n"
+      },
+      "date_gmt" : "2020-06-04T12:59:26",
+      "id" : 992360,
+      "parent" : 0
+    },
+    {
+      "author_name" : "HAC",
+      "content" : {
+        "rendered" : "<p>Churnable how? Like buying MO&#8217;s and liquidating them out? You should be able to but I mostly get them for large purchases or to pay for rent.</p>\n"
+      },
+      "date_gmt" : "2020-06-04T21:36:24",
+      "id" : 992670,
+      "parent" : 992360
+    },
+    {
+      "author_name" : "Jory",
+      "content" : {
+        "rendered" : "<p>Can you apply for the same card twice (once in 2019 and once in 2020) and get the cash bonus twice? Or is it one and done unless you close the card?</p>\n"
+      },
+      "date_gmt" : "2020-06-10T20:50:57",
+      "id" : 995829,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p><a href=\"https://www.doctorofcredit.com/list-of-churnable-credit-cards/\" rel=\"ugc\">https://www.doctorofcredit.com/list-of-churnable-credit-cards/</a></p>\n"
+      },
+      "date_gmt" : "2020-06-10T20:59:23",
+      "id" : 995836,
+      "parent" : 995829
+    },
+    {
+      "author_name" : "Hon",
+      "content" : {
+        "rendered" : "<p>The CitiBusiness AA Card for 65K miles after $4K spend, $95 AF waived 1st year deal is available. Is there a reason it&#8217;s not back on the list? (e.g. maybe it&#8217;s not as high as it has gone before like the 75K)?</p>\n"
+      },
+      "date_gmt" : "2020-06-10T22:52:45",
+      "id" : 995910,
+      "parent" : 0
+    },
+    {
+      "author_name" : "bluecat",
+      "content" : {
+        "rendered" : "<p>Not sure the info on Lafayette FCU is accurate.  The text above states that you might get 600 to 650 in flights but this is what the LFCU page says:</p>\n<p>Here&#8217;s just a few of the things you can get with 50,000 reward points:<br />\n$500 airline credit<br />\n4K Ultra HD TV<br />\nApple® iPhone 11 Pro 64GB<br />\nStainless steel refrigerator<br />\nDiamond necklace/earrings</p>\n<p>So you see that the airline credit they mention is only $500.   Interestingly enough, the iPhone they mention retails for about $1k (unless they are going to give you a used one!  :-))</p>\n"
+      },
+      "date_gmt" : "2020-06-13T03:01:50",
+      "id" : 997318,
+      "parent" : 0
+    },
+    {
+      "author_name" : "bluecat",
+      "content" : {
+        "rendered" : "<p>Following up with them: the process of signing up with them is quite poor.  The website is from the 90s, and works as you would expect.  A simple application did not work for me and their tech support staff had to get involved.</p>\n<p>Furthermore, the credit card application process ask you to provide copies of tax returns, so be aware of that.</p>\n"
+      },
+      "date_gmt" : "2020-06-18T14:43:25",
+      "id" : 1000077,
+      "parent" : 997318
+    },
+    {
+      "author_name" : "Abby Normal",
+      "content" : {
+        "rendered" : "<p>BBVA Select – $500 Cash Bonus – AL, FL, TX, AZ, CO, CA, NM</p>\n<p><a class='hint hint--right' data-ucm_user_id='2' href='https://www.doctorofcredit.com/author/will/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;William Charles</a> Might want to include on either this page or the linked page that this card requires $100k+ income or BBVA will deny you. DPs show they don&#8217;t make you prove it but you have to at least tell them you break $100k.</p>\n"
+      },
+      "date_gmt" : "2020-06-19T14:07:30",
+      "id" : 1000645,
+      "parent" : 0
+    },
+    {
+      "author_name" : "HurdyGurdyTravelPodcast",
+      "content" : {
+        "rendered" : "<p>What about the UBS Business card? Great offer through July 31st!</p>\n"
+      },
+      "date_gmt" : "2020-06-19T21:27:07",
+      "id" : 1000858,
+      "parent" : 0
+    },
+    {
+      "author_name" : "DD",
+      "content" : {
+        "rendered" : "<p>Good Day.<br />\nPlease come over and shoot me if I ever, EVER  pay an Annual Fee for a Credit Card. That is so absurd that it is the decision-making of a poor mentally disabled individual.<br />\nCC companies  make more than enough in free money off merchant fees and the Loan Shark interest rates —- especially during both a Pandemic and still another Great Depression.</p>\n"
+      },
+      "date_gmt" : "2020-06-20T18:11:22",
+      "id" : 1001256,
+      "parent" : 0
+    },
+    {
+      "author_name" : "DD",
+      "content" : {
+        "rendered" : "<p>Restate the question I think, huh?<br />\nJust sayin’</p>\n"
+      },
+      "date_gmt" : "2020-06-20T18:14:56",
+      "id" : 1001259,
+      "parent" : 992360
+    },
+    {
+      "author_name" : "HAC",
+      "content" : {
+        "rendered" : "<p>Which one?</p>\n"
+      },
+      "date_gmt" : "2020-06-20T20:14:24",
+      "id" : 1001294,
+      "parent" : 1000858
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Linked page does include that</p>\n"
+      },
+      "date_gmt" : "2020-06-21T00:34:40",
+      "id" : 1001377,
+      "parent" : 1000645
+    },
+    {
+      "author_name" : "MSer",
+      "content" : {
+        "rendered" : "<p>I have the same DP. They should disclose this important requirement but don&#8217;t. Banker had to look it up after I did the application and did not tell me before applying 🙁</p>\n"
+      },
+      "date_gmt" : "2020-06-28T21:23:32",
+      "id" : 1005771,
+      "parent" : 1001377
+    },
+    {
+      "author_name" : "Carla",
+      "content" : {
+        "rendered" : "<p>Also <a href=\"https://www.penfed.org/credit-cards/power-cash-rewards\" rel=\"nofollow ugc\">https://www.penfed.org/credit-cards/power-cash-rewards</a></p>\n"
+      },
+      "date_gmt" : "2020-06-30T18:08:59",
+      "id" : 1007036,
+      "parent" : 982611
+    },
+    {
+      "author_name" : "Dani Lynn",
+      "content" : {
+        "rendered" : "<p>Did the CC database move?</p>\n"
+      },
+      "date_gmt" : "2020-07-01T16:36:59",
+      "id" : 1007802,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Deborah",
+      "content" : {
+        "rendered" : "<p>That&#8217;s a pretty nasty thing to say. Your choice not to ever pay an AF, but not your place to condemn the hundreds of thousands of intelligent and well-informed credit card users who come to a different conclusion after analyzing the benefit of the card versus its AF.<br />\nIt&#8217;s not a question of how much money the CC companies make &#8211; it&#8217;s how much a consumer can make from using the CC benefit. For instance, when I got the Citi Prestige card for the first time a few years ago, the annual fee was $350. There was an annual travel credit of $250 per calendar year, so that was $500 during the first 12 months. There was and still is a fourth night free for EVERY hotel stay, with no annual limits. Also at that time, the hotel stays could be booked in a way which triggered loyalty points. Points earned on purchases could be cashed out at .0125. I do not ever carry a balance, so the interest rates don&#8217;t affect me.</p>\n"
+      },
+      "date_gmt" : "2020-07-04T05:27:43",
+      "id" : 1009579,
+      "parent" : 1001256
+    },
+    {
+      "author_name" : "Deborah",
+      "content" : {
+        "rendered" : "<p>Bank of America has Business Advantage Cash Rewards Mastercard® credit card offer, with $300 statement credit after $3k in net purchases in first 90 days.<br />\n<a href=\"https://secure.bankofamerica.com/applynow/welcome.go\" rel=\"nofollow ugc\">https://secure.bankofamerica.com/applynow/welcome.go</a></p>\n"
+      },
+      "date_gmt" : "2020-07-04T05:32:56",
+      "id" : 1009580,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Darin",
+      "content" : {
+        "rendered" : "<p>Doesn’t look like the Barclays Aviator includes a companion certificate at signup anymore.</p>\n"
+      },
+      "date_gmt" : "2020-07-18T01:06:52",
+      "id" : 1018537,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Eb",
+      "content" : {
+        "rendered" : "<p>The JetBlue Plus 60,000 offer that was posted here in April is still active despite not being publicly advertised anymore: <a href=\"https://www.barclaycardus.com/apply/Landing.action?campaignId=2739&#038;cellNumber=4&#038;referrerid=PTRBAHPATF\" rel=\"nofollow ugc\">https://www.barclaycardus.com/apply/Landing.action?campaignId=2739&#038;cellNumber=4&#038;referrerid=PTRBAHPATF</a>. Just got approved the other day using it.</p>\n"
+      },
+      "date_gmt" : "2020-08-10T20:10:46",
+      "id" : 1033690,
+      "parent" : 0
+    },
+    {
+      "author_name" : "beaunity",
+      "content" : {
+        "rendered" : "<p>I just tried to apply for this one, and they are also requiring me to open an account with them. Be aware of that too.</p>\n"
+      },
+      "date_gmt" : "2020-08-10T22:03:00",
+      "id" : 1033754,
+      "parent" : 1000077
+    },
+    {
+      "author_name" : "Chase-ing UR Points",
+      "content" : {
+        "rendered" : "<p><a class='hint hint--right' data-ucm_user_id='2' href='https://www.doctorofcredit.com/author/will/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;William Charles</a> <a class='hint hint--right' data-ucm_user_id='6' href='https://www.doctorofcredit.com/author/chucksithe/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/6581771f6d6c07578202c34dd35680cd5e37f8e5b2b5af89f03bde48286dade3?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/6581771f6d6c07578202c34dd35680cd5e37f8e5b2b5af89f03bde48286dade3?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;Chuck</a><br />\nAMEX Gold is showing an offer for 35,000MR points with $4,000 spend in 6 months + 10% CB ($250 maximum) in 6 months. This showed up using incognito and as an incognito referral from Blue Cash Preferred card. </p>\n<p>When I tried with AMEX Gold, the referral offer was instead for 60,000MR points with $4,000 spend in 6 months.</p>\n"
+      },
+      "date_gmt" : "2020-08-13T09:31:44",
+      "id" : 1035580,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Vasily R.",
+      "content" : {
+        "rendered" : "<p>In the &#8220;Wells Fargo Business Platinum – $500&#8221; section, it mentions that it pairs well with the Business Checking WF bonus. Well, that one has been removed from the best bonuses page so this should be updated as well.</p>\n"
+      },
+      "date_gmt" : "2020-08-15T21:06:01",
+      "id" : 1037018,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Adam",
+      "content" : {
+        "rendered" : "<p>subscribe</p>\n"
+      },
+      "date_gmt" : "2020-08-21T16:26:52",
+      "id" : 1040506,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Chase-ing UR points",
+      "content" : {
+        "rendered" : "<p><a class='hint hint--right' data-ucm_user_id='2' href='https://www.doctorofcredit.com/author/will/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;William Charles</a> AMEX Business Gold is showing 60k MR in incognito w/ $7,500 spend in 3 months.<br />\nNot overly exciting as it&#8217;s an extra $2,500 spend for 10k MR (and only 3 months vs. the new personal Gold offers with 6 months). Up until earlier in the week you could get 50k MR w/ $5,000 spend via incognito or referral.</p>\n"
+      },
+      "date_gmt" : "2020-08-27T21:33:53",
+      "id" : 1044185,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Cameron",
+      "content" : {
+        "rendered" : "<p>BofA Premium Rewards also has $50 credit to Groceries/Dining out through end of 2020.</p>\n"
+      },
+      "date_gmt" : "2020-08-28T13:04:38",
+      "id" : 1044553,
+      "parent" : 0
+    },
+    {
+      "author_name" : "arch",
+      "content" : {
+        "rendered" : "<p>Given the current travel climate and no end in sight, I am curious why cards that require travel redemptions are rated so high. Cash is king, so maybe some further explanations on the best way to redeem other than actual travel would help decide which cards to get. Thanks</p>\n"
+      },
+      "date_gmt" : "2020-08-28T13:12:18",
+      "id" : 1044555,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Raol",
+      "content" : {
+        "rendered" : "<p>I applied for chase ink business preferred, am Sole Proprietor.  2/24. Rejected. Called Recon, was told &#8220;at this time we are not able to approve just coz of my business structure as SP&#8221;. Guess SP is business risk for them in this pandemic times. No other problems, just coz i am SP, not approved&#8230;&#8230; WTF.</p>\n<p>Guess all SP&#8217;s should wait and watch till economy improves&#8230;. Unless someone applies and gets lucky.</p>\n"
+      },
+      "date_gmt" : "2020-08-28T17:20:30",
+      "id" : 1044668,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Samosa",
+      "content" : {
+        "rendered" : "<p><a class='hint hint--right' data-ucm_user_id='2' href='https://www.doctorofcredit.com/author/will/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;William Charles</a> <a class='hint hint--right' data-ucm_user_id='6' href='https://www.doctorofcredit.com/author/chucksithe/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/6581771f6d6c07578202c34dd35680cd5e37f8e5b2b5af89f03bde48286dade3?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/6581771f6d6c07578202c34dd35680cd5e37f8e5b2b5af89f03bde48286dade3?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;Chuck</a> If I downgrade my current CSP to Freedom, would CSP be considered as &#8220;closed&#8221;? i.e, would downgrading make eligible to churn the CSP signup bonus in future (after meeting the 48 month rule)? TIA.</p>\n"
+      },
+      "date_gmt" : "2020-08-30T20:06:44",
+      "id" : 1045585,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p>Yep <a href=\"https://www.doctorofcredit.com/how-long-does-it-take-chase-to-clear-an-old-card-out-of-their-system-likely-30-days/\" rel=\"ugc\">https://www.doctorofcredit.com/how-long-does-it-take-chase-to-clear-an-old-card-out-of-their-system-likely-30-days/</a></p>\n"
+      },
+      "date_gmt" : "2020-08-30T20:12:04",
+      "id" : 1045587,
+      "parent" : 1045585
+    },
+    {
+      "author_name" : "Samosa",
+      "content" : {
+        "rendered" : "<p>Fantastic, Thanks <a class='hint hint--right' data-ucm_user_id='6' href='https://www.doctorofcredit.com/author/chucksithe/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/6581771f6d6c07578202c34dd35680cd5e37f8e5b2b5af89f03bde48286dade3?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/6581771f6d6c07578202c34dd35680cd5e37f8e5b2b5af89f03bde48286dade3?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;Chuck</a>  for your prompt response and for pointing towards the relevant post!</p>\n"
+      },
+      "date_gmt" : "2020-08-30T20:19:54",
+      "id" : 1045590,
+      "parent" : 1045587
+    },
+    {
+      "author_name" : "Tyler",
+      "content" : {
+        "rendered" : "<p>Been known for several months that Chase business cards are no-go&#8217;s for SP&#8217;s. Other lenders aren&#8217;t as dogmatically picky.</p>\n"
+      },
+      "date_gmt" : "2020-09-03T01:17:24",
+      "id" : 1047848,
+      "parent" : 1044668
+    },
+    {
+      "author_name" : "AlanW",
+      "content" : {
+        "rendered" : "<p>I got offered 75K MR on the Amex Gold for $4k spend in 6 months. incognito</p>\n"
+      },
+      "date_gmt" : "2020-09-09T00:34:01",
+      "id" : 1050776,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Newbie",
+      "content" : {
+        "rendered" : "<p>Is annual income a requirement for credit card approvals?<br />\nWhat is the approval rate for retirees with low income but large portfolio and assets</p>\n"
+      },
+      "date_gmt" : "2020-09-10T16:08:34",
+      "id" : 1051572,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Alan Leopold",
+      "content" : {
+        "rendered" : "<p>Spark Cash is offering their $500 bonus again and have a $200 refer-a-friend bonus as well. <a href=\"https://www.capitalone.com/small-business/credit-cards/\" rel=\"nofollow ugc\">https://www.capitalone.com/small-business/credit-cards/</a></p>\n"
+      },
+      "date_gmt" : "2020-09-10T20:21:38",
+      "id" : 1051726,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>That&#8217;s the standard offer I think</p>\n"
+      },
+      "date_gmt" : "2020-09-11T04:11:51",
+      "id" : 1052007,
+      "parent" : 1051726
+    },
+    {
+      "author_name" : "Gadget - Bank Bonus Geek",
+      "content" : {
+        "rendered" : "<p>That&#8217;s the same with all credit unions.  You have to be a member to apply for a credit card, even if it is not spelled out, they assume you know this.</p>\n"
+      },
+      "date_gmt" : "2020-09-13T07:40:42",
+      "id" : 1053771,
+      "parent" : 1033754
+    },
+    {
+      "author_name" : "Gadget - Bank Bonus Geek",
+      "content" : {
+        "rendered" : "<p>Tax returns?  For a CC?  Was it a business CC?  That is bizarre.  Are you self employed?  I could see wanting a W-2 or 1099-R, etc but not the whole return.  Did you get approved?</p>\n<p>And, is the point values correct what DoC qouted, or what the website says?  $500 travel vs $650 is a sizable difference.</p>\n<p>I see they use LoansPQ for applications, so yeah, it&#8217;s from the 90&#8217;s, but a lot of credit unions still use it.  They patch it every couple of years, I imagine.</p>\n"
+      },
+      "date_gmt" : "2020-09-13T07:42:42",
+      "id" : 1053773,
+      "parent" : 1000077
+    },
+    {
+      "author_name" : "Gadget - Bank Bonus Geek",
+      "content" : {
+        "rendered" : "<p>Depends on the card, I imagine&#8230; expect to have to call recon and bring your A game.</p>\n"
+      },
+      "date_gmt" : "2020-09-13T07:56:07",
+      "id" : 1053775,
+      "parent" : 1051572
+    },
+    {
+      "author_name" : "Gadget - Bank Bonus Geek",
+      "content" : {
+        "rendered" : "<p><a class='hint hint--right' data-ucm_user_id='2' href='https://www.doctorofcredit.com/author/will/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;William Charles</a> On Lafayette, you should probably link to your review.  Thanks.</p>\n<p><a href=\"https://www.doctorofcredit.com/md-d-c-va-lafayette-federal-credit-union-mastercard-600-in-gift-cards-or-650-in-flights/\" rel=\"ugc\">https://www.doctorofcredit.com/md-d-c-va-lafayette-federal-credit-union-mastercard-600-in-gift-cards-or-650-in-flights/</a></p>\n<p>I am considering this one.  Not sure if I have the patience or not.</p>\n"
+      },
+      "date_gmt" : "2020-09-13T07:59:20",
+      "id" : 1053776,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Kyle",
+      "content" : {
+        "rendered" : "<p>Just saw a 140,000 point IHG card offer in my IHG app. Not sure if it’s targeted but I know the public offer is now 125,000.</p>\n"
+      },
+      "date_gmt" : "2020-09-17T01:36:03",
+      "id" : 1056311,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Security",
+      "content" : {
+        "rendered" : "<p><a class='hint hint--right' data-ucm_user_id='2' href='https://www.doctorofcredit.com/author/will/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;William Charles</a> Can we update the CSP here?</p>\n"
+      },
+      "date_gmt" : "2020-09-18T02:41:52",
+      "id" : 1057118,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Security",
+      "content" : {
+        "rendered" : "<p>Also Blue biz cash</p>\n"
+      },
+      "date_gmt" : "2020-09-18T02:42:42",
+      "id" : 1057119,
+      "parent" : 1057118
+    },
+    {
+      "author_name" : "Security",
+      "content" : {
+        "rendered" : "<p>Or is this only updated monthly. That would make more sense&#8230;</p>\n"
+      },
+      "date_gmt" : "2020-09-18T02:43:28",
+      "id" : 1057120,
+      "parent" : 1057119
+    },
+    {
+      "author_name" : "Captain Greg",
+      "content" : {
+        "rendered" : "<p>Bummer. Not coming up for me.</p>\n"
+      },
+      "date_gmt" : "2020-09-19T11:26:58",
+      "id" : 1057781,
+      "parent" : 1056311
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Nah I update it all the time, will add these.</p>\n"
+      },
+      "date_gmt" : "2020-09-20T00:47:56",
+      "id" : 1058017,
+      "parent" : 1057120
+    },
+    {
+      "author_name" : "H-Bomb",
+      "content" : {
+        "rendered" : "<p>Be prepared to be asked for LOTS of financial records, particularly if you have any self employment income.  Then your application will disappear into a black hole, never to be seen again.  The only trace you ever applied will be a hard pull.</p>\n<p>(P2 applied for one last year.)</p>\n"
+      },
+      "date_gmt" : "2020-09-21T22:12:31",
+      "id" : 1059476,
+      "parent" : 1053776
+    },
+    {
+      "author_name" : "Gadget - Bank Bonus Geek",
+      "content" : {
+        "rendered" : "<p>Yeah, I decided against it.  I don&#8217;t think smaller banks or credit unions are going to be amused with my 25+ open credit cards.  I guess I could continue to abstain and get in Chase&#8217;s good graces again.  I might go into withdrawals before then though.</p>\n"
+      },
+      "date_gmt" : "2020-09-22T01:53:43",
+      "id" : 1059658,
+      "parent" : 1059476
+    },
+    {
+      "author_name" : "Zooter",
+      "content" : {
+        "rendered" : "<p>Why don&#8217;t you have the Chase Ink Business Preferred 100k offer listed?</p>\n"
+      },
+      "date_gmt" : "2020-09-26T17:43:35",
+      "id" : 1063086,
+      "parent" : 1058017
+    },
+    {
+      "author_name" : "Sean",
+      "content" : {
+        "rendered" : "<p>what about new chase marriot bonvoy 5 nights free upto 50k points per night offer?</p>\n"
+      },
+      "date_gmt" : "2020-10-04T06:18:23",
+      "id" : 1067483,
+      "parent" : 0
+    }
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "1797",
+    "x-wp-totalpages" : "18"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/comments?post=28140&per_page=100&page=8&order=asc&orderby=date_gmt&_fields=id,parent,author_name,date_gmt,content"
+}

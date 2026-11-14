@@ -1,0 +1,15 @@
+{
+  "body" : {
+    "id" : 241605,
+    "link" : "https://www.doctorofcredit.com/live-citi-strata-elite-review-80000-points-bonus-595-annual-fee-300-hotel-200-splurge-credit/",
+    "modified_gmt" : "2025-11-12T18:57:31",
+    "title" : {
+      "rendered" : "(Expired) Citi Strata Elite Review: 80,000 Points Bonus, $595 Annual Fee, $300 Hotel &#038; $200 Splurge Credit"
+    }
+  },
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/posts/241605?_fields=id,title,link,modified_gmt"
+}

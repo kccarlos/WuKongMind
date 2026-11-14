@@ -1,0 +1,25 @@
+{
+  "body" : [
+    {
+      "id" : 226038,
+      "link" : "https://www.doctorofcredit.com/u-s-bank-450-100-checking-bonus/",
+      "title" : {
+        "rendered" : "U.S. Bank $450 Checking Bonus"
+      }
+    },
+    {
+      "id" : 268621,
+      "link" : "https://www.doctorofcredit.com/targeted-u-s-bank-smartly-savings-500-bonus/",
+      "title" : {
+        "rendered" : "[Targeted] U.S. Bank Smartly Savings $500 Bonus"
+      }
+    }
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "2",
+    "x-wp-totalpages" : "1"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/posts?include=226038,2586,268621&per_page=3&_fields=id,title,link"
+}

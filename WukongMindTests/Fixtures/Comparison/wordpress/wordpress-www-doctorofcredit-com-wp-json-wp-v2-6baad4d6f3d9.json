@@ -1,0 +1,911 @@
+{
+  "body" : [
+    {
+      "author_name" : "Pete",
+      "content" : {
+        "rendered" : "<p>Called the credit card number or the branch?</p>\n"
+      },
+      "date_gmt" : "2025-07-29T12:47:29",
+      "id" : 2107942,
+      "parent" : 2107451
+    },
+    {
+      "author_name" : "Erik",
+      "content" : {
+        "rendered" : "<p>I don’t see the Best Buy splurge credit included in the “Additional Information”?</p>\n"
+      },
+      "date_gmt" : "2025-07-29T20:20:42",
+      "id" : 2108323,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Jeremy",
+      "content" : {
+        "rendered" : "<p>The citi restaurant nights are 6 pm &#8212; 6 am ET? So for those of us on the West Coast it&#8217;s 3 pm &#8212; 3 am?</p>\n"
+      },
+      "date_gmt" : "2025-07-29T20:57:34",
+      "id" : 2108341,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Juice",
+      "content" : {
+        "rendered" : "<p>I seen this exact same post 3 different times. I assume you dont want to let us know your secret play?</p>\n"
+      },
+      "date_gmt" : "2025-07-29T21:12:05",
+      "id" : 2108348,
+      "parent" : 2107722
+    },
+    {
+      "author_name" : "stropeR zorguD",
+      "content" : {
+        "rendered" : "<p>It&#8217;s not a &#8220;secret play&#8221; it&#8217;s a pretty well known &#8220;trick&#8221; that can be easily found with very little effort.</p>\n"
+      },
+      "date_gmt" : "2025-07-29T22:03:39",
+      "id" : 2108384,
+      "parent" : 2108348
+    },
+    {
+      "author_name" : "007",
+      "content" : {
+        "rendered" : "<p>Application made me create a new login for the newly approved Strata Elite account. Any way to merge the two accounts before getting the card?</p>\n"
+      },
+      "date_gmt" : "2025-07-29T23:08:34",
+      "id" : 2108430,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Glomlo",
+      "content" : {
+        "rendered" : "<p>I made another because their tech stack sucks hoping to use the card immediately on the new account. According to voice and chat support; the cards accounts can be merged but only after you get both cards. Somehow they need your card numbers to perform this operation&#8230;</p>\n"
+      },
+      "date_gmt" : "2025-07-30T00:49:54",
+      "id" : 2108485,
+      "parent" : 2108430
+    },
+    {
+      "author_name" : "007",
+      "content" : {
+        "rendered" : "<p>Thanks for the helpful info!</p>\n"
+      },
+      "date_gmt" : "2025-07-30T00:57:11",
+      "id" : 2108492,
+      "parent" : 2108485
+    },
+    {
+      "author_name" : "Glomlo",
+      "content" : {
+        "rendered" : "<p>Walked into a Citi branch with existing credit card, no checking/saving/brokerage relationship. Out in 5 minutes with a link sent to my email for 100k.</p>\n<p>Citi Travel isn&#8217;t that bad as it is just Bookings.com basically. First year, you&#8217;ll get $300 x 2 and $200 x 2 at AA/Bestbuy for $1000 in value, then 100k AA points. This sign up for $595 for one year is a non-brainer. Second year, will have to see if more coupons are added. </p>\n<p>Those willing to paying $595 probably already have other $400+ dollar cards so the Pre/Global Entry. Priority Pass, are worthless</p>\n"
+      },
+      "date_gmt" : "2025-07-30T00:59:06",
+      "id" : 2108494,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Ray",
+      "content" : {
+        "rendered" : "<p>Nice plus that it&#8217;s on it&#8217;s own timeline. My 48 month clock is set to expire this December lol</p>\n"
+      },
+      "date_gmt" : "2025-07-30T09:04:53",
+      "id" : 2108639,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Mark",
+      "content" : {
+        "rendered" : "<p>It says $300 off, not $300 credit. So you have to use it or lose it.</p>\n"
+      },
+      "date_gmt" : "2025-07-30T13:39:02",
+      "id" : 2108697,
+      "parent" : 2107722
+    },
+    {
+      "author_name" : "Enrico",
+      "content" : {
+        "rendered" : "<p>That is assuming that AA/Bestbuy and CitiTravel is not forced spending. Would I get a hotel with cititravel that I found somewhere else? Do I really need to buy something at BestBuy?<br />\nThe card is not a keeper for sure. The ongoing earnings are too weak, unless you can use the AA lounge passes.</p>\n"
+      },
+      "date_gmt" : "2025-07-31T07:32:39",
+      "id" : 2109300,
+      "parent" : 2108494
+    },
+    {
+      "author_name" : "on YT @MasteringEarlyRetirement",
+      "content" : {
+        "rendered" : "<p>got the card! so pumped. approved sunday instant. card arrived today (Thurs a.m.) from FedEx.</p>\n"
+      },
+      "date_gmt" : "2025-07-31T20:44:39",
+      "id" : 2109752,
+      "parent" : 0
+    },
+    {
+      "author_name" : "sonia",
+      "content" : {
+        "rendered" : "<p>probably one of the funniest comment I&#8217;ve read on here lol</p>\n"
+      },
+      "date_gmt" : "2025-08-01T19:44:45",
+      "id" : 2110628,
+      "parent" : 2106929
+    },
+    {
+      "author_name" : "Sab",
+      "content" : {
+        "rendered" : "<p>Correct. The app will tell you when “Citi Nights” (6x on restaurants) is active. So you can always reference the app if you are affected by time zone changes.</p>\n"
+      },
+      "date_gmt" : "2025-08-01T21:13:36",
+      "id" : 2110711,
+      "parent" : 2108341
+    },
+    {
+      "author_name" : "Alex",
+      "content" : {
+        "rendered" : "<p>So if I load up my Dunkin card at 6PM EST on a Friday night, will that get 6x?</p>\n"
+      },
+      "date_gmt" : "2025-08-01T21:16:02",
+      "id" : 2110714,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Brian",
+      "content" : {
+        "rendered" : "<p>I applied Citi Premier card in Mar 2021 and earned bonus in Jun 2021. I kept that card for two years and converted that card to a citi custom card in Apr 2023. Am I qualified for a new Citi Strata offer? Thanks for your input. </p>\n"
+      },
+      "date_gmt" : "2025-08-03T01:38:48",
+      "id" : 2111321,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Sab",
+      "content" : {
+        "rendered" : "<p>Yes, if you need confirmation, the citi app will tell you if Citi Nights 6X multiplier is in effect or not. Just need to tap on the Citi elite card and scroll down.</p>\n"
+      },
+      "date_gmt" : "2025-08-03T02:11:32",
+      "id" : 2111329,
+      "parent" : 2110714
+    },
+    {
+      "author_name" : "GundamWing01",
+      "content" : {
+        "rendered" : "<p>yes but doesnt mean approval. wats ur stats? which strata ur talking about? there are 3. CSElite?</p>\n"
+      },
+      "date_gmt" : "2025-08-04T23:56:19",
+      "id" : 2112273,
+      "parent" : 2111321
+    },
+    {
+      "author_name" : "GundamWing01",
+      "content" : {
+        "rendered" : "<p>nice work. mind sharing ur stats? they pull EQ or EX? which state?</p>\n"
+      },
+      "date_gmt" : "2025-08-04T23:57:06",
+      "id" : 2112276,
+      "parent" : 2109752
+    },
+    {
+      "author_name" : "GundamWing01",
+      "content" : {
+        "rendered" : "<p>its called book and cancel. its a legit way to get PUJ. IMHO its fucking dumb. just dont do it. amex RAT dont play. but chase will soon catch up. its not worth measly $50.</p>\n"
+      },
+      "date_gmt" : "2025-08-05T00:03:03",
+      "id" : 2112280,
+      "parent" : 2108348
+    },
+    {
+      "author_name" : "Sam (Abdul Samad) Shabbir",
+      "content" : {
+        "rendered" : "<p>I have an 800+ credit score and applied for Citi AA advantage credit card two weeks ago. Got denied, letter in the mail said I have too much available unused credit (on other credit cards, mostly chase). I called and argued again that I have mostly chase credit cards and I am disappointed with them, so I am trying to switch my monthly spend to Citi instead. They said they will reconsider, then got rejected again lol.<br />\nIt&#8217;s quite insane. Any advice on whether I should pursue this credit card of any credit card with Citi every again?<br />\nPS. Never been denied for a credit card before ever. High income, low debt and really high credit score.</p>\n"
+      },
+      "date_gmt" : "2025-08-06T14:33:47",
+      "id" : 2113342,
+      "parent" : 0
+    },
+    {
+      "author_name" : "AshL",
+      "content" : {
+        "rendered" : "<p>I got approved last night too. 752 credit score, never had a relationship with Citi, already at 6/24 before this. they pulled EX, in CA. Gave me a $26k limit.</p>\n"
+      },
+      "date_gmt" : "2025-08-06T19:03:24",
+      "id" : 2113554,
+      "parent" : 2112276
+    },
+    {
+      "author_name" : "Tony",
+      "content" : {
+        "rendered" : "<p>Anyone has the link for 100k pts ??</p>\n"
+      },
+      "date_gmt" : "2025-08-07T17:52:56",
+      "id" : 2114110,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Scott",
+      "content" : {
+        "rendered" : "<p>If I use the $300 off a single hotel stay of 2 nights or more booked through Citi Travel, does that $300 come off my spend toward the SUB?</p>\n"
+      },
+      "date_gmt" : "2025-08-14T10:57:40",
+      "id" : 2119102,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Sir_Rambo",
+      "content" : {
+        "rendered" : "<p>DP for active duty personnel. Waived annual fee due to MLA.</p>\n"
+      },
+      "date_gmt" : "2025-08-14T14:04:52",
+      "id" : 2119187,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Jake",
+      "content" : {
+        "rendered" : "<p>I don&#8217;t understand what&#8217;s listed above about being able to potentially triple dip in the first 365 days of having the card. (I get how you can double but triple??) Can someone break it down?</p>\n"
+      },
+      "date_gmt" : "2025-08-14T17:16:52",
+      "id" : 2119332,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Ynonimous",
+      "content" : {
+        "rendered" : "<p>I’ll try. If you get the card in December, you can use all credits before the end of 2025, then Calendar year 2026. Annual fee should post December 2026 but you’ll have 30 days to cancel or downgrade the card. Which means you can use your credits  as soon January 1st, 2027 before closing/ downgrading.</p>\n"
+      },
+      "date_gmt" : "2025-08-14T18:18:12",
+      "id" : 2119384,
+      "parent" : 2119332
+    },
+    {
+      "author_name" : "Igor",
+      "content" : {
+        "rendered" : "<p>No.</p>\n"
+      },
+      "date_gmt" : "2025-08-16T02:58:15",
+      "id" : 2120676,
+      "parent" : 2119102
+    },
+    {
+      "author_name" : "Malik",
+      "content" : {
+        "rendered" : "<p>They&#8217;re not going to though because based on how the credit currently works it processes after statement closes. Possibly 2 statements later.</p>\n"
+      },
+      "date_gmt" : "2025-08-16T17:06:06",
+      "id" : 2120975,
+      "parent" : 2119384
+    },
+    {
+      "author_name" : "Soleprop",
+      "content" : {
+        "rendered" : "<p>DPs &#8211; bought $200 Amazon gift card from best buy on both my spouse and my with the splurge credit selected. Splurge credit worked as intended within 7 business days of purchases.</p>\n"
+      },
+      "date_gmt" : "2025-08-19T10:25:19",
+      "id" : 2123068,
+      "parent" : 0
+    },
+    {
+      "author_name" : "SOZ",
+      "content" : {
+        "rendered" : "<p>Do they pull differently in other states? I&#8217;m in Illinois/</p>\n"
+      },
+      "date_gmt" : "2025-08-22T14:33:09",
+      "id" : 2126150,
+      "parent" : 2113554
+    },
+    {
+      "author_name" : "Tim",
+      "content" : {
+        "rendered" : "<p>I just spent at American airlines on 8/13 and the &#8220;Splurge Credit&#8221; posted 8/16.</p>\n"
+      },
+      "date_gmt" : "2025-08-22T18:43:12",
+      "id" : 2126370,
+      "parent" : 2120975
+    },
+    {
+      "author_name" : "Jason",
+      "content" : {
+        "rendered" : "<p>I got denied with a similar credit profile. Called the reconsideration line and was told I had to wait for the letter, THEN call. Kinda sucks because a big reason for the timing of the application was for the Admirals Club passes. </p>\n<p>I&#8217;ve never been a big fan of Citi and this cements that vitriol.</p>\n"
+      },
+      "date_gmt" : "2025-08-25T16:47:45",
+      "id" : 2128236,
+      "parent" : 2113342
+    },
+    {
+      "author_name" : "Monica",
+      "content" : {
+        "rendered" : "<p>Do you have to buy in person or can it be purchased online?</p>\n"
+      },
+      "date_gmt" : "2025-08-27T17:51:09",
+      "id" : 2129914,
+      "parent" : 2123068
+    },
+    {
+      "author_name" : "007",
+      "content" : {
+        "rendered" : "<p>Citi gold question &#8211; annual fee posted, $145 credit did NOT. Chat rep says:</p>\n<p>“ The Credit will post 1-3 billing cycles after the annual fee is billed.<br />\nThe credit will not post on the same statement as the Annual Membership Fee.”</p>\n<p>Anyone confirm this?</p>\n"
+      },
+      "date_gmt" : "2025-08-28T21:46:34",
+      "id" : 2130761,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Quinn",
+      "content" : {
+        "rendered" : "<p>It seems the option to get a link to the 100,000-point sign-up bonus by email is no longer available. I spoke to several Citi branches today, and the bankers all said that option has not been available for a few weeks.&nbsp;It is still possible to get 100,000 points, but you have to actually go into the branch.&nbsp;</p>\n"
+      },
+      "date_gmt" : "2025-08-28T22:04:24",
+      "id" : 2130772,
+      "parent" : 0
+    },
+    {
+      "author_name" : "tassojunior",
+      "content" : {
+        "rendered" : "<p>Was in branch yesterday 8/29 at 2pm EST and the csr pulled up and printed the 100K offer for me but was also helping another client. When they got back to me the offer had disappeared. They messaged and email IT and had a response that it was a techbical issue they were aware of that would be resoived Tuesday 9/2. Since the 100K in branch was originally supposed to die 7/31 I&#8217;m thinking it may now be dead. Or they could be re-wording the calendar year credits. Or both.</p>\n"
+      },
+      "date_gmt" : "2025-08-30T13:23:44",
+      "id" : 2131938,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Vicky",
+      "content" : {
+        "rendered" : "<p>What benifits will the authorized users get? Worth paying $75?</p>\n"
+      },
+      "date_gmt" : "2025-09-01T12:23:07",
+      "id" : 2133164,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Vicky",
+      "content" : {
+        "rendered" : "<p>I applied through a link found from google search, probably from Reddit, got approved for 100k points.</p>\n"
+      },
+      "date_gmt" : "2025-09-01T12:23:33",
+      "id" : 2133165,
+      "parent" : 0
+    },
+    {
+      "author_name" : "AB",
+      "content" : {
+        "rendered" : "<p>got the link?</p>\n"
+      },
+      "date_gmt" : "2025-09-01T21:10:06",
+      "id" : 2133539,
+      "parent" : 2133165
+    },
+    {
+      "author_name" : "danny",
+      "content" : {
+        "rendered" : "<p>anyone applying for the strata premier over the elite? 60k points for $95 AF vs 80k for $595. suppose if you double dip the credits this is preferred.. blacklane seems expensive AF and PP/precheck are common perks</p>\n"
+      },
+      "date_gmt" : "2025-09-03T21:31:28",
+      "id" : 2135312,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Darwin",
+      "content" : {
+        "rendered" : "<p>Data point: applied for, and instantly approved for, using a 100k point link. A couple of days later, it started showing a message in the Citi app, saying that I need to call them for the security of my account. Called a total of 3 times. The first 2 reps were clueless. The third one told me that they have sent me the form 4506C that I need to send back in 30 days. Looks like income / identity verification. </p>\n<p>Excellent credit (800+), several years and multiple credit cards with Citi, nothing I can think of that could have aroused suspicion.</p>\n"
+      },
+      "date_gmt" : "2025-09-04T05:46:50",
+      "id" : 2135648,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Matt",
+      "content" : {
+        "rendered" : "<p>I wouldn&#8217;t apply for this right now. Citi is requesting a large portion of card holders to authorize an IRS Form 4506-C(income verification) via snail mail and is saying it could take up to 30 days to process. Avoid Shiti bank</p>\n"
+      },
+      "date_gmt" : "2025-09-05T03:39:27",
+      "id" : 2136451,
+      "parent" : 0
+    },
+    {
+      "author_name" : "tassojunior",
+      "content" : {
+        "rendered" : "<p>got approved with the 100K in branch today. It had been down for the agent since Friday afternoon but back today. 2X the $300 and $200 credits 1st year convinced me to try it.&nbsp;</p>\n"
+      },
+      "date_gmt" : "2025-09-05T06:06:50",
+      "id" : 2136535,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Soleprop",
+      "content" : {
+        "rendered" : "<p>I bought in the store to be safe, not sure if online works</p>\n"
+      },
+      "date_gmt" : "2025-09-07T18:08:39",
+      "id" : 2138178,
+      "parent" : 2129914
+    },
+    {
+      "author_name" : "tassojunior",
+      "content" : {
+        "rendered" : "<p>The SUB is not showing in my Terms anywhere. I looked through all my papers with my new card this morning and no where in terms or anywhere is there a mention of the SUB terms. I phoned Citi and neither of the agents could find the terms either. I went back into my branch and they assured me i had the 100K in branch offer but could not find it in any terms. </p>\n<p>I haven&#8217;t looked at the online 80K offer yet to see if that offer is in terms but I assume it is. If you go for the 100K in branch grab all the papers proving you applied under that offer you can. This could get messy.</p>\n"
+      },
+      "date_gmt" : "2025-09-09T04:29:43",
+      "id" : 2139332,
+      "parent" : 0
+    },
+    {
+      "author_name" : "danny",
+      "content" : {
+        "rendered" : "<p>Applied and approved in branch yesterday for 100k, waiting for my card to arrive</p>\n"
+      },
+      "date_gmt" : "2025-09-10T21:10:27",
+      "id" : 2141027,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Lin",
+      "content" : {
+        "rendered" : "<p>Applied and approved in branch 9/17 for 100k / 4k spend offer.</p>\n"
+      },
+      "date_gmt" : "2025-09-17T19:55:17",
+      "id" : 2147033,
+      "parent" : 0
+    },
+    {
+      "author_name" : "ILoveDOC",
+      "content" : {
+        "rendered" : "<p>Going to apply in Dec so I can triple dip the credits &#8211; any reason not to wait that I&#8217;m missing?</p>\n"
+      },
+      "date_gmt" : "2025-09-18T14:52:36",
+      "id" : 2147945,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Chris",
+      "content" : {
+        "rendered" : "<p><span>Applied and approved in branch today for 100k / $4k spend offer. FWIW, promotional materials provided to me state the 100k offer is set to expire 9/25/2025</span></p>\n"
+      },
+      "date_gmt" : "2025-09-23T03:59:36",
+      "id" : 2151675,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Good Cow",
+      "content" : {
+        "rendered" : "<p>When are hotel credit disbursed after booking? Does it work similar to CSP where you book for hotel, get credit, then cancel the hotel reservation to keep the hotel credit?</p>\n"
+      },
+      "date_gmt" : "2025-09-23T07:28:56",
+      "id" : 2151735,
+      "parent" : 0
+    },
+    {
+      "author_name" : "E",
+      "content" : {
+        "rendered" : "<p>How long did it take to receive the card for in branch approvals?</p>\n"
+      },
+      "date_gmt" : "2025-09-23T23:14:16",
+      "id" : 2152346,
+      "parent" : 0
+    },
+    {
+      "author_name" : "MM",
+      "content" : {
+        "rendered" : "<p>DP: Citigold member. Applied and was approved back in late July. The $145 relationship credit was posted directly to the credit card account on 9/24. It was not a rebate to the checking account, as some reps had claimed it would be</p>\n"
+      },
+      "date_gmt" : "2025-09-26T17:44:57",
+      "id" : 2154317,
+      "parent" : 0
+    },
+    {
+      "author_name" : "MM",
+      "content" : {
+        "rendered" : "<p>Within 3 business days</p>\n"
+      },
+      "date_gmt" : "2025-09-26T22:56:20",
+      "id" : 2154536,
+      "parent" : 2152346
+    },
+    {
+      "author_name" : "Z",
+      "content" : {
+        "rendered" : "<p>can i apply for this card and get the sign up bonus if I got the Citi Strata Premier in April 2025?</p>\n"
+      },
+      "date_gmt" : "2025-10-03T16:55:07",
+      "id" : 2159282,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Trevor",
+      "content" : {
+        "rendered" : "<p>I’m seeing the 100k offer ($6k within 3 months) in my app when manually navigating to the credit card offerings. I’m outside of their branch footprint.</p>\n"
+      },
+      "date_gmt" : "2025-10-08T00:27:07",
+      "id" : 2162129,
+      "parent" : 0
+    },
+    {
+      "author_name" : "EE",
+      "content" : {
+        "rendered" : "<p>i see that too. i wonder if they do match :/</p>\n"
+      },
+      "date_gmt" : "2025-10-08T01:36:52",
+      "id" : 2162177,
+      "parent" : 2162129
+    },
+    {
+      "author_name" : "JoeTony",
+      "content" : {
+        "rendered" : "<p>Same.</p>\n<p>Currently hold Double Cash and Diamond (PC&#8217;d an old Premier). </p>\n<p>Applied in app, instant approval at 4/24 with a $22.5k CL.</p>\n"
+      },
+      "date_gmt" : "2025-10-14T15:53:06",
+      "id" : 2166016,
+      "parent" : 2162129
+    },
+    {
+      "author_name" : "tony",
+      "content" : {
+        "rendered" : "<p>I can see how you double dip, but how are you able to able to triple dip?</p>\n"
+      },
+      "date_gmt" : "2025-10-17T14:10:05",
+      "id" : 2167634,
+      "parent" : 2147945
+    },
+    {
+      "author_name" : "Z",
+      "content" : {
+        "rendered" : "<p>Anyone know if the 100,000 points for $4,000 spent is still available in branch?</p>\n"
+      },
+      "date_gmt" : "2025-10-20T18:28:57",
+      "id" : 2170174,
+      "parent" : 0
+    },
+    {
+      "author_name" : "JJ",
+      "content" : {
+        "rendered" : "<p>Still available in branch, as of today 10/21</p>\n"
+      },
+      "date_gmt" : "2025-10-22T02:47:03",
+      "id" : 2171481,
+      "parent" : 2170174
+    },
+    {
+      "author_name" : "progapanda",
+      "content" : {
+        "rendered" : "<p>Can confirm, still available in branches.</p>\n"
+      },
+      "date_gmt" : "2025-10-23T02:03:27",
+      "id" : 2172242,
+      "parent" : 2171481
+    },
+    {
+      "author_name" : "Andrey",
+      "content" : {
+        "rendered" : "<p>Here&#8217;s what the terms state: <span>Points are not available if you have received a new account bonus for a Citi Strata Elite℠&nbsp;account in the past 48 months or if you converted another Citi credit card account on which you earned a new account bonus in the last 48 months into a Citi Strata Elite.</span></p>\n<p>So if i understand correctly, you would be eligible. I&#8217;m also wondering because I had the premier card within the last year.</p>\n"
+      },
+      "date_gmt" : "2025-10-23T15:30:26",
+      "id" : 2172606,
+      "parent" : 2159282
+    },
+    {
+      "author_name" : "Jake N",
+      "content" : {
+        "rendered" : "<p>Typically the AF would post in December of 202*6* and then you would use the 2027 credits early in January, cancel / downgrade and have the AF refunded (or not pay it yet).</p>\n"
+      },
+      "date_gmt" : "2025-10-24T18:30:12",
+      "id" : 2173651,
+      "parent" : 2167634
+    },
+    {
+      "author_name" : "Jake N",
+      "content" : {
+        "rendered" : "<p>Per the terms on Citi site, emphasis mine&#8221;<br />\n&#8220;Once per calendar year, you can enjoy $300 off a single hotel stay of 2 nights or more (excluding taxes and fees) booked through cititravel.com. The benefit is <strong>applied instantly at the time of booking</strong>.&#8221;</p>\n"
+      },
+      "date_gmt" : "2025-10-24T18:53:07",
+      "id" : 2173677,
+      "parent" : 2151735
+    },
+    {
+      "author_name" : "mark",
+      "content" : {
+        "rendered" : "<p>I closed this last month after receiving bonus, can I go for it again?</p>\n"
+      },
+      "date_gmt" : "2025-10-24T19:04:41",
+      "id" : 2173700,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Unfunded0749",
+      "content" : {
+        "rendered" : "<p>I dont have a branch close to me. Nearest one is several hundred miles away. How do I get a branch link?</p>\n"
+      },
+      "date_gmt" : "2025-11-02T19:52:26",
+      "id" : 2180121,
+      "parent" : 0
+    },
+    {
+      "author_name" : "AngieB",
+      "content" : {
+        "rendered" : "<p>I wonder if I apply for this, am I able to immediately also apply for the Citi AA card or will that be declined?</p>\n"
+      },
+      "date_gmt" : "2025-11-04T14:22:23",
+      "id" : 2181151,
+      "parent" : 0
+    },
+    {
+      "author_name" : "LanWifi",
+      "content" : {
+        "rendered" : "<p>Applied 100k/6k$ spend offer using direct link on this page, and it went under review. Called in, rep said they&#8217;re going to mail me fa letter or verification. 800+ credit score, existing customer with the Citi AAdvantage card. I&#8217;m baffled what they want to verify further.</p>\n"
+      },
+      "date_gmt" : "2025-11-04T22:06:00",
+      "id" : 2181719,
+      "parent" : 0
+    },
+    {
+      "author_name" : "RG",
+      "content" : {
+        "rendered" : "<p>same here. What number did you call?</p>\n"
+      },
+      "date_gmt" : "2025-11-05T10:02:30",
+      "id" : 2182182,
+      "parent" : 2181719
+    },
+    {
+      "author_name" : "yeah7609",
+      "content" : {
+        "rendered" : "<p>I opened checking account just so branch could then email me the 100k for 4k spend link. Finally applied and got rejected lol. high credit score but opened 4 cc this year at chase. maybe too many.</p>\n"
+      },
+      "date_gmt" : "2025-11-07T16:49:34",
+      "id" : 2184160,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Joel",
+      "content" : {
+        "rendered" : "<p>got rejected as well, told duo to my credit card spending percentage being low when called in to let re-consider. it may be another way to say I&#8217;m too poor to have this card, lol.</p>\n"
+      },
+      "date_gmt" : "2025-11-14T16:48:16",
+      "id" : 2189160,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Vicky",
+      "content" : {
+        "rendered" : "<p>Planning to apply for P2 and triple dip the Benifits before cancelling. Any idea if Citi will refund the annual fee prorated basis after 30 days ?</p>\n"
+      },
+      "date_gmt" : "2025-11-20T23:17:29",
+      "id" : 2194183,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Chase Chaser",
+      "content" : {
+        "rendered" : "<p>Applied today in-app with existing Citi card open for 6 years. Required me to call in as my application was not approved immediately. Rep said I would need to do the entire IRS 4506-C snail mail. I cancelled my application on the spot.</p>\n"
+      },
+      "date_gmt" : "2025-11-27T04:26:08",
+      "id" : 2198981,
+      "parent" : 0
+    },
+    {
+      "author_name" : "SheetiBank",
+      "content" : {
+        "rendered" : "<p>Also rejected for too many accounts opened. 805 EX FICO, but 2/12 and 6/24.</p>\n"
+      },
+      "date_gmt" : "2025-12-02T05:59:23",
+      "id" : 2202384,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Nic",
+      "content" : {
+        "rendered" : "<p>No chance of getting this in time if we hit the 4506-C now right?</p>\n"
+      },
+      "date_gmt" : "2025-12-03T02:19:10",
+      "id" : 2203180,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Amy",
+      "content" : {
+        "rendered" : "<p>Lots of DPs recently that Citi still sends out request for tax forms&#8230;</p>\n<p>I have existing Premier and was approved recently for Elite. Citigold status and applied in branch. Approval on 11/29/2025 with lower 4k spend requirement, 1st short statement closed on 12/2/2025 and no AF posted on that 1st short statement cycle. I assume AF will now post on my 2nd statement ending on 1/2/2026, making it more comfortable for triple dip till at least 2/2/2027.</p>\n<p>I think this will increase approval chance for this card:</p>\n<p>0-1 inquiry/new accounts within 6 months, good fico score.</p>\n<p>Make sure your income/identity filled out is consistent with tax forms.</p>\n<p>Apply in branch (also will get 4k lower spend offer).</p>\n<p>Citigold.</p>\n<p>Frequent use of their existing cards.</p>\n"
+      },
+      "date_gmt" : "2025-12-03T12:42:59",
+      "id" : 2203379,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Amy",
+      "content" : {
+        "rendered" : "<p>Still hope but less likely to triple dip including 2025 credits</p>\n"
+      },
+      "date_gmt" : "2025-12-03T12:43:42",
+      "id" : 2203380,
+      "parent" : 2203180
+    },
+    {
+      "author_name" : "Terp",
+      "content" : {
+        "rendered" : "<p>Approved December 2nd with expectation that first statement and AF would be in the middle of endo of the month, but online banking shows first statement will be closing within a few days. This will make triple dip difficult or impossible.</p>\n"
+      },
+      "date_gmt" : "2025-12-03T15:49:14",
+      "id" : 2203461,
+      "parent" : 0
+    },
+    {
+      "author_name" : "SantaClausta",
+      "content" : {
+        "rendered" : "<p>Applied for in-branch offer of 100k with 4k spend on Dec 4 in CA bay area. Instantly approved with 30k limit. Called customer service to expedite the card as I&#8217;m traveling soon. They said can&#8217;t do it for new accounts and will have standard shipping time. Approval email says new card will arrive within 3 business days. Any DPs on expedited shipping or how fast the card arrives?</p>\n"
+      },
+      "date_gmt" : "2025-12-05T04:37:26",
+      "id" : 2204699,
+      "parent" : 0
+    },
+    {
+      "author_name" : "FatsP",
+      "content" : {
+        "rendered" : "<p>I bought a $200 Amazon gift card from Best Buy to use my splurge credit.  The $200 credit posted 48 hours later.</p>\n"
+      },
+      "date_gmt" : "2025-12-05T14:14:21",
+      "id" : 2204795,
+      "parent" : 0
+    },
+    {
+      "author_name" : "GoldenTiger",
+      "content" : {
+        "rendered" : "<p>I didn&#8217;t want Experian pulled so I was able to lock Experian/Transunion and set my VPN to FL to influence Citi to pull my Equifax since i only have 2 inquiries there. Was able to get approved for the AA business card. Tried for the Citi Strata Elite using the same VPN IP in FL and was denied but thankfully no 2nd credit pull.</p>\n"
+      },
+      "date_gmt" : "2025-12-05T18:56:18",
+      "id" : 2205014,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Terp",
+      "content" : {
+        "rendered" : "<p>Mine arrived 2 days after approval.</p>\n"
+      },
+      "date_gmt" : "2025-12-06T18:58:05",
+      "id" : 2205656,
+      "parent" : 2204699
+    },
+    {
+      "author_name" : "Terp",
+      "content" : {
+        "rendered" : "<p>Update: that first statement closed with no AF, so it looks like the fee will be on second statement in early January, so no there should be no problem with triple dip timing.</p>\n"
+      },
+      "date_gmt" : "2025-12-06T18:59:01",
+      "id" : 2205658,
+      "parent" : 2203461
+    },
+    {
+      "author_name" : "Alan",
+      "content" : {
+        "rendered" : "<p>Just applied.  Under review.</p>\n<p>4/24</p>\n"
+      },
+      "date_gmt" : "2025-12-07T18:47:48",
+      "id" : 2206157,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Joe",
+      "content" : {
+        "rendered" : "<p>Too early to apply now and triple dip?</p>\n"
+      },
+      "date_gmt" : "2025-12-08T04:39:48",
+      "id" : 2206413,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Terp",
+      "content" : {
+        "rendered" : "<p>Now is the ideal time.</p>\n"
+      },
+      "date_gmt" : "2025-12-09T02:06:26",
+      "id" : 2206904,
+      "parent" : 2206413
+    },
+    {
+      "author_name" : "beat2def",
+      "content" : {
+        "rendered" : "<p>1) Offer is still available<br />\n2) just applied and was approved.  Color me surprised.  I expected the dreaded &#8216;we&#8217;ll get back to you&#8230;&#8217; and tax form BS. </p>\n<p>Was given a virtual temporary card number.<br />\nTriple dip time!</p>\n"
+      },
+      "date_gmt" : "2025-12-11T21:14:11",
+      "id" : 2208891,
+      "parent" : 0
+    },
+    {
+      "author_name" : "kevin",
+      "content" : {
+        "rendered" : "<p>Just applied for the 100k/6k spend offer and was instantly approved, received temp digital card as well. </p>\n<p>2/12 and 2/24 </p>\n<p>Have one other Citi card (double cash) that I use occasionally. No other accounts currently with Citi.</p>\n"
+      },
+      "date_gmt" : "2025-12-12T01:34:05",
+      "id" : 2209030,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Kristi",
+      "content" : {
+        "rendered" : "<p>Did you buy the gift card in person or online on the website?</p>\n"
+      },
+      "date_gmt" : "2025-12-12T11:48:52",
+      "id" : 2209233,
+      "parent" : 2204795
+    },
+    {
+      "author_name" : "Defaulting",
+      "content" : {
+        "rendered" : "<p>Applied with 1/6 and 5/24 and received the dreaded &#8220;pending manual approval&#8221;. No Citi relationship aside from an open checking account for the bonus.</p>\n"
+      },
+      "date_gmt" : "2025-12-13T08:47:45",
+      "id" : 2210084,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Panos",
+      "content" : {
+        "rendered" : "<p>Im leaving for the Christmas holidays this Sunday and want to know if I&#8217;m late to triple dip. From what I read, Citi doesnt provide expedited shipping for the card, nor a virtual card number for immediate use with Google pay?</p>\n"
+      },
+      "date_gmt" : "2025-12-15T13:01:58",
+      "id" : 2211021,
+      "parent" : 0
+    },
+    {
+      "author_name" : "MW",
+      "content" : {
+        "rendered" : "<p>P2 applied for the card about 1.5 weeks ago and we received any notification at that time that it had gone pending review. We expected to receive a request for an IRS tax form however we just received a letter in the mail today that said that we were unable to. Continue processing your application until we verify some credit information. It included an application ID and reference number. When we logged on to the application status page we are asked to enter that information at which point and immediately said that she was approved and email triggered notifications of approval were sent. It almost seemed like it was a snail mail address verification. We’ve never encountered anything like it. Hopefully we receive the physical card soon enough now that we can triple dip.</p>\n"
+      },
+      "date_gmt" : "2025-12-16T00:03:34",
+      "id" : 2211378,
+      "parent" : 0
+    },
+    {
+      "author_name" : "MW",
+      "content" : {
+        "rendered" : "<p>Sorry for the wonky text to chat</p>\n"
+      },
+      "date_gmt" : "2025-12-16T00:03:52",
+      "id" : 2211379,
+      "parent" : 2211378
+    },
+    {
+      "author_name" : "MW",
+      "content" : {
+        "rendered" : "<p>Voice to text</p>\n"
+      },
+      "date_gmt" : "2025-12-16T00:42:59",
+      "id" : 2211410,
+      "parent" : 2211379
+    },
+    {
+      "author_name" : "MarcoPolo",
+      "content" : {
+        "rendered" : "<p>Applied but received the prompt to call in as it was not approved immediately. Rep said they will be sending out the IRS 4506-C via mail in 7-10 days. I did not cancel my application but will wait it out to see what happens. Been a Citi customer for over 25 years.</p>\n"
+      },
+      "date_gmt" : "2025-12-17T01:01:40",
+      "id" : 2212088,
+      "parent" : 0
+    },
+    {
+      "author_name" : "MarcoPolo",
+      "content" : {
+        "rendered" : "<p>Applied but received the prompt to call in as it was not approved immediately. Rep said they will be sending out the IRS 4506-C via mail in 7-10 days. I did not cancel my application but will wait it out to see what happens. Been a Citi customer for over 25 years.</p>\n"
+      },
+      "date_gmt" : "2025-12-17T01:02:07",
+      "id" : 2212089,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Beat2def",
+      "content" : {
+        "rendered" : "<p>Oh Lord Citibank is annoying.<br />\nThankfully, auto approved and no forms, BUT logged in and tried to add my travel notification and instant fraud alert on my card. I didn&#8217;t even have time to purchase anything. Weird.<br />\nCalled in and they couldn&#8217;t verify with my phone number! I&#8217;ve never had this in all my years in the game.  Double weird and ultra annoying for the triple dip. They&#8217;re sending out a security letter and I have to call in and confirm info when it arrives in 7-10 days.</p>\n"
+      },
+      "date_gmt" : "2025-12-17T13:24:46",
+      "id" : 2212281,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Panos",
+      "content" : {
+        "rendered" : "<p>Application denied. When calling the line ending in 5171, they said reason was &#8220;insufficient credit history&#8221;. Got average age of accounts 2yrs 5mos and age of oldest account 6yrs 4mos. Any chance I could reverse the decision through recon? (the line ending in 5171 only provides automated options). Or is Citi that picky with the credit history part?</p>\n"
+      },
+      "date_gmt" : "2025-12-17T17:32:06",
+      "id" : 2212442,
+      "parent" : 0
+    }
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "214",
+    "x-wp-totalpages" : "3"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/comments?post=241605&per_page=100&page=2&order=asc&orderby=date_gmt&_fields=id,parent,author_name,date_gmt,content"
+}

@@ -1,0 +1,67 @@
+{
+  "body" : [
+    {
+      "id" : 268365,
+      "link" : "https://www.doctorofcredit.com/amazon-prime-now-offers-uber-eats-benefits-20-off-two-uber-eats-orders/",
+      "title" : {
+        "rendered" : "(Update) Amazon Prime Now Offers Uber Eats Benefits + $20 Off Two Uber Eats Orders (Plus 5% Back 11/5-12/5)"
+      }
+    },
+    {
+      "id" : 268674,
+      "link" : "https://www.doctorofcredit.com/instacart-free-turkey-11-18-11-22/",
+      "title" : {
+        "rendered" : "Instacart: Free Turkey Up To $40, Requires $10 In Other Purchases [11/18 &#8211; 11/22]"
+      }
+    },
+    {
+      "id" : 268568,
+      "link" : "https://www.doctorofcredit.com/walmart-thanksgiving-meal-for-10-for-35-25-after-codes/",
+      "title" : {
+        "rendered" : "Walmart: Thanksgiving Meal For 10 For $35 (~$25 After Codes)"
+      }
+    },
+    {
+      "id" : 263474,
+      "link" : "https://www.doctorofcredit.com/walmart-10-off-35-with-promo-code-fast30-next-3-delivery-pickup-orders/",
+      "title" : {
+        "rendered" : "Walmart: $10 Off $35+ With Promo Code SAVE3X/FAST30/DOUBLE10/TRIPLE10 (Next 3 Delivery/Pickup Orders)"
+      }
+    },
+    {
+      "id" : 162972,
+      "link" : "https://www.doctorofcredit.com/grubhub-seamless-promo-codes/",
+      "title" : {
+        "rendered" : "GrubHub/Seamless Promo Codes: 50% Off Grocery With PLUS50"
+      }
+    },
+    {
+      "id" : 229112,
+      "link" : "https://www.doctorofcredit.com/targeted-chase-travel-spend-500-receive-100-back/",
+      "title" : {
+        "rendered" : "[Targeted] Chase Travel: Spend $600+ &#038; Receive $100 Back"
+      }
+    },
+    {
+      "id" : 207182,
+      "link" : "https://www.doctorofcredit.com/capital-one-shopping-portal-removes-walmart-safeway-redemption-options/",
+      "title" : {
+        "rendered" : "[Updated] Capital One Shopping Portal Adds Redemption Options"
+      }
+    },
+    {
+      "id" : 238498,
+      "link" : "https://www.doctorofcredit.com/exploring-increased-offers-with-the-capital-one-shopping-portal/",
+      "title" : {
+        "rendered" : "Exploring Increased Offers with the Capital One Shopping Portal"
+      }
+    }
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "8",
+    "x-wp-totalpages" : "1"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/posts?include=268365,268674,229112,207182,162972,268568,263474,238498&per_page=8&_fields=id,title,link"
+}

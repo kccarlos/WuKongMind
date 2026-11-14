@@ -1,0 +1,211 @@
+{
+  "body" : {
+    "details" : {
+      "created_by" : {
+        "username" : "PandaFiredoge"
+      }
+    },
+    "fancy_title" : "黄仁勋辞去英伟达CEO职务",
+    "highest_post_number" : 17,
+    "id" : 95798,
+    "post_stream" : {
+      "posts" : [
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+            {
+              "count" : 1,
+              "id" : 2
+            }
+          ],
+          "id" : 358703,
+          "post_number" : 1,
+          "username" : "PandaFiredoge"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+            {
+              "count" : 1,
+              "id" : 2
+            }
+          ],
+          "id" : 358704,
+          "post_number" : 2,
+          "username" : "PandaFiredoge"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+            {
+              "count" : 1,
+              "id" : 2
+            }
+          ],
+          "id" : 358705,
+          "post_number" : 3,
+          "username" : "Time"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 358712,
+          "post_number" : 4,
+          "username" : "PandaFiredoge"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 358714,
+          "post_number" : 5,
+          "username" : "Kyun"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+            {
+              "count" : 1,
+              "id" : 2
+            }
+          ],
+          "id" : 358718,
+          "post_number" : 6,
+          "username" : "Time"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 358720,
+          "post_number" : 7,
+          "username" : "PandaFiredoge"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 358730,
+          "post_number" : 8,
+          "username" : "dawn"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 358803,
+          "post_number" : 9,
+          "username" : "hapocn"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 358829,
+          "post_number" : 10,
+          "username" : "PandaFiredoge"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 358835,
+          "post_number" : 11,
+          "username" : "dawn"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 358843,
+          "post_number" : 12,
+          "username" : "PandaFiredoge"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 358883,
+          "post_number" : 13,
+          "username" : "Debatrix"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 358895,
+          "post_number" : 14,
+          "username" : "2010HCY"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+            {
+              "count" : 1,
+              "id" : 2
+            }
+          ],
+          "id" : 359040,
+          "post_number" : 15,
+          "username" : "PandaFiredoge"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 359042,
+          "post_number" : 16,
+          "username" : "PandaFiredoge"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 359052,
+          "post_number" : 17,
+          "username" : "Duah"
+        }
+      ],
+      "stream" : [
+        358703,
+        358704,
+        358705,
+        358712,
+        358714,
+        358718,
+        358720,
+        358730,
+        358803,
+        358829,
+        358835,
+        358843,
+        358883,
+        358895,
+        359040,
+        359042,
+        359052
+      ]
+    },
+    "posts_count" : 17,
+    "slug" : "topic",
+    "title" : "黄仁勋辞去英伟达CEO职务"
+  },
+  "headers" : {
+    "content-type" : "application/json; charset=utf-8"
+  },
+  "status" : 200,
+  "url" : "https://meta.appinn.net/t/95798.json"
+}

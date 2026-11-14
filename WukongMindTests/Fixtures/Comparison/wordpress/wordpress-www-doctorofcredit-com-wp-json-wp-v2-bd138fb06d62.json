@@ -1,0 +1,15 @@
+{
+  "body" : {
+    "id" : 236854,
+    "link" : "https://www.doctorofcredit.com/big-changes-coming-for-new-u-s-bank-smartly-credit-card-approvals-no-changes-now-for-existing-customers-april-14th-cutoff/",
+    "modified_gmt" : "2025-07-27T03:15:13",
+    "title" : {
+      "rendered" : "Big Changes Coming For New U.S. Bank Smartly Credit Card Approvals; No Changes Now For Existing Customers (April 14th Cutoff)"
+    }
+  },
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/posts/236854?_fields=id,title,link,modified_gmt"
+}

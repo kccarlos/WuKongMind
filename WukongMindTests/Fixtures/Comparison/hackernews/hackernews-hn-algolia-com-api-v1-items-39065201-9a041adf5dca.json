@@ -1,0 +1,213 @@
+{
+  "body" : {
+    "author" : "esteer",
+    "children" : [
+      {
+        "author" : "gwd",
+        "created_at_i" : 1705749114,
+        "id" : 39066446,
+        "text" : "I&#x27;m using sqlite and litestream in a side project of mine; it&#x27;s &quot;in production&quot; in the sense that there are a handful of friends and acquaintances using the system, and I&#x27;m hoping to scale it up to more people in the future.<p>Short answer: Litestream was really easy to set up to replicate to Cloudflare&#x27;s R2 (api is S3 compatible), and basically Just Worked.<p>That said, a handful of people&#x27;s worth of data isn&#x27;t exactly stressing its functionality;  I have no idea how well it scales.  I did some manual restores to make sure that it works, but I&#x27;m not (yet) doing regular verification tests on the data to ensure that there&#x27;s been no data corruption (other than its own auto-checking, which of course could itself be broken).<p>There are a couple things I like about sqlite.  First, somewhat simplified administration, as you don&#x27;t need to set up a Postgres instance.  I find it easier to test, because you just create test databases in temporary files and throw them away.<p>Secondly, the application I&#x27;m using has some data that&#x27;s common and almost entirely read-only, and some data that&#x27;s user-specific and read-write; sqlite makes it possible to divide these into different files, such that there&#x27;s a single &quot;shared.sqlite&quot; database and each user has a &quot;user.sqlite&quot; database, and to join the two in a single &quot;view&quot; using the &quot;attach&quot; command.  The data now is essentially pre-sharded: if I ever did need to scale past a single machine (or at some point if I want instances closer to where people), I&#x27;d just have to replicate the shared data and move the user-specific data to the appropriate instance, without any major refactoring or fancy synchronization needed.<p>The main downside of this is wrt litestream is that litestream&#x27;s configuration file isn&#x27;t really designed for this; you have to have a separate entry for each of these databases, and often you have to duplicate settings across them because most of the settings don&#x27;t have a global setting you can make.  At the moment, every time I add a user I have to regenerate an even-larger configuration file.<p>But that turns out to be fairly straightforward; and at some point I should be able to write my own daemon using the litestream golang package to do what I need to do, rather than using the litestream daemon.",
+        "type" : "comment"
+      },
+      {
+        "author" : "merqurio",
+        "created_at_i" : 1705751291,
+        "id" : 39066670,
+        "text" : "i&#x27;m using a personal project , so far, it&#x27;s been great. The code is easy to follow and the author AFAIK, he was working on an employer (Fly.io) that is giving him time and resources for litestream.<p>I would adventure to use it in a small production environment if you can have user&#x2F;customer based sharding of sqlites and then have a clickhouse&#x2F;postgres for multiuser analytics store.",
+        "type" : "comment"
+      },
+      {
+        "author" : "hruk",
+        "children" : [
+          {
+            "author" : "raro11",
+            "children" : [
+              {
+                "author" : "hruk",
+                "children" : [
+                  {
+                    "author" : "raro11",
+                    "created_at_i" : 1705809501,
+                    "id" : 39075383,
+                    "text" : "Thank you",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1705763205,
+                "id" : 39068254,
+                "text" : "I do not - however, I keep meaning to write up a generic version of our CDK code for sharing&#x2F;reuse. I&#x27;ll make a post here when I do.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1705761924,
+            "id" : 39068017,
+            "text" : "I was about to explore sqlite&#x2F;litestream but didn&#x27;t because we have two services (cron and admin-web) that write to the database. Regular www-web services are read-only.<p>We only have one instance of cron and admin-web. We could make sure they are always on the same host. So reading this made me happy.<p>Do you have a blog&#x2F;gist where I can find&#x2F;steal some of your work?",
+            "type" : "comment"
+          },
+          {
+            "author" : "gketuma",
+            "children" : [
+              {
+                "author" : "hruk",
+                "created_at_i" : 1705764019,
+                "id" : 39068411,
+                "text" : "No, we&#x27;re using EBS with Docker volumes, since all the containers are running on the same host.<p>SQLite actually performs very poorly on EFS in my experience (likely due to the fact that acquiring file locks is over the network).",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1705763394,
+            "id" : 39068285,
+            "text" : "Are you using EFS to share the DB between containers?",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1705758017,
+        "id" : 39067468,
+        "text" : "Yes, we use this setup for two &quot;branch&quot; services. It is pretty easy to get going, but setting things up to achieve zero-downtime deploys requires a little thought.<p>We&#x27;re using ECS to manage our containers. What worked best for us is two task definitions, one daemon with only Litestream, another replica task with our web app. The web app task has a placement rule ensuring that Litestream has started before it can be placed, ensuring the database is &quot;in place&quot; before the app starts. Both containers have the same directory on the host mounted as volumes, so they can both access the same database. This series of tests convinced me that this is a safe setup: <a href=\"https:&#x2F;&#x2F;tangentsoft.com&#x2F;sqlite&#x2F;doc&#x2F;trunk&#x2F;walbanger&#x2F;README.md\" rel=\"nofollow\">https:&#x2F;&#x2F;tangentsoft.com&#x2F;sqlite&#x2F;doc&#x2F;trunk&#x2F;walbanger&#x2F;README.md</a><p>This has been working well for us - the db is fast, we can deploy whenever we want, and I don&#x27;t feel anxious about the host going down.<p>One remaining source of anxiety is updating the machine image of the host - that will cause some downtime, of course. I think the safest strategy will be to increase the size of the ASG the host is in to warm up a second, updated EC2, then drain the first one.",
+        "type" : "comment"
+      },
+      {
+        "author" : "Glench",
+        "children" : [
+          {
+            "author" : "_xnmw",
+            "children" : [
+              {
+                "author" : "Glench",
+                "created_at_i" : 1705784354,
+                "id" : 39072260,
+                "text" : "Yeah I hear you. I recently started logging slow queries to a text file. It was really easy to do but yeah I didn’t really look into more complex monitoring. I wonder if there’s anything out there!",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1705779196,
+            "id" : 39071371,
+            "text" : "I&#x27;ve been struggling with the Postgres vs. SQLite decision lately, especially since my app runs on a single server (and will likely continue that way for a long time) but the real reason I am still leaning towards Postgres is for the ecosystem of monitoring tools and plugins. For example a big downside of SQLite is that I don&#x27;t have easily available tools that can give me reports on slow queries, full table scans, and other poorly written SQL &quot;gotchas&quot; which inevitably happen. I have to invent and implement monitoring on the application level.",
+            "type" : "comment"
+          },
+          {
+            "author" : "ixxie",
+            "children" : [
+              {
+                "author" : "Glench",
+                "created_at_i" : 1705784242,
+                "id" : 39072244,
+                "text" : "Is there something you want to  know specifically? It’s pretty standard basically. I used sequelize (might have chosen something different if starting today) and I build for node running on a single machine. I use pm2 to deploy with nginx in front.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1705783690,
+            "id" : 39072146,
+            "text" : "As someone considering a SvelteKit + SQLite stack, I would love to hear more about the setup. Have you considered writing a blog post on the topic? If this is too much, perhaps you can drop a few words here...",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1705758096,
+        "id" : 39067477,
+        "text" : "copying and pasting from a different thread because this keeps coming up and I want to share my experience in case it&#x27;s helpful:<p>I use SQLite&#x2F;Litestream for <a href=\"https:&#x2F;&#x2F;extensionpay.com\" rel=\"nofollow\">https:&#x2F;&#x2F;extensionpay.com</a>! Serves about 120m requests per month (most of those are cached and don&#x27;t hit the db), but it&#x27;s been great!<p>I was convinced that SQLite could be a viable db option from this great post about it called Consider SQLite: <a href=\"https:&#x2F;&#x2F;blog.wesleyac.com&#x2F;posts&#x2F;consider-sqlite\" rel=\"nofollow\">https:&#x2F;&#x2F;blog.wesleyac.com&#x2F;posts&#x2F;consider-sqlite</a><p>Using SQLite with Litestream helped me to launch the site quickly without having to pay for or configure&#x2F;manage a db server, especially when I didn&#x27;t know if the site would make any money and didn&#x27;t have any personal experience with running production databases. Litestream streams to blackblaze b2 for literally $0 per month which is great. I already had a backblaze account for personal backups and it was easy to just add b2 storage. I&#x27;ve never had to restore from backup so far.<p>There&#x27;s a pleasing operational simplicity in this setup — one $14 DigitalOcean droplet serves my entire app (single-threaded still!) and it&#x27;s been easy to scale vertically by just upgrading the server to the next tier when I started pushing the limits of a droplet (or doing some obvious SQLite config optimizations). DigitalOcean&#x27;s &quot;premium&quot; intel and amd droplets use NVMe drives which seem to be especially good with SQLite.<p>One downside of using SQLite is that there&#x27;s just not as much community knowledge about using and tuning it for web applications. For example, I&#x27;m using it with SvelteKit and there&#x27;s not much written online about deploying multi-threaded SvelteKit apps with SQLite. Also, not many example configs to learn from. By far the biggest performance improvement I found was turning on memory mapping for SQLite.<p>Happy to answer any questions you might have!",
+        "type" : "comment"
+      },
+      {
+        "author" : "athoscouto",
+        "created_at_i" : 1705762660,
+        "id" : 39068157,
+        "text" : "I&#x27;m using it on a few workloads running on Fly.io to back it up to S3.\nIt has generally been a good experience.<p>I suggest taking a look at the replica settings (<a href=\"https:&#x2F;&#x2F;litestream.io&#x2F;reference&#x2F;config&#x2F;#replica-settings\" rel=\"nofollow\">https:&#x2F;&#x2F;litestream.io&#x2F;reference&#x2F;config&#x2F;#replica-settings</a>) and making sure the default values work for you.<p>Using both the default retention (24h) and snapshot (24h) intervals will not give you 24h of data history.\nThis happens because any snapshots older than 24h will be deleted.\nGranted, you&#x27;ll have another snapshot ready, but it will only contain a short history of your DBs changes.<p>Also, test restore times. If you need to restore in a hurry, having to download 24h of wal logs can take a while.<p>I started using it during a time when it was unmaintained (between v0.3.9 and v0.3.10).\nThere were a few bugs I hit, e.g. memory usage spikes.\nShout out to hifi, who created patches and was active at the Slack community.\nI relied on his fork for a while, nice to see it integrated on main.",
+        "type" : "comment"
+      },
+      {
+        "author" : "fierro",
+        "created_at_i" : 1705773087,
+        "id" : 39070282,
+        "text" : "using it for an internal Golinks service",
+        "type" : "comment"
+      },
+      {
+        "author" : "ilrwbwrkhv",
+        "children" : [
+          {
+            "author" : "upmostly",
+            "children" : [
+              {
+                "author" : "ilrwbwrkhv",
+                "created_at_i" : 1705812626,
+                "id" : 39075662,
+                "text" : "I use it to power a flutter mobile app and a web app. It&#x27;s just so easy to extend and deploy that I can&#x27;t think of using anything else.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1705782033,
+            "id" : 39071867,
+            "text" : "I recently discovered PocketBase (through HackerNews,\nno less..) and have fallen in love with its simplicity and ethos.<p>I&#x27;ve been tinkering with it over the last week, but have yet to hear of someone using it in production.<p>I&#x27;d love to hear more about your use case, and any other thoughts you can share when using PocketBase.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1705775000,
+        "id" : 39070636,
+        "text" : "I use sqlite with litestream through Pocketbase in production for around 2 years now on a site with 12,000 &#x2F; month traffic. Works flawlessly and I haven&#x27;t had to do anything to maintain it.",
+        "type" : "comment"
+      },
+      {
+        "author" : "xiaomai",
+        "created_at_i" : 1705779733,
+        "id" : 39071470,
+        "text" : "I&#x27;ve been running sqlite in production since 2014 (no litestream).<p>It&#x27;s mostly great. I love how easy it is to backup the database, mirror prod into my local environment for development, etc. Restoring things from backup is also quite nice: I can attach to the restored db and the prod db in the same sqlite session and update&#x2F;insert the necessary records (w&#x2F; joins&#x2F;etc.)<p>I&#x27;m starting to have to work around the single-writer limitation. I&#x27;ve got a web server and a set of background job workers. As my scale has increased, I&#x27;ve had to start working around write conflicts (I&#x27;m debating switching to postgres for this reason, but I know sqlite is working on concurrent writes, so I&#x27;m hoping they beat me to it).",
+        "type" : "comment"
+      },
+      {
+        "author" : "jakebsky",
+        "created_at_i" : 1705784666,
+        "id" : 39072303,
+        "text" : "We&#x27;re using SQLite in production with millions of databases with many millions of operations per day. It&#x27;s been nothing but great, as has always been my experience using SQLite.<p>But we did run into some scariness around trying to use Litestream that put me off it for the time being. Litestream is really cool (and I&#x27;m a big fan of its author!) but it is also very much a cool hack in the way it works.<p>The scariness I ran into was related to this issue <a href=\"https:&#x2F;&#x2F;github.com&#x2F;benbjohnson&#x2F;litestream&#x2F;issues&#x2F;510\">https:&#x2F;&#x2F;github.com&#x2F;benbjohnson&#x2F;litestream&#x2F;issues&#x2F;510</a><p>And after a bit more fiddling I came away nervous about the possibility of corruption, which is not something I want to worry about from my <i>backup</i> method.<p>So for now we&#x27;re just doing regular snapshotting with remote backups and that seems sufficient with RAID1 storage. I would like something lower latency at some point but don&#x27;t have the time at the moment to work on it.",
+        "type" : "comment"
+      },
+      {
+        "author" : "debian3",
+        "created_at_i" : 1705785087,
+        "id" : 39072365,
+        "text" : "Why do people seems to always advise against using sqlite in production let says for a system with financial transactions? Is it really risky? Anyone have experience?",
+        "type" : "comment"
+      },
+      {
+        "author" : "lasean",
+        "created_at_i" : 1705785092,
+        "id" : 39072366,
+        "text" : "Related: Anyone using libSQL (SQLite fork) and Turso for production apps? Any lessons learned to share?",
+        "type" : "comment"
+      },
+      {
+        "author" : "cchance",
+        "children" : [
+          {
+            "author" : "otoolep",
+            "created_at_i" : 1705892247,
+            "id" : 39085632,
+            "text" : "rqlite[1] author here, happy to answer any questions.<p>[1] <a href=\"https:&#x2F;&#x2F;www.rqlite.io\" rel=\"nofollow\">https:&#x2F;&#x2F;www.rqlite.io</a>",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1705889337,
+        "id" : 39085244,
+        "text" : "Surprised more people also dont mention the more complex sqlite stuff like rqlite and dqlite",
+        "type" : "comment"
+      },
+      {
+        "author" : "hilti",
+        "created_at_i" : 1705995431,
+        "id" : 39100577,
+        "text" : "Yes - using SQLite in production and I am pretty happy with it.\nSee my post here a few weeks ago.<p><a href=\"https:&#x2F;&#x2F;news.ycombinator.com&#x2F;item?id=38793795\">https:&#x2F;&#x2F;news.ycombinator.com&#x2F;item?id=38793795</a>",
+        "type" : "comment"
+      }
+    ],
+    "created_at_i" : 1705731589,
+    "id" : 39065201,
+    "points" : 98,
+    "text" : "What do you like&#x2F;dislike about the setup? How difficult was it get it right?",
+    "title" : "Ask HN: Are you using SQLite and Litestream in production?",
+    "type" : "story"
+  },
+  "headers" : {
+    "content-type" : "application/json"
+  },
+  "status" : 200,
+  "url" : "https://hn.algolia.com/api/v1/items/39065201"
+}

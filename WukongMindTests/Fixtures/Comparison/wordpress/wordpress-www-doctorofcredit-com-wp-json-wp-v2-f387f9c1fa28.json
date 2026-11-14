@@ -1,0 +1,15 @@
+{
+  "body" : {
+    "id" : 244430,
+    "link" : "https://www.doctorofcredit.com/american-express-refreshes-platinum-business-platinum-cards-895-fee-175k-200k-bonus-many-new-credits/",
+    "modified_gmt" : "2026-10-23T17:24:36",
+    "title" : {
+      "rendered" : "American Express Refreshes Platinum &#038; Business Platinum Cards ($895 Fee, 175k/200k Bonus, Many New Credits)"
+    }
+  },
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/posts/244430?_fields=id,title,link,modified_gmt"
+}

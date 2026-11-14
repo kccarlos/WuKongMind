@@ -1,0 +1,53 @@
+{
+  "body" : [
+    {
+      "id" : 258948,
+      "link" : "https://www.doctorofcredit.com/onepay-1-cashback-per-gallon-of-gas-every-wednesday-50-gallons-two-redemptions-per-day/",
+      "title" : {
+        "rendered" : "[Extended 1/15/27] OnePay: $1 Cashback Per Gallon Of Gas Every Wednesday (50 Gallons, Two Redemptions Per Day)"
+      }
+    },
+    {
+      "id" : 236806,
+      "link" : "https://www.doctorofcredit.com/wells-fargo-400-825-business-checking-bonus/",
+      "title" : {
+        "rendered" : "Wells Fargo $400/$550/$825 Business Checking Bonus"
+      }
+    },
+    {
+      "id" : 236129,
+      "link" : "https://www.doctorofcredit.com/mercury-fintech-500-business-checking-bonus/",
+      "title" : {
+        "rendered" : "Mercury (Fintech) $500 Business Checking Bonus"
+      }
+    },
+    {
+      "id" : 229325,
+      "link" : "https://www.doctorofcredit.com/u-s-bank-400-900-business-checking-bonus/",
+      "title" : {
+        "rendered" : "U.S. Bank $400-$1,500 Business Checking Bonus"
+      }
+    },
+    {
+      "id" : 258822,
+      "link" : "https://www.doctorofcredit.com/bank-of-america-preferred-rewards-streaming-credits-8-15-at-paramount-sirius-wsj-economist/",
+      "title" : {
+        "rendered" : "Bank of America Preferred Rewards Subscription Credits ($8-$15) At Paramount, Sirius, WSJ, Economist"
+      }
+    },
+    {
+      "id" : 154342,
+      "link" : "https://www.doctorofcredit.com/chime-earn-10000-swagbucks-for-opening-a-new-account-receiving-a-direct-deposit/",
+      "title" : {
+        "rendered" : "Chime: $350 For Opening A New Account &#038; Receiving A Direct Deposit"
+      }
+    }
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "6",
+    "x-wp-totalpages" : "1"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/posts?include=229325,154342,258822,236806,258948,236129&per_page=6&_fields=id,title,link"
+}

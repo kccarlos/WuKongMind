@@ -1,0 +1,46 @@
+{
+  "body" : [
+    {
+      "id" : 236806,
+      "link" : "https://www.doctorofcredit.com/wells-fargo-400-825-business-checking-bonus/",
+      "title" : {
+        "rendered" : "Wells Fargo $400/$550/$825 Business Checking Bonus"
+      }
+    },
+    {
+      "id" : 236129,
+      "link" : "https://www.doctorofcredit.com/mercury-fintech-500-business-checking-bonus/",
+      "title" : {
+        "rendered" : "Mercury (Fintech) $500 Business Checking Bonus"
+      }
+    },
+    {
+      "id" : 246768,
+      "link" : "https://www.doctorofcredit.com/navy-federal-credit-union-200-new-member-bonus/",
+      "title" : {
+        "rendered" : "Navy Federal Credit Union $400 New Member Checking Bonus"
+      }
+    },
+    {
+      "id" : 229325,
+      "link" : "https://www.doctorofcredit.com/u-s-bank-400-900-business-checking-bonus/",
+      "title" : {
+        "rendered" : "U.S. Bank $400-$1,500 Business Checking Bonus"
+      }
+    },
+    {
+      "id" : 242259,
+      "link" : "https://www.doctorofcredit.com/capital-one-500-1000-business-checking-bonus/",
+      "title" : {
+        "rendered" : "Capital One $500 Business Checking Bonus"
+      }
+    }
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "5",
+    "x-wp-totalpages" : "1"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/posts?include=236129,246768,229325,242259,236806&per_page=5&_fields=id,title,link"
+}

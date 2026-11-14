@@ -1,0 +1,15 @@
+{
+  "body" : {
+    "id" : 268506,
+    "link" : "https://www.doctorofcredit.com/year-end-credit-card-checklist-for-2026-travel-credits-spend-reset-application-strategy-more/",
+    "modified_gmt" : "2026-11-10T21:08:05",
+    "title" : {
+      "rendered" : "Year-End Credit Card Checklist for 2026: Travel Credits, Spend Reset, Application Strategy &#038; More"
+    }
+  },
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/posts/268506?_fields=id,title,link,modified_gmt"
+}

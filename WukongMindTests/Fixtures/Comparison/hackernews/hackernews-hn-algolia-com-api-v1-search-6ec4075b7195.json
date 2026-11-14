@@ -1,0 +1,191 @@
+{
+  "body" : {
+    "hits" : [
+      {
+        "author" : "transpute",
+        "created_at" : "2025-07-04T12:08:24Z",
+        "num_comments" : 257,
+        "objectID" : "44463813",
+        "points" : 303,
+        "story_id" : 44463813,
+        "title" : "Is an Intel N100 or N150 a better value than a Raspberry Pi?"
+      },
+      {
+        "author" : "geerlingguy",
+        "created_at" : "2024-07-27T22:51:57Z",
+        "num_comments" : 283,
+        "objectID" : "41089911",
+        "points" : 282,
+        "story_id" : 41089911,
+        "title" : "Intel N100 Radxa X4 First Thoughts"
+      },
+      {
+        "author" : "sthlmb",
+        "created_at" : "2023-10-28T19:25:57Z",
+        "num_comments" : 80,
+        "objectID" : "38052643",
+        "points" : 103,
+        "story_id" : 38052643,
+        "title" : "Is the Intel N100 a better option than high-end ARM RK3588 boards at the moment?"
+      },
+      {
+        "author" : "todsacerdoti",
+        "created_at" : "2024-07-19T15:16:16Z",
+        "num_comments" : 55,
+        "objectID" : "41007348",
+        "points" : 86,
+        "story_id" : 41007348,
+        "title" : "Radxa X4 low-cost, credit card-sized Intel N100 SBC goes for $60 and up"
+      },
+      {
+        "author" : "rcarmo",
+        "created_at" : "2024-04-30T11:26:51Z",
+        "num_comments" : 69,
+        "objectID" : "40209801",
+        "points" : 77,
+        "story_id" : 40209801,
+        "title" : "Raspberry Pi 5 vs. Intel N100 mini PC comparison"
+      },
+      {
+        "author" : "alexellisuk",
+        "created_at" : "2025-08-26T09:36:15Z",
+        "num_comments" : 21,
+        "objectID" : "45024271",
+        "points" : 36,
+        "story_id" : 45024271,
+        "title" : "I Bought an N100 Mini PC, Then Another"
+      },
+      {
+        "author" : "teleforce",
+        "created_at" : "2024-09-18T01:12:00Z",
+        "num_comments" : 54,
+        "objectID" : "41574664",
+        "points" : 28,
+        "story_id" : 41574664,
+        "title" : "Intel Processor N95 vs. N97 vs. N100 vs. Core I3-N305 Benchmarks Comparison"
+      },
+      {
+        "author" : "thebeardisred",
+        "created_at" : "2025-08-12T21:52:10Z",
+        "num_comments" : 4,
+        "objectID" : "44882209",
+        "points" : 16,
+        "story_id" : 44882209,
+        "title" : "Mubook – N100 x86 NAS Carrier Board Designed for Hackclub Highway"
+      },
+      {
+        "author" : "edward",
+        "created_at" : "2023-12-10T23:20:41Z",
+        "num_comments" : 2,
+        "objectID" : "38596033",
+        "points" : 13,
+        "story_id" : 38596033,
+        "title" : "Dual-screen laptop with Intel N100 and 16GB RAM sells for $699 and up"
+      },
+      {
+        "author" : "rcarmo",
+        "created_at" : "2024-08-03T11:20:50Z",
+        "num_comments" : 4,
+        "objectID" : "41145937",
+        "points" : 10,
+        "story_id" : 41145937,
+        "title" : "The Radxa X4 (an Intel N100 Raspberry Pi Replacement)"
+      },
+      {
+        "author" : "PaulHoule",
+        "created_at" : "2024-04-18T16:49:57Z",
+        "num_comments" : 4,
+        "objectID" : "40078194",
+        "points" : 7,
+        "story_id" : 40078194,
+        "title" : "LattePanda Mu is a $139 computer-on-a-module with Intel N100"
+      },
+      {
+        "author" : "mikece",
+        "created_at" : "2025-03-03T16:32:26Z",
+        "num_comments" : 3,
+        "objectID" : "43243456",
+        "points" : 7,
+        "story_id" : 43243456,
+        "title" : "Is an Intel N100 a better value than a Raspberry Pi?"
+      },
+      {
+        "author" : "transpute",
+        "created_at" : "2023-06-09T17:37:09Z",
+        "num_comments" : 3,
+        "objectID" : "36261191",
+        "points" : 7,
+        "story_id" : 36261191,
+        "title" : "Fanless Intel N100 Firewall and Virtualization Appliance Review"
+      },
+      {
+        "author" : "yboris",
+        "created_at" : "2024-03-15T13:35:55Z",
+        "num_comments" : 1,
+        "objectID" : "39715301",
+        "points" : 7,
+        "story_id" : 39715301,
+        "title" : "Fanless Intel N100 stick PC: 16GB RAM, 256GB and a tiny form factor"
+      },
+      {
+        "author" : "sebg",
+        "created_at" : "2026-08-13T18:13:52Z",
+        "num_comments" : 0,
+        "objectID" : "49289893",
+        "points" : 7,
+        "story_id" : 49289893,
+        "title" : "Cross-Validation From Scratch and a Surprise at n=100"
+      },
+      {
+        "author" : "teleforce",
+        "created_at" : "2024-05-22T10:00:11Z",
+        "num_comments" : 4,
+        "objectID" : "40439197",
+        "points" : 6,
+        "story_id" : 40439197,
+        "title" : "Trigkey G4 mini-PC: Intel N100,16 GB RAM and 500 GB SSD all for less than US$200"
+      },
+      {
+        "author" : "Bluestein",
+        "created_at" : "2024-08-18T20:53:12Z",
+        "num_comments" : 0,
+        "objectID" : "41285414",
+        "points" : 5,
+        "story_id" : 41285414,
+        "title" : "Radxa X4 SBC Unites Intel N100 and Raspberry Pi RP2040"
+      },
+      {
+        "author" : "tmikaeld",
+        "created_at" : "2025-02-18T18:26:11Z",
+        "num_comments" : 0,
+        "objectID" : "43093269",
+        "points" : 4,
+        "story_id" : 43093269,
+        "title" : "Setting Up Plex Hardware Transcoding with an Intel N100 GPU on Proxmox"
+      },
+      {
+        "author" : "teleforce",
+        "created_at" : "2024-05-21T23:24:55Z",
+        "num_comments" : 3,
+        "objectID" : "40435464",
+        "points" : 3,
+        "story_id" : 40435464,
+        "title" : "N100: Intel entry-level CPU with 6M cache, 6W TDP, up to 3.40 GHz and 16GB RAM"
+      },
+      {
+        "author" : "voxadam",
+        "created_at" : "2024-11-22T15:08:09Z",
+        "num_comments" : 1,
+        "objectID" : "42214395",
+        "points" : 3,
+        "story_id" : 42214395,
+        "title" : "3.5\" Intel N100 mini PC has 2× 2.5 GbE, 2× video outputs, and an M.2 2242 slot"
+      }
+    ]
+  },
+  "headers" : {
+    "content-type" : "application/json"
+  },
+  "status" : 200,
+  "url" : "https://hn.algolia.com/api/v1/search?tags=story&query=N100&page=0&hitsPerPage=20"
+}

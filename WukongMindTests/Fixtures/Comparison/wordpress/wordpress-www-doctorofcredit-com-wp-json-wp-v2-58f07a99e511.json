@@ -1,0 +1,74 @@
+{
+  "body" : [
+    {
+      "id" : 268611,
+      "link" : "https://www.doctorofcredit.com/citi-offers-5-off-25-starbucks-egiftcard-can-be-done-3-times/",
+      "title" : {
+        "rendered" : "Citi Offers: $5 off $25 Starbucks eGiftcard (Can Be Done 3 Times)"
+      }
+    },
+    {
+      "id" : 261214,
+      "link" : "https://www.doctorofcredit.com/rakuten-100-bonus-for-citi-strata-premier-signup/",
+      "title" : {
+        "rendered" : "Rakuten: $175 Bonus For Citi Strata Premier Signup"
+      }
+    },
+    {
+      "id" : 267595,
+      "link" : "https://www.doctorofcredit.com/citi-surveys-premium-business-card-600-annual-fee/",
+      "title" : {
+        "rendered" : "Citi Surveys Premium Business Card ($600+ Annual Fee)"
+      }
+    },
+    {
+      "id" : 267607,
+      "link" : "https://www.doctorofcredit.com/american-express-fine-hotels-resorts-credit-to-require-two-night-stay-will-include-airbnb-luxe-properties/",
+      "title" : {
+        "rendered" : "American Express Platinum Fine Hotels &#038; Resorts Credit To Require Two Night Stay, Will Include AirBnB Luxe Properties + $250 AirBnB Experiences Credit"
+      }
+    },
+    {
+      "id" : 266928,
+      "link" : "https://www.doctorofcredit.com/ymmv-citi-travel-ihg-spend-300-get-50-off/",
+      "title" : {
+        "rendered" : "[Expired] [YMMV] Citi Travel: IHG, Spend $300 &#038; Get $50 Off"
+      }
+    },
+    {
+      "id" : 201403,
+      "link" : "https://www.doctorofcredit.com/citi-offers-15-off-150-at-best-buy-limit-2/",
+      "title" : {
+        "rendered" : "[Expired] Citi Offers: $10 Off $200 At Best Buy (Limit 2)"
+      }
+    },
+    {
+      "id" : 265714,
+      "link" : "https://www.doctorofcredit.com/citi-updates-eligibility-on-citi-strata-cards-once-per-life-was-48-months/",
+      "title" : {
+        "rendered" : "Citi Updates Eligibility On Citi Strata Cards (Once Per Life, Was 48 Months)"
+      }
+    },
+    {
+      "id" : 253742,
+      "link" : "https://www.doctorofcredit.com/maximizing-the-200-blacklane-credit-on-citi-strata-elite/",
+      "title" : {
+        "rendered" : "Maximizing the $200 Blacklane Credit on Citi Strata Elite (Promo Code)"
+      }
+    },
+    {
+      "id" : 223265,
+      "link" : "https://www.doctorofcredit.com/citi-strata-premier-full-details-now-available/",
+      "title" : {
+        "rendered" : "[Expired] Citi Strata Premier &#8211; 75,000 Point Offer"
+      }
+    }
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "9",
+    "x-wp-totalpages" : "1"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/posts?include=268611,261214,253742,267595,267607,266928,201403,223265,265714&per_page=9&_fields=id,title,link"
+}

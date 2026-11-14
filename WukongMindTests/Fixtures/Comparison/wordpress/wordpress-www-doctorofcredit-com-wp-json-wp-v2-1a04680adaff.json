@@ -1,0 +1,30 @@
+{
+  "body" : [
+    {
+      "_embedded" : {
+        "author" : [
+          {
+            "name" : "William Charles"
+          }
+        ]
+      },
+      "author" : 2,
+      "date_gmt" : "2026-10-26T10:00:55",
+      "excerpt" : {
+        "rendered" : "<p>List of all the best checking, savings and bank account bonuses for November, 2026. $3,500+ in nationwide bonuses. $10,000+ in state bonuses. </p>\n"
+      },
+      "id" : 4263,
+      "link" : "https://www.doctorofcredit.com/best-bank-account-bonuses/",
+      "title" : {
+        "rendered" : "Best Bank Account Bonuses For November, 2026"
+      }
+    }
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "1",
+    "x-wp-totalpages" : "1"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/posts?search=biggest%20sign-up%20bonus%20credit%20card%202026&per_page=20&page=1&_fields=id,title,link,date_gmt,excerpt,author,_embedded,_links&after=2026-06-01T00:00:00&_embed=author"
+}
