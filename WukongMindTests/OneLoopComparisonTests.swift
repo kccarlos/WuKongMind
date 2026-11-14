@@ -115,7 +115,13 @@ final class OneLoopComparisonTests: XCTestCase {
         let questions = try ComparisonQuestion.confirmed()
         XCTAssertEqual(Dictionary(grouping: questions, by: \.kind).mapValues(\.count), ["discourse": 5, "hackernews": 5, "wordpress": 5])
         var replayed = 0
-        for set in ComparisonSet.all() {
+        let sets = ComparisonSet.all()
+        let gate2 = ComparisonSet.named("gate2")
+        if FileManager.default.fileExists(atPath: gate2.runs.path) {
+            XCTAssertEqual(sets.map(\.name), ["main", "gate2"])
+            XCTAssertTrue(["W2", "H3", "H4"].allSatisfy { FileManager.default.fileExists(atPath: gate2.runFile($0).path) }, "the gate 2 re-record")
+        }
+        for set in sets {
             for question in questions where FileManager.default.fileExists(atPath: set.runFile(question.id).path) {
                 let saved = try RecordedNewSide.load(from: set, id: question.id)
                 try await Self.assertReplays(saved, question: question, set: set, folder: try temporaryFolder())
@@ -286,8 +292,8 @@ final class OneLoopComparisonTests: XCTestCase {
             .map { "\($0.value) × `\($0.key)`" }.joined(separator: ", ")
         let auditSection = "\n## Model audit\n\nEvery model request of this record run (old loop, new loop, summaries and the tool-definition count) "
             + "passed through `ModelAudit`, which reads the request body's `model` and refuses anything but `\(ModelAudit.allowedModel)`. "
-            + "\(audit.count) calls: \(models_). The log (host, path, model, status; no keys) is `WukongMindTests/Fixtures/Comparison/model-audit.jsonl`; "
-            + "the recorded new-side runs under `Fixtures/Comparison/runs/` name the model per turn as well.\n"
+            + "\(audit.count) calls: \(models_). The log (host, path, model, status; no keys) is `\(set.relativePath)model-audit.jsonl`; "
+            + "the recorded new-side runs under `\(set.relativePath)runs/` name the model per turn as well.\n"
         try Data(report.replacingOccurrences(of: "\n## Approval", with: auditSection + "\n## Approval").utf8).write(to: reportURL, options: .atomic)
     }
 }
@@ -559,6 +565,8 @@ struct ComparisonSet {
     func runFile(_ id: String) -> URL { runs.appendingPathComponent("\(prefix)run-\(id).json") }
     func summariesFile(_ id: String) -> URL { runs.appendingPathComponent("\(prefix)run-\(id).summaries.json") }
     var auditLog: URL { root.appendingPathComponent("model-audit.jsonl") }
+    /// `WukongMindTests/Fixtures/Comparison/` plus the set's folder, as the report names it.
+    var relativePath: String { "WukongMindTests/Fixtures/Comparison/" + (name == "main" ? "" : "\(name)/") }
 
     func snapshot(_ kind: SiteKind, mode: ForumSnapshot.Mode) throws -> ForumSnapshot {
         try ForumSnapshot(kind: kind, mode: mode, directory: root.appendingPathComponent(kind.id, isDirectory: true), filePrefix: prefix)

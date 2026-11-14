@@ -1,0 +1,16 @@
+{
+  "body" : {
+    "author" : "levicanskij",
+    "created_at_i" : 1794672657,
+    "id" : 50498151,
+    "points" : 2,
+    "title" : "The Cloud Is Just Someone Else's Computer – They Let It Burn",
+    "type" : "story",
+    "url" : "https://soargram.io/content/369523282"
+  },
+  "headers" : {
+    "content-type" : "application/json"
+  },
+  "status" : 200,
+  "url" : "https://hn.algolia.com/api/v1/items/50498151"
+}

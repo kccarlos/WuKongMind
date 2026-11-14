@@ -1,0 +1,2466 @@
+{
+  "body" : {
+    "author" : "jcbhmr",
+    "children" : [
+      {
+        "author" : "smalltorch",
+        "children" : [
+          {
+            "author" : "ZeroCool2u",
+            "created_at_i" : 1789744715,
+            "id" : 49755643,
+            "text" : "Anything specific to watch out for?",
+            "type" : "comment"
+          },
+          {
+            "author" : "whizzter",
+            "created_at_i" : 1789744936,
+            "id" : 49755703,
+            "text" : "On what url were those? Or Cloudflare&#x27;s TOS in general ?",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1789743161,
+        "id" : 49755264,
+        "text" : "It&#x27;s a nice ability, but I dont like the terms of use.",
+        "type" : "comment"
+      },
+      {
+        "author" : "user3939382",
+        "created_at_i" : 1789744551,
+        "id" : 49755595,
+        "text" : "I just spent a week writing a harness around the existing tunnels to make this by hand.",
+        "type" : "comment"
+      },
+      {
+        "author" : "dangoodmanUT",
+        "children" : [
+          {
+            "author" : "hackernud3s",
+            "children" : [
+              {
+                "author" : "dangoodmanUT",
+                "created_at_i" : 1789778829,
+                "id" : 49762216,
+                "text" : "No, they claim their edge is better for residential connections to your backend. We tried multiple SF to us-east-1 and it was always substantially worse",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1789773206,
+            "id" : 49761515,
+            "text" : "Because it travels along their edge. It&#x27;s apples and oranges to your AWS tunnel.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1789744565,
+        "id" : 49755600,
+        "text" : "Historically, we’ve found that their tunnels have really high latency variance. For example something that’s normally 30-50ms to ec2 is now 115ms-750ms",
+        "type" : "comment"
+      },
+      {
+        "author" : "ThrowawayTestr",
+        "children" : [
+          {
+            "author" : "cuu508",
+            "children" : [
+              {
+                "author" : "monster_truck",
+                "children" : [
+                  {
+                    "author" : "johng",
+                    "created_at_i" : 1789747569,
+                    "id" : 49756410,
+                    "text" : "This requires no port forwarding, so someone brute force scanning your IP won&#x27;t find this and your open port. they also might have a harder time figuring out what service has been exposed since the port number itself will be unknown.",
+                    "type" : "comment"
+                  },
+                  {
+                    "author" : "cuu508",
+                    "children" : [
+                      {
+                        "author" : "mitxela",
+                        "children" : [
+                          {
+                            "author" : "cuu508",
+                            "children" : [
+                              {
+                                "author" : "mitxela",
+                                "children" : [
+                                  {
+                                    "author" : "cuu508",
+                                    "created_at_i" : 1789848456,
+                                    "id" : 49769718,
+                                    "text" : "But with Cloudflare tunnel (and similar tools), there are no open ports on the origin server.",
+                                    "type" : "comment"
+                                  }
+                                ],
+                                "created_at_i" : 1789823097,
+                                "id" : 49766271,
+                                "text" : "They&#x27;re scanning all IPs all the time. If your home router has a public IP and a firewall log, check it",
+                                "type" : "comment"
+                              }
+                            ],
+                            "created_at_i" : 1789807156,
+                            "id" : 49764580,
+                            "text" : "Do you mean by getting the information from Cloudflare, or some other way? With DynDNS though, finding out my IP is trivial and does not require any special powers or skills, it is just a DNS lookup.<p>PS. Just re-watched your matrix LED pendant video. It is so well done, both the project, and the accompanying video!",
+                            "type" : "comment"
+                          }
+                        ],
+                        "created_at_i" : 1789775075,
+                        "id" : 49761768,
+                        "text" : "They can, and do, do this with or without DynDNS.",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1789752185,
+                    "id" : 49757455,
+                    "text" : "If somebody learns that such-and-such DynDNS URL is mine, they can always do a DNS lookup to find my current IP address. They can:<p>- find my approximate physical location<p>- regularly scan ports on my IP and wait for me to accidentally expose a service I didn&#x27;t mean to<p>- track me in any access logs they have access to",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1789746100,
+                "id" : 49756034,
+                "text" : "Exposing it to what exactly? The internet? Yes that&#x27;s how it works",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1789745170,
+            "id" : 49755763,
+            "text" : "Yeah, but then you are always exposing your public IP.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1789744658,
+        "id" : 49755628,
+        "text" : "No-ip gives out free dynamic DNS with a static URL. I use it for Sunshine desktop streaming when I travel.",
+        "type" : "comment"
+      },
+      {
+        "author" : "kincl",
+        "children" : [
+          {
+            "author" : "hermanradtke",
+            "children" : [
+              {
+                "author" : "israrkhan",
+                "created_at_i" : 1789747242,
+                "id" : 49756333,
+                "text" : "This is a crowded space with lots of solutions (oss and commercial)<p><a href=\"https:&#x2F;&#x2F;github.com&#x2F;anderspitman&#x2F;awesome-tunneling\" rel=\"nofollow\">https:&#x2F;&#x2F;github.com&#x2F;anderspitman&#x2F;awesome-tunneling</a>",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1789744997,
+            "id" : 49755720,
+            "text" : "feels more like an ngrok competitor",
+            "type" : "comment"
+          },
+          {
+            "author" : "alasano",
+            "created_at_i" : 1789747229,
+            "id" : 49756326,
+            "text" : "More like their version of Tailscale funnel I think",
+            "type" : "comment"
+          },
+          {
+            "author" : "Tepix",
+            "children" : [
+              {
+                "author" : "athrowaway3z",
+                "created_at_i" : 1789753196,
+                "id" : 49757678,
+                "text" : "But you do seem to get to host a https version of your app in case you need features locked behind secure context.",
+                "type" : "comment"
+              },
+              {
+                "author" : "spwa4",
+                "created_at_i" : 1789753680,
+                "id" : 49757783,
+                "text" : "That can&#x27;t be right. If they&#x27;re hosting on a different DNS they have an absolute need to MITM ssl&#x2F;tls traffic. Can&#x27;t work otherwise.<p>So cloudflare sees your plaintext. Btw: tailscale does not (but ssl errors and warnings are unavoidable)",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1789748250,
+            "id" : 49756574,
+            "text" : "I believe with tailscale you don’t have to trust a 3rd party with your cleartext traffic",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1789744770,
+        "id" : 49755662,
+        "text" : "Is this their version of <a href=\"https:&#x2F;&#x2F;tailscale.com&#x2F;tailcat\" rel=\"nofollow\">https:&#x2F;&#x2F;tailscale.com&#x2F;tailcat</a> ? I can&#x27;t tell if you need to auth<p>edit: yeah, it says no account creation, neat!",
+        "type" : "comment"
+      },
+      {
+        "author" : "ZeroCool2u",
+        "children" : [
+          {
+            "author" : "aniviacat",
+            "children" : [
+              {
+                "author" : "bakugo",
+                "created_at_i" : 1789745623,
+                "id" : 49755875,
+                "text" : "It&#x27;s not new. Maybe this page is new, but being able to set up a quick tunnel on trycloudflare.com without an account has been a thing for years.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1789745222,
+            "id" : 49755774,
+            "text" : "Cloudflare Tunnels has been a free service of Cloudflare for quite a while now. What&#x27;s new is being able to use them without needing an account.",
+            "type" : "comment"
+          },
+          {
+            "author" : "roncesvalles",
+            "children" : [
+              {
+                "author" : "berofeev",
+                "children" : [
+                  {
+                    "author" : "JavierFlores09",
+                    "children" : [
+                      {
+                        "author" : "seabrookmx",
+                        "created_at_i" : 1789756923,
+                        "id" : 49758445,
+                        "text" : "There&#x27;s pros and cons on the longevity side. 24&#x2F;7 use causes more wear to mechanical parts (fans for instance) but can be better for the electronics, as heat cycles are a big part of the problem there.",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1789748257,
+                    "id" : 49756578,
+                    "text" : "I often tell my dev colleagues to avoid having their PC turned on all the time, be it because of the electricity bill cost, environmental impact or simply to make the longevity of the hardware a little longer. Granted almost everyone just ignores those things even if they&#x27;re conscious of it, so I&#x27;d say you&#x27;re right",
+                    "type" : "comment"
+                  },
+                  {
+                    "author" : "roncesvalles",
+                    "created_at_i" : 1789749432,
+                    "id" : 49756828,
+                    "text" : "Very few people own desktops anymore. Generally people only buy desktops if they need to run a GPU, such as for gaming or running a local model.",
+                    "type" : "comment"
+                  },
+                  {
+                    "author" : "SoftTalker",
+                    "created_at_i" : 1789752902,
+                    "id" : 49757617,
+                    "text" : "Yeah my desktop is on 24&#x2F;7. Laptop is on when in use. Phone is on all the time too, of course, but I don&#x27;t use it for browsing or work nearly as much as my desktop.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1789746618,
+                "id" : 49756170,
+                "text" : "What does reality look like on this nowadays?<p>My initial thought was desktops generally run 24&#x2F;7, with laptops running when in use. At least for the customer at the market intersection for this type of product.",
+                "type" : "comment"
+              },
+              {
+                "author" : "sophacles",
+                "created_at_i" : 1789748100,
+                "id" : 49756531,
+                "text" : "There are people who turn off their computer?",
+                "type" : "comment"
+              },
+              {
+                "author" : "cmacleod4",
+                "created_at_i" : 1789754945,
+                "id" : 49758035,
+                "text" : "You do if you&#x27;re hosting a website on it :-)",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1789745714,
+            "id" : 49755913,
+            "text" : "Not many people run their local machine 24&#x2F;7.",
+            "type" : "comment"
+          },
+          {
+            "author" : "danserfaty",
+            "created_at_i" : 1789747078,
+            "id" : 49756283,
+            "text" : "Maybe it&#x27;s a nice way to quickly test a new service or change over the internet without going through the git process, same way one would use ngrok - I could see that being helpful when prototyping &#x2F; pocs, etc - before deploying changes to your app via the proper channel, especially if you are already using cloudflare for your domains&#x2F;apps. As other people said, it probably would not be practical or scalable for most people to run an app 24&#x2F;7 from their laptop using their home or office internet connection.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1789744796,
+        "id" : 49755671,
+        "text" : "This is handy, but I wonder how much it will cannibalize their services. I have a simple app deployed on cloudflare for a very niche single purpose use, but I wouldn&#x27;t have bothered if I had this. Serving it from my own machine would have been fine.",
+        "type" : "comment"
+      },
+      {
+        "author" : "aliasxneo",
+        "children" : [
+          {
+            "author" : "afzalive",
+            "created_at_i" : 1789746286,
+            "id" : 49756094,
+            "text" : "This is pretty great and I think this will be quite important in the age where everyone has their self-hosted services.",
+            "type" : "comment"
+          },
+          {
+            "author" : "simonw",
+            "children" : [
+              {
+                "author" : "aliasxneo",
+                "children" : [
+                  {
+                    "author" : "simonw",
+                    "created_at_i" : 1789749861,
+                    "id" : 49756923,
+                    "text" : "Gotcha, that totally makes sense.",
+                    "type" : "comment"
+                  },
+                  {
+                    "author" : "swozey",
+                    "created_at_i" : 1789752871,
+                    "id" : 49757608,
+                    "text" : "The &quot;centralization&quot; which is cloudflare basically running its own walled garden version of the interent (how often do you see a cloudflare page checking if you&#x27;re human?) is exactly why a lot of people do NOT like cloudflare. And if you&#x27;ve known about CF and its leadership since their inception you&#x27;d be even more wary of sticking your stuff over there.<p>I&#x27;ve migrated many companies off of cloudflare, usually because they end up pissing off companies when a contract renewal comes up and they slam them with massively increased bills and almost useless support if you aren&#x27;t very high paying enterprise. I don&#x27;t know how many CF support tickets I&#x27;ve just given up on over the last 15 years, usually related to their admin page, workers or some weird thing their system does that wasn&#x27;t documented and I just stop getting responses and definitely don&#x27;t get fixes.<p>If you ever worked in webhosting the Cloudflare wordpress&#x2F;etc extensions are everywhere and back when I did work in hosting tons of support tickets were made because of CF. Could be way better now, I don&#x27;t go near that industry these days.<p>The casual CF user sticking it in front of a blog they rarely look at and the business forced CF user has a very different experience. I cringe and seriously consider if I&#x27;m interviewing for an infra role and they use cloudflare. Usually it&#x27;s startups that grew into larger businesses.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1789747007,
+                "id" : 49756260,
+                "text" : "Yeah, I don&#x27;t doubt their infrastructure at all. In fact, I rate them fairly high in terms of reliability and performance. I&#x27;ve honestly been a fan of them for a very long time - it&#x27;s just I&#x27;m watching all of this centralization happen and it sets my Spidey sense off. Like I&#x27;m waiting for the other shoe to drop.",
+                "type" : "comment"
+              },
+              {
+                "author" : "eli",
+                "created_at_i" : 1789747216,
+                "id" : 49756324,
+                "text" : "Don’t the free tunnels have explicit limits on bandwidth and streaming?",
+                "type" : "comment"
+              },
+              {
+                "author" : "bix6",
+                "children" : [
+                  {
+                    "author" : "robertlagrant",
+                    "children" : [
+                      {
+                        "author" : "mitxela",
+                        "children" : [
+                          {
+                            "author" : "robertlagrant",
+                            "children" : [
+                              {
+                                "author" : "mitxela",
+                                "children" : [
+                                  {
+                                    "author" : "robertlagrant",
+                                    "created_at_i" : 1789908807,
+                                    "id" : 49775366,
+                                    "text" : "Why?",
+                                    "type" : "comment"
+                                  }
+                                ],
+                                "created_at_i" : 1789823122,
+                                "id" : 49766274,
+                                "text" : "Because it only matters whether people <i>actually</i> switch away from them.",
+                                "type" : "comment"
+                              }
+                            ],
+                            "created_at_i" : 1789820164,
+                            "id" : 49765930,
+                            "text" : "Can you explain why it doesn&#x27;t matter that they&#x27;re easy to switch away from?",
+                            "type" : "comment"
+                          }
+                        ],
+                        "created_at_i" : 1789774308,
+                        "id" : 49761668,
+                        "text" : "It doesn&#x27;t matter that they&#x27;re easy to switch away from. It matters that people <i>haven&#x27;t actually</i> switched away from them.",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1789764240,
+                    "id" : 49760023,
+                    "text" : "Given they seem to mostly offer services that are about as easy to switch away from as you could hope for, compared to, say, companies who write loads of CF that only runs on AWS, and I can&#x27;t imagine why this keeps on being said for Cloudflare specifically. What power do they have?",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1789747392,
+                "id" : 49756365,
+                "text" : "It’s a concentration of power issue.",
+                "type" : "comment"
+              },
+              {
+                "author" : "ceejayoz",
+                "created_at_i" : 1789747395,
+                "id" : 49756366,
+                "text" : "I didn&#x27;t take it as a <i>capacity</i> concern, but a &quot;how much data do they get to look at&quot; one.",
+                "type" : "comment"
+              },
+              {
+                "author" : "Tepix",
+                "children" : [
+                  {
+                    "author" : "insanitybit",
+                    "created_at_i" : 1789748248,
+                    "id" : 49756573,
+                    "text" : "Just use TLS &#x2F; mTLS over the tunnel, no?",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1789748115,
+                "id" : 49756532,
+                "text" : "They see all the traffic in cleartext. Plus you have to trust them not to maliciously alter your traffic. As a US company, their options may be limited if they are coerced by their government to do so.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1789746884,
+            "id" : 49756226,
+            "text" : "If there&#x27;s any company in the world that can survive a lot of extra traffic being pushed through their systems it&#x27;s Cloudflare.<p>I bet these new tunnels end up being a fraction of a percentage point of their network traffic.",
+            "type" : "comment"
+          },
+          {
+            "author" : "pstoll",
+            "children" : [
+              {
+                "author" : "ijustlovemath",
+                "created_at_i" : 1789748551,
+                "id" : 49756636,
+                "text" : "I think they&#x27;re talking about market capture risks",
+                "type" : "comment"
+              },
+              {
+                "author" : "aliasxneo",
+                "children" : [
+                  {
+                    "author" : "pstoll",
+                    "created_at_i" : 1789780791,
+                    "id" : 49762399,
+                    "text" : "Sure any centralization of infra is an obvious risk for a myriad of reasons eg DoS, manipulation, honeypots, etc.<p>But again my point applies - the chances they get enough people using it that it becomes a meaningfully worse security target than lots of other existing things seems … super low.<p>It’s a big world, people make many choices I can’t understand (nix? Haskell? Php?  &lt;flame wars to &#x2F;dev&#x2F;null&gt;). Even if this product nailed it - the number of people who can use it is minuscule - yes even as we add Claude-enabled PMs to the software dev ranks.<p>Alt view with the old saying - “put all your eggs in one basket … and <i>watch that basket</i>!”",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1789748690,
+                "id" : 49756664,
+                "text" : "In hindsight, that was probably a confusing sentence. I was more pointing out how much traffic flows trough their systems which ends up making it an attractive honeypot, especially as a U.S. company.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1789748000,
+            "id" : 49756512,
+            "text" : "Reality check -  you are not pushing “_a lot_” of traffic relative to any hyperscaler or large scale CDN. They push hundreds of Tbps sustained. You don’t peak at a few Mbps.<p>They can monitor extreme outliers. It’s not an issue for them.",
+            "type" : "comment"
+          },
+          {
+            "author" : "inopinatus",
+            "children" : [
+              {
+                "author" : "mitxela",
+                "created_at_i" : 1789774366,
+                "id" : 49761674,
+                "text" : "True. Same reason Hurricane Electric peers promiscuously. I&#x27;m surprised more networks don&#x27;t, to be honest - wouldn&#x27;t say DTAG prefer that you peer with DTAG than peer with HE upstream of DTAG?",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1789748225,
+            "id" : 49756565,
+            "text" : "Cloudflare <i>want</i> you to push traffic through their systems.  This is yet another traffic generator to drive up Cloudflare’s leverage when negotiating peering with carriers &amp; service providers, in order to drive down the marginal cost of bandwidth for Cloudflare’s actual product viz. the enterprise DDoS protection.",
+            "type" : "comment"
+          },
+          {
+            "author" : "Perz1val",
+            "created_at_i" : 1789750134,
+            "id" : 49756980,
+            "text" : "Interesting how 4&#x2F;4 other replies didn&#x27;t get the centralisation concern despite it being a fairly often discussed topic",
+            "type" : "comment"
+          },
+          {
+            "author" : "t_mahmood",
+            "created_at_i" : 1789750341,
+            "id" : 49757023,
+            "text" : "Yeah, it reminds me of Google. Fool me twice ...<p>I&#x27;m not trusting any of these corporates any more",
+            "type" : "comment"
+          },
+          {
+            "author" : "done_lurking",
+            "created_at_i" : 1789754476,
+            "id" : 49757948,
+            "text" : "There are other reasons not to trust them as well, especially if you&#x27;ve seen how their sales team operates <a href=\"https:&#x2F;&#x2F;news.ycombinator.com&#x2F;item?id=40481808\">https:&#x2F;&#x2F;news.ycombinator.com&#x2F;item?id=40481808</a>",
+            "type" : "comment"
+          },
+          {
+            "author" : "ozozozd",
+            "created_at_i" : 1789764398,
+            "id" : 49760052,
+            "text" : "Your opening piqued my interest, but:<p>“The substrate itself consists of a few systems…”<p>I doubt that this is how wordy your communication is.<p>“It consists of a few systems” would be adequate. And if we had prior context about what else exists that surrounds “the substrate” the “substrate itself” distinction would be meaningful, but it’s not, because you are referring to one object, which is the system you built, and I doubt any enzymes act on it, so it’s likely not a substrate.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1789744916,
+        "id" : 49755700,
+        "text" : "Tunneling was something that recently fell out of the work I&#x27;ve been doing [1]. I&#x27;ve used Cloudflare Tunnels before but I just have low trust with them recently with how big they are getting. All of these nice things come at the cost of pushing _a lot_ of traffic through their systems.<p>[1]: <a href=\"https:&#x2F;&#x2F;dntls.substack.com&#x2F;p&#x2F;the-new-internet\" rel=\"nofollow\">https:&#x2F;&#x2F;dntls.substack.com&#x2F;p&#x2F;the-new-internet</a>",
+        "type" : "comment"
+      },
+      {
+        "author" : "whizzter",
+        "children" : [
+          {
+            "author" : "Imustaskforhelp",
+            "children" : [
+              {
+                "author" : "mitxela",
+                "created_at_i" : 1789774467,
+                "id" : 49761685,
+                "text" : "Spain blacklisted Cloudflare and everyone hates it, but it proves it can happen.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1789745230,
+            "id" : 49755779,
+            "text" : "Yes they actually do, but because its cloudflare which is offering this, blacklisting it might lead to blacklisting  can be more negative and cloudflare has a much higher incentive to not make these tunnels useless. They are also more powerful and can fix things which would be harder for smaller companies to handle (atleast within the context of cloudflare tunnels)",
+            "type" : "comment"
+          },
+          {
+            "author" : "axus",
+            "created_at_i" : 1789745673,
+            "id" : 49755898,
+            "text" : "Wow, exfiltrating data has never been easier!",
+            "type" : "comment"
+          },
+          {
+            "author" : "srichard16",
+            "children" : [
+              {
+                "author" : "noname120",
+                "created_at_i" : 1789770666,
+                "id" : 49761131,
+                "text" : "How does “open sourcing the tech” “give nefarious actors on the internet more opportunities”? Sounds like a paltry excuse for not open sourcing <i>your</i> tech.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1789751839,
+            "id" : 49757377,
+            "text" : "Can confirm. Coming from ngrok, the main reason we had to make tunneling not anonymized etc was because of scammers, etc on the internet. Other players in the space bypass this by open sourcing the tech, or separating the architecture entirely. This is cool and all, but ultimately gives nefarious actors on the internet more opportunities.",
+            "type" : "comment"
+          },
+          {
+            "author" : "uxjw",
+            "created_at_i" : 1789752037,
+            "id" : 49757416,
+            "text" : "Probably why they used the trycloudflare.com domain as they expect it to be blocked.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1789745031,
+        "id" : 49755726,
+        "text" : "Don&#x27;t all these free proxy services always fall prey to blacklists because scammers,etc abuse them until they&#x27;re useless?",
+        "type" : "comment"
+      },
+      {
+        "author" : "JV00",
+        "children" : [
+          {
+            "author" : "daemonologist",
+            "created_at_i" : 1789745283,
+            "id" : 49755798,
+            "text" : "I don&#x27;t know if there&#x27;s an overall limit, but their regular tunnels have a limit of 100 MB per request which breaks stuff like Immich.",
+            "type" : "comment"
+          },
+          {
+            "author" : "raahelb",
+            "created_at_i" : 1789748634,
+            "id" : 49756652,
+            "text" : "These are the limitations mentioned on the docs [1]. Quick Tunnels are subject to a hard limit on the number of concurrent requests that can be proxied at any point in time. Currently, this limit is 200 in-flight requests. If a Quick Tunnel hits this limit, the HTTP response will return a 429 status code. Quick Tunnels do not support Server-Sent Events (SSE).<p>[1]: <a href=\"https:&#x2F;&#x2F;developers.cloudflare.com&#x2F;cloudflare-one&#x2F;networks&#x2F;connectors&#x2F;cloudflare-tunnel&#x2F;do-more-with-tunnels&#x2F;trycloudflare&#x2F;#limitations\" rel=\"nofollow\">https:&#x2F;&#x2F;developers.cloudflare.com&#x2F;cloudflare-one&#x2F;networks&#x2F;co...</a>",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1789745060,
+        "id" : 49755738,
+        "text" : "Does this have a more generous allowance than ngrok? From what I can read no limits are mentioned",
+        "type" : "comment"
+      },
+      {
+        "author" : "Narciss",
+        "created_at_i" : 1789745671,
+        "id" : 49755895,
+        "text" : "My AI discovered this days ago when I wanted to deploy a new vibe coded website (it was to keep score while playing whist and rentz)<p>Thought it was very cool",
+        "type" : "comment"
+      },
+      {
+        "author" : "smalltorch",
+        "children" : [
+          {
+            "author" : "thenewnewguy",
+            "children" : [
+              {
+                "author" : "smalltorch",
+                "created_at_i" : 1789747027,
+                "id" : 49756265,
+                "text" : "&gt;hobbiest or dev just testing your services<p>Is different than sharing your work with a client.<p>I personally wouldnt make it SOP to utilize a complely free service like this to share my work. I&#x27;m not saying it&#x27;s not convient, it definitely is.<p>But you shouldn&#x27;t subject a clients product to terms they probably aren&#x27;t aware of.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1789746244,
+            "id" : 49756083,
+            "text" : "I honestly can&#x27;t tell if you&#x27;re trolling or this is an HN out of touch moment.<p>The obvious difference (and thus massive advantage) of the cloudfare product is that it is accessible over the normal internet without needing to install a tor client.<p>I&#x27;m sure that works for some subset of the population where all potential users are already comfortable using Tor; but imagine trying to share your PoC website with the designer&#x2F;client and you are asking them to install Tor browser.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1789745817,
+        "id" : 49755944,
+        "text" : "If your a hobbiest or dev just testing your services, it makes more sense to utilize onion services imho.<p>It does the exact same thing, except supported by a global network of volunteers around the world.<p>Sure, you get some latency, but this is actually ideal for testing. You should know how your service operates in non optimal lightning fast conditions.",
+        "type" : "comment"
+      },
+      {
+        "author" : "himata4113",
+        "children" : [
+          {
+            "author" : "booi",
+            "children" : [
+              {
+                "author" : "himata4113",
+                "children" : [
+                  {
+                    "author" : "booi",
+                    "children" : [
+                      {
+                        "author" : "himata4113",
+                        "created_at_i" : 1789820626,
+                        "id" : 49765978,
+                        "text" : "It&#x27;s the same reason that exists for PoW captcha, it&#x27;s just way more annoying. Also accounts offer traceability versus a new identity every time you want to do something unless you want to go through hundreds of accounts a day.",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1789749834,
+                    "id" : 49756914,
+                    "text" : "They already do this. the email accounts already exist",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1789748722,
+                "id" : 49756670,
+                "text" : "This requires zero effort and you can deploy hundreds to thousands while maintaining 1000 gmail, proton etc takes resources and money.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1789748652,
+            "id" : 49756655,
+            "text" : "if you think people won&#x27;t abuse it because you&#x27;re making them log in with a free email address...",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1789746170,
+        "id" : 49756056,
+        "text" : "This has existed for a long time and has been abused by quite a few people. I&#x27;ve seen some cc nodes using a random known cloudflare site and spoofing hostname to a temporary cloudflare site. IMO this should require a login at bare minimum.",
+        "type" : "comment"
+      },
+      {
+        "author" : "cute_boi",
+        "children" : [
+          {
+            "author" : "usewik",
+            "created_at_i" : 1789749784,
+            "id" : 49756898,
+            "text" : "yep, and all those fired and remaining are busy ai-native proofing their careers and tokenmaxxing everything including copy",
+            "type" : "comment"
+          },
+          {
+            "author" : "cub-creature",
+            "created_at_i" : 1789750213,
+            "id" : 49756996,
+            "text" : "I swear if I see one more &quot;pill-badge callout -&gt; header -&gt; subtitle&quot; with gradient background and hover-cards landing page I&#x27;m going to crash out",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1789746736,
+        "id" : 49756191,
+        "text" : "what a sloppy website, did cloudflare fired bunch of ui&#x2F;ux designer? Every text is slop lol.",
+        "type" : "comment"
+      },
+      {
+        "author" : "xeornet",
+        "children" : [
+          {
+            "author" : "rozab",
+            "children" : [
+              {
+                "author" : "maipen",
+                "created_at_i" : 1789753280,
+                "id" : 49757694,
+                "text" : "AI took all the effort, so I guess nobody sees value in these little pages anymore. Not even those being paid. It&#x27;s actually scary.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1789747166,
+            "id" : 49756312,
+            "text" : "I find it quite shocking that orgs with some great designers like cloudflare are doing this. Broken layouts, trios of random uppercase words sprinkled around. It&#x27;s crazy. How does it inspire confidence in a product, knowing that the landing page was created in 10 seconds?",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1789746802,
+        "id" : 49756205,
+        "text" : "Looks like they straight up vibe coded the landing page lol.",
+        "type" : "comment"
+      },
+      {
+        "author" : "tombert",
+        "children" : [
+          {
+            "author" : "TonyStr",
+            "children" : [
+              {
+                "author" : "tombert",
+                "created_at_i" : 1789747845,
+                "id" : 49756485,
+                "text" : "I have a proxy set up with the Oracle Always Free VMs they provide.  It works well enough.",
+                "type" : "comment"
+              },
+              {
+                "author" : "madeforhnyo",
+                "created_at_i" : 1789748024,
+                "id" : 49756516,
+                "text" : "For free idk, I personally use a VPS (with unlimited traffic) and Tailscale. Someone has to pay for the public IP and proxy.",
+                "type" : "comment"
+              },
+              {
+                "author" : "guluarte",
+                "created_at_i" : 1789750414,
+                "id" : 49757036,
+                "text" : "i just use wireguard or tailscale, provision a subdomain with a custom ssl and resolve to a nat ip.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1789747421,
+            "id" : 49756371,
+            "text" : "I discovered and set this up the other day, added jellyfin, immich and forgejo and was really happy about the result for five minutes, before I discovered that limitation in the TOS. Now I only use it for forgejo. Have you found a different solution to exposing jellyfin?",
+            "type" : "comment"
+          },
+          {
+            "author" : "tamimio",
+            "created_at_i" : 1789747997,
+            "id" : 49756511,
+            "text" : "Use pangolin (you can self host), been using it for a while and it’s great, under the hood it’s a vpn+reverse proxy which you can do yourself too. \nIn pangolin you can have public or private resources, where private ones you need to authenticate through pangolin first (either pass or others like pin number for your parents so easy to remember). When you link your domain for public ones, I suggest you make a sub domain for it, so your apps will be a sub to your subdomain, that way you keep control of your main domain while having automatic assignment for your apps rather than manually, and if you didn’t issue a certificate, that sub.subdomain is basically invisible on the internet unless you host a service to expose it.",
+            "type" : "comment"
+          },
+          {
+            "author" : "bityard",
+            "children" : [
+              {
+                "author" : "tombert",
+                "created_at_i" : 1789748339,
+                "id" : 49756592,
+                "text" : "I know.  I&#x27;m not &quot;upset&quot; over it, just that it makes the service less useful for me.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1789748204,
+            "id" : 49756561,
+            "text" : "Bandwidth costs money and streaming video costs several orders of magnitude more than just your random web&#x2F;dev apps. Asking CF to foot the bill for entertainment streaming is really quite a lot.",
+            "type" : "comment"
+          },
+          {
+            "author" : "mitxela",
+            "created_at_i" : 1789774956,
+            "id" : 49761750,
+            "text" : "You can put nginx with basic auth in front of jellyfin",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1789746918,
+        "id" : 49756235,
+        "text" : "I like Cloudflare Tunnels a lot, but something that annoys me is that officially you&#x27;re not allowed to use them for streaming video, meaning I can&#x27;t put it in front of my Jellyfin without breaking TOS.<p>I think that rule is more of a &quot;we reserve the right to...&quot; rule, but it makes me sad because I&#x27;d rather not open up ports on my router to expose my Jellyfin to my parents.",
+        "type" : "comment"
+      },
+      {
+        "author" : "rplnt",
+        "children" : [
+          {
+            "author" : "reaperducer",
+            "children" : [
+              {
+                "author" : "rvz",
+                "children" : [
+                  {
+                    "author" : "pocksuppet",
+                    "created_at_i" : 1789843794,
+                    "id" : 49769174,
+                    "text" : "Since before 2016 actually",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1789758365,
+                "id" : 49758782,
+                "text" : "We are in the age of where hype beats reasoning.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1789747043,
+            "id" : 49756274,
+            "text" : "<i>Are we in an age where no one even bothers to open the product pages they generate?</i><p>We live in an age of monkey-see-monkey-do management.<p>When Microsoft axed its QA team, it gave permission for everyone else to make the same stupid mistake.",
+            "type" : "comment"
+          },
+          {
+            "author" : "lkbm",
+            "children" : [
+              {
+                "author" : "rplnt",
+                "created_at_i" : 1789747600,
+                "id" : 49756421,
+                "text" : "I see, good point. Some might be confused about my comment then.",
+                "type" : "comment"
+              },
+              {
+                "author" : "brazukadev",
+                "created_at_i" : 1789759772,
+                "id" : 49759046,
+                "text" : "which proves the point OP is making.",
+                "type" : "comment"
+              },
+              {
+                "author" : "Gigachad",
+                "created_at_i" : 1789767979,
+                "id" : 49760699,
+                "text" : "I&#x27;m viewing the site on lightmode, clicked one of the #links which scrolled down the page, when I scrolled back up all the sections lost their content and were unusable.<p>I&#x27;ve never seen someone fail a static page like this. And from a huge company like Cloudflare too..",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1789747156,
+            "id" : 49756308,
+            "text" : "It&#x27;s fine on light mode. It&#x27;s just the dark mode that&#x27;s terrible. Seems likely they only tested the former.",
+            "type" : "comment"
+          },
+          {
+            "author" : "jeremyjh",
+            "children" : [
+              {
+                "author" : "eranation",
+                "created_at_i" : 1789774836,
+                "id" : 49761734,
+                "text" : "I’m raising my eyebrows…",
+                "type" : "comment"
+              },
+              {
+                "author" : "brazukadev",
+                "created_at_i" : 1789822343,
+                "id" : 49766182,
+                "text" : "Cloudflare is going full vibecoding for at least one year. They are high on AI psychosis.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1789767143,
+            "id" : 49760540,
+            "text" : "I find it shocking that they shipped this claudecopy.",
+            "type" : "comment"
+          },
+          {
+            "author" : "nake89",
+            "created_at_i" : 1789889837,
+            "id" : 49773434,
+            "text" : "The thing that made me the most sad was that nobody cares about narrow screen phones like my iPhone SE",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1789746933,
+        "id" : 49756239,
+        "text" : "Are we in an age where no one even bothers to open the product pages they generate? The first subtitle with the font color almost matching the background. Or it&#x27;s even worse that a human looked at it and said &quot;yep, that&#x27;s OK&quot;?",
+        "type" : "comment"
+      },
+      {
+        "author" : "israrkhan",
+        "children" : [
+          {
+            "author" : "drdexebtjl",
+            "created_at_i" : 1789749325,
+            "id" : 49756805,
+            "text" : "frp is nice. I have the tiniest Amazon Lightsail instance running a tunnel to a Minecraft server in my basement. It’s cheaper than getting a fixed IP from my ISP, at sufficiently low traffic.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1789747129,
+        "id" : 49756300,
+        "text" : "For someone looking for an opensource solutions, following is an awesome resource for tunnelling<p><a href=\"https:&#x2F;&#x2F;github.com&#x2F;anderspitman&#x2F;awesome-tunneling\" rel=\"nofollow\">https:&#x2F;&#x2F;github.com&#x2F;anderspitman&#x2F;awesome-tunneling</a><p>I have played around with frp, bore and ngrok.",
+        "type" : "comment"
+      },
+      {
+        "author" : "damsta",
+        "created_at_i" : 1789747248,
+        "id" : 49756334,
+        "text" : "The website looks broken in dark mode on Firefox.",
+        "type" : "comment"
+      },
+      {
+        "author" : "ggg011012",
+        "children" : [
+          {
+            "author" : "pstoll",
+            "created_at_i" : 1789748437,
+            "id" : 49756613,
+            "text" : "You should be more than hesitant - don’t do it. They literally market them for quick demos. And not long lived production.",
+            "type" : "comment"
+          },
+          {
+            "author" : "rinconrex",
+            "created_at_i" : 1789751621,
+            "id" : 49757316,
+            "text" : "I use for the exact same thing. Running &quot;cloudflared tunnel&quot; sets up a temp solution. No log in needed, pretty convenient.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1789747812,
+        "id" : 49756478,
+        "text" : "Quick Tunnels look great for demos and temporary dev environments. I’d still be hesitant to make them part of a long-lived production setup.",
+        "type" : "comment"
+      },
+      {
+        "author" : "kelvinjps10",
+        "children" : [
+          {
+            "author" : "raahelb",
+            "created_at_i" : 1789748889,
+            "id" : 49756722,
+            "text" : "From their docs [0]:<p>&gt; Free tunnels are meant to be used for testing and development, not for deploying a production website.<p>[0: <a href=\"https:&#x2F;&#x2F;developers.cloudflare.com&#x2F;cloudflare-one&#x2F;networks&#x2F;connectors&#x2F;cloudflare-tunnel&#x2F;do-more-with-tunnels&#x2F;trycloudflare&#x2F;#why-does-cloudflare-provide-this-service-for-free\" rel=\"nofollow\">https:&#x2F;&#x2F;developers.cloudflare.com&#x2F;cloudflare-one&#x2F;networks&#x2F;co...</a>",
+            "type" : "comment"
+          },
+          {
+            "author" : "awwaiid",
+            "created_at_i" : 1789757620,
+            "id" : 49758598,
+            "text" : "As far as I can tell, the difference is that they made a new website? The cloudflared instant tunnels have been around for years, including json output as far as I know.",
+            "type" : "comment"
+          },
+          {
+            "author" : "opengrass",
+            "created_at_i" : 1789769850,
+            "id" : 49760990,
+            "text" : "This gives a random trycloudflare.com subdomain each run, the other requires a domain and tunnel key on your account.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1789747878,
+        "id" : 49756491,
+        "text" : "What&#x27;s the difference between this and their previous Cloudflare Tunnels solution?",
+        "type" : "comment"
+      },
+      {
+        "author" : "singpolyma3",
+        "created_at_i" : 1789748191,
+        "id" : 49756557,
+        "text" : "It looks like tunnels can do some non https stuff these days? But it&#x27;s a bit unclear",
+        "type" : "comment"
+      },
+      {
+        "author" : "AtNightWeCode",
+        "created_at_i" : 1789748981,
+        "id" : 49756732,
+        "text" : "Cool but the obvious flaw with this is that CF leaks DNS-records. So bots will find these urls instantly. Not sure why they have not fixed that or if it is even possible to fix.",
+        "type" : "comment"
+      },
+      {
+        "author" : "nullbyte",
+        "created_at_i" : 1789749434,
+        "id" : 49756830,
+        "text" : "Love this, very cool.<p>I used to use a service called ngrok for this, but it&#x27;s nice that Cloudflare is offering one now.",
+        "type" : "comment"
+      },
+      {
+        "author" : "usewik",
+        "created_at_i" : 1789749697,
+        "id" : 49756881,
+        "text" : "how long until someone&#x27;s agent sets up a tunnel for the world to see one&#x27;s most sensitive, private and embarrassing information or insecure work-in-progress app? granted, for the brew install some massive permissions are needed, so hopefully for those running their agent&#x27;s in a sandbox, you should be safe.. should be..",
+        "type" : "comment"
+      },
+      {
+        "author" : "frankcostanza",
+        "created_at_i" : 1789749722,
+        "id" : 49756884,
+        "text" : "So... Cloudflare built Ngrok?",
+        "type" : "comment"
+      },
+      {
+        "author" : "_pdp_",
+        "children" : [
+          {
+            "author" : "yodon",
+            "created_at_i" : 1789750487,
+            "id" : 49757057,
+            "text" : "That&#x27;s handled by all the prior releases of cloudflare tunnels",
+            "type" : "comment"
+          },
+          {
+            "author" : "srichard16",
+            "created_at_i" : 1789752106,
+            "id" : 49757436,
+            "text" : "ngrok does this free, but with an account",
+            "type" : "comment"
+          },
+          {
+            "author" : "cmacleod4",
+            "created_at_i" : 1789754801,
+            "id" : 49758008,
+            "text" : "I&#x27;ve been running a couple of websites* on a home machine behind a Cloudflare tunnel for 2-3 years now.  The only thing I had to pay for was the DNS registration.  There are limits on the traffic you can serve on their free plan, but I&#x27;m nowhere near reaching those.  I don&#x27;t know what an SDK would add, you just set up a web server using whatever method suits you, then configure the cloudflared to connect to that.  I did find that the online dashboard could not support all the options I wanted, so I switched to using the config file method - it would have been easier if I used that method from the start.<p>One caveat - there is an option to inject Javascript into your pages for traffic measurement which is ON BY DEFAULT, you have to go to &quot;Web Analytics&quot; and turn this off if you don&#x27;t want it!<p>* <a href=\"https:&#x2F;&#x2F;cmacleod.me.uk\" rel=\"nofollow\">https:&#x2F;&#x2F;cmacleod.me.uk</a> &amp; <a href=\"https:&#x2F;&#x2F;newsgrouper.org\" rel=\"nofollow\">https:&#x2F;&#x2F;newsgrouper.org</a>",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1789749835,
+        "id" : 49756915,
+        "text" : "It will be nice if it had persistent URLs and and SDK for desktop applications. It could solve a lot of small issues for a project I am currently busy with.",
+        "type" : "comment"
+      },
+      {
+        "author" : "TIPSIO",
+        "children" : [
+          {
+            "author" : "noir_lord",
+            "created_at_i" : 1789750344,
+            "id" : 49757026,
+            "text" : "Only reason I have it (cloud flare tunnels) setup for personal use is because I had to do it for work years ago and yeah, Enterprise(tm) is a good description, haven&#x27;t touched it in years so when it breaks I&#x27;ll likely use something else.<p>Getting it to do what I wanted with a traefik front router with cloudflared talking to arbitrary subdomain that is spun up and broadcast from the other project side was very painful in a &quot;this could be more friendly&quot; way.<p>It has been truly bulletproof though since then so that&#x27;s almost enough to make me go reread all the docs.",
+            "type" : "comment"
+          },
+          {
+            "author" : "nemosaltat",
+            "children" : [
+              {
+                "author" : "DaSHacka",
+                "created_at_i" : 1789764737,
+                "id" : 49760112,
+                "text" : "If only headscale supported tailnet lock and multiple control servers. They consider both features &quot;enterprise&quot; even though the former is arguably a bare minimum and the latter nice even for home users in the event their lab gets taken offline.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1789750571,
+            "id" : 49757073,
+            "text" : "Us too, consider using your bots to migrate your tailnet to headscale. Daily driving Headscale + Headplane + Tailscale’s graciously provided&#x2F;compatible native apps makes me feel like my devices are truly under my control.",
+            "type" : "comment"
+          },
+          {
+            "author" : "_blk",
+            "created_at_i" : 1789750738,
+            "id" : 49757109,
+            "text" : "So you have a phone to phone VPN and each runs services or just a regular rapid&#x2F;synology at home with containers?",
+            "type" : "comment"
+          },
+          {
+            "author" : "cbsks",
+            "children" : [
+              {
+                "author" : "SwamyM",
+                "children" : [
+                  {
+                    "author" : "U4E4",
+                    "created_at_i" : 1789756157,
+                    "id" : 49758287,
+                    "text" : "I’m not GP, but run something that’s pretty close to GPs description. It’s been a fun journey to set up.<p>The core is chat+audio&#x2F;video call server running locally on my m3 Mac Studio. Centrifugo has handled the chat concerns very well. LiveKit was a really nice foundation for video and audio calls. There are a few different options for local STT if you want that.<p>I used RN via expo for the client and have my friends and family on TestFlight as beta testers. Utility over polish.<p>With messages and call transcripts on my own box, I can prompt Claude code or Codex to operate on any message or transcript content. And follow up in chat with a message. I do most of that from Claude or ChatGPT mobile apps via remote control to my sessions running in the box.<p>From there, if I give enough of a specc, anything that happens in chat or call transcripts can become an additional custom workspace in the main app. I think GP calls these mini apps. But they’re essentially rich clients under the main app umbrella. There’s other details, but yeah it’s a strange new world. Check my profile and reach out directly if you want.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1789752958,
+                "id" : 49757630,
+                "text" : "Seconded.",
+                "type" : "comment"
+              },
+              {
+                "author" : "dizzard",
+                "created_at_i" : 1789756734,
+                "id" : 49758412,
+                "text" : "Not OP- I think there’s been some cool  solutions popping up around hosting personal apps. On the front page this week was Capsule (<a href=\"https:&#x2F;&#x2F;withcapsule.app&#x2F;\" rel=\"nofollow\">https:&#x2F;&#x2F;withcapsule.app&#x2F;</a>). My  personal solution is Exhibit (<a href=\"https:&#x2F;&#x2F;github.com&#x2F;momja&#x2F;Exhibit\" rel=\"nofollow\">https:&#x2F;&#x2F;github.com&#x2F;momja&#x2F;Exhibit</a>) which also has the goal of being a self-hostable artifact store.",
+                "type" : "comment"
+              },
+              {
+                "author" : "rambleraptor",
+                "created_at_i" : 1789757107,
+                "id" : 49758493,
+                "text" : "I’ve been building something similar with [Homestead](<a href=\"https:&#x2F;&#x2F;myhomestead.dev\" rel=\"nofollow\">https:&#x2F;&#x2F;myhomestead.dev</a>). It’s my OSS solution for building mini apps. Each mini app is a Resct frontend and the backend (storage, auth, MCP, API, etc) just comes for free.",
+                "type" : "comment"
+              },
+              {
+                "author" : "ilusion",
+                "created_at_i" : 1789791091,
+                "id" : 49763251,
+                "text" : "I have my own solution here that also works for sharing stuff with clients with configurable whitelists at artifacts.iofold.com (also open-source for self hosting on cf workers for almost free, github linked on the homepage)",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1789750823,
+            "id" : 49757137,
+            "text" : "&gt; My wife and I have a mobile group&#x2F;shared bot system where we can make mini apps and collab.<p>&gt; Anything from baby stuff, groceries, shopping, planning, wine tracker app, simple&#x2F;fun&#x2F;useful data things, etc…<p>Can you elaborate on this? Sounds really cool!",
+            "type" : "comment"
+          },
+          {
+            "author" : "FridayCuriousit",
+            "children" : [
+              {
+                "author" : "U4E4",
+                "created_at_i" : 1789756880,
+                "id" : 49758434,
+                "text" : "I run something similar, and in my system an app artifact is typically just a rich react component in a React Native client. They usually start as prototypes in chat, similar to what the labs provide in their native apps. If I or someone else in my user group wants more depth than a chat widget, then the artifacts can grow into a “workspace”. Oddly enough my richest workspaces have most been for entertainment. DnD, MtG deck building, HN comment thread parsing. And system management. Intrusion detection, feature life cycle&#x2F;LLM handoff management, call telemetry. I do have a workspace for public county permit lookup which has been handy too. Reach out and I can share more.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1789750854,
+            "id" : 49757150,
+            "text" : "Interested in the the bot system and how your self publishing app artifacts that you&#x27;ve got running. Care to share more?",
+            "type" : "comment"
+          },
+          {
+            "author" : "theturtletalks",
+            "children" : [
+              {
+                "author" : "SparkyMcUnicorn",
+                "children" : [
+                  {
+                    "author" : "nacs",
+                    "children" : [
+                      {
+                        "author" : "MattCruikshank",
+                        "created_at_i" : 1789758365,
+                        "id" : 49758781,
+                        "text" : "That&#x27;s why I keep using tsnet directly, where you can have as many virtual machines, doing sharing or funneling, as you want to.<p>The CLI doesn&#x27;t let you do as much as the go library does.",
+                        "type" : "comment"
+                      },
+                      {
+                        "author" : "bakkoting",
+                        "children" : [
+                          {
+                            "author" : "Natfan",
+                            "created_at_i" : 1789880923,
+                            "id" : 49772647,
+                            "text" : "or just use a tailscale sidecar[0] in a docker container and give it any hostname you want<p>[0]: <a href=\"https:&#x2F;&#x2F;tailscale.com&#x2F;blog&#x2F;docker-tailscale-guide\" rel=\"nofollow\">https:&#x2F;&#x2F;tailscale.com&#x2F;blog&#x2F;docker-tailscale-guide</a>",
+                            "type" : "comment"
+                          }
+                        ],
+                        "created_at_i" : 1789760023,
+                        "id" : 49759094,
+                        "text" : "You can set up paths that route to different local ports. As long as your apps don&#x27;t need to live at the root path you can have as many as you like. And you can still have something on the root path as long as it doesn&#x27;t need the subpath.<p>Here&#x27;s `tailscale funnel status` on my machine:<p><pre><code>    $ tailscale funnel status\n    \n    # Funnel on:\n    #     - https:&#x2F;&#x2F;my-machine.tailXXXX.ts.net\n    \n    https:&#x2F;&#x2F;my-machine.tailXXXX.ts.net (Funnel on)\n    |-- &#x2F;            proxy http:&#x2F;&#x2F;localhost:3000\n    |-- &#x2F;foo         proxy http:&#x2F;&#x2F;localhost:3001\n    |-- &#x2F;bar         proxy http:&#x2F;&#x2F;localhost:3002\n    |-- &#x2F;baz         proxy http:&#x2F;&#x2F;localhost:4004</code></pre>",
+                        "type" : "comment"
+                      },
+                      {
+                        "author" : "justinc8687",
+                        "created_at_i" : 1789789700,
+                        "id" : 49763129,
+                        "text" : "I have multiple funnels running at once. I just put a tailscale container into my compose stack and that way each compose stack gets its own tailscale instance and thus its own funnel. Happy to share the setup if at all interested.",
+                        "type" : "comment"
+                      },
+                      {
+                        "author" : "havnagiggle",
+                        "created_at_i" : 1789792844,
+                        "id" : 49763362,
+                        "text" : "Reverse proxy to additional endpoints.",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1789755084,
+                    "id" : 49758062,
+                    "text" : "Tailscale funnel works well but you can only have 1 per Tailscale instance (1 per machine) at the https endpoint so if you want to have a few apps, the others will go on non-https, custom-port URLs.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1789754234,
+                "id" : 49757899,
+                "text" : "&gt; You can also use Tailscale serve to get a HTTPS url like Cloudflared but it&#x27;s only visible to your tailnet<p>For public access, similar to these cloudflare tunnels, there&#x27;s Tailscale Funnel.<p><a href=\"https:&#x2F;&#x2F;tailscale.com&#x2F;docs&#x2F;features&#x2F;tailscale-funnel\" rel=\"nofollow\">https:&#x2F;&#x2F;tailscale.com&#x2F;docs&#x2F;features&#x2F;tailscale-funnel</a>",
+                "type" : "comment"
+              },
+              {
+                "author" : "0x1ch",
+                "children" : [
+                  {
+                    "author" : "garettmd",
+                    "children" : [
+                      {
+                        "author" : "0x1ch",
+                        "created_at_i" : 1789761215,
+                        "id" : 49759344,
+                        "text" : "Also a very good alternative. I went on a spree and tried out all of the self hostable alternatives and this was definitely a runner up to netbird. The self hosted tailscale is also good, just not as polished as these two projects are.",
+                        "type" : "comment"
+                      },
+                      {
+                        "author" : "nickspacek",
+                        "children" : [
+                          {
+                            "author" : "BOOSTERHIDROGEN",
+                            "created_at_i" : 1789790251,
+                            "id" : 49763181,
+                            "text" : "Which features do you specifically benefit from?",
+                            "type" : "comment"
+                          }
+                        ],
+                        "created_at_i" : 1789783712,
+                        "id" : 49762615,
+                        "text" : "Switched from Pangolin to Netbird recently and enjoy Netbird more!",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1789756387,
+                    "id" : 49758343,
+                    "text" : "Netbird&#x27;s great. I&#x27;ve been using Pangolin (<a href=\"https:&#x2F;&#x2F;pangolin.net&#x2F;\">https:&#x2F;&#x2F;pangolin.net&#x2F;</a>) lately for my homelab. It&#x27;s very similar in functionality to Netbird, but I like the UX of it better.",
+                    "type" : "comment"
+                  },
+                  {
+                    "author" : "drcongo",
+                    "children" : [
+                      {
+                        "author" : "0x1ch",
+                        "created_at_i" : 1789761314,
+                        "id" : 49759371,
+                        "text" : "I think Tailscale would&#x27;ve fit my needs perfectly fine, but the management makes access control and grouping dead simple in netbird. It also generates a nice little map of your peers, their groups, and connected nodes etc. Quick visual on your topology.",
+                        "type" : "comment"
+                      },
+                      {
+                        "author" : "allthetime",
+                        "children" : [
+                          {
+                            "author" : "drcongo",
+                            "created_at_i" : 1789906868,
+                            "id" : 49775121,
+                            "text" : "With more than 3 users?",
+                            "type" : "comment"
+                          }
+                        ],
+                        "created_at_i" : 1789786560,
+                        "id" : 49762868,
+                        "text" : "What ssh features? You can have a hundred devices connected for free and they can all just ssh to each other directly",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1789761080,
+                    "id" : 49759314,
+                    "text" : "I switched from Tailscale to Netbird purely because of Tailscale&#x27;s bizarre pricing tiers - I wanted <i>just</i> the SSH features, with multiple users, but the paid tier up from free didn&#x27;t include the SSH features.",
+                    "type" : "comment"
+                  },
+                  {
+                    "author" : "drakenot",
+                    "children" : [
+                      {
+                        "author" : "usagisushi",
+                        "created_at_i" : 1789795633,
+                        "id" : 49763601,
+                        "text" : "Both support multi-user setups with SSO or built-in auth.<p>Beyond that, compared to a typical hub-and-spoke WireGuard setup, the main advantage is peer-to-peer connectivity. Clients connect directly to each other when possible, which lowers latency by bypassing a central relay.<p>AFAIK, they also have different origins:<p>Pangolin started as an internet-facing reverse proxy (Traefik) combined with a WireGuard server for backend nodes. It has gradually added VPN-like features, including client device access and an internal HTTPS proxy similar to Tailscale Serve.<p>NetBird is a self-hostable Tailscale alternative that started as a mesh VPN focused on P2P traffic. It recently added its own reverse proxy features (Traefik-based, coincidentally), also similar to Tailscale Serve.<p>Pangolin is centered on endpoint and ingress management, while NetBird focuses on mesh networking, though their feature sets are increasingly converging.",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1789784845,
+                    "id" : 49762713,
+                    "text" : "For those who use Netbird or Pangolin, I&#x27;m trying to understand where it would come in handy over my Wireguard-Easy setup with my phone &amp; laptops configured to connect to my Wireguard network externally.<p>Is this primarily for multi-user scenarios or complex setups?",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1789754645,
+                "id" : 49757983,
+                "text" : "Alternatively, Netbird has been a dream to use over the last half year or so. I think their server software has had some hiccups on new releases, but I stagger those updates anyways. All self hosted, similar concept to Tailscale, very good management UI baked into the self hosted product.",
+                "type" : "comment"
+              },
+              {
+                "author" : "_user_account",
+                "children" : [
+                  {
+                    "author" : "herpdyderp",
+                    "created_at_i" : 1789757410,
+                    "id" : 49758566,
+                    "text" : "I pay Tailscale nothing, why switch?",
+                    "type" : "comment"
+                  },
+                  {
+                    "author" : "titularcomment",
+                    "created_at_i" : 1789759429,
+                    "id" : 49758981,
+                    "text" : "I think an important feature for homelabs is NAT traversal",
+                    "type" : "comment"
+                  },
+                  {
+                    "author" : "matthewmacleod",
+                    "created_at_i" : 1789759581,
+                    "id" : 49759010,
+                    "text" : "No, it’s not. It handles the keys, provisioning, DNS, NAT traversal, and a bunch of other stuff. WireGuard is a great technology - Tailscale is like a usability layer on top of it.",
+                    "type" : "comment"
+                  },
+                  {
+                    "author" : "pocksuppet",
+                    "created_at_i" : 1789761328,
+                    "id" : 49759373,
+                    "text" : "Wireguard is great for a point-to-point or multipoint VPN set up by a competent network administrator between machines with static addresses. But that&#x27;s the only thing it does. It does not handle authentication or mobility very well.",
+                    "type" : "comment"
+                  },
+                  {
+                    "author" : "jallmann",
+                    "created_at_i" : 1789810487,
+                    "id" : 49764885,
+                    "text" : "git : github :: wireguard : tailscale",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1789757246,
+                "id" : 49758529,
+                "text" : "just use wireguard; tailscale is just the SSO enterprise overlay with a pricing tab.",
+                "type" : "comment"
+              },
+              {
+                "author" : "dlopes7",
+                "created_at_i" : 1789760493,
+                "id" : 49759188,
+                "text" : "I use tailscale on my steam deck to play stardew valley with my son on my laptop, it truly is amazing",
+                "type" : "comment"
+              },
+              {
+                "author" : "girvo",
+                "children" : [
+                  {
+                    "author" : "tenuousemphasis",
+                    "created_at_i" : 1789775278,
+                    "id" : 49761801,
+                    "text" : "Strange, battery use is negligible on Android, particularly when the tunnel is not in active use.",
+                    "type" : "comment"
+                  },
+                  {
+                    "author" : "eloisius",
+                    "created_at_i" : 1789775828,
+                    "id" : 49761853,
+                    "text" : "I have the same experience and I once found a GitHub issue about it. I don’t think it sounded like they planned to fix it anytime soon. I just added the Tailscale toggle button to my phone’s quick control panel and turn it on whenever I want to check all my syncthing nodes or something. I keep meaning to see if I can script up something with Shortcuts to make it turn back off automatically.",
+                    "type" : "comment"
+                  },
+                  {
+                    "author" : "devilbunny",
+                    "children" : [
+                      {
+                        "author" : "aborsy",
+                        "children" : [
+                          {
+                            "author" : "devilbunny",
+                            "children" : [
+                              {
+                                "author" : "yesb",
+                                "children" : [
+                                  {
+                                    "author" : "devilbunny",
+                                    "created_at_i" : 1789886280,
+                                    "id" : 49773082,
+                                    "text" : "Yeah, I could do that, and it would work for most of the time, but TS does it for even the weird cases when I’m away from home and can’t play with it.<p>EDIT:good call, though.",
+                                    "type" : "comment"
+                                  }
+                                ],
+                                "created_at_i" : 1789849126,
+                                "id" : 49769793,
+                                "text" : "No but hole punching isn&#x27;t really needed in that scenario. Open a port on the IPv4 side + dyanmic DNS. More than likely that is what tailscale is doing for you. Opening a port on that end w&#x2F;UPnP. But can&#x27;t argue with how simple it is with tailscale.",
+                                "type" : "comment"
+                              }
+                            ],
+                            "created_at_i" : 1789793268,
+                            "id" : 49763394,
+                            "text" : "WG gonna punch through NAT for me?<p>My endpoint is a pretty stable (though technically dynamic) IPv4 on one end, but the other might be a cell phone with CGNAT, some random WiFi, blah blah etc. TS does that. If you don&#x27;t want to use it, cool. Don&#x27;t. I&#x27;m willing to make the tradeoffs to use TS for now. That could change in the future.",
+                            "type" : "comment"
+                          }
+                        ],
+                        "created_at_i" : 1789784724,
+                        "id" : 49762702,
+                        "text" : "You should compare battery consumption of TS exit node with something like WG app which low",
+                        "type" : "comment"
+                      },
+                      {
+                        "author" : "girvo",
+                        "created_at_i" : 1789813529,
+                        "id" : 49765183,
+                        "text" : "I wasn&#x27;t, no. I&#x27;m not the only one whos hit it either, not sure what the cause is :(",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1789783094,
+                    "id" : 49762564,
+                    "text" : "Were you using an exit node? Because that really does hammer the battery, but vanilla TS without a bunch of traffic doesn&#x27;t seem to do much to mine.<p>The only always-on TS service on my phone is Immich for photo backup, and I don&#x27;t take enough photos for that to matter much.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1789768918,
+                "id" : 49760848,
+                "text" : "I love TailScale but was getting crazy battery drain on my iPhone with it installed and setup. Still use it, just not from my phone now",
+                "type" : "comment"
+              },
+              {
+                "author" : "prtmnth",
+                "created_at_i" : 1789778745,
+                "id" : 49762206,
+                "text" : "Using Tailscale in exactly the same way. It has been such a blessing!",
+                "type" : "comment"
+              },
+              {
+                "author" : "timwis",
+                "created_at_i" : 1789811167,
+                "id" : 49764952,
+                "text" : "Fyi you can point a domain&#x2F;subdomain (eg lan.mysite.com) at that 100.x IP and it will only work for those on your tailnet.",
+                "type" : "comment"
+              },
+              {
+                "author" : "peter_retief",
+                "created_at_i" : 1789820646,
+                "id" : 49765983,
+                "text" : "I use both (also Headscale)",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1789751108,
+            "id" : 49757202,
+            "text" : "Tailscale is truly a cheat code. I have a web app that I run locally to control terminals on my Mac. I access the website on my phone using the 100.xx IP address and can code on the go. No need for a Mac or iOS app.<p>You can also use Tailscale serve to get a HTTPS url like Cloudflared but it&#x27;s only visible to your tailnet. Be careful using Cloudflare tunnels because they are public and bots start poking around immediately.",
+            "type" : "comment"
+          },
+          {
+            "author" : "roberttod",
+            "children" : [
+              {
+                "author" : "parthdesai",
+                "children" : [
+                  {
+                    "author" : "wildzzz",
+                    "created_at_i" : 1789765113,
+                    "id" : 49760170,
+                    "text" : "I just use &#x2F;remote-control. You can&#x27;t do everything from remote but it&#x27;s was easier just opening the Claude app than using ssh. And I don&#x27;t need to be on my tailnet either.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1789759576,
+                "id" : 49759008,
+                "text" : "if both your mac mini and your phone are on the same tailnet, can&#x27;t you just ssh to your mac mini from your phone&#x27;s terminal emulator and have claude code&#x2F;codex run on it?",
+                "type" : "comment"
+              },
+              {
+                "author" : "threecheese",
+                "created_at_i" : 1789760165,
+                "id" : 49759114,
+                "text" : "If by local MCP you mean stdio, then a tailnet won&#x27;t help you unless you proxy the local MCP using something like mcp-proxy: <a href=\"https:&#x2F;&#x2F;github.com&#x2F;sparfenyuk&#x2F;mcp-proxy\" rel=\"nofollow\">https:&#x2F;&#x2F;github.com&#x2F;sparfenyuk&#x2F;mcp-proxy</a> . That local mcp is only exposed to apps on the machine.\n The flow is Phone client --&gt; agent harness or whatev --&gt; Tailnet --&gt; Mac Mini --&gt; mcp-proxy http listener --&gt; local mcp. But you need to wrap the local mcp runner in the proxy (check the docs).<p>EDIT you don&#x27;t mean running on your actual phone lol, you mean in the web browser at Claude.ai. Anyway, if you use mcp-proxy for a stdio mcp, or if it&#x27;s an http mcp alone, then you would need a public endpoint for Claude.ai to connect to. Tailscale will only help you if you use Funnel, but this cloudflare thing is exactly what you need (w&#x2F;o Tailscale).",
+                "type" : "comment"
+              },
+              {
+                "author" : "dalberto",
+                "created_at_i" : 1789764724,
+                "id" : 49760108,
+                "text" : "I built something for this exact use-case using Cloudflare Tunnels:<p><a href=\"https:&#x2F;&#x2F;github.com&#x2F;dalberto&#x2F;mcp-ferry\" rel=\"nofollow\">https:&#x2F;&#x2F;github.com&#x2F;dalberto&#x2F;mcp-ferry</a><p>I also use CF managed auth to make auth easier.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1789758379,
+            "id" : 49758784,
+            "text" : "Does this work with remote agents though? I want my claude.ai agents running on my phone to be able to hit my local MCPs on my Mac Mini - my understanding is that tailscale wouldn&#x27;t work because the execution is being called remotely. But seems like these tunnels would support that.",
+            "type" : "comment"
+          },
+          {
+            "author" : "gopalv",
+            "created_at_i" : 1789758641,
+            "id" : 49758836,
+            "text" : "&gt; it’s missing the bigger integration offerings Tailscale has&#x2F;does still.<p>Until I had tailscale serve generating valid certs, I had a good reason to use Cloudflare tunnels.<p>But in general I don&#x27;t want to put everything on the internet side of things.<p>Mostly, I don&#x27;t want something open, but more like a &quot;share with&quot; for people who are in the same office (virtually over tailnet, not physically on the same LAN).<p>This still works great for a demo instead of a product pitch, to send an link out to see something.<p>I&#x27;d still use a real host over a laptop for those.",
+            "type" : "comment"
+          },
+          {
+            "author" : "unixhero",
+            "created_at_i" : 1789762722,
+            "id" : 49759698,
+            "text" : "That&#x27;s really cool! I really want something like that. Care to share what your stack is? My wife would love having that super power.",
+            "type" : "comment"
+          },
+          {
+            "author" : "nijave",
+            "created_at_i" : 1789774111,
+            "id" : 49761638,
+            "text" : "Don&#x27;t think we had any issues with Warp but Cloudflare APIs are a bit of a mess. Seems like they&#x27;ve cobbled together and then renamed&#x2F;rearranged things multiple times now and it&#x27;s a bit hard to keep up.<p>Terraform has worked decently well especially since there&#x27;s a few random settings here and there that aren&#x27;t exposed anywhere in the UI (facepalm)",
+            "type" : "comment"
+          },
+          {
+            "author" : "ramoz",
+            "created_at_i" : 1789780737,
+            "id" : 49762396,
+            "text" : "&gt; Think shared Claude Artifacts that don’t live @ Anthropic.<p>Shameless plug, I&#x27;ve built a self-hosted capability here with things like live collaboration for humans and agents. There is a native cloudflare deplyoment and integration with Cloudflare Artifacts. PR for tunnel would be appreciated.<p><a href=\"https:&#x2F;&#x2F;github.com&#x2F;plannotator&#x2F;artifact-server\" rel=\"nofollow\">https:&#x2F;&#x2F;github.com&#x2F;plannotator&#x2F;artifact-server</a>",
+            "type" : "comment"
+          },
+          {
+            "author" : "gibs0ns",
+            "created_at_i" : 1789782412,
+            "id" : 49762525,
+            "text" : "I have really enjoyed the experience of OpenZiti for this purpose. Being able to host dark services and impose granular access controls and routing for different clients is a game changer.<p>For the few services I host that require SSL (eg; WebUSB), I serve the dark service via a standard domain (example.com) so I can still get a LetsEncrypt cert, but public access to that domain resolves to a static page; &quot;Plz connect to OpenZiti &amp; try again&quot;. This allows me to have SSL on required dark services without requiring to install a private CA for each client.",
+            "type" : "comment"
+          },
+          {
+            "author" : "allthetime",
+            "children" : [
+              {
+                "author" : "pruneau",
+                "created_at_i" : 1789787138,
+                "id" : 49762905,
+                "text" : "I use NextDNS instead of public DNS to do the same thing.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1789786504,
+            "id" : 49762865,
+            "text" : "I use public dns routed to private Tailscale ips for all my home services. If i want to expose something for friends who don’t use Tailscale I connect a cloudflare tunnel… it’s pretty much a couple clicks and typing in a subdomain name once cloudflared is running on a server… what were you having trouble with?",
+            "type" : "comment"
+          },
+          {
+            "author" : "ezst",
+            "created_at_i" : 1789793760,
+            "id" : 49763435,
+            "text" : "I would say that I&#x27;ve been doing most of that already with a reverse proxy+SSO&#x2F;IDP for a very long time. Not the same, but close-enough and open to the &quot;traditional internet&quot; in a manner that does not require my users to install and configure tailscale, which is a massive plus. I do appreciate tailscale for the option to keep my effective host IP address hidden&#x2F;local, but then I&#x27;ve been having a front on the internet (with a public IP&#x2F;domain&#x2F;...) for decades and I don&#x27;t see a problem continuing.",
+            "type" : "comment"
+          },
+          {
+            "author" : "pbreit",
+            "created_at_i" : 1789795374,
+            "id" : 49763577,
+            "text" : "How do I get this more persistent?",
+            "type" : "comment"
+          },
+          {
+            "author" : "epolanski",
+            "created_at_i" : 1789802117,
+            "id" : 49764153,
+            "text" : "I never found cloudflare appealing for the small developer.",
+            "type" : "comment"
+          },
+          {
+            "author" : "neop1x",
+            "created_at_i" : 1789900472,
+            "id" : 49774443,
+            "text" : "&gt;&gt; because I love Cloudflare<p>Sad to read. Do people in China also love CCP and the Great Firewall? I know CF is more than just that MITM proxy as a service but that&#x27;s their main product.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1789750146,
+        "id" : 49756985,
+        "text" : "My wife and I have a mobile group&#x2F;shared bot system where we can make mini apps and collab.<p>Anything from baby stuff, groceries, shopping, planning, wine tracker app, simple&#x2F;fun&#x2F;useful data things, etc…<p>We have Tailscale on our phones and can instantly and privately see without deployment or anything crazy via our secure VPN.<p>Think shared Claude Artifacts that don’t live @ Anthropic.<p>Tried to first do this with Cloudflare Tunnels (because I love Cloudflare), but between the broken dashboard side of Zero Trust and nightmare of Warp… it was basically impossible to setup. I guess that’s all super enterprise,  which seems to be very anti-Cloudflare philosophically to not be able to self do things.<p>Will check out Quick Tunnels but I think it’s missing the bigger integration offerings Tailscale has&#x2F;does still.",
+        "type" : "comment"
+      },
+      {
+        "author" : "dbmikus",
+        "created_at_i" : 1789750391,
+        "id" : 49757031,
+        "text" : "Now that is one vibe-coded website",
+        "type" : "comment"
+      },
+      {
+        "author" : "afisxisto",
+        "children" : [
+          {
+            "author" : "ghoshbishakh",
+            "created_at_i" : 1789755149,
+            "id" : 49758076,
+            "text" : "Thanks for sharing.<p>- Co-founder of Pinggy.",
+            "type" : "comment"
+          },
+          {
+            "author" : "mitxela",
+            "created_at_i" : 1789774536,
+            "id" : 49761697,
+            "text" : "You can also do this on any server you have:<p>ssh -R 0.0.0.0:80:localhost:9051 myserver<p>Make sure server sshd config has: GatewayPorts yes",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1789750439,
+        "id" : 49757043,
+        "text" : "I quite like pinggy for this. You don&#x27;t need to install anything, since it uses a plain SSH tunnel.<p>ssh -p 443 -R0:localhost:9051 free.pinggy.io<p>(Free for 1h each session)",
+        "type" : "comment"
+      },
+      {
+        "author" : "scosman",
+        "created_at_i" : 1789750445,
+        "id" : 49757045,
+        "text" : "The number of vibe coded apps accidentally hosted on dev laptops is about to explode.",
+        "type" : "comment"
+      },
+      {
+        "author" : "corvad",
+        "created_at_i" : 1789750482,
+        "id" : 49757056,
+        "text" : "This is not anything new they have been around since the tunnels project launched. What is more concerning is the AI slop webpage and just the &quot;AI&quot; centered relaunch of an existing product.",
+        "type" : "comment"
+      },
+      {
+        "author" : "smetannik",
+        "created_at_i" : 1789750760,
+        "id" : 49757117,
+        "text" : "So is this basically a ngrok from CF?",
+        "type" : "comment"
+      },
+      {
+        "author" : "adamfeldman",
+        "children" : [
+          {
+            "author" : "keeganpoppen",
+            "children" : [
+              {
+                "author" : "robertlagrant",
+                "created_at_i" : 1789756391,
+                "id" : 49758345,
+                "text" : "As I understand it you can make a tunnel, but it&#x27;s under a domain you control and it&#x27;s a few clicks in the dashboard to set up, and then a something to run in CLI. That&#x27;s what my homelab uses. This is just a single CLI command and the whole thing is set up.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1789753151,
+            "id" : 49757669,
+            "text" : "yeah am i crazy or could it not like already do this as well? i swear i’ve seen somesuch similar in the cloudflared options. maybe not. but i can second having had some problems over the year getting cloudflared to install&#x2F;set up correctly. tbf the actual feature works amazing once you get it working.",
+            "type" : "comment"
+          },
+          {
+            "author" : "st3fan",
+            "children" : [
+              {
+                "author" : "lysace",
+                "children" : [
+                  {
+                    "author" : "judge2020",
+                    "children" : [
+                      {
+                        "author" : "lysace",
+                        "children" : [
+                          {
+                            "author" : "inemesitaffia",
+                            "created_at_i" : 1789828766,
+                            "id" : 49766936,
+                            "text" : "Works on someone&#x27;s computer.<p>It&#x27;s &quot;free&quot;. That&#x27;s all you need to understand.",
+                            "type" : "comment"
+                          },
+                          {
+                            "author" : "st3fan",
+                            "created_at_i" : 1789850977,
+                            "id" : 49770005,
+                            "text" : "I don’t understand what you are complaining about. Do you think there is an actual bug?",
+                            "type" : "comment"
+                          }
+                        ],
+                        "created_at_i" : 1789785363,
+                        "id" : 49762756,
+                        "text" : "That wasn’t the ask though.<p>The product is falsely advertised as is:<p>&quot;Cloudflare <i>Quick</i> Tunnels&quot;<p>This is on one (or two) particular domain(s) where setting up wildcard DNS should be relatively trivial, if they actually cared enough about the UX of this product to make a special case in their code.<p>I don&#x27;t understand how people can launch stuff like this.",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1789773183,
+                    "id" : 49761510,
+                    "text" : "Cloudflare isn&#x27;t going to wildcard every domain on their platform just to cure stale cache DNS issues.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1789766130,
+                "id" : 49760354,
+                "text" : "Install via brew worked. Getting the hostname to resolve took 30 mins of waiting. Have they heard of wildcard DNS?",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1789758047,
+            "id" : 49758702,
+            "text" : "Huh I brew installed it and got a working tunnel in like 15 seconds.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1789751092,
+        "id" : 49757199,
+        "text" : "Cloudflare doesn&#x27;t really seem to care about their tunnel product. &quot;cloudflared service install broken on macOS&quot; since 2021: <a href=\"https:&#x2F;&#x2F;github.com&#x2F;cloudflare&#x2F;cloudflared&#x2F;issues&#x2F;327\" rel=\"nofollow\">https:&#x2F;&#x2F;github.com&#x2F;cloudflare&#x2F;cloudflared&#x2F;issues&#x2F;327</a>",
+        "type" : "comment"
+      },
+      {
+        "author" : "rock_artist",
+        "children" : [
+          {
+            "author" : "awwaiid",
+            "created_at_i" : 1789757466,
+            "id" : 49758573,
+            "text" : "As far as I know this has been a provided feature of cloudflare for several years. I don&#x27;t understand why it was posted today.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1789751305,
+        "id" : 49757255,
+        "text" : "What&#x27;s surprised me, just earlier today I let Codex write a minor PR for simple open-source webapp. I needed HTTPS for testing secured context Web API. (Web Bluetooth)<p>While testing it locally Codex by itself suggests using CF Tunnels but what&#x27;s more interesting it actually used the Quick Tunnels.<p>Coming from days where I get warnings of vibe-coded generated code using deprecated code or older APIs, I must say using something so fresh is quite impressive.",
+        "type" : "comment"
+      },
+      {
+        "author" : "everybodyknows",
+        "created_at_i" : 1789751314,
+        "id" : 49757257,
+        "text" : "The page is a fine exemplar of marketing deception.  Banner says:<p>&gt; Free, secure tunnel for everything you are building.<p>&gt; Preview <i>and ship</i> ideas globally in seconds with Quick Tunnels. Deploy your local application to the Internet with a single command.<p>Clicking through <i>Explore Cloudflare Tunnel</i> leads us to:<p>&gt; Looking to expose public applications?\nThis documentation covers Cloudflare Tunnel use cases for private networking and Zero Trust, like VPN replacement and private network access. For publishing public web applications, APIs, and services to the Internet through Cloudflare refer to ...",
+        "type" : "comment"
+      },
+      {
+        "author" : "rinconrex",
+        "created_at_i" : 1789751442,
+        "id" : 49757272,
+        "text" : "Oh I use this for testing and demos between my phone and computer. Ngrok is fine, probably better off using Tailscale, but it&#x27;s very easy to just run a quick tunnel with &quot;cloudflared tunnel --url localhost:XXXX&quot;.",
+        "type" : "comment"
+      },
+      {
+        "author" : "spprashant",
+        "created_at_i" : 1789751721,
+        "id" : 49757338,
+        "text" : "Off-topic: That web page looks exactly like my vibe-coded utilities.",
+        "type" : "comment"
+      },
+      {
+        "author" : "superkuh",
+        "created_at_i" : 1789751811,
+        "id" : 49757365,
+        "text" : "Cloudflare&#x27;s only goal here is to put themselves between everyone and charge a toll. They are running a protection racket where they themselves are causing much of the damage they offer protection from. This is another example.",
+        "type" : "comment"
+      },
+      {
+        "author" : "bilater",
+        "created_at_i" : 1789751812,
+        "id" : 49757366,
+        "text" : "So this is basically ngrok?",
+        "type" : "comment"
+      },
+      {
+        "author" : "bitlad",
+        "created_at_i" : 1789751827,
+        "id" : 49757372,
+        "text" : "So it is ngrok 10 years later?",
+        "type" : "comment"
+      },
+      {
+        "author" : "skhameneh",
+        "children" : [
+          {
+            "author" : "PufPufPuf",
+            "created_at_i" : 1789752761,
+            "id" : 49757584,
+            "text" : "Group of three cards, each with a left-aligned icon, heading and subheading stacked -- that&#x27;s the m-dash of web design.",
+            "type" : "comment"
+          },
+          {
+            "author" : "vlyan",
+            "created_at_i" : 1789752862,
+            "id" : 49757605,
+            "text" : "I&#x27;ll take that over corporate memphis of the previous decade.<p>(idk if it&#x27;s really declining or I simply haven&#x27;t noticed it in a while)",
+            "type" : "comment"
+          },
+          {
+            "author" : "ruuda",
+            "children" : [
+              {
+                "author" : "hackernud3s",
+                "children" : [
+                  {
+                    "author" : "jofzar",
+                    "children" : [
+                      {
+                        "author" : "hackernud3s",
+                        "created_at_i" : 1789783086,
+                        "id" : 49762563,
+                        "text" : "It routes from closest PoP to visitor -&gt; closest PoP to origin. Your way doesn&#x27;t convey that as clearly IMHO.",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1789780852,
+                    "id" : 49762406,
+                    "text" : "&quot;Traffic routes via Cloudflare&#x27;s network&quot;?",
+                    "type" : "comment"
+                  },
+                  {
+                    "author" : "tefkah",
+                    "created_at_i" : 1789813363,
+                    "id" : 49765173,
+                    "text" : "Claude has a habit of always talking in an overly active voice, sort of personifying subjects that feels off. I don&#x27;t think many people would choose to say &quot;Traffic rides&quot; here.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1789773081,
+                "id" : 49761493,
+                "text" : "How would you say that? I can&#x27;t think of a clearer way to say it TBH.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1789762930,
+            "id" : 49759740,
+            "text" : "&quot;Traffic rides Cloudflare&#x27;s network&quot; Oh, hello Claude.",
+            "type" : "comment"
+          },
+          {
+            "author" : "ttul",
+            "created_at_i" : 1789834598,
+            "id" : 49767768,
+            "text" : "I’m not sure your comment is load-bearing enough…",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1789752110,
+        "id" : 49757437,
+        "text" : "There&#x27;s a number of comments already about how this page looks vibe coded, I&#x27;d add that I&#x27;m actually shocked at how much this looks like the output of a one-shot prompt.  It&#x27;s not so much that an LLM was used, but a callout on just how generic this page is.  How much iteration went into this?  At surface it looks like nearly no iteration.<p>Edit: Well, they just re-vibed it.  Went from the most generic Claude 4.6 era to today’s models, quality wise.  \nI wish I had saved a copy of the original, because it would have taken me actual solid effort to make a page that generic out of an LLM.",
+        "type" : "comment"
+      },
+      {
+        "author" : "infogulch",
+        "children" : [
+          {
+            "author" : "RedCinnabar",
+            "children" : [
+              {
+                "author" : "infogulch",
+                "created_at_i" : 1789778132,
+                "id" : 49762135,
+                "text" : "Thanks! The build system is nix, but the result is more of an appliance than a distro. (linuxManualConfig from tinyconfig + fragment, static musl Rust PID 1, mke2fs -d) Updates are rebuild-redeploy with the provider API; it can&#x27;t update itself. The filesystem is a fixed-size image (even omitting resize2fs, so no growing onto the VPS disk), and it remounts read-only after boot. The boot log is 270 kernel lines then 4 userspace: 1 nftables loaded, 2 printing the gate&#x27;s wg0 public key, 1 remounting ro.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1789757749,
+            "id" : 49758621,
+            "text" : "Very cool, do you use some kind of an atomic distro like nix or something entirely self built using Yocto&#x2F;Buildroot? I do something similar with a simple SSH tunnel and a NFT rule. Though, I don’t need your kind of ephemeral setup and so I just use Debian.",
+            "type" : "comment"
+          },
+          {
+            "author" : "cyberamirul",
+            "created_at_i" : 1789801063,
+            "id" : 49764054,
+            "text" : "Self hosting might win on control, but it’s harder to manage so I went managed (CF Tunnel). Edge terminates TLS, my Caddy only speaks HTTP, nothing to cert renew (unless you cerbot, but that’s not a guarantee if Let’s encrypt is down).",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1789752316,
+        "id" : 49757484,
+        "text" : "I made my own tunnel system with a $5&#x2F;mo vps that runs kernel wireguard and accepts my nas&#x27; public key. Once connected it DNATs 80&#x2F;443 traffic down the tunnel to the nas, where its routed to caddy.<p>The vps runs a custom image that is 2.54 Megabytes. It has a custom kernel with almost everything but networking and wireguard disabled, a fixed-size fs with pre-allocated blocks and inodes to hold the vps wireguard key, and a single pid 1 binary that calls the kernel directly to set up the routing rules, generate a new wireguard key on first boot and save it to the fs, print out the wireguard public key to the console, and loops reap. Updating involves building and uploading a new image, assigning the vps to use it, reboot, wait for the public key in the console then set it on the nas so they can talk.",
+        "type" : "comment"
+      },
+      {
+        "author" : "general_reveal",
+        "children" : [
+          {
+            "author" : "mitxela",
+            "created_at_i" : 1789775031,
+            "id" : 49761763,
+            "text" : "No, by definition it&#x27;s not P2P because it&#x27;s all going through Cloudflare.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1789752430,
+        "id" : 49757511,
+        "text" : "Could we turn this into p2p cloud hosting for all?",
+        "type" : "comment"
+      },
+      {
+        "author" : "maipen",
+        "created_at_i" : 1789753176,
+        "id" : 49757674,
+        "text" : "I&#x27;m sorry to be offtopic, but this website looks like an hallucination generated by chatgpt 4.<p>This type of quality downgrade is scary, and it&#x27;s everywhere now.",
+        "type" : "comment"
+      },
+      {
+        "author" : "rkovashikawa",
+        "created_at_i" : 1789753563,
+        "id" : 49757754,
+        "text" : "cloudflare rocks",
+        "type" : "comment"
+      },
+      {
+        "author" : "mgw",
+        "children" : [
+          {
+            "author" : "6thbit",
+            "children" : [
+              {
+                "author" : "misnome",
+                "created_at_i" : 1789755664,
+                "id" : 49758180,
+                "text" : "This has been the behaviour when you launch but don’t connect a specific tunnel for at least a couple of years",
+                "type" : "comment"
+              },
+              {
+                "author" : "mmoustafa",
+                "created_at_i" : 1789757209,
+                "id" : 49758518,
+                "text" : "Quick tunnels have existed since at least 2022 (when I was using them)",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1789755366,
+            "id" : 49758120,
+            "text" : "&quot;quick&quot; tunnels you can make by installing cloudflare software and running a command, without a cloudflare account, using a fixed &quot;trycloudflare.com&quot; domain and not your own domain.<p>existing (slow) tunnels you can create once you&#x27;ve set up your own domain for cloudflare to manage its DNS, installing cloudflare software, logging in to your account, and running a similar command.<p>edit: my bad, quick ones aren&#x27;t new at all",
+            "type" : "comment"
+          },
+          {
+            "author" : "mmoustafa",
+            "created_at_i" : 1789757290,
+            "id" : 49758540,
+            "text" : "Nothing is new, quick tunnels were launched in 2021<p><a href=\"https:&#x2F;&#x2F;blog.cloudflare.com&#x2F;quick-tunnels-anytime-anywhere&#x2F;\" rel=\"nofollow\">https:&#x2F;&#x2F;blog.cloudflare.com&#x2F;quick-tunnels-anytime-anywhere&#x2F;</a>",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1789753766,
+        "id" : 49757800,
+        "text" : "Can anyone elaborate on what&#x27;s new? This exact product has existed from Cloudflare for years. Is it just that they added a new marketing site for it?",
+        "type" : "comment"
+      },
+      {
+        "author" : "rcarmo",
+        "created_at_i" : 1789754467,
+        "id" : 49757946,
+        "text" : "I want this with TOTP or passkeys. Just giving me a hostname doesn&#x27;t cut it these days.",
+        "type" : "comment"
+      },
+      {
+        "author" : "partloyaldemon",
+        "created_at_i" : 1789755474,
+        "id" : 49758150,
+        "text" : "Tailscale is one of the most profoundly useful technologies I’ve ever used as small business person. It’s also one I would have never thought to invent despite feeling its lack daily.",
+        "type" : "comment"
+      },
+      {
+        "author" : "ghoshbishakh",
+        "children" : [
+          {
+            "author" : "tonymet",
+            "children" : [
+              {
+                "author" : "fragmede",
+                "children" : [
+                  {
+                    "author" : "tonymet",
+                    "children" : [
+                      {
+                        "author" : "c0wb0yc0d3r",
+                        "children" : [
+                          {
+                            "author" : "tonymet",
+                            "created_at_i" : 1789766718,
+                            "id" : 49760450,
+                            "text" : "tredre3 explained it above",
+                            "type" : "comment"
+                          }
+                        ],
+                        "created_at_i" : 1789760298,
+                        "id" : 49759141,
+                        "text" : "For me, it’s as much about ease of use as much as it is about minimizing attack surface area.<p>Also the lifetime I need the connection open. For something quick, ssh tunnel. For something normies use, reverse proxy. Ain’t trying to teach my parents about IP addresses and port numbers.",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1789758556,
+                    "id" : 49758807,
+                    "text" : "any app will connect with an IP am I missing something . a socket is exactly (IP, port) (src, target) tuple",
+                    "type" : "comment"
+                  },
+                  {
+                    "author" : "tredre3",
+                    "children" : [
+                      {
+                        "author" : "tonymet",
+                        "created_at_i" : 1789766694,
+                        "id" : 49760445,
+                        "text" : "precisely (thanks!)",
+                        "type" : "comment"
+                      },
+                      {
+                        "author" : "judge2020",
+                        "created_at_i" : 1789773672,
+                        "id" : 49761580,
+                        "text" : "cloudflared is a bit unique in that it makes multiple outbound connections to CF DCs to do the tunneling and fails over if a DC has an issue (or, more likely, when a DC is near-capacity and they need to divert lower-tier traffic away from it[0]). SSH would reintroduce a single point of failure to this.<p>Also, the _main_ use case of `cloudflared` tunneling is using it as a long-term way to host production websites on your own hostname. the ability to create ad-hoc tunnels is more of a gimmick &#x2F; advertising opportunity.<p>0: <a href=\"https:&#x2F;&#x2F;github.com&#x2F;judge2020&#x2F;cloudflare-connectivity-test&#x2F;wiki&#x2F;Explanation\" rel=\"nofollow\">https:&#x2F;&#x2F;github.com&#x2F;judge2020&#x2F;cloudflare-connectivity-test&#x2F;wi...</a>",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1789761249,
+                    "id" : 49759358,
+                    "text" : "I think tonymet meant he didn&#x27;t understand why cloudflare didn&#x27;t allow using ssh -R instead of cloudflared to create the tunnel, not not using a tunnel at all.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1789757011,
+                "id" : 49758471,
+                "text" : "So you don&#x27;t know my IP (DDoS target), and because of NAT.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1789756649,
+            "id" : 49758396,
+            "text" : "i love this! never understood why a proxy app was needed",
+            "type" : "comment"
+          },
+          {
+            "author" : "caymanjim",
+            "children" : [
+              {
+                "author" : "ghoshbishakh",
+                "children" : [
+                  {
+                    "author" : "ghoshbishakh",
+                    "created_at_i" : 1789797479,
+                    "id" : 49763754,
+                    "text" : "*60 minutes",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1789758900,
+                "id" : 49758883,
+                "text" : "A free session runs for 60 seconds after which it has to be restarted and the address changes.<p>You can get the address with an API call.. but we charge for convenience. Pays the infra bills.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1789758119,
+            "id" : 49758717,
+            "text" : "What kind of usage limits?",
+            "type" : "comment"
+          },
+          {
+            "author" : "gpugreg",
+            "created_at_i" : 1789841675,
+            "id" : 49768867,
+            "text" : "When running this ssh command in qterminal, I can not click on the URL because it refreshes faster than I can right-click and click on &quot;Open Link&quot;. Do I have to type the URL by hand or is there a workaround?<p>EDIT: Found a workaround. Double-click the URL and paste it with middle-click.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1789755768,
+        "id" : 49758203,
+        "text" : "This is a very good solution for HTTP(S) tunneling - which is the most frequently needed tunnel. However if you want to play a game, or use SSH, then Pinggy tunnels are very simple to use. One command:<p>ssh -p 443 -R0:localhost:443 tcp@free.pinggy.io<p>Disclosure: Co-founder of pinggy.io here.<p>Edit: I meant TCP tunnels, UDP tunnels, or also TLS tunnels for end-to-end encryption.",
+        "type" : "comment"
+      },
+      {
+        "author" : "yuchi",
+        "created_at_i" : 1789755885,
+        "id" : 49758227,
+        "text" : "I still remember when ngrok came out. The experience was more or less the same.<p>It’s interesting that 10 (more?) years later the product has not evolved and, apparently, hasn’t found a way to finance itself without removing the pure free tunneling option.",
+        "type" : "comment"
+      },
+      {
+        "author" : "sparc24",
+        "children" : [
+          {
+            "author" : "m00x",
+            "created_at_i" : 1789757162,
+            "id" : 49758509,
+            "text" : "How many ways can you convey doing the same thing? All the banks out there have almost identical slogans because they do very similar things.",
+            "type" : "comment"
+          },
+          {
+            "author" : "hashstring",
+            "children" : [
+              {
+                "author" : "mitxela",
+                "children" : [
+                  {
+                    "author" : "hashstring",
+                    "created_at_i" : 1789812135,
+                    "id" : 49765041,
+                    "text" : "No, marketing is about communicating valuable offers.<p>Misleading communication is what I am describing, that is a subset of all communications.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1789774638,
+                "id" : 49761708,
+                "text" : "Marketing is meant to be misleading. That&#x27;s how it works.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1789757444,
+            "id" : 49758570,
+            "text" : "Hm, yeah, depends who you’re marketing this to.<p>Also, the “0 ports opened” marketing is misleading. It still binds to a port and then also lets people access your resources over it.<p>I dislike that Cloudflare Engineering has become more… marketingy as of late. Also with their Cloudflare OS misnomer. Their products used to make more sense, what happened?",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1789756944,
+        "id" : 49758449,
+        "text" : "Worst marketing ever. ngrok had a similar slogan:<p>something like - &quot;We help you put localhost on the Internet.&quot;<p>What could possibly go wrong?",
+        "type" : "comment"
+      },
+      {
+        "author" : "_user_account",
+        "created_at_i" : 1789757162,
+        "id" : 49758508,
+        "text" : "The main use case: cloud harnesses to access your local network; I highly recommend to run the harness in your local network instead, then you own the session, no tunnel needed.<p>The other use case for webhooks is ok, but is exactly what ngrok already does since forever with a pretty high free quota.",
+        "type" : "comment"
+      },
+      {
+        "author" : "rvz",
+        "created_at_i" : 1789757568,
+        "id" : 49758592,
+        "text" : "Seems like the quality of software engineering is now going to zero and just vibe coding unstable alternatives since 2023.",
+        "type" : "comment"
+      },
+      {
+        "author" : "nickgray",
+        "created_at_i" : 1789757746,
+        "id" : 49758620,
+        "text" : "This is cool. I like it! Also Cloudflare design has stepped up so much over the past 2 years.",
+        "type" : "comment"
+      },
+      {
+        "author" : "emadabdulrahim",
+        "created_at_i" : 1789758823,
+        "id" : 49758864,
+        "text" : "Does this make working with agents in cloud more interesting? Maybe now I can see my changes right away without waiting for the build and deploy? By running the dev server and tunneling from the sandbox giving me a direct url access somehow?<p>Can someone chime in here?",
+        "type" : "comment"
+      },
+      {
+        "author" : "blocke",
+        "created_at_i" : 1789759594,
+        "id" : 49759012,
+        "text" : "Ah yes.  We can&#x27;t let self hosted app traffic flow across the Internet in a way that escapes the vast Internet surveillance system run by the Americans called Cloudflare.<p>Hmm, Tailscale is too convenient and that traffic is going dark from Cloudflare&#x27;s all seeing eye.",
+        "type" : "comment"
+      },
+      {
+        "author" : "pocksuppet",
+        "children" : [
+          {
+            "author" : "throawayonthe",
+            "children" : [
+              {
+                "author" : "kalcode",
+                "created_at_i" : 1789761531,
+                "id" : 49759411,
+                "text" : "It&#x27;s the AI witch-hunt these days. Salam trails coming soon to you&#x27;re nearest artist! &quot;That&#x27;s AI!!!&quot;<p>Sigh... HN littered with it these days.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1789761337,
+            "id" : 49759376,
+            "text" : "they&#x27;ve been running the tunnels service for years<p>and they also provide web hosting..",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1789761240,
+        "id" : 49759355,
+        "text" : "This is obviously vibe written, and I can&#x27;t wait to see how quickly it will be shut down after someone uses it in combination with Mullvad to host child pornography.<p>Mullvad themselves already turned off port forwarding because people were using it to host child pornography. This is like Mullvad&#x27;s port forwarding, but free.",
+        "type" : "comment"
+      },
+      {
+        "author" : "inconshreveable",
+        "children" : [
+          {
+            "author" : "jeremyjh",
+            "created_at_i" : 1789767282,
+            "id" : 49760573,
+            "text" : "Would you ever ship a product where all the ad copy was written by an AI and read by no one?",
+            "type" : "comment"
+          },
+          {
+            "author" : "Gigachad",
+            "created_at_i" : 1789768212,
+            "id" : 49760740,
+            "text" : "The marketing from Cloudflare around this being for agents feels like the intended use case is for agents to exfiltrate data off your laptop without pesky hurdles like asking the user to set up an account first.",
+            "type" : "comment"
+          },
+          {
+            "author" : "opengrass",
+            "created_at_i" : 1789769080,
+            "id" : 49760863,
+            "text" : "It&#x27;s not a security issue, it&#x27;s a liability issue!",
+            "type" : "comment"
+          },
+          {
+            "author" : "mitxela",
+            "created_at_i" : 1789774419,
+            "id" : 49761680,
+            "text" : "I&#x27;d expect an anonymous inbound tunnel to be better than an anonymous outbound proxy and we have plenty of the latter.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1789762845,
+        "id" : 49759719,
+        "text" : "hi y&#x27;all, ngrok creator&#x2F;founder here.<p>we removed anonymous usage of our product many years ago because it was far and away the largest source of abuse on our entire platform.<p>i believe at this point that that anonymous, account-less tunneling services like this are net negative for the security of the internet<p>happy to answer any questions from the community",
+        "type" : "comment"
+      },
+      {
+        "author" : "tobih",
+        "created_at_i" : 1789765156,
+        "id" : 49760175,
+        "text" : "json output is nice, my agents always had to parse the text output before",
+        "type" : "comment"
+      },
+      {
+        "author" : "opengrass",
+        "created_at_i" : 1789765449,
+        "id" : 49760238,
+        "text" : "This is my docker compose for sharing files with randoms online <a href=\"https:&#x2F;&#x2F;pastebin.com&#x2F;raw&#x2F;cYV7ksw9\" rel=\"nofollow\">https:&#x2F;&#x2F;pastebin.com&#x2F;raw&#x2F;cYV7ksw9</a><p>Don&#x27;t pass -d, your tunnel URL prints in the console and you can download dirs as tarball.",
+        "type" : "comment"
+      },
+      {
+        "author" : "saejox",
+        "created_at_i" : 1789766347,
+        "id" : 49760396,
+        "text" : "Needs to support tcp and udp",
+        "type" : "comment"
+      },
+      {
+        "author" : "dzonga",
+        "created_at_i" : 1789766594,
+        "id" : 49760434,
+        "text" : "I have been considering using my other laptop as a place to run my agents in production since 1. my laptop is more powerful than the vps I can rent for cheap.<p>then just use Cloudflare tunnels to connect to the laptop.",
+        "type" : "comment"
+      },
+      {
+        "author" : "cryptolobster",
+        "created_at_i" : 1789766671,
+        "id" : 49760440,
+        "text" : "For small-scale personal or family applications serving just a few users, does it make sense to choose Quick Tunnels over Tailscale or Pangolin?",
+        "type" : "comment"
+      },
+      {
+        "author" : "jdthedisciple",
+        "children" : [
+          {
+            "author" : "Gigachad",
+            "created_at_i" : 1789767905,
+            "id" : 49760689,
+            "text" : "It&#x27;s broken on desktop too...",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1789767797,
+        "id" : 49760673,
+        "text" : "Interesting but what a horribly vibe coded website that barely works on mobile",
+        "type" : "comment"
+      },
+      {
+        "author" : "girvo",
+        "created_at_i" : 1789768754,
+        "id" : 49760824,
+        "text" : "This is super neat! I rely on normal Cloudflare Tunnels for my self-hosted website&#x2F;web apps, works shockingly well all things considered.<p>It was pretty easy to setup… but I cheated, and use Dokploy which handled most of it AFAICT",
+        "type" : "comment"
+      },
+      {
+        "author" : "JeremyJaydan",
+        "created_at_i" : 1789769441,
+        "id" : 49760917,
+        "text" : "I used Cloudflared tunnels for a while in production, they worked very well but the config was a bit of a pain sometimes. It&#x27;s nice to see a simpler version even if it&#x27;s just for testing.",
+        "type" : "comment"
+      },
+      {
+        "author" : "narmiouh",
+        "created_at_i" : 1789770119,
+        "id" : 49761034,
+        "text" : "I&#x27;m not sure how safe this is...<p>vibe coded app with may be no security and now available from the internet for anyone to RCE into my laptop?",
+        "type" : "comment"
+      },
+      {
+        "author" : "dools",
+        "created_at_i" : 1789770432,
+        "id" : 49761085,
+        "text" : "I’ve been using cloudflare tunnels quite a bit in places where I would have traditionally gone for a reverse port forward and they’re working really well. The quick tunnel concept seems really great but the non-quick tunnels are also very useful and can be entirely automated.",
+        "type" : "comment"
+      },
+      {
+        "author" : "noname120",
+        "children" : [
+          {
+            "author" : "malfist",
+            "children" : [
+              {
+                "author" : "ckvibubueu",
+                "created_at_i" : 1789859381,
+                "id" : 49770904,
+                "text" : "Web page can&#x27;t even render on mobile properly",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1789771810,
+            "id" : 49761316,
+            "text" : "I did not know about them and I have a good use for them today. So I found it useful though I agree it needs the date disclaimer",
+            "type" : "comment"
+          },
+          {
+            "author" : "nijave",
+            "children" : [
+              {
+                "author" : "wbl",
+                "created_at_i" : 1789835107,
+                "id" : 49767846,
+                "text" : "There was a problem with the name: toxic mine trailings weren&#x27;t what was wanted. <a href=\"https:&#x2F;&#x2F;en.wikipedia.org&#x2F;wiki&#x2F;Argo_Tunnel\" rel=\"nofollow\">https:&#x2F;&#x2F;en.wikipedia.org&#x2F;wiki&#x2F;Argo_Tunnel</a>",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1789774215,
+            "id" : 49761646,
+            "text" : "Didn&#x27;t these used to be called Argo Tunnels a long time ago? I think Argo Tunnels got repositioned for connecting to origin servers without needing an incoming connection to the origin but I thought they originally did something like this&#x2F;ngrok<p>Yeah, I just checked the page\n&gt;can connect their server to the Internet with Argo Tunnel for free",
+            "type" : "comment"
+          },
+          {
+            "author" : "jofzar",
+            "children" : [
+              {
+                "author" : "stingraycharles",
+                "created_at_i" : 1789795872,
+                "id" : 49763619,
+                "text" : "Why is it more relevant today?",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1789780736,
+            "id" : 49762395,
+            "text" : "5 years ago imo it was less relevant, if you showed me this then I would be like &quot;cool tech, but other then a specific scenario, why would I care&quot;",
+            "type" : "comment"
+          },
+          {
+            "author" : "makingstuffs",
+            "created_at_i" : 1789807250,
+            "id" : 49764590,
+            "text" : "I saw the post and was literally thinking &quot;I have been using these tunnels extensively for a couple years now&quot;",
+            "type" : "comment"
+          },
+          {
+            "author" : "kqp",
+            "children" : [
+              {
+                "author" : "tefkah",
+                "children" : [
+                  {
+                    "author" : "rgoulter",
+                    "children" : [
+                      {
+                        "author" : "tylerhou",
+                        "created_at_i" : 1789858525,
+                        "id" : 49770805,
+                        "text" : "The sentence structure is also just lazy.",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1789826505,
+                    "id" : 49766674,
+                    "text" : "The punch and profound-sounding phrasing is also Claude; but pre-LLM it might make sense for a marketing page.<p>&quot;Your laptop stays private.\nThe URL goes everywhere.&quot;<p>A <i>URL</i> ... <i>goes</i>, does it?<p>I&#x27;ve seen it pointed out (&amp; have noticed) that anthorpomorphising like this is an LLM smell.<p>In this case, although &quot;URL goes&quot; can be valid, it&#x27;s just awkward here.",
+                    "type" : "comment"
+                  },
+                  {
+                    "author" : "kqp",
+                    "created_at_i" : 1789886956,
+                    "id" : 49773135,
+                    "text" : "Thanks! I have indeed used Claude only for text, not websites, so wasn’t familiar with the visual clues.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1789813122,
+                "id" : 49765151,
+                "text" : "Other than the general vibe, there&#x27;s a number of extremely specific Claude-isms you could pick up on:<p>1. the blinking &quot;now with JSON output for coding agents&quot;. It loves to create these blinking badges<p>2. &quot;Some text, and then &lt;Text in a different color&gt;&quot;<p>Then further along the page, the &quot;Your agent needs a URL, not a laptop&quot; has a lot of tells of just being a straight Claude (design) output<p>- The small all-caps &quot;built for the agent era&quot; eyebrow. Once you start noticing this it&#x27;s EVERYWHERE<p>- The 01 02 03 list<p>If you have access to Claude you should try have it generate a landing page for a tech product. It will almost always look like this.",
+                "type" : "comment"
+              },
+              {
+                "author" : "efortis",
+                "created_at_i" : 1789821462,
+                "id" : 49766071,
+                "text" : "One tell is: if you can code that hero there&#x27;s no excuse for the silly bugs.<p>For example, the hero is fairly impressive in mobile but it&#x27;s broken in desktop. And then you scroll down to the next section and there&#x27;s overflowing text.<p>IOW, the skill level is inconsistent.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1789811826,
+            "id" : 49765012,
+            "text" : "Why do you think it’s vibe coded? Just asking to see if I can learn something. I can see it’s very standard corpo-aesthetic, uses callouts for the sake of callouts, and is horribly laggy, but corpo websites were doing all that long before AI. It also seems to be using a bunch of Cloudflare-specific terminology that I’d think would take longer to review and correct an AI on than to type yourself.",
+            "type" : "comment"
+          },
+          {
+            "author" : "peter_retief",
+            "created_at_i" : 1789820536,
+            "id" : 49765970,
+            "text" : "Yet so many developers do not know about it.",
+            "type" : "comment"
+          },
+          {
+            "author" : "hypercube33",
+            "created_at_i" : 1789826691,
+            "id" : 49766691,
+            "text" : "They are useful for taking local llm models and delivering them with HTTPS to harnesses that expect it or to another machine. Other than that I&#x27;m not sure what I&#x27;d personally use them for.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1789771298,
+        "id" : 49761235,
+        "text" : "Cloudflare Quick Tunnels have existed for more than 5 years (yes, including the anonymous quick tunnels). I copy-pasted the url of the HN link in archive.org, see for yourself: <a href=\"https:&#x2F;&#x2F;web.archive.org&#x2F;web&#x2F;20211202005430&#x2F;http:&#x2F;&#x2F;try.cloudflare.com&#x2F;\" rel=\"nofollow\">https:&#x2F;&#x2F;web.archive.org&#x2F;web&#x2F;20211202005430&#x2F;http:&#x2F;&#x2F;try.cloudf...</a><p>Is a new vibe-coded landing page for a 5-year old product really worthy of being on the front page nowadays? There should at least be a [2021] in the title.",
+        "type" : "comment"
+      },
+      {
+        "author" : "greyhound1",
+        "created_at_i" : 1789773556,
+        "id" : 49761564,
+        "text" : "i find it hard to read any text when the site has many animations that can&#x27;t be stopped",
+        "type" : "comment"
+      },
+      {
+        "author" : "nojvek",
+        "created_at_i" : 1789779445,
+        "id" : 49762284,
+        "text" : "I so hate codex speak.",
+        "type" : "comment"
+      },
+      {
+        "author" : "nyxtom",
+        "created_at_i" : 1789779924,
+        "id" : 49762338,
+        "text" : "I&#x27;ve used these tunnels all the time when I wasn&#x27;t at my computer. Insanely helpful when doing agentic work on the go",
+        "type" : "comment"
+      },
+      {
+        "author" : "mintflow",
+        "created_at_i" : 1789780690,
+        "id" : 49762390,
+        "text" : "perhaps this is the most easy to use networking product that ever shipped, but given ngrok did this many years before, maybe they just think for the agentic era? though one must take care for the authentification<p>I also think it seems cloudflare enter into a stage keep adding products and make the portal looks like a maze to get more advanced features configured<p>Do you still remember cloudflare mesh and use and stick to it?",
+        "type" : "comment"
+      },
+      {
+        "author" : "reddec",
+        "created_at_i" : 1789785612,
+        "id" : 49762782,
+        "text" : "I have been developing for my own use something like that but self hosted. There are other solutions, but this one simple, reliable and secure in a way I see it.<p>Originally didn&#x27;t want to share but here it is <a href=\"https:&#x2F;&#x2F;github.com&#x2F;reddec&#x2F;tunnel-me\" rel=\"nofollow\">https:&#x2F;&#x2F;github.com&#x2F;reddec&#x2F;tunnel-me</a><p>UI: fully LLM assisted (not vibe coded, but guided with a lot of iterations).\nBackend: hand written, but before release polished via LLM.\nDocs: me - input, LLM - output.<p>The things I am proud:<p>- it very reliable<p>- its single binary with reasonable defaults and low memory usage<p>- SSO out of the box (cause I am using pocketid in my homelab)<p>- very simple backend",
+        "type" : "comment"
+      },
+      {
+        "author" : "Nevin1901",
+        "created_at_i" : 1789786068,
+        "id" : 49762818,
+        "text" : "Cloudflare tunnels are really useful when dealing with webhooks. Way better than Ngrok and you can set it up on a custom subdomain you own. eg: site.yourdomain.com",
+        "type" : "comment"
+      },
+      {
+        "author" : "geroge_kyaw",
+        "created_at_i" : 1789793579,
+        "id" : 49763420,
+        "text" : "Lol Codex UI!!!",
+        "type" : "comment"
+      },
+      {
+        "author" : "shmde",
+        "created_at_i" : 1789794396,
+        "id" : 49763480,
+        "text" : "I have used this extensively previously when I had to quickly share a UI prototype with my Product manager. There used to be all sorts of cors error when I also had a backend. Then I realised its just better to make a branch and deploy it in amplify and add the cors origin in the backend. But its good for quick UI sharing",
+        "type" : "comment"
+      },
+      {
+        "author" : "cliftonc",
+        "created_at_i" : 1789794432,
+        "id" : 49763482,
+        "text" : "I use this a lot, but find it a bit hard to manage if you want a persistent tunnel locally to use for dev (e.g. webhooks etc), so I added a wrapper around it that you can easily use: <a href=\"https:&#x2F;&#x2F;github.com&#x2F;cliftonc&#x2F;cfld\" rel=\"nofollow\">https:&#x2F;&#x2F;github.com&#x2F;cliftonc&#x2F;cfld</a>",
+        "type" : "comment"
+      },
+      {
+        "author" : "itvision",
+        "created_at_i" : 1789801755,
+        "id" : 49764120,
+        "text" : "The RAM pricing crisis is doing wonders to the software industry. Amazing.",
+        "type" : "comment"
+      },
+      {
+        "author" : "cbsmith",
+        "created_at_i" : 1789808661,
+        "id" : 49764714,
+        "text" : "What could possibly go wrong? ;-)",
+        "type" : "comment"
+      },
+      {
+        "author" : "peter_retief",
+        "created_at_i" : 1789820483,
+        "id" : 49765965,
+        "text" : "I have been using CF tunnels for quite some time, very useful if you want to ingest mail on a local server without a public IP and hosting anything locally.<p>They are providing this for free up to a point, I wonder if all developers are aware of this amazing offering?",
+        "type" : "comment"
+      },
+      {
+        "author" : "adamch",
+        "created_at_i" : 1789829120,
+        "id" : 49766977,
+        "text" : "Lovely to see Cloudflare Tunnel frontpage on HN. Working on Tunnel was the highlight of my career. It was a fun product with a lot of bugs to fix, features to add, architecture to design. We were all working in-person, solving incidents together, getting lunch together every day. Taught me so many important skills that have helped me in every other project I&#x27;ve ever worked on.",
+        "type" : "comment"
+      },
+      {
+        "author" : "abalashov",
+        "created_at_i" : 1789829340,
+        "id" : 49767009,
+        "text" : "Ah, an ngrok competitor. It&#x27;s what we elderly (~40 myself), yelling-at-clouds types call &quot;reverse SSH tunnels&quot;, but this is an anachronism from the era of knowing how to do things rather than paying for managed SaaS products to do them. Don&#x27;t mind me, just yelling at clouds...",
+        "type" : "comment"
+      },
+      {
+        "author" : "appleappleapple",
+        "created_at_i" : 1789875066,
+        "id" : 49772300,
+        "text" : "Lol this landing page looks almost exactly like something my company just put out. Holy AI",
+        "type" : "comment"
+      },
+      {
+        "author" : "whydoineedthis",
+        "created_at_i" : 1790091545,
+        "id" : 49803095,
+        "text" : "If you want to host your own version of this in AWS, automated with terraform, you can use <a href=\"https:&#x2F;&#x2F;github.com&#x2F;nelsonenzo&#x2F;tolocal\" rel=\"nofollow\">https:&#x2F;&#x2F;github.com&#x2F;nelsonenzo&#x2F;tolocal</a><p>It uses basic auth at the edge to protect the endpoint being used by anyone.  The technical advantage to self hosting is bandwidth throughput.  For instance, If your using a css framework that is bulky on dev, but then minimized for prod, you will often find the ngrok&#x2F;cloudflare tunnels too slow to load the local host assets.",
+        "type" : "comment"
+      }
+    ],
+    "created_at_i" : 1789741121,
+    "id" : 49754785,
+    "points" : 844,
+    "title" : "Cloudflare Quick Tunnels",
+    "type" : "story",
+    "url" : "https://try.cloudflare.com/"
+  },
+  "headers" : {
+    "content-type" : "application/json"
+  },
+  "status" : 200,
+  "url" : "https://hn.algolia.com/api/v1/items/49754785"
+}

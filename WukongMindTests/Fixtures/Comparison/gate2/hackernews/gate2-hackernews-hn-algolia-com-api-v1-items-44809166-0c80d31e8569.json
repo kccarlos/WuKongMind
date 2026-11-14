@@ -1,0 +1,831 @@
+{
+  "body" : {
+    "author" : "aquariusDue",
+    "children" : [
+      {
+        "author" : "sixothree",
+        "children" : [
+          {
+            "author" : "em-bee",
+            "children" : [
+              {
+                "author" : "sixothree",
+                "created_at_i" : 1754945886,
+                "id" : 44869385,
+                "text" : "Thanks!",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1754569917,
+            "id" : 44823629,
+            "text" : "i use zerotier without problems on the phone. yes, they are no longer open source, but source is accessible and it&#x27;s not worth the effort to switch.",
+            "type" : "comment"
+          },
+          {
+            "author" : "th0ma5",
+            "created_at_i" : 1754778546,
+            "id" : 44850923,
+            "text" : "Straight WireGuard to a single point is completely not noticeable.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1754514911,
+        "id" : 44817950,
+        "text" : "I love me some tailscale. But it kills the battery on my phone and it kills resolve.conf every time I boot wsl. I wish I had better luck.",
+        "type" : "comment"
+      },
+      {
+        "author" : "8n4vidtmkvmk",
+        "children" : [
+          {
+            "author" : "oliyoung",
+            "children" : [
+              {
+                "author" : "mh-",
+                "created_at_i" : 1754780616,
+                "id" : 44851187,
+                "text" : "I was an infra guy early in my career, and I&#x27;m still savvy, and I still prefer using Tailscale. It&#x27;s very polished and reliable.<p>But personally, I&#x27;m past the point of wanting to fiddle with things like this and would much prefer them to just work out of the box.. so I <i>can</i> fiddle with the things I wanted to, and not end up down a (personally) unenjoyable rabbit hole.<p>No judgment on people who do enjoy it, though! I used to, and maybe I will again at some point.",
+                "type" : "comment"
+              },
+              {
+                "author" : "elcritch",
+                "created_at_i" : 1754832407,
+                "id" : 44855044,
+                "text" : "It&#x27;s pretty handy to setup an exit node on your home network so that when you go abroad you can still watch your streaming services too!<p>More importantly you can use it to access your bank or other services which often block non-US IPs. It&#x27;s saved me a few times in the last year or two.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1754525529,
+            "id" : 44819309,
+            "text" : "&gt; Sounds a bit like a fancier ngrok.<p>Well, yes and no.<p>You can use it like ngrok, and I&#x27;m sure you could configure wireguard and ngrok to give you something similar to what Tailscale does, but Tailscale does it out of the box, with polished and well built client and server apps.<p>I&#x27;m no infra guy, I&#x27;m just a former front-end eng, but it gives me the confidence to expose media centres and file servers etc to &quot;the wild&quot; without it being public.<p>Using Jellyfin to watch content from my home server on my iPad while I&#x27;m away from home is as &quot;easy&quot; as Disney or Netflix with Tailscale, just installed the clients and servers and .. voila?",
+            "type" : "comment"
+          },
+          {
+            "author" : "Larrikin",
+            "created_at_i" : 1754526531,
+            "id" : 44819392,
+            "text" : "Having all your mobile traffic routed through AdGuard Home (or PiHole) is a game changer. It&#x27;s also nice using an exit node through my home network whenever I am on public wifi.",
+            "type" : "comment"
+          },
+          {
+            "author" : "burnt-resistor",
+            "children" : [
+              {
+                "author" : "c0wb0yc0d3r",
+                "children" : [
+                  {
+                    "author" : "burnt-resistor",
+                    "created_at_i" : 1754559359,
+                    "id" : 44822456,
+                    "text" : "Sure, it&#x27;s pretty simple. I had WG provided by an Deciso OPNsense router with an automatic VPN profile on most user devices. All of my infrastructure also had PKI. (I moved recently and have yet to set it up again.)",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1754545388,
+                "id" : 44820990,
+                "text" : "To me WireGuard is safer than exposing services directly to the internet.",
+                "type" : "comment"
+              },
+              {
+                "author" : "15155",
+                "created_at_i" : 1754580069,
+                "id" : 44825664,
+                "text" : "Tailscale is able to hole punch in scenarios where UPnP is disabled (just good practice) as well as many NAT environments.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1754542428,
+            "id" : 44820713,
+            "text" : "Plex already supports remote access via UPnP. <a href=\"https:&#x2F;&#x2F;support.plex.tv&#x2F;articles&#x2F;200289506-remote-access&#x2F;\" rel=\"nofollow\">https:&#x2F;&#x2F;support.plex.tv&#x2F;articles&#x2F;200289506-remote-access&#x2F;</a>",
+            "type" : "comment"
+          },
+          {
+            "author" : "em-bee",
+            "children" : [
+              {
+                "author" : "15155",
+                "created_at_i" : 1754579942,
+                "id" : 44825633,
+                "text" : "This feature isn&#x27;t enabled by default.",
+                "type" : "comment"
+              },
+              {
+                "author" : "miunau",
+                "created_at_i" : 1754790383,
+                "id" : 44852110,
+                "text" : "this is for teams where you don&#x27;t want to create passwords or keep track of ssh keys for everyone by hand. it greatly simplified our server usage as we can simply ssh user@machine and it just works. you can create access controls for it as well.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1754570413,
+            "id" : 44823723,
+            "text" : "<i>Speaking of SSH, Tailscale has special support for it whereby it handles any incoming connection to port 22 from the Tailscale network, and deals with authentication itself. No public keys or passwords: if you’re logged into Tailscale you can be logged into the machine. This is particularly handy when you SSH from a phone, as proper credential management is a bit of a nightmare there.</i><p>this has me worried. i would not want that. i use zerotier, not tailscale, but the principle is the same. i have my laptops and my phone connected to my servers. given that all of those machines are already on the internet, connecting them into a virtual network does not add any risk in my opinion. (at least as long as you don&#x27;t use features like the above). all i get is a known ip address for all my devices, with the ability to connect to them if they have an ssh server running. when i am outside the primary benefit is that i can tell which devices are online.",
+            "type" : "comment"
+          },
+          {
+            "author" : "jaxxstorm",
+            "created_at_i" : 1754816435,
+            "id" : 44853842,
+            "text" : "I wrote a POC for using Tailscale serve and funnel similarly to ngrok here:<p><a href=\"https:&#x2F;&#x2F;github.com&#x2F;jaxxstorm&#x2F;tgate\" rel=\"nofollow\">https:&#x2F;&#x2F;github.com&#x2F;jaxxstorm&#x2F;tgate</a>",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1754519793,
+        "id" : 44818657,
+        "text" : "Sounds a bit like a fancier ngrok.<p>Accidentally wiring everything to everything else sounds kind of scary.<p>There&#x27;s 1 or 2 things I wouldn&#x27;t mind securely exposing to the internet (like Plex) but nothing I need so desperately while I&#x27;m out and about that I&#x27;d even want to take that risk.<p>Sounds like this is just for self-hosting?",
+        "type" : "comment"
+      },
+      {
+        "author" : "thrown-0825",
+        "created_at_i" : 1754556331,
+        "id" : 44822140,
+        "text" : "I use a similar setup, but for anyone following this guide i would not recommend hosting your custom oidc server behind the same tailnet it authorizes.<p>Any configuration issues will lock you out entirely and you will need to have tailscale support re-enable an oauth provider and its not reversible.<p>I use an oauth provider to log in to tailscale and keycloak internally as an oidc provider for service to service auth.",
+        "type" : "comment"
+      },
+      {
+        "author" : "redat00",
+        "created_at_i" : 1754647781,
+        "id" : 44835323,
+        "text" : "Neat way to use Tailscale !<p>I have a similar set-up, without authentication however, relying on Nebula! <a href=\"https:&#x2F;&#x2F;github.com&#x2F;slackhq&#x2F;nebula\" rel=\"nofollow\">https:&#x2F;&#x2F;github.com&#x2F;slackhq&#x2F;nebula</a>",
+        "type" : "comment"
+      },
+      {
+        "author" : "abdusco",
+        "children" : [
+          {
+            "author" : "mh-",
+            "children" : [
+              {
+                "author" : "modernpacifist",
+                "created_at_i" : 1754782392,
+                "id" : 44851347,
+                "text" : "A DoS that will disappear once you close the funnel. Tailscale are proxying the traffic so your public IP isn’t exposed. Your choice of port makes no difference.",
+                "type" : "comment"
+              },
+              {
+                "author" : "tptacek",
+                "children" : [
+                  {
+                    "author" : "mh-",
+                    "children" : [
+                      {
+                        "author" : "lysp",
+                        "children" : [
+                          {
+                            "author" : "watermelon0",
+                            "created_at_i" : 1754804742,
+                            "id" : 44853026,
+                            "text" : "You don&#x27;t have to serve any certificates on the default website. Web server would just fail TLS connection, since it doesn&#x27;t have a certificate for it.<p>Not sure if this applies to all web servers, but at least Caddy and a few others support this.",
+                            "type" : "comment"
+                          }
+                        ],
+                        "created_at_i" : 1754801546,
+                        "id" : 44852837,
+                        "text" : "Also serve the default website (via IP) from a basically empty self-signed certificate that doesn&#x27;t give away any domain names or owner details.",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1754784756,
+                    "id" : 44851591,
+                    "text" : "Hmm, yeah, that&#x27;s a great suggestion, thanks!",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1754784645,
+                "id" : 44851580,
+                "text" : "When you care about this, if you&#x27;re managing your own certificates, you can issue wildcard certificates.",
+                "type" : "comment"
+              },
+              {
+                "author" : "rendx",
+                "children" : [
+                  {
+                    "author" : "straight-shoota",
+                    "created_at_i" : 1754830785,
+                    "id" : 44854896,
+                    "text" : "This may discover services, but not hostnames. If the server does not disclose them (e.g. in the certificate used on the IP host), an attacker doesn&#x27;t have much further to go on.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1754809215,
+                "id" : 44853313,
+                "text" : "Even without CT, services on standard ports will quickly be discovered on IPv4.<p>&gt; On a computer with a gigabit connection, ZMap can scan the entire public IPv4 address space on a single port in under 45 minutes.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1754779113,
+            "id" : 44851004,
+            "text" : "Yeah, I have mixed feelings about CT (certificate transparency) for this reason. Folks are just consuming the firehose and scanning.<p>And in this case, if the thing you&#x27;re funnel&#x27;ing is on your residential connection, it basically amounts to you summoning a DDoS.<p>One (obvious?) tip I&#x27;d offer is to put your stuff on high non-standard ports if you can. It&#x27;ll reduce the amount of connections you get dramatically.",
+            "type" : "comment"
+          },
+          {
+            "author" : "gitgud",
+            "children" : [
+              {
+                "author" : "yjftsjthsd-h",
+                "children" : [
+                  {
+                    "author" : "afavour",
+                    "created_at_i" : 1754781513,
+                    "id" : 44851277,
+                    "text" : "Which is something that makes a notable difference. It’s telling the bots the OP listed are trying Vite endpoints, they’re targeting folks doing short term local web development. Removing obscurity <i>and</i> indicating relative likelihood of still being online is a big shift.",
+                    "type" : "comment"
+                  },
+                  {
+                    "author" : "dijit",
+                    "children" : [
+                      {
+                        "author" : "augusto-moura",
+                        "children" : [
+                          {
+                            "author" : "Lammy",
+                            "children" : [
+                              {
+                                "author" : "tux3",
+                                "created_at_i" : 1754809481,
+                                "id" : 44853333,
+                                "text" : "If you replace &quot;security by obscurity&quot; with &quot;Kerckhoffs&#x27;s principle&quot;, yes, absolutely!<p>The problem with using regular everyday obscurity is that it usually has a small state space and makes for terrible security, but people will treat it like it is cleverly hidden and safe from attackers<p>If I guess the IPv4 you&#x27;re thinking of between 0 and 2↑32, ready or not, you win a free port scan",
+                                "type" : "comment"
+                              },
+                              {
+                                "author" : "gf000",
+                                "created_at_i" : 1754810757,
+                                "id" : 44853422,
+                                "text" : "As per another comment, we can scan a single port on <i>every</i> public IPv4 address in less than an hour.<p>Trying every 256bit number gets into a &quot;slightly&quot; larger problem.",
+                                "type" : "comment"
+                              }
+                            ],
+                            "created_at_i" : 1754790618,
+                            "id" : 44852135,
+                            "text" : "&gt; relying _only_ on obscurity<p>Until it gets obscure <i>enough</i> that we start calling it “public-key cryptography”. Guess the prime number I&#x27;m thinking of between 0 and 2↑4096 and win a fabulous prize!",
+                            "type" : "comment"
+                          },
+                          {
+                            "author" : "bb88",
+                            "children" : [
+                              {
+                                "author" : "gf000",
+                                "children" : [
+                                  {
+                                    "author" : "dijit",
+                                    "children" : [
+                                      {
+                                        "author" : "augusto-moura",
+                                        "children" : [
+                                          {
+                                            "author" : "bb88",
+                                            "created_at_i" : 1755146051,
+                                            "id" : 44896759,
+                                            "text" : "You&#x27;re talking IPv4 here, not IPv6.  A 24 bit network has 254 addresses in IPv4.  A 64bit subnet in IPv6 has 2^64.<p>If you can scan 1M ipv6&#x27;s in a second, you can maybe scan 1 subnet in 584,942 years.<p>So if you&#x27;re a firewall, and you notice scanning from a particular ip or network, it&#x27;s easy enough to block them.<p>Also if you are scanning IPv4, you&#x27;re not scanning addresses behind the NAT&#x27;d routers -- which is also effectively a form of obfuscation.  So I would argue it&#x27;s not the entire internet.",
+                                            "type" : "comment"
+                                          }
+                                        ],
+                                        "created_at_i" : 1754846293,
+                                        "id" : 44856656,
+                                        "text" : "Battleship sounds like a good analogy, but is very different because you don&#x27;t have other options to &quot;secure your ship&quot; besides obscurity. If you had other options, let&#x27;s say a sonar or moving your ship, they would definitely be used along with obscurity.<p>Besides, the time to scan the whole board is too time consuming in a battleship game, but scanning the whole internet on the other hand only take a few minutes[1]<p>[1]: <a href=\"https:&#x2F;&#x2F;github.com&#x2F;robertdavidgraham&#x2F;masscan\" rel=\"nofollow\">https:&#x2F;&#x2F;github.com&#x2F;robertdavidgraham&#x2F;masscan</a>",
+                                        "type" : "comment"
+                                      }
+                                    ],
+                                    "created_at_i" : 1754821033,
+                                    "id" : 44854146,
+                                    "text" : "A game of battleship is indeed a good analogy!<p>Just because its a finite space that may eventually be discovered is a poor reason to announce where things are!",
+                                    "type" : "comment"
+                                  }
+                                ],
+                                "created_at_i" : 1754810999,
+                                "id" : 44853441,
+                                "text" : "Except we are more on a chess table where we can just trivially probe each cell, unlike the vast volume of the ocean.",
+                                "type" : "comment"
+                              },
+                              {
+                                "author" : "DANmode",
+                                "created_at_i" : 1754945122,
+                                "id" : 44869275,
+                                "text" : "Well, this is a bad example, considering public&#x2F;private key pairs exist,<p>and work for identity validation,<p>as long as you don&#x27;t farm it out to a cheap, know-nothing vendor.",
+                                "type" : "comment"
+                              }
+                            ],
+                            "created_at_i" : 1754799552,
+                            "id" : 44852722,
+                            "text" : "&gt; So it shouldn&#x27;t matter if your address is public or not, in fact making it public raises the awareness for the problem. That&#x27;s the argument.<p>Forget about the internet, we&#x27;ve had almost 100 years to prove we can secure identity theft.  And the best thing we can do is to keep our SSN&#x27;s secret -- security through obscurity.  Keeping your SSN private reduces your personal attack surface.<p>We&#x27;ve had 50 years to secure the internet, and yet, we still have zero day attacks.  Nuclear submarines try their best to keep their locations a secret?  Why?  You cannot attack something you cannot see or hear.",
+                            "type" : "comment"
+                          }
+                        ],
+                        "created_at_i" : 1754785896,
+                        "id" : 44851702,
+                        "text" : "The issue is not that obscurity per se is bad, but relying _only_ on obscurity is absolute the same as not having any security measures at all.<p>With the public ledger or not, you will still need to implement proper security measures. So it shouldn&#x27;t matter if your address is public or not, in fact making it public raises the awareness for the problem. That&#x27;s the argument.",
+                        "type" : "comment"
+                      },
+                      {
+                        "author" : "yjftsjthsd-h",
+                        "children" : [
+                          {
+                            "author" : "dijit",
+                            "children" : [
+                              {
+                                "author" : "aspenmayer",
+                                "children" : [
+                                  {
+                                    "author" : "dijit",
+                                    "children" : [
+                                      {
+                                        "author" : "aspenmayer",
+                                        "created_at_i" : 1754826343,
+                                        "id" : 44854546,
+                                        "text" : "Obscurity couldn&#x27;t be anyone&#x27;s last&#x2F;best defense, unless it was their only defense, was my point.<p>In any case, I think we agree.",
+                                        "type" : "comment"
+                                      }
+                                    ],
+                                    "created_at_i" : 1754826107,
+                                    "id" : 44854526,
+                                    "text" : "In my original comment I said (I thought) quite clearly that obscurity as your <i>only</i> defence is a terrible idea.<p>But painting a target on your back is not exactly justified just because hiding yourself isn’t a good defence in of itself.",
+                                    "type" : "comment"
+                                  }
+                                ],
+                                "created_at_i" : 1754825166,
+                                "id" : 44854467,
+                                "text" : "If you have a target on your own back thanks to cert transparency logs, it&#x27;s a bit like closing the barn door late for you to find fault in your own being in Texas when sharpshooters are about. If your only defense was obscurity, your ass is hanging out, and it&#x27;s no one&#x27;s fault but your own when you find fault with others for simply saying so.<p><a href=\"https:&#x2F;&#x2F;en.wikipedia.org&#x2F;wiki&#x2F;Texas_sharpshooter_fallacy\" rel=\"nofollow\">https:&#x2F;&#x2F;en.wikipedia.org&#x2F;wiki&#x2F;Texas_sharpshooter_fallacy</a>",
+                                "type" : "comment"
+                              }
+                            ],
+                            "created_at_i" : 1754810689,
+                            "id" : 44853418,
+                            "text" : "ironically I would double down even harder then;<p>If something was temporary then it’s likely that it wouldn’t have been found in a meaningful amount of time to be exploited.<p>As an only line of defence it’s not good, but its also not good to hand-deliver your entire personal information to fraudsters and then claim that the systems should be more robust.",
+                            "type" : "comment"
+                          }
+                        ],
+                        "created_at_i" : 1754787613,
+                        "id" : 44851890,
+                        "text" : "Okay, but we&#x27;re not talking about that here. This is very much the case of a service being exposed that shouldn&#x27;t be and relying on obscurity to try and avoid actually getting compromised",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1754783499,
+                    "id" : 44851465,
+                    "text" : "I wish this trend of “security through obscurity” should mean that all info should just be exposed would die, its silly and lacks basis in reality.<p>Even within infosec, certain types of information disclosure are considered security problems. Leaking signed up user information or even inodes on the drives can lead to PCI-DSS failures.<p>Why is broadcasting your records treated differently? Because people would find the information eventually if they scanned the whole internet? Even then they might not due to SNI; so this is actually giving critical information necessary for an attack to attackers.",
+                    "type" : "comment"
+                  },
+                  {
+                    "author" : "homebrewer",
+                    "children" : [
+                      {
+                        "author" : "augusto-moura",
+                        "created_at_i" : 1754786239,
+                        "id" : 44851741,
+                        "text" : "True, but I hardly open any ssh to the wide world. I would only allow it inside a closed network anyways. HTTP on the other hand _needs_ to be exposed on 80 or 443 (not technically, but in practice)",
+                        "type" : "comment"
+                      },
+                      {
+                        "author" : "lelanthran",
+                        "created_at_i" : 1754819439,
+                        "id" : 44854040,
+                        "text" : "&gt; IME, moving ssh off the standard port reduces bot scanning traffic by &gt;99%.<p>Depends on the site I expect. My low value domains get NO ssh attempts on my random ports. The high value ones get a few each week.",
+                        "type" : "comment"
+                      },
+                      {
+                        "author" : "godelski",
+                        "children" : [
+                          {
+                            "author" : "yjftsjthsd-h",
+                            "children" : [
+                              {
+                                "author" : "godelski",
+                                "children" : [
+                                  {
+                                    "author" : "yjftsjthsd-h",
+                                    "children" : [
+                                      {
+                                        "author" : "godelski",
+                                        "created_at_i" : 1755190660,
+                                        "id" : 44902808,
+                                        "text" : "lol your solution to a problem caused by a feature is &quot;don&#x27;t use that feature?&quot; LGTM<p>Presumably wireguard was already being used?",
+                                        "type" : "comment"
+                                      }
+                                    ],
+                                    "created_at_i" : 1755088062,
+                                    "id" : 44887620,
+                                    "text" : "&gt; Tailscale is a VPN...<p>And if you use it as a VPN and don&#x27;t turn on the funnel feature, your service won&#x27;t be exposed.<p>&gt; On the other hand, just install something like knocked and you don&#x27;t have to do much. Knocking is not a difficult thing to set up.<p>Neither is wireguard.",
+                                    "type" : "comment"
+                                  }
+                                ],
+                                "created_at_i" : 1754952033,
+                                "id" : 44870286,
+                                "text" : "Tailscale is a VPN...<p>The context of the conversation is that the address becomes publicly visible so you get hit with port scanners and script kiddies looking for vulns. Moving off standard ports does help but many of those are also going to look at ports like 2222 or 8022 and treat them as ssh.<p>It&#x27;s not hard to just send something like `nmap -sV -p- &lt;ADDRESS&gt;` (or better, use like rustscan.) and you&#x27;ll discover those ports and the services.<p>On the other hand, just install something like knocked and you don&#x27;t have to do much. Knocking is not a difficult thing to set up.",
+                                "type" : "comment"
+                              }
+                            ],
+                            "created_at_i" : 1754935870,
+                            "id" : 44867460,
+                            "text" : "If you&#x27;re going to that level, just put it behind a VPN.",
+                            "type" : "comment"
+                          }
+                        ],
+                        "created_at_i" : 1754872809,
+                        "id" : 44859736,
+                        "text" : "You could also always add port knocking or something like that.",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1754783968,
+                    "id" : 44851511,
+                    "text" : "IME, moving ssh off the standard port reduces bot scanning traffic by &gt;99%. Not only it means less noise in the logs (and thus higher SNR), but also lowers the chance you&#x27;re hit by spray-and-pray in case there&#x27;s a zero day in sshd (or any other daemon really).",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1754780220,
+                "id" : 44851140,
+                "text" : "The server was already exposed. All this does is remove obscurity",
+                "type" : "comment"
+              },
+              {
+                "author" : "moontear",
+                "created_at_i" : 1754907628,
+                "id" : 44862653,
+                "text" : "Yes. Yes, of course they do. Check for example <a href=\"https:&#x2F;&#x2F;crt.sh\" rel=\"nofollow\">https:&#x2F;&#x2F;crt.sh</a> with your domain name to see the glorious public history of everything the certificates tell about your domain.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1754779361,
+            "id" : 44851033,
+            "text" : "Wait, so bots watch for new records added to this HTTPS cert public ledger, then immediately start attacking?<p>To me that sounds like enabling HTTPS is actually a risk here…",
+            "type" : "comment"
+          },
+          {
+            "author" : "Jnr",
+            "children" : [
+              {
+                "author" : "j45",
+                "children" : [
+                  {
+                    "author" : "Jnr",
+                    "children" : [
+                      {
+                        "author" : "j45",
+                        "created_at_i" : 1754852538,
+                        "id" : 44857392,
+                        "text" : "Appreciate this super valid consideration.<p>If services are being exposed for friends and family, using cloudflare tunnels might be a trade off between security or convenience.<p>If the goal is to ensure security of a home lab online, the less of it that’s discoverable by automated bots, etc, the better.",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1754847038,
+                    "id" : 44856769,
+                    "text" : "Cloudflare also issues certs and logs them in transparency logs. If you do not create a wildcard cert in Cloudflare, your subdomains will leak. And Cloudflare offers free wildcard certs only on the domain root.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1754829883,
+                "id" : 44854815,
+                "text" : "Another approach I’ve seen is to route public access from Traefik&#x2F;nginx through a single Cloudflare tunnel instead, and Tailscale&#x2F;Headscale can be left for private network and server access.<p>The traefik box can have the single Cloudflare tunnel , and tailscsle can hang out behind the scenes.<p>This way tailscale funnel doesn’t need to be public.<p>There is the self hosted Cloudflare alternative that’s escaping my mind right now too.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1754784067,
+            "id" : 44851521,
+            "text" : "I use Headscale, an open source implementation of Tailscale control server. And it doesn&#x27;t have funnel functionality implemented out of the box, but I use a custom Traefik proxy manager Web UI in which I can expose ports on different Tailnet nodes.<p>In order to avoid exposing something unnecessarily in the certificate transparency logs, I use a single wildcard certificate, so all the subdomains are not listed anywhere automatically.<p>I use the same approach for services hosted in the internal subdomain, because I don&#x27;t want everyone to know what exactly I&#x27;m running in my homelab.",
+            "type" : "comment"
+          },
+          {
+            "author" : "0xCMP",
+            "children" : [
+              {
+                "author" : "nyrikki",
+                "created_at_i" : 1754796053,
+                "id" : 44852528,
+                "text" : "It was common to set up your own CA at one point, especially when DNS management was more manual, However it presented a huge attack surface and was challenging to manage.<p>A compromised private CA can lead to widespread breaches, affecting various systems and applications that rely on its certificates.<p>The CAB forum working groups being explicitly prohibited from working on private networks (at least historically) and market incentives also produced a situation where you can&#x27;t really reduce the blast radius.<p>ECS1 attacks on AD CS is probably the best publicly documented case for further research.<p>The happy path is often manageable, but still complex, bland any mistake will result in huge risks.",
+                "type" : "comment"
+              },
+              {
+                "author" : "maccard",
+                "created_at_i" : 1754820617,
+                "id" : 44854118,
+                "text" : "For me, the value proposition isn’t there. I can get a wildcard domain signed from let’s encrypt and it works out of the box on every device, and you don’t have to deal with the fact that some&#x2F;many appps will ignore your OS certificate rules.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1754792502,
+            "id" : 44852294,
+            "text" : "I don&#x27;t see why people don&#x27;t just run their own CAs more for private stuff.<p>If exposed for others I think the wildcard cert is also what I did, but most tutorials have you issuing certs via ACME for internal or local-only things which doesn&#x27;t even need to happen.<p>I personally run my own CA and even setup an ACME server and internal DNS. Nobody knows what I am doing there.",
+            "type" : "comment"
+          },
+          {
+            "author" : "exac",
+            "created_at_i" : 1754813496,
+            "id" : 44853632,
+            "text" : "All the dev servers I&#x27;ve used over the past 10 years come with warnings that they&#x27;re not security hardened, so I&#x27;d be wary of using `tailscale funnel` even though it is awesome to share like that so easily.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1754778207,
+        "id" : 44850881,
+        "text" : "I tried using `tailscale funnel` against a dummy server `python -m http.server`, and within 10 seconds the bots started to check for vulnerabilities.<p>Tailscale warns you about how enabling it will issue an HTTPS certificate which will be in a public ledger. But I wasn&#x27;t expecting it to be this quick.<p><pre><code>    127.0.0.1 - - [10&#x2F;Aug&#x2F;2025 00:11:34] &quot;GET &#x2F;@vite&#x2F;env HTTP&#x2F;1.1&quot; 404 -\n    127.0.0.1 - - [10&#x2F;Aug&#x2F;2025 00:11:34] code 404, message File not found\n    127.0.0.1 - - [10&#x2F;Aug&#x2F;2025 00:11:34] &quot;GET &#x2F;actuator&#x2F;env HTTP&#x2F;1.1&quot; 404 -\n    127.0.0.1 - - [10&#x2F;Aug&#x2F;2025 00:11:34] code 404, message File not found\n    127.0.0.1 - - [10&#x2F;Aug&#x2F;2025 00:11:34] &quot;GET &#x2F;server HTTP&#x2F;1.1&quot; 404 -\n    127.0.0.1 - - [10&#x2F;Aug&#x2F;2025 00:11:35] code 404, message File not found\n    127.0.0.1 - - [10&#x2F;Aug&#x2F;2025 00:11:35] &quot;GET &#x2F;.vscode&#x2F;sftp.json HTTP&#x2F;1.1&quot; 404 -\n    127.0.0.1 - - [10&#x2F;Aug&#x2F;2025 00:11:35] code 404, message File not found\n    127.0.0.1 - - [10&#x2F;Aug&#x2F;2025 00:11:39] &quot;GET &#x2F;s&#x2F;7333e2433323e20343e2538313&#x2F;_&#x2F;;&#x2F;META-INF&#x2F;maven&#x2F;com.atlassian.jira&#x2F;jira-webapp-dist&#x2F;pom.properties HTTP&#x2F;1.1&quot; 404 -</code></pre>",
+        "type" : "comment"
+      },
+      {
+        "author" : "mlhpdx",
+        "created_at_i" : 1754779920,
+        "id" : 44851112,
+        "text" : "I’ve been experimenting with different ways of using WireGuard but hadn’t heard of the header based authentication Tailscale does. Interesting stuff.",
+        "type" : "comment"
+      },
+      {
+        "author" : "Lammy",
+        "children" : [
+          {
+            "author" : "mcsniff",
+            "created_at_i" : 1754787380,
+            "id" : 44851864,
+            "text" : "This comment should really be much higher.",
+            "type" : "comment"
+          },
+          {
+            "author" : "xyzzy_plugh",
+            "children" : [
+              {
+                "author" : "Lammy",
+                "children" : [
+                  {
+                    "author" : "elcritch",
+                    "children" : [
+                      {
+                        "author" : "Lammy",
+                        "created_at_i" : 1754854471,
+                        "id" : 44857615,
+                        "text" : "&gt; Maybe I&#x27;m missing something here but I&#x27;d guess that data is encrypted and not a free for all of open data that any old ISP could snoop on.<p>Yes, you are missing the entire point. You are talking about data. I am talking about <i>meta</i>data — data about data. The contents of each log request are a total red herring. Just pretend that the encrypted log messages are a single bit, just a way to increase a counter that “something has happened” on a person&#x27;s Tailnet.<p>The encrypted log message structure <i>does</i> tell Tailscale “this particular machine on the Tailnet talked to this other particular machine on the Tailnet at this time”, and one should assume Tailscale decrypt and interpret those details, but what I&#x27;m talking about is the ability for any part of the network path to interpret those log connections <i>without decrypting them</i> as “somebody is using their Tailnet right now in any capacity”, and when, and from where, and the ability to combine that new class of metadata with all the other metadata our modern OSes are constantly generating.<p>&gt; Do they aggregate and then send it at regular intervals, etc?<p>This is already addressed in my original comment. Again, see KB1011: <a href=\"https:&#x2F;&#x2F;tailscale.com&#x2F;kb&#x2F;1011&#x2F;log-mesh-traffic\" rel=\"nofollow\">https:&#x2F;&#x2F;tailscale.com&#x2F;kb&#x2F;1011&#x2F;log-mesh-traffic</a><p>“Each Tailscale agent in your distributed network streams its logs to a central log server (at log.tailscale.com). This includes real-time events for open and close events for every inter-machine connection (TCP or UDP) on your network.”<p>“This includes real-time events for open and close events for every inter-machine connection (TCP or UDP) on your network.”<p>“<i>real-time</i> events”!!<p>e: Recommended reading:<p>- <a href=\"https:&#x2F;&#x2F;kieranhealy.org&#x2F;blog&#x2F;archives&#x2F;2013&#x2F;06&#x2F;09&#x2F;using-metadata-to-find-paul-revere&#x2F;\" rel=\"nofollow\">https:&#x2F;&#x2F;kieranhealy.org&#x2F;blog&#x2F;archives&#x2F;2013&#x2F;06&#x2F;09&#x2F;using-metad...</a><p>- <a href=\"https:&#x2F;&#x2F;abcnews.go.com&#x2F;blogs&#x2F;headlines&#x2F;2014&#x2F;05&#x2F;ex-nsa-chief-we-kill-people-based-on-metadata\" rel=\"nofollow\">https:&#x2F;&#x2F;abcnews.go.com&#x2F;blogs&#x2F;headlines&#x2F;2014&#x2F;05&#x2F;ex-nsa-chief-...</a>",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1754831957,
+                    "id" : 44855008,
+                    "text" : "&gt; My behavior would be exposed to every layer of service provider along the way: my ISP, my ISP&#x27;s ISPs, the cloud provider Tailscale use to host their surveillance endpoint,<p>Maybe I&#x27;m missing something here but I&#x27;d guess that data is encrypted and not a free for all of open data that any old ISP could snoop on. If not that&#x27;d be a serious issue.<p>Not to say that you don&#x27;t have some good points. Even just the pattern and timings of that data being sent could be exploited. Also TS would still have that full data.<p>Though I&#x27;d have to study the details. Do they aggregate and then send it at regular intervals, etc? In the end would it be that much worse than what Apple, Google, Microsoft collect?",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1754814477,
+                "id" : 44853709,
+                "text" : "&gt; I do not interpret their policies such that they are processing the information you added emphasis to beyond what is necessary to serve the customer. What evidence do you have to the contrary?<p>Respectfully, you are failing to appreciate the full scope of the problem. It doesn&#x27;t matter what Tailscale do with the data. The log contents don&#x27;t matter at all, only <i>the fact that a network connection was made</i>. Every network connection you make creates metadata about you, and the Internet itself — the path <i>between</i> me and Tailscale&#x27;s logging endpoint — is always listening.<p>Think what conclusions can be drawn about a person&#x27;s behavior from a log of their network connections. Encryption doesn&#x27;t matter, because we&#x27;re just talking about metadata; each connection&#x27;s timestamp, source, destination, and port. Think about the way each additional thing-which-makes-network-requests increases the surveillance value of all the others.<p>Straight away, many people&#x27;s NTP client tells the network what OS they use: `time.windows.com`? Probably a Windows user. `time.apple.com`? Probably Mac or iOS. `time.google.com`? You get the idea. Yeah, anyone can configure an NTP client to use any of those hosts, but the vast vast majority of people are taking the default and probably don&#x27;t even know what NTP is.<p>Add a metadata point: somebody makes a connection to one of the well-known Wi-Fi captive portal detection hosts around 4PM on a weekday? Maybe somebody just got home from school. Captive portal detection at 6PM on a weekday? Maybe somebody just got home from work. Your machines are all doing this any time they reconnect to a saved Wi-Fi network: <a href=\"https:&#x2F;&#x2F;en.wikipedia.org&#x2F;wiki&#x2F;Captive_portal#Detection\" rel=\"nofollow\">https:&#x2F;&#x2F;en.wikipedia.org&#x2F;wiki&#x2F;Captive_portal#Detection</a><p>Add a metadata point: somebody makes a network connection to their OS&#x27;s default weather-widget API right after the captive-portal test, and then another weather-API connection exactly $(DEFAULT_INTERVAL} minutes later? That person who got home is probably still home.<p>Anyway, you get the point that this stuff adds up! The problem with Tailscale is that its default behavior exposes metadata about entire additional classes of traffic in addition to all the examples I just mentioned that my devices were already leaking. Tailscale would have me start telling the Internet “hey I&#x27;m here and doin&#x27; stuff!” every time I read or write any file on my NAS, every time I use Steam Link remote play over LAN, every time I SSH or RDP into any of my other machines.<p>The free “Personal” tier is limited to only 3 users but 100 devices, so it&#x27;s normal and expected to set it up the client on any and every computer you own: <a href=\"https:&#x2F;&#x2F;tailscale.com&#x2F;kb&#x2F;1154&#x2F;free-plans-discounts#personal-plan\" rel=\"nofollow\">https:&#x2F;&#x2F;tailscale.com&#x2F;kb&#x2F;1154&#x2F;free-plans-discounts#personal-...</a><p>My behavior would be exposed to every layer of service provider along the way: my ISP, my ISP&#x27;s ISPs, the cloud provider Tailscale use to host their surveillance endpoint, Tailscale themselves if they so choose, whatever creepy secret spy implants we&#x27;re not allowed to know about. No thanks! If you want to be private, you must be silent.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1754790812,
+            "id" : 44852152,
+            "text" : "That section of the policy simply describes how the system works. It&#x27;s very valuable information for enterprise customers who are effectively their entire market revenue-wise. Think access logs, intrusion detection, and so on. I do not interpret their policies such that they are processing the information you added emphasis to beyond what is necessary to serve the customer. What evidence do you have to the contrary?<p>The irony of your post, which brings up Fear Uncertainty and Doubt, is certainly not lost on me. I&#x27;m also sure you could just ask apenwarr directly for clarification.",
+            "type" : "comment"
+          },
+          {
+            "author" : "benreesman",
+            "children" : [
+              {
+                "author" : "mac-attack",
+                "children" : [
+                  {
+                    "author" : "vladvasiliu",
+                    "children" : [
+                      {
+                        "author" : "Lammy",
+                        "children" : [
+                          {
+                            "author" : "vladvasiliu",
+                            "created_at_i" : 1754898913,
+                            "id" : 44861738,
+                            "text" : "I&#x27;m split on this. According to your links, it tries to cooperate with the system resolver. If it can&#x27;t find a way to do it, then yeah, it kinda has to replace it.<p>Of course, they could put this much more front and center in the docs, so that if you&#x27;re running some funky setup and know what you&#x27;re doing, you should be able to easily do it - which you probably can with the `--disable-dns thing`. But putting it in a prominent spot in the docs could help to not overlook this.<p>I&#x27;ve just checked the setup on a machine running systemd-networkd and resolved, and resolv.conf wasn&#x27;t touched. It only added a specific dns setup for the tailscale0 interface, which only covers my tailnet name and ips. It doens&#x27;t even show as a fallback or whatever in the global section.<p>&gt; the option of whether or not `tailscaled` overrides your default nameservers can be configured remotely without you knowing it&#x27;s happening!<p>I mean, there&#x27;s two situations. Either we&#x27;re talking about a &quot;pro&quot; environment, where corp vpns taking over your local network config, as much as I hate it, isn&#x27;t exactly news. Then there&#x27;s the personal plans users, in which case, if the DNS changes without you knowing, you probably have way bigger problems.",
+                            "type" : "comment"
+                          }
+                        ],
+                        "created_at_i" : 1754857003,
+                        "id" : 44857959,
+                        "text" : "&gt; I think you&#x27;re incorrect in the default settings<p>What mac-attack is correct about is that by default, `tailscaled` sets itself as the only DNS resolver and proxies all DNS requests to your non-Tailscale nameservers. Citations:<p>- <a href=\"https:&#x2F;&#x2F;tailscale.com&#x2F;kb&#x2F;1381&#x2F;what-is-quad100#dns-resolver\" rel=\"nofollow\">https:&#x2F;&#x2F;tailscale.com&#x2F;kb&#x2F;1381&#x2F;what-is-quad100#dns-resolver</a><p>“`100.100.100.100` or Quad100 is a special Tailscale IP address […] that provides essential local services. It operates similarly to the localhost address (`127.0.0.1`) but serves only Tailscale-specific services. These services include a DNS resolver.”<p>“One of the services provided by Quad100 is a DNS resolver running on port 53 (1100.100.100.100:531). A DNS resolver is a service that translates IP addresses to hostnames like `google.com` or `macbook.tailnetname.ts.net`. Quad100 is a stub resolver, similar to systemd-resolved, except with extra features.”<p>- <a href=\"https:&#x2F;&#x2F;tailscale.com&#x2F;blog&#x2F;sisyphean-dns-client-linux\" rel=\"nofollow\">https:&#x2F;&#x2F;tailscale.com&#x2F;blog&#x2F;sisyphean-dns-client-linux</a><p>“The upcoming Tailscale 1.8 release implements all of the above [other DNS managers], which should hopefully make DNS on Linux just work, no matter how your machine is choosing to do it.”<p>- <a href=\"https:&#x2F;&#x2F;tailscale.com&#x2F;kb&#x2F;1235&#x2F;resolv-conf\" rel=\"nofollow\">https:&#x2F;&#x2F;tailscale.com&#x2F;kb&#x2F;1235&#x2F;resolv-conf</a><p>“Tailscale overwrites `&#x2F;etc&#x2F;resolv.conf` when MagicDNS is enabled in the tailnet”<p>“Tailscale tries to interoperate with a number of other DNS managers before resorting to overwriting `&#x2F;etc&#x2F;resolv.conf`.”<p>- <a href=\"https:&#x2F;&#x2F;tailscale.com&#x2F;kb&#x2F;1081&#x2F;magicdns\" rel=\"nofollow\">https:&#x2F;&#x2F;tailscale.com&#x2F;kb&#x2F;1081&#x2F;magicdns</a><p>“Tailnets created on or after October 20, 2022 have MagicDNS enabled by default.”<p>It does say “While Quad100&#x27;s DNS resolver operates locally without logging, forwarded requests might be logged by configured nameservers.”, but the fact remains that the Tailscale software is <i>very aggressive</i> about taking over all DNS resolution on your system. Once that is done, the option of whether or not `tailscaled` overrides your default nameservers can be <i>configured remotely</i> without you knowing it&#x27;s happening!<p><a href=\"https:&#x2F;&#x2F;tailscale.com&#x2F;kb&#x2F;1054&#x2F;dns#tailscale-dns-settings\" rel=\"nofollow\">https:&#x2F;&#x2F;tailscale.com&#x2F;kb&#x2F;1054&#x2F;dns#tailscale-dns-settings</a>",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1754828923,
+                    "id" : 44854746,
+                    "text" : "&gt; Am I correct that when tailscale updates&#x2F;hijacked resolv.conf, subsequent DNS resolution is passed onto them on visited websites even when tailscale is not being used?<p>I think you&#x27;re incorrect in the default settings, <i>even when tailscale is active</i>.<p>From the docs, last paragraph under <i>Global nameservers</i> <a href=\"https:&#x2F;&#x2F;tailscale.com&#x2F;kb&#x2F;1054&#x2F;dns#global-nameservers\" rel=\"nofollow\">https:&#x2F;&#x2F;tailscale.com&#x2F;kb&#x2F;1054&#x2F;dns#global-nameservers</a><p><i>By default, your tailnet&#x27;s devices use their local DNS settings for all queries. To force clients to always use the nameservers you define, you can enable the Override DNS servers toggle.</i>",
+                    "type" : "comment"
+                  },
+                  {
+                    "author" : "BrandoElFollito",
+                    "created_at_i" : 1754947788,
+                    "id" : 44869687,
+                    "text" : "&gt; In my experience, disabling logs was perhaps the only thing that was not configurable through the GUI<p>A lot is not configurable from the GUI. Announcing routes for instance (out of my head, there are other switches I set on tailscale)\nOr exit nodes",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1754803369,
+                "id" : 44852952,
+                "text" : "&gt; What could they possibly want with the data of a group of people who are by construction not spending money on a VPN? They&#x27;d be storing it at a loss.<p>This is the exact point where our conclusions diverge.<p>Why are they sending themselves so much &quot;useless&quot; data-intensive logs by default, from their non-paying clients that accounts for roughly ~95% of the userbase and from a profitable business perspective, largely ineligible for troubleshooting support? For me, the only logical conclusion is that the data is valuable to them.<p>As someone who also cares about privacy, hear are a few things that IMO suggest that free customers&#x27; logs are a part of their business model:<p>* Their documentation has plenty of references to security, but no references to privacy outside of the privacy policy.<p>* They have all but eliminated any revenue stream from average user when they made an unsolicted announcement that they upgraded their free plan to allow 100 devices and 5 users.<p>* The content they sponsor for marketing&#x2F;advertising seems targeted for consumers instead of networking professionals. I don&#x27;t see Cisco and Palo Alto Networks sponsoring every Linux&#x2F;self-hosting podcast or YouTube channels for example.<p>* Even the flag-name for turning off logging is mild deterrent based on what you will lose (`--no-support`) as opposed to being neutral &#x27;--no-logging&#x27; or truly descriptive like most FOSS companies that are not pushing an ulterior motive such as &#x27;--no-analytics&#x27;.<p>* logs cannot be disabled for phones<p>* In my experience, disabling logs was perhaps the only thing that was not configurable through the GUI<p>I&#x27;m into privacy and still relatively new on the networking scene thanks to setting up OpenWrt on my router. Am I correct that when tailscale updates&#x2F;hijacked resolv.conf, subsequent DNS resolution is passed onto them on visited websites even when tailscale is not being used? No, they can&#x27;t &quot;read&quot; your traffic, but if I understand things right, they know every website you visited and for how long, which is more than enough data for a rich marketing profile. That was my takeaway before I jumped ship for a self-hosted solution.<p>My understanding is that they have the holy grail of data because they are getting all of your LAN, WAN and mobile network traffic. I&#x27;m not aware of (m)any companies whose business model allows access to all three? It&#x27;s like if your ISP and your Mobile Network had a baby on your local server, and that baby reports every website you visit.",
+                "type" : "comment"
+              },
+              {
+                "author" : "jononor",
+                "created_at_i" : 1754827033,
+                "id" : 44854600,
+                "text" : "Logging everyones network data&#x2F;metadata would likely be illegal under employment law in Norways. Other European countries may have same&#x2F;similar rules. GDPR may also apply.\nSo be careful with how broadly you apply that default.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1754791984,
+            "id" : 44852250,
+            "text" : "Eh, as a network administrator you want the netlogs on by default and you very clearly onboard everyone to the network with a memorable warning to do their personal browsing over some other interface. You&#x27;ve usually got at least some minimal audit requirement on any network with high value stuff on it.<p>It&#x27;s probably not great that someone trying to use the free sample product lands in the same netlogging regime as the work network default, but I suspect thats more about allocation of attention and priority which understandably goes to the companies that make up approximately all of their business. Keeping the free sample product around after its long bern clear &quot;this is for work computers&quot; is just one of those things. The &quot;no support&quot; suffix on a setting is not to me the smoking gun you make it out to be, and I&#x27;m pretty hardcore in my attitudes about surveilance.<p>I agree it&#x27;s the wrong default for a purely personal user, but TailScale has enough &quot;good faith actor&quot; points with me that I&#x27;ll give them the benefit of the doubt on malicious&#x2F;evil dragnet surveilance ambitions. What could they possibly want with the data of a group of people who are by construction not spending money on a VPN? They&#x27;d be <i>storing</i> it at a loss.",
+            "type" : "comment"
+          },
+          {
+            "author" : "jen729w",
+            "children" : [
+              {
+                "author" : "hiimkeks",
+                "created_at_i" : 1754811487,
+                "id" : 44853481,
+                "text" : "Open and Close events are not related to identity or anonymity, so that post isn&#x27;t in itself relevant. It does show that the team is very pragmatic, though.<p>I get why they capture this data, and by doing so they managed to build an exceptionally great service. But I also understand why one would be uncomfortable with exposing this data.",
+                "type" : "comment"
+              },
+              {
+                "author" : "63stack",
+                "children" : [
+                  {
+                    "author" : "godelski",
+                    "children" : [
+                      {
+                        "author" : "63stack",
+                        "created_at_i" : 1754994730,
+                        "id" : 44874534,
+                        "text" : "The similarities stop there, both are &quot;metadata&quot;.<p>The issue parent is complaining about is that tailscale sends data about communication data in your _private_ network to their servers. The reply to that is a blog post that clarifies that tailscale is not Tor. Irrelevant, nobody is comparing it to Tor.",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1754873048,
+                    "id" : 44859759,
+                    "text" : "The parent was talking about metadata, which is that same type of data mentioned.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1754816931,
+                "id" : 44853863,
+                "text" : "This isn&#x27;t relevant to what you were replying to. Parent comment is complaining that there are logs being sent out about what is happening on his private network, he&#x27;s not expecting anonymity on the internet like Tor (which is what your link describes).",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1754806710,
+            "id" : 44853153,
+            "text" : "See their blog post about this from last week.<p><a href=\"https:&#x2F;&#x2F;tailscale.com&#x2F;blog&#x2F;tailscale-privacy-anonymity\" rel=\"nofollow\">https:&#x2F;&#x2F;tailscale.com&#x2F;blog&#x2F;tailscale-privacy-anonymity</a><p># What Tailscale isn&#x27;t: an anonymity service<p>Tailscale is a secure connectivity tool that puts the highest value on the privacy of your packets. But we made an intentional choice from day one that we weren&#x27;t going to try to be an anonymity tool. Quite the opposite in fact! We&#x27;re an identity-centric network.<p>Anonymity tools, like Tor, need to be architected very differently. They trade away speed to reduce traceability. They are hard to inspect and diagnose and debug, as a feature. They make enemies, both political and corporate. They are inherently hard to audit and control, by design. In short, they are the exact opposite of what you want your corporate (or even homelab) network to be.<p>We believe anonymity tools are essential to safe network infrastructure and a free society. But, those tools are made by other people.<p>…<p>But if you’re looking for complete anonymity online, Tailscale is not the tool for you. Y&#x27;all, we&#x27;re an identity-centric network with a centralized control plane. You should assume law enforcement can easily find out that you use Tailscale. Tailscale packets are pretty easy to detect, so you can assume they could know, through ISP logs, the shape and size of data you send between different nodes in different places (albeit without knowing the decrypted packet contents). You should assume they can correlate that flow metadata with your login identity.",
+            "type" : "comment"
+          },
+          {
+            "author" : "jonathantf2",
+            "created_at_i" : 1754834651,
+            "id" : 44855268,
+            "text" : "You do get support if you&#x27;re a free user, it&#x27;s just best effort and via e-mail only.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1754782395,
+        "id" : 44851348,
+        "text" : "&gt; It’s a subscription product, but it has an insanely generous free tier that covers basically anything you’d ever want to do as an individual.<p>Tailscale do have a very nice product, but privacy-conscious users should be aware that you must disable Tailscale&#x27;s real-time remote collection of your behavior on your “private” network. See KB1011: <a href=\"https:&#x2F;&#x2F;tailscale.com&#x2F;kb&#x2F;1011&#x2F;log-mesh-traffic\" rel=\"nofollow\">https:&#x2F;&#x2F;tailscale.com&#x2F;kb&#x2F;1011&#x2F;log-mesh-traffic</a><p>“Each Tailscale agent in your distributed network streams its logs to a central log server (at log.tailscale.io). This includes real-time events for open and close events for every inter-machine connection (TCP or UDP) on your network.”<p>It&#x27;s possible to opt out of this spying on Unix&#x2F;Windows&#x2F;Mac clients by starting Tailscale with `--no-logs-no-support` or `TS_NO_LOGS_NO_SUPPORT=true` environment variable (see <a href=\"https:&#x2F;&#x2F;tailscale.com&#x2F;kb&#x2F;1011&#x2F;log-mesh-traffic#opting-out-of-client-logging\" rel=\"nofollow\">https:&#x2F;&#x2F;tailscale.com&#x2F;kb&#x2F;1011&#x2F;log-mesh-traffic#opting-out-of...</a>), but it is <i>not</i> currently possible to opt out in the Android&#x2F;iOS clients: <a href=\"https:&#x2F;&#x2F;github.com&#x2F;tailscale&#x2F;tailscale&#x2F;issues&#x2F;13174\" rel=\"nofollow\">https:&#x2F;&#x2F;github.com&#x2F;tailscale&#x2F;tailscale&#x2F;issues&#x2F;13174</a><p>For an example of how invasive this is for the average user, this person discovered Tailscale trying to collect ~18000 data points per week about their network usage based on the number of blocked DNS requests for `log.tailscale.com`: <a href=\"https:&#x2F;&#x2F;github.com&#x2F;tailscale&#x2F;tailscale&#x2F;issues&#x2F;15326\" rel=\"nofollow\">https:&#x2F;&#x2F;github.com&#x2F;tailscale&#x2F;tailscale&#x2F;issues&#x2F;15326</a><p>Also see their privacy policy: <a href=\"https:&#x2F;&#x2F;tailscale.com&#x2F;privacy-policy#information-we-collect-through-automated-means\" rel=\"nofollow\">https:&#x2F;&#x2F;tailscale.com&#x2F;privacy-policy#information-we-collect-...</a><p>“When you use the Tailscale Solution, we collect limited metadata regarding your device used to access the Tailscale Solution, such as: the device name; relevant operating system type; host name; IP address; cryptographic public key; user agent (where applicable); language settings; date and time of access to the Tailscale Solution; <i>logs describing connections and containing statistics about data sent to and from other devices (“Inter-Node Traffic Logs”)</i>; and version of the Tailscale Solution installed.” (emphasis mine)<p>Anyway, the reason I quoted that part of your post is because Tailscale are using some Fear, Uncertainty, and Doubt tactics here by naming the privacy-preserving option “no-support”, and if you are a free user then you aren&#x27;t getting support from them anyway, so there should be no downside to keeping your private network private :)",
+        "type" : "comment"
+      },
+      {
+        "author" : "ezst",
+        "created_at_i" : 1754792500,
+        "id" : 44852293,
+        "text" : "I think I &quot;get&quot; what tailscale is about, what I don&#x27;t get is how much of it is re-implemented and available out of the box in headscale. I already do most of the things mentioned in the article (from hand-rolled WG, Apache and firewall configurations), so this level of centralised automation and orchestration has some appeal, but I&#x27;m not willing to hand over the keys to my entire network to them and would rather keep things in-house.<p>And on the topic of headscale, some people bring up netbird as an alternative. Netbird gets some immediate sympathy from me as they put lots of emphasis opensource and self-hosted, but I&#x27;d be curious to see how they compare for the use-cases described in the article.",
+        "type" : "comment"
+      },
+      {
+        "author" : "m11a",
+        "children" : [
+          {
+            "author" : "codethief",
+            "children" : [
+              {
+                "author" : "elcritch",
+                "created_at_i" : 1754831257,
+                "id" : 44854944,
+                "text" : "Connections are also encrypted with the wire guard protocol using a per-device private key.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1754825928,
+            "id" : 44854509,
+            "text" : "&gt; kinda worries me (given also IP spoofing is possible?),<p>It&#x27;s not, Tailscale authenticates incoming connections. (Note that we&#x27;re not talking a regular SSH connection to the server&#x27;s public IP here. You&#x27;d connect to the server&#x27;s SSH daemon through Tailscale.)",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1754821348,
+        "id" : 44854176,
+        "text" : "I don&#x27;t know enough about networking as I should, so to plug for my gap in knowledge, I generally prefer to use more comprehensible (to me) forms of security. And a feature like this:<p>&gt; Speaking of SSH, Tailscale has special support for it whereby it handles any incoming connection to port 22 from the Tailscale network, and deals with authentication itself. No public keys or passwords: if you’re logged into Tailscale you can be logged into the machine.<p>kinda worries me (given also IP spoofing is possible?), compared to SSH keys whose mechanism is more obvious and thus easier to trust.<p>I definitely like the idea of Tailscale as an extra layer of protection, but I&#x27;m not sure I&#x27;d loosen existing protections while using it, whereas many Tailscale articles often present it as a panacea for internal-network-over-the-internet security. Are my concerns misplaced?",
+        "type" : "comment"
+      },
+      {
+        "author" : "raesene9",
+        "children" : [
+          {
+            "author" : "oulipo",
+            "children" : [
+              {
+                "author" : "raesene9",
+                "created_at_i" : 1754824764,
+                "id" : 44854430,
+                "text" : "Indeed, Mullvad is a VPN provider (<a href=\"https:&#x2F;&#x2F;mullvad.net&#x2F;en\" rel=\"nofollow\">https:&#x2F;&#x2F;mullvad.net&#x2F;en</a>) they provide several privacy focused services including a VPN and a browser.<p>Using Mullvad (or other VPN products) allows someone to make their traffic originate from specific countries, which can allow for testing to see what it&#x27;ll look like from different countries, or to access content which is restricted to people in a specific country. It can also allow for bypassing age check restrictions that apply to specific geographies (e.g. the UK)<p>Integrating it with Tailscale makes it easier to use (if you&#x27;re an existing tailscale user) as instead of having to install and manage a separate product, it integrates with your existing tailscale setup, allowing you to dynamically choose a mullvad exit node in a give country, and then your Internet traffic will appear from that country.<p>(that all sounds somewhat ad-like but I&#x27;m not in any way affiliated with Tailscale or Mullvad apart from being a user (Tailscale did give me a nice hoodie one time for writing a blog though ))",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1754824202,
+            "id" : 44854394,
+            "text" : "Can you give more details for the un-initiated? What is Mullvad? How and why would you use this feature?<p>Is it to use it as a kind of VPN to make traffic &quot;appear&quot; from any country, and, eg, watch Netflix?",
+            "type" : "comment"
+          },
+          {
+            "author" : "codethief",
+            "children" : [
+              {
+                "author" : "precommunicator",
+                "created_at_i" : 1754882140,
+                "id" : 44860494,
+                "text" : "Are you sure they weren&#x27;t just trying to redirect you too a capture portal?",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1754826084,
+            "id" : 44854524,
+            "text" : "&gt; One useful additional aspect to Tailscale that I&#x27;ve not seen mentioned so far, is the integration with Mullvad.<p>Indeed, this saved my butt earlier this year when I was at Qatar airport and they tried to MITM most of my connections (including to mullvad.net). Luckily, they didn&#x27;t MITM tailscale.net, so I could log in, enable Mullvad, and thereby secure my entire traffic.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1754821597,
+        "id" : 44854193,
+        "text" : "One useful additional aspect to Tailscale that I&#x27;ve not seen mentioned so far, is the integration with Mullvad.<p>Using that you can get the benefit of their network servers, appearing just as standard Tailscale exit nodes, which is handy if you need to geo-shift traffic at all.",
+        "type" : "comment"
+      },
+      {
+        "author" : "marcogarces",
+        "created_at_i" : 1754825075,
+        "id" : 44854464,
+        "text" : "if you guys love Tailscale, perhaps take a look at NetBird, an open source solution, which also has a commercial offer. Really recommend this one",
+        "type" : "comment"
+      },
+      {
+        "author" : "user3939382",
+        "children" : [
+          {
+            "author" : "elcritch",
+            "created_at_i" : 1754832183,
+            "id" : 44855025,
+            "text" : "Yes, but more so as a VPN. It&#x27;s much easier than any traditional VPN to setup.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1754828495,
+        "id" : 44854715,
+        "text" : "Are people using this because they don’t want to configure dynamic DNS and NAT?",
+        "type" : "comment"
+      },
+      {
+        "author" : "_1tem",
+        "children" : [
+          {
+            "author" : "bornfreddy",
+            "created_at_i" : 1754831706,
+            "id" : 44854984,
+            "text" : "Any VPN (including WireGuard) would allow you to do the same, and this in indeed how the systems are usually set up. Tailscale just makes the setup a bit easier, though for this use-case not by much, imho.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1754830672,
+        "id" : 44854884,
+        "text" : "For me, the benefit was simple: I blocked off ssh and Postgres on my production server from the public internet, making it such that these are only accessible from my development machine and other servers. Yet from inside the tailnet I can still talk to Postgres as if it was on LAN. I’m not sure of any easy way to do this without Tailscale.",
+        "type" : "comment"
+      },
+      {
+        "author" : "jncfhnb",
+        "created_at_i" : 1754832103,
+        "id" : 44855021,
+        "text" : "I just wish Tailscale let you use taildrop to directly send files to other people",
+        "type" : "comment"
+      },
+      {
+        "author" : "codethief",
+        "created_at_i" : 1754838060,
+        "id" : 44855647,
+        "text" : "&gt; For a long time I didn’t bother with any kind of ACLs within my Tailscale network. […] Then one day a thought hit me. […] That means anyone with access to any of my machines (or who managed to get Tailscale credentials out of one of my apps) would be able to SSH into anywhere else on my network.<p>I&#x27;m a happy Tailscale user but I&#x27;ll keep saying this whenever Tailscale comes up: We need a way to `tailnet lock` (sign) not just the tailnet nodes but also the tailnet config (ACLs). Otherwise the above scenario of an attacker taking over the entire network is still possible even if you set all ACLs correctly. All it takes is for an attacker to take over the coordination server (to manipulate ACLs) and a single tailnet node. (Which, if you run Headscale, might even be the same machine.)<p>Until this is fixed I am not going to trust Tailscale with authenticating connections too much and will trade in convenience for defense in depth.",
+        "type" : "comment"
+      },
+      {
+        "author" : "EVa5I7bHFq9mnYK",
+        "created_at_i" : 1754841611,
+        "id" : 44856079,
+        "text" : "My primary use of tailscale is as a VPN. I have exit VPSes in 4 different countries, so usually at least one of them is not blocked from or to where I am trying to connect.",
+        "type" : "comment"
+      }
+    ],
+    "created_at_i" : 1754467749,
+    "id" : 44809166,
+    "points" : 382,
+    "title" : "How I use Tailscale",
+    "type" : "story",
+    "url" : "https://chameth.com/how-i-use-tailscale/"
+  },
+  "headers" : {
+    "content-type" : "application/json"
+  },
+  "status" : 200,
+  "url" : "https://hn.algolia.com/api/v1/items/44809166"
+}

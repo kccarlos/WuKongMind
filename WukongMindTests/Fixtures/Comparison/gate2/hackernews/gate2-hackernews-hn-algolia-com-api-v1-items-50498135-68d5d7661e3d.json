@@ -1,0 +1,25 @@
+{
+  "body" : {
+    "author" : "randycupertino",
+    "children" : [
+      {
+        "author" : "randycupertino",
+        "created_at_i" : 1794672725,
+        "id" : 50498164,
+        "text" : "&gt; Workers have yet to receive paychecks after San Francisco-based Foundation missed payroll on Oct. 30, said the people, who asked for anonymity to speak candidly about a private company.<p>&gt; The situation has particularly angered some inside the startup because its CEO and co-founder, Sankaet Pathak, borrowed $4.6 million from the company last year to buy a luxury home, money that could have been used to pay workers, the people said.<p>&gt; Public records show that an LLC that names Pathak as sole principal purchased a $4.6 million Sausalito, California, property with “sweeping, cinematic views” of the San Francisco Bay in October 2025.",
+        "type" : "comment"
+      }
+    ],
+    "created_at_i" : 1794672538,
+    "id" : 50498135,
+    "points" : 6,
+    "title" : "Robot startup cant pay staff after founder takes $4.6M from company to buy home",
+    "type" : "story",
+    "url" : "https://www.cnbc.com/2026/11/14/foundation-payroll-ceo-loan.html"
+  },
+  "headers" : {
+    "content-type" : "application/json"
+  },
+  "status" : 200,
+  "url" : "https://hn.algolia.com/api/v1/items/50498135"
+}
