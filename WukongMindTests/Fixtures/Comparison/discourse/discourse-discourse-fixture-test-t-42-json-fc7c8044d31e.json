@@ -1,0 +1,40 @@
+{
+  "body": {
+    "details": {
+      "created_by": {
+        "username": "alice"
+      }
+    },
+    "highest_post_number": 2,
+    "id": 42,
+    "post_stream": {
+      "posts": [
+        {
+          "id": 4201,
+          "like_count": 3,
+          "post_number": 1,
+          "username": "alice"
+        },
+        {
+          "accepted_answer": true,
+          "id": 4202,
+          "like_count": 7,
+          "post_number": 2,
+          "username": "bob"
+        }
+      ],
+      "stream": [
+        4201,
+        4202
+      ]
+    },
+    "posts_count": 2,
+    "slug": "snapshot-check",
+    "title": "Snapshot check"
+  },
+  "headers": {
+    "content-type": "application/json; charset=utf-8"
+  },
+  "status": 200,
+  "url": "https://discourse.fixture.test/t/42.json"
+}

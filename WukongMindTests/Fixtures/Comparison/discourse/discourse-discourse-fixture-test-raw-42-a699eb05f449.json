@@ -1,0 +1,8 @@
+{
+  "headers": {
+    "content-type": "text/plain; charset=utf-8"
+  },
+  "status": 200,
+  "textBody": "alice | 2026-03-01 10:00:00 UTC | #1\n\nUpgrade failed on oj gem.\n\n-------------------------\n\nbob | 2026-03-01 10:05:00 UTC | #2\n\nPin oj 3.13.20 without SSE4.2.\n\n-------------------------\n",
+  "url": "https://discourse.fixture.test/raw/42?page=1"
+}

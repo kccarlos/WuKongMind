@@ -12,6 +12,7 @@
 		00A85712A21496290818639341259D2B /* WordPressAgent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 743887598349975475CE2EB4D571C6B7 /* WordPressAgent.swift */; };
 		00B700597BD2CA0B8DAC10553142B0DF /* ScriptViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C40672D19F42560E64626B98B4100398 /* ScriptViews.swift */; };
 		02EBF779AE623EC80C363066E657EB54 /* ForumKindTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032356B6199B487CA1CB84BE2472E6EA /* ForumKindTests.swift */; };
+		03BC6119914A88D47C76ACFCC73ED68C /* wordpress-wordpress-fixture-test-wp-json-wp-v2-43a45d480692.json in Resources */ = {isa = PBXBuildFile; fileRef = 87DA14DFC9ED9B3C936FB14DC62D1DA2 /* wordpress-wordpress-fixture-test-wp-json-wp-v2-43a45d480692.json */; };
 		0407E0CBD5B08C2C00D5D8462D538144 /* VoiceToolTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5294967BFFD9197450DD5FDA36D6076 /* VoiceToolTests.swift */; };
 		045FC7AE2FEFC95B4698EE1D007E0CB2 /* HackerNewsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5D0297BBFD07A482DA31FBFB6188115 /* HackerNewsTests.swift */; };
 		04750A0062CB2F47542F791B12CF361A /* HackerNewsAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F100891CAFFDE64AD2C47B781D0FE96A /* HackerNewsAdapter.swift */; };
@@ -111,6 +112,8 @@
 		4695989EC10F7C4F916B46EB73C40564 /* AgentWorkspaceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 788E5004281BC54D493160D0C4983732 /* AgentWorkspaceTests.swift */; };
 		47B458A12A8897E0F24DD2C53ABED5E2 /* VoiceAudioFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552EEF322DE43B40F1CF2BC18F06C750 /* VoiceAudioFormat.swift */; };
 		47C13BAF83038AEE6AB65E9DB76E8FF7 /* PagedTopicFetch.swift in Sources */ = {isa = PBXBuildFile; fileRef = B081A2AC288D9C743A1B522B55E19691 /* PagedTopicFetch.swift */; };
+		480CEC076ABB93414A18C0A6ACB87C79 /* ForumSnapshotProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF691968783B407193F50291AA90A19B /* ForumSnapshotProtocol.swift */; };
+		483D37488104A2EAAE71BD0569AEFC6A /* discourse-discourse-fixture-test-raw-42-a699eb05f449.json in Resources */ = {isa = PBXBuildFile; fileRef = FF304334B495DE6F732FFA6C2682ACCC /* discourse-discourse-fixture-test-raw-42-a699eb05f449.json */; };
 		48BCB4F726F2349757D2B5E296054FC5 /* DeveloperViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80B22BF88488FB5FE63B2C83C003CFA0 /* DeveloperViews.swift */; };
 		4AB80485F25E85FBAD68A4AFDC9C2BE2 /* AppModel+CloudSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DFD4744959405B0B94EE13F13C59048 /* AppModel+CloudSync.swift */; };
 		4C968F738A2F7E3D35CC4B1A1844970C /* SuggestionRowUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61AFF5CC06D315E2ED1CCC3D0A0EE629 /* SuggestionRowUITests.swift */; };
@@ -257,12 +260,15 @@
 		B807F756AE7ACCC2C178AB9A59863CB0 /* Dictation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25407C423650E90F1638AEB57582E908 /* Dictation.swift */; };
 		B8448C3BFA7E7F6F0AFE9FB7E1AEFCB1 /* AppIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 998BB329F970CC37F6FC0EF6FDDFD10D /* AppIdentity.swift */; };
 		B952A4800AAC95C332D93580B8453429 /* AIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF227D658A4552E42CDAA68A615FE954 /* AIService.swift */; };
+		BA82D441CA4C4688FC268E54EFDECCB9 /* discourse-discourse-fixture-test-t-42-json-fc7c8044d31e.json in Resources */ = {isa = PBXBuildFile; fileRef = CC373F97345DFE06A375AE191E1D9507 /* discourse-discourse-fixture-test-t-42-json-fc7c8044d31e.json */; };
 		BB0D1C2E9CF15F3F8EE3F0984A223B7C /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2068ADD737872238EE103444C2749001 /* HomeView.swift */; };
 		BB3E6DEBA308EAAF60970199F62522FA /* PodcastTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95A52481633C55E6F306274C26E44FD0 /* PodcastTests.swift */; };
+		BB7C8F588FC2AF60601CDE895BCE19EA /* ComparisonSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5188FADE4AC87BDE19D872C1649C17E9 /* ComparisonSnapshotTests.swift */; };
 		BB81D2BA62573EC4BB0D655129745732 /* TaskExportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7A358AE3BD2AAECCA882EFA6A09A718 /* TaskExportTests.swift */; };
 		BBEE64173F2A567568A84804D2FC730C /* ShareHandoffUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 959CA9F6DC92C3F6CBA1FA4C2154B9F8 /* ShareHandoffUITests.swift */; };
 		BBFEBE37DB38D8C7D242ED94D5837994 /* SpotlightTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7B6A4E49A8BC2D2F4E29B4AFFFE684 /* SpotlightTests.swift */; };
 		BC92CE11BB3041522ADF62345084D4CE /* OnboardingUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA494D499CB5DB4AB685A785B5075921 /* OnboardingUITests.swift */; };
+		BD055DB9926A01419552B16A31157D49 /* wordpress-wordpress-fixture-test-wp-json-wp-v2-6a6dded6e905.json in Resources */ = {isa = PBXBuildFile; fileRef = 8431F436C4B9B473AC1BE77E26DAAEFE /* wordpress-wordpress-fixture-test-wp-json-wp-v2-6a6dded6e905.json */; };
 		BD6D38E0C12937A5115CF30F5DE30F92 /* DailyDigest.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE3FAE79EA5DCEB950B0EAB3A5A9081C /* DailyDigest.swift */; };
 		BE04DFE104D0190A4F7BC689DFEE7A8C /* wordpress-subfolder.json in Resources */ = {isa = PBXBuildFile; fileRef = 95497FA8D732F3EC6C6D0C666B037B30 /* wordpress-subfolder.json */; };
 		BEFC784E9E63861DACF3CA08A85A372B /* HackerNewsRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39869077B6D891A2F1033B70F3B7DC48 /* HackerNewsRecognizer.swift */; };
@@ -295,6 +301,7 @@
 		CD9E88F979E25B980E43E7E18C8A7989 /* BrowseBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8554F474FD544292F77B55E0BD2AB2E8 /* BrowseBridge.swift */; };
 		CE8075056B25C9FEC7BFE05904A17441 /* DrawerHint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 889E38D74D6BC87CF2A2CDFEE8D67F9E /* DrawerHint.swift */; };
 		CEF4EE088A49192D151BEC217AEA19ED /* ProviderModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6E11F3BB41B93049BC23C2097EAEAE1 /* ProviderModels.swift */; };
+		D02F1A85553B8E0109B60B2D86D14CF7 /* FixturePageDriver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8685F87FB8AD262E728B8C0951D0B6E6 /* FixturePageDriver.swift */; };
 		D0719CE23B0A43971E77003B95112FD8 /* CoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1046C99B5BE99CA2B444C1BA50AE3EFA /* CoreTests.swift */; };
 		D318654FDA46607D8757CA7660424B44 /* WordPressFixtureSite.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ABDC44644064E27B8540DD0B8103C6B /* WordPressFixtureSite.swift */; };
 		D39DD63E4CE7D59731A81057242748D6 /* DiscourseDOM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B3AC1550C9C79631F847269BA441AFF /* DiscourseDOM.swift */; };
@@ -323,6 +330,7 @@
 		DEB7143EBD7BEC27638F91A0C43A2358 /* ForumRequestPacing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 976E230FF166C67F6339138431C39CB1 /* ForumRequestPacing.swift */; };
 		DF5FC00C8E7B05480A80CCD00782214B /* DiscourseAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48DA60014A923A21112CA32238DA234C /* DiscourseAdapter.swift */; };
 		E04C526253B02A016598469B4082E454 /* VoiceUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 765E77039D9CA26DBA1EF6CF5CFF6919 /* VoiceUITests.swift */; };
+		E135D057949A5F5E8F3362F347F567C8 /* hackernews-hn-algolia-com-api-v1-items-99999901-2af01e08e909.json in Resources */ = {isa = PBXBuildFile; fileRef = 9F64306EC5AB0CCCC98FE6B6487B62C2 /* hackernews-hn-algolia-com-api-v1-items-99999901-2af01e08e909.json */; };
 		E15245397853A7D4066D4A7865BE63EC /* ShareSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89E4AE30DB6F7FBCC7D414FF17B07A3F /* ShareSheetView.swift */; };
 		E2E281011D18509DA1CC6EBE832976A4 /* AIDrawer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE38D73A8610ED7AD5F3A19A230D994C /* AIDrawer.swift */; };
 		E2EF1FF37CAAE925104158893BB3573C /* ForumSite.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EB9A2CC4904281A0512B55F3E5C7A85 /* ForumSite.swift */; };
@@ -495,6 +503,7 @@
 		5073585B13344F368D739E84D83A0937 /* DiscourseRecognizer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DiscourseRecognizer.swift; path = Sites/Recognition/DiscourseRecognizer.swift; sourceTree = "<group>"; };
 		50EB265697F82AF4AEF5D348A0C73F37 /* ScriptStoreWebTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScriptStoreWebTests.swift; sourceTree = "<group>"; };
 		514228D7C2B8964E9164E10C1E143698 /* CloudSyncTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CloudSyncTests.swift; sourceTree = "<group>"; };
+		5188FADE4AC87BDE19D872C1649C17E9 /* ComparisonSnapshotTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ComparisonSnapshotTests.swift; sourceTree = "<group>"; };
 		527DA8FED3478F1F4C7649330DD9A967 /* PhysicalDeviceSmokeTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PhysicalDeviceSmokeTests.swift; sourceTree = "<group>"; };
 		552EEF322DE43B40F1CF2BC18F06C750 /* VoiceAudioFormat.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VoiceAudioFormat.swift; path = Voice/VoiceAudioFormat.swift; sourceTree = "<group>"; };
 		55548E189723CEBF1031A0F2220CB585 /* TranslationViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TranslationViews.swift; path = Translation/TranslationViews.swift; sourceTree = "<group>"; };
@@ -558,12 +567,15 @@
 		81842126D2EC90F86D6D3295EEF89CE5 /* SettingsNavigationUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettingsNavigationUITests.swift; sourceTree = "<group>"; };
 		82F80EAB843FF0C9CC6FC5285E87EED9 /* LiveProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LiveProtocol.swift; path = Voice/LiveProtocol.swift; sourceTree = "<group>"; };
 		838175EE9A7BE33A140026AC2EE2465C /* StreamStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StreamStore.swift; sourceTree = "<group>"; };
+		8431F436C4B9B473AC1BE77E26DAAEFE /* wordpress-wordpress-fixture-test-wp-json-wp-v2-6a6dded6e905.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "wordpress-wordpress-fixture-test-wp-json-wp-v2-6a6dded6e905.json"; path = "Fixtures/Comparison/wordpress/wordpress-wordpress-fixture-test-wp-json-wp-v2-6a6dded6e905.json"; sourceTree = "<group>"; };
 		8554F474FD544292F77B55E0BD2AB2E8 /* BrowseBridge.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BrowseBridge.swift; sourceTree = "<group>"; };
 		85C9C9EC36859C1AF34EBDD88FFD3E5A /* DrawerHintTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DrawerHintTests.swift; sourceTree = "<group>"; };
+		8685F87FB8AD262E728B8C0951D0B6E6 /* FixturePageDriver.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FixturePageDriver.swift; path = Support/FixturePageDriver.swift; sourceTree = "<group>"; };
 		86CCFF833B924FC450400E3FD57BF0E3 /* HistoryTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HistoryTests.swift; sourceTree = "<group>"; };
 		86E73247D68601ECFA7E10C5D68D750C /* TaskRecord.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TaskRecord.swift; sourceTree = "<group>"; };
 		8747819C675D4F2ADB034CB22369FE03 /* WukongMindShare.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; name = WukongMindShare.appex; path = WukongMindShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		876B01E3169FE1ECBD6C8F8F04BCBE29 /* PostLevelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PostLevelTests.swift; sourceTree = "<group>"; };
+		87DA14DFC9ED9B3C936FB14DC62D1DA2 /* wordpress-wordpress-fixture-test-wp-json-wp-v2-43a45d480692.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "wordpress-wordpress-fixture-test-wp-json-wp-v2-43a45d480692.json"; path = "Fixtures/Comparison/wordpress/wordpress-wordpress-fixture-test-wp-json-wp-v2-43a45d480692.json"; sourceTree = "<group>"; };
 		8829E3304F09566A331625D5F4AD2F85 /* DiscourseParsing.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DiscourseParsing.swift; path = Sites/Discourse/DiscourseParsing.swift; sourceTree = "<group>"; };
 		889E38D74D6BC87CF2A2CDFEE8D67F9E /* DrawerHint.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DrawerHint.swift; sourceTree = "<group>"; };
 		88BC51F6FC7C54162D6693F0BAC0DA43 /* NowPlaying.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NowPlaying.swift; sourceTree = "<group>"; };
@@ -594,6 +606,7 @@
 		998BB329F970CC37F6FC0EF6FDDFD10D /* AppIdentity.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppIdentity.swift; sourceTree = "<group>"; };
 		9ACC8307C9B1A2B8F5BECD1610072AE6 /* AppleIntelligenceClient.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppleIntelligenceClient.swift; sourceTree = "<group>"; };
 		9AFD9E04A4D5F587109261A35034F9AE /* hn-item-2.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "hn-item-2.json"; path = "Fixtures/HackerNews/hn-item-2.json"; sourceTree = "<group>"; };
+		9F64306EC5AB0CCCC98FE6B6487B62C2 /* hackernews-hn-algolia-com-api-v1-items-99999901-2af01e08e909.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "hackernews-hn-algolia-com-api-v1-items-99999901-2af01e08e909.json"; path = "Fixtures/Comparison/hackernews/hackernews-hn-algolia-com-api-v1-items-99999901-2af01e08e909.json"; sourceTree = "<group>"; };
 		A1ECA22832CBAC2B715FAB9F2705EECE /* WukongMindShare.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = WukongMindShare.entitlements; sourceTree = "<group>"; };
 		A351A98E10156B9BDD4A5FB451E28982 /* WordPressJobTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WordPressJobTests.swift; path = Sites/WordPressJobTests.swift; sourceTree = "<group>"; };
 		A375DACD56E47289CD53B4911B7F30F3 /* ForumService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ForumService.swift; sourceTree = "<group>"; };
@@ -646,6 +659,7 @@
 		C8A193E982A774A48205C2A38317353A /* session.json */ = {isa = PBXFileReference; includeInIndex = 1; name = session.json; path = Fixtures/PreP0/session.json; sourceTree = "<group>"; };
 		CC17B40AB586A93C2E230196E4D4D669 /* ContentBlockerTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ContentBlockerTests.swift; sourceTree = "<group>"; };
 		CC181FA7B93BE98FE491F7F254A60FD4 /* Localizable.xcstrings */ = {isa = PBXFileReference; includeInIndex = 1; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		CC373F97345DFE06A375AE191E1D9507 /* discourse-discourse-fixture-test-t-42-json-fc7c8044d31e.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "discourse-discourse-fixture-test-t-42-json-fc7c8044d31e.json"; path = "Fixtures/Comparison/discourse/discourse-discourse-fixture-test-t-42-json-fc7c8044d31e.json"; sourceTree = "<group>"; };
 		CC712D56C1863EC82177F5BD7BC78812 /* AppleIntelligence.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppleIntelligence.swift; sourceTree = "<group>"; };
 		CCBFCC0E2BF6B1315F382EC616FB0DFB /* PresentationRouter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PresentationRouter.swift; sourceTree = "<group>"; };
 		CD67F4BF654B74EC20E80C550A19A724 /* WordPressAdapterTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WordPressAdapterTests.swift; path = Sites/WordPressAdapterTests.swift; sourceTree = "<group>"; };
@@ -716,6 +730,8 @@
 		FDCFFB2F74334A9338A90AEC538DF3B3 /* HackerNewsAgent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HackerNewsAgent.swift; path = Sites/HackerNews/HackerNewsAgent.swift; sourceTree = "<group>"; };
 		FE38D73A8610ED7AD5F3A19A230D994C /* AIDrawer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AIDrawer.swift; sourceTree = "<group>"; };
 		FF227D658A4552E42CDAA68A615FE954 /* AIService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AIService.swift; sourceTree = "<group>"; };
+		FF304334B495DE6F732FFA6C2682ACCC /* discourse-discourse-fixture-test-raw-42-a699eb05f449.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "discourse-discourse-fixture-test-raw-42-a699eb05f449.json"; path = "Fixtures/Comparison/discourse/discourse-discourse-fixture-test-raw-42-a699eb05f449.json"; sourceTree = "<group>"; };
+		FF691968783B407193F50291AA90A19B /* ForumSnapshotProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ForumSnapshotProtocol.swift; path = Support/ForumSnapshotProtocol.swift; sourceTree = "<group>"; };
 		FFE5272C2A38B83D495166117C8844B0 /* SuggestionRow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SuggestionRow.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -1055,6 +1071,7 @@
 				5C43CDB5BFF36DA709CC1DFE2790BB9F /* BrowserToolsTests.swift */,
 				D430B405FC2361AC895CE3BA61F92646 /* CloudSyncFakes.swift */,
 				514228D7C2B8964E9164E10C1E143698 /* CloudSyncTests.swift */,
+				5188FADE4AC87BDE19D872C1649C17E9 /* ComparisonSnapshotTests.swift */,
 				CC17B40AB586A93C2E230196E4D4D669 /* ContentBlockerTests.swift */,
 				AA30CB7626D1EDAEA4171CFC55300B09 /* ContentBlockingRulesTests.swift */,
 				1046C99B5BE99CA2B444C1BA50AE3EFA /* CoreTests.swift */,
@@ -1109,6 +1126,8 @@
 				2B7B6A4E49A8BC2D2F4E29B4AFFFE684 /* SpotlightTests.swift */,
 				D033E2EDD22D4FE7525C2B6D9366FF65 /* StateTransitionTests.swift */,
 				977B891A3C6B18DDF0DA1A8E0BDA2E4A /* SuggestionRoutingTests.swift */,
+				8685F87FB8AD262E728B8C0951D0B6E6 /* FixturePageDriver.swift */,
+				FF691968783B407193F50291AA90A19B /* ForumSnapshotProtocol.swift */,
 				D39C94B9548AB3777449CB571251864E /* RecordedModelClient.swift */,
 				8F4C46F8663159759D69BB2BA6E2F6DD /* ReplayToolDispatcher.swift */,
 				46B2BF9CDB6ADC11AFF8417AE52432E4 /* SystemEntryTests.swift */,
@@ -1132,6 +1151,11 @@
 				1099FD69F91DA8B9654A020C7A5F21CE /* speech-d.wav */,
 				5B7BA30CDF14F89D5E5CF7DC8D040C88 /* article.html */,
 				BD5C41F921AAF5AF042E11F58412C48E /* strict-csp.html */,
+				FF304334B495DE6F732FFA6C2682ACCC /* discourse-discourse-fixture-test-raw-42-a699eb05f449.json */,
+				CC373F97345DFE06A375AE191E1D9507 /* discourse-discourse-fixture-test-t-42-json-fc7c8044d31e.json */,
+				9F64306EC5AB0CCCC98FE6B6487B62C2 /* hackernews-hn-algolia-com-api-v1-items-99999901-2af01e08e909.json */,
+				87DA14DFC9ED9B3C936FB14DC62D1DA2 /* wordpress-wordpress-fixture-test-wp-json-wp-v2-43a45d480692.json */,
+				8431F436C4B9B473AC1BE77E26DAAEFE /* wordpress-wordpress-fixture-test-wp-json-wp-v2-6a6dded6e905.json */,
 				7CC0592C769221DC7728295B86EDF24F /* hn-comments.json */,
 				292CEE566E7480BA4AD5DEED758FEB32 /* hn-html.json */,
 				6995A087A9A4CF6FF8D3B3293CA27F3C /* hn-item-1.json */,
@@ -1320,6 +1344,11 @@
 				562B66EA43F8D657B8E6B6EFBD52485B /* speech-d.wav in Resources */,
 				12B8AB99274B7A2B72F26CBA59648C9F /* article.html in Resources */,
 				E374B25793E91AA1C9E1A1114FDF1BAD /* strict-csp.html in Resources */,
+				483D37488104A2EAAE71BD0569AEFC6A /* discourse-discourse-fixture-test-raw-42-a699eb05f449.json in Resources */,
+				BA82D441CA4C4688FC268E54EFDECCB9 /* discourse-discourse-fixture-test-t-42-json-fc7c8044d31e.json in Resources */,
+				E135D057949A5F5E8F3362F347F567C8 /* hackernews-hn-algolia-com-api-v1-items-99999901-2af01e08e909.json in Resources */,
+				03BC6119914A88D47C76ACFCC73ED68C /* wordpress-wordpress-fixture-test-wp-json-wp-v2-43a45d480692.json in Resources */,
+				BD055DB9926A01419552B16A31157D49 /* wordpress-wordpress-fixture-test-wp-json-wp-v2-6a6dded6e905.json in Resources */,
 				9563D5BD1278AB3F92BDF4461CA1E3F5 /* hn-comments.json in Resources */,
 				EA595C71895C92F15AD1F1CD33BB9B0B /* hn-html.json in Resources */,
 				15A27FB0072BE7231C553CBC9A84512E /* hn-item-1.json in Resources */,
@@ -1434,6 +1463,7 @@
 				9CC4C20859AEF783A4446C841097CBDB /* BrowserToolsTests.swift in Sources */,
 				C7A944031147F4644046D0815300C243 /* CloudSyncFakes.swift in Sources */,
 				CC533C043AA3FA93E2D064239A1F934E /* CloudSyncTests.swift in Sources */,
+				BB7C8F588FC2AF60601CDE895BCE19EA /* ComparisonSnapshotTests.swift in Sources */,
 				C5CC577494455B98A8A3A323A2FE2351 /* ContentBlockerTests.swift in Sources */,
 				53EBA5662F300594E3A3C120B7DA52EB /* ContentBlockingRulesTests.swift in Sources */,
 				D0719CE23B0A43971E77003B95112FD8 /* CoreTests.swift in Sources */,
@@ -1488,6 +1518,8 @@
 				BBFEBE37DB38D8C7D242ED94D5837994 /* SpotlightTests.swift in Sources */,
 				60E5BB3F67176EDE44AE6BC70480A982 /* StateTransitionTests.swift in Sources */,
 				D5BFCC83BB35BD5E86A0AE77D65E8994 /* SuggestionRoutingTests.swift in Sources */,
+				D02F1A85553B8E0109B60B2D86D14CF7 /* FixturePageDriver.swift in Sources */,
+				480CEC076ABB93414A18C0A6ACB87C79 /* ForumSnapshotProtocol.swift in Sources */,
 				2BC3E3B0C50C349B67C3B16EC1DF6877 /* RecordedModelClient.swift in Sources */,
 				6FB212E9E646E3A769E43E46FAF73A4B /* ReplayToolDispatcher.swift in Sources */,
 				C03F608358699FF98E8C36E71C469918 /* SystemEntryTests.swift in Sources */,

@@ -1,0 +1,27 @@
+{
+  "body": {
+    "_embedded": {
+      "author": [
+        {
+          "name": "Will"
+        }
+      ]
+    },
+    "author": 1,
+    "content": {
+      "rendered": "<p>Spend $600 on Chase Travel for $100 back.</p>"
+    },
+    "date_gmt": "2026-03-01T12:00:00",
+    "id": 77,
+    "link": "https://wordpress.fixture.test/?p=77",
+    "modified_gmt": "2026-03-01T12:00:00",
+    "title": {
+      "rendered": "Chase Travel $100 Offer"
+    }
+  },
+  "headers": {
+    "content-type": "application/json; charset=UTF-8"
+  },
+  "status": 200,
+  "url": "https://wordpress.fixture.test/wp-json/wp/v2/posts/77?_fields=id,title,link,date_gmt,modified_gmt,content,author,_embedded,_links&_embed=author"
+}
