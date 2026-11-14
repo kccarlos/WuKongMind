@@ -55,3 +55,13 @@ Per `docs/wukongmind/next-phase.md` §9, Cleanup 1 (`d915ea0`) deleted UGC conte
 | `CommentBridgeReviewTests.testBlockThemeBlockingParentKeepsUnrelatedReply` (and moderation-only methods in `CommentBridgeReviewTests`) | `WukongMindTests/ModerationTests.swift` | Deleted in Cleanup 1 (`d915ea0`) |
 | `ModerationTests.testBlockedFirstNewPostAndBlockedUserAcceptedPostExcludedFromDigestAndPodcast` and `ModerationTests.testBlockedCitationAndFocusBlockedUserAreIgnored` (`ModerationTests.*`) | `WukongMindTests/ModerationTests.swift` | Deleted in Cleanup 1 (`d915ea0`) |
 | `AIDataConsentTests.*` | `WukongMindTests/AIDataConsentTests.swift` | Deleted in Cleanup 1 (`d915ea0`) |
+
+## CI timing flakes seen on WUKO-54 (PR #58), fixed without weakening checks
+
+Two CI runs failed on tests this change does not touch (no forum prompt, no recorded response keyed on the prompt; `main` was green). Each was a fixed deadline too short for a loaded 3-vCPU runner. Only deadlines moved; every assertion is unchanged.
+
+| Test | Location | Root cause and fix |
+| --- | --- | --- |
+| `AgentBridgeTests.testCrawlOf25FixturePagesThroughWukongFetchAndFilesInRealWebKit` (and the same loopback server in `ScriptStoreWebTests`) | `WukongMindTests/AgentBridgeTests.swift`, `WukongMindTests/ScriptStoreWebTests.swift` | The `NWListener` stayed in `.setup` past the 5 s ready deadline on a busy runner. It still resumes the moment the state is `.ready`; the failure deadline is now 30 s. |
+| `CapabilityToolsTests.testStopCancelsWaitWhileSummaryFinishesAndStaysCached` | `WukongMindTests/CapabilityToolsTests.swift` | `waitUntil` polled for 3 s. It already polls a condition rather than sleeping a fixed time; the deadline is now 30 s, so it returns as soon as the condition holds. |
+| `AgentLoopTests.testStopCancelsImmediatelyHealsHistoryAndPermitsNextTurn` | `WukongMindTests/AgentLoopTests.swift` | The expectation that the slow tool had started waited 2 s. It is now 30 s and still fulfils as soon as the tool starts. The `stop()` returns-within-250 ms check stays, since it times the synchronous stop itself. |

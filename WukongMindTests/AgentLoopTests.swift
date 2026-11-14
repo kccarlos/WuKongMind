@@ -478,7 +478,7 @@ final class AgentLoopTests: XCTestCase {
         )
 
         session.send("Start long script")
-        await fulfillment(of: [toolEntered], timeout: 2.0)
+        await fulfillment(of: [toolEntered], timeout: 30)
         XCTAssertTrue(session.isRunning)
 
         let stopStart = ContinuousClock.now
