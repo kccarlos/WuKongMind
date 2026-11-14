@@ -183,8 +183,6 @@ struct AssistantPanel: View {
         .onChange(of: app.askFocusRequest) {
             composerFocused = true
         }
-        .onChange(of: activeSummary?.id) { app.completePendingReadAloud() }
-        .onChange(of: app.currentSession?.summaryUpdatedAt) { app.completePendingReadAloud() }
         .onChange(of: browserAgent.runState) { _, newState in
             updateCompletedStatusVisibility(for: newState, isInitialAppear: false)
         }
@@ -554,9 +552,6 @@ struct AssistantPanel: View {
                 Button {
                     DCHaptics.tap()
                     browserAgent.resetConversation()
-                    app.agentHandoffs = []
-                    app.handedOverSummaries = [:]
-                    app.researchFillPending = false
                     if app.assistantMode == .agent {
                         app.assistantMode = .summary
                     }
@@ -841,21 +836,9 @@ struct AssistantPanel: View {
     }
 
     private func runSuggestion(_ suggestion: PageSuggestion) {
-        switch PageSuggestions.route(for: suggestion, on: suggestionKind) {
-        case .summary:
-            app.suggestSummary()
-        case .podcast:
-            app.suggestReadAloud()
-        case .follow:
-            if app.suggestFollow() {
-                browserAgent.appendLocalReply(
-                    prompt: suggestion.text,
-                    reply: String(localized: "Following. I'll tell you when new replies come in.", comment: "Agent confirmation after the Notify me of new replies suggestion")
-                )
-            }
-        case .fillForResearch:
+        switch PageSuggestions.route(for: suggestion) {
+        case .fill:
             agentDraft = suggestion.composerText
-            app.researchFillPending = true
             composerFocused = true
         case .agent where app.firstRun != nil:
             // Step 3 sends once the page has loaded.
@@ -879,12 +862,7 @@ struct AssistantPanel: View {
                 sendAgentPrompt(suggestion.text, attachedBlock: block)
             }
         case .agent:
-            if suggestion.fillsComposer {
-                agentDraft = suggestion.composerText
-                composerFocused = true
-            } else {
-                sendAgentPrompt(suggestion.text)
-            }
+            sendAgentPrompt(suggestion.text)
         }
     }
 
@@ -904,24 +882,13 @@ struct AssistantPanel: View {
         sendAgentPrompt(agentDraft)
     }
 
-    /// Sends to the Agent, except a completed "Search this forum…", which
-    /// goes to the old Research loop (transitional routing).
+    /// Sends to the Agent: typed, suggested and completed "Search this forum…"
+    /// all take this one path, with no hand-off context.
     private func sendAgentPrompt(_ text: String, attachedBlock: String? = nil) {
         let prompt = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !prompt.isEmpty, !browserAgent.isRunning else { return }
         // Sending takes what is in the box; the microphone closes.
         stopDictation(keepingText: false)
-        if app.researchFillPending {
-            app.researchFillPending = false
-            if let query = PageSuggestions.researchQuery(from: prompt),
-               PageSuggestions.route(for: .searchForum, on: suggestionKind) == .fillForResearch {
-                DCHaptics.tap()
-                agentDraft = ""
-                composerFocused = false
-                app.startSuggestedResearch(query)
-                return
-            }
-        }
         guard app.isProviderReady(for: .browserAgent) else {
             requestedProviderSetup = true
             composerFocused = false
@@ -938,7 +905,7 @@ struct AssistantPanel: View {
                 app.router.drawerDetent = .medium
             }
         }
-        browserAgent.send(prompt, context: app.takeAgentHandoffContext(), attachedBlock: attachedBlock)
+        browserAgent.send(prompt, context: nil, attachedBlock: attachedBlock)
     }
 
     // MARK: Summary & Unified Transcript

@@ -4,8 +4,8 @@ import XCTest
 @testable import WukongMind
 #endif
 
-/// One panel 2b: which suggestions a page shows, where each one runs, and the
-/// old-engine results handed to the Agent's next message.
+/// Which suggestions a page shows, and that each one sends its text to the
+/// Agent (One loop 9).
 @MainActor
 final class SuggestionRoutingTests: XCTestCase {
     private let site = "https://forum.example.org"
@@ -51,64 +51,82 @@ final class SuggestionRoutingTests: XCTestCase {
 
     // MARK: Routing
 
-    func testThreadSuggestionsRunTheExistingEngines() {
-        XCTAssertEqual(PageSuggestions.route(for: .summarizeThread, on: .forumThread), .summary)
-        XCTAssertEqual(PageSuggestions.route(for: .readAloud, on: .forumThread), .podcast)
-        XCTAssertEqual(PageSuggestions.route(for: .followReplies, on: .forumThread), .follow)
-        XCTAssertEqual(PageSuggestions.route(for: .searchForum, on: .forumThread), .fillForResearch)
-        XCTAssertEqual(PageSuggestions.route(for: .searchForum, on: .forumList), .fillForResearch)
-    }
-
-    func testEverythingElseGoesToTheAgent() {
-        XCTAssertEqual(PageSuggestions.route(for: .worthReadingToday, on: .forumList), .agent)
-        for suggestion in [PageSuggestion.summarizePage, .makeDark, .removeDistractions] {
-            XCTAssertEqual(PageSuggestions.route(for: suggestion, on: .ordinaryPage), .agent)
+    func testOnlySearchFillsTheBoxAndEveryOtherSuggestionSends() {
+        for suggestion in PageSuggestion.allCases {
+            XCTAssertEqual(
+                PageSuggestions.route(for: suggestion),
+                suggestion == .searchForum ? .fill : .agent,
+                "\(suggestion)"
+            )
         }
-        // Off a built-in forum the old engines never run.
-        XCTAssertEqual(PageSuggestions.route(for: .summarizeThread, on: .ordinaryPage), .agent)
-        XCTAssertEqual(PageSuggestions.route(for: .searchForum, on: .ordinaryPage), .agent)
     }
 
-    func testResearchQueryNeedsTheFilledStartAndMore() {
-        XCTAssertEqual(PageSuggestions.researchQuery(from: "Search this forum for dark mode bugs"), "Search this forum for dark mode bugs")
-        XCTAssertEqual(PageSuggestions.researchQuery(from: "  search this forum  rust  "), "search this forum  rust")
-        XCTAssertNil(PageSuggestions.researchQuery(from: "Search this forum "))
-        XCTAssertNil(PageSuggestions.researchQuery(from: "What about dark mode?"))
+    // MARK: Tapped and typed parity (acceptance 2)
+
+    /// Tapping a suggestion sends its text; the Agent's request is the same as
+    /// typing that text, with no hand-off context.
+    func testTappedAndTypedSuggestionsMakeTheSameAgentRequest() async throws {
+        let sent = PageSuggestion.allCases.filter { PageSuggestions.route(for: $0) == .agent && $0 != .pageBroken }
+        XCTAssertTrue(sent.contains(.summarizeThread) && sent.contains(.readAloud) && sent.contains(.followReplies))
+        for suggestion in sent {
+            let tapped = try await firstRequest(sending: suggestion.text)
+            let typed = try await firstRequest(sending: "  \(suggestion.text)\n")
+            XCTAssertEqual(tapped, typed, "\(suggestion)")
+            XCTAssertEqual(tapped.messages.last, .user(suggestion.text), "\(suggestion)")
+        }
     }
 
-    // MARK: Context hand-off
-
-    func testFinishedResultsAreHandedOverOnce() throws {
-        var session = TopicSession(siteURL: site, topicID: "7", url: URL(string: "\(site)/t/dark/7")!, title: "Dark mode")
-        session.summary = "People want a dark theme; #3 explains the CSS."
-        var run = AgentRun(siteURL: site, goal: "Search this forum for themes", provider: .openAI, model: "m")
-        run.answer = "Three topics discuss themes."
-        run.result = .completed
-        let app = makeApp(sessions: [session], runs: [run])
-
-        app.agentHandoffs = [
-            .summary(topicKey: session.topicKey),
-            .research(runID: run.id),
-            .follow(title: "Dark mode", url: session.url),
-            .research(runID: UUID())
-        ]
-        let context = try XCTUnwrap(app.takeAgentHandoffContext())
-        XCTAssertTrue(context.contains("People want a dark theme"), context)
-        XCTAssertTrue(context.contains("Three topics discuss themes."), context)
-        XCTAssertTrue(context.contains("followed the thread \"Dark mode\""), context)
-        XCTAssertTrue(app.agentHandoffs.isEmpty, "A deleted run is dropped, the rest are handed over.")
-        XCTAssertNil(app.takeAgentHandoffContext(), "Each result goes along once.")
-
-        // The same summary handed over again (e.g. a second Read it to me) is skipped.
-        app.agentHandoffs = [.summary(topicKey: session.topicKey)]
-        XCTAssertNil(app.takeAgentHandoffContext())
+    func testSearchThisForumSendsTheCompletedTextAsTyped() async throws {
+        XCTAssertEqual(PageSuggestions.route(for: .searchForum), .fill)
+        let completed = PageSuggestion.searchForum.composerText + "dark mode bugs"
+        let request = try await firstRequest(sending: completed)
+        XCTAssertEqual(request.messages.last, .user("Search this forum dark mode bugs"))
     }
 
-    func testAMissingSummaryIsNotHandedOver() {
-        let app = makeApp(sessions: [], runs: [])
-        app.agentHandoffs = [.summary(topicKey: "nothing")]
-        XCTAssertNil(app.takeAgentHandoffContext())
-        XCTAssertTrue(app.agentHandoffs.isEmpty)
+    /// What the model is sent for one turn: the system prompt, the tools, the messages.
+    private struct AgentRequest: Equatable {
+        let system: String
+        let toolNames: [String]
+        let messages: [AgentModelTurn]
+    }
+
+    private final class StubDriver: AgentPageDriving, @unchecked Sendable {
+        func currentPageMetadata() async -> AgentPageMetadata {
+            AgentPageMetadata(url: "https://forum.example.org/t/dark/7", title: "Dark mode")
+        }
+        func readPage(mode: PageReadMode, selector: String?, maxLength: Int?) async throws -> String { "" }
+        func runJS(code: String, environment: AgentExecutionEnvironment, timeout: TimeInterval) async throws -> JSExecutionResult {
+            JSExecutionResult(valueJSON: "true", consoleOutput: [], error: nil)
+        }
+        func injectCSS(css: String, id: String?) async throws -> CSSInjectionResult {
+            CSSInjectionResult(sheetID: id ?? "s", appliedRootCount: 1)
+        }
+        func waitFor(selector: String?, milliseconds: Int?) async throws -> WaitForResult {
+            WaitForResult(mode: .delay, matched: true, elapsedMs: 0, selector: selector)
+        }
+    }
+
+    private func firstRequest(sending text: String) async throws -> AgentRequest {
+        let client = RecordedModelClient([
+            .success(AgentModelTurnResponse(text: "ok", toolCalls: [], usage: AgentTokenUsage(inputTokens: 1, outputTokens: 1)))
+        ])
+        let session = BrowserAgentSession(
+            pageDriver: StubDriver(),
+            modelClient: client,
+            configProvider: {
+                BrowserAgentRuntimeConfig(
+                    selection: ModelSelection(provider: .anthropic, model: "claude-haiku-5-5"),
+                    configuration: ProviderConfiguration(model: "claude-haiku-5-5", baseURL: AIProvider.anthropic.defaultBaseURL, apiKey: "fake-key"),
+                    maxSteps: 3,
+                    truncationLimit: 20_000,
+                    customInstructions: "",
+                    redactedSecrets: []
+                )
+            }
+        )
+        await session.sendAndWait(text)
+        let request = try XCTUnwrap(client.recordedRequests.first)
+        return AgentRequest(system: request.system, toolNames: request.tools.map(\.name), messages: request.messages)
     }
 
     func testModelPromptPutsContextBeforeTheQuestion() {
@@ -125,8 +143,7 @@ final class SuggestionRoutingTests: XCTestCase {
         XCTAssertEqual(PageSuggestion.pageBroken.text, "This page looks broken")
         XCTAssertEqual(PageSuggestion.pageBroken.accessibilityIdentifier, "suggestionPageBroken")
         XCTAssertFalse(PageSuggestion.pageBroken.fillsComposer)
-        XCTAssertEqual(PageSuggestions.route(for: .pageBroken, on: .forumThread), .agent)
-        XCTAssertEqual(PageSuggestions.route(for: .pageBroken, on: .ordinaryPage), .agent)
+        XCTAssertEqual(PageSuggestions.route(for: .pageBroken), .agent)
 
         // Absent when no active scripts run on the page (even if hasScriptErrors is true).
         XCTAssertFalse(
