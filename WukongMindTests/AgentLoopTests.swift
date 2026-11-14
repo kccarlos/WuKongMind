@@ -853,4 +853,174 @@ extension AgentLoopTests {
         XCTAssertEqual(session.messages.first?.text, "Which post has the CSS?")
         XCTAssertEqual(session.runs.last?.prompt, "Which post has the CSS?")
     }
+
+    // MARK: - M3 2: Tool result images wire format & history pruning
+
+    func testAIServiceImageWireFormatAcrossAllProviderFamilies() async throws {
+        let sessionConfig = URLSessionConfiguration.ephemeral
+        sessionConfig.protocolClasses = [RecordedToolURLProtocol.self]
+        let service = AIService(session: URLSession(configuration: sessionConfig))
+        defer { RecordedToolURLProtocol.handler = nil }
+
+        let fakeImage = AgentImage(mediaType: "image/jpeg", data: "/9j/fakeBase64Screenshot==")
+        let turns: [AgentModelTurn] = [
+            .user("Take a screenshot"),
+            .assistant(
+                text: "",
+                toolCalls: [AgentModelToolCall(id: "call_shot_1", name: "screenshot", arguments: [:])]
+            ),
+            .toolResults([
+                AgentModelToolResult(
+                    toolCallID: "call_shot_1",
+                    toolName: "screenshot",
+                    content: "<untrusted_web_content tool=\"screenshot\">\nScreenshot of https://example.com, 390×844 pt, visible\n</untrusted_web_content>",
+                    isError: false,
+                    images: [fakeImage]
+                )
+            ])
+        ]
+        let tools = ToolRegistry.m1(bridge: StubDriver()).definitions
+
+        func captureBody(
+            provider: AIProvider,
+            baseURL: String,
+            cannedResponse: String
+        ) async throws -> [String: Any] {
+            var captured: [String: Any]?
+            RecordedToolURLProtocol.handler = { request in
+                if let data = Self.requestBodyData(request) {
+                    captured = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
+                }
+                return (200, Data(cannedResponse.utf8))
+            }
+            _ = try await service.completeToolTurn(
+                system: "Sys",
+                messages: turns,
+                tools: tools,
+                configuration: ProviderConfiguration(model: "test-vision", baseURL: baseURL, apiKey: "fake-key"),
+                provider: provider
+            )
+            return try XCTUnwrap(captured)
+        }
+
+        // 1. Anthropic: image block inside tool_result content.
+        let anthropicBody = try await captureBody(
+            provider: .anthropic,
+            baseURL: "https://api.anthropic.com/v1",
+            cannedResponse: #"{"content":[{"type":"text","text":"ok"}],"stop_reason":"end_turn","usage":{"input_tokens":10,"output_tokens":2}}"#
+        )
+        let anthropicMsgs = try XCTUnwrap(anthropicBody["messages"] as? [[String: Any]])
+        let anthropicResultBlocks = try XCTUnwrap(anthropicMsgs[2]["content"] as? [[String: Any]])
+        let anthropicInner = try XCTUnwrap(anthropicResultBlocks.first?["content"] as? [[String: Any]])
+        XCTAssertEqual(anthropicInner.count, 2)
+        XCTAssertEqual(anthropicInner[0]["type"] as? String, "text")
+        XCTAssertEqual(anthropicInner[1]["type"] as? String, "image")
+        let anthropicSource = try XCTUnwrap(anthropicInner[1]["source"] as? [String: Any])
+        XCTAssertEqual(anthropicSource["type"] as? String, "base64")
+        XCTAssertEqual(anthropicSource["media_type"] as? String, "image/jpeg")
+        XCTAssertEqual(anthropicSource["data"] as? String, fakeImage.data)
+
+        // 2. Gemini & Vertex AI: inlineData part beside functionResponse.
+        for geminiProvider in [AIProvider.gemini, AIProvider.vertexAI] {
+            let geminiBody = try await captureBody(
+                provider: geminiProvider,
+                baseURL: geminiProvider == .gemini
+                    ? "https://generativelanguage.googleapis.com/v1beta"
+                    : "https://aiplatform.googleapis.com/v1/publishers/google",
+                cannedResponse: #"{"candidates":[{"content":{"parts":[{"text":"ok"}]}}],"usageMetadata":{"promptTokenCount":10,"candidatesTokenCount":2}}"#
+            )
+            let geminiContents = try XCTUnwrap(geminiBody["contents"] as? [[String: Any]])
+            let geminiParts = try XCTUnwrap(geminiContents[2]["parts"] as? [[String: Any]])
+            XCTAssertEqual(geminiParts.count, 2)
+            XCTAssertNotNil(geminiParts[0]["functionResponse"])
+            let inlineData = try XCTUnwrap(geminiParts[1]["inlineData"] as? [String: Any])
+            XCTAssertEqual(inlineData["mimeType"] as? String, "image/jpeg")
+            XCTAssertEqual(inlineData["data"] as? String, fakeImage.data)
+        }
+
+        // 3. OpenAI-compatible: user message with data URL image_url follows tool message.
+        let openAIBody = try await captureBody(
+            provider: .openAI,
+            baseURL: "https://api.openai.com/v1",
+            cannedResponse: #"{"choices":[{"finish_reason":"stop","message":{"role":"assistant","content":"ok"}}],"usage":{"prompt_tokens":10,"completion_tokens":2}}"#
+        )
+        let openAIMsgs = try XCTUnwrap(openAIBody["messages"] as? [[String: Any]])
+        XCTAssertEqual(openAIMsgs[3]["role"] as? String, "tool")
+        XCTAssertEqual(openAIMsgs[4]["role"] as? String, "user")
+        let openAIUserParts = try XCTUnwrap(openAIMsgs[4]["content"] as? [[String: Any]])
+        let imageURLBlock = try XCTUnwrap(openAIUserParts.first { ($0["type"] as? String) == "image_url" })
+        let imageURL = try XCTUnwrap((imageURLBlock["image_url"] as? [String: Any])?["url"] as? String)
+        XCTAssertEqual(imageURL, "data:image/jpeg;base64,\(fakeImage.data)")
+
+        // 4. Ollama: user message with images array follows tool message.
+        let ollamaBody = try await captureBody(
+            provider: .ollama,
+            baseURL: "http://127.0.0.1:11434",
+            cannedResponse: #"{"message":{"role":"assistant","content":"ok"},"prompt_eval_count":10,"eval_count":2}"#
+        )
+        let ollamaMsgs = try XCTUnwrap(ollamaBody["messages"] as? [[String: Any]])
+        XCTAssertEqual(ollamaMsgs[3]["role"] as? String, "tool")
+        XCTAssertEqual(ollamaMsgs[4]["role"] as? String, "user")
+        XCTAssertEqual(ollamaMsgs[4]["images"] as? [String], [fakeImage.data])
+    }
+
+    func testHistoryPrunerKeepsTwoNewestImageResultsWhileSessionHistoryKeepsAll() async throws {
+        // Legacy history without "images" key still decodes cleanly.
+        let legacyJSON = #"{"toolCallID":"c1","toolName":"read_page","content":"ok","isError":false}"#
+        let legacyDecoded = try JSONDecoder().decode(AgentModelToolResult.self, from: Data(legacyJSON.utf8))
+        XCTAssertTrue(legacyDecoded.images.isEmpty)
+
+        var shotIndex = 0
+        let shotTool = AgentTool(
+            definition: AgentToolDefinition(name: "fake_shot", description: "Fake shot", parameters: [], required: []),
+            summarizeArguments: { _ in "" },
+            execute: { _ in
+                shotIndex += 1
+                let imgs = shotIndex == 2
+                    ? [AgentImage(data: "img-2a"), AgentImage(data: "img-2b")]
+                    : [AgentImage(data: "img-\(shotIndex)")]
+                return ToolExecutionOutput(content: "shot \(shotIndex)", summary: "shot", images: imgs)
+            }
+        )
+        let registry = ToolRegistry(tools: [shotTool])
+        let client = RecordedModelClient([
+            .success(AgentModelTurnResponse(text: "", toolCalls: [AgentModelToolCall(id: "s1", name: "fake_shot")])),
+            .success(AgentModelTurnResponse(text: "", toolCalls: [AgentModelToolCall(id: "s2", name: "fake_shot")])),
+            .success(AgentModelTurnResponse(text: "", toolCalls: [AgentModelToolCall(id: "s3", name: "fake_shot")])),
+            .success(AgentModelTurnResponse(text: "", toolCalls: [AgentModelToolCall(id: "s4", name: "fake_shot")])),
+            .success(AgentModelTurnResponse(text: "Done inspecting.", toolCalls: []))
+        ])
+        let loop = AgentLoop(modelClient: client, registry: registry, maxSteps: 10)
+        let result = try await loop.run(
+            systemPrompt: "Sys",
+            initialHistory: [.user("Inspect")],
+            configuration: ProviderConfiguration(model: "claude-haiku-5-5", baseURL: "https://api.anthropic.com/v1", apiKey: "k"),
+            provider: .anthropic
+        )
+
+        // Final model request (turn 5) sees steps 1 & 2 pruned and steps 3 & 4 intact.
+        let finalRequestTurns = try XCTUnwrap(client.recordedRequests.last?.messages)
+        let requestResults: [AgentModelToolResult] = finalRequestTurns.compactMap {
+            if case .toolResults(let items) = $0 { return items.first }
+            return nil
+        }
+        XCTAssertEqual(requestResults.count, 4)
+        XCTAssertTrue(requestResults[0].images.isEmpty)
+        XCTAssertTrue(requestResults[0].content.hasSuffix("[screenshot omitted, taken at step 1]"))
+        XCTAssertTrue(requestResults[1].images.isEmpty)
+        XCTAssertTrue(
+            requestResults[1].content.hasSuffix(
+                "[screenshot omitted, taken at step 2]\n[screenshot omitted, taken at step 2]"
+            )
+        )
+        XCTAssertEqual(requestResults[2].images, [AgentImage(data: "img-3")])
+        XCTAssertEqual(requestResults[3].images, [AgentImage(data: "img-4")])
+
+        // Stored history keeps all images across all 4 steps.
+        let storedResults: [AgentModelToolResult] = result.history.compactMap {
+            if case .toolResults(let items) = $0 { return items.first }
+            return nil
+        }
+        XCTAssertEqual(storedResults.map { $0.images.count }, [1, 2, 1, 1])
+    }
 }

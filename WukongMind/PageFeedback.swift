@@ -250,20 +250,45 @@ enum PageFeedbackScripts {
 // MARK: - Wrapping page-changing tools
 
 extension ToolRegistry {
+    /// Captures the post-change visible screenshot and pairs it with `beforeImage`
+    /// when a warning or failed verification fires (`design-m3.md`, "Screenshots on a warning").
+    static func warningScreenshots(
+        beforeImage: AgentImage?,
+        bridge: AgentPageDriving
+    ) async -> [AgentImage] {
+        var images: [AgentImage] = []
+        if let beforeImage {
+            images.append(beforeImage)
+        }
+        if let afterImage = try? await bridge.screenshot(area: .visible).image {
+            images.append(afterImage)
+        }
+        return images
+    }
+
     /// Wraps a page-changing tool's `execute`: snapshot before, run, snapshot
-    /// after, and attach the comparison. With no snapshot (a driver that
-    /// can't take one, or a page that can't be read) the output is unchanged.
+    /// after, and attach the comparison. When `supportsImageInput` is true, a
+    /// visible-area screenshot from before the call stays in memory and is
+    /// attached alongside an after screenshot only when a warning fires.
     static func withPageFeedback(
         bridge: AgentPageDriving,
+        supportsImageInput: Bool = false,
         _ execute: @escaping @Sendable ([String: JSONValue]) async throws -> ToolExecutionOutput
     ) -> @Sendable ([String: JSONValue]) async throws -> ToolExecutionOutput {
         { args in
             let before = await bridge.pageSnapshot()
+            let beforeImage: AgentImage? = (supportsImageInput && before != nil)
+                ? (try? await bridge.screenshot(area: .visible).image)
+                : nil
             var output = try await execute(args)
             guard let before else { return output }
             try Task.checkCancellation()
             let after = await bridge.pageSnapshot()
-            output.pageFeedback = PageFeedbackRules.compare(before: before, after: after)
+            let report = PageFeedbackRules.compare(before: before, after: after)
+            output.pageFeedback = report
+            if report.isWarning, supportsImageInput {
+                output.images = await warningScreenshots(beforeImage: beforeImage, bridge: bridge)
+            }
             return output
         }
     }

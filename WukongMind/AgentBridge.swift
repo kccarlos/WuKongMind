@@ -1,5 +1,6 @@
 import Foundation
 import OSLog
+import UIKit
 import WebKit
 
 /// Which JavaScript execution world `AgentBridge` runs in.
@@ -61,6 +62,22 @@ struct WaitForResult: Equatable, Sendable {
     var selector: String?
 }
 
+/// Portion of the page captured by `screenshot`.
+enum ScreenshotArea: String, Codable, CaseIterable, Sendable {
+    case visible
+    case fullPage = "full_page"
+}
+
+/// Captured JPEG screenshot and page dimensions from `AgentBridge.screenshot(area:)`.
+struct AgentScreenshot: Equatable, Sendable {
+    var image: AgentImage
+    var url: String
+    var widthPt: Int
+    var heightPt: Int
+    var area: ScreenshotArea
+    var wasCapped: Bool
+}
+
 enum AgentBridgeError: LocalizedError, Equatable, Sendable {
     case webViewUnavailable
     case invalidSelector(String)
@@ -69,6 +86,7 @@ enum AgentBridgeError: LocalizedError, Equatable, Sendable {
     case timedOut(seconds: Double)
     case invalidWaitArguments
     case navigationUnavailable
+    case screenshotFailed(String)
 
     var errorDescription: String? {
         switch self {
@@ -89,6 +107,8 @@ enum AgentBridgeError: LocalizedError, Equatable, Sendable {
             return "wait_for requires a non-empty 'selector' or a positive 'ms' duration."
         case .navigationUnavailable:
             return "This browser can't open or reload pages for the agent."
+        case .screenshotFailed(let message):
+            return message
         }
     }
 }
@@ -120,6 +140,12 @@ protocol AgentPageDriving: Sendable {
         environment: AgentExecutionEnvironment,
         timeout: TimeInterval
     ) async throws -> JSExecutionResult
+    /// Captures a JPEG screenshot of the visible viewport or up to 8 screens.
+    func screenshot(area: ScreenshotArea) async throws -> AgentScreenshot
+    /// Reads captured page-world `fetch` and XHR traffic, newest first.
+    func networkLog(urlFilter: String?, limit: Int, includeBodies: Bool) async throws -> [AgentNetworkEntry]
+    /// Reads captured page-world `console.*` lines, newest first.
+    func consoleLog() async throws -> [AgentConsoleEntry]
 }
 
 extension AgentPageDriving {
@@ -141,6 +167,18 @@ extension AgentPageDriving {
 
     func reload(timeout: TimeInterval) async throws -> AgentNavigationOutcome {
         throw AgentBridgeError.navigationUnavailable
+    }
+
+    func screenshot(area: ScreenshotArea) async throws -> AgentScreenshot {
+        throw AgentBridgeError.webViewUnavailable
+    }
+
+    func networkLog(urlFilter: String?, limit: Int, includeBodies: Bool) async throws -> [AgentNetworkEntry] {
+        []
+    }
+
+    func consoleLog() async throws -> [AgentConsoleEntry] {
+        []
     }
 }
 
@@ -219,7 +257,7 @@ final class AgentBridge: NSObject, AgentPageDriving {
             contentWorld: Self.isolatedWorld,
             name: Self.messageHandlerName
         )
-        // Page feedback's error counter (page world, document start).
+        // Page feedback's error counter and page capture buffers (page world, document start).
         controller.addUserScript(
             WKUserScript(
                 source: PageFeedbackScripts.errorCounterSource,
@@ -228,6 +266,253 @@ final class AgentBridge: NSObject, AgentPageDriving {
                 in: .page
             )
         )
+        controller.addUserScript(
+            WKUserScript(
+                source: AgentPageCapture.hookSource,
+                injectionTime: .atDocumentStart,
+                forMainFrameOnly: true,
+                in: .page
+            )
+        )
+    }
+
+    // MARK: - Screenshot, network log, and console log
+
+    nonisolated static let screenshotTimeout: TimeInterval = 10
+    nonisolated static let maxScreenshotPixelWidth = 1_280
+    nonisolated static let maxScreenshotPixelHeight = 8_000
+    nonisolated static let screenshotJPEGQuality: CGFloat = 0.6
+    nonisolated static let maxFullPageScreens = 8
+
+    func networkLog(
+        urlFilter: String? = nil,
+        limit: Int = AgentPageCapture.defaultNetworkLimit,
+        includeBodies: Bool = false
+    ) async throws -> [AgentNetworkEntry] {
+        try Task.checkCancellation()
+        guard let webView else { throw AgentBridgeError.webViewUnavailable }
+        let raw: Any?
+        if includeBodies {
+            raw = try? await callAsyncJS(
+                script: AgentPageCapture.readNetworkWithBodiesAsyncScript,
+                arguments: [:],
+                world: .page,
+                timeout: 2
+            )
+        } else {
+            raw = try? await webView.evaluateJavaScript(
+                AgentPageCapture.readNetworkScript,
+                in: nil,
+                contentWorld: .page
+            )
+        }
+        return AgentPageCapture.decodeNetwork(
+            from: raw,
+            urlFilter: urlFilter,
+            limit: limit,
+            includeBodies: includeBodies
+        )
+    }
+
+    func consoleLog() async throws -> [AgentConsoleEntry] {
+        try Task.checkCancellation()
+        guard let webView else { throw AgentBridgeError.webViewUnavailable }
+        let raw = try? await webView.evaluateJavaScript(
+            AgentPageCapture.readConsoleScript,
+            in: nil,
+            contentWorld: .page
+        )
+        return AgentPageCapture.decodeConsole(from: raw)
+    }
+
+    func screenshot(area: ScreenshotArea = .visible) async throws -> AgentScreenshot {
+        try Task.checkCancellation()
+        guard let webView else { throw AgentBridgeError.webViewUnavailable }
+        let started = ContinuousClock.now
+        let meta = await currentPageMetadata()
+
+        let hadZeroBounds = webView.bounds.width < 1 || webView.bounds.height < 1
+        let previousFrame = webView.frame
+        if hadZeroBounds {
+            webView.frame = CGRect(x: 0, y: 0, width: 390, height: 844)
+            webView.layoutIfNeeded()
+        }
+        defer { if hadZeroBounds { webView.frame = previousFrame } }
+
+        let viewportWidth = max(1, webView.bounds.width)
+        let viewportHeight = max(1, webView.bounds.height)
+
+        if area == .visible {
+            let raw = try await takeViewportSnapshot(of: webView, timeout: try remainingScreenshotBudget(since: started))
+            return AgentScreenshot(
+                image: try Self.encodeJPEG(raw),
+                url: meta.url,
+                widthPt: Int(viewportWidth.rounded()),
+                heightPt: Int(viewportHeight.rounded()),
+                area: .visible,
+                wasCapped: false
+            )
+        }
+
+        let docHeight = await measuredDocumentHeight(of: webView, fallback: viewportHeight)
+        let maxHeight = viewportHeight * CGFloat(Self.maxFullPageScreens)
+        let wasCapped = docHeight > maxHeight + 0.5
+        let targetHeight = min(docHeight, maxHeight)
+        let savedOffset = webView.scrollView.contentOffset
+        let topInset = min(max(0, webView.scrollView.adjustedContentInset.top), viewportHeight * 0.5)
+        let stepHeight = max(1, viewportHeight - topInset)
+        let maxDocScrollY = max(0, docHeight - stepHeight)
+
+        var slices: [(yStart: CGFloat, yEnd: CGFloat, offsetY: CGFloat, image: UIImage)] = []
+        var yCursor: CGFloat = 0
+        do {
+            while yCursor < targetHeight - 0.5 {
+                try Task.checkCancellation()
+                let yEnd = min(yCursor + stepHeight, targetHeight)
+                let offsetY = await scrollDocument(webView, docX: max(0, savedOffset.x), docY: min(yCursor, maxDocScrollY), topInset: topInset)
+                let shot = try await takeViewportSnapshot(of: webView, timeout: try remainingScreenshotBudget(since: started))
+                slices.append((yCursor, yEnd, offsetY, shot))
+                yCursor = yEnd
+            }
+        } catch {
+            webView.scrollView.setContentOffset(savedOffset, animated: false)
+            throw error
+        }
+        webView.scrollView.setContentOffset(savedOffset, animated: false)
+        _ = try? await webView.evaluateJavaScript(
+            "window.scrollTo(\(Int(max(0, savedOffset.x).rounded())), \(Int(max(0, savedOffset.y + topInset).rounded())));",
+            in: nil,
+            contentWorld: Self.isolatedWorld
+        )
+
+        let nativeScale = max(1.0, webView.window?.screen.scale ?? UITraitCollection.current.displayScale)
+        let maxWidthPx = min(CGFloat(Self.maxScreenshotPixelWidth), max(1, (viewportWidth * nativeScale).rounded()))
+        let pxPerPt = min(maxWidthPx / viewportWidth, CGFloat(Self.maxScreenshotPixelHeight) / targetHeight)
+        let outWidth = min(CGFloat(Self.maxScreenshotPixelWidth), max(1, (viewportWidth * pxPerPt).rounded()))
+        let outHeight = min(CGFloat(Self.maxScreenshotPixelHeight), max(1, (targetHeight * pxPerPt).rounded()))
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1.0
+        format.opaque = true
+        let composite = UIGraphicsImageRenderer(size: CGSize(width: outWidth, height: outHeight), format: format).image { ctx in
+            for slice in slices {
+                ctx.cgContext.saveGState()
+                ctx.cgContext.clip(to: CGRect(
+                    x: 0, y: slice.yStart * pxPerPt, width: outWidth, height: (slice.yEnd - slice.yStart) * pxPerPt
+                ))
+                slice.image.draw(in: CGRect(
+                    x: 0, y: slice.offsetY * pxPerPt, width: outWidth, height: viewportHeight * pxPerPt
+                ))
+                ctx.cgContext.restoreGState()
+            }
+        }
+        guard let jpeg = composite.jpegData(compressionQuality: Self.screenshotJPEGQuality) else {
+            throw AgentBridgeError.screenshotFailed("Failed to encode full-page screenshot as JPEG.")
+        }
+        return AgentScreenshot(
+            image: AgentImage(mediaType: "image/jpeg", data: jpeg.base64EncodedString()),
+            url: meta.url,
+            widthPt: Int(viewportWidth.rounded()),
+            heightPt: Int(targetHeight.rounded()),
+            area: .fullPage,
+            wasCapped: wasCapped
+        )
+    }
+
+    private func remainingScreenshotBudget(since start: ContinuousClock.Instant) throws -> TimeInterval {
+        let elapsed = start.duration(to: .now)
+        let used = Double(elapsed.components.seconds) + Double(elapsed.components.attoseconds) / 1e18
+        let remaining = Self.screenshotTimeout - used
+        if remaining <= 0 { throw AgentBridgeError.timedOut(seconds: Self.screenshotTimeout) }
+        return remaining
+    }
+
+    private func measuredDocumentHeight(of webView: WKWebView, fallback: CGFloat) async -> CGFloat {
+        var height = max(fallback, webView.scrollView.contentSize.height)
+        if let raw = try? await callAsyncJS(
+            script: """
+            const d = document.documentElement, b = document.body;
+            return Math.max(d ? d.scrollHeight : 0, d ? d.offsetHeight : 0, b ? b.scrollHeight : 0, b ? b.offsetHeight : 0);
+            """,
+            arguments: [:],
+            world: Self.isolatedWorld,
+            timeout: 2
+        ), let num = (raw as? NSNumber)?.doubleValue, num.isFinite {
+            height = max(height, CGFloat(num))
+        }
+        return height
+    }
+
+    private func scrollDocument(_ webView: WKWebView, docX: CGFloat, docY: CGFloat, topInset: CGFloat) async -> CGFloat {
+        webView.scrollView.setContentOffset(CGPoint(x: docX, y: docY - topInset), animated: false)
+        webView.layoutIfNeeded()
+        _ = try? await webView.evaluateJavaScript(
+            "window.scrollTo(\(Int(docX.rounded())), \(Int(docY.rounded()))); window.scrollY;",
+            in: nil,
+            contentWorld: Self.isolatedWorld
+        )
+        try? await Task.sleep(for: .milliseconds(15))
+        return webView.scrollView.contentOffset.y
+    }
+
+    private func takeViewportSnapshot(of webView: WKWebView, timeout: TimeInterval) async throws -> UIImage {
+        try Task.checkCancellation()
+        let config = WKSnapshotConfiguration()
+        config.afterScreenUpdates = true
+        let box = ContinuationBox()
+        let raw = try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Any?, Error>) in
+                box.install(continuation)
+                let timeoutTask = Task { @MainActor in
+                    try? await Task.sleep(for: .milliseconds(max(1, Int((timeout * 1_000).rounded()))))
+                    guard !Task.isCancelled else { return }
+                    box.resume(throwing: AgentBridgeError.timedOut(seconds: Self.screenshotTimeout))
+                }
+                box.timeoutTask = timeoutTask
+                webView.takeSnapshot(with: config) { image, error in
+                    if let image {
+                        box.resume(returning: image)
+                    } else {
+                        let message = error?.localizedDescription ?? "WKWebView failed to capture a snapshot."
+                        box.resume(throwing: AgentBridgeError.screenshotFailed(message))
+                    }
+                }
+            }
+        } onCancel: {
+            box.cancelImmediately()
+        }
+        guard let image = raw as? UIImage else {
+            throw AgentBridgeError.screenshotFailed("WKWebView returned an empty snapshot.")
+        }
+        return image
+    }
+
+    private nonisolated static func encodeJPEG(_ image: UIImage) throws -> AgentImage {
+        let pixelWidth = image.cgImage?.width ?? max(1, Int((image.size.width * image.scale).rounded()))
+        let pixelHeight = image.cgImage?.height ?? max(1, Int((image.size.height * image.scale).rounded()))
+        let targetImage: UIImage
+        if pixelWidth > maxScreenshotPixelWidth || pixelHeight > maxScreenshotPixelHeight {
+            let scale = min(
+                CGFloat(maxScreenshotPixelWidth) / CGFloat(max(1, pixelWidth)),
+                CGFloat(maxScreenshotPixelHeight) / CGFloat(max(1, pixelHeight))
+            )
+            let outWidth = min(CGFloat(maxScreenshotPixelWidth), max(1, (CGFloat(pixelWidth) * scale).rounded()))
+            let outHeight = min(CGFloat(maxScreenshotPixelHeight), max(1, (CGFloat(pixelHeight) * scale).rounded()))
+            let format = UIGraphicsImageRendererFormat()
+            format.scale = 1.0
+            format.opaque = true
+            targetImage = UIGraphicsImageRenderer(
+                size: CGSize(width: outWidth, height: outHeight),
+                format: format
+            ).image { _ in
+                image.draw(in: CGRect(x: 0, y: 0, width: outWidth, height: outHeight))
+            }
+        } else {
+            targetImage = image
+        }
+        guard let jpeg = targetImage.jpegData(compressionQuality: screenshotJPEGQuality) else {
+            throw AgentBridgeError.screenshotFailed("Failed to encode screenshot as JPEG.")
+        }
+        return AgentImage(mediaType: "image/jpeg", data: jpeg.base64EncodedString())
     }
 
     // MARK: - Page feedback and navigation
