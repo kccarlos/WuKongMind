@@ -31,7 +31,7 @@ import UserNotifications
 //                                   a run started from code (no panel, selection or draft
 //                                   change) that hands back `AgentRunOutcome`
 // - `cancelAgentRun(id:)`           stops a queued or running run
-// - `askScope`, `setAskScope(_:)`, `sendAsk()` the unified Ask box (AskBox.swift)
+// - `sendAsk()` the unified Ask box (AskBox.swift)
 // - `sessions` is keyed by topic key (`host[/basePath]/t/{id}`); per-topic calls take
 //   `topicKey:` (`setKept`, `deleteSession`, `setInstructions`, `isWatched`, `unwatch`,
 //   `markWatchedSeen`)
@@ -69,7 +69,6 @@ struct AuditLogRequest: Identifiable, Equatable {
 
 enum AssistantMode: String, CaseIterable, Identifiable {
     case summary = "Summary"
-    case chat = "Chat"
     case agent = "Agent"
     case browserAgent = "BrowserAgent"
 
@@ -152,13 +151,6 @@ enum WatchCheckReason {
     case background
 }
 
-/// Pending edit of a previously sent user turn in a topic's chat. Nothing is
-/// deleted from `session.history` until the edited question is submitted.
-enum ChatEditState: Equatable {
-    case none
-    case editing(topicKey: String, messageID: UUID, previousDraft: String)
-}
-
 @MainActor
 final class AppModel: ObservableObject {
     /// Edits apply at once: work that has not started yet uses them, work
@@ -219,8 +211,6 @@ final class AppModel: ObservableObject {
     @Published var pendingReadAloudTopicKey: String?
     /// Bumped to focus the Ask box (⌘2, ⌘3).
     @Published var askFocusRequest = 0
-    /// In-progress edit of an existing user turn in chat (`editChat`).
-    @Published private(set) var chatEdit: ChatEditState = .none
     @Published private(set) var notificationsAuthorized = false
     /// The user's forums (pinned and recent); see the API list above.
     @Published private(set) var forums: [Forum] {
@@ -1166,7 +1156,7 @@ final class AppModel: ObservableObject {
                 return
             }
             pendingShare = nil
-            assistantMode = pending.action == .summary ? .summary : .chat
+            assistantMode = .summary
             panelRoute = .topic
             requestAssistant()
             guard isProviderReady(for: .assistant) else {
@@ -1199,9 +1189,6 @@ final class AppModel: ObservableObject {
             return
         }
         #endif
-        if case .editing(let editTopicKey, _, _) = chatEdit, editTopicKey != topic?.topicKey {
-            cancelEditChat()
-        }
         currentTopic = topic
         topicActivityDidChange(topic)
         guard let topic else { return }
@@ -1566,10 +1553,9 @@ final class AppModel: ObservableObject {
 
     /// Work still waiting for its turn on a forum that was just removed never
     /// starts: it ends in the explicit failed state (no spinner) and the person
-    /// is asked to add the forum again. A chat answers from the stored source,
-    /// so it stays queued.
+    /// is asked to add the forum again.
     private func failQueuedWork(siteURL: String, error: Error) {
-        for record in activities where record.siteURL == siteURL && record.status == .queued && record.type != .chat {
+        for record in activities where record.siteURL == siteURL && record.status == .queued {
             progress.remove(record.id)
             mutateRecord(record.id) {
                 $0.status = .failed
@@ -2253,78 +2239,6 @@ final class AppModel: ObservableObject {
         launch(recordID: record.id)
     }
 
-    /// The user turn currently being edited on the open topic, if it still exists.
-    var activeChatEdit: (topicKey: String, messageID: UUID, index: Int)? {
-        guard case .editing(let topicKey, let messageID, _) = chatEdit,
-              currentTopic?.topicKey == topicKey,
-              let history = sessions[topicKey]?.history,
-              let index = history.firstIndex(where: { $0.id == messageID && $0.role == .user })
-        else {
-            return nil
-        }
-        return (topicKey, messageID, index)
-    }
-
-    func sendChat() {
-        let question = drafts.chat.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !question.isEmpty else { return }
-        guard let topic = currentTopic else {
-            presentError(AssistantError.noTopic.localizedDescription)
-            return
-        }
-        let edit = activeChatEdit
-        let hasRunningChat = activities.contains {
-            $0.topicKey == topic.topicKey && $0.type == .chat && !$0.status.isTerminal
-        }
-        if edit == nil, hasRunningChat {
-            presentError(String(localized: "Wait for the current answer or cancel it in Manage."))
-            return
-        }
-        guard (edit != nil && hasRunningChat) || activeTaskCount < 50 else {
-            presentError(String(localized: "The task queue is full. Cancel or wait for an existing task."))
-            return
-        }
-        if edit != nil {
-            cancelActiveChat(topicKey: topic.topicKey)
-            chatEdit = .none
-        } else if case .editing(let editTopicKey, _, _) = chatEdit, editTopicKey == topic.topicKey {
-            chatEdit = .none
-        }
-
-        var session = sessions[topic.topicKey] ?? TopicSession(
-            siteURL: topic.siteURL,
-            topicID: topic.topicID,
-            url: topic.url,
-            title: topic.title
-        )
-        if let edit,
-           let index = session.history.firstIndex(where: { $0.id == edit.messageID && $0.role == .user }) {
-            session.history.removeSubrange(index...)
-        }
-        let userMessage = ChatMessage(role: .user, content: question)
-        session.history.append(userMessage)
-        session.history = Array(session.history.suffix(100))
-        session.chatUpdatedAt = Date()
-        session.updatedAt = Date()
-        sessions[topic.topicKey] = session
-        drafts.chat = ""
-
-        let selection = settings.assistantModel
-        let record = WorkRecord(
-            type: .chat,
-            siteURL: topic.siteURL,
-            topicID: topic.topicID,
-            title: topic.title,
-            url: topic.url,
-            question: question,
-            provider: selection.provider,
-            model: selection.model
-        )
-        activities.insert(record, at: 0)
-        save()
-        launch(recordID: record.id)
-    }
-
     func cancel(record: WorkRecord) {
         runningTasks[record.id]?.task.cancel()
         runningTasks.removeValue(forKey: record.id)
@@ -2422,74 +2336,8 @@ final class AppModel: ObservableObject {
             presentError(String(localized: "Cancel this topic’s active tasks before deleting it."))
             return
         }
-        if case .editing(let editTopicKey, _, _) = chatEdit, editTopicKey == topicKey {
-            cancelEditChat()
-        }
         sessions.removeValue(forKey: topicKey)
         save()
-    }
-
-    private func cancelActiveChat(topicKey: String) {
-        for record in activities where record.topicKey == topicKey && record.type == .chat && !record.status.isTerminal {
-            cancel(record: record)
-        }
-    }
-
-    func clearChat() {
-        guard let topicKey = currentTopic?.topicKey else {
-            return
-        }
-        if case .editing(let editTopicKey, _, _) = chatEdit, editTopicKey == topicKey {
-            cancelEditChat()
-        }
-        cancelActiveChat(topicKey: topicKey)
-        guard var session = sessions[topicKey] else {
-            return
-        }
-        session.history = []
-        session.chatUpdatedAt = nil
-        session.updatedAt = Date()
-        sessions[topicKey] = session
-        save()
-    }
-
-    func editChat(messageID: UUID) {
-        guard let topicKey = currentTopic?.topicKey,
-              let session = sessions[topicKey],
-              let index = session.history.firstIndex(where: { $0.id == messageID }),
-              session.history[index].role == .user
-        else {
-            return
-        }
-        if assistantMode == .agent {
-            assistantMode = .chat
-        }
-        let content = session.history[index].content
-        if case .editing(let editTopicKey, let existingID, let previousDraft) = chatEdit,
-           editTopicKey == topicKey {
-            if existingID == messageID, drafts.chat == content {
-                askFocusRequest += 1
-                return
-            }
-            chatEdit = .editing(topicKey: topicKey, messageID: messageID, previousDraft: previousDraft)
-        } else {
-            chatEdit = .editing(topicKey: topicKey, messageID: messageID, previousDraft: drafts.chat)
-        }
-        drafts.chat = content
-        askFocusRequest += 1
-    }
-
-    func cancelEditChat() {
-        guard case .editing(_, _, let previousDraft) = chatEdit else { return }
-        chatEdit = .none
-        drafts.chat = previousDraft
-    }
-
-    /// Exits chat edit mode without overwriting drafts (used when `carryingAskText`
-    /// transfers the composer text out of `This topic`).
-    func abandonEditChatWithoutRestoringDraft() {
-        guard chatEdit != .none else { return }
-        chatEdit = .none
     }
 
     /// Persists settings (API keys to the key store, the rest to the
@@ -3016,6 +2864,16 @@ final class AppModel: ObservableObject {
         else {
             return
         }
+        // Topic chat is gone: a chat record saved by an older version never runs.
+        if record.type == .chat {
+            mutateRecord(recordID) {
+                $0.status = .cancelled
+                $0.statusText = String(localized: "Cancelled", comment: "Status of AI work the user cancelled")
+                $0.completedAt = Date()
+            }
+            save()
+            return
+        }
         let context = runSettings(for: record)
         // Recorded so Manage and the saved summary show what actually ran.
         record.provider = context.provider
@@ -3050,7 +2908,7 @@ final class AppModel: ObservableObject {
             case .pull:
                 try await runPull(recordID: recordID, record: record, context: context)
             case .chat:
-                try await runChat(recordID: recordID, record: record, context: context)
+                break
             case .agent:
                 try await runAgent(recordID: recordID, record: record, context: context)
             }
@@ -3290,70 +3148,6 @@ final class AppModel: ObservableObject {
         sessions[record.topicKey] = session
     }
     #endif
-
-    private func runChat(recordID: UUID, record: WorkRecord, context: RunSettings) async throws {
-        guard let adapter = adapter(for: record.siteURL) else { throw AssistantError.noForum }
-        var session = sessions[record.topicKey] ?? TopicSession(
-            siteURL: record.siteURL,
-            topicID: record.topicID,
-            url: record.url,
-            title: record.title
-        )
-
-        let fetch = try await fetchTopicPages(of: session, adapter: adapter, recordID: recordID, pace: context.forumRequestPace, isPaced: context.forumRateLimitingEnabled) { progress in
-            await self.updateFetchProgress(recordID: recordID, progress: progress)
-        }
-        // Cancelled (or its forum's data deleted) while the page fetch was
-        // finishing: do not write the session back.
-        try ensureLive(recordID)
-        session = sessions[record.topicKey] ?? session
-        let now = Date()
-        session.apply(fetch, at: now)
-        session.updatedAt = now
-        sessions[record.topicKey] = session
-
-        mutateRecord(recordID) {
-            $0.statusText = String(localized: "Answering follow-up question…")
-        }
-        // How long an answer takes is unknowable: indeterminate until done.
-        progress.advance(recordID, to: nil)
-        // Cleared or edited while the topic was being read: nothing to ask.
-        guard session.history.last(where: { $0.role == .user })?.content == record.question else {
-            mutateRecord(recordID) { $0.statusText = String(localized: "Chat changed; answer discarded", comment: "Chat status: the conversation was edited while an answer was being written") }
-            return
-        }
-        streams.start(recordID)
-        let useSummary = session.hasSummary
-        let answer = try await aiService.answer(
-            source: session.source,
-            summary: useSummary ? session.summary : "",
-            history: session.history,
-            contextLimit: context.contextLimit,
-            customPrompt: context.topicInstructions,
-            discussion: adapter.discussion,
-            configuration: context.configuration,
-            provider: context.provider,
-            onDelta: { delta in
-                guard self.isLive(recordID) else { return }
-                self.streams.append(delta, to: recordID)
-            },
-            summaryIsStale: useSummary && session.hasStaleSummary
-        )
-
-        try ensureLive(recordID)
-        session = sessions[record.topicKey] ?? session
-        // The chat was cleared, or the question edited, while it was being
-        // answered: the answer no longer belongs to the conversation.
-        guard session.history.last(where: { $0.role == .user })?.content == record.question else {
-            mutateRecord(recordID) { $0.statusText = String(localized: "Chat changed; answer discarded", comment: "Chat status: the conversation was edited while an answer was being written") }
-            return
-        }
-        session.history.append(ChatMessage(role: .assistant, content: answer))
-        session.history = Array(session.history.suffix(100))
-        session.chatUpdatedAt = Date()
-        session.updatedAt = Date()
-        sessions[record.topicKey] = session
-    }
 
     // MARK: Agent runner
 
@@ -3880,10 +3674,6 @@ final class AppModel: ObservableObject {
     ) {
         if self.sessions != sessions {
             self.sessions = sessions
-            if case .editing(let editTopicKey, let messageID, _) = chatEdit,
-               sessions[editTopicKey]?.history.contains(where: { $0.id == messageID && $0.role == .user }) != true {
-                chatEdit = .none
-            }
         }
         if self.agentRuns != agentRuns {
             self.agentRuns = agentRuns

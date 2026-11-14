@@ -211,7 +211,6 @@ struct HomeRecentItem: Identifiable, Equatable {
         /// An "Ask the forum" run.
         case ask
         case summary
-        case chat
     }
 
     enum Target: Equatable {
@@ -234,7 +233,7 @@ enum HomeRecent {
     static let limit = 3
     static let titleLength = 80
 
-    /// The newest `limit` History items: saved summaries and chats, and the
+    /// The newest `limit` History items: saved summaries and the
     /// saved answers (Research and Agent).
     static func items(
         sessions: [TopicSession],
@@ -242,11 +241,10 @@ enum HomeRecent {
         limit: Int = limit
     ) -> [HomeRecentItem] {
         var items: [HomeRecentItem] = []
-        for session in sessions where session.hasSummary || !session.history.isEmpty {
-            let isChat = session.chatUpdatedAt.map { $0 > (session.summaryUpdatedAt ?? .distantPast) } ?? false
+        for session in sessions where session.hasSummary {
             items.append(HomeRecentItem(
                 id: "session-\(session.topicKey)",
-                kind: isChat ? .chat : .summary,
+                kind: .summary,
                 title: firstWords(session.title),
                 host: ForumSite.host(of: session.siteURL),
                 date: session.updatedAt,

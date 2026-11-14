@@ -55,7 +55,7 @@ struct HistoryFeed {
                 .prefix(Self.recentLimit)
         )
         saved = sessions
-            .filter { ($0.hasSummary || !$0.history.isEmpty) && matches($0.siteURL) }
+            .filter { $0.hasSummary && matches($0.siteURL) }
             .sorted {
                 if $0.kept != $1.kept { return $0.kept && !$1.kept }
                 return $0.updatedAt > $1.updatedAt
@@ -767,7 +767,6 @@ struct HistoryView: View {
     private func savedDetail(_ session: TopicSession) -> String {
         var parts: [String] = []
         parts.append(String(localized: "\(session.summaryPostCount ?? session.totalPosts ?? 0) posts"))
-        parts.append(String(localized: "\(session.history.count) chat messages"))
         parts.append(session.updatedAt.formatted(.relative(presentation: .named)))
         return parts.joined(separator: " · ")
     }

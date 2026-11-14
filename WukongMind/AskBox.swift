@@ -2,25 +2,16 @@ import SwiftUI
 
 // MARK: - Unified Ask box (§5)
 //
-// One field at the bottom of the AI drawer. The scope button on its left
-// picks *This topic* (the topic's chat: assistant model, forum context
-// limit) or *Whole forum* (Ask the forum: an agent run on the forum picked
-// in the same menu). The scope is `assistantMode` (`.agent` is Whole forum),
-// so the model pill, the shared links and the App Intents that set the mode
-// keep working. The box edits one of the three existing drafts and carries
-// the typed text along when the scope (or the run it follows up) changes.
-
-enum AskScope: String {
-    case topic, forum
-}
+// One field at the bottom of the AI drawer: Ask the forum, an agent run on
+// the forum picked in the same menu. The box edits one of two drafts and
+// carries the typed text along when the run it follows up changes. (Topic
+// chat, the old "This topic" scope, is deleted.)
 
 /// The draft the Ask box edits.
 enum AskDraftTarget {
-    /// This topic: `ComposerDrafts.chat`.
-    case chat
-    /// Whole forum, a new run: `ComposerDrafts.goal`.
+    /// A new run: `ComposerDrafts.goal`.
     case goal
-    /// Whole forum, a follow-up to the selected finished run: `ComposerDrafts.followUp`.
+    /// A follow-up to the selected finished run: `ComposerDrafts.followUp`.
     case followUp
 }
 
@@ -38,12 +29,10 @@ enum AgentExamples {
 }
 
 extension AppModel {
-    var askScope: AskScope { assistantMode == .agent ? .forum : .topic }
-
     /// The finished run the box follows up, unless a new question is being
     /// written.
     var askFollowUpRun: AgentRun? {
-        guard askScope == .forum, !agentComposesNewQuestion,
+        guard assistantMode == .agent, !agentComposesNewQuestion,
               let run = selectedAgentRun, run.isFinished else { return nil }
         return run
     }
@@ -51,7 +40,7 @@ extension AppModel {
     /// The selected run is still working: the box waits for it (as the old
     /// goal box did), or a new question can be started instead.
     var askWaitsForRun: Bool {
-        guard askScope == .forum, !agentComposesNewQuestion, let run = selectedAgentRun else { return false }
+        guard assistantMode == .agent, !agentComposesNewQuestion, let run = selectedAgentRun else { return false }
         return !run.isFinished
     }
 
@@ -66,7 +55,7 @@ extension AppModel {
     /// `carryingAskText`).
     var askDraftTarget: AskDraftTarget {
         let wanted = askWantedDraftTarget
-        guard askScope == .forum, !asksNewForumQuestion else { return wanted }
+        guard assistantMode == .agent, !asksNewForumQuestion else { return wanted }
         switch (drafts.goal.isEmpty, drafts.followUp.isEmpty) {
         case (false, true): return .goal
         case (true, false): return .followUp
@@ -77,10 +66,7 @@ extension AppModel {
     /// The draft the state asks for: the chat, a new question, or a
     /// follow-up to the selected finished run.
     private var askWantedDraftTarget: AskDraftTarget {
-        switch askScope {
-        case .topic: .chat
-        case .forum: askFollowUpRun == nil ? .goal : .followUp
-        }
+        askFollowUpRun == nil ? .goal : .followUp
     }
 
     var askDraft: String {
@@ -90,20 +76,8 @@ extension AppModel {
 
     private static func draftKeyPath(_ target: AskDraftTarget) -> ReferenceWritableKeyPath<ComposerDrafts, String> {
         switch target {
-        case .chat: \.chat
         case .goal: \.goal
         case .followUp: \.followUp
-        }
-    }
-
-    /// This topic or Whole forum (on the forum chosen last).
-    func setAskScope(_ scope: AskScope) {
-        guard scope != askScope else { return }
-        if scope == .forum || !agentComposesNewQuestion {
-            router.answersSeenAt = Date()
-        }
-        carryingAskText {
-            assistantMode = scope == .forum ? .agent : .chat
         }
     }
 
@@ -141,15 +115,7 @@ extension AppModel {
         guard from != to else { return }
         let source = Self.draftKeyPath(from)
         let destination = Self.draftKeyPath(to)
-        guard !drafts[keyPath: source].isEmpty, drafts[keyPath: destination].isEmpty else {
-            if from == .chat, to != .chat {
-                cancelEditChat()
-            }
-            return
-        }
-        if from == .chat, to != .chat {
-            abandonEditChatWithoutRestoringDraft()
-        }
+        guard !drafts[keyPath: source].isEmpty, drafts[keyPath: destination].isEmpty else { return }
         drafts[keyPath: destination] = drafts[keyPath: source]
         drafts[keyPath: source] = ""
     }
@@ -158,9 +124,6 @@ extension AppModel {
         let text = askDraft.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return false }
         switch askDraftTarget {
-        case .chat:
-            guard let topicKey = currentTopic?.topicKey else { return false }
-            return activeChatEdit != nil || !hasActiveWork(topicKey: topicKey, type: .chat)
         case .goal:
             return !askWaitsForRun && agentForum != nil
         case .followUp:
@@ -169,13 +132,11 @@ extension AppModel {
         }
     }
 
-    /// Sends the box: a chat question, a new agent run on the chosen forum,
+    /// Sends the box: a new agent run on the chosen forum,
     /// or a follow-up to the selected run.
     func sendAsk() {
         guard canSendAsk else { return }
         switch askDraftTarget {
-        case .chat:
-            sendChat()
         case .goal:
             startAgentRun(goal: drafts.goal, siteURL: agentForum?.siteURL)
         case .followUp:

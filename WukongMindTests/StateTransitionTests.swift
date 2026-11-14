@@ -250,21 +250,6 @@ final class StateTransitionTests: XCTestCase {
         try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
         XCTAssertEqual(harness.ai.calls.last?.batchLimit, 100_000)
         XCTAssertEqual(harness.ai.calls.last?.customPrompt, "Topic two only")
-
-        // Chat: the context size is also taken at start.
-        StateForumStub.gate(path: "/t/2.json")
-        app.drafts.chat = "What changed?"
-        app.sendChat()
-        try await waitUntil { StateForumStub.isWaiting }
-        app.settings.forumContextLimit = 10_000
-        app.setInstructions("Edited while answering", topicKey: topic("2").topicKey)
-        StateForumStub.release()
-        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
-        let chat = try XCTUnwrap(harness.ai.calls.last)
-        XCTAssertEqual(chat.kind, "chat")
-        XCTAssertEqual(chat.contextLimit, 90_000)
-        XCTAssertEqual(chat.customPrompt, "Topic two only")
-        XCTAssertEqual(app.sessions[topic("2").topicKey]?.history.last?.content, "Answer by ollama/model-a")
     }
 
     /// Lowering the step budget below the steps already used ends the run at
@@ -503,7 +488,7 @@ final class StateTransitionTests: XCTestCase {
 
     // MARK: 6. Clear data and reset
 
-    func testClearAllWhileSummaryAndChatRunLeavesNothingBehind() async throws {
+    func testClearAllWhileSummaryRunsLeavesNothingBehind() async throws {
         var session = TopicSession(siteURL: site, topicID: "1", url: topic("1").url, title: "Topic 1")
         session.source = "Existing source"
         session.openedByUserAt = Date()  // pulled from its page
@@ -513,12 +498,9 @@ final class StateTransitionTests: XCTestCase {
         let app = harness.app
         select(app, .ollama, model: "model-a")
         app.select(topic: topic("1"))
-        app.drafts.chat = "Is it still true?"
-        app.sendChat()
         XCTAssertTrue(app.enqueueSummary(for: topic("2")))
         try await waitUntil { harness.ai.waiting == 2 }
         XCTAssertFalse(app.streams.isEmpty)
-        app.drafts.chat = "An unsent draft"
         app.drafts.goal = "Unsent goal"
         app.drafts.followUp = "Unsent follow-up for the deleted run"
 
@@ -530,7 +512,6 @@ final class StateTransitionTests: XCTestCase {
         XCTAssertTrue(app.streams.isEmpty)
         XCTAssertTrue(app.streams.isEmpty)
         // Unsent text is kept on purpose, except the draft for a deleted run.
-        XCTAssertEqual(app.drafts.chat, "An unsent draft")
         XCTAssertEqual(app.drafts.goal, "Unsent goal")
         XCTAssertEqual(app.drafts.followUp, "")
 
@@ -594,45 +575,6 @@ final class StateTransitionTests: XCTestCase {
         XCTAssertEqual(harness.ai.calls.map(\.configuration.apiKey), ["key-1", "key-1"])
     }
 
-    /// Clearing or editing the chat while it is answered drops the answer
-    /// instead of attaching it to a conversation it no longer belongs to.
-    func testClearingTheChatWhileItIsAnsweredDropsTheAnswer() async throws {
-        var session = TopicSession(siteURL: site, topicID: "1", url: topic("1").url, title: "Topic 1")
-        session.source = "Existing source"
-        session.openedByUserAt = Date()  // pulled from its page
-        let harness = makeHarness(snapshot: AppSnapshot(sessions: [session]))
-        let app = harness.app
-        select(app, .ollama, model: "model-a")
-        app.select(topic: topic("1"))
-        app.drafts.chat = "First question"
-        app.sendChat()
-        try await waitUntil { harness.ai.waiting == 1 }
-        app.clearChat()
-        harness.ai.releaseAll()
-        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
-        XCTAssertEqual(app.currentSession?.history, [])
-    }
-
-    func testClearingTheChatWhileTheTopicIsReadSkipsTheProvider() async throws {
-        var session = TopicSession(siteURL: site, topicID: "1", url: topic("1").url, title: "Topic 1")
-        session.source = "Existing source"
-        session.openedByUserAt = Date()  // pulled from its page
-        let harness = makeHarness(snapshot: AppSnapshot(sessions: [session]))
-        let app = harness.app
-        select(app, .ollama, model: "model-a")
-        app.select(topic: topic("1"))
-        StateForumStub.gate(path: "/t/1.json")
-        app.drafts.chat = "First question"
-        app.sendChat()
-        try await waitUntil { StateForumStub.isWaiting }
-        app.clearChat()
-        StateForumStub.release()
-        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
-        XCTAssertFalse(harness.ai.calls.contains { $0.kind == "chat" })
-        XCTAssertEqual(app.currentSession?.history, [])
-        XCTAssertNil(app.presentedError)
-    }
-
     // MARK: 7. Onboarding replay
 
     func testFinishingAReplayedWalkthroughLeavesWorkAndTheAssistantAlone() async throws {
@@ -641,7 +583,7 @@ final class StateTransitionTests: XCTestCase {
         select(app, .ollama, model: "model-a")
         app.settings.hasCompletedOnboarding = true
         harness.deliver(topicPage(topic("1")))
-        app.assistantMode = .chat
+        app.assistantMode = .agent
         app.panelRoute = .history
         XCTAssertTrue(app.enqueueSummary(for: topic("1")))
         try await waitUntil { harness.ai.waiting == 1 }
@@ -651,7 +593,7 @@ final class StateTransitionTests: XCTestCase {
         app.saveSettings()
         app.completeOnboarding()
         XCTAssertTrue(app.settings.hasCompletedOnboarding)
-        XCTAssertEqual(app.assistantMode, .chat)
+        XCTAssertEqual(app.assistantMode, .agent)
         XCTAssertEqual(app.panelRoute, .history)
         XCTAssertEqual(app.currentTopic?.topicKey, topic("1").topicKey)
         XCTAssertEqual(app.activities.first?.status, .running)
@@ -867,27 +809,6 @@ final class StateTransitionTests: XCTestCase {
         XCTAssertEqual(published.last, 1, "completion reports 100% cleanly before clearing")
         XCTAssertTrue(app.progress.isEmpty)
         withExtendedLifetime(progressToken) {}
-    }
-
-    /// A chat answer has no knowable progress: the bar is indeterminate
-    /// (nil) while the model answers.
-    func testChatIsIndeterminateWhileAnswering() async throws {
-        var session = TopicSession(siteURL: site, topicID: "1", url: topic("1").url, title: "Topic 1")
-        session.source = "Existing source"
-        session.openedByUserAt = Date()  // pulled from its page
-        let harness = makeHarness(snapshot: AppSnapshot(sessions: [session]))
-        let app = harness.app
-        select(app, .ollama, model: "model-a")
-        app.select(topic: topic("1"))
-        app.drafts.chat = "A question"
-        app.sendChat()
-        try await waitUntil { harness.ai.waiting == 1 }
-        let running = try XCTUnwrap(app.activities.first)
-        XCTAssertEqual(running.statusText, "Answering follow-up question…")
-        XCTAssertNil(app.progress.value(for: running.id))
-        harness.ai.releaseAll()
-        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
-        XCTAssertTrue(app.progress.isEmpty)
     }
 
     /// The agent's bar is the steps used of its budget.
@@ -1211,8 +1132,8 @@ final class StateTransitionTests: XCTestCase {
         XCTAssertEqual(app.settings.assistantModel.provider, .ollama)
     }
 
-    /// The header switcher changes the current mode's role only: Summary and
-    /// Chat share the assistant model, Ask the forum has its own.
+    /// The header switcher changes the current mode's role only: Summary has
+    /// the assistant model, Ask the forum has its own.
     func testHeaderSwitcherOnlyChangesTheCurrentModesRole() {
         let harness = makeHarness()
         let app = harness.app
@@ -1221,7 +1142,7 @@ final class StateTransitionTests: XCTestCase {
         setRoles(app, assistant: cheap, agent: agentic)
         let favorite = FavoriteModel(provider: .openAI, model: "gpt-5-mini")
 
-        for mode in [AssistantMode.summary, .chat] {
+        for mode in [AssistantMode.summary] {
             setRoles(app, assistant: cheap, agent: agentic)
             app.assistantMode = mode
             app.activateFavorite(favorite, for: app.currentRole)
@@ -1522,6 +1443,35 @@ final class StateTransitionTests: XCTestCase {
         XCTAssertFalse(closed.error.isEmpty)
     }
 
+    /// Topic chat is deleted, but what it saved stays: a session with chat
+    /// history (and its chat timestamp) still decodes, and a queued chat
+    /// record from an older version never runs.
+    func testASessionSavedWithChatHistoryStillDecodesAndAQueuedChatNeverRuns() async throws {
+        var session = TopicSession(siteURL: site, topicID: "1", url: URL(string: "\(site)/t/1")!, title: "Old chat")
+        session.summary = "Kept summary"
+        session.history = [
+            ChatMessage(role: .user, content: "Is it worth it?"),
+            ChatMessage(role: .assistant, content: "Yes.")
+        ]
+        session.chatUpdatedAt = Date()
+        let decoded = try JSONDecoder().decode(TopicSession.self, from: JSONEncoder().encode(session))
+        XCTAssertEqual(decoded.history.map(\.content), ["Is it worth it?", "Yes."])
+        XCTAssertNotNil(decoded.chatUpdatedAt)
+
+        let queued = WorkRecord(
+            type: .chat, siteURL: site, topicID: "1", title: "Old chat",
+            url: URL(string: "\(site)/t/1")!, question: "Is it worth it?", provider: .ollama, model: "model-a"
+        )
+        let harness = makeHarness(snapshot: AppSnapshot(sessions: [decoded], activities: [queued]))
+        let app = harness.app
+        select(app, .ollama, model: "model-a")
+        app.restorePendingTasksIfNeeded()
+        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
+        XCTAssertEqual(app.activities.first?.status, .cancelled)
+        XCTAssertTrue(harness.ai.calls.isEmpty, "no model call for a deleted feature")
+        XCTAssertEqual(app.sessions[session.topicKey]?.history.count, 2, "saved chat stays stored")
+    }
+
     /// Text typed in the Ask box stays in front when the run it waits for
     /// finishes, or another run is selected: the box never swaps it for the
     /// other, empty draft.
@@ -1778,41 +1728,6 @@ final class StateTransitionTests: XCTestCase {
 
     // MARK: - Flow Fixes
 
-    func testAskBoxSendsOnUnpulledTopicAndChatDeepLinkByFetchingPagesOnDemand() async throws {
-        let harness = makeHarness()
-        let app = harness.app
-        select(app, .ollama, model: "model-a")
-        harness.ai.gated = false
-
-        // 1. Opening a topic without summarizing or pulling first still lets AskBox send,
-        // fetching the topic's pages on demand.
-        harness.deliver(topicPage(topic("42")))
-        XCTAssertEqual(app.currentTopic?.topicID, "42")
-        XCTAssertEqual(app.currentSession?.source, "")
-        XCTAssertEqual(app.askScope, .topic)
-
-        app.drafts.chat = "What are the key takeaways?"
-        XCTAssertTrue(app.canSendAsk)
-        app.sendAsk()
-        try await waitUntil { !app.activities.isEmpty && app.activities.allSatisfy(\.status.isTerminal) }
-        XCTAssertEqual(app.activities.first?.status, .completed)
-        XCTAssertFalse(app.currentSession?.source.isEmpty ?? true)
-        XCTAssertEqual(app.currentSession?.history.map(\.role), [.user, .assistant])
-
-        // 2. Deep link `wukongmind://open?url=...&action=chat` opens in .chat mode with empty
-        // source and also allows sending immediately.
-        let deepLink = URL(string: "wukongmind://open?url=https%3A%2F%2Fforum.example.com%2Ft%2Ftopic-99%2F99&action=chat")!
-        app.handleDeepLink(deepLink)
-        harness.deliver(topicPage(topic("99")))
-        XCTAssertEqual(app.assistantMode, .chat)
-        XCTAssertEqual(app.currentSession?.source, "")
-        app.drafts.chat = "What is the consensus?"
-        XCTAssertTrue(app.canSendAsk)
-        app.sendAsk()
-        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
-        XCTAssertEqual(app.currentSession?.history.map(\.role), [.user, .assistant])
-    }
-
     func testHistoryOpenDismissesModalExitsHomeResetsModeAndSyncsForumScope() async throws {
         var runA = AgentRun(siteURL: site, goal: "Question on Forum A", provider: .ollama, model: "model-a")
         runA.result = .completed
@@ -1888,97 +1803,6 @@ final class StateTransitionTests: XCTestCase {
         XCTAssertEqual(app.selectedAgentRun?.siteURL, site)
         XCTAssertEqual(app.agentForum?.siteURL, site)
         XCTAssertEqual(app.askFollowUpRun?.siteURL, site)
-    }
-
-    func testEditAndClearChatCancelActiveStreamFocusComposerAndAllowResend() async throws {
-        let harness = makeHarness()
-        let app = harness.app
-        select(app, .ollama, model: "model-a")
-
-        harness.deliver(topicPage(topic("30")))
-        harness.ai.gated = false
-        app.pullTopic()
-        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
-
-        // 1. Editing a chat question while the assistant is streaming does NOT delete
-        // history or kill the stream yet; cancelling restores the composer and lets the
-        // running answer finish cleanly.
-        harness.ai.gated = true
-        app.drafts.chat = "First draft question"
-        let focusBefore = app.askFocusRequest
-        app.sendAsk()
-        try await waitUntil { harness.ai.waiting == 1 }
-
-        let activeRecord = try XCTUnwrap(app.activities.first { $0.type == .chat && !$0.status.isTerminal })
-        let firstMsg = try XCTUnwrap(app.currentSession?.history.first { $0.role == .user })
-        XCTAssertFalse((app.streams.text(for: activeRecord.id) ?? "").isEmpty)
-
-        app.drafts.chat = "Unsent follow-up note"
-        app.editChat(messageID: firstMsg.id)
-
-        XCTAssertEqual(app.currentSession?.history.map(\.content), ["First draft question"])
-        XCTAssertEqual(app.drafts.chat, "First draft question")
-        XCTAssertEqual(app.activeChatEdit?.messageID, firstMsg.id)
-        XCTAssertEqual(app.askFocusRequest, focusBefore + 1)
-        XCTAssertTrue(app.hasActiveWork(topicKey: topic("30").topicKey, type: .chat))
-        XCTAssertFalse((app.streams.text(for: activeRecord.id) ?? "").isEmpty)
-
-        // Cancel restores the previous composer draft without deleting history or stopping the answer.
-        app.cancelEditChat()
-        XCTAssertNil(app.activeChatEdit)
-        XCTAssertEqual(app.drafts.chat, "Unsent follow-up note")
-        XCTAssertEqual(app.currentSession?.history.map(\.content), ["First draft question"])
-        XCTAssertTrue(app.hasActiveWork(topicKey: topic("30").topicKey, type: .chat))
-
-        harness.ai.gated = false
-        harness.ai.releaseAll()
-        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
-        XCTAssertEqual(app.currentSession?.history.count, 2, "The first answer finished after cancelling edit.")
-
-        // Ask a second question so history is [Q1, A1, Q2] with Q2 actively streaming.
-        harness.ai.gated = true
-        app.drafts.chat = "Second question"
-        app.sendAsk()
-        try await waitUntil { harness.ai.waiting == 1 }
-        let streamingSecond = try XCTUnwrap(app.activities.first { $0.type == .chat && !$0.status.isTerminal })
-        XCTAssertEqual(app.currentSession?.history.count, 3)
-
-        // 2. Edit Q1 while Q2's answer is running: history stays [Q1, A1, Q2] until submit;
-        // submitting removes Q1 and everything that followed it, cancels Q2's stream safely,
-        // and starts the edited question.
-        app.editChat(messageID: firstMsg.id)
-        XCTAssertEqual(app.currentSession?.history.count, 3, "Edit must not remove turns before submit.")
-        app.drafts.chat = "Edited first question"
-        XCTAssertTrue(app.canSendAsk, "Submitting an edit is allowed even while an answer is running.")
-
-        app.sendAsk()
-        XCTAssertNil(app.activeChatEdit)
-        XCTAssertEqual(app.currentSession?.history.map(\.content), ["Edited first question"])
-        XCTAssertNil(app.streams.text(for: streamingSecond.id))
-        XCTAssertEqual(app.activities.first(where: { $0.id == streamingSecond.id })?.status, .cancelled)
-
-        // Releasing the cancelled stream must not append a stale answer; the new chat job runs.
-        try await waitUntil { harness.ai.calls.count == 3 }
-        harness.ai.releaseFirst()
-        try await waitUntil { harness.ai.waiting == 1 }
-        try await Task.sleep(for: .milliseconds(30))
-        let replacementRecord = try XCTUnwrap(app.activities.first { $0.type == .chat && !$0.status.isTerminal })
-        XCTAssertNotEqual(replacementRecord.id, streamingSecond.id)
-        XCTAssertEqual(app.currentSession?.history.map(\.content), ["Edited first question"])
-
-        // 3. clearChat() cancels both any pending edit and active chat stream.
-        let editedMsg = try XCTUnwrap(app.currentSession?.history.first)
-        app.editChat(messageID: editedMsg.id)
-        XCTAssertNotNil(app.activeChatEdit)
-        app.clearChat()
-        XCTAssertNil(app.activeChatEdit)
-        XCTAssertTrue(app.currentSession?.history.isEmpty == true)
-        XCTAssertFalse(app.hasActiveWork(topicKey: topic("30").topicKey, type: .chat))
-        XCTAssertNil(app.streams.text(for: replacementRecord.id))
-
-        harness.ai.gated = false
-        harness.ai.releaseAll()
-        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
     }
 
     func testForumHomeRecentRunResetsAcrossForumHomesAndAllowsOverviewReturn() async throws {
@@ -2073,19 +1897,19 @@ final class StateTransitionTests: XCTestCase {
         app.router.drawerAppeared()
         XCTAssertTrue(app.isAIViewShown)
 
-        // 1. User switches to Whole forum, watches the run finish in AgentPanel, then switches back to This topic.
-        app.setAskScope(.forum)
+        // 1. User switches to Ask the forum, watches the run finish in AgentPanel, then switches back to the summary.
+        app.assistantMode = .agent
         try await Task.sleep(for: .milliseconds(20))
         app.startAgentRun(goal: "What is new?", siteURL: site)
         try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
         XCTAssertEqual(app.assistantMode, .agent)
         XCTAssertNil(app.readyAnswer)
 
-        app.setAskScope(.topic)
+        app.assistantMode = .summary
         XCTAssertNil(app.readyAnswer)
 
-        // 2. User starts another Whole forum run, watches it finish while drawer is open, then closes the drawer.
-        app.setAskScope(.forum)
+        // 2. User starts another Ask the forum run, watches it finish while drawer is open, then closes the drawer.
+        app.assistantMode = .agent
         try await Task.sleep(for: .milliseconds(20))
         app.startAgentRun(goal: "Second question", siteURL: site)
         try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
@@ -2398,158 +2222,6 @@ final class StateTransitionTests: XCTestCase {
         XCTAssertEqual(planner.calls, 2)
     }
 
-    func testFailedChatCoalescesConsecutiveUserRolesInAnthropicPayload() async throws {
-        ChatPayloadInspectorStub.reset()
-        let anthropicSessionConfig = URLSessionConfiguration.ephemeral
-        anthropicSessionConfig.protocolClasses = [ChatPayloadInspectorStub.self]
-        let forumSessionConfig = URLSessionConfiguration.ephemeral
-        forumSessionConfig.protocolClasses = [StateForumStub.self]
-        let dir2 = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
-        addTeardownBlock { try? FileManager.default.removeItem(at: dir2) }
-        let store2 = PersistentStore(fileURL: dir2.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore())
-        var snap2 = AppSnapshot()
-        snap2.ensureForum(site)
-        try? store2.save(snap2)
-        let app2 = AppModel(
-            store: store2,
-            forumService: ForumService(session: URLSession(configuration: forumSessionConfig), pacer: ForumRequestPacer(clock: InstantPacingClock())),
-            aiService: AIService(session: URLSession(configuration: anthropicSessionConfig))
-        )
-        app2.usesDirectForumRequests = true
-        let handler2 = app2.browser.onPageContextChanged
-        app2.browser.onPageContextChanged = nil
-        app2.settings.hasCompletedOnboarding = true
-        let anthropicConfig = ProviderConfiguration(model: "claude-sonnet-4-6", baseURL: "https://api.example.com/v1", apiKey: "sk-ant")
-        app2.setConfiguration(anthropicConfig, for: .anthropic)
-        app2.selectModel(ModelSelection(provider: .anthropic, model: "claude-sonnet-4-6"), for: .both)
-
-        let t1 = ForumTopic(siteURL: site, topicID: "1", url: URL(string: "\(site)/t/topic-1/1")!, title: "Topic 1")
-        let ctx = PageContext(url: t1.url, site: .discourse, siteURL: site, forumName: "Stub", topic: t1, state: .topic)
-        app2.browser.setPageContext(ctx)
-        handler2?(ctx)
-
-        ChatPayloadInspectorStub.failNext = true
-        app2.drafts.chat = "First question (fails)"
-        app2.sendChat()
-        try await waitUntil { app2.activities.allSatisfy(\.status.isTerminal) }
-        XCTAssertEqual(app2.activities.first?.status, .failed)
-
-        ChatPayloadInspectorStub.failNext = false
-        app2.drafts.chat = "Second question (after reconnect)"
-        app2.sendChat()
-        try await waitUntil { app2.activities.allSatisfy(\.status.isTerminal) }
-
-        let roles = ChatPayloadInspectorStub.lastRecordedRoles
-        XCTAssertFalse(roles.isEmpty)
-        XCTAssertNotEqual(
-            roles,
-            ["user", "user"],
-            "Failed chat left orphan .user turn in session.history, sending consecutive user messages \(roles) to Anthropic /v1/messages"
-        )
-    }
-
-    func testChatEditInteractionsWithOpenAgentRunScopeSwitchAndSuggestionChip() async throws {
-        let planner = RolePlanner(actions: [
-            AgentAction(thought: "Answer", tool: "final_answer", arguments: ["answer": "Agent reply"])
-        ])
-        let h = makeHarness(planner: planner)
-        let app = h.app
-        h.ai.gated = false
-        var ollamaConfig = app.settings.configuration(for: .ollama)
-        ollamaConfig.model = "model-a"
-        app.setConfiguration(ollamaConfig, for: .ollama)
-        var lmConfig = app.settings.configuration(for: .lmStudio)
-        lmConfig.model = "model-b"
-        app.setConfiguration(lmConfig, for: .lmStudio)
-        app.selectModel(ModelSelection(provider: .ollama, model: "model-a"), for: .both)
-
-        let t1 = ForumTopic(siteURL: site, topicID: "1", url: URL(string: "\(site)/t/topic-1/1")!, title: "Topic 1")
-        h.deliver(PageContext(url: t1.url, site: .discourse, siteURL: site, forumName: "Stub", topic: t1, state: .topic))
-
-        // Build 2 chat turns: Turn 1 on ollama/model-a, Turn 2 on lmStudio/model-b.
-        app.drafts.chat = "Q1"
-        app.sendChat()
-        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
-
-        app.selectModel(ModelSelection(provider: .lmStudio, model: "model-b"), for: .role(.assistant))
-        app.drafts.chat = "Q2"
-        app.sendChat()
-        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
-        XCTAssertEqual(app.sessions[t1.topicKey]?.history.count, 4)
-
-        // Subcase A: Edit Q2 -> Q2', gate AI, cancel Q2', then rebuild Turn 2.
-        let q2ID = try XCTUnwrap(app.sessions[t1.topicKey]?.history[2].id)
-        app.editChat(messageID: q2ID)
-        h.ai.gated = true
-        app.drafts.chat = "Q2 edited"
-        app.sendChat()
-        try await waitUntil { h.ai.waiting == 1 }
-        if let active = app.activities.first(where: { !$0.status.isTerminal }) {
-            app.cancel(record: active)
-        }
-        h.ai.gated = false
-        h.ai.releaseAll()
-        XCTAssertEqual(app.sessions[t1.topicKey]?.history.count, 3)
-
-        // Rebuild Turn 2 so history has [Q1, A1, Q2, A2] again:
-        app.drafts.chat = "Q2"
-        app.sendChat()
-        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
-
-        // Run an Agent session for openAgentRun interactions below:
-        app.selectModel(ModelSelection(provider: .ollama, model: "model-a"), for: .role(.agent))
-        _ = try await app.performAgentRun(goal: "Initial forum goal", siteURL: site)
-        let runID = try XCTUnwrap(app.agentRuns.first?.id)
-
-        // Subcase C (Finding 9): Carrying ask text when destination draft is non-empty restores previousDraft!
-        let q1ID = try XCTUnwrap(app.sessions[t1.topicKey]?.history.first?.id)
-        app.assistantMode = .chat
-        app.drafts.chat = "Unsent topic thought"
-        app.drafts.followUp = "Unsent forum follow-up"
-        app.editChat(messageID: q1ID)
-        XCTAssertEqual(app.drafts.chat, "Q1")
-        app.setAskScope(.forum)
-        app.setAskScope(.topic)
-        let editStateAfterBlockedCarry = app.chatEdit
-        let draftAfterBlockedCarry = app.drafts.chat
-
-        // Subcase D (Finding 9): openAgentRun clears chatEdit when moving out of .chat!
-        app.drafts.followUp = ""
-        app.drafts.chat = ""
-        app.editChat(messageID: q1ID)
-        app.drafts.chat = ""
-        app.openAgentRun(id: runID)
-        let chatEditStillArmedInAgent = app.chatEdit
-        app.drafts.followUp = "Question typed in Whole forum"
-        app.setAskScope(.topic)
-        app.sendChat()
-        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
-        let historyAfterOpenAgentRun = app.sessions[t1.topicKey]?.history.map(\.content) ?? []
-
-        // Subcase E (Finding 9): applyChatSuggestion while editing Q1 cancels edit and appends Turn 4 instead of truncating!
-        let countBeforeChip = app.sessions[t1.topicKey]?.history.count ?? 0
-        app.editChat(messageID: q1ID)
-        app.cancelEditChat()
-        app.drafts.chat = "What are the key takeaways?"
-        XCTAssertEqual(app.chatEdit, .none)
-        app.sendChat()
-        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
-        let countAfterChip = app.sessions[t1.topicKey]?.history.count ?? 0
-
-        XCTAssertEqual(editStateAfterBlockedCarry, .none)
-        XCTAssertEqual(
-            draftAfterBlockedCarry,
-            "Unsent topic thought",
-            "Scope round-trip with non-empty forum draft must restore previousDraft ('Unsent topic thought')"
-        )
-        XCTAssertEqual(
-            chatEditStillArmedInAgent,
-            .none,
-            "openAgentRun left chatEdit armed in Agent mode (history=\(historyAfterOpenAgentRun))"
-        )
-        XCTAssertEqual(countAfterChip, countBeforeChip + 2, "Suggestion chip must append a turn rather than truncating history")
-    }
-
     func testAgentFollowUpKillPreservesStepsUsedAgainstBudget() async throws {
         let planner = RolePlanner(actions: [
             AgentAction(thought: "Step", tool: "saved_summaries", arguments: [:])
@@ -2665,178 +2337,6 @@ final class StateTransitionTests: XCTestCase {
         XCTAssertTrue(
             alertVisibleOverSheet,
             "Missing Google API key alert attached to RouterHost behind presented NowPlayingView sheet was dropped by UIKit"
-        )
-    }
-
-    func testTodayPageAutoPodcastAndChatThreadScrollStability() async throws {
-        // Part A (Finding 12): TodayPage scroll is not hijacked when unattended daily podcast auto-starts (`digestCompleted`)
-        let h = makeHarness()
-        let app = h.app
-        h.ai.gated = false
-        app.settings.hasCompletedOnboarding = true
-        app.selectModel(ModelSelection(provider: .ollama, model: "llama-local"), for: .both)
-        app.settings.dailyDigestEnabled = true
-        app.settings.podcastDailyEnabled = true
-        let fakeSpeech = FakeSpeechEngine()
-        app.podcast.makeEngine = { _, _, _ in fakeSpeech }
-        app.settings.podcast.engine = .onDevice
-
-        let cards: [DigestCard] = (1...12).map { idx in
-            var c = DigestCard(siteURL: site, topicID: "\(idx)", title: "Digest Topic \(idx) With Long Title", reason: .trending, postCount: 10)
-            c.state = .done
-            c.summary = String(repeating: "Detailed digest summary text for card \(idx). ", count: 8)
-            return c
-        }
-        let today = DailyDigest(day: DailyDigest.dayKey(for: Date()), completedAt: Date(), cards: cards)
-        app.digests = [today]
-
-        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
-        let todayHost = UIHostingController(rootView: NavigationStack { TodayPage(app: app, onOpen: { _, _ in }) })
-        let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(x: 0, y: 0, width: 393, height: 852))
-        window.frame = CGRect(x: 0, y: 0, width: 393, height: 852)
-        window.rootViewController = todayHost
-        window.makeKeyAndVisible()
-        defer {
-            window.isHidden = true
-            window.rootViewController = nil
-        }
-        todayHost.view.layoutIfNeeded()
-        RunLoop.current.run(until: Date().addingTimeInterval(0.25))
-
-        let todayScroll = try XCTUnwrap(findScrollView(in: todayHost.view, minContentHeight: 1_200))
-        todayScroll.setContentOffset(CGPoint(x: 0, y: 900), animated: false)
-        todayHost.view.layoutIfNeeded()
-        RunLoop.current.run(until: Date().addingTimeInterval(0.1))
-        let offsetBeforeAutoPodcast = todayScroll.contentOffset.y
-        XCTAssertGreaterThan(offsetBeforeAutoPodcast, 700)
-
-        app.podcast.digestCompleted(today.id)
-        try await waitUntil { app.podcast.episode?.isComplete == true && !app.podcast.activity.isRunning }
-        for _ in 0..<15 {
-            RunLoop.current.run(until: Date().addingTimeInterval(0.02))
-            todayHost.view.layoutIfNeeded()
-        }
-        let offsetWhileReadingBeforeUnrelatedAppChange = todayScroll.contentOffset.y
-        XCTAssertGreaterThan(offsetWhileReadingBeforeUnrelatedAppChange, 700)
-        app.settings.dailyDigestEnabled.toggle()
-        for _ in 0..<30 {
-            RunLoop.current.run(until: Date().addingTimeInterval(0.03))
-            todayHost.view.layoutIfNeeded()
-        }
-        let offsetAfterDelayedHijack = todayScroll.contentOffset.y
-        app.podcast.pauseGeneration()
-
-        // Part B (Finding 15): ChatThread (< 16 messages) when keyboard rises (`viewportHeight` shrinks while `activeChat == nil`)
-        let t1 = ForumTopic(siteURL: site, topicID: "1", url: URL(string: "\(site)/t/topic-1/1")!, title: "Topic 1")
-        var session = TopicSession(siteURL: site, topicID: "1", url: t1.url, title: "Topic 1")
-        session.totalPosts = 20
-        session.history = (1...5).flatMap { turn in
-            [
-                ChatMessage(role: .user, content: "User question number \(turn) about the topic details?"),
-                ChatMessage(role: .assistant, content: String(repeating: "Assistant detailed answer paragraph for turn \(turn). ", count: 6))
-            ]
-        }
-        let hChat = makeHarness(snapshot: AppSnapshot(sessions: [session]))
-        let chatApp = hChat.app
-        chatApp.settings.hasCompletedOnboarding = true
-        chatApp.selectModel(ModelSelection(provider: .ollama, model: "llama-local"), for: .both)
-        hChat.deliver(PageContext(url: t1.url, site: .discourse, siteURL: site, forumName: "Stub", topic: t1, state: .topic))
-        chatApp.assistantMode = .chat
-
-        let chatHost = UIHostingController(rootView: AssistantPanel(app: chatApp, onExpand: { _ in }))
-        window.rootViewController = chatHost
-        window.frame = CGRect(x: 0, y: 0, width: 393, height: 852)
-        chatHost.view.layoutIfNeeded()
-        RunLoop.current.run(until: Date().addingTimeInterval(0.25))
-
-        let chatScroll = try XCTUnwrap(findScrollView(in: chatHost.view, minContentHeight: 700))
-        let bottomOffsetBeforeKeyboard = max(0, chatScroll.contentSize.height - chatScroll.bounds.height)
-        chatScroll.setContentOffset(CGPoint(x: 0, y: bottomOffsetBeforeKeyboard), animated: false)
-        chatHost.view.layoutIfNeeded()
-        RunLoop.current.run(until: Date().addingTimeInterval(0.15))
-        let distanceFromBottomBeforeKeyboard = chatScroll.contentSize.height - (chatScroll.contentOffset.y + chatScroll.bounds.height)
-        XCTAssertLessThan(distanceFromBottomBeforeKeyboard, 20, "Reader starts at bottom")
-
-        window.frame = CGRect(x: 0, y: 0, width: 393, height: 532)
-        chatHost.view.layoutIfNeeded()
-        for _ in 0..<15 {
-            RunLoop.current.run(until: Date().addingTimeInterval(0.03))
-            chatHost.view.layoutIfNeeded()
-        }
-        let distanceFromBottomAfterKeyboard = chatScroll.contentSize.height - (chatScroll.contentOffset.y + chatScroll.bounds.height)
-
-        XCTAssertGreaterThan(
-            offsetAfterDelayedHijack,
-            600,
-            "TodayPage must not yank scroll back to top after unattended podcast finishes"
-        )
-        XCTAssertLessThan(
-            distanceFromBottomAfterKeyboard,
-            48,
-            "When viewport shrank by keyboard height with activeChat == nil in 10-message VStack, ChatThread must keep latest reply pinned to bottom"
-        )
-    }
-
-    func testChatThread15To16TransitionWhileScrolledUpPreservesOffset() async throws {
-        let t1 = ForumTopic(siteURL: site, topicID: "1", url: URL(string: "\(site)/t/topic-1/1")!, title: "Topic 1")
-        var session = TopicSession(siteURL: site, topicID: "1", url: t1.url, title: "Topic 1")
-        session.totalPosts = 20
-        session.history = (1...7).flatMap { turn in
-            [
-                ChatMessage(role: .user, content: "User question number \(turn) about the topic details?"),
-                ChatMessage(role: .assistant, content: String(repeating: "Assistant detailed answer paragraph for turn \(turn). ", count: 8))
-            ]
-        }
-        let h = makeHarness(snapshot: AppSnapshot(sessions: [session]))
-        let app = h.app
-        app.settings.hasCompletedOnboarding = true
-        app.selectModel(ModelSelection(provider: .ollama, model: "llama-local"), for: .both)
-        h.deliver(PageContext(url: t1.url, site: .discourse, siteURL: site, forumName: "Stub", topic: t1, state: .topic))
-        app.assistantMode = .chat
-
-        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
-        let host = UIHostingController(rootView: AssistantPanel(app: app, onExpand: { _ in }))
-        let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(x: 0, y: 0, width: 393, height: 852))
-        window.frame = CGRect(x: 0, y: 0, width: 393, height: 852)
-        window.rootViewController = host
-        window.makeKeyAndVisible()
-        defer {
-            window.isHidden = true
-            window.rootViewController = nil
-        }
-        host.view.layoutIfNeeded()
-        RunLoop.current.run(until: Date().addingTimeInterval(0.25))
-
-        app.drafts.chat = "Eighth question crossing 15 to 16?"
-        app.sendChat()
-        try await waitUntil { h.ai.waiting == 1 }
-        for _ in 0..<25 {
-            try await Task.sleep(for: .milliseconds(30))
-            host.view.layoutIfNeeded()
-        }
-
-        let scroll = try XCTUnwrap(findScrollView(in: host.view, minContentHeight: 900))
-        scroll.setContentOffset(CGPoint(x: 0, y: 350), animated: false)
-        for _ in 0..<10 {
-            try await Task.sleep(for: .milliseconds(30))
-            host.view.layoutIfNeeded()
-        }
-        let offsetBefore16 = scroll.contentOffset.y
-        XCTAssertEqual(offsetBefore16, 350, accuracy: 5)
-
-        h.ai.gated = false
-        h.ai.releaseAll()
-        try await waitUntil { app.sessions["forum.example.com/t/1"]?.history.count == 16 }
-        for _ in 0..<20 {
-            try await Task.sleep(for: .milliseconds(30))
-            host.view.layoutIfNeeded()
-        }
-        let offsetAfter16 = scroll.contentOffset.y
-        XCTAssertEqual(
-            offsetAfter16,
-            offsetBefore16,
-            accuracy: 40,
-            "Crossing 15 -> 16 messages in ChatThread shifted reader's scroll offset from y=\(Int(offsetBefore16)) to y=\(Int(offsetAfter16))"
         )
     }
 

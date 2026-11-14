@@ -85,8 +85,6 @@ struct SampleContent {
     // Work in progress.
     var summaryRunningStatus: String
     var summaryStream: String
-    var chatStreamingQuestion: String
-    var chatStreamingAnswer: String
 
     // Daily digest (`-dc-digest-sample`): the tips, rate-limit and long-threads cards.
     var digestBlurbs: [String]
@@ -266,8 +264,6 @@ extension SampleContent {
         ## What people are saying
         - **Trust levels** cause the most confusion
         """,
-        chatStreamingQuestion: "Can a moderator raise my trust level by hand?",
-        chatStreamingAnswer: "Yes. Staff can **promote you manually**, and",
         digestBlurbs: [
             "Since you last looked, five new replies ask how long trust level 1 takes. A staff reply says a day or two of normal reading is usually enough.",
             "Retrying right after a 429 makes it worse. The accepted answer backs off from the Retry-After header, and two people confirm it stops the errors.",
@@ -411,8 +407,6 @@ extension SampleContent {
         ## 大家怎么说
         - **信任等级**最让人困惑
         """,
-        chatStreamingQuestion: "版主能手动提升我的信任等级吗？",
-        chatStreamingAnswer: "可以。管理人员可以**手动提升你的等级**，",
         digestBlurbs: [
             "自你上次查看以来，有五条新回复在问多久能升到信任等级 1。管理人员回复说，正常浏览一两天通常就够了。",
             "收到 429 后立刻重试只会更糟。采纳的答案按 Retry-After 响应头退避，已有两人确认错误不再出现。",
@@ -556,8 +550,6 @@ extension SampleContent {
         ## 大家怎麼說
         - **信任等級**最讓人困惑
         """,
-        chatStreamingQuestion: "版主能手動提升我的信任等級嗎？",
-        chatStreamingAnswer: "可以。管理人員可以**手動提升你的等級**，",
         digestBlurbs: [
             "自你上次查看以來，有五則新回覆在問多久能升到信任等級 1。管理人員回覆說，正常瀏覽一兩天通常就夠了。",
             "收到 429 後立刻重試只會更糟。採納的答案按 Retry-After 回應標頭退避，已有兩人確認錯誤不再出現。",

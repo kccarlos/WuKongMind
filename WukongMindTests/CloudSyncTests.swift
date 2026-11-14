@@ -661,23 +661,6 @@ final class CloudSyncTests: XCTestCase {
         XCTAssertEqual(a.app.sessions[key]?.kept, true)
     }
 
-    func testClearedChatStaysCleared() async throws {
-        let key = topic("1").topicKey
-        let a = try makeDevice(AppSnapshot(sessions: [session("1", summary: "S", chat: ["Q1", "A1", "Q2", "A2"])]))
-        let b = try makeDevice()
-        await sync(a, b)
-        XCTAssertEqual(b.app.sessions[key]?.history.count, 4)
-
-        b.app.select(topic: topic("1"))
-        b.app.clearChat()
-        await sync(b, a, b, a)
-        XCTAssertEqual(a.app.sessions[key]?.history, [])
-        XCTAssertEqual(b.app.sessions[key]?.history, [])
-        XCTAssertEqual(a.app.sessions[key]?.summary, "S")
-        let sent = await writes { await sync(a, b) }
-        XCTAssertEqual(sent, 0)
-    }
-
     func testRemovedForumDeletedRunAndUnwatchedTopicDisappearElsewhere() async throws {
         let goal = run(goal: "Goal")
         let a = try makeDevice(AppSnapshot(

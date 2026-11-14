@@ -88,7 +88,6 @@ struct AssistantPanel: View {
         return false
     }
     private var activePull: WorkRecord? { activeRecords.first { $0.type == .pull } }
-    private var activeChat: WorkRecord? { activeRecords.first { $0.type == .chat } }
 
     var payload: TopicExportPayload {
         app.currentExportPayload
@@ -973,13 +972,12 @@ struct AssistantPanel: View {
         let hasLeadingContent = providerSetupRole != nil
             || hasSummarySection
             || app.currentTopic != nil
-            || (app.assistantPageState == .loading && browserAgent.runs.isEmpty && (app.currentSession?.history.isEmpty ?? true))
+            || (app.assistantPageState == .loading && browserAgent.runs.isEmpty)
         let isLazy = parsed.hasCitations
             || parsed.rows.count >= MarkdownView.lazyRowThreshold
         return ChatThread(
             app: app,
             topicKey: app.currentTopic?.topicKey ?? "",
-            activeChat: activeChat,
             isLazy: isLazy,
             hasLeadingContent: hasLeadingContent,
             expandedToolRowIDs: $expandedToolRowIDs,
@@ -1347,17 +1345,9 @@ struct AssistantPanel: View {
 /// Unified scrollable transcript hosting summary results, saved legacy messages,
 /// embedded forum research runs, and `BrowserAgentSession` turns.
 private struct ChatThread<Leading: View>: View {
-    private struct HistoryCountKey: Equatable {
-        let topicKey: String
-        let count: Int
-        let lastID: UUID?
-    }
-
     @ObservedObject var app: AppModel
-    @ObservedObject private var streams: StreamStore
     private var browserAgent: BrowserAgentSession { app.browserAgent }
     let topicKey: String
-    let activeChat: WorkRecord?
     let isLazy: Bool
     let hasLeadingContent: Bool
     @Binding var expandedToolRowIDs: Set<UUID>
@@ -1374,7 +1364,6 @@ private struct ChatThread<Leading: View>: View {
     init(
         app: AppModel,
         topicKey: String,
-        activeChat: WorkRecord?,
         isLazy: Bool,
         hasLeadingContent: Bool,
         expandedToolRowIDs: Binding<Set<UUID>>,
@@ -1382,9 +1371,7 @@ private struct ChatThread<Leading: View>: View {
         @ViewBuilder leading: () -> Leading
     ) {
         self.app = app
-        _streams = ObservedObject(wrappedValue: app.streams)
         self.topicKey = topicKey
-        self.activeChat = activeChat
         self.isLazy = isLazy
         self.hasLeadingContent = hasLeadingContent
         _expandedToolRowIDs = expandedToolRowIDs
@@ -1392,21 +1379,12 @@ private struct ChatThread<Leading: View>: View {
         self.leading = leading()
     }
 
-    private var stream: String {
-        guard let activeChat else { return "" }
-        return streams.text(for: activeChat.id) ?? ""
-    }
-
-    private var history: [ChatMessage] {
-        app.currentSession?.history ?? []
-    }
-
     private var showsEmbeddedForumRun: Bool {
         app.assistantMode == .agent && app.selectedAgentRun != nil
     }
 
     private var hasConversationEntries: Bool {
-        !history.isEmpty || activeChat != nil || !browserAgent.runs.isEmpty
+        !browserAgent.runs.isEmpty
     }
 
     private var isCompletelyEmpty: Bool {
@@ -1436,13 +1414,6 @@ private struct ChatThread<Leading: View>: View {
                                     }
                                     .transition(.identity)
                                 }
-                            }
-
-                            if !history.isEmpty || activeChat != nil {
-                                VStack(alignment: .leading, spacing: 8) {
-                                    conversationRows
-                                }
-                                .transition(.identity)
                             }
 
                             if showsEmbeddedForumRun {
@@ -1492,15 +1463,13 @@ private struct ChatThread<Leading: View>: View {
                     .onGeometryChange(for: Int.self) { Int($0.size.height.rounded()) } action: { newHeight in
                         let grew = metricsBox.contentHeight > 0 && newHeight > metricsBox.contentHeight
                         metricsBox.contentHeight = newHeight
-                        if grew, atBottom, !userScrolling, !metricsBox.scrolledUp, (activeChat != nil || browserAgent.isRunning) {
+                        if grew, atBottom, !userScrolling, !metricsBox.scrolledUp, browserAgent.isRunning {
                             scrollUnanimated(proxy: proxy)
                             DispatchQueue.main.async {
                                 if atBottom, !userScrolling, !metricsBox.scrolledUp { scrollUnanimated(proxy: proxy) }
                             }
                         }
                     }
-                    .animation(DCMotion.respecting(reduceMotion), value: history.count)
-                    .animation(DCMotion.respecting(reduceMotion), value: activeChat?.id)
                     .animation(DCMotion.respecting(reduceMotion), value: browserAgent.runs.count)
                 }
                 .defaultScrollAnchor(.top)
@@ -1545,7 +1514,7 @@ private struct ChatThread<Leading: View>: View {
                         let streamGrew = !userScrolling
                             && !metricsBox.scrolledUp
                             && old.contentHeight > 0
-                            && (activeChat != nil || browserAgent.isRunning)
+                            && browserAgent.isRunning
                             && new.contentHeight > old.contentHeight
                             && new.offsetTenths >= old.offsetTenths - 3
                         if viewportShrank || streamGrew {
@@ -1586,20 +1555,6 @@ private struct ChatThread<Leading: View>: View {
                     scrollUnanimated("chatTop", anchor: .top, proxy: proxy)
                     Task { @MainActor in
                         if atBottom != metricsBox.nearBottom { atBottom = metricsBox.nearBottom }
-                    }
-                }
-                .onChange(of: HistoryCountKey(topicKey: topicKey, count: history.count, lastID: history.last?.id)) { old, new in
-                    guard old.topicKey == new.topicKey else { return }
-                    if new.lastID != old.lastID, history.last?.role == .user {
-                        jumpToBottom(proxy: proxy)
-                    } else if new.count > old.count, atBottom, !userScrolling, !metricsBox.scrolledUp {
-                        scrollUnanimated(proxy: proxy)
-                    }
-                }
-                .onChange(of: stream) {
-                    // Follow the answer only while the reader is at the bottom.
-                    if atBottom, !userScrolling, !metricsBox.scrolledUp {
-                        scrollUnanimated(proxy: proxy)
                     }
                 }
                 .onChange(of: browserAgent.runs.count) { oldCount, newCount in
@@ -1698,79 +1653,6 @@ private struct ChatThread<Leading: View>: View {
             scrollTask = nil
             if atBottom != metricsBox.nearBottom { atBottom = metricsBox.nearBottom }
         }
-    }
-
-    @ViewBuilder
-    private var conversationRows: some View {
-        if !history.isEmpty || activeChat != nil {
-            conversationHeader
-        }
-
-        ForEach(history) { message in
-            ChatBubble(message: message, maximumPost: app.currentSession?.totalPosts, onEdit: nil)
-                .padding(.top, 4)
-                .transition(.asymmetric(
-                    insertion: reduceMotion ? .opacity : .opacity.combined(with: .move(edge: .bottom)),
-                    removal: .opacity
-                ))
-        }
-
-        if !stream.isEmpty {
-            ChatBubble(
-                message: ChatMessage(role: .assistant, content: stream),
-                maximumPost: app.currentSession?.totalPosts,
-                onEdit: nil,
-                isStreaming: true
-            )
-            .padding(.top, 4)
-            .id("chatStream")
-        } else if activeChat != nil {
-            typingBubble
-                .padding(.top, 4)
-        }
-
-        if let activeChat {
-            chatStatus(activeChat)
-                .padding(.top, 4)
-        }
-    }
-
-    /// "Conversation" between the drawer's summary and saved legacy messages.
-    private var conversationHeader: some View {
-        HStack {
-            Text("Conversation", comment: "AI drawer: heading above the chat messages about the topic")
-                .font(.headline)
-                .accessibilityAddTraits(.isHeader)
-            Spacer()
-        }
-        .padding(.top, 12)
-    }
-
-    private var typingBubble: some View {
-        HStack {
-            TypingIndicator(tint: DCTheme.chatTint)
-                .padding(.vertical, 8)
-            Spacer(minLength: 34)
-        }
-        .transition(.opacity)
-    }
-
-    private func chatStatus(_ record: WorkRecord) -> some View {
-        HStack(spacing: 8) {
-            ProgressView().controlSize(.mini)
-            Text(record.statusText)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-            Spacer()
-            Button("Stop", role: .destructive) {
-                app.cancel(record: record)
-            }
-            .font(.caption.weight(.semibold))
-            .buttonStyle(.borderless)
-            .accessibilityIdentifier("cancelChat")
-        }
-        .padding(.horizontal, 4)
     }
 }
 
@@ -2136,60 +2018,6 @@ struct WorkProgressCard: View {
         case .chat: String(localized: "Answering")
         case .agent: String(localized: "Asking the forum")
         }
-    }
-}
-
-/// A chat bubble with a tail-side corner.
-struct ChatBubble: View {
-    let message: ChatMessage
-    var maximumPost: Int? = nil
-    var onEdit: (() -> Void)? = nil
-    var isStreaming = false
-
-    private var isUser: Bool { message.role == .user }
-
-    var body: some View {
-        HStack(alignment: .bottom) {
-            if isUser { Spacer(minLength: 40) }
-            VStack(alignment: isUser ? .trailing : .leading, spacing: 6) {
-                if isUser {
-                    Text(message.content)
-                        .font(.body)
-                        .foregroundStyle(DCTheme.ink)
-                        .textSelection(.enabled)
-                        .fixedSize(horizontal: false, vertical: true)
-                } else {
-                    let linked = DrawerSummarySections.link(message.content, maximum: maximumPost)
-                    MarkdownView(linked, citations: linked.contains("](\(PostCitations.scheme):"))
-                        .textSelection(.enabled)
-                }
-                if isUser, let onEdit {
-                    Button(action: onEdit) {
-                        Label("Edit", systemImage: "pencil")
-                            .font(DCType.caption)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 3)
-                            .background(DCTheme.surface, in: RoundedRectangle(cornerRadius: DCTheme.radiusSm, style: .continuous))
-                            .foregroundStyle(DCTheme.goldInk)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Edit")
-                }
-                if isStreaming {
-                    TypingIndicator(tint: DCTheme.chatTint)
-                        .scaleEffect(0.8, anchor: .leading)
-                }
-            }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 11)
-            .background {
-                if isUser { DCUserBubbleShape().fill(DCTheme.surfaceRaised) }
-            }
-            if !isUser { Spacer(minLength: 24) }
-        }
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel(isUser ? "You" : "Assistant")
-        .accessibilityIdentifier("chatMessage-\(message.role.rawValue)")
     }
 }
 

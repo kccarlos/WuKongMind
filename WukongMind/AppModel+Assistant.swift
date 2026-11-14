@@ -307,7 +307,6 @@ struct AssistantDebugSeed {
 ///                                     `deepseek:deepseek-v4-flash`), with a placeholder key
 /// - `-dc-no-agent-key`                with `-dc-agent-model`: that provider has no key
 /// - `-dc-summary-running`             a summary in progress (streaming text)
-/// - `-dc-chat-streaming`              a chat answer in progress
 /// - `-dc-agent-running`               the agent run is still working
 /// - `-dc-answer-ready`                the run not selected (on the other forum) just
 ///                                     finished: "Answer ready" shows
@@ -317,7 +316,6 @@ struct AssistantDebugSeed {
 /// - `-dc-not-following`               the open topic is not followed (suggestion row shows Notify me)
 /// - `-dc-scroll-sources`              Agent: scrolls to the answer's sources
 /// - `-dc-history-segment <segment>`   History: all | summaries | asks | watching
-/// - `-dc-chat-typing`                 with `-dc-chat-streaming`: no text yet (typing dots)
 /// - `-dc-stale-summary`               the openai topic's summary is behind (stale notice)
 /// - `-dc-forums-home`                 keeps the Forums home up (no sample page load)
 /// - with `-dc-apple-intelligence on-device|pcc`, sample runs are labeled Apple Intelligence
@@ -595,16 +593,6 @@ extension AppModel {
             }
             streams.set(text.summaryStream, for: summaryRecord.id)
         }
-        if AssistantDebug.has("-dc-chat-streaming") {
-            var chatRecord = record(.chat, openTopic, 0, status: .running, text: String(localized: "Answering…"))
-            chatRecord.question = text.chatStreamingQuestion
-            activities.insert(chatRecord, at: 0)
-            if let index = sessions.firstIndex(where: { $0.topicKey == openTopic.topicKey }) {
-                sessions[index].history.append(ChatMessage(role: .user, content: chatRecord.question))
-            }
-            streams.set(AssistantDebug.has("-dc-chat-typing") ? "" : text.chatStreamingAnswer, for: chatRecord.id)
-        }
-
         var watchedMeta = WatchedTopic(siteURL: meta.siteURL, topicID: tips.topicID, url: tips.url,
                                        title: tips.title, knownPostCount: 88)
         watchedMeta.newReplies = 3
