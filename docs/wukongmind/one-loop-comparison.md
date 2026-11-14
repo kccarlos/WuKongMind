@@ -1584,10 +1584,10 @@ WUKO-63 fixed the tools and the prompt for conditions 1-3 (commit 3877948), then
 | Snapshot misses (new side fetched live) | H3: 0, H4: 3, W2: 1 |
 | Text Agent's tools on forum pages | 26 tools, 6833 tokens of definitions |
 
-**Why W2 missed the terms (condition 1).** The first `read_topic` of `?p=229112` showed the article, comments #2-45 and #276-317 inline, and saved the rest to a file. Comment #261 (Jarrett, July 2026: "A minimum spend of $600 must be met in a single transaction…") was not inline. The site-wide `search_comments` "single transaction cart" returned 0: WordPress matches every word, and #261 doesn't contain "cart". The in-thread `read_topic` query "multiple purchases one transaction cart total" matched any one word, so it returned 70 of 317 comments in thread order, and #261 started at character 18,698 of that result. The Agent read only the first 12,000 characters. **Fix:** query matches now come best first (the whole query, then the most distinct words, thread order among equals), and the set of matches is unchanged. On the recorded fixture, #261 now starts at about character 5,000; `testThreadQueryPutsTheSingleTransactionTermsInTheFirstRead` fails on the old code and passes on the new.
+**Why W2 missed the terms (condition 1).** The first `read_topic` of `?p=229112` showed the article, comments #2-45 and #276-317 inline, and saved the whole thread to a file. Comment #261 (Jarrett, July 2026: "A minimum spend of $600 must be met in a single transaction…") was not inline. The site-wide `search_comments` "single transaction cart" got an empty list back from the site, and #261 doesn't contain "cart". The in-thread `read_topic` query "multiple purchases one transaction cart total" matched any one word, so it returned 70 of 317 comments in thread order, and #261 started at character 18,698 of that result. The Agent read only the first 12,000 characters. **Fix:** query matches now come best first (the whole query, then the most distinct words, thread order among equals), and the set of matches is unchanged. On the recorded fixture, #261 now starts inside the first 12,000 characters; `testThreadQueryPutsTheSingleTransactionTermsInTheFirstRead` fails on the old code and passes on the new.
 
 **What else changed.**
-- **Sources (condition 1):** Only a Markdown link `[title](url)` is a source, in the numbered sources and in History's save rule. A plain URL, or a thread read but not linked, is none. A title may hold one level of brackets ("[Targeted] Chase Travel…"), which the old pattern didn't match.
+- **Sources (condition 1):** Only a Markdown link `[title](url)` is a cited source, in the numbered sources and in History's save rule. A plain URL is not a source. A thread that was read but not linked still shows in the list as "read, not cited", but it doesn't count for the save rule. A title may hold one level of brackets ("[Targeted] Chase Travel…"), which the old pattern didn't match.
 - **H3 (condition 2):** The prompt rule is "search the forum beyond that thread before answering". An in-thread `read_topic` query now opens with a note that it covers this thread only and points to `search_forum`.
 - **H4 (condition 3):** The prompt rule is "never recommend from titles alone". `list_latest` now opens with a note to read at least one thread first.
 - **Tests:** The replay test checks the re-recorded runs themselves: W2 has a Markdown-link source, H3 searches, H4 reads a thread.
@@ -1612,6 +1612,8 @@ WUKO-63 fixed the tools and the prompt for conditions 1-3 (commit 3877948), then
 | H4 | better | worse |
 
 Verdicts by the WUKO-63 agent from the answers below, for the orchestrator's final check.
+
+**For the orchestrator.** The tool notes on `list_latest` and on in-thread queries reach the model inside the `<untrusted_web_content>` wrapper, which the system prompt says never to take instructions from. The model followed them anyway, and the prompt rules say the same thing. Moving the notes outside the wrapper would make the shipped tool output differ from these recordings, so it is left as recorded.
 
 ### Questions (re-record)
 
@@ -1913,9 +1915,9 @@ Every model request of the re-record (old loop, new loop, summaries and the tool
 ### Conditions
 
 1. **Met.** Agent sources are Markdown links only, in the numbered sources and in History's save rule (`AssistantSourcesTests`, `AgentAnswerHistoryTests`). The W2 miss is explained above and fixed in `read_topic` query matching, with a unit test on the recorded fixture.
-2. **Met.** H3's new side searched beyond the thread (`search_comments`, then `read_topic` on another thread). Covered by the prompt rule, the tool note, `testInThreadQueryPointsToAForumSearch` and the H3 replay.
+2. **Met for H3. D3 is covered by the prompt rule only.** H3's new side searched beyond the thread (`search_comments`, then `read_topic` on another thread). Covered by the prompt rule, the tool note, `testInThreadQueryPointsToAForumSearch` and the H3 replay. D3 was not re-recorded. Its first run summarized the thread without an in-thread query, so the tool note would not fire, and only the prompt rule covers it.
 3. **Met.** H4's new side read five threads. Covered by the prompt rule, the tool note, `testLatestListAsksForAReadBeforeRecommending` and the H4 replay.
-4. **Met.** W2, H3 and H4 were re-recorded on both sides from a fresh, empty snapshot. The new side is no worse on all three (better, same, better), and all 18 recorded new-side runs replay.
+4. **Met, in the WUKO-63 agent's reading.** W2, H3 and H4 were re-recorded on both sides from a fresh, empty snapshot, and all 18 recorded new-side runs replay. The new side is no worse on all three (better, same, better). H3 "same" is the closest call: old cites 24 post-level links and new cites 3 threads. The one allowed retry was not used.
 
 ## Approval
 
