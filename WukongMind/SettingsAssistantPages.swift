@@ -275,16 +275,6 @@ struct SettingsAgentPage: View {
 
             Section {
                 Stepper(
-                    "Search steps: \(app.settings.agentMaxSteps)",
-                    value: Binding(
-                        get: { app.settings.agentMaxSteps },
-                        set: { app.settings.agentMaxSteps = AgentLimits.clampSteps($0) }
-                    ),
-                    in: AgentLimits.stepRange
-                )
-                .accessibilityIdentifier("agentMaxSteps")
-
-                Stepper(
                     "Topics to read: \(app.settings.agentMaxTopicReads)",
                     value: Binding(
                         get: { app.settings.agentMaxTopicReads },
@@ -314,19 +304,17 @@ struct SettingsAgentPage: View {
                     .accessibilityIdentifier("agentReadLimit")
                 }
             } header: {
-                Text("Forum search", comment: "Settings › Agent section header for forum search limits")
+                Text("Forum tools", comment: "Settings › Agent section header for the limits the forum tools read")
             } footer: {
-                Text("Used when searching across a forum. Defaults: \(AgentLimits.defaultMaxSteps) steps, \(AgentLimits.defaultMaxTopicReads) topics, \(characters(AgentLimits.defaultReadLimit)) per topic.")
+                Text("Used when the Agent searches and reads a forum. Defaults: \(AgentLimits.defaultMaxTopicReads) topics, \(characters(AgentLimits.defaultReadLimit)) per topic.")
             }
 
-            if app.settings.agentMaxSteps != AgentLimits.defaultMaxSteps
-                || app.settings.agentMaxTopicReads != AgentLimits.defaultMaxTopicReads
+            if app.settings.agentMaxTopicReads != AgentLimits.defaultMaxTopicReads
                 || app.settings.agentReadLimit != AgentLimits.defaultReadLimit
                 || app.settings.browserAgentMaxSteps != BrowserAgentLimits.defaultMaxSteps
                 || app.settings.browserAgentTruncationLimit != BrowserAgentLimits.defaultTruncationLimit {
                 Section {
                     Button("Restore defaults") {
-                        app.settings.agentMaxSteps = AgentLimits.defaultMaxSteps
                         app.settings.agentMaxTopicReads = AgentLimits.defaultMaxTopicReads
                         app.settings.agentReadLimit = AgentLimits.defaultReadLimit
                         app.settings.browserAgentMaxSteps = BrowserAgentLimits.defaultMaxSteps
@@ -344,7 +332,6 @@ struct SettingsAgentPage: View {
         }
         .onChange(of: app.settings.agentConfirmBeforeWrites) { app.saveSettings() }
         .onChange(of: app.settings.agentDeveloperMode) { app.saveSettings() }
-        .onChange(of: app.settings.agentMaxSteps) { app.saveSettings() }
         .onChange(of: app.settings.agentMaxTopicReads) { app.saveSettings() }
         .onChange(of: app.settings.agentReadLimit) { app.saveSettings() }
         .onChange(of: app.settings.browserAgentMaxSteps) { app.saveSettings() }

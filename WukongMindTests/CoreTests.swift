@@ -600,7 +600,7 @@ final class CoreTests: XCTestCase {
         app.browser.stopLoading()
         let handler = app.browser.onPageContextChanged
         app.browser.onPageContextChanged = nil
-        app.selectModel(ModelSelection(provider: .ollama, model: "test-model"), for: .both)
+        app.selectModel(ModelSelection(provider: .ollama, model: "test-model"), for: .role(.assistant))
         let page = PageContext(url: url, site: .discourse, siteURL: siteURL, forumName: "Forum", topic: topic, state: .topic)
         app.browser.setPageContext(page)
         handler?(page)
@@ -1334,7 +1334,7 @@ final class CoreTests: XCTestCase {
         let json = #"{"settings":{"assistantModel":{"provider":"groq","model":"m"}},"sessions":[],"activities":[]}"#
         let snapshot = try JSONDecoder().decode(AppSnapshot.self, from: Data(json.utf8))
         XCTAssertEqual(snapshot.settings.assistantModel.provider, .groq)
-        XCTAssertEqual(snapshot.settings.agentMaxSteps, AgentLimits.defaultMaxSteps)
+        XCTAssertEqual(snapshot.settings.agentMaxTopicReads, AgentLimits.defaultMaxTopicReads)
         XCTAssertTrue(snapshot.settings.watchAutoRefreshSummaries)
         XCTAssertTrue(snapshot.agentRuns.isEmpty)
         XCTAssertTrue(snapshot.watchedTopics.isEmpty)
@@ -1822,7 +1822,7 @@ final class LazyMarkdownTests: XCTestCase {
         app.browser.stopLoading()
         let handler = app.browser.onPageContextChanged
         app.browser.onPageContextChanged = nil
-        app.selectModel(ModelSelection(provider: .ollama, model: "test-model"), for: .both)
+        app.selectModel(ModelSelection(provider: .ollama, model: "test-model"), for: .role(.assistant))
         let pageA = PageContext(url: urlA, site: .discourse, siteURL: siteURL, forumName: "Forum", topic: topicA, state: .topic)
         app.browser.setPageContext(pageA)
         handler?(pageA)

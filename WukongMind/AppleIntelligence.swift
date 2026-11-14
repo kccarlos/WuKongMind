@@ -169,7 +169,7 @@ enum AppleIntelligenceDefaults {
     static func isUntouched(_ settings: AppSettings) -> Bool {
         let stock = AppSettings()
         guard settings.favoriteModels.isEmpty,
-              settings.assistantModel == stock.assistantModel, settings.agentModel == stock.agentModel
+              settings.assistantModel == stock.assistantModel
         else {
             return false
         }
@@ -460,10 +460,10 @@ extension AppModel {
             return
         }
         defaults.set(true, forKey: AppleIntelligenceDefaults.appliedKey)
-        // Both roles: a new user starts with one model for everything.
+        // Summaries only: Apple Intelligence can't call tools, so it can't be the Agent.
         selectModel(
             ModelSelection(provider: .appleIntelligence, model: AIProvider.appleIntelligence.defaultModel),
-            for: .both
+            for: .role(.assistant)
         )
         // Starred, so the model menus list it like any favorite.
         addCurrentFavorite(for: .assistant)

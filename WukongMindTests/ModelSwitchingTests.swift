@@ -25,7 +25,7 @@ final class ModelSwitchingTests: XCTestCase {
             settings.setConfiguration(configuration, for: provider)
         }
         settings.setModel(assistant, for: .assistant)
-        settings.setModel(agent, for: .agent)
+        settings.setModel(agent, for: .browserAgent)
         return settings
     }
 
@@ -117,37 +117,58 @@ final class ModelSwitchingTests: XCTestCase {
     }
 
     @MainActor
-    func testUIRolesShowAgentAndSummariesWhileForumSearchFollowsAgentThenSummaries() {
+    func testThereAreTwoModelRolesAndEachIsSetOnItsOwn() {
+        XCTAssertEqual(ModelRole.allCases, [.assistant, .browserAgent])
         XCTAssertEqual(ModelRole.uiRoles, [.browserAgent, .assistant])
+        XCTAssertEqual(ModelRole.assistant.other, .browserAgent)
+        XCTAssertEqual(ModelRole.browserAgent.other, .assistant)
         XCTAssertEqual(ModelRole.browserAgent.title, "Agent")
         XCTAssertEqual(ModelRole.assistant.title, "Summaries")
 
         let app = makeApp()
-        // With no Agent model set, selecting Summaries in Settings › Models also updates transitional forum search (.agent).
+        // Selecting Summaries never sets the Agent model.
         app.selectModel(gemini.selection, for: app.uiScope(for: .assistant))
         XCTAssertNil(app.settings.browserAgentModel)
         XCTAssertEqual(app.selection(for: .assistant), gemini.selection)
-        XCTAssertEqual(app.selection(for: .agent), gemini.selection)
 
-        // Setting the Agent model (.browserAgent) makes transitional forum search (.agent) follow it.
+        // The Agent model is set only by an explicit Agent choice.
         app.selectModel(claude.selection, for: .role(.browserAgent))
         XCTAssertEqual(app.settings.browserAgentModel, claude.selection)
         XCTAssertEqual(app.selection(for: .browserAgent), claude.selection)
-        XCTAssertEqual(app.selection(for: .agent), claude.selection)
         XCTAssertEqual(app.selection(for: .assistant), gemini.selection)
         XCTAssertFalse(app.uiRolesShareModel)
 
-        // Clearing the Agent model falls transitional forum search back to Summaries.
+        // Clearing the Agent model leaves Summaries as it was.
         app.clearBrowserAgentModel()
         XCTAssertNil(app.settings.browserAgentModel)
-        XCTAssertEqual(app.selection(for: .agent), gemini.selection)
 
-        // Applying a tool-calling model to both UI roles updates Agent, Summaries, and transitional forum search.
+        // Applying a tool-calling model to both roles updates Agent and Summaries.
         app.applyModelToBothUIRoles(llama.selection)
         XCTAssertTrue(app.uiRolesShareModel)
         XCTAssertEqual(app.selection(for: .browserAgent), llama.selection)
         XCTAssertEqual(app.selection(for: .assistant), llama.selection)
-        XCTAssertEqual(app.selection(for: .agent), llama.selection)
+    }
+
+    /// Settings saved before One loop carry an `agentModel` and `agentMaxSteps`:
+    /// they decode, are dropped, and are not written back.
+    func testSettingsWithAnOldAgentRoleDecodeAndDropIt() throws {
+        let json = """
+        {"assistantModel":{"provider":"groq","model":"m"},
+         "agentModel":{"provider":"deepSeek","model":"deepseek-v4-flash"},
+         "agentMaxSteps":40,"agentMaxTopicReads":12,"agentReadLimit":50000,
+         "browserAgentModel":{"provider":"anthropic","model":"claude-haiku-5-5"}}
+        """
+        let settings = try JSONDecoder().decode(AppSettings.self, from: Data(json.utf8))
+        XCTAssertEqual(settings.assistantModel.provider, .groq)
+        XCTAssertEqual(settings.browserAgentModel?.model, "claude-haiku-5-5")
+        XCTAssertEqual(settings.agentMaxTopicReads, 12)
+        XCTAssertEqual(settings.agentReadLimit, 50_000)
+        let object = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(settings)) as? [String: Any])
+        XCTAssertNil(object["agentModel"])
+        XCTAssertNil(object["agentMaxSteps"])
+        XCTAssertNotNil(object["agentMaxTopicReads"])
+        XCTAssertNotNil(ModelRole(rawValue: "browserAgent"))
+        XCTAssertNil(ModelRole(rawValue: "agent"))
     }
 
     @MainActor

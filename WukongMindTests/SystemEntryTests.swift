@@ -270,7 +270,7 @@ final class SystemEntryTests: XCTestCase {
         app.usesDirectForumRequests = true
         app.settings.hasCompletedOnboarding = true
         if ready {
-            app.selectModel(ModelSelection(provider: .ollama, model: "llama3.2"), for: .both)
+            app.selectModel(ModelSelection(provider: .ollama, model: "llama3.2"), for: .role(.assistant))
             app.selectModel(ModelSelection(provider: .ollama, model: "llama3.2"), for: .role(.browserAgent))
         }
         return app

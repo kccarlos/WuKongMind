@@ -232,7 +232,7 @@ extension AppModel {
             configuration.model = "fixture-model"
             configuration.apiKey = ""
             settings.setConfiguration(configuration, for: .ollama)
-            selectModel(ModelSelection(provider: .ollama, model: configuration.model), for: .both)
+            selectModel(ModelSelection(provider: .ollama, model: configuration.model), for: .role(.assistant))
         }
         if let index = arguments.firstIndex(of: "-dc-open"), index + 1 < arguments.count,
            let url = URL(string: arguments[index + 1]) {
@@ -347,7 +347,6 @@ extension AppModel {
             config.model = "claude-haiku-5-5"
             settings.setConfiguration(config, for: .anthropic)
             settings.setModel(ModelSelection(provider: .anthropic, model: "claude-haiku-5-5"), for: .assistant)
-            settings.setModel(ModelSelection(provider: .anthropic, model: "claude-haiku-5-5"), for: .agent)
             if demoMode == "no-model" {
                 settings.setModel(ModelSelection(provider: .anthropic, model: ""), for: .browserAgent)
             } else {
@@ -400,7 +399,6 @@ extension AppModel {
             config.model = modelID
             settings.setConfiguration(config, for: .anthropic)
             settings.setModel(ModelSelection(provider: .anthropic, model: modelID), for: .assistant)
-            settings.setModel(ModelSelection(provider: .anthropic, model: modelID), for: .agent)
             settings.setModel(ModelSelection(provider: .anthropic, model: modelID), for: .browserAgent)
         }
 

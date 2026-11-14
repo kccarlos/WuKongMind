@@ -147,20 +147,16 @@ struct ProviderConfiguration: Codable, Equatable, Sendable {
     }
 }
 
-/// Which job a model is chosen for. Summaries, chat and watched-topic
-/// refreshes use the assistant model; Ask the forum uses the agent model;
-/// the page browser agent uses `browserAgent` (with no preset model).
-/// See `AppModel+Models.swift`.
+/// Which job a model is chosen for: summaries and watched-topic refreshes use
+/// the assistant model; the Agent uses `browserAgent` (with no preset model).
+/// A saved `agent` selection from before One loop is not a role any more and
+/// is dropped when settings decode. See `AppModel+Models.swift`.
 enum ModelRole: String, Codable, CaseIterable, Identifiable, Sendable {
     case assistant
-    case agent
     case browserAgent
 
     /// The two roles shown in Settings › Models (One panel): Agent and Summaries.
     static let uiRoles: [ModelRole] = [.browserAgent, .assistant]
-
-    /// The two forum roles (onboarding and shared-role toggles).
-    static let forumRoles: [ModelRole] = [.assistant, .agent]
 
     var id: String { rawValue }
 }

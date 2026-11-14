@@ -190,8 +190,8 @@ final class PhysicalDeviceSmokeTests: DCUITestCase {
         XCTAssertTrue(app.staticTexts["Models"].waitForExistence(timeout: 10))
         app.buttons["settingsRow-agent"].tap()
         XCTAssertTrue(app.navigationBars["Agent"].waitForExistence(timeout: 10))
-        XCTAssertTrue(reveal(any(app, "agentMaxSteps"), in: app))
-        XCTAssertTrue(any(app, "agentMaxTopicReads").exists)
+        XCTAssertTrue(reveal(any(app, "agentMaxTopicReads"), in: app))
+        XCTAssertFalse(any(app, "agentMaxSteps").exists, "Search steps is gone")
         tapNavigationBack(in: app)
 
         let sitesSettingsRow = app.buttons["settingsRow-sites"]

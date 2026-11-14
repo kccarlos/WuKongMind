@@ -30,6 +30,27 @@ final class ForumToolsTests: XCTestCase {
         return registry
     }
 
+    /// Settings › Agent's "Topics to read" and "Read size" are the limits the forum tools run with.
+    func testForumToolLimitsComeFromTheAgentSettings() throws {
+        let dir = try makeTempFolder()
+        let store = PersistentStore(fileURL: dir.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore())
+        let app = AppModel(store: store, forumService: WordPressFixtureSite(commentCount: 2).service(), sites: SiteRegistry.standard, aiService: StateAIStub())
+        app.browser.onPageContextChanged = nil
+        app.browser.setPageContext(PageContext(
+            url: URL(string: "https://meta.discourse.org"), site: .discourse,
+            siteURL: "https://meta.discourse.org", forumName: "Meta", state: .forumHome
+        ))
+        app.settings.agentMaxTopicReads = 3
+        app.settings.agentReadLimit = 50_000
+        var context = try XCTUnwrap(app.makeForumToolContext())
+        XCTAssertEqual(context.scope.readBudget(), 3)
+        XCTAssertEqual(context.scope.readLimit, 50_000)
+        app.settings.agentMaxTopicReads = 5
+        XCTAssertEqual(context.scope.readBudget(), 5, "the budget is read when a topic is read, not when the run starts")
+        context = try XCTUnwrap(app.makeForumToolContext())
+        XCTAssertEqual(context.scope.readLimit, 50_000)
+    }
+
     // MARK: - Presence & Mid-Run Stability
 
     func testPresenceGatingByPageStateAndPlatformAndMidRunNavigation() async throws {

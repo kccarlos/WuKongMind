@@ -179,7 +179,7 @@ struct ProviderSetupCard: View {
         if other != selection, app.isReady(other) {
             lines.append(String(
                 localized: "\(role.other.title) still works with \(other.provider.displayName).",
-                comment: "Model not ready card: the other role's model is fine. Placeholders: the role (Summaries & chat, or Ask the forum) and a provider name."
+                comment: "Model not ready card: the other role's model is fine. Placeholders: the role (Summaries or Agent) and a provider name."
             ))
         }
         return lines.joined(separator: " ")

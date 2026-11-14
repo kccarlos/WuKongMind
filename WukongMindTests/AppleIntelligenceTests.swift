@@ -109,10 +109,10 @@ final class AppleIntelligenceTests: XCTestCase {
     func testReadinessFollowsAvailability() throws {
         let fake = FakeAppleIntelligence()
         let app = makeApp(fake)
-        app.selectModel(ModelSelection(provider: .appleIntelligence, model: "Automatic"), for: .both)
-        XCTAssertTrue(app.isProviderReady)
+        app.selectModel(ModelSelection(provider: .appleIntelligence, model: "Automatic"), for: .role(.assistant))
+        XCTAssertTrue(app.isProviderReady(for: .assistant))
         fake.status = .unavailable(.appleIntelligenceNotEnabled)
-        XCTAssertFalse(app.isProviderReady)
+        XCTAssertFalse(app.isProviderReady(for: .assistant))
     }
 
     /// Apple Intelligence becoming unavailable affects only the role that
@@ -124,27 +124,22 @@ final class AppleIntelligenceTests: XCTestCase {
         let fake = FakeAppleIntelligence()
         let app = makeApp(fake)
         app.selectModel(ModelSelection(provider: .ollama, model: "llama3.2"), for: .role(.assistant))
-        app.selectProvider(.appleIntelligence, for: .role(.agent))
-        XCTAssertEqual(app.settings.agentModel, ModelSelection(provider: .appleIntelligence, model: "Automatic"))
-        XCTAssertEqual(app.providerSummary(for: .agent), "Apple Intelligence · On-device")
-        XCTAssertTrue(app.isProviderReady)
+        app.selectModel(ModelSelection(provider: .ollama, model: "llama3.2"), for: .role(.browserAgent))
+        app.selectProvider(.appleIntelligence, for: .role(.assistant))
+        XCTAssertEqual(app.settings.assistantModel, ModelSelection(provider: .appleIntelligence, model: "Automatic"))
+        XCTAssertEqual(app.providerSummary(for: .assistant), "Apple Intelligence · On-device")
+        XCTAssertTrue(app.isProviderReady(for: .assistant))
+        XCTAssertTrue(app.isProviderReady(for: .browserAgent))
         fake.status = .unavailable(.modelNotReady)
         XCTAssertTrue(app.isProviderSelectable(.appleIntelligence), "A supported device downloading the model still allows selecting it.")
-        XCTAssertFalse(app.isProviderReady(for: .agent))
-        XCTAssertTrue(app.isProviderReady(for: .assistant))
-        XCTAssertEqual(app.settings.assistantModel.provider, .ollama)
-
-        // Swapped while modelNotReady (supported device): summaries on Apple Intelligence, Ask the forum elsewhere.
-        app.useSameModel(as: .assistant)
-        app.selectProvider(.appleIntelligence, for: .role(.assistant))
         XCTAssertFalse(app.isProviderReady(for: .assistant))
-        XCTAssertTrue(app.isProviderReady(for: .agent))
-        XCTAssertEqual(app.settings.assistantModel.provider, .appleIntelligence)
+        XCTAssertTrue(app.isProviderReady(for: .browserAgent))
+        XCTAssertEqual(app.settings.browserAgentModel?.provider, .ollama)
 
         // Unsupported device (.deviceNotEligible / .requiresNewerOS):
         // menu shows "Not supported on this device" and blocks new selection,
         // while synced settings from another device degrade cleanly.
-        app.useSameModel(as: .agent) // both on Ollama
+        app.useSameModel(as: .browserAgent) // both on Ollama
         for unsupportedReason in [AppleIntelligenceUnavailableReason.deviceNotEligible, .requiresNewerOS] {
             fake.status = .unavailable(unsupportedReason)
             XCTAssertFalse(app.isProviderSelectable(.appleIntelligence))
@@ -168,16 +163,16 @@ final class AppleIntelligenceTests: XCTestCase {
             XCTAssertEqual(app.settings.assistantModel.provider, .appleIntelligence)
             XCTAssertEqual(app.readiness(of: app.selection(for: .assistant)), .appleIntelligence(unsupportedReason))
             XCTAssertFalse(app.isProviderReady(for: .assistant))
-            XCTAssertTrue(app.isProviderReady(for: .agent))
+            XCTAssertTrue(app.isProviderReady(for: .browserAgent))
             XCTAssertEqual(app.readyAlternatives(for: .assistant), [FavoriteModel(provider: .ollama, model: "llama3.2")])
             XCTAssertEqual(app.visibleFavorites, [FavoriteModel(provider: .ollama, model: "llama3.2")])
 
             // Cannot copy unsupported Apple Intelligence onto the working role, but can copy Ollama onto both.
             app.useSameModel(as: .assistant)
-            XCTAssertEqual(app.settings.agentModel.provider, .ollama)
-            app.useSameModel(as: .agent)
+            XCTAssertEqual(app.settings.browserAgentModel?.provider, .ollama)
+            app.useSameModel(as: .browserAgent)
             XCTAssertEqual(app.settings.assistantModel.provider, .ollama)
-            XCTAssertTrue(app.isProviderReady)
+            XCTAssertTrue(app.isProviderReady(for: .assistant))
         }
     }
 
@@ -224,7 +219,7 @@ final class AppleIntelligenceTests: XCTestCase {
         app.applyAppleIntelligenceDefaultIfNeeded(status: .available(.onDevice), defaults: defaults)
         XCTAssertEqual(app.settings.assistantModel.provider, .appleIntelligence)
         XCTAssertEqual(app.settings.assistantModel.provider, .appleIntelligence)
-        XCTAssertEqual(app.settings.agentModel.provider, .appleIntelligence, "a new user starts with it for both roles")
+        XCTAssertNil(app.settings.browserAgentModel, "Apple Intelligence can't call tools, so it never becomes the Agent")
         XCTAssertEqual(app.settings.favoriteModels, [FavoriteModel(provider: .appleIntelligence, model: "Automatic")], "starred, so the model menus list it")
 
         // The user switches back; the default is not applied again.
