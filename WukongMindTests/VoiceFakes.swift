@@ -47,6 +47,16 @@ final class FakeLiveTransport: LiveTransport {
 
     /// What was sent, as `VoiceSent` values.
     var messages: [VoiceSent] { sent.map(VoiceSent.init) }
+
+    /// The function names the first setup declared.
+    var declaredNames: [String] {
+        guard let first = sent.first,
+              let object = try? JSONSerialization.jsonObject(with: Data(first.utf8)) as? [String: Any],
+              let tools = (object["setup"] as? [String: Any])?["tools"] as? [[String: Any]],
+              let declarations = tools.first?["functionDeclarations"] as? [[String: Any]]
+        else { return [] }
+        return declarations.compactMap { $0["name"] as? String }
+    }
 }
 
 /// One sent frame, decoded for assertions.
@@ -138,17 +148,21 @@ final class ManualVoiceClock: VoiceClock {
 final class FakeVoiceNavigator: VoiceNavigator {
     var pageContext = PageContext.empty
     var browseCursor = BrowseCursor()
-    var isResearching = false
     var voiceSite = SiteRegistry.standard.voiceFallback
-    var researchProgress: String?
+    var handOffProgress: String?
+    /// A real hand-off over a real Agent session; nil: scripted.
+    var agentHandOff: AgentHandOff?
     private(set) var calls: [String] = []
     var results: [String: BrowseResult] = [:]
     var brief: VoiceTopicBrief?
     var visible: [VisiblePost] = []
     var summary: String?
-    /// While set, `research` waits until `releaseResearch` (or a cancel).
-    var holdsResearch = false
-    private var researchContinuations: [CheckedContinuation<BrowseResult, Never>] = []
+    /// While set, a hand-off's outcome waits until `releaseHandOff` (or a cancel).
+    var holdsHandOff = false
+    /// Why `startHandOff` refuses; nil: it starts.
+    var handOffRefusal: String?
+    private var scriptedHandOff = false
+    private var handOffContinuations: [CheckedContinuation<VoiceHandOffOutcome, Never>] = []
 
     private func answer(_ call: String, key: String) -> BrowseResult {
         calls.append(call)
@@ -192,42 +206,54 @@ final class FakeVoiceNavigator: VoiceNavigator {
 
     func readVisible() async -> BrowseResult { answer("visible", key: "visible") }
 
-    func research(_ request: String, siteURL: String?) async -> BrowseResult {
-        calls.append("research \(request)")
-        // Like AppModel: a new research replaces the running one.
-        let earlier = researchContinuations
-        researchContinuations = []
-        earlier.forEach { $0.resume(returning: BrowseResult(status: .cancelled, shown: "Replaced by a newer request.")) }
-        isResearching = true
-        if holdsResearch {
-            let result = await withCheckedContinuation { researchContinuations.append($0) }
-            return result
+    var isHandingOff: Bool { agentHandOff?.isRunning ?? scriptedHandOff }
+
+    func startHandOff(_ request: String) -> String? {
+        calls.append("hand off \(request)")
+        if let agentHandOff { return agentHandOff.start(request) }
+        if let handOffRefusal { return handOffRefusal }
+        // Like AgentHandOff: a new hand-off replaces the running one.
+        let earlier = handOffContinuations
+        handOffContinuations = []
+        earlier.forEach { $0.resume(returning: .cancelled) }
+        scriptedHandOff = true
+        return nil
+    }
+
+    func handOffOutcome() async -> VoiceHandOffOutcome {
+        if let agentHandOff { return await agentHandOff.outcome() }
+        if holdsHandOff {
+            return await withCheckedContinuation { handOffContinuations.append($0) }
         }
-        isResearching = false
-        return results["research"] ?? Self.answered
+        scriptedHandOff = false
+        return Self.answered
     }
 
-    static let answered = BrowseResult(
-        status: .answered,
-        shown: "Answered with 2 sources on the cards.",
-        content: "Lower the fan curve in the quiet profile.",
-        hits: [BrowseResult.Hit(number: 1, title: "Fan noise", topicID: "42", postNumber: 3, username: "bob", excerpt: "Try it")]
-    )
+    static let answered = VoiceHandOffOutcome.answered("Lower the fan curve in the **quiet profile** [Fan noise](https://forum.example/t/fan-noise/42).")
 
-    /// Answers the oldest held research.
-    func releaseResearch(_ result: BrowseResult = FakeVoiceNavigator.answered) {
-        guard !researchContinuations.isEmpty else { return }
-        researchContinuations.removeFirst().resume(returning: result)
-        isResearching = !researchContinuations.isEmpty
+    /// Answers the oldest held hand-off.
+    func releaseHandOff(_ outcome: VoiceHandOffOutcome = FakeVoiceNavigator.answered) {
+        guard !handOffContinuations.isEmpty else { return }
+        handOffContinuations.removeFirst().resume(returning: outcome)
+        scriptedHandOff = !handOffContinuations.isEmpty
     }
 
-    func cancelResearch() -> BrowseResult {
-        calls.append("cancel research")
-        let held = researchContinuations
-        researchContinuations = []
-        held.forEach { $0.resume(returning: BrowseResult(status: .cancelled, shown: "Replaced by a newer request.")) }
-        isResearching = false
-        return BrowseResult(status: .cancelled, shown: "The research was stopped.")
+    func cancelHandOff() -> Bool {
+        calls.append("cancel hand-off")
+        if let agentHandOff { return agentHandOff.cancel() }
+        let held = handOffContinuations
+        handOffContinuations = []
+        held.forEach { $0.resume(returning: .cancelled) }
+        defer { scriptedHandOff = false }
+        return scriptedHandOff
+    }
+
+    /// The voice registry a forum page gets (the browse tools), whatever
+    /// the fake page says.
+    static func forumRegistry(_ browse: BrowseToolContext) -> ToolRegistry {
+        let onForum = BrowseToolContext(navigator: browse.navigator, site: browse.site, isOnForum: true)
+        onForum.eyesFree = browse.eyesFree
+        return ToolRegistry(tools: ToolRegistry.browseTools(browse: onForum))
     }
 
     func voiceTopicBrief() async -> VoiceTopicBrief? { brief }

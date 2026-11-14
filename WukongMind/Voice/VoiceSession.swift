@@ -29,7 +29,7 @@ import Foundation
 //   reconnect opens a fresh session seeded with the context.
 // - A turn that gets no server message for 10 s is a stall: the connection
 //   is recycled with the handle.
-// - Watchdogs: a research call the model didn't acknowledge within 1.5 s
+// - Watchdogs: a hand-off call the model didn't acknowledge within 1.5 s
 //   gets a nudge; a result unspoken for 6 s is re-sent as a turn; tool-call
 //   markup spoken as text is cut off and corrected.
 
@@ -140,6 +140,9 @@ final class VoiceSession: ObservableObject {
     @Published private(set) var lastModelText = ""
     /// Seconds connected in this session.
     @Published private(set) var connectedSeconds: Double = 0
+    /// Each finished user utterance (`.voiceUser`) and model reply
+    /// (`.voiceReply`), for the conversation (`BrowserAgentSession`).
+    var onTranscript: ((BrowserAgentMessage.Role, String) -> Void)?
 
     let configuration: Configuration
     var timing = Timing()
@@ -183,6 +186,9 @@ final class VoiceSession: ObservableObject {
     private var lastServerMessageAt: Date?
     private var lastActivityAt: Date?
     private var modelTurnText = ""
+    /// Transcript not yet handed to `onTranscript`.
+    private var uncommittedUser = ""
+    private var modelCommitted = 0
 
     // Outgoing.
     private struct PendingResponse {
@@ -304,6 +310,7 @@ final class VoiceSession: ObservableObject {
     }
 
     private func finish(_ final: State) {
+        commitTranscripts()
         recordUsage()
         flushUsage()
         state = final
@@ -386,7 +393,8 @@ final class VoiceSession: ObservableObject {
                 forumName: page?.forumName,
                 site: fixed.profile
             ),
-            functions: VoiceTool.geminiDeclarations(for: fixed),
+            // Declared once per fresh session; a resume sends the same list (the server keeps the old one anyway).
+            functions: handle == nil || tools.declaredNames == nil ? tools.declare(for: fixed) : tools.declarations,
             vocabulary: Self.vocabulary(page: page),
             resumptionHandle: handle
         )
@@ -553,6 +561,7 @@ final class VoiceSession: ObservableObject {
             lastUserText = text
         }
         heardThisTurn = true
+        uncommittedUser += text
         // Words transcribed after the stream ended: the reply is owed now.
         if !gateOpen, !sentAudioThisTurn, comfortNoise == nil, awaitingReplySince == nil { awaitingReplySince = now }
         groundIfNeeded(lastUserText)
@@ -583,6 +592,8 @@ final class VoiceSession: ObservableObject {
     }
 
     private func turnCompleted() {
+        commitTranscripts()
+        modelCommitted = 0
         turnCompleteCount += 1
         heardThisTurn = false
         modelSpeaking = false
@@ -600,6 +611,8 @@ final class VoiceSession: ObservableObject {
     // MARK: Tools
 
     private func toolCalled(_ call: GeminiLive.FunctionCall) {
+        // What was said so far comes before the tool's effect (a hand-off run).
+        commitTranscripts()
         let now = clock.now
         lastActivityAt = now
         awaitingReplySince = nil
@@ -621,7 +634,7 @@ final class VoiceSession: ObservableObject {
 
     private func toolFinished(_ call: GeminiLive.FunctionCall, outcome: VoiceToolOutcome, calledAt: Date) {
         switch outcome.effect {
-        case .researchStarted:
+        case .handOffStarted:
             acknowledgementWatch = lastUserSpeechAt.map { min($0, calledAt) } ?? calledAt
         case .end:
             endRequestedAt = clock.now
@@ -691,7 +704,7 @@ final class VoiceSession: ObservableObject {
             awaitingReplySince = clock.now
             if let text = briefing.spokenText, !text.isEmpty { unspokenWatch = (clock.now, text) }
         }
-        if briefing.kind == .researchAnswer || briefing.kind == .researchEnded { acknowledgementWatch = nil }
+        if briefing.kind == .handOffAnswer || briefing.kind == .handOffEnded { acknowledgementWatch = nil }
     }
 
     private func flushBriefings() {
@@ -797,6 +810,19 @@ final class VoiceSession: ObservableObject {
         configuration.settings.eyesFree.isActive(headphones: audio.headphonesConnected)
     }
 
+    // MARK: Transcript
+
+    /// Hands the finished user words and the model's words so far to the conversation.
+    private func commitTranscripts() {
+        let user = uncommittedUser.trimmingCharacters(in: .whitespacesAndNewlines)
+        uncommittedUser = ""
+        if !user.isEmpty { onTranscript?(.voiceUser, user) }
+        let spoken = suppressingModelTurn ? lastModelText : modelTurnText
+        let reply = String(spoken.dropFirst(modelCommitted)).trimmingCharacters(in: .whitespacesAndNewlines)
+        modelCommitted = spoken.count
+        if !reply.isEmpty { onTranscript?(.voiceReply, reply) }
+    }
+
     // MARK: Typed input
 
     /// Typed instead of spoken (the debug text field): `realtimeInput.text`.
@@ -812,6 +838,8 @@ final class VoiceSession: ObservableObject {
             modelSpeaking = false
         }
         lastUserText = text
+        commitTranscripts()
+        uncommittedUser = text
         lastUserSpeechAt = now
         lastActivityAt = now
         heardThisTurn = true
@@ -895,7 +923,7 @@ final class VoiceSession: ObservableObject {
             return
         }
 
-        // Watchdog: research started, the model said nothing.
+        // Watchdog: a hand-off started, the model said nothing.
         if let since = acknowledgementWatch, now.timeIntervalSince(since) >= timing.acknowledgementGrace {
             if let spoke = lastModelOutputAt, spoke >= since {
                 acknowledgementWatch = nil
@@ -931,7 +959,7 @@ final class VoiceSession: ObservableObject {
             return
         }
         if !configuration.endpoint.isVertex, let freshAt, now.timeIntervalSince(freshAt) >= timing.aiStudioMaxAge, isQuiet,
-           navigator?.isResearching != true {
+           navigator?.isHandingOff != true {
             Task { await reconnect(.refresh) }
             return
         }
@@ -964,7 +992,7 @@ final class VoiceSession: ObservableObject {
 
         // Idle: nobody spoke for the timeout.
         if let last = lastActivityAt, now.timeIntervalSince(last) >= configuration.settings.idleTimeout, isQuiet,
-           navigator?.isResearching != true {
+           navigator?.isHandingOff != true {
             end(.idle)
             return
         }
@@ -1027,9 +1055,9 @@ enum VoiceWatchdog {
 
     static let markupCorrection = "[WukongMind: your last reply spoke a tool call out loud as text instead of making it, so nothing ran and the page stayed where it was. WukongMind stopped that reply. Don't say tool names, calls or arguments aloud. If you wanted a tool, make the function call now, silently, and don't tell the user it's done until its result arrives. If you only meant to talk, continue normally.]"
 
-    static let acknowledgementPrompt = "[WukongMind: research for the user's question is running and you haven't said anything yet. Let the user know in a few words of your own that you're looking into it. Don't call research again.]"
+    static let acknowledgementPrompt = "[WukongMind: the Agent is working on the user's request and you haven't said anything yet. Let the user know in a few words of your own that it's on it. Don't hand it off again.]"
 
     static func unspokenPrompt(_ text: String) -> String {
-        "[WukongMind: you haven't told the user the research answer yet. Tell them now in about two sentences, and say the sources are on screen: \(BrowseText.trimmed(text, limit: 1_500))]"
+        "[WukongMind: you haven't told the user the Agent's answer yet. Tell them now in about two sentences, and say the details are in the panel: \(BrowseText.trimmed(text, limit: 1_500))]"
     }
 }

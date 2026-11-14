@@ -41,16 +41,13 @@ extension AppModel: VoiceNavigator {
         await postsOnScreenWithText(limit: 8)
     }
 
-    var researchProgress: String? {
-        guard isResearching, let run = agentRuns.first(where: { status(of: $0) == .running }),
-              let step = run.steps.last
-        else {
-            return nil
-        }
-        let detail = step.arguments.values.sorted().first.map { " \($0)" } ?? ""
-        let outcome = step.outcome.isEmpty ? "" : ": \(step.outcome)"
-        return BrowseText.oneLine("Step \(run.steps.count), \(step.tool)\(detail)\(outcome)", limit: 200)
-    }
+    // MARK: Hand-off (hand_off_to_agent)
+
+    var isHandingOff: Bool { agentHandOff.isRunning }
+    func startHandOff(_ request: String) -> String? { agentHandOff.start(request) }
+    func handOffOutcome() async -> VoiceHandOffOutcome { await agentHandOff.outcome() }
+    func cancelHandOff() -> Bool { agentHandOff.cancel() }
+    var handOffProgress: String? { agentHandOff.progress }
 
     /// The page's site, else the current forum's, else the registry's fallback.
     var voiceSite: VoiceSite {
@@ -166,12 +163,34 @@ extension AppModel: VoiceNavigator {
     ) -> Result<VoiceSession, VoiceSession.Failure> {
         voiceConfiguration().map { configuration in
             let session = VoiceSession(configuration: configuration, transport: transport, audio: audio, navigator: self)
+            session.tools.registryBuilder = { [weak self] browse in
+                self?.voiceToolRegistry(browse: browse) ?? ToolRegistry(tools: ToolRegistry.browseTools(browse: browse))
+            }
+            // Voice turns join the one conversation (design-one-loop.md "Voice").
+            session.onTranscript = { [weak self] role, text in self?.browserAgent.appendVoiceTurn(role, text: text) }
             let subscription = pageChanges.sink { [weak session] page in session?.pageChanged(page) }
             voicePageSubscription = subscription
             // The topic brief wants the post count and the solution.
             prefetchesTopicFacts = true
             return session
         }
+    }
+
+    /// The voice session's tools on the page as it is now: the registry's
+    /// `.voice` tools, with a fresh forum read budget per call.
+    func voiceToolRegistry(browse: BrowseToolContext) -> ToolRegistry {
+        let forum = makeForumToolContext()
+        let pageBrowse = BrowseToolContext(navigator: browse.navigator, site: browse.site, isOnForum: forum != nil)
+        pageBrowse.eyesFree = browse.eyesFree
+        return ToolRegistry.m3(context: AgentToolContext(
+            bridge: browser.agentBridge,
+            workspace: agentWorkspace,
+            scriptStore: scriptStore,
+            settings: AgentToolSettings(redactedSecrets: browserAgentRuntimeConfig.redactedSecrets),
+            forum: forum,
+            capabilities: capabilityToolContext,
+            browse: pageBrowse
+        ), surface: .voice)
     }
 
     /// The session is over: stop feeding it and fetching facts for it.

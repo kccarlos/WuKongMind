@@ -18,29 +18,29 @@ final class VoiceToolTests: XCTestCase {
         ], origin: .search("fan"))
         let bridge = VoiceToolBridge(navigator: navigator)
         let cases: [(String, [String: JSONValue], String)] = [
-            ("find", ["query": "fan noise"], "find fan noise forum"),
-            ("find", ["query": "firmware", "scope": "topic"], "find firmware topic"),
-            ("open", ["card": 2], "card 1"),
-            ("open", ["card": "2", "at": "solution"], "open item 8/5 at solution"),
-            ("open", ["topic_id": "123", "at": "post", "post": 37], "open topic 123 at post(37)"),
-            ("open", ["at": "solution"], "open topic 42 at solution"),
-            ("open", ["at": "last"], "open topic 42 at last"),
-            ("open", ["at": "unread"], "open topic 42 at firstNew"),
-            ("move", ["action": "next"], "next"),
-            ("move", ["action": "previous"], "previous"),
-            ("move", ["action": "back"], "back"),
-            ("move", ["action": "forward"], "forward"),
-            ("move", ["action": "post", "post": "37"], "post 37"),
-            ("move", ["action": "top"], "post 1"),
-            ("move", ["action": "bottom"], "open topic 42 at last"),
-            ("focus", ["mode": "user", "user": "@alice"], "focus user(\"alice\")"),
-            ("focus", ["mode": "op"], "focus op"),
-            ("focus", ["mode": "top"], "focus top"),
-            ("focus", ["mode": "posts", "posts": [3, 7]], "focus posts([3, 7])"),
-            ("focus", ["mode": "clear"], "focus clear"),
-            ("read", [:], "read current"),
-            ("read", ["post": 9], "read 9"),
-            ("read", ["scope": "visible"], "visible")
+            ("search_forum", ["query": "fan noise"], "find fan noise forum"),
+            ("search_forum", ["query": "firmware", "scope": "topic"], "find firmware topic"),
+            ("browse_open", ["card": 2], "card 1"),
+            ("browse_open", ["card": "2", "at": "solution"], "open item 8/5 at solution"),
+            ("browse_open", ["topic_id": "123", "at": "post", "post": 37], "open topic 123 at post(37)"),
+            ("browse_open", ["at": "solution"], "open topic 42 at solution"),
+            ("browse_open", ["at": "last"], "open topic 42 at last"),
+            ("browse_open", ["at": "unread"], "open topic 42 at firstNew"),
+            ("browse_move", ["action": "next"], "next"),
+            ("browse_move", ["action": "previous"], "previous"),
+            ("browse_move", ["action": "back"], "back"),
+            ("browse_move", ["action": "forward"], "forward"),
+            ("browse_move", ["action": "post", "post": "37"], "post 37"),
+            ("browse_move", ["action": "top"], "post 1"),
+            ("browse_move", ["action": "bottom"], "open topic 42 at last"),
+            ("browse_focus", ["mode": "user", "user": "@alice"], "focus user(\"alice\")"),
+            ("browse_focus", ["mode": "op"], "focus op"),
+            ("browse_focus", ["mode": "top"], "focus top"),
+            ("browse_focus", ["mode": "posts", "posts": [3, 7]], "focus posts([3, 7])"),
+            ("browse_focus", ["mode": "clear"], "focus clear"),
+            ("read_post", [:], "read current"),
+            ("read_post", ["post": 9], "read 9"),
+            ("read_post", ["scope": "visible"], "visible")
         ]
         for (name, args, expected) in cases {
             _ = await bridge.handle(.init(id: "c", name: name, args: args), eyesFree: false)
@@ -51,37 +51,41 @@ final class VoiceToolTests: XCTestCase {
         XCTAssertEqual(end.scheduling, .silent)
         let unknown = await bridge.handle(.init(id: "u", name: "reply", args: [:]), eyesFree: false)
         XCTAssertEqual(unknown.response["status"], "unavailable")
+        // An ordinary page has no browse tools.
+        navigator.pageContext = .empty
+        let offForum = await bridge.handle(.init(id: "m", name: "browse_move", args: ["action": "next"]), eyesFree: false)
+        XCTAssertEqual(offForum.response["shown"], "browse_move isn't available on this page.")
     }
 
     func testResultsBecomeFunctionResponsesThatSayWhatToSay() {
         let opened = BrowseResult(status: .opened, shown: "Post 37 of 120 by alice (accepted answer)", content: "alice, post 37:\nUse the quiet profile.")
-        let response = VoiceToolBridge.response(opened, tool: .open, eyesFree: false)
+        let response = VoiceToolBridge.response(opened, eyesFree: false)
         XCTAssertEqual(response["status"], "opened")
         XCTAssertEqual(response["shown"], "Post 37 of 120 by alice (accepted answer)")
         XCTAssertEqual(response["content"], "alice, post 37:\nUse the quiet profile.")
         XCTAssertTrue(response["message"]?.stringValue?.contains("don't read it out") ?? false)
         // Eyes-free: reading is allowed.
-        let eyesFree = VoiceToolBridge.response(opened, tool: .open, eyesFree: true)
+        let eyesFree = VoiceToolBridge.response(opened, eyesFree: true)
         XCTAssertTrue(eyesFree["message"]?.stringValue?.contains("read or paraphrase") ?? false)
 
         let found = BrowseResult(status: .found, shown: "2 results", hits: [
             .init(number: 1, title: "Fan noise", topicID: "42", postNumber: 3, username: "bob", excerpt: "Try it")
         ])
-        let hits = VoiceToolBridge.response(found, tool: .find, eyesFree: false)
+        let hits = VoiceToolBridge.response(found, eyesFree: false)
         XCTAssertEqual(hits["hits"], [["card": 1, "title": "Fan noise", "excerpt": "Try it", "post": 3, "author": "bob", "topic_id": "42"]])
-        XCTAssertTrue(hits["message"]?.stringValue?.contains("call open with its card number now") ?? false)
+        XCTAssertTrue(hits["message"]?.stringValue?.contains("call browse_open with its card number now") ?? false)
         XCTAssertNil(hits["content"])
 
         for status: BrowseResult.Status in [.notFound, .unavailable, .failed, .emptyList] {
-            let message = VoiceToolBridge.message(for: BrowseResult(status: status, shown: "x"), tool: .move, eyesFree: false)
+            let message = VoiceToolBridge.message(for: BrowseResult(status: status, shown: "x"), eyesFree: false)
             XCTAssertTrue(message.contains("Tell the user that instead") && message.contains("don't retry"), "\(status)")
         }
-        XCTAssertTrue(VoiceToolBridge.message(for: .init(status: .noSolution, shown: ""), tool: .open, eyesFree: false).contains("no accepted answer"))
+        XCTAssertTrue(VoiceToolBridge.message(for: .init(status: .noSolution, shown: ""), eyesFree: false).contains("no accepted answer"))
     }
 
     // MARK: Routing in code
 
-    func testRoutingCatchesBrowserActionsSentToResearch() async {
+    func testRoutingCatchesBrowserActionsSentToTheHandOff() async {
         XCTAssertEqual(VoiceRouting.browserAction(for: "Next"), .move("next"))
         XCTAssertEqual(VoiceRouting.browserAction(for: "go back."), .move("back"))
         XCTAssertEqual(VoiceRouting.browserAction(for: "post 37"), .post(37))
@@ -95,8 +99,8 @@ final class VoiceToolTests: XCTestCase {
         let navigator = FakeVoiceNavigator()
         navigator.pageContext = FakeVoiceNavigator.topicPage(post: 3)
         let bridge = VoiceToolBridge(navigator: navigator)
-        let outcome = await bridge.handle(.init(id: "r", name: "research", args: ["request": "post 37"]), eyesFree: false)
-        XCTAssertEqual(navigator.calls, ["post 37"], "Done directly; no research started")
+        let outcome = await bridge.handle(.init(id: "r", name: "hand_off_to_agent", args: ["request": "post 37"]), eyesFree: false)
+        XCTAssertEqual(navigator.calls, ["post 37"], "Done directly; no hand-off started")
         XCTAssertEqual(outcome.scheduling, .whenIdle)
         XCTAssertEqual(outcome.effect, .none)
         XCTAssertNotNil(outcome.response["routed"])
@@ -170,7 +174,7 @@ final class VoiceToolTests: XCTestCase {
         let text = VoiceInstructions.system(answerLength: .short, eyesFree: false, forumName: "Prusa Forum", site: site)
         for part in [
             VoiceInstructions.persona(site), VoiceInstructions.speech, VoiceInstructions.screen, VoiceInstructions.precedence,
-            VoiceInstructions.research, VoiceInstructions.grounding, VoiceInstructions.notes, VoiceInstructions.language(site),
+            VoiceInstructions.opinionRule, VoiceInstructions.handOff, VoiceInstructions.grounding, VoiceInstructions.notes, VoiceInstructions.language(site),
             VoiceInstructions.eyesFreeOff
         ] {
             XCTAssertTrue(text.contains(part))
@@ -182,6 +186,9 @@ final class VoiceToolTests: XCTestCase {
         XCTAssertTrue(VoiceInstructions.answerLength(.short).contains("still an answer, not a teaser"))
         XCTAssertNotEqual(VoiceInstructions.answerLength(.normal), VoiceInstructions.answerLength(.detailed))
         XCTAssertFalse(text.contains("**"), "No Markdown in the instructions")
+        // The spike's routing sentence (Q3), word for word.
+        XCTAssertTrue(text.contains("Questions about what people think or recommend, or anything that needs reading several threads, go to hand_off_to_agent even when they name a topic: search_forum only shows cards and can't answer them. Use search_forum when the user asks to find, search or look for something."))
+        XCTAssertFalse(text.contains("research"), "the hand-off replaced research")
     }
 
     // MARK: Site profile (S14)
@@ -189,29 +196,27 @@ final class VoiceToolTests: XCTestCase {
     /// A site that cannot narrow to an author: the declarations drop `user`
     /// and `op` (and the `user` argument and the sentences naming them).
     func testASiteWithoutTopicFiltersDropsTheAuthorModes() throws {
-        let discourse = VoiceSite(adapter: DiscourseAdapter())
-        let fake = VoiceSite(adapter: FakeSiteAdapter())
-        func modes(_ site: VoiceSite) throws -> [String] {
-            guard case .object(let properties, _)? = VoiceTool.focus.parameters(for: site),
-                  case .string(_, let options)? = properties.first(where: { $0.name == "mode" })?.schema
-            else { throw XCTSkip("focus has no mode") }
-            return options ?? []
+        func focus(_ site: VoiceSite) throws -> AgentToolDefinition {
+            let registry = ToolRegistry(tools: ToolRegistry.browseTools(browse: BrowseToolContext(navigator: nil, site: site, isOnForum: true)))
+            return try XCTUnwrap(registry.tool(named: "browse_focus")?.definition)
         }
-        XCTAssertEqual(try modes(discourse), ["user", "op", "top", "posts", "clear"])
-        XCTAssertEqual(try modes(fake), ["top", "posts", "clear"])
-        guard case .object(let properties, _)? = VoiceTool.focus.parameters(for: fake) else { return XCTFail() }
-        XCTAssertEqual(properties.map(\.name), ["mode", "posts"])
-        let description = VoiceTool.focus.description(for: fake)
-        XCTAssertFalse(description.contains("\"user\""))
-        XCTAssertFalse(description.contains("\"op\""))
-        XCTAssertTrue(description.contains("\"top\" the most liked posts"))
-        XCTAssertFalse(description.contains("\n"))
+        let discourse = try focus(VoiceSite(adapter: DiscourseAdapter()))
+        let fakeSite = VoiceSite(adapter: FakeSiteAdapter())
+        let fake = try focus(fakeSite)
+        XCTAssertEqual(discourse.parameters.first?.enumValues, ["user", "op", "top", "posts", "clear"])
+        XCTAssertEqual(fake.parameters.first?.enumValues, ["top", "posts", "clear"])
+        XCTAssertEqual(fake.parameters.map(\.name), ["mode", "posts"])
+        XCTAssertFalse(fake.description.contains("\"user\""))
+        XCTAssertFalse(fake.description.contains("\"op\""))
+        XCTAssertTrue(fake.description.contains("\"top\" the most liked posts"))
+        XCTAssertFalse(fake.description.contains("\n"))
 
         // The declarations and the instructions carry the site's own words.
-        let declared = VoiceTool.geminiDeclarations(for: fake)
-        XCTAssertEqual(declared.map(\.name), VoiceTool.allCases.map(\.rawValue))
-        XCTAssertTrue(declared.first { $0.name == "find" }?.description.contains("Fake search matches whole sentences.") == true)
-        let text = VoiceInstructions.system(answerLength: .normal, eyesFree: false, forumName: nil, site: fake.profile)
+        let declared = VoiceDeclarations.all(registry: ToolRegistry(tools: ToolRegistry.browseTools(
+            browse: BrowseToolContext(navigator: nil, site: fakeSite, isOnForum: true)
+        )))
+        XCTAssertTrue(declared.first { $0.name == "search_forum" }?.description.contains("Fake search matches whole sentences.") == true)
+        let text = VoiceInstructions.system(answerLength: .normal, eyesFree: false, forumName: nil, site: fakeSite.profile)
         XCTAssertTrue(text.contains("a reading companion for fake sites"))
         XCTAssertFalse(text.contains("Discourse"))
     }
@@ -241,7 +246,7 @@ final class VoiceToolTests: XCTestCase {
         app.browser.setPageContext(PageContext(
             url: topic.url, site: FakeSiteAdapter.kind, siteURL: site, forumName: "Fake", topic: topic, state: .topic
         ))
-        let outcome = await VoiceToolBridge(navigator: app).handle(.init(id: "o", name: "open", args: ["at": "solution"]), eyesFree: false)
+        let outcome = await VoiceToolBridge(navigator: app).handle(.init(id: "o", name: "browse_open", args: ["at": "solution"]), eyesFree: false)
         XCTAssertEqual(outcome.response["status"], "noSolution")
         XCTAssertEqual(app.voiceSite.profile, FakeSiteAdapter().voice, "the page's site decides the session's words")
     }
@@ -322,15 +327,87 @@ final class VoiceToolTests: XCTestCase {
         }
         let app = makeApp()
         app.recordVisit(siteURL: "https://forum.example", kind: .discourse, name: "Example", iconURL: nil)
+        Self.openForumHome(app)
         let bridge = VoiceToolBridge(navigator: app)
-        let outcome = await bridge.handle(.init(id: "f", name: "find", args: ["query": "badges"]), eyesFree: false)
+        bridge.registryBuilder = app.voiceToolRegistry
+        let outcome = await bridge.handle(.init(id: "f", name: "search_forum", args: ["query": "badges"]), eyesFree: false)
         XCTAssertEqual(outcome.response["status"], "found")
         XCTAssertEqual(outcome.response["hits"]?.arrayValue?.count, 4)
         XCTAssertEqual(outcome.scheduling, .whenIdle)
-        XCTAssertEqual(app.browseCursor.items.count, 4)
+        XCTAssertEqual(app.browseCursor.items.count, 4, "voice search fills the cards")
 
-        let empty = await bridge.handle(.init(id: "n", name: "move", args: ["action": "previous"]), eyesFree: false)
+        let empty = await bridge.handle(.init(id: "n", name: "browse_move", args: ["action": "previous"]), eyesFree: false)
         XCTAssertEqual(empty.response["status"], "endOfList")
+    }
+
+    // MARK: One registry (design-one-loop.md "Voice")
+
+    /// What a voice session on a forum page declares is exactly the
+    /// registry's `.voice` tools plus `end` and `hand_off_to_agent`; the text
+    /// Agent on the same page gets none of the browse tools.
+    func testVoiceDeclarationsAreTheRegistrysVoiceToolsAndTheTextAgentHasNoBrowseTools() throws {
+        let app = makeApp()
+        app.recordVisit(siteURL: "https://forum.example", kind: .discourse, name: "Example", iconURL: nil)
+        Self.openForumHome(app)
+        let bridge = VoiceToolBridge(navigator: app)
+        bridge.registryBuilder = app.voiceToolRegistry
+        let declared = bridge.declare(for: app.voiceSite).map(\.name)
+        let voice = app.voiceToolRegistry(browse: BrowseToolContext(navigator: app, site: app.voiceSite))
+        XCTAssertEqual(declared, voice.definitions.map(\.name) + ["end", "hand_off_to_agent"])
+        XCTAssertEqual(Set(voice.definitions.map(\.name)), [
+            "read_page", "search_forum", "read_topic", "summarize_topic", "read_aloud", "watch_topic",
+            "browse_open", "browse_move", "browse_focus", "read_post"
+        ], "12 with end and the hand-off; heavy tools, notify and inject_css stay text-only")
+        XCTAssertNil(voice.tool(named: "read_page")?.definition.parameters.first { $0.name == "mode" }, "structure only")
+
+        let context = AgentToolContext(
+            bridge: app.browser.agentBridge, workspace: app.agentWorkspace, scriptStore: app.scriptStore,
+            forum: app.makeForumToolContext(), capabilities: app.capabilityToolContext,
+            browse: BrowseToolContext(navigator: app, site: app.voiceSite, isOnForum: true)
+        )
+        let text = Set(ToolRegistry.m3(context: context).definitions.map(\.name))
+        XCTAssertTrue(text.isDisjoint(with: ["browse_open", "browse_move", "browse_focus", "read_post"]), "\(text)")
+        XCTAssertTrue(text.isSuperset(of: ["search_forum", "read_topic", "read_page", "inject_css", "notify"]))
+        XCTAssertNotNil(ToolRegistry.m3(context: context).tool(named: "read_page")?.definition.parameters.first { $0.name == "mode" })
+
+        // An ordinary page: no forum or browse tools for voice.
+        app.browser.setPageContext(PageContext(url: URL(string: "https://news.example.org/story")!, state: .notForum))
+        let ordinary = Set(app.voiceToolRegistry(browse: BrowseToolContext(navigator: app, site: app.voiceSite)).definitions.map(\.name))
+        XCTAssertEqual(ordinary, ["read_page", "summarize_topic", "read_aloud", "watch_topic"])
+    }
+
+    /// Every voice result is capped at 8,000 characters (spike Q6).
+    func testSpokenResultsAreCappedAndNumbersAsTextAreTaken() {
+        let long = ToolDispatchResult(
+            toolName: "read_topic", argumentSummary: "", argumentsJSON: "{}", output: String(repeating: "word ", count: 6_000),
+            resultSummary: "", modelContent: "", isError: false, wasTruncated: false, totalCharacterCount: 30_000, duration: 0
+        )
+        let facts = ToolRegistry().spokenResult(long, eyesFree: false)
+        XCTAssertLessThanOrEqual(JSONValue.encodeCompactJSON(facts).count, ToolRegistry.spokenResultLimit)
+        XCTAssertEqual(facts["status"], "done")
+        XCTAssertTrue(facts["result"]?.stringValue?.hasSuffix("…[cut]") ?? false)
+        XCTAssertNotNil(facts["message"])
+
+        let definition = AgentToolDefinition(name: "t", description: "", parameters: [
+            ToolParameterSchema(name: "card", type: .integer, description: ""),
+            ToolParameterSchema(name: "posts", type: .array, description: "", itemsType: .integer)
+        ])
+        XCTAssertEqual(VoiceToolBridge.lenient(["card": "2", "posts": ["3", 7]], for: definition), ["card": 2, "posts": [3, 7]])
+    }
+
+    func testTheHandOffAnswerIsSpeakable() {
+        XCTAssertEqual(
+            VoiceText.spokenAnswer("## Short answer\n- **Most** regret it [#3](post:3) [Soldered eMMC](https://forum.example/t/9) https://x.example/a"),
+            "Short answer\nMost regret it Soldered eMMC"
+        )
+    }
+
+    private static func openForumHome(_ app: AppModel) {
+        app.browser.onPageContextChanged = nil
+        app.browser.setPageContext(PageContext(
+            url: URL(string: "https://forum.example/")!, site: .discourse, siteURL: "https://forum.example",
+            forumName: "Example", state: .forumHome
+        ))
     }
 
     // MARK: Helpers

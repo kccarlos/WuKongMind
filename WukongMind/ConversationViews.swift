@@ -385,6 +385,49 @@ struct DCUserBubbleShape: Shape {
     }
 }
 
+/// A voice turn in the conversation (artboard `PhoneVoice`): what the user
+/// said is the user's bubble, the spoken reply is plain text like an answer;
+/// both lead with the voice glyph.
+struct DCVoiceBubble: View {
+    let text: String
+    let isUser: Bool
+
+    var body: some View {
+        if isUser {
+            HStack {
+                Spacer(minLength: 44)
+                content
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 10)
+                    .background(DCTheme.surfaceRaised, in: DCUserBubbleShape())
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel(Text("You said: \(text)", comment: "Accessibility label of a voice bubble with what the user said; the placeholder is the transcript"))
+            .accessibilityIdentifier("agentVoiceUser")
+        } else {
+            content
+                .padding(.vertical, 2)
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel(Text("Voice reply: \(text)", comment: "Accessibility label of the voice assistant's spoken reply in the conversation; the placeholder is the transcript"))
+                .accessibilityIdentifier("agentVoiceReply")
+        }
+    }
+
+    private var content: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Image(systemName: "waveform")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(DCTheme.inkMuted)
+                .accessibilityHidden(true)
+            Text(verbatim: text)
+                .font(.subheadline)
+                .foregroundStyle(DCTheme.ink)
+                .textSelection(.enabled)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+}
+
 /// "Saved. Faster next time.": a gold-wash chip with the ring glyph.
 struct DCSavedNote: View {
     var body: some View {

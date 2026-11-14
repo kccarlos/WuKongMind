@@ -108,7 +108,8 @@ extension ToolRegistry {
                 try await runForumCall {
                     try await executeReadTopic(arguments: args, forum: forum, profile: profile, callContext: callContext)
                 }
-            }
+            },
+            surfaces: [.text, .voice]
         )
     }
 
