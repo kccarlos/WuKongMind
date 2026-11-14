@@ -27,7 +27,7 @@ body{margin:0}
     <h1 style="margin: 0; font-size: 34px; font-weight: 700; color: #1a1612;">Every screen and how you reach it</h1>
     <span style="font-size: 15px; color: #5f574c;">Gold lines say where a screen leads. Dashed boxes are places reserved for later milestones (One panel, M3, One loop, M4, Learn on ask): only the place, no detail.</span>
   </div>
-  <div style="display: grid; grid-template-columns: 1fr 1.15fr 1.35fr 1.35fr 1fr; gap: 24px; align-items: start;">
+  <div style="display: grid; grid-template-columns: 1fr 1.15fr 1.55fr 1.25fr 0.95fr; gap: 24px; align-items: start;">
     <div class="col">
       <div class="ch">FIRST RUN</div>
       <div class="bx"><div class="bt">Launch</div><div class="go">→ first run: Onboarding 1</div><div class="go">→ later: Browser (Home or last page, per Browser › Open at launch)</div></div>
@@ -43,8 +43,9 @@ body{margin:0}
       <div class="ph"><div class="pt">M3 · Tab button → Tab overview</div></div>
       <div class="bx"><div class="bt">Web page</div><div class="bs">WKWebView, scripts injected, result cards overlay</div></div>
       <div class="bx"><div class="bt">Bottom layer (Dock)</div><div class="bs">Hint row, Answer ready, podcast row, voice controls</div><div class="go">→ Answer ready: panel · podcast: Now playing</div></div>
-      <div class="bx"><div class="bt">Home · start page</div><div class="bs">Address field (the only address on Home), Today, Sites grid, Recent (newest History items), Continue reading, Following</div><div class="go">→ site / topic: Web page</div><div class="go">→ Recent item: page + panel · History: all</div><div class="go">→ Today card: Today page, digest history</div><div class="go">→ Add tile: Add site sheet</div><div class="go">→ History · Settings</div></div>
-      <div class="bx"><div class="bt">History</div><div class="bs">All · Conversations · Following</div></div>
+      <div class="bx"><div class="bt">Home · start page</div><div class="bs">Address field (the only address on Home), Today, Sites grid, Recent (newest History items), Continue reading, Following</div><div class="go">→ site / topic: Web page</div><div class="go">→ Recent item: page + panel · History: all</div><div class="go">→ Recent saved answer (One loop): Saved answer</div><div class="go">→ Today card: Today page, digest history</div><div class="go">→ Add tile: Add site sheet</div><div class="go">→ History · Settings</div></div>
+      <div class="bx"><div class="bt">History</div><div class="bs">All · Conversations · Following</div><div class="go">→ saved forum answer (One loop): Saved answer</div></div>
+      <div class="bx"><div class="bt">One loop · Saved answer</div><div class="bs">Read-only: the question, the answer, numbered sources. No input box</div><div class="go">→ source: Web page</div></div>
       <div class="bx"><div class="bt">Now playing</div><div class="bs">Podcast player</div></div>
     </div>
     <div class="col">
@@ -60,7 +61,7 @@ body{margin:0}
           <div class="ph"><div class="pt">Learn on ask · Site inspector (developer mode)</div></div>
         </div>
       </div>
-      <div class="bx"><div class="bt">One conversation</div><div class="bs">Your messages · one row per tool call (expands) · Agent replies · script card · tool results shown as: summary card, answer with numbered sources, podcast row</div><div class="go">→ script card: View code sheet</div><div class="go">→ summary ⤢ / citation: Expanded panel (post &amp; responses)</div><div class="go">→ summary ⋯: Instructions, Export, Translate</div></div>
+      <div class="bx"><div class="bt">One conversation</div><div class="bs">Your messages · one row per tool call (expands) · Agent replies · script card · tool results shown as: summary card, answer with numbered sources, podcast row</div><div class="go">→ script card: View code sheet</div><div class="go">→ summary ⤢ / citation: Expanded panel (post &amp; responses)</div><div class="go">→ summary ⋯: Instructions, Export, Translate</div><div class="go">→ M3 · screenshot thumbnail: full-size sheet</div><div class="bs">M3 · confirmation card (Allow / Don't allow) · One loop · voice turns</div></div>
       <div class="bx"><div class="bt">Suggestion row</div><div class="bs">Questions you could ask; a tap sends one, one ending in … fills the box. Forum thread: Summarize this thread and replies · Read it to me · Search this forum… · Notify me of new replies. Forum list: What's worth reading today · Search this forum… Ordinary page: Summarize this page · Make it dark · Remove distractions. Up to 4 on screen, more scroll.</div></div>
       <div class="ph"><div class="pt">Learn on ask · suggestions from saved and site tools</div><div class="bs">Same row, also fed by tools saved for the site and by the site's WebMCP tools</div></div>
       <div class="bx"><div class="bt">Input box</div><div class="bs">One box on every page, no modes · mic when empty, Send when typed, Stop while running</div><div class="go">→ mic: dictation into the box</div><div class="ph"><div class="pt">One loop · mic opens the voice session, sharing the Agent's tools</div></div><div class="go">→ no model: model setup card → Provider setup sheet</div></div>
