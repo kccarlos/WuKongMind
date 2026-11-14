@@ -486,7 +486,8 @@ final class AppModel: ObservableObject {
                     confirmBeforeWrites: self.settings.agentConfirmBeforeWrites
                 ),
                 network: self.agentHTTPClient,
-                confirmations: self.agentConfirmations
+                confirmations: self.agentConfirmations,
+                forum: self.makeForumToolContext()
             ))
         },
         auditLog: auditLog,
@@ -3380,6 +3381,31 @@ final class AppModel: ObservableObject {
                 await self.watch(siteURL: siteURL, topicID: topicID, url: url, title: title, knownPostCount: count)
             }
         )
+    }
+
+    /// Builds per-run forum tool context when the browser is on a recognized
+    /// forum home or topic page (`.maybe`, `.notForum`, and `.loading` do not count).
+    func makeForumToolContext() -> ForumToolContext? {
+        let page = pageContext
+        guard page.isForum,
+              let kind = page.site,
+              let siteURL = page.siteURL, !siteURL.isEmpty,
+              let adapter = sites.adapter(for: kind),
+              adapter.supportsAgent
+        else {
+            return nil
+        }
+        let rawName = page.forumName.isEmpty ? forum(for: siteURL)?.name : page.forumName
+        let forumName = ForumSite.displayName(siteURL: siteURL, name: rawName)
+        let scope = ForumRunScope(
+            adapter: adapter,
+            siteURL: siteURL,
+            readBudget: { [weak self] in self?.settings.agentMaxTopicReads ?? AgentLimits.defaultMaxTopicReads },
+            readLimit: settings.agentReadLimit,
+            pace: settings.forumRequestPace,
+            isPaced: settings.forumRateLimitingEnabled
+        )
+        return ForumToolContext(service: forumToolService, scope: scope, forumName: forumName)
     }
 
     /// Runs one tool. Returns a short outcome for the step log and the full

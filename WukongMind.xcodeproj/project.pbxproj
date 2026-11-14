@@ -137,6 +137,7 @@
 		573CFB343EB860684EC25275862553BB /* AppModel+Digest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A4C96E203468389187AB2FEF5BB4599 /* AppModel+Digest.swift */; };
 		59DE5BBB1595AEA7CF8080740685FBD7 /* SettingsNavigationUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81842126D2EC90F86D6D3295EEF89CE5 /* SettingsNavigationUITests.swift */; };
 		5A4A7D6CD0CAF77A9C9676630AB68DC0 /* AppIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 998BB329F970CC37F6FC0EF6FDDFD10D /* AppIdentity.swift */; };
+		5B8B919E3CF631E9C034350FA2D3225D /* ForumToolsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CB8D0081FB29D0C0B5B535953B6C26E /* ForumToolsTests.swift */; };
 		5BCA0771B7C3BB369EEE6E4E1308FDC2 /* WordPressRecognitionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BB8A53AB3208A8C49BB119D017F7FCF /* WordPressRecognitionTests.swift */; };
 		5BD2F6AE362E6D1890A9385C97210881 /* SiteRecognizers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1478B927A10DC034FA5DFA88DF727CE9 /* SiteRecognizers.swift */; };
 		5CB6C6CC48E40EC76465AA8834D71FF5 /* FakeSiteAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DE486C830E760855F28F612D4C2FE0F /* FakeSiteAdapter.swift */; };
@@ -263,6 +264,7 @@
 		B78587D01A660D64CE4778CD42AB9087 /* MultiForumTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB1ECDB28823EDC3E961DDB5DC57C0D /* MultiForumTests.swift */; };
 		B807F756AE7ACCC2C178AB9A59863CB0 /* Dictation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25407C423650E90F1638AEB57582E908 /* Dictation.swift */; };
 		B8448C3BFA7E7F6F0AFE9FB7E1AEFCB1 /* AppIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 998BB329F970CC37F6FC0EF6FDDFD10D /* AppIdentity.swift */; };
+		B8E05EFAE9C744A31CDF34298F0D1E33 /* ToolRegistry+Forum.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31546D10924EAA70ED8FD0788A65EF48 /* ToolRegistry+Forum.swift */; };
 		B952A4800AAC95C332D93580B8453429 /* AIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF227D658A4552E42CDAA68A615FE954 /* AIService.swift */; };
 		BA82D441CA4C4688FC268E54EFDECCB9 /* discourse-discourse-fixture-test-t-42-json-fc7c8044d31e.json in Resources */ = {isa = PBXBuildFile; fileRef = CC373F97345DFE06A375AE191E1D9507 /* discourse-discourse-fixture-test-t-42-json-fc7c8044d31e.json */; };
 		BB0D1C2E9CF15F3F8EE3F0984A223B7C /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2068ADD737872238EE103444C2749001 /* HomeView.swift */; };
@@ -464,6 +466,7 @@
 		2DACAEAF9391D3320C22267D0D791454 /* SessionRetentionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SessionRetentionTests.swift; sourceTree = "<group>"; };
 		2E7CDC03FCF48139BC82B90685417D6F /* PageFacts.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PageFacts.swift; path = Sites/Recognition/PageFacts.swift; sourceTree = "<group>"; };
 		2E9D563BC78104258FA06957ECB02A71 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; includeInIndex = 1; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
+		31546D10924EAA70ED8FD0788A65EF48 /* ToolRegistry+Forum.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "ToolRegistry+Forum.swift"; sourceTree = "<group>"; };
 		3302DDE3E18BFF284368ADF0CD0D7186 /* AskBox.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AskBox.swift; sourceTree = "<group>"; };
 		333279B0FBF8704C930B1BC73A91F76A /* TimePitchGraphTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TimePitchGraphTests.swift; sourceTree = "<group>"; };
 		3387004FC0363D685551305BDE1D2EA5 /* KeychainSyncTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KeychainSyncTests.swift; sourceTree = "<group>"; };
@@ -545,6 +548,7 @@
 		6A2F2451ECB4F5315643B5B2A9623E30 /* WordPressAdapter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WordPressAdapter.swift; path = Sites/WordPress/WordPressAdapter.swift; sourceTree = "<group>"; };
 		6A30F9D46F1D1DE9CDE69CC3D8270F13 /* VoiceProtocolTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VoiceProtocolTests.swift; sourceTree = "<group>"; };
 		6A8596809F3E79EC44CAC7E3FD746834 /* page-2002.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "page-2002.json"; path = "Fixtures/WordPress/page-2002.json"; sourceTree = "<group>"; };
+		6CB8D0081FB29D0C0B5B535953B6C26E /* ForumToolsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ForumToolsTests.swift; sourceTree = "<group>"; };
 		6D9A703F20D2A2715DD4FAF71BE00C67 /* VoiceViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VoiceViews.swift; sourceTree = "<group>"; };
 		6DB62B52E30088BF4E7CEA7B3F6B1B7C /* PageFactsProbe.js */ = {isa = PBXFileReference; includeInIndex = 1; path = PageFactsProbe.js; sourceTree = "<group>"; };
 		6DFD4744959405B0B94EE13F13C59048 /* AppModel+CloudSync.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "AppModel+CloudSync.swift"; sourceTree = "<group>"; };
@@ -1005,6 +1009,7 @@
 				D5632CF2CC3890AFFB6970E9CACDE047 /* TaskExport.swift */,
 				86E73247D68601ECFA7E10C5D68D750C /* TaskRecord.swift */,
 				F29DD93ECE0A31AA8F8ED6BA0DFC891D /* ToolRegistry+Capture.swift */,
+				31546D10924EAA70ED8FD0788A65EF48 /* ToolRegistry+Forum.swift */,
 				479C700D68ED1D64EABF400DA709B450 /* ToolRegistry+Navigation.swift */,
 				0935DA99F0BB835E406F25CBEC876C4D /* ToolRegistry+Network.swift */,
 				47E339B79F812607255CA9093577800B /* ToolRegistry+Workspace.swift */,
@@ -1100,6 +1105,7 @@
 				26F8030932A238FC9FDF2EC8432BEEA0 /* ForumPacingTests.swift */,
 				0BB1212F236BD11B37DC2A412EBDD6E2 /* ForumRobustnessTests.swift */,
 				7E72B816BA75C7E137029122D3F1017D /* ForumShapesTests.swift */,
+				6CB8D0081FB29D0C0B5B535953B6C26E /* ForumToolsTests.swift */,
 				FADC5982425C8F528B82C256F7B400B8 /* ForumTransportTests.swift */,
 				86CCFF833B924FC450400E3FD57BF0E3 /* HistoryTests.swift */,
 				E7DA7F02CEF4E15B83224E12636BCF7C /* HomeTests.swift */,
@@ -1494,6 +1500,7 @@
 				CA15BC1B34E6D4D13D9809FAA231E6AC /* ForumPacingTests.swift in Sources */,
 				AF9038F5D36440C9A2AE500A8CB206EA /* ForumRobustnessTests.swift in Sources */,
 				BFEE1EBDDC3CBC0DB5A049B699777086 /* ForumShapesTests.swift in Sources */,
+				5B8B919E3CF631E9C034350FA2D3225D /* ForumToolsTests.swift in Sources */,
 				4EBF9497C78D5B5A95003CC88EE7985B /* ForumTransportTests.swift in Sources */,
 				222A063D31DF1B858C5A61F881D5C47F /* HistoryTests.swift in Sources */,
 				227792419E8FEFA4323650A6D570D08E /* HomeTests.swift in Sources */,
@@ -1718,6 +1725,7 @@
 				C173A2D8AE250646B53FA262852C85C9 /* TaskExport.swift in Sources */,
 				CB7A36159F6DEA47BED5AFE84863CBFA /* TaskRecord.swift in Sources */,
 				C2B07219C2836B90015BB2D691DD0053 /* ToolRegistry+Capture.swift in Sources */,
+				B8E05EFAE9C744A31CDF34298F0D1E33 /* ToolRegistry+Forum.swift in Sources */,
 				9939510049F93E2939D5B8E957D12709 /* ToolRegistry+Navigation.swift in Sources */,
 				173E02F7EC3B91CA34CFC392EDA55126 /* ToolRegistry+Network.swift in Sources */,
 				B73A7D347CC0F11C77333D0BA6641F2E /* ToolRegistry+Workspace.swift in Sources */,
