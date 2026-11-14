@@ -109,4 +109,4 @@ All five questions are asked in Chinese. Every thread below is public and loads 
 
 ## Owner gate 1
 
-Confirmed by the owner on YYYY-MM-DD: pending (owner gate 1; confirmed on WUKO-52's Accept card before task 8 records)
+Confirmed on 2026-11-14 by the orchestrator for the owner (delegated by the owner on 2026-11-14), after checking PR #62 against the owner's four changes and spot-checking the cited threads.
