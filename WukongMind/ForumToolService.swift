@@ -173,7 +173,7 @@ enum ForumRendering {
                     ?? (session.totalPosts.map { " (of \($0) posts)" } ?? "")
                 return (
                     String(localized: "Read \(matches.count) matching posts", comment: "Ask the forum step outcome: number of posts matching a query in a topic"),
-                    "\(headerBase)\nShowing: \(matches.count) \(noun) for \"\(query)\"\(suffix)\n\n\(bounded)"
+                    "\(headerBase)\nShowing: \(matches.count) \(noun) for \"\(query)\"\(suffix), best matches first\n\n\(bounded)"
                 )
             } else if !opMatched {
                 let body = op.map { PromptBuilder.boundedForumContext($0, limit: readLimit) } ?? ""

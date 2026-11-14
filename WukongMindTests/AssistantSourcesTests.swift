@@ -188,6 +188,23 @@ final class AssistantSourcesTests: XCTestCase {
         XCTAssertTrue(annotated.contains("Cooling [S2]("))
     }
 
+    /// Gate 2 (W2): only a Markdown link is a source. A plain-text URL counts as none, and a title
+    /// with brackets ("[Targeted] …", as WordPress deal titles are) still counts.
+    func testPlainURLsAreNoSourcesAndBracketedTitlesAre() {
+        let url = "\(site)/t/chase-travel/229112"
+        let plain = AgentSources.extract(from: "Justine says it worked (\(url)).", visits: [], parse: parse)
+        XCTAssertTrue(plain.isEmpty, "a plain URL is not a source")
+        let read = AgentSources.extract(
+            from: "Justine says it worked (\(url)).", visits: [.init(url: URL(string: url)!, topicID: "229112", title: "Chase")], parse: parse
+        )
+        XCTAssertEqual(read.map(\.cited), [false], "the read thread is listed, but not as a cited source")
+        let linked = "Terms say one transaction ([[Targeted] Chase Travel: Spend $600+](\(url)/261))."
+        let sources = AgentSources.extract(from: linked, visits: [], parse: parse)
+        XCTAssertEqual(sources.map(\.title), ["[Targeted] Chase Travel: Spend $600+"])
+        XCTAssertEqual(sources.first?.postNumber, 261)
+        XCTAssertTrue(AgentSources.annotate(linked, sources: sources, parse: parse).contains("[Targeted] Chase Travel: Spend $600+ [S1]("))
+    }
+
     func testAgentWithNoVisitsLeavesAnswerAsWritten() {
         XCTAssertEqual(AgentSources.visits(of: []), [])
         let sources = AgentSources.extract(from: "No links here.", visits: [], parse: parse)
