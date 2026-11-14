@@ -1,0 +1,911 @@
+{
+  "body" : [
+    {
+      "author_name" : "Harcourt Fenton Mudd",
+      "content" : {
+        "rendered" : "<p>positively underwhelming</p>\n"
+      },
+      "date_gmt" : "2025-07-17T23:14:14",
+      "id" : 2101772,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Ben",
+      "content" : {
+        "rendered" : "<p>Other than the AC access. Not that exciting.</p>\n"
+      },
+      "date_gmt" : "2025-07-17T23:17:22",
+      "id" : 2101774,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Joe Buck",
+      "content" : {
+        "rendered" : "<p>i am hoping to god they don’t transform my 4 Prestige’s to this….</p>\n"
+      },
+      "date_gmt" : "2025-07-17T23:36:10",
+      "id" : 2101785,
+      "parent" : 0
+    },
+    {
+      "author_name" : "IComeInPeace",
+      "content" : {
+        "rendered" : "<p>Robert, How long has the training material been available? It seems unlikely they would limit this to in branch as Citi doesn&#8217;t have many store fronts.</p>\n"
+      },
+      "date_gmt" : "2025-07-17T23:38:55",
+      "id" : 2101787,
+      "parent" : 2100511
+    },
+    {
+      "author_name" : "IComeInPeace",
+      "content" : {
+        "rendered" : "<p>Also, Can you confirm the transfer partners for Strata Elite?  Is it stating if American Airlines is a transfer partner?</p>\n"
+      },
+      "date_gmt" : "2025-07-17T23:48:28",
+      "id" : 2101793,
+      "parent" : 2100511
+    },
+    {
+      "author_name" : "carlzjr",
+      "content" : {
+        "rendered" : "<p>If I claim to work for a bank, can I also start/confirm rumors?</p>\n"
+      },
+      "date_gmt" : "2025-07-17T23:49:17",
+      "id" : 2101794,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Abraham",
+      "content" : {
+        "rendered" : "<p>Seriously. This is the worst.</p>\n"
+      },
+      "date_gmt" : "2025-07-17T23:50:41",
+      "id" : 2101795,
+      "parent" : 2101785
+    },
+    {
+      "author_name" : "Spanglish",
+      "content" : {
+        "rendered" : "<p>Por que no los dos?</p>\n"
+      },
+      "date_gmt" : "2025-07-17T23:52:00",
+      "id" : 2101797,
+      "parent" : 2101758
+    },
+    {
+      "author_name" : "Chris",
+      "content" : {
+        "rendered" : "<p>Agreed. The &#8220;earn up to $200&#8221; makes me think there&#8217;s some sort of coupon element or a significant restriction that would prevent you from making a one time $200 purchase.</p>\n"
+      },
+      "date_gmt" : "2025-07-17T23:52:08",
+      "id" : 2101798,
+      "parent" : 2101734
+    },
+    {
+      "author_name" : "Tony",
+      "content" : {
+        "rendered" : "<p>How about sign up bonus ???</p>\n"
+      },
+      "date_gmt" : "2025-07-17T23:54:44",
+      "id" : 2101800,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Jack",
+      "content" : {
+        "rendered" : "<p>When has a card ever launched on a weekend? So much about this card is odd to me.</p>\n"
+      },
+      "date_gmt" : "2025-07-18T00:17:27",
+      "id" : 2101818,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Has happened with a lot of Chase products, usually launches in branch first and then online on the Monday.</p>\n"
+      },
+      "date_gmt" : "2025-07-18T00:18:59",
+      "id" : 2101819,
+      "parent" : 2101818
+    },
+    {
+      "author_name" : "Philco",
+      "content" : {
+        "rendered" : "<p>Having spent more time than I should on the Citi portal trying to use my Prestige 4th night free at least as far as hotels are concerned Citi is more often than not more expensive than booking direct and other OTAs.  Also I tends to have fewer options than other portals.  That 12x may be less exciting than it seems.</p>\n"
+      },
+      "date_gmt" : "2025-07-18T00:26:02",
+      "id" : 2101826,
+      "parent" : 2101726
+    },
+    {
+      "author_name" : "mike wilson",
+      "content" : {
+        "rendered" : "<p>super dumb premium card. SDPC</p>\n"
+      },
+      "date_gmt" : "2025-07-18T00:49:09",
+      "id" : 2101839,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Billy",
+      "content" : {
+        "rendered" : "<p>Yes!!</p>\n"
+      },
+      "date_gmt" : "2025-07-18T01:11:05",
+      "id" : 2101855,
+      "parent" : 2101794
+    },
+    {
+      "author_name" : "Billy",
+      "content" : {
+        "rendered" : "<p>I would say coupons not weak but necessary to offset some of the $650 annual fee.</p>\n"
+      },
+      "date_gmt" : "2025-07-18T01:14:04",
+      "id" : 2101856,
+      "parent" : 2101726
+    },
+    {
+      "author_name" : "Billy",
+      "content" : {
+        "rendered" : "<p>Yes I recommend 100k minimum. It will be necessary for the card to be successful.</p>\n"
+      },
+      "date_gmt" : "2025-07-18T01:17:01",
+      "id" : 2101859,
+      "parent" : 2101491
+    },
+    {
+      "author_name" : "Chris",
+      "content" : {
+        "rendered" : "<p>Already confirmed you might as well get ready for it.</p>\n"
+      },
+      "date_gmt" : "2025-07-18T02:11:13",
+      "id" : 2101885,
+      "parent" : 2101785
+    },
+    {
+      "author_name" : "Terry",
+      "content" : {
+        "rendered" : "<p>Looks like a lot of Citi shutdowns coming in the next year</p>\n"
+      },
+      "date_gmt" : "2025-07-18T02:24:44",
+      "id" : 2101893,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Rob",
+      "content" : {
+        "rendered" : "<p>why shutdowns?</p>\n"
+      },
+      "date_gmt" : "2025-07-18T03:42:34",
+      "id" : 2101916,
+      "parent" : 2101893
+    },
+    {
+      "author_name" : "Dan",
+      "content" : {
+        "rendered" : "<p>It makes sense if they&#8217;re timing it with the Citi Rewards+ -&gt;Strata conversion date. My Rewards+ is getting converted on July 20th.</p>\n"
+      },
+      "date_gmt" : "2025-07-18T04:16:29",
+      "id" : 2101923,
+      "parent" : 2101818
+    },
+    {
+      "author_name" : "Cate the MSer",
+      "content" : {
+        "rendered" : "<p>Fluzzers are exicted/horny rn</p>\n"
+      },
+      "date_gmt" : "2025-07-18T05:07:08",
+      "id" : 2101940,
+      "parent" : 0
+    },
+    {
+      "author_name" : "GZG",
+      "content" : {
+        "rendered" : "<p>people abusing the 6x restaurants most likely</p>\n"
+      },
+      "date_gmt" : "2025-07-18T05:32:25",
+      "id" : 2101950,
+      "parent" : 2101916
+    },
+    {
+      "author_name" : "Morris",
+      "content" : {
+        "rendered" : "<p>Incredible, who would have thought that the Wells Fargo Autograph Journey would become the premier travel rewards credit card!</p>\n"
+      },
+      "date_gmt" : "2025-07-18T06:12:24",
+      "id" : 2101961,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Yinjing (Jiba) (Xiaoniao)",
+      "content" : {
+        "rendered" : "<p>Premature comment, let’s wait for this card to be released officially</p>\n"
+      },
+      "date_gmt" : "2025-07-18T06:19:52",
+      "id" : 2101962,
+      "parent" : 2101961
+    },
+    {
+      "author_name" : "Yinjing (Jiba) (Xiaoniao)",
+      "content" : {
+        "rendered" : "<p>Almost surely there will be a cap like Bilt (1000 bonus points max.)</p>\n"
+      },
+      "date_gmt" : "2025-07-18T06:20:48",
+      "id" : 2101963,
+      "parent" : 2101950
+    },
+    {
+      "author_name" : "Yinjing (Jiba) (Xiaoniao)",
+      "content" : {
+        "rendered" : "<p>The mass affluent who will apply for this card are busy working on weekdays. It’s 2:21am and I’m just getting off work (law firm life)</p>\n"
+      },
+      "date_gmt" : "2025-07-18T06:22:04",
+      "id" : 2101964,
+      "parent" : 2101818
+    },
+    {
+      "author_name" : "Yinjing (Jiba) (Xiaoniao)",
+      "content" : {
+        "rendered" : "<p>100000 pts baby</p>\n"
+      },
+      "date_gmt" : "2025-07-18T06:22:29",
+      "id" : 2101965,
+      "parent" : 2101800
+    },
+    {
+      "author_name" : "Chap",
+      "content" : {
+        "rendered" : "<p>I mean lots of people didnt like VX recent changes and are looking for alternatives.</p>\n<p>But yeah, VX is likely to still be king as Citi and Bilt go after the AMEX/Chase coupon book model </p>\n<p>I guess everyone is really competing for 2nd place, 1st place VX is too expensive for them</p>\n"
+      },
+      "date_gmt" : "2025-07-18T08:55:42",
+      "id" : 2101981,
+      "parent" : 2100414
+    },
+    {
+      "author_name" : "Chap",
+      "content" : {
+        "rendered" : "<p>wow that is actually really valuable, I usually use RH gold for 3% back on them as no other card I know of coded OTA for more but 5x would be great. Do you happen to know if Agoda specifically codes as 5x?</p>\n"
+      },
+      "date_gmt" : "2025-07-18T09:04:29",
+      "id" : 2101983,
+      "parent" : 2100384
+    },
+    {
+      "author_name" : "Robert",
+      "content" : {
+        "rendered" : "<p>* credits to offset the $595 AF* verbatim what you’ll see </p>\n<p>$300 Annual Hotel Benefit<br />\nEvery calendar year, enjoy up to $300 off a hotel stay of two nights or more booked through cititravel.com.</p>\n<p>$200 Annual Blacklane Credit<br />\nEvery calendar year. ride in style with up to $200 in statement credits toward a chauffeur service with Blacklane. Earn up to $100 in the first half of the year and up to $100 in the second half of the year.<br />\nComplimentary Priority Pass™<br />\nSelect Membership</p>\n<p>Up to $200 Annual Splurge Credit&#8217;™ on Eligible Brands<br />\nEvery calendar year, earn up to $200 in statement credits on your choice of up to 2 of the following brands: 1stDibs, American Airlines (exclusions apply).<br />\nBest Buy*, Future Personal Training and Live Nation (exclusions apply).</p>\n<p>Up to $120 Global Entry® or TSA<br />\nPreCheck® Application Fee Credit<br />\nReceive a statement credit. up to $120 every four years. as reimbursement for your application fee for Global Entry® or TSA precheck</p>\n<p>Four American Airlines Admirals<br />\nClub® Citi Strata Elite*<br />\nPasses Annually</p>\n<p>No Foreign Transaction Fees<br />\nWhen Traveling Internationally</p>\n"
+      },
+      "date_gmt" : "2025-07-18T11:13:13",
+      "id" : 2102002,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Damion",
+      "content" : {
+        "rendered" : "<p>Obligatory &#8220;Is it metal?&#8221; question.</p>\n<p>Also, using the 1stDibs credit will get you a NIIIIICE discount on this couch: <a href=\"https://www.1stdibs.com/furniture/seating/sofas/paul-evans-paul-evans-studio-custom-made-patchwork-sofa/id-f_43337062/\" rel=\"nofollow ugc\">https://www.1stdibs.com/furniture/seating/sofas/paul-evans-paul-evans-studio-custom-made-patchwork-sofa/id-f_43337062/</a></p>\n"
+      },
+      "date_gmt" : "2025-07-18T11:48:34",
+      "id" : 2102014,
+      "parent" : 0
+    },
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>&#8220;Splurge&#8221; credit&#8230; bah! Ok, so if true, I&#8217;d go for $200 for AA gift cards, treating it like the BofA Premium, $100 airline incidental fee reimbursement, etc. </p>\n<p>4 is better than none with the AA Admirals Club access, but it&#8217;s a bit weak compared to Amex Platinum with DL SkyClubs (10 visits). </p>\n<p>And, I think Blacklane is what Emirates uses, too, for like Business/First. It&#8217;s a shame that Citi is dividing up the credits into semi-annual; still, it&#8217;s better than &#8216;monthly,&#8217; I guess.</p>\n"
+      },
+      "date_gmt" : "2025-07-18T12:15:41",
+      "id" : 2102023,
+      "parent" : 2102002
+    },
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>I&#8217;m still upset over that reduction in the &#8216;Rent Day&#8217; 2x promotion (used to be 10x that, up to 10K, until October 2024). I get it, they&#8217;re a business, not a charity, but it was a loss to those of us who &#8216;took advantage&#8217; of it.</p>\n"
+      },
+      "date_gmt" : "2025-07-18T12:17:40",
+      "id" : 2102024,
+      "parent" : 2101963
+    },
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>Fair enough. Would &#8216;tedious&#8217; be more appropriate than &#8216;weak&#8217;?</p>\n"
+      },
+      "date_gmt" : "2025-07-18T12:19:53",
+      "id" : 2102025,
+      "parent" : 2101856
+    },
+    {
+      "author_name" : "Arthur Dayne",
+      "content" : {
+        "rendered" : "<p>is the $300 annual hotel credit replacing the $250 travel credit? if so&#8230;fml</p>\n"
+      },
+      "date_gmt" : "2025-07-18T12:47:43",
+      "id" : 2102029,
+      "parent" : 2102002
+    },
+    {
+      "author_name" : "MrFajitas",
+      "content" : {
+        "rendered" : "<p>I know everyone here hates the coupon style credits, but this is actually pretty great. I bet they are going to more average people, because I am an average person and this appeals to me. $300 hotel credit? Nice, free weekend trip with the family. $100 towards AA or Best Buy? Great, I can get gifts cards (if eligible) or some Nintendo stuff for the kids or whatever twice a year. I don&#8217;t fly frequently enough for TSA Pre check to be worth spending on, but if it was free it would definitely be nice to have. Blacklane seems useless, but I&#8217;m also too poor to have ever heard of it until now.</p>\n"
+      },
+      "date_gmt" : "2025-07-18T12:54:56",
+      "id" : 2102034,
+      "parent" : 2102002
+    },
+    {
+      "author_name" : "Jason",
+      "content" : {
+        "rendered" : "<p>Hi Robert, thanks for sharing! Do you happen to know if the Elite will offer any multipliers for flights or hotels booked direct? Thank you!</p>\n"
+      },
+      "date_gmt" : "2025-07-18T12:57:42",
+      "id" : 2102036,
+      "parent" : 2102002
+    },
+    {
+      "author_name" : "Lightspeed",
+      "content" : {
+        "rendered" : "<p>&gt;<span>Up to $200 Annual Splurge Credit’™ on Eligible Brands</span><br />\n<span>Every calendar year, earn up to $200 in statement credits on your choice of up to 2 of the following brands: 1stDibs, American Airlines (exclusions apply).</span></p>\n<p>Wording here is ambiguous to me. If this is $200 each on 2 of the list, this goes from &#8220;nice&#8221; to &#8220;holy ****&#8221;.</p>\n<p>Although I know it won&#8217;t be useful for everyone, $200 on Future is useful to me. AA and Best Buy are pretty nice, too.</p>\n<p>This card to me feels catered to someone who travels infrequently but splurges when they do &#8211; different than the Plat or the CSR.</p>\n<p>I get the argument of those who are upset if they are going to be converted from the Prestige, but it looks like a decent card to me, especially if you have Citigold.</p>\n"
+      },
+      "date_gmt" : "2025-07-18T13:16:18",
+      "id" : 2102043,
+      "parent" : 2102002
+    },
+    {
+      "author_name" : "Seymour",
+      "content" : {
+        "rendered" : "<p>What&#8217;s the signup bonus?</p>\n"
+      },
+      "date_gmt" : "2025-07-18T13:30:46",
+      "id" : 2102046,
+      "parent" : 0
+    },
+    {
+      "author_name" : "DWT",
+      "content" : {
+        "rendered" : "<p>Thanks for the continued updates. Disappointing to see that the annual travel credit is only for hotels via the portal, and the 2 night minimum stay sort of kills it for me</p>\n"
+      },
+      "date_gmt" : "2025-07-18T13:37:32",
+      "id" : 2102049,
+      "parent" : 2102002
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p>Thanks for all the udpates  <a class='wpd-umcguest'  href='https://www.doctorofcredit.com/rumor-citi-strata-elite-details/#comment-2100511'><img alt='' src='https://secure.gravatar.com/avatar/107b4174aa73d7524acd40b8a97f96d89b9a335e994be76c57d23a098baf5bfc?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/107b4174aa73d7524acd40b8a97f96d89b9a335e994be76c57d23a098baf5bfc?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>Robert</a></p>\n"
+      },
+      "date_gmt" : "2025-07-18T13:54:55",
+      "id" : 2102058,
+      "parent" : 2101412
+    },
+    {
+      "author_name" : "Keith M.",
+      "content" : {
+        "rendered" : "<ul>\n<li>The bonus at launch will be 100,000 thank you points after spending $4,000 in 3 months of account opening. This is an IN BRANCH ONLY limited time offer at the moment, unsure of what the online offer will be.</li>\n</ul>\n"
+      },
+      "date_gmt" : "2025-07-18T14:08:02",
+      "id" : 2102066,
+      "parent" : 2102046
+    },
+    {
+      "author_name" : "Jack",
+      "content" : {
+        "rendered" : "<p>I&#8217;m not certain but the article stated: &#8220;The bonus at launch will be 100,000 thank you points after spending $4,000 in 3 months of account opening. This is an IN BRANCH ONLY limited time offer at the moment, unsure of what the online offer will be.&#8221;</p>\n"
+      },
+      "date_gmt" : "2025-07-18T14:10:15",
+      "id" : 2102069,
+      "parent" : 2102046
+    },
+    {
+      "author_name" : "Jack",
+      "content" : {
+        "rendered" : "<p>What remains missing is the earn rate on non-portal travel (direct bookings).</p>\n<p>While no one wants the hassle of credits, they seem easy enough to cover the annual fee. Especially for those with CitiGold, as has been mentioned.</p>\n"
+      },
+      "date_gmt" : "2025-07-18T14:13:40",
+      "id" : 2102072,
+      "parent" : 0
+    },
+    {
+      "author_name" : "DWT",
+      "content" : {
+        "rendered" : "<p>I don’t think that info is missing; the only bonus category outside portal bookings will be for dining. Everything else is 1.5x</p>\n"
+      },
+      "date_gmt" : "2025-07-18T14:17:07",
+      "id" : 2102073,
+      "parent" : 2102072
+    },
+    {
+      "author_name" : "Chris",
+      "content" : {
+        "rendered" : "<p>Irrelevant</p>\n"
+      },
+      "date_gmt" : "2025-07-18T14:34:48",
+      "id" : 2102090,
+      "parent" : 2102014
+    },
+    {
+      "author_name" : "Malik",
+      "content" : {
+        "rendered" : "<p>I like this card. I was going to get the AAdvantage Platinum Select 80k offer but will hold off since Citi approval rules. I go out to eat pretty much every Friday or Saturday evening. The credits are annual so less disruptive than JPMChase. Best buy, American Airlines, LiveNation (concerts &amp; comedy shows) are easy to use. Seems like the hotel isn&#8217;t constrained to only luxury properties. Seems like a $99 effective annual fee card. Just need $1650 in the 6x category to break even.</p>\n"
+      },
+      "date_gmt" : "2025-07-18T14:35:55",
+      "id" : 2102092,
+      "parent" : 0
+    },
+    {
+      "author_name" : "gb",
+      "content" : {
+        "rendered" : "<p>Wow. I’ve had the Prestige for years and I’m finally thinking of dropping it. </p>\n<p>For me, if I was going to the airport, Blacklane seems to cost a few bucks more than an Uber Black SUV (~$100) which I rarely use and a bit more than double, what I would get from a Comfort (~$50). </p>\n<p>Point earning seems to have been nerfed. This is usually my go to restaurant card, but if it’s now 3x, I’m going to start using Amex gold at 4x.</p>\n<p>$300 hotel benefit via Citi portal. From my experience, most prices are slightly higher than other sites and also, I don’t see as many hotels as other sites. I’ve put up with this due to the 4th night free benefit which usually saved me a few dollars.</p>\n"
+      },
+      "date_gmt" : "2025-07-18T14:42:23",
+      "id" : 2102096,
+      "parent" : 0
+    },
+    {
+      "author_name" : "dn10",
+      "content" : {
+        "rendered" : "<p>Kind of a bad card especially given the proliferation of premium credit cards today. I fly AA a lot but still not worth it.</p>\n"
+      },
+      "date_gmt" : "2025-07-18T14:54:34",
+      "id" : 2102103,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Avi",
+      "content" : {
+        "rendered" : "<p>Sure it&#8217;s a worse version of the Old Prestige. But it most certainly is better than its Chase and Amex counterparts and their aggressive couponing. At the very least it&#8217;s definitely worth getting for the SUB and first year benefits, even more so if you manage to triple dip the travel and splurge credits.</p>\n"
+      },
+      "date_gmt" : "2025-07-18T14:59:21",
+      "id" : 2102106,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Avi",
+      "content" : {
+        "rendered" : "<p>To all the haters complaining about the 4 Admiral Club Passes vs Amex&#8217;s 10 DL Skyclub visits &#8211; y&#8217;all realize that this card will be $100 &#8211; $245 cheaper <span>than the Platinum </span>at launch, right? And the Plat is slated for a fee bump in the near future anyway.</p>\n"
+      },
+      "date_gmt" : "2025-07-18T15:03:55",
+      "id" : 2102109,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Knights556",
+      "content" : {
+        "rendered" : "<p>Everyone is following the Amex model but I don’t see it working. Who’s signing up for a $600 Citi card with a coupon book model?</p>\n"
+      },
+      "date_gmt" : "2025-07-18T15:06:48",
+      "id" : 2102112,
+      "parent" : 0
+    },
+    {
+      "author_name" : "shawnspencer",
+      "content" : {
+        "rendered" : "<p>This is not a great card. I mean, sure for some people they can use the hotel credit and the &#8220;splurge credit&#8221; but who&#8217;s going to use a chauffer? I did a test on their website and tried to book a ride from my home to the airport (a 10 min ride), and it came out to $127. </p>\n<p>I tried a couple of other bookings too, it seems that most rides are minimum $100. Therefore, you are not really better off &#8211; and it still might be more expensive than an Uber. This will be hard to justify for most people, even with the elevated bonus.</p>\n"
+      },
+      "date_gmt" : "2025-07-18T15:13:48",
+      "id" : 2102116,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Dan G",
+      "content" : {
+        "rendered" : "<p>If PP Restaurant access is included, it would probably push me to apply. Without, I&#8217;m not sure it&#8217;s worth it. Any insights on this point?</p>\n"
+      },
+      "date_gmt" : "2025-07-18T15:20:07",
+      "id" : 2102120,
+      "parent" : 0
+    },
+    {
+      "author_name" : "mjonis",
+      "content" : {
+        "rendered" : "<p>Hard pass for me.  In-branch only (ugh).  Not driving 3 hours for that.  Plus, the old Prestige had the 4th night free (which you could strategically use for high-end resorts, etc.)  Blacklane &#8211; unavailable in our area.  Admirals club?  maybe, but Id never pay the $79 that AA is asking for a day pass anyway. </p>\n<p>Too bad I missed out on the elevated Strata Premier (was still within the 48 months by 1 month) bonus.</p>\n<p>Oh well.  I&#8217;m sure some folks will like/take it.</p>\n"
+      },
+      "date_gmt" : "2025-07-18T15:31:39",
+      "id" : 2102127,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Mist",
+      "content" : {
+        "rendered" : "<p>As amex secured uber, chase resorted to lyft, then citi dug up further deep to find a german startup.</p>\n<p>What&#8217;s left for WellsFargo and Cap1?</p>\n<p>Just give us travel credit.</p>\n"
+      },
+      "date_gmt" : "2025-07-18T15:40:04",
+      "id" : 2102133,
+      "parent" : 0
+    },
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>I’ll tell ya who.. people that wanna net $400 for the first year with the 100K sign up bonus, then downgrade or cancel, if they don’t get a retention offer…</p>\n"
+      },
+      "date_gmt" : "2025-07-18T15:42:11",
+      "id" : 2102135,
+      "parent" : 2102112
+    },
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>I’ll one of those so-called ‘haters,’ but really, not ‘hating’ so much as ‘disappointed.’ Then again, this card isn’t even official yet, so we’ll see… oh, and I’m not ‘pleased’ with the Platinum card fee increase either.</p>\n"
+      },
+      "date_gmt" : "2025-07-18T15:43:20",
+      "id" : 2102138,
+      "parent" : 2102109
+    },
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>I donno about you all, but I sure am looking forward to my 11th Complimentary Priority Pass™ Select Membership&#8230;</p>\n"
+      },
+      "date_gmt" : "2025-07-18T15:48:27",
+      "id" : 2102142,
+      "parent" : 0
+    },
+    {
+      "author_name" : "CPing",
+      "content" : {
+        "rendered" : "<p>LOL your augment backfires. Factoring SUB, CSR and Platinum have way better SUB after deducting annual fee.</p>\n"
+      },
+      "date_gmt" : "2025-07-18T15:49:22",
+      "id" : 2102144,
+      "parent" : 2102106
+    },
+    {
+      "author_name" : "KV",
+      "content" : {
+        "rendered" : "<p>You think 9,900 TYP = $99? Might have missed a zero in your calculation&#8230;</p>\n"
+      },
+      "date_gmt" : "2025-07-18T15:52:16",
+      "id" : 2102149,
+      "parent" : 2102092
+    },
+    {
+      "author_name" : "Carter",
+      "content" : {
+        "rendered" : "<p>CITI NIGHTS &#8211; 6P to 6A Friday and Saturday? I wonder how this is going to account for time zone differences while traveling &#8211; or if charges post outside of the window due to standard restaurant operations&#8230; Citi HQ time zone only? Billing address time zone only? GMT offset based on purchase location?  Seems like a headache to code on an interchange system not really built for &#8216;instant tracking&#8217; of purchases.  It would be easier to do all day Friday and all day Saturday with a +/- 3hr bookend to cover all US time zones.  My $0.02 at 11:53A ET on Friday (wouldn&#8217;t get the 6x on this one) &#8230; but I don&#8217;t work there.  Maybe Robert knows</p>\n"
+      },
+      "date_gmt" : "2025-07-18T15:53:22",
+      "id" : 2102152,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Seymour",
+      "content" : {
+        "rendered" : "<p>Thanks for this info. Maybe worth for the bonus, not too much value for most otherwise.</p>\n"
+      },
+      "date_gmt" : "2025-07-18T16:02:41",
+      "id" : 2102162,
+      "parent" : 2102066
+    },
+    {
+      "author_name" : "Malik",
+      "content" : {
+        "rendered" : "<p>If you have a cashback card you can redeem at .01 per point so yes. Am I doing something obvious wrong?</p>\n"
+      },
+      "date_gmt" : "2025-07-18T16:14:14",
+      "id" : 2102168,
+      "parent" : 2102149
+    },
+    {
+      "author_name" : "Joelfreak",
+      "content" : {
+        "rendered" : "<p>A few MAJOR questions. </p>\n<p>1) What happens to us legacy Chairman/Prestige holders? Are we grandfathered into ANYTHING?<br />\n2) What do the insurances look like? Does NY get primary auto (unlike chase) Are the travel protections better than what Chase changed to?</p>\n"
+      },
+      "date_gmt" : "2025-07-18T16:21:48",
+      "id" : 2102173,
+      "parent" : 0
+    },
+    {
+      "author_name" : "YoYoPedro",
+      "content" : {
+        "rendered" : "<p>I&#8217;m not J.D. Vance, so the couch is moot.</p>\n"
+      },
+      "date_gmt" : "2025-07-18T16:24:26",
+      "id" : 2102177,
+      "parent" : 2102014
+    },
+    {
+      "author_name" : "Billy",
+      "content" : {
+        "rendered" : "<p>Did Chase change the travel protections on the Sapphire card??</p>\n"
+      },
+      "date_gmt" : "2025-07-18T16:30:24",
+      "id" : 2102181,
+      "parent" : 2102173
+    },
+    {
+      "author_name" : "YoYoPedro",
+      "content" : {
+        "rendered" : "<p>Please, please, please just let me keep my Prestige&#8230;</p>\n"
+      },
+      "date_gmt" : "2025-07-18T16:30:44",
+      "id" : 2102182,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Billy",
+      "content" : {
+        "rendered" : "<p>I think as long as the authorization is initiated between those times it will post 6X no matter how long the charge takes to post. It also seems that on the west coast it starts at 3 pm local time</p>\n"
+      },
+      "date_gmt" : "2025-07-18T16:35:07",
+      "id" : 2102185,
+      "parent" : 2102152
+    },
+    {
+      "author_name" : "Rob",
+      "content" : {
+        "rendered" : "<p>We should start a pool to call which exec gets fired for launching this and how quickly it happens.</p>\n"
+      },
+      "date_gmt" : "2025-07-18T16:44:22",
+      "id" : 2102190,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Arthur Dayne",
+      "content" : {
+        "rendered" : "<p>Holding on to my Smartly V1 and USBank Altitude Reserve forever.</p>\n"
+      },
+      "date_gmt" : "2025-07-18T16:53:50",
+      "id" : 2102198,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Fay White",
+      "content" : {
+        "rendered" : "<p>Amex is no guest right?  If this is 4 any use passes that may work better.</p>\n"
+      },
+      "date_gmt" : "2025-07-18T16:58:51",
+      "id" : 2102204,
+      "parent" : 2102023
+    },
+    {
+      "author_name" : "D",
+      "content" : {
+        "rendered" : "<p>Junk</p>\n"
+      },
+      "date_gmt" : "2025-07-18T17:00:03",
+      "id" : 2102206,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Timi",
+      "content" : {
+        "rendered" : "<p>Dig deeper: Waymo, and Elon Robotaxi</p>\n"
+      },
+      "date_gmt" : "2025-07-18T17:05:10",
+      "id" : 2102211,
+      "parent" : 2102133
+    },
+    {
+      "author_name" : "Igor",
+      "content" : {
+        "rendered" : "<p>Blacklane: car from JFK to Midtown Manhattan is about $200&#8230; so $100 biannual is not a good deal in that case.</p>\n"
+      },
+      "date_gmt" : "2025-07-18T17:05:54",
+      "id" : 2102213,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Tom",
+      "content" : {
+        "rendered" : "<p>It&#8217;s a limo service, not an Uber ride.</p>\n"
+      },
+      "date_gmt" : "2025-07-18T17:17:36",
+      "id" : 2102225,
+      "parent" : 2102213
+    },
+    {
+      "author_name" : "Jon",
+      "content" : {
+        "rendered" : "<p>2 night minimum for the hotel credit is so awesome. I love limiting the use of credits.</p>\n"
+      },
+      "date_gmt" : "2025-07-18T17:23:17",
+      "id" : 2102227,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Tom",
+      "content" : {
+        "rendered" : "<p>So, if someone directly books with Marriott (not via Citi Travel), you&#8217;re saying the person will earn 1.5x?  Hmmm</p>\n"
+      },
+      "date_gmt" : "2025-07-18T17:24:32",
+      "id" : 2102228,
+      "parent" : 2102073
+    },
+    {
+      "author_name" : "Ariel",
+      "content" : {
+        "rendered" : "<p>I&#8217;m with you brotha!<br />\nIf they do cancel it then we must all stick together and close the card. This new one is horrible</p>\n"
+      },
+      "date_gmt" : "2025-07-18T17:45:37",
+      "id" : 2102245,
+      "parent" : 2102182
+    },
+    {
+      "author_name" : "Chap",
+      "content" : {
+        "rendered" : "<p>Nah opportunity cost if someone has 4x amex gold, 3% RH gold catch all, etc</p>\n<p>So depending what other cards you have it&#8217;s more like only a 2-3x better thus $3300+ spend make it break even</p>\n<p>Also travel portals are usually higher than spot + loss opportunity on cashback+rakuten etc So it&#8217;s like ~20% less value</p>\n<p>I could go on but doubt people really get it</p>\n"
+      },
+      "date_gmt" : "2025-07-18T18:11:04",
+      "id" : 2102257,
+      "parent" : 2102092
+    },
+    {
+      "author_name" : "philco",
+      "content" : {
+        "rendered" : "<p>I would discount the hotel credit some.  I have spent a lot of time over the last few years attempting to get value out of the 4th night free and $100 Premier credit.  The Citi travel portal is almost always one of the most expensive options, often just doesn&#8217;t have a hotel I am looking for or the hotel is there but there are no rooms available on my dates when they are available pretty much every where else.  Based on my experience I&#8217;d value the hotel credit at around 75%.  For reference I find the C1 portal to have better pricing and availability on average.  I have little issue using my VX credit.</p>\n"
+      },
+      "date_gmt" : "2025-07-18T18:39:45",
+      "id" : 2102282,
+      "parent" : 2102092
+    },
+    {
+      "author_name" : "Jack",
+      "content" : {
+        "rendered" : "<p>Prestige will be PCed to the new card.  Will take Citi a few months to walk through the conversion.</p>\n<p>I&#8217;ll guess that all other questions about the card await terms and conditions upon release.</p>\n"
+      },
+      "date_gmt" : "2025-07-18T19:27:56",
+      "id" : 2102324,
+      "parent" : 2102173
+    },
+    {
+      "author_name" : "Jack",
+      "content" : {
+        "rendered" : "<p>No</p>\n"
+      },
+      "date_gmt" : "2025-07-18T19:30:45",
+      "id" : 2102325,
+      "parent" : 2102181
+    },
+    {
+      "author_name" : "Ash",
+      "content" : {
+        "rendered" : "<p>I may give them a year. They can&#8217;t keep losing money forever.</p>\n"
+      },
+      "date_gmt" : "2025-07-18T19:34:15",
+      "id" : 2102327,
+      "parent" : 2102198
+    },
+    {
+      "author_name" : "Dan G",
+      "content" : {
+        "rendered" : "<p>Any leaks on if Priority Pass restaurants are included or not?</p>\n"
+      },
+      "date_gmt" : "2025-07-18T19:38:09",
+      "id" : 2102334,
+      "parent" : 0
+    },
+    {
+      "author_name" : "q",
+      "content" : {
+        "rendered" : "<p>The cheapest service is maybe slightly better than Uber black, but like twice the price.</p>\n"
+      },
+      "date_gmt" : "2025-07-18T19:39:41",
+      "id" : 2102335,
+      "parent" : 2102225
+    },
+    {
+      "author_name" : "Frito Pendejo",
+      "content" : {
+        "rendered" : "<p>It seems worth trying for the 100k signup bonus!  Even if you use nothing thats $400, but if you make any use of their coupon book its decent.  Then cancel</p>\n"
+      },
+      "date_gmt" : "2025-07-18T19:41:37",
+      "id" : 2102340,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Spiel",
+      "content" : {
+        "rendered" : "<p>How does CSR have a &#8220;way better&#8221; SUB?</p>\n"
+      },
+      "date_gmt" : "2025-07-18T19:43:12",
+      "id" : 2102343,
+      "parent" : 2102144
+    },
+    {
+      "author_name" : "Carter",
+      "content" : {
+        "rendered" : "<p>Sounds fun, I expect they hard coded it to Eastern US then. If that&#8217;s the case and you&#8217;re traveling in APAC, it&#8217;s CITI MORNINGS SATURDAY AND SUNDAY lol</p>\n"
+      },
+      "date_gmt" : "2025-07-18T19:46:52",
+      "id" : 2102346,
+      "parent" : 2102185
+    },
+    {
+      "author_name" : "Pete",
+      "content" : {
+        "rendered" : "<p>Can you hold multiple versions of Strata at the same time? The basic one gets 3x on grocery, gas, etc.. might be a good combo??</p>\n<p>And the AA lounge day pass.. does that include some number of guests? I seem to remember a day pass let in maybe 2 under 18 or some such. I&#8217;ve not tried, but definitely a factor.</p>\n"
+      },
+      "date_gmt" : "2025-07-18T19:54:18",
+      "id" : 2102355,
+      "parent" : 0
+    },
+    {
+      "author_name" : "TDD",
+      "content" : {
+        "rendered" : "<p><a class='wpd-umcguest'  href='https://www.doctorofcredit.com/rumor-citi-strata-elite-details/#comment-2102227'><img alt='' src='https://secure.gravatar.com/avatar/772c353a8670be56d3322ff0364116ac67407cc44669b2cf220ead9b3a06d1f0?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/772c353a8670be56d3322ff0364116ac67407cc44669b2cf220ead9b3a06d1f0?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>Jon</a> Don&#8217;t you love eating out from the hours of 12am to 6am?</p>\n"
+      },
+      "date_gmt" : "2025-07-18T19:59:59",
+      "id" : 2102363,
+      "parent" : 2102227
+    },
+    {
+      "author_name" : "Joelfreak",
+      "content" : {
+        "rendered" : "<p>They sure did! They changed the carrier, and with that, some of the finer details changed. Some got better, some worse.</p>\n"
+      },
+      "date_gmt" : "2025-07-18T20:07:04",
+      "id" : 2102370,
+      "parent" : 2102181
+    },
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>If they do officially open applications this weekend, all questions should soon be answered in the &#8216;fine print&#8217;&#8230; so, I&#8217;d give it another 24-48 hours.</p>\n"
+      },
+      "date_gmt" : "2025-07-18T20:26:20",
+      "id" : 2102385,
+      "parent" : 2102355
+    },
+    {
+      "author_name" : "ET",
+      "content" : {
+        "rendered" : "<p>I wonder if Citi will do the same thing as Chase and let people who have the regular strata still sign up for this one&#8230;</p>\n"
+      },
+      "date_gmt" : "2025-07-18T20:56:31",
+      "id" : 2102419,
+      "parent" : 0
+    },
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>Chase only did changed that recently; glad they did!</p>\n"
+      },
+      "date_gmt" : "2025-07-18T21:04:57",
+      "id" : 2102422,
+      "parent" : 2102419
+    },
+    {
+      "author_name" : "Darin",
+      "content" : {
+        "rendered" : "<p>Don&#8217;t agree at all. It&#8217;s obviously a YMMV situation based on which coupons work for you, but at least for me the Chase/Amex versions are annoying but broadly usable. Only the &#8220;Splurge Credit&#8221; seems reliably usable here. Aside from the first year SUB this is such an easy pass.</p>\n"
+      },
+      "date_gmt" : "2025-07-18T21:37:28",
+      "id" : 2102453,
+      "parent" : 2102106
+    },
+    {
+      "author_name" : "Chris",
+      "content" : {
+        "rendered" : "<p>Additional Citi Nights requirment: restaurant must be within 100 ft of a strip club</p>\n"
+      },
+      "date_gmt" : "2025-07-18T21:42:20",
+      "id" : 2102459,
+      "parent" : 2102363
+    },
+    {
+      "author_name" : "Darin",
+      "content" : {
+        "rendered" : "<p>You&#8217;ve just outlined $500 in credits you&#8217;ll use for a card that costs $595. So you&#8217;re going to do the work involved of booking through a subpar portal and redeeming gift cards to end up with a $95 net fee credit card with spend categories that are worse than other no annual fee cards?</p>\n"
+      },
+      "date_gmt" : "2025-07-18T21:47:33",
+      "id" : 2102466,
+      "parent" : 2102034
+    },
+    {
+      "author_name" : "Chad",
+      "content" : {
+        "rendered" : "<p>Yeah that&#8217;s my guess. Maybe end of this year USBAR gets a nerf announcement. If we make it to this time next year without an announcement on either I&#8217;m going to say we have another 3-10 years</p>\n"
+      },
+      "date_gmt" : "2025-07-18T22:55:05",
+      "id" : 2102499,
+      "parent" : 2102327
+    }
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "398",
+    "x-wp-totalpages" : "4"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/comments?post=241171&per_page=100&page=2&order=asc&orderby=date_gmt&_fields=id,parent,author_name,date_gmt,content"
+}

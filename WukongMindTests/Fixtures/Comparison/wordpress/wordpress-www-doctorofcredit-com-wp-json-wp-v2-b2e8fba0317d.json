@@ -1,0 +1,911 @@
+{
+  "body" : [
+    {
+      "author_name" : "Kevin V",
+      "content" : {
+        "rendered" : "<p>Just use the card normally? You don&#8217;t have to go out of your way to spend the credit all at one.</p>\n"
+      },
+      "date_gmt" : "2025-11-17T00:32:32",
+      "id" : 2190843,
+      "parent" : 2163508
+    },
+    {
+      "author_name" : "Ben",
+      "content" : {
+        "rendered" : "<p>Thor, thank you for this.  I added this on my FU (much better acronym than CFU), it showed up under Added Offers, I purchased $1k of flights&#8230; Aaaaaaaaand, it&#8217;s gone.  Gone from Added offers, not under Redeemed offers, it&#8217;s as if it never existed.  Purchase was 4 days ago, so I&#8217;ll be patient before contacting support.  </p>\n<p>Contrary to Eric&#8217;s bs, this is extremely confusing and misleading.</p>\n"
+      },
+      "date_gmt" : "2025-12-20T22:23:56",
+      "id" : 2214349,
+      "parent" : 2064505
+    },
+    {
+      "author_name" : "Ram",
+      "content" : {
+        "rendered" : "<p>how many days is it taking for credits to appear?</p>\n"
+      },
+      "date_gmt" : "2025-12-22T17:28:23",
+      "id" : 2214964,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Nic",
+      "content" : {
+        "rendered" : "<p>This would show up as a regular chase offer? Looks like I don&#8217;t have unfortunately</p>\n"
+      },
+      "date_gmt" : "2026-01-01T18:40:44",
+      "id" : 2219697,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Nun",
+      "content" : {
+        "rendered" : "<p>Are they just targeting people who haven’t used Chase travel before?  I never get these</p>\n"
+      },
+      "date_gmt" : "2026-01-01T18:48:33",
+      "id" : 2219701,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Jim",
+      "content" : {
+        "rendered" : "<p><span>Get $100 back when you spend $600+ through Chase Travel in a single transaction.</span></p>\n<p><span>Qualifying transaction must be made during the offer period of 1/1/2026 to 1/31/2026. </span></p>\n<p><span>Travel can occur beyond offer expiration, so long as qualifying transaction is made prior to 1/31/2026 11:59PM PST.</span></p>\n"
+      },
+      "date_gmt" : "2026-01-01T19:08:51",
+      "id" : 2219717,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Kevin V",
+      "content" : {
+        "rendered" : "<p>Took advantage of this offer on both my CFU and CSP last year. Now the offer is back, should I do it again? I mean, it&#8217;s normal for people to cancel their travel plans a few time a year, right?</p>\n"
+      },
+      "date_gmt" : "2026-01-01T19:12:16",
+      "id" : 2219723,
+      "parent" : 0
+    },
+    {
+      "author_name" : "RK",
+      "content" : {
+        "rendered" : "<p>What did you book and cancel last time? I never jumped on this last time, may be will do this time. Thanks</p>\n"
+      },
+      "date_gmt" : "2026-01-01T19:42:37",
+      "id" : 2219747,
+      "parent" : 2219723
+    },
+    {
+      "author_name" : "BOND",
+      "content" : {
+        "rendered" : "<p>I would put spend on the card and avoid the potential human attention/review from a refund check. T&amp;C: &#8220;Abuse of offers may result in exclusion from future offers.&#8221;</p>\n"
+      },
+      "date_gmt" : "2026-01-01T19:47:46",
+      "id" : 2219753,
+      "parent" : 2163508
+    },
+    {
+      "author_name" : "KS",
+      "content" : {
+        "rendered" : "<p>Some people cancel their travel plan several times a week.</p>\n"
+      },
+      "date_gmt" : "2026-01-01T19:53:06",
+      "id" : 2219756,
+      "parent" : 2219723
+    },
+    {
+      "author_name" : "Wick",
+      "content" : {
+        "rendered" : "<p>got 4/6 last time (I used once for EVA Airlines even tho there&#8217;s offer for EVA $120 off but i didnt fly from the US so no go), this time i got 2/6.</p>\n"
+      },
+      "date_gmt" : "2026-01-01T19:53:30",
+      "id" : 2219757,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Wick",
+      "content" : {
+        "rendered" : "<p>its a credit not a check, basically it will -100 into your account.</p>\n"
+      },
+      "date_gmt" : "2026-01-01T19:54:28",
+      "id" : 2219759,
+      "parent" : 2163508
+    },
+    {
+      "author_name" : "BOND",
+      "content" : {
+        "rendered" : "<p>Hey Kevin V, Did you  book a fully refundable Chase travel item like a flight ticket and then later cancel?  I think it common to cancel flight tickets.</p>\n"
+      },
+      "date_gmt" : "2026-01-01T20:00:43",
+      "id" : 2219763,
+      "parent" : 2219723
+    },
+    {
+      "author_name" : "Kevin V",
+      "content" : {
+        "rendered" : "<p>I booked refundable hotels.</p>\n"
+      },
+      "date_gmt" : "2026-01-01T20:09:42",
+      "id" : 2219768,
+      "parent" : 2219763
+    },
+    {
+      "author_name" : "Kevin V",
+      "content" : {
+        "rendered" : "<p>Fully refundable hotels.</p>\n"
+      },
+      "date_gmt" : "2026-01-01T20:10:03",
+      "id" : 2219769,
+      "parent" : 2219747
+    },
+    {
+      "author_name" : "Silly Goose",
+      "content" : {
+        "rendered" : "<p>I have am a new Chase Depost+Flex card customer as of Sept. I haven&#8217;t used Chase travel and am not seeing the offer anywhere.</p>\n"
+      },
+      "date_gmt" : "2026-01-01T20:40:28",
+      "id" : 2219785,
+      "parent" : 2219701
+    },
+    {
+      "author_name" : "Munna",
+      "content" : {
+        "rendered" : "<p>Lmfao</p>\n"
+      },
+      "date_gmt" : "2026-01-01T21:21:26",
+      "id" : 2219813,
+      "parent" : 2219756
+    },
+    {
+      "author_name" : "Tiffany",
+      "content" : {
+        "rendered" : "<p>Got this exact offer on 2 Freedom and 1 Freedom Unlimited cards.</p>\n"
+      },
+      "date_gmt" : "2026-01-01T23:34:35",
+      "id" : 2219873,
+      "parent" : 2219717
+    },
+    {
+      "author_name" : "JC",
+      "content" : {
+        "rendered" : "<p>I have this offer on 5 cards (1 CSP, 1 CFU, 2 CFFLEX, 1 CF). Would it get flagged if I booked and ended up having to cancel&#8230;</p>\n"
+      },
+      "date_gmt" : "2026-01-02T03:19:39",
+      "id" : 2219950,
+      "parent" : 0
+    },
+    {
+      "author_name" : "KE",
+      "content" : {
+        "rendered" : "<p>If you keep a negative balance for a few months, they will cut you a check.</p>\n"
+      },
+      "date_gmt" : "2026-01-02T05:39:39",
+      "id" : 2220001,
+      "parent" : 2219759
+    },
+    {
+      "author_name" : "zerosum",
+      "content" : {
+        "rendered" : "<p>Ive done it on several cards last time but i dont have this offer now so its possible they noticed or im just unlucky this round to not get it.</p>\n"
+      },
+      "date_gmt" : "2026-01-02T11:21:36",
+      "id" : 2220056,
+      "parent" : 2219950
+    },
+    {
+      "author_name" : "Brian Copeland",
+      "content" : {
+        "rendered" : "<p>Used it last quarter on my CFF, got it again this quarter. Don&#8217;t plan to use it though.</p>\n"
+      },
+      "date_gmt" : "2026-01-02T14:35:41",
+      "id" : 2220101,
+      "parent" : 0
+    },
+    {
+      "author_name" : "mike",
+      "content" : {
+        "rendered" : "<p>doe sit still work to cancel once posted and receive the 100 credit?</p>\n"
+      },
+      "date_gmt" : "2026-01-02T15:14:22",
+      "id" : 2220117,
+      "parent" : 0
+    },
+    {
+      "author_name" : "LP",
+      "content" : {
+        "rendered" : "<p>Hopefully nobody makes the same mistake I did. I have the $100 portal credit offer and still haven&#8217;t used my $500 portal discount/credit from the SUB. I had $1,000 in flights to book, so I was pumped I&#8217;d save $600 on them. But after seeing the $1k drop to $500 after the $500 portal discount, I&#8217;m afraid the transaction won&#8217;t trigger the additional $100 offer, as that&#8217;s based on the value of what&#8217;s charged to the card, not based on the value of travel booked through the portal.</p>\n"
+      },
+      "date_gmt" : "2026-01-02T16:04:31",
+      "id" : 2220160,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Matty",
+      "content" : {
+        "rendered" : "<p>Got it on 5 cards in 2025, and used them all. Zero this time &#8212; I think they&#8217;re on to me.</p>\n"
+      },
+      "date_gmt" : "2026-01-02T16:18:47",
+      "id" : 2220169,
+      "parent" : 0
+    },
+    {
+      "author_name" : "400lux",
+      "content" : {
+        "rendered" : "<p>1/1 on my relatively new CSR.</p>\n"
+      },
+      "date_gmt" : "2026-01-02T16:22:47",
+      "id" : 2220171,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Guevara1987",
+      "content" : {
+        "rendered" : "<p>Same here. Just like those AT&amp;T offers.</p>\n"
+      },
+      "date_gmt" : "2026-01-02T16:25:55",
+      "id" : 2220175,
+      "parent" : 2220169
+    },
+    {
+      "author_name" : "John John",
+      "content" : {
+        "rendered" : "<p>Completely normal to have plans change. My plans usually change when the transaction posts.</p>\n"
+      },
+      "date_gmt" : "2026-01-02T20:24:11",
+      "id" : 2220449,
+      "parent" : 2219723
+    },
+    {
+      "author_name" : "John John",
+      "content" : {
+        "rendered" : "<p>Nah, just keeping negative balance. Don&#8217;t want to bring attention to accounts with refund checks.</p>\n"
+      },
+      "date_gmt" : "2026-01-02T20:30:57",
+      "id" : 2220456,
+      "parent" : 2163508
+    },
+    {
+      "author_name" : "NomadicWays",
+      "content" : {
+        "rendered" : "<p>Damn. Sorry for that loss. Chin up now!</p>\n"
+      },
+      "date_gmt" : "2026-01-02T21:37:54",
+      "id" : 2220525,
+      "parent" : 2220160
+    },
+    {
+      "author_name" : "IndyJones",
+      "content" : {
+        "rendered" : "<p>I don&#8217;t think so, I got this on my CSR which I used to book The Edit travel last year (via the portal). I also had this offer in Oct/Nov last year and used it and cancelled my portal booking (still received the credit).</p>\n"
+      },
+      "date_gmt" : "2026-01-03T01:03:34",
+      "id" : 2220709,
+      "parent" : 2219701
+    },
+    {
+      "author_name" : "goexplorer",
+      "content" : {
+        "rendered" : "<p>Before my cards said to book by 1/31/2026 but expired 3/31/2026. The offer fine print has now updated to allow booking by 3/31/2026 so I wonder if there was a typo that got fixed</p>\n"
+      },
+      "date_gmt" : "2026-01-04T21:21:41",
+      "id" : 2221492,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Pam",
+      "content" : {
+        "rendered" : "<p>&amp; American Home Shield</p>\n"
+      },
+      "date_gmt" : "2026-01-05T21:43:34",
+      "id" : 2222228,
+      "parent" : 2220175
+    },
+    {
+      "author_name" : "400lux",
+      "content" : {
+        "rendered" : "<p>Also in this same boat. Going to try the transaction anyways cause the deal is so good and report back if it comes thru or not. I am stacking the Edit $250 + the 2026 special hotels $250 which brings me below the $600 I would need to spend &#8220;after discounts&#8221; according to the promo.</p>\n"
+      },
+      "date_gmt" : "2026-01-07T02:32:28",
+      "id" : 2223318,
+      "parent" : 2220160
+    },
+    {
+      "author_name" : "Bill",
+      "content" : {
+        "rendered" : "<p>My offer says travel can occur beyond the offer expiration date so long as the transaction occurs by <span>3/31/26.</span></p>\n<p><span>I paid $601 (plus points) for a hotel on my CSR which will count towards the $250 Edit and $250 IHG credits. Hopefully all the credits get applied.</span></p>\n"
+      },
+      "date_gmt" : "2026-01-12T16:53:58",
+      "id" : 2227363,
+      "parent" : 0
+    },
+    {
+      "author_name" : "attitude2006",
+      "content" : {
+        "rendered" : "<p>I will try this and see if it works.</p>\n"
+      },
+      "date_gmt" : "2026-02-02T12:50:27",
+      "id" : 2245250,
+      "parent" : 0
+    },
+    {
+      "author_name" : "potato-cat",
+      "content" : {
+        "rendered" : "<p>Not targeted 🙁</p>\n"
+      },
+      "date_gmt" : "2026-02-18T20:54:47",
+      "id" : 2259413,
+      "parent" : 0
+    },
+    {
+      "author_name" : "ctj",
+      "content" : {
+        "rendered" : "<p>i took one of these offers a couple of months ago. my observations:</p>\n<ul>\n<li>taking the $100 offer maybe saved me $20-$30, because chase travel&#8217;s upfront cost seemed more than i would have paid by booking directly with the hotel.</li>\n<li>but i really don&#8217;t know, because chase&#8217;s receipts made little sense to me. </li>\n<li>chase made me pay part upfront and part at the time of stay. i have no idea if they would have denied the $100 credit if the second charge did not exceed $600.</li>\n</ul>\n"
+      },
+      "date_gmt" : "2026-02-18T22:22:12",
+      "id" : 2259508,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Weapon",
+      "content" : {
+        "rendered" : "<p>Damn. Why can’t this be on my CSR?</p>\n"
+      },
+      "date_gmt" : "2026-02-19T00:59:09",
+      "id" : 2259611,
+      "parent" : 0
+    },
+    {
+      "author_name" : "SJ",
+      "content" : {
+        "rendered" : "<p>Same here. Only on CSP, not on CSR. I never seem to be targeted for anything good anyway….oh well!</p>\n"
+      },
+      "date_gmt" : "2026-02-19T01:34:52",
+      "id" : 2259642,
+      "parent" : 2259611
+    },
+    {
+      "author_name" : "Stacy",
+      "content" : {
+        "rendered" : "<p>Anyone ever get targeted a 2nd time?  I burned through a bunch of these a while back and not targeted anytime after that.</p>\n"
+      },
+      "date_gmt" : "2026-02-19T04:24:08",
+      "id" : 2259784,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Matty",
+      "content" : {
+        "rendered" : "<p>Yes. They do come back around, though it can take some time.</p>\n"
+      },
+      "date_gmt" : "2026-02-19T04:44:24",
+      "id" : 2259801,
+      "parent" : 2259784
+    },
+    {
+      "author_name" : "inMD",
+      "content" : {
+        "rendered" : "<p>thanks for sharing your experience</p>\n"
+      },
+      "date_gmt" : "2026-02-19T05:30:12",
+      "id" : 2259827,
+      "parent" : 2259508
+    },
+    {
+      "author_name" : "Romsdeals",
+      "content" : {
+        "rendered" : "<p>Does anyone know if you add a tour for $16 as a filler to exceed $600 will it trigger the bonus? Hotel is $590.</p>\n"
+      },
+      "date_gmt" : "2026-02-19T14:26:26",
+      "id" : 2259974,
+      "parent" : 0
+    },
+    {
+      "author_name" : "ST",
+      "content" : {
+        "rendered" : "<p>I did this last time on my CSR.  Ended up needing to cancel the trip and refunded, but the $100 credit was not clawed back.  I canceled after the statement period closed with the purchase and credit, if that matters.  I now have the offers again on other cards (Freedom).</p>\n"
+      },
+      "date_gmt" : "2026-02-19T14:45:15",
+      "id" : 2259989,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Chris",
+      "content" : {
+        "rendered" : "<p>How easy was the cancellation and refund process? What airline and flight class did you book?</p>\n"
+      },
+      "date_gmt" : "2026-02-20T18:19:07",
+      "id" : 2261131,
+      "parent" : 2259989
+    },
+    {
+      "author_name" : "BJ",
+      "content" : {
+        "rendered" : "<p>Mine is $50 off $600 on my CFF</p>\n"
+      },
+      "date_gmt" : "2026-04-01T16:44:51",
+      "id" : 2289283,
+      "parent" : 0
+    },
+    {
+      "author_name" : "MP-The-Law",
+      "content" : {
+        "rendered" : "<p>Great if you have it on the CFF, stacked with 9x UR is pretty fantastic.</p>\n"
+      },
+      "date_gmt" : "2026-04-01T16:49:07",
+      "id" : 2289287,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Olympia",
+      "content" : {
+        "rendered" : "<p>Did you happen to use the Edit credit or the other hotel credit with it (IHG, Virgin, etc.)?  If so, was that a pain to get back?  Thanks!</p>\n"
+      },
+      "date_gmt" : "2026-04-01T16:49:41",
+      "id" : 2289289,
+      "parent" : 2259989
+    },
+    {
+      "author_name" : "Olympia",
+      "content" : {
+        "rendered" : "<p>I think it&#8217;s just travel, not hotel specific.</p>\n"
+      },
+      "date_gmt" : "2026-04-01T16:50:17",
+      "id" : 2289292,
+      "parent" : 2259974
+    },
+    {
+      "author_name" : "Nathew",
+      "content" : {
+        "rendered" : "<p>Can you share where you see offer?</p>\n"
+      },
+      "date_gmt" : "2026-04-01T17:20:47",
+      "id" : 2289319,
+      "parent" : 2289283
+    },
+    {
+      "author_name" : "Minnu",
+      "content" : {
+        "rendered" : "<p>Nothing for me.churn attemplt 3 failed.</p>\n"
+      },
+      "date_gmt" : "2026-04-01T17:45:12",
+      "id" : 2289349,
+      "parent" : 0
+    },
+    {
+      "author_name" : "BJ",
+      "content" : {
+        "rendered" : "<p>On my CFF</p>\n"
+      },
+      "date_gmt" : "2026-04-01T18:51:34",
+      "id" : 2289411,
+      "parent" : 2289319
+    },
+    {
+      "author_name" : "Nathew",
+      "content" : {
+        "rendered" : "<p>Like in the merchant offers sections?</p>\n"
+      },
+      "date_gmt" : "2026-04-01T19:27:27",
+      "id" : 2289453,
+      "parent" : 2289411
+    },
+    {
+      "author_name" : "BJ",
+      "content" : {
+        "rendered" : "<p>Yes. I had the $100 off $600 last quarter. Was hoping it would renew for the same amount</p>\n"
+      },
+      "date_gmt" : "2026-04-01T20:20:53",
+      "id" : 2289512,
+      "parent" : 2289453
+    },
+    {
+      "author_name" : "Nathew",
+      "content" : {
+        "rendered" : "<p>Gotcha, thanks. Haven&#8217;t had Chase Travel offer this year unfortunately. I&#8217;ll wait and see what pops up.</p>\n"
+      },
+      "date_gmt" : "2026-04-01T20:44:21",
+      "id" : 2289532,
+      "parent" : 2289512
+    },
+    {
+      "author_name" : "pierre",
+      "content" : {
+        "rendered" : "<p>also, if you book thru chase can you get the hotel/airline status? i don&#8217;t think&#8230;.</p>\n"
+      },
+      "date_gmt" : "2026-04-05T22:09:45",
+      "id" : 2292211,
+      "parent" : 2259508
+    },
+    {
+      "author_name" : "Casey",
+      "content" : {
+        "rendered" : "<p>I got the last one on 6 cards (CF 3x, CFF, CFU, CSP) and used them all right at the end of March. Surprisingly I got the new one on 5 of those cards (all but the CSP). I used them too but now I don&#8217;t see the offer in my saved offers any more. Not sure if they got removed from my account or if it&#8217;s just a weird intermediate state after using them.</p>\n"
+      },
+      "date_gmt" : "2026-04-07T16:23:28",
+      "id" : 2293496,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Chris",
+      "content" : {
+        "rendered" : "<p>Didn&#8217;t realize this was a thing until recently when starting to plan a big trip. Got it on Freedom but not CSR. Relative doesn&#8217;t have it on either of their cards CF or CFU.</p>\n<p>Nice that it hit my Freedom so I can combine it with 5% back on Chase Travel this quarter.</p>\n"
+      },
+      "date_gmt" : "2026-06-23T05:30:24",
+      "id" : 2350429,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Jarrett",
+      "content" : {
+        "rendered" : "<p>This offer is back.  Was able to add it to:</p>\n<p>Freedom<br />\nFreedom Flex<br />\nFreedom Unlimited<br />\nInk Business Cash<br />\nInk Preferred</p>\n<p>(was not on CSR)</p>\n<p>Offer Terms:</p>\n<p><span>&#8220;Get $100 back when you spend $600+ through Chase Travel in a single transaction.&#8221;</span></p>\n<p><span>&#8220;Qualifying transaction must be made during the offer period of 07/01/2026 to 09/30/2026. A minimum spend of $600 must be met in a single transaction, including taxes and after discounts, on your eligible card; multiple transactions totaling $600 do not qualify. Offer valid one time only. Offer only valid on purchase made directly with Chase Travel. Offer not valid on purchase made using third-party services, delivery services, gift cards, or third-party payment accounts (e.g. buy now pay later). If purchase is made using a combination of cash and Ultimate Rewards points, at least $600 of the purchase must be transacted with an eligible card to qualify.</span></p>\n<p><span>Travel can occur beyond offer expiration, so long as qualifying transaction is made prior to 09/30/2026 11:59PM PST.&#8221;</span></p>\n"
+      },
+      "date_gmt" : "2026-07-02T15:01:20",
+      "id" : 2357162,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Minnu",
+      "content" : {
+        "rendered" : "<p>Did any1 receive this offer more than 2 times?</p>\n"
+      },
+      "date_gmt" : "2026-07-03T15:17:42",
+      "id" : 2358399,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Kevin V",
+      "content" : {
+        "rendered" : "<p>Had this offer on both my CFU and CSP cards the last two rounds, but nothing this time. Guess they didn&#8217;t like me booking hotels than cancelling after getting the credits.</p>\n"
+      },
+      "date_gmt" : "2026-07-03T15:17:54",
+      "id" : 2358400,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Bill R",
+      "content" : {
+        "rendered" : "<p>I hope they never offer anything further to you again, ever. What you did was fraud pretty much. This is why nice things don&#8217;t last, because frauds like you exist to abuse things.</p>\n"
+      },
+      "date_gmt" : "2026-07-03T15:45:12",
+      "id" : 2358420,
+      "parent" : 2358400
+    },
+    {
+      "author_name" : "Private",
+      "content" : {
+        "rendered" : "<p>Did you have the offer, again, now?</p>\n"
+      },
+      "date_gmt" : "2026-07-03T15:45:15",
+      "id" : 2358421,
+      "parent" : 2259989
+    },
+    {
+      "author_name" : "David",
+      "content" : {
+        "rendered" : "<p>P2 had this on 3 cards.<br />\nI never get this offer for some unknown reason.<br />\nOn the other hand I had 3 Paze 50 off 100 offers while P2 never had it.</p>\n<p>Not sure what criteria Chase used to add those offers.</p>\n"
+      },
+      "date_gmt" : "2026-07-03T15:56:44",
+      "id" : 2358433,
+      "parent" : 0
+    },
+    {
+      "author_name" : "em",
+      "content" : {
+        "rendered" : "<p>Same on mine and P2. The only exception that i can say is mine gets used a lot while P2 hardly uses it.</p>\n"
+      },
+      "date_gmt" : "2026-07-03T16:00:28",
+      "id" : 2358438,
+      "parent" : 2358433
+    },
+    {
+      "author_name" : "Kaiki",
+      "content" : {
+        "rendered" : "<p>Oops did not mean to reply here</p>\n"
+      },
+      "date_gmt" : "2026-07-03T19:00:46",
+      "id" : 2358573,
+      "parent" : 2358400
+    },
+    {
+      "author_name" : "Matty",
+      "content" : {
+        "rendered" : "<p>Sir, this is a Wendy’s.</p>\n"
+      },
+      "date_gmt" : "2026-07-03T19:00:57",
+      "id" : 2358574,
+      "parent" : 2358420
+    },
+    {
+      "author_name" : "Kaiki",
+      "content" : {
+        "rendered" : "<p>Got this on my CFU. Just applied and got my CSP maybe two-three weeks ago? But offer is not on CSP. I have a small trip coming up that I was planning to use my CSP for to help meet the sub. Any chance chase would extend the offer to my CSP if I called and asked? And would the $100 hotel credit make it so I have to spend $700 instead of $600?</p>\n"
+      },
+      "date_gmt" : "2026-07-03T19:01:50",
+      "id" : 2358575,
+      "parent" : 0
+    },
+    {
+      "author_name" : "LDoc 🔗",
+      "content" : {
+        "rendered" : "<p>Yes. I received this offer before (exp 6/30) and it showed up again this month on multiple cards. I did not use the offer prior so maybe Chase renews/extends it.</p>\n"
+      },
+      "date_gmt" : "2026-07-03T20:13:57",
+      "id" : 2358615,
+      "parent" : 2358399
+    },
+    {
+      "author_name" : "LDoc 🔗",
+      "content" : {
+        "rendered" : "<p>I received this offer last month on multiple cards and then again this month.</p>\n"
+      },
+      "date_gmt" : "2026-07-03T20:14:33",
+      "id" : 2358616,
+      "parent" : 0
+    },
+    {
+      "author_name" : "ST",
+      "content" : {
+        "rendered" : "<p>Has anyone who has <strong>redeemed </strong>this offer in the past been targeted again?  If so, did the offer appear on the same card or different?</p>\n"
+      },
+      "date_gmt" : "2026-07-03T21:17:26",
+      "id" : 2358667,
+      "parent" : 0
+    },
+    {
+      "author_name" : "ST",
+      "content" : {
+        "rendered" : "<p>Might be worth stating there&#8217;s new terms and conditions since the first version, including: &#8220;<span>Abuse of offers may result in exclusion from future offers.&#8221;  </span></p>\n"
+      },
+      "date_gmt" : "2026-07-03T21:32:11",
+      "id" : 2358679,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Kevin V",
+      "content" : {
+        "rendered" : "<p>By your definition then the whole churning community (including users of this site) is committing fraud on a hourly basis. It must be really hard for a honorable person like you to be on here with us frauds.</p>\n"
+      },
+      "date_gmt" : "2026-07-03T21:42:43",
+      "id" : 2358688,
+      "parent" : 2358420
+    },
+    {
+      "author_name" : "Chris",
+      "content" : {
+        "rendered" : "<p>I booked something on June 30th but it posted late on July 1st and didn’t count so I thought I lost the offer, but just checked and got a new offer on my account again. Probably going to cancel my old booking and rebook again.</p>\n"
+      },
+      "date_gmt" : "2026-07-03T21:56:11",
+      "id" : 2358703,
+      "parent" : 2358615
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Added</p>\n"
+      },
+      "date_gmt" : "2026-07-03T21:57:31",
+      "id" : 2358705,
+      "parent" : 2358679
+    },
+    {
+      "author_name" : "Bill R",
+      "content" : {
+        "rendered" : "<p>This is not churning &#8211; you get a sign-up bonus for opening a card and spending x. People open a card, spend X and get a bonus. Pretty staight.</p>\n<p>Definition of fraud: &#8220;an act of deceiving or misrepresenting&#8221;.</p>\n<p>This literally says spend $600 and you get $100. But you didn&#8217;t spend $600, you spent $0 and took advantage of free cancellation and to pocket $100.</p>\n<p>I&#8217;m sorry it&#8217;s so hard for you to be a decent human being and not commit fraud.</p>\n"
+      },
+      "date_gmt" : "2026-07-03T22:37:04",
+      "id" : 2358733,
+      "parent" : 2358688
+    },
+    {
+      "author_name" : "Kevin V",
+      "content" : {
+        "rendered" : "<p>I did spend $600. It was within my rights to cancel my bookings and get a refund for whatever reason, just like it was their rights to not offer me future deals. There is literally no misrepresentation or deception involved. It&#8217;s not on me if they decided not to claw back the credit.</p>\n<p>And yes, it&#8217;s exactly the same in nature in churning. The point of &#8216;churning&#8217; is to open banks account for the sole purpose of bonuses. You pretend to be a customer interested in their products, but you just close the account after getting the money and move on to the next one, or reapply next year. Not to mention creative ways to bypass direct deposit requirement and manufactured spending to meet sub requirement. You think it is the bank&#8217;s intention to pay people $200-300 a year for a couple of fake DDs? And it&#8217;s somehow more honest and upright than cancelling a hotel booking? You&#8217;re full of shit.</p>\n<p>If it&#8217;s some unicorns who never take advantage of a deal calling me out, then fair enough. But if you are on this site, then you also seek to abuse the system one way or another for personal benefit, so get off your high horse, you hypocrite.</p>\n"
+      },
+      "date_gmt" : "2026-07-03T23:46:03",
+      "id" : 2358781,
+      "parent" : 2358733
+    },
+    {
+      "author_name" : "JW in GA",
+      "content" : {
+        "rendered" : "<p>Yes, I redeemed it on Chase Ink Preferred last month and got it again on that card (along with several other Chase cards where I did NOT redeem it).</p>\n"
+      },
+      "date_gmt" : "2026-07-04T13:13:23",
+      "id" : 2358993,
+      "parent" : 2358667
+    },
+    {
+      "author_name" : "Bill R",
+      "content" : {
+        "rendered" : "<p>Lol you did not spend anything &#8211; you charged $600 with the intention of getting it refunded by fraudulently taking advantage of the offer. </p>\n<p>&#8220;<span>There is literally no misrepresentation or deception involved. It’s not on me if they decided not to claw back the credit.&#8221;</span></p>\n<p>Exactly what a fraud would say. Just because they didn&#8217;t recover does not mean you didn&#8217;t commit fraud, frauster. </p>\n<p>I&#8217;m not a churner, but the churners aren&#8217;t committing any fraud, the sign-up bonus is for opening a card and spending X. Which they do. That&#8217;s literally the terms, nothing more. </p>\n<p>Your deal&#8217;s terms say spend $600 get $100. You don&#8217;t actually spend (you&#8217;re just deceiving) &#8211; and pocket the reward. That&#8217;s fraud, fraudster. lol and looks like Chase agrees and shut you out (I hope they blacklist you for any future subs or offers, you kinda deserve it). </p>\n<p>This site gives you news about deals but also about airlines, travel etc &#8211; that&#8217;s why I&#8217;m here. The fact that in your mind you can&#8217;t comprehend people can exist without comitting fraud is kind of your sad problem. </p>\n<p>I could not care less about this, but i truely do beleive people like you should be shame by society. $100 isn&#8217;t going to make you rich, you can easily not commit fraud. </p>\n<p>If you really think you&#8217;re doing some honorable thing, tell exactly what you did to your young children or a room full of your church attendends, or people you respect and see how they will respond. Will tell you exactly what the act entails.</p>\n"
+      },
+      "date_gmt" : "2026-07-04T14:40:50",
+      "id" : 2359022,
+      "parent" : 2358781
+    },
+    {
+      "author_name" : "Leon",
+      "content" : {
+        "rendered" : "<p>I&#8217;ve redeemed this offer on my Freedom Flex last year around April/May then got it again around Aug/Sept but it expired before I could use it again. I have not seen  the offer on any of my other cards since though.</p>\n"
+      },
+      "date_gmt" : "2026-07-04T21:14:19",
+      "id" : 2359224,
+      "parent" : 2358667
+    },
+    {
+      "author_name" : "jr",
+      "content" : {
+        "rendered" : "<p>So curious to know what &#8220;abuse&#8221; is in this sense. 🤔</p>\n"
+      },
+      "date_gmt" : "2026-07-05T14:24:40",
+      "id" : 2359467,
+      "parent" : 2358679
+    },
+    {
+      "author_name" : "ShawntheShawn👈🏾",
+      "content" : {
+        "rendered" : "<p>Book, receive credit, cancel the booking?</p>\n"
+      },
+      "date_gmt" : "2026-07-05T14:34:52",
+      "id" : 2359475,
+      "parent" : 2359467
+    },
+    {
+      "author_name" : "CW",
+      "content" : {
+        "rendered" : "<p>Delete</p>\n"
+      },
+      "date_gmt" : "2026-07-05T20:04:05",
+      "id" : 2359643,
+      "parent" : 2358679
+    },
+    {
+      "author_name" : "PS",
+      "content" : {
+        "rendered" : "<p>No they won&#8217;t extend the offer to another card if you ask them to. It&#8217;s targeted by card. Spend is $600, the $100 comes later as a statement credit.</p>\n"
+      },
+      "date_gmt" : "2026-07-07T02:08:50",
+      "id" : 2360525,
+      "parent" : 2358575
+    },
+    {
+      "author_name" : "Hambone",
+      "content" : {
+        "rendered" : "<p>pretzel logic to justify what is clearly outright fraud.  Shame on you</p>\n"
+      },
+      "date_gmt" : "2026-07-07T19:33:57",
+      "id" : 2361027,
+      "parent" : 2358781
+    },
+    {
+      "author_name" : "Penny",
+      "content" : {
+        "rendered" : "<p>I added this deal in my Freedom Unlimited, and made a $625 purchase in Chase travel in a single transaction. However I don&#8217;t see any bonus rewards after the transaction is posted. Reached out to customer service in secure message, and they told me I did not meet the requirement because the deal was not added. I&#8217;m absolutely certain I added the deal before the purchase, but I have no proof now, because the deal has just disappeared from my online account when I checked today (it was still there yesterday)! What should I do and what did I do wrong?<br />\nHow and when do people receive the bonus rewards after the transaction?</p>\n"
+      },
+      "date_gmt" : "2026-07-21T16:29:20",
+      "id" : 2371943,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Worth noting Chase has used this language before: <a href=\"https://www.doctorofcredit.com/chase-dont-return-items-on-chase-offers-or-we-will-claw-your-bonus-back/\" rel=\"ugc\">https://www.doctorofcredit.com/chase-dont-return-items-on-chase-offers-or-we-will-claw-your-bonus-back/</a></p>\n"
+      },
+      "date_gmt" : "2026-07-23T10:19:22",
+      "id" : 2373446,
+      "parent" : 2358679
+    },
+    {
+      "author_name" : "pprogram",
+      "content" : {
+        "rendered" : "<p>When you use an offer, it disappears from the available screen.  They likely looked at the same screen.  If you added it, the $ 100 credit should appear in a few days.</p>\n"
+      },
+      "date_gmt" : "2026-07-24T17:10:17",
+      "id" : 2374416,
+      "parent" : 2371943
+    },
+    {
+      "author_name" : "Penny",
+      "content" : {
+        "rendered" : "<p>Thank you so much for your insight! That seems to be exactly what was happening. I just got the $100 rewards confirmed in an automated email and the deal reappeared in redeemed offers. The customer support seemed to be clueless!</p>\n"
+      },
+      "date_gmt" : "2026-07-24T17:51:51",
+      "id" : 2374449,
+      "parent" : 2374416
+    },
+    {
+      "author_name" : "Daze",
+      "content" : {
+        "rendered" : "<p>Could you provide more details that this one. I didn&#8217;t missed their cancellation policy when looking over the order.</p>\n"
+      },
+      "date_gmt" : "2026-08-06T22:19:51",
+      "id" : 2384122,
+      "parent" : 2222228
+    },
+    {
+      "author_name" : "PoopBerry",
+      "content" : {
+        "rendered" : "<p>Checked all my chase cards and don&#8217;t see it 🙁</p>\n"
+      },
+      "date_gmt" : "2026-09-16T18:43:51",
+      "id" : 2414073,
+      "parent" : 0
+    },
+    {
+      "author_name" : "kristin",
+      "content" : {
+        "rendered" : "<p>have you tried using the bonus on multiple cards? I&#8217;m buying family flights and have the offer on about 4 different cards &#8211; can I buy each flight separately using one of the offers and get the $100 rebate x 4?</p>\n"
+      },
+      "date_gmt" : "2026-09-16T20:08:29",
+      "id" : 2414174,
+      "parent" : 2357162
+    },
+    {
+      "author_name" : "tyty",
+      "content" : {
+        "rendered" : "<p>newest version is only for CSRs opened 2016 and never product changed</p>\n"
+      },
+      "date_gmt" : "2026-09-16T20:46:07",
+      "id" : 2414218,
+      "parent" : 0
+    },
+    {
+      "author_name" : "randomguy",
+      "content" : {
+        "rendered" : "<p>It is only fraud if you are a peasant (like us)<br />\nBig guys have lawyers to prevent anyone from calling them a fraud.</p>\n"
+      },
+      "date_gmt" : "2026-09-16T21:30:13",
+      "id" : 2414264,
+      "parent" : 2359022
+    },
+    {
+      "author_name" : "Tom",
+      "content" : {
+        "rendered" : "<p>Act idea if I can do a flight and hotel on the save checkout so the total is above 600 and get the credit or if that two transactions?</p>\n"
+      },
+      "date_gmt" : "2026-09-17T02:54:06",
+      "id" : 2414513,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Mat",
+      "content" : {
+        "rendered" : "<p>I have it on every other chase card except on my Sapphire Reserve where it matters the most. SMH</p>\n"
+      },
+      "date_gmt" : "2026-09-17T03:17:40",
+      "id" : 2414534,
+      "parent" : 0
+    },
+    {
+      "author_name" : "David",
+      "content" : {
+        "rendered" : "<p>No idea what criteria they used.  P2 got this on 3 cards last year but I never get this offer so far.  I did get the Paze 50 off 100 on 3 cards though, P2 never get that Paze offer.</p>\n"
+      },
+      "date_gmt" : "2026-09-17T15:48:06",
+      "id" : 2414852,
+      "parent" : 0
+    },
+    {
+      "author_name" : "John DOE",
+      "content" : {
+        "rendered" : "<p>Spent $600, cancel and Refund to Credit. Now u spent $600 to buy 600 credit UA</p>\n"
+      },
+      "date_gmt" : "2026-09-18T17:46:43",
+      "id" : 2415985,
+      "parent" : 2359022
+    },
+    {
+      "author_name" : "Khakaan",
+      "content" : {
+        "rendered" : "<p>How long after your travel portal purchase did the $100 post?</p>\n"
+      },
+      "date_gmt" : "2026-09-29T16:50:10",
+      "id" : 2423475,
+      "parent" : 2374449
+    }
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "316",
+    "x-wp-totalpages" : "4"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/comments?post=229112&per_page=100&page=3&order=asc&orderby=date_gmt&_fields=id,parent,author_name,date_gmt,content"
+}

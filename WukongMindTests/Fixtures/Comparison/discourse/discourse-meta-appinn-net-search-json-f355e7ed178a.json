@@ -1,0 +1,31 @@
+{
+  "body" : {
+    "posts" : [
+      {
+        "blurb" : "昨天收拾书房，把NAS换了一个位置，断电的时候扫了一下风扇和顶部的灰，没打开，然后再上电就启动不了了，启动的时候硬盘灯也闪，然后就断电了，要怎么办？",
+        "id" : 334079,
+        "post_number" : 1,
+        "topic_id" : 88672,
+        "username" : "hikingbear"
+      }
+    ],
+    "topics" : [
+      {
+        "bumped_at" : "2026-07-23T14:34:37.830Z",
+        "fancy_title" : "求助！群晖NAS DS920+启动不了",
+        "has_accepted_answer" : true,
+        "id" : 88672,
+        "last_posted_at" : "2026-07-23T14:34:37.830Z",
+        "pinned" : false,
+        "posts_count" : 4,
+        "slug" : "topic",
+        "title" : "求助！群晖NAS DS920+启动不了"
+      }
+    ]
+  },
+  "headers" : {
+    "content-type" : "application/json; charset=utf-8"
+  },
+  "status" : 200,
+  "url" : "https://meta.appinn.net/search.json?q=%E7%BE%A4%E6%99%96%20NAS%20after:2026-01-01%20status:solved"
+}

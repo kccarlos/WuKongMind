@@ -1,0 +1,848 @@
+{
+  "body" : [
+    {
+      "author_name" : "J",
+      "content" : {
+        "rendered" : "<p>They don’t. Fidelity for example requires assets under active management to get more than 2% on their card</p>\n"
+      },
+      "date_gmt" : "2025-03-14T01:00:28",
+      "id" : 2022474,
+      "parent" : 2022297
+    },
+    {
+      "author_name" : "Good Cow",
+      "content" : {
+        "rendered" : "<p>It&#8217;ll probably be gone for existing cardholders. Wouldn&#8217;t make sense otherwise so the abusers, which caused the card to be discontinued, can continue the abuse the card?</p>\n"
+      },
+      "date_gmt" : "2025-03-14T01:00:56",
+      "id" : 2022475,
+      "parent" : 2022420
+    },
+    {
+      "author_name" : "Chad",
+      "content" : {
+        "rendered" : "<p>1. I think they don&#8217;t think it through.<br />\n2, I bet more AUM is good for them to state<br />\n3, They probably generate such a huge amount of their revenue from high net worth clients that getting people with at least a bit of money to drop with them is a good start.</p>\n"
+      },
+      "date_gmt" : "2025-03-14T01:03:56",
+      "id" : 2022476,
+      "parent" : 2022297
+    },
+    {
+      "author_name" : "Chad",
+      "content" : {
+        "rendered" : "<p>Not if they maintain the card for a certain time for existing users. Changing the offer or removing the offer would leave them in the clear.</p>\n"
+      },
+      "date_gmt" : "2025-03-14T01:04:38",
+      "id" : 2022479,
+      "parent" : 2022294
+    },
+    {
+      "author_name" : "Terry",
+      "content" : {
+        "rendered" : "<p>This isn’t even close to the best everyday card and the people taking advantage of it are not at all the same people you’re referring to.</p>\n<p>There is a whole world of information to explore in order to generate way more cashback and it’s nobodies fault but your own that you are complaining in a blog post instead of spending your time connecting and learning things.</p>\n"
+      },
+      "date_gmt" : "2025-03-14T01:16:27",
+      "id" : 2022484,
+      "parent" : 2022358
+    },
+    {
+      "author_name" : "Chad",
+      "content" : {
+        "rendered" : "<p>Yeah, priceline purchases get 5% back and let you redeem at 1.5 cpp. Airline purchases from the airline&#8217;s website also code at 1.5 cpp redemption. All redemptions on travel purchases get you 10% in points redeemed. You can finagle the math here, but:</p>\n<p>$100k in ordinary purchases= 200k points<br />\n200k points*1.5cpp= $3,000 in priceline rewards comped<br />\n$3000 in priceline rewards purchases(5x)= 15k points<br />\n200k points redeemed means 10% back=20k points<br />\n(15k+20k)=35k points redeemed at 1.5cpp= $525 priceline rewards comped<br />\n$525 priceline purchases (5x)=2625 points<br />\n35k points redeemed means 10% back=3.5k<br />\n(2625+3500)=6125 points=$91.87 in priceline points<br />\nAnd so on and so on, but that means:</p>\n<p>100k in purchases gets $3000+$525+91.87&#8230;.3616.87 (and more) rewards, so 3.6%+. You do need to be organically valuing Priceline Express deals, but honestly I do, they&#8217;re some of the best deals out there especially stacked with Rakuten and coupons.</p>\n"
+      },
+      "date_gmt" : "2025-03-14T01:17:34",
+      "id" : 2022486,
+      "parent" : 2022386
+    },
+    {
+      "author_name" : "Midnight",
+      "content" : {
+        "rendered" : "<p>That card was eventually elimated after being discontinued.</p>\n"
+      },
+      "date_gmt" : "2025-03-14T01:26:45",
+      "id" : 2022488,
+      "parent" : 2022420
+    },
+    {
+      "author_name" : "Adam",
+      "content" : {
+        "rendered" : "<p>We’re the cheese</p>\n"
+      },
+      "date_gmt" : "2025-03-14T02:49:02",
+      "id" : 2022517,
+      "parent" : 2022384
+    },
+    {
+      "author_name" : "robertw",
+      "content" : {
+        "rendered" : "<p>The CFPB would do nothing for you if they discontinue it. What I think they will do is possibly cap the 4% in some way and maybe go to the end of the yr? Merely a guess. I had a feeling about this one. I was not going to move assets to them until I saw what was going on with the program.</p>\n"
+      },
+      "date_gmt" : "2025-03-14T03:00:42",
+      "id" : 2022527,
+      "parent" : 2022383
+    },
+    {
+      "author_name" : "MrAB3",
+      "content" : {
+        "rendered" : "<p>And the saga continues with US Bank! I closed both my business checking account and my Smartly card after the craziness from that &#8220;targeted email&#8221; about business spend on their card. This news, assuming that it&#8217;s true, only justifies my decision to cut ties with US Bank.</p>\n"
+      },
+      "date_gmt" : "2025-03-14T04:52:09",
+      "id" : 2022578,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Mike",
+      "content" : {
+        "rendered" : "<p>could you connect the dots for me?</p>\n"
+      },
+      "date_gmt" : "2025-03-14T05:00:26",
+      "id" : 2022582,
+      "parent" : 2022400
+    },
+    {
+      "author_name" : "Calwatch",
+      "content" : {
+        "rendered" : "<p>It is a 2% delta between the tax payment processors’ fee and the cash back.</p>\n"
+      },
+      "date_gmt" : "2025-03-14T05:07:34",
+      "id" : 2022587,
+      "parent" : 2022582
+    },
+    {
+      "author_name" : "Calwatch",
+      "content" : {
+        "rendered" : "<p>Yeah a company shutting down a product prospectively is not an issue for the CFPB even under the previous administration.</p>\n"
+      },
+      "date_gmt" : "2025-03-14T05:09:44",
+      "id" : 2022588,
+      "parent" : 2022432
+    },
+    {
+      "author_name" : "Calwatch",
+      "content" : {
+        "rendered" : "<p>The main thing is banning taxes and rent payments, and suspicion on large purchases, but it seems fine to get 3% on almost anything.</p>\n"
+      },
+      "date_gmt" : "2025-03-14T05:12:21",
+      "id" : 2022590,
+      "parent" : 2022322
+    },
+    {
+      "author_name" : "Gadget 🕵️‍♂️ Bank Bonus Geek 🔗",
+      "content" : {
+        "rendered" : "<p>I didn&#8217;t know about the Alliant card being at 3%.  All the data on DoC is old, <span>still mentioning AF, etc</span>.</p>\n<p><a href=\"https://www.doctorofcredit.com/alliant-visa-signature-removes-3-signup-offer-rate-for-first-year/\" rel=\"ugc\">https://www.doctorofcredit.com/alliant-visa-signature-removes-3-signup-offer-rate-for-first-year/</a></p>\n<p>Might be nice to get an updated review?  <a class='hint hint--right' data-ucm_user_id='2' href='https://www.doctorofcredit.com/author/will/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;William Charles</a>  <a class='hint hint--right' data-ucm_user_id='6' href='https://www.doctorofcredit.com/author/chucksithe/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/6581771f6d6c07578202c34dd35680cd5e37f8e5b2b5af89f03bde48286dade3?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/6581771f6d6c07578202c34dd35680cd5e37f8e5b2b5af89f03bde48286dade3?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;Chuck</a> </p>\n<p>Of course, just getting a checking account at Alliant can be a feat of shear heroism alone.  And, would need DP&#8217;s on if they ok with lots of bank account funding, because I don&#8217;t plan to be shopping for Rolexes.  They are listed on the DoC CC funding page as working at some banks/credit unions, but definitely far from common.</p>\n<p>BofA Unlimited Cash Rewards card is a good one&#8230; kicking myself for not doing the multiplier requirements.</p>\n"
+      },
+      "date_gmt" : "2025-03-14T06:26:36",
+      "id" : 2022612,
+      "parent" : 2021759
+    },
+    {
+      "author_name" : "AmexGuy",
+      "content" : {
+        "rendered" : "<p>For me applying now to this card makes no sense. You are gambling on being grandfathered in, wasting a 5/24 slot and jumping through hoops to move assets only to get 0 signup bonus? While you could get Amex BBP with 50k signup and 2 Points back on everything. Even if you value those at 1.5cpp (conservative), just catching up to that signup bonus on BBP will require 75k spend on your smartly card.</p>\n"
+      },
+      "date_gmt" : "2025-03-14T08:39:13",
+      "id" : 2022622,
+      "parent" : 0
+    },
+    {
+      "author_name" : "TJ",
+      "content" : {
+        "rendered" : "<p>No.</p>\n"
+      },
+      "date_gmt" : "2025-03-14T12:13:35",
+      "id" : 2022666,
+      "parent" : 2021998
+    },
+    {
+      "author_name" : "hfababf",
+      "content" : {
+        "rendered" : "<p>I do find the the keyword <u>temporarily</u> and this line item interesting</p>\n<p><strong>Additional Key Details:</strong><br />\nThis change is temporary</p>\n"
+      },
+      "date_gmt" : "2025-03-14T13:33:07",
+      "id" : 2022715,
+      "parent" : 2022472
+    },
+    {
+      "author_name" : "blah blah",
+      "content" : {
+        "rendered" : "<p>the danger is risk having your funds held in IRS for a long time especially when there is a major staff reduction.</p>\n"
+      },
+      "date_gmt" : "2025-03-14T15:21:11",
+      "id" : 2022811,
+      "parent" : 2022587
+    },
+    {
+      "author_name" : "RD",
+      "content" : {
+        "rendered" : "<p>After years.</p>\n"
+      },
+      "date_gmt" : "2025-03-14T15:33:30",
+      "id" : 2022829,
+      "parent" : 2022488
+    },
+    {
+      "author_name" : "midas89",
+      "content" : {
+        "rendered" : "<p>Someone posted the following at Reddit: &#8220;Transferred my assets out today after they started declining large transactions that are well under my credit limit. I was told on the phone to use a different payment method LOL. Good riddance!&#8221;</p>\n"
+      },
+      "date_gmt" : "2025-03-14T15:46:46",
+      "id" : 2022843,
+      "parent" : 0
+    },
+    {
+      "author_name" : "midas89",
+      "content" : {
+        "rendered" : "<p>I had to call US Bank for an unrelated issue. I had to be transferred to a supervisor. I took the opportunity to ask about this Smartly Visa situation. The supervisor said that the quantity of calls asking about this they are getting is gigantic. All I could get is that they were told there will be changes, but no details or the timeline are known.</p>\n"
+      },
+      "date_gmt" : "2025-03-14T15:54:42",
+      "id" : 2022846,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Nate",
+      "content" : {
+        "rendered" : "<p>What a bunch of clowns.</p>\n"
+      },
+      "date_gmt" : "2025-03-14T17:41:34",
+      "id" : 2022934,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Nuri",
+      "content" : {
+        "rendered" : "<p>Right, meant to write likely.</p>\n"
+      },
+      "date_gmt" : "2025-03-14T18:39:17",
+      "id" : 2022979,
+      "parent" : 2021937
+    },
+    {
+      "author_name" : "Applued yesterday and approved online",
+      "content" : {
+        "rendered" : "<p>not sure about fuss&#8230;but will take the year better then nothing if this is true</p>\n"
+      },
+      "date_gmt" : "2025-03-14T20:50:38",
+      "id" : 2023067,
+      "parent" : 0
+    },
+    {
+      "author_name" : "SideShowBob233",
+      "content" : {
+        "rendered" : "<p>I concur.  As a clown I wouldn&#8217;t even get this card.</p>\n"
+      },
+      "date_gmt" : "2025-03-14T20:51:48",
+      "id" : 2023068,
+      "parent" : 2022934
+    },
+    {
+      "author_name" : "Hacker",
+      "content" : {
+        "rendered" : "<p>It illustrates the derangement that can happen when one gets too politically attached. Muh CFPB!!!</p>\n"
+      },
+      "date_gmt" : "2025-03-14T20:55:38",
+      "id" : 2023071,
+      "parent" : 2022432
+    },
+    {
+      "author_name" : "Yoshi",
+      "content" : {
+        "rendered" : "<p>It&#8217;s as if US Bank just peeked at the BofA playbook, made some &#8220;changes&#8221; to try to 1-up BofA, and then Pikachu faced when everyone just transferred $100K+ in investment assets and not cash.</p>\n"
+      },
+      "date_gmt" : "2025-03-14T20:59:31",
+      "id" : 2023077,
+      "parent" : 2022297
+    },
+    {
+      "author_name" : "RiskandReward",
+      "content" : {
+        "rendered" : "<p>This all crumbled much sooner than expected… can’t wait to see the revised terms or new card, with popcorn in hand.</p>\n"
+      },
+      "date_gmt" : "2025-03-14T21:01:35",
+      "id" : 2023080,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Money H Word",
+      "content" : {
+        "rendered" : "<p>Only got this card because I plan to move assets in the future (Im young but not quite there yet). Really hoping it would become a legacy card for present users but I&#8217;ve consistently seen posts about how things like this will get nerfed because of the crazies out there.</p>\n"
+      },
+      "date_gmt" : "2025-03-14T21:12:35",
+      "id" : 2023082,
+      "parent" : 0
+    },
+    {
+      "author_name" : "midas89",
+      "content" : {
+        "rendered" : "<p>Be sure to buy the popcorn you&#8217;ll have in hand, using your US Bank Smartly Visa. Stick it to &#8217;em one more time 😀 You&#8217;re welcome to call my comment corny. Perhaps I&#8217;ve cracked under the pressure.</p>\n"
+      },
+      "date_gmt" : "2025-03-14T21:15:06",
+      "id" : 2023085,
+      "parent" : 2023080
+    },
+    {
+      "author_name" : "RiskandReward",
+      "content" : {
+        "rendered" : "<p>I’ll buy the popcorn at the grocery store using 5x Freedom or 5% Future debit 😁</p>\n<p>No disrespect to the early adopters and MSers, you gave USB a stress test and the bank is struggling with it.</p>\n"
+      },
+      "date_gmt" : "2025-03-14T21:32:14",
+      "id" : 2023098,
+      "parent" : 2023085
+    },
+    {
+      "author_name" : "Cate the MSer",
+      "content" : {
+        "rendered" : "<p>Stupidly Card</p>\n"
+      },
+      "date_gmt" : "2025-03-14T21:33:39",
+      "id" : 2023101,
+      "parent" : 0
+    },
+    {
+      "author_name" : "askmrlee",
+      "content" : {
+        "rendered" : "<p>Probably the most useful insight. What did they expect?</p>\n"
+      },
+      "date_gmt" : "2025-03-14T22:25:50",
+      "id" : 2023148,
+      "parent" : 2022843
+    },
+    {
+      "author_name" : "wilsonhammer",
+      "content" : {
+        "rendered" : "<p><a href=\"https://www.reddit.com/r/CreditCards/comments/1j9iqxl/us_bank_rep_told_me_smartly_card_is_no_longer/mhni4c0/\" rel=\"nofollow ugc\">https://www.reddit.com/r/CreditCards/comments/1j9iqxl/us_bank_rep_told_me_smartly_card_is_no_longer/mhni4c0/</a></p>\n"
+      },
+      "date_gmt" : "2025-03-14T22:28:14",
+      "id" : 2023152,
+      "parent" : 2022843
+    },
+    {
+      "author_name" : "hfababf",
+      "content" : {
+        "rendered" : "<p>Cool my observation of the words temporarily and temporary was down voted, and then 3 hours later DOC points out this should be temporary.</p>\n"
+      },
+      "date_gmt" : "2025-03-14T22:33:13",
+      "id" : 2023154,
+      "parent" : 2022715
+    },
+    {
+      "author_name" : "askmrlee",
+      "content" : {
+        "rendered" : "<p>I went into the branch just two weeks ago to convert my Gold checking account to a Smartly. The banker handed me a personal flyer for the Smartly and Altitude Connect with a 30K bonus instead of the standard 20K. </p>\n<p>I tried to apply for Smartly with the banker&#8217;s link and the Smartly was not shown, but Smartly is available on the main website and I went ahead an applied and got a message saying the application will be reviewed and to wait 7 to 10 days.</p>\n"
+      },
+      "date_gmt" : "2025-03-14T22:34:29",
+      "id" : 2023156,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Jags",
+      "content" : {
+        "rendered" : "<p>They can’t change terms and benefits but rewards programs are typical subject to termination at any moment.</p>\n"
+      },
+      "date_gmt" : "2025-03-14T22:46:59",
+      "id" : 2023163,
+      "parent" : 0
+    },
+    {
+      "author_name" : "vips",
+      "content" : {
+        "rendered" : "<p>Reward is part of benefits</p>\n"
+      },
+      "date_gmt" : "2025-03-14T23:28:50",
+      "id" : 2023190,
+      "parent" : 2023163
+    },
+    {
+      "author_name" : "UnhingedStrikesAgain",
+      "content" : {
+        "rendered" : "<p>Seriously? With MSers and Amex RAT teams and people abusing cards, no it must be because of your fav pet project #CFPBOutrage. </p>\n<p>It couldn&#8217;t be because they were losing their shorts on a not very well thought out rewards structure. Your TDS is showing. Bad look.</p>\n"
+      },
+      "date_gmt" : "2025-03-15T00:28:33",
+      "id" : 2023236,
+      "parent" : 2022383
+    },
+    {
+      "author_name" : "Another Jeff",
+      "content" : {
+        "rendered" : "<p>Yes, all those rewards you&#8217;ll get when they close your account.</p>\n"
+      },
+      "date_gmt" : "2025-03-15T02:45:39",
+      "id" : 2023311,
+      "parent" : 2023190
+    },
+    {
+      "author_name" : "RobotsRock",
+      "content" : {
+        "rendered" : "<p>Just approved for the card with a $20k CL. Pulled equifax where I was 0/24.</p>\n"
+      },
+      "date_gmt" : "2025-03-15T03:06:46",
+      "id" : 2023317,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Big Mike",
+      "content" : {
+        "rendered" : "<p>April Fools&#8217; Day coming soon. Am I the only one seeing this?</p>\n"
+      },
+      "date_gmt" : "2025-03-15T03:24:53",
+      "id" : 2023322,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Mailbox 100 📬🔗👈",
+      "content" : {
+        "rendered" : "<p>I am in the same boat. But the more I think about it, the more I&#8217;m just inclined to stick with USBAR&#8211;unless they get rid of the 1.5 CCP RTR redemption for travel&#8230;</p>\n"
+      },
+      "date_gmt" : "2025-03-15T04:30:54",
+      "id" : 2023338,
+      "parent" : 2022360
+    },
+    {
+      "author_name" : "Ash",
+      "content" : {
+        "rendered" : "<p>This is why we cannot have good things.</p>\n"
+      },
+      "date_gmt" : "2025-03-15T08:49:21",
+      "id" : 2023376,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Eric 🔗",
+      "content" : {
+        "rendered" : "<p>&#8220;Temporarily&#8221; can change to &#8220;Permanently&#8221; in a hurry.</p>\n"
+      },
+      "date_gmt" : "2025-03-15T11:12:57",
+      "id" : 2023388,
+      "parent" : 2022715
+    },
+    {
+      "author_name" : "Eric 🔗",
+      "content" : {
+        "rendered" : "<p>This expression is usually used in response to someone making a comment about being very greedy or a &#8220;hog&#8221;. However, you just made the comment out of nowhere. What say you?</p>\n"
+      },
+      "date_gmt" : "2025-03-15T11:28:30",
+      "id" : 2023394,
+      "parent" : 2023376
+    },
+    {
+      "author_name" : "Kevin",
+      "content" : {
+        "rendered" : "<p>Bait and switch bank.</p>\n"
+      },
+      "date_gmt" : "2025-03-15T11:31:06",
+      "id" : 2023396,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Brian",
+      "content" : {
+        "rendered" : "<p>People using it to run up business expenses and ruining it for the rest of us qualifies.</p>\n"
+      },
+      "date_gmt" : "2025-03-15T14:43:37",
+      "id" : 2023437,
+      "parent" : 2023394
+    },
+    {
+      "author_name" : "icemule1",
+      "content" : {
+        "rendered" : "<p>If USBank wanted to disqualify business expenses they could put it in their T&amp;C and then enforce it. But they didn&#8217;t. Whose fault is that?</p>\n"
+      },
+      "date_gmt" : "2025-03-15T15:29:52",
+      "id" : 2023447,
+      "parent" : 2023437
+    },
+    {
+      "author_name" : "Stefan",
+      "content" : {
+        "rendered" : "<p>There&#8217;s a difference between &#8220;using&#8221; it for business expenses, and &#8220;running up&#8221; business expenses.</p>\n<p>Ie, it could have to with getting close to the credit limit, not the nature of the expenses.</p>\n<p>Business expenses for many people are much higher than personal expenses, so the size of the total expenses may be more relevant than whether they&#8217;re business or not to the bank.</p>\n"
+      },
+      "date_gmt" : "2025-03-15T15:45:51",
+      "id" : 2023457,
+      "parent" : 2023447
+    },
+    {
+      "author_name" : "Tim",
+      "content" : {
+        "rendered" : "<p>To the surprise of literary no one</p>\n"
+      },
+      "date_gmt" : "2025-03-15T16:32:58",
+      "id" : 2023478,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Tom",
+      "content" : {
+        "rendered" : "<p>Yeah but BofA works with investment assets too.  That&#8217;s how I&#8217;m playing BofA, with IRAs.</p>\n"
+      },
+      "date_gmt" : "2025-03-15T17:20:53",
+      "id" : 2023495,
+      "parent" : 2023077
+    },
+    {
+      "author_name" : "Liana",
+      "content" : {
+        "rendered" : "<p>Darn. I just got one and charged maybe 35k so far. I was really looking forward to putting all my expenses on one card and simplifying things.</p>\n"
+      },
+      "date_gmt" : "2025-03-15T17:48:43",
+      "id" : 2023514,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Liana",
+      "content" : {
+        "rendered" : "<p>What do think the best every day card is?</p>\n"
+      },
+      "date_gmt" : "2025-03-15T17:50:09",
+      "id" : 2023517,
+      "parent" : 2022484
+    },
+    {
+      "author_name" : "R Johnson",
+      "content" : {
+        "rendered" : "<p>I&#8217;m a US Bank customer but this thing is ridiculous.  Complete lack of planning and thought.  I hope someone is losing their job.</p>\n"
+      },
+      "date_gmt" : "2025-03-15T18:22:51",
+      "id" : 2023527,
+      "parent" : 0
+    },
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>As long as they keep the grandfathered USBAR I am happy</p>\n"
+      },
+      "date_gmt" : "2025-03-15T18:42:08",
+      "id" : 2023532,
+      "parent" : 0
+    },
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>Whoa whoa woa. What is this BBP 50k offer we are talking about here?</p>\n"
+      },
+      "date_gmt" : "2025-03-15T20:21:06",
+      "id" : 2023575,
+      "parent" : 2022622
+    },
+    {
+      "author_name" : "Kahn Dano",
+      "content" : {
+        "rendered" : "<p>This seems like a lucrative move that could bank USB millions, if not billions, of dollars. They probably knew the market would dip and created a new product, Smartly Card, to attract people put money into USB.  Then use the money to buy the dip and sell when the market is bullish.  I predict that’s when they’ll discontinue this product, but hope my prediction is wrong.</p>\n"
+      },
+      "date_gmt" : "2025-03-15T21:19:49",
+      "id" : 2023624,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Eric 🔗",
+      "content" : {
+        "rendered" : "<p><a class='wpd-umcguest'  href='https://www.doctorofcredit.com/rumor-u-s-bank-smartly-visa-credit-card-to-be-discontinued/#comment-2023514'><img alt='' src='https://secure.gravatar.com/avatar/dc2c509878ad731671f0b5456033975d27fdc2ef387383727fd590a68487d86e?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/dc2c509878ad731671f0b5456033975d27fdc2ef387383727fd590a68487d86e?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>Liana</a>,</p>\n<p>If you &#8220;just got one&#8221; and already &#8220;<span>charged maybe 35k&#8221; on it, you may be 1 of the people that <a class='wpd-umcguest'  href='https://www.doctorofcredit.com/rumor-u-s-bank-smartly-visa-credit-card-to-be-discontinued/#comment-2023376'><img alt='' src='https://secure.gravatar.com/avatar/3be6aff51d213ea53383451a231f602f24000342ddc137ac08fb4c0bf869ecab?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/3be6aff51d213ea53383451a231f602f24000342ddc137ac08fb4c0bf869ecab?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>Ash</a> directed this comment at: <a href='https://www.doctorofcredit.com/rumor-u-s-bank-smartly-visa-credit-card-to-be-discontinued/#comment-2023376' class='ucm-comment-id'>#2023376</a> .  😉 </span></p>\n"
+      },
+      "date_gmt" : "2025-03-15T21:25:42",
+      "id" : 2023630,
+      "parent" : 2023514
+    },
+    {
+      "author_name" : "mark",
+      "content" : {
+        "rendered" : "<p>you cannot believe how much money USB paid me.</p>\n"
+      },
+      "date_gmt" : "2025-03-16T01:06:07",
+      "id" : 2023752,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Ash",
+      "content" : {
+        "rendered" : "<p>I didn&#8217;t want to pinpoint anyone. Just the MSer&#8217;s ruining it for everyone.</p>\n"
+      },
+      "date_gmt" : "2025-03-16T01:38:11",
+      "id" : 2023762,
+      "parent" : 2023630
+    },
+    {
+      "author_name" : "Terry",
+      "content" : {
+        "rendered" : "<p>There are at the very least 4 other cards that earn more than the Smartly top tier card does and only one has a small annual fee. While I PC&#8217;d to the Smartly, I never used it for this reason. There are sometimes ways to increase your rewards on spend that very few know about or have access to.</p>\n"
+      },
+      "date_gmt" : "2025-03-16T02:08:08",
+      "id" : 2023775,
+      "parent" : 2023517
+    },
+    {
+      "author_name" : "Xatos",
+      "content" : {
+        "rendered" : "<p>Dude, while this isn&#8217;t r/churning, have you forgotten what site you&#8217;re on? If you&#8217;re here, it&#8217;s almost a given that you&#8217;re an &#8220;optimizer&#8221;, if not a churner. That&#8217;s like the pot calling the kettle black, yo.</p>\n"
+      },
+      "date_gmt" : "2025-03-16T02:36:39",
+      "id" : 2023785,
+      "parent" : 2023762
+    },
+    {
+      "author_name" : "Dude",
+      "content" : {
+        "rendered" : "<p>What did you just even say</p>\n"
+      },
+      "date_gmt" : "2025-03-16T02:49:14",
+      "id" : 2023790,
+      "parent" : 2023624
+    },
+    {
+      "author_name" : "James",
+      "content" : {
+        "rendered" : "<p>Applied today with direct mail code online . Approved on the spot .</p>\n"
+      },
+      "date_gmt" : "2025-03-16T04:15:15",
+      "id" : 2023830,
+      "parent" : 2023156
+    },
+    {
+      "author_name" : "James",
+      "content" : {
+        "rendered" : "<p>They think they can upsell you to investing advise based services which are very lucrative e m<br />\n. Most folks who don’t read this site park money at a place and never move it</p>\n"
+      },
+      "date_gmt" : "2025-03-16T04:25:04",
+      "id" : 2023834,
+      "parent" : 2022297
+    },
+    {
+      "author_name" : "JimH",
+      "content" : {
+        "rendered" : "<p>Grumpy much?</p>\n<p>No one here knows what&#8217;s going on other than people can&#8217;t apply in branch yet you want someone fired? lol</p>\n<p>For all we know the in-branch people are simply focusing on other duties during this time while potential customers are funneled to the web. Yeah I know that sounds funny or sad depending on your mood but no one has lost a thing yet except access to applying in-branch.</p>\n<p>We can get out the pitch forks later after announcements are made regarding possible changes.</p>\n"
+      },
+      "date_gmt" : "2025-03-16T14:52:53",
+      "id" : 2023961,
+      "parent" : 2023527
+    },
+    {
+      "author_name" : "Jonathan",
+      "content" : {
+        "rendered" : "<p>One DP FWIW, paid a 10K federal tax bill today (3/16/25) without an issue (20k CL).</p>\n"
+      },
+      "date_gmt" : "2025-03-16T16:59:20",
+      "id" : 2024036,
+      "parent" : 2022068
+    },
+    {
+      "author_name" : "Dev1ldog",
+      "content" : {
+        "rendered" : "<p>Congrats on becoming a club member!</p>\n"
+      },
+      "date_gmt" : "2025-03-16T17:05:01",
+      "id" : 2024039,
+      "parent" : 2023317
+    },
+    {
+      "author_name" : "midas89",
+      "content" : {
+        "rendered" : "<p><a class='wpd-umcguest'  href='https://www.doctorofcredit.com/rumor-u-s-bank-smartly-visa-credit-card-to-be-discontinued/#comment-2022068'><img alt='' src='https://secure.gravatar.com/avatar/abd3e6d6d18ed7689c0e77a0f09cf34757beff4bdd0bb84a9725ebc200e4e209?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/abd3e6d6d18ed7689c0e77a0f09cf34757beff4bdd0bb84a9725ebc200e4e209?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>Jonathan</a> Thanks for the DP. What middleman payment processor did you use to pay the tax bill, and did you get Pay1040 at 1.75% or ACI at 1.85%, which are the two listed at IRS website? But of course, the credit card fee may have changed, where the IRS site did not update their page. Thank you in advance. (I know DoC has a forum that deals with paying taxes online, with a lot of comments and various percentage reports. There are reports that confirm the IRS site says the low percentages, but when people actually click through and pay, the percentage charged is closer to 3%.) Thanks again.</p>\n"
+      },
+      "date_gmt" : "2025-03-16T17:10:36",
+      "id" : 2024045,
+      "parent" : 2024036
+    },
+    {
+      "author_name" : "Liana",
+      "content" : {
+        "rendered" : "<p>Haha I know. I had some big expenses planned (tuition, medical procedures, etc) and when I saw this 4% cash back card I knew it would be great. For me. I know so selfish.</p>\n"
+      },
+      "date_gmt" : "2025-03-16T20:01:30",
+      "id" : 2024144,
+      "parent" : 2023630
+    },
+    {
+      "author_name" : "Eric 🔗",
+      "content" : {
+        "rendered" : "<p>It&#8217;s hard to survive in this hobby without being at least a little selfish. 😉</p>\n"
+      },
+      "date_gmt" : "2025-03-16T22:58:26",
+      "id" : 2024238,
+      "parent" : 2024144
+    },
+    {
+      "author_name" : "calwatch",
+      "content" : {
+        "rendered" : "<p>But if you underwithheld anyway or are underwithholding for 2025 and making an estimated tax payment, it can work out.</p>\n"
+      },
+      "date_gmt" : "2025-03-16T23:28:39",
+      "id" : 2024260,
+      "parent" : 2022811
+    },
+    {
+      "author_name" : "UnhingedCFPBer",
+      "content" : {
+        "rendered" : "<p>Wrong! It is because the CFPB is being shut down</p>\n<p>They were the last pillar of common sense in society. </p>\n<p>Without them the climate will really tank now. Sigh.</p>\n"
+      },
+      "date_gmt" : "2025-03-17T04:49:21",
+      "id" : 2024371,
+      "parent" : 2022358
+    },
+    {
+      "author_name" : "bullmeister",
+      "content" : {
+        "rendered" : "<p><a class='wpd-umcguest'  href='https://www.doctorofcredit.com/rumor-u-s-bank-smartly-visa-credit-card-to-be-discontinued/#comment-2021876'><img alt='' src='https://secure.gravatar.com/avatar/5f2b964524a1d9a2a86332f627af626b8a744b1146018a1cf0a7582a901dd56a?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/5f2b964524a1d9a2a86332f627af626b8a744b1146018a1cf0a7582a901dd56a?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>Kelly</a> I didn&#8217;t interpret it that way at all, we&#8217;re cool. Sorry someone was trying to create drama when none existed.</p>\n"
+      },
+      "date_gmt" : "2025-03-17T05:38:04",
+      "id" : 2024374,
+      "parent" : 2022426
+    },
+    {
+      "author_name" : "Joe Austin",
+      "content" : {
+        "rendered" : "<p>You over estimate the banks ability to be smart</p>\n"
+      },
+      "date_gmt" : "2025-03-17T14:31:38",
+      "id" : 2024473,
+      "parent" : 2023624
+    },
+    {
+      "author_name" : "Joe Austin",
+      "content" : {
+        "rendered" : "<p>USB is known for nerfing offers because its estimates of how people will use a product are overly rosy compared to actual usage.  Please see Cash+ for an example of the previous nerfing, or see Altitude Reserve.</p>\n"
+      },
+      "date_gmt" : "2025-03-17T14:32:33",
+      "id" : 2024474,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Money H Word",
+      "content" : {
+        "rendered" : "<p>He&#8217;s saying what banks already do; use money in accounts to invest into the markets. He&#8217;s specifically saying they used this 4% card to attract people into settling 100K+ into their accounts which allowed them to invest into the market which is currently pooping itself. They bought the dip.</p>\n"
+      },
+      "date_gmt" : "2025-03-17T18:41:12",
+      "id" : 2024657,
+      "parent" : 2023790
+    },
+    {
+      "author_name" : "Jonathan",
+      "content" : {
+        "rendered" : "<p>I was charged 1.75% using Pay1040. You see the fee you are being charged at checkout.</p>\n"
+      },
+      "date_gmt" : "2025-03-17T20:32:47",
+      "id" : 2024745,
+      "parent" : 2024045
+    },
+    {
+      "author_name" : "midas89",
+      "content" : {
+        "rendered" : "<p><a class='wpd-umcguest'  href='https://www.doctorofcredit.com/rumor-u-s-bank-smartly-visa-credit-card-to-be-discontinued/#comment-2022068'><img alt='' src='https://secure.gravatar.com/avatar/abd3e6d6d18ed7689c0e77a0f09cf34757beff4bdd0bb84a9725ebc200e4e209?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/abd3e6d6d18ed7689c0e77a0f09cf34757beff4bdd0bb84a9725ebc200e4e209?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>Jonathan</a> Thank you. That&#8217;s good news, and will certainly make all of us who can get 4% cash back happy when we file our taxes if we happen to owe money.</p>\n"
+      },
+      "date_gmt" : "2025-03-17T20:34:45",
+      "id" : 2024747,
+      "parent" : 2024745
+    },
+    {
+      "author_name" : "Randor",
+      "content" : {
+        "rendered" : "<p>As a data point, I called the CSR on Friday to request a CL increase, paid my property taxes later that day to bring my available credit to less thank $1K, and saw today that they bumped me $10K:(from 25 to 35)</p>\n"
+      },
+      "date_gmt" : "2025-03-18T05:59:08",
+      "id" : 2025114,
+      "parent" : 0
+    },
+    {
+      "author_name" : "mdacguy",
+      "content" : {
+        "rendered" : "<p>Did you get a hard pull?</p>\n"
+      },
+      "date_gmt" : "2025-03-18T16:18:17",
+      "id" : 2025406,
+      "parent" : 2025114
+    },
+    {
+      "author_name" : "Randor",
+      "content" : {
+        "rendered" : "<p>Yes, TU</p>\n"
+      },
+      "date_gmt" : "2025-03-18T16:21:05",
+      "id" : 2025409,
+      "parent" : 2025406
+    },
+    {
+      "author_name" : "Matt F",
+      "content" : {
+        "rendered" : "<p>Another data point. Requested CL increase Friday. Got bumped from 25 to 30k today. Hard pull. Had 12k available credit</p>\n"
+      },
+      "date_gmt" : "2025-03-19T04:16:55",
+      "id" : 2026111,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Napster",
+      "content" : {
+        "rendered" : "<p>I&#8217;ve been trying to PC my&nbsp;Altitude Go to Smartly, and the agents keep denying saying I don&#8217;t have that offer. I&#8217;ve read some dps of people doing it, but I guess this is also at a pause currently?</p>\n"
+      },
+      "date_gmt" : "2025-03-19T18:14:37",
+      "id" : 2026564,
+      "parent" : 0
+    },
+    {
+      "author_name" : "mdacguy",
+      "content" : {
+        "rendered" : "<p>Anyone knows when does US Bank report to credit bureaus? Does it report the statement balance or does it report the balance on the day it reports? thanks.</p>\n"
+      },
+      "date_gmt" : "2025-03-20T16:35:56",
+      "id" : 2027263,
+      "parent" : 0
+    },
+    {
+      "author_name" : "JD",
+      "content" : {
+        "rendered" : "<p>Current balance, last day of the calendar month IME.</p>\n"
+      },
+      "date_gmt" : "2025-03-20T16:40:41",
+      "id" : 2027270,
+      "parent" : 2027263
+    },
+    {
+      "author_name" : "Al",
+      "content" : {
+        "rendered" : "<p><span>Am I blind, or U.S.Bank just made points more worthless?  100$ &#8211; 13300.  On sale gift card 100$ &#8211; 12000</span></p>\n"
+      },
+      "date_gmt" : "2025-03-20T22:12:22",
+      "id" : 2027506,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Harrison",
+      "content" : {
+        "rendered" : "<p>Altitude reserve has not been nerfed. Only buffed</p>\n"
+      },
+      "date_gmt" : "2025-03-21T14:50:01",
+      "id" : 2027968,
+      "parent" : 2024474
+    },
+    {
+      "author_name" : "Jeff",
+      "content" : {
+        "rendered" : "<p><a href=\"https://www.reddit.com/r/CreditCards/s/376Jqubrca\" rel=\"nofollow ugc\">https://www.reddit.com/r/CreditCards/s/376Jqubrca</a></p>\n"
+      },
+      "date_gmt" : "2025-04-01T23:43:43",
+      "id" : 2036099,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Danny Deala",
+      "content" : {
+        "rendered" : "<p>Seemingly plausible rumor <a href=\"https://www.reddit.com/r/CreditCards/comments/1jp5pz3/rumor_updated_changes_to_the_us_bank_smartly_visa/\" rel=\"nofollow ugc\">https://www.reddit.com/r/CreditCards/comments/1jp5pz3/rumor_updated_changes_to_the_us_bank_smartly_visa/</a></p>\n"
+      },
+      "date_gmt" : "2025-04-02T01:55:52",
+      "id" : 2036139,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Heronva",
+      "content" : {
+        "rendered" : "<p>Hmm, I just received Cash+ on 3/10 and qualified for their $200 bonus after $1,000 spend. Please explain?</p>\n"
+      },
+      "date_gmt" : "2025-04-04T02:30:55",
+      "id" : 2037762,
+      "parent" : 2024474
+    }
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "293",
+    "x-wp-totalpages" : "3"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/comments?post=235791&per_page=100&page=3&order=asc&orderby=date_gmt&_fields=id,parent,author_name,date_gmt,content"
+}

@@ -1,0 +1,27 @@
+{
+  "body" : {
+    "_embedded" : {
+      "author" : [
+        {
+          "name" : "Chuck"
+        }
+      ]
+    },
+    "author" : 6,
+    "content" : {
+      "rendered" : "<h2>The Offer</h2>\n<p>Check the &#8216;Just for you&#8217; section in your Chase login to see if you are targeted for one of these increased Chase business card signup bonus offers:&nbsp;</p>\n<ul>\n<li>Chase INK Cash (no fee) &#8211; get $1,200 back after spending $6,000 within 3 months.</li>\n<li>Chase INK Unlimited (no fee) &#8211; get $1,200 back after spending $6,000 within 3 months.</li>\n<li>Chase INK Preferred ($95) &#8211; get 125,000 points after spending $8,000 within 3 months.</li>\n<li><a href=\"https://www.doctorofcredit.com/targeted-chase-sapphire-reserve-for-business-300000-points-signup-bonus/\">Chase Sapphire Reserve for Business ($795) &#8211; get 300,000 points after spending $30,000 within 4 months.</a></li>\n</ul>\n<p>In your Chase login, look for the hamburger menu and then Just For You to see if you got these &#8216;You&#8217;re Already Approved&#8217; offers:</p>\n<p><img loading=\"lazy\" decoding=\"async\" class=\"alignnone wp-image-268011\" src=\"https://www.doctorofcredit.com/wp-content/uploads/2026/10/Screenshot-2026-10-30-at-12.01.11-PM-116x300.png\" alt=\"\" width=\"300\" height=\"773\" srcset=\"https://www.doctorofcredit.com/wp-content/uploads/2026/10/Screenshot-2026-10-30-at-12.01.11-PM-116x300.png 116w, https://www.doctorofcredit.com/wp-content/uploads/2026/10/Screenshot-2026-10-30-at-12.01.11-PM-397x1024.png 397w, https://www.doctorofcredit.com/wp-content/uploads/2026/10/Screenshot-2026-10-30-at-12.01.11-PM-596x1536.png 596w, https://www.doctorofcredit.com/wp-content/uploads/2026/10/Screenshot-2026-10-30-at-12.01.11-PM.png 614w\" sizes=\"auto, (max-width: 300px) 100vw, 300px\" /></p>\n<h2>Our Verdict</h2>\n<p>These are all excellent offers and worth jumping on. Just note, &#8216;Already Approved&#8217; ironically does not mean you&#8217;re guaranteed approval, but hopefully it means the odds are good.</p>\n<ul>\n<li>Standard offer on INK Cash and Unlimited is $750, and <a href=\"https://www.doctorofcredit.com/chase-ink-cash-ink-unlimited-100000-points-signup-bonus-starts-june-15th/\">we did recently see an increased $1,000 offer.</a> This targeted $1,200 offer is the best ever.&nbsp;</li>\n<li>Standard offer on the INK Preferred card is 100,000 points, and <a href=\"https://www.doctorofcredit.com/chase-ink-preferred-120000-points-offer-with-8000-spend-requirement-branch-only-until-july-3rd/\">we have seen an increased 120,000 offer.</a> This targeted 125,000 offer is the best ever.</li>\n<li>Standard offer on the Sapphire Reserve for Business card is 150,000, and we do currently have an increased 200,000 offer. This 300,000 offer is the best ever. <a href=\"https://www.doctorofcredit.com/targeted-chase-sapphire-reserve-for-business-300000-points-signup-bonus/\">We already wrote about this offer in a prior post</a>. Just adding the three increased INK offers in this post.</li>\n</ul>\n<p style=\"text-align: right;\">Hat tip to reader <a href=\"https://www.doctorofcredit.com/contact-us/#comment-2445238\">Brendan</a> and to <a target=\"_blank\" href=\"https://www.reddit.com/r/churning/comments/1xiev0y/news_and_updates_thread_october_29_2026/19rv731f7r7tv/\">ChocolateAndAmbition</a></p>\n"
+    },
+    "date_gmt" : "2026-10-30T16:45:52",
+    "id" : 268010,
+    "link" : "https://www.doctorofcredit.com/targeted-chase-ink-cash-unlimited-1200-bonus-ink-preferred-125000-points-bonus/",
+    "modified_gmt" : "2026-10-30T16:45:52",
+    "title" : {
+      "rendered" : "[Targeted] Chase INK Cash/Unlimited $1,200 Bonus; INK Preferred 125,000 Points Bonus"
+    }
+  },
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/posts/268010?_fields=id,title,link,date_gmt,modified_gmt,content,author,_embedded,_links&_embed=author"
+}

@@ -1,0 +1,911 @@
+{
+  "body" : [
+    {
+      "author_name" : "David",
+      "content" : {
+        "rendered" : "<p>I&#8217;m not seeing the airline incidental credit anymore</p>\n"
+      },
+      "date_gmt" : "2025-09-18T19:40:18",
+      "id" : 2148398,
+      "parent" : 0
+    },
+    {
+      "author_name" : "TK",
+      "content" : {
+        "rendered" : "<p>I cannot find the $200 flight credit tracker in my Amex Plat Business card. Does it get cancelled?</p>\n"
+      },
+      "date_gmt" : "2025-09-18T19:45:46",
+      "id" : 2148405,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William",
+      "content" : {
+        "rendered" : "<p>amex app? I don&#8217;t see anywhere on the app that shows plat.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T19:48:05",
+      "id" : 2148407,
+      "parent" : 2148133
+    },
+    {
+      "author_name" : "William",
+      "content" : {
+        "rendered" : "<p>doesn&#8217;t work</p>\n"
+      },
+      "date_gmt" : "2025-09-18T19:50:48",
+      "id" : 2148409,
+      "parent" : 2148254
+    },
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>I checked the AMEX app and I can see the $300 Equinox Credit and my progress towards using it.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T20:09:21",
+      "id" : 2148425,
+      "parent" : 2148394
+    },
+    {
+      "author_name" : "Simon",
+      "content" : {
+        "rendered" : "<p>yea. I got both personal &amp; biz, plan to cancel the biz now</p>\n"
+      },
+      "date_gmt" : "2025-09-18T20:09:48",
+      "id" : 2148427,
+      "parent" : 2148103
+    },
+    {
+      "author_name" : "Daniel",
+      "content" : {
+        "rendered" : "<p>I made a random FHR booking next year on plat for $200 credit before new credits rolled in. It&#8217;s completely refreshed to the $600. Anyone know what would be the best way to treat that booking/credit?</p>\n"
+      },
+      "date_gmt" : "2025-09-18T20:12:00",
+      "id" : 2148430,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Jarrett",
+      "content" : {
+        "rendered" : "<p>Gone for me (desktop site and mobile app), as well as for one of my colleagues. One note that sounds potentially different for us than you is that we haven&#8217;t started using it yet, and it sounds like you may already be tracking progress on it.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T20:13:04",
+      "id" : 2148431,
+      "parent" : 2148425
+    },
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>I had to dig through the rewards menu in the app. It is still there but it is buried. I did check again before I replied to your comment.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T20:27:54",
+      "id" : 2148447,
+      "parent" : 2148431
+    },
+    {
+      "author_name" : "YC",
+      "content" : {
+        "rendered" : "<p>Can someone please confirm <strong>$200 Uber Cash </strong>no longer available for personal plat?</p>\n"
+      },
+      "date_gmt" : "2025-09-18T20:40:44",
+      "id" : 2148460,
+      "parent" : 0
+    },
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>Same as previous $200 credit. Just book something.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T20:47:16",
+      "id" : 2148467,
+      "parent" : 2148430
+    },
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>except for mirror finish</p>\n"
+      },
+      "date_gmt" : "2025-09-18T20:51:40",
+      "id" : 2148471,
+      "parent" : 2148384
+    },
+    {
+      "author_name" : "Normat",
+      "content" : {
+        "rendered" : "<p>Yes.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T21:04:56",
+      "id" : 2148487,
+      "parent" : 2148377
+    },
+    {
+      "author_name" : "pt",
+      "content" : {
+        "rendered" : "<p>per amex customer chat, uber cash benefit doesnt apply to business platinum</p>\n"
+      },
+      "date_gmt" : "2025-09-18T21:07:17",
+      "id" : 2148490,
+      "parent" : 0
+    },
+    {
+      "author_name" : "David",
+      "content" : {
+        "rendered" : "<p>edit: I didn&#8217;t see it on the benefits website, but it is still listed in an email amex sent out listing the new benefits.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T21:17:32",
+      "id" : 2148510,
+      "parent" : 2148398
+    },
+    {
+      "author_name" : "Doc Money",
+      "content" : {
+        "rendered" : "<p>Never has. Why would you expect it to?</p>\n"
+      },
+      "date_gmt" : "2025-09-18T21:50:25",
+      "id" : 2148550,
+      "parent" : 2148490
+    },
+    {
+      "author_name" : "Vish",
+      "content" : {
+        "rendered" : "<p>175k offer link</p>\n<p>[removed]</p>\n"
+      },
+      "date_gmt" : "2025-09-18T21:53:52",
+      "id" : 2148556,
+      "parent" : 0
+    },
+    {
+      "author_name" : "LB",
+      "content" : {
+        "rendered" : "<p>Properties in The Hotel Collection also qualify for stays of two nights or longer.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T22:09:27",
+      "id" : 2148568,
+      "parent" : 2148160
+    },
+    {
+      "author_name" : "Slaven",
+      "content" : {
+        "rendered" : "<p>i see the language of &#8220;up to 175k&#8221; but are people actually getting approved for 175k on the personal or only 80k?</p>\n"
+      },
+      "date_gmt" : "2025-09-18T22:42:31",
+      "id" : 2148585,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Mike Nagel",
+      "content" : {
+        "rendered" : "<p>Kinda bummed about the Lululemon and Oura Rings credits. That&#8217;s $500 of value I would lose out since I don&#8217;t wear that stuff.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T22:45:45",
+      "id" : 2148589,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Subiemat",
+      "content" : {
+        "rendered" : "<p>I do not understand the Oura ring credit. As I understand it, it&#8217;s a yearly credit, but the &#8220;membership&#8221; is excluded. I assume that&#8217;s for the monthly service. So this is a buy it once, and then what? I guess buy another one each year and flood Facebook Marketplace with &#8220;new unused&#8221; rings?</p>\n"
+      },
+      "date_gmt" : "2025-09-18T22:48:10",
+      "id" : 2148590,
+      "parent" : 0
+    },
+    {
+      "author_name" : "brian",
+      "content" : {
+        "rendered" : "<p>All G baby girl.  There&#8217;s a handful in the East Bay, Santa Clara County, and WEST BAY.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T22:54:31",
+      "id" : 2148595,
+      "parent" : 2147994
+    },
+    {
+      "author_name" : "Midnaverine",
+      "content" : {
+        "rendered" : "<p>Did anyone take advantage of the recent Uber One offer from PayPal? I activated that and now I can&#8217;t change to paying for it with the platinum. I would rather use the platinum version since it&#8217;s less restrictive if there&#8217;s a way to fully cancel before the 5 months are up.</p>\n"
+      },
+      "date_gmt" : "2025-09-18T23:01:39",
+      "id" : 2148602,
+      "parent" : 0
+    },
+    {
+      "author_name" : "David",
+      "content" : {
+        "rendered" : "<p>Uber charges the uber one membership from the uber cash account. Is there any way to fix this?</p>\n"
+      },
+      "date_gmt" : "2025-09-19T00:00:44",
+      "id" : 2148633,
+      "parent" : 0
+    },
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>Last time I bought Uber One ($3 for 3 months) it definitely charged to Amex. But renewal may be different&#8230;</p>\n"
+      },
+      "date_gmt" : "2025-09-19T00:26:14",
+      "id" : 2148657,
+      "parent" : 2148633
+    },
+    {
+      "author_name" : "Josh",
+      "content" : {
+        "rendered" : "<p>@grok Is ThIs TuRe?1?</p>\n"
+      },
+      "date_gmt" : "2025-09-19T01:10:25",
+      "id" : 2148702,
+      "parent" : 2148289
+    },
+    {
+      "author_name" : "Josh",
+      "content" : {
+        "rendered" : "<p>They should overnight the card</p>\n"
+      },
+      "date_gmt" : "2025-09-19T01:11:01",
+      "id" : 2148704,
+      "parent" : 2148137
+    },
+    {
+      "author_name" : "Jenny",
+      "content" : {
+        "rendered" : "<p>That link can get your accounts closed</p>\n"
+      },
+      "date_gmt" : "2025-09-19T01:18:03",
+      "id" : 2148716,
+      "parent" : 2148223
+    },
+    {
+      "author_name" : "Daniel",
+      "content" : {
+        "rendered" : "<p>Sorry I meant. What happens if I cancel the booking I made for next year that I already got credited $200 for</p>\n"
+      },
+      "date_gmt" : "2025-09-19T01:27:32",
+      "id" : 2148724,
+      "parent" : 2148467
+    },
+    {
+      "author_name" : "Mr Wise",
+      "content" : {
+        "rendered" : "<p>I got a 175k offer. It clearly says 175k. I have until 10/18 to apply</p>\n"
+      },
+      "date_gmt" : "2025-09-19T01:45:16",
+      "id" : 2148739,
+      "parent" : 2148585
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Don&#8217;t post you&#8217;re referral here.</p>\n"
+      },
+      "date_gmt" : "2025-09-19T01:56:53",
+      "id" : 2148744,
+      "parent" : 2148556
+    },
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>It is very easy to understand. How many fingers do you have?</p>\n"
+      },
+      "date_gmt" : "2025-09-19T03:29:51",
+      "id" : 2148795,
+      "parent" : 2148590
+    },
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>Worst/expected case scenario &#8211; they claw back the $200 credit, then you rebook with $300 credit.<br />\nIf anything different happens, it&#8217;s in your favor.</p>\n"
+      },
+      "date_gmt" : "2025-09-19T03:32:29",
+      "id" : 2148797,
+      "parent" : 2148724
+    },
+    {
+      "author_name" : "avsterbone",
+      "content" : {
+        "rendered" : "<p>I&#8217;m in the same boat. It appears we are screwed, and there is no way to unscrew ourselves. It is what it is :/</p>\n"
+      },
+      "date_gmt" : "2025-09-19T03:38:25",
+      "id" : 2148799,
+      "parent" : 2148602
+    },
+    {
+      "author_name" : "avsterbone",
+      "content" : {
+        "rendered" : "<p>Every single video I&#8217;ve seen covering this has stated that the Uber One credit is a <strong>monthly $10 credit.</strong> However, the terms clearly state that the $120 is an annual credit <em>(which means you can get an annual membership for $96 and have $24 left)</em>. So why is everyone getting this detail wrong, or am I missing something???  <a class='hint hint--right' data-ucm_user_id='2' href='https://www.doctorofcredit.com/author/will/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;William Charles</a>  <a class='hint hint--right' data-ucm_user_id='6' href='https://www.doctorofcredit.com/author/chucksithe/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/6581771f6d6c07578202c34dd35680cd5e37f8e5b2b5af89f03bde48286dade3?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/6581771f6d6c07578202c34dd35680cd5e37f8e5b2b5af89f03bde48286dade3?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;Chuck</a></p>\n"
+      },
+      "date_gmt" : "2025-09-19T03:41:01",
+      "id" : 2148801,
+      "parent" : 0
+    },
+    {
+      "author_name" : "KK",
+      "content" : {
+        "rendered" : "<p>Shows up on the home tab between the weekly spending and what&#8217;s new sections. It was the third offer when I scrolled horizontal through the offers.</p>\n"
+      },
+      "date_gmt" : "2025-09-19T03:41:07",
+      "id" : 2148802,
+      "parent" : 2148407
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p>I&#8217;m not seeing the monthly breakdown in the terms language:<br />\n$120 Uber One<br />\nMembership Credit NEW<br />\nUp to $120 in statement credits each<br />\ncalendar year after purchase of an<br />\nauto-renewing Uber One membership<br />\nin the U.S. with the Platinum Card.</p>\n<p>I wonder if the video is just explanatory, but that it will work either way &#8211; whether you do it $10/month or the $96/yr option.</p>\n"
+      },
+      "date_gmt" : "2025-09-19T03:49:02",
+      "id" : 2148809,
+      "parent" : 2148801
+    },
+    {
+      "author_name" : "Enrico",
+      "content" : {
+        "rendered" : "<p>Yep. People get blinded by the &#8220;$3,500&#8221; annual value.</p>\n<p>the hotel credit so far had no use for it as the hotels are far more expensive and would have cost me more with this credit than staying at another hotel. But since they beefed that up, thee is maybe more possibility, of course I only value the credit to what I would save getting another hotel, so maybe worth $200 total per year.</p>\n<p>Value for me:<br />\nForced spending = useless:<br />\nSaks<br />\nEquinox<br />\nOura<br />\nLululemon</p>\n<p>Uber value $60 (saving compare to buying food/groceries)<br />\nEntertainment and Walmart $160 (dont use it every month)<br />\nClear value $100 ( do travel but also get discount)<br />\nAirline value $200<br />\nLounges value $60 (maybe really use once a year with family, also have PP with other cards)<br />\nAs you see this is somewhat close to current $695 AF but still short $100+, that is what ret offer is for. But do I really want to deal with all these coupons and have to beg for an offer? I did plan to cancel the plat but the new coupons make it hard, at least fro now when I don&#8217;t have to pay the higher fee for a while.</p>\n<p>The new coupons:<br />\nResy value $200 (savings compare to buying food/groceries)<br />\nHotel unknown</p>\n"
+      },
+      "date_gmt" : "2025-09-19T04:51:33",
+      "id" : 2148835,
+      "parent" : 2148001
+    },
+    {
+      "author_name" : "J Dub",
+      "content" : {
+        "rendered" : "<p>Yes, but just be aware the hotel won’t give you double property credits. They’ll give you one property credit, plus the breakfast credit for the duration of the stay.</p>\n"
+      },
+      "date_gmt" : "2025-09-19T04:56:36",
+      "id" : 2148838,
+      "parent" : 2148377
+    },
+    {
+      "author_name" : "Abe",
+      "content" : {
+        "rendered" : "<p>Late by me, and a dumb question, but is SUB available for current gold card holders? What about AUs on a gold card?</p>\n"
+      },
+      "date_gmt" : "2025-09-19T04:57:00",
+      "id" : 2148839,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Chris",
+      "content" : {
+        "rendered" : "<p>How It Works</p>\n<p>To receive the benefit, sign up for a monthly or annual Uber One membership (subject to auto-renewal, terms apply) through uber.com/uberone and use an eligible Platinum Card® on the Card Account as the form of payment for your membership. Card Members with an existing membership must update their Uber One membership payment method to an eligible Card on the Card Account to receive the benefit. Uber Cash balances must be toggled off for Uber One membership fees to receive the benefit.</p>\n<p>Uber One membership charges by both the Basic and Additional Card Members on the Account will receive up to $120 in statement credits each calendar year. However, the Card Account is only eligible for a total of $120 in statement credits per calendar year, per Card Account.</p>\n<p>Statement credits are typically received within a few days but may take up to 8 weeks after an eligible purchase is charged to the Card Account.</p>\n"
+      },
+      "date_gmt" : "2025-09-19T05:14:05",
+      "id" : 2148846,
+      "parent" : 2148801
+    },
+    {
+      "author_name" : "KS",
+      "content" : {
+        "rendered" : "<p>You don’t have a wife or gf to use the lulu? Lol</p>\n"
+      },
+      "date_gmt" : "2025-09-19T08:38:04",
+      "id" : 2148875,
+      "parent" : 2148589
+    },
+    {
+      "author_name" : "CtownBin",
+      "content" : {
+        "rendered" : "<p>Still available, same as before. They didn&#8217;t remove any benefits from the personal Platinum.</p>\n"
+      },
+      "date_gmt" : "2025-09-19T10:18:02",
+      "id" : 2148883,
+      "parent" : 2148460
+    },
+    {
+      "author_name" : "Glenn",
+      "content" : {
+        "rendered" : "<p>With the usual caveats (coupon book, etc), I&#8217;m actually shocked the refresh is this good. I&#8217;m still mostly in pop up jail so had to settle for upgrading gold for 50k MRs. Some of these are closer to as good as cash and the ones that aren&#8217;t are still nice, so for the next year at least I feel good about dropping $700 on the AF. </p>\n<p>when i logged in, it asked me to enroll in all the benefits EXCEPT  few including Saks. dont forget to do Saks!</p>\n"
+      },
+      "date_gmt" : "2025-09-19T10:59:30",
+      "id" : 2148891,
+      "parent" : 0
+    },
+    {
+      "author_name" : "FatJohnny",
+      "content" : {
+        "rendered" : "<p>I&#8217;m probably one of the few (?) customers who&#8217;d have absolutely no use for ANY of those credits, except for GlobalEntry &#8211; but many cards offer it.</p>\n"
+      },
+      "date_gmt" : "2025-09-19T12:37:31",
+      "id" : 2148938,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Neptune",
+      "content" : {
+        "rendered" : "<p>Nope I see 80k</p>\n"
+      },
+      "date_gmt" : "2025-09-19T13:29:36",
+      "id" : 2148986,
+      "parent" : 2148585
+    },
+    {
+      "author_name" : "Neno",
+      "content" : {
+        "rendered" : "<p>Does anyone else have an issue requesting a replacement card through the online account to get the new mirror finish design? This worked for someone I know who has a regular platinum personal card, but it does not work for me with a Charles Schwab-branded platinum card. It only shows the options to replace it with the classic, abstract, or floral metal card.</p>\n"
+      },
+      "date_gmt" : "2025-09-19T18:07:23",
+      "id" : 2149272,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Allen",
+      "content" : {
+        "rendered" : "<p>It&#8217;s rather brilliant on Oura&#8217;s part. Similar to how HP for many years sold printers that were around the actual cost to manufacture but made the real money selling refill cartridges at huge margins, Oura can sell a lot of these rings at full price (even if they are subsidizing 100% of the $200 credit) to all these people with Platinum cards, many of whom may never have considered (or even heard of) the product and then sell them all a monthly membership that costs Oura next to nothing to provide. Then as the 2nd and 3rd waves of these rings are sold on the secondary market by Platinum holders who already have one for themselves, Oura accumulates additional incremental monthly subscriptions from people who were even less likely to pay full price for the rings to begin with (yet Oura made the initial sale at full price to the Platinum holder, who is the one selling at a discount). They&#8217;re basically giving away the low-margin rings at cost&#8211;or maybe less&#8211;but banking on the continued revenue stream of the high-margin subscriptions.</p>\n"
+      },
+      "date_gmt" : "2025-09-19T19:30:06",
+      "id" : 2149380,
+      "parent" : 2148590
+    },
+    {
+      "author_name" : "Jeshen",
+      "content" : {
+        "rendered" : "<p>Still in PUJ and never had the personal platinum. Adding for DP.</p>\n<p>Likely reasons are: </p>\n<ul>\n<li>Closed my Gold this year (held 3 years)</li>\n<li>Closed my business Gold last year (held 1 year)</li>\n<li>Closed Hilton Honors business last year (held 1 year)</li>\n</ul>\n<p>Currently hold the business Platinum (2 years) and Blue Business Plus (3 years).<br />\nI may not get out of PUJ anytime soon, but I heard positive reports of people getting out for this refresh, so I was hopeful.</p>\n"
+      },
+      "date_gmt" : "2025-09-19T19:44:31",
+      "id" : 2149406,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Captainsave",
+      "content" : {
+        "rendered" : "<p>So 1 night booking will work for FHR, only the Home Collection need 2 nights?</p>\n"
+      },
+      "date_gmt" : "2025-09-19T20:57:24",
+      "id" : 2149500,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Skyblue",
+      "content" : {
+        "rendered" : "<p>I’m seeing amex offer where its offering 20 k points for adding platinum additional card member with $2000 spend in 6 months. Is this offer worth it? Anyone claimed with existing companion card for same person applying to additional card with this offer?</p>\n"
+      },
+      "date_gmt" : "2025-09-19T22:59:16",
+      "id" : 2149624,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Blake D",
+      "content" : {
+        "rendered" : "<p>same here.</p>\n"
+      },
+      "date_gmt" : "2025-09-20T06:36:50",
+      "id" : 2149857,
+      "parent" : 2149272
+    },
+    {
+      "author_name" : "Billy",
+      "content" : {
+        "rendered" : "<p>Correct</p>\n"
+      },
+      "date_gmt" : "2025-09-20T16:58:04",
+      "id" : 2150099,
+      "parent" : 2149500
+    },
+    {
+      "author_name" : "RC",
+      "content" : {
+        "rendered" : "<p>Maybe you wouldn&#8217;t, but plenty of others do without an issue. I don&#8217;t even have the card, but I&#8217;m heavily considering it now after the refresh. I pay for Uber Eats, Uber One, and Walmart+ out of pocket, but now with Uber One and YouTube being added as credit options, I&#8217;m down to $120 EAF for all the travel benefits and protections they offer without even trying</p>\n"
+      },
+      "date_gmt" : "2025-09-22T16:00:02",
+      "id" : 2151169,
+      "parent" : 2148001
+    },
+    {
+      "author_name" : "Eddie",
+      "content" : {
+        "rendered" : "<p>I don’t see it either</p>\n"
+      },
+      "date_gmt" : "2025-09-23T09:34:17",
+      "id" : 2151760,
+      "parent" : 2148405
+    },
+    {
+      "author_name" : "G",
+      "content" : {
+        "rendered" : "<p>UberOne DP: AMEX will cover the fee regardless of amount.</p>\n<p>Uber offered me a discounted annual plan for $57.60 (no idea how they came up with this number) and I paid in full with my Platinum. Transaction coded as UBER ONE and the Platinum credit posted almost immediately. The AMEX app doesn&#8217;t have a $ tracker like some of the other perks, but I assume I could pay for someone else&#8217;s UberOne plan too (I should still have $62.40 of annual credits remaining)</p>\n"
+      },
+      "date_gmt" : "2025-09-23T14:31:50",
+      "id" : 2151899,
+      "parent" : 0
+    },
+    {
+      "author_name" : "VicC",
+      "content" : {
+        "rendered" : "<p>By &#8220;finding&#8221;, do you mean additional restaurants pop up on the Resy app as you drive around, that some pop up labeled &#8220;Resy&#8221; but aren&#8217;t actually Resy-live restaurants, or something else?</p>\n"
+      },
+      "date_gmt" : "2025-09-24T00:42:31",
+      "id" : 2152399,
+      "parent" : 2148320
+    },
+    {
+      "author_name" : "jpv",
+      "content" : {
+        "rendered" : "<p>Biz card got screwed.</p>\n"
+      },
+      "date_gmt" : "2025-09-24T06:40:59",
+      "id" : 2152517,
+      "parent" : 0
+    },
+    {
+      "author_name" : "andrew",
+      "content" : {
+        "rendered" : "<p>How are people spamming applications for better SUBs? I got a 50k offer and tried doing more apps to get a better SUB and reached maximum applications and now I can&#8217;t get the card.</p>\n"
+      },
+      "date_gmt" : "2025-09-24T17:57:04",
+      "id" : 2152817,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Igor",
+      "content" : {
+        "rendered" : "<p>Or a husband or bf? Not all males are attracted to females.</p>\n"
+      },
+      "date_gmt" : "2025-09-24T18:23:13",
+      "id" : 2152843,
+      "parent" : 2148875
+    },
+    {
+      "author_name" : "GundamWing01",
+      "content" : {
+        "rendered" : "<p><a class='hint hint--right' data-ucm_user_id='2' href='https://www.doctorofcredit.com/author/will/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;William Charles</a> <a class='hint hint--right' data-ucm_user_id='6' href='https://www.doctorofcredit.com/author/chucksithe/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/6581771f6d6c07578202c34dd35680cd5e37f8e5b2b5af89f03bde48286dade3?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/6581771f6d6c07578202c34dd35680cd5e37f8e5b2b5af89f03bde48286dade3?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;Chuck</a><br />\njust curious why not also include the app refresh as part of this launch? separate post?</p>\n<p>americanexpress.com/en-us/newsroom/articles/products-and-services/new&#8211;dedicated-amex-app-experience-gives-amex-platinum-card-memb.html</p>\n"
+      },
+      "date_gmt" : "2025-09-25T23:22:31",
+      "id" : 2153803,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p>We have a post on it. I&#8217;m not really seeing the overlap? Happy to add it in if I&#8217;m missing something <a href=\"https://www.doctorofcredit.com/american-express-launches-the-amex-travel-app-lounge-wait-times-included/\" rel=\"ugc\">https://www.doctorofcredit.com/american-express-launches-the-amex-travel-app-lounge-wait-times-included/</a></p>\n<p>Edit: actually, we covered the AmEx Travel app, not this Platinum app.<br />\nIs there any reason to download the separate Platinum app instead of using the regular AmEx app with all your cards together? Does the regular app not have the benefits tracker? I don&#8217;t have a Platinum card to check.</p>\n"
+      },
+      "date_gmt" : "2025-09-26T02:02:13",
+      "id" : 2153935,
+      "parent" : 2153803
+    },
+    {
+      "author_name" : "GundamWing01",
+      "content" : {
+        "rendered" : "<p>good questions and i was wtf myself. hence my suggestion to add more notes to this plat refresh post cuz it would help clarify things for pple.</p>\n<p>1) ur prior post was on the brand new dedicated amex travel app. only for iOS. android TBD. who knows why amex didnt integrate these features into the current amex banking app like chase and cap1. IMHO, huge miss by amex.</p>\n<p>2) as part of this new amex plat refresh, they also refreshed their amex app. again, no clue why amex didnt integrate their travel app into their new refresh amex app. sounds pretty stupid to me.</p>\n<p>this is NOT a separate dedicated plat only amex app like the stupid amex travel only app. its the same amex app to manage ur banking and CCs. but now refreshed.</p>\n<p>why is this important? well, its not critical but its still related to this plat refresh and im suggesting this post add info about the new app refresh + include prior post on the dedicated amex travel app.</p>\n<p>btw. the app even includes a new &#8220;premium&#8221; theme.<br />\ndansdeals.com/credit-cards/amex-refreshes-app-with-new-features</p>\n"
+      },
+      "date_gmt" : "2025-09-26T18:42:08",
+      "id" : 2154363,
+      "parent" : 2153935
+    },
+    {
+      "author_name" : "User",
+      "content" : {
+        "rendered" : "<p>Can we double dip the business dell credit? So if I used the business dell credit before the refresh, do I get another 150 post refresh?</p>\n"
+      },
+      "date_gmt" : "2025-09-27T22:53:28",
+      "id" : 2154995,
+      "parent" : 0
+    },
+    {
+      "author_name" : "TJ",
+      "content" : {
+        "rendered" : "<p>Chase&#8217;s entertainment credit only works for a single person for Apple Music and Apple TV+ for one device, while amex platinum you can pick and choose which plan you get and the prices are what make you pick and choose how many people; also with Walmart+ you can pay the difference for premium, also im not sure what an &#8220;airspace&#8221; lounge is but maybe I just haven&#8217;t seen it with my more than basic but less than monthly travel and the 10 delta skylounge passes are only when you are flying delta correct?</p>\n"
+      },
+      "date_gmt" : "2025-09-29T03:18:39",
+      "id" : 2155572,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Skyblue",
+      "content" : {
+        "rendered" : "<p>Amex is also offering 20 k signup bonus for additional member of platinum card &#8211; <a href=\"https://www.americanexpress.com/us/credit-cards/card/platinum/\" rel=\"nofollow ugc\">https://www.americanexpress.com/us/credit-cards/card/platinum/</a></p>\n"
+      },
+      "date_gmt" : "2025-09-30T14:46:19",
+      "id" : 2156495,
+      "parent" : 0
+    },
+    {
+      "author_name" : "AG",
+      "content" : {
+        "rendered" : "<p>Is this a targetted offer? Don&#8217;t see the 20K now.</p>\n"
+      },
+      "date_gmt" : "2025-10-01T21:54:22",
+      "id" : 2157707,
+      "parent" : 2156495
+    },
+    {
+      "author_name" : "Charlie R.",
+      "content" : {
+        "rendered" : "<p>ESPN Unlimited triggers the Digital Entertainment Credit.</p>\n"
+      },
+      "date_gmt" : "2025-10-03T15:16:38",
+      "id" : 2159218,
+      "parent" : 0
+    },
+    {
+      "author_name" : "James",
+      "content" : {
+        "rendered" : "<p>Wanted to follow up and confirm you were able to pay for another person&#8217;s UberOne and get the credit? I&#8217;m considering doing the same thing</p>\n"
+      },
+      "date_gmt" : "2025-10-27T20:26:29",
+      "id" : 2175800,
+      "parent" : 2151899
+    },
+    {
+      "author_name" : "April6497",
+      "content" : {
+        "rendered" : "<p>I tried signing up. It changed my offer at the end to a lower amount. 50K for 8K spend wtf. It gave me the option to proceed or withdraw my application. I withdrew, of course. Only had the experian report unfrozen. 800~ credit score. 4 CC opened in 1-1.5 years. Hold lot more old accounts but not over 5/24. All at chase. Usually every 3-4 months.</p>\n"
+      },
+      "date_gmt" : "2025-10-31T06:27:34",
+      "id" : 2178547,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Evan",
+      "content" : {
+        "rendered" : "<p>Same, Seems like a bunch of random credits that I wouldn&#8217;t ever pay for.</p>\n"
+      },
+      "date_gmt" : "2025-11-01T04:41:08",
+      "id" : 2179340,
+      "parent" : 2148938
+    },
+    {
+      "author_name" : "Jolly",
+      "content" : {
+        "rendered" : "<p>It also shows me the 50k points for 8k spend lol</p>\n"
+      },
+      "date_gmt" : "2025-11-05T04:32:07",
+      "id" : 2182096,
+      "parent" : 2178547
+    },
+    {
+      "author_name" : "Jolly",
+      "content" : {
+        "rendered" : "<p>How many times did you try and within what time frame? I just tried twice and worried that I might be in the same situation 🙁</p>\n"
+      },
+      "date_gmt" : "2025-11-05T04:33:35",
+      "id" : 2182098,
+      "parent" : 2152817
+    },
+    {
+      "author_name" : "Sergey Sprogis",
+      "content" : {
+        "rendered" : "<p>Any chance to get the welcome bonus if I already had Amex Platinum Business card once which I closed in 12/2023?</p>\n"
+      },
+      "date_gmt" : "2025-11-06T19:12:24",
+      "id" : 2183343,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Andrew",
+      "content" : {
+        "rendered" : "<p>Just as a DP, was getting 50k SUB for 8k spend multiple times. Stopped applying and got an email for 175k SUB for 8k spend yesterday.</p>\n"
+      },
+      "date_gmt" : "2025-11-07T14:02:13",
+      "id" : 2184004,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Ben",
+      "content" : {
+        "rendered" : "<p>Is there a place for referral links? Or an updated list of current best available offers?</p>\n"
+      },
+      "date_gmt" : "2025-11-11T14:38:04",
+      "id" : 2187040,
+      "parent" : 2148744
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Not currently, the best offers are posted on the blog.</p>\n"
+      },
+      "date_gmt" : "2025-11-11T22:17:39",
+      "id" : 2187353,
+      "parent" : 2187040
+    },
+    {
+      "author_name" : "og",
+      "content" : {
+        "rendered" : "<p>same i was getting terrible sub offers from them for a long time, then recently i also got the 175k sub while currently holding the gold card.</p>\n"
+      },
+      "date_gmt" : "2025-11-12T20:43:30",
+      "id" : 2187965,
+      "parent" : 2184004
+    },
+    {
+      "author_name" : "April6497",
+      "content" : {
+        "rendered" : "<p>I didnt get an email like that. been a month</p>\n"
+      },
+      "date_gmt" : "2025-11-22T03:06:37",
+      "id" : 2195253,
+      "parent" : 2187965
+    },
+    {
+      "author_name" : "zerosum",
+      "content" : {
+        "rendered" : "<p>Since the refresh landed Ive had 50k and &#8220;up to 175k&#8221; offers when not logged in, via referral links, and incognito/vpn tricks which used to give me all kinds. When I login, it becomes 80k and wont budge. Ive tried to apply to the referral links for up to 175k and its always PUJ.</p>\n<p>Opened a gold and biz gold last year, no prior amex history. Just going to keep waiting.</p>\n"
+      },
+      "date_gmt" : "2025-11-26T10:10:49",
+      "id" : 2198141,
+      "parent" : 0
+    },
+    {
+      "author_name" : "EW",
+      "content" : {
+        "rendered" : "<p>I am right on the fringe of my 20K spend.   The last purchase was actually for my $150 in Dell.   It is stated this will be issued as a statement credit.   Will it counteract the $150 I purchased from Dell for purposes of the 20K requirement on welcome bonus?  Any DP&#8217;s on that?  (i.e. will the statement credit take me back under the 20K threshold?)</p>\n"
+      },
+      "date_gmt" : "2025-12-04T19:50:42",
+      "id" : 2204304,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Fay White",
+      "content" : {
+        "rendered" : "<p>DP. My Biz Plat annual fee stayed the same when it came up in late Nov.  I ended up canceling.  I didn&#8217;t ask for a retention offer.</p>\n"
+      },
+      "date_gmt" : "2025-12-10T22:39:49",
+      "id" : 2208128,
+      "parent" : 2148064
+    },
+    {
+      "author_name" : "somedudeonDOC",
+      "content" : {
+        "rendered" : "<p>i applied and only got 150k but i accepted it since its end of december already to try to squeeze more credits out of it</p>\n"
+      },
+      "date_gmt" : "2025-12-27T07:05:04",
+      "id" : 2217183,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Suzanne",
+      "content" : {
+        "rendered" : "<p>I have 2 business Platinum cards, and with the refresh I expected to cancel one of them once the next annual fee is due. However, I&#8217;ve now used the $300 FHR 2025 credit for both cards, with 2 separate reservations, and I have to say that I find this benefit to be amazing. </p>\n<p>I&#8217;m usually pretty frugal, though travel is my indulgence. I&#8217;m used to traveling on points, which feels like I travel for free. I used the benefit for Conrad Evermore in Orlando, mid-December for a 1 night 36 hour stay. It cost me $150 after the credit (I realize it really cost me somewhere between $150 and $450, including the annual fee and how many benefits I can take advantage of). The stay was amazing. My second trip was last week at Fairmont in San Juan-area. 2 nights, booked last minute for Christmas. Total value was $2,400 with free breakfast, room upgrade, free Cabana and $100 credit. After the $300 back I ended up paying a net of $1,200. At each hotel they also gave some nice gifts like a box of chocolates or a straw logo bag with a logo hat. Very indulgent and well worth it to me. I already max out a lot of the other benefits like the phone and travel credits, so for now these cards are keepers.</p>\n"
+      },
+      "date_gmt" : "2025-12-31T20:39:05",
+      "id" : 2219256,
+      "parent" : 0
+    },
+    {
+      "author_name" : "NM",
+      "content" : {
+        "rendered" : "<p>FYI Saks 5th is filing for chapter 11. If you’re worried at all, go spend the $50 as soon as possible in the new year</p>\n"
+      },
+      "date_gmt" : "2026-01-01T03:35:45",
+      "id" : 2219423,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Tyler Ho",
+      "content" : {
+        "rendered" : "<p>I only got 100k SUB for personal plat. I think I should wait for the next best offer.</p>\n"
+      },
+      "date_gmt" : "2026-01-20T02:43:59",
+      "id" : 2234325,
+      "parent" : 0
+    },
+    {
+      "author_name" : "strmaster",
+      "content" : {
+        "rendered" : "<p>Have a gold currently&#8230; kinda confused what to do. Amex is offering upgrade for 125k or new card for 80k. There is clear value for me with the plat over the gold and I think I can get the AF back with just the credits. I have a CSP so the 1x downgrade on points won&#8217;t be too insane. Any advice?</p>\n"
+      },
+      "date_gmt" : "2026-01-21T05:12:08",
+      "id" : 2235127,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Sandy",
+      "content" : {
+        "rendered" : "<p>What are best ways to maximize the benefits from 180k Amex Points. Is transferring to Hilton Honors ( 1000 amex points = 2000 HH points) a good deal. My renewal is due in couple of months hence would like to use/convert these points before that. Thank you in advance for good recommendations.</p>\n"
+      },
+      "date_gmt" : "2026-01-28T04:57:25",
+      "id" : 2240333,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Elaz",
+      "content" : {
+        "rendered" : "<p>Hilton honors is never a good deal. Transfer the points to an airline partner for the best use of  points. Use the points to book a business class ticket.. that typically yields you the best return.</p>\n<p>Otherwise just book your economy tickets if you get more value that way… either way these ooh ya are primarily for airline transfers</p>\n"
+      },
+      "date_gmt" : "2026-02-01T03:23:09",
+      "id" : 2244378,
+      "parent" : 2240333
+    },
+    {
+      "author_name" : "C M",
+      "content" : {
+        "rendered" : "<p>Did the lifetime bonus rule change/reset? P2 got a 100k Plat mailer with a personal code, she has had the card/cancelled in the past after bonus + 1 year Annual fee</p>\n"
+      },
+      "date_gmt" : "2026-02-02T07:30:11",
+      "id" : 2245206,
+      "parent" : 0
+    },
+    {
+      "author_name" : "555stigc8",
+      "content" : {
+        "rendered" : "<p>The minimum spend on the Platinum has gone up from $8,000/6 months to $12,000/6 months as of today</p>\n"
+      },
+      "date_gmt" : "2026-02-05T17:47:14",
+      "id" : 2248580,
+      "parent" : 0
+    },
+    {
+      "author_name" : "sam s",
+      "content" : {
+        "rendered" : "<p>I applied for the card through the link, and my application went into a security review. When I called the reconsideration line (800-567-1083), they transferred me to another department. For verification, they sent me a secure link to upload my ID (passport or driver’s license, front and back) and take a selfie from my phone.<br />\nAfter all that, I was approved for only 50,000 points. The rep said the offer was “up to 175,000 points” and that I should have read the fine print. They also mentioned that because my application went through a security check, they couldn’t tell me on the spot how many points I’d be approved for.<br />\nIs it really legal for them to advertise “up to 175,000 points” and then approve someone for much less? This “up to” language feels pretty misleading.</p>\n"
+      },
+      "date_gmt" : "2026-02-19T23:40:13",
+      "id" : 2260554,
+      "parent" : 0
+    },
+    {
+      "author_name" : "acgl",
+      "content" : {
+        "rendered" : "<p>back to $12,000 over 6-months (175k points)</p>\n"
+      },
+      "date_gmt" : "2026-02-26T20:37:05",
+      "id" : 2265402,
+      "parent" : 0
+    },
+    {
+      "author_name" : "CJD",
+      "content" : {
+        "rendered" : "<p>I just got the same</p>\n"
+      },
+      "date_gmt" : "2026-03-04T16:56:25",
+      "id" : 2269363,
+      "parent" : 2265402
+    },
+    {
+      "author_name" : "Raymond 🔗",
+      "content" : {
+        "rendered" : "<p>If you have the Schwab Platinum, can you still get the bonus for the Amex Vanilla Platinum? I am applying for the Schwab version now because I am ineligible for the Vanilla bonus; I just received the Amex Gold card four months ago. </p>\n<p>If I hold the Schwab Platinum now, will I be eligible to get the Vanilla Platinum bonus in future?</p>\n"
+      },
+      "date_gmt" : "2026-03-06T03:31:04",
+      "id" : 2271083,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Raymond 🔗",
+      "content" : {
+        "rendered" : "<p>The consensus seems to be that unless it is an NLL (No Lifetime Language) offer, I won&#8217;t be eligible for another Platinum signup bonus.</p>\n"
+      },
+      "date_gmt" : "2026-03-07T07:58:28",
+      "id" : 2271848,
+      "parent" : 2271083
+    },
+    {
+      "author_name" : "James",
+      "content" : {
+        "rendered" : "<p>I&#8217;m not seeing the welcome offer listed when following the link</p>\n"
+      },
+      "date_gmt" : "2026-03-19T02:12:44",
+      "id" : 2279825,
+      "parent" : 0
+    },
+    {
+      "author_name" : "M",
+      "content" : {
+        "rendered" : "<p>Anyone think the minimum spend will go down back to 8k?</p>\n"
+      },
+      "date_gmt" : "2026-04-15T17:47:07",
+      "id" : 2300727,
+      "parent" : 0
+    },
+    {
+      "author_name" : "M",
+      "content" : {
+        "rendered" : "<p>What did you decide to do?</p>\n"
+      },
+      "date_gmt" : "2026-04-15T17:49:41",
+      "id" : 2300731,
+      "parent" : 2235127
+    },
+    {
+      "author_name" : "Matthew",
+      "content" : {
+        "rendered" : "<p>My P2 is in PUJ&#8230;.</p>\n"
+      },
+      "date_gmt" : "2026-04-21T03:18:58",
+      "id" : 2304619,
+      "parent" : 0
+    }
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "229",
+    "x-wp-totalpages" : "3"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/comments?post=244430&per_page=100&page=2&order=asc&orderby=date_gmt&_fields=id,parent,author_name,date_gmt,content"
+}

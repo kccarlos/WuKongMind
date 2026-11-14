@@ -1,0 +1,1491 @@
+{
+  "body" : {
+    "author" : "ryangibb",
+    "children" : [
+      {
+        "author" : "ggm",
+        "children" : [
+          {
+            "author" : "phil21",
+            "children" : [
+              {
+                "author" : "paulmd",
+                "created_at_i" : 1704056985,
+                "id" : 38827544,
+                "text" : "yup.  the problem is really with the SMR drives where they can (seemingly) hang for <i>minutes at a time</i> as they flush out the buffer track.  ordinary spin-down isn&#x27;t really a problem, as long as the drives spin up within a reasonable amount of time, ZFS won&#x27;t drop the disk from the array.<p>ZFS is designed for HDD-based systems after all.  actually it works notably kinda poorly for SSDs in general - a lot of the design+tuning decisions were made under the assumptions of HDD-level disk latency and aren&#x27;t necessarily optimal when you can just go look at the SSD!<p>however, tons and tons of drive spin-up cycles are not good for HDDs.  Aggressive idle timeout for power management was famously the problem with the WD Green series (wdidle3.exe lol).  Best practice is leave the drives spinning all the time, it&#x27;s better for the drives and doesn&#x27;t consume all that much power overall.  Or I would certainly think about, say, a 1-hour timeout at least.<p><a href=\"https:&#x2F;&#x2F;www.truenas.com&#x2F;community&#x2F;threads&#x2F;hacking-wd-greens-and-reds-with-wdidle3-exe.18171&#x2F;\" rel=\"nofollow\">https:&#x2F;&#x2F;www.truenas.com&#x2F;community&#x2F;threads&#x2F;hacking-wd-greens-...</a><p>However, block-level striping like ZFS&#x2F;BTRFS&#x2F;Storage Spaces is not very good for spinning down anyway.  Essentially all files will have to hit all disks, so you have to spin up the whole array.  L2ARC with a SSD behind it might be able to serve a lot of these requests, but as soon as any block isn&#x27;t in cache you will probably be spinning up all the disks very shortly (unless it&#x27;s literally 1 block).<p>Unraid is better at this since it&#x27;s a file-level striping - newer releases can even use ZFS as a backend but a file always lives on a single unraid volume, so with 1-disk ZFS pools underneath you will only be spinning up one disk.  This can also be used with ZFS ARC&#x2F;L2ARC or Unraid might have its own setup for tiering hot data on cache drives or hot-data drives.<p>(1-disk ZFS pools as Unraid volumes fits the consumer use-case very nicely imo, and that&#x27;s going to be my advice for friends and family setting up NASs going forward.  If ZFS loses any vdev from the pool the whole pool dies, so you want to add at least 2-disk mirrors if not 4-disk RAIDZ vdevs, but since Unraid works at a file-stripe level (with file mirroring) you just add extra disks and let it manage the file layout (and mirrors&#x2F;balancing).  Also, if you lose a disk, you only lose those files (or mirrors of files) but all the other files remain intact, you don&#x27;t lose 1&#x2F;8th of every file or whatever, and that&#x27;s a failure mode that aligns a lot better with consumer expectations&#x2F;needs and consumer-level janitoring.  And you still retain all the benefits of ZFS in terms of ARC caching, file integrity, etc.  It&#x27;s not without flaws, in the naive case the performance will degrade to 1- or 2-disk read speeds (since 1 file is on 1 disk, with eg 1 mirror copy) and writes will probably be 1-disk speed, and a file or volume&#x2F;image cannot exceed the size of a single disk and must have sufficient contiguous free space, and snapshots&#x2F;versioning will consume more data than block-level versioning, etc.  All the usual consequences of having 1 file backed by 1 disk will apply.  But for &quot;average&quot; use-cases it seems pretty ideal and ZFS is an absolutely rock-stable backend for unraid to throw files into.)<p>anyway it&#x27;s a little surprising that having a bunch of individual disks gave you problems with ZFS.  I run 8x8TB shucked drives (looking to upgrade soon) in RAIDZ2 and I get basically 8x single-disk speed over 10gbe, ZFS amortizes out the performance very nicely.  But there are definitely risks&#x2F;downsides, and power costs, to having a ton of small drives, agreed.  Definitely use raidz or mirrors for sure.",
+                "type" : "comment"
+              },
+              {
+                "author" : "justsomehnguy",
+                "children" : [
+                  {
+                    "author" : "phil21",
+                    "children" : [
+                      {
+                        "author" : "justsomehnguy",
+                        "children" : [
+                          {
+                            "author" : "phil21",
+                            "created_at_i" : 1704547725,
+                            "id" : 38891254,
+                            "text" : "Another late reply, but I love me some ZFS talk!<p>That particular build worked fine, it was just really slow.  It was a very ill-advised plan to begin with - I was using 5.25&quot; -&gt; 2.5&quot; hotswap bay converters for the 2.5&quot; laptop drives.  The idea at the time I guess was less noise and power, but mostly it was just to say I did it I think.<p>Other than it being extremely slow it lasted as my home NAS for 5 or 6 years until I outgrew it.<p>These days I run a 250TB ZFS pool as my &quot;main&quot; pool, utilizing the 8TB Seagate SMR drives of yesteryear.  I have had very little problems with them, but it was a very careful pool design after many years of running ZFS on production systems.  So far I&#x27;ve had a few drive failures (as expected) and we are probably ticking closer to decade than I&#x27;d like to admit.  It performs far better than I need it to - as it&#x27;s very much WORM style storage for backups and media.",
+                            "type" : "comment"
+                          }
+                        ],
+                        "created_at_i" : 1704503256,
+                        "id" : 38887224,
+                        "text" : "Yikes.<p>I recently made a RAID5 from a pack of <i>a brand new</i> WD10JUCT (1Tb, 5400, 512e, <i>3Gb&#x2F;s!</i>, but! CMR) and under Windows softraid they showed up to 500MBs of sequential reads&#x2F;writes. Sure, when I installed them in R720 with PERC which doesn&#x27;t understand 512e&#x2F;4kn drives and then slapped VMDKs on it... things got slow but not  25-30MB&#x2F;s.<p>And my experience with different RAIDs says RPM doesn&#x27;t really matters, you would get N x Usable_Stripe_Count MB&#x2F;s in sequential access anyway and with enough spindles you would get fine enough access time too.<p>Probably there was a problem somewhre else, like 30MBs is clearly up to USB2 speeds and even 4200rpm should show a better numbers.",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1704378814,
+                    "id" : 38867448,
+                    "text" : "Late reply, but I believe these were the 4200rpm version - they had to be the &quot;thin&quot; drives to fit into my weird hot-swap bays vs. the &quot;thick&quot; drives you would typically see in datacenter use.  Basically this limited you to laptop drives.<p>I recall these having pretty similar performance to quality USB drives at the time - just more consistently.  They maxed out somewhere around 6-8MB&#x2F;sec for large writes and 25-30MB&#x2F;sec for sustained reads.<p>This was at a time when consumer 7200rpm SATA models were hitting probably close to 120MB&#x2F;sec sustained reads.  Time flies and my memory isn&#x27;t what it&#x27;s used to be - but I&#x27;m fairly sure those numbers are ballpark accurate.  I still have a half dozen of these laying around the house somewhere I should track down one day.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1704060965,
+                "id" : 38828003,
+                "text" : "&gt; home NAS utilizing a bunch of 2.5&quot; 1TB Seagate drives. I would not repeat the experiment as the downsides in performance was simply not worth the space&#x2F;power savings.<p>5400 drives? How many and how bad the performance was?",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1704044079,
+            "id" : 38825773,
+            "text" : "I&#x27;ve found ZFS to be extremely forgiving for hard drives having random slow response times.  So long as you are getting a response within the OS I&#x2F;O timeout period, it&#x27;s simply a matter of blocking I&#x2F;O until the drives spin up.  This can honestly cause a lot of issues on production systems with a drive that wants to half fail vs. outright fail.<p>I believe this is on the order of 30-60s from memory.<p>l2arc likely works quite well for a home NAS setup allowing for the drives to be kept spun down most of the time.<p>Strangely I also built (about 10 years ago now) a home NAS utilizing a bunch of 2.5&quot; 1TB Seagate drives.  I would not repeat the experiment as the downsides in performance was simply not worth the space&#x2F;power savings.<p>Then again, I also built a ZFS pool out of daisy chained USB hubs and 256 (255?) free vendor schwag USB thumb drives.  Take any advice with a grain of salt.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1704028240,
+        "id" : 38823806,
+        "text" : "Sort of not surprising how variant divergent chipsets go with power states, and other things.<p>How does he get raidz2 to spin down without busting the raidset? Putting drives into sleep states isn&#x27;t usually good for in-CPU zfs is it? Is the l2arc doing heavy lifting here?<p>Good comments about ECC memory in the feedback discussion too.",
+        "type" : "comment"
+      },
+      {
+        "author" : "louwrentius",
+        "created_at_i" : 1704043638,
+        "id" : 38825685,
+        "text" : "I have the same amount of storage available in a ~9-year-old 24-bay NAS chassis that does 150 Watt idle (with drives spinning).<p>My NAS is powered down most of the time for this reason, only booted (IPMI) remotely when needed.<p>Although the actual idle power consumption in the article seems to be a tad higher than 7 watts, it&#x27;s so much lower, it&#x27;s not such a big deal to run it 24&#x2F;7 and enjoy the convenience.<p>Loved the write-up!",
+        "type" : "comment"
+      },
+      {
+        "author" : "newsclues",
+        "children" : [
+          {
+            "author" : "fomine3",
+            "created_at_i" : 1704108375,
+            "id" : 38831127,
+            "text" : "MiniPCIe or M.2(PCIe) to SATA board may help you <a href=\"http:&#x2F;&#x2F;www.iocrest.com&#x2F;index.php?id=2349\" rel=\"nofollow\">http:&#x2F;&#x2F;www.iocrest.com&#x2F;index.php?id=2349</a>",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1704043641,
+        "id" : 38825686,
+        "text" : "I had the same issue of picking a motherboard with limited SATA ports and then having to deal with extra expansion cards.<p>4 is not enough for homelab type servers.",
+        "type" : "comment"
+      },
+      {
+        "author" : "chx",
+        "children" : [
+          {
+            "author" : "cjdell",
+            "created_at_i" : 1704044920,
+            "id" : 38825917,
+            "text" : "I&#x27;m very impressed with my N100 mini PC (fits in your palm) that I bought from AliExpress. Takes between 2-8W and uses just a plain old 12V plug-style power supply with a DC barrel. Perfect for Home Assistant and light virtualisation.<p>Performance is actually better than my quad core i5-6500 mini PC. Definitely no slouch.",
+            "type" : "comment"
+          },
+          {
+            "author" : "imglorp",
+            "created_at_i" : 1704045053,
+            "id" : 38825943,
+            "text" : "Because author said they wanted a bunch of disks.",
+            "type" : "comment"
+          },
+          {
+            "author" : "hrdwdmrbl",
+            "created_at_i" : 1704045562,
+            "id" : 38826020,
+            "text" : "+1 for the Nx00 series of chips. I just bought myself a pre-built mini pc with an N100. Low power, good price, great performance.<p>I wonder if in a few years they might not eat the whole mini PC market. If the price can come down such that they’re competitive with the various kinds of Pis…",
+            "type" : "comment"
+          },
+          {
+            "author" : "arp242",
+            "children" : [
+              {
+                "author" : "s800",
+                "children" : [
+                  {
+                    "author" : "adrian_b",
+                    "created_at_i" : 1704049395,
+                    "id" : 38826535,
+                    "text" : "It has been widely reported that Alder Lake N actually works with 32 GB, but for some reason Intel does not support this configuration officially.<p>The same happened with the previous generations of Intel Atom CPUs, they have always worked without any apparent problems with more memory than the maximum specified by Intel.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1704047480,
+                "id" : 38826259,
+                "text" : "I&#x27;m running a home server on an N100 (ITX model) with a 32GB DIMM, works well.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1704045992,
+            "id" : 38826081,
+            "text" : "N100 wasn&#x27;t yet released when this was written in May (or was only <i>just</i> released).<p>Also the N100 only supports 16G RAM, and this guy has 64G. Number of pcix lanes (9 vs. 20) probably matter for their use case as well. And the i5 does seem quite a bit faster in general.<p>Comparison: <a href=\"https:&#x2F;&#x2F;ark.intel.com&#x2F;content&#x2F;www&#x2F;us&#x2F;en&#x2F;ark&#x2F;compare.html?productIds=134586,231803\" rel=\"nofollow\">https:&#x2F;&#x2F;ark.intel.com&#x2F;content&#x2F;www&#x2F;us&#x2F;en&#x2F;ark&#x2F;compare.html?pro...</a>",
+            "type" : "comment"
+          },
+          {
+            "author" : "trescenzi",
+            "children" : [
+              {
+                "author" : "SomeoneFromCA",
+                "created_at_i" : 1704099583,
+                "id" : 38830544,
+                "text" : "7.5 W is a bit high idle for N100, IMHO. Power supply is not very efficient I bet.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1704060147,
+            "id" : 38827889,
+            "text" : "I bought a tiny, fits in the palm of my hand, N100 box on Amazon for $150[1]. It currently does basically everything I need and idles at 7.5W.<p>I’ve got cloudflare setup for dns management and a few simple sites hosted on it like blogs and Gitea. It has an sd card slot that I use as extra storage.<p>Sure it’s not nearly as awesome as the setup detailed here but I couldn’t recommend it more if you just want a small simple home server.<p>[1] <a href=\"https:&#x2F;&#x2F;a.co&#x2F;d&#x2F;cIzEFPk\" rel=\"nofollow\">https:&#x2F;&#x2F;a.co&#x2F;d&#x2F;cIzEFPk</a>",
+            "type" : "comment"
+          },
+          {
+            "author" : "NelsonMinar",
+            "created_at_i" : 1704076716,
+            "id" : 38829343,
+            "text" : "Another happy N100 mini PC user. Mine&#x27;s about 7W when idle, including a couple of spinning USB drives. The most I could get it to pull was about 14W. Really remarkable little systems for a very good price.",
+            "type" : "comment"
+          },
+          {
+            "author" : "Havoc",
+            "created_at_i" : 1704138577,
+            "id" : 38834757,
+            "text" : "Very few pcie lanes",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1704043763,
+        "id" : 38825716,
+        "text" : "Why not the N100?<p>Even an N305 fits the purpose, the N100 would be even less <a href=\"https:&#x2F;&#x2F;www.reddit.com&#x2F;r&#x2F;MiniPCs&#x2F;comments&#x2F;12fv7fh&#x2F;beelink_eq12_notes_is_the_ultraefficient_6w_tdp&#x2F;kdtw9to&#x2F;\" rel=\"nofollow\">https:&#x2F;&#x2F;www.reddit.com&#x2F;r&#x2F;MiniPCs&#x2F;comments&#x2F;12fv7fh&#x2F;beelink_eq...</a>",
+        "type" : "comment"
+      },
+      {
+        "author" : "MochaDen",
+        "children" : [
+          {
+            "author" : "ianai",
+            "children" : [
+              {
+                "author" : "ThatMedicIsASpy",
+                "children" : [
+                  {
+                    "author" : "philjohn",
+                    "children" : [
+                      {
+                        "author" : "ianai",
+                        "children" : [
+                          {
+                            "author" : "philjohn",
+                            "created_at_i" : 1704069234,
+                            "id" : 38828719,
+                            "text" : "That&#x27;s true, but if your goal is low power, that&#x27;s not necessarily going to be a bottleneck - even if you dedicate all 16 PCIe lanes to NVMe storage it&#x27;s going to be more than fast enough for 99% of home server needs.",
+                            "type" : "comment"
+                          }
+                        ],
+                        "created_at_i" : 1704050284,
+                        "id" : 38826661,
+                        "text" : "You are limited to pcie 3.0 speeds there though. But good suggestion.",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1704047173,
+                    "id" : 38826224,
+                    "text" : "If you go back a few generations, the C246 chipset can be had on boards costing 200, and if you pair it with an i3-9100T you get ECC as well as pretty damn low power usage.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1704045464,
+                "id" : 38826003,
+                "text" : "You need workstation chipsets to have ECC on intel desktop CPUs.<p>And yes they start at around 500.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1704044258,
+            "id" : 38825794,
+            "text" : "Agree. Didn’t even see ECC discussed.<p>Apparently this board supports ecc with this chip: \nSupermicro X13SAE W680 LGA1700 ATX Motherboard<p>Costs 550.<p>One option is building around that and having some pcie 4.0 to nvme boards hosting as many nvme drives as needed. Not cheap though but around home affordable.",
+            "type" : "comment"
+          },
+          {
+            "author" : "faeriechangling",
+            "children" : [
+              {
+                "author" : "eisa01",
+                "children" : [
+                  {
+                    "author" : "cpncrunch",
+                    "created_at_i" : 1704047350,
+                    "id" : 38826247,
+                    "text" : "It depends what your requirements are. Ive been using a low end synology box for years as a home dev server and it is more than adequate.",
+                    "type" : "comment"
+                  },
+                  {
+                    "author" : "faeriechangling",
+                    "created_at_i" : 1704049338,
+                    "id" : 38826528,
+                    "text" : "For the most part, these are computers which are meant to stick around through 2-4 upgrade cycles of your other computers.  Just doing various low power 24&#x2F;7 tasks like file serving.<p>You could be like “well that’s stupid, I’m going to make a balls to the wall build server that also serves storage with recent components” but the build server components will become obsolete faster then the storage components, it can lead to incidental complexity to try and run something like windows games on a NAS operating system because you tried to consolidate on one computer, being forced to use things like ECC will compromise absolute performance, you’ll want to have the computer by your desk potentially but also in a closet since it has loud storage, you’re liable to run out of pcie lanes and slots, you want to use open cooling for the high performance components and a closed case for the spinning rust, it’s all a bit awkward.<p>Much simpler is to just treat the NAS as an appliance that serves files, maybe runs a plex server, some surveillance, a weather station, rudimentary monitoring, and home automation.  Things for which something like a v2000 is overkill.  Then use breeding edge chips in things like cell phones and laptops.  Then have the two computers do different jobs.  Longer product cycles between processors makes things like support cheaper to maintain for long term periods of time and offer low prices.",
+                    "type" : "comment"
+                  },
+                  {
+                    "author" : "hypercube33",
+                    "created_at_i" : 1704063115,
+                    "id" : 38828217,
+                    "text" : "I have a 3u Nas I built in 2012 or something with a two core sempron running windows and using storage spaces and it still holds up just fine.",
+                    "type" : "comment"
+                  },
+                  {
+                    "author" : "dannyw",
+                    "created_at_i" : 1704086098,
+                    "id" : 38829873,
+                    "text" : "Serving files is not compute intensive at all.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1704045124,
+                "id" : 38825951,
+                "text" : "Been thinking to just get a Synology with ECC support, but what I find weird is that the CPUs they use are 5+ years old. Feels wrong to buy something like that “new”<p>Same with TrueNas mini",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1704044540,
+            "id" : 38825853,
+            "text" : "Embedded SOCs like AMDs which are used by Synology etc such as AMD V2000.<p>If you want to step up to being able to serve an entire case or 4U of HDDs, you’re going to need pcie lanes though, in which case w680 with i5-12600k and a single ecc udimm and a SAS HBA in the pcie slot with integrated Ethernet is probably as low wattage as you\ncan get.  Shame w680 platform cost  is so high, am4&#x2F;zen2 is cheaper to the point of still being viable.<p>You can also get Xeon, embedded Xeon, am5, am4 (without an iGPU).<p>There’s nothing inherently wrong with running a raid without ecc for 5 years, people do it all the time and things go fine.",
+            "type" : "comment"
+          },
+          {
+            "author" : "tyingq",
+            "created_at_i" : 1704046727,
+            "id" : 38826173,
+            "text" : "If you&#x27;re on a budget, a used HP Z-Series workstation supports ECC ram.  A bare-bones one is cheap, though the ECC memory can be expensive since it&#x27;s not the (plentifully available) server type RDIMMs. Not a low-power setup either :)",
+            "type" : "comment"
+          },
+          {
+            "author" : "philjohn",
+            "children" : [
+              {
+                "author" : "a20eac1d",
+                "children" : [
+                  {
+                    "author" : "philjohn",
+                    "created_at_i" : 1704057425,
+                    "id" : 38827592,
+                    "text" : "There&#x27;s an Asus one that&#x27;s available as well, the ASUS C246 PRO - it&#x27;s about 250 GBP.<p>I did build mine 2 years ago, so the 246 motherboards are less available now, the C252 is another option which will take you up to 11th gen Intel.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1704048748,
+                "id" : 38826443,
+                "text" : "This sounds similar to a build I&#x27;m planning. I cannot find the workstation mainboards at a reasonable price though. They start at like 400€ in Europe.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1704047118,
+            "id" : 38826220,
+            "text" : "That&#x27;s why I went with an i3-9100T and an Asrock Rack workstation board, ECC support (although UDIMM vs RDIMM)",
+            "type" : "comment"
+          },
+          {
+            "author" : "rpcope1",
+            "children" : [
+              {
+                "author" : "sgarland",
+                "created_at_i" : 1704080048,
+                "id" : 38829556,
+                "text" : "Even better, Supermicro will pick up the phone&#x2F;answer emails, even if you bought a years-old secondhand server. They have the manuals, and are more than happy to help you out.<p>Love my X9 and X11 boards.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1704048658,
+            "id" : 38826427,
+            "text" : "I think the trick is to go with a generation or two old Supermicro motherboard in whatever ATX case you can scrounge up, and then use either a low power Xeon or a Pentium&#x2F;Celeron. Something like the X11SAE-F or X12SCA-F (or maybe even older) is plenty, though maybe not quite as low power. I still use an X9SCA+-F with some very old Xeon for a NAS and to run some LXC containers. It idles at maybe 20-30W instead of 5, but I&#x27;ve never had any issues with it, and I&#x27;m sure it&#x27;s paid itself off many times over.",
+            "type" : "comment"
+          },
+          {
+            "author" : "j45",
+            "children" : [
+              {
+                "author" : "justinsaccount",
+                "children" : [
+                  {
+                    "author" : "j45",
+                    "created_at_i" : 1704155943,
+                    "id" : 38836751,
+                    "text" : "Qnap and synology among other have plenty of reasonably priced ecc enabled equipment.<p>I’m not sure where low end comes from, most people start with a Pi, old computer or something, and grow from there.<p>Storage like a home appliance is a good thing.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1704051634,
+                "id" : 38826868,
+                "text" : "&gt; The hardware is much more purpose equipped to store files long term<p>What hardware would that be, specifically?  The low end embedded platforms that don&#x27;t even support ECC?<p>&gt; how many recoveries and transitions have you been through<p>3 or 4, at this point, using the same 2 disk zfs mirror upgraded from 1TB to 3TB to 10TB.",
+                "type" : "comment"
+              },
+              {
+                "author" : "dbeley",
+                "children" : [
+                  {
+                    "author" : "dannyw",
+                    "children" : [
+                      {
+                        "author" : "j45",
+                        "created_at_i" : 1704240366,
+                        "id" : 38848968,
+                        "text" : "I think the average # of years between buying a NAS could easily be 5-10 years.",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1704086333,
+                    "id" : 38829884,
+                    "text" : "You&#x27;re not buying from the right brand.<p>Synology supports their hardware for about 10 years since release. They are the &quot;Apple&quot;-like of NAS.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1704063128,
+                "id" : 38828221,
+                "text" : "The hardware is basically the same as self-hosted NAS, the motherboard could even be of a lower quality. The software though is closed source and most consumer NAS only get support for 4-5 years which is outrageous.",
+                "type" : "comment"
+              },
+              {
+                "author" : "Jedd",
+                "children" : [
+                  {
+                    "author" : "justsomehnguy",
+                    "created_at_i" : 1704080721,
+                    "id" : 38829598,
+                    "text" : "&gt; but unless you&#x27;re looking at an ECC appliance, I&#x27;d say you&#x27;re better off building your own white box.<p>Synology actually allows ECC DRAM and even sells it and list which models would accept them.<p>But yeah, at the price of a full featured model with an x86 CPU and SO&#x2F;DIMM RAM and 4+ drives you are in the territory of building your own, with a lot more of control and without DSM (in Synology case) shenanigans.<p>EDIT: actually the biggest problem here is actually finding a good case, because even ATX cases now usually don&#x27;t have more than 2-3 3.5&quot; bays by default and often don&#x27;t have 5.25&quot; at all.<p><a href=\"https:&#x2F;&#x2F;www.synology.com&#x2F;en-us&#x2F;products&#x2F;DDR4\" rel=\"nofollow\">https:&#x2F;&#x2F;www.synology.com&#x2F;en-us&#x2F;products&#x2F;DDR4</a>",
+                    "type" : "comment"
+                  },
+                  {
+                    "author" : "j45",
+                    "children" : [
+                      {
+                        "author" : "Jedd",
+                        "children" : [
+                          {
+                            "author" : "j45",
+                            "created_at_i" : 1704240577,
+                            "id" : 38849002,
+                            "text" : "Technology not having a feature at all, or majorly in the way advertised is a massive pain.  The WD hard drive fiasco was bad too.<p>Looking at your list, I ended up going with QNAP to be safe .. for flexibility to get anything I needed the way I wanted to.  The choices at the time were a ARM based CPU or intel celeron with very low power. I went with the latter, to realize I probably would have been good as well with the Synology I was eyeing.<p>The bliss of set and forget, and multiple types and locations of backups happening with good reliability is thanks to one change in the NAS space.<p>Existing players were expensive, and to the degree that there is profit in large enterprise storage customers wanting a backup locally in each field office for example,  the NAS industry has been able to provide enterprise class features down market relatively quick and affordably.<p>Your posts made me recall how much I had to research the enterprise features to try and find what I wanted, equivalently in a NAS, and it ended up definitely on the Prosumer&#x2F;SMB models, but ultimately in the high throughput NAS&#x27; that focused on video.<p>I somehow ended up with 2.5 GbE so long ago.  In my case I could have just bought used fibre channel scsi enclosures, but I wanted to be mindful of power needs, and in turn backup power.  It wasn&#x27;t an ideal time to buy then, but is much better now.  In fact, I can probably buy a second or third used version on what I have and it will work together pretty OK, including ECC if I want.<p>I try and remember to follow a rule to spend and buy 10-15% more capacity than I need when buying, if not one level up to get true long term utility value.  For example, always at least 2 more empty drive bays than you need.   If you&#x27;re buying a car, consider a hatchback.  If your&#x27;e buying a hatchback, consider a small SUV, etc.  Buy a little bigger and nicer to let your life grow into it, or buy thrice.",
+                            "type" : "comment"
+                          }
+                        ],
+                        "created_at_i" : 1704182571,
+                        "id" : 38839269,
+                        "text" : "I get your point - though neither company was <i>young</i> a decade ago (QNAP founded 2004, Synology in 2000) - and my problems were not related to &#x27;<i>what technology was like in the old days</i>&#x27;, rather the device was advertised with a feature that  did not work (and indeed it <i>did not work</i> in a fashion that reliably crashed the machine).<p>The other feature - NFS - I&#x27;d say is one of two core features for a NAS (the other being SMB&#x2F;CIFS) and it was lacking basic granularity in its ACL.<p>I&#x27;ll note that at the time the &#x27;app store&#x27; associated with that product has a hundred or more rinky-dinky add-ons &amp; plugins - php admin, helpdesk product, that kind of thing.  I suppose some customers found those useful.<p>But I&#x27;d argue those were less useful features for a NAS than being able to reliably receive &amp; send files, or conveniently secure access to those files.<p>So my concern is not around ephemeral tech &#x2F; feature failures, but the marketing-driven design, complexity of troubleshooting where it met the opacity of the software, and the barely-there value-add &#x2F; extra-cost of a stack like that (especially for people handy with screwdrivers and a CLI).",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1704155628,
+                    "id" : 38836699,
+                    "text" : "A decade ago might as well have been 40 years ago.<p>Both Qnap and synology wt the least offer ECC capable nas. So much so they are getting better established in the smb and enterprise space. It’s a good thing you’ve pointed out to include ECC in your appliance search.<p>My preference and statement for storage as appliance includes experience of building my own boxes and working with servers in my own rack in a data centre for over a decade, out of my pocket.<p>The cloud is someone else’s computer, but I want my own storage and cloud and something easily recommendable to others when it comes up, even when they aren’t techies.<p>Besides, if we’re going that back in time we could just run a scsi raid array with a fibre channel connected to a power hungry server :)",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1704076829,
+                "id" : 38829354,
+                "text" : "I bought a QNAP about a decade ago under the same assumption, but my experiences [0] there means I&#x27;m unlikely to buy a SOHO-level storage appliance ever again.<p>The tl;dr of my rant was around shortcomings in NFS permission configuration, and a failure of the iSCSI feature (the appliance crashed when you sent it data).<p>Further, these appliances invariably use vanilla RAM sticks, so you&#x27;re exposed to gentle memory-based file corruption you <i>probably</i> won&#x27;t notice for years.<p>So I&#x27;d argue the hardware is &#x27;better equipped&#x27;, and I&#x27;d also argue the software as shipped matches the marketing promises accompanying same.<p>Things have doubtless changed - I&#x27;m sure <i>those</i> bugs are long gone now - but unless you&#x27;re looking at an ECC appliance, I&#x27;d say you&#x27;re better off building your own white box.<p>[0]  <a href=\"https:&#x2F;&#x2F;jeddi.org&#x2F;b&#x2F;brief-rant-on-trying-to-use-iscsi-on-a-qnap-569l.html\" rel=\"nofollow\">https:&#x2F;&#x2F;jeddi.org&#x2F;b&#x2F;brief-rant-on-trying-to-use-iscsi-on-a-q...</a>",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1704048717,
+            "id" : 38826433,
+            "text" : "I would never run a self-hosted nas when a synology&#x2F;qnap are available as a dedicated appliance for around the same price.<p>The hardware is much more purpose equipped to store files long term and not the 2-3 years between consumer SSDs&#x27;<p>It&#x27;s not to say self-hosting storage can&#x27;t or shouldn&#x27;t be done, its just about how many recoveries and transitions have you been through, because it&#x27;s not an if, but a when.",
+            "type" : "comment"
+          },
+          {
+            "author" : "jhot",
+            "children" : [
+              {
+                "author" : "NorwegianDude",
+                "created_at_i" : 1704058084,
+                "id" : 38827667,
+                "text" : "I&#x27;ve been running a E3-1230v3 for over 10 years now. With 32GN ECC, 3 SSDs and 4 HDD and separate port for IPMI I&#x27;m averaging 35 W from the wall with a light load. Just ordered a Ryzen 7900 yesterday, and I guess the power consumption will be slightly higher for that one.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1704049379,
+            "id" : 38826533,
+            "text" : "I&#x27;m running truenas on a used e3 1245 v5 ($30 on ebay) and an Asus workstation Mobo with 32 GB ECC and 4 spinning drives. Not sure individually, but the nas along with a i5 12400 compute machine, router, and switch use 100W from the wall during baseline operation (~30 containers). I&#x27;d consider that hugely efficient compared to some older workstations I&#x27;ve used as home servers.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1704043874,
+        "id" : 38825735,
+        "text" : "Low-power is great but running a big RAID long-term without ECC gives me the heebee jeebies!  Any good solutions for a similar system but more robust over 5+ years?",
+        "type" : "comment"
+      },
+      {
+        "author" : "Dachande663",
+        "children" : [
+          {
+            "author" : "bluGill",
+            "children" : [
+              {
+                "author" : "dannyw",
+                "children" : [
+                  {
+                    "author" : "bluGill",
+                    "created_at_i" : 1704121779,
+                    "id" : 38832255,
+                    "text" : "You should replace thet system with off site backups. Local NAS is useful for fast local access which isn&#x27;t what you get.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1704086491,
+                "id" : 38829897,
+                "text" : "It also depends on your use case. If your NAS is write-once-heavy and just used for archiving data, and isn&#x27;t being used to run a database or something like that; then you can even do a 20 drive zpool3 if you want.<p>That&#x27;s my setup for nearly 1&#x2F;3 PB.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1704057291,
+            "id" : 38827576,
+            "text" : "You should buy drives in multiples of 5 or 6. Of course this is subject to much debate. Drives fail so you need more than one extra for redundency - I suggest 2 so when (not if!) one fails you still have procuction while repacing the bad drive. 3 drives in a raid-1 mirror for the price of one is spendy so most start looking at raid-5 with dual parity. However putting more than 6 drives in those starts to run into performance issues better handled by striping across two raids. (if you do try more than 6 your odds of 3 drives failing become reasonable so start adding more paricy stripes) which is why I say 6 drives at once is the sweet spot, but others come up with other answers that are not unreasonable.<p>of course one input is how much data do you have. for many 1 modern disk is plenty of space, so you go raid 1 and redundancy is only so you don&#x27;t need to wait for off site backups to restore after failure.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1704043969,
+        "id" : 38825758,
+        "text" : "Is there not an element of penny-wise, pound-foolish here where you end up optimizing the cpu&#x2F;mono side of things but then run 6+ drives vs fewer larger ones?",
+        "type" : "comment"
+      },
+      {
+        "author" : "jnsaff2",
+        "children" : [
+          {
+            "author" : "Throw839",
+            "children" : [
+              {
+                "author" : "skippyboxedhero",
+                "created_at_i" : 1704045541,
+                "id" : 38826015,
+                "text" : "The NUC and Optiplex aren&#x27;t bad either. There are also very good AsRock boards (I can&#x27;t remember what the modern ones are called but H110T is one, I used this for a bit, idled at 6W, laptop memory and power brick). But Fujitsu is the S-tier.<p>In practice, I found I needed a bit more power but you can get some of the Fujitsu boards with a CPU for $30-40, which is hard to beat.",
+                "type" : "comment"
+              },
+              {
+                "author" : "ThatMedicIsASpy",
+                "created_at_i" : 1704045567,
+                "id" : 38826023,
+                "text" : "I have a HP ProDesk powertop shows up to C10 which I never reach. Must be the SSD or NVMe I have. But yeah The BIOS in those are super cut down and there are hardly any energy settings I can change.",
+                "type" : "comment"
+              },
+              {
+                "author" : "paulmd",
+                "children" : [
+                  {
+                    "author" : "Dalewyn",
+                    "children" : [
+                      {
+                        "author" : "paulmd",
+                        "created_at_i" : 1704095071,
+                        "id" : 38830292,
+                        "text" : "that&#x27;s hilarious, thanks<p>but yeah, it&#x27;s true, the paradox of intel is that they can get it so wrong in the big picture and execution and integration but sometimes the little details are so right.  I225V is a mess.  Sapphire Rapids has 700W transients above average. But idle power and interactive scenarios on client processors is a dream.  They still tend to be better than AMD on their driver side and general platform validation and stability (as much as that has been a doubtful thing and continues to be going forward, it&#x27;s true).",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1704079580,
+                    "id" : 38829531,
+                    "text" : "&gt;Personally I never found AMD is that efficient at idle.<p>Since we&#x27;re talking about Japan, Intel is affectionately called the IdleM@ster as a pun on the very popular IdolM@ster franchise.<p><a href=\"https:&#x2F;&#x2F;twitter.com&#x2F;neko1942&#x2F;status&#x2F;1261661579101143040\" rel=\"nofollow\">https:&#x2F;&#x2F;twitter.com&#x2F;neko1942&#x2F;status&#x2F;1261661579101143040</a><p><a href=\"https:&#x2F;&#x2F;twitter.com&#x2F;Fact_M_Q&#x2F;status&#x2F;1325604249623953408\" rel=\"nofollow\">https:&#x2F;&#x2F;twitter.com&#x2F;Fact_M_Q&#x2F;status&#x2F;1325604249623953408</a>",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1704057725,
+                "id" : 38827626,
+                "text" : "fujitsu has always been underappreciated in the mainstream tbh.  there has always been a thinkpad-style cult following (although much smaller) but japanese companies often do a pretty terrible job at marketing in the west (fujifilm being another fantastic example).<p>my university issued T4220 convertible laptops, with wacom digitizers in the screens.  I rarely used it but the pivot in the screen made it indestructible, it survived numerous falls hitting the corner of the screen&#x2F;etc because the screen simply flops out of the way and pivots to absorb the energy.  I later got a ST6012 slate PC that my uni bookstore was clearing out (also with a wacom digitizer, and a Core2Solo ULV!). Both of them are extremely well-thought-out and competently designed&#x2F;built hardware.  Doesn&#x27;t &quot;feel&quot; thinkpad grade, but it absolutely is underneath, and featured PCMCIA and bay batteries and other power-user features.<p><a href=\"https:&#x2F;&#x2F;www.notebookcheck.net&#x2F;Fujitsu-Siemens-Lifebook-T4220.3694.0.html\" rel=\"nofollow\">https:&#x2F;&#x2F;www.notebookcheck.net&#x2F;Fujitsu-Siemens-Lifebook-T4220...</a><p><a href=\"https:&#x2F;&#x2F;www.ruggedpcreview.com&#x2F;3_slates_fujitsu_st6012.html\" rel=\"nofollow\">https:&#x2F;&#x2F;www.ruggedpcreview.com&#x2F;3_slates_fujitsu_st6012.html</a><p>They also did a <i>ton</i> of HPC stuff for Riken and the other japanese research labs, they did a whole family of SPARC processors for mainframes and HPC stuff, and pivoted into ARM after that wound down. Very cool stuff that receives almost no attention from mainstream tech media, less than POWER even.<p><a href=\"https:&#x2F;&#x2F;www.youtube.com&#x2F;watch?v=m0GqCxMmyF4\" rel=\"nofollow\">https:&#x2F;&#x2F;www.youtube.com&#x2F;watch?v=m0GqCxMmyF4</a><p>Anyway back on topic but my personal cheat-code for power is Intel NUCs.  Intel, too, paid far more attention to idle power and power-states than the average system-integrator.  The NUCs are really really good at idle even considering they&#x27;re using standalone bricks (my experience is laptop bricks are much less efficient and rarely meet 80+ cert etc).  A ton of people use them as building blocks in other cases (like HDPlex H1 or Akasa cases), they don&#x27;t have a <i>ton</i> of IO normally but they have a SATA and a M.2 and you can use a riser cable on the M.2 slot to attach any pcie card you want.  People would do this with skull canyon f.ex (and HDPlex H1 explicitly supports this with the square ones).  The &quot;enthusiast&quot; style NUCs often have multiple M.2s or even actual pcie slots and are nice for this.<p><a href=\"https:&#x2F;&#x2F;www.amazon.com&#x2F;ADT-Link-Extender-Graphics-Adapter-PCI-Express&#x2F;dp&#x2F;B07YDH8KW9\" rel=\"nofollow\">https:&#x2F;&#x2F;www.amazon.com&#x2F;ADT-Link-Extender-Graphics-Adapter-PC...</a><p>And don&#x27;t forget that once you have engineered your way to pcie card formfactor, you can throw a Highpoint Rocket R1104 or a SAS controller card in there and run multiple SSDs (up to 8x NVMe) on a single pcie slot, without bifurcation.  Or there are numerous other &quot;cheat code&quot; m.2 devices for breaking the intended limits of your system - GPUs (Innodisk EPV-1101&#x2F;Asrock M2_GPU), SATA controllers, etc.<p><a href=\"https:&#x2F;&#x2F;www.youtube.com&#x2F;watch?v=M9TcL9aY004\" rel=\"nofollow\">https:&#x2F;&#x2F;www.youtube.com&#x2F;watch?v=M9TcL9aY004</a> (actually this makes the good point that CFExpress is a thing and is very optimized for power. No idea how durable they are in practice, and they are definitely very expensive, but they also might help in some extreme low power situations.)<p>Personally I never found AMD is that efficient at idle. Even with a monolithic apu you will want to dig up an X300TM-ITX from aliexpress, since this allows you to forgo the chipset. Sadly AMD does not allow X300 to be marketed directly as a standalone product, only as an integrated system like a nuc or laptop or industrial pc, despite the onboard&#x2F;SOC IO being already quite adequate for beige box usage. Gotta sell those chipsets (hey, how about <i>two</i> chipsets per board!?). But OP article is completely right that AMD’s chipsets just are not very efficient.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1704044830,
+            "id" : 38825904,
+            "text" : "That fujitsu part is important. Many mainstream brands do not implement power states correctly, Fujitsu seems to be focused on power consumption quite lot.",
+            "type" : "comment"
+          },
+          {
+            "author" : "eurekin",
+            "children" : [
+              {
+                "author" : "jnsaff2",
+                "created_at_i" : 1704048639,
+                "id" : 38826423,
+                "text" : "Currently only gigabit network and I can easily saturate that.<p>Thinking about chucking in 25gbit cards.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1704047683,
+            "id" : 38826306,
+            "text" : "What effective client speeds are you getting?",
+            "type" : "comment"
+          },
+          {
+            "author" : "fomine3",
+            "created_at_i" : 1704107906,
+            "id" : 38831095,
+            "text" : "Used Skylake&#x2F;Kaby Lake PCs are going to be sold as dirt cheap due to Win11 unsupported. These are still good about idle power usage and fine performance for Linux server.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1704044253,
+        "id" : 38825793,
+        "text" : "I have a 5-node ceph cluster built out of Fujitsu desktops that I got for 50 euro a piece.<p>4 nodes have 8gb ram and one has 16gb.<p>CPU in each is i5-6500.<p>Each has an NVMe that is split for OS and journal and a spinning HDD.<p>The cluster idles at 75W and full load about 120W. That is intense ceph traffic not other workloads.",
+        "type" : "comment"
+      },
+      {
+        "author" : "jeffbee",
+        "children" : [
+          {
+            "author" : "skippyboxedhero",
+            "children" : [
+              {
+                "author" : "jeffbee",
+                "created_at_i" : 1704045351,
+                "id" : 38825987,
+                "text" : "I don&#x27;t think it&#x27;s an issue with the card. It&#x27;s a combination of ethernet and PCIe features that make this happen. There is a standard called &quot;energy efficient ethernet&quot; that makes it not happen, but my switch doesn&#x27;t do it.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1704045279,
+            "id" : 38825973,
+            "text" : "If you have an network card over PCIe then there may be an issue with the card. I have never had an issue reaching low sleep state, you can modify WoL behaviour too. Wifi is, again in my experience, uses significantly more power. I have seen 3-5W and usually switch if off.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1704044658,
+        "id" : 38825875,
+        "text" : "I wonder if this system is connected with wired ethernet or wifi. I found that it makes a large difference on my NAS. With a wired link the SoC can&#x27;t reach a deep sleep state because the ethernet peripheral demands low-latency wakeup from the PCIe root port. This is power management policy that is flowing from the link peer all the way to your CPU! I found that wifi doesn&#x27;t have this problem, and gives better-than-gigabit performance, sometimes.",
+        "type" : "comment"
+      },
+      {
+        "author" : "jauntywundrkind",
+        "created_at_i" : 1704044988,
+        "id" : 38825932,
+        "text" : "I feel like I see a good number of nas builds go by, but rarely are they anywhere as technical. Nice.",
+        "type" : "comment"
+      },
+      {
+        "author" : "squarefoot",
+        "created_at_i" : 1704045219,
+        "id" : 38825968,
+        "text" : "For those interested in repurposing a small mini-PC with no Mini PCI ports available as NAS, I recently purchased a ICY IB-3780-C31 enclosure (USB3.1 to 8xSATA), and although I still have to put it in operation (will order new disks soon), I tested it with a pair from my spares and can confirm it works out of the box with both Linux and XigmaNAS (FreeBSD).\nJust beware that although it can turn back on after the connected PC goes to sleep and then wakes up (the oddly named &quot;sync&quot; button on front panel does that), it doesn&#x27;t after a accidental loss of power or power outage <i>even if the connected PC is set up to boot automatically</i>, which to me is quite bad, therefore having recently moved to a place where power outages aren&#x27;t uncommon and can last longer than a normal UPS could handle, I&#x27;ll probably modify the enclosure by adding a switchable monostable circuit that emulates a short press of the power button after power is restored. That would mean a big goodbye to warranty, so I&#x27;ll have to think about it, but the problem can indeed be solved.",
+        "type" : "comment"
+      },
+      {
+        "author" : "ThatMedicIsASpy",
+        "children" : [
+          {
+            "author" : "eurekin",
+            "children" : [
+              {
+                "author" : "ThatMedicIsASpy",
+                "created_at_i" : 1704048188,
+                "id" : 38826369,
+                "text" : "It has 2.5G. There are X670E with 10G if you desire more.<p>My home net is 1G with two MikroTik hAP ax3 which are connected with the single 2.5G poe port they have (and one powers the other).",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1704047601,
+            "id" : 38826277,
+            "text" : "What about networking? Did you go over 1gbit?",
+            "type" : "comment"
+          },
+          {
+            "author" : "hypercube33",
+            "children" : [
+              {
+                "author" : "ThatMedicIsASpy",
+                "children" : [
+                  {
+                    "author" : "tw04",
+                    "children" : [
+                      {
+                        "author" : "AdrianB1",
+                        "children" : [
+                          {
+                            "author" : "tw04",
+                            "children" : [
+                              {
+                                "author" : "formerly_proven",
+                                "created_at_i" : 1704116941,
+                                "id" : 38831744,
+                                "text" : "That&#x27;s because neither AM4 nor AM5 include provisions for a NIC (MAC) on the SoC. Afaik the chipsets don&#x27;t, either. Intel chipsets generally have a gigabit MAC, but this is rarely used (apparently it specifically requires an Intel PHY and that&#x27;s more expensive than a complete NIC from say Realtek).<p>Only the Embedded chips have MACs built in.",
+                                "type" : "comment"
+                              }
+                            ],
+                            "created_at_i" : 1704063287,
+                            "id" : 38828239,
+                            "text" : "If that were the case I’d expect to still see at least SOME products utilizing the AMD chipset, even if budget focused. I have literally not seen a single board from any MFG that utilizes the built in NIC. Heck there are Intel Xeon-d chipsets that utilize both the onboard NIC and external Broadcom to get 4x for cheap.",
+                            "type" : "comment"
+                          }
+                        ],
+                        "created_at_i" : 1704053708,
+                        "id" : 38827145,
+                        "text" : "Or it just tells the customers of this kind of equipment want proven solutions instead of other (novelty) options, so the manufacturers build their products with that in mind. Stability and support are very important to most buyers.",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1704049234,
+                    "id" : 38826508,
+                    "text" : "Even that uses Broadcom 10gbe, not the embedded AMD Ethernet.  It’s really strange, I can only assume there’s something fatally wrong with the AMD Ethernet.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1704048384,
+                "id" : 38826391,
+                "text" : "AsRock Rack B650D4U-2L2T&#x2F;BCM, 2x10G, 2x1G, IPMI<p>For less power consumption Ryzen 8000 is coming up (wait for Jan 8th, CES) and the APU tend to be monolithic and draw a lot less power than the chiplets.",
+                "type" : "comment"
+              },
+              {
+                "author" : "j45",
+                "children" : [
+                  {
+                    "author" : "ThatMedicIsASpy",
+                    "children" : [
+                      {
+                        "author" : "vetinari",
+                        "children" : [
+                          {
+                            "author" : "selectodude",
+                            "created_at_i" : 1704075348,
+                            "id" : 38829223,
+                            "text" : "Optics aren’t free either.",
+                            "type" : "comment"
+                          },
+                          {
+                            "author" : "j45",
+                            "created_at_i" : 1704156236,
+                            "id" : 38836786,
+                            "text" : "I’m currently working through this.<p>My fibre internet is faster than the 2.5 GbE.<p>A UDM-Pro could be added to the mix but simply pushes the issue out.<p>A used datacenter&#x2F;server grade SFP+ switch could be the way to go but have to get up to speed on the basics of the equipment I’d need.<p>Open to ideas and suggestions!",
+                            "type" : "comment"
+                          }
+                        ],
+                        "created_at_i" : 1704055551,
+                        "id" : 38827391,
+                        "text" : "What makes is more expensive is insisting on 10GBase-T. 10G over SFP+ is not that expensive; the cheapest 4 port switch (Mikrotik CRS305) is ~130 EUR.",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1704050342,
+                    "id" : 38826666,
+                    "text" : "You can find what you desire but you always have to pay for it.<p>ASUS ProArt X670E-Creator WIFI, 10G &amp; 2.5G at 460€<p>10G simply isn&#x27;t that cheap. The cheapest 5 port switch is 220€. Upgrading my home net would be rather expensive.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1704048633,
+                "id" : 38826422,
+                "text" : "It may be possible to install, or add an external 2.5 or 10GbE device.<p>Either way, it&#x27;s awful there is not more 10 GbE connectivity available default.  There&#x27;s no reason it shouldn&#x27;t be the next level up, we have been at 1 &#x2F; 2.5 for far too long.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1704048050,
+            "id" : 38826357,
+            "text" : "I really want the Ryzen Embedded and or Epyc 3000(?) series that has dual 10gbe on package for something like a NAS but both are super expensive or impossible to find.",
+            "type" : "comment"
+          },
+          {
+            "author" : "MrFoof",
+            "children" : [
+              {
+                "author" : "ianai",
+                "children" : [
+                  {
+                    "author" : "MrFoof",
+                    "children" : [
+                      {
+                        "author" : "ianai",
+                        "children" : [
+                          {
+                            "author" : "MrFoof",
+                            "created_at_i" : 1704063317,
+                            "id" : 38828244,
+                            "text" : "Agreed!  Despite being PCIe 3.0, these were <i>perfect</i> home server CPUs because of the integrated GPU and ECC support.  The idles were a bit higher than 12th gen Intels <i>(especially the similarly tough to find &quot;T&quot; and especially &quot;TE&quot; processors)</i> mostly because of X570s comparatively higher power draw, but if you ran DDR5 on the Intel platform it was kind of a wash, and under load the Zen 3 PRO GEs won by a real margin.  Plus you really could use every scrap of bandwidth and compute these chips could muster.  You use ALL the chip.  :)<p>My HP ProDesk 405 G8 Minis with a 2.5GbE NIC <i>(plus the built in 1GbE which supported AMD DASH IPMI)</i> idled at around 8.5W, and with the 10GbE NICs that came out around June, are more around 9.5W -- with a 5750GE, 64GB of DDR4-3200 <i>(non-ECC)</i>, WiFi 6E and BT 5.3, a 2TiB SK Hynix P31 Gold <i>(lowest idle of any modern M.2 NVMe?)</i>, and modern ports including 10Gb USB-C.  Without the WiFi&#x2F;BT card it might actually get down to 9W.<p>The hilarious thing about those is they have an onboard SATA connector, but also another proprietary FlexIO connector that can take an NVIDIA GTX 1660 6GB!  You want to talk a unicorn, try <i>finding</i> those GPUs in the wild!  I&#x27;ve <i>never</i> seen one for sale separately!  If you get the EliteDesk <i>(over the ProDesk)</i> you also get a 2nd M2.2280 socket for mirroring.<p>I have three of those beefy ProDesk 805 G8 Minis in a Proxmox 8 cluster, and it mostly runs Apache Spark jobs, sometimes with my PC participating <i>(how I know the storage server can sustain 55GbE data transfer!)</i>, and it&#x27;s hilarious that you have this computerized stack of napkins making no noise that&#x27;s fully processing <i>(reading, transforming, and then writing)</i> 3.4GiB&#x2F;sec of data -- closer to 6.3GiB&#x2F;sec if my 5950X PC is also participating.  I don&#x27;t need the cloud, we have cloud at home!<p>-----<p>If you want a 5750GE, check eBay.  That&#x27;s where you&#x27;ll find them, and rarely NewEgg.  Just don&#x27;t get Lenovo systems unless you want the whole thing, because the CPUs are PSB fuse-locked to the system they came in.<p>4750GEs are Zen 2s and cheaper <i>(half the price)</i>, and pretty solid, but I think four fewer PCIe lanes.  Nothing &quot;wrong&quot; with a 5750G per se, but they cap more around 67-68W instead of 39W.<p>Just if you see a 5750GE, grab it ASAP.  People like me hunt those things like the unicorns they are.  They go FAST!  Some sellers will put up 20 at a time, and they&#x27;ll all be gone within 48 hours.<p>-----<p>I really look forward to the Zen 4 versions of these chips, and the eventual possibility of putting 128GiB of memory into a 1L form factor, or 256GiB into a low power storage server.  I won&#x27;t need them <i>(I&#x27;m good for a looooong time)</i>, but it&#x27;s nice to know it&#x27;ll be a thing.<p>Intel 15th gen may be great too, as it&#x27;s such a massive architecture shift plus a new process node.  Intel also tends to have really low board chipset power consumption, and really low idles.<p>Obscenely capable home servers that make no noise and idle in the 7-10W range are utterly fantastic.",
+                            "type" : "comment"
+                          }
+                        ],
+                        "created_at_i" : 1704053995,
+                        "id" : 38827181,
+                        "text" : "Nice! Wish they were easier to obtain!!",
+                        "type" : "comment"
+                      },
+                      {
+                        "author" : "justinclift",
+                        "created_at_i" : 1704084563,
+                        "id" : 38829803,
+                        "text" : "&gt; using the proprietary FlexIO V2 port<p>They&#x27;re also available cheaply on Aliexpress, and reportedly work ok.<p>Well, there are different models (with different numbers of PCIe lanes), so very much a case of &quot;do your research first&quot;. :)",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1704051184,
+                    "id" : 38826812,
+                    "text" : "Nope.  The extra E was for &quot;efficiency&quot;, because they were better binned than the normal Gs.  Think of how much more efficient 5950Xs were than 5900Xs, despite more cores.<p>So the Ryzen PRO line is a &quot;PRO&quot; desktop CPU.  So typical AM4 socket, typical PGA (not BGA), etc.  However they were never sold directly to consumers, only OEMs.  Typically they were put in USFF (1L) form factors, and some desktops.  They were sold primarily to HP and Lenovo <i>(note: Lenovo PSB fuse-locked them to the board -- HP didn&#x27;t)</i>.  For HP specifically, you&#x27;re looking at the HP ProDesk and EliteDesk  <i>(dual M2.2280)</i> 805 G8 Minis... which now have 10GbE upgrade cards <i>(using the proprietary FlexIO V2 port)</i> available straight from HP, plus AMD DASH for IPMI!<p>You could for a while get them a la carte from boutique places like QuietPC who did buy Zen 3 Ryzen PRO trays and half-trays, but they are <i>long</i> gone.  They&#x27;re also well out of production.<p>Now if you want one, they&#x27;re mostly found from Taiwanese disassemblers and recyclers who part out off-lease 1L USFFs.  The 5750GEs are the holy grail 8-cores, so they command a massive premium over the 6-core 5650GEs.  I actually had a call with AMD sales and engineering on being able to source these directly about a year ago, and though they were willing, they couldn&#x27;t help because they were no longer selling them into the channel themselves.  Though the engineer sales folks were really thrilled to see someone who used every scrap of capability of these CPUs.  They were impressed that I was using them to sustain 55GbE of actual data transfer <i>(moving actual data, not just rando network traffic)</i> in an extremely low power setup.<p>-- -----<p>Also, I actually just logged in to my metered PDU, and the system is idling right now at just 44.2W.  So less than the 50W I said, but I wanted to be conservative in case I was wrong. :)<p>44.2W that has over 84TiB usable storage, with fully automagic ingest and cache that helps to serve 4.5GiB&#x2F;sec to 6.5GiB&#x2F;sec over the network <i>ain&#x27;t bad</i>!",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1704050656,
+                "id" : 38826715,
+                "text" : "Is the “e” for embedded? Ie needs to be bought in a package? I’m not seeing many market options.",
+                "type" : "comment"
+              },
+              {
+                "author" : "ThatMedicIsASpy",
+                "children" : [
+                  {
+                    "author" : "MrFoof",
+                    "created_at_i" : 1704052245,
+                    "id" : 38826953,
+                    "text" : "Yep.  9300s are very cheap now.  9400s are less cheap.  9500s are not cheap.  9600s are new and pricey.<p>As I said, you can&#x27;t recoup the ROI from the reduced power consumption, even if you&#x27;re paying California or Germany power prices.  Though you can definitely get the number lower!<p>I had this system <i>(and the 18U rack)</i> in very close proximity in an older, non-air conditioned home for a while.  So less heat meant less heat and noise. I also deliberately chased, <i>&quot;how low can I go (within reason)&quot;</i> while still chasing the goal of local NVMe performance over the network.  Which makes the desire to upgrade non-existent, even 5+ years from now.<p>Not cheap, but a very fun project where I learned a lot and the setup is absolutely silent!",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1704050859,
+                "id" : 38826758,
+                "text" : "I&#x27;m looking at an LSI 9300-16i which is 100€ (refurbished) including the cables. I just have to flash it myself. Even a 9305 is triple the cost for around half the power draw.<p>My build is storage, gaming and a bunch of VMs.<p>Used Epyc 7000 was the other option for a ton more PCIe. I have no need for more network speed.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1704049400,
+            "id" : 38826537,
+            "text" : "You can go down to 50W idle, but it requires some <i>very specific</i> hardware choices where the ROI will never materialize, some of which aren’t available yet for Zen4.<p>I have…<p>* AMD Ryzen 7 PRO 5750GE<p>* 128GB ECC DDR4-3200<p>* Intel XL710-QDA2 <i>(using QSFP+ to a quad-SFP+ passive DAC breakout)</i><p>* LSI 9500-16i<p>* Eight WD 16TB HDDs (shucked)<p>* Two 2TB SK Hynix P41 Platinum M.2 NVMe SSD<p>* Two Samsung 3.84TB PM9A3 U.2 NVMe SSD<p>* Two Samsung 960GB PM893 SATA SSD<p>So that’s the gist. Has a BMC, but dual 40GbE and can sustain about 55GbE over the network <i>(in certain scenarios, 30-35GbE for almost all)</i>, running TrueNAS scale purely as a storage appliance for video editing, a Proxmox cluster <i>(on 1L SFFs with 5750GEs and 10GbE idling at 10W each!)</i> mostly running Apache Spark, a Pi4B 8Gb k3s cluster and lots more.  Most of what talks to it is either 40GbE or 10GbE.<p>There is storage tiering set up so the disks are very rarely hit, so they’re asleep most of the time. It mostly is serving data to or from the U.2s, shuffling it around automatically later on.  The SATA SSDs are just metadata.  It actually boots off a SuperMicro SuperDOM.<p>——<p>The Zen 3 Ryzen PRO 5750GEs are <i>unicorns</i>, but super low power. Very tiny idle <i>(they’re laptop cores)</i>, integrated GPU, ECC support, and the memory protection features of EPYC.  92% of the performance of a 5800X, but all 8C&#x2F;16T flat out <i>(at 3.95GHz because of an undervolt)</i> caps at just under 39W package power.<p>The LSI 9500-16i gave me all the lanes I needed <i>(8 PCIe, 16 SlimSAS)</i> for the two enterprise U.2 and 8 HDDs, and was very low idle power by being a newer adapter.<p>The Intel dual QSFP+ NIC was deliberate as using passive DACs over copper saved 4-5W per port <i>(8 at the aggregation switch)</i> between the NIC and the switch.  Yes, really.  Plus lower latency <i>(than even fiber)</i> which matters at these transfer speeds.<p>The “pig” is honestly the ASRock X570D4U because the BMC is 3.2W on its own, and X570 is a bit power hungry itself.  But all in all, the whole system idles at 50W, is usually 75-80W under most loads, but can theoretically peak probably around 180-190W if everything was going flat out.  It uses EVERY single PCIe lane available from the chipset and CPU to its fullest!  Very specific chassis fan choices and Noctua low profile cooler in a super short depth 2U chassis.  I’ve never heard it make a peep, disks aside :)",
+            "type" : "comment"
+          },
+          {
+            "author" : "dist-epoch",
+            "children" : [
+              {
+                "author" : "ThatMedicIsASpy",
+                "children" : [
+                  {
+                    "author" : "dist-epoch",
+                    "created_at_i" : 1704305404,
+                    "id" : 38857418,
+                    "text" : "&gt; Ryzen 7000 limits 4 dimms to 3600MHz<p>This is official support, just like 2 dimms are officially supported only at 5200MHz. People have been running them higher.<p>How are you measuring the power? At the wall? I think you are measuring the memory controller too, not just the dimms.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1704117481,
+                "id" : 38831793,
+                "text" : "Where are those 48G dimms? Ryzen 7000 limits 4 dimms to 3600MHz. To get high clocks 2 dimm configs is the maximum for Ryzen 7000. Are they in use? I can cut off 10-15W going to 4800MHz 1.1V (from 6400 1.3V)",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1704063474,
+            "id" : 38828260,
+            "text" : "&gt; 3-5W per 8GB of RAM<p>I think that&#x27;s wrong. It would mean 4*6=25W per DIMM.<p>I also have 48GB DDR5 DIMMs and HwInfo shows 6W max per module.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1704046078,
+        "id" : 38826087,
+        "text" : "7950X3D, X670E Taichi, 96GB 6400MHz CL32, 2x4TB Lexar, 4x18TB Seagate Exos X18, RX570 8G, Proxmox.<p>Idle no VM ~60-70W.<p>Idle TrueNAS VM drives spinning ~90-100W.<p>Idle TrueNAS &amp; Fedora Desktop with GPU passthrough ~150W<p>In a few weeks the 570 is replaced by 7900 xtx. The RAM adds a lot of W. 3-5W per 8GB of RAM depending on the frequency is common for DDR5.<p>I was expecting around 50-100W for Proxmox+TrueNAS. I did not consider the power draw of the RAM when I went for 96GB.",
+        "type" : "comment"
+      },
+      {
+        "author" : "1letterunixname",
+        "children" : [
+          {
+            "author" : "syntheticnature",
+            "children" : [
+              {
+                "author" : "sgarland",
+                "created_at_i" : 1704080379,
+                "id" : 38829572,
+                "text" : "My plan for when I build a house (so far with two moves during my serious homelab period, the room layout hasn’t worked) is to build a small server room that vents out to the heat pump water heater.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1704048134,
+            "id" : 38826366,
+            "text" : "I was looking into water heaters that use heat pumps recently, and a lot of them function by sucking heat out of the room. While water and computers don&#x27;t mix, might be an even better use for all that waste heat...",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1704046107,
+        "id" : 38826093,
+        "text" : "I feel like an petrochem refinery with my 44 spinning rust units NAS 847E16-RJBOD, 48 port POE+ 10 GbE switch, 2 lights-out and environmental monitoring UPSes, and DECISO OPNsense router using a combined average of 1264W. ]: One UPS is at least reporting a power factor with an efficiency of 98%, while the other one isn&#x27;t as great at 91%.<p>APM is disabled on all HDDs because it just leads to delay and wear for mythological power savings that isn&#x27;t going to happen in this setup. Note that SMART rarely&#x2F;never predicts failures, but one of the strongest signals of drive failures is slightly elevated temperatures (usually as a result of bearing wear).<p>This creates enough waste heat such that one room never needs heating, but cooling isn&#x27;t strictly needed either because there&#x27;s no point to reducing datacenter ambient below 27 C.",
+        "type" : "comment"
+      },
+      {
+        "author" : "Palomides",
+        "children" : [
+          {
+            "author" : "dannyw",
+            "children" : [
+              {
+                "author" : "jmnicolas",
+                "created_at_i" : 1704121427,
+                "id" : 38832221,
+                "text" : "Try to be charitable, I&#x27;m sure there are a couple Linux ISO in there.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1704088639,
+            "id" : 38829982,
+            "text" : "it&#x27;s usually p0rn",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1704046388,
+        "id" : 38826126,
+        "text" : "amusing to read this very detailed article and not have any idea what OP actually does with 72TB of online storage<p>1gbe seems a bit anemic for a NAS",
+        "type" : "comment"
+      },
+      {
+        "author" : "alphabettsy",
+        "created_at_i" : 1704046755,
+        "id" : 38826176,
+        "text" : "Very cool write up. Good timing too as I find myself attempting to reduce the power consumption of my homelab.",
+        "type" : "comment"
+      },
+      {
+        "author" : "vermaden",
+        "created_at_i" : 1704047657,
+        "id" : 38826294,
+        "text" : "Good read.<p>Tried something similar in the past:<p>- <a href=\"https:&#x2F;&#x2F;vermaden.wordpress.com&#x2F;2019&#x2F;04&#x2F;03&#x2F;silent-fanless-freebsd-server-redundant-backup&#x2F;\" rel=\"nofollow\">https:&#x2F;&#x2F;vermaden.wordpress.com&#x2F;2019&#x2F;04&#x2F;03&#x2F;silent-fanless-fre...</a><p>- <a href=\"https:&#x2F;&#x2F;vermaden.wordpress.com&#x2F;2023&#x2F;04&#x2F;10&#x2F;silent-fanless-dell-wyse-3030-lt-freebsd-server&#x2F;\" rel=\"nofollow\">https:&#x2F;&#x2F;vermaden.wordpress.com&#x2F;2023&#x2F;04&#x2F;10&#x2F;silent-fanless-del...</a>",
+        "type" : "comment"
+      },
+      {
+        "author" : "uxp8u61q",
+        "children" : [
+          {
+            "author" : "hmottestad",
+            "created_at_i" : 1704048750,
+            "id" : 38826444,
+            "text" : "You can very easily run docker containers on it. That’s why I went with a ryzen chip in mine.<p>You could always use an rpi if you want to go with ARM, and you’ll want something with ARMv8.",
+            "type" : "comment"
+          },
+          {
+            "author" : "adrian_b",
+            "created_at_i" : 1704049899,
+            "id" : 38826598,
+            "text" : "Most Arm or RISC-V CPUs (with the exception of a few server-oriented models that are much more expensive than x86) have very few PCIe lanes and SATA ports, so you cannot make a high throughput NAS with any of them.<p>There are some NAS models with Arm-based CPUs and multiple SSDs&#x2F;HDDs, but those have a very low throughput due to using e.g. only one PCIe lane per socket, with at most PCIe 3 speed.",
+            "type" : "comment"
+          },
+          {
+            "author" : "arp242",
+            "created_at_i" : 1704051204,
+            "id" : 38826814,
+            "text" : "&gt; my impression is that most x64 CPUs are thoroughly beaten by Arm or RISC-V CPUs when it comes to power consumption<p>Not really.<p>ARM (and to lesser degree, RISC-V) are often used and optimized for low-power usage and&#x2F;or low-heat. x64 is often more optimized for maximum performance, at the expense of higher power usage and more heat. For many x64 CPUs you can drastically reduce the power usage if you underclock the CPU just a little bit (~10% slower), especially desktop CPUs but also laptops.<p>There are ARM and RISC-V CPUs that consume much less power, but they&#x27;re also much slower and have a much more limited feature-set. You do need to compare like to like, and when you do the power usage differences are usually small to non-existent in modern CPUs. ARM today is no longer the ARM that Wilson et al. design 40 years ago.<p>And for something connected to mains, even doubling the efficiency and going from 7W to 3.5W doesn&#x27;t really make all that much difference. It&#x27;s just not a big impact on your energy bill or climate change.",
+            "type" : "comment"
+          },
+          {
+            "author" : "pmontra",
+            "created_at_i" : 1704056493,
+            "id" : 38827481,
+            "text" : "I&#x27;m using an Odroid HC4 as my home server. It has an ARM CPU and it&#x27;s idling at 3.59 W now with a 1 TB SATA 3 SSD and some web apps that are basically doing nothing, because I&#x27;m their only user. It&#x27;s got a 1 GB network card, like my laptop. I can watch movies and listen to music from its disk on my phone and tablet.<p>There is no need to have something faster. The SATA 3 bus would saturate a 2.5 GB card anyway. The home network in Cat 6A so it could go up to 10 GB. We&#x27;ll see what happens some years from now.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1704048299,
+        "id" : 38826381,
+        "text" : "I know nothing about building NASs so maybe my question has an obvious answer. But my impression is that most x64 CPUs are thoroughly beaten by Arm or RISC-V CPUs when it comes to power consumption. Is there a specific need for the x64 architecture here? I couldn&#x27;t find an answer in TFA.",
+        "type" : "comment"
+      },
+      {
+        "author" : "sandreas",
+        "children" : [
+          {
+            "author" : "manmal",
+            "children" : [
+              {
+                "author" : "agilob",
+                "children" : [
+                  {
+                    "author" : "scns",
+                    "children" : [
+                      {
+                        "author" : "agilob",
+                        "children" : [
+                          {
+                            "author" : "tomatocracy",
+                            "created_at_i" : 1704104442,
+                            "id" : 38830886,
+                            "text" : "You can do it with ZFS at least. I have a ZFS setup which idles drives. If I don&#x27;t access the datasets on the drives, they don&#x27;t spin up. You do have to be careful with things like auto snapshotting tools though - that will typically wake drives up. I had to script mine to only run on relevant datasets when drives are spun up and also had to edit the tool (sanoid) to prevent it from enumerating the list of snapshots on the idle datasets not being snapshotted.",
+                            "type" : "comment"
+                          },
+                          {
+                            "author" : "PBondurant",
+                            "created_at_i" : 1704109955,
+                            "id" : 38831225,
+                            "text" : "I&#x27;m running a ZFS NAS with mirrored 2 HDD vdevs. I&#x27;ve set the HDDs to spindown after 20mins using hdparm -S and this works fine under zfs. The drives (Toshiba N300s) take ~15s to spin up when something accesses them, and ime zfs has always handled this gracefully.<p>This vdev only contains data; it&#x27;s not running the OS &#x2F; root.",
+                            "type" : "comment"
+                          }
+                        ],
+                        "created_at_i" : 1704101711,
+                        "id" : 38830691,
+                        "text" : "btrfs and zfs at least, probably most frequently used FSs for RAID",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1704070016,
+                    "id" : 38828784,
+                    "text" : "&gt; some FS won&#x27;t let HDDs go to sleep<p>Which ones?",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1704058749,
+                "id" : 38827731,
+                "text" : "to go deeper, depending on a file system, some FS won&#x27;t let HDDs go to sleep, so they always consume power for max RPM.",
+                "type" : "comment"
+              },
+              {
+                "author" : "sandreas",
+                "created_at_i" : 1704077905,
+                "id" : 38829449,
+                "text" : "You&#x27;re right. 6 spinning disks and a discrete GPU won&#x27;t work with 120W. I would recommend to get the Corsair RM550x 2021 (or similar) when using a NAS with more than 2 disks or a discrete GPU.<p>I personally don&#x27;t need more than 10TB space, so 2 10TB Seagate EXOS in ZFS mirror would just work fine with 120W as long as you don&#x27;t run Prime95 the whole time. You might go up to Pico PSU 150 then.",
+                "type" : "comment"
+              },
+              {
+                "author" : "tomatocracy",
+                "children" : [
+                  {
+                    "author" : "sandreas",
+                    "children" : [
+                      {
+                        "author" : "tomatocracy",
+                        "children" : [
+                          {
+                            "author" : "sandreas",
+                            "created_at_i" : 1704145636,
+                            "id" : 38835628,
+                            "text" : "Ok, I have running multiple machines with PicoPSU and never experienced this. In my opinion it is a pretty reliable consumer device.<p>However, thank you for pointing that out. I did not know that.",
+                            "type" : "comment"
+                          }
+                        ],
+                        "created_at_i" : 1704132820,
+                        "id" : 38833879,
+                        "text" : "Not sure. I experienced this personally using a picoPSU with spinning drives on one machine - no issues with spinup but silent data corruption on writes (which then got picked up by ZFS). Switching to a traditional PSU cured the problem.",
+                        "type" : "comment"
+                      },
+                      {
+                        "author" : "justsomehnguy",
+                        "children" : [
+                          {
+                            "author" : "sandreas",
+                            "created_at_i" : 1704145704,
+                            "id" : 38835637,
+                            "text" : "Well, that&#x27;s really interesting. If I ever experience these issues somewhere, I know where to start...",
+                            "type" : "comment"
+                          }
+                        ],
+                        "created_at_i" : 1704134049,
+                        "id" : 38834108,
+                        "text" : "Can&#x27;t say anything about picoPSU, except writing anything on RAID involves all the drives <i>to seek</i> and write and without a a solid power reserve you can receive a momentary dip of voltage which can lead for a malformed write, but back in mid-late 2000s I&#x27;ve seen enough HDDs failing and corrupting data which miracluosly behaved when moved to another machine or when you replaced PSU (with a decent one, not another $15 chinesium).<p>A lot of bad reputation of WD from that time is actually from the shitty PSUs, not the drives themselves.",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1704108869,
+                    "id" : 38831158,
+                    "text" : "Is there a source for this?",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1704103870,
+                "id" : 38830860,
+                "text" : "Even if you have no issues with spinup, insufficient power can result in silent data corruption, which can be quite frustrating to diagnose (even if ZFS will help you see it). The difference between a picoPSU and a decent &quot;real&quot; PSU in terms of power consumption at the wall is maybe a couple of watts in my experience - not worth the risk for most people.",
+                "type" : "comment"
+              },
+              {
+                "author" : "LargoLasskhyfv",
+                "created_at_i" : 1704323218,
+                "id" : 38861047,
+                "text" : "In times long gone there&#x27;s been a setting.<p>Staggered spin-up it was called.<p>Turned on one disk after another.<p>So the PSU didn&#x27;t bother, or stalled.<p>Done.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1704054711,
+            "id" : 38827282,
+            "text" : "For anybody reading this - I think it’s a great config, but would be careful around pico PSUs in case you want to run a bunch of good old spinning disks. HDDs have a sharp power peak when spinning up, and if you have a couple of them in a RAID, they might do so synchronously, potentially exceeding the envelope.",
+            "type" : "comment"
+          },
+          {
+            "author" : "ksjskskskkk",
+            "children" : [
+              {
+                "author" : "bb88",
+                "created_at_i" : 1704065777,
+                "id" : 38828445,
+                "text" : "This is the setup I was looking for, the ECC support is really a requirement for a NAS.",
+                "type" : "comment"
+              },
+              {
+                "author" : "Jedd",
+                "children" : [
+                  {
+                    "author" : "sandreas",
+                    "created_at_i" : 1704077555,
+                    "id" : 38829423,
+                    "text" : "This. Additionally, there is the price point of modern AMD &quot;workstationish&quot; systems  vs. used Intel &quot;real server&quot; systems. Efficiency together with more performance is great, but if I had to pay double the price for a system that offers lots of performance I won&#x27;t need anyway I&#x27;m not willing to pay the price.<p>Used Intel Systems are just way cheaper, because nobody seems to want them anymore... Everyone wants a &gt;= 8 core ryzen :-) I personally don&#x27;t need this for a little Proxmox &#x2F; NAS kind of system.<p>However, I&#x27;m hoping for frame.work to announce official ECC support[1] on their Notebook boards (pretty likely this will never happen). I would love to just use the coolermaster case with small efficient modern notebook hardware for 600 bucks just because I don&#x27;t need additional harddisks and I would just buy one to support the company.<p>[1]: <a href=\"https:&#x2F;&#x2F;community.frame.work&#x2F;t&#x2F;ecc-error-correcting-code-defaultly-supported-already-ryzen-amd&#x2F;1716\" rel=\"nofollow\">https:&#x2F;&#x2F;community.frame.work&#x2F;t&#x2F;ecc-error-correcting-code-def...</a>",
+                    "type" : "comment"
+                  },
+                  {
+                    "author" : "harshreality",
+                    "created_at_i" : 1704091603,
+                    "id" : 38830125,
+                    "text" : "Older AGESA (part of the mobo firmware that handles system initialization) versions had a bug that prevented the chipset from recognizing and utilizing ECC ram properly even though the chipsets should support it. Check any motherboard in question for a firmware update which includes at least AGESA 1.0.0.5 patch C.<p><a href=\"https:&#x2F;&#x2F;www.reddit.com&#x2F;r&#x2F;truenas&#x2F;comments&#x2F;10lqofy&#x2F;\" rel=\"nofollow\">https:&#x2F;&#x2F;www.reddit.com&#x2F;r&#x2F;truenas&#x2F;comments&#x2F;10lqofy&#x2F;</a>",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1704069125,
+                "id" : 38828711,
+                "text" : "The same way backups are most rigorously performed by people who&#x27;ve lost data, ECC is a non-negotiable requirement for people who&#x27;ve suffered slow data corruption via silent memory failures.<p>It surprises me that people are happy with 64GB+ builds of non-ECC, especially for NAS (ie. very long term storage, where corruptions probably wouldn&#x27;t be noticed for years).<p>Periodically I look at replacing my small fleet of HP micro Gen8&#x27;s, which use Xeons, have 4 x 3.5&quot; bays (with proper h&#x2F;w RAID1), but max out at a frustratingly low 16GB. They&#x27;re quite robust, but because of their age - and HP - a horse veterinarian approach to component failures is usually indicated.<p>A Ryzen + ECC whitebox build is massively appealing, but almost everyone&#x27;s build-out includes caveats like &#x27;check the datasheet of the mobo and CPU&#x27; (because series aren&#x27;t consistent), and about half the time a terrifying disclaimer to the effect of &#x27;ECC is present &#x2F; enabled in the kernel, but I can&#x27;t tell if it&#x27;s <i>actually</i> functioning properly&#x27;.",
+                "type" : "comment"
+              },
+              {
+                "author" : "vardump",
+                "created_at_i" : 1704069982,
+                "id" : 38828781,
+                "text" : "Indeed. ECC is non-negotiable, even for &quot;consumer&quot;-grade servers. Heck, also for workstations. Less&#x2F;no mystery software malfunctions.",
+                "type" : "comment"
+              },
+              {
+                "author" : "akvadrako",
+                "children" : [
+                  {
+                    "author" : "amarshall",
+                    "children" : [
+                      {
+                        "author" : "wtallis",
+                        "created_at_i" : 1704080803,
+                        "id" : 38829603,
+                        "text" : "I wish JEDEC and the memory manufacturers had not decided to present on-die ECC as being a &quot;feature&quot; of DDR5 memory, when it has far more to do with the generation of the  fab process than the generation of the memory interface.",
+                        "type" : "comment"
+                      },
+                      {
+                        "author" : "ksjskskskkk",
+                        "created_at_i" : 1704089765,
+                        "id" : 38830033,
+                        "text" : "anecdotal: run the exact same system and tasks on desktops with ddr4 ecc and laptops without ecc ddr5 (they technically have amd pro apu and sodimm sockets, but i can&#x27;t find the damn memory to buy)<p>the laptops see two unexplainable crashes per 6 mo.",
+                        "type" : "comment"
+                      },
+                      {
+                        "author" : "akvadrako",
+                        "created_at_i" : 1704209057,
+                        "id" : 38842545,
+                        "text" : "There might be options in your country. But in the Netherlands there is very little choice for ECC DDR5. Only a couple model are available of 32GB 5200+ sticks; it&#x27;s slow, expensive and barely in stock.",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1704076503,
+                    "id" : 38829329,
+                    "text" : "On-die ECC is not ECC memory. On-die ECC only corrects certain errors (e.g. not transport errors), and is absolutely necessary with DDR5 else such errors would be intolerably frequent.<p>True DDR5 ECC memory exists, and is not hard to find—just look for “server” RAM.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1704075185,
+                "id" : 38829210,
+                "text" : "What type of ECC is a requirement? All DDR5 has on-die ECC but it&#x27;s hard to get real ECC with error reporting. Since errors are pretty rare (about 1 &#x2F; year per 100GB) and you sacrifice to get it, seems like a hard choice.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1704057646,
+            "id" : 38827616,
+            "text" : "b550m with a amd5 pro from 2023 (will double check models and post on that forum)<p>i get 9w idle and amd pro cpus have ECC support which is a requirement for me on any real computer. i disable most components on the board. it&#x27;s bottom tier consumer quality.<p>best part is when i need to burn many more watts the integrated gpu is pretty decent",
+            "type" : "comment"
+          },
+          {
+            "author" : "kogepathic",
+            "children" : [
+              {
+                "author" : "sandreas",
+                "children" : [
+                  {
+                    "author" : "kogepathic",
+                    "children" : [
+                      {
+                        "author" : "sandreas",
+                        "created_at_i" : 1704267828,
+                        "id" : 38851687,
+                        "text" : "Cool thank you... I also thought about soldering a 2$ female 24pin plug to the spot where it is on the (-B) variant... seems that they just left the plug out but the connections are there.<p>We&#x27;ll see :-)",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1704238298,
+                    "id" : 38848614,
+                    "text" : "<i>&gt; You mean that the Bojiadafast adapters work fine?</i><p>I have no experience with this particular vendor&#x2F;brand but the adapters are not complex. If you&#x27;re concerned, verify that it has 11VSB before you plug it into the motherboard. Otherwise it&#x27;s entirely passive (passing through PS_ON#, PWR_OK, and 12V)<p><i>&gt; If so, I wonder if there is a hit in efficiency because of the required step-up &#x2F; step-down converters in that adapter.</i><p>It should be quite nominal. The boost converters have a very high efficiency (&gt;85%) and standby power is typically below 10W max.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1704076328,
+                "id" : 38829309,
+                "text" : "Oh this is pretty interesting, thank you very much. You mean that the Bojiadafast adapters work fine?<p>If so, I wonder if there is a hit in efficiency because of the required step-up &#x2F; step-down converters in that adapter.<p>However, on my board there seems to be an unsoldered 24pin connector, that could be just used as is with a little soldering, but since it is on-hold my replacement system if my ...-B variant dies, I&#x27;m not willing to risk too many experiments :-)",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1704072203,
+            "id" : 38828977,
+            "text" : "<i>&gt; The Fujitsu ones have D3417(-A!) boards (not -B) having proprietary power supplies with 16 power pins (no 24pin ATX but 16pin). There are Adapters on Aliexpress for 24PIN to 16pin (Bojiadafast), but this is a bit risky - I&#x27;m validating that atm.</i><p>They work just fine. The pinout is well known [1]. You can also adapt a normal ATX PSU if you boost 5VSB to 11V.<p>Fujitsu boards are great, and very inexpensive to purchase in the EU. Someone has even reverse engineered the license for the KVM features of their remote management (iRMC S4&#x2F;S5) [2]<p>[1] <a href=\"https:&#x2F;&#x2F;web.archive.org&#x2F;web&#x2F;20200923042644&#x2F;https:&#x2F;&#x2F;sector.biz.ua&#x2F;docs&#x2F;fujitsu_16pin_to_atx_24pin_power_adapter&#x2F;fujitsu_16pin_to_atx_24pin_power_adapter.phtml\" rel=\"nofollow\">https:&#x2F;&#x2F;web.archive.org&#x2F;web&#x2F;20200923042644&#x2F;https:&#x2F;&#x2F;sector.bi...</a><p>[2] <a href=\"https:&#x2F;&#x2F;watchmysys.com&#x2F;blog&#x2F;2023&#x2F;01&#x2F;fujitsu-irmc-s4-license&#x2F;\" rel=\"nofollow\">https:&#x2F;&#x2F;watchmysys.com&#x2F;blog&#x2F;2023&#x2F;01&#x2F;fujitsu-irmc-s4-license&#x2F;</a>",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1704048639,
+        "id" : 38826424,
+        "text" : "There is a german forum thread with a google docs document listing different configurations below 30W[1]. Since there are very different requirements, this might be interesting for many homeserver &#x2F; NAS builders.<p>For me personally I found my ideal price-performance config to be the following hardware:<p><pre><code>  Board: Fujitsu D3417-B2\n  CPU: Intel Xeon 1225 V5 (better the also compatible 1275v6, but its way more expensive)\n  RAM: 64GB ECC RAM (4x16GB)\n  SSD: WD SN850x 2TB (consumer SSD)\n  Case: Fractal Design Define Mini C\n  Cooling: Big block no name, passively cooled by case fan\n  Power: Pico PSU 120W + 120W Leicke power supply\n  Remote Administration via Intel AMT + MeshCommander using a DP Dummy Plug\n</code></pre>\nI bought this config used VERY CHEAP and I am running Proxmox - it draws 9.3W idle (without HDDs). There are 6 SATA ports and a PCIe port, if anyone would like to add more space or passthrough a dedicated GPU.<p>It may be hard to get, but I paid €380,00 in total. Does not work very well for Media Encoding, here you should go for a Core i3 8100 or above. Alternatively you could go for the following changes, but these might be even harder to get for a reasonable price:<p><pre><code>  Boards: GIGABYTE C246N-WU2 (ITX), Gigabyte C246-WU4 (mATX), Fujitsu D3517-B (mATX), Fujitsu D3644 (mATX)\n  Power: Corsair RM550x (2021 Version)\n\n</code></pre>\nCheap used Workstations that are good servers are Dell T30 or Fujitsu Celsius W550. The Fujitsu ones have D3417(-A!) boards (not -B) having proprietary power supplies with 16 power pins (no 24pin ATX but 16pin). There are Adapters on Aliexpress for 24PIN to 16pin (Bojiadafast), but this is a bit risky - I&#x27;m validating that atm.<p>Ryzen possibilities are pretty rare, but there are reports that the AMD Ryzen 5 PRO 4650G with a Asus PRIME B550M-A Board is drawing about 16W Idle.<p>Hope I could help :-)<p>[1]: <a href=\"https:&#x2F;&#x2F;goo.gl&#x2F;z8nt3A\" rel=\"nofollow\">https:&#x2F;&#x2F;goo.gl&#x2F;z8nt3A</a>",
+        "type" : "comment"
+      },
+      {
+        "author" : "ulnarkressty",
+        "children" : [
+          {
+            "author" : "V__",
+            "children" : [
+              {
+                "author" : "layer8",
+                "children" : [
+                  {
+                    "author" : "Dalewyn",
+                    "children" : [
+                      {
+                        "author" : "Arn_Thor",
+                        "created_at_i" : 1704095021,
+                        "id" : 38830288,
+                        "text" : "Same. Also I’ve had some software error out as it waits for drives to spin up (in an NFS share context).",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1704079424,
+                    "id" : 38829523,
+                    "text" : "Personally, I make sure my HDDs (regardless use case) <i>never</i> spin down when idle. The cost in life span isn&#x27;t worth the electricity bill saved.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1704054697,
+                "id" : 38827278,
+                "text" : "Not by default, but you can have the OS have them spin down after a certain idle period. Doing that too frequently can affect the life time of the drive though. You save maybe 4 Watts per drive by spinning them down.",
+                "type" : "comment"
+              },
+              {
+                "author" : "orthoxerox",
+                "created_at_i" : 1704054733,
+                "id" : 38827287,
+                "text" : "They are never idle if the NAS is seeding torrents.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1704053348,
+            "id" : 38827099,
+            "text" : "Don&#x27;t they stop spinning when idle?",
+            "type" : "comment"
+          },
+          {
+            "author" : "nabla9",
+            "created_at_i" : 1704062153,
+            "id" : 38828120,
+            "text" : "You can shut down HDD&#x27;s when you don&#x27;t use them.<p><pre><code>    sudo hdparm -Y &#x2F;dev&#x2F;sdX</code></pre>",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1704050247,
+        "id" : 38826658,
+        "text" : "As exciting as it is to design a low power system, it&#x27;s kind of pointless in the case of a NAS that uses spinning rust as storage media - as the author later writes, the HDD power consumption dwarfs the other system components.<p>If one uses SSD or M.2 drives, there are some solutions on the market that provide high speed hardware RAID in a separate external enclosure. Coupled with a laptop board they could make for a decent low power system. Not sure how reliable USB or Thunderbolt is compared to internal SATA or PCIe connections though... would be interesting to find out.",
+        "type" : "comment"
+      },
+      {
+        "author" : "homero",
+        "created_at_i" : 1704057923,
+        "id" : 38827648,
+        "text" : "Crucial Force GT supposed to say Corsair",
+        "type" : "comment"
+      },
+      {
+        "author" : "treprinum",
+        "children" : [
+          {
+            "author" : "wffurr",
+            "created_at_i" : 1704063257,
+            "id" : 38828234,
+            "text" : "For encoding maybe?  OP says “reasonable CPU performance for compression” and also it was a CPU they already had from a desktop build.",
+            "type" : "comment"
+          },
+          {
+            "author" : "dbeley",
+            "children" : [
+              {
+                "author" : "treprinum",
+                "created_at_i" : 1704113017,
+                "id" : 38831456,
+                "text" : "Each drive adds around 7W non-idle.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1704063439,
+            "id" : 38828256,
+            "text" : "Interesting I assume it&#x27;s with all drives off, how many Watts with some disk usage?",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1704060248,
+        "id" : 38827904,
+        "text" : "My NAS has Pentium J 4-core and is way under 7W idle, inside some small Fractal case with 6x20TB HDD. Why would you need 12th&#x2F;13th gen for file transfers?",
+        "type" : "comment"
+      },
+      {
+        "author" : "jepler",
+        "children" : [
+          {
+            "author" : "hrdwdmrbl",
+            "children" : [
+              {
+                "author" : "1-6",
+                "created_at_i" : 1704065664,
+                "id" : 38828432,
+                "text" : "At least the author documents their journey well. If many people who read this save energy by learning good fundamentals of system build, that alone goes a long way. CPU&#x2F;mobo makers are also probably taking notes.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1704063845,
+            "id" : 38828290,
+            "text" : "Fun tinkering like that is not about saving money. It&#x27;s about the journey, not the destination.",
+            "type" : "comment"
+          },
+          {
+            "author" : "buro9",
+            "created_at_i" : 1704097492,
+            "id" : 38830421,
+            "text" : "I average a fully loaded NAS every 8 years apparently. I don&#x27;t really expand their storage, as by this time the network and software is out of date, so I buy a new one and make the current the backup to the new, and then dispose of the one that was the old backup.<p>It&#x27;s interesting, the upgrade interval has held for 20 years already and so it becomes easy to understand the amortisation, 16 years of use, but really only 8 as the primary and 8 as the backup.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1704063308,
+        "id" : 38828242,
+        "text" : "Author seems to have built 5 systems from 2016 to 2023, or around every other year.<p>Some parts (e.g., RAM) are re-used across multiple builds<p>It&#x27;s interesting to wonder: How much $$ is the hardware cost vs the lifetime energy costs? Is a more power-hungry machine that would operate for 4 years better than one that would operate for 2 years?<p>The motherboard + CPU is USD 322 right now on pcpartpicker. At USD 0.25&#x2F;kWh (well above my local rate but below the highest rates in the US), 36W continuous over 4 years is also about $315. So, a ~43W, 4-year system might well be cheaper to buy and operate than a 7W, 2-year system.",
+        "type" : "comment"
+      },
+      {
+        "author" : "CommanderData",
+        "children" : [
+          {
+            "author" : "matthewfcarlson",
+            "created_at_i" : 1704069750,
+            "id" : 38828760,
+            "text" : "I suspect focusing on a set of hardware and making it work really well is part of what makes the OS so good. Hardware configs explode in a combinatorial fashion, making it impossible to test everything once you have more than a few options.",
+            "type" : "comment"
+          },
+          {
+            "author" : "thelittleone",
+            "created_at_i" : 1704073921,
+            "id" : 38829118,
+            "text" : "Agree, its a super nice UI and UX. First time I used them was around 2010 and it was already a joy to use. Would be kind of nice to have a Synology DSM front end to cloud IaaS.",
+            "type" : "comment"
+          },
+          {
+            "author" : "agumonkey",
+            "children" : [
+              {
+                "author" : "CommanderData",
+                "created_at_i" : 1704097162,
+                "id" : 38830400,
+                "text" : "Yes, it&#x27;s the OS that ships with their hardware. DSM 7 being their latest.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1704073941,
+            "id" : 38829121,
+            "text" : "dsm being diskstation manager ?",
+            "type" : "comment"
+          },
+          {
+            "author" : "walterbell",
+            "children" : [
+              {
+                "author" : "CommanderData",
+                "created_at_i" : 1704095387,
+                "id" : 38830311,
+                "text" : "My point about Synology being the MS of NAS is actually about this. Spend a little development time making DSM more portable but with a caveat of no support on non-Synology hw.<p>I think we&#x27;d still arrive at a weird place where we see people buying Asustor or other NAS hw just to run DSM even if it&#x27;s not supported and but not a complete hack.<p>People buy convenience and DSM offers everything NAS related it really well.<p>I suppose they have internal plans to make DSM go the other way and lock out attempts like Xpenology. They aren&#x27;t late either as other rival is still miles behind.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1704077866,
+            "id" : 38829447,
+            "text" : "<a href=\"https:&#x2F;&#x2F;xpenology.org&#x2F;\" rel=\"nofollow\">https:&#x2F;&#x2F;xpenology.org&#x2F;</a><p><i>&gt; Xpenology is a bootloader for Synology’s operating system, called DSM (Disk Station Manager), and is used on their NAS devices. DSM is running on a custom Linux version developed by Synology ... Xpenology creates the possibility to run the Synology DSM on any x86 device like any PC or self-built NAS. So, you can benefit from the powerful multimedia- and cloud features of DSM without buying the hardware NAS from Synology. Many people prefer this because they can pick out their own (more powerful) processor and RAM to handle things like transcoding video.</i>",
+            "type" : "comment"
+          },
+          {
+            "author" : "Dalewyn",
+            "children" : [
+              {
+                "author" : "CommanderData",
+                "created_at_i" : 1704096614,
+                "id" : 38830372,
+                "text" : "Convience is nice and something they do really well. Rocksolid for me for 3+ years. A recent issue with a my failed cache drive. Within 2 days the issue triaged and investigated by their devs. The experience was great.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1704078231,
+            "id" : 38829465,
+            "text" : "I deeply appreciate Synology handling away all the Linux jank I would otherwise have to deal with myself. <i>Easily</i> worth the price tag of buying one of their NASes.<p>Specifically, I have a DS1520+ with five 16TB Seagate Iron Wolf Pro HDDs in a RAID6 config (have another, sixth identical HDD as a cold spare in the closet) and it has been running absolutely flawlessly for the now two years I&#x27;ve had it.<p>My track record with Linux installations otherwise is &quot;I keep killing them by just <i>breathing</i> on them, god damn.&quot;. I&#x27;m a walking Linux genocide horror show.",
+            "type" : "comment"
+          },
+          {
+            "author" : "intrasight",
+            "created_at_i" : 1704080362,
+            "id" : 38829569,
+            "text" : "I think of them as the Microsoft of NAS. Everyone I know with a NAS uses Synology. Most because I suggested it.",
+            "type" : "comment"
+          },
+          {
+            "author" : "ksec",
+            "children" : [
+              {
+                "author" : "Dalewyn",
+                "children" : [
+                  {
+                    "author" : "ksec",
+                    "children" : [
+                      {
+                        "author" : "buro9",
+                        "created_at_i" : 1704097320,
+                        "id" : 38830412,
+                        "text" : "Are you sure? Synology do a very bespoke BTRFS and backport a lot, even though it&#x27;s incredibly complex to do so. Their BTRFS is not standard, or rather it&#x27;s not the standard version for a given kernel version.",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1704097058,
+                    "id" : 38830398,
+                    "text" : "So far it hasn&#x27;t but it does mean we dont get up to date BTRFS version. Which is what worries me most.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1704095065,
+                "id" : 38830291,
+                "text" : "Is that really a problem as long as Synology supports it (we&#x27;re paying money, after all)?",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1704090812,
+            "id" : 38830077,
+            "text" : "My biggest problem with Synology continues to be their Kernel version being very old. They were still shipping version 4.4 <i>this year</i> and only the new product <i>this year</i> gets version 5.10.<p>And you dont get Kernel version upgrade in between DSM.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1704064186,
+        "id" : 38828316,
+        "text" : "Great hardware but when the software is a job to administer I have a hard time justifying builds like these.<p>My Synology NAS for example has 8 GB RAM and a J4150 processor. Runs about 15 containers, Wireguard and on top DSM (which is Synology&#x27;s OS). Usually idles around 1-3%.<p>Software makes all the difference - DSM has been by far the biggest benefit and surprise to me and I would be deprived of time with anything else. I&#x27;m running TrueNas as a second backup server but it no way compares to DSM. Sometimes I don&#x27;t want to trawl through logs and trial and error just to get a basic CRON setup to backup a file off another server, there&#x27;s countless examples where DSM has just worked.<p>I really think Synology is missing a trick here, they clearly have software that is miles ahead of everything else and customizable should you need to. They should be more like Microsoft of the NAS world, making DSM run on non Synology platforms, or at least making it easier to do yourself. It&#x27;s a great OS and it sells itself and can easily be a way to up sell stuff like Active backup for business.",
+        "type" : "comment"
+      },
+      {
+        "author" : "neilv",
+        "created_at_i" : 1704065589,
+        "id" : 38828424,
+        "text" : "Great work, for lots of storage.<p>If you can fit your storage on an SSD (or RAID-mirrored pair), and don&#x27;t need much compute, you can do a low-power server (like to run little services for yourself) using an SBC like a RasPi, or something like a NUC.<p>Personally, I currently have a couple 1U Atom servers that run fanless except for the Noctua fans that I swapped into the PSUs.  Advantages over RasPi include SATA and ECC RAM, and were also easier to buy over Covid.  (I also have a 4U GPU server, which is currently off when not in use, because I haven&#x27;t invested in figuring out how to low-power idle it like the article writer has.)",
+        "type" : "comment"
+      },
+      {
+        "author" : "mattbillenstein",
+        "children" : [
+          {
+            "author" : "nine_k",
+            "created_at_i" : 1704067151,
+            "id" : 38828551,
+            "text" : "Good thing that 2TB suffices for you! I think RAID NAS boxes seem to make sense at sizes several times this.",
+            "type" : "comment"
+          },
+          {
+            "author" : "CPLX",
+            "created_at_i" : 1704067356,
+            "id" : 38828566,
+            "text" : "I have done a bunch of stuff in the past but most recently I just bought two synology arrays and followed the instructions to set them up in less than an hour and they just worked with literally zero hassle.",
+            "type" : "comment"
+          },
+          {
+            "author" : "at_a_remove",
+            "created_at_i" : 1704067550,
+            "id" : 38828581,
+            "text" : "I am imagining a NAS appliance designed for high availability and low-touch, like a RAID 10 box with a ton of hot spares, designed to automatically rebuild in case of failure.  The hot spares are spun up once a month to prevent stiction.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1704065811,
+        "id" : 38828449,
+        "text" : "Everyone&#x27;s needs are different, but over time with the loss of a couple of disks, I started to hate running RAID5 or 6 with HDDs. It became an exercise in how fast could I replace a disk before the next one died and would the rebuild actually work or not - although, it always did. Also, the hot-swap case&#x2F;cage I had with all the SATA connectors and power connectors seemed kinda flaky - it was very cheap.<p>So a couple years ago, I downsized to a single 2TB SSD in a smallish ATX case - and another in a completely different machine that gets rsync&#x27;d every 4 hours. My nas is now just my last desktop&#x27;s hardware with two SSDs - one boot, one larger storage running plex, smbd, backups of misc stuff on cron, duplicity backup to the cloud, etc on Ubuntu. If I didn&#x27;t have this extra hardware, I&#x27;d probably just run two medium powered NUCs with a nvme boot disk and a bigger SSD for storage.<p>It&#x27;s all very very simple and I have it setup so I can run some LXC containers should I want to do some dev work there, but I usually have other hardware for that anyway.",
+        "type" : "comment"
+      },
+      {
+        "author" : "vardump",
+        "created_at_i" : 1704070128,
+        "id" : 38828796,
+        "text" : "What would be the cheapest and lowest power option to get 100G networking (50-100G actual performance is good enough) and at least one 8 lane PCI-e GPU?<p>Plus at least 2x M.2.",
+        "type" : "comment"
+      },
+      {
+        "author" : "pomatic",
+        "children" : [
+          {
+            "author" : "getwiththeprog",
+            "children" : [
+              {
+                "author" : "graphe",
+                "children" : [
+                  {
+                    "author" : "allset_",
+                    "created_at_i" : 1704085362,
+                    "id" : 38829843,
+                    "text" : "You don&#x27;t need PoE to do WoL.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1704075981,
+                "id" : 38829275,
+                "text" : "PoE or power over Ethernet.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1704075784,
+            "id" : 38829260,
+            "text" : "Cool idea.  I have no idea how to automagically do that.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1704071851,
+        "id" : 38828952,
+        "text" : "7 watts idle is unimpressive <i>out of context</i><p>If you have a NAS that is idle most of the time, and want to minimise power consumption, how about an embedded-cpu based WoL generator? Sniff packets destined for the fileserver, which is otherwise in deep sleep, and automagically wake it up when relevant traffic is detected, with the relevant WoL packet. You&#x27;d get say &lt;300mA consumption at 3v3, and full performance on wake. It would be transparent to the machines attempting to access the server. If idle power measurement is your criteria, this might be a way forwards?",
+        "type" : "comment"
+      },
+      {
+        "author" : "Paradigma11",
+        "children" : [
+          {
+            "author" : "marcosscriven",
+            "created_at_i" : 1704100716,
+            "id" : 38830626,
+            "text" : "Proxmox is good for this. You can have a Windows VM with GPU passthrough. Then you can add any other VMs or LXCs to your heart’s content.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1704088561,
+        "id" : 38829979,
+        "text" : "How viable would it be to run a home server in a VM on your main PC that is occasionally also used for high performance activities like gaming. I do have 12 cores and 64GB Ram and I would not mind parting with 4C&#x2F;16GB and maybe the onboard GPU (video decoding) but I dont know how the rest of the system might be influenced if there is heavy IO or other stuff.",
+        "type" : "comment"
+      },
+      {
+        "author" : "jmnicolas",
+        "created_at_i" : 1704121068,
+        "id" : 38832184,
+        "text" : "I have a 4 Cores Intel i3 13100 and I can&#x27;t reach these low numbers.<p>The machine idle with just 1 nvme is 16 watts. I managed to go to 12 watts with the powersaver mode in tuned but I have random ssh freezes and I didn&#x27;t find any relevant doc to solve the problem.<p>But as soon as the machine is in light use, just a network transfer for example the power usage go through the roof: 30 watts.<p>Now I have loaded it with 2 internal 3.5 hard drives, I have a VM with Docker running, a torrent client and Syncthing (so nothing terribly intensive). The thing never goes below 40 watts and is currently at 60 (I&#x27;m copying data onto the drives).<p>I would never have bought a desktop class CPU if it wasn&#x27;t for these articles that promise unreachable low power draw.",
+        "type" : "comment"
+      },
+      {
+        "author" : "dividedcomet",
+        "created_at_i" : 1704229895,
+        "id" : 38847219,
+        "text" : "My simple home server setup that runs on almost no electricity is a M2 Mac Mini plugged into a multi-bay drive enclosure. I’ve got like 12TB of storage on it, and it consumes almost no power. It’s also got enough umph to run Plex, gitea, and some personal web services without breaking a sweat. Also, if you’re horrible on time, they’re on sale for $400 all the time and are so easy to setup. Apple even has a remote login tool now, so you can access it headless from a laptop too.",
+        "type" : "comment"
+      }
+    ],
+    "created_at_i" : 1704024652,
+    "id" : 38823514,
+    "points" : 332,
+    "title" : "7 watts idle – building a low powered server/NAS on Intel 12th/13th gen",
+    "type" : "story",
+    "url" : "https://mattgadient.com/7-watts-idle-on-intel-12th-13th-gen-the-foundation-for-building-a-low-power-server-nas/"
+  },
+  "headers" : {
+    "content-type" : "application/json"
+  },
+  "status" : 200,
+  "url" : "https://hn.algolia.com/api/v1/items/38823514"
+}

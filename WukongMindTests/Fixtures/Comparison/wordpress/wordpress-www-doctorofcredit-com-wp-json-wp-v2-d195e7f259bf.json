@@ -1,0 +1,20 @@
+{
+  "body" : [
+    {
+      "author_name" : "w",
+      "content" : {
+        "rendered" : "<p>Where did you see it was an error? They&#8217;ve made no attempt to correct it AFAICT, so IMO we&#8217;re entitled to assume it&#8217;s 0 FTF for now, and demand compensation if they do charge an FTF.</p>\n"
+      },
+      "date_gmt" : "2026-11-01T04:02:20",
+      "id" : 2446877,
+      "parent" : 2438473
+    }
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "101",
+    "x-wp-totalpages" : "2"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/comments?post=262264&per_page=100&page=2&order=asc&orderby=date_gmt&_fields=id,parent,author_name,date_gmt,content"
+}

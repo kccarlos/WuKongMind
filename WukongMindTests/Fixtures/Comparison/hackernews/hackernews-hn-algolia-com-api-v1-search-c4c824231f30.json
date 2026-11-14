@@ -1,0 +1,101 @@
+{
+  "body" : {
+    "hits" : [
+      {
+        "author" : "mrngld",
+        "comment_text" : "I use a Raspberry Pi, not a VPS -- as others state, Codex&#x2F;Claude Code alongside things like Cloudflare and Tailscale make self hosting far easier.<p>People have commented a lot already, but one thing I do that I haven&#x27;t seen others already doing yet is I run a news summarization pipeline with Miniflux and Flatnotes.<p>All my feeds are in one of two categories; Summarize and NoSummarize. Once a day, a script fires at everything unread in the Summarize category, pulls the full text from Miniflux (or calls a scraping service if it appears to only have an article stub), groups similar articles to together with a 60 to 80 word summary, and for everything not grouped together it gives each article a 20 word or so summary. Just enough for me to know if it warrants a full read or not. Then it takes that a posts the digest to a markdown file in a Flatnotes folder. Flatnotes I expose via Tailscale Funnel so I can read it anywhere, including on my work laptop if I&#x27;m at the office.<p>Why Miniflux and Flatnotes and not other options? Mostly because those two are about as lightweight as it gets with still pleasing interfaces and basic features.",
+        "created_at" : "2026-10-09T13:22:39Z",
+        "objectID" : "50020170",
+        "parent_id" : 49985548,
+        "story_id" : 49985548,
+        "story_title" : "Ask HN: What do you run on a $5 VPS that's worth keeping online 24/7?"
+      },
+      {
+        "author" : "mrngld",
+        "comment_text" : "I saw all the Netbird recs here so looked into it briefly. Depends I guess on what you use Tailscale for. Tailscale Funnel is easy and stable. Self-hosted on Netbird is ... a bit more involved.<p>Definitely a place for both services, IMO.",
+        "created_at" : "2026-10-09T12:32:56Z",
+        "objectID" : "50019579",
+        "parent_id" : 50018333,
+        "story_id" : 49985548,
+        "story_title" : "Ask HN: What do you run on a $5 VPS that's worth keeping online 24/7?"
+      },
+      {
+        "author" : "weightedreply",
+        "comment_text" : "The feature I don&#x27;t want to pay for but would be nice to have: deeper level proxied wildcards.<p>&gt; If you want to proxy a wildcard DNS record on a deeper level like <i>.www.mycoolwebpage.xyz you can subscribe to Cloudflare Advanced Certificate Manager and get a certificate that is covering that wildcard ¹ ²<p>When building out services in my smart home, I started with something like &#x27;home.domain.com&#x27;. I used Let&#x27;s Encrypt for services like &#x27;smart.home.domain.com&#x27; (and I think Cloudflare proxied these for free?) but realized I was losing some privacy since the subdomains were describing my network services. I also wasn&#x27;t aware SSL certificates are a permanent record (though what isn&#x27;t these days) and I had to be careful what names I was using.<p>I realized instead I could use Let&#x27;s Encrypt wildcard feature &#x27;</i>.home.domain.com&#x27; and at least limit the private details potentially leaked in certificate history. But because Cloudflare doesn&#x27;t proxy deeper wildcard subdomains for free, I&#x27;d have to manually create each subdomain in Cloudflare DNS - defeating the privacy objective.<p>For now, instead of wildcards, I&#x27;m just using URL path prefixes. For example &#x27;smart.home.domain.com&#x27; becomes &#x27;home.domain.com&#x2F;smart&#x2F;&#x27;. This works pretty easily in a docker host with traefik handling domains, paths, and certificates. Some apps don&#x27;t work under path prefixes without a lot of tweaks. And it works fine if it&#x27;s one-to-one server to subdomain - but if I want to host another server at home I have to come up with another subdomain like &#x27;app-home.domain.com&#x27;.<p>I could also move everything into something like tailscale. Then at least the domains are private. Right now I use an oauth2 proxy infront of my services - but most of them don&#x27;t need direct internet access. The issue is, for the services that do need the convenience of direct access, tailscale funnel doesn&#x27;t support custom domains.³ And even if eventually they do, maybe they&#x27;ll also limit subdomain depth or wildcards.<p>Anyway for privacy reasons it&#x27;d be swell if deeper level subdomain certificates were part of the free tier.<p>¹ <a href=\"https:&#x2F;&#x2F;blog.cloudflare.com&#x2F;wildcard-proxy-for-everyone&#x2F;\" rel=\"nofollow\">https:&#x2F;&#x2F;blog.cloudflare.com&#x2F;wildcard-proxy-for-everyone&#x2F;</a>\n² <a href=\"https:&#x2F;&#x2F;developers.cloudflare.com&#x2F;ssl&#x2F;edge-certificates&#x2F;advanced-certificate-manager&#x2F;?cf_page=wildcard-proxy-for-everyone%2F\" rel=\"nofollow\">https:&#x2F;&#x2F;developers.cloudflare.com&#x2F;ssl&#x2F;edge-certificates&#x2F;adva...</a>\n³ <a href=\"https:&#x2F;&#x2F;github.com&#x2F;tailscale&#x2F;tailscale&#x2F;issues&#x2F;11563\" rel=\"nofollow\">https:&#x2F;&#x2F;github.com&#x2F;tailscale&#x2F;tailscale&#x2F;issues&#x2F;11563</a>",
+        "created_at" : "2026-10-03T14:00:34Z",
+        "objectID" : "49944342",
+        "parent_id" : 49940152,
+        "story_id" : 49940152,
+        "story_title" : "Cloudflare opens more Enterprise-only features to all customers"
+      },
+      {
+        "author" : "bakkoting",
+        "comment_text" : "You can set up paths that route to different local ports. As long as your apps don&#x27;t need to live at the root path you can have as many as you like. And you can still have something on the root path as long as it doesn&#x27;t need the subpath.<p>Here&#x27;s `tailscale funnel status` on my machine:<p><pre><code>    $ tailscale funnel status\n    \n    # Funnel on:\n    #     - https:&#x2F;&#x2F;my-machine.tailXXXX.ts.net\n    \n    https:&#x2F;&#x2F;my-machine.tailXXXX.ts.net (Funnel on)\n    |-- &#x2F;            proxy http:&#x2F;&#x2F;localhost:3000\n    |-- &#x2F;foo         proxy http:&#x2F;&#x2F;localhost:3001\n    |-- &#x2F;bar         proxy http:&#x2F;&#x2F;localhost:3002\n    |-- &#x2F;baz         proxy http:&#x2F;&#x2F;localhost:4004</code></pre>",
+        "created_at" : "2026-09-18T19:33:43Z",
+        "objectID" : "49759094",
+        "parent_id" : 49758062,
+        "story_id" : 49754785,
+        "story_title" : "Cloudflare Quick Tunnels"
+      },
+      {
+        "author" : "nacs",
+        "comment_text" : "Tailscale funnel works well but you can only have 1 per Tailscale instance (1 per machine) at the https endpoint so if you want to have a few apps, the others will go on non-https, custom-port URLs.",
+        "created_at" : "2026-09-18T18:11:24Z",
+        "objectID" : "49758062",
+        "parent_id" : 49757899,
+        "story_id" : 49754785,
+        "story_title" : "Cloudflare Quick Tunnels"
+      },
+      {
+        "author" : "SparkyMcUnicorn",
+        "comment_text" : "&gt; You can also use Tailscale serve to get a HTTPS url like Cloudflared but it&#x27;s only visible to your tailnet<p>For public access, similar to these cloudflare tunnels, there&#x27;s Tailscale Funnel.<p><a href=\"https:&#x2F;&#x2F;tailscale.com&#x2F;docs&#x2F;features&#x2F;tailscale-funnel\" rel=\"nofollow\">https:&#x2F;&#x2F;tailscale.com&#x2F;docs&#x2F;features&#x2F;tailscale-funnel</a>",
+        "created_at" : "2026-09-18T17:57:14Z",
+        "objectID" : "49757899",
+        "parent_id" : 49757202,
+        "story_id" : 49754785,
+        "story_title" : "Cloudflare Quick Tunnels"
+      },
+      {
+        "author" : "alasano",
+        "comment_text" : "More like their version of Tailscale funnel I think",
+        "created_at" : "2026-09-18T16:00:29Z",
+        "objectID" : "49756326",
+        "parent_id" : 49755662,
+        "story_id" : 49754785,
+        "story_title" : "Cloudflare Quick Tunnels"
+      },
+      {
+        "author" : "MattCruikshank",
+        "comment_text" : "I&#x27;m kind of exhausted...<p>I want to sick Claude on porting tsnet to a C&#x2F;C++ library that can run in a fat binary Actually Portable Executable.<p>And then I want to use tailscale share &#x2F; tailscale funnel APEs for...  everything...<p>Like...  everything.  So many things.",
+        "created_at" : "2026-09-16T15:39:14Z",
+        "objectID" : "49728716",
+        "parent_id" : 49726889,
+        "story_id" : 49712278,
+        "story_title" : "Show HN: Capsule – Single-file web apps that save their data into SQLite"
+      },
+      {
+        "author" : "shye",
+        "comment_text" : "<a href=\"https:&#x2F;&#x2F;tailscale.com&#x2F;docs&#x2F;reference&#x2F;tailscale-cli&#x2F;funnel\" rel=\"nofollow\">https:&#x2F;&#x2F;tailscale.com&#x2F;docs&#x2F;reference&#x2F;tailscale-cli&#x2F;funnel</a>",
+        "created_at" : "2026-08-13T03:15:19Z",
+        "objectID" : "49281396",
+        "parent_id" : 49281153,
+        "story_id" : 49272832,
+        "story_title" : "Tracking down the 16-year-old WAL-reset SQLite bug"
+      },
+      {
+        "author" : "theMonsterpus",
+        "comment_text" : "It can, but with some specifics about DNS names and supported ports: <a href=\"https:&#x2F;&#x2F;tailscale.com&#x2F;docs&#x2F;features&#x2F;tailscale-funnel\" rel=\"nofollow\">https:&#x2F;&#x2F;tailscale.com&#x2F;docs&#x2F;features&#x2F;tailscale-funnel</a>",
+        "created_at" : "2026-08-13T03:06:53Z",
+        "objectID" : "49281357",
+        "parent_id" : 49281153,
+        "story_id" : 49272832,
+        "story_title" : "Tracking down the 16-year-old WAL-reset SQLite bug"
+      }
+    ]
+  },
+  "headers" : {
+    "content-type" : "application/json"
+  },
+  "status" : 200,
+  "url" : "https://hn.algolia.com/api/v1/search?tags=comment&query=tailscale%20funnel&page=0&hitsPerPage=10"
+}

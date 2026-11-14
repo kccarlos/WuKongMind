@@ -1,0 +1,15 @@
+{
+  "body" : {
+    "id" : 235791,
+    "link" : "https://www.doctorofcredit.com/rumor-u-s-bank-smartly-visa-credit-card-to-be-discontinued/",
+    "modified_gmt" : "2025-03-14T20:41:08",
+    "title" : {
+      "rendered" : "[Rumor] U.S. Bank Smartly Visa Credit Card To Be Discontinued"
+    }
+  },
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/posts/235791?_fields=id,title,link,modified_gmt"
+}

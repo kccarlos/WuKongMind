@@ -1,0 +1,273 @@
+{
+  "body" : {
+    "accepted_answers" : [
+      {
+        "avatar_template" : "/letter_avatar_proxy/v4/letter/c/ecccb3/{size}.png",
+        "cooked" : "<p>选择了星际蜗牛黑群，目前用起来没什么问题。</p>",
+        "created_at" : "2021-02-17T02:38:13.953Z",
+        "id" : 65520,
+        "name" : "Cheng",
+        "post_number" : 24,
+        "topic_id" : 21714,
+        "url" : "/t/topic/21714/24",
+        "username" : "Cheng"
+      }
+    ],
+    "details" : {
+      "created_by" : {
+        "username" : "Cheng"
+      }
+    },
+    "fancy_title" : "请推荐一个基础款NAS",
+    "highest_post_number" : 27,
+    "id" : 21714,
+    "post_stream" : {
+      "posts" : [
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 64922,
+          "post_number" : 1,
+          "topic_accepted_answer" : true,
+          "username" : "Cheng"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 64924,
+          "post_number" : 2,
+          "topic_accepted_answer" : true,
+          "username" : "btms"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+            {
+              "count" : 1,
+              "id" : 2
+            }
+          ],
+          "id" : 64925,
+          "post_number" : 3,
+          "topic_accepted_answer" : true,
+          "username" : "Howell"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+            {
+              "count" : 2,
+              "id" : 2
+            }
+          ],
+          "id" : 64942,
+          "post_number" : 4,
+          "topic_accepted_answer" : true,
+          "username" : "xiaokonglong"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 64946,
+          "post_number" : 5,
+          "topic_accepted_answer" : true,
+          "username" : "Qingwa"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 64949,
+          "post_number" : 6,
+          "topic_accepted_answer" : true,
+          "username" : "jashcn"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+            {
+              "count" : 1,
+              "id" : 2
+            }
+          ],
+          "id" : 64952,
+          "post_number" : 9,
+          "topic_accepted_answer" : true,
+          "username" : "Cheng"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 64953,
+          "post_number" : 10,
+          "topic_accepted_answer" : true,
+          "username" : "xiaokonglong"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 65021,
+          "post_number" : 11,
+          "topic_accepted_answer" : true,
+          "username" : "ReST"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 65037,
+          "post_number" : 12,
+          "topic_accepted_answer" : true,
+          "username" : "Cheng"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 65042,
+          "post_number" : 13,
+          "topic_accepted_answer" : true,
+          "username" : "feeshy"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 65043,
+          "post_number" : 14,
+          "topic_accepted_answer" : true,
+          "username" : "btms"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 65047,
+          "post_number" : 15,
+          "topic_accepted_answer" : true,
+          "username" : "wuzhumeng"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 65055,
+          "post_number" : 16,
+          "topic_accepted_answer" : true,
+          "username" : "xiaokonglong"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 65077,
+          "post_number" : 17,
+          "topic_accepted_answer" : true,
+          "username" : "dgmgso"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 65079,
+          "post_number" : 18,
+          "topic_accepted_answer" : true,
+          "username" : "Cheng"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 65133,
+          "post_number" : 19,
+          "topic_accepted_answer" : true,
+          "username" : "xiaokonglong"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 65137,
+          "post_number" : 20,
+          "topic_accepted_answer" : true,
+          "username" : "Cheng"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 65140,
+          "post_number" : 21,
+          "topic_accepted_answer" : true,
+          "username" : "xiaokonglong"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 65175,
+          "post_number" : 22,
+          "topic_accepted_answer" : true,
+          "username" : "dgmgso"
+        }
+      ],
+      "stream" : [
+        64922,
+        64924,
+        64925,
+        64942,
+        64946,
+        64949,
+        64952,
+        64953,
+        65021,
+        65037,
+        65042,
+        65043,
+        65047,
+        65055,
+        65077,
+        65079,
+        65133,
+        65137,
+        65140,
+        65175,
+        65470,
+        65520,
+        65564,
+        65566,
+        167439
+      ]
+    },
+    "posts_count" : 25,
+    "slug" : "topic",
+    "title" : "请推荐一个基础款NAS"
+  },
+  "headers" : {
+    "content-type" : "application/json; charset=utf-8"
+  },
+  "status" : 200,
+  "url" : "https://meta.appinn.net/t/21714.json"
+}

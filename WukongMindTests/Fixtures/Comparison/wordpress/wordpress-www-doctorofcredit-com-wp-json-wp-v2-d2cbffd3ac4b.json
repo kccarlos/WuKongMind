@@ -1,0 +1,911 @@
+{
+  "body" : [
+    {
+      "author_name" : "TYMLA",
+      "content" : {
+        "rendered" : "<p>I wonder what the asterisk next to Best Buy is for&#8230;<br />\nExclude Apple product? Exclude gift cards?</p>\n"
+      },
+      "date_gmt" : "2025-07-18T23:36:34",
+      "id" : 2102527,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Robert",
+      "content" : {
+        "rendered" : "<p>No details were provided other than ET being used your guess is as good as mine on this</p>\n"
+      },
+      "date_gmt" : "2025-07-19T00:39:45",
+      "id" : 2102549,
+      "parent" : 2102152
+    },
+    {
+      "author_name" : "Robert",
+      "content" : {
+        "rendered" : "<p>If you have bank account at Citi a banker can send you email and that might get you the elevated in branch offer</p>\n"
+      },
+      "date_gmt" : "2025-07-19T00:41:51",
+      "id" : 2102551,
+      "parent" : 2102127
+    },
+    {
+      "author_name" : "Yinjing (Jiba) (Xiaoniao)",
+      "content" : {
+        "rendered" : "<p>I often eat out between those hours, but not in a way Citi would know.</p>\n"
+      },
+      "date_gmt" : "2025-07-19T00:42:28",
+      "id" : 2102552,
+      "parent" : 2102363
+    },
+    {
+      "author_name" : "Bubblehead Bee",
+      "content" : {
+        "rendered" : "<p>If hard-coded to ET, then it will be &#8220;Citi Plate lunches&#8221; in the 808.</p>\n"
+      },
+      "date_gmt" : "2025-07-19T01:47:48",
+      "id" : 2102576,
+      "parent" : 2102152
+    },
+    {
+      "author_name" : "Billy",
+      "content" : {
+        "rendered" : "<p>Yes tedious is correct.</p>\n"
+      },
+      "date_gmt" : "2025-07-19T02:03:15",
+      "id" : 2102588,
+      "parent" : 2102025
+    },
+    {
+      "author_name" : "Robert",
+      "content" : {
+        "rendered" : "<p>Not sure how many of you will find this useful but according to recent info given to us CPC  (Citi private client, requires 1 MM in assets with bank) Will get the annual fee completely waived the FIRST year  and then subsequent years will get a $145 annual fee discount moving forward.</p>\n"
+      },
+      "date_gmt" : "2025-07-19T02:19:09",
+      "id" : 2102595,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Philco",
+      "content" : {
+        "rendered" : "<p>I said that about my legacy Citi Prestige and you can see how that worked out.</p>\n"
+      },
+      "date_gmt" : "2025-07-19T03:12:10",
+      "id" : 2102609,
+      "parent" : 2102198
+    },
+    {
+      "author_name" : "Cindy",
+      "content" : {
+        "rendered" : "<p>At 450 that does sound pretty good</p>\n"
+      },
+      "date_gmt" : "2025-07-19T03:30:18",
+      "id" : 2102613,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Robert",
+      "content" : {
+        "rendered" : "<p>Will try to find out this one but can’t promise anything since it’s such specific question only a few people inside company will know for sure</p>\n"
+      },
+      "date_gmt" : "2025-07-19T05:05:02",
+      "id" : 2102635,
+      "parent" : 2102334
+    },
+    {
+      "author_name" : "Jack",
+      "content" : {
+        "rendered" : "<p>6pm to 6am. who is the genius in Citi that came up with this?</p>\n"
+      },
+      "date_gmt" : "2025-07-19T05:40:26",
+      "id" : 2102641,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Jack",
+      "content" : {
+        "rendered" : "<p>Real affluence is working when you want on what you want, not according to the rules of some employer</p>\n"
+      },
+      "date_gmt" : "2025-07-19T09:53:19",
+      "id" : 2102666,
+      "parent" : 2101964
+    },
+    {
+      "author_name" : "Steve",
+      "content" : {
+        "rendered" : "<p>I&#8217;m curious if there&#8217;s been any more rumors of Citi adding AA as a transfer partner and if so, would it be a 1:1 or more of a 1.5 or 2:1 ratio?</p>\n"
+      },
+      "date_gmt" : "2025-07-19T13:00:56",
+      "id" : 2102702,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Lian",
+      "content" : {
+        "rendered" : "<p>How come Chase doesn&#8217;t offer any annual fee discount for private client?</p>\n"
+      },
+      "date_gmt" : "2025-07-19T13:25:10",
+      "id" : 2102706,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Dman",
+      "content" : {
+        "rendered" : "<p>10am ET on Saturday with a supposed &#8220;this weekend&#8221; launch and elevated in branch SUB&#8230; some things are not adding up. Nothing on the website or app.</p>\n"
+      },
+      "date_gmt" : "2025-07-19T14:17:36",
+      "id" : 2102721,
+      "parent" : 0
+    },
+    {
+      "author_name" : "DWT",
+      "content" : {
+        "rendered" : "<p>Word is it is launching tomorrow (Sunday). While that may sound odd, I recall the original CSR launched in branch on a Sunday, with online apps Monday. Most Chase branches are closed on Sundays, so I ended up going to a NYC Chinatown location in person that was open Sundays 😉</p>\n"
+      },
+      "date_gmt" : "2025-07-19T14:25:43",
+      "id" : 2102725,
+      "parent" : 2102721
+    },
+    {
+      "author_name" : "Pete",
+      "content" : {
+        "rendered" : "<p>Do you work for them? This a non-answer, so no need to post this. Surprised it got 2 likes.</p>\n"
+      },
+      "date_gmt" : "2025-07-19T16:08:41",
+      "id" : 2102766,
+      "parent" : 2102385
+    },
+    {
+      "author_name" : "Pete",
+      "content" : {
+        "rendered" : "<p>I just asked this below.</p>\n"
+      },
+      "date_gmt" : "2025-07-19T16:09:13",
+      "id" : 2102767,
+      "parent" : 2102419
+    },
+    {
+      "author_name" : "MrFajitas",
+      "content" : {
+        "rendered" : "<p>TSA Pre check isn&#8217;t free. It works out to a net positive, not accounting for the Priority Pass and Admiral Club. Yes it isn&#8217;t groundbreaking, but certainly better than Dashpass or $7 a month Dunkin Donuts.</p>\n"
+      },
+      "date_gmt" : "2025-07-19T17:17:53",
+      "id" : 2102789,
+      "parent" : 2102466
+    },
+    {
+      "author_name" : "Yinjing (Jiba) (Xiaoniao)",
+      "content" : {
+        "rendered" : "<p>Chinese have impeccable work ethic.</p>\n"
+      },
+      "date_gmt" : "2025-07-19T19:06:03",
+      "id" : 2102830,
+      "parent" : 2102725
+    },
+    {
+      "author_name" : "Yinjing (Jiba) (Xiaoniao)",
+      "content" : {
+        "rendered" : "<p>Probably because the bar for entry to Chase Private Client is laughably low.</p>\n"
+      },
+      "date_gmt" : "2025-07-19T19:06:49",
+      "id" : 2102831,
+      "parent" : 2102706
+    },
+    {
+      "author_name" : "Matt",
+      "content" : {
+        "rendered" : "<p>This card could be good. but it&#8217;s not. Sigh.</p>\n<p>It just doesn&#8217;t give much incentive to build assets at Citi, so that&#8217;s a fail. BOA still wins easily, 15 years on, because they actually have a useful loyalty program. </p>\n<p>Blacklane credit is useless. $0 value. </p>\n<p>$200 splurge credit is fine, but why not just lower the annual fee by $150 and call it a day? Why does everyone want to make a stupid coupon book? Wealthy people actually like *simplicity* and not stupid coupons. </p>\n<p>On that note, the first issuer that gives people an OPTION to take the Priority Pass card or something else will get a lot of attention for long-term holding. I have more memberships than I need for a service that generally sucks and isn&#8217;t worth much of anything domestically, particularly without the restaurants benefit. Credit cards should stop offering it. Waste of money. </p>\n<p>&gt;$300 Annual Hotel Benefit – Every calendar year, enjoy up to $300 off a hotel stay of two nights or more booked through cititravel.com.<br />\nwell, this is worse than the prestige 4th night free AND worse than the Capital One Venture etc. Why require a 2 night stay? What are they thinking? Useless credit, $50 value. </p>\n<p>&gt; Four American Airlines Admirals Club® Citi Strata Elite* Passes Annually<br />\nthis is a good benefit actually. </p>\n<p>&gt; Up to $120 Global Entry® or TSA PreCheck® Application Fee Credit – Receive a statement credit. up to $120 every four years as reimbursement for your application fee for Global Entry® or TSA precheck.<br />\nsure, whatever, sure. </p>\n<p>&gt; CITI NIGHTS EVERY FRIDAY AND SATURDAY 6 pm to 6 am ET.<br />\nThis is incredibly annoying. </p>\n<p>Idk who this card is for? Like, it&#8217;s nice to see them try but it&#8217;s just not particularly appealing.</p>\n"
+      },
+      "date_gmt" : "2025-07-19T19:43:33",
+      "id" : 2102838,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Scotty",
+      "content" : {
+        "rendered" : "<p>CPC is $150k assets. Citi priority which is a competitor to sapphire banking and requires $75k assets gives $95 credit on premier which is a competitor to CSP. Citigold requires $200k and gives $145 off AA Exec. card and prestige/strata elite.</p>\n"
+      },
+      "date_gmt" : "2025-07-19T22:04:44",
+      "id" : 2102889,
+      "parent" : 2102831
+    },
+    {
+      "author_name" : "Robert",
+      "content" : {
+        "rendered" : "<p>Chase does have a semi secret tier at 10 mm</p>\n"
+      },
+      "date_gmt" : "2025-07-20T01:32:55",
+      "id" : 2102935,
+      "parent" : 2102831
+    },
+    {
+      "author_name" : "Billy Bob",
+      "content" : {
+        "rendered" : "<p>Pathetic. I guess just get that 100K in points, get as many of the coupons that you can first year, and then cancel after 12 months.</p>\n"
+      },
+      "date_gmt" : "2025-07-20T02:03:50",
+      "id" : 2102939,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Ben",
+      "content" : {
+        "rendered" : "<p>Which is in addition to $400 in subscription rebates. Great service as well from cpc</p>\n"
+      },
+      "date_gmt" : "2025-07-20T02:09:58",
+      "id" : 2102942,
+      "parent" : 2102595
+    },
+    {
+      "author_name" : "jon",
+      "content" : {
+        "rendered" : "<p>not worth moving assets to citi to be private gold tier for the 100k. 80k is a pathetic launch SUB with those credits attached.</p>\n"
+      },
+      "date_gmt" : "2025-07-20T03:20:27",
+      "id" : 2102956,
+      "parent" : 2102939
+    },
+    {
+      "author_name" : "GZG",
+      "content" : {
+        "rendered" : "<p>was there a report that this can&#8217;t be PC&#8217;d into another custom cash?</p>\n"
+      },
+      "date_gmt" : "2025-07-20T03:41:11",
+      "id" : 2102968,
+      "parent" : 2102939
+    },
+    {
+      "author_name" : "Chris",
+      "content" : {
+        "rendered" : "<p>Why in the fcuk would I drive to a bank on a Sunday to apply for a credit card I can get anytime. Are they going to run out of applications?</p>\n"
+      },
+      "date_gmt" : "2025-07-20T03:43:50",
+      "id" : 2102969,
+      "parent" : 2102830
+    },
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>“in-branch on Sunday, 7/20/25” …wait, is Citibank even open on Sundays? Like, they pullin’ a TD Bank and going for 7 days a week…</p>\n"
+      },
+      "date_gmt" : "2025-07-20T03:47:50",
+      "id" : 2102972,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Kafka",
+      "content" : {
+        "rendered" : "<p>TSA Pre is available on no-fee cards. Yes, there&#8217;s an opportunity cost of 5/24 slots, but it&#8217;s a pretty marginal value (akin to Dashpass or $7 DD).</p>\n"
+      },
+      "date_gmt" : "2025-07-20T03:59:52",
+      "id" : 2102979,
+      "parent" : 2102789
+    },
+    {
+      "author_name" : "Phil",
+      "content" : {
+        "rendered" : "<p>If you don&#8217;t have a Citi checking account, you can apply for the Citigold account and be Citigold for 3-4 months until they re-tier your account.</p>\n"
+      },
+      "date_gmt" : "2025-07-20T04:06:09",
+      "id" : 2102981,
+      "parent" : 2102956
+    },
+    {
+      "author_name" : "Slaven",
+      "content" : {
+        "rendered" : "<p>80,000 points for $595 annual fee, no thank you.</p>\n"
+      },
+      "date_gmt" : "2025-07-20T04:44:17",
+      "id" : 2102993,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Ivan",
+      "content" : {
+        "rendered" : "<p>&#8220;<span>in-branch on Sunday&#8221; A bank open on Sunday? Where? In Dubai? </span></p>\n"
+      },
+      "date_gmt" : "2025-07-20T04:58:17",
+      "id" : 2102996,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Dan G",
+      "content" : {
+        "rendered" : "<p>TY!</p>\n"
+      },
+      "date_gmt" : "2025-07-20T05:19:32",
+      "id" : 2102997,
+      "parent" : 2102635
+    },
+    {
+      "author_name" : "Seymour",
+      "content" : {
+        "rendered" : "<p>Basically, a nothingburger&#8230;</p>\n"
+      },
+      "date_gmt" : "2025-07-20T05:41:22",
+      "id" : 2103001,
+      "parent" : 0
+    },
+    {
+      "author_name" : "whocares",
+      "content" : {
+        "rendered" : "<p>hey we brought back travel insurance. do we need to beat you some more?</p>\n"
+      },
+      "date_gmt" : "2025-07-20T06:08:39",
+      "id" : 2103008,
+      "parent" : 2102838
+    },
+    {
+      "author_name" : "whocares",
+      "content" : {
+        "rendered" : "<p>Citipriority gets free premier card?</p>\n"
+      },
+      "date_gmt" : "2025-07-20T06:10:23",
+      "id" : 2103009,
+      "parent" : 2102889
+    },
+    {
+      "author_name" : "Fed up",
+      "content" : {
+        "rendered" : "<p>April 1st.</p>\n"
+      },
+      "date_gmt" : "2025-07-20T06:28:37",
+      "id" : 2103017,
+      "parent" : 2102996
+    },
+    {
+      "author_name" : "CardShark",
+      "content" : {
+        "rendered" : "<p>Remember the Rewards+ card?  Rewards+ is getting changed over on the 20th.<br />\nI was on the phone with Citi on Saturday 19th, and they didn&#8217;t tell me about this new card, but they acknowledged that there was multiple card releases on the 20th.</p>\n"
+      },
+      "date_gmt" : "2025-07-20T07:20:02",
+      "id" : 2103024,
+      "parent" : 2102725
+    },
+    {
+      "author_name" : "CardShark",
+      "content" : {
+        "rendered" : "<p>There are banks in the NYC metro (and some in northern NJ, e.g. Toms River) area that are closed on Saturday due to religious reasons. They instead are open on Sunday. Doesn&#8217;t matter much, because the bank codes the transactions as occurring on Monday.</p>\n"
+      },
+      "date_gmt" : "2025-07-20T07:21:41",
+      "id" : 2103025,
+      "parent" : 2102969
+    },
+    {
+      "author_name" : "Arioid",
+      "content" : {
+        "rendered" : "<p>Also what time zone? The local one to where I am at any moment? Is this usable in europe?</p>\n"
+      },
+      "date_gmt" : "2025-07-20T08:29:05",
+      "id" : 2103029,
+      "parent" : 2102641
+    },
+    {
+      "author_name" : "Barry",
+      "content" : {
+        "rendered" : "<p>Considering Toms River north jersey is diabolical</p>\n"
+      },
+      "date_gmt" : "2025-07-20T09:05:48",
+      "id" : 2103032,
+      "parent" : 2103025
+    },
+    {
+      "author_name" : "Jack",
+      "content" : {
+        "rendered" : "<p>All the Citi branches in NYC don&#8217;t work on Sunday. Even the ones in Jewish areas. If you know one that does, I&#8217;d like to know which one.</p>\n"
+      },
+      "date_gmt" : "2025-07-20T10:03:58",
+      "id" : 2103037,
+      "parent" : 2102996
+    },
+    {
+      "author_name" : "Tom",
+      "content" : {
+        "rendered" : "<p>PSA: As you bring up Citi Private Client and CitiGold, prospective customers should be aware that Citi&#8217;s investment platform does not permit using leverage ETFs. Same with Chase.  For some, it&#8217;s a non-starter.</p>\n<p>On the other hand, BofA (Merrill), Fidelity, Schwab, and others do permit using leverage ETFs.</p>\n"
+      },
+      "date_gmt" : "2025-07-20T10:43:29",
+      "id" : 2103040,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Morris",
+      "content" : {
+        "rendered" : "<p>Smartest comment award.</p>\n"
+      },
+      "date_gmt" : "2025-07-20T11:19:55",
+      "id" : 2103047,
+      "parent" : 2102981
+    },
+    {
+      "author_name" : "creditGuy",
+      "content" : {
+        "rendered" : "<p>thats how I make my money</p>\n"
+      },
+      "date_gmt" : "2025-07-20T11:58:16",
+      "id" : 2103053,
+      "parent" : 2103040
+    },
+    {
+      "author_name" : "G$",
+      "content" : {
+        "rendered" : "<p>Why would Citi launch a card in-branch only on a day when most of their branches are closed?</p>\n<p>The launch strategy for this card is so confused.</p>\n"
+      },
+      "date_gmt" : "2025-07-20T13:09:35",
+      "id" : 2103066,
+      "parent" : 0
+    },
+    {
+      "author_name" : "DWT",
+      "content" : {
+        "rendered" : "<p>The only one I can find in NYC that is open today is the Citi branch on Canal St in Chinatown, open 10 am to 2 pm</p>\n"
+      },
+      "date_gmt" : "2025-07-20T13:32:41",
+      "id" : 2103076,
+      "parent" : 2103037
+    },
+    {
+      "author_name" : "Darin",
+      "content" : {
+        "rendered" : "<p>I’m a current Citigold with a Prestige card, and this is a significant devaluation. But even if the card were priced at $450 for ALL, the only way to get to break even is with booking travel in Citi’s subpar travel portal. At less than break even you need to have compelling spend categories, and this card has virtually nothing that can’t be found with other more valuable cards (setting aside the gimmicky portal and limited time cats), even their OWN lower or no AF cards. Even as a customer who wouldn’t have to shift any funds to get the lower AF, I see no value in holding this card, and will be canceling at first AF post.</p>\n"
+      },
+      "date_gmt" : "2025-07-20T13:35:37",
+      "id" : 2103077,
+      "parent" : 2102613
+    },
+    {
+      "author_name" : "DWT",
+      "content" : {
+        "rendered" : "<p>One more in NYC- Mott St in Chinatown</p>\n"
+      },
+      "date_gmt" : "2025-07-20T13:41:10",
+      "id" : 2103079,
+      "parent" : 2103076
+    },
+    {
+      "author_name" : "Midnight",
+      "content" : {
+        "rendered" : "<p>Citi has once again shown that they have no intention of creating a competitive card in the premium card space.   Maybe they saw the new Reserve and changed to Plat over the years and decided they don’t even need to try.</p>\n"
+      },
+      "date_gmt" : "2025-07-20T13:43:04",
+      "id" : 2103080,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Darin",
+      "content" : {
+        "rendered" : "<p>I think this card is a huge miss, but the Prestige was never valuable to them, just us. Obviously they’d prefer for all Prestige holders to switch to this new monstrosity, but I wonder if canceling is still a win for them since it wasn’t a profitable card. Again, creating a card structure that would retain customers would have been the right move, but we’re talking about Citi here…</p>\n"
+      },
+      "date_gmt" : "2025-07-20T13:49:07",
+      "id" : 2103085,
+      "parent" : 2102245
+    },
+    {
+      "author_name" : "Jamez butts",
+      "content" : {
+        "rendered" : "<p>It will go live online &#8211; 7/27/25 according to the comments that was made in the article &#8211; <a href=\"https://milestalk.com/citi-strata-elite-possible-tiered-bonus-offer/\" rel=\"nofollow ugc\">https://milestalk.com/citi-strata-elite-possible-tiered-bonus-offer/</a></p>\n<p>Steve<br />\nJuly 19, 2025 At 8:25 pm<br />\nSpoke to a branch manager and they said it will go live on 7.27.25.</p>\n"
+      },
+      "date_gmt" : "2025-07-20T14:15:01",
+      "id" : 2103096,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Ivan",
+      "content" : {
+        "rendered" : "<p>So, Citi has decided to offer their premium card to Muslims, Jews, and Buddhist ahead of Christians? That is highly controversial!</p>\n"
+      },
+      "date_gmt" : "2025-07-20T14:25:30",
+      "id" : 2103101,
+      "parent" : 2103079
+    },
+    {
+      "author_name" : "Nick",
+      "content" : {
+        "rendered" : "<p>The card design is: <a href=\"https://i.imgur.com/kOkP9LZ.png\" rel=\"nofollow ugc\">https://i.imgur.com/kOkP9LZ.png</a></p>\n"
+      },
+      "date_gmt" : "2025-07-20T14:39:15",
+      "id" : 2103110,
+      "parent" : 0
+    },
+    {
+      "author_name" : "DWT",
+      "content" : {
+        "rendered" : "<p>I wish they had left the silver/gray border off… would look so much sleeker as an all black card</p>\n"
+      },
+      "date_gmt" : "2025-07-20T14:46:03",
+      "id" : 2103115,
+      "parent" : 2103110
+    },
+    {
+      "author_name" : "Morris",
+      "content" : {
+        "rendered" : "<p>Lol not really, go to a branch and apply today if you want it so bad.  There&#8217;s no prohibition.</p>\n"
+      },
+      "date_gmt" : "2025-07-20T15:13:27",
+      "id" : 2103123,
+      "parent" : 2103101
+    },
+    {
+      "author_name" : "Yinjing (Jiba) (Xiaoniao)",
+      "content" : {
+        "rendered" : "<p>It’s already midday Sunday, nothing in branch. By the way Citi is stingy. I wanted to break a $10 into singles and they refused unless I presented a Citi card, you know the kind I was trying to apply for but doesn’t exist yet</p>\n"
+      },
+      "date_gmt" : "2025-07-20T15:27:06",
+      "id" : 2103129,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Ivan",
+      "content" : {
+        "rendered" : "<p>My point is: do you know for a fact that it is available in one of these non-Christian neighborhood serving branches today? Because the &#8220;in branch on Sunday&#8221; rumor doesn&#8217;t make much sense.</p>\n"
+      },
+      "date_gmt" : "2025-07-20T15:29:21",
+      "id" : 2103131,
+      "parent" : 2103123
+    },
+    {
+      "author_name" : "Fishfood",
+      "content" : {
+        "rendered" : "<p>It&#8217;s Sunday already here in NYC. The branch down the block is not open. I guess it is not happening?</p>\n"
+      },
+      "date_gmt" : "2025-07-20T15:38:49",
+      "id" : 2103136,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Lightspeed",
+      "content" : {
+        "rendered" : "<p>Feels like a ripoff of BofA (white/light gray for UCR; dark gray for PR; black for PRE).</p>\n"
+      },
+      "date_gmt" : "2025-07-20T15:43:35",
+      "id" : 2103140,
+      "parent" : 2103110
+    },
+    {
+      "author_name" : "gary",
+      "content" : {
+        "rendered" : "<p>dont go there</p>\n"
+      },
+      "date_gmt" : "2025-07-20T15:50:46",
+      "id" : 2103144,
+      "parent" : 2103101
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p>I&#8217;ll add that, thx</p>\n"
+      },
+      "date_gmt" : "2025-07-20T15:54:38",
+      "id" : 2103145,
+      "parent" : 2103096
+    },
+    {
+      "author_name" : "DWT",
+      "content" : {
+        "rendered" : "<p>That’s disappointing. I bet some bloggers (like TPG) have already received full details under embargo and will publish their posts as soon as Citi allows it</p>\n"
+      },
+      "date_gmt" : "2025-07-20T15:54:57",
+      "id" : 2103146,
+      "parent" : 2103129
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p>Chase usually does this too. I guess Sunday is just the start of the week.</p>\n"
+      },
+      "date_gmt" : "2025-07-20T15:56:57",
+      "id" : 2103147,
+      "parent" : 2103066
+    },
+    {
+      "author_name" : "Esquiar",
+      "content" : {
+        "rendered" : "<p>What bank has branches open on a Sunday?</p>\n"
+      },
+      "date_gmt" : "2025-07-20T16:32:05",
+      "id" : 2103165,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Peter",
+      "content" : {
+        "rendered" : "<p>is there a branch anywhere open on Sundays? maybe they delivered them the materials today. i guess check tomorrow</p>\n"
+      },
+      "date_gmt" : "2025-07-20T16:33:01",
+      "id" : 2103166,
+      "parent" : 2103136
+    },
+    {
+      "author_name" : "Pam",
+      "content" : {
+        "rendered" : "<p>Reserved for their Ultra Elite cardholder &#8211;  $500k in Citi deposits &amp; a 100k SUB (jk…I think)</p>\n"
+      },
+      "date_gmt" : "2025-07-20T16:33:43",
+      "id" : 2103168,
+      "parent" : 2103115
+    },
+    {
+      "author_name" : "Jeremy",
+      "content" : {
+        "rendered" : "<p>Transfer bonuses are worth more. You can cover Costco with the Mesa card ($0 annual fee).</p>\n"
+      },
+      "date_gmt" : "2025-07-20T17:55:28",
+      "id" : 2103188,
+      "parent" : 2102942
+    },
+    {
+      "author_name" : "Jack",
+      "content" : {
+        "rendered" : "<p>Most banks ask if you have an account with them if you go asking for change.</p>\n"
+      },
+      "date_gmt" : "2025-07-20T18:08:53",
+      "id" : 2103191,
+      "parent" : 2103129
+    },
+    {
+      "author_name" : "PC",
+      "content" : {
+        "rendered" : "<p>So&#8230; if I MS with this card and it does eventually get AA as a transfer partner, then I can get AA miles 50% faster on unbonused spend than I can with an AA card? That&#8217;s got to be worth something&#8230;</p>\n"
+      },
+      "date_gmt" : "2025-07-20T18:21:39",
+      "id" : 2103199,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Jack",
+      "content" : {
+        "rendered" : "<p>It would be better if Citi made matte cards. The all shiny cards look really cheap.</p>\n"
+      },
+      "date_gmt" : "2025-07-20T18:26:23",
+      "id" : 2103201,
+      "parent" : 2103110
+    },
+    {
+      "author_name" : "cameron",
+      "content" : {
+        "rendered" : "<p>not a good deal for point churners</p>\n"
+      },
+      "date_gmt" : "2025-07-20T19:56:19",
+      "id" : 2103225,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Creditian",
+      "content" : {
+        "rendered" : "<p>TD Bank</p>\n"
+      },
+      "date_gmt" : "2025-07-20T20:48:48",
+      "id" : 2103246,
+      "parent" : 2103165
+    },
+    {
+      "author_name" : "Joiseph",
+      "content" : {
+        "rendered" : "<p>Says you.</p>\n"
+      },
+      "date_gmt" : "2025-07-20T20:59:01",
+      "id" : 2103249,
+      "parent" : 2103225
+    },
+    {
+      "author_name" : "Jon",
+      "content" : {
+        "rendered" : "<p>It’s objectively bad compared to recent offers from other banks. Do the math on the RoS on this offer including the true value of the credits you’ll see it’s quite shite.</p>\n"
+      },
+      "date_gmt" : "2025-07-20T21:19:29",
+      "id" : 2103254,
+      "parent" : 2103249
+    },
+    {
+      "author_name" : "Robert",
+      "content" : {
+        "rendered" : "<p>0 mention of this in training vids</p>\n"
+      },
+      "date_gmt" : "2025-07-20T21:34:41",
+      "id" : 2103258,
+      "parent" : 2101793
+    },
+    {
+      "author_name" : "Tom",
+      "content" : {
+        "rendered" : "<p>It depends on what redemption value you get per AA point and your MS cash cycle cost.</p>\n<p>If you said your average AA redemption is 1.4cpp * 1.5X = 2.1 percent reward rate on the card.  If you said the cost of your MS cash cycle is greater than 2.1 percent, you&#8217;d be losing money.  Keep in mind that you will not earn AA LPs with the card, so no associated milestone benefits.</p>\n"
+      },
+      "date_gmt" : "2025-07-20T22:53:37",
+      "id" : 2103288,
+      "parent" : 2103199
+    },
+    {
+      "author_name" : "grrizzly",
+      "content" : {
+        "rendered" : "<p>Are you supposed to tip the <span>chauffeur service with Blacklane? Presumably, based on the original fare?</span></p>\n"
+      },
+      "date_gmt" : "2025-07-21T01:14:46",
+      "id" : 2103340,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Tom",
+      "content" : {
+        "rendered" : "<p>If you have to worry about a tip . . . </p>\n<p>Typically, with limousine services, a driver tip is already built into the total pricing.</p>\n"
+      },
+      "date_gmt" : "2025-07-21T01:46:19",
+      "id" : 2103350,
+      "parent" : 2103340
+    },
+    {
+      "author_name" : "Tom",
+      "content" : {
+        "rendered" : "<p>Another answer on which we will wait relates to benefits included when using this card for a hotel booking on Citi Travel.  Will it offer loyalty program integration as Chase Edit does?  Or, is it straight points and nothing more?</p>\n"
+      },
+      "date_gmt" : "2025-07-21T01:49:00",
+      "id" : 2103352,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Scotty",
+      "content" : {
+        "rendered" : "<p>Credits that are mostly per calendar year? That if you have at least 2 first party citi cards you can upgrade/downgrade and get 2 credits per 1 fee? You&#8217;re thinking short when you should be thinking long, shameful sh!t.</p>\n"
+      },
+      "date_gmt" : "2025-07-21T03:55:26",
+      "id" : 2103381,
+      "parent" : 2103254
+    },
+    {
+      "author_name" : "Dman",
+      "content" : {
+        "rendered" : "<p>Only if you pay the inflated price. Banks are not going to lose money on their 3rd party booking and hotels are not going to hand out loyalty benefits unless booking direct. Same goes for airlines. This is why I dont see a place in my wallet for the Strata Elite as rumored. The Strata Premier allows me to keep my status which has a much greater value in my case.</p>\n"
+      },
+      "date_gmt" : "2025-07-21T05:06:23",
+      "id" : 2103396,
+      "parent" : 2103352
+    },
+    {
+      "author_name" : "Tom",
+      "content" : {
+        "rendered" : "<p>I know what you&#8217;re saying.  People have said the same about Chase Edit.  But, Chase Edit prices a fair number of the hotels I regularly use <strong><em>at or below</em></strong> the best direct rate.  So, while Chase Edit might not be the weapon of choice for <strong><em>every</em></strong> hotel booking, it will certainly be for <strong><em>certain</em></strong> hotel bookings.  The same might be the case for Citi Travel and the question about loyalty credit remains.</p>\n"
+      },
+      "date_gmt" : "2025-07-21T11:07:48",
+      "id" : 2103425,
+      "parent" : 2103396
+    },
+    {
+      "author_name" : "Tom",
+      "content" : {
+        "rendered" : "<p>There are some strategies that are best not discussed in public forums.  Lest they be shut down.</p>\n"
+      },
+      "date_gmt" : "2025-07-21T11:09:20",
+      "id" : 2103427,
+      "parent" : 2103381
+    },
+    {
+      "author_name" : "James",
+      "content" : {
+        "rendered" : "<p>Not new maga everyone knows this</p>\n"
+      },
+      "date_gmt" : "2025-07-21T13:18:09",
+      "id" : 2103443,
+      "parent" : 2103427
+    },
+    {
+      "author_name" : "Charlie",
+      "content" : {
+        "rendered" : "<p>I wonder if those Admirals Club passes will actually get you into an Admirals Club when the club is already overcrowded.</p>\n"
+      },
+      "date_gmt" : "2025-07-21T13:40:04",
+      "id" : 2103453,
+      "parent" : 0
+    },
+    {
+      "author_name" : "DWT",
+      "content" : {
+        "rendered" : "<p>Here&#8217;s some movement, finally.  The url: <a href=\"https://www.citi.com/citistrataelite\" rel=\"nofollow ugc\">https://www.citi.com/citistrataelite</a> no longer pulls up a placeholder page saying Lorem Ipsom but now pulls up a 404 Not Found page.</p>\n"
+      },
+      "date_gmt" : "2025-07-21T13:52:08",
+      "id" : 2103462,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Eli Sherer",
+      "content" : {
+        "rendered" : "<p>I&#8217;m confused&#8230; you say the rates on Prestige are better? </p>\n<ul>\n<li>5x air travel &amp; restaurants</li>\n<li>3x hotels &amp; cruise lines</li>\n<li>1x all other purchases</li>\n</ul>\n<p>vs the new StrataElite:</p>\n<ul>\n<li>12x on hotels, car rentals and attractions booked on Citi travel</li>\n<li>6X on air travel booked on Citi travel</li>\n<li>6X on restaurants on CITI NIGHTS EVERY FRIDAY AND SATURDAY 6 pm to 6 am ET.</li>\n<li>3x points at restaurants any other time frame.</li>\n<li>1.5X on all other purchases.</li>\n</ul>\n<p>Is this only because of being able to book air at 5x points direct on the airline, and 5x points at restaurants anytime?<br />\nFor my money, the 12x on hotels might make a difference in that.., along wit 1.5x on ALL other purchases.</p>\n<p>I have Prestige and would consider this new card to replace (my wife already has the regular Strata as well).</p>\n"
+      },
+      "date_gmt" : "2025-07-21T14:04:57",
+      "id" : 2103465,
+      "parent" : 0
+    },
+    {
+      "author_name" : "raylan",
+      "content" : {
+        "rendered" : "<p>lol you know the answer to this. they&#8217;ll say you can get into an AAdmirals club 4 times a year, but AA will put out near permanent signs saying &#8220;club at capacity / passes not accepted&#8221; at every single hub on day one.</p>\n"
+      },
+      "date_gmt" : "2025-07-21T15:04:03",
+      "id" : 2103480,
+      "parent" : 2103453
+    },
+    {
+      "author_name" : "Frank",
+      "content" : {
+        "rendered" : "<p>The answer, of course, is no</p>\n"
+      },
+      "date_gmt" : "2025-07-21T16:02:26",
+      "id" : 2103522,
+      "parent" : 2103453
+    },
+    {
+      "author_name" : "DWT",
+      "content" : {
+        "rendered" : "<p>There is a real difference between booking directly with a hotel or airline, and having to use the travel portal.  Many of us will avoid travel portals at all costs, especially for airline tickets.</p>\n"
+      },
+      "date_gmt" : "2025-07-21T16:14:29",
+      "id" : 2103533,
+      "parent" : 2103465
+    },
+    {
+      "author_name" : "Chatan",
+      "content" : {
+        "rendered" : "<p><a class='wpd-umcguest'  href='https://www.doctorofcredit.com/rumor-citi-strata-elite-details/#comment-2100838'><img alt='' src='https://secure.gravatar.com/avatar/0fd2ff1e3bb043679bd01d3a63682a6554242b7ef585f6e0b015bea62a98c56f?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/0fd2ff1e3bb043679bd01d3a63682a6554242b7ef585f6e0b015bea62a98c56f?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>Scotty</a> knows what&#8217;s up!</p>\n"
+      },
+      "date_gmt" : "2025-07-21T16:41:12",
+      "id" : 2103556,
+      "parent" : 2103381
+    },
+    {
+      "author_name" : "Eli Sherer",
+      "content" : {
+        "rendered" : "<p>Got it&#8230; and yes, i&#8217;ve had it in both directions with the portals. Thinking that this would be better only if the cash price was apples to apples the same, which is why I will sometimes use Amex portal to get their 5x points for bookings. Perhaps that&#8217;s the idea of Citi offering 6x for air an 12x on hotels&#8230; to beat the 5x on Amex?</p>\n"
+      },
+      "date_gmt" : "2025-07-21T17:05:50",
+      "id" : 2103575,
+      "parent" : 2103533
+    },
+    {
+      "author_name" : "Pam",
+      "content" : {
+        "rendered" : "<p>PC all 4 to Custom Cash &#8211; still get 5x on $2k restaurant/travel spend. I rarely pay cash for hotel stays, but I otherwise get it if others receive real value from the 4th paid night free &#8211; that can surely pay for the Prestige AF at even a moderate hotel these days.</p>\n"
+      },
+      "date_gmt" : "2025-07-21T18:24:36",
+      "id" : 2103619,
+      "parent" : 2101785
+    },
+    {
+      "author_name" : "TG",
+      "content" : {
+        "rendered" : "<p>Citi travel is usually more expensive than other OTAs so you&#8217;re paying extra for that multiplier. The Prestige actually gets 5x on regular OTAs too, so you can pick the cheapest one and stack it with a portal.</p>\n<p>1.5x isn&#8217;t appealing since you can just use a Doublecash for 2x instead.</p>\n"
+      },
+      "date_gmt" : "2025-07-21T18:49:36",
+      "id" : 2103641,
+      "parent" : 2103465
+    },
+    {
+      "author_name" : "DWT",
+      "content" : {
+        "rendered" : "<p>Someone managed to find the T&amp;Cs and posted them to Frequent Miler:</p>\n<p> 1 hour ago<br />\nBonus Points Offer</p>\n<p>Bonus ThankYou® Points are not available if you have received a new account bonus for a Citi Strata Elite℠ account in the past 48 months or if you converted another Citi credit card account on which you earned a new account bonus in the last 48 months into a Citi Strata Elite.​</p>\n<p>Protection Benefits</p>\n<p>Should you apply and be approved for the Citi Strata Elite℠ Card, more information will be provided in the Guide to Protection Benefits you receive with your card. Benefits are subject to terms, conditions, and limitations, including limitations on the amount of coverage. Coverage is provided by New Hampshire Insurance Company, an AIG company. The policy provides secondary coverage only except for MasterRental, where coverage is primary outside the Eligible Renter’s country of residence.</p>\n<p>Award Program Information</p>\n<p>American Airlines reserves the right to change the AAdvantage® program and its terms and conditions at any time with or without notice, and to end the AAdvantage® program with six months’ notice. Any such changes may affect your ability to use AAdvantage® Rewards and Benefits that you have already accumulated. American Airlines is not responsible for products or services offered by other participating companies. All third-party provider terms and conditions apply. For more information on miles and Loyalty Points, visit aa.com/loyaltypoints. For complete details about the AAdvantage® program, visit  aa.com/aadvantage. For the AAdvantage® terms and conditions, visit  aa.com/aadvantageterms.</p>\n<p>Travel booked on American Airlines may be American Eagle® service, operated by Envoy Air Inc., Republic Airways Inc., SkyWest Airlines, Inc., Air Wisconsin Airlines LLC, PSA Airlines, Inc., or Piedmont Airlines, Inc.</p>\n<p>American Airlines, AAdvantage®, Admirals Club, the Flight Symbol logo and the Tail Design are marks of American Airlines, Inc.<br />\noneworld® is a registered trademark of oneworld Alliance, LLC.</p>\n<p>Summary of the Citi Strata Elite℠ Card Terms and Conditions</p>\n<p>CITI THANKYOU® REWARDS​</p>\n<p>With the Citi Strata Elite Card, you can earn ThankYou Points for purchases made on your Card. Unless you are participating in a limited-time offer, you will earn:​</p>\n<p>12 ThankYou Points for each $1 spent on hotels, car rentals, and attractions booked through Citi Travel® via cititravel.com or 1-833-737-1288 (TTY:711).<br />\n6 ThankYou Points for each $1 spent on air travel booked through Citi Travel via cititravel.com or 1-833-737-1288 (TTY: 711).</p>\n<p>6 ThankYou Points for each $1 spent at restaurants, including restaurant delivery services, for purchases authorized between Friday 6:00 PM through Saturday 6:00 AM ET, and Saturday 6:00 PM through Sunday 6:00 AM ET (“Citi Nights℠”).</p>\n<p>3 ThankYou Points for each $1 spent at restaurants, including restaurant delivery services, for purchases authorized at any time outside of Citi Nights.</p>\n<p>1.5 ThankYou Points for each $1 spent on all other purchases, including the purchases excluded below.</p>\n<p>Citi Travel</p>\n<p>You will earn 12 ThankYou Points for each $1 spent on hotels, car rentals, and attractions and 6 ThankYou Points for each $1 spent on airfare booked using your Citi Strata Elite Card with Citi Travel via cititravel.com or 1-833-737-1288 (TTY:711). For bookings made with a combination of points and your Citi Strata Elite Card, only the portion paid with your card will earn points. Points are not earned on cancelled bookings that are refundable. If your account is closed for any reason, including if you convert to another card product, you will no longer be eligible for this offer. Citi Travel is powered by Rocket Travel by Agoda.</p>\n<p>Restaurants</p>\n<p>Includes purchases at cafes, bars, lounges, fast-food restaurants, restaurant delivery services, and take out restaurants. Excludes purchases at bakeries, caterers, and restaurants located inside another business (such as hotels, stores, stadiums, grocery stores, or warehouse clubs). You will only earn 1.5 ThankYou Points per $1 spent on restaurant gift card purchases if the merchant does not use the restaurant merchant category code for that purchase.</p>\n<p>Citi Nights</p>\n<p>You will earn 6 ThankYou Points for each $1 spent at restaurants, including restaurant delivery services, for purchases authorized between Friday 6:00 PM through Saturday 6:00 AM ET, and Saturday 6:00 PM through Sunday 6:00 AM ET when you use your Citi Strata Elite card.</p>\n<p>Citi Nights eligibility is based on the day and time your restaurant purchase is authorized, not when the transaction is posted to your Account. For example, when paying for your dinner, the restaurant may authorize your purchase at 8:00 PM ET on a Friday night, but the transaction does not post to your Account until Monday. In this example, your purchase will qualify, because the purchase was authorized during Citi Nights. ThankYou Points will be issued to your Account once the purchase posts to your Account and is based on the amount of the final transaction, not the authorization amount.</p>\n<p>Restaurant purchases made outside of Citi Nights may post to your Account on a Friday or Saturday. However, these purchases will not qualify for Citi Nights if the authorization for the purchase occurred at a time other than between Friday 6:00 PM through Saturday 6:00 AM ET, or Saturday 6:00 PM through Sunday 6:00 AM ET. For example, a restaurant purchase you made on Thursday night that posts to your Account on Saturday night would not qualify because the authorization took place outside the Citi Nights timeframe.</p>\n<p>Merchant Classification for Rewards CategoriesMerchants are assigned a merchant category code (“MCC”), which is determined in accordance with Visa/Mastercard/American Express procedures based on the kinds of products and services the merchants primarily sell. We don’t control the assignment of these codes and are not responsible for the codes used by merchants. When you use your card to make a purchase, we’re provided an MCC for that purchase. We group similar merchant codes into categories for purposes of making rewards offers. Sometimes you may expect a purchase to fit within a rewards category, but if the code assigned to the merchant wasn’t grouped into that category, as recognized by Citi, your purchase will not qualify for additional points. For example, you won’t earn additional points for purchases at a restaurant located within a retailer if the restaurant is assigned a “retailer” code instead of a “restaurant” code. Please also note – purchases made through mobile/wireless technology may not earn additional points depending on how the technology is set up to process the purchase. We reserve the exclusive right to determine which purchases qualify for additional points.</p>\n<p>Only Purchases Earn Points.You’ll earn Points for purchases using your Card Account, minus returns and refunds. Balance transfers, Citi Flex Loans, cash advances, checks that access your Card Account, items returned for credit, unauthorized charges, interest and account fees, travelers checks, foreign currency purchases, money orders, wire transfers (and similar cash-like transactions), lottery tickets, gaming chips (and similar betting transactions) do not earn ThankYou Points. When using Citi Flex Pay, you only earn ThankYou Points on the original purchase. If your hotel purchase booked through the Citi Travel site qualifies for the $300 annual hotel benefit, you won’t earn points on the portion of your purchase that is offset by the benefit.</p>\n<p>​Open and Current Card Account.You may earn Points as long as your card account is open and current.</p>\n<p>​When You Will Receive Points.Points earned through a purchase with your Card Account will appear in your ThankYou Account at the end of the billing cycle in which you made the purchase. This means that Points earned on purchases made near the end of a billing cycle may take up to one additional billing cycle to appear in your ThankYou Account. Bonus Points may take one to two additional billing cycles to post to your ThankYou Account.</p>\n<p>Please see the Citi ThankYou Rewards Terms and Conditions at Redirecting to Live Site, or call us at 1-800-THANKYOU (1-800-842-6596) to request a complete copy of the Terms and Conditions. (TTY: We accept 711 or other Relay Service). The Terms and Conditions include redemption information on the Citi ThankYou Rewards Program.</p>\n<p>Changes to the ThankYou Rewards Program.ThankYou Rewards may be terminated with 30 days prior written notice. If ThankYou Rewards is terminated, you will have 90 days from the ThankYou Rewards termination date, or if required by law, date of notification of termination, to redeem all your accumulated ThankYou Points. The ThankYou Rewards Program may be changed at any time, and if required by law, we will provide notice. Rewards offered by ThankYou Rewards and the ThankYou Point levels required for specific rewards are subject to change without notice.​</p>\n<p>Up to $300 Annual Hotel Benefit via Citi Travel</p>\n<p>Once per calendar year, enjoy up to $300 off a hotel stay of 2 nights or more when booked with Citi Travel via cititravel.com or 1-833-737-1288 (TTY:711). This benefit is subject to the following eligibility requirements: To receive the annual hotel benefit, you must pre-pay for your complete stay with your Citi Strata Elite Card, ThankYou® Points, or a combination thereof. If you choose to use the benefit, up to $300 will be applied to your reservation at the time of booking. If your reservation is less than $300, the remaining amount of the annual hotel benefit will be available for your next qualifying purchase in that same calendar year. If you cancel a booking for which you used any or all of your annual hotel benefit, the benefit will be returned to your account after the cancellation is processed and will remain available for use on any remaining days in the same calendar year. For example, if in November you make a qualifying reservation for March of the next year and use your $300 Annual Hotel Benefit, but you cancel the reservation in January, you will forfeit that benefit for the prior calendar year. If you use your annual hotel benefit for a non-refundable hotel purchase and you cancel your hotel booking, the non-refundable charge will still be offset by the benefit. All reservations must be changed or canceled through Citi Travel via cititravel.com or 1-833-737-1288 (TTY:711). If your hotel purchase qualifies for the $300 Annual Hotel Benefit, you won’t earn points on the portion of the purchase that is offset by the benefit.</p>\n<p>Eligibility requirements:</p>\n<p>Reservations must be made by the primary cardmember. Reservations can be made in the primary cardmember’s or Authorized User’s names.<br />\nPackage rates such as air and hotel, or hotel and car rental do not qualify for the benefit.</p>\n<p>Reservations made through any party or channel other than Citi Travel via cititravel.com or 1-833-737-1288 (TTY:711) are not eligible for the $300 Annual Hotel Benefit.</p>\n<p>The $300 Annual Hotel Benefit cannot be combined in the same transaction with the Citi Prestige® Card Complimentary 4th Night hotel benefit if you have both the Citi Strata Elite and Citi Prestige cards. This benefit also cannot be combined with any other promotions or discounts on thankyou.com.<br />\nUp to $200 Annual Splurge Credit℠</p>\n<p>Each calendar year, you may receive up to $200 in statement credits towards purchases made with an activated Splurge Credit merchant. Only the primary cardmember may sign-in at Credit Cards, Banking, Mortgage, Personal Loans | Citi.com or call 1-833-888-2168 (TTY: We accept 711 or other Relay Service) to select the Splurge Credit merchant(s) they would like to activate for their Splurge Credit. You may activate no more than 2 Splurge Credit merchants at any time. When you activate a Splurge Credit Merchant, we register your activation using Eastern Time. This could impact the day your new Splurge Credit Merchant is activated, or a merchant being replaced is deactivated, depending on your time zone. You may change your merchant(s) selection at any time. Once selected, a merchant is activated as of 12:00 AM ET on the day the merchant is selected. For example, if you select a merchant at 11:00 PM ET on a Wednesday, all purchases made with that merchant from 12:00 AM ET on Wednesday may qualify for a Splurge Credit. If more than two merchants are selected in any day, the final two selections at 11:59 PM ET will be activated for that day. Splurge Credit merchant options are subject to change at any time. If your activated Splurge Credit merchant is removed from the program, it is your responsibility to activate another merchant.</p>\n<p>Once a Splurge Credit merchant is activated, credits will be issued for purchases at the activated merchant that post to the Citi Strata Elite Card, up to a total of $200 each calendar year. In order to receive a Splurge Credit, the Splurge Credit merchant must be activated when the purchase is authorized by the merchant. If the Splurge Credit merchant was activated when the purchase was authorized but is no longer activated when the purchase posts to the account, the purchase will still be eligible for a Splurge Credit. If the merchant does not authorize a purchase, for whatever reason, then the purchase will not be eligible for a Splurge Credit. Purchases made by either the primary cardmember or Authorized Users are eligible for Splurge Credits. However, the total amount of Splurge Credits will not exceed $200 per calendar year for the Account, regardless of who made the purchase.</p>\n<p>Splurge Credits are applied after the purchase posts to your account. Splurge Credits are applied to the annual Splurge Credit amount for the calendar year the purchase was authorized. Eligible purchases that are authorized before December 31st, 11:59 PM each calendar year are eligible for statement credits within that year even if the purchase posts to your account the following year. Some merchants will not process a purchase transaction until the merchandise is shipped, this may delay when a purchase posts to your account. If a merchant authorizes a purchase repeatedly over time before posting the purchase to your account, Citi will use the last authorization date to determine eligibility. Citi is not responsible for when a merchant processes a transaction or how many times they authorize a transaction, if at all. Citi reserves the sole right to determine which year’s Splurge Credit benefit an eligible purchase is applied to.</p>\n<p>To qualify for a Live Nation Splurge Credit(s), a purchase must be made directly on livenation.com or ticketmaster.com, and the purchase must be fulfilled by Live Nation or Ticketmaster. Purchases fulfilled by any other third-party service are not eligible to receive Splurge Credit(s). livenation.com and ticketmaster.com purchases made for events or venues outside of the United States and U.S. Territories are not eligible to receive Splurge Credit(s). Live Nation and Ticketmaster are not sponsors of this offer and are in no way responsible for the administration of the offer, the verification of eligibility, or the fulfillment of credits. All inquiries regarding the offer should be directed to Citi at 1-833-888-2168 (TTY: 711). American Airlines purchases that qualify for the Splurge credit are items billed by American Airlines or American Airlines Vacations as the merchant of record. Products or services that do not qualify for the Splurge credit are car rentals and hotel reservations, purchase of AAdvantage® status boost or renewal, and AA Cargo™ products and services. Citi reserves the sole right to determine which purchases qualify for a Splurge Credit. It may take up to 1-2 billing cycles for your Splurge Credit to appear on your statement. Splurge Credits are not applied to the Minimum Payment Due on your account.</p>\n<p>Up to $200 in Annual Private Chauffeur Credit with Blacklane®<br />\nYou will automatically receive statement credits totaling up to $100 from January through June and up to $100 from July through December, for a total of up to $200 per calendar year, toward purchases made with Blacklane using your Citi Strata Elite Card. Purchases must be made directly through the Blacklane app or their online website at blacklane.com. Purchases made by both the primary cardmember, and Authorized Users, are eligible for statement credits. However, each Account is only eligible for statement credits up to $100 for Blacklane purchases with a sale date from January through June and statement credits up to $100 for Blacklane purchases with a sale date from July through December, for a total of up to $200 in statement credits per calendar year. If your first ride with Blacklane in a 6-month period does not use the entire $100 credit, the remaining balance will be available for your next qualifying purchase within that 6-month period. Citi is not responsible for the sale date Blacklane submits with a purchase to your Account. Credits are assigned to a 6-month period based on the sale date provided by Blacklane with the purchase transaction, which may not be the date of service. For example, if you use Blacklane services on June 29th but the purchase transaction is submitted by Blacklane with a July 1st sale date, the purchase will be applied to the $100 statement credit for the July through December period. Statement credits reduce your account balance but are not applied to the Minimum Payment Due on your account.</p>\n<p>Banking Relationship First Year and Annual Credits for qualifying Citigold® Private Clients</p>\n<p>To qualify for the $595 First Year Banking Relationship and $145 Annual Credits, the primary cardmember must have an open and current Citi Strata Elite Card account with an assessed Annual Membership Fee of $595. Cardmembers paying an Annual Fee of $595 will earn a $595 statement credit in the first year of cardmembership and a $145 statement credit each year thereafter. The primary cardmember must also be an owner of a deposit account in the Citigold® Private Client Relationship Tier on the date your Annual Fee is charged to your Card Account. Existing deposit customers who are not in the Citigold® Private Client Tier and intend to Up-Tier to the Citigold® Private Client Relationship Tier must meet Balance Range requirements for three consecutive months to be Up-Tiered to the Citigold® Private Client Relationship Tier the first day of month 4. Existing deposit customers who enroll and meet Tier Acceleration requirements can Up-Tier in the next month. All Up-Tiering changes are effective on the first day of the month. The statement credit will be posted to your Card Account within three (3) billing cycles after the date your Annual Fee is charged to your Card Account.</p>\n<p>Global Entry® Or TSA Precheck® Application Fee Credit</p>\n<p>Citi Strata Elite cardmembers are eligible to receive one statement credit up to $120 per Account every four years for either the Global Entry or the TSA PreCheck program application fee. The application fee must be charged to your Citi Strata Elite Card to qualify for the statement credit. You will receive a statement credit for the first program (either Global Entry or TSA PreCheck) to charge an application fee to your Citi Strata Elite Card, regardless of whether you are approved for the program. Please allow 1–2 billing cycles after the Global Entry or TSA PreCheck application fee is charged to your Account for the statement credit to be applied.</p>\n<p>For information on Global Entry, visit globalentry.gov. For information on TSA PreCheck, visit tsa.gov. Applications are made directly with these organizations, and this information is not shared with Citi, nor does Citi have access to Global Entry or TSA records. Citi does not share Account information with Global Entry or TSA. Decisions to approve/deny applications are made solely by these organizations, and Citi has no influence over these decisions. Citi is not notified of approvals or denials of applications. Statement credits are not applied to the Minimum Payment Due on your account.<br />\nPriority PassTM Select Lounge Membership</p>\n<p>Primary cardmembers and their authorized users receive complimentary membership to Priority Pass Select. Priority Pass Select membership includes access to over 1,500 airport lounges around the world. Your Priority Pass Select membership includes access to airport lounges participating in the Priority Pass Select network but does not include benefits at restaurants, cafes, or markets in the network. To access a lounge, present your physical Citi Strata Elite Card along with a boarding pass for same day travel. Primary cardmembers and their authorized users may create a digital account with Priority Pass at <a href=\"https://www.prioritypass.com/citistrataelite\" rel=\"nofollow ugc\">https://www.prioritypass.com/citistrataelite</a> to access a digital membership card, however this step is not required for entry. With the Priority Pass Select membership, you are permitted up to 2 guests per visit to any participating lounge. Some lounges do not admit guests. You will be responsible for any guests accompanying you to a participating airport lounge. Some lounges may allow more than 2 guests, but only 2 guests are included with your Priority Pass Select membership. For additional guests, your Citi Strata Elite credit card will be charged $35 per guest, per visit. Priority Pass may use your information for marketing related to the program. Your Citi Strata Elite account must be open and in good standing to maintain your membership. Lounges participating in the Priority Pass network are owned and operated by independent third parties and their participation and/or facilities may change or be discontinued without notice. Access to a lounge may be denied, at the lounge’s discretion, due to capacity or if the lounge is reserving space for pre-booked members, among other reasons.</p>\n<p>Priority Pass Select membership is subject to the Priority Pass Select Terms and Conditions. For the full conditions of use, please visit Conditions of Use | Priority Pass or call 1-800-352-2834.</p>\n<p>Four Admirals Club® Citi Strata Elite℠ Passes to American Airlines Admirals Club® Lounges</p>\n<p>Each calendar year, the Citi Strata Elite primary cardmember will receive four digital Admirals Club® Citi Strata Elite℠ Passes (“Pass” or “Passes”) to the Admirals Club® lounges.</p>\n<p>The primary cardmember must redeem one Pass to enter an Admirals Club lounge and may redeem available passes for each accompanying adult 18 years of age or older. The primary cardmember may redeem all four passes in one visit to bring in a maximum of three adult guests. The primary cardmember must be present with each accompanying adult for them to enter any Admirals Club lounge location. Once redeemed, a Pass is valid for a 24-hour period and can be used in multiple locations during that time. Up to 3 children under 18 years of age who are traveling with an adult who redeemed a Pass may also enter the lounge. Any Passes not redeemed at the end of the calendar year will be forfeited. To review a current list of Admirals Club lounges please visit  aa.com/admiralsclub.<br />\nTo access an Admirals Club lounge, the primary cardmember must present for themselves and on behalf of accompanying adults: a Pass located in their AAdvantage Wallet (located in the American Airlines Mobile App); or their boarding pass including their AAdvantage® number. The primary cardmember and any accompanying adults must also present: (i) their current government-issued I.D.; and (ii) a boarding pass for same-day travel on an eligible flight, which includes any departing or arriving flight that is (1) marketed or operated by American Airlines, (2) marketed and operated by any oneworld® carrier, or (3) marketed and operated by Alaska Airlines; and (iii) any additional documentation required by American Airlines. All persons must be of valid drinking age, based on applicable law, to consume alcohol.</p>\n<p>All Admirals Club membership rules, terms and conditions apply. AMERICAN AIRLINES RESERVES THE RIGHT TO MODIFY ANY OR ALL RULES, TERMS AND CONDITIONS AT ANY TIME WITHOUT NOTICE. SUCH MODIFICATIONS SHALL BE EFFECTIVE IMMEDIATELY AND INCORPORATED INTO THIS AGREEMENT. BY ACCESSING ANY ADMIRALS CLUB LOUNGE YOU SHALL BE DEEMED TO HAVE ACCEPTED THE ADMIRALS CLUB TERMS AND CONDITIONS. To review the complete Admirals Club membership terms and conditions, visit  aa.com/admiralsclub. Upon closure of the Citi Strata Elite account for any reason, all Passes not redeemed are forfeited. If the primary cardmember’s AAdvantage account is closed for any reason, any remaining Passes may not be redeemed, and any remaining Passes or new Passes will not be deposited until the AAdvantage account is reopened or a new AAdvantage account is opened and linked to the Citi Strata Elite account.<br />\nAmerican Airlines reserves the right to change the AAdvantage® program and its terms and conditions at any time with or without notice, and to end the AAdvantage® program with six months’ notice. Any such changes may affect your ability to use AAdvantage® Rewards and Benefits that you have already accumulated. American Airlines is not responsible for products or services offered by other participating companies. All third-party provider terms and conditions apply. For more information on miles and Loyalty Points, visit  aa.com/loyaltypoints. For complete details about the AAdvantage® program, visit aa.com/aadvantage&gt;. For the AAdvantage® terms and conditions, visit aa.com/aadvantageterms.</p>\n<p>The Reserve by Citi Travel Benefits and Supplemental Terms &amp; Conditions​<br />\nThe Reserve Benefits (Citi Strata Elite℠, Citi Strata Premier®, and Citi Prestige® cardmembers):<br />\n*$100.00 (USD) Experience Credit<br />\nRoom Upgrade, upon availability<br />\nDaily Breakfast for Two<br />\nComplimentary Wi-Fi<br />\nEarly Check-In, upon availability<br />\nLate Check-Out, upon availability<br />\n*Experience varies by property<br />\nTo receive these benefits, you must select a hotel room rate offered by The Reserve at check-out<br />\n*Experience varies by property<br />\nTo receive these benefits, you must select a hotel room rate offered by The Reserve at check-out<br />\nSupplemental Terms &amp; Conditions:<br />\n$100.00 Experience Credit (The Reserve rates only)​<br />\nThe complimentary $100.00 Experience Credit is determined by each hotel and shall be valued at $100.00 (USD). The $100.00 Experience Credit may be in the form of a credit or gift card, provided directly by the hotel. Please contact the hotel directly to inquire about what services are subject to $100.00 Experience Credit. Certain services subject to the $100.00 USD Experience Credit may require advance reservations. Contact the hotel directly for more information and in order to obtain reservations, if required. Back-to-back stays within 24 hours at the same hotel are considered one stay. Benefits shall be awarded once per stay. If the $100.00 Experience Credit and other benefits are not consumed during the eligible stay, no refunds or compensation shall be provided to you and the remaining balance will be forfeited.​<br />\nRoom Upgrades (The Reserve rates only)<br />\nRoom Upgrades are based on availability and only certain hotel room categories may be available for upgrade.<br />\nDaily Breakfast for Two (The Reserve rates)​<br />\nDaily Breakfast for Two is included and may be provided directly by the hotel or in the form of a gift card or credit. If breakfast is included as a standard amenity of the hotel, no additional compensation or amenity will be provided to you.​<br />\nComplimentary Wi-Fi (The Reserve rates and Hotel Collection)​<br />\nComplimentary Wi-Fi is provided, with the exception of select hotels where Wi-Fi is included as part of a mandatory daily resort fee or is not available. If Wi-Fi is included as a standard amenity of the hotel, no additional compensation or amenity will be provided to you.<br />\nCheck-In/Check-Out (The Reserve rates and Hotel Collection)<br />\nEarly Check-In eligibility is determined at time of check-in and is subject to availability.<br />\nLate Check-Out eligibility is determined at time of check-in and is subject to availability.<br />\nGeneral<br />\nBoth The Reserve Benefits and Hotel Collection Benefits are subject to change, availability, may vary by hotel and benefits cannot be redeemed for cash and may not be combined with any other offers. Benefits must be used during the stay booked and may not be used at a later date. Benefits are available only when you book with Citi Travel® using your eligible Citi card. All bookings in the Hotel Collection and The Reserve are also subject to Rocket Travel by Agoda’s Terms and Conditions of Use for Hotels, Cars, and Attractions, above.<br />\nThe Hotel Collection Benefits and Supplemental Terms &amp; Conditions<br />\n“Hotel Collection Benefits (All eligible cardmembers who with access to Citi Travel®):<br />\nDaily Breakfast for Two<br />\nComplimentary Wi-Fi<br />\nEarly Check-In, upon availability<br />\nLate Check-Out, upon availability<br />\nTo receive these benefits, you must select a hotel room rate within the Hotel Collection at check-out”​<br />\nDaily Breakfast for Two (Hotel Collection rates)<br />\nDaily Breakfast for Two is included and may be provided directly by the hotel or in the form of a gift card or credit. If breakfast is included as a standard amenity of the hotel, no additional compensation or amenity will be provided to you.<br />\nComplimentary Wi-Fi (Hotel Collection rates)<br />\nComplimentary Wi-Fi is provided, with the exception of select hotels where Wi-Fi is included as part of a mandatory daily resort fee or is not available. If Wi-Fi is included as a standard amenity of the hotel, no additional compensation or amenity will be provided to you.<br />\nCheck-In/Check-Out (Hotel Collection rates)<br />\nEarly Check-In eligibility is determined at time of check-in and is subject to availability.<br />\nLate Check-Out eligibility is determined at time of check-in and is subject to availability.<br />\nGeneral<br />\nHotel Collection Benefits are subject to change, availability, may vary by hotel and benefits cannot be redeemed for cash and may not be combined with any other offers. Benefits must be used during the stay booked and may not be used at a later date. Benefits are available only when you book with Citi Travel® using your eligible Citi card. All bookings in the Hotel Collection and The Reserve are also subject to Rocket Travel by Agoda’s Terms and Conditions of Use for Hotels, Cars, and Attractions, above.<br />\nAccess to Death &amp; Co®’s “Fashioned”<br />\nTo access Fashioned, primary cardmembers and authorized users 21 years of age and older must register for Fashioned via Citi | Death &amp; Co, entering their Citi Strata Elite℠ Card as the payment method. Cardmembers will receive access to Death &amp; Co®’s lifestyle platform, Fashioned, that hosts cocktail and lifestyle centric content. Complimentary access is only granted by enrolling with your Citi Strata Elite℠ Card as the payment method.<br />\nDeath &amp; Co® may use your registration information for marketing communications related to the Fashioned platform.<br />\nAccess to Fashioned is subject to the Death &amp; Co® Terms of Service which can be reviewed at deathandcompany.com/citi/terms.<br />\nFor Adults 21+. Please Drink Responsibly. Enjoy in Moderation and Know Your Limits.<br />\nDeath &amp; Co® is a registered trademark of Death &amp; Co Proprietors LLC. All rights reserved.<br />\nCiti® Flex Pay Terms and Conditions<br />\nYour Citi Flex Pay monthly payment will be added to the Minimum Payment Due each billing cycle until paid in full.<br />\nTo use Citi Flex Pay on an eligible purchase, your account must be current, under the credit limit, and have the applicable Citi Flex Pay terms. Other factors may apply.<br />\nAdditional Information<br />\nAny benefit, reward, service, or feature offered in connection with your Card Account may change or be discontinued at any time for any reason, except as otherwise expressly indicated. Citi isn’t responsible for products and services offered by other companies.<br />\nFraud, Misuse, Abuse, or Suspicious Activity<br />\nIf we see evidence of fraud, misuse, abuse, or suspicious activity, as determined by us in our sole discretion, we reserve the right to take action against you. This may include, without limitation and without prior notice, any or all of the following:<br />\nTaking away your accrued Points<br />\nStopping you from earning Points<br />\nSuspending or closing your Citi® Account or ThankYou® Account<br />\nTaking legal action to recover Rewards redeemed because of such activity and to recover our monetary losses, including litigation costs and damages<br />\nSome examples of fraud, misuse, abuse and suspicious activity include:<br />\nBuying or selling Points<br />\nRepeatedly opening Card Accounts for the primary purpose of acquiring Points<br />\nUsing your Card Accounts in an abusive manner for the primary purpose of acquiring Points<br />\nUsing your Card Account other than primarily for personal, consumer or household purposes<br />\nPoints redemptions that you didn’t authorize<br />\nPlease contact the ThankYou Service Center at 1-800-ThankYou (1-800-842-6596) (TTY: We accept 711 or other Relay Service) immediately if you suspect your ThankYou Account is the target of fraud or suspicious activity. For more information, please see the Citi ThankYou Rewards Terms and Conditions at Redirecting to Live Site.<br />\nCustomer Service Contact Information<br />\nFor questions about your Citi Strata Elite℠ account, contact customer service at 1-833-888-2168 (TTY: We accept 711 or other relay service).<br />\nAmerican Airlines, AAdvantage®, Admirals Club, the Flight Symbol logo and the Tail Design are marks of American Airlines, Inc.<br />\nBlacklane is a registered trademark of Blacklane GmbH.<br />\nCiti Travel is powered by Rocket Travel by Agoda.<br />\nMastercard, World Legend and the circles design are trademarks of Mastercard International Incorporated.<br />\nThe Contactless Indicator mark, consisting of four graduating arcs, is a trademark owned by and used with permission of EMVCo, LLC.<br />\nThe TSA PreCheck® trademark is used with the permission of the U.S. Department of Homeland Security<br />\n©2025 Citibank, N.A.<br />\nCiti, Citi and Arc Design, and other marks used herein are service marks of Citigroup Inc. or its affiliates, used and registered throughout the world</p>\n"
+      },
+      "date_gmt" : "2025-07-21T20:07:33",
+      "id" : 2103676,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Morris",
+      "content" : {
+        "rendered" : "<p>Thanks, this confirms that this card is a no go for quite a few people, especially Prestige holders.  Only thing to hope for is no forced conversion of Prestige.</p>\n"
+      },
+      "date_gmt" : "2025-07-21T20:25:53",
+      "id" : 2103688,
+      "parent" : 2103676
+    },
+    {
+      "author_name" : "Lil",
+      "content" : {
+        "rendered" : "<p>Sure you could collect a good amount of brokerage account bonuses by transferring $1 million in assets between different brokerages once a year. However, that takes effort, not all brokerage bonuses are churnable, and bonus is usually taxable. Citi itself does have banking &amp; brokerage bonus as well.</p>\n"
+      },
+      "date_gmt" : "2025-07-21T20:52:38",
+      "id" : 2103709,
+      "parent" : 2103188
+    }
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "398",
+    "x-wp-totalpages" : "4"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/comments?post=241171&per_page=100&page=3&order=asc&orderby=date_gmt&_fields=id,parent,author_name,date_gmt,content"
+}

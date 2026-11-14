@@ -1,0 +1,253 @@
+{
+  "body" : {
+    "details" : {
+      "created_by" : {
+        "username" : "hgoldfish"
+      }
+    },
+    "fancy_title" : "机械革命的笔记本电脑千万不要买！",
+    "highest_post_number" : 32,
+    "id" : 95682,
+    "post_stream" : {
+      "posts" : [
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 358313,
+          "post_number" : 1,
+          "username" : "hgoldfish"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 358316,
+          "post_number" : 2,
+          "username" : "nightwind"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 358317,
+          "post_number" : 3,
+          "username" : "hgoldfish"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+            {
+              "count" : 2,
+              "id" : 2
+            }
+          ],
+          "id" : 358321,
+          "post_number" : 4,
+          "username" : "Xenon"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 358323,
+          "post_number" : 5,
+          "username" : "hgoldfish"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 358325,
+          "post_number" : 6,
+          "username" : "XJW_XJW"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 358327,
+          "post_number" : 7,
+          "username" : "hgoldfish"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+            {
+              "count" : 4,
+              "id" : 2
+            }
+          ],
+          "id" : 358328,
+          "post_number" : 8,
+          "username" : "XJW_XJW"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 358329,
+          "post_number" : 9,
+          "username" : "Fireman"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+            {
+              "count" : 2,
+              "id" : 2
+            }
+          ],
+          "id" : 358334,
+          "post_number" : 10,
+          "username" : "hooke007"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 358342,
+          "post_number" : 11,
+          "username" : "leeyaunlong"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+            {
+              "count" : 2,
+              "id" : 2
+            }
+          ],
+          "id" : 358343,
+          "post_number" : 12,
+          "username" : "leeyaunlong"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 358345,
+          "post_number" : 13,
+          "username" : "wakaka"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 358347,
+          "post_number" : 14,
+          "username" : "Yafei_Wang"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 358348,
+          "post_number" : 15,
+          "username" : "wakaka"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 358356,
+          "post_number" : 16,
+          "username" : "dejavu"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 358358,
+          "post_number" : 17,
+          "username" : "xiaokonglong"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 358391,
+          "post_number" : 18,
+          "username" : "Colin5887"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 358409,
+          "post_number" : 19,
+          "username" : "yazii"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+            {
+              "count" : 4,
+              "id" : 2
+            }
+          ],
+          "id" : 358414,
+          "post_number" : 20,
+          "username" : "Duah"
+        }
+      ],
+      "stream" : [
+        358313,
+        358316,
+        358317,
+        358321,
+        358323,
+        358325,
+        358327,
+        358328,
+        358329,
+        358334,
+        358342,
+        358343,
+        358345,
+        358347,
+        358348,
+        358356,
+        358358,
+        358391,
+        358409,
+        358414,
+        358425,
+        358426,
+        358440,
+        358461,
+        358467,
+        358558,
+        358612,
+        358688,
+        358696,
+        358725,
+        358784,
+        359078
+      ]
+    },
+    "posts_count" : 32,
+    "slug" : "topic",
+    "title" : "机械革命的笔记本电脑千万不要买！"
+  },
+  "headers" : {
+    "content-type" : "application/json; charset=utf-8"
+  },
+  "status" : 200,
+  "url" : "https://meta.appinn.net/t/95682.json"
+}

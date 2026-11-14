@@ -1,0 +1,137 @@
+{
+  "body" : [
+    {
+      "author_name" : "PK",
+      "content" : {
+        "rendered" : "<p>I pc my premier card to Citi Costco last year. does the 48 month clock start from last year or from when I got the bonus for this card?</p>\n"
+      },
+      "date_gmt" : "2025-12-18T15:50:36",
+      "id" : 2212968,
+      "parent" : 0
+    },
+    {
+      "author_name" : "k",
+      "content" : {
+        "rendered" : "<p>any update?</p>\n"
+      },
+      "date_gmt" : "2025-12-18T22:52:23",
+      "id" : 2213369,
+      "parent" : 2212089
+    },
+    {
+      "author_name" : "Silverwish",
+      "content" : {
+        "rendered" : "<p><span>P1, not a Citi customer, applied for the card 12/15, received a confirmation email that it is in review. Nothing since then. P2, current Citi CC customer and Aadvantage member applied yesterday morning through an offer from logged in account. Didn&#8217;t receive confirmation email, but received email from other credit cards that an entity had reviewed credit. Checked status online today after getting the link from Citi Help Bot, and were told have to wait for snail mail to even get the AppID#. So maybe P2 will be like MW&#8217;s 12/5 experience, and get approved after snail mail verification. *sigh*</span></p>\n"
+      },
+      "date_gmt" : "2025-12-19T14:55:20",
+      "id" : 2213645,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Bob",
+      "content" : {
+        "rendered" : "<p>If my statement date is 12/24 will I be able to triple dip?</p>\n"
+      },
+      "date_gmt" : "2025-12-20T02:33:12",
+      "id" : 2213970,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Myi",
+      "content" : {
+        "rendered" : "<p>I wonder if they’re trying to stop people from triple dipping on newly opened cards, which might explain why they’re sending verification by snail mail. That would include me.<br />\nTo be honest, it was a large purchase of a few thousand dollars, so I’m not surprised it triggered something. Why in the world can’t they verify it over the phone? And yes, I’ve read that Citi is a bit more of a stickler than other banks. They’ll often refuse phone verification and don’t trust digital platforms when fraud is involved.</p>\n"
+      },
+      "date_gmt" : "2025-12-25T04:47:45",
+      "id" : 2216331,
+      "parent" : 2212281
+    },
+    {
+      "author_name" : "Myi",
+      "content" : {
+        "rendered" : "<p>I just applied I got the virtual card right away.</p>\n"
+      },
+      "date_gmt" : "2025-12-25T04:48:25",
+      "id" : 2216332,
+      "parent" : 2211021
+    },
+    {
+      "author_name" : "Beat2def",
+      "content" : {
+        "rendered" : "<p>It&#8217;s beyond annoying now, my annual fee just posted. 🙄WTF Citi. I can&#8217;t even use the card yet.</p>\n"
+      },
+      "date_gmt" : "2025-12-25T11:50:02",
+      "id" : 2216383,
+      "parent" : 2216331
+    },
+    {
+      "author_name" : "Silverwish",
+      "content" : {
+        "rendered" : "<p>UPDATE: P2 received Application ID via snail mail, and went to link (from Citi Help bot) to retrieve status, and instantly approved. So indeed, same as MW, where there is probably some address verification.</p>\n"
+      },
+      "date_gmt" : "2025-12-26T20:33:37",
+      "id" : 2216913,
+      "parent" : 2213645
+    },
+    {
+      "author_name" : "Tim",
+      "content" : {
+        "rendered" : "<p>My new account&#8217;s annual fee posted 12/26.  Should I request a later statement.  Am I going to be able to use the benefits in 2027 and then get a refund on the annual fee in January 2027?  Can you explain when to make the call? thanks</p>\n"
+      },
+      "date_gmt" : "2025-12-28T18:56:52",
+      "id" : 2217665,
+      "parent" : 0
+    },
+    {
+      "author_name" : "beat2def",
+      "content" : {
+        "rendered" : "<p>My statement date was 12/22 and I tripled dipped.  The hotel credit is instantaneously and the Splurge credit has a tracker.  I bought a BB gc at BB and within two days the tracker showed that I used up the $200.00</p>\n"
+      },
+      "date_gmt" : "2025-12-29T16:00:30",
+      "id" : 2218039,
+      "parent" : 2213970
+    },
+    {
+      "author_name" : "Terp",
+      "content" : {
+        "rendered" : "<p>You&#8217;re fine. Second AF will be 12/26/26, so you have time in January 2027 to get the value of credits and then cancel and get AF refunded.</p>\n"
+      },
+      "date_gmt" : "2025-12-29T18:44:35",
+      "id" : 2218116,
+      "parent" : 2217665
+    },
+    {
+      "author_name" : "Raymond 🔗",
+      "content" : {
+        "rendered" : "<p>Did the $300 hotel credit appear for 2026? I booked at the last minute, and I’m not sure whether it used my 2026 credit instead of 2025.</p>\n"
+      },
+      "date_gmt" : "2026-01-02T00:30:54",
+      "id" : 2219898,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Silverwish",
+      "content" : {
+        "rendered" : "<p>You have to book through Citi Travel, and then the $300 credit appears in your final price before you pay.</p>\n"
+      },
+      "date_gmt" : "2026-01-02T19:07:14",
+      "id" : 2220365,
+      "parent" : 2219898
+    },
+    {
+      "author_name" : "Rob",
+      "content" : {
+        "rendered" : "<p>Does having a regular Stratta effect eligibility for the Elite?</p>\n"
+      },
+      "date_gmt" : "2026-01-03T05:12:50",
+      "id" : 2220818,
+      "parent" : 0
+    }
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "214",
+    "x-wp-totalpages" : "3"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/comments?post=241605&per_page=100&page=3&order=asc&orderby=date_gmt&_fields=id,parent,author_name,date_gmt,content"
+}

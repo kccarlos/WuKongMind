@@ -1,0 +1,15 @@
+{
+  "body" : {
+    "id" : 241171,
+    "link" : "https://www.doctorofcredit.com/rumor-citi-strata-elite-details/",
+    "modified_gmt" : "2025-07-27T14:57:05",
+    "title" : {
+      "rendered" : "[Rumor] Citi Strata Elite Details (Full Terms Leaked)"
+    }
+  },
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/posts/241171?_fields=id,title,link,modified_gmt"
+}

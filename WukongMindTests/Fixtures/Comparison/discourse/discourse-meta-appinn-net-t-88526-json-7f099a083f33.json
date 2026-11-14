@@ -1,0 +1,76 @@
+{
+  "body" : {
+    "details" : {
+      "created_by" : {
+        "username" : "adobepdf"
+      }
+    },
+    "fancy_title" : "有没有软件或工具可以替代群晖的drive同步功能？",
+    "highest_post_number" : 5,
+    "id" : 88526,
+    "post_stream" : {
+      "posts" : [
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 333585,
+          "post_number" : 1,
+          "username" : "adobepdf"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 333590,
+          "post_number" : 2,
+          "username" : "Xenon"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 333608,
+          "post_number" : 3,
+          "username" : "jxcangel"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 333632,
+          "post_number" : 4,
+          "username" : "Frank9"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 333634,
+          "post_number" : 5,
+          "username" : "Niceb"
+        }
+      ],
+      "stream" : [
+        333585,
+        333590,
+        333608,
+        333632,
+        333634
+      ]
+    },
+    "posts_count" : 5,
+    "slug" : "topic",
+    "title" : "有没有软件或工具可以替代群晖的drive同步功能？"
+  },
+  "headers" : {
+    "content-type" : "application/json; charset=utf-8"
+  },
+  "status" : 200,
+  "url" : "https://meta.appinn.net/t/88526.json"
+}

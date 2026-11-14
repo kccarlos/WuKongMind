@@ -1,0 +1,31 @@
+{
+  "body" : {
+    "posts" : [
+      {
+        "blurb" : "本帖为wiki帖，任何注册用户都可以公共编辑 【概念定义】 推送：主动发送文本，移动端不需打开客户端就能收到消息（iOS受限于权限需要手动复制） 同步：无需主动发送文本，Android常驻后台会增加电量消耗，iOS必须打开App才能复制 获取：需要主动发送文本，且不支持后台推送 1. 剪贴板推送工具 https://github.com/Finb/Bark Bark 01:36PM - 19 February 2019 https://www.appinn.com/bark-for-iphone/ 小众软件 – 19 Feb 19 https://www.appinn.com/bark-...",
+        "id" : 54229,
+        "post_number" : 1,
+        "topic_id" : 18527,
+        "username" : "feeshy"
+      }
+    ],
+    "topics" : [
+      {
+        "bumped_at" : "2026-11-14T12:11:10.476Z",
+        "fancy_title" : "全平台剪贴板推送与同步方案合集",
+        "has_accepted_answer" : false,
+        "id" : 18527,
+        "last_posted_at" : "2024-10-06T10:55:24.460Z",
+        "pinned" : false,
+        "posts_count" : 40,
+        "slug" : "topic",
+        "title" : "全平台剪贴板推送与同步方案合集"
+      }
+    ]
+  },
+  "headers" : {
+    "content-type" : "application/json; charset=utf-8"
+  },
+  "status" : 200,
+  "url" : "https://meta.appinn.net/search.json?q=%E5%BF%AB%E8%B4%B4%20OR%20CrossPaste%20OR%20KDE%20Connect%20%E5%89%AA%E8%B4%B4%E6%9D%BF%E5%90%8C%E6%AD%A5"
+}

@@ -1,0 +1,12 @@
+{
+  "body" : [
+
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "0",
+    "x-wp-totalpages" : "0"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/posts?search=biggest%20sign-up%20bonus%20credit%20card%202027&per_page=20&page=1&_fields=id,title,link,date_gmt,excerpt,author,_embedded,_links&_embed=author"
+}

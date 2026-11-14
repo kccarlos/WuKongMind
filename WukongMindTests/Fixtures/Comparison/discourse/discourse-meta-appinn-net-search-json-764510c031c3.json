@@ -1,0 +1,49 @@
+{
+  "body" : {
+    "posts" : [
+      {
+        "blurb" : "对的 看过这篇，不过一直没下手去折腾 06:51PM - 18 April 2023 https://post.smzdm.com/p/a60geml0/ post.smzdm.com – 18 Apr 23 https://post.smzdm.com/p/a60geml0/ 解决群晖File Station文件列表中文拼音排序问题_NAS存储_什么值得买 方法来自：https://blog.icedream.xyz/2020/01/01/破解群晖file-station中文未按拼音排序问题/本文只分享",
+        "id" : 212732,
+        "post_number" : 5,
+        "topic_id" : 58281,
+        "username" : "LookLookLook"
+      },
+      {
+        "blurb" : "本来想着换新电脑以后把旧电脑改成nas或者all in one，但是今年太魔幻，显卡显卡买不起，硬盘硬盘。。。也是现在才跌下来。虽然这个计划一直被鸽着，不过我还是经常在折腾linux、nas相关的东西。于是，最近刚好就在折腾raid阵列，但是发现了很蛋疼的问题。。。 家用设备，一般来说4盘位算是比较适中了吧？那么在4盘位情况下，raid0太疯，而raid1 6 10都只能用一半空间。相比之下raid5 允许坏一块盘，而且也只浪费一块盘的空间，似乎性价比很高，我还网上搜了一下，发现组raid5的教程满天飞，但是修复raid5的教程。。。。少的可怜 如果raid5真的崩了，又要怎么修复呢…我...",
+        "id" : 79625,
+        "post_number" : 1,
+        "topic_id" : 25658,
+        "username" : "tthy"
+      }
+    ],
+    "topics" : [
+      {
+        "bumped_at" : "2024-07-03T03:39:38.775Z",
+        "fancy_title" : "群晖上线新的 NAS 性能对比页面",
+        "has_accepted_answer" : false,
+        "id" : 58281,
+        "last_posted_at" : "2024-07-03T03:39:38.775Z",
+        "pinned" : false,
+        "posts_count" : 7,
+        "slug" : "topic",
+        "title" : "群晖上线新的 NAS 性能对比页面"
+      },
+      {
+        "bumped_at" : "2021-09-05T02:11:15.414Z",
+        "fancy_title" : "Linux下 raid5 怎么修复？？？有没有靠谱的工具？？",
+        "has_accepted_answer" : false,
+        "id" : 25658,
+        "last_posted_at" : "2021-09-05T02:11:15.414Z",
+        "pinned" : false,
+        "posts_count" : 2,
+        "slug" : "topic",
+        "title" : "Linux下 raid5 怎么修复？？？有没有靠谱的工具？？"
+      }
+    ]
+  },
+  "headers" : {
+    "content-type" : "application/json; charset=utf-8"
+  },
+  "status" : 200,
+  "url" : "https://meta.appinn.net/search.json?q=NAS%20%E7%BE%A4%E6%99%96%20%E5%80%BC%E5%BE%97%E4%B9%B0"
+}

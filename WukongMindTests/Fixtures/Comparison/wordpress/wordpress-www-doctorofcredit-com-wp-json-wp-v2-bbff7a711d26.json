@@ -1,0 +1,911 @@
+{
+  "body" : [
+    {
+      "author_name" : "NM",
+      "content" : {
+        "rendered" : "<p>Thanks, great article with a helpful round-up.  Just a small clarification:  the Citi Prestige has a $250 airline credit, not a $300 travel credit.</p>\n"
+      },
+      "date_gmt" : "2016-11-30T14:15:34",
+      "id" : 321554,
+      "parent" : 0
+    },
+    {
+      "author_name" : "cas187",
+      "content" : {
+        "rendered" : "<p>nice job! I&#8217;ve been hopeful that you would compile an aggregate list of CCs like this because I think this site does a better job of giving an honest and succinct viewpoint then your blog competitors</p>\n"
+      },
+      "date_gmt" : "2016-11-30T14:25:00",
+      "id" : 321556,
+      "parent" : 0
+    },
+    {
+      "author_name" : "MJG",
+      "content" : {
+        "rendered" : "<p>No mention of Starwood and Marriott cards that are now eligible to be combined?Some really sweet possibilities there.</p>\n"
+      },
+      "date_gmt" : "2016-11-30T14:46:00",
+      "id" : 321562,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>SPG is under YMMV, I guess the 80k Marriott offer is OK but nothing that remarkable IMO.</p>\n"
+      },
+      "date_gmt" : "2016-11-30T14:48:21",
+      "id" : 321563,
+      "parent" : 321562
+    },
+    {
+      "author_name" : "ChurningForDays",
+      "content" : {
+        "rendered" : "<p>I&#8217;m not sure I agree with your take on Sky Miles. Granted, they&#8217;re clearly the least valuable of the legacies, but Pay With Miles provides a floor that gives a minimum value of $500/$700+ on some of those Delta cards. The increased offers going on make them must-looks if you ask me.</p>\n<p>A lot of people, myself included, soured on Delta with their unannounced devaluations and generally shady practices when it comes to their frequent flier program. That being said, Delta generally gets good reviews for their service and they have a ton of non-stops from ATL, CVG, DTW, LAX, MSP, JFK, LGA, and SLC.</p>\n<p>In my opinion the Delta Gold Personal card should not be applied for unless you are targeted for the 75k offer. However, the Delta Platinum Personal probably deserves a spot above the IHG card on your list and I think both versions of the Business card deserve spots at the bottom of your list (below SWRR).</p>\n"
+      },
+      "date_gmt" : "2016-11-30T14:54:18",
+      "id" : 321564,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Kelly",
+      "content" : {
+        "rendered" : "<p>I thought on the Amex Business Plat the total spend was $15k in total, not 10k? Although it would be great if it were! Thanks for compiling this list!</p>\n"
+      },
+      "date_gmt" : "2016-11-30T14:59:20",
+      "id" : 321565,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Zorba",
+      "content" : {
+        "rendered" : "<p>Looks good! Pretty sure the Amex Platinum Business is $15,000 total. $5,000 first 50k points, $10,000 for second 50k set.</p>\n"
+      },
+      "date_gmt" : "2016-11-30T14:59:35",
+      "id" : 321566,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>My thinking with the current skymiles offers is that they will increase in the short term (as evidenced by the near constant 50k/70k offers) and the fact that there is no real need to hold these miles. If you have short term plans for Delta miles it can make sense, but I expect increase offers for both cards in the short term and also devaluation of Delta miles in the short-medium term. Annual fee on the Platinum card doesn&#8217;t help it&#8217;s cause either, maybe offset by the MQM for some people? </p>\n<p>Again, happy to argue these points and update list if I am in the minority/wrong.</p>\n"
+      },
+      "date_gmt" : "2016-11-30T15:00:37",
+      "id" : 321567,
+      "parent" : 321564
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Fixed this!</p>\n"
+      },
+      "date_gmt" : "2016-11-30T15:02:48",
+      "id" : 321570,
+      "parent" : 321566
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Haha, misread this!</p>\n"
+      },
+      "date_gmt" : "2016-11-30T15:02:58",
+      "id" : 321571,
+      "parent" : 321565
+    },
+    {
+      "author_name" : "ChurningForDays",
+      "content" : {
+        "rendered" : "<p>I guess the fear of increased offers is somewhat fair, but do you really see these cards hitting a six figure sign up bonus? That seems like the next step for Amex (100k DL Plat) to take with these if they really want to make a splash and drive sign ups, but I just don&#8217;t see them parting with such a huge crop of miles. My understanding is that the Delta card portfolio is relatively successful and the addition of card spend to waive the MQD requirement has probably helped them stave off deserters.</p>\n<p>In summation, I personally don&#8217;t see how the Delta Personal Platinum (70k miles/effective $95 fee first year with statement credit) can be left off your list of best personal sign up bonuses when the US Bank Amex is on there.</p>\n"
+      },
+      "date_gmt" : "2016-11-30T15:17:57",
+      "id" : 321578,
+      "parent" : 321567
+    },
+    {
+      "author_name" : "Jake P",
+      "content" : {
+        "rendered" : "<p>CFU higher than CSR. Wowza</p>\n"
+      },
+      "date_gmt" : "2016-11-30T15:32:34",
+      "id" : 321582,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Double bonus and not a good time for CSR, you disagree?</p>\n"
+      },
+      "date_gmt" : "2016-11-30T15:36:10",
+      "id" : 321583,
+      "parent" : 321582
+    },
+    {
+      "author_name" : "Eric",
+      "content" : {
+        "rendered" : "<p>Under &#8220;Personal Cards&#8221; I think you meant to write &#8220;best to worst&#8221; instead of &#8220;best to best&#8221;.</p>\n"
+      },
+      "date_gmt" : "2016-11-30T15:41:26",
+      "id" : 321586,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>No, I meant best to best haha. All of these offers are good!</p>\n"
+      },
+      "date_gmt" : "2016-11-30T15:45:32",
+      "id" : 321589,
+      "parent" : 321586
+    },
+    {
+      "author_name" : "Dan",
+      "content" : {
+        "rendered" : "<p>I never saw the 100k/125k AmEx Hilton links. Do you have those?</p>\n"
+      },
+      "date_gmt" : "2016-11-30T15:48:26",
+      "id" : 321592,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Laura",
+      "content" : {
+        "rendered" : "<p>GASP! This improves my life greatly. TY!!!!</p>\n"
+      },
+      "date_gmt" : "2016-11-30T15:52:53",
+      "id" : 321595,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>They aren&#8217;t available, were leaked for a few hrs and then died.</p>\n"
+      },
+      "date_gmt" : "2016-11-30T15:56:01",
+      "id" : 321596,
+      "parent" : 321592
+    },
+    {
+      "author_name" : "Jason",
+      "content" : {
+        "rendered" : "<p>Merrill Lynch MERRILL+ Visa</p>\n<p>Dad&#8217;s application submitted about an hour ago and received a call from their consideration line 866-224-7803, was approved instantly over the phone. 5K credit line. Like mine, he has Experian frozen and asked them to pull from Trans Union instead, 745 on trans Union via Credit Karma. It appears that 5K is the lowest credit line but it is totally fine because only the sign up bonus matters. </p>\n<p>It looks to me that Merril Lynch is very aggressive on getting ppl using their credit card, therefore approving without even mentioning on short credit history or number of hard inquiries in report. Funny thing is that my Dad previously did not even get approved for BofA&#8217;s cash reward credit card.</p>\n"
+      },
+      "date_gmt" : "2016-11-30T15:59:58",
+      "id" : 321597,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Jason",
+      "content" : {
+        "rendered" : "<p>typo: reconsideration line</p>\n"
+      },
+      "date_gmt" : "2016-11-30T16:00:57",
+      "id" : 321598,
+      "parent" : 321597
+    },
+    {
+      "author_name" : "Mark Ostermann",
+      "content" : {
+        "rendered" : "<p>No love for Spark Cash?  $500 cash after $4500 in spend&#8230;.better spend then the amex $500 bonus plus 2% on everything.</p>\n"
+      },
+      "date_gmt" : "2016-11-30T16:01:07",
+      "id" : 321599,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Mark Ostermann",
+      "content" : {
+        "rendered" : "<p>Pays out immediately too &#8211; before the statement even closes!</p>\n"
+      },
+      "date_gmt" : "2016-11-30T16:02:59",
+      "id" : 321601,
+      "parent" : 321599
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>They pull all three bureaus, I was considering all them as inquiries are combined AFAIK.</p>\n"
+      },
+      "date_gmt" : "2016-11-30T16:08:25",
+      "id" : 321605,
+      "parent" : 321599
+    },
+    {
+      "author_name" : "Jeff H",
+      "content" : {
+        "rendered" : "<p>I am leaning more toward the CSP if I can get a Chase in branch preapproval vs CSR.  Adjusting the reward vs AF and not having to game the $300.00 travel credits when I will not be traveling just makes more sense to me.  7/12 Currently.  One new business card on top of that which has not had time to hit the credit bureaus if it does.</p>\n<p>The problem is I do not see enough sizzle in anything out there to drool about except the CSP or CSR.  At the rate I am going, I may be a one year wonder as very little pumps my juices for 2017 in terms of new credit cards or bank accounts.</p>\n"
+      },
+      "date_gmt" : "2016-11-30T17:10:07",
+      "id" : 321615,
+      "parent" : 0
+    },
+    {
+      "author_name" : "mmgfarb",
+      "content" : {
+        "rendered" : "<p>You should still be able to get matched to the 70k in branch offer for the Ink Plus.</p>\n"
+      },
+      "date_gmt" : "2016-11-30T21:40:39",
+      "id" : 321710,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Jan B",
+      "content" : {
+        "rendered" : "<p>WC: I think you did a great job breaking this down. Thanks! 🙂</p>\n"
+      },
+      "date_gmt" : "2016-12-01T01:37:27",
+      "id" : 321764,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Abey",
+      "content" : {
+        "rendered" : "<p>There are two cards that have very valuable signup bonuses but are very underrated.<br />\nChase Hyatt. Sign up bonus is 2 free nights any Hyatt worlwide.<br />\nAnd Chase Fairmont. Two free nights worldwide.<br />\nMe and my GF used the Hyatt sign up bonuses for 4 free Hyatt nights in Paris and its around $1,000 per night<br />\nAnd we used the Faimont for 4 free Fairmont night in Maui Hawaii around $700 per night<br />\nAnd we also got suite upgrades and dining certificates.<br />\nNow these free nights are more worth then<br />\n50K AA points 50K thank you points and so on.</p>\n"
+      },
+      "date_gmt" : "2016-12-01T02:19:12",
+      "id" : 321776,
+      "parent" : 0
+    },
+    {
+      "author_name" : "C",
+      "content" : {
+        "rendered" : "<p>Thanks for putting this together! I was hoping this type of list would come out soon- I am a big fan of your bank account bonus page!</p>\n"
+      },
+      "date_gmt" : "2016-12-01T02:25:47",
+      "id" : 321778,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Abey",
+      "content" : {
+        "rendered" : "<p>Also the Barclay Wyndham 30k points<br />\nIts basicaly two free wyndham nights<br />\nSince its 15K points per night for any hotel<br />\nWe combined two Wyndham cards<br />\nFor 4 free nights in Amsterdam<br />\nIt was one of the best weekends of our life&#8230;</p>\n"
+      },
+      "date_gmt" : "2016-12-01T02:36:35",
+      "id" : 321780,
+      "parent" : 0
+    },
+    {
+      "author_name" : "henry",
+      "content" : {
+        "rendered" : "<p>what if you don&#8217;t travel or don&#8217;t care for fancy smancy hotels?</p>\n"
+      },
+      "date_gmt" : "2016-12-01T02:47:57",
+      "id" : 321783,
+      "parent" : 321776
+    },
+    {
+      "author_name" : "Abey",
+      "content" : {
+        "rendered" : "<p>Here are a few more cards you havent mentioned:<br />\nThe Ritz Carlton, 3 free nights.<br />\nBritish Airways 50K points.<br />\nJet Blue 30K points.<br />\nLufthansa Miles&amp;More 50K points.<br />\nTD Aeroplan 25K points.<br />\nHawaiian Airlines 50K points (Targeted).<br />\nUs Bank FlexPerx around 40K points<br />\nWith the USA Olympic promotion.<br />\nClub Carlson 85K points<br />\n(We combined two Club Carlsons for 3 nights in Rome).<br />\nAlso Citi AA Business 50K after 3K spend.</p>\n"
+      },
+      "date_gmt" : "2016-12-01T02:53:45",
+      "id" : 321785,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Abey",
+      "content" : {
+        "rendered" : "<p>The Capital One Spark<br />\nspend $4,500 for $500 back ahould definately be added<br />\nEapecially if you add Amex simply cash<br />\nWhich requires 15K spend for $500<br />\nIf you spend 15K with the Spark you&#8217;d get $800<br />\nYes Capital One pulls all 3 credit bureaus but its still a top sign up bonus.<br />\nHere is an example.<br />\nIf someone tells you that he can&#8217;t sign up for the Simply Cash because swiping 15K is a lot even though it gives you 12 months.<br />\nBut he can sign up for the Spark because he can afford 1 new inquiry on Trans Union Experian and Equifax.<br />\nNow to that person (who is me) which card has a better sign up bonus??<br />\nAnd there are a lot of Johns and Jacks in the same boat 🙂<br />\nAnd dont forget Amex you cant really pay with cash.<br />\nWhile Capital one you can just walk into a branch.<br />\nIt can make a big difference to some people.</p>\n"
+      },
+      "date_gmt" : "2016-12-01T03:15:27",
+      "id" : 321791,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Matt P",
+      "content" : {
+        "rendered" : "<p>And most likely to deny you anyway.</p>\n"
+      },
+      "date_gmt" : "2016-12-01T06:13:22",
+      "id" : 321819,
+      "parent" : 321605
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>You sure? Card isn&#8217;t available officially anymore in branch so not sure they would still match.</p>\n"
+      },
+      "date_gmt" : "2016-12-01T07:19:42",
+      "id" : 321834,
+      "parent" : 321710
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Thanks, Jan!</p>\n"
+      },
+      "date_gmt" : "2016-12-01T07:19:54",
+      "id" : 321836,
+      "parent" : 321764
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Was recently 45k points, so 30k isn&#8217;t really a great deal.</p>\n"
+      },
+      "date_gmt" : "2016-12-01T07:20:22",
+      "id" : 321837,
+      "parent" : 321780
+    },
+    {
+      "author_name" : "Matt Katakis",
+      "content" : {
+        "rendered" : "<p>And this is why Doc has the best blog of all.  Thanks for all you do and for keeping things real and unbiased.  It does not go noticed.</p>\n"
+      },
+      "date_gmt" : "2016-12-01T15:48:08",
+      "id" : 321940,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Josh Fletcher",
+      "content" : {
+        "rendered" : "<p>For the Citi AA Platinum, if you are a current cardholder are you not eligible for the bonus? You mention 24 months for open and close. It&#8217;s been 4 years for me (or whenever that 100k bonus was) and i&#8217;ve only kept it open because they waive fee every year so I wanted to keep a longer credit history open. Thoughts?</p>\n"
+      },
+      "date_gmt" : "2016-12-01T21:45:00",
+      "id" : 322087,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Justin",
+      "content" : {
+        "rendered" : "<p>Applied for Merril Lynch card Thursday. Approved Friday. How long do I have to apply for another Bank of America card on the same credit pull?</p>\n"
+      },
+      "date_gmt" : "2016-12-03T20:49:22",
+      "id" : 322742,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Nick",
+      "content" : {
+        "rendered" : "<p>Needs to be same day.</p>\n"
+      },
+      "date_gmt" : "2016-12-04T08:13:47",
+      "id" : 322846,
+      "parent" : 322742
+    },
+    {
+      "author_name" : "NewYork12126",
+      "content" : {
+        "rendered" : "<p>I agree with the original commenter that both of these cards are worth a mention. With a bit of effort and foresight, can each offer some real outsized value. Especially the Fairmont card (and it&#8217;s not 5/24). However, I do think that the Hyatt card gets a bit of undeserved attention from other bloggers, given the annual fee and the limitation of the free night to only a cat. 1 &#8211; 4. As a previous holder, I struggled to get good value out of the card beyond the two free nights.</p>\n"
+      },
+      "date_gmt" : "2016-12-04T13:21:39",
+      "id" : 322901,
+      "parent" : 321783
+    },
+    {
+      "author_name" : "NewYork12126",
+      "content" : {
+        "rendered" : "<p>Awesome post and this is where I&#8217;ll be both referring back to and recommending others. I find the consideration of historical bonuses and a realistic valuation of non-cash value perks to be particularly refreshing. </p>\n<p>This blog is quickly becoming the only place I visit on a daily basis and is the only miles/points site to which I subscribe. Awesome work DoC!</p>\n"
+      },
+      "date_gmt" : "2016-12-04T13:25:22",
+      "id" : 322902,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Thanks for the kind words, NY12126!</p>\n"
+      },
+      "date_gmt" : "2016-12-04T20:14:22",
+      "id" : 323020,
+      "parent" : 322902
+    },
+    {
+      "author_name" : "Mo",
+      "content" : {
+        "rendered" : "<p>Hey DoC,<br />\nYou would obviously know a lot more about this than I would. But, it doesn&#8217;t feel like Chase is gonna get rid of the 100k Reserve sign-on bonus any time soon. Why, the whole card intro was based on that bonus. It has also given them a tremendous amount of self-promoting exposure, and puts them on a similar pedestal to Amex. So while Amex is busy fighting churners over leaked links, Chase is laughing all the way to the bank (pun) for being the only one to have a running public 100K personal.</p>\n"
+      },
+      "date_gmt" : "2016-12-04T20:48:16",
+      "id" : 323031,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>I think it&#8217;ll disappear at some point, Chase will likely see what American Express does in early 2017 with further improvements to their Platinum product.</p>\n"
+      },
+      "date_gmt" : "2016-12-04T21:26:45",
+      "id" : 323044,
+      "parent" : 323031
+    },
+    {
+      "author_name" : "Imapepper",
+      "content" : {
+        "rendered" : "<p>But do any of these beat this one:</p>\n<p><a href=\"https://www.doctorofcredit.com/2-liter-bottle-as-a-signup-bonus-anyone/\" rel=\"ugc\">https://www.doctorofcredit.com/2-liter-bottle-as-a-signup-bonus-anyone/</a></p>\n<p>I mean really?</p>\n"
+      },
+      "date_gmt" : "2016-12-04T22:57:17",
+      "id" : 323075,
+      "parent" : 0
+    },
+    {
+      "author_name" : "NinjaX",
+      "content" : {
+        "rendered" : "<p>youre totally right. 100% agree with you. not sure how Doc missed that. he must be busy during the holidays. hes usually pretty good about being on point with deals so kinda disappointed he missed such an obvious one. good that you pointed it out.</p>\n"
+      },
+      "date_gmt" : "2016-12-05T00:17:47",
+      "id" : 323116,
+      "parent" : 323075
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Haha</p>\n"
+      },
+      "date_gmt" : "2016-12-05T00:22:39",
+      "id" : 323118,
+      "parent" : 323116
+    },
+    {
+      "author_name" : "JB",
+      "content" : {
+        "rendered" : "<p>AMEX Everyday Preferred 30k offer is gone.  Been trying for 1.5 weeks with various browsers etc. and no luck</p>\n"
+      },
+      "date_gmt" : "2016-12-14T15:36:40",
+      "id" : 327033,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Tom",
+      "content" : {
+        "rendered" : "<p>RE: Avianca, here is a blog report of success with the promo code</p>\n<p><a href=\"https://travelwithgrant.boardingarea.com/2016/12/17/psa-call-to-activate-avianca-vuela-credit-card-confirm-60k-lifemiles-sign-up-bonus/#_ga=1.232907166.140329231.1479222503\" rel=\"nofollow ugc\">https://travelwithgrant.boardingarea.com/2016/12/17/psa-call-to-activate-avianca-vuela-credit-card-confirm-60k-lifemiles-sign-up-bonus/#_ga=1.232907166.140329231.1479222503</a></p>\n"
+      },
+      "date_gmt" : "2016-12-18T02:26:03",
+      "id" : 328457,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Thanks, got this is in our next recap.</p>\n"
+      },
+      "date_gmt" : "2016-12-18T03:04:36",
+      "id" : 328479,
+      "parent" : 328457
+    },
+    {
+      "author_name" : "sam",
+      "content" : {
+        "rendered" : "<p>where is AmEx Premier <a href=\"https://www.uscreditcardguide.com/amex-premier-rewards-gold-card/\" rel=\"nofollow ugc\">https://www.uscreditcardguide.com/amex-premier-rewards-gold-card/</a></p>\n"
+      },
+      "date_gmt" : "2016-12-25T03:03:26",
+      "id" : 330972,
+      "parent" : 0
+    },
+    {
+      "author_name" : "sam",
+      "content" : {
+        "rendered" : "<p>and this one Platinum <a href=\"https://www.schwab.com/public/schwab/investing/accounts_products/credit_cards\" rel=\"nofollow ugc\">https://www.schwab.com/public/schwab/investing/accounts_products/credit_cards</a></p>\n"
+      },
+      "date_gmt" : "2016-12-25T03:05:53",
+      "id" : 330973,
+      "parent" : 330972
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>I don&#8217;t think it&#8217;s one of the best bonuses currently available.</p>\n"
+      },
+      "date_gmt" : "2016-12-27T01:17:15",
+      "id" : 331331,
+      "parent" : 330972
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Same as above, not one of the best offers.</p>\n"
+      },
+      "date_gmt" : "2016-12-27T01:17:29",
+      "id" : 331333,
+      "parent" : 330973
+    },
+    {
+      "author_name" : "sam",
+      "content" : {
+        "rendered" : "<p>How this Citi Prestige is the best offer then/) &#8220;Earn 50,000 bonus points after making $5,000 in purchases within the first 3 months of account opening. Annual Fee $450 &#8221; </p>\n<p>when</p>\n<p>American Express Premier Rewards Gold Card  &#8220;50k offer: Earn 50,000 Membership Rewards (MR) points after spending $2000 in first 3 months.&#8221;</p>\n"
+      },
+      "date_gmt" : "2016-12-31T06:10:50",
+      "id" : 332629,
+      "parent" : 331333
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Because the Citi Prestige comes with a bunch of other benefits and 50k/60k is the highest it goes? Whereas the PRG has had a higher bonus in the past.</p>\n"
+      },
+      "date_gmt" : "2017-01-01T06:42:48",
+      "id" : 332814,
+      "parent" : 332629
+    },
+    {
+      "author_name" : "Paul",
+      "content" : {
+        "rendered" : "<p>This is what keeps me away from Capital One.</p>\n"
+      },
+      "date_gmt" : "2017-01-16T21:44:31",
+      "id" : 339697,
+      "parent" : 321605
+    },
+    {
+      "author_name" : "Paul",
+      "content" : {
+        "rendered" : "<p>Agreed. Good stuff DOC. Thanks for writing this up.</p>\n"
+      },
+      "date_gmt" : "2017-01-16T21:46:08",
+      "id" : 339699,
+      "parent" : 321940
+    },
+    {
+      "author_name" : "ann",
+      "content" : {
+        "rendered" : "<p>has anyone run into the banks asking for the bonus back if you cancel the card soon after you get the bonus?</p>\n"
+      },
+      "date_gmt" : "2017-01-23T20:37:39",
+      "id" : 342860,
+      "parent" : 0
+    },
+    {
+      "author_name" : "alex",
+      "content" : {
+        "rendered" : "<p>Is there an updated list?</p>\n"
+      },
+      "date_gmt" : "2017-01-25T19:16:13",
+      "id" : 343831,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Will be updating shortly.</p>\n"
+      },
+      "date_gmt" : "2017-01-31T02:34:11",
+      "id" : 346339,
+      "parent" : 343831
+    },
+    {
+      "author_name" : "Brendan",
+      "content" : {
+        "rendered" : "<p>Would love your thoughts on an update!</p>\n"
+      },
+      "date_gmt" : "2017-02-07T04:13:02",
+      "id" : 349531,
+      "parent" : 346339
+    },
+    {
+      "author_name" : "bluecat",
+      "content" : {
+        "rendered" : "<p>IF and WHEN you do update this list, please change the date at the header of the post so that your readers know it&#8217;s current.</p>\n"
+      },
+      "date_gmt" : "2017-02-09T16:29:50",
+      "id" : 350775,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Of course 🙂</p>\n"
+      },
+      "date_gmt" : "2017-02-10T00:42:17",
+      "id" : 351025,
+      "parent" : 350775
+    },
+    {
+      "author_name" : "Corridor",
+      "content" : {
+        "rendered" : "<p>What about the Amex Ameriprise Platinum?  You get all the perks of the platinum but no annual fee for the first year.  You don&#8217;t get a bonus but not a bad deal.</p>\n"
+      },
+      "date_gmt" : "2017-02-16T00:35:40",
+      "id" : 354089,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Card sometimes comes with a bonus, so better to wait for that.</p>\n"
+      },
+      "date_gmt" : "2017-02-16T00:37:01",
+      "id" : 354090,
+      "parent" : 354089
+    },
+    {
+      "author_name" : "Alex",
+      "content" : {
+        "rendered" : "<p>Thanks for the update. </p>\n<p>How about the citi Hilton 75k offer?</p>\n"
+      },
+      "date_gmt" : "2017-02-17T05:17:17",
+      "id" : 355455,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Sue",
+      "content" : {
+        "rendered" : "<p>I thought the Fairmont wasn&#8217;t available anymore.</p>\n"
+      },
+      "date_gmt" : "2017-02-17T11:51:38",
+      "id" : 355568,
+      "parent" : 321776
+    },
+    {
+      "author_name" : "Jake N",
+      "content" : {
+        "rendered" : "<p>What about the Ritz card? Is the 3 nights link still active? Good pairing with another non-5/24 card.</p>\n"
+      },
+      "date_gmt" : "2017-02-17T13:01:59",
+      "id" : 355589,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Chris",
+      "content" : {
+        "rendered" : "<p>Ink Preferred for 80k not listed??</p>\n"
+      },
+      "date_gmt" : "2017-02-17T21:53:10",
+      "id" : 355937,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Abey",
+      "content" : {
+        "rendered" : "<p>This is a good list but how about we do a massive list with every credit card that has a signup bonus over $100 in value.<br />\n(Im running out of credit cards to sign up for).</p>\n"
+      },
+      "date_gmt" : "2017-02-17T21:58:00",
+      "id" : 355939,
+      "parent" : 0
+    },
+    {
+      "author_name" : "ag",
+      "content" : {
+        "rendered" : "<p>The Citi Hilton Reserve $100 Statement Credit has expired :/</p>\n"
+      },
+      "date_gmt" : "2017-02-17T22:10:50",
+      "id" : 355948,
+      "parent" : 0
+    },
+    {
+      "author_name" : "yu",
+      "content" : {
+        "rendered" : "<p>Why United Explorer Mileage Card is not included? Isn&#8217;t it good?</p>\n"
+      },
+      "date_gmt" : "2017-02-17T22:13:27",
+      "id" : 355949,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Elias",
+      "content" : {
+        "rendered" : "<p>Doc, how about the ritz 3 free nights with no AF after trick and $300 travel credits AKA gift cards  x 2 ? There is still a link in FT.</p>\n<p>This is IMHO the best credit card bonus right now.</p>\n"
+      },
+      "date_gmt" : "2017-02-17T23:52:23",
+      "id" : 355995,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Targeted offer of 100k coming soon.</p>\n"
+      },
+      "date_gmt" : "2017-02-18T02:12:44",
+      "id" : 356046,
+      "parent" : 355937
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Believe it&#8217;s dead no?</p>\n"
+      },
+      "date_gmt" : "2017-02-18T02:12:55",
+      "id" : 356047,
+      "parent" : 355589
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Yes, we will update that page at some stage.</p>\n"
+      },
+      "date_gmt" : "2017-02-18T02:13:12",
+      "id" : 356048,
+      "parent" : 355939
+    },
+    {
+      "author_name" : "Abey",
+      "content" : {
+        "rendered" : "<p>This is an interesting list</p>\n<p>[nerdwallet link removed]</p>\n"
+      },
+      "date_gmt" : "2017-02-18T07:19:30",
+      "id" : 356119,
+      "parent" : 356048
+    },
+    {
+      "author_name" : "James B.",
+      "content" : {
+        "rendered" : "<p>Does this Chase Card fall under the 5/24 rule?</p>\n"
+      },
+      "date_gmt" : "2017-02-19T01:16:01",
+      "id" : 356403,
+      "parent" : 355995
+    },
+    {
+      "author_name" : "James B.",
+      "content" : {
+        "rendered" : "<p>Much of the benefits like the $300 credit by purchasing gift cards is YMMV.  Also, the no AF after trick is YMMV.</p>\n<p>If all the YMMV goes through, it is a great offer.</p>\n"
+      },
+      "date_gmt" : "2017-02-19T01:19:27",
+      "id" : 356404,
+      "parent" : 0
+    },
+    {
+      "author_name" : "James B.",
+      "content" : {
+        "rendered" : "<p>Much of the benefits like the $300 credit by purchasing gift cards is YMMV. Also, the no AF after trick is YMMV.</p>\n<p>If all the YMMV goes through, it is a great offer.</p>\n"
+      },
+      "date_gmt" : "2017-02-19T01:20:23",
+      "id" : 356406,
+      "parent" : 355995
+    },
+    {
+      "author_name" : "Terri Clark",
+      "content" : {
+        "rendered" : "<p>Abey, I agree these two are worth pursuing, but I didn&#8217;t think the Fairmont was available for new signups any more?</p>\n"
+      },
+      "date_gmt" : "2017-02-19T02:44:30",
+      "id" : 356430,
+      "parent" : 321776
+    },
+    {
+      "author_name" : "Terri Clark",
+      "content" : {
+        "rendered" : "<p>Oh how the heck did I miss THAT one?!</p>\n"
+      },
+      "date_gmt" : "2017-02-19T02:51:13",
+      "id" : 356433,
+      "parent" : 323075
+    },
+    {
+      "author_name" : "Abey",
+      "content" : {
+        "rendered" : "<p>If youre like me running out of credit cards to sign up for bonus points. I found a card that is unknown to most of us and has some decent sign up value.<br />\nIts Best Western hotel card by First Bank<br />\nUp to 70,000 sign up points which can be worth 4 nights.<br />\n50,000 bonus points after you spend $1,000 within 3 months and an additional 20,000 bonus points when you spend at least $5,000 Within a year. $0 annual fee first year.<br />\n(A free night ranges from 8,000 and 36,000 points).</p>\n<p><a href=\"https://www.firstbankcard.com/bestwestern/landingpage/refresh/index-cardpage1.fhtml?sub=000\" rel=\"nofollow ugc\">https://www.firstbankcard.com/bestwestern/landingpage/refresh/index-cardpage1.fhtml?sub=000</a></p>\n"
+      },
+      "date_gmt" : "2017-02-19T08:34:56",
+      "id" : 356525,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Abey",
+      "content" : {
+        "rendered" : "<p>They also have a business card with up to 80,000 bonus points.<br />\n48,000 bonus points after $1,000 in first 3 months plus 32,000 bonus points when you spend at least $25,000 within first year.</p>\n"
+      },
+      "date_gmt" : "2017-02-19T08:40:43",
+      "id" : 356528,
+      "parent" : 356525
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>I&#8217;ve updatd the post to include my reasons for excluding this card.</p>\n"
+      },
+      "date_gmt" : "2017-02-19T09:46:45",
+      "id" : 356558,
+      "parent" : 355455
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Nerdwallet sucks, they just promote offers that pay them.</p>\n"
+      },
+      "date_gmt" : "2017-02-19T09:48:44",
+      "id" : 356559,
+      "parent" : 356119
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Damn, updated.</p>\n"
+      },
+      "date_gmt" : "2017-02-19T09:48:58",
+      "id" : 356560,
+      "parent" : 355948
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Application link has expired?</p>\n"
+      },
+      "date_gmt" : "2017-02-19T09:49:17",
+      "id" : 356561,
+      "parent" : 355995
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Not unless you&#8217;re targeted for the 75k + $50 offer</p>\n"
+      },
+      "date_gmt" : "2017-02-19T09:49:36",
+      "id" : 356562,
+      "parent" : 355949
+    },
+    {
+      "author_name" : "Boston Bobby",
+      "content" : {
+        "rendered" : "<p>Newbie here so i apologize in advance if this is a dumb question, but I&#8217;ve been seeing a lot of ppl saying they&#8217;ve frozen their accounts.  I assume it&#8217;s because that score is lower than the others?  So i guess I have 3 questions: Does this strategy work with all banks?  What exactly do you give for the reason it&#8217;s frozen when you talk to the recon line?  Is it only Experian this strategy works for or can i use it for my lowest score which is equifax?  Thanks for any insight&#8230;</p>\n"
+      },
+      "date_gmt" : "2017-02-20T06:07:08",
+      "id" : 356956,
+      "parent" : 321598
+    },
+    {
+      "author_name" : "mmgfarb",
+      "content" : {
+        "rendered" : "<p>I don&#8217;t know if you want to publicize it so much but I can confirm that the link in your addendum to the post about the last 3 night Ritz link, (the one that &#8220;expired&#8221; in November 2016) does in fact have the 3 night sign up bonus attached to it.</p>\n"
+      },
+      "date_gmt" : "2017-02-20T08:58:03",
+      "id" : 356984,
+      "parent" : 356561
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Ok, I&#8217;ll add the Ritz-Carlton offer. I didn&#8217;t realize there was still a working link. After reading that post again I see there is.</p>\n"
+      },
+      "date_gmt" : "2017-02-21T01:01:31",
+      "id" : 357295,
+      "parent" : 356984
+    },
+    {
+      "author_name" : "NBG",
+      "content" : {
+        "rendered" : "<p>Today i saw pre approved offers in Amex for my wife and she has the Premier Rewards Gold card with 50K points with $1000 spend in 3 months and no AF. Looks pretty slick. Still haven&#8217;t pulled the trigger.</p>\n"
+      },
+      "date_gmt" : "2017-02-27T01:47:11",
+      "id" : 360862,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Adam D",
+      "content" : {
+        "rendered" : "<p>Difference is theres usually dozens or accomadations available in a city for all  budgets. There is not that option with airlines and if with that theory if you book a multiple stop route a day before a flight with miles one can save thousands.</p>\n"
+      },
+      "date_gmt" : "2017-03-01T10:57:52",
+      "id" : 362341,
+      "parent" : 321776
+    },
+    {
+      "author_name" : "Adam D",
+      "content" : {
+        "rendered" : "<p>they wont if you transfer to a mileage program,if it auto goes there or get a statement credit. just keep it open the 11 months or so to keep you lifetime of the card the highest it can be with no annual fee. as long as u meet the spend youre good, just watch out for refunds.</p>\n"
+      },
+      "date_gmt" : "2017-03-01T11:02:58",
+      "id" : 362343,
+      "parent" : 342860
+    },
+    {
+      "author_name" : "James B.",
+      "content" : {
+        "rendered" : "<p>AMEX has clawed back MRs from some customers that purchased gift cards to meet bonus spend requirements.</p>\n<p>I have not heard of any cases where banks have clawed back points because of canceling the card soon after receiving the bonus.</p>\n<p>I agree with Adam D. that it is best to try to keep the card as long as possible until the annual fee looms above the horizon.  Then you must decide on the trade-offs of keeping the card.</p>\n"
+      },
+      "date_gmt" : "2017-03-01T13:44:40",
+      "id" : 362382,
+      "parent" : 342860
+    },
+    {
+      "author_name" : "Jim",
+      "content" : {
+        "rendered" : "<p>DP: AMEX Blue Cash Preferred. Received $250 statement credit (no 10% rebate category) today via Firefox incognito/private on first try (versus $150 + 10% restaurant public offer.) Applied/approved.</p>\n"
+      },
+      "date_gmt" : "2017-03-02T02:09:01",
+      "id" : 362738,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Adam D",
+      "content" : {
+        "rendered" : "<p>Hey DoC,<br />\ndo you have any list with current credit card offers wih low bonus spend requirement?  ex; ($0-1000). Or any info on best low spend requirement cards?</p>\n"
+      },
+      "date_gmt" : "2017-03-02T10:54:24",
+      "id" : 362935,
+      "parent" : 0
+    }
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "1797",
+    "x-wp-totalpages" : "18"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/comments?post=28140&per_page=100&page=1&order=asc&orderby=date_gmt&_fields=id,parent,author_name,date_gmt,content"
+}

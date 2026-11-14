@@ -1,0 +1,31 @@
+{
+  "body" : {
+    "posts" : [
+      {
+        "blurb" : "黑群，洗白过之后就能使用推送服务，加上我有公网 IPv4，现在所有消息我都用 Synology Chat。包括龙虾我现在也是集成到 Chat上。",
+        "id" : 324226,
+        "post_number" : 32,
+        "topic_id" : 86020,
+        "username" : "Kaiyuan"
+      }
+    ],
+    "topics" : [
+      {
+        "bumped_at" : "2026-05-30T15:49:15.824Z",
+        "fancy_title" : "各位现在用什么消息推送服务？",
+        "has_accepted_answer" : true,
+        "id" : 86020,
+        "last_posted_at" : "2026-05-30T15:49:15.824Z",
+        "pinned" : false,
+        "posts_count" : 44,
+        "slug" : "topic",
+        "title" : "各位现在用什么消息推送服务？"
+      }
+    ]
+  },
+  "headers" : {
+    "content-type" : "application/json; charset=utf-8"
+  },
+  "status" : 200,
+  "url" : "https://meta.appinn.net/search.json?q=Synology%20after:2026-01-01%20status:solved"
+}

@@ -1,0 +1,14 @@
+{
+  "body" : [
+    {
+      "id" : 2445722
+    }
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "57",
+    "x-wp-totalpages" : "57"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/comments?post=268010&per_page=1&page=1&order=asc&orderby=date_gmt&_fields=id"
+}

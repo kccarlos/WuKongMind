@@ -1,0 +1,284 @@
+{
+  "body" : {
+    "hits" : [
+      {
+        "author" : "wichein",
+        "created_at" : "2026-11-14T14:57:13Z",
+        "num_comments" : 0,
+        "objectID" : "50497530",
+        "points" : 1,
+        "story_id" : 50497530,
+        "title" : "Logvinovich's IR Dichotomy in SU(N) Yang-Mills on R^4: Peano/Gribov"
+      },
+      {
+        "author" : "felixding",
+        "created_at" : "2026-11-14T14:56:10Z",
+        "num_comments" : 0,
+        "objectID" : "50497522",
+        "points" : 2,
+        "story_id" : 50497522,
+        "title" : "\"The Year of Linux\" isn't coming"
+      },
+      {
+        "author" : "load-bearing",
+        "created_at" : "2026-11-14T14:55:44Z",
+        "num_comments" : 0,
+        "objectID" : "50497519",
+        "points" : 1,
+        "story_id" : 50497519,
+        "title" : "Tokenizer Fairness in 2026"
+      },
+      {
+        "author" : "jdefr89",
+        "created_at" : "2026-11-14T14:55:16Z",
+        "num_comments" : 0,
+        "objectID" : "50497513",
+        "points" : 1,
+        "story_id" : 50497513,
+        "story_text" : "SrcWranglr my open-source, Rust-powered C&#x2F;C++ source-code exploration and security analysis toolkit. I had originally developed this in Python as a prototype for a couple years…  That’s until you Rustaceans got in my damn year…<p>If you ever used SourceTrail or Understand, this is my idea of how it should have been done. It helps visualize  complex codebases C&#x2F;C++ it combines interactive call graphs, cross-references, semantic code search, reachability analysis, and inter-procedural value tracing.<p>Security-focused features include vulnerability discovery, attack-surface analysis, automated fuzz harness generation, and integration with external static analyzers. My favorite feature is the ability to generate semgrep rules for the specific code base.<p>Powered by tree-sitter, SrcWranglr can analyze codebases without requiring a successful build or compilation database.<p>Using this tool and my AAVR (Agentic Augmented Vuln Research) methodology I found several vulnerabilities in projects I won’t name as I just disclose to maintainers, in just a couple of hours.<p><a href=\"https:&#x2F;&#x2F;github.com&#x2F;jdefrancesco&#x2F;SrcWranglr\" rel=\"nofollow\">https:&#x2F;&#x2F;github.com&#x2F;jdefrancesco&#x2F;SrcWranglr</a>",
+        "title" : "Show HN: SrcWranglr v0.13 – A C/C++ Graphical Code Explorer for Vuln. Research"
+      },
+      {
+        "author" : "jonyoder",
+        "created_at" : "2026-11-14T14:52:13Z",
+        "num_comments" : 0,
+        "objectID" : "50497489",
+        "points" : 1,
+        "story_id" : 50497489,
+        "title" : "Your app already has a voice interface. It just can't hear yet."
+      },
+      {
+        "author" : "abraham",
+        "created_at" : "2026-11-14T14:51:44Z",
+        "num_comments" : 0,
+        "objectID" : "50497483",
+        "points" : 1,
+        "story_id" : 50497483,
+        "title" : "HexOS Anywhere"
+      },
+      {
+        "author" : "Bluestein",
+        "created_at" : "2026-11-14T14:50:17Z",
+        "num_comments" : 0,
+        "objectID" : "50497470",
+        "points" : 1,
+        "story_id" : 50497470,
+        "title" : "The Challenge of Flying Below Sea Level"
+      },
+      {
+        "author" : "kirk_krauss",
+        "created_at" : "2026-11-14T14:45:08Z",
+        "num_comments" : 1,
+        "objectID" : "50497426",
+        "points" : 1,
+        "story_id" : 50497426,
+        "title" : "Wild select: intuitive queries for JSON, XML, and other hierarchical data"
+      },
+      {
+        "author" : "iloveyoutwo",
+        "created_at" : "2026-11-14T14:44:28Z",
+        "num_comments" : 0,
+        "objectID" : "50497416",
+        "points" : 2,
+        "story_id" : 50497416,
+        "title" : "Demystifying phone unlocking tools: A technical overview"
+      },
+      {
+        "author" : "reimertz",
+        "created_at" : "2026-11-14T14:42:44Z",
+        "num_comments" : 0,
+        "objectID" : "50497399",
+        "points" : 1,
+        "story_id" : 50497399,
+        "title" : "DJI Gives ROMO 2 Its Drone Offline Mode, Eight Months After the Hack"
+      },
+      {
+        "author" : "nghiatran_uit",
+        "created_at" : "2026-11-14T14:40:47Z",
+        "num_comments" : 0,
+        "objectID" : "50497380",
+        "points" : 1,
+        "story_id" : 50497380,
+        "title" : "Show HN: I made an alternative Wireshark macOS app"
+      },
+      {
+        "author" : "cargopete",
+        "created_at" : "2026-11-14T14:40:02Z",
+        "num_comments" : 0,
+        "objectID" : "50497375",
+        "points" : 1,
+        "story_id" : 50497375,
+        "title" : "Show HN: Burrmill – SQL over Parquet with exact integer arithmetic"
+      },
+      {
+        "author" : "quietfruit",
+        "created_at" : "2026-11-14T14:36:29Z",
+        "num_comments" : 0,
+        "objectID" : "50497345",
+        "points" : 1,
+        "story_id" : 50497345,
+        "title" : "How to Keep an App Out of Siri AI on iPhone"
+      },
+      {
+        "author" : "zenincognito",
+        "created_at" : "2026-11-14T14:35:48Z",
+        "num_comments" : 0,
+        "objectID" : "50497340",
+        "points" : 1,
+        "story_id" : 50497340,
+        "title" : "Shadow DOM (2014)"
+      },
+      {
+        "author" : "Brajeshwar",
+        "created_at" : "2026-11-14T14:34:43Z",
+        "num_comments" : 0,
+        "objectID" : "50497330",
+        "points" : 2,
+        "story_id" : 50497330,
+        "title" : "Amazon has a plan to index the online shopping data"
+      },
+      {
+        "author" : "stevenmays",
+        "created_at" : "2026-11-14T14:34:08Z",
+        "num_comments" : 0,
+        "objectID" : "50497322",
+        "points" : 2,
+        "story_id" : 50497322,
+        "title" : "Building a human-in-the-loop Slackbot agent"
+      },
+      {
+        "author" : "altilunium",
+        "created_at" : "2026-11-14T14:24:44Z",
+        "num_comments" : 0,
+        "objectID" : "50497252",
+        "points" : 1,
+        "story_id" : 50497252,
+        "title" : "InfinityFree's \"?I=1\""
+      },
+      {
+        "author" : "icc97",
+        "created_at" : "2026-11-14T14:23:53Z",
+        "num_comments" : 0,
+        "objectID" : "50497248",
+        "points" : 1,
+        "story_id" : 50497248,
+        "story_text" : "HN Comment sanity.<p>Vibe-coded with Gemini Carbon experimenting with techniques from the &#x27;Scaling Discovery Requires Forgetting&#x27; paper: <a href=\"https:&#x2F;&#x2F;arxiv.org&#x2F;abs&#x2F;2610.20563\" rel=\"nofollow\">https:&#x2F;&#x2F;arxiv.org&#x2F;abs&#x2F;2610.20563</a>",
+        "title" : "Show HN: Epistemic News – re-ranking HN comments"
+      },
+      {
+        "author" : "yetanotheruser",
+        "created_at" : "2026-11-14T14:22:58Z",
+        "num_comments" : 0,
+        "objectID" : "50497243",
+        "points" : 1,
+        "story_id" : 50497243,
+        "title" : "Show HN: Track Cassette Looper for iPad"
+      },
+      {
+        "author" : "thecosas",
+        "created_at" : "2026-11-14T14:20:25Z",
+        "num_comments" : 0,
+        "objectID" : "50497224",
+        "points" : 1,
+        "story_id" : 50497224,
+        "title" : "Spend Your Boon"
+      },
+      {
+        "author" : "geox",
+        "created_at" : "2026-11-14T14:18:09Z",
+        "num_comments" : 0,
+        "objectID" : "50497213",
+        "points" : 1,
+        "story_id" : 50497213,
+        "title" : "AI model for predicting neurophysiological responses to text and pictures"
+      },
+      {
+        "author" : "WaluigiBSOD",
+        "created_at" : "2026-11-14T14:17:51Z",
+        "num_comments" : 0,
+        "objectID" : "50497211",
+        "points" : 1,
+        "story_id" : 50497211,
+        "title" : "Score Perfect to MusicXML Converter"
+      },
+      {
+        "author" : "gfalcao",
+        "created_at" : "2026-11-14T14:15:06Z",
+        "num_comments" : 0,
+        "objectID" : "50497196",
+        "points" : 5,
+        "story_id" : 50497196,
+        "story_text" : "Given the news of Deno being acquired by Cloudflare and its already stated eventual sunset, someone has to take over deno.\nVercel certainly has the resources, I am looking for a job and would love to work on Vercel&#x27;s deno maintenance (which I suggest should be renamed to &quot;veno&quot;, or &quot;vino&quot;)<p>Thoughts on the future of deno post Cloudflare?",
+        "title" : "Vercel should fork and maintain Deno"
+      },
+      {
+        "author" : "sandebert",
+        "created_at" : "2026-11-14T14:11:31Z",
+        "num_comments" : 0,
+        "objectID" : "50497171",
+        "points" : 3,
+        "story_id" : 50497171,
+        "title" : "Porting Elite to the Commodore PET the long way [video]"
+      },
+      {
+        "author" : "arbuge",
+        "created_at" : "2026-11-14T14:10:31Z",
+        "num_comments" : 0,
+        "objectID" : "50497161",
+        "points" : 3,
+        "story_id" : 50497161,
+        "title" : "New 'Access to Justice' Benchmark: Leading AI Models Miss Critical Legal Details"
+      },
+      {
+        "author" : "mmooss",
+        "created_at" : "2026-11-14T14:09:37Z",
+        "num_comments" : 0,
+        "objectID" : "50497159",
+        "points" : 3,
+        "story_id" : 50497159,
+        "title" : "What Do You Want to Know About New York Times Journalism and A.I.?"
+      },
+      {
+        "author" : "kate8382",
+        "created_at" : "2026-11-14T14:09:34Z",
+        "num_comments" : 0,
+        "objectID" : "50497158",
+        "points" : 3,
+        "story_id" : 50497158,
+        "title" : "Binary Logic Breaks AI Safety: \"Yes, No, Probably\""
+      },
+      {
+        "author" : "wondersky",
+        "created_at" : "2026-11-14T14:09:25Z",
+        "num_comments" : 7,
+        "objectID" : "50497155",
+        "points" : 27,
+        "story_id" : 50497155,
+        "title" : "Serving GLM-5.3 at 607.8 tok/s across two Nvidia DGX stations with vLLM"
+      },
+      {
+        "author" : "paul_nameless",
+        "created_at" : "2026-11-14T14:08:12Z",
+        "num_comments" : 1,
+        "objectID" : "50497147",
+        "points" : 8,
+        "story_id" : 50497147,
+        "title" : "Show HN: Agweb – a browser for agents that stays out of your way"
+      },
+      {
+        "author" : "NightPageReader",
+        "created_at" : "2026-11-14T14:06:56Z",
+        "num_comments" : 1,
+        "objectID" : "50497141",
+        "points" : 8,
+        "story_id" : 50497141,
+        "title" : "Show HN: Lampka – a Windows PDF reader whose dark mode keeps figures in colour"
+      }
+    ]
+  },
+  "headers" : {
+    "content-type" : "application/json"
+  },
+  "status" : 200,
+  "url" : "https://hn.algolia.com/api/v1/search_by_date?tags=story&query=&page=0&hitsPerPage=30"
+}

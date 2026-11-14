@@ -1,0 +1,67 @@
+{
+  "body" : {
+    "posts" : [
+      {
+        "blurb" : "昨天收拾书房，把NAS换了一个位置，断电的时候扫了一下风扇和顶部的灰，没打开，然后再上电就启动不了了，启动的时候硬盘灯也闪，然后就断电了，要怎么办？",
+        "id" : 334079,
+        "post_number" : 1,
+        "topic_id" : 88672,
+        "username" : "hikingbear"
+      },
+      {
+        "blurb" : "在群晖NAS安装蒲公英，提示“部份设置错误，请再次输入。” 计划任务的“setuid pgyvpn”没提示错误， 添加开机启动加载虚拟网卡提示错误 001 003 002 请指教",
+        "id" : 341421,
+        "post_number" : 1,
+        "topic_id" : 90860,
+        "username" : "TangXing"
+      },
+      {
+        "blurb" : "没有人用群晖的Drive吗？我感觉挺好用的，群晖NAS必备，功能够用而且不限空间流量 :+1:",
+        "id" : 301171,
+        "post_number" : 12,
+        "topic_id" : 80253,
+        "username" : "baldachin"
+      }
+    ],
+    "topics" : [
+      {
+        "bumped_at" : "2026-07-23T14:34:37.830Z",
+        "fancy_title" : "求助！群晖NAS DS920+启动不了",
+        "has_accepted_answer" : true,
+        "id" : 88672,
+        "last_posted_at" : "2026-07-23T14:34:37.830Z",
+        "pinned" : false,
+        "posts_count" : 4,
+        "slug" : "topic",
+        "title" : "求助！群晖NAS DS920+启动不了"
+      },
+      {
+        "bumped_at" : "2026-08-29T01:32:59.635Z",
+        "fancy_title" : "在群晖NAS安装蒲公英，提示“部份设置错误，请再次输入。”",
+        "has_accepted_answer" : false,
+        "id" : 90860,
+        "last_posted_at" : "2026-08-29T01:32:59.635Z",
+        "pinned" : false,
+        "posts_count" : 2,
+        "slug" : "topic",
+        "title" : "在群晖NAS安装蒲公英，提示“部份设置错误，请再次输入。”"
+      },
+      {
+        "bumped_at" : "2026-03-24T13:22:30.384Z",
+        "fancy_title" : "支持双向同步类的网盘，哪个比较优秀呢？",
+        "has_accepted_answer" : false,
+        "id" : 80253,
+        "last_posted_at" : "2026-03-24T13:22:30.384Z",
+        "pinned" : false,
+        "posts_count" : 23,
+        "slug" : "topic",
+        "title" : "支持双向同步类的网盘，哪个比较优秀呢？"
+      }
+    ]
+  },
+  "headers" : {
+    "content-type" : "application/json; charset=utf-8"
+  },
+  "status" : 200,
+  "url" : "https://meta.appinn.net/search.json?q=%E7%BE%A4%E6%99%96%20NAS%20%E6%B1%82%E5%8A%A9%20after:2026-01-01"
+}

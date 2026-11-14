@@ -147,42 +147,74 @@ final class OneLoopComparisonTests: XCTestCase {
         let models = try ComparisonModels.fromEnvironment(env)
         let only = env["ONE_LOOP_ONLY"].map { $0.split(separator: ",").map(String.init) }
         let questions = try ComparisonQuestion.confirmed().filter { question in only?.contains(question.id) ?? true }
-        var rows: [ComparisonRow] = []
+        // Each finished question is saved at once (`ONE_LOOP_ROWS_DIR`, outside the repo: the old side
+        // lives only in the report), so a crashed test host loses at most the question it was on.
+        let rowsDirectory = URL(fileURLWithPath: env["ONE_LOOP_ROWS_DIR"] ?? NSTemporaryDirectory()).appendingPathComponent("one-loop-rows", isDirectory: true)
+        try FileManager.default.createDirectory(at: rowsDirectory, withIntermediateDirectories: true)
         var snapshots: [String: ForumSnapshot] = [:]
-        var toolCost: (count: Int, tokens: Int?) = (0, nil)
+        var toolCost = (try? JSONDecoder().decode(SavedToolCost.self, from: Data(contentsOf: rowsDirectory.appendingPathComponent("tools.json")))) ?? SavedToolCost(count: 0, tokens: nil)
+        func snapshot(for question: ComparisonQuestion) throws -> ForumSnapshot {
+            let value = try snapshots[question.kind] ?? ForumSnapshot(kind: question.siteKind, mode: .record)
+            snapshots[question.kind] = value
+            return value
+        }
         for question in questions {
-            let snapshot = try snapshots[question.kind] ?? ForumSnapshot(kind: question.siteKind, mode: .record)
-            snapshots[question.kind] = snapshot
+            let file = rowsDirectory.appendingPathComponent("row-\(question.id).json")
+            if FileManager.default.fileExists(atPath: file.path) { continue }
+            let snapshot = try snapshot(for: question)
+            ModelAudit.shared.reset()
             let old = try await OldSideRun.run(question, snapshot: snapshot, models: models, folder: try temporaryFolder())
             snapshot.resetMisses()
             let new = try await NewSideRun.run(
-                question, snapshot: snapshot, ai: ComparisonAIService(), modelClient: nil, models: models, folder: try temporaryFolder()
+                question, snapshot: snapshot, ai: ComparisonAIService(session: ModelAudit.session()), modelClient: nil, models: models, folder: try temporaryFolder()
             )
             try new.write(to: RecordedNewSide.defaultDirectory, id: question.id)
-            rows.append(ComparisonRow(question: question, old: old, new: new.side, misses: snapshot.misses.map(\.absoluteString)))
             if toolCost.tokens == nil, let tools = new.document.toolSets.values.first {
-                toolCost = (tools.count, try? await ToolDefinitionCost.anthropicTokens(tools: tools, models: models))
+                toolCost = SavedToolCost(count: tools.count, tokens: try? await ToolDefinitionCost.anthropicTokens(tools: tools, models: models))
+                try JSONEncoder().encode(toolCost).write(to: rowsDirectory.appendingPathComponent("tools.json"))
             }
+            try JSONEncoder().encode(SavedRow(id: question.id, old: old, new: new.side, misses: snapshot.misses.map(\.absoluteString), audit: ModelAudit.shared.recorded))
+                .write(to: file, options: .atomic)
         }
+        var rows: [ComparisonRow] = []
+        var audit: [ModelAudit.Entry] = []
+        for question in try ComparisonQuestion.confirmed() {
+            guard let saved = try? JSONDecoder().decode(SavedRow.self, from: Data(contentsOf: rowsDirectory.appendingPathComponent("row-\(question.id).json"))) else { continue }
+            rows.append(ComparisonRow(question: question, old: saved.old, new: saved.new, misses: saved.misses))
+            audit += saved.audit
+        }
+        let reportQuestions = rows.map(\.question)
         let report = OneLoopReport.markdown(
             header: ComparisonHeader(
                 date: ISO8601DateFormatter.string(from: Date(), timeZone: .current, formatOptions: [.withFullDate]),
                 agentModel: models.agent.label, summaryModel: models.summary.label, appCommit: env["ONE_LOOP_COMMIT"] ?? "unknown",
-                forums: Dictionary(grouping: questions, by: \.kind).keys.sorted().compactMap { kind in
-                    questions.first { $0.kind == kind }.map { "\(kind): \($0.siteURL)" }
+                forums: Dictionary(grouping: reportQuestions, by: \.kind).keys.sorted().compactMap { kind in
+                    reportQuestions.first { $0.kind == kind }.map { "\(kind): \($0.siteURL)" }
                 },
                 textToolCount: toolCost.count, toolDefinitionTokens: toolCost.tokens
             ),
             rows: rows,
             isSnapshotThread: { question, url in
-                ComparisonCitations.isThread(url, question: question, snapshot: snapshots[question.kind])
+                ComparisonCitations.isThread(url, question: question, snapshot: try? snapshot(for: question))
             }
         )
-        try Data(report.utf8).write(to: OneLoopReport.defaultURL, options: .atomic)
+        XCTAssertFalse(audit.isEmpty)
+        XCTAssertTrue(audit.allSatisfy { $0.model == ModelAudit.allowedModel }, "a call used a model other than \(ModelAudit.allowedModel)")
+        try ModelAudit.writeLog(audit, to: OneLoopReport.auditLogURL)
+        let models_ = Dictionary(grouping: audit, by: \.model).mapValues(\.count).sorted { $0.key < $1.key }
+            .map { "\($0.value) × `\($0.key)`" }.joined(separator: ", ")
+        let auditSection = "\n## Model audit\n\nEvery model request of this record run (old loop, new loop, summaries and the tool-definition count) "
+            + "passed through `ModelAudit`, which reads the request body's `model` and refuses anything but `\(ModelAudit.allowedModel)`. "
+            + "\(audit.count) calls: \(models_). The log (host, path, model, status; no keys) is `WukongMindTests/Fixtures/Comparison/model-audit.jsonl`; "
+            + "the recorded new-side runs under `Fixtures/Comparison/runs/` name the model per turn as well.\n"
+        try Data(report.replacingOccurrences(of: "\n## Approval", with: auditSection + "\n## Approval").utf8).write(to: OneLoopReport.defaultURL, options: .atomic)
     }
 }
 
 // MARK: - Inputs
+
+struct SavedToolCost: Codable { var count: Int; var tokens: Int? }
+struct SavedRow: Codable { var id: String; var old: ComparisonSide; var new: ComparisonSide; var misses: [String]; var audit: [ModelAudit.Entry] }
 
 struct ComparisonQuestion: Equatable, Sendable {
     var id: String
@@ -380,7 +412,7 @@ enum ComparisonApp {
 @MainActor
 enum OldSideRun {
     static func run(_ question: ComparisonQuestion, snapshot: ForumSnapshot, models: ComparisonModels, folder: URL) async throws -> ComparisonSide {
-        let ai = ComparisonAIService()
+        let ai = ComparisonAIService(session: ModelAudit.session())
         let app = try ComparisonApp.make(question, snapshot: snapshot, ai: ai, models: models, folder: folder)
         let started = Date()
         app.startAgentRun(goal: question.prompt, siteURL: question.siteURL)
@@ -555,7 +587,7 @@ enum ToolDefinitionCost {
             request.setValue(models.agent.apiKey, forHTTPHeaderField: "x-api-key")
             request.setValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
             request.httpBody = try JSONSerialization.data(withJSONObject: body)
-            let (data, _) = try await URLSession.shared.data(for: request)
+            let (data, _) = try await ModelAudit.session().data(for: request)
             let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
             guard let tokens = json?["input_tokens"] as? Int else { throw AssistantError.invalidResponse }
             return tokens
@@ -601,6 +633,8 @@ enum ComparisonCitations {
 }
 
 enum OneLoopReport {
+    static let auditLogURL = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+        .appendingPathComponent("Fixtures/Comparison/model-audit.jsonl")
     static let defaultURL = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
         .appendingPathComponent("docs/wukongmind/one-loop-comparison.md")
 

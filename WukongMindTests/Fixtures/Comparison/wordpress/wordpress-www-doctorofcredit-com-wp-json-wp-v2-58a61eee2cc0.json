@@ -1,0 +1,27 @@
+{
+  "body" : {
+    "_embedded" : {
+      "author" : [
+        {
+          "name" : "William Charles"
+        }
+      ]
+    },
+    "author" : 2,
+    "content" : {
+      "rendered" : "<p>Recently there has been <a target=\"_blank\" href=\"https://www.reddit.com/r/churning/comments/1wg6ef2/anyone_hearing_chase_is_changing_sole_prop_apps/\">some discussion</a> regarding Chase changing the 5/24 rule when applying for a Chase business card as a sole proprietor. This is because front line Chase reps are telling applicants that call reconsideration that there is a new rule for sole proprietors and that they will be denied if they have opened more than 3 cards in the last 24 months.&nbsp;</p>\n<h2>Datapoints</h2>\n<h3>Approved</h3>\n<ul>\n<li><a href=\"https://www.doctorofcredit.com/chase-ink-cash-ink-unlimited-100000-points-signup-bonus-starts-june-15th/#comment-2415324\">4/24, approved after recon (9/10/26)</a></li>\n<li><a href=\"https://www.doctorofcredit.com/has-chase-changed-the-5-24-rule-for-sole-props-3-24-for-sole-props/#comment-2415539\">3/24 approved (9/13/26 original application, 9/16 recon)</a></li>\n</ul>\n<h3>Denied</h3>\n<ul>\n<li><a href=\"https://www.doctorofcredit.com/chase-ink-cash-ink-unlimited-100000-points-signup-bonus-starts-june-15th/#comment-2415324\">4/24, denied and reconsideration stated 3/24 rule. 9/17/26 date</a></li>\n<li><a target=\"_blank\" href=\"https://www.reddit.com/r/Chase/comments/1wi76ve/denied_application_because_of_the_324_rule/\">3/24, denied with reconsideration stating 3/24 rule. 9/16/26 date</a></li>\n<li><a target=\"_blank\" href=\"https://www.reddit.com/r/churning/comments/1wg6ef2/anyone_hearing_chase_is_changing_sole_prop_apps/\">4/24, denied with reconsideration stating 3/24. 9/14/26 date</a></li>\n<li><a target=\"_blank\" href=\"https://frequentmiler.com/chase-might-have-a-new-3-24-for-business-cards-for-sole-proprietors-but-possibly-only-ink-cards/#comment-2499803\">4/24, denied (Southwest card)</a></li>\n<li><a target=\"_blank\" href=\"https://frequentmiler.com/chase-might-have-a-new-3-24-for-business-cards-for-sole-proprietors-but-possibly-only-ink-cards/#comment-2499845\">4/24, denied (Southwest card)</a></li>\n</ul>\n<h2>Our Verdict</h2>\n<p>I feel like every six months or so we get a new 5/24 is dead or adjustment to 5/24 post. Think it&#8217;s a bit early to call this official but it&#8217;s surprising that front line reps are all parroting the same thing so most likely it is a new rule. Share your datapoints in the comments below.&nbsp;</p>\n"
+    },
+    "date_gmt" : "2026-09-18T01:44:47",
+    "id" : 265640,
+    "link" : "https://www.doctorofcredit.com/has-chase-changed-the-5-24-rule-for-sole-props-3-24-for-sole-props/",
+    "modified_gmt" : "2026-09-28T04:27:10",
+    "title" : {
+      "rendered" : "Has Chase Changed The 5/24 Rule For Sole Props? (3/24 For Sole Props)"
+    }
+  },
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/posts/265640?_fields=id,title,link,date_gmt,modified_gmt,content,author,_embedded,_links&_embed=author"
+}

@@ -1,0 +1,188 @@
+{
+  "body" : {
+    "details" : {
+      "created_by" : {
+        "username" : "fregie"
+      }
+    },
+    "fancy_title" : "我的NAS在生活中的&rdquo;重要&rdquo;作用",
+    "highest_post_number" : 15,
+    "id" : 47457,
+    "post_stream" : {
+      "posts" : [
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+            {
+              "count" : 1,
+              "id" : 2
+            }
+          ],
+          "id" : 167493,
+          "post_number" : 1,
+          "username" : "fregie"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 167505,
+          "post_number" : 2,
+          "username" : "Qingwa"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 167518,
+          "post_number" : 3,
+          "username" : "troilus"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+            {
+              "count" : 3,
+              "id" : 2
+            }
+          ],
+          "id" : 167545,
+          "post_number" : 4,
+          "username" : "GingerCat"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 167574,
+          "post_number" : 5,
+          "username" : "mazakanull1"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 167707,
+          "post_number" : 6,
+          "username" : "CyrusYip"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+            {
+              "count" : 1,
+              "id" : 2
+            }
+          ],
+          "id" : 167710,
+          "post_number" : 7,
+          "username" : "foyax"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 167732,
+          "post_number" : 8,
+          "username" : "Frank9"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 167783,
+          "post_number" : 9,
+          "username" : "fregie"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 167785,
+          "post_number" : 10,
+          "username" : "fregie"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 167786,
+          "post_number" : 11,
+          "username" : "fregie"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 167787,
+          "post_number" : 12,
+          "username" : "fregie"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 167789,
+          "post_number" : 13,
+          "username" : "troilus"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 167792,
+          "post_number" : 14,
+          "username" : "troilus"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+            {
+              "count" : 1,
+              "id" : 2
+            }
+          ],
+          "id" : 168162,
+          "post_number" : 15,
+          "username" : "hgoldfish"
+        }
+      ],
+      "stream" : [
+        167493,
+        167505,
+        167518,
+        167545,
+        167574,
+        167707,
+        167710,
+        167732,
+        167783,
+        167785,
+        167786,
+        167787,
+        167789,
+        167792,
+        168162
+      ]
+    },
+    "posts_count" : 15,
+    "slug" : "topic",
+    "title" : "我的NAS在生活中的\"重要\"作用"
+  },
+  "headers" : {
+    "content-type" : "application/json; charset=utf-8"
+  },
+  "status" : 200,
+  "url" : "https://meta.appinn.net/t/47457.json"
+}

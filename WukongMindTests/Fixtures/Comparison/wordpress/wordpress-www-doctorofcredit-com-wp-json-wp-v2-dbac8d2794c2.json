@@ -1,0 +1,15 @@
+{
+  "body" : {
+    "id" : 262264,
+    "link" : "https://www.doctorofcredit.com/u-s-bank-converting-kroger-credit-cards-to-smartly/",
+    "modified_gmt" : "2026-07-15T18:46:42",
+    "title" : {
+      "rendered" : "U.S. Bank Converting Kroger Credit Cards To Smartly"
+    }
+  },
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/posts/262264?_fields=id,title,link,modified_gmt"
+}

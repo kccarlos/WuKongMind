@@ -1,0 +1,27 @@
+{
+  "body" : {
+    "_embedded" : {
+      "author" : [
+        {
+          "name" : "Chuck"
+        }
+      ]
+    },
+    "author" : 6,
+    "content" : {
+      "rendered" : "<p>Update 1/15/26: It seems they are changing to a system where all ETFs, stocks, mutual funds trades are fee-free. I suppose when they sent out about &#8216;100 free trades going away&#8217; it was part of this shift to not charging fees on most regular trades. So this looks like a positive rather than a negative.&nbsp;</p>\n<p>Original Post 12/11/25:</p>\n<p>Many of us have a brokerage account with U.S. Bank<a href=\"https://www.doctorofcredit.com/u-s-bank-to-nerf-existing-smartly-cardholders-on-september-15/\"> to get in on the grandfathered Smartly Visa 4% cashback card.</a> The bank has sent out notice that the benefit of 100 free trades per year is going away in February 2026.</p>\n<p style=\"padding-left: 40px;\"><em>Effective February 16, 2026, important changes will be reflected in the Consumer Pricing Information may affect your rights. You can view this document anytime on our website at usbank.com/cpi document.</em><br />\n<em>– Our affiliate, U.S. Bancorp Investments (USBI) is transferring its retail business and personnel into our other affiliate, U.S. Bancorp Advisors (USBA).</em><br />\n<em>– The U.S. Bank Smart Rewards benefit of 100 Free Trades per calendar year with a self-directed brokerage account, exclusively through our affiliate, U.S. Bancorp Investments, will no longer be offered.</em></p>\n<p>Most of our readers who have the U.S. Bank brokerage probably just hold $100k inside without much activity, but worth keeping this in mind.</p>\n<p style=\"text-align: right;\">Hat tip to reader RV and Precisely</p>\n"
+    },
+    "date_gmt" : "2026-01-15T22:00:27",
+    "id" : 249314,
+    "link" : "https://www.doctorofcredit.com/u-s-bank-smartly-brokerage-100-free-trades-benefit-ends-in-february-2026/",
+    "modified_gmt" : "2026-01-15T19:26:39",
+    "title" : {
+      "rendered" : "(Update: Correction) U.S. Bank Smartly: Brokerage 100 Free Trades Benefit Ends In February 2026"
+    }
+  },
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/posts/249314?_fields=id,title,link,date_gmt,modified_gmt,content,author,_embedded,_links&_embed=author"
+}

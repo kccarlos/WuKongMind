@@ -1,0 +1,111 @@
+{
+  "body" : [
+    {
+      "author_name" : "Laborious Tug",
+      "content" : {
+        "rendered" : "<p>What issue did you run into? Did you upload your filing with the state when opening the Mercury account? I’ve now opened three sole props successfully with them.</p>\n"
+      },
+      "date_gmt" : "2026-11-14T12:42:53",
+      "id" : 2454500,
+      "parent" : 2453901,
+      "post" : 236129
+    },
+    {
+      "author_name" : "Jack🔗",
+      "content" : {
+        "rendered" : "<p>I still need to create my first account with my sole prop. Lol</p>\n"
+      },
+      "date_gmt" : "2026-11-14T05:57:30",
+      "id" : 2454461,
+      "parent" : 2454339,
+      "post" : 246768
+    },
+    {
+      "author_name" : "Jack🔗",
+      "content" : {
+        "rendered" : "<p>Darn. I was going to try to churn with my sole prop EIN. Maybe I&#8217;ll just create a new LLC. Lol</p>\n"
+      },
+      "date_gmt" : "2026-11-14T05:55:42",
+      "id" : 2454460,
+      "parent" : 2453901,
+      "post" : 236129
+    },
+    {
+      "author_name" : "on YT @MasteringEarlyRetirement",
+      "content" : {
+        "rendered" : "<p>DP<br />\nopened 8/31 as sole prop<br />\ndeposited 25k over 6+ transactions<br />\n$1500 deposited 11/13</p>\n<p>also tried for 6 bill pays to myself; didn&#8217;t get additional $250 or $50&#8230; (had worked previously for another account)</p>\n"
+      },
+      "date_gmt" : "2026-11-14T00:11:18",
+      "id" : 2454361,
+      "parent" : 0,
+      "post" : 229325
+    },
+    {
+      "author_name" : "Super Pirate formerly SP 🔗",
+      "content" : {
+        "rendered" : "<p>Yeah, Cap1 for $0 fee is a great one. If one is done with sole prop they could switch to LLC account get bonus on that as well and start the churn timer (2 years or more) for their sole prop account.</p>\n"
+      },
+      "date_gmt" : "2026-11-13T23:16:02",
+      "id" : 2454327,
+      "parent" : 2454315,
+      "post" : 246768
+    },
+    {
+      "author_name" : "Feth",
+      "content" : {
+        "rendered" : "<p>Opened on August 28 online as Sole Prop (I already had a personal checking with them)</p>\n<p>Funded $3,000 with Chase Amazon Prime and Chase read it as purchase so I set a plan to pay it at $0 fees for 18 months (free $3k loan, yeah!)</p>\n<p>Added $2k in cash in branch. Total $5,000 </p>\n<p>Made zelle transactions multiple times without falling under $5,000 and 1 debit card purchase.</p>\n<p>I took the $5000 out after 67 days approximately leaving like $14 in the account. </p>\n<p>$400 bonus received today 11/13</p>\n<p>Thanks to everyone here with your DPs!</p>\n"
+      },
+      "date_gmt" : "2026-11-13T23:07:45",
+      "id" : 2454322,
+      "parent" : 0,
+      "post" : 229325
+    },
+    {
+      "author_name" : "randomguy",
+      "content" : {
+        "rendered" : "<p>07/15 account opened<br />\n08/10 chase push 5050<br />\n09/12 10 ACH 2$ push to Citi, 10 ACH 2$ push from Citi<br />\n10/13 Cha-ching 500. 4 months isn&#8217;t bad<br />\n(Sole prop, nothing needed, but they called and verified info)<br />\nI think I&#8217;ll keep it because of the free &#8220;Payroll&#8221; push, unlike Chase</p>\n"
+      },
+      "date_gmt" : "2026-11-13T18:37:01",
+      "id" : 2454119,
+      "parent" : 0,
+      "post" : 242259
+    },
+    {
+      "author_name" : "Laborious Tug",
+      "content" : {
+        "rendered" : "<p>I would say this is not possible. I previously got the bonus using sole prop/SSN in June 2025. Just this morning I tried opening an account for sole prop/EIN as well as LLC/EIN and both were met with the &#8220;You&#8217;re not eligible for this bonus&#8221; page at the end of the application. I did not use my previous login for either one.</p>\n"
+      },
+      "date_gmt" : "2026-11-13T13:12:21",
+      "id" : 2453925,
+      "parent" : 2453223,
+      "post" : 236806
+    },
+    {
+      "author_name" : "Pickle Rick🔗👈🏼",
+      "content" : {
+        "rendered" : "<p>The IRS will only assign you one EIN as a sole proprietor per person. Per the <a href=\"https://www.irs.gov/pub/irs-pdf/iss4.pdf\" target=\"_blank\" rel=\"nofollow ugc\">SS-4 instructions</a>:<br />\n<em>Generally, a sole proprietor should file only one Form SS-4 and needs only one EIN, regardless of the number of businesses operated as a sole proprietorship or trade names under which a business operates.</em></p>\n<p>In practice, the automated online application will block assigning a second sole prop EIN, and agents are supposed to search to see if you already have a sole prop EIN before manually assigning one.</p>\n"
+      },
+      "date_gmt" : "2026-11-13T10:37:45",
+      "id" : 2453895,
+      "parent" : 2453890,
+      "post" : 236129
+    },
+    {
+      "author_name" : "Laborious Tug",
+      "content" : {
+        "rendered" : "<p>A sole prop can be assigned an EIN and you can have multiple sole props. So I will be creating multiple entities for both myself and P2 and since I have confirmed Mercury will pay the bonus so long as the tax ID is different.</p>\n"
+      },
+      "date_gmt" : "2026-11-13T10:03:01",
+      "id" : 2453890,
+      "parent" : 2453803,
+      "post" : 236129
+    }
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "1438",
+    "x-wp-totalpages" : "144"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/comments?search=sole%20prop&per_page=10&page=1&order=desc&orderby=date_gmt&_fields=id,post,parent,author_name,date_gmt,content&after=2026-01-01T00:00:00"
+}

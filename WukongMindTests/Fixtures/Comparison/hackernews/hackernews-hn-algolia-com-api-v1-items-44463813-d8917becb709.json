@@ -1,0 +1,2025 @@
+{
+  "body" : {
+    "author" : "transpute",
+    "children" : [
+      {
+        "author" : "voxadam",
+        "children" : [
+          {
+            "author" : "jeroenhd",
+            "children" : [
+              {
+                "author" : "ekianjo",
+                "created_at_i" : 1751634940,
+                "id" : 44464269,
+                "text" : "it was over as soon as the Pi went out of stock and unit price skyrocketed since 2020.",
+                "type" : "comment"
+              },
+              {
+                "author" : "whazor",
+                "created_at_i" : 1751635149,
+                "id" : 44464300,
+                "text" : "Note that the Odroid H3 with an Intel N5105 can do less than 2W&lt; idle, which is competitive with the RPI5. The next generation H4 is even more efficient.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1751634384,
+            "id" : 44464186,
+            "text" : "As the article shows, even power consumption can be debatable. If you&#x27;re looking to get a certain amount of work done, the Intel mini PC can do it faster expending less power thanks to the smaller transistor size it uses. Maybe there are scenarios where continuous idle power is more important and the RPi still wins (there&#x27;s no idle power graph in the article) but even if you&#x27;re power-constrained, the Pi isn&#x27;t the best choice anymore.<p>The GPIO header and community remain a solid reason to still opt for the Pi, but the age of &quot;raspberry pi as a cheap home server&quot; is pretty much over, thanks to Intel and AMD slowly watching up to ARM.",
+            "type" : "comment"
+          },
+          {
+            "author" : "baq",
+            "created_at_i" : 1751634774,
+            "id" : 44464238,
+            "text" : "rpi 5 is _not_ a low power device, or at least not noticeably lower power than atom systems.",
+            "type" : "comment"
+          },
+          {
+            "author" : "giantg2",
+            "created_at_i" : 1751636350,
+            "id" : 44464455,
+            "text" : "I think I mostly agree. To me, the Pi Zero is the real product these days. The regular Pi models are too expensive and more powerful than they need to be. The Zero is more in line with the original concept in my opinion.",
+            "type" : "comment"
+          },
+          {
+            "author" : "wpm",
+            "created_at_i" : 1751671320,
+            "id" : 44468799,
+            "text" : "The Pi 5 isn’t very low power at full tilt, but it’s much slower than any of the x86 SBCs from the last few years.<p>There are at least two SBCs that have N100s <i>and</i> an RP2350 or 2040 onboard that can do you gpio, and at least one that has native GPIO. I have a Radxa X4 and it runs Arch great (only downside is the crappy stock cooler, no cases, and the unfortunate Pi B form factor).",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1751633752,
+        "id" : 44464109,
+        "text" : "Unless you need the features on the Pi&#x27;s 40-pin GPIO connector or <i>very</i> low power consumption a mini PC is a much better bet for general compute.",
+        "type" : "comment"
+      },
+      {
+        "author" : "close04",
+        "children" : [
+          {
+            "author" : "willglynn",
+            "children" : [
+              {
+                "author" : "irusensei",
+                "created_at_i" : 1751636003,
+                "id" : 44464405,
+                "text" : "The s100 is not very stable on PoE+.",
+                "type" : "comment"
+              },
+              {
+                "author" : "close04",
+                "created_at_i" : 1751636308,
+                "id" : 44464449,
+                "text" : "Great suggestion, I&#x27;ll keep an eye on this. Not sure if this is 802.3af, or 802.3at, or even 802.3bt. I wouldn&#x27;t want to upgrade the switch for this alone.<p>The S100 product page gives me this brilliant description :).<p>&gt; The processor Intel N100 is the perfect home for the architects of Gracemont and the perfect combination of processes and processes, 7 d&#x27;Intel, 4 cores and 4 threads, maximum RPM at 3,4 GHz, 24EU and graphite centroids and TDP. seulement 6 W. La consommation and production of chaleur It’s the perfect place to be. It’s a great deal, it’s a process, it’s N5105, it’s N100, it’s a sign, it’s augmentation, it’s maximum CPU, it’s 500 MHz, it’s L3 cache, it’s 2 MB.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1751635191,
+            "id" : 44464309,
+            "text" : "I&#x27;ve had great results with N100 mini PCs including Power over Ethernet. Here&#x27;s an N100, PoE, 2.5GBASE-T, case, 8 GB RAM, 128 GB SSD for $129 refurbished:<p><a href=\"https:&#x2F;&#x2F;refurbished.minisforum.com&#x2F;products&#x2F;minisforum-s100-refurbished\" rel=\"nofollow\">https:&#x2F;&#x2F;refurbished.minisforum.com&#x2F;products&#x2F;minisforum-s100-...</a><p>I have zero applications where a Pi5 makes more sense than either a mini PC or a large microcontroller.",
+            "type" : "comment"
+          },
+          {
+            "author" : "happymellon",
+            "created_at_i" : 1751635395,
+            "id" : 44464341,
+            "text" : "I ended up moving my Home Assistant to a used Surface tablet. Not really any difference in price to a Pi once you counted all the case, etc. yet it also had a built in screen to make it easier for the family to troubleshoot.<p>There are a few form factors that end up making more sense than a pi with a little thought.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1751634040,
+        "id" : 44464139,
+        "text" : "&gt; But newsflash: used is different than new.<p>I&#x27;d put it differently, &quot;you can&#x27;t have used without the new&quot;. They might not be all that different in practice but you can&#x27;t have everyone buying used. For every used unit sold, someone had to buy it new first.<p>I agree with the rest. Having a bunch of RPi up to RPi4 in the house, I&#x27;m having a harder time finding its proper niche. I don&#x27;t need the GPIO or the relatively small footprint in general, and from power and performance perspective it doesn&#x27;t have an edge anymore. RPis stopped excelling at many things they used to, as the price to fix some of the bigger downsides. It just doesn&#x27;t strike the best compromise for most of my uses (same from what my RPi-fan friends tell me).<p>But despite reviews like this everyone should make their own assessment. There&#x27;s no one size fits all. I run a RPi because I could power via PoE. Another one because there was no room for anything larger.",
+        "type" : "comment"
+      },
+      {
+        "author" : "analog31",
+        "children" : [
+          {
+            "author" : "unsigner",
+            "created_at_i" : 1751634635,
+            "id" : 44464222,
+            "text" : "I agree with the experience of assembling something from pieces is valuable.<p>But if you don&#x27;t want that, there&#x27;s no need for &quot;online tutorials for beginners&quot; and that shouldn&#x27;t be counted as an additional appeal. It&#x27;s just Windows.",
+            "type" : "comment"
+          },
+          {
+            "author" : "hypercube33",
+            "created_at_i" : 1751635099,
+            "id" : 44464291,
+            "text" : "Also, rasbian is super solid to those tutorials I have found - they don&#x27;t seem to pull repositories every version so you can still install things easily.",
+            "type" : "comment"
+          },
+          {
+            "author" : "poulpy123",
+            "children" : [
+              {
+                "author" : "geerlingguy",
+                "created_at_i" : 1751640071,
+                "id" : 44464992,
+                "text" : "Not for a lot of use cases, like how to get 4G&#x2F;5G cellular connectivity, how to monitor something using an embedded&#x2F;tiny camera and a small machine learning model, or how to build a little HMI device using a 4&quot; touchscreen...<p>For basic homelab use cases, almost any computer is fine, but for IoT-style stuff especially, a Pi-focused will have a lot more hits, and the tutorials won&#x27;t apply to any of the mini PCs.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1751635991,
+            "id" : 44464402,
+            "text" : "There are even more tutorial for mini-pc since they are using a x64 architecture.",
+            "type" : "comment"
+          },
+          {
+            "author" : "kccqzy",
+            "created_at_i" : 1751639207,
+            "id" : 44464855,
+            "text" : "At least half of the &quot;how to do X on a raspberry pi&quot; beginner tutorials don&#x27;t actually use any RPi specific features like GPIO and apply equally well to Linux desktops.",
+            "type" : "comment"
+          },
+          {
+            "author" : "ChrisRR",
+            "created_at_i" : 1751642236,
+            "id" : 44465284,
+            "text" : "The problem with a lot of pi stuff is that a lot of it is just so out of date, especially as the community just didn&#x27;t fully transition to the RPI5<p>So for running things on an N100 it works in the same way as any other PC",
+            "type" : "comment"
+          },
+          {
+            "author" : "bogwog",
+            "created_at_i" : 1751654317,
+            "id" : 44466871,
+            "text" : "&gt; the experience of assembling something from pieces.<p>What pieces? RPis are single board computers, no assembly required.<p>If Intel NUCs were sold without a case&#x2F;shell, they&#x27;d probably be able to appeal more to the same hobby market RPi dominates (although the RPi does still look more aesthetically pleasing)",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1751634102,
+        "id" : 44464150,
+        "text" : "I think the appeal of the RPi has to do with the amount of online tutorials that beginners can understand, and the experience of assembling something from pieces.",
+        "type" : "comment"
+      },
+      {
+        "author" : "Havoc",
+        "children" : [
+          {
+            "author" : "g-mork",
+            "children" : [
+              {
+                "author" : "Havoc",
+                "created_at_i" : 1751637237,
+                "id" : 44464594,
+                "text" : "Yeah heard 48gb works, but also heard of people having stability issues above 16gb.<p>I personally had 32gb work out but all seems pretty hit &amp; miss",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1751635793,
+            "id" : 44464380,
+            "text" : "what is this, memory for ants? you can fit a 48 GB stick in there. insane premium, but who doesn&#x27;t want their pocket mainframe to be as packed out as possible",
+            "type" : "comment"
+          },
+          {
+            "author" : "hn_throw2025",
+            "children" : [
+              {
+                "author" : "Havoc",
+                "children" : [
+                  {
+                    "author" : "hn_throw2025",
+                    "children" : [
+                      {
+                        "author" : "Havoc",
+                        "created_at_i" : 1751646544,
+                        "id" : 44465871,
+                        "text" : "Yeah they definitely have their uses. I&#x27;ve got a cluster of SBCs which is fun (mix of rasp4 &amp; 32gb orange pis), but in hindsight I kinda wish I had spent the cash on one powerful device instead.",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1751640495,
+                    "id" : 44465044,
+                    "text" : "Hmm. I currently have a HDD and SSD attached to the USB ports of a Raspberry Pi 4B.\nI leave in on 24&#x2F;7 as a media streamer and a PiHole.<p>It does however have an Argon One PSU which is capable of supplying 3.5A.<p>I learned early on to not skimp on the PSU, and have mostly used official Raspberry Pi PSUs in order to avoid brownout unreliability.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1751638944,
+                "id" : 44464823,
+                "text" : "&gt;only source of unreliability I have experienced<p>Consider yourself lucky then.<p>Tried that then discovered there is a Pi&#x2F;UASP incompatibility with the USB adapter I bought. So need to disable that murdering what little speed the USB contraption had.<p>And then the power supply isn&#x27;t sufficient anymore so buy a different one. Only to discover it was actually the cable not the supply. Then you start to investigate SSD power draw realize wait how does that even work USB can&#x27;t provide that much. Only to learn that USB attached SSDs run in low power mode. Not that it matters cause it&#x27;s USB throughput constrained anyway and adapters don&#x27;t use x4 lanes on the nvme.<p>I do have multiple rasps set up like that, but I consider it mistakes learned the hard way rather than a desirable setup.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1751636026,
+            "id" : 44464409,
+            "text" : "I got away from the SD cards some time ago...\nJust about the only source of unreliability I have experienced on the Pi platform.<p>You can boot from a USB attached SSD or HDD.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1751634481,
+        "id" : 44464203,
+        "text" : "Yes. You can stick 32gb memory in a N100 and don&#x27;t need an adapter to get away from the god awful SD cards...<p>Can still make sense for the tinkering ecosystem and compatibility for niche uses cases, but overall the value just isn&#x27;t there and hasn&#x27;t been since gen4",
+        "type" : "comment"
+      },
+      {
+        "author" : "nottorp",
+        "children" : [
+          {
+            "author" : "Retr0id",
+            "children" : [
+              {
+                "author" : "wtallis",
+                "children" : [
+                  {
+                    "author" : "Retr0id",
+                    "created_at_i" : 1751639386,
+                    "id" : 44464885,
+                    "text" : "Oh, right, yeah I see the meta-confusion. They are incompatible for a bunch of reasons, of which ECC is not particularly relevant.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1751636099,
+                "id" : 44464419,
+                "text" : "The on-die ECC used by DDR5 (and pretty much all other recent DRAM) actually doesn&#x27;t have many compatibility implications, precisely because it&#x27;s done entirely on-die unlike traditional ECC memory modules that include an extra one or two chips to enable end to end ECC managed by the CPU&#x27;s memory controller.<p>The more significant incompatibilities between DDR4 and DDR5 are in the power delivery (DDR5 has voltage regulators on the module rather than on the motherboard) and rearranging of the address bus and command encoding.",
+                "type" : "comment"
+              },
+              {
+                "author" : "scrlk",
+                "children" : [
+                  {
+                    "author" : "Retr0id",
+                    "created_at_i" : 1751637957,
+                    "id" : 44464698,
+                    "text" : "Sure, but it&#x27;s only obvious once you know that. Given that the N100 itself supports both DDR4 and DDR5, I think the confusion is entirely understandable.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1751636106,
+                "id" : 44464420,
+                "text" : "The incompatibility between DDR4 and DDR5 DIMMS is also enforced by a physically different notch and slot. It&#x27;s always been this way.",
+                "type" : "comment"
+              },
+              {
+                "author" : "nottorp",
+                "created_at_i" : 1751638927,
+                "id" : 44464820,
+                "text" : "DDR 4 and 5 are incompatible just because of the ecc?<p>You could desolder the ecc chip off a ddr 5 stick and then just plug it into a ddr 4 slot?",
+                "type" : "comment"
+              },
+              {
+                "author" : "numpad0",
+                "created_at_i" : 1751644204,
+                "id" : 44465569,
+                "text" : "The reason why the author thought these might be interchangeable in the first place?",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1751635572,
+            "id" : 44464356,
+            "text" : "Which part is unclear?",
+            "type" : "comment"
+          },
+          {
+            "author" : "hollerith",
+            "created_at_i" : 1751639626,
+            "id" : 44464922,
+            "text" : "I found that perfectly clear and unambiguous...",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1751634718,
+        "id" : 44464229,
+        "text" : "&gt; DDR5 SO-DIMMs are not compatible with DDR4 SO-DIMM slots—just something I learned on this project... I knew full-size DIMMs were incompatible due to the extra on-stick ECC circuit on DDR5 RAM, I just didn&#x27;t know the same applied to SO-DIMMs. Obvious in hindsight, but something to keep in mind.<p>Umm... what?",
+        "type" : "comment"
+      },
+      {
+        "author" : "PoshBreeze",
+        "children" : [
+          {
+            "author" : "subscribed",
+            "children" : [
+              {
+                "author" : "kccqzy",
+                "created_at_i" : 1751639405,
+                "id" : 44464890,
+                "text" : "If you want a name brand mini PC, I&#x27;ll note that System76 also sells one under the name of Meerkat. And traditionally Intel sells them itself but these days the official successor is ASUS.",
+                "type" : "comment"
+              },
+              {
+                "author" : "PoshBreeze",
+                "created_at_i" : 1751640541,
+                "id" : 44465055,
+                "text" : "You can compare them because they overlap in use cases especially as lite-desktop&#x2F;emulation&#x2F;media&#x2F;home-server.<p>The PC ecosystem is more open so of course you are going to find lots of no name brands on amazon&#x2F;ebay&#x2F;ali-express or wherever you are looking. These N100&#x2F;N150 piece of kit have 1000s of reviews on youtube. There are a few brands that seem dominate and seem to be reasonably well built.<p>A lot of the mini-pcs &#x2F; nuc you find on ebay are Dell&#x2F;Lenovo&#x2F;HP decommissioned stuff that you can put 16&#x2F;32gb of ram in and a proper NVME. To do something similar with a PI you need to buy a PI5 and some additional hardware, it about two&#x2F;three times more expensive. Yes they do consume more power but typically it isn&#x27;t crazy.<p>The ARM ecosystem isn&#x27;t just RPi either. There are other manufacturers offering small credit sized arms boards but their drivers&#x2F;software&#x2F;firmware isn&#x27;t nearly as good as the RPi.",
+                "type" : "comment"
+              },
+              {
+                "author" : "import",
+                "created_at_i" : 1751667265,
+                "id" : 44468322,
+                "text" : "You can get beelink or minisforum. I have both and they’re rock solid.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1751637768,
+            "id" : 44464670,
+            "text" : "You cannot just compare raspberry pi specifically with all the slew of the random no name &#x2F; ephemeral mini-pc builds, they&#x27;re not the same.<p>I was trying to find something deemed reliable for myself (I need two: one to replace kodi, one as the home storage) and I just don&#x27;t know. Some have good prices and  terrifyingly bad reviews, some look decent but in-depth reviews show significant design shortcomings (eg very bad air circulation inside, 2.5G ports but one chip for this and dosk, for example.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1751635045,
+        "id" : 44464279,
+        "text" : "Yes. You can get dirt cheap mini-pcs &#x2F; NUC like devices on ebay for next to nothing and they aren&#x27;t too crazy on the power front.<p>The biggest problem for the Raspberry PI platform if you are using it as a home server or like a lite desktop is the lack of proper storage.<p>However I do like the pi for things where you set them up and forget about it. I run a pi-hole on an old Pi 2. However that could be run as a docker container on a small home server &#x2F; NAS.",
+        "type" : "comment"
+      },
+      {
+        "author" : "LikeBeans",
+        "children" : [
+          {
+            "author" : "voxadam",
+            "created_at_i" : 1751635161,
+            "id" : 44464303,
+            "text" : "&gt; However for my firewall (PfSense) I use a mini PC because I want the throughput especially when I VPN into it.<p>Plus, neither pfSense nor OPNsense run on Arm or <i>any</i> non-x86 system.",
+            "type" : "comment"
+          },
+          {
+            "author" : "giantg2",
+            "children" : [
+              {
+                "author" : "p_ing",
+                "children" : [
+                  {
+                    "author" : "giantg2",
+                    "children" : [
+                      {
+                        "author" : "geerlingguy",
+                        "children" : [
+                          {
+                            "author" : "dizhn",
+                            "created_at_i" : 1751661485,
+                            "id" : 44467694,
+                            "text" : "I installed pihole once. Not a fan. Since then I&#x27;ve been using Adguard Home. It&#x27;s a single go binary so it would work fine on pfsense&#x2F;opnsense either directly or in a jail.",
+                            "type" : "comment"
+                          }
+                        ],
+                        "created_at_i" : 1751643285,
+                        "id" : 44465424,
+                        "text" : "Pi-hole is a little easier for someone who&#x27;s not into networking to deploy. I would give a beginner Pi-hole much sooner than I would introduce them to OPNsense. (I run both, OPNsense for my studio network, and Pi-hole + Asuswrt-merlin for my homelab)",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1751643051,
+                    "id" : 44465389,
+                    "text" : "Yeah, thats why I asked about a DNS server running on there and not just a PiHole. Is there any reason to perfer PiHole over the Opnsense options?",
+                    "type" : "comment"
+                  },
+                  {
+                    "author" : "danparsonson",
+                    "created_at_i" : 1751678270,
+                    "id" : 44469366,
+                    "text" : "I run Proxmox on an MSI N100 machine hosting opnSense in a VM and PiHole in a container; works really nicely.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1751638941,
+                "id" : 44464822,
+                "text" : "Pi-Hole specifically has a limited number of officially supported OSes - <a href=\"https:&#x2F;&#x2F;docs.pi-hole.net&#x2F;main&#x2F;prerequisites&#x2F;\" rel=\"nofollow\">https:&#x2F;&#x2F;docs.pi-hole.net&#x2F;main&#x2F;prerequisites&#x2F;</a>. PfSense&#x2F;Opnsense run on top of FreeBSD which is not supported by Pi-Hole.<p>I assume this is true of pfSense, but Opnsense has a number of available DNS server options built into the distribution.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1751636109,
+            "id" : 44464421,
+            "text" : "You can&#x27;t run a DNS server on the same mini PC? Seems like that would be ideal.<p>I run PiHole on a Pi Zero, which isn&#x27;t really comparable to any mini PC in cost or performance. It uses such little resources that I&#x27;m surprised that most new routers don&#x27;t offer the DNS filtering features out of the box these days.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1751635048,
+        "id" : 44464280,
+        "text" : "I think both are great. It depends on what you need and the requirements you want to hit. I use an RPi for as a Pi-Hole for example. It works great. Low power and just that one task. Performs nicely. And cheap. However for my firewall (PfSense) I use a mini PC because I want the throughput especially when I VPN into it. Also works great for that task.  So I think of it in terms of &#x27;task&#x27; and it&#x27;s footprint (ie storage&#x2F;mem) and throughput.",
+        "type" : "comment"
+      },
+      {
+        "author" : "transpute",
+        "created_at_i" : 1751635050,
+        "id" : 44464282,
+        "text" : "Some industrial Atom N150 boards include GPIO, SATA, M.2, discrete TPM and TXT&#x2F;DRTM-capable BIOS for Windows IoT and future Linux, <a href=\"https:&#x2F;&#x2F;www.cnx-software.com&#x2F;news&#x2F;twin-lake&#x2F;\" rel=\"nofollow\">https:&#x2F;&#x2F;www.cnx-software.com&#x2F;news&#x2F;twin-lake&#x2F;</a>.<p>There are some creative NAS form factors with N150, but BIOS updates from random OEMs are not predictable, <a href=\"https:&#x2F;&#x2F;www.cnx-software.com&#x2F;news&#x2F;nas&#x2F;\" rel=\"nofollow\">https:&#x2F;&#x2F;www.cnx-software.com&#x2F;news&#x2F;nas&#x2F;</a>. Hopefully coreboot can support more Atom N150 devices.",
+        "type" : "comment"
+      },
+      {
+        "author" : "ThrowawayR2",
+        "children" : [
+          {
+            "author" : "geerlingguy",
+            "created_at_i" : 1751640221,
+            "id" : 44465005,
+            "text" : "I typically run a suite of workloads (see <a href=\"https:&#x2F;&#x2F;sbc-reviews.jeffgeerling.com\" rel=\"nofollow\">https:&#x2F;&#x2F;sbc-reviews.jeffgeerling.com</a>), but I like HPL as it&#x27;s been a consistent relative performance metric for decades, especially for efficiency utilizing all available memory.<p>There&#x27;s always danger to focusing on one metric or benchmark too much, but I also enjoy comparing each system or cluster I build to the historic &#x27;top500&#x27; list, to see what decade we&#x27;re in for small clusters of mini computers.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1751635171,
+        "id" : 44464307,
+        "text" : "I&#x27;m kind of curious as to why Gflops is the chosen basis for asserting performance superiority?  Most user workloads exercise integer and I&#x2F;O performance much more heavily.  Linpack HPL evaluates CPU (not GPU) floating point performance IIRC so it&#x27;s not a representative workload.",
+        "type" : "comment"
+      },
+      {
+        "author" : "syntheticnature",
+        "children" : [
+          {
+            "author" : "Gracana",
+            "children" : [
+              {
+                "author" : "pbronez",
+                "created_at_i" : 1751659902,
+                "id" : 44467510,
+                "text" : "This is probably something AI can help with. Given a published video, write a blog post version. With some work you can probably get a first draft with solid links and appropriate tone, reducing the effort down to an hour per post or better.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1751636831,
+            "id" : 44464528,
+            "text" : "I recently noticed that Skatterbencher does this, with articles for each video. It’s a fantastic format, especially in cases where the content is something you might want to refer to later without having to rewatch the whole thing.",
+            "type" : "comment"
+          },
+          {
+            "author" : "MrGilbert",
+            "created_at_i" : 1751637823,
+            "id" : 44464679,
+            "text" : "I also like &quot;tl;dr:&quot; at the beginning. Straight to the point.",
+            "type" : "comment"
+          },
+          {
+            "author" : "geerlingguy",
+            "created_at_i" : 1751643186,
+            "id" : 44465408,
+            "text" : "The thing is, the site earns me maybe $100-200 in Amazon Affiliates referral links per month (which is nothing to sneeze at... but that&#x27;s not moving the needle on a mortgage payment).<p>I put maybe 10-15 hours&#x2F;month into writing and prepping blog posts (every one is either fully written from scratch _after_ making a video, or is my transcript edited for blog&#x2F;readership).<p>My blog is mostly a scratchpad for my own needs (I like being able to Google my projects, so I can use Google&#x2F;DDG as my own note search engine), but I get why many people who make video (which <i>can</i> earn an income) don&#x27;t spend the extra time and write up decent blog posts as well.<p>(But I prefer reading much more than video content).",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1751635301,
+        "id" : 44464321,
+        "text" : "&gt; I have a video that goes through everything in this post, embedded below:<p>&gt; If you prefer to read the post instead, please continue:<p>More sites like this, please",
+        "type" : "comment"
+      },
+      {
+        "author" : "Neywiny",
+        "created_at_i" : 1751635304,
+        "id" : 44464322,
+        "text" : "I appreciate the nm discussion. So often people bash larger process nodes but the wider gates are often&#x2F;always better at static power consumption, and mature lithographies mean more research into optimization. It&#x27;s not just smaller = better. My understanding is that smaller nodes reduce dynamic power due to lower gate capacitance (because the fet is just smaller), but there&#x27;s a lot to the story, like architecture as mentioned.",
+        "type" : "comment"
+      },
+      {
+        "author" : "firesteelrain",
+        "children" : [
+          {
+            "author" : "dvdkon",
+            "children" : [
+              {
+                "author" : "geon",
+                "children" : [
+                  {
+                    "author" : "wpm",
+                    "created_at_i" : 1751681882,
+                    "id" : 44469621,
+                    "text" : "A miniPC is just a PC though, with UEFI and ACPI, how are they not standard?",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1751636383,
+                "id" : 44464459,
+                "text" : "The more standardized hardware if the rpi tends to make a lot of stuff much easier.",
+                "type" : "comment"
+              },
+              {
+                "author" : "firesteelrain",
+                "children" : [
+                  {
+                    "author" : "dingaling",
+                    "children" : [
+                      {
+                        "author" : "firesteelrain",
+                        "created_at_i" : 1751709608,
+                        "id" : 44471512,
+                        "text" : "Huh? It’s ADSB 1090 MHz on a short run of coax to a FlightAware SDR USB dongle. It’s an urban environment so I don’t expect much but I receive plenty of aircraft over 300 nm. Any further away and I would have loss due to inherent limitations of the coax. I could go with like LMR400 but I am not going to spend that kind of money or add like a LNA. This is a setup people commonly use",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1751698164,
+                    "id" : 44470613,
+                    "text" : "Probably shouldn&#x27;t have your decoder in the attic anyway, as they aren&#x27;t well suppressed in terms of EM interference which will seep into the antenna.  Particularly a cheap AC-DC wall wart, they&#x27;re basically broad-spectrum noise-jammers.<p>I shunt the USB output of the SSR dongles onto Ethernet and pipe that to the PC downstairs.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1751647055,
+                "id" : 44465931,
+                "text" : "I just can’t see putting the NUC in my attic for example with my ADSB receiver",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1751636170,
+            "id" : 44464433,
+            "text" : "Except for the Pico (which is very different from the full RPi), you could do all that with a mini-PC.<p>There are certainly usecases, especially using the RPi&#x27;s low-level IO, where that&#x27;s not possible, but as you yourself have shown, people do often get into situations where they are competitors.",
+            "type" : "comment"
+          },
+          {
+            "author" : "transpute",
+            "children" : [
+              {
+                "author" : "LtWorf",
+                "children" : [
+                  {
+                    "author" : "transpute",
+                    "children" : [
+                      {
+                        "author" : "LtWorf",
+                        "created_at_i" : 1751663095,
+                        "id" : 44467880,
+                        "text" : "There&#x27;s more to the CPU on a SoC.",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1751650948,
+                    "id" : 44466453,
+                    "text" : "Is Linux support for Intel N150 (x86) as good as Linux support for RPi (Arm SoC N of M)?<p>Generalist x86 is usually better supported than specialist Arm, but newer drivers (e.g. NICs) may take time to mature.",
+                    "type" : "comment"
+                  },
+                  {
+                    "author" : "wpm",
+                    "created_at_i" : 1751671600,
+                    "id" : 44468822,
+                    "text" : "I run Arch on a Radxa X4 and it’s fine, no driver issues even with the WiFi chipset.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1751649051,
+                "id" : 44466208,
+                "text" : "Is linux support as good?",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1751636490,
+            "id" : 44464477,
+            "text" : "Intel N150 + GPIO in credit card size form factor, <a href=\"https:&#x2F;&#x2F;www.cnx-software.com&#x2F;2025&#x2F;06&#x2F;24&#x2F;aaeon-up-twl-and-up-twls-two-credit-card-sized-wide-temperature-twin-lake-sbcs&#x2F;\" rel=\"nofollow\">https:&#x2F;&#x2F;www.cnx-software.com&#x2F;2025&#x2F;06&#x2F;24&#x2F;aaeon-up-twl-and-up-...</a>",
+            "type" : "comment"
+          },
+          {
+            "author" : "Daviey",
+            "children" : [
+              {
+                "author" : "dgacmu",
+                "created_at_i" : 1751637034,
+                "id" : 44464558,
+                "text" : "I&#x27;m not the GP, but for my ads-b decoder, it runs on a Pi Zero 2W, which at the time cost under $15 and draws very little power. It&#x27;s convenient having the computer right next to the antenna to avoid thinking about cables. Runs for a couple days on 100Wh of backup battery.<p>(I personally find a ton of value out of the Pico and the zero, and less out of the main main, higher powered raspberry Pi line)",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1751636541,
+            "id" : 44464486,
+            "text" : "&gt; I wouldn’t replace much of that with an Intel NUC style computer<p>Can you explain why?",
+            "type" : "comment"
+          },
+          {
+            "author" : "ChrisRR",
+            "children" : [
+              {
+                "author" : "firesteelrain",
+                "created_at_i" : 1751644255,
+                "id" : 44465573,
+                "text" : "For the weather imagery one or any ham radio, it has to live outside which RPi is more suited such as RPi 3B",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1751642095,
+            "id" : 44465265,
+            "text" : "&gt; I wouldn’t replace much of that with an Intel NUC style computer<p>Why is that? Because you think the N100 isn&#x27;t capable enough or for some other reason?  Because N100 definitely can outperform a raspberry pi<p>But a pi pico is definitely a totally different thing. I don&#x27;t think anyone here is talking about replacing a microcontroller with a PC",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1751635603,
+        "id" : 44464357,
+        "text" : "Are the two boards even in the same category or class?<p>I use RPi for little hobby projects<p>- RPi Pico for being the payload that flies around the world in a PicoBalloon<p>- Decoding NOAA weather imagery and storing it in my Google Drive<p>- Full time AIS message decoder and tracker<p>- Full time ADS-B and MLAT receiver<p>- Runs my RetroPie setup<p>- Runs my OctoPrint setup<p>I wouldn’t replace much of that with an Intel NUC style computer",
+        "type" : "comment"
+      },
+      {
+        "author" : "AutoAPI",
+        "children" : [
+          {
+            "author" : "giantg2",
+            "created_at_i" : 1751635893,
+            "id" : 44464389,
+            "text" : "Very similar here. I got a beelink a few years about with lower specs than yours and has worked great as a ZoneMinder host after a wiping windows and installing Linux.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1751635749,
+        "id" : 44464376,
+        "text" : "I just purchased a Beelink Mini S13 with 16GB ram and 1TB drive on Amazon for ~$200 to use as a Docker host on my local network and have been very happy with it so far.<p>I immediately wiped it and installed Ubuntu Server. I chose Coolify to manage Docker and local domains, and that took a bit of work to get going, but now I can spin up local services and containers on local domains and play with random stuff",
+        "type" : "comment"
+      },
+      {
+        "author" : "glimshe",
+        "children" : [
+          {
+            "author" : "declan_roberts",
+            "children" : [
+              {
+                "author" : "LtWorf",
+                "created_at_i" : 1751649208,
+                "id" : 44466232,
+                "text" : "I think most people here just do software… which defeats the point of using a rpi.",
+                "type" : "comment"
+              },
+              {
+                "author" : "glimshe",
+                "created_at_i" : 1751669331,
+                "id" : 44468584,
+                "text" : "I do not. I just needed a small computer for miscellaneous jobs, such as file serving and emulation. I think this is the case with most people who buy one.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1751639689,
+            "id" : 44464928,
+            "text" : "Did you not use any of the pi&#x27;s IO?",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1751635774,
+        "id" : 44464379,
+        "text" : "It&#x27;s a no brainer IMHO. I stopped using my Pis after the N100s appeared on the market and have been advocating them since then.<p>I like the idea of using ARM, but the value and convenience simply isn&#x27;t there. The Pi remains great for certain embedded applications, though.",
+        "type" : "comment"
+      },
+      {
+        "author" : "poulpy123",
+        "children" : [
+          {
+            "author" : "PhilipRoman",
+            "children" : [
+              {
+                "author" : "wltr",
+                "children" : [
+                  {
+                    "author" : "mjh2539",
+                    "children" : [
+                      {
+                        "author" : "blipvert",
+                        "created_at_i" : 1751648663,
+                        "id" : 44466149,
+                        "text" : "At Walmart.",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1751636730,
+                    "id" : 44464509,
+                    "text" : "Buy a kill-a-watt wall wart.",
+                    "type" : "comment"
+                  },
+                  {
+                    "author" : "PhilipRoman",
+                    "children" : [
+                      {
+                        "author" : "genewitch",
+                        "children" : [
+                          {
+                            "author" : "geerlingguy",
+                            "created_at_i" : 1751642998,
+                            "id" : 44465379,
+                            "text" : "Matthias Wandel measures power that way: <a href=\"https:&#x2F;&#x2F;www.youtube.com&#x2F;watch?v=P47pjVyPP3w\" rel=\"nofollow\">https:&#x2F;&#x2F;www.youtube.com&#x2F;watch?v=P47pjVyPP3w</a>",
+                            "type" : "comment"
+                          },
+                          {
+                            "author" : "bialpio",
+                            "created_at_i" : 1751644101,
+                            "id" : 44465545,
+                            "text" : "You may be looking for &quot;AC line splitter&quot;.<p>One example: <a href=\"https:&#x2F;&#x2F;www.harborfreight.com&#x2F;15-amp-professional-ac-line-splitter-57716.html\" rel=\"nofollow\">https:&#x2F;&#x2F;www.harborfreight.com&#x2F;15-amp-professional-ac-line-sp...</a><p>Edit: s&#x2F;splicer&#x2F;splitter, damn autocorrect.",
+                            "type" : "comment"
+                          },
+                          {
+                            "author" : "mystified5016",
+                            "created_at_i" : 1751645152,
+                            "id" : 44465688,
+                            "text" : "Yup. They even typically come with separate 1x and 10x loops.<p>They&#x27;re a common pack-in item with low- and high-end clamp meters.",
+                            "type" : "comment"
+                          }
+                        ],
+                        "created_at_i" : 1751640738,
+                        "id" : 44465080,
+                        "text" : "i wonder if there&#x27;s a market for pre-made cables with a &quot;loop&quot; in the hot wire, for using clamp ammeters, or a cable where in addition to the choke ferrule, there&#x27;s another &quot;ferrule&quot; - current transformer - on the hot wire with &quot;test points&quot;, where those test points are to a transformer winding around the hot wire. That way you could just put those cables on things you want to know the power consumption of, rather than having to move a kill-a-watt or whatever.<p>I could make either, but they wouldn&#x27;t be &quot;certified&quot;, as i&#x27;d be either replacing plugs or cutting into the wire itself to add a pigtail.",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1751637080,
+                    "id" : 44464566,
+                    "text" : "I use an electrical outlet meter. It&#x27;s roughly €10, the only annoying thing is everything rebooting each time I want to move it.",
+                    "type" : "comment"
+                  },
+                  {
+                    "author" : "dgacmu",
+                    "children" : [
+                      {
+                        "author" : "mkesper",
+                        "children" : [
+                          {
+                            "author" : "bityard",
+                            "created_at_i" : 1751639690,
+                            "id" : 44464929,
+                            "text" : "A clamp meter does not expose you to any live uninsulated wires unless you are doing it very wrong.<p>(Although they also tend to be not very accurate for low current measurements. So this isn&#x27;t a use case I would recommend them for.)",
+                            "type" : "comment"
+                          },
+                          {
+                            "author" : "scottbez1",
+                            "created_at_i" : 1751640671,
+                            "id" : 44465069,
+                            "text" : "Clamp meters are completely safe. The only risk is if you DIY your power cable so you can clamp one lead, but that&#x27;s not necessary if you just buy an AC line splitter plug. And those often come with the hot looped around so you can get a 10x reading for better fidelity at lower current draw.<p>But these days I just skip the clamp meter and throw Ikea Inspelning zigbee plugs anywhere I want power measurement.",
+                            "type" : "comment"
+                          },
+                          {
+                            "author" : "chaoskitty",
+                            "created_at_i" : 1751669830,
+                            "id" : 44468633,
+                            "text" : "Doing anything can be life threatening. We don&#x27;t need to assume that people who decide to do a thing are the same as you.",
+                            "type" : "comment"
+                          }
+                        ],
+                        "created_at_i" : 1751638172,
+                        "id" : 44464728,
+                        "text" : "This can actually be life threatening if done without proper tools and working fast fuses. So just use a kill-a-watt or any other such tool for safety! NB they&#x27;re maybe not 100% exact but good enough to give an estimate.",
+                        "type" : "comment"
+                      },
+                      {
+                        "author" : "jkortufor",
+                        "children" : [
+                          {
+                            "author" : "vintagedave",
+                            "created_at_i" : 1751667563,
+                            "id" : 44468367,
+                            "text" : "Do you have any names or links? I tried a Temu version a while back and even getting it connected to wifi was hopeless.",
+                            "type" : "comment"
+                          }
+                        ],
+                        "created_at_i" : 1751650847,
+                        "id" : 44466431,
+                        "text" : "There are $10 Chinese kill-a-watts with color display, and live Bluetooth data recording.<p>It&#x27;s fun stating a CPU intensive job and watch the graph spike.",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1751637471,
+                    "id" : 44464637,
+                    "text" : "The easy path, as someone suggested, is a kill-a-watt that you just plug it into.<p>The less intrusive path for some definition of less intrusive is a clamp ammeter if you can expose one of the AC wires (you have to clamp around an individual wire, not both hot and neutral). But then you don&#x27;t need to unplug the system to measure it.<p>The third overkill option is to have it plugged into a full-time power monitoring and control device, such as a zigbee home automation plug switch. ;)",
+                    "type" : "comment"
+                  },
+                  {
+                    "author" : "vladvasiliu",
+                    "children" : [
+                      {
+                        "author" : "venusenvy47",
+                        "children" : [
+                          {
+                            "author" : "daymanstep",
+                            "children" : [
+                              {
+                                "author" : "venusenvy47",
+                                "children" : [
+                                  {
+                                    "author" : "daymanstep",
+                                    "children" : [
+                                      {
+                                        "author" : "venusenvy47",
+                                        "created_at_i" : 1751818482,
+                                        "id" : 44481975,
+                                        "text" : "Yeah, just one.  Here is the service manual: <a href=\"https:&#x2F;&#x2F;www.dell.com&#x2F;support&#x2F;manuals&#x2F;en-us&#x2F;optiplex-7070-sff&#x2F;opti7070_sff_service_manual&#x2F;technology-and-components\" rel=\"nofollow\">https:&#x2F;&#x2F;www.dell.com&#x2F;support&#x2F;manuals&#x2F;en-us&#x2F;optiplex-7070-sff...</a><p>I got a refurbished unit for $180 last year, using this deal (now expired):  <a href=\"https:&#x2F;&#x2F;slickdeals.net&#x2F;f&#x2F;17490348-dell-coupon-50-off-refurbished-dell-optiplex-7070-mff-spf-desktops-from-169-50-free-shipping?p=170995209\" rel=\"nofollow\">https:&#x2F;&#x2F;slickdeals.net&#x2F;f&#x2F;17490348-dell-coupon-50-off-refurbi...</a>",
+                                        "type" : "comment"
+                                      }
+                                    ],
+                                    "created_at_i" : 1751793389,
+                                    "id" : 44479093,
+                                    "text" : "Thank you! The Dell SFF can only hold one 3.5 inch HDD right?",
+                                    "type" : "comment"
+                                  }
+                                ],
+                                "created_at_i" : 1751791268,
+                                "id" : 44478932,
+                                "text" : "SFF",
+                                "type" : "comment"
+                              }
+                            ],
+                            "created_at_i" : 1751670256,
+                            "id" : 44468677,
+                            "text" : "Which form factor? Tower, MT, SFF or Mini?",
+                            "type" : "comment"
+                          }
+                        ],
+                        "created_at_i" : 1751639545,
+                        "id" : 44464906,
+                        "text" : "I can vouch for the power draw in this type of system. I have a Dell OptiPlex 7070 with i5-9500, 32GB and running Proxmox with a Windows VM and a couple smaller instances. I measure 8w idle from my Kill-a-Watt on the system.  I was really surprised at how low it is.",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1751637609,
+                    "id" : 44464653,
+                    "text" : "I have a regular i5-6500 in an HP 800 G2 SFF. It has 32 GB RAM (2x8+16), two Samsung 840 SSDs and a 4-port i350 network card. It Linux as a KVM host with OpnSense and Home Assistant on top.<p>According to some watt-meter I got off Amazon it idles at 14W with the 4 interfaces UP but next to no traffic. I consider it idling when the CPU usage as reported by the host is under 5%.<p>Now the watt-meter isn&#x27;t some top-of-the-line exotic model, just a random Chinese thingy, but it seems to measure close enough to what I expect some other devices to pull.",
+                    "type" : "comment"
+                  },
+                  {
+                    "author" : "znpy",
+                    "created_at_i" : 1751639602,
+                    "id" : 44464914,
+                    "text" : "&gt; How would you guys properly measure that?<p>I&#x27;m using smart plugs that have an open source firmware called tasmota. I can scrape the values using prometheus and can build dashboards with historical data.",
+                    "type" : "comment"
+                  },
+                  {
+                    "author" : "transpute",
+                    "created_at_i" : 1751642248,
+                    "id" : 44465286,
+                    "text" : "USB-c cables with live PD power display can be chained with PD-to-barrel converters for fixed voltage.",
+                    "type" : "comment"
+                  },
+                  {
+                    "author" : "evil-olive",
+                    "created_at_i" : 1751646480,
+                    "id" : 44465859,
+                    "text" : "the author has a previous blog post about his monitoring setup:<p><a href=\"https:&#x2F;&#x2F;www.jeffgeerling.com&#x2F;blog&#x2F;2025&#x2F;how-i-monitor-and-control-all-my-powered-devices-zigbee-ha\" rel=\"nofollow\">https:&#x2F;&#x2F;www.jeffgeerling.com&#x2F;blog&#x2F;2025&#x2F;how-i-monitor-and-con...</a><p>I can recommend those Third Reality outlets as well, I have about a dozen now and they Just Work with my Zigbee dongle (Sonoff ZBDongle-P) and zigbee2mqtt &#x2F; Home Assistant setup. I use Home Assistant&#x27;s Prometheus integration to get the data into VictoriaMetrics, which lets me build Grafana dashboards showing the usage of each plug over time.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1751636602,
+                "id" : 44464491,
+                "text" : "How would you guys properly measure that? I have my suspicion that my Intel processor also quite not too heavy at idling.",
+                "type" : "comment"
+              },
+              {
+                "author" : "poulpy123",
+                "children" : [
+                  {
+                    "author" : "Semaphor",
+                    "created_at_i" : 1751646040,
+                    "id" : 44465807,
+                    "text" : "That sounds wrong, efficient intel chips should be very comparable to pi&#x27;s. Measurements for the futro s740 (j4105 CPU) were [0] around 2-4 W idle when properly configured<p>[0]: <a href=\"https:&#x2F;&#x2F;github.com&#x2F;R3NE07&#x2F;Futro-S740&#x2F;blob&#x2F;main&#x2F;power_consumption.md\">https:&#x2F;&#x2F;github.com&#x2F;R3NE07&#x2F;Futro-S740&#x2F;blob&#x2F;main&#x2F;power_consump...</a>",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1751642938,
+                "id" : 44465372,
+                "text" : "I may misremeber the exact number, but it was high enough compared to a RPI",
+                "type" : "comment"
+              },
+              {
+                "author" : "sidewndr46",
+                "children" : [
+                  {
+                    "author" : "ndriscoll",
+                    "created_at_i" : 1751652254,
+                    "id" : 44466632,
+                    "text" : "The processors themselves all seem to be pretty efficient at idle (there&#x27;s apparently no real reason to get a T processor. It just caps performance). It mostly depends on everything else. The only place I know of to get this kind of info is this thread[0] where people have been building this spreadsheet[1]. Some threads on servethehome.com also report when some pcie cards have broken power management which can destroy idle efficiency.<p>[0] <a href=\"https:&#x2F;&#x2F;www.hardwareluxx.de&#x2F;community&#x2F;threads&#x2F;die-sparsamsten-systeme-30w-idle.1007101&#x2F;\" rel=\"nofollow\">https:&#x2F;&#x2F;www.hardwareluxx.de&#x2F;community&#x2F;threads&#x2F;die-sparsamste...</a><p>[1] <a href=\"https:&#x2F;&#x2F;docs.google.com&#x2F;spreadsheets&#x2F;u&#x2F;0&#x2F;d&#x2F;1LHvT2fRp7I6Hf18LcSzsNnjp10VI-odvwZpQZKv_NCI&#x2F;htmlview\" rel=\"nofollow\">https:&#x2F;&#x2F;docs.google.com&#x2F;spreadsheets&#x2F;u&#x2F;0&#x2F;d&#x2F;1LHvT2fRp7I6Hf18L...</a>",
+                    "type" : "comment"
+                  },
+                  {
+                    "author" : "PhilipRoman",
+                    "children" : [
+                      {
+                        "author" : "daymanstep",
+                        "children" : [
+                          {
+                            "author" : "sidewndr46",
+                            "created_at_i" : 1751722886,
+                            "id" : 44472742,
+                            "text" : "I&#x27;m curious to know the details of this as well. 5 watts is absurdly low for an ATX system. I&#x27;ve definitely seen 25 watts before. Assuming you went from a 75% efficient PSU to a 90% efficient one, that&#x27;d shave off a few more watts but it won&#x27;t get you that low.<p>For perspective, I think the typical NIC consumes several watts of power.",
+                            "type" : "comment"
+                          },
+                          {
+                            "author" : "PhilipRoman",
+                            "children" : [
+                              {
+                                "author" : "sidewndr46",
+                                "children" : [
+                                  {
+                                    "author" : "PhilipRoman",
+                                    "created_at_i" : 1751872541,
+                                    "id" : 44487541,
+                                    "text" : "No, it&#x27;s a mini PC.",
+                                    "type" : "comment"
+                                  }
+                                ],
+                                "created_at_i" : 1751763872,
+                                "id" : 44476878,
+                                "text" : "Wait, so we&#x27;re talking about a laptop?",
+                                "type" : "comment"
+                              }
+                            ],
+                            "created_at_i" : 1751731684,
+                            "id" : 44473671,
+                            "text" : "It&#x27;s a Lenovo 310B motherboard.",
+                            "type" : "comment"
+                          }
+                        ],
+                        "created_at_i" : 1751670068,
+                        "id" : 44468653,
+                        "text" : "Which main board are you using? 5W is very impressive. I&#x27;d be surprised if it was even possible to achieve with an ATX board without some serious tuning.",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1751658538,
+                    "id" : 44467336,
+                    "text" : "Total system power (as in, drawn from the outlet)<p>I didn&#x27;t do any significant customizations, it runs Alpine Linux.\nHere is my powertop output:<p><pre><code>    Summary: 139.6 wakeups&#x2F;second,  0.0 GPU ops&#x2F;seconds, 0.0 VFS ops&#x2F;sec and 0.9% CPU use\n                Usage       Events&#x2F;s    Category       Description\n            100.0%                      Device         Audio codec hwC0D0: Realtek\n            480.6 µs&#x2F;s      38.3        Timer          tick_nohz_handler\n            469.0 µs&#x2F;s      24.6        Timer          hrtimer_wakeup\n            330.0 µs&#x2F;s      23.2        Process        [PID 2121] [irq&#x2F;132-iwlwifi]\n            281.2 µs&#x2F;s      10.1        Process        [PID 3278] containerd --config &#x2F;var&#x2F;run&#x2F;docker&#x2F;containerd&#x2F;containerd.toml\n             28.9 µs&#x2F;s       9.5        kWork          toggle_allocation_gate\n             52.4 µs&#x2F;s       7.5        Timer          inactive_task_timer\n            279.3 µs&#x2F;s       4.6        Process        [PID 3279] containerd --config &#x2F;var&#x2F;run&#x2F;docker&#x2F;containerd&#x2F;containerd.toml\n            363.9 µs&#x2F;s       4.5        Process        [PID 3306] containerd --config &#x2F;var&#x2F;run&#x2F;docker&#x2F;containerd&#x2F;containerd.toml\n</code></pre>\nThe system as a whole spends around 95-97% of time in pc8 state.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1751647374,
+                "id" : 44465978,
+                "text" : "how did you get a 6500T to idle so low? Is that CPU power or total system power? I have a T part from the next generation, I don&#x27;t remember the exact model. It&#x27;s low but it isn&#x27;t that low.",
+                "type" : "comment"
+              },
+              {
+                "author" : "rcarmo",
+                "created_at_i" : 1751648358,
+                "id" : 44466114,
+                "text" : "Depends on what you have active on he board, especially storage that isn’t pushed to an idle state for some reason.",
+                "type" : "comment"
+              },
+              {
+                "author" : "mmgutz",
+                "created_at_i" : 1751648743,
+                "id" : 44466159,
+                "text" : "Can confirm 8-9w idle for my N100 homelab server having 1 NVMe SSD, 1 SATA SSD, 16GB RAM.",
+                "type" : "comment"
+              },
+              {
+                "author" : "windowsrookie",
+                "created_at_i" : 1751654598,
+                "id" : 44466899,
+                "text" : "9W at idle for the N100 is similar to what I get with my N100 based PC. Although under windows it&#x27;s often sitting at 10-12W.<p>I also see lower power consumption with an 8th Gen intel Core system.<p>The small cores that the N100 use are <i>size</i> efficient, but not necessarily <i>power</i> efficient. The N100 chip is just not that efficient power-consumption wise.",
+                "type" : "comment"
+              },
+              {
+                "author" : "fswd",
+                "created_at_i" : 1751654777,
+                "id" : 44466914,
+                "text" : "I am reading this right now on my N100 desktop and it&#x27;s 7W",
+                "type" : "comment"
+              },
+              {
+                "author" : "omgwtfbyobbq",
+                "created_at_i" : 1751655834,
+                "id" : 44467037,
+                "text" : "From what I&#x27;ve read, some N100 systems don&#x27;t support the same c-states as other systems and don&#x27;t idle as low.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1751636239,
+            "id" : 44464442,
+            "text" : "&gt;N100 based computer draw 9W at idle<p>That number seems suspicious. Right now my i5-6500T server is idling at &lt;5W and an N100 is supposed to be even more efficient.",
+            "type" : "comment"
+          },
+          {
+            "author" : "p_ing",
+            "children" : [
+              {
+                "author" : "enronmusk",
+                "children" : [
+                  {
+                    "author" : "p_ing",
+                    "children" : [
+                      {
+                        "author" : "akho",
+                        "created_at_i" : 1751646828,
+                        "id" : 44465907,
+                        "text" : "For the price, you can get four N150, with 36 lanes. It&#x27;s a pointless comparison.",
+                        "type" : "comment"
+                      },
+                      {
+                        "author" : "wokkel",
+                        "created_at_i" : 1751657702,
+                        "id" : 44467247,
+                        "text" : "Use an odroid h4: 2x2.5gbe and a 4*1 m.2 bifurcation card to get 4 nvme drives there. Performance is limited due to ethernet anyway.",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1751641716,
+                    "id" : 44465214,
+                    "text" : "Oh, my bad, I don&#x27;t recall mentioning price in my post. Rather I mentioned a system that has the PCIe lanes to accomidate 2.5G NICs + 4 NVMe drives without compromises.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1751641018,
+                "id" : 44465116,
+                "text" : "That&#x27;s $550 on amazon&#x2F;newegg. It&#x27;s not in the same price range at all.",
+                "type" : "comment"
+              },
+              {
+                "author" : "moondev",
+                "created_at_i" : 1751712424,
+                "id" : 44471762,
+                "text" : "I have several asrockrack mobos and this is the first time I am hearing of asrockind, very interesting and there are a TON of different models here<p>Do any of these asrockind machines have a BMC?<p>I just got a minisforum s100, it&#x27;s 4c8g n100 and POE which is pretty sweet. If only it had Intel vpro or some sort of BMC it would be perfect. I can attach a pikvm but looks like I need to do surgery on it to interface with the power switch. WakeOnLan has been really unreliable in my tests so far.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1751638064,
+            "id" : 44464711,
+            "text" : "If you want something less &quot;risky&quot;, ASRock Industrial has mini PCs which are great. I have an AliExpress N150, fully passive which worked just fine but then I saw the shiny of the Arrow Lake-H platform. Ended up getting a NUC BOX-225H for Opnsense. Way overkill, it&#x27;s great!<p><a href=\"https:&#x2F;&#x2F;www.asrockind.com&#x2F;en-gb&#x2F;industrial-computer-system\" rel=\"nofollow\">https:&#x2F;&#x2F;www.asrockind.com&#x2F;en-gb&#x2F;industrial-computer-system</a><p>The Arrow Lake-H platform can have up to 28 PCIe lanes where as the N150 gets 9. Something to think about if you want dual NIC + plenty of NVMe drives.",
+            "type" : "comment"
+          },
+          {
+            "author" : "znpy",
+            "children" : [
+              {
+                "author" : "poulpy123",
+                "created_at_i" : 1751643364,
+                "id" : 44465445,
+                "text" : "I may misremember the number indeed, but it was definitively not 2W",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1751639502,
+            "id" : 44464904,
+            "text" : "Weird number. I have one of those enterprise mini pc (think EliteDesk pro mini) with an i9 (8c&#x2F;16t), 64gb ram and 1 nvme disk and it idles at ~2W.<p>The measurement was done via a smart plug running tasmota (and the tasmota exporter) so I&#x27;d say it&#x27;s pretty realistic.<p>I also have an HP MicroServer Gen8 with a 20W Xeon cpu (<a href=\"https:&#x2F;&#x2F;www.intel.com&#x2F;content&#x2F;www&#x2F;us&#x2F;en&#x2F;products&#x2F;sku&#x2F;53401&#x2F;intel-xeon-processor-e31220l-3m-cache-2-20-ghz&#x2F;specifications.html\" rel=\"nofollow\">https:&#x2F;&#x2F;www.intel.com&#x2F;content&#x2F;www&#x2F;us&#x2F;en&#x2F;products&#x2F;sku&#x2F;53401&#x2F;i...</a>) and four disks... It also idles at ~21W (again, as reported from tasmota-based smart plugs).",
+            "type" : "comment"
+          },
+          {
+            "author" : "fnord77",
+            "created_at_i" : 1751640205,
+            "id" : 44465004,
+            "text" : "for US viewers, there&#x27;s an N150 16Gb&#x2F;512 that goes on sale on amazon for $130 every few weeks",
+            "type" : "comment"
+          },
+          {
+            "author" : "philjohn",
+            "created_at_i" : 1751672406,
+            "id" : 44468902,
+            "text" : "+1 to the ability to use PCIe cards - a RaidZ2 array of spinning rust will saturate a 1Gb link without breaking a sweat, and with 10Gb SFP+ cards being so cheap it&#x27;s a nice upgrade (although if you care about power then a newer card like the Intel x710)",
+            "type" : "comment"
+          },
+          {
+            "author" : "mlangenberg",
+            "created_at_i" : 1751695833,
+            "id" : 44470454,
+            "text" : "Which 4 port USB HDD dock did you pick? And how did you setup the drives? (MergerFS&#x2F;Snapraid?)",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1751635876,
+        "id" : 44464387,
+        "text" : "This year I built a NAS . My focus was to optimize the price not the power, so I planned to go with a raspberry 5 or a raxda 5c because of their lower consumption. For what I gathered a RPI 5 and similar draw 3W idle and 12W at full power and a N100 based computer draw 9W at idle and 24W at full power (approximately of course).<p>But then I looked at the power consumption of the consumer grade HDD disks.  4 disks would add between 10 and 14W at idle and  between 16 and 20W in operation, and suddenly the advantage of the arm based computers in power consumption is less striking.<p>Moreover you can find on AliExpress N100 mini-pc for 120€ with 16gb  RAM and 512gb SSD. Aliexpress is risky but it was much less than the RPI5 with 16GB RAM or just a bit more than the raxda 5C 16GB , both without drive, case and power supply. And the raxda 5C would have been also bought in AliExpress so no almost as risky as my N100.<p>At the end, for cheaper to buy and not too much more expensive in power consumption I went with the mini-pc. I lost the possibility to use extension cards, especially the one that allows to connect up to 5 HDD, but a 4 port USB HDD dock proved sufficient for my needs.",
+        "type" : "comment"
+      },
+      {
+        "author" : "nacnud",
+        "children" : [
+          {
+            "author" : "taneliv",
+            "children" : [
+              {
+                "author" : "degrees57",
+                "created_at_i" : 1751644703,
+                "id" : 44465633,
+                "text" : "My brother went looking for an N100 with the quietest fan, and gave it to me for Christmas two years ago.  It has been an excellent little desktop with no discernable noise that I can tell.  Morefine M8S, fwiw.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1751636198,
+            "id" : 44464437,
+            "text" : "N150 by itself doesn&#x27;t generate any noise, but the cooling fans probably will. There are some fanless N150 solutions that are perhaps of interest? Though they are likely at a higher price point. I&#x27;m too lazy to copy and paste a link here, but search for &quot;fanless N150&quot; for some references.",
+            "type" : "comment"
+          },
+          {
+            "author" : "rcarmo",
+            "created_at_i" : 1751648638,
+            "id" : 44466146,
+            "text" : "The N150 is only really useful with active cooling or a chunk of metal bolted to it, and most manufacturers will pick the cheapest possible fan, so yes, there will be some noise.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1751635900,
+        "id" : 44464391,
+        "text" : "Fan noise might be another consideration, given that some projects have to share a home with a family.  Anyone know whether the N150 makes much noise?",
+        "type" : "comment"
+      },
+      {
+        "author" : "ijustlovemath",
+        "created_at_i" : 1751636097,
+        "id" : 44464418,
+        "text" : "My steam deck has superceded my rpi for this kind of stuff. Probably not as power efficient but I live in the South and use A&#x2F;C and hot water so I feel like those are far bigger spends of electricity",
+        "type" : "comment"
+      },
+      {
+        "author" : "user_7832",
+        "children" : [
+          {
+            "author" : "p_ing",
+            "children" : [
+              {
+                "author" : "user_7832",
+                "created_at_i" : 1751726696,
+                "id" : 44473132,
+                "text" : "That&#x27;s more than sufficient for me fortunately, I only need a few lanes of pcie. This isn&#x27;t a plex server with 1gps transcode, it&#x27;s probably closer to 50 or 100mbps as it&#x27;ll only be documents and photos, not videos.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1751638991,
+            "id" : 44464832,
+            "text" : "N150 only supports 9 PCIe lanes.<p><a href=\"https:&#x2F;&#x2F;www.intel.com&#x2F;content&#x2F;www&#x2F;us&#x2F;en&#x2F;products&#x2F;sku&#x2F;241636&#x2F;intel-processor-n150-6m-cache-up-to-3-60-ghz&#x2F;specifications.html\" rel=\"nofollow\">https:&#x2F;&#x2F;www.intel.com&#x2F;content&#x2F;www&#x2F;us&#x2F;en&#x2F;products&#x2F;sku&#x2F;241636&#x2F;...</a>",
+            "type" : "comment"
+          },
+          {
+            "author" : "kjkjadksj",
+            "children" : [
+              {
+                "author" : "user_7832",
+                "created_at_i" : 1751726934,
+                "id" : 44473156,
+                "text" : "Thanks, that&#x27;s an interesting product I didn&#x27;t know existed. Unfortunately it&#x27;s a fair bit too big for my use case, but I&#x27;ll keep it in mind for a home server build in the future.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1751647460,
+            "id" : 44465991,
+            "text" : "If you search n100 nas board you should find some interesting stuff. Boards with 6 sata already crammed in. Potentially more if you use an m2 to sata adapter.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1751636298,
+        "id" : 44464447,
+        "text" : "Slightly tangential, does anyone know of a decent n100&#x2F;150 board that&#x27;s not super expensive, has enough pcie for at least 2 ssds, and is available ideally in India or the EU?<p>The vast majority of mini PC&#x27;s with these processors don&#x27;t have pcie. The lattepanda mu is the closest product I&#x27;ve found so far.<p>All I want to do is run a server with 2 disks, but it seems weirdly tough. (Ideally a small physical footprint server but I can compromise on that a bit.)",
+        "type" : "comment"
+      },
+      {
+        "author" : "Damogran6",
+        "created_at_i" : 1751636500,
+        "id" : 44464479,
+        "text" : "I used RPi&#x27;s for years for little stuff like DNS and file sharing and when I b it the bullet and got a surplus DELL SFF office PC things just started working a little bit better.<p>yeah, docker images and the like are supposed to be platform intependent, but there&#x27;s &#x27;supposed to&#x27; and &#x27;is&#x27;<p>Running Ubuntu (and later Proxmox) on it just worked a tad bit better. I was into it for about $160 (purchased from Microcenter)",
+        "type" : "comment"
+      },
+      {
+        "author" : "varispeed",
+        "created_at_i" : 1751637258,
+        "id" : 44464602,
+        "text" : "I got RPi 5. Wanted to create a little server for my files, source code repository etc. I bought it with NVMe hat. Gone through 3 1TB drives that supposed to be compatible with it. Unfortunately none of it was stable. \nFile system would have weird errors, but on top of that networking would go out after few hours or days and RPi would need a hard reboot.<p>I just threw the RPi into the drawer and bought N100. Installed WSL on Windows 11 and everything just works. It&#x27;s been up for almost a year now, not a single reboot or network problem.",
+        "type" : "comment"
+      },
+      {
+        "author" : "whywhywhywhy",
+        "children" : [
+          {
+            "author" : "sigmoid10",
+            "children" : [
+              {
+                "author" : "FirmwareBurner",
+                "children" : [
+                  {
+                    "author" : "Nextgrid",
+                    "children" : [
+                      {
+                        "author" : "theshrike79",
+                        "created_at_i" : 1751671040,
+                        "id" : 44468764,
+                        "text" : "There were some NRF boards with Wifi IIRC, but Raspi just worked and you could just use Python to do whatever you needed with GPIO instead of messing about with the kinda-sorta C but not quite.",
+                        "type" : "comment"
+                      },
+                      {
+                        "author" : "renw0rp",
+                        "created_at_i" : 1751671282,
+                        "id" : 44468795,
+                        "text" : "Raspberry pi didn&#x27;t have built in WiFi until raspberry pi 3 in 2016 (of course you could use a usb adapter). I think around similar time esp 8266 (cheap microcontroller with WiFi) started becoming popular",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1751665935,
+                    "id" : 44468127,
+                    "text" : "&gt; tou can blink LEDs with an 5$ Arduino&#x2F;ESP32 too.<p>At the time the RPi came out I don&#x27;t believe Wi-Fi-enabled microcontrollers were a thing or were as widespread. RPi was the OG low-cost, popular Wi-Fi &quot;microcontroller&quot;.<p>You are right that nowadays a lot of that can easily be done on an ESP32.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1751650886,
+                "id" : 44466441,
+                "text" : "<i>&gt;I remember a time when you could get a semi-top-of-the-line raspberry model for under 30 bucks.</i><p>You still can, but its performance will be dog-slow at PC&#x2F;web&#x2F;server tasks compared to an Intel NUC off the used market.<p>That&#x27;s why most people who bough those RPis had them collecting dust after a few weeks since you can blink LEDs with an 5$ Arduino&#x2F;ESP32 too.",
+                "type" : "comment"
+              },
+              {
+                "author" : "cyanydeez",
+                "created_at_i" : 1751733126,
+                "id" : 44473816,
+                "text" : "Eh, i thinl they just  changed their business model from hobbyist centric to industrial. Which slows the advancements because industry wants stability and longevity.<p>Im about to deploy pis in locations that use dumb 1200$ PLCs and esoteric ladder programs requiring technicians who know nothing about the logic of the system.<p>With Pi, we eradicate that artifice and allow self service and ease of upgrades.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1751638849,
+            "id" : 44464810,
+            "text" : "To be fair it wasn&#x27;t always like that. I remember a time when you could get a semi-top-of-the-line raspberry model for under 30 bucks. That was peak hobbyist time for me and I still have many of those lying around, but I haven&#x27;t bought a new one for a long time now. First they went through some weird feature creep, then the pandemic hit with supply chain issues, then inflation, then the IPO... It&#x27;s nice that the founders got to make bank with something that has immeasurable value for letting  people discover modern tech, but somewhere along the line they got completely lost. Looking at the N100 I feel like building something again for the first time in years. It&#x27;s not as pure as it was back then, but damn it is useful.",
+            "type" : "comment"
+          },
+          {
+            "author" : "comboy",
+            "children" : [
+              {
+                "author" : "geerlingguy",
+                "children" : [
+                  {
+                    "author" : "edoceo",
+                    "created_at_i" : 1751645786,
+                    "id" : 44465776,
+                    "text" : "Ethernet w&#x2F;POE",
+                    "type" : "comment"
+                  },
+                  {
+                    "author" : "ZenoArrow",
+                    "created_at_i" : 1751666988,
+                    "id" : 44468286,
+                    "text" : "&gt; I wish they made a Pi Zero 2 non-W with an Ethernet port, for $15; that would be the perfect little &#x27;more than microcontroller&#x27; endpoint for a lot of things.<p>It&#x27;s not a Raspberry Pi, but this Radxa board is more powerful than a Pi Zero 2 and has the form factor you&#x27;re looking for. Price isn&#x27;t that bad either (around $25 for the cheapest model).<p><a href=\"https:&#x2F;&#x2F;radxa.com&#x2F;products&#x2F;zeros&#x2F;zero3e&#x2F;\" rel=\"nofollow\">https:&#x2F;&#x2F;radxa.com&#x2F;products&#x2F;zeros&#x2F;zero3e&#x2F;</a>",
+                    "type" : "comment"
+                  },
+                  {
+                    "author" : "wltr",
+                    "created_at_i" : 1751696925,
+                    "id" : 44470516,
+                    "text" : "There’s Orange Pi Zero, they are pretty good. I have the very first version from circa 2016, and I like it. The only thing I’d change is to move from 32 bit to 64. But IIRC their very next version is 64 bit. And as of today there are three or four versions. All of which are pretty cheap.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1751639738,
+                "id" : 44464937,
+                "text" : "Yeah; honestly if you&#x27;re going to integrate I2C&#x2F;UART&#x2F;SPI, cellular, serial bus stuff, PoE, or anything like that into a project, the Pi (4&#x2F;5) makes that simple, and almost always painless.<p>Having well-supported GPIO and documented interfaces is nice, when you want to do anything outside normal &#x27;compute&#x27; use cases.<p>The Pi 4 is still a great option for throwing into random spots for $35 and burning 1-2W of power. The Pi 5 less so, in that common homelab use case.<p>I wish they made a Pi Zero 2 non-W with an Ethernet port, for $15; that would be the perfect little &#x27;more than microcontroller&#x27; endpoint for a lot of things.",
+                "type" : "comment"
+              },
+              {
+                "author" : "bigfatkitten",
+                "created_at_i" : 1751706000,
+                "id" : 44471220,
+                "text" : "The ecosystem (and in the early days, price) is about the only thing they’ve ever had going for them.<p>They’ve otherwise always been mediocre boards in pretty much every respect. Slow, relatively power hungry, and powered by a set top box SOC that is NDAed out the wazoo.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1751639399,
+            "id" : 44464889,
+            "text" : "There was maybe a short period of time when RPi offered a decent compute for money if ever. But all of that time it&#x27;s about the ecosystem and simply being the most popular platform. Any hardware library, you take it and you know somebody tested it on this exact hardware with the same operating system. When doing hardware stuff it can be really painful to debug. You don&#x27;t want to also be wondering if maybe some pin is handled differently on your box than RPi etc.",
+            "type" : "comment"
+          },
+          {
+            "author" : "venusenvy47",
+            "children" : [
+              {
+                "author" : "freedomben",
+                "created_at_i" : 1751662161,
+                "id" : 44467783,
+                "text" : "This is a very underrated feature of x86&#x2F;64 platforms.  All these ARM boards sound (and can be) so fun, but the level of polish leaves much to be desired when you&#x27;re tired of tinkering and want the project to be done.",
+                "type" : "comment"
+              },
+              {
+                "author" : "mrbluecoat",
+                "created_at_i" : 1751667935,
+                "id" : 44468416,
+                "text" : "Agreed. I spent years begging Linux to boot on Banana Pi&#x27;s and their cousins.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1751640126,
+            "id" : 44464997,
+            "text" : "I found that the mini PCs with the N100 are much more convenient because I don&#x27;t have to deal with custom OS or packages.  I&#x27;m not a developer, and wanted the easiest method to get a Linux server running.  After struggling with the limitations of the custom builds required for an SBC, I found it so refreshing to be able to install the general Linux distros available for the x86&#x2F;x64 platforms.",
+            "type" : "comment"
+          },
+          {
+            "author" : "harshitaneja",
+            "created_at_i" : 1751644911,
+            "id" : 44465661,
+            "text" : "RPi is a good option if one has less RAM requirements especially if you take into account the quality of the drivers and software support in general.<p>RPi can be a compelling option if you need lower power draw. It does take some effort to squeeze out power efficiency but if the requirement can&#x27;t be handled by a microcontroller then it is the most convenient of-the-shelf option.<p>For everything, RPi isn&#x27;t a very compelling option. Even for GPIO, during RPi shortage I started experimenting with just using STM32 dev boards connected via USB to a NUC or an old PC and it worked well. But I just prefer to use ESP8266 or ESP32 for those tasks most of the time. Bandwidth and latency of USB communication&#x2F;wifi to the main device has been low enough for it not to be a concern for me and I recon outside of very specific robotics cases it won&#x27;t be for most.<p>CSI port is quite nice though and not many great alternatives.",
+            "type" : "comment"
+          },
+          {
+            "author" : "tw04",
+            "children" : [
+              {
+                "author" : "chasd00",
+                "created_at_i" : 1751648690,
+                "id" : 44466153,
+                "text" : "man, i couldn&#x27;t hit the upvote button hard enough. That is a very cool breakout, thank you for the link. I&#x27;m already thinkking about that breakout connected to the 16 channel PWM breakout I already have. Now i can play around with servos, and many other things, right from my laptop with all my usual build tools instead of having to power up my pi zero and connect over ssh first. I love Adafruit, they do so many cool things.",
+                "type" : "comment"
+              },
+              {
+                "author" : "puzzlingcaptcha",
+                "created_at_i" : 1751663395,
+                "id" : 44467907,
+                "text" : "If you can do without SPI there&#x27;s also <a href=\"https:&#x2F;&#x2F;www.adafruit.com&#x2F;product&#x2F;4471\" rel=\"nofollow\">https:&#x2F;&#x2F;www.adafruit.com&#x2F;product&#x2F;4471</a>\nYou can also just get the chip (MCP2221A) in a DIP package and just pluck it in a breadboard. All you need is two bypass caps and two pullup resistors if you need I2C.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1751647292,
+            "id" : 44465968,
+            "text" : "Depending on what you’re doing, even for gpio. Just use a USB gpio board.<p><a href=\"https:&#x2F;&#x2F;www.adafruit.com&#x2F;product&#x2F;2264\" rel=\"nofollow\">https:&#x2F;&#x2F;www.adafruit.com&#x2F;product&#x2F;2264</a>",
+            "type" : "comment"
+          },
+          {
+            "author" : "mrheosuper",
+            "created_at_i" : 1751652051,
+            "id" : 44466599,
+            "text" : "it&#x27;s the raspberry that becomes bad in value. I feel like their price has never recovered since the hardware shortage during covid.",
+            "type" : "comment"
+          },
+          {
+            "author" : "jon_adler",
+            "created_at_i" : 1751655200,
+            "id" : 44466967,
+            "text" : "It is also possible to get the best of both worlds. The ODYSSEY features both a Celeron J4125 and RP2040 co-processor. I have an older model and find this combination very handy. I run Proxmox on it and it works very well.<p><a href=\"https:&#x2F;&#x2F;www.seeedstudio.com&#x2F;ODYSSEY-X86J4125800-v2-p-5531.html\" rel=\"nofollow\">https:&#x2F;&#x2F;www.seeedstudio.com&#x2F;ODYSSEY-X86J4125800-v2-p-5531.ht...</a>",
+            "type" : "comment"
+          },
+          {
+            "author" : "wingworks",
+            "children" : [
+              {
+                "author" : "wltr",
+                "children" : [
+                  {
+                    "author" : "wingworks",
+                    "children" : [
+                      {
+                        "author" : "wltr",
+                        "created_at_i" : 1751710827,
+                        "id" : 44471625,
+                        "text" : "Thanks for your bits of research!",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1751700247,
+                    "id" : 44470753,
+                    "text" : "Looking at some old photos from 2018 on idle it takes around 7.7-15W, don&#x27;t recall what I had running on it at the time. Probably Plex.<p>Not sure on remote turn on. I&#x27;ve got it on a UPS which usually holds it over any short power cuts. I don&#x27;t think it auto powers on after extended power cut, but I&#x27;ve also not looked into if it&#x27;s possible to enable.<p>Edit, looks like you can enable auto boot:\n<a href=\"https:&#x2F;&#x2F;www.reddit.com&#x2F;r&#x2F;Proxmox&#x2F;comments&#x2F;vf8cv4&#x2F;mac_mini_autoboot_after_power_failure&#x2F;\" rel=\"nofollow\">https:&#x2F;&#x2F;www.reddit.com&#x2F;r&#x2F;Proxmox&#x2F;comments&#x2F;vf8cv4&#x2F;mac_mini_au...</a><p>Also, according to this <a href=\"https:&#x2F;&#x2F;wiki.debian.org&#x2F;WakeOnLan\" rel=\"nofollow\">https:&#x2F;&#x2F;wiki.debian.org&#x2F;WakeOnLan</a>, I checked my Mac, and both Supports Wake-on and Wake-on was &quot;g&quot;, so in theory, WoL should work too.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1751697280,
+                "id" : 44470548,
+                "text" : "Hey, I thought of getting the same machine recently! What’s the power consumption? And what about things like remote turn on? I have a beefy server that doesn’t work 24&#x2F;7, but when I need it, I wake-on-LAN it from a Raspberry Pi. What about something similar with Mac minis? And what about power loss, will it turn on back again? I value that a lot from these SBCs.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1751659833,
+            "id" : 44467502,
+            "text" : "I got an old Mac mini 2014 like 5 years ago, 2nd hand, installed Debian on it, and after the first few days smoothing out bugs, it&#x27;s worked rock solid since.\nOn 24&#x2F;7.\nNever heard the fan ever spin up either. Not sure if that&#x27;s just broken in Debian or the fan just doesn&#x27;t speed up unless really hot. But either way, seems to not effected it thus far.<p>I mostly went this route vs Pi because I didn&#x27;t want the pain of working with ARM. x86 &quot;just works&quot; with 99% of things. Where are a lot of cases with ARM you end up compiling code just to do what you&#x27;re after. Anything off the popular apps.<p>Things are better now, but still a risk.",
+            "type" : "comment"
+          },
+          {
+            "author" : "astrostl",
+            "created_at_i" : 1751661898,
+            "id" : 44467753,
+            "text" : "I got so dang sick of SD and enclosure fan failures on rPis. Adore my $159-in-2024 Beelink S12 (N100&#x2F;16GB&#x2F;512GB).",
+            "type" : "comment"
+          },
+          {
+            "author" : "chrisfosterelli",
+            "created_at_i" : 1751666950,
+            "id" : 44468280,
+            "text" : "Agreed. Especially for a home media server, an underrated element not mentioned in the article is that something like the N150 is going to have intel quicksync for hardware transcoding, and the pi is going to be stuck with software implementations if it needs to transcode something which is going to make a big difference in streaming media performance.",
+            "type" : "comment"
+          },
+          {
+            "author" : "Mars008",
+            "created_at_i" : 1751694895,
+            "id" : 44470374,
+            "text" : "N100 more than enough for non-gaming desktop. It can play 8k 24fps 50MB&#x2F;s x265 video smoothly. Which is impressive because 2080 RTX cannot.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1751637795,
+        "id" : 44464674,
+        "text" : "It&#x27;s genuinely crazy how much better value an N100 is and how much better it works out of the box than a Pi for anything that is a little server, plex&#x2F;jellyfin, self hosting project that doesn&#x27;t need to talk to electronics&#x2F;GPIO.<p>Caveat being about my comment is my N100 us used mostly as a Jellyfin server&#x2F;torrent downloader running windows but has two SSDs inside it and has worked flawlessly for 2 years. Not sure how well it performs under Linux but I&#x27;ve used Pi&#x27;s a lot previously and this beats it in terms of getting the job done and in price for a similar Pi setup.",
+        "type" : "comment"
+      },
+      {
+        "author" : "dingi",
+        "created_at_i" : 1751638265,
+        "id" : 44464735,
+        "text" : "This is not even a question if you don&#x27;t need GPIO. N100&#x2F;N150 brings so much value for money in almost any metric compared to RPi.",
+        "type" : "comment"
+      },
+      {
+        "author" : "stego-tech",
+        "created_at_i" : 1751638393,
+        "id" : 44464753,
+        "text" : "I’d been a staunch supporter of RPi nodes for homelab work for a decade (and don’t get me wrong, I still love ‘em), but the various N100 miniPCs have been a pleasant little game changer. Got two for $130 each fully loaded (N00&#x2F;16GB RAM&#x2F;512GB SSD), slapped a 1TB SATA 2.5” SSD inside, threw Proxmox on them and voila, I have a highly efficient homelab that hosts my Plex server.<p>That said, there’s three reasons I got them versus a RPi5:<p>* Built-in RTC with battery (no more post-power outage downtime)<p>* iGPU with video acceleration (for Plex&#x2F;Jellyfin transcoding)<p>* PRICE (seriously, a comparably outfitted RPi5 would be twice the price of these things!)<p>Intel has a little sleeper hit here, if they can get out of their own way on pricing and marketing it. At sub-$150 versus a RPi5, it’s a no-brainer if you don’t need GPIO support.",
+        "type" : "comment"
+      },
+      {
+        "author" : "ndsipa_pomu",
+        "children" : [
+          {
+            "author" : "enronmusk",
+            "children" : [
+              {
+                "author" : "ndsipa_pomu",
+                "children" : [
+                  {
+                    "author" : "enronmusk",
+                    "created_at_i" : 1751643853,
+                    "id" : 44465516,
+                    "text" : "Makes sense, thanks for clarifying!",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1751643283,
+                "id" : 44465422,
+                "text" : "A ThinkPad is a different form factor. The MiniBookX is a 10.5inch lightweight (just under 1kg) machine with a 360 degree hinge (not that I ever use it like that). I&#x27;ve got a recent ThinkPad (running Linux) provided by my work, but it&#x27;s a bit chunkier and not so good for holidaying.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1751641444,
+            "id" : 44465182,
+            "text" : "That appears to cost $352. Wouldn&#x27;t it be much better to get a used ThinkPad for that amount of money? The ThinkPad would have better build quality and a more powerful processor.",
+            "type" : "comment"
+          },
+          {
+            "author" : "leakycap",
+            "created_at_i" : 1751726494,
+            "id" : 44473105,
+            "text" : "I&#x27;ve been searching for something like this to replace the lightweight convenience of my Asus c100p running debian.<p>Thank you for commenting, I was thinking there was nothing this small and light anymore!",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1751638536,
+        "id" : 44464774,
+        "text" : "Currently on holiday and browsing on a Chuwi MinibookX N150 model. Comes with Windows 11, but I quickly set it up to dual-boot Ubuntu 25.04. There were a couple of tweaks needed to rotate the display properly (except for GRUB which doesn&#x27;t seem possible) and get the orientation sensor to work, but otherwise I&#x27;m very impressed with it.",
+        "type" : "comment"
+      },
+      {
+        "author" : "o11c",
+        "created_at_i" : 1751639312,
+        "id" : 44464873,
+        "text" : "Hmm, given the performance-vs-efficiency tradeoff, I wonder what the efficiency of the NUC is if the Intel CPU is throttled to ~equivalent performance?<p>`cpufreq-set` has been a lifesaver for me on hardware with poor fans, but it&#x27;s also useful for benchmarking.",
+        "type" : "comment"
+      },
+      {
+        "author" : "tensility",
+        "children" : [
+          {
+            "author" : "tensility",
+            "created_at_i" : 1751664812,
+            "id" : 44468031,
+            "text" : "Of course, something like the mini-NAS that Geerling describes in the following article IS a great fit for an N1x0 machine. These are really all just a spectrum of tools we have available, many of which are better fit than others for particular niches. A NAS seems like a perfect fit for N1x0.  So, yeah, my initial response was dumb, but so is dismissing the RPi simply because you&#x27;re trying to apply it to the wrong kinds of use cases.<p>&lt;<a href=\"https:&#x2F;&#x2F;www.jeffgeerling.com&#x2F;blog&#x2F;2025&#x2F;mini-nases-marry-nvme-intels-efficient-chip\" rel=\"nofollow\">https:&#x2F;&#x2F;www.jeffgeerling.com&#x2F;blog&#x2F;2025&#x2F;mini-nases-marry-nvme...</a>&gt;",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1751639682,
+        "id" : 44464926,
+        "text" : "The thing is, I don&#x27;t use a RPi for desktop-like experiences, so I don&#x27;t want all of the accessories you&#x27;ve padded the price with just to have a cheap unix node somewhere that I need a small amount of compute or, especially, physical presence.  For a desktop UI experience, I have and prefer much better machines to drive full desktop UIs than either a Pi or an N1x0.  For that, I use one of my Macs.<p>Of course, I already know we don&#x27;t have similar needs or desires for a desktop experience, because I haven&#x27;t found a good reason to run Windows for a couple of decades (since I&#x27;m not a PC gamer type and that seems to be the primary interesting reason left for running it), other than to occasionally boot up the newest version and try it out to see if I&#x27;m actually missing much.<p>Also, for servers that get real load, I&#x27;d often rather run them from (unix-based) containers in the cloud anyway, if only for maintainability&#x27;s sake.  Heck, I already have NUCs depreciating out in storage that I don&#x27;t bother to use because a RPi is usually a more solid and energy-efficient choice, unless I want a decent desktop experience or need a high-load server, for which purposes an N1x0 isn&#x27;t usually the machine I want or need, either.<p>Now, that said, if you do want a cheap minimal desktop experience machine and you don&#x27;t mind or even want the Windows experience, I suppose a used N1x0 probably is a great choice.<p>¯\\_(ツ)_&#x2F;¯",
+        "type" : "comment"
+      },
+      {
+        "author" : "steelbrain",
+        "children" : [
+          {
+            "author" : "geerlingguy",
+            "created_at_i" : 1751639827,
+            "id" : 44464955,
+            "text" : "Heh, guess what site I took as inspiration for the layout?<p>(And honestly, I can&#x27;t imagine having a blog without comments — probably the majority of my blog posts are made better by the discussion underneath.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1751639719,
+        "id" : 44464932,
+        "text" : "Unrelated to the contents of the article, but I really like how the layout of the blog&#x27;s comments is very similar to that of HN. Functional. Minimalistic.",
+        "type" : "comment"
+      },
+      {
+        "author" : "zamadatix",
+        "children" : [
+          {
+            "author" : "nullc",
+            "created_at_i" : 1751652098,
+            "id" : 44466607,
+            "text" : "Yeah, in particular, what happens when you install the same amount of ram in both and downclock the N150 to match the rpi performance?<p>It&#x27;s a bit of an odd comparison though because I don&#x27;t think that rpi5 is particularly power efficient among small linux capable SBCs.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1751639979,
+        "id" : 44464983,
+        "text" : "Is the N150 really 0.59 W&#x2F;flop less efficient than the BCM2712, does the N150 just allow you to reach a higher peak performance if you don&#x27;t care about efficiency, or is the N150 truely already limited to its optimal perf&#x2F;watt? We can&#x27;t actually tell because the article only compared a 35.169 Gflops workload to a 62.067 Gflops workload.<p>I.e. how efficient the boxes running the same amount of work per second, not how efficient are the boxes when you max them out to different maxes. On the surface using Gflops&#x2F;W feels like it should normalize that until you consider perf&#x2F;Watt is almost never linear so you&#x27;re left comparing apples to oranges in the chart.",
+        "type" : "comment"
+      },
+      {
+        "author" : "jekwoooooe",
+        "created_at_i" : 1751640052,
+        "id" : 44464990,
+        "text" : "Raspberry pi is fairly overpriced and doesn’t make sense unless you want to spend exactly 50$ for some reason<p>If you need gpio, you can probably get away with an esp32<p>If you want a server, n100 based computer will be better",
+        "type" : "comment"
+      },
+      {
+        "author" : "hollerith",
+        "created_at_i" : 1751640528,
+        "id" : 44465052,
+        "text" : "I am writing these words on an N100.<p>I wanted a cheap PC small enough to store easily at my girlfriend&#x27;s house without a fan, i.e., without the <i>noises</i> that non-Apple non-Noctua fans tend to make as they get old.<p>(I looked for a Core i3-N305 or an N200, but could not find either in a fanless mini PC.)<p>Am very happy with my purchase.",
+        "type" : "comment"
+      },
+      {
+        "author" : "diggernet",
+        "children" : [
+          {
+            "author" : "m101",
+            "children" : [
+              {
+                "author" : "diggernet",
+                "created_at_i" : 1751646197,
+                "id" : 44465829,
+                "text" : "That is one big reason, yes, but not the only one. I prefer hardware where I can install the OS I choose, and to avoid Amazon gadgets.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1751642011,
+            "id" : 44465251,
+            "text" : "Is the only reason not to use a firestick for kodi local file storage?",
+            "type" : "comment"
+          },
+          {
+            "author" : "geerlingguy",
+            "children" : [
+              {
+                "author" : "diggernet",
+                "created_at_i" : 1751646767,
+                "id" : 44465896,
+                "text" : "Yep, those are pretty nice. It&#x27;s on&#x2F;off that&#x27;s really hard to find. Discrete on, specifically, since with Flirc you can handle off in software.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1751643349,
+            "id" : 44465439,
+            "text" : "Not sure about power on&#x2F;off—you&#x27;d have to hack together a solution for that separately, but I&#x27;ve had good luck with an IR dongle like the Flirc USB: <a href=\"https:&#x2F;&#x2F;flirc.tv&#x2F;products&#x2F;flirc-usb-receiver\" rel=\"nofollow\">https:&#x2F;&#x2F;flirc.tv&#x2F;products&#x2F;flirc-usb-receiver</a>",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1751641922,
+        "id" : 44465241,
+        "text" : "I&#x27;ve been thinking about replacing an RPi4 running Kodi, and N100&#x2F;N150 seems with looking at. But one requirement is support for remote control support, including power on and off (preferably with discrete on&#x2F;off commands). Anyone have suggestions?",
+        "type" : "comment"
+      },
+      {
+        "author" : "brcmthrowaway",
+        "children" : [
+          {
+            "author" : "gmiller123456",
+            "created_at_i" : 1751644399,
+            "id" : 44465590,
+            "text" : "Get an esp32 board for $3 and plug it in.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1751642833,
+        "id" : 44465358,
+        "text" : "How do I toggle a GPIO on the N100?",
+        "type" : "comment"
+      },
+      {
+        "author" : "lossolo",
+        "created_at_i" : 1751643458,
+        "id" : 44465460,
+        "text" : "I&#x27;m in the process of buying and evaluating mini-PCs to replace my Pi 4. Right now, I&#x27;m trying out the Minix Z100-0dB, which is a fanless N100 system. It&#x27;s great—around 6W idle, with zero coil whine or any other noise.<p>I also got a Geekom A5 with an AMD Ryzen 7430U, which is a 15W TDP CPU that&#x27;s about 3x faster than the N100. It&#x27;s crazy, because even though it has a fan, it idles at just 4W! (That&#x27;s with an additional 2.5&quot; SSD connected via SATA, plus the standard 2 x 8GB DDR4 and 512GB NVMe that came in the box.) I mean, it scores around 15,000 on CPU Benchmark, compared to the N100&#x27;s 5,000. And the Pi is way below both of them.",
+        "type" : "comment"
+      },
+      {
+        "author" : "Venn1",
+        "children" : [
+          {
+            "author" : "reactordev",
+            "children" : [
+              {
+                "author" : "andrewmcwatters",
+                "children" : [
+                  {
+                    "author" : "reactordev",
+                    "created_at_i" : 1751647958,
+                    "id" : 44466058,
+                    "text" : "I love my Beelink mini PCs but there’s a use case for going raspberry pi and that’s power draw. Way easier to build a system that’s solar or battery powered.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1751646557,
+                "id" : 44465876,
+                "text" : "The Raspberry Pi ecosystem makes the device worthless as soon as you factor in commodity parts that have been marked up far beyond their generic counterparts. And then worst, all of the vendors selling generics targeting Raspberry Pi devices mark those up too, so it&#x27;s wash. You&#x27;re better off buying the official accessories because there&#x27;s no benefit to buying the generics to save money.<p>After everything is accounted for, if you don&#x27;t need access to GPIO, Intel chips and all their related hardware are a better value.<p>So Raspberry Pi beyond the model 4 isn&#x27;t competitive anymore unless you factor in this specific requirement.",
+                "type" : "comment"
+              },
+              {
+                "author" : "blarg1",
+                "children" : [
+                  {
+                    "author" : "reactordev",
+                    "children" : [
+                      {
+                        "author" : "wingworks",
+                        "children" : [
+                          {
+                            "author" : "reactordev",
+                            "children" : [
+                              {
+                                "author" : "smus",
+                                "created_at_i" : 1751740944,
+                                "id" : 44474648,
+                                "text" : "The point is this is a problem you have on ARM. Your choices are select ARM, have this problem, or didn&#x27;t select ARM and don&#x27;t have this problem.",
+                                "type" : "comment"
+                              }
+                            ],
+                            "created_at_i" : 1751661301,
+                            "id" : 44467675,
+                            "text" : "Build chain problem, not an ARM one. That said, this is THE WORST problem. Having to recompile all dependencies to a platform target just so your own Makefile will build.<p>I feel like distros have an obligation to cross compile all packages for x86 and arm in their own build chains. That’s ultimately where this problem lies. You can’t <i>apt install</i> the dependencies you need to <i>make install</i> your thing.",
+                            "type" : "comment"
+                          }
+                        ],
+                        "created_at_i" : 1751660247,
+                        "id" : 44467548,
+                        "text" : "While not ARMs fault, the pain is still very real for the end user.\nCompiling once is maybe ok, if you get lucky. But more often than not you end up needing to compile several things, and then again every time there is an update you want.\nTrying to automatic that is also a pain.<p>It&#x27;s just so much extra work, that I&#x27;d rather spend working on my project, and not compiling.<p>I love that we in Linux world have compiling as an option for most apps, but there is a time and place for it.",
+                        "type" : "comment"
+                      }
+                    ],
+                    "created_at_i" : 1751647731,
+                    "id" : 44466027,
+                    "text" : "Stale packages are a distro problem, not a platform one. You said so yourself, you can compile it and it works. Your problem isn’t with ARM. Arch on arm works fine.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1751646966,
+                "id" : 44465922,
+                "text" : "Currently with the latest pi os version, moonlight streaming&#x27;s video hardware support doesn&#x27;t work.<p>While it&#x27;s the the fault of the moonlight devs (also you can compile it yourself to get it working), the binary package version has been broken for 2+ months now.<p>If I was using archlinux on x86 I wouldn&#x27;t have problems like this.",
+                "type" : "comment"
+              },
+              {
+                "author" : "rcarmo",
+                "created_at_i" : 1751648460,
+                "id" : 44466127,
+                "text" : "Actually, hardware video handling and not having to faff about with weird bootloaders have been the main reasons I have preferred mini-PCs",
+                "type" : "comment"
+              },
+              {
+                "author" : "wpm",
+                "created_at_i" : 1751666628,
+                "id" : 44468224,
+                "text" : "That’s great if I have source code.<p>I don’t always. I find plenty of Linux stuff that was never compiled for ARM (printer drivers tend to be awful for this).",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1751644633,
+            "id" : 44465617,
+            "text" : "I’m going to argue there’s no difference in “ecosystem” between arm and x86 anymore. It’s as simple as compiling with a flag. Your frustrations are your own.<p>I will give you the extra cost of the accessories and plugs you need just to get a raspberry pi up and running.",
+            "type" : "comment"
+          },
+          {
+            "author" : "kristopolous",
+            "children" : [
+              {
+                "author" : "anon-3988",
+                "created_at_i" : 1751666629,
+                "id" : 44468225,
+                "text" : "&gt; Is it that the pi is slow?<p>Yes, its slow and its ARM-based. So if you want things to just work (tm), N100 is a much, much better choice. You don&#x27;t have to fiddle around with the configs to reduce writes to the SD card, figure out how to fix issues with ARM ecosystem, yadda yadda yadda.<p>It also limits what you want to do. For example, it is simply not powerful enough to run a smooth personal computer (video watching + light browsing).",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1751664293,
+            "id" : 44467992,
+            "text" : "I&#x27;m not understanding this. so <a href=\"https:&#x2F;&#x2F;www.amazon.com&#x2F;s?k=n150\" rel=\"nofollow\">https:&#x2F;&#x2F;www.amazon.com&#x2F;s?k=n150</a> versus <a href=\"https:&#x2F;&#x2F;www.amazon.com&#x2F;s?k=raspberry+pi+5\" rel=\"nofollow\">https:&#x2F;&#x2F;www.amazon.com&#x2F;s?k=raspberry+pi+5</a> ... what&#x27;s the claim here?<p>Is it that the pi is slow?<p>I&#x27;m not trying to disagree, I just don&#x27;t see the savings everyone in this thread is claiming.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1751644391,
+        "id" : 44465588,
+        "text" : "Low cost x86_64 solutions beat the pants off ARM in the PPPITA (performance per pain in the arse) department. The Raspberry Pi software ecosystem advantage nopes the moment x86 shows up to the party. Granted, it does suck the fun out of spending a weekend trying to get an application to compile.<p>Whether it&#x27;s Raspberry Pi, Orange Pi, Banana Pi, or anything similar, by the time you buy the SBC and accessories, you&#x27;re looking at around $100. The N100 or N150 are obvious choices if you&#x27;re looking for a small, low power block of silicon to get something done.",
+        "type" : "comment"
+      },
+      {
+        "author" : "MaiSck",
+        "children" : [
+          {
+            "author" : "blacksmith_tb",
+            "children" : [
+              {
+                "author" : "rcarmo",
+                "created_at_i" : 1751648693,
+                "id" : 44466155,
+                "text" : "If you want to call “running” it doing it without complete networking and graphics support…",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1751646512,
+            "id" : 44465865,
+            "text" : "You can run ARM Win 11 on the RPi 5, even in VMs. But that doesn&#x27;t seem terribly practical, the little N100 I have running Home Assistant cost less than $90... I will stick with the Zero 2 W for anything in the sweet spot of &quot;needs an OS but isn&#x27;t doing too much, and uses GPIO&quot; and x86_64 for anything bigger.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1751644502,
+        "id" : 44465600,
+        "text" : "And you can run Windows! Sometimes that&#x27;s needed.",
+        "type" : "comment"
+      },
+      {
+        "author" : "gmiller123456",
+        "children" : [
+          {
+            "author" : "chaoskitty",
+            "children" : [
+              {
+                "author" : "gmiller123456",
+                "created_at_i" : 1751683906,
+                "id" : 44469782,
+                "text" : "I guess I must be.  Where did he &quot;point out the difference between new and used&quot;?  All I see is &quot;But newsflash: used is different than new&quot;, then the explicit declaration &#x27;you can&#x27;t say &quot;Tiny PCs are cheaper than Raspberry Pis&quot; based on used pricing versus new.&#x27;.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1751669626,
+            "id" : 44468615,
+            "text" : "Anyone who claims that pointing out the difference between new and used is the same as telling you to ignore the used market is just an idiot.",
+            "type" : "comment"
+          },
+          {
+            "author" : "stuckkeys",
+            "created_at_i" : 1751756497,
+            "id" : 44476250,
+            "text" : "What is wrong with someone expressing their opinions? Nobody forcing you to watch or force shoveing the change down your throat lol. You can use any device you want. To each their own. But he does have a good point. You can get all in one n series under the price what you would pay for a rasp5.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1751645114,
+        "id" : 44465685,
+        "text" : "I actually unsubscribed from Jeff&#x27;s channel after he published that video. Anyone claiming the lack of a used RPi market means we have to ignore the used market for everything else is just an idiot. I&#x27;m going to compare the two no matter how much it bothers the fanboys.",
+        "type" : "comment"
+      },
+      {
+        "author" : "jacknews",
+        "created_at_i" : 1751646498,
+        "id" : 44465861,
+        "text" : "&quot;When did raspberry pis get so expensive?&quot; from one of his videos.<p>I&#x27;m guessing around the time they were bought&#x2F;went public and became for-profit.",
+        "type" : "comment"
+      },
+      {
+        "author" : "rcarmo",
+        "created_at_i" : 1751648271,
+        "id" : 44466105,
+        "text" : "As someone who has been avaluating ARM boards for years, the answer is hell yes.<p>The only chipset&#x2F;reference design combo that comes close is the RK3588 (not close to the N100, just much closer to it than even the Pi 5), from CPU features to PCI lanes.",
+        "type" : "comment"
+      },
+      {
+        "author" : "knowitnone",
+        "created_at_i" : 1751650913,
+        "id" : 44466446,
+        "text" : "One has exposed GPIOs for devs to play with. If you just want a basic computer, N100s are great.",
+        "type" : "comment"
+      },
+      {
+        "author" : "johnklos",
+        "children" : [
+          {
+            "author" : "tredre3",
+            "children" : [
+              {
+                "author" : "johnklos",
+                "created_at_i" : 1751668298,
+                "id" : 44468458,
+                "text" : "I can only surmise that you&#x27;re a troll. What I wrote has plenty about the N100. Why not refute any of the number of things I brought up?",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1751651799,
+            "id" : 44466561,
+            "text" : "Your post has nothing to do with the topic at hand, you do not make a single point against the N100. You just whatabout other Intel products that you hate...",
+            "type" : "comment"
+          },
+          {
+            "author" : "otterley",
+            "children" : [
+              {
+                "author" : "johnklos",
+                "children" : [
+                  {
+                    "author" : "otterley",
+                    "created_at_i" : 1751676713,
+                    "id" : 44469248,
+                    "text" : "To be clear, I was referring to the benefits of hardware transcoding, not trying to compare vendor solutions. If there&#x27;s a Ryzen-based alternative that offers better price&#x2F;performance, that&#x27;s great!",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1751668584,
+                "id" : 44468497,
+                "text" : "&gt; there&#x27;s really no price&#x2F;performance comparison<p>Huh?<p>A Ryzen can easily do real time transcoding. So why can&#x27;t we do a price&#x2F;performance comparison? A low end Ryzen that can easily do 4K 60 fps transcoding in real time costs $300 (with 24 gigs of DDR5 and 500 gig NVMe) and offers many times the overall performance of an N100 &#x2F; N150 &#x2F; N200. One can go even cheaper on a Ryzen, but that&#x27;s just an example from Amazon.<p>Would some people pay twice as much for a computer many times faster, with more memory and more storage, and that can do software transcoding in real time? Sure.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1751656159,
+            "id" : 44467082,
+            "text" : "&gt; Intel QuickSync isn&#x27;t the same quality as software based transcoding, and not everyone wants to compromise on quality.<p>Perhaps not, but when you want to do realtime transcoding so you can view a video on the device of your choice without pre-transcoding, there&#x27;s really no price&#x2F;performance comparison.",
+            "type" : "comment"
+          },
+          {
+            "author" : "leakycap",
+            "created_at_i" : 1751726858,
+            "id" : 44473147,
+            "text" : "I&#x27;ve seen QuickSync mentioned but hadn&#x27;t looked into it until your post. Reminds me of how, as a pixel-perfect type, Intel&#x27;s iGPUs drove me crazy because they did something similar to the entire screen image, like a JPEG softening and complete change of the color profile likely to save power &amp; reduce CPU cost of the iGPU.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1751651154,
+        "id" : 44466482,
+        "text" : "Reddit is filled with posts where people try to make their values in to everyone else&#x27;s.<p>Want an Arm SBC? Get an N100 instead! Want a Ryzen to transcode video? Get an N100 instead! Want a NAS? Get an N100 instead!<p>I get it, N100 people - you get a shiny new toy, and you want to hype it up as the Next Best Thing that&#x27;s a great choice for everyone. The problem is that it&#x27;s not the best choice for everyone, and it&#x27;s getting old hearing about it.<p>Here are some reasons the N100 isn&#x27;t best:<p>SBCs are smaller and almost always take less power.<p>Intel QuickSync isn&#x27;t the same quality as software based transcoding, and not everyone wants to compromise on quality.<p>Like Jeff points out, N100 systems cost more, and the added performance over a Pi of some sort isn&#x27;t always needed (although it&#x27;s funny that the same people who point out the higher performance of N100 over a Raspberry Pi will at the same time dismiss a low power Ryzen :P).<p>They cost more.<p>N100 systems don&#x27;t have enough PCIe lanes to replace certain I&#x2F;O heavy uses.<p>Some people don&#x27;t like the x86 ecosystem. N100 fans try to tell everyone that there&#x27;s more software because it&#x27;s x86, but that&#x27;s a <i>negative</i> thing for some of us who prefer to install from source.<p>Intel gatekeeps products by removing features when there&#x27;s no reason to do so. Even my 2014 AMD Athlon 5350 systems, which are very decently performing low power systems and which I&#x27;m still using as routers &#x2F; firewalls &#x2F; servers in many places, have ECC support in the CPU. (I wonder how the N100 would compare with a 2014 Athlon 5350, but that&#x27;s a question for another time.)<p>The primary reason for me is a little different: Intel makes shitty decisions. All of the CPU vulnerabilities found that I know of have affected Intel CPUs more than AMD or Arm CPUs. Why? I think it&#x27;s because Intel tries so hard to chase performance and marketing points that they prioritize this over security and reliability.<p>I bought an eight core Bulldozer in 2012 for compiling because I preferred eight integer cores over four cores plus hyperthreading in a Core i7-2600. Benchmarks then showed the Intel beat out AMD in many benchmarks then. However, more than a decade later, with toolchain improvements and with performance impacts of Spectre and Meltdown, my Bulldozer now beats an Intel i7-2600 at many modern benchmarks.<p>But it&#x27;s not just security - Intel&#x27;s 13th and 14 generation degradation debacle again shows that Intel is more concerned with marketing and benchmarks than having good, reliable products. That their CPUs can take hundreds of watts to compete with Ryzen illustrates this well. Would this be an issue with N100? Probably not, but I don&#x27;t want any CPUs from a company that will compromise their products for profit and marketing purposes.<p>They tried to do AVX-512 and made a huge mess of which products have it - again, Intel were more concerned with benchmark results. After all, Intel&#x27;s not going to release benchmark figures that show the effects of dropping the whole CPU&#x27;s clock while running AVX-512. They tried to play us.<p>The bottom line is that I don&#x27;t trust Intel, which is why I&#x27;ll never get an N100, and all of these other reasons are why I&#x27;d never recommend them.",
+        "type" : "comment"
+      },
+      {
+        "author" : "qingcharles",
+        "children" : [
+          {
+            "author" : "transpute",
+            "created_at_i" : 1751652301,
+            "id" : 44466638,
+            "text" : "Could a cumulative set of drivers be mirrored to a Github repo or archive.org?",
+            "type" : "comment"
+          },
+          {
+            "author" : "andrewmcwatters",
+            "children" : [
+              {
+                "author" : "fud101",
+                "children" : [
+                  {
+                    "author" : "andrewmcwatters",
+                    "created_at_i" : 1751698805,
+                    "id" : 44470655,
+                    "text" : "Windows drivers",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1751693468,
+                "id" : 44470290,
+                "text" : "What drivers does one need for the N100? Mine just runs Ubuntu 24 and I&#x27;ve never needed any vendor drivers.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1751652824,
+            "id" : 44466711,
+            "text" : "This is the most wtf thing I have read on Hacker News in a day or so. Thanks, I was considering them as an N100 alternative to my Raspberry Pi 4. Maybe I&#x27;ll search a little more...",
+            "type" : "comment"
+          },
+          {
+            "author" : "joshuaissac",
+            "children" : [
+              {
+                "author" : "qingcharles",
+                "children" : [
+                  {
+                    "author" : "joshuaissac",
+                    "created_at_i" : 1751714861,
+                    "id" : 44471975,
+                    "text" : "Try copying it to an otherwise empty folder in your Drive, then download the whole folder instead of the individual file.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1751691272,
+                "id" : 44470164,
+                "text" : "It does not :( I have a paid Goog sub and this was the first thing I tried. It will not bypass their quota.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1751653789,
+            "id" : 44466814,
+            "text" : "Copy it directly to your own Google Drive, then download it from there, and it will use your quota instead of theirs.",
+            "type" : "comment"
+          },
+          {
+            "author" : "dizhn",
+            "created_at_i" : 1751661176,
+            "id" : 44467659,
+            "text" : "Windows drivers?",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1751651416,
+        "id" : 44466509,
+        "text" : "Word of warning on those GMKtec PCs. They put all their drivers on a Google Drive account that they don&#x27;t pay for, and there are no known mirrors of some of the drivers. So when you suddenly need to do a reinstall one day, remember that their GDrive will be over-quota for a month and you&#x27;ll be SOL for a few weeks unless you can match the drivers to the ones from the OEMs.",
+        "type" : "comment"
+      },
+      {
+        "author" : "tshaddox",
+        "children" : [
+          {
+            "author" : "octo888",
+            "created_at_i" : 1751651872,
+            "id" : 44466572,
+            "text" : "How many USB-C keyboard&#x2F;mice do people have?",
+            "type" : "comment"
+          },
+          {
+            "author" : "654wak654",
+            "created_at_i" : 1751652027,
+            "id" : 44466597,
+            "text" : "Probably for easy mouse &amp; keyboard support? Also, mini PCs are usually used in offices a lot and I bet most places that buy these things still have lots of USB-A storage devices as well.",
+            "type" : "comment"
+          },
+          {
+            "author" : "Zren",
+            "created_at_i" : 1751652189,
+            "id" : 44466619,
+            "text" : "Also, probably the price of the connector. USB A is also a simple standard and no one will expect to treat it as a display out.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1751651809,
+        "id" : 44466562,
+        "text" : "Is there a reason these mini PCs still have all USB-A ports? That strikes me as a bizarre choice.",
+        "type" : "comment"
+      },
+      {
+        "author" : "roscas",
+        "created_at_i" : 1751652078,
+        "id" : 44466605,
+        "text" : "While looking at the site I noticed <a href=\"https:&#x2F;&#x2F;www.jeffgeerling.com&#x2F;blog&#x2F;2025&#x2F;self-hosting-your-own-media-considered-harmful-updated\" rel=\"nofollow\">https:&#x2F;&#x2F;www.jeffgeerling.com&#x2F;blog&#x2F;2025&#x2F;self-hosting-your-own...</a>\nYoutube is amazing! It hosts billions of videos to all kind of bad content, but still make true content creators feel it&#x27;s long arm of their laws!\nIt is just pathetic. Just like other anti-social networks like Fakebook and Twitter.",
+        "type" : "comment"
+      },
+      {
+        "author" : "tills13",
+        "created_at_i" : 1751653876,
+        "id" : 44466823,
+        "text" : "I built myself a 1U server using off-the-shelf parts I had lying around to run my Proxmox instance. I wanted to expand my cluster &amp; also give myself a dedicated node for Plex (so that it could have direct access to the CPU w&#x2F; QuickSync) so bought myself a Beelink with an N100. The little Beelink sips power and has never once stuttered while streaming Plex. Going forward, I plan on replacing my 1U server with a cluster of Beelinks.",
+        "type" : "comment"
+      },
+      {
+        "author" : "etempleton",
+        "created_at_i" : 1751662086,
+        "id" : 44467772,
+        "text" : "The Raspberry Pi has moved too far upmarket to the point where something like the N100&#x2F;150 is a better value for cheap compute. Raspberry Pi should perhaps focus on becoming increasingly affordable versus increasingly capable. Perhaps that also leads to a dead-end.",
+        "type" : "comment"
+      },
+      {
+        "author" : "dottjt",
+        "created_at_i" : 1751662774,
+        "id" : 44467848,
+        "text" : "How are these things for emulation?",
+        "type" : "comment"
+      },
+      {
+        "author" : "anon-3988",
+        "created_at_i" : 1751666286,
+        "id" : 44468170,
+        "text" : "I have an RPI5, its in a weird zone of not cheap enough for embedded and not powerful enough as a NAS. I should have gone with N100 instead.",
+        "type" : "comment"
+      },
+      {
+        "author" : "crowcroft",
+        "created_at_i" : 1751666475,
+        "id" : 44468202,
+        "text" : "Semi related, what’s the best source for a consumer to buy mini-itx boards with the processor on?<p>I want to get a board (ideally with two gigabit Ethernet) and BYO ram, SSD and enclosure.",
+        "type" : "comment"
+      },
+      {
+        "author" : "tonymet",
+        "created_at_i" : 1751668940,
+        "id" : 44468529,
+        "text" : "my ryzen7 Beelink has been the best PC I&#x27;ve owned. Great performance, excellent reliability (only 1 BSOD in 2 years), great utility.<p>I ended up consolidating 3-4 Raspis onto a single HyperV server and alpine &#x2F; debian VMs.<p>Pi zero 2 is the last compelling raspberry pi .  Great for running cpu-bound servers like DNS, static web, network monitoring.<p>Pi-5 performance, especially with IO, is not worthwhile.",
+        "type" : "comment"
+      },
+      {
+        "author" : "worik",
+        "children" : [
+          {
+            "author" : "Aerbil313",
+            "created_at_i" : 1751807366,
+            "id" : 44480514,
+            "text" : "No, you are probably correct for your own circumstances.<p>I was shopping for something to run Home Assistant on last week. (if you don&#x27;t know about HA, check it out, it&#x27;s crazy good!). I was befuddled, I kept coming back to online threads like this where people claim these mini PCs are much better than a Pi 5 setup AND cheaper too. That&#x27;s just not true for my region, because of a very confusing, complex set of constraints:<p>- Most of these good, new, low-power Mini PCs are not imported into my country<p>- The ones that are imported are higher-end versions (e.g. Beelink S12 Pro) which cost more than twice the Pi setup<p>- I can buy from Ebay, Amazon, Aliexpress etc. and get it imported but the import tax is so huge it stops being cheaper<p>- I can easily get a second hand Mini PC in the cheaper-than-Pi5-setup range, but all of them are old machines with high power consumption that&#x27;ll them more expensive than the Pi5 setup in a single year or two, with my current price of electricity<p>In the end I opted for a Pi5 4GB, which is more than enough for running HA. The total was $125 for the full setup with cooler fan, 128GB SSD and original power supply. Though I got the Pi5 second hand, otherwise the total would be $145.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1751669839,
+        "id" : 44468636,
+        "text" : "I do not understand<p>I cannot get one of these x86 computers for twice the price of a fully pimped RPi5<p>Even second hand they are usually twice the price<p>$&#x2F;mips may be a different story, but RPi5 has way more than I need, so I care about capital cost in total<p>Is there some class of computer I am ignoring? This just seems so wrong",
+        "type" : "comment"
+      },
+      {
+        "author" : "theshrike79",
+        "created_at_i" : 1751670967,
+        "id" : 44468756,
+        "text" : "I&#x27;ve been saying this for a long time.<p>Unless you need something raspi-specific, like GPIO access or a specific HAT, you&#x27;ll always get better price&#x2F;performance + upgradability either with a Nxxx machine from China or an old company Lenovo&#x2F;Dell&#x2F;HP minipc.",
+        "type" : "comment"
+      },
+      {
+        "author" : "andrewstuart",
+        "created_at_i" : 1751683096,
+        "id" : 44469718,
+        "text" : "Jeff loves Raspberry Pi, which is fine, but as I recall from watching this video when it was released, he tested Windows on Intel and Linux on Raspberry Pi then somehow drew conclusions from that. Not apples versus apples.",
+        "type" : "comment"
+      },
+      {
+        "author" : "turtlebits",
+        "created_at_i" : 1751683252,
+        "id" : 44469730,
+        "text" : "I never understood why people use rpi&#x27;s as servers. They&#x27;re good for gpio and form factor&#x2F;portability.",
+        "type" : "comment"
+      },
+      {
+        "author" : "refurb",
+        "created_at_i" : 1751688494,
+        "id" : 44470010,
+        "text" : "I recently purchase a miniPC with the N97 chip.  I didn&#x27;t have a specific use in mind that would require CPU speed (e.g. gaming or emulation), just a miniPC that I could tinker around with and maybe use as a media server or VPN.<p>I went with the N97 chip versus N100&#x2F;N150 since the price point is significantly lower and I didn&#x27;t want to spend several hundred on computer I&#x27;m just tinkering with.<p>What surprised me is that it&#x27;s actually <i>pretty fast</i>.  I&#x27;m running Win 11 for now and it&#x27;s pretty snappy.  The only thing that jumped out to me is that disk transfer speeds are noticeable slower.  It easily exceeded my expectations as I expected a PC that struggled with win 11.<p>No doubt if I stressed the CPU I&#x27;d see it throttle and slow down pretty quickly, but as a basic PC for web browsing or MS Office work, it&#x27;s absolutely fine.",
+        "type" : "comment"
+      },
+      {
+        "author" : "ksec",
+        "created_at_i" : 1751737384,
+        "id" : 44474298,
+        "text" : "Intel N150, Gracemont Core, Intel 7 ( Intel 10nm ), no data on die size. I wished Intel had made a similar die size SOC. The BCM2712 D0 is only 38mm2, on an older generation 16nm node!.",
+        "type" : "comment"
+      },
+      {
+        "author" : "yamapikarya",
+        "created_at_i" : 1751738180,
+        "id" : 44474375,
+        "text" : "i bought dell wyse 5070 with 30gb ram and 2 tb ssd to replace my raspberry pi 4. currently building some talos cluster and other linux distro. im not sure if this setup is a good idea, but so far i learned a lot how to host baremetal server",
+        "type" : "comment"
+      }
+    ],
+    "created_at_i" : 1751630904,
+    "id" : 44463813,
+    "points" : 303,
+    "title" : "Is an Intel N100 or N150 a better value than a Raspberry Pi?",
+    "type" : "story",
+    "url" : "https://www.jeffgeerling.com/blog/2025/intel-n100-better-value-raspberry-pi"
+  },
+  "headers" : {
+    "content-type" : "application/json"
+  },
+  "status" : 200,
+  "url" : "https://hn.algolia.com/api/v1/items/44463813"
+}

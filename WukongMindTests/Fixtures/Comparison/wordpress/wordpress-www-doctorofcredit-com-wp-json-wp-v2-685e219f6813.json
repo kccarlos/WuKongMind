@@ -1,0 +1,911 @@
+{
+  "body" : [
+    {
+      "author_name" : "Tom",
+      "content" : {
+        "rendered" : "<p>Swell</p>\n"
+      },
+      "date_gmt" : "2026-07-15T18:59:21",
+      "id" : 2367547,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Tamis 🔗👈",
+      "content" : {
+        "rendered" : "<p>I never got on the Kroger train but feel real sorry for all those that got multiple.</p>\n"
+      },
+      "date_gmt" : "2026-07-15T18:59:42",
+      "id" : 2367549,
+      "parent" : 0
+    },
+    {
+      "author_name" : "atexit8",
+      "content" : {
+        "rendered" : "<p>In to the sock drawer it goes after the conversion whenever it is.</p>\n<p>August &#8211; October </p>\n<p>I already have a 2% credit card.</p>\n"
+      },
+      "date_gmt" : "2026-07-15T19:00:08",
+      "id" : 2367550,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Jonathan Summers",
+      "content" : {
+        "rendered" : "<p>USB about to get a lot of calls requesting product change from Smartly to Altitude Connect(s), Cash+, or Altitude Go</p>\n<p>Unfortunately they use an &#8220;account offers&#8221; product change system like Capital One so you&#8217;ll just have to keep calling back and seeing if anything is on your account.</p>\n"
+      },
+      "date_gmt" : "2026-07-15T19:02:26",
+      "id" : 2367551,
+      "parent" : 0
+    },
+    {
+      "author_name" : "avsterbone",
+      "content" : {
+        "rendered" : "<p>Oh fuck that, this is worth rioting over!!!! /s</p>\n<p>5% back on Apple Pay was always too good to be true, but I&#8217;m glad I got to ride the gravy train while it lasted.</p>\n"
+      },
+      "date_gmt" : "2026-07-15T19:06:29",
+      "id" : 2367561,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Dealgamer",
+      "content" : {
+        "rendered" : "<p>I thought about it several times.</p>\n<p>At this point I don&#8217;t think I&#8217;d ever get a USB card for anything except a SUB though, considering how they can&#8217;t seem to sustain anything.</p>\n"
+      },
+      "date_gmt" : "2026-07-15T19:08:16",
+      "id" : 2367563,
+      "parent" : 2367549
+    },
+    {
+      "author_name" : "Joey Maggard",
+      "content" : {
+        "rendered" : "<p>Any other cards do 5% on mobile wallet spend?</p>\n"
+      },
+      "date_gmt" : "2026-07-15T19:09:34",
+      "id" : 2367566,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Sam",
+      "content" : {
+        "rendered" : "<p>This is too sad. My Kroger card was my go to when traveling outside the US for 5X.</p>\n"
+      },
+      "date_gmt" : "2026-07-15T19:36:15",
+      "id" : 2367585,
+      "parent" : 0
+    },
+    {
+      "author_name" : "sorbzi",
+      "content" : {
+        "rendered" : "<p>Can you product change a Kroger to Fred Meyer or the other ones?</p>\n"
+      },
+      "date_gmt" : "2026-07-15T19:38:57",
+      "id" : 2367592,
+      "parent" : 0
+    },
+    {
+      "author_name" : "sorbzi",
+      "content" : {
+        "rendered" : "<p>Commenting so I can go on the thread for replies.</p>\n<p>i didn’t get any Kroger updates from U.S. Bank yet</p>\n"
+      },
+      "date_gmt" : "2026-07-15T19:41:10",
+      "id" : 2367596,
+      "parent" : 2367566
+    },
+    {
+      "author_name" : "Morgan",
+      "content" : {
+        "rendered" : "<p>They&#8217;re all gone. They&#8217;re all Kroger owned</p>\n"
+      },
+      "date_gmt" : "2026-07-15T19:47:23",
+      "id" : 2367607,
+      "parent" : 2367592
+    },
+    {
+      "author_name" : "Jonathan Summers",
+      "content" : {
+        "rendered" : "<p>No, it was a unicorn. I will start having to use my catch-all instead at some of these places (a catchall that isn&#8217;t Smartly lol)</p>\n"
+      },
+      "date_gmt" : "2026-07-15T19:48:34",
+      "id" : 2367612,
+      "parent" : 2367566
+    },
+    {
+      "author_name" : "Morgan",
+      "content" : {
+        "rendered" : "<p>Didn&#8217;t realize it didn&#8217;t have FTF. Damn that&#8217;s pretty good</p>\n"
+      },
+      "date_gmt" : "2026-07-15T19:49:29",
+      "id" : 2367613,
+      "parent" : 2367585
+    },
+    {
+      "author_name" : "sorbzi",
+      "content" : {
+        "rendered" : "<p>Oh gotcha, that explains why I couldn’t find them on the U.S. Bank website. Thanks for confirming</p>\n"
+      },
+      "date_gmt" : "2026-07-15T19:51:59",
+      "id" : 2367616,
+      "parent" : 2367607
+    },
+    {
+      "author_name" : "CO",
+      "content" : {
+        "rendered" : "<p>I currently have Kroger + Smartly v1.<br />\nI&#8217;m certainly gonna get another v1, right?&#8230; Right?</p>\n"
+      },
+      "date_gmt" : "2026-07-15T19:58:39",
+      "id" : 2367624,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Marcos Rivera",
+      "content" : {
+        "rendered" : "<p>Sorry for my ignorance so does this mean that  Fred Myers  card will be converted to smartly card then</p>\n"
+      },
+      "date_gmt" : "2026-07-15T20:00:06",
+      "id" : 2367628,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Lrdx",
+      "content" : {
+        "rendered" : "<p>Why would you expect the v1?</p>\n"
+      },
+      "date_gmt" : "2026-07-15T20:04:36",
+      "id" : 2367637,
+      "parent" : 2367624
+    },
+    {
+      "author_name" : "Monty",
+      "content" : {
+        "rendered" : "<p>thanks for the heads up</p>\n<p>hate it</p>\n"
+      },
+      "date_gmt" : "2026-07-15T20:18:07",
+      "id" : 2367657,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Fred W",
+      "content" : {
+        "rendered" : "<p>Getting 5% cash back on apple pay for a no fee card was a pretty good get. Honestly surprised it took this long to axe this card.</p>\n"
+      },
+      "date_gmt" : "2026-07-15T20:18:25",
+      "id" : 2367658,
+      "parent" : 0
+    },
+    {
+      "author_name" : "KC",
+      "content" : {
+        "rendered" : "<p>RIP, the Ralphs card was my &#8220;use basically everywhere&#8221; card because of 5% back with Apple Pay. Guess it&#8217;s back to using a 2% catchall now.</p>\n"
+      },
+      "date_gmt" : "2026-07-15T20:30:30",
+      "id" : 2367688,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Dealgamer",
+      "content" : {
+        "rendered" : "<p>It was pretty severely limited by the cap though, only $3000 for general use, or $60 over a 2% card per year.</p>\n"
+      },
+      "date_gmt" : "2026-07-15T21:00:36",
+      "id" : 2367725,
+      "parent" : 2367658
+    },
+    {
+      "author_name" : "ND",
+      "content" : {
+        "rendered" : "<p>After the USBAR nerf, I was tempted to go for this card, but chose not to trust USBank. I’m glad I held off. I still kind of want to apply for their Business Triple Cash, but honestly, I have zero trust in them. It just doesn’t seem worth the hassle dealing with USBank anymore!</p>\n"
+      },
+      "date_gmt" : "2026-07-15T21:09:58",
+      "id" : 2367740,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Brendan",
+      "content" : {
+        "rendered" : "<p>Grabbed two Kroger cards less than a year ago to replace my USBAR. What a waste of slots. Guess I&#8217;ll be seeing how many Cash+ cards they&#8217;ll let me have.</p>\n"
+      },
+      "date_gmt" : "2026-07-15T21:15:58",
+      "id" : 2367751,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Brendan",
+      "content" : {
+        "rendered" : "<p>Knowing U.S.Bank, they&#8217;ll mess it up and you will get a v2 that ends your v1 grandfathering.</p>\n"
+      },
+      "date_gmt" : "2026-07-15T21:20:07",
+      "id" : 2367759,
+      "parent" : 2367624
+    },
+    {
+      "author_name" : "Monty",
+      "content" : {
+        "rendered" : "<p>what is v1/v2?</p>\n"
+      },
+      "date_gmt" : "2026-07-15T21:40:47",
+      "id" : 2367785,
+      "parent" : 2367759
+    },
+    {
+      "author_name" : "Lee",
+      "content" : {
+        "rendered" : "<p>US Bank . . . as a company . . . has no clear business strategy for its credit cards.  Let&#8217;s try this.  Let&#8217;s try that.  It&#8217;s a regional bank mind in a mega-bank body.</p>\n"
+      },
+      "date_gmt" : "2026-07-15T21:56:55",
+      "id" : 2367809,
+      "parent" : 2367563
+    },
+    {
+      "author_name" : "Peter Vargas",
+      "content" : {
+        "rendered" : "<p>100% in agreement</p>\n"
+      },
+      "date_gmt" : "2026-07-15T22:45:48",
+      "id" : 2367873,
+      "parent" : 2367740
+    },
+    {
+      "author_name" : "Frey",
+      "content" : {
+        "rendered" : "<p>Assume It means v1 is the Smartly card as introduced and v2 after it was gutted.</p>\n"
+      },
+      "date_gmt" : "2026-07-15T23:02:29",
+      "id" : 2367891,
+      "parent" : 2367785
+    },
+    {
+      "author_name" : "Samuel",
+      "content" : {
+        "rendered" : "<p>Came to see if anyone is worried about this too! I&#8217;m going to call and preemptively PC my Kroger card to a Cash+ before I get a new Smartly that might &#8220;update&#8221; my current Smartly v1.</p>\n"
+      },
+      "date_gmt" : "2026-07-15T23:22:03",
+      "id" : 2367912,
+      "parent" : 2367624
+    },
+    {
+      "author_name" : "Fred W",
+      "content" : {
+        "rendered" : "<p>they allowed for multiples. I remember a few years ago, some doc users product changed after they reached the limit. then applied for Kroger new card a few months later and repeated the cycle.</p>\n"
+      },
+      "date_gmt" : "2026-07-16T00:14:29",
+      "id" : 2367973,
+      "parent" : 2367725
+    },
+    {
+      "author_name" : "Tamis 🔗👈",
+      "content" : {
+        "rendered" : "<p>I love my usbank cash+ card, and business triple cash for the sub churn. I will be real sad if they ever get rid of the cash+, only card that gives 5% at utilities.</p>\n"
+      },
+      "date_gmt" : "2026-07-16T01:42:44",
+      "id" : 2368040,
+      "parent" : 2367563
+    },
+    {
+      "author_name" : "Dm",
+      "content" : {
+        "rendered" : "<p>2026 isn’t a good year for cashback credit cards</p>\n"
+      },
+      "date_gmt" : "2026-07-16T01:43:02",
+      "id" : 2368041,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Lrdx",
+      "content" : {
+        "rendered" : "<p>As opposed to miles/points cards, or what?</p>\n"
+      },
+      "date_gmt" : "2026-07-16T02:46:49",
+      "id" : 2368075,
+      "parent" : 2368041
+    },
+    {
+      "author_name" : "zach",
+      "content" : {
+        "rendered" : "<p>keep us updated</p>\n"
+      },
+      "date_gmt" : "2026-07-16T03:51:29",
+      "id" : 2368117,
+      "parent" : 2367912
+    },
+    {
+      "author_name" : "Jesse",
+      "content" : {
+        "rendered" : "<p>I&#8217;ve heard of this store so many times, some day I hope to go to one.</p>\n"
+      },
+      "date_gmt" : "2026-07-16T11:15:08",
+      "id" : 2368213,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Fang",
+      "content" : {
+        "rendered" : "<p>Their relationship is over so it might be true this time around</p>\n"
+      },
+      "date_gmt" : "2026-07-16T15:15:50",
+      "id" : 2368345,
+      "parent" : 2368213
+    },
+    {
+      "author_name" : "Ben",
+      "content" : {
+        "rendered" : "<p>Does this apply to the Harris Teeter card? I would be really bummed to lose my 5% on mobile purchases.</p>\n"
+      },
+      "date_gmt" : "2026-07-16T16:44:19",
+      "id" : 2368435,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Jonathan Summers",
+      "content" : {
+        "rendered" : "<p>Yes, the entire family of Kroger cards</p>\n"
+      },
+      "date_gmt" : "2026-07-16T17:26:02",
+      "id" : 2368471,
+      "parent" : 2368435
+    },
+    {
+      "author_name" : "TSK",
+      "content" : {
+        "rendered" : "<p>Thanks for the update. I just spent 2000 on state farm pay in advance, now I have only 30 left on my cap…. So unfortunate… gonna lose my boost membership too 🙁 Kroger is my go to store</p>\n"
+      },
+      "date_gmt" : "2026-07-16T18:36:47",
+      "id" : 2368569,
+      "parent" : 0
+    },
+    {
+      "author_name" : "S",
+      "content" : {
+        "rendered" : "<p>They’re offering 4% cash back on groceries and gas for the first 12 months of the transitioned card (so prob August 2926-July 2027), still not as competitive as others</p>\n"
+      },
+      "date_gmt" : "2026-07-16T18:56:01",
+      "id" : 2368599,
+      "parent" : 0
+    },
+    {
+      "author_name" : "AC",
+      "content" : {
+        "rendered" : "<p>It’s 3%*, not 4%.</p>\n"
+      },
+      "date_gmt" : "2026-07-17T02:11:00",
+      "id" : 2369002,
+      "parent" : 2368599
+    },
+    {
+      "author_name" : "Joe",
+      "content" : {
+        "rendered" : "<p>Get yourself 5% cashback for gas on SYW 5321 and groceries on AAA Comenity</p>\n"
+      },
+      "date_gmt" : "2026-07-17T17:58:47",
+      "id" : 2369417,
+      "parent" : 2368599
+    },
+    {
+      "author_name" : "Buckyy",
+      "content" : {
+        "rendered" : "<p>Yes</p>\n"
+      },
+      "date_gmt" : "2026-07-17T20:49:50",
+      "id" : 2369598,
+      "parent" : 2367628
+    },
+    {
+      "author_name" : "Buckyy",
+      "content" : {
+        "rendered" : "<p>So what happened?</p>\n"
+      },
+      "date_gmt" : "2026-07-17T20:50:25",
+      "id" : 2369599,
+      "parent" : 2367912
+    },
+    {
+      "author_name" : "🔗Amanda",
+      "content" : {
+        "rendered" : "<p>I have the Harris Teeter card but haven’t gotten any notification of this change.  Where are people seeing the announcement?</p>\n"
+      },
+      "date_gmt" : "2026-07-18T03:14:44",
+      "id" : 2369852,
+      "parent" : 2368435
+    },
+    {
+      "author_name" : "pbm",
+      "content" : {
+        "rendered" : "<p>There is technically no V1. V1 no longer exists. V1.1 exists where they put a cap of $10k per month and excluded some type of transactions like tax, education, business etc. V2 is complete nerf which is open for applying now.</p>\n"
+      },
+      "date_gmt" : "2026-07-18T11:42:49",
+      "id" : 2369986,
+      "parent" : 2367891
+    },
+    {
+      "author_name" : "John the Cappadocian",
+      "content" : {
+        "rendered" : "<p>Thanks for mentioning Boost. I don&#8217;t have a Kroger around here, but that was going to be how I got free Disney+ for a year after my current promo ends in a few months.</p>\n"
+      },
+      "date_gmt" : "2026-07-19T11:32:31",
+      "id" : 2370552,
+      "parent" : 2368569
+    },
+    {
+      "author_name" : "Ben",
+      "content" : {
+        "rendered" : "<p>based on how I read the letter and no mention of this, seems like no FTF would carry over as well. Which is wild, since smartly never offered no FTF</p>\n"
+      },
+      "date_gmt" : "2026-07-20T00:04:13",
+      "id" : 2370847,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Dm",
+      "content" : {
+        "rendered" : "<p>If I use paze 10 off 10 times on kroger credit card, will it reset Paze offer for the new smartly card after PC?</p>\n"
+      },
+      "date_gmt" : "2026-07-20T02:03:00",
+      "id" : 2370895,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Samuel",
+      "content" : {
+        "rendered" : "<p>They said I couldn&#8217;t product change it during this process (Kroger partnership ending). I called the day I commented above. However I just got a letter today 7/20, that they are closing the card (no mention of Smarlty). Doesn&#8217;t say why but I&#8217;m assuming because I have the Smartly already. P2 has a Kroger and Harris Teeter and got 2 letters each saying they are converting to Smartly.</p>\n"
+      },
+      "date_gmt" : "2026-07-20T21:04:28",
+      "id" : 2371397,
+      "parent" : 2369599
+    },
+    {
+      "author_name" : "Samuel",
+      "content" : {
+        "rendered" : "<p>Got a letter today that they are going to close my Harris Teeter card on 7/29. I will still get statements until their is a 0 balance, any rewards will be paid based on applicable law. I already have a Smartly, so I&#8217;m assuming that&#8217;s why they&#8217;re not converting the card. I really wanted the card to PC to a Cash+ but looks like if I want that card, I will have to apply anew.</p>\n"
+      },
+      "date_gmt" : "2026-07-20T21:07:02",
+      "id" : 2371400,
+      "parent" : 0
+    },
+    {
+      "author_name" : "AC",
+      "content" : {
+        "rendered" : "<p>Same with my Ralphs’ one. Another Ralph’s DP: <a href=\"https://www.reddit.com/r/CreditCards/s/ADv6j4Ocd5\" rel=\"nofollow ugc\">https://www.reddit.com/r/CreditCards/s/ADv6j4Ocd5</a></p>\n"
+      },
+      "date_gmt" : "2026-07-20T22:10:30",
+      "id" : 2371446,
+      "parent" : 2371400
+    },
+    {
+      "author_name" : "Disruptings",
+      "content" : {
+        "rendered" : "<p>Harris Teeter and Ralphs Card will be closed, I already have Smartly v1.  Wish I can move the $27k credit limit to another card.</p>\n"
+      },
+      "date_gmt" : "2026-07-20T23:29:50",
+      "id" : 2371508,
+      "parent" : 0
+    },
+    {
+      "author_name" : "sanctum",
+      "content" : {
+        "rendered" : "<p>Any chance of saving one of my Kroger-branded cards if I PC my existing Smartly to a Cash+? Really sucks losing one of my cards with a long credit history</p>\n"
+      },
+      "date_gmt" : "2026-07-21T04:36:00",
+      "id" : 2371666,
+      "parent" : 0
+    },
+    {
+      "author_name" : "iamjimmy",
+      "content" : {
+        "rendered" : "<p>I just got a letter today that they are closing the Kroger rewards credit card. There was no mention of product conversion to Smartly. I don&#8217;t even have a smartly credit card.<br />\nIs there any way that I can get them to product change this card, so as to not lose the credit limit and hurt my credit score? Thanks in advance.</p>\n"
+      },
+      "date_gmt" : "2026-07-21T16:12:40",
+      "id" : 2371920,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Greg",
+      "content" : {
+        "rendered" : "<p>Had a Ralph&#8217;s card and Smartly v1, got the letter today they&#8217;re just closing Ralph&#8217;s. With a flyer about the &#8216;appreciation bonus&#8217; that I guess I&#8217;m now eligible for on my existing Smartly of 1% extra on gas/groceries through July 2027? I feel like they wouldn&#8217;t have included the flyer otherwise.</p>\n"
+      },
+      "date_gmt" : "2026-07-21T21:43:53",
+      "id" : 2372241,
+      "parent" : 0
+    },
+    {
+      "author_name" : "KL",
+      "content" : {
+        "rendered" : "<p>Just got my letter. 4% for me.</p>\n"
+      },
+      "date_gmt" : "2026-07-22T19:56:43",
+      "id" : 2372975,
+      "parent" : 2369002
+    },
+    {
+      "author_name" : "Johnny",
+      "content" : {
+        "rendered" : "<p>Adios US bank. See you never</p>\n"
+      },
+      "date_gmt" : "2026-07-23T01:27:49",
+      "id" : 2373246,
+      "parent" : 0
+    },
+    {
+      "author_name" : "🔗Amanda",
+      "content" : {
+        "rendered" : "<p>Wow—I also got 3% on my letter.  Seems they’re playing favorites ;).  </p>\n<p>I already get 5% on both groceries and gas elsewhere (in case anyone’s curious where: for gas, Abound and UICCU, for groceries, Comenity AAA (and just a psa that you don’t need to be a AAA member to get this card)</p>\n"
+      },
+      "date_gmt" : "2026-07-24T04:16:32",
+      "id" : 2374136,
+      "parent" : 2372975
+    },
+    {
+      "author_name" : "🔗Amanda",
+      "content" : {
+        "rendered" : "<p>I still have a bunch of my $3k in Mobil wallet spend left to spend.  My letter said my Smartly card is scheduled to arrive in October.  Curious if anyone knows how long I can keep<br />\nusing my Kroger family card if I delay activating the Smartly card?</p>\n<p>My personal hypothesis guess is till the end of October or November…</p>\n"
+      },
+      "date_gmt" : "2026-07-24T04:19:13",
+      "id" : 2374138,
+      "parent" : 2368569
+    },
+    {
+      "author_name" : "🔗Amanda",
+      "content" : {
+        "rendered" : "<p>Now I got one in the mail.  It says my Smartly card will arrive in October, so it just seems I’m in a later “batch.”</p>\n"
+      },
+      "date_gmt" : "2026-07-24T04:19:58",
+      "id" : 2374139,
+      "parent" : 2369852
+    },
+    {
+      "author_name" : "Fang",
+      "content" : {
+        "rendered" : "<p>If you already have a smartly, your Kroger will just be closed down no replacement issue!</p>\n"
+      },
+      "date_gmt" : "2026-07-24T18:11:29",
+      "id" : 2374467,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Dm",
+      "content" : {
+        "rendered" : "<p>I thought everyone is PC to Smartly if they don’t have one.</p>\n"
+      },
+      "date_gmt" : "2026-07-25T11:06:22",
+      "id" : 2374847,
+      "parent" : 2371920
+    },
+    {
+      "author_name" : "gisted",
+      "content" : {
+        "rendered" : "<p>I finally got mail from US Bank. They&#8217;re converting my Kroger, Ralph and pick n save card to the smartly.</p>\n<p>No previous smartly card.</p>\n"
+      },
+      "date_gmt" : "2026-07-25T17:23:44",
+      "id" : 2374973,
+      "parent" : 0
+    },
+    {
+      "author_name" : "MJSan",
+      "content" : {
+        "rendered" : "<p>Same here, husband got the letter. I have Smartly v1 and he has an AU card on it, no need. Called CS and same as others have been told, nothing can be done until the card is converted. If they won&#8217;t turn it into a Cash+, we have zero use for it 🙁 </p>\n<p>My experience overall with USB has been pretty poor overall &#8211; the investment advisor who never bothered to call me back, the frustration with their systems and CLI process (being denied after a hard pull and then getting an auto CLI 30 days later???).</p>\n"
+      },
+      "date_gmt" : "2026-07-26T01:28:24",
+      "id" : 2375174,
+      "parent" : 0
+    },
+    {
+      "author_name" : "ben",
+      "content" : {
+        "rendered" : "<p>Has anybody puzzled a scheme to reset the boost membership? Mine currently ends in Oct.   You can &#8220;cancel&#8221; a boost membership, but that only cancels the auto-renew.  I have other Kroger cards, if that helps.  I could create another Kroger account, but the thing I&#8217;d love to keep. Would I need a new delivery address?</p>\n"
+      },
+      "date_gmt" : "2026-07-26T19:30:43",
+      "id" : 2375388,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Greg",
+      "content" : {
+        "rendered" : "<p>Are you saying we can get a second Boost membership for the same ACCOUNT? I didn&#8217;t let mine renew because they were going to charge me for it.</p>\n<p>It would be great to get another membership for free before the card switches over to USB.</p>\n"
+      },
+      "date_gmt" : "2026-07-27T17:12:46",
+      "id" : 2375851,
+      "parent" : 2375388
+    },
+    {
+      "author_name" : "Greg",
+      "content" : {
+        "rendered" : "<p>Are you saying we can get another Boost membership for free? I canceled ours because it was going to charge me for the second year.</p>\n<p>I can&#8217;t even find a place to renew it in the US Bank app. In fact, there is no mention of Kroger at all! Looks like the changeover is done other than issuing rebranded cards.</p>\n"
+      },
+      "date_gmt" : "2026-07-27T17:19:44",
+      "id" : 2375859,
+      "parent" : 2375388
+    },
+    {
+      "author_name" : "Buckyy",
+      "content" : {
+        "rendered" : "<p>What if you just don&#8217;t activate the Smartly card when it comes in?</p>\n"
+      },
+      "date_gmt" : "2026-07-27T17:59:44",
+      "id" : 2375887,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Buckyy",
+      "content" : {
+        "rendered" : "<p>Sadly no</p>\n"
+      },
+      "date_gmt" : "2026-07-27T18:00:46",
+      "id" : 2375888,
+      "parent" : 2371920
+    },
+    {
+      "author_name" : "iamjimmy",
+      "content" : {
+        "rendered" : "<p>I tried to chat, but it was no use. They are closing the card anyway.</p>\n"
+      },
+      "date_gmt" : "2026-07-27T18:55:34",
+      "id" : 2375927,
+      "parent" : 2375888
+    },
+    {
+      "author_name" : "Disruptings",
+      "content" : {
+        "rendered" : "<p>They are doing something weird with my card that is about to close, they are holding my transactions that I made in the last week as pending and not posting them even reverted some that posted to pending. I am wondering if they are trying not to pay out the extra 4x for mobile wallet..</p>\n"
+      },
+      "date_gmt" : "2026-07-27T23:03:08",
+      "id" : 2376168,
+      "parent" : 0
+    },
+    {
+      "author_name" : "avsterbone",
+      "content" : {
+        "rendered" : "<p>Got the email about this today. Migration is set to take place for me in October.</p>\n"
+      },
+      "date_gmt" : "2026-07-29T16:11:28",
+      "id" : 2377529,
+      "parent" : 0
+    },
+    {
+      "author_name" : "avsterbone",
+      "content" : {
+        "rendered" : "<p>Same here <a href=\"https://www.doctorofcredit.com/contact-us/#comment-2375787\" rel=\"ugc\">https://www.doctorofcredit.com/contact-us/#comment-2375787</a></p>\n"
+      },
+      "date_gmt" : "2026-07-29T16:12:11",
+      "id" : 2377530,
+      "parent" : 2376168
+    },
+    {
+      "author_name" : "Chris",
+      "content" : {
+        "rendered" : "<p>Loophole?</p>\n"
+      },
+      "date_gmt" : "2026-07-29T20:06:56",
+      "id" : 2377703,
+      "parent" : 2375887
+    },
+    {
+      "author_name" : "Vicki",
+      "content" : {
+        "rendered" : "<p>Mine was set to renew in October, but I went ahead and extended it for another year and it did not charge for it!</p>\n"
+      },
+      "date_gmt" : "2026-07-30T18:44:01",
+      "id" : 2378377,
+      "parent" : 2375851
+    },
+    {
+      "author_name" : "Vicki",
+      "content" : {
+        "rendered" : "<p>You extend Boost through the Kroger App. Boost isn&#8217;t part of the us bank rewards, but Kroger gives it free if you have the card.</p>\n"
+      },
+      "date_gmt" : "2026-07-30T18:47:33",
+      "id" : 2378382,
+      "parent" : 2375859
+    },
+    {
+      "author_name" : "doctor1024",
+      "content" : {
+        "rendered" : "<p>Shitty US bank, my statement closes at the Aug and they refused to award me the points I earned in this statement accumulated from Jul. Worst ever!!</p>\n"
+      },
+      "date_gmt" : "2026-08-12T05:40:38",
+      "id" : 2387797,
+      "parent" : 0
+    },
+    {
+      "author_name" : "mevasius@gmail.com",
+      "content" : {
+        "rendered" : "<p>I haven&#8217;t received my new card yet so it isn&#8217;t activated. US Bank processed a recurring charge through my new account number, which isn&#8217;t active yet, so it was declined. Why would they do that? Ridiculous.</p>\n"
+      },
+      "date_gmt" : "2026-08-14T14:14:54",
+      "id" : 2389731,
+      "parent" : 0
+    },
+    {
+      "author_name" : "FreddyJ",
+      "content" : {
+        "rendered" : "<p>I haven&#8217;t gotten my new card yet so the account isn&#8217;t active. But, stupid US Bank switched my recurring charges to the new account number so one that tried to go through today was declined. Why the heck would they do that before the card is even active?</p>\n"
+      },
+      "date_gmt" : "2026-08-14T14:23:05",
+      "id" : 2389738,
+      "parent" : 0
+    },
+    {
+      "author_name" : "pbm",
+      "content" : {
+        "rendered" : "<p>So they did not award the points for July to August when the statement closed in August for the closed card?</p>\n"
+      },
+      "date_gmt" : "2026-08-17T11:32:22",
+      "id" : 2391327,
+      "parent" : 2387797
+    },
+    {
+      "author_name" : "Monty",
+      "content" : {
+        "rendered" : "<p>my snail mail letter says my migration will happen in September. my next statement closes September 2nd. i wonder if I&#8217;ll get my 5% mobile wallet points from this current statement, or if the migration will force everything to the smartly rate. </p>\n<p>curious to know if this migration means i have a new card for PAZE exploits. i already burned all 10 paze on my kroger card. +10 on a smartly would be welcome.</p>\n"
+      },
+      "date_gmt" : "2026-08-17T11:46:03",
+      "id" : 2391330,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Mike",
+      "content" : {
+        "rendered" : "<p>I just got my smartly card from the Kroger switch, will say that the card is not metal, i don’t know if they have two versions of them but it was disappointing if some are metal and others plastic</p>\n"
+      },
+      "date_gmt" : "2026-08-18T05:07:55",
+      "id" : 2391898,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Monty",
+      "content" : {
+        "rendered" : "<p><a class='wpd-umcguest'  href='https://www.doctorofcredit.com/paze-spend-10-get-10-back-offer-whats-left-non-giftcard-options/#comment-2397260'><img alt='' src='https://secure.gravatar.com/avatar/9da6db3866969ba8b6c1c385dacd22c0a4814109bc47a611e45180c429f667fe?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/9da6db3866969ba8b6c1c385dacd22c0a4814109bc47a611e45180c429f667fe?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>iamjimmy</a> it is probably worth sharing your DP here with account closure (instead of account conversion)</p>\n"
+      },
+      "date_gmt" : "2026-08-26T13:46:19",
+      "id" : 2397264,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Monty",
+      "content" : {
+        "rendered" : "<p>are there any DPs of using kroger pay at the kroger store while it is still a kroger card, but then the card converts mid-statement-cycle, but then still successfully receiving the 5% rewards?</p>\n"
+      },
+      "date_gmt" : "2026-09-22T14:12:00",
+      "id" : 2418555,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Mike",
+      "content" : {
+        "rendered" : "<p>Apparently Kroger had launched a new credit card with a new bank</p>\n"
+      },
+      "date_gmt" : "2026-09-23T19:41:40",
+      "id" : 2419723,
+      "parent" : 0
+    },
+    {
+      "author_name" : "avsterbone",
+      "content" : {
+        "rendered" : "<p>I was forcibly converted today 🙁</p>\n<p>only silver lining is they have lowered the Cashback redemption threshold to 1 point</p>\n"
+      },
+      "date_gmt" : "2026-09-25T18:26:16",
+      "id" : 2421298,
+      "parent" : 0
+    },
+    {
+      "author_name" : "avsterbone",
+      "content" : {
+        "rendered" : "<p>I would also like to know this (I was converted today mid-cycle)</p>\n"
+      },
+      "date_gmt" : "2026-09-25T18:26:53",
+      "id" : 2421300,
+      "parent" : 2418555
+    },
+    {
+      "author_name" : "gisted",
+      "content" : {
+        "rendered" : "<p>I received my smartly card today. I called and no offers for product conversion.</p>\n"
+      },
+      "date_gmt" : "2026-09-25T18:37:29",
+      "id" : 2421307,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Jon",
+      "content" : {
+        "rendered" : "<p>I received Smartly Visa card a week ago which replaced my Harris Teeter MC. The card agreement wasn&#8217;t attached to the card and arrived separately this week. The agreement shows Foreign Transaction Fee is 0.00% for purchase or ATM advance in either US dollars or a Foreign Currency.</p>\n"
+      },
+      "date_gmt" : "2026-09-29T16:01:48",
+      "id" : 2423418,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Monty",
+      "content" : {
+        "rendered" : "<p>I got a push notification this morning that my card was moving to smarty.</p>\n<p>online, my account still shows the name kroger branded name but the image and number are the smartly card.</p>\n<p>My kroger card statement doesn&#8217;t end until tomorrow, but I see all kroger mobile wallet/kroger pay points as &#8220;pending&#8221; back-dated yesterday so I guess early conversion won&#8217;t force you to lose earned points (so if you have not converted yet, go spend like crazy on those 5% categories!).  usually the points don&#8217;t arrive until after the statement closes so this is welcome news that I keep the 5% earned on everything this last statement cycle.  should have MS&#8217;ed a lot more.</p>\n<p>I did a spend offer (5% kroger) so hopefully that offer/reward will post.</p>\n"
+      },
+      "date_gmt" : "2026-10-01T13:19:04",
+      "id" : 2424853,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Brendan",
+      "content" : {
+        "rendered" : "<p>Assume one still risks a SUB clawback closing the card before day 366, even though US Bank changed the card / terms on us?</p>\n"
+      },
+      "date_gmt" : "2026-10-01T20:58:44",
+      "id" : 2425289,
+      "parent" : 0
+    },
+    {
+      "author_name" : "atexit8",
+      "content" : {
+        "rendered" : "<p>My statement for the Kroger card closed Sept 28.</p>\n<p>I made two purchases in-store on Sept 29 with this card in Google Wallet thinking I was still going to get 5% for mobile wallet since it wasn&#8217;t Oct yet.</p>\n<p>Oct 1 I get an email from US Bank that the Smartly card had been ordered.</p>\n<p>Today Oct 2 both of the two purchases are showing as earning 2% rewards and having posted on Oct 1.</p>\n<p>It would appear Oct 1 was a hard date.</p>\n<p>Abysmal handling of the transition by US Bank.</p>\n<p>Not going to use the Smartly card.</p>\n"
+      },
+      "date_gmt" : "2026-10-02T20:25:58",
+      "id" : 2426344,
+      "parent" : 2424853
+    },
+    {
+      "author_name" : "Monty",
+      "content" : {
+        "rendered" : "<p>that sucks. my 5% spend/ statement credit posted correctly, but my statement doesn&#8217;t close until today. </p>\n<p>i really hate how us bank handled all of this</p>\n"
+      },
+      "date_gmt" : "2026-10-02T20:28:50",
+      "id" : 2426348,
+      "parent" : 2426344
+    },
+    {
+      "author_name" : "avsterbone",
+      "content" : {
+        "rendered" : "<p>You can call U.S. Bank directly and the phone reps have the power to issue courtesy points on the spot. If you complain they’ll likely throw like 2,500 at you.</p>\n"
+      },
+      "date_gmt" : "2026-10-03T04:20:30",
+      "id" : 2426705,
+      "parent" : 2426344
+    },
+    {
+      "author_name" : "Brendan",
+      "content" : {
+        "rendered" : "<p>Went from Harris Teeter and Ralphs cards to 2x Smartly cards today 🙁</p>\n<p>Debating keeping one open just in case US Bank restructures the Smartly so it is competitive at tiers beyond 2%, as the 0% FTF inherited by the transition would be a big perk if a Smartly v3 happened.</p>\n"
+      },
+      "date_gmt" : "2026-10-03T17:57:44",
+      "id" : 2426952,
+      "parent" : 0
+    },
+    {
+      "author_name" : "avsterbone",
+      "content" : {
+        "rendered" : "<p>DP: Statement Cycle closed and <strong>all</strong> transactions posted at 2% rewards. Very frustrating. Will call to get that fixed.</p>\n"
+      },
+      "date_gmt" : "2026-10-04T21:53:22",
+      "id" : 2427563,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Leafy",
+      "content" : {
+        "rendered" : "<p>Similar situation. No usable product change offer (only have shield and smartly). Will call later to see if P2 have any offers.</p>\n"
+      },
+      "date_gmt" : "2026-10-04T23:34:56",
+      "id" : 2427613,
+      "parent" : 2421307
+    },
+    {
+      "author_name" : "Monty",
+      "content" : {
+        "rendered" : "<p>Is the 0% FTF real?  I have seen mixed discussion online.  My paperwork states 0% FTF for purchases and 0% foreign ATM. But I have also seen online that the 0% ftf was an error.  not sure what to believe&#8230;</p>\n<p>I might not cancel the card if it has 2% everything plus no FTF.</p>\n"
+      },
+      "date_gmt" : "2026-10-20T03:23:12",
+      "id" : 2438473,
+      "parent" : 2426952
+    },
+    {
+      "author_name" : "avsterbone",
+      "content" : {
+        "rendered" : "<p>Update: Submitted a points dispute in early October. I never got an update. I then called back today to complain and was connected to their &#8220;Solutions&#8221; department (the supervisors). I was offered 5,000 points ($50) as a one-time courtesy. I took it, as it was double what I was seeking lol.</p>\n<p>Thanks, U.S. Bank, for making things right!</p>\n"
+      },
+      "date_gmt" : "2026-10-29T21:04:18",
+      "id" : 2445148,
+      "parent" : 2427563
+    }
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "101",
+    "x-wp-totalpages" : "2"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/comments?post=262264&per_page=100&page=1&order=asc&orderby=date_gmt&_fields=id,parent,author_name,date_gmt,content"
+}

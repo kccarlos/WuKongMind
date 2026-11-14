@@ -1,0 +1,21 @@
+{
+  "body" : {
+    "hits" : [
+      {
+        "author" : "rayhaan",
+        "created_at" : "2012-04-05T18:17:24Z",
+        "num_comments" : 0,
+        "objectID" : "3803832",
+        "points" : 5,
+        "story_id" : 3803832,
+        "story_text" : "Hi HN,<p>I just bought two IBM x3550's with two intel Xeon's + 8 GB DDR3 ECC, off ebay and was wondering if anyone needed virtual hosting in Singapore, not for anything <i>too</i> intense or important as will be hosting at home.<p>Internet conenctivity:\n    [local SIngapore] 200 Mbit/s down, 80 Mbit/s up, http://www.speedtest.net/result/1877297307.png\n    [Hong Kong] http://www.speedtest.net/result/1877293633.png\n    [Palo Alto] http://www.speedtest.net/result/1877490665.png<p>Was thinking of running OpenStack to manage VM instances. Just doing this to guage interest for now, not 100% sure, only for personal use or just drop me an email with what you plan to use it for. If you're interested contact r[at]rayquang[dot]com",
+        "title" : "Ask HN: hosting virtual servers in Singapore, anyone interested?"
+      }
+    ]
+  },
+  "headers" : {
+    "content-type" : "application/json"
+  },
+  "status" : 200,
+  "url" : "https://hn.algolia.com/api/v1/search?tags=story&query=Intel%20N100%20home%20server&page=0&hitsPerPage=20"
+}

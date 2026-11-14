@@ -1,0 +1,101 @@
+{
+  "body" : {
+    "hits" : [
+      {
+        "author" : "ndriscoll",
+        "comment_text" : "No streaming app is giving you a video feed with 48Gbps of data (more like 5-15 Mbps), and no one produces 120 or 144Hz video (most movies&#x2F;TV are still 24Hz aren&#x27;t they?), so there&#x27;s no point in sending that kind of signal to a TV (you&#x27;ll just have a crisp, high refresh signal of the low refresh blurry compression artifacts), but even ignoring that, cheap n100 minipcs can do 4k60 or 1k240 just fine (I use a minipc as my desktop with a 4k240 OLED).",
+        "created_at" : "2026-10-25T16:58:19Z",
+        "objectID" : "50233621",
+        "parent_id" : 50233463,
+        "story_id" : 50218633,
+        "story_title" : "Root shell on Samsung TV"
+      },
+      {
+        "author" : "qlte",
+        "comment_text" : "&gt; This is entirely too much effort<p>It really isn&#x27;t. I&#x27;ve done this on like 4 different Android TV devices and it&#x27;s like 30 minutes of effort at most and you only need to do it once.<p>If the alternative was a totally open Linux box you&#x27;d almost certainly spend <i>way</i> more time than that tweaking config and stuff (even if you&#x27;d mentally categorize than as &quot;voluntary&quot; time for a hobby and therefore not actually wasted).<p>I&#x27;ll happily take that insignificant one time setup for a 100% ad-free experience (including Youtube) with a customizable launcher I can adjust to my liking on a 4K Android TV stick that cost me $39.99. And automate basically any function via ADB, including remapping the branded Netflix&#x2F;HBO&#x2F;etc buttons on the remote (I have a &quot;Free TV&quot; button that now goes to .... Stremio which I still laugh at occasionally).<p>I couldn&#x27;t do any of that on a $199.99 Apple TV. An N100 Mini PC would cost 6x as much as I spent on an Onn stick, plus I&#x27;d need to buy a remote and would have to work around a keyboard&#x2F;mouse centric UI and couldn&#x27;t navigate with HDMI-CEC either.<p>I can&#x27;t even think of anything I&#x27;m unable to do with my Custom Launcher&#x2F;Sideload&#x2F;Remote ADB Android TV setup like OP. It&#x27;s just about the perfect couch-based interface. It does what I tell it without distractions and fades into the background completely like any good UI should, so I can focus on what I&#x27;m actually watching instead.",
+        "created_at" : "2026-10-21T22:21:53Z",
+        "objectID" : "50188480",
+        "parent_id" : 50176286,
+        "story_id" : 50158942,
+        "story_title" : "An ad-free Android TV"
+      },
+      {
+        "author" : "lp92",
+        "comment_text" : "Your best bet is indeed a mini PC. I think you can probably still find N100 based mini PCs pretty cheap. As for keyboard,  you can find a micro 6&quot; keyboard + touchpad (ie K808) for like $25 on Amazon.",
+        "created_at" : "2026-10-20T05:03:44Z",
+        "objectID" : "50161548",
+        "parent_id" : 50161465,
+        "story_id" : 50158942,
+        "story_title" : "An ad-free Android TV"
+      },
+      {
+        "author" : "dd_xplore",
+        "comment_text" : "I had a N100 mini PC with 16GB DDR5 (the chinese ones with 4 Ethernet for router use). That thing ran lot&#x27;s of my services - arr stack, jellyfin, immich (iGPU + ML + another container running on my PC for additional ML resource), n8n, it-tools, handbrake, and another project that I used to do.\nThis mini PC also handled 4k hevc quite fine!\nThis is a surprisingly capable chip.But I wanted more so I bought a core Ultra 7 155H mini pc and took the RAM, ssd from the n100 machine (couldn&#x27;t afford more due to ramocalypse).<p>I now also host this (shameless plug):<a href=\"https:&#x2F;&#x2F;news.freestuffsthat.work\" rel=\"nofollow\">https:&#x2F;&#x2F;news.freestuffsthat.work</a> This simple site uses the built-in NPU, iGPU and the GPU on my desktop to summarise, sort topics etc for the news headlines.",
+        "created_at" : "2026-10-16T14:07:24Z",
+        "objectID" : "50118582",
+        "parent_id" : 50109715,
+        "story_id" : 50109715,
+        "story_title" : "What I self-host"
+      },
+      {
+        "author" : "stego-tech",
+        "comment_text" : "Shoutout to another happy N100 miniPC user! I have two myself from before the RAMpocalypse, with one doing standard Proxmox + VMs work in a similar vein to ESXi, and the other straight Debian + Docker for more container hands-on time. Just the perfect little homelab boxes at the perfect price point (~$180US) before things got insane.<p>My stack is currently a mix of usual end user services (Jellyfin, FreshRSS) and identity infra, and it chugs along brilliantly without issue. I’m fairly certain that I could leave it running to the heat death of the universe if I built lifecycle management into my backup scripts.",
+        "created_at" : "2026-10-16T10:52:41Z",
+        "objectID" : "50116808",
+        "parent_id" : 50109715,
+        "story_id" : 50109715,
+        "story_title" : "What I self-host"
+      },
+      {
+        "author" : "ErroneousBosh",
+        "comment_text" : "&gt; a lot easier with say a N100&#x2F;N150 mini PC<p>Oooooh, look at firesteelrain getting all fancy with his 300EUR mini PC! Shitbox Core i5 out of the ewaste pile with as much RAM as you can scrounge out of the rest of the scrap not good enough for you, eh?",
+        "created_at" : "2026-10-07T19:34:01Z",
+        "objectID" : "49997724",
+        "parent_id" : 49988080,
+        "story_id" : 49950865,
+        "story_title" : "The cost of lies: A Mineserver story"
+      },
+      {
+        "author" : "firesteelrain",
+        "comment_text" : "N100 mini PCs are easy to come by on sites like Newegg. Cringley was laser cutting cases. Then, you have open source software like Comitup that would make it easy to auto setup WiFi and tailscale for bypassing home NATs. You can script a lot of that stuff",
+        "created_at" : "2026-10-07T11:21:04Z",
+        "objectID" : "49991197",
+        "parent_id" : 49988748,
+        "story_id" : 49950865,
+        "story_title" : "The cost of lies: A Mineserver story"
+      },
+      {
+        "author" : "firesteelrain",
+        "comment_text" : "Building a mineserver today feels like it would be a lot easier with say a N100&#x2F;N150 mini PC then with all of the modern open source Minecraft software components like Paper or Crafty. The idea was good, just too lofty and underpriced. Also fairly niche. Making it plug and play for nontechnical parents is what made the requirements difficult.",
+        "created_at" : "2026-10-07T04:13:49Z",
+        "objectID" : "49988080",
+        "parent_id" : 49950865,
+        "story_id" : 49950865,
+        "story_title" : "The cost of lies: A Mineserver story"
+      },
+      {
+        "author" : "Chu4eeno",
+        "comment_text" : "&gt; NixOS has a longstanding issue where library loading (and therefore program start, particularly GUI programs that load a lot) is n^2, but programs still all start in ~1 second or less on my n100 minipc. I still found that to be annoying enough to look into why it seemed so slow (and learned about the loading issue). Can&#x27;t imagine things taking so long that you actually switch to another task. The same minipc can easily handle my 4k 240hz HDR monitor as well, and the whole experience is completely smooth.<p>KDE actually solved that long time ago with kdeinit (<a href=\"https:&#x2F;&#x2F;web.archive.org&#x2F;web&#x2F;20010517071320&#x2F;www.suse.de&#x2F;~bastian&#x2F;Export&#x2F;linking.txt\" rel=\"nofollow\">https:&#x2F;&#x2F;web.archive.org&#x2F;web&#x2F;20010517071320&#x2F;www.suse.de&#x2F;~bast...</a> and follow-up work by Lubos, see e. g. <a href=\"https:&#x2F;&#x2F;conference2005.kde.org&#x2F;slides&#x2F;kde-performance&#x2F;index.html\" rel=\"nofollow\">https:&#x2F;&#x2F;conference2005.kde.org&#x2F;slides&#x2F;kde-performance&#x2F;index....</a>), but the new crop of developers didn&#x27;t notice much difference on their high-end systems with SSDs, so they ripped it out.",
+        "created_at" : "2026-07-27T05:11:28Z",
+        "objectID" : "49065399",
+        "parent_id" : 49034377,
+        "story_id" : 49033004,
+        "story_title" : "If coding has been solved, why does software keep getting worse?"
+      },
+      {
+        "author" : "ndriscoll",
+        "comment_text" : "Yeah the obvious answer to software getting worse is to switch to FOSS. Use Linux&#x2F;KDE. It&#x27;s been great for a long time and only ever gets better. It&#x27;s as if Windows 7 just continued to slowly iterate and add useful polish.<p>NixOS has a longstanding issue where library loading (and therefore program start, particularly GUI programs that load a lot) is n^2, but programs still all start in ~1 second or less on my n100 minipc. I still found <i>that</i> to be annoying enough to look into why it seemed so slow (and learned about the loading issue). Can&#x27;t imagine things taking so long that you actually switch to another task. The same minipc can easily handle my 4k 240hz HDR monitor as well, and the whole experience is completely smooth.<p>The computer also just <i>obeys</i> me. It does exactly what I tell it to, and nothing more.",
+        "created_at" : "2026-07-24T12:05:14Z",
+        "objectID" : "49034377",
+        "parent_id" : 49033527,
+        "story_id" : 49033004,
+        "story_title" : "If coding has been solved, why does software keep getting worse?"
+      }
+    ]
+  },
+  "headers" : {
+    "content-type" : "application/json"
+  },
+  "status" : 200,
+  "url" : "https://hn.algolia.com/api/v1/search?tags=comment&query=N100%20mini%20PC&page=0&hitsPerPage=10"
+}

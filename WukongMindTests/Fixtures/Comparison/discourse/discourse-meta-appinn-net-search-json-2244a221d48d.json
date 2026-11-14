@@ -1,0 +1,913 @@
+{
+  "body" : {
+    "posts" : [
+      {
+        "blurb" : "在NAS里面有一些下载的flac格式的音乐，但是在用播放器播放的时候没有歌词和封面，打算找一个软件直接封装在tag中。 【背景】群晖的NAS，放置在老家不在身边，也没有公网IP可以直接访问，所以方案最好能简单些。 【目前尝试过的方案】家里有一台台式机，安装了synology driver官方的同步软件，把N...",
+        "id" : 218883,
+        "post_number" : 1,
+        "topic_id" : 59733,
+        "username" : "hikingbear"
+      },
+      {
+        "blurb" : "....14.0 1.14.0 版本加进去的，还算新鲜 joy 青小蛙录制了一段视频： https://www.youtube.com/watch?v=ofexcRSnlpw [LocalSend 已支持「通过链接分享」，接收端可以不用装 App 了] … 支持多平台，实际使用体验也很好 于是想把它部署到nas 但是官方并未推出 docker版本 都是gui的版本 所以想问问 除了搞虚拟机这种高资源占用的方法，还有啥方法可以把LocalSend部署到nas？",
+        "id" : 260808,
+        "post_number" : 1,
+        "topic_id" : 70666,
+        "username" : "tthy"
+      },
+      {
+        "blurb" : "问题：在家使用电视播放NAS中存放的电影部分影片卡顿（一顿一顿的，有时候是卡住不动，有时候会提示缓存中） 使用环境： 电视： TCL的75寸的Q10K，安装的kodi 21.1，通过NFS/SMB挂载NAS中的文件（两种方式都试过，效果差不多）； NAS是群晖920+，系统是7.2 网络是TP-link BE6500+TP-L...",
+        "id" : 247601,
+        "post_number" : 1,
+        "topic_id" : 66438,
+        "username" : "hikingbear"
+      },
+      {
+        "blurb" : "客厅电视接了当贝盒子，还有家里的nas云盘，之前一直在用当贝盒子自带的当贝相册看自己照片，觉得功能比较单一，而且要上传文件到当贝相册才能看，大家能不能推荐个安卓上好用的相册管理软件，最好是能用遥控器操作的，先谢谢了",
+        "id" : 252220,
+        "post_number" : 1,
+        "topic_id" : 67427,
+        "username" : "zsh3454"
+      },
+      {
+        "blurb" : "很担心nas被暴力破解导致文件泄露，有没有办法能通过路由器灵活禁用nas联网，需要外部访问的时候就通过路由器后台去打开它的外网，不需要的时候就关闭外网（内网下还要使用）。 不过我目前用的路由器，只能控制WIFI设备断网，没法控制有线设备。 有没有这样的路由器，求推荐，或者有没有更合适的方法？",
+        "id" : 242263,
+        "post_number" : 1,
+        "topic_id" : 65172,
+        "username" : "chr"
+      },
+      {
+        "blurb" : "如题，最本质的需求是想用bypass这个抢票软件，但这个软件只能运行在windows上，所以前两天网上搜了一下，说是可以NAS安装Windows虚拟机，这样可以24h不间断抢票，正好NAS也是24h开机的。 然后，安装好发现巨卡。 我用的ISO镜像是win11 tiny，大小只有2个G 然后内存分配了2G 但就是巨卡。卡到这个4M的抢票软件都跑不流畅…… 想问下各位可能的原因，或者有没有什么其他镜像推荐的",
+        "id" : 227294,
+        "post_number" : 1,
+        "topic_id" : 61824,
+        "username" : "horee"
+      },
+      {
+        "blurb" : "之前NAS密码泄露了，然后改了一个密码，然后就发现在公司登录的NAS会一直被锁。但是正常是5分钟内输错10次密码才会被锁，不知道为什么我家里改完密码，公司这边就直接被锁了。 而且最离谱的是，封锁名单内的IP太多了，我不知道哪个是我公司的IP（有知道怎么确认这个问题的大佬也可以说下），然后我就把封锁名单全删了，...",
+        "id" : 222407,
+        "post_number" : 1,
+        "topic_id" : 60664,
+        "username" : "horee"
+      },
+      {
+        "blurb" : "需求： 1.家庭使用；主要用于远程下载、存储文件、家里电视手机可直接观看NAS内的电影文件； 2.1或2盘位即可；价位1000元内； 3.能够远程读写NAS内文件，远程下载； 4.可远程开关机或待机唤醒。",
+        "id" : 64922,
+        "post_number" : 1,
+        "topic_id" : 21714,
+        "username" : "Cheng"
+      },
+      {
+        "blurb" : "昨天收拾书房，把NAS换了一个位置，断电的时候扫了一下风扇和顶部的灰，没打开，然后再上电就启动不了了，启动的时候硬盘灯也闪，然后就断电了，要怎么办？",
+        "id" : 334079,
+        "post_number" : 1,
+        "topic_id" : 88672,
+        "username" : "hikingbear"
+      },
+      {
+        "blurb" : "06:10AM - 24 August 2024 https://neil.computer/notes/how-to-setup-minimal-zfs-nas-without-truenas/ Neil Panchal – 24 Aug 24 https://neil.computer/notes/how-to-setup-minimal-zfs-nas-without-truenas/ How to Build a Minimal ZFS NAS wi...",
+        "id" : 331587,
+        "post_number" : 1,
+        "topic_id" : 87972,
+        "username" : "Qingwa"
+      },
+      {
+        "blurb" : "Windows重度用户，又不想单独弄个设备来做NAS，于是有了一些构想，一方面分享出来给大家提供一些思路并听取意见，另一方面有一些尚未考虑好的问题想请教。 主要思路是把主力台式机在Windows普通版本（非服务器版）的情况下全天候开机，然后配置各种服务实现NAS的功能。 使用场景 22年在学校组的台式机，当时因为笔记本的16G内存实在是不够我使用了，...",
+        "id" : 244531,
+        "post_number" : 1,
+        "topic_id" : 65704,
+        "username" : "ilcpm"
+      },
+      {
+        "blurb" : "(与文无关)个人项目推广: https://pho.tools Pho - 优雅地同步和浏览相册(通过smb,webdav,nfs等协议) https://blog.pho.tools/wo-de-naszai-sheng-huo-zhong-de-zhong-yao-zuo-yong/ 之前写的文章 列举了我个人的NAS在实际生活中发挥到的作用,这篇文章主要分享一下我个人的NAS在家庭媒体中心方面的实战经验. 方案 - Alist + rclone + qbittorrent + Plex 部署A...",
+        "id" : 168223,
+        "post_number" : 1,
+        "topic_id" : 47667,
+        "username" : "fregie"
+      },
+      {
+        "blurb" : "(与文无关)个人项目推广: https://pho.tools Pho - 优雅地同步和浏览相册(通过smb,webdav,nfs等协议) 最近明显能感觉到NAS这个小众产品的玩家越来越多了,许多外设厂家也开始涉足NAS领域,但是很多人心血来潮买了NAS后玩几天就开始吃灰了,很多人并不知道NAS到底怎么才能真的融入到生活中,而不只是一个玩具,所以分享一下我自己的NAS在生活中的\"重要\"作用. 以下只是我个人的一些场景的解决方案,可能不是最好的,也不是适合每一...",
+        "id" : 167493,
+        "post_number" : 1,
+        "topic_id" : 47457,
+        "username" : "fregie"
+      },
+      {
+        "blurb" : "原始链接在： https://www.appinn.com/plex2shell-plex-nas-security-vulnerability/ QNAP 威联通发布警告：Plex2Shell 漏洞正被黑客利用，已有 NAS 疑似遭入侵 - 小众软件 QNAP 威联通警告 黑客正在利用名为 Plex2Shell 的漏洞链攻击运行 Plex Media Server 的 NAS 设备。 11 月...",
+        "id" : 357503,
+        "post_number" : 1,
+        "topic_id" : 95403,
+        "username" : "Qingwa"
+      },
+      {
+        "blurb" : "软件名称 oneNAS 应用平台 Android 推荐类型 【开发者自荐】 一句简介 我给自己开发了一个个人向，nas服务聚合应用，一个应用入口，浏览nas的各种服务。 应用简介 你是否还在为自己组装的nas没有成品nas的统一app而烦恼，你是否因为在nas里面装了无数第三方服务后需要下载一堆app而困扰。有些官方应用...",
+        "id" : 337602,
+        "post_number" : 1,
+        "topic_id" : 89712,
+        "username" : "yang1412"
+      },
+      {
+        "blurb" : "...//lucky666.cn/ gdy666/lucky https://github.com/gdy666/lucky （ps 个人强迫症喜欢一行文字一行 url，直观干净） 我对网络技术了解还少，就研究了一下官网推荐的教程。基本上是 DDNS、SSL证书、反向代理三件套 DDNS 我发现，之前用 NAS 自带的 DDNS 功能得出来的 ip 地址是错误的（一开始是正确的，用了一段时间就错了），原因分析不出来。 用 Lucky 很轻松就解决了。而且介面很清晰详细，不会让小白有心理压力。 SSL 这个也简单 反向代理 这一步我第一次配置完了发现没效果，后来一顿排查才发现我给 lucky 的网络模式是...",
+        "id" : 302914,
+        "post_number" : 1,
+        "topic_id" : 80779,
+        "username" : "DavidJoy"
+      },
+      {
+        "blurb" : "...服务，但现在动不动就需要 docker_(:з」∠)_，我那小电脑没法装。还有一些东西，只有 64 位版本，我也没法用。 尝试，解决 一直很想解决一下这些问题，但是需求也算不上迫切。直到最近面临照片的问题，当然这个也不是很着急，毕竟手机刚到手，距离储存空间告急还有很遥远的时间。 有几种方案： 成品 Nas，但真的贵 买个小主机，各方面都满足我的，大概需要两三百块钱，这个可能是最合理的方案 我有一台旧笔记本，各方面参数还是不错的，但功耗可能比小主机大一点儿。然后散热被我搞坏了。算一算，让它重新跑起来的话，需要的成本可能也得 200 左右。 我淘汰下来的手机也有 256 的存储，其实似乎它也能做点儿什么...",
+        "id" : 287107,
+        "post_number" : 1,
+        "topic_id" : 76677,
+        "username" : "dms"
+      },
+      {
+        "blurb" : "背景和需求 最近看起了动漫，囤积了一些 BDRip 后原有的一块 14T 仓库盘容量告警。同时寒假将近，与其拆盘带回家不如干脆弄一台小体积 nas 整机带回，于是终于确定了组建 nas 的想法。大致需求有以下几点： 2-4 盘位 体积尽量小，以节省宿舍空间并便于假期携带 电费不用自己出，功耗可以不太在意 大致方案 星际蜗牛之类的老矿渣实在不想考虑，自组 nas 机箱的选择空间又太少，最后看上的是各大厂几年前的 SFF 小主机。具体配置如下 型...",
+        "id" : 237646,
+        "post_number" : 1,
+        "topic_id" : 64227,
+        "username" : "charleswei1024"
+      },
+      {
+        "blurb" : "除去硬盘的开销，内网穿透，相对易用或者折腾好了可以很易用，最重要的是稳定，所以暂时排除黑群晖的方案，起因是因为今天清理小米云空间的时候，删除照片，它连我手机上的照片一并删除，坚决抵制这种绑架我照片的行为，但我妈用习惯了小米，你让她换她可能不太乐意或者有学习成本，想着干脆上硬件算了。",
+        "id" : 173529,
+        "post_number" : 1,
+        "topic_id" : 48996,
+        "username" : "FengWuShu"
+      },
+      {
+        "blurb" : "为什么要存到NAS 一直不愿意用一些云相册或者网盘之类的服务来备份和保存自己的照片,主要是两个原因: 不想自己的隐私被这些服务方一直视奸,你传上去的照片视频肯定会被这些服务方扫描一遍的,就算没有私密的照片,我也接受不了隐私被这样侵犯 不想自己的数据被绑架,毕竟数据是别人手上,哪天别人要跑路或者涨价,你也没有任何办法...",
+        "id" : 167812,
+        "post_number" : 1,
+        "topic_id" : 47549,
+        "username" : "fregie"
+      },
+      {
+        "blurb" : "[自荐] 漫画胶囊 - 本地·NAS漫画阅读器，支持AI高清 :pill: 软件信息 软件名称 ：漫画胶囊 (Manga Capsule) 软件平台 ：iOS / iPadOS / macOS (M芯片) 软件分类 ：漫画阅读器 / 工具 软件官网 ： https://mangacapsule.com/ 下载地址 ： https://...",
+        "id" : 309849,
+        "post_number" : 1,
+        "topic_id" : 82487,
+        "username" : "MangaCapsule"
+      },
+      {
+        "blurb" : "原始链接在： https://www.appinn.com/fnos-iscsi/ 飞牛OS 新增 iSCSI 应用，可将 NAS 文件直接挂载到电脑中。向全能 NAS 又迈进一步 - 小众软件 https://www.appinn.com/tag/%e9%a3%9e%e7%89%9b/ 飞牛 OS 今天进行了系统更新，新增 iSCSI Manager 应用，可以在电脑中像普通硬盘一样，挂载 NAS 文件。Windows 与...",
+        "id" : 284034,
+        "post_number" : 1,
+        "topic_id" : 75772,
+        "username" : "Qingwa"
+      },
+      {
+        "blurb" : ".../h1.appinn.me/file/1752733537799_7094165eb4609f2caf6d694fb2c13500badc8de5_2_690x344.png OpenMediaVault概述 OpenMediaVault（简称 OMV）是一款基于 Debian 的开源网络附加存储（NAS）解决方案，主要面向家庭和小型局域网用户，通过模块化设计提供便捷易用的 NAS 功能。其核心是带专用网页管理界面的 Debian 系统，界面专为 NAS 相关功能开发，操作直观。最新版本 OMV 7 基于 Debian 12 构建，支持丰富的存储管理、文件共享、虚拟化等功能。 作者因 OMV 7 教...",
+        "id" : 273069,
+        "post_number" : 1,
+        "topic_id" : 73193,
+        "username" : "Yxin"
+      },
+      {
+        "blurb" : "如题，背景是，实际工作中，经常有一些东西需要保存。 之前的想法是，文件保存到NAS，文本链接保存到cubox。 但是没有一种方式支持直接粘贴截图的。 就比如，我使用截图工具截了一张图，然后可以直接ctrl V粘贴到微信，然后保存。 NAS有没有类似的操作，可以直接ctrl V粘贴图片，然后保存到指定文件夹的呢？",
+        "id" : 217375,
+        "post_number" : 1,
+        "topic_id" : 59405,
+        "username" : "horee"
+      },
+      {
+        "blurb" : "原始链接在： https://www.appinn.com/synology-nas-ransomware-protection-guide/ 就在刚刚，群晖在公众号中发布了一篇名为《保护您的 NAS 免受勒索软件攻击》的 https://mp.weixin.qq.com/s/955LZm_68obI8w1nWsXASg?scene=1 教程 ，强调三点： 使用安全顾问执行扫描 更...",
+        "id" : 357236,
+        "post_number" : 1,
+        "topic_id" : 95327,
+        "username" : "Qingwa"
+      },
+      {
+        "blurb" : "iPhone 里的照片越来越多以后，很多人会把它们分别放在 iCloud、移动硬盘或 NAS 里。存储位置有很多选择，但把照片从手机备份出去，往往还不够直接。 MemStora 做的事情很单一：把 iPhone 相册里的照片和视频，备份到你自己的 U 盘、移动硬盘，或者支持 WebDAV 协议的 NAS。数据直接在 iPhone 和你选择的外接存储/WebDAV 之间传输，不经过 MemS...",
+        "id" : 337816,
+        "post_number" : 1,
+        "topic_id" : 89796,
+        "username" : "Cormac_Layne"
+      },
+      {
+        "blurb" : "原始链接在： https://www.appinn.com/xunlei-shuqiansou/ 不用 NAS、不买硬盘，0成本拥有影视、小说、资源库 - 小众软件 拥有一个属于自己的影视资源库，可以选择最折腾的 NAS 路线： 1. 买NAS → 2. 买硬盘 → 3. 配置下载环境 → 4. 搜索资源 → 5. 开始下载 → 6. 整理本地资源 → 7. 折腾播放 这套流程对于喜欢折腾的人来说很有乐趣，...",
+        "id" : 338288,
+        "post_number" : 1,
+        "topic_id" : 89955,
+        "username" : "Qingwa"
+      },
+      {
+        "blurb" : "原始链接在： https://www.appinn.com/vidhub-rg/ VidHub：一个播放器，打通你所有的网盘、NAS 和本地视频 - 小众软件 VidHub 是一款支持 Android 手机/电视、iOS、iPadOS、macOS 的跨平台视频播放器，主要特色是可以加载阿里云盘、百度网盘、115、NAS 资源，配合漂亮的海报墙，让你在一个播放器中看遍所有视频。 你是否受够了这样的观影日常？想看存在阿里云盘的剧，得...",
+        "id" : 297434,
+        "post_number" : 1,
+        "topic_id" : 79249,
+        "username" : "Qingwa"
+      },
+      {
+        "blurb" : "软件名称 DS Cloud-高清影片、无损音乐轻松播放 应用平台 iOS 推荐类型 【开发者自荐】 一句简介 这是一个集看视频、听音乐和文件管理的群晖NAS客户端（融合怪） 此融合怪现已支持 Emby 登录 最新更新内容 AppleTV现已上线，功能全部免费： 1、支持Emby，Jellyfin，WebDAV，115网盘 2、支持多种视频格式，包括ISO以及杜比视界 3、支持缓存模式，看视频更流畅 应用简介 1、看视频 DS Cloud支持市面上所有主...",
+        "id" : 185922,
+        "post_number" : 1,
+        "topic_id" : 52200,
+        "username" : "Carefree"
+      },
+      {
+        "blurb" : "NAS 上存储了很多生活照片，但感觉如果不去看的话，好像没啥意义。 OneDrive 提供了一个邮件服务，会每天发邮件附上历史上今天拍的照片。 想知道 NAS 上是否有提供类似功能的软件，帮助用户回顾自己的生活。 https://h1.appinn.me/file/1745561998803_image....",
+        "id" : 261231,
+        "post_number" : 1,
+        "topic_id" : 70757,
+        "username" : "111215"
+      },
+      {
+        "blurb" : "TL;DR ：我是老鼠，给我打钱！ https://afdian.com/a/daomishu 老鼠爱发电 起因是这里 https://meta.appinn.net/t/topic/64721 88元包邮、9w待机1037u的NAS想要玩玩吗 。我是真的挺心动的，但是这个机器不太适合我。既然是一个低成本的 Nas，那我肯定也不想花多少钱去搞存储，正好我手头有一些旧的存储设备，既然需求不高，那把它们凑合在一起用是非常合理的。虽然是各种接口，但是都可以装在硬盘盒里，而且我现在也是这么使用的。而上文这一款的主板基本不支持 USB3....",
+        "id" : 244463,
+        "post_number" : 1,
+        "topic_id" : 65682,
+        "username" : "dms"
+      },
+      {
+        "blurb" : "前期准备 威联通NAS，电脑，同一网络环境。 Virtualization Station 虚拟化工作站（威联通NAS中App Center里搜索安装） https://github.com/home-assistant/operating-system/releases/download/14.0/haos_ova-1...",
+        "id" : 237972,
+        "post_number" : 1,
+        "topic_id" : 64281,
+        "username" : "LiGouHai"
+      },
+      {
+        "blurb" : "原始链接在： https://www.appinn.com/synology-products-performance/ 群晖上线新的 NAS 性能对比页面 - 小众软件 群晖（Synology）最近上线了新的 NAS 性能对比页面，可以在不同的群晖 NAS 之间对比设备性能，包括磁盘读取速度、应用用户数量上限、同时访问用户数量等数据，方便用户筛选。@ https://www.appinn.com/synology-products-pe...",
+        "id" : 212595,
+        "post_number" : 1,
+        "topic_id" : 58281,
+        "username" : "Qingwa"
+      },
+      {
+        "blurb" : "早起看到喜闻乐见的新闻↓ 绿联 NAS 因存在巨量问题发布致歉信，同时绿联 NAS 的新品从京东商城下架。此前绿联的支持文档还被发现存在群晖的字样，显然这是复制群晖内容时没有清理干净。 我前段时间还在犹豫要不要买绿联NAS的，可以不用买了。总归是群晖大法好，稳定压一切。 新闻来源： https://www.landiannews.com...",
+        "id" : 208143,
+        "post_number" : 1,
+        "topic_id" : 57288,
+        "username" : "lenno"
+      },
+      {
+        "blurb" : "如题，在用群晖NAS备份iPhone照片的时候遇到了一个问题。 我手机上的软件是Synology Drive，可以自动备份手机上的照片。 但是问题是，不能指定特定的文件夹。 比如我有一个相册，命名为“资料”，我只想将这个相册备份到NAS，而不需要将手机全部照片都备份。但是这个软件无法设置。 给他设置“读取部分相册”的选...",
+        "id" : 208225,
+        "post_number" : 1,
+        "topic_id" : 57310,
+        "username" : "horee"
+      },
+      {
+        "blurb" : "各位大佬，家里的群晖NAS买了这么多年，都没有实现真正外网连接 我是申请了公网ip，也开通了群晖connect，在外面使用connec连接没问题，nas设置也按照网上教程打开了ftp以及webav 但是我使用nplayer的时候，需要输入主机名称，我看其他帖子说的，输入了connect的链接，但是仍然无法连接 现在唯一能使用...",
+        "id" : 179708,
+        "post_number" : 1,
+        "topic_id" : 50664,
+        "username" : "laurie3790"
+      },
+      {
+        "blurb" : "尝试过当贝、迅雷，都不满足需求，最好是支持视频缩略图的",
+        "id" : 179628,
+        "post_number" : 1,
+        "topic_id" : 50641,
+        "username" : "1314_mylove"
+      },
+      {
+        "blurb" : "原始链接在： https://www.appinn.com/active-backup-for-business-2-5-0-12631/ 群晖 Active Backup for Business 套件新增 macOS 整机备份功能，目前已支持个人电脑、物理服务器、文件服务器、虚拟机、NAS 备份 - 小众软件 Active Backup for Business 是著名的 NAS 提供商 https://www.appinn.com/tag/%E7%BE%A4%E6%99%96/ 群晖 自带的免费系统套件，它可以针对个人电脑（Windows、Linux、macOS）进行整机备份，还可...",
+        "id" : 136947,
+        "post_number" : 1,
+        "topic_id" : 39432,
+        "username" : "Qingwa"
+      },
+      {
+        "blurb" : "image 还是这个： image",
+        "id" : 128108,
+        "post_number" : 1,
+        "topic_id" : 37165,
+        "username" : "775405984"
+      },
+      {
+        "blurb" : "前些天聊到整理资料的事情，弄着弄着我就开始对备份数据产生了兴趣。 这时候许多人的反应就是——来个 NAS 吧。 这个反应很正常，因为现在网络备份服务，靠谱且稳定好用的……吁~~~ 但是看看钱包还得常怀理智，我真的没有那么大量的数据，我对数据的访问真的并不频繁。总之我没有那么高的要求，只是希望对数据的安全能够进一步的提升，比如多一份备份。 我有一个旧的上网本，性能确实不高，2GB 内存。目前运行的 Wi...",
+        "id" : 70160,
+        "post_number" : 1,
+        "topic_id" : 23213,
+        "username" : "dms"
+      },
+      {
+        "blurb" : "软件名称 DS Music - Synology群晖NAS音乐播放器 应用平台 iOS (支持 CarPlay) iPadOS macOS Apple TV Apple Vision 推荐类型 【开发者自荐】 一句简介 这是一个第三方开发的群晖NAS音乐播放器，功能强大，使用体验好，不需要订阅免费可以使用。 重点：如何下载 可以在我的网站 https://...",
+        "id" : 207797,
+        "post_number" : 1,
+        "topic_id" : 57209,
+        "username" : "tongwanglin"
+      },
+      {
+        "blurb" : "群晖NAS，文件共享链接生成二维码，电脑识别二维码能下载文件，手机识别二维码不能下载，请指教 https://h1.appinn.me/file/1752117645656_1.png",
+        "id" : 272255,
+        "post_number" : 1,
+        "topic_id" : 73023,
+        "username" : "TangXing"
+      },
+      {
+        "blurb" : "有两台rk3566的盒子， 一台黑豹X2 （已刷机）120元，4G+32G闪存另自带128G tf卡，刷为armbian后功耗待机仅1.5W，全力工作时4W。 一台网易云OTC Pro（已刷机）110元，4G+8G闪存，自己插了个2T的笔记本硬盘，待机3.8W，全力工作时6W。 太省电，惊呆我了。 samba可以达到极速1000M https://pub.r34.cc/pic/2025/6ba475c33823858c12b651ca3cf6a2f7.JPG",
+        "id" : 249260,
+        "post_number" : 1,
+        "topic_id" : 66807,
+        "username" : "lilyhcn1"
+      },
+      {
+        "blurb" : "如题，NAS执行备份作业时报错，于是我删除了这个视频。 再次备份依旧是报错。 后来去搜索引擎查了一下发现“. @__thumb ”是缩略图文件夹，报错原因是文件过长或含有特殊字符，虽然删除了视频，但同名的缩略图文件没能删除。但威联通的 File Station 在设置开启了显示隐藏文件的情况下也还是不会显示这个...",
+        "id" : 232140,
+        "post_number" : 1,
+        "topic_id" : 62955,
+        "username" : "LiGouHai"
+      },
+      {
+        "blurb" : "原始链接在： https://www.appinn.com/nova-video-player/ NOVA Video Player - 开源 Android 视频播放器，支持手机、平板、电视，支持刮削、NAS 等 - 小众软件 NOVA Video Player 是一款开源的安卓视频播放器，支持从本地、局域网、NAS、网盘*上播放视频，拥有海报背景墙和刮削功能，内置字幕下载，支持 Android 手机、平板、电视。@ https://www.appinn.com/nova-video-player/ A...",
+        "id" : 169130,
+        "post_number" : 1,
+        "topic_id" : 47853,
+        "username" : "Qingwa"
+      },
+      {
+        "blurb" : "https://rockstor.com/images/rockstor-banner-1200x325.png Rockstor是一款开源的网络附加存储（NAS）系统，利用Linux和Btrfs文件系统，使用户可以轻松搭建个人或商用的存储服务器，同时还支持多项插件，可以进行数据备份、文件共享、云存储等功能。 https://rockstor.com/",
+        "id" : 167816,
+        "post_number" : 1,
+        "topic_id" : 47550,
+        "username" : "Qingwa"
+      },
+      {
+        "blurb" : "...av p3terx/aria2-pro jellyfin/jellyfin a76yyyy/qiandao 我弄了个一键安装 目录是 /files https://gist.github.com/sanfang0766/d56a476e9cab19179f5339106ab9624b Debian NAS (github.com)",
+        "id" : 119710,
+        "post_number" : 1,
+        "topic_id" : 35199,
+        "username" : "Kaiyuan"
+      },
+      {
+        "blurb" : "安卓、iOS都可以。我是希望有个app可以外网访问到我存在nas（群晖）上的书资源，txt，epub等等。 实际上群晖的DS FILE可以实现一半：DS FILE 外网访问自己NAS，打开某个txt，选择用某个阅读app打开。但是这样操作实际上是ds file先把txt下载到了本地，阅读app再打开它。不仅要下载不爽，而且还会在本地留下个文件记录，这不是我想看到...",
+        "id" : 19531,
+        "post_number" : 1,
+        "topic_id" : 7684,
+        "username" : "yhxkry"
+      },
+      {
+        "blurb" : "晖云方舟是纯血鸿蒙手机系统上面的一款 APP . 它把群晖 nas 相关的功能都整合到了一个 APP 中。功能强大，但界面非常简洁清晰。 如下图，把NAS管理的主要特性都囊括在一起了，包括但不限于： 管理文件：可以播放视频，查看 office 代码文件或者播放视频等。 管理套件：可以安装更新或者停止套件。 听音乐：替代 ds music 查看相册文件，备份照片，替...",
+        "id" : 315133,
+        "post_number" : 1,
+        "topic_id" : 83874,
+        "username" : "valuex"
+      },
+      {
+        "blurb" : "原始链接在： https://www.appinn.com/wake-me-up-ios/ Wake Me Up – 超简单：远程唤醒应用，支持 PC、Mac、NAS、服务器等[iPhone/iPad] - 小众软件 打开电脑，通常需要按下机箱上的电源按钮。但如果想要通过手机来开机，可以使用 WOL 网络唤醒直接打开电脑，再远程连接。就能实现不动屁股使用电脑这件事了。@ https://www.appinn.com/wake-me-up-ios/ Appinn...",
+        "id" : 346039,
+        "post_number" : 1,
+        "topic_id" : 92032,
+        "username" : "Qingwa"
+      }
+    ],
+    "topics" : [
+      {
+        "bumped_at" : "2024-08-09T15:11:08.377Z",
+        "fancy_title" : "求音乐标签批量更新软件（NAS可用）",
+        "has_accepted_answer" : true,
+        "id" : 59733,
+        "last_posted_at" : "2024-08-09T15:11:08.377Z",
+        "pinned" : false,
+        "posts_count" : 3,
+        "slug" : "topic",
+        "title" : "求音乐标签批量更新软件（NAS可用）"
+      },
+      {
+        "bumped_at" : "2025-04-23T11:57:49.333Z",
+        "fancy_title" : "LocalSend 如何部署到nas 或者 如何docker安装LocalSend？",
+        "has_accepted_answer" : true,
+        "id" : 70666,
+        "last_posted_at" : "2025-04-23T11:57:49.333Z",
+        "pinned" : false,
+        "posts_count" : 14,
+        "slug" : "topic",
+        "title" : "LocalSend 如何部署到nas 或者 如何docker安装LocalSend？"
+      },
+      {
+        "bumped_at" : "2025-04-03T09:50:10.679Z",
+        "fancy_title" : "群晖NAS 920+ 以及TCL Q10K播放电影电视卡",
+        "has_accepted_answer" : true,
+        "id" : 66438,
+        "last_posted_at" : "2025-04-03T09:50:10.679Z",
+        "pinned" : false,
+        "posts_count" : 7,
+        "slug" : "topic",
+        "title" : "群晖NAS 920+ 以及TCL Q10K播放电影电视卡"
+      },
+      {
+        "bumped_at" : "2025-03-17T01:57:53.060Z",
+        "fancy_title" : "寻找大屏电视用的家用照片管理app(电视已连接当贝盒子及nas盘）",
+        "has_accepted_answer" : true,
+        "id" : 67427,
+        "last_posted_at" : "2025-03-17T01:57:53.060Z",
+        "pinned" : false,
+        "posts_count" : 6,
+        "slug" : "topic",
+        "title" : "寻找大屏电视用的家用照片管理app(电视已连接当贝盒子及nas盘）"
+      },
+      {
+        "bumped_at" : "2025-01-11T12:56:23.911Z",
+        "fancy_title" : "路由器如何禁止有线设备联网？（nas防止文件泄露）",
+        "has_accepted_answer" : true,
+        "id" : 65172,
+        "last_posted_at" : "2025-01-11T12:56:23.911Z",
+        "pinned" : false,
+        "posts_count" : 5,
+        "slug" : "topic",
+        "title" : "路由器如何禁止有线设备联网？（nas防止文件泄露）"
+      },
+      {
+        "bumped_at" : "2024-10-12T01:15:52.616Z",
+        "fancy_title" : "NAS虚拟机安装windows卡顿",
+        "has_accepted_answer" : true,
+        "id" : 61824,
+        "last_posted_at" : "2024-10-12T01:15:52.616Z",
+        "pinned" : false,
+        "posts_count" : 12,
+        "slug" : "topic",
+        "title" : "NAS虚拟机安装windows卡顿"
+      },
+      {
+        "bumped_at" : "2024-09-11T07:53:33.367Z",
+        "fancy_title" : "NAS自动锁IP",
+        "has_accepted_answer" : true,
+        "id" : 60664,
+        "last_posted_at" : "2024-09-11T07:53:33.367Z",
+        "pinned" : false,
+        "posts_count" : 13,
+        "slug" : "topic",
+        "title" : "NAS自动锁IP"
+      },
+      {
+        "bumped_at" : "2023-09-15T01:27:30.159Z",
+        "fancy_title" : "请推荐一个基础款NAS",
+        "has_accepted_answer" : true,
+        "id" : 21714,
+        "last_posted_at" : "2023-09-15T01:27:30.159Z",
+        "pinned" : false,
+        "posts_count" : 25,
+        "slug" : "topic",
+        "title" : "请推荐一个基础款NAS"
+      },
+      {
+        "bumped_at" : "2026-07-23T14:34:37.830Z",
+        "fancy_title" : "求助！群晖NAS DS920+启动不了",
+        "has_accepted_answer" : true,
+        "id" : 88672,
+        "last_posted_at" : "2026-07-23T14:34:37.830Z",
+        "pinned" : false,
+        "posts_count" : 4,
+        "slug" : "topic",
+        "title" : "求助！群晖NAS DS920+启动不了"
+      },
+      {
+        "bumped_at" : "2026-07-09T11:20:16.833Z",
+        "fancy_title" : "最纯粹的 NAS：直接上 ZFS",
+        "has_accepted_answer" : false,
+        "id" : 87972,
+        "last_posted_at" : "2026-07-09T11:20:16.833Z",
+        "pinned" : false,
+        "posts_count" : 18,
+        "slug" : "topic",
+        "title" : "最纯粹的 NAS：直接上 ZFS"
+      },
+      {
+        "bumped_at" : "2025-02-14T09:13:25.605Z",
+        "fancy_title" : "个人的win NAS方案（all in one）设想及问题求教",
+        "has_accepted_answer" : false,
+        "id" : 65704,
+        "last_posted_at" : "2025-02-14T09:13:25.605Z",
+        "pinned" : false,
+        "posts_count" : 29,
+        "slug" : "topic",
+        "title" : "个人的win NAS方案（all in one）设想及问题求教"
+      },
+      {
+        "bumped_at" : "2023-09-25T01:06:54.215Z",
+        "fancy_title" : "NAS做家庭媒体中心-实战",
+        "has_accepted_answer" : false,
+        "id" : 47667,
+        "last_posted_at" : "2023-09-25T01:06:54.215Z",
+        "pinned" : false,
+        "posts_count" : 2,
+        "slug" : "topic",
+        "title" : "NAS做家庭媒体中心-实战"
+      },
+      {
+        "bumped_at" : "2023-09-21T10:53:59.833Z",
+        "fancy_title" : "我的NAS在生活中的&rdquo;重要&rdquo;作用",
+        "has_accepted_answer" : false,
+        "id" : 47457,
+        "last_posted_at" : "2023-09-21T10:53:59.833Z",
+        "pinned" : false,
+        "posts_count" : 15,
+        "slug" : "topic",
+        "title" : "我的NAS在生活中的\"重要\"作用"
+      },
+      {
+        "bumped_at" : "2026-11-12T12:46:22.622Z",
+        "fancy_title" : "QNAP 威联通发布警告：Plex2Shell 漏洞正被黑客利用，已有 NAS 疑似遭入侵",
+        "has_accepted_answer" : false,
+        "id" : 95403,
+        "last_posted_at" : "2026-11-12T12:46:22.622Z",
+        "pinned" : false,
+        "posts_count" : 3,
+        "slug" : "topic",
+        "title" : "QNAP 威联通发布警告：Plex2Shell 漏洞正被黑客利用，已有 NAS 疑似遭入侵"
+      },
+      {
+        "bumped_at" : "2026-08-14T02:48:41.434Z",
+        "fancy_title" : "【开源自建】我给自己开发了一个nas聚合应用",
+        "has_accepted_answer" : false,
+        "id" : 89712,
+        "last_posted_at" : "2026-08-14T02:48:41.434Z",
+        "pinned" : false,
+        "posts_count" : 5,
+        "slug" : "topic",
+        "title" : "【开源自建】我给自己开发了一个nas聚合应用"
+      },
+      {
+        "bumped_at" : "2026-02-07T04:57:29.470Z",
+        "fancy_title" : "记一次 NAS 小折腾：Lucky",
+        "has_accepted_answer" : false,
+        "id" : 80779,
+        "last_posted_at" : "2026-02-07T04:57:29.470Z",
+        "pinned" : false,
+        "posts_count" : 14,
+        "slug" : "topic",
+        "title" : "记一次 NAS 小折腾：Lucky"
+      },
+      {
+        "bumped_at" : "2025-11-18T04:40:27.252Z",
+        "fancy_title" : "【老鼠微硬评】折腾廉价小 Nas（完结）",
+        "has_accepted_answer" : false,
+        "id" : 76677,
+        "last_posted_at" : "2025-11-18T04:40:27.252Z",
+        "pinned" : false,
+        "posts_count" : 29,
+        "slug" : "topic",
+        "title" : "【老鼠微硬评】折腾廉价小 Nas（完结）"
+      },
+      {
+        "bumped_at" : "2024-12-21T09:05:31.584Z",
+        "fancy_title" : "平价nas方案和一些问题",
+        "has_accepted_answer" : false,
+        "id" : 64227,
+        "last_posted_at" : "2024-12-21T09:05:31.584Z",
+        "pinned" : false,
+        "posts_count" : 10,
+        "slug" : "topic",
+        "title" : "平价nas方案和一些问题"
+      },
+      {
+        "bumped_at" : "2024-04-03T06:19:31.167Z",
+        "fancy_title" : "有什么比较低成本的NAS？",
+        "has_accepted_answer" : false,
+        "id" : 48996,
+        "last_posted_at" : "2024-04-03T06:19:31.167Z",
+        "pinned" : false,
+        "posts_count" : 111,
+        "slug" : "topic",
+        "title" : "有什么比较低成本的NAS？"
+      },
+      {
+        "bumped_at" : "2023-10-23T19:42:27.787Z",
+        "fancy_title" : "终于实现了照片备份到NAS的终极方案",
+        "has_accepted_answer" : false,
+        "id" : 47549,
+        "last_posted_at" : "2023-10-20T06:06:31.696Z",
+        "pinned" : false,
+        "posts_count" : 40,
+        "slug" : "topic",
+        "title" : "终于实现了照片备份到NAS的终极方案"
+      },
+      {
+        "bumped_at" : "2026-05-22T03:47:05.468Z",
+        "fancy_title" : "【开发者自荐】 漫画胶囊 - 本地·NAS·网盘漫画阅读器，支持AI高清",
+        "has_accepted_answer" : false,
+        "id" : 82487,
+        "last_posted_at" : "2026-05-22T03:47:05.468Z",
+        "pinned" : false,
+        "posts_count" : 13,
+        "slug" : "topic",
+        "title" : "【开发者自荐】 漫画胶囊 - 本地·NAS·网盘漫画阅读器，支持AI高清"
+      },
+      {
+        "bumped_at" : "2025-10-30T11:24:03.819Z",
+        "fancy_title" : "飞牛OS 新增 iSCSI 应用，可将 NAS 文件直接挂载到电脑中。向全能 NAS 又迈进一步",
+        "has_accepted_answer" : false,
+        "id" : 75772,
+        "last_posted_at" : "2025-10-30T11:24:03.819Z",
+        "pinned" : false,
+        "posts_count" : 17,
+        "slug" : "topic",
+        "title" : "飞牛OS 新增 iSCSI 应用，可将 NAS 文件直接挂载到电脑中。向全能 NAS 又迈进一步"
+      },
+      {
+        "bumped_at" : "2025-07-18T06:50:46.107Z",
+        "fancy_title" : "[OpenMediaVault] - OMV 7目前中文互联网最好的入门指北（NAS）",
+        "has_accepted_answer" : false,
+        "id" : 73193,
+        "last_posted_at" : "2025-07-18T06:50:46.107Z",
+        "pinned" : false,
+        "posts_count" : 9,
+        "slug" : "topic",
+        "title" : "[OpenMediaVault] - OMV 7目前中文互联网最好的入门指北（NAS）"
+      },
+      {
+        "bumped_at" : "2024-08-08T04:44:21.407Z",
+        "fancy_title" : "求一款能部署在NAS上粘贴图片的软件",
+        "has_accepted_answer" : false,
+        "id" : 59405,
+        "last_posted_at" : "2024-08-08T04:44:21.407Z",
+        "pinned" : false,
+        "posts_count" : 15,
+        "slug" : "topic",
+        "title" : "求一款能部署在NAS上粘贴图片的软件"
+      },
+      {
+        "bumped_at" : "2026-11-08T07:49:19.567Z",
+        "fancy_title" : "群晖发布教程：保护 NAS 免受勒索软件攻击",
+        "has_accepted_answer" : false,
+        "id" : 95327,
+        "last_posted_at" : "2026-11-08T07:49:19.567Z",
+        "pinned" : false,
+        "posts_count" : 8,
+        "slug" : "topic",
+        "title" : "群晖发布教程：保护 NAS 免受勒索软件攻击"
+      },
+      {
+        "bumped_at" : "2026-08-19T02:21:31.901Z",
+        "fancy_title" : "MemStora：把 iPhone 照片直接备份到 U 盘、移动硬盘和 NAS",
+        "has_accepted_answer" : false,
+        "id" : 89796,
+        "last_posted_at" : "2026-08-19T02:21:31.901Z",
+        "pinned" : false,
+        "posts_count" : 11,
+        "slug" : "topic",
+        "title" : "MemStora：把 iPhone 照片直接备份到 U 盘、移动硬盘和 NAS"
+      },
+      {
+        "bumped_at" : "2026-08-15T15:08:26.696Z",
+        "fancy_title" : "不用 NAS、不买硬盘，0成本拥有影视、小说、资源库",
+        "has_accepted_answer" : false,
+        "id" : 89955,
+        "last_posted_at" : "2026-08-15T15:08:26.696Z",
+        "pinned" : false,
+        "posts_count" : 6,
+        "slug" : "topic",
+        "title" : "不用 NAS、不买硬盘，0成本拥有影视、小说、资源库"
+      },
+      {
+        "bumped_at" : "2026-01-10T15:06:23.409Z",
+        "fancy_title" : "VidHub：一个播放器，打通你所有的网盘、NAS 和本地视频",
+        "has_accepted_answer" : false,
+        "id" : 79249,
+        "last_posted_at" : "2026-01-10T15:06:23.409Z",
+        "pinned" : false,
+        "posts_count" : 15,
+        "slug" : "topic",
+        "title" : "VidHub：一个播放器，打通你所有的网盘、NAS 和本地视频"
+      },
+      {
+        "bumped_at" : "2025-06-25T07:33:59.797Z",
+        "fancy_title" : "【AppleTV现已免费上线】我的群晖NAS App又更新啦",
+        "has_accepted_answer" : false,
+        "id" : 52200,
+        "last_posted_at" : "2025-06-25T07:33:59.797Z",
+        "pinned" : false,
+        "posts_count" : 162,
+        "slug" : "topic",
+        "title" : "【AppleTV现已免费上线】我的群晖NAS App又更新啦"
+      },
+      {
+        "bumped_at" : "2025-04-25T08:33:45.740Z",
+        "fancy_title" : "求推荐能用在 NAS 相册上的类似 OneDrive「你当天的记忆」功能",
+        "has_accepted_answer" : false,
+        "id" : 70757,
+        "last_posted_at" : "2025-04-25T08:33:45.740Z",
+        "pinned" : false,
+        "posts_count" : 4,
+        "slug" : "topic",
+        "title" : "求推荐能用在 NAS 相册上的类似 OneDrive「你当天的记忆」功能"
+      },
+      {
+        "bumped_at" : "2025-01-25T00:00:27.091Z",
+        "fancy_title" : "【老鼠微硬评】众筹一个 Nas",
+        "has_accepted_answer" : false,
+        "id" : 65682,
+        "last_posted_at" : "2025-01-25T00:00:27.091Z",
+        "pinned" : false,
+        "posts_count" : 14,
+        "slug" : "topic",
+        "title" : "【老鼠微硬评】众筹一个 Nas"
+      },
+      {
+        "bumped_at" : "2024-12-18T07:31:23.486Z",
+        "fancy_title" : "威联通NAS虚拟机部署Home Assistant OS安装小米官方米家集成",
+        "has_accepted_answer" : false,
+        "id" : 64281,
+        "last_posted_at" : "2024-12-18T07:31:23.486Z",
+        "pinned" : false,
+        "posts_count" : 1,
+        "slug" : "topic",
+        "title" : "威联通NAS虚拟机部署Home Assistant OS安装小米官方米家集成"
+      },
+      {
+        "bumped_at" : "2024-07-03T03:39:38.775Z",
+        "fancy_title" : "群晖上线新的 NAS 性能对比页面",
+        "has_accepted_answer" : false,
+        "id" : 58281,
+        "last_posted_at" : "2024-07-03T03:39:38.775Z",
+        "pinned" : false,
+        "posts_count" : 7,
+        "slug" : "topic",
+        "title" : "群晖上线新的 NAS 性能对比页面"
+      },
+      {
+        "bumped_at" : "2024-06-06T04:56:12.616Z",
+        "fancy_title" : "[不新闻]绿联NAS因为存在巨量问题而道歉 同时下架相关新品",
+        "has_accepted_answer" : false,
+        "id" : 57288,
+        "last_posted_at" : "2024-06-06T04:56:12.616Z",
+        "pinned" : false,
+        "posts_count" : 7,
+        "slug" : "topic",
+        "title" : "[不新闻]绿联NAS因为存在巨量问题而道歉 同时下架相关新品"
+      },
+      {
+        "bumped_at" : "2024-06-06T01:37:49.386Z",
+        "fancy_title" : "群晖NAS备份Iphone相册如何指定文件夹",
+        "has_accepted_answer" : false,
+        "id" : 57310,
+        "last_posted_at" : "2024-06-06T01:37:49.386Z",
+        "pinned" : false,
+        "posts_count" : 2,
+        "slug" : "topic",
+        "title" : "群晖NAS备份Iphone相册如何指定文件夹"
+      },
+      {
+        "bumped_at" : "2023-12-24T10:44:34.501Z",
+        "fancy_title" : "nplayer外网ftp或者webav无法连接家里的群晖NAS",
+        "has_accepted_answer" : false,
+        "id" : 50664,
+        "last_posted_at" : "2023-12-24T10:44:34.501Z",
+        "pinned" : false,
+        "posts_count" : 9,
+        "slug" : "topic",
+        "title" : "nplayer外网ftp或者webav无法连接家里的群晖NAS"
+      },
+      {
+        "bumped_at" : "2023-12-23T05:53:36.537Z",
+        "fancy_title" : "求助，电视上可以直接看局域网nas的软件？",
+        "has_accepted_answer" : false,
+        "id" : 50641,
+        "last_posted_at" : "2023-12-23T05:53:36.537Z",
+        "pinned" : false,
+        "posts_count" : 9,
+        "slug" : "topic",
+        "title" : "求助，电视上可以直接看局域网nas的软件？"
+      },
+      {
+        "bumped_at" : "2023-01-11T10:06:12.887Z",
+        "fancy_title" : "群晖 Active Backup for Business 套件新增 macOS 整机备份功能，目前已支持个人电脑、物理服务器、文件服务器、虚拟机、NAS 备份",
+        "has_accepted_answer" : false,
+        "id" : 39432,
+        "last_posted_at" : "2023-01-11T10:06:12.887Z",
+        "pinned" : false,
+        "posts_count" : 3,
+        "slug" : "topic",
+        "title" : "群晖 Active Backup for Business 套件新增 macOS 整机备份功能，目前已支持个人电脑、物理服务器、文件服务器、虚拟机、NAS 备份"
+      },
+      {
+        "bumped_at" : "2022-10-18T18:02:18.837Z",
+        "fancy_title" : "不差钱的情况下，HC550 和 Elements 18TB选哪个做NAS硬盘比较好？",
+        "has_accepted_answer" : false,
+        "id" : 37165,
+        "last_posted_at" : "2022-10-18T18:02:18.837Z",
+        "pinned" : false,
+        "posts_count" : 7,
+        "slug" : "topic",
+        "title" : "不差钱的情况下，HC550 和 Elements 18TB选哪个做NAS硬盘比较好？"
+      },
+      {
+        "bumped_at" : "2021-05-12T23:34:34.271Z",
+        "fancy_title" : "旧笔记本假装 NAS",
+        "has_accepted_answer" : false,
+        "id" : 23213,
+        "last_posted_at" : "2021-05-12T23:34:34.271Z",
+        "pinned" : false,
+        "posts_count" : 32,
+        "slug" : "topic",
+        "title" : "旧笔记本假装 NAS"
+      },
+      {
+        "bumped_at" : "2026-08-12T01:05:33.978Z",
+        "fancy_title" : "【开发者自荐】DS Music - Synology群晖NAS音乐播放器",
+        "has_accepted_answer" : false,
+        "id" : 57209,
+        "last_posted_at" : "2026-08-12T01:05:33.978Z",
+        "pinned" : false,
+        "posts_count" : 5,
+        "slug" : "topic",
+        "title" : "【开发者自荐】DS Music - Synology群晖NAS音乐播放器"
+      },
+      {
+        "bumped_at" : "2025-07-11T01:36:23.285Z",
+        "fancy_title" : "群晖NAS，文件共享链接生成二维码，电脑识别二维码能下载文件，手机识别二维码不能下载，请指教",
+        "has_accepted_answer" : false,
+        "id" : 73023,
+        "last_posted_at" : "2025-07-11T01:36:23.285Z",
+        "pinned" : false,
+        "posts_count" : 6,
+        "slug" : "topic",
+        "title" : "群晖NAS，文件共享链接生成二维码，电脑识别二维码能下载文件，手机识别二维码不能下载，请指教"
+      },
+      {
+        "bumped_at" : "2025-02-28T03:21:25.888Z",
+        "fancy_title" : "Arm版的nas真省电才1.5w",
+        "has_accepted_answer" : false,
+        "id" : 66807,
+        "last_posted_at" : "2025-02-28T03:21:25.888Z",
+        "pinned" : false,
+        "posts_count" : 23,
+        "slug" : "topic",
+        "title" : "Arm版的nas真省电才1.5w"
+      },
+      {
+        "bumped_at" : "2024-11-09T12:38:05.055Z",
+        "fancy_title" : "威联通NAS备份到百度云“.@__thumb”文件夹下文件报错",
+        "has_accepted_answer" : false,
+        "id" : 62955,
+        "last_posted_at" : "2024-11-09T12:38:05.055Z",
+        "pinned" : false,
+        "posts_count" : 1,
+        "slug" : "topic",
+        "title" : "威联通NAS备份到百度云“.@__thumb”文件夹下文件报错"
+      },
+      {
+        "bumped_at" : "2024-01-18T02:06:27.331Z",
+        "fancy_title" : "NOVA Video Player - 开源 Android 视频播放器，支持手机、平板、电视，支持刮削、NAS 等",
+        "has_accepted_answer" : false,
+        "id" : 47853,
+        "last_posted_at" : "2024-01-18T02:06:27.331Z",
+        "pinned" : false,
+        "posts_count" : 9,
+        "slug" : "topic",
+        "title" : "NOVA Video Player - 开源 Android 视频播放器，支持手机、平板、电视，支持刮削、NAS 等"
+      },
+      {
+        "bumped_at" : "2023-09-25T08:31:24.731Z",
+        "fancy_title" : "Rockstor 开源 NAS 系统｜基于 Linux / Btrfs",
+        "has_accepted_answer" : false,
+        "id" : 47550,
+        "last_posted_at" : "2023-09-25T08:31:24.731Z",
+        "pinned" : false,
+        "posts_count" : 2,
+        "slug" : "topic",
+        "title" : "Rockstor 开源 NAS 系统｜基于 Linux / Btrfs"
+      },
+      {
+        "bumped_at" : "2022-08-12T03:22:32.701Z",
+        "fancy_title" : "Debian 作为 NAS 的套件",
+        "has_accepted_answer" : false,
+        "id" : 35199,
+        "last_posted_at" : "2022-08-12T03:22:32.701Z",
+        "pinned" : false,
+        "posts_count" : 7,
+        "slug" : "topic",
+        "title" : "Debian 作为 NAS 的套件"
+      },
+      {
+        "bumped_at" : "2020-12-31T00:45:50.256Z",
+        "fancy_title" : "请问有无阅读app可以直接远程看NAS的图书？（外网访问）",
+        "has_accepted_answer" : false,
+        "id" : 7684,
+        "last_posted_at" : "2020-12-31T00:45:50.256Z",
+        "pinned" : false,
+        "posts_count" : 13,
+        "slug" : "topic",
+        "title" : "请问有无阅读app可以直接远程看NAS的图书？（外网访问）"
+      },
+      {
+        "bumped_at" : "2026-11-05T08:50:05.168Z",
+        "fancy_title" : "晖云方舟：好用的纯血鸿蒙系统上的群晖NAS客户端",
+        "has_accepted_answer" : false,
+        "id" : 83874,
+        "last_posted_at" : "2026-11-05T08:50:05.168Z",
+        "pinned" : false,
+        "posts_count" : 2,
+        "slug" : "topic",
+        "title" : "晖云方舟：好用的纯血鸿蒙系统上的群晖NAS客户端"
+      },
+      {
+        "bumped_at" : "2026-09-20T03:17:53.362Z",
+        "fancy_title" : "Wake Me Up - 超简单：远程唤醒应用，支持 PC、Mac、NAS、服务器等[iPhone/iPad]",
+        "has_accepted_answer" : false,
+        "id" : 92032,
+        "last_posted_at" : "2026-09-20T03:17:53.362Z",
+        "pinned" : false,
+        "posts_count" : 19,
+        "slug" : "topic",
+        "title" : "Wake Me Up - 超简单：远程唤醒应用，支持 PC、Mac、NAS、服务器等[iPhone/iPad]"
+      }
+    ]
+  },
+  "headers" : {
+    "content-type" : "application/json; charset=utf-8"
+  },
+  "status" : 200,
+  "url" : "https://meta.appinn.net/search.json?q=NAS"
+}

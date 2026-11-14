@@ -1,0 +1,101 @@
+{
+  "body" : {
+    "hits" : [
+      {
+        "author" : "shrubble",
+        "comment_text" : "The Intel N100 based home servers&#x2F;thin clients like Beelink are more but will be far faster and barely use any more power.",
+        "created_at" : "2024-01-15T07:49:56Z",
+        "objectID" : "38998373",
+        "parent_id" : 38998350,
+        "story_id" : 38996954,
+        "story_title" : "Raspberry Pi is manufacturing 70K Raspberry Pi 5s per week"
+      },
+      {
+        "author" : "shiroiushi",
+        "comment_text" : "Very interesting, thanks!  What about adding a few other server tasks, like automated backups, and running Immich (Google Photos clone)?  I&#x27;m seeing a lot of conflicting information online, with some people swearing by the N100 as a home server capable of these tasks, and others saying it&#x27;s just too slow and something like a Celeron 13100 is needed.  Since I can&#x27;t exactly build a system, and then return the motherboard&#x2F;CPU if it&#x27;s too slow, I&#x27;m a little afraid of under-speccing it.  My goal is to have a 3-5 drive system with ZFS, and use it for NAS, Jellyfin (with 4K transcodes, because of subtitles; probably never more than 1 movie at a time though), Immich photos, and backups.",
+        "created_at" : "2024-09-02T00:03:05Z",
+        "objectID" : "41421366",
+        "parent_id" : 41401870,
+        "story_id" : 41389931,
+        "story_title" : "Low Cost Mini PCs"
+      },
+      {
+        "author" : "baq",
+        "comment_text" : "yeah... sorry about that (note I do have an N100 box as a home server, though)",
+        "created_at" : "2026-01-15T12:41:35Z",
+        "objectID" : "46631604",
+        "parent_id" : 46631375,
+        "story_id" : 46629682,
+        "story_title" : "Raspberry Pi's New AI Hat Adds 8GB of RAM for Local LLMs"
+      },
+      {
+        "author" : "tarruda",
+        "comment_text" : "&gt; I can&#x27;t imagine needing more computing power than an N100 provides for a home server<p>If you only need to stream media and serve files, sure.",
+        "created_at" : "2025-07-27T19:17:34Z",
+        "objectID" : "44703779",
+        "parent_id" : 44702856,
+        "story_id" : 44698899,
+        "story_title" : "The future is not self-hosted, but self-sovereign"
+      },
+      {
+        "author" : "ndriscoll",
+        "comment_text" : "It&#x27;s also a matter of capital vs operational dependency. Intel needs to exist <i>today</i> to buy a chip, but my 9 year old mid range desktop still works fine and is perfectly snappy today, and I suspect my minipcs (which draw as much power as a lightbulb or two, so could easily be solar&#x2F;battery powered) will also work fine for at least a decade. I can&#x27;t imagine needing more computing power than an N100 provides for a home server; mine is already 99% idle. So these things will basically never be obsolete.<p>I suspect the actual chips will last the rest of my life at least, so even if a capacitor fails on the motherboard, the skills to replace those are considerably more common if CPU manufacturers were to fail somehow (or if new hardware became unusable due to DRM or something).",
+        "created_at" : "2025-07-27T17:22:45Z",
+        "objectID" : "44702856",
+        "parent_id" : 44702712,
+        "story_id" : 44698899,
+        "story_title" : "The future is not self-hosted, but self-sovereign"
+      },
+      {
+        "author" : "s800",
+        "comment_text" : "I&#x27;m running a home server on an N100 (ITX model) with a 32GB DIMM, works well.",
+        "created_at" : "2023-12-31T18:31:20Z",
+        "objectID" : "38826259",
+        "parent_id" : 38826081,
+        "story_id" : 38823514,
+        "story_title" : "7 watts idle – building a low powered server/NAS on Intel 12th/13th gen"
+      },
+      {
+        "author" : "baq",
+        "comment_text" : "I completely agree, got an N100 minipc server at home myself which replaced an rpi 4. Fantastic value.<p>My point is Intel&#x27;s accountants have a history of seeing &#x27;fantastic value&#x27; as &#x27;margins too low&#x27;, which reduces the margin of error in engineering to ~0.",
+        "created_at" : "2025-08-29T17:59:55Z",
+        "objectID" : "45067371",
+        "parent_id" : 45067215,
+        "story_id" : 45037572,
+        "story_title" : "Intel's \"Clearwater Forest\" Xeon 7 E-Core CPU Will Be a Beast"
+      },
+      {
+        "author" : "mdavidn",
+        "comment_text" : "If you need an LLM on your home server, sure. If not, there are much more sensible home server options based on Intel’s N100 or Microsoft’s SQ3 chipsets.",
+        "created_at" : "2025-01-07T13:43:13Z",
+        "objectID" : "42622192",
+        "parent_id" : 42622140,
+        "story_id" : 42621332,
+        "story_title" : "Nvidia announces $3k personal AI supercomputer called Digits"
+      },
+      {
+        "author" : "TacticalCoder",
+        "comment_text" : "Yup and I read TFA and it&#x27;s not clear: <i>&quot;The death and rebirth of my home server&quot;</i> and, somehow, his Raspberry Pi is his <i>server</i>!? Running RAID, I&#x27;m Mich (immich), Jellyfin, etc. all from a Pi is amazing.<p>Don&#x27;t get me wrong: I&#x27;ve got like seven Pis, 4 NUCs (but only one &quot;recent&quot; N100 one) and even though two of the Pis are up 24&#x2F;7 (one runs the <i>unbound</i> DNS and the other, well, serves as a router&#x2F;firewall to isolate my main PC from the rest of the machines) my server, as in the machine that has disks in RAID (ZFS), runs VMs, containers (including Immich and Jellyfin), etc. is a Xeon with ECC RAM.<p>I had no idea a Pi 4 was that beefy.<p>Now of course booting off a microSD card: yuk (I know, I know, there are read-only trickeries that can be achieved).<p>&gt; The important stuff mostly lived in external HDDs and the configuration lived almost entirely in my NixOS configuration.<p>Yeah NixOS or what-have-you: if you have server, I&#x27;d recommend you have a plan B for when it fails. My little infra at home is mostly automated: it&#x27;s all scripts provisioning the VMs, setting up cloudinit for the first boot, etc.<p>As long as I&#x27;ve got backups of my config&#x2F;scripts and of my data, setting up a new server really doesn&#x27;t take long (heck I did it not long ago, mostly to be sure the &quot;death and rebirth&quot; procedure of my own server was sound).<p>I personally prefer my 10+ years old Xeon with ECC as a server than my N100 NUC but then the Xeon consumes more energy... YMMV.",
+        "created_at" : "2026-07-20T21:00:28Z",
+        "objectID" : "48984826",
+        "parent_id" : 48967377,
+        "story_id" : 48966769,
+        "story_title" : "The death and rebirth of my home server"
+      },
+      {
+        "author" : "wao0uuno",
+        "comment_text" : "Well, nobody&#x27;s arguing about RPi prices here. I&#x27;m just advocating for using the right tool for the job. Lots of people claim that Raspberry Pis have been rendered obsolete by cheap N100 mini PCs but they simply lack the understanding of what RPi actually is and what are its optimal use cases. Hosting a home server on a 16GB Raspberry Pi is mental illness territory and that&#x27;s where an x86 mini PC is going to make way more sense. Same with retro gaming (unless you really need Composite out). RPis shine when you need compact size, low power and heat with great selection of hardware accessories like cameras and other sensors but also want to run full Linux or need that extra performance that a micro controller just doesn&#x27;t have.<p>Edit: Putting a device with permanently attached battery inside of a wall or even on a mount, always plugged in gives me the heebie-jeebies.",
+        "created_at" : "2026-06-12T07:06:08Z",
+        "objectID" : "48500799",
+        "parent_id" : 48489122,
+        "story_id" : 48481857,
+        "story_title" : "Raspberry Pi 5 – 16GB RAM"
+      }
+    ]
+  },
+  "headers" : {
+    "content-type" : "application/json"
+  },
+  "status" : 200,
+  "url" : "https://hn.algolia.com/api/v1/search?tags=comment&query=N100%20home%20server&page=0&hitsPerPage=10"
+}

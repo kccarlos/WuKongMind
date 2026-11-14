@@ -1,0 +1,15 @@
+{
+  "body" : {
+    "id" : 257893,
+    "link" : "https://www.doctorofcredit.com/maximizing-the-bank-of-america-premium-rewards-elite-lifestyle-credits/",
+    "modified_gmt" : "2026-06-01T16:58:32",
+    "title" : {
+      "rendered" : "Maximizing The Bank Of America Premium Rewards Elite Lifestyle Credits"
+    }
+  },
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/posts/257893?_fields=id,title,link,modified_gmt"
+}

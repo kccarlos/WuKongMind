@@ -1,0 +1,911 @@
+{
+  "body" : [
+    {
+      "author_name" : "big mac",
+      "content" : {
+        "rendered" : "<p>A $10k checking balance is reasonable as everyone should have a liquid emergency fund on hand. So this is basically a 2.5% cashback card which is okay.</p>\n"
+      },
+      "date_gmt" : "2025-04-08T18:49:23",
+      "id" : 2040523,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Ben",
+      "content" : {
+        "rendered" : "<p>The requirement of keeping 100k in your checking account would be DOA for everybody.</p>\n"
+      },
+      "date_gmt" : "2025-04-08T18:49:31",
+      "id" : 2040524,
+      "parent" : 0
+    },
+    {
+      "author_name" : "TS",
+      "content" : {
+        "rendered" : "<p>Why would you keep a liquid emergency fund in a checking account instead of a savings/mmf?</p>\n"
+      },
+      "date_gmt" : "2025-04-08T18:51:53",
+      "id" : 2040525,
+      "parent" : 2040523
+    },
+    {
+      "author_name" : "Ben",
+      "content" : {
+        "rendered" : "<p>Alliant only requires 1k plus it earns (tiny) interest</p>\n"
+      },
+      "date_gmt" : "2025-04-08T18:51:59",
+      "id" : 2040526,
+      "parent" : 2040523
+    },
+    {
+      "author_name" : "Volt",
+      "content" : {
+        "rendered" : "<p>I disagree.</p>\n<p>The U.S. bank checking account earns minuscule interest. There are quite a few checking accounts that easily earn you upwards of 3%-4% APY. If you are going to place $10k in an account that almost earns you no interest, you need to take that into account regarding the value you get out of a 2.5% cashback card.</p>\n"
+      },
+      "date_gmt" : "2025-04-08T18:53:16",
+      "id" : 2040529,
+      "parent" : 2040523
+    },
+    {
+      "author_name" : "Brendan",
+      "content" : {
+        "rendered" : "<p>If they could bring back product changes to the Smartly before Apr 14, that&#8217;d be swell.</p>\n"
+      },
+      "date_gmt" : "2025-04-08T18:54:12",
+      "id" : 2040530,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Gary",
+      "content" : {
+        "rendered" : "<p>Luckily i just got my card approved a few days ago so grandfathered.  I wouldn’t have applied with the changes that are listed .</p>\n"
+      },
+      "date_gmt" : "2025-04-08T18:55:12",
+      "id" : 2040531,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Malik",
+      "content" : {
+        "rendered" : "<p>I&#8217;ll try again Friday but I doubt it&#8217;ll work. I&#8217;m not applying because I know they&#8217;ll just get rid of the grandfathered benefits within a year or two.</p>\n"
+      },
+      "date_gmt" : "2025-04-08T19:03:48",
+      "id" : 2040539,
+      "parent" : 2040530
+    },
+    {
+      "author_name" : "Abhi",
+      "content" : {
+        "rendered" : "<p>And Alliant bank card also has extended warranty and no foreign transaction fee.Alliant card makes sense atleast for people targeting 2.5% category.</p>\n"
+      },
+      "date_gmt" : "2025-04-08T19:07:58",
+      "id" : 2040546,
+      "parent" : 2040526
+    },
+    {
+      "author_name" : "Jethro Tuller",
+      "content" : {
+        "rendered" : "<p>An emergency fund wouldn&#8217;t have to be in a checking account.  Why not put it in a Money Market where you can get upwards of 4%?</p>\n"
+      },
+      "date_gmt" : "2025-04-08T19:11:40",
+      "id" : 2040548,
+      "parent" : 2040523
+    },
+    {
+      "author_name" : "Brendan",
+      "content" : {
+        "rendered" : "<p>Do you know if a USB product change is effective immediately? I know there was a ~10 day lag to go from a Barclays AAviator Red to AAviator Silver.</p>\n"
+      },
+      "date_gmt" : "2025-04-08T19:19:49",
+      "id" : 2040556,
+      "parent" : 2040539
+    },
+    {
+      "author_name" : "NoName",
+      "content" : {
+        "rendered" : "<p>It usually takes around 45 days for USBank product change to finish. Requested product change from Cash+ to Smartly on 11/13/2024 and the change fully completed on 12/31/2024.</p>\n"
+      },
+      "date_gmt" : "2025-04-08T19:28:56",
+      "id" : 2040564,
+      "parent" : 2040556
+    },
+    {
+      "author_name" : "Jack",
+      "content" : {
+        "rendered" : "<p>Wasn&#8217;t so smartly after all.</p>\n"
+      },
+      "date_gmt" : "2025-04-08T19:33:36",
+      "id" : 2040574,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Kevin",
+      "content" : {
+        "rendered" : "<p>who knows how long that would last. maybe a year?</p>\n"
+      },
+      "date_gmt" : "2025-04-08T19:38:04",
+      "id" : 2040577,
+      "parent" : 2040531
+    },
+    {
+      "author_name" : "Burton",
+      "content" : {
+        "rendered" : "<p>A $10k balance requirement in a checking account is essentially a $400 annual fee in the current environment.</p>\n"
+      },
+      "date_gmt" : "2025-04-08T19:39:37",
+      "id" : 2040580,
+      "parent" : 2040523
+    },
+    {
+      "author_name" : "Rob",
+      "content" : {
+        "rendered" : "<p>How quickly can changes happen for the older cards?   If I&#8217;m looking to pay property taxes in July should I try to get them in by 5/19/25 to be safe?  Or would we know a few days ahead of time?</p>\n"
+      },
+      "date_gmt" : "2025-04-08T19:39:38",
+      "id" : 2040581,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Macy",
+      "content" : {
+        "rendered" : "<p><span>Seems like clockwork now &#8212; introduce a loss leader, juice the numbers, enshittify the product, repeat.  </span></p>\n<p>Incredible how they all keep pulling this shit without any significant consumer or regulatory  (lol!) pushback.</p>\n"
+      },
+      "date_gmt" : "2025-04-08T19:47:11",
+      "id" : 2040593,
+      "parent" : 0
+    },
+    {
+      "author_name" : "avsterbone",
+      "content" : {
+        "rendered" : "<p>Who in the ever living fuck would park $100,000 in a good damn motherfucking checking account?!?!?!</p>\n"
+      },
+      "date_gmt" : "2025-04-08T20:04:56",
+      "id" : 2040604,
+      "parent" : 0
+    },
+    {
+      "author_name" : "someonestolymycord",
+      "content" : {
+        "rendered" : "<p>Bingo, would someone pay a $400 annual fee for a 2.5% card with a cap and category exclusions, and NO insurances, protections, transfer partner, coupon credits, and other perks?</p>\n"
+      },
+      "date_gmt" : "2025-04-08T20:06:20",
+      "id" : 2040605,
+      "parent" : 2040580
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p>Good point, I&#8217;ll add a note</p>\n"
+      },
+      "date_gmt" : "2025-04-08T20:21:46",
+      "id" : 2040615,
+      "parent" : 2040523
+    },
+    {
+      "author_name" : "NateNate",
+      "content" : {
+        "rendered" : "<p>They should just increase the brokerage balance to $250k, or only count dollars invested with their robo-advisor.</p>\n"
+      },
+      "date_gmt" : "2025-04-08T20:23:50",
+      "id" : 2040619,
+      "parent" : 2040524
+    },
+    {
+      "author_name" : "NateNate",
+      "content" : {
+        "rendered" : "<p>I assume no sign up bonus with this card, right?</p>\n"
+      },
+      "date_gmt" : "2025-04-08T20:24:25",
+      "id" : 2040621,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Ash",
+      "content" : {
+        "rendered" : "<p>10K at 4% gives 400 per year or 300 after taxes. If you are lookin at an extra 0.5%, it would take 60k in spends to justify the extra cashback earned.</p>\n"
+      },
+      "date_gmt" : "2025-04-08T20:25:41",
+      "id" : 2040624,
+      "parent" : 2040523
+    },
+    {
+      "author_name" : "K-man",
+      "content" : {
+        "rendered" : "<p>To make up for the lack of SUB I think I&#8217;d need a couple years at the old terms. Doesn&#8217;t seem like a great bet at this point.</p>\n"
+      },
+      "date_gmt" : "2025-04-08T20:34:38",
+      "id" : 2040635,
+      "parent" : 0
+    },
+    {
+      "author_name" : "someonestolymycord",
+      "content" : {
+        "rendered" : "<p>Sorry edited to say 4% not 2.5%</p>\n"
+      },
+      "date_gmt" : "2025-04-08T20:37:32",
+      "id" : 2040637,
+      "parent" : 2040605
+    },
+    {
+      "author_name" : "Abhi",
+      "content" : {
+        "rendered" : "<p>Never had SUB</p>\n"
+      },
+      "date_gmt" : "2025-04-08T20:44:34",
+      "id" : 2040640,
+      "parent" : 2040621
+    },
+    {
+      "author_name" : "Jack",
+      "content" : {
+        "rendered" : "<p>Banks are being watched and will get put on the enemies list if they don&#8217;t defraud their customers enough so they&#8217;d better get going. Pardons and Medals of Freedom will be handed out to the top scorers in January 2029.</p>\n"
+      },
+      "date_gmt" : "2025-04-08T20:49:21",
+      "id" : 2040641,
+      "parent" : 2040593
+    },
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>Coming for my USBAR next?</p>\n"
+      },
+      "date_gmt" : "2025-04-08T20:49:33",
+      "id" : 2040642,
+      "parent" : 0
+    },
+    {
+      "author_name" : "m",
+      "content" : {
+        "rendered" : "<p>Hopefully they’re distracted by the Smartly debacle and forget about USBAR for a long time</p>\n"
+      },
+      "date_gmt" : "2025-04-08T20:55:01",
+      "id" : 2040649,
+      "parent" : 2040642
+    },
+    {
+      "author_name" : "Roy",
+      "content" : {
+        "rendered" : "<p>I think this is the route I am going to go. I am just hoping that insurance and taxes still earn the multiplier on the Alliant card.</p>\n"
+      },
+      "date_gmt" : "2025-04-08T20:55:31",
+      "id" : 2040650,
+      "parent" : 2040526
+    },
+    {
+      "author_name" : "KE",
+      "content" : {
+        "rendered" : "<p>Who posts profanity laced rants about not having a checking account on a deals site?</p>\n"
+      },
+      "date_gmt" : "2025-04-08T21:27:00",
+      "id" : 2040675,
+      "parent" : 2040604
+    },
+    {
+      "author_name" : "Karl",
+      "content" : {
+        "rendered" : "<p>&#8220;There&#8217;s a sucker born every minute&#8221; &#8211; P.T. Barnum</p>\n<p>These are the people who finance our bonuses so please don&#8217;t disparage them!</p>\n"
+      },
+      "date_gmt" : "2025-04-08T21:33:30",
+      "id" : 2040678,
+      "parent" : 2040604
+    },
+    {
+      "author_name" : "barry",
+      "content" : {
+        "rendered" : "<p>if it pays 4-5% I would</p>\n"
+      },
+      "date_gmt" : "2025-04-08T22:12:15",
+      "id" : 2040719,
+      "parent" : 2040604
+    },
+    {
+      "author_name" : "calwatch",
+      "content" : {
+        "rendered" : "<p>Taxes and insurance have always been valid for BoA Travel/Premium Rewards so I see no reason why not.</p>\n"
+      },
+      "date_gmt" : "2025-04-08T22:17:01",
+      "id" : 2040730,
+      "parent" : 2040650
+    },
+    {
+      "author_name" : "Ben",
+      "content" : {
+        "rendered" : "<p>God save the USBAR, long live the USBAR!</p>\n"
+      },
+      "date_gmt" : "2025-04-08T22:21:06",
+      "id" : 2040734,
+      "parent" : 2040649
+    },
+    {
+      "author_name" : "Abhi",
+      "content" : {
+        "rendered" : "<p>So if we ask for product change to smartly today (if they allow), then we will get the v1.1 card ? or v1 card ?</p>\n"
+      },
+      "date_gmt" : "2025-04-08T22:50:35",
+      "id" : 2040756,
+      "parent" : 2040564
+    },
+    {
+      "author_name" : "Jack",
+      "content" : {
+        "rendered" : "<p>An extra 2% on $120K = $2,400<br />\n5% interest on $100K = $5,000</p>\n"
+      },
+      "date_gmt" : "2025-04-08T23:09:20",
+      "id" : 2040768,
+      "parent" : 2040719
+    },
+    {
+      "author_name" : "Brad",
+      "content" : {
+        "rendered" : "<p>I’ll just keep the $100K in their 5-month CD as I’ve been doing. Once they nerf it for us v1 cardholders I’ll just withdraw the $ at the CD’s next maturity date. Easier than dealing with their brokerage account and higher rate than keeping it in savings.</p>\n"
+      },
+      "date_gmt" : "2025-04-08T23:09:48",
+      "id" : 2040770,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Abhi",
+      "content" : {
+        "rendered" : "<p>Please nominate the person who came up with the idea of 100k in checking account for Noble prize.</p>\n"
+      },
+      "date_gmt" : "2025-04-08T23:24:13",
+      "id" : 2040780,
+      "parent" : 0
+    },
+    {
+      "author_name" : "robertw",
+      "content" : {
+        "rendered" : "<p>I think they will keep changing it.</p>\n"
+      },
+      "date_gmt" : "2025-04-08T23:26:01",
+      "id" : 2040782,
+      "parent" : 2040593
+    },
+    {
+      "author_name" : "Heronva",
+      "content" : {
+        "rendered" : "<p>Hopefully that will be the new rumor/discussion (a higher APY on checking).  Patients is a virtual.</p>\n"
+      },
+      "date_gmt" : "2025-04-08T23:35:22",
+      "id" : 2040792,
+      "parent" : 2040719
+    },
+    {
+      "author_name" : "J",
+      "content" : {
+        "rendered" : "<p>i wonder if this means we need to get the whole setup done (cc approval, checking, savings, brokerage/ira, and 100k funded) before the 14th to be considered v1.0. or, are we allowed to just get the CC before the 14th, then take our time with the rest of the setup and funding, and still qualify for v1.0. what do you guys think?</p>\n"
+      },
+      "date_gmt" : "2025-04-08T23:49:01",
+      "id" : 2040798,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Brendan",
+      "content" : {
+        "rendered" : "<p>It sounds like the application date is what will determine which card variant you get.</p>\n"
+      },
+      "date_gmt" : "2025-04-09T00:12:18",
+      "id" : 2040815,
+      "parent" : 2040798
+    },
+    {
+      "author_name" : "Tank",
+      "content" : {
+        "rendered" : "<p>Can I product change to this by the 14th and have that count for the grandfather? Or does it need to be a new application.</p>\n"
+      },
+      "date_gmt" : "2025-04-09T00:25:26",
+      "id" : 2040827,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p>I think you can take your time on everything aside from the card</p>\n"
+      },
+      "date_gmt" : "2025-04-09T00:27:49",
+      "id" : 2040830,
+      "parent" : 2040798
+    },
+    {
+      "author_name" : "Brendan",
+      "content" : {
+        "rendered" : "<p>It would be news if a product change to the Smartly was even possible, so if you have that option please let us know! Maybe worth asking the CSR since they seemingly were briefed on the card the last 48hr.</p>\n"
+      },
+      "date_gmt" : "2025-04-09T00:33:04",
+      "id" : 2040835,
+      "parent" : 2040827
+    },
+    {
+      "author_name" : "Liana",
+      "content" : {
+        "rendered" : "<p>That&#8217;s too bad. If they wanted my brokerage accounts to make a higher minimum in savings/brokerage like $500k I would have done it.</p>\n"
+      },
+      "date_gmt" : "2025-04-09T01:05:40",
+      "id" : 2040854,
+      "parent" : 0
+    },
+    {
+      "author_name" : "TS",
+      "content" : {
+        "rendered" : "<p>I was considering either this or putting $100K in a Brokerage in GABXX.  Any thoughts on pros/cons?</p>\n"
+      },
+      "date_gmt" : "2025-04-09T01:09:05",
+      "id" : 2040856,
+      "parent" : 2040770
+    },
+    {
+      "author_name" : "Anthony Paganini",
+      "content" : {
+        "rendered" : "<p>I&#8217;m guessing just the application date, so went in for it.  I&#8217;ve closed an old US Bank checking last year and might just wait out the 1 year bonus cool down before spinup with Smartly bank accounts.</p>\n"
+      },
+      "date_gmt" : "2025-04-09T01:24:40",
+      "id" : 2040867,
+      "parent" : 2040798
+    },
+    {
+      "author_name" : "CE",
+      "content" : {
+        "rendered" : "<p>I product changed to mine a few months ago.  Is that unusual?</p>\n"
+      },
+      "date_gmt" : "2025-04-09T01:40:32",
+      "id" : 2040878,
+      "parent" : 2040835
+    },
+    {
+      "author_name" : "Miz",
+      "content" : {
+        "rendered" : "<p>This is like a comedy. First introduce a card that is so generous everybody knows is impossible! Then modify it to make it so worthless that is impossible! Who is the product developer in USB? A clown?</p>\n"
+      },
+      "date_gmt" : "2025-04-09T02:07:40",
+      "id" : 2040894,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Brendan",
+      "content" : {
+        "rendered" : "<p>No, they only stopped allowing changes very recently. I could change my Cash+ to a Smartly when it first launched but not two weeks ago.</p>\n"
+      },
+      "date_gmt" : "2025-04-09T03:01:50",
+      "id" : 2040915,
+      "parent" : 2040878
+    },
+    {
+      "author_name" : "Ash",
+      "content" : {
+        "rendered" : "<p>Same like how many National Banks proudly advertise 0.01% APY interest rates lol.</p>\n"
+      },
+      "date_gmt" : "2025-04-09T03:02:24",
+      "id" : 2040916,
+      "parent" : 2040780
+    },
+    {
+      "author_name" : "Yep",
+      "content" : {
+        "rendered" : "<p>I&#8217;d apply before deadline but not a lot of confidence this card will be worth it a year from now even &#8220;grandfathered.&#8221; Seems like a better bet to deal with BofA&#8217;s lackluster CS to do Platinum Honors. We&#8217;ll see though, I&#8217;ve left B of A several times and they&#8217;re doing it all over again this round. Why is it so hard for these big banks to have accountable secure message centers that actually solve problems instead of giving false promises and runaround?</p>\n"
+      },
+      "date_gmt" : "2025-04-09T03:25:04",
+      "id" : 2040926,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Alex",
+      "content" : {
+        "rendered" : "<p>These dudes must have lost so much money to this card that they&#8217;re trying to recoup a bad fiscal year by forcing people to park 100k in a checking account.</p>\n"
+      },
+      "date_gmt" : "2025-04-09T03:36:19",
+      "id" : 2040930,
+      "parent" : 0
+    },
+    {
+      "author_name" : "AlertTip",
+      "content" : {
+        "rendered" : "<p>GABXX or SGOV is more liquid but the interest rates aren’t fixed. So they may be worth a bit less in a few months if the fed cuts rates.</p>\n"
+      },
+      "date_gmt" : "2025-04-09T07:51:51",
+      "id" : 2040983,
+      "parent" : 2040856
+    },
+    {
+      "author_name" : "AlertTip",
+      "content" : {
+        "rendered" : "<p>It’s always been like this. Which means you need to change your strategies every few years or you miss out big time!</p>\n"
+      },
+      "date_gmt" : "2025-04-09T07:53:42",
+      "id" : 2040985,
+      "parent" : 2040593
+    },
+    {
+      "author_name" : "Anton",
+      "content" : {
+        "rendered" : "<p>Definitely won&#8217;t be very smartly to sign up with these new terms.</p>\n"
+      },
+      "date_gmt" : "2025-04-09T12:37:14",
+      "id" : 2041028,
+      "parent" : 2040574
+    },
+    {
+      "author_name" : "Eric 🔗",
+      "content" : {
+        "rendered" : "<p>If that&#8217;s the case, why would they grandfather in the very people that cost them so much money?</p>\n"
+      },
+      "date_gmt" : "2025-04-09T13:18:19",
+      "id" : 2041053,
+      "parent" : 2040930
+    },
+    {
+      "author_name" : "Eric 🔗",
+      "content" : {
+        "rendered" : "<p>If it&#8217;s a comedy, I&#8217;m still waiting for the punchline.</p>\n"
+      },
+      "date_gmt" : "2025-04-09T13:19:05",
+      "id" : 2041056,
+      "parent" : 2040894
+    },
+    {
+      "author_name" : "Eric 🔗",
+      "content" : {
+        "rendered" : "<p>Unfortunately, that&#8217;s not even close to his most offensive comment on this site! Trust me, I would know!</p>\n"
+      },
+      "date_gmt" : "2025-04-09T13:21:47",
+      "id" : 2041061,
+      "parent" : 2040675
+    },
+    {
+      "author_name" : "Eric 🔗",
+      "content" : {
+        "rendered" : "<p>That&#8217;s the same way that I look at it. Those people are true heroes!</p>\n"
+      },
+      "date_gmt" : "2025-04-09T13:22:43",
+      "id" : 2041064,
+      "parent" : 2040678
+    },
+    {
+      "author_name" : "Eric 🔗",
+      "content" : {
+        "rendered" : "<p>Coincidentally, patience is a virtue.</p>\n"
+      },
+      "date_gmt" : "2025-04-09T13:23:57",
+      "id" : 2041066,
+      "parent" : 2040792
+    },
+    {
+      "author_name" : "Eric 🔗",
+      "content" : {
+        "rendered" : "<p><a class='wpd-umcguest'  href='https://www.doctorofcredit.com/big-changes-coming-for-new-u-s-bank-smartly-credit-card-approvals-no-changes-now-for-existing-customers-april-14th-cutoff/#comment-2040524'><img alt='' src='https://secure.gravatar.com/avatar/1dda0431fdf6680033972d1f77f3af1dec1dd8cbdf906c33fb0ffd45cea22b90?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/1dda0431fdf6680033972d1f77f3af1dec1dd8cbdf906c33fb0ffd45cea22b90?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>Ben</a>,</p>\n<p>I think that what you meant to write is &#8220;The requirement of keeping 100k in your checking account <strong>should </strong>be DOA for everybody.&#8221; See this comment from <a class='wpd-umcguest'  href='https://www.doctorofcredit.com/big-changes-coming-for-new-u-s-bank-smartly-credit-card-approvals-no-changes-now-for-existing-customers-april-14th-cutoff/#comment-2040678'><img alt='' src='https://secure.gravatar.com/avatar/7417a36aeb40dad69ffa1a913221e69bf3e72398471fd1f2cf0f685cce56df70?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/7417a36aeb40dad69ffa1a913221e69bf3e72398471fd1f2cf0f685cce56df70?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>Karl</a> for my explanation: <a href='https://www.doctorofcredit.com/big-changes-coming-for-new-u-s-bank-smartly-credit-card-approvals-no-changes-now-for-existing-customers-april-14th-cutoff/#comment-2040678' class='ucm-comment-id'>#2040678</a> .</p>\n"
+      },
+      "date_gmt" : "2025-04-09T13:26:27",
+      "id" : 2041067,
+      "parent" : 2040524
+    },
+    {
+      "author_name" : "Eric 🔗",
+      "content" : {
+        "rendered" : "<p>They probably don&#8217;t make that much on the brokerage side so a higher balance requirement might not help them offset the huge losses on the credit card side.</p>\n"
+      },
+      "date_gmt" : "2025-04-09T13:27:38",
+      "id" : 2041068,
+      "parent" : 2040619
+    },
+    {
+      "author_name" : "JD",
+      "content" : {
+        "rendered" : "<p>Do enlighten us 😀</p>\n"
+      },
+      "date_gmt" : "2025-04-09T13:28:17",
+      "id" : 2041069,
+      "parent" : 2041061
+    },
+    {
+      "author_name" : "Eric 🔗",
+      "content" : {
+        "rendered" : "<p><a class='wpd-umcguest'  href='https://www.doctorofcredit.com/big-changes-coming-for-new-u-s-bank-smartly-credit-card-approvals-no-changes-now-for-existing-customers-april-14th-cutoff/#comment-2040525'><img alt='' src='https://secure.gravatar.com/avatar/cd7d91617cc4dacb4821915548aec150388aa4cb0745e3003b04bd278ccc96f3?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/cd7d91617cc4dacb4821915548aec150388aa4cb0745e3003b04bd278ccc96f3?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>TS</a>,</p>\n<p>I happen to agree with <a class='wpd-umcguest'  href='https://www.doctorofcredit.com/big-changes-coming-for-new-u-s-bank-smartly-credit-card-approvals-no-changes-now-for-existing-customers-april-14th-cutoff/#comment-2040523'><img alt='' src='https://secure.gravatar.com/avatar/ceeb75e8849e33c3d5299b861961151939f59d10a17095cea3211c10d3e6f2bc?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/ceeb75e8849e33c3d5299b861961151939f59d10a17095cea3211c10d3e6f2bc?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>big mac</a> that&#8217;s it&#8217;s fine to have your emergency fund in a Checking account. Where we disagree though is that I would put it in a Checking account paying at least 4%, since there are so many of them.</p>\n"
+      },
+      "date_gmt" : "2025-04-09T13:29:05",
+      "id" : 2041070,
+      "parent" : 2040525
+    },
+    {
+      "author_name" : "Eric 🔗",
+      "content" : {
+        "rendered" : "<p>What does Bac&#8217;s policy have to do with Alliant&#8217;s policy?</p>\n"
+      },
+      "date_gmt" : "2025-04-09T13:29:57",
+      "id" : 2041072,
+      "parent" : 2040730
+    },
+    {
+      "author_name" : "Eric 🔗",
+      "content" : {
+        "rendered" : "<p>You would be surprised at how many would gladly do that!</p>\n"
+      },
+      "date_gmt" : "2025-04-09T13:30:51",
+      "id" : 2041073,
+      "parent" : 2040605
+    },
+    {
+      "author_name" : "JD",
+      "content" : {
+        "rendered" : "<p>The consumer is the punchline&#8230;hopefully you&#8217;re not one of them.</p>\n"
+      },
+      "date_gmt" : "2025-04-09T13:30:54",
+      "id" : 2041074,
+      "parent" : 2041056
+    },
+    {
+      "author_name" : "Oz",
+      "content" : {
+        "rendered" : "<p>I know a couple of people. You guys assume that everyone wants &#8216;interest&#8217;. Nope.</p>\n"
+      },
+      "date_gmt" : "2025-04-09T14:05:27",
+      "id" : 2041111,
+      "parent" : 2040604
+    },
+    {
+      "author_name" : "Ted",
+      "content" : {
+        "rendered" : "<p>But hopefully if Fed cuts rates your bond prices increase and they&#8217;re worth a little more.<br />\nI like a mix of BSV (Vanguard short-term bond) and VCSH (Vanguard short-term corporate bond). Very well-run, low-risk funds.</p>\n"
+      },
+      "date_gmt" : "2025-04-09T14:21:58",
+      "id" : 2041126,
+      "parent" : 2040856
+    },
+    {
+      "author_name" : "JD",
+      "content" : {
+        "rendered" : "<p>We went from 2 cuts to 5 and possible emergency cuts due to the idiocracy&#8230;what say you to this?</p>\n"
+      },
+      "date_gmt" : "2025-04-09T14:25:33",
+      "id" : 2041129,
+      "parent" : 2041126
+    },
+    {
+      "author_name" : "Fisherman",
+      "content" : {
+        "rendered" : "<p>I&#8217;m guessing this has to do with the Credit Card Accountability Responsibility and Disclosure (CARD) Act of 2009. Credit card issuers can&#8217;t increase interest rates (except for variable rates and intro rates) or fees for the first year.</p>\n<p>Although the law doesn&#8217;t directly affect perks, I think many banks take a very conservative approach to this law and extend that to perks as well.</p>\n"
+      },
+      "date_gmt" : "2025-04-09T15:17:20",
+      "id" : 2041180,
+      "parent" : 2041053
+    },
+    {
+      "author_name" : "Fisherman",
+      "content" : {
+        "rendered" : "<p>The point was to get new customers and hope they stick around when the perks change.</p>\n"
+      },
+      "date_gmt" : "2025-04-09T15:18:24",
+      "id" : 2041181,
+      "parent" : 2040894
+    },
+    {
+      "author_name" : "Ryan",
+      "content" : {
+        "rendered" : "<p>It&#8217;s more of a Shakespearean comedy where everyone dies in the end</p>\n"
+      },
+      "date_gmt" : "2025-04-09T15:54:15",
+      "id" : 2041209,
+      "parent" : 2041056
+    },
+    {
+      "author_name" : "Dima",
+      "content" : {
+        "rendered" : "<p>US Bank Altitude Connect dropped AF and changed rewards structure last year. I was in the middle of my first year, and rewards % changed for me to be in line with the new applicants.</p>\n"
+      },
+      "date_gmt" : "2025-04-09T15:55:20",
+      "id" : 2041210,
+      "parent" : 2041180
+    },
+    {
+      "author_name" : "Ryan",
+      "content" : {
+        "rendered" : "<p>Currently their savings account pays 3% i think &#8211; still decent. If that rate held and you parked the $100k in there you&#8217;d earn $3000/yr (if there isn&#8217;t a max on that rate). In checking you&#8217;d earn $10 at .01%. In order to make it worth the extra 2% card earn to make up for the $2990 difference, if my math is correct, you&#8217;d have to spend &gt;~$149500 on the card. (Roughly 1.85x the average US household income) That&#8217;s nuts</p>\n"
+      },
+      "date_gmt" : "2025-04-09T16:19:25",
+      "id" : 2041228,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Heronva",
+      "content" : {
+        "rendered" : "<p>Thanks! Hasty typing sometimes leaves out proper word meaning.</p>\n"
+      },
+      "date_gmt" : "2025-04-09T16:46:36",
+      "id" : 2041259,
+      "parent" : 2041066
+    },
+    {
+      "author_name" : "Heronva",
+      "content" : {
+        "rendered" : "<p>Point well made. High dividend rates can sometimes be a factor for additional tax losses, which is why some financial institutions have petty rates and high earners still use them. The original Smartly setup was a win/win.</p>\n"
+      },
+      "date_gmt" : "2025-04-09T16:54:33",
+      "id" : 2041268,
+      "parent" : 2041111
+    },
+    {
+      "author_name" : "U",
+      "content" : {
+        "rendered" : "<p>It&#8217;s over Johnny, It&#8217;s Over ! End of the train 🚂</p>\n"
+      },
+      "date_gmt" : "2025-04-09T19:40:58",
+      "id" : 2041375,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Chad",
+      "content" : {
+        "rendered" : "<p>&gt;<span>Currently their savings account pays 3% i think – still decent. If that rate held and you parked the $100k in there you’d earn $3000/yr (if there isn’t a max on that rate).</span></p>\n<p><span>Yeah but you&#8217;re earning no real return</span></p>\n"
+      },
+      "date_gmt" : "2025-04-09T22:09:20",
+      "id" : 2041462,
+      "parent" : 2041228
+    },
+    {
+      "author_name" : "Chad",
+      "content" : {
+        "rendered" : "<p>I think they may be legally tied one way or another.</p>\n"
+      },
+      "date_gmt" : "2025-04-09T22:09:44",
+      "id" : 2041463,
+      "parent" : 2041053
+    },
+    {
+      "author_name" : "Chad",
+      "content" : {
+        "rendered" : "<p>It may be worthwhile to copy those images posted by that Reddit user and post them here. Nicer to browse, nicer not to be at the whims of a single Reddit user.</p>\n"
+      },
+      "date_gmt" : "2025-04-10T13:29:22",
+      "id" : 2041712,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p>I&#8217;d typically do that, but in the case of internal bank communications I&#8217;m less comfortable posting them on a blog (though I understand that it&#8217;s already basically out in the public), so I decided to leave them off for this</p>\n"
+      },
+      "date_gmt" : "2025-04-10T14:44:47",
+      "id" : 2041756,
+      "parent" : 2041712
+    },
+    {
+      "author_name" : "Edwen",
+      "content" : {
+        "rendered" : "<p>I pulled the trigger and applied for the US Bank credit card just before the April 14th changes, hoping to secure the previous offer. I even opened a Smartly Checking and Savings account to strengthen my relationship with the bank and hopefully maximize my chances.</p>\n<p>Well… guess what? My new credit card was approved with a $500 credit limit. Yes, you read that right — $500!!!</p>\n<p>For context, I already have a US Bank Cash+ card with a $20,000 limit and a credit score over 810. When I called in to ask if I could reallocate some of my existing credit line from the Cash+ card to the new one, I was told flat-out NO — no explanation, no flexibility.</p>\n<p>Honestly, this whole situation feels like a joke. I’m now seriously debating whether I should close all my US Bank accounts, because this experience has been pretty discouraging.</p>\n<p>Has anyone else run into a similar issue with US Bank or had success appealing a low limit or reallocation? Would love to hear your thoughts or advice.</p>\n"
+      },
+      "date_gmt" : "2025-04-11T17:24:01",
+      "id" : 2042695,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p>It&#8217;s happened to many others. I&#8217;m not sure if they were able to shift credit or get an increase.</p>\n"
+      },
+      "date_gmt" : "2025-04-11T18:36:23",
+      "id" : 2042743,
+      "parent" : 2042695
+    },
+    {
+      "author_name" : "Road_Dog",
+      "content" : {
+        "rendered" : "<p>I was in the same boat. Decided to apply before the changes. I got a $1k limit. I called the underwriting team at (800) 947-1444 and asked for a CLI. The rep advised against it and warned me it would be another HP, which I said I was fine with. They took information about my total assets between savings and retirement and submitted the request. I ended up getting bumped to $10k after a day of waiting.</p>\n"
+      },
+      "date_gmt" : "2025-04-12T05:29:05",
+      "id" : 2043038,
+      "parent" : 2042695
+    },
+    {
+      "author_name" : "JB",
+      "content" : {
+        "rendered" : "<p>This one is particularly brazen, though. I jumped through the hoops under the theory that a Top10 bank wouldn&#8217;t do it in quite this rapid and ham-handed a fashion. I think this is in the bottom 20% of my expected outcomes.</p>\n"
+      },
+      "date_gmt" : "2025-04-12T19:54:27",
+      "id" : 2043204,
+      "parent" : 2040985
+    },
+    {
+      "author_name" : "UnhingedCFPBer",
+      "content" : {
+        "rendered" : "<p>Yes they are curbing the losses through the new users.</p>\n<p>Unfortunately, Eric is making sense. This is what happens when they close down the CFPB! Eric starts making sense!</p>\n<p>Please for the love of $5 capped overdraft fees! Make it all stop!</p>\n"
+      },
+      "date_gmt" : "2025-04-12T20:57:03",
+      "id" : 2043232,
+      "parent" : 2041053
+    },
+    {
+      "author_name" : "UnhingedCFPBer",
+      "content" : {
+        "rendered" : "<p>At least you feel the need to swear put in the CPFB in there somewhere.</p>\n"
+      },
+      "date_gmt" : "2025-04-12T21:02:11",
+      "id" : 2043233,
+      "parent" : 2040604
+    },
+    {
+      "author_name" : "UnhingedCFPBer",
+      "content" : {
+        "rendered" : "<p>Doc in my experience USBank does not shift credit at all like say a Chase, etc</p>\n<p>You have to apply for credit increase or a new card in case of a product change they won&#8217;t raise the credit limit on.</p>\n"
+      },
+      "date_gmt" : "2025-04-12T21:21:08",
+      "id" : 2043236,
+      "parent" : 2042743
+    },
+    {
+      "author_name" : "Ash",
+      "content" : {
+        "rendered" : "<p>For what it’s worth I made my estimated taxes and had no issues getting the 4%. Honestly one of the only reasons why I got the card.</p>\n"
+      },
+      "date_gmt" : "2025-04-13T13:41:25",
+      "id" : 2043377,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Mike",
+      "content" : {
+        "rendered" : "<p>This is such a bummer. I’m trying to think through if it’s worth it to keep at $10K checking balance for 2.5% cash back but the math is super marginal. They really used a sledgehammer when making these revisions.</p>\n"
+      },
+      "date_gmt" : "2025-04-13T14:38:49",
+      "id" : 2043395,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Joe Austin",
+      "content" : {
+        "rendered" : "<p>Why are you shocked?  This is bread and butter USB.  Remember Cash+? Remember any product they have launched?  They are simply bad at building products that work.</p>\n"
+      },
+      "date_gmt" : "2025-04-14T13:17:49",
+      "id" : 2043653,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Joe Austin",
+      "content" : {
+        "rendered" : "<p>The bank has an exposure limitation for non-customers.  Your deposit would not have generated enough of an internal score to increase that exposure.</p>\n"
+      },
+      "date_gmt" : "2025-04-14T13:20:42",
+      "id" : 2043654,
+      "parent" : 2042695
+    },
+    {
+      "author_name" : "Abhi",
+      "content" : {
+        "rendered" : "<p>Changes are live now!</p>\n"
+      },
+      "date_gmt" : "2025-04-14T14:53:20",
+      "id" : 2043695,
+      "parent" : 0
+    },
+    {
+      "author_name" : "David",
+      "content" : {
+        "rendered" : "<p><a class='hint hint--right' data-ucm_user_id='6' href='https://www.doctorofcredit.com/author/chucksithe/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/6581771f6d6c07578202c34dd35680cd5e37f8e5b2b5af89f03bde48286dade3?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/6581771f6d6c07578202c34dd35680cd5e37f8e5b2b5af89f03bde48286dade3?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;Chuck</a> &#8211; May 19 Smartly changes are now documented: <a href=\"https://www.usbank.com/dam/documents/pdf/deposits/consumer-pricing-information/revised-deposit-products.pdf\" rel=\"nofollow ugc\">https://www.usbank.com/dam/documents/pdf/deposits/consumer-pricing-information/revised-deposit-products.pdf</a></p>\n"
+      },
+      "date_gmt" : "2025-04-14T16:29:53",
+      "id" : 2043731,
+      "parent" : 0
+    },
+    {
+      "author_name" : "David",
+      "content" : {
+        "rendered" : "<p>Unclear what&#8217;s going to happen with the &#8220;Exclusive cash-back deals across top merchants/categories with an eligible and open U.S.&nbsp;Bank Personal Credit Card&#8221; feature since it is not named in the document. Since it was available to all tiers before, it may also be available to all tiers here, or be discontinued altogether for something that is more generic.</p>\n"
+      },
+      "date_gmt" : "2025-04-14T16:54:31",
+      "id" : 2043746,
+      "parent" : 2043731
+    },
+    {
+      "author_name" : "David Pilcher",
+      "content" : {
+        "rendered" : "<p>It appears that only the Smartly SAVINGS fee will be waived with the Smartly Visa, not the checking, according to <a href=\"https://www.usbank.com/dam/documents/pdf/deposits/consumer-pricing-information/revised-deposit-products.pdf\" rel=\"nofollow ugc\">https://www.usbank.com/dam/documents/pdf/deposits/consumer-pricing-information/revised-deposit-products.pdf</a></p>\n"
+      },
+      "date_gmt" : "2025-04-14T17:53:49",
+      "id" : 2043780,
+      "parent" : 0
+    }
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "149",
+    "x-wp-totalpages" : "2"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/comments?post=236854&per_page=100&page=1&order=asc&orderby=date_gmt&_fields=id,parent,author_name,date_gmt,content"
+}

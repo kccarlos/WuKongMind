@@ -1,0 +1,911 @@
+{
+  "body" : [
+    {
+      "author_name" : "Bo",
+      "content" : {
+        "rendered" : "<p>5/24 is 100% not dead. But Chase has alternative/additional eligibility criteria to filter ppl out and into products. Duh. Stop speaking in extremes ppl.</p>\n"
+      },
+      "date_gmt" : "2026-09-18T14:46:04",
+      "id" : 2415831,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Mark",
+      "content" : {
+        "rendered" : "<p>Is this just specifically for sole proprietors or does it extend to corporations?</p>\n"
+      },
+      "date_gmt" : "2026-09-18T14:54:58",
+      "id" : 2415839,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Monty",
+      "content" : {
+        "rendered" : "<p>they approved my &#8220;sole prop&#8221;.  i had no deposit accounts. froze exp &amp; tu to force an equifax pull. 9k limit so not great but enough for the SUB and they don&#8217;t seem to care how you spend (MS)</p>\n"
+      },
+      "date_gmt" : "2026-09-18T14:57:38",
+      "id" : 2415847,
+      "parent" : 2415825
+    },
+    {
+      "author_name" : "Rando",
+      "content" : {
+        "rendered" : "<p>I’ve been denied the Ink a half dozen times, but not other Chase business cards.  Can anyone tell me why?  Not a sole proprietor, a proper LLC.</p>\n"
+      },
+      "date_gmt" : "2026-09-18T15:08:39",
+      "id" : 2415860,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Rando",
+      "content" : {
+        "rendered" : "<p>But With the Chase Edit, I can pay $300 more per night than on the hotel’s own website, and then get free breakfast!!!!</p>\n"
+      },
+      "date_gmt" : "2026-09-18T15:09:52",
+      "id" : 2415861,
+      "parent" : 2415609
+    },
+    {
+      "author_name" : "Penny",
+      "content" : {
+        "rendered" : "<p>can you clarify if you had 3 chase business card total or 3 open within the last 24 months?</p>\n"
+      },
+      "date_gmt" : "2026-09-18T16:10:25",
+      "id" : 2415906,
+      "parent" : 2415820
+    },
+    {
+      "author_name" : "Stephanie S",
+      "content" : {
+        "rendered" : "<p>I have three Chase business cards currently open. Only one has been within the last 24 months. They told me max of 3 business cards for sole prop.</p>\n"
+      },
+      "date_gmt" : "2026-09-18T16:27:51",
+      "id" : 2415914,
+      "parent" : 2415906
+    },
+    {
+      "author_name" : "Bert",
+      "content" : {
+        "rendered" : "<p>Applied yesterday for a Chase United Mileage Plus Business card as a sole prop and got the denial letter today stating too many recently opened accounts. I was at 3/24(only one of those another chase business card)so I was surprised at the denial but then I saw this post today, so that might explain it</p>\n"
+      },
+      "date_gmt" : "2026-09-18T16:31:16",
+      "id" : 2415916,
+      "parent" : 0
+    },
+    {
+      "author_name" : "cameron",
+      "content" : {
+        "rendered" : "<p>“denied if they have opened <strong>more than</strong> 3 cards in the last 24 months” so 3/24 ok? So this is reducing 4/24 by one?</p>\n"
+      },
+      "date_gmt" : "2026-09-18T16:34:57",
+      "id" : 2415920,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Creditian",
+      "content" : {
+        "rendered" : "<p>Folks, 3/24 means 3 cards in 24 months (&gt;=), same logic as 5/24. </p>\n<p>If you opened 3 personal cards along with Chase biz cards in the past 24 months , you will get denied starting 9/16/2026.</p>\n"
+      },
+      "date_gmt" : "2026-09-18T16:51:02",
+      "id" : 2415934,
+      "parent" : 0
+    },
+    {
+      "author_name" : "gabe",
+      "content" : {
+        "rendered" : "<p>DP: P2 denied for CIU on 9/16. She&#8217;s 3/24 on consumer cards and also has a CIP that&#8217;s a little under a year old. She called recon and was told that the limit is 3/24 &#8220;for business cards&#8221; now. The rep didn&#8217;t specify whether it&#8217;s only for sole props or if business cards count towards the 3/24 count but she also didn&#8217;t ask.</p>\n"
+      },
+      "date_gmt" : "2026-09-18T16:57:08",
+      "id" : 2415941,
+      "parent" : 0
+    },
+    {
+      "author_name" : "cameron",
+      "content" : {
+        "rendered" : "<p>So denied if 3 cards or more, not “more than 3 cards”?    Slight but important difference</p>\n"
+      },
+      "date_gmt" : "2026-09-18T17:06:28",
+      "id" : 2415946,
+      "parent" : 2415934
+    },
+    {
+      "author_name" : "sh",
+      "content" : {
+        "rendered" : "<p>I think it’s time for me to say goodbye to Chase. With the Hyatt points devaluation, UR points just aren’t as valuable to me as they used to be.</p>\n"
+      },
+      "date_gmt" : "2026-09-18T17:25:00",
+      "id" : 2415960,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Joe S",
+      "content" : {
+        "rendered" : "<p>5/24 still applies to consumer cards I assume though, just 3/24 for business (and business 3/24 will bring in any consumer card as well as any Chase business card).</p>\n"
+      },
+      "date_gmt" : "2026-09-18T17:41:42",
+      "id" : 2415977,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Joe S",
+      "content" : {
+        "rendered" : "<p>This keeps forcing me to get cash bonuses, which isn&#8217;t necessarily a bad thing as I have a lot of miles/points and all they do is devalue. Have signed up for more US Bank, WF, and BOA business cards in the last year than the previous 5 combined.</p>\n"
+      },
+      "date_gmt" : "2026-09-18T17:43:25",
+      "id" : 2415980,
+      "parent" : 2415977
+    },
+    {
+      "author_name" : "IVY",
+      "content" : {
+        "rendered" : "<p>Rejected at 3/24. Reconsideration said the same thing. Too many new accounts opened</p>\n"
+      },
+      "date_gmt" : "2026-09-18T18:04:24",
+      "id" : 2415993,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Captain Greg",
+      "content" : {
+        "rendered" : "<p>So if you have an EIN for another biz structure like LLC or s-corp you are still at 5/24?</p>\n"
+      },
+      "date_gmt" : "2026-09-18T18:10:19",
+      "id" : 2415995,
+      "parent" : 0
+    },
+    {
+      "author_name" : "J",
+      "content" : {
+        "rendered" : "<p>Chase business cards do NOT count toward 5/24 limit logic, so I don&#8217;t think your first statement is accurate&#8230;.</p>\n"
+      },
+      "date_gmt" : "2026-09-18T18:43:48",
+      "id" : 2416011,
+      "parent" : 2415934
+    },
+    {
+      "author_name" : "Ryan",
+      "content" : {
+        "rendered" : "<p>Unrelated to the 3/24 post but I feel like Chase has been tightening small biz credit.</p>\n<p>Just got denied for United Biz. Denial letter cited I was at the max credit they were willing to extend and insufficient biz revenue. A few things surprised me about this.</p>\n<p>My total credit with Chase is about 35% of my annual income. I actually asked for a limit decrease a few weeks ago in anticipation of this issue, but I thought their policy was up to 50% of annual income. Called reconsideration and still came away with a denial after asking if they could approve me under the condition of reducing my credit limits on other business cards I have with them. Totally baffled because I&#8217;m at an 850 FICO and 2/24.</p>\n"
+      },
+      "date_gmt" : "2026-09-18T19:13:29",
+      "id" : 2416025,
+      "parent" : 0
+    },
+    {
+      "author_name" : "sharing",
+      "content" : {
+        "rendered" : "<p>applied SP on 9/1 for biz sapphire with 2 personal, 1 chase biz, and 1 au in last 2years &#8211; letter said denied d/t # of recently opened accounts on consumer credit report. did not call recon. applied for ven x biz instead &#8211; was instantly approved</p>\n"
+      },
+      "date_gmt" : "2026-09-18T19:23:39",
+      "id" : 2416035,
+      "parent" : 0
+    },
+    {
+      "author_name" : "BrMa",
+      "content" : {
+        "rendered" : "<p>I have a similar experience with Chase earlier this month. I applied for the Biz Sapphire Reserve. Got denied and was told the rejection was due to insufficient business revenue and the amount of credit already extended to me was at the maximum.</p>\n<p>My credit limit is about 20% of my total annual income, plus I&#8217;ve been using less than 10% of my credit limit in recent months. Clearly not a big credit risk.</p>\n"
+      },
+      "date_gmt" : "2026-09-18T19:36:03",
+      "id" : 2416043,
+      "parent" : 2416025
+    },
+    {
+      "author_name" : "Ryan",
+      "content" : {
+        "rendered" : "<p>The underwriter cited low utilization as another issue when I asked for a reconsideration with credit limit decreases. In hindsight, I&#8217;m unclear on if they meant that my usage with Chase was too low or if that applied to all issuers. I had about $300 in balances on my business cards with them because all bills were going to P2&#8217;s card so we could get a SUB. I might try throwing more spend on my Chase cards and calling recon again..</p>\n<p><span>Others here claim to have been told that they were denied because they will only give sole props a maximum of 3 business cards. I am a sole prop and have exactly 3 small business cards with Chase, but my number of cards didn&#8217;t come up during my call with recon. I wish I was given that reason.</span></p>\n<p>Now I&#8217;m left to wonder if I&#8217;d be wasting my time applying for personal cards with them. I&#8217;m pre-approved for most of Chase&#8217;s personal cards, but I might be cooked if they&#8217;re basing the actual approval on total credit limits and usage across all issuers.</p>\n"
+      },
+      "date_gmt" : "2026-09-18T20:13:06",
+      "id" : 2416067,
+      "parent" : 2416043
+    },
+    {
+      "author_name" : "Persephone",
+      "content" : {
+        "rendered" : "<p>They tend to treat personal cards way differently than business.</p>\n"
+      },
+      "date_gmt" : "2026-09-18T20:39:42",
+      "id" : 2416098,
+      "parent" : 2416067
+    },
+    {
+      "author_name" : "Persephone",
+      "content" : {
+        "rendered" : "<p>Not accurate. I applied with EIN as a sole prop</p>\n"
+      },
+      "date_gmt" : "2026-09-18T20:43:33",
+      "id" : 2416103,
+      "parent" : 2415728
+    },
+    {
+      "author_name" : "BrMa",
+      "content" : {
+        "rendered" : "<p>Certainly makes me miss the days of 2021-2025 with this &#8220;card endeavor&#8221;. I have about $20k-25k annual spend on my CIC, so I understand what you mean by utilization, though I also question Chase as to what they consider low utilization. I&#8217;m nowhere near Nvidia or Apple level spending, but I&#8217;m also not $1,000 a year either.</p>\n<p>The last time I applied for a Chase card, I made sure to make all of my balances (business and personal cards) as close to $0.00 as I could get them. Didn&#8217;t seem to do anything.</p>\n<p>I have been looking more into Amex cards on the personal side more over the last 12 months or so due to Chase being far more stingy. Now I frequently carry Amex cards in my wallet as normal daily spenders as a result. I don&#8217;t know if I am alone on this, but before Chase clamped down, I used to use some form of Chase card for 90%+ of my personal and business spend. That utilization with Chase has come down dramatically and has been replaced primarily by Amex.</p>\n<p>I suppose my point here is two fold:</p>\n<ol>\n<li>Always appreciative of the data points</li>\n<li>Don&#8217;t be afraid to go &#8220;LOL&#8221;/24 for some time while exploring Chase&#8217;s competitors</li>\n</ol>\n"
+      },
+      "date_gmt" : "2026-09-18T20:44:58",
+      "id" : 2416106,
+      "parent" : 2416067
+    },
+    {
+      "author_name" : "Persephone",
+      "content" : {
+        "rendered" : "<p>On 3 out of their dozen of business cards???</p>\n"
+      },
+      "date_gmt" : "2026-09-18T20:47:31",
+      "id" : 2416109,
+      "parent" : 2415644
+    },
+    {
+      "author_name" : "TAA",
+      "content" : {
+        "rendered" : "<p>My husband was denied for CSR business. He only had 2 chase business cards (sole prop) at the time and was under 5/24 (and 3/24). He called recon and they were mostly focused on business income.</p>\n"
+      },
+      "date_gmt" : "2026-09-18T20:53:05",
+      "id" : 2416118,
+      "parent" : 2415796
+    },
+    {
+      "author_name" : "beat2def",
+      "content" : {
+        "rendered" : "<p>Were you preapproved for the Ven X biz card?</p>\n"
+      },
+      "date_gmt" : "2026-09-18T20:55:52",
+      "id" : 2416121,
+      "parent" : 2416035
+    },
+    {
+      "author_name" : "beat2def",
+      "content" : {
+        "rendered" : "<p>P2 applied and got the &#8216;we&#8217;ll review your app&#8217; for the CSR Biz.  2/24 applied as SP.<br />\nNew rules in place and wanted to TRY to get this card before anything else happens.<br />\nP2 does hold all three Ink cards with no balance and those cards are 10 months &#8211; 12 months old.</p>\n"
+      },
+      "date_gmt" : "2026-09-18T21:09:51",
+      "id" : 2416134,
+      "parent" : 0
+    },
+    {
+      "author_name" : "JP",
+      "content" : {
+        "rendered" : "<p>6/24 and was approved for Ink Preferred in Jan &#8211; initially was on hold needing more info for new LLC but went into branch and they emailed the documents.  Then at 7/24 got United Biz for LLC (already have had one for 20 years for SP) in March &#8211; was actually denied but I didn&#8217;t know until I received the letter days later because their system automatically moved credit from another account and approved &#8211; never had to call or be asked about it.  Then I was denied for another biz card for the LLC in June.</p>\n<p>Got down to 4/24 and applied for Bonvoy Boundless in August &#8211; denied for having too much credit across all banks and none of my half dozen Chase personal cards had credit to move &#8211; 3 times reconsideration line tried and couldn&#8217;t understand why CSR wouldn&#8217;t work with almost $20k available.  I ended up requesting a credit limit increase for it, waiting a week, and trying again &#8211; it showed as eligible &#8211; apparently CSR now requires minimum $20k vs Visa Infinite&#8217;s $10k.</p>\n<p>Decided to give Ink Unlimited a try before the 100k went away &#8211; went pending and next day got a message to call them.  They verified some info and said we could move credit from one of my other half dozen business accounts and was approved.</p>\n<p>So this year I&#8217;ve been approved for biz cards at 7/24, 6/24, and 5/24 while being denied at 3/24.  And approved for a personal card at 4/24.  That suggests the total relationship matters more than X/24 &#8211; over 20 years as a personal and business customer with current half dozen cards on each side and multiple deposit accounts.</p>\n"
+      },
+      "date_gmt" : "2026-09-18T21:19:49",
+      "id" : 2416142,
+      "parent" : 0
+    },
+    {
+      "author_name" : "GoodMoney 🔗👈",
+      "content" : {
+        "rendered" : "<p>as understand reading comments. 2/24 opened cards max, for sole prop, including any Chase, or other bank &#8211; personal or business cards</p>\n"
+      },
+      "date_gmt" : "2026-09-18T22:15:59",
+      "id" : 2416175,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Karl",
+      "content" : {
+        "rendered" : "<p>Chase normally requests documents for a new LLC and one of the ones they want is an IRS EIN/TIN confirmation letter.</p>\n<p>If you request an EIN for a single-member LLC, the IRS confirmation letter clearly states <strong>SOLE MBR</strong>. So a human at Chase can guess you&#8217;re likely to elect pass through if they&#8217;re paying attention&#8230;</p>\n<p>Opening a bank account first might be a good way to keep eyes off that letter. Chase usually only requires docs for the first account.</p>\n<p>If your LLC already has a login, it will probably be auto-approved for its first CC. And if not, a human reviewing your CC app is unlikely to make the connection.</p>\n"
+      },
+      "date_gmt" : "2026-09-18T22:32:18",
+      "id" : 2416192,
+      "parent" : 2415741
+    },
+    {
+      "author_name" : "Dealgamer",
+      "content" : {
+        "rendered" : "<p>Surely only business cards that report to personal?</p>\n"
+      },
+      "date_gmt" : "2026-09-18T22:43:13",
+      "id" : 2416196,
+      "parent" : 2416175
+    },
+    {
+      "author_name" : "JoePro",
+      "content" : {
+        "rendered" : "<p>Denied after 9/15 application. 4/24 or 5/24 including Hyatt Biz approval.<br />\nTold 3/24.  Two personal cards drop off next month, but if it includes Chase Biz cards in the count, I might be SOL.</p>\n"
+      },
+      "date_gmt" : "2026-09-18T22:44:16",
+      "id" : 2416198,
+      "parent" : 0
+    },
+    {
+      "author_name" : "GoodMoney 🔗👈",
+      "content" : {
+        "rendered" : "<p>most likely only reported cards to personal&#8230; non reported, non chase cards they don&#8217;t see easily&#8230;.</p>\n"
+      },
+      "date_gmt" : "2026-09-18T23:02:17",
+      "id" : 2416216,
+      "parent" : 2416196
+    },
+    {
+      "author_name" : "Karl",
+      "content" : {
+        "rendered" : "<p>People who don&#8217;t MS still require 4 or more new CCs per year unless they&#8217;re willing to pay at least 10% extra for everything.</p>\n<p>Most CCs are only worth using for 3 months because most SUBs only cover 3 months of use. After the MSR you can always do better by opening a new card.</p>\n"
+      },
+      "date_gmt" : "2026-09-18T23:21:04",
+      "id" : 2416234,
+      "parent" : 2415684
+    },
+    {
+      "author_name" : "V L",
+      "content" : {
+        "rendered" : "<p>A friend approved for Ink Unlimited just a week ago. He is 4/24, and got CSP as well (less than 3 month ago&#8230; just for the record). Approved instantly. </p>\n<p>No other Chase Cards.</p>\n"
+      },
+      "date_gmt" : "2026-09-18T23:52:38",
+      "id" : 2416258,
+      "parent" : 0
+    },
+    {
+      "author_name" : "V L",
+      "content" : {
+        "rendered" : "<p>Chase Biz cards never counted in N / 24 rule.. at least up until now.</p>\n"
+      },
+      "date_gmt" : "2026-09-18T23:54:20",
+      "id" : 2416259,
+      "parent" : 2416198
+    },
+    {
+      "author_name" : "Celia 🔗",
+      "content" : {
+        "rendered" : "<p>People who don&#8217;t MS rarely contemplate SUBs. Most everyone I know, who doesn&#8217;t partake in this hobby, haven&#8217;t gotten a new credit card in years.</p>\n"
+      },
+      "date_gmt" : "2026-09-19T00:11:03",
+      "id" : 2416271,
+      "parent" : 2416234
+    },
+    {
+      "author_name" : "JoePro",
+      "content" : {
+        "rendered" : "<p>Well I suddenly wanted the Business Reserve card late last week when I realized it would keep my Hyatt 1:1, I have 30K in spend coming up over the next 6 months, and I was trying to figure out if my P2 would get the 40K referral bonus (I have no Chase Biz cards as of early August).  Finally figured it was worth applying whether or not P2 got the 40K, so I applied Monday, and then after that started seeing the 3/24 datapoints (am 4/24 or 5/24 if counting Chase Biz cards- 2 drop off next month)</p>\n<p>I&#8217;d probably be less bothered if I was denied for any other reason than a brand-new rule I didn&#8217;t know about.</p>\n<p>But yes, now it seems I want it even more. (Will try again next month with fingers crossed 2/24 + 1/24 Chase Biz card gets me in).</p>\n"
+      },
+      "date_gmt" : "2026-09-19T00:31:01",
+      "id" : 2416292,
+      "parent" : 2415614
+    },
+    {
+      "author_name" : "Monty",
+      "content" : {
+        "rendered" : "<p>are chase biz cards now added in to the N/24 count? </p>\n<p>chase would not necessarily have visibility on nonchase biz cards,  but if 3/24 or 5/24 now also include chase biz cards&#8230; yikes.</p>\n"
+      },
+      "date_gmt" : "2026-09-19T00:51:42",
+      "id" : 2416302,
+      "parent" : 0
+    },
+    {
+      "author_name" : "RCD",
+      "content" : {
+        "rendered" : "<p>Applied and was instantly approved for Chase Hyatt Biz yesterday 12k CL as solo prop.</p>\n<p>Was 4/24, currently have 2 open Chase personal and 1 Ink. </p>\n<p>12 total cards opened in past 24 months.</p>\n"
+      },
+      "date_gmt" : "2026-09-19T01:18:54",
+      "id" : 2416315,
+      "parent" : 0
+    },
+    {
+      "author_name" : "dnevitable1",
+      "content" : {
+        "rendered" : "<p>This was on 08/18/27. I got denied for the IHG premier business. I called recon who states that I am 6/24. I keep a spreadsheet and should have been 4/24. Checked credit report and it shows 4/24. I never was able to figure out why I was denied when I was clearly 4/24</p>\n"
+      },
+      "date_gmt" : "2026-09-19T02:06:46",
+      "id" : 2416337,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Creditian",
+      "content" : {
+        "rendered" : "<p>People are asking 3/24 including 3rd card or not, apparently you can’t read that part.</p>\n"
+      },
+      "date_gmt" : "2026-09-19T02:08:36",
+      "id" : 2416339,
+      "parent" : 2416011
+    },
+    {
+      "author_name" : "Karl",
+      "content" : {
+        "rendered" : "<p>But which comes first? I think more people start with SUBs, then add MS as a way to finish MSRs. If/when they find efficient methods, some of them scale up beyond max SUB velocity and get into the MS hobby.</p>\n<p>It&#8217;s true that most people aren&#8217;t interested in MS. But any rational consumer would exploit CCs until they ran out of either SUBs or chargeable living expenses.</p>\n<p>I think the real reason they don&#8217;t is, most people are irrational about money and especially about credit. Of course that&#8217;s the whole business model behind SUBs.</p>\n"
+      },
+      "date_gmt" : "2026-09-19T02:49:05",
+      "id" : 2416351,
+      "parent" : 2416271
+    },
+    {
+      "author_name" : "Bedu🔗",
+      "content" : {
+        "rendered" : "<p>It&#8217;s just easier to get biz cards with an LLC. It&#8217;s harder to get approved with SSN sole prop</p>\n"
+      },
+      "date_gmt" : "2026-09-19T04:00:53",
+      "id" : 2416376,
+      "parent" : 2416142
+    },
+    {
+      "author_name" : "Mark",
+      "content" : {
+        "rendered" : "<p>Similar situation here. Applied for the CIC on 9/14. Was initially told too many new accounts. I&#8217;m at 4/24 and all were personal &#8211; this would have been my first biz card as a SP. Transferred to recon and was initially told the same thing. I asked which 5 cards they showed because it should only be 4. After reviewing he said I was correct and approved me.</p>\n"
+      },
+      "date_gmt" : "2026-09-19T12:56:27",
+      "id" : 2416463,
+      "parent" : 2415705
+    },
+    {
+      "author_name" : "Dgmischief",
+      "content" : {
+        "rendered" : "<p>Chase gravy train has been dead for a longtime now, even with 5/24 it&#8217;s just better to get the cards you want to get in my opinion &#8211; unless you haven&#8217;t gotten the reserve bonuses.</p>\n"
+      },
+      "date_gmt" : "2026-09-19T14:22:13",
+      "id" : 2416503,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Panos",
+      "content" : {
+        "rendered" : "<p>P2 sole prop got denied for a new ink because &#8220;business needs can be satisfied with existing business cards&#8221;. Has only opened United business and Ink preferred over the last 12 months. That was after recon.</p>\n"
+      },
+      "date_gmt" : "2026-09-19T15:45:18",
+      "id" : 2416546,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Rudy Zolteck",
+      "content" : {
+        "rendered" : "<p>Call me cynical, but with the number of people online openly talking about using biz cards for stuff not even close to business expenses, even the popular CC bloggers and YTers, I&#8217;m surprised biz 5/24 rules have even held on for this long.</p>\n"
+      },
+      "date_gmt" : "2026-09-19T16:29:13",
+      "id" : 2416575,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Z",
+      "content" : {
+        "rendered" : "<p>P2 approved mid july, sole prop, 3/24.</p>\n"
+      },
+      "date_gmt" : "2026-09-19T17:11:03",
+      "id" : 2416592,
+      "parent" : 0
+    },
+    {
+      "author_name" : "cameron",
+      "content" : {
+        "rendered" : "<p>i guess more weird business cards like BMO or credit union, and accelerated USbank and bofa business cards.   And more speculative chase business at 2/24.    weird than personal cards stay at 5/24.</p>\n"
+      },
+      "date_gmt" : "2026-09-19T17:22:49",
+      "id" : 2416604,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Discover it Student",
+      "content" : {
+        "rendered" : "<p>They could check D&amp;B, but not every biz card shows up on there. Amex does though afaik&#8230;</p>\n"
+      },
+      "date_gmt" : "2026-09-19T17:27:11",
+      "id" : 2416608,
+      "parent" : 2416216
+    },
+    {
+      "author_name" : "Creditian",
+      "content" : {
+        "rendered" : "<p>Business cards counted limited to Chase business cards and few banks reporting business cards to credit report. Amex business card is not seen to Chase.</p>\n"
+      },
+      "date_gmt" : "2026-09-19T19:13:09",
+      "id" : 2416658,
+      "parent" : 2416175
+    },
+    {
+      "author_name" : "PS",
+      "content" : {
+        "rendered" : "<p>I was denied for the United biz cc ($150 af version) as a sole prop with these cited reasons: </p>\n<ol>\n<li>Too much credit extended</li>\n<li>Not enough business revenue </li>\n</ol>\n<p>I am at 4/24, have a 790 FICO, ~$300k business revenue, and currently hold just 2 chase biz ccs with a combined limit of $24k. When I called reconsideration, they told me that my business revenue was too low for them to extend another line of credit, and that the card in question (a visa signature) has a minimum $10k limit. Not sure what chase is doing lol.</p>\n"
+      },
+      "date_gmt" : "2026-09-19T20:38:40",
+      "id" : 2416692,
+      "parent" : 0
+    },
+    {
+      "author_name" : "GZG",
+      "content" : {
+        "rendered" : "<p>the same thing every other business is doing, harpooning for whales and saying fuck off to everybody else.</p>\n"
+      },
+      "date_gmt" : "2026-09-19T20:43:58",
+      "id" : 2416696,
+      "parent" : 2416692
+    },
+    {
+      "author_name" : "Jia-Ying",
+      "content" : {
+        "rendered" : "<p>i&#8217;m still trying to figure if it&#8217;s worth it to create a LLC solely for churning. In TX for example.</p>\n"
+      },
+      "date_gmt" : "2026-09-19T21:12:10",
+      "id" : 2416714,
+      "parent" : 0
+    },
+    {
+      "author_name" : "sharing",
+      "content" : {
+        "rendered" : "<p>Yes, I used the pre-approval tool</p>\n"
+      },
+      "date_gmt" : "2026-09-19T22:51:20",
+      "id" : 2416761,
+      "parent" : 2416121
+    },
+    {
+      "author_name" : "Monty",
+      "content" : {
+        "rendered" : "<p>follow up from my comment yesterday&#8230;<br />\n <a class='hint hint--right' data-ucm_user_id='2' href='https://www.doctorofcredit.com/author/will/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;William Charles</a> this might be worth a look?  reddit page where a few people were told by chase CSR that chase biz cards are going to count towards 5/24.</p>\n<p><a href=\"https://www.reddit.com/r/CreditCards/comments/1vm141o/chase_business_cards_524_branch_rep_says_they_do/\" rel=\"nofollow ugc\">https://www.reddit.com/r/CreditCards/comments/1vm141o/chase_business_cards_524_branch_rep_says_they_do/</a></p>\n<p><u>if so, must be a VERY recent policy:</u><br />\nApril 2026 &#8212; was at 4/24 plus a bunch of non-chase biz cards<br />\nMay 2026 &#8212; Ink, which put me at [4+1]/24<br />\nJune 2026 &#8212; Ink, which put me at [4+2]/24<br />\nJuly 2026 &#8212; Sapphire, which put me at [5+2]/24</p>\n<p>Interestingly, P2 was at 4/24 when applying for Ink in late August, denied because of &#8220;5/24&#8221;, called recon and asked them to check the credit report again, they manually approved.  Maybe the internal 3/24 tripped the application but chase was able to push it through?</p>\n"
+      },
+      "date_gmt" : "2026-09-20T02:55:30",
+      "id" : 2416866,
+      "parent" : 2416302
+    },
+    {
+      "author_name" : "cameron",
+      "content" : {
+        "rendered" : "<p>So you can have as many business cards as you want as long as you open no more than two personal cards in 24 months.</p>\n"
+      },
+      "date_gmt" : "2026-09-20T05:13:06",
+      "id" : 2416909,
+      "parent" : 0
+    },
+    {
+      "author_name" : "L",
+      "content" : {
+        "rendered" : "<p>I&#8217;m 3/24 personal but recon agent said I was denied for CIBU because I&#8217;ve opened 5 personal and business cards in 24 months (3/24 + 2 Chase Biz cards) for sole proprietor. So seems like they&#8217;re counting all in-house cards now for single SSN.</p>\n"
+      },
+      "date_gmt" : "2026-09-20T05:25:19",
+      "id" : 2416911,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Monty",
+      "content" : {
+        "rendered" : "<p>maybe not. see comment <a class='wpd-umcguest'  href='https://www.doctorofcredit.com/has-chase-changed-the-5-24-rule-for-sole-props-3-24-for-sole-props/#comment-2416866'><img alt='' src='https://secure.gravatar.com/avatar/019abcf86f0a5ddc972908936a8ca68de040c3c2163fb7a9af9a8090b23ab0ea?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/019abcf86f0a5ddc972908936a8ca68de040c3c2163fb7a9af9a8090b23ab0ea?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>Monty</a></p>\n"
+      },
+      "date_gmt" : "2026-09-20T05:52:46",
+      "id" : 2416915,
+      "parent" : 2416909
+    },
+    {
+      "author_name" : "cameron",
+      "content" : {
+        "rendered" : "<p>Your comment actally makes more sense.  The most sensible though would be no more than two business cards every 24 months.  Period.</p>\n"
+      },
+      "date_gmt" : "2026-09-20T16:24:16",
+      "id" : 2417011,
+      "parent" : 2416915
+    },
+    {
+      "author_name" : "Crown",
+      "content" : {
+        "rendered" : "<p>I am 3/24 and have 2 chase business cards opened. if we count the chase business cards I have opened in 24 months then I am 7/24. I just applied for the Hyatt business card on 09/20/26 and got approved.</p>\n"
+      },
+      "date_gmt" : "2026-09-20T19:44:00",
+      "id" : 2417175,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Crown",
+      "content" : {
+        "rendered" : "<p>I just applied for the hyatt business card on 9/20 and got approved. I am 3/24 and currently have 2 chase business cards opened. If we count all the chase business cards opened in the last 24 months then I am 7/24.</p>\n"
+      },
+      "date_gmt" : "2026-09-20T19:45:57",
+      "id" : 2417178,
+      "parent" : 0
+    },
+    {
+      "author_name" : "cameron",
+      "content" : {
+        "rendered" : "<p>Good datapoint.   WTH is going on Chase.</p>\n"
+      },
+      "date_gmt" : "2026-09-20T21:43:13",
+      "id" : 2417260,
+      "parent" : 2417178
+    },
+    {
+      "author_name" : "Mike",
+      "content" : {
+        "rendered" : "<p>When did you open the oldest card among the three cards of 3/24?</p>\n"
+      },
+      "date_gmt" : "2026-09-21T01:09:08",
+      "id" : 2417371,
+      "parent" : 2417178
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Probably reps just being confused, they can be seen but aren&#8217;t counted. Don&#8217;t see anything reliable that makes me think that has changed but happy to be proven wrong</p>\n"
+      },
+      "date_gmt" : "2026-09-21T06:29:53",
+      "id" : 2417524,
+      "parent" : 2416302
+    },
+    {
+      "author_name" : "Itsjustme",
+      "content" : {
+        "rendered" : "<p>Sole proprietor?</p>\n"
+      },
+      "date_gmt" : "2026-09-21T13:49:17",
+      "id" : 2417630,
+      "parent" : 2417175
+    },
+    {
+      "author_name" : "Holly",
+      "content" : {
+        "rendered" : "<p>Are you a sole prop?</p>\n"
+      },
+      "date_gmt" : "2026-09-21T15:00:52",
+      "id" : 2417678,
+      "parent" : 2417178
+    },
+    {
+      "author_name" : "Sof",
+      "content" : {
+        "rendered" : "<p>4/24 approved on 9/13! first chase biz card</p>\n"
+      },
+      "date_gmt" : "2026-09-21T15:10:37",
+      "id" : 2417690,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Wick",
+      "content" : {
+        "rendered" : "<p>declined on 3rd attempt for Ink Biz (I have Ink cash), they said i cant  have both no-AF at the same time. lol new rule again&#8230; Pathetic.</p>\n"
+      },
+      "date_gmt" : "2026-09-21T17:56:04",
+      "id" : 2417830,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Noble Porpoise",
+      "content" : {
+        "rendered" : "<p>Applied for Ink Cash on 9/17 as sole proprietor at 3/24 consumer cards. More business. Called recon 9/21. First recon rep said I was denied for over 5/24 on Equifax. I double checked that my report correctly had me at 3/24. Called back. Next rep said he couldn’t give me specifics but there’s a new rule related to 5/24 that he couldn’t discuss but he put me on the line with an underwriter who said he can’t reconsider my application since I’m a sole proprietor and I’ve gotten 3 consumer cards in under 24 months. </p>\n<p>Any data points on applying as a partnership?</p>\n"
+      },
+      "date_gmt" : "2026-09-22T00:04:53",
+      "id" : 2418173,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Crown",
+      "content" : {
+        "rendered" : "<p>yes sir</p>\n"
+      },
+      "date_gmt" : "2026-09-22T02:09:11",
+      "id" : 2418268,
+      "parent" : 2417630
+    },
+    {
+      "author_name" : "Crown",
+      "content" : {
+        "rendered" : "<p>Sole prop</p>\n"
+      },
+      "date_gmt" : "2026-09-22T02:09:33",
+      "id" : 2418269,
+      "parent" : 2417678
+    },
+    {
+      "author_name" : "Crown",
+      "content" : {
+        "rendered" : "<p>oldest card was 6/23/2025 (CSR) and newest personal card oepend was 8/2/2026 (bofa)</p>\n"
+      },
+      "date_gmt" : "2026-09-22T02:10:38",
+      "id" : 2418270,
+      "parent" : 2417371
+    },
+    {
+      "author_name" : "jonty rhodes",
+      "content" : {
+        "rendered" : "<p>I am 3/24 (all personal cards &#8211; two with chase one with another bank) and was denied today for a chase biz card. Recon agent explicitly said denial was due to opening 3 other cards in past 2 years and that this is something they are unable to overturn per recon.</p>\n"
+      },
+      "date_gmt" : "2026-09-22T03:24:01",
+      "id" : 2418311,
+      "parent" : 0
+    },
+    {
+      "author_name" : "J",
+      "content" : {
+        "rendered" : "<p>I read the words you typed just fine, thanks.<br />\nYour statement is still incorrect (or speculative at best) &#8211; Chase Business cards do not count toward 5/24 counts.</p>\n"
+      },
+      "date_gmt" : "2026-09-22T13:18:45",
+      "id" : 2418514,
+      "parent" : 2416339
+    },
+    {
+      "author_name" : "Monty",
+      "content" : {
+        "rendered" : "<p>there is growing speculation that this is not true. some phone reps have recently started saying chase biz cards add to N/24 count</p>\n"
+      },
+      "date_gmt" : "2026-09-22T13:29:06",
+      "id" : 2418522,
+      "parent" : 2418514
+    },
+    {
+      "author_name" : "Tim",
+      "content" : {
+        "rendered" : "<p>Maybe they didn’t see the new BoA card on your report yet?</p>\n"
+      },
+      "date_gmt" : "2026-09-22T14:18:59",
+      "id" : 2418565,
+      "parent" : 2418270
+    },
+    {
+      "author_name" : "Coolmuke",
+      "content" : {
+        "rendered" : "<p>So, I am assuming this does not apply for s-corp with EIN? Its still 5/24.</p>\n"
+      },
+      "date_gmt" : "2026-09-22T14:20:58",
+      "id" : 2418568,
+      "parent" : 0
+    },
+    {
+      "author_name" : "beat2def",
+      "content" : {
+        "rendered" : "<p>P2 applied for CSR biz with an EIN sole prop and was denied due to &#8220;business structure&#8221;.</p>\n"
+      },
+      "date_gmt" : "2026-09-22T15:12:35",
+      "id" : 2418651,
+      "parent" : 2418568
+    },
+    {
+      "author_name" : "Harry",
+      "content" : {
+        "rendered" : "<p>Business structure? Seems only sole prop with or without EIN are denied</p>\n"
+      },
+      "date_gmt" : "2026-09-22T18:07:12",
+      "id" : 2418865,
+      "parent" : 2418311
+    },
+    {
+      "author_name" : "Charles Elliott",
+      "content" : {
+        "rendered" : "<p>I went 4/24 mid-August. Applied on 9/1 for an Ink card and was denied.</p>\n"
+      },
+      "date_gmt" : "2026-09-22T19:40:57",
+      "id" : 2418944,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Slaven",
+      "content" : {
+        "rendered" : "<p>Between the 3 of us, I have only been approved for 1 chase biz card in over a year.<br />\nAm at the point, where it just doesn&#8217;t make sense to stay under 5/24 in the hopes of getting approved for chase cards</p>\n"
+      },
+      "date_gmt" : "2026-09-22T20:47:02",
+      "id" : 2418984,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Karl",
+      "content" : {
+        "rendered" : "<p>Coincidentally, that&#8217;s exactly my approach to personal CCs.</p>\n"
+      },
+      "date_gmt" : "2026-09-23T02:44:52",
+      "id" : 2419266,
+      "parent" : 2416696
+    },
+    {
+      "author_name" : "jonty rhodes",
+      "content" : {
+        "rendered" : "<p>Sole prop. Official denial reason in letter: &#8220;Number of recently opened accounts on consumer credit report&#8221;</p>\n"
+      },
+      "date_gmt" : "2026-09-23T03:34:54",
+      "id" : 2419302,
+      "parent" : 2418865
+    },
+    {
+      "author_name" : "DD",
+      "content" : {
+        "rendered" : "<p>Can anyone clarify if this applies to CSR Business also?</p>\n"
+      },
+      "date_gmt" : "2026-09-23T04:32:57",
+      "id" : 2419329,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Shiro",
+      "content" : {
+        "rendered" : "<p>9/15 Applied for CSR business with 4/24. (<span>+2 chase business cards + 1 Amex business)</span><br />\nDenied with &#8220;Number of recently opened accounts on consumer credit report&#8221;<br />\nCalled a recon. The CS confirmed I&#8217;m under 5/24, and issued the re-evaluation request.</p>\n<p>9/21 denial letter with the reasons<br />\n<span>• </span>Too many active accounts or too much available credit on consumer report<br />\n• Low usage of Chase credit line(s)<br />\n• New Chase business card recently opened</p>\n<p><span>Solo prep with EIN. </span>Credit score 823 and utilization rate is under 20%. The most recently opened business card is United Club Business in the beginning of June (&gt;3 months). <span>Not sure 3/24 is the only reasons so sharing the DP.</span></p>\n"
+      },
+      "date_gmt" : "2026-09-23T10:56:09",
+      "id" : 2419399,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Reddit Hates Me",
+      "content" : {
+        "rendered" : "<p>Adding to the chorus, I called into recon at 4/24 and the rep told me I couldn&#8217;t be approved because I had more than 3 opened accounts in the last 2 years.</p>\n<p>As far as I&#8217;m concerned, this is as good as confirmed.</p>\n"
+      },
+      "date_gmt" : "2026-09-23T12:47:37",
+      "id" : 2419419,
+      "parent" : 0
+    },
+    {
+      "author_name" : "King",
+      "content" : {
+        "rendered" : "<p>3/24. Applied for Chase United Biz card on 9/21. Called in, denied on 9/23 for 3/24. Rep said it applies to Sole Prop and LLC&#8217;s.</p>\n"
+      },
+      "date_gmt" : "2026-09-23T16:46:14",
+      "id" : 2419592,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Zeek",
+      "content" : {
+        "rendered" : "<p>So&#8230; i guess we have to be at 2/24?</p>\n"
+      },
+      "date_gmt" : "2026-09-23T19:10:16",
+      "id" : 2419702,
+      "parent" : 2419592
+    },
+    {
+      "author_name" : "Jay",
+      "content" : {
+        "rendered" : "<p>So many sloppy “datapoints” being posted here.</p>\n<p>If you want to be helpful, you need to provide:</p>\n<ul>\n<li>How many personal cards of any kind in last 24 months</li>\n<li>How many chase business cards in last 24 months, and what type (ink, co-brand)</li>\n<li>Exactly What card did you just get approved/denied for, and on what date.</li>\n<li>What busniess structure did you apply under (Sole Prop, LLC, S-corp)</li>\n</ul>\n"
+      },
+      "date_gmt" : "2026-09-23T21:00:24",
+      "id" : 2419790,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Karl",
+      "content" : {
+        "rendered" : "<p>N/24 is not a sloppy datapoint. It has a precise meaning:</p>\n<p><strong>N/24 </strong>= number of CCs &lt;24 months old <strong><em>reporting on the personal bureau</em></strong> pulled, <strong><em>at the time it was pulled</em></strong>.</p>\n<p>Business structure is a separate DP that makes n/24 useful in the context of this post.</p>\n<p>Date is not a useful DP unless BOTH date of application and date of final denial/approval are included.</p>\n"
+      },
+      "date_gmt" : "2026-09-24T01:27:59",
+      "id" : 2419959,
+      "parent" : 2419790
+    },
+    {
+      "author_name" : "Asher",
+      "content" : {
+        "rendered" : "<p>The 5/24 rule means you need to be under 5/24.</p>\n<p>So yes, the 3/24 rule would mean you need to be under 3/24.</p>\n"
+      },
+      "date_gmt" : "2026-09-24T05:25:25",
+      "id" : 2420095,
+      "parent" : 2419702
+    },
+    {
+      "author_name" : "Soul",
+      "content" : {
+        "rendered" : "<p>24.9.18 personal card 1<br />\n24.9.18 <span>personal card 2</span><br />\n25.5.personal card 3 (chase)<br />\n25.5.3\tPC4<br />\n26.1.9\tPC5<br />\n26.3.31\tPC6<br />\nwith multiple non-chase business cards last 2 years. Sole-prop with EIN</p>\n<ol>\n<li>9/1: Applied for UA biz (believe 5/24 resets on the first day of month), rejected due to too many personal card reason</li>\n<li>9/21: Called a recon and explained now I am now 4/24 today, got transferred to underwriting agent; grilled with multiple questions (i.e., type of business, income, type of purchase, income source&#8230;.) then approved.</li>\n</ol>\n<p>Not sure the underwriter overrode the decision manually or did not recognize potential 3/24 new rule</p>\n"
+      },
+      "date_gmt" : "2026-09-24T18:03:02",
+      "id" : 2420438,
+      "parent" : 0
+    },
+    {
+      "author_name" : "John John",
+      "content" : {
+        "rendered" : "<p>There&#8217;s been plenty of data points of people approved with 3/24 so this theory as written in main post is fake news. Now it could be that 3/24 business cards is what is counted, but that&#8217;s another theory.</p>\n"
+      },
+      "date_gmt" : "2026-09-24T21:15:54",
+      "id" : 2420632,
+      "parent" : 2419790
+    },
+    {
+      "author_name" : "Ced",
+      "content" : {
+        "rendered" : "<p>On 9/22/26 Applied for the chase business ink premier as sole prop and got denied for being at 4/24 (excluding my us bank biz). Called on 9/22 and they initially said I was over 5/24, called again on 9/23 and they said they changed it to 3/24 and it applies to all approved credit cards, not just personal. Got the official letter from the saying I have too many opened accounts but didn&#8217;t state how many. Sounds like we gotta be at 2/24 now and days regardless of credit card type&#8230;</p>\n"
+      },
+      "date_gmt" : "2026-09-24T21:38:53",
+      "id" : 2420650,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Kk",
+      "content" : {
+        "rendered" : "<p>2/24, 4biz acrd with chase, applied biz united and denied for too many account open last week. Call recon said I have low ulti and a bunch of random reasons</p>\n"
+      },
+      "date_gmt" : "2026-09-25T14:59:26",
+      "id" : 2421099,
+      "parent" : 0
+    },
+    {
+      "author_name" : "B",
+      "content" : {
+        "rendered" : "<p>It might be targeted mostly at applications submitted after 9/15 or so, many &#8220;approved&#8221; DPs were from folks submitted before 9/15 and called recon after that.</p>\n<p>IIRC when 5/24 first rolled out there were also lots of confusions and theories on what counts, what cards does it affect and what bypasses it, took more than a year or two for the dust to settle as Chase seemed to believe in &#8220;profit by obscurity&#8221; and was also actively changing the rules after the roll out.</p>\n<p>Regardless it seems safe to draw the following conclusions:</p>\n<p>1. Chase has further tightened up their sole prop biz card approval process, including not as willing to move CL from existing biz cards on recon calls now. This means that the decision to tighten up is not purely credit risk driven, more like RAT/anti-churning, esp. given how many sole props are &#8220;business&#8221; owners. Their recent history points to further tightening down the road.</p>\n<p>2. There&#8217;s little reason to care about their X/24 rules going forward unless you are just starting out or have a very specific and highly unusual situation. Their current personal card line-up is not very competitive (trying to put it nicely here) and their biz cards&#8217; &#8220;expected rewards values&#8221; have also dropped below the threshold for serious consideration for many (card gives a SUB worth $2000 + card is expected to be approved with a 10% chance even if you wait till 2/24 = card gives you a expected rewards value of $200, worse than most credit union CCs&#8217; SUBs).</p>\n"
+      },
+      "date_gmt" : "2026-09-26T00:34:25",
+      "id" : 2421597,
+      "parent" : 2420632
+    }
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "236",
+    "x-wp-totalpages" : "3"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/comments?post=265640&per_page=100&page=2&order=asc&orderby=date_gmt&_fields=id,parent,author_name,date_gmt,content"
+}

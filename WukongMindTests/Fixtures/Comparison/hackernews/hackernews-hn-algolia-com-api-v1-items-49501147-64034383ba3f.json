@@ -1,0 +1,77 @@
+{
+  "body" : {
+    "author" : "ajayvk",
+    "children" : [
+      {
+        "author" : "ajayvk",
+        "children" : [
+          {
+            "author" : "simonw",
+            "children" : [
+              {
+                "author" : "ajayvk",
+                "created_at_i" : 1788122117,
+                "id" : 49502495,
+                "text" : "That comment was about what happens during an app deployment, to avoid multiple pods on Kubernetes from writing to the same volume. Multiple apps on one OpenRun have no issues, the replication will be identify them as different.<p>If by mistake you actually have two separate instances of OpenRun pointing to the same S3 volume and path_prefix (with single-node Docker or with Kubernetes), the generated S3 paths have an binding ID which should be unique across instances. I will check whether there is anything more which can be done to prevent any issues with such an incorrect config.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1788121071,
+            "id" : 49502335,
+            "text" : "Do you have any mechanisms in place to prevent two separate instances of OpenRun that share the same configuration from corrupting their shared S3 Litestream store?<p>UPDATE: Looks like you answered that here already: <a href=\"https:&#x2F;&#x2F;news.ycombinator.com&#x2F;item?id=49502025\">https:&#x2F;&#x2F;news.ycombinator.com&#x2F;item?id=49502025</a>",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1788113285,
+        "id" : 49501182,
+        "text" : "Built-in Litestream replication and automatic restore is a new feature I added in OpenRun (a self-hosted deployment platform for web apps). Apps can use SQLite with zero code changes while OpenRun handles backup&#x2F;recovery. This works on a single node with Docker&#x2F;Podman and also on Kubernetes.",
+        "type" : "comment"
+      },
+      {
+        "author" : "sighansen",
+        "children" : [
+          {
+            "author" : "ajayvk",
+            "children" : [
+              {
+                "author" : "sighansen",
+                "children" : [
+                  {
+                    "author" : "solatic",
+                    "created_at_i" : 1788126900,
+                    "id" : 49503256,
+                    "text" : "It&#x27;s classic HN to criticize OP that their solution doesn&#x27;t scale, and then for OP to respond by saying that they don&#x27;t need the scale and anyway PG tells you to do things that don&#x27;t scale.<p>SQLite is great for small-production scale. Don&#x27;t let anyone tell you different. Just keep in mind that it&#x27;s a pain to move if you ever <i>do</i> need to scale up. If it&#x27;s a startup, you might. If it&#x27;s a weekend hobby project you&#x27;re building for your personal use only, you probably won&#x27;t.",
+                    "type" : "comment"
+                  }
+                ],
+                "created_at_i" : 1788117645,
+                "id" : 49501895,
+                "text" : "I have no use case where I store a TB of data in a sqlite let alone few GB. Currently this checks out and restore is few seconds.",
+                "type" : "comment"
+              }
+            ],
+            "created_at_i" : 1788116948,
+            "id" : 49501795,
+            "text" : "Without persistent volumes, every deployment of the app may require the SQLite data to be restored from S3, which can take time if database size is large. With PVC, regular app deployments use existing database, only a disaster recovery scenario restores from S3.<p>Yes, it feels magical to just recreate your namespace or even create a new K8s cluster and see all your apps (from OpenRun metadata) and app data restored automatically.",
+            "type" : "comment"
+          }
+        ],
+        "created_at_i" : 1788116201,
+        "id" : 49501681,
+        "text" : "I use the same stack to run my apps! sqlite as Database backen on ephemeral pods. On initialisation, the pod restores the current litestream backup from object storage. No persistent volumes needed. No issues so far.",
+        "type" : "comment"
+      }
+    ],
+    "created_at_i" : 1788113106,
+    "id" : 49501147,
+    "points" : 30,
+    "title" : "Running SQLite Apps on Docker and Kubernetes with Litestream",
+    "type" : "story",
+    "url" : "https://openrun.dev/blog/litestream/"
+  },
+  "headers" : {
+    "content-type" : "application/json"
+  },
+  "status" : 200,
+  "url" : "https://hn.algolia.com/api/v1/items/49501147"
+}

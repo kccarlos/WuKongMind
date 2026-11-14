@@ -1,0 +1,15 @@
+{
+  "body" : {
+    "id" : 268010,
+    "link" : "https://www.doctorofcredit.com/targeted-chase-ink-cash-unlimited-1200-bonus-ink-preferred-125000-points-bonus/",
+    "modified_gmt" : "2026-10-30T16:45:52",
+    "title" : {
+      "rendered" : "[Targeted] Chase INK Cash/Unlimited $1,200 Bonus; INK Preferred 125,000 Points Bonus"
+    }
+  },
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/posts/268010?_fields=id,title,link,modified_gmt"
+}

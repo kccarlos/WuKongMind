@@ -1,0 +1,49 @@
+{
+  "body" : {
+    "details" : {
+      "created_by" : {
+        "username" : "TangXing"
+      }
+    },
+    "fancy_title" : "在群晖NAS安装蒲公英，提示“部份设置错误，请再次输入。”",
+    "highest_post_number" : 2,
+    "id" : 90860,
+    "post_stream" : {
+      "posts" : [
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+            {
+              "count" : 1,
+              "id" : 2
+            }
+          ],
+          "id" : 341421,
+          "post_number" : 1,
+          "username" : "TangXing"
+        },
+        {
+          "accepted_answer" : false,
+          "actions_summary" : [
+
+          ],
+          "id" : 341450,
+          "post_number" : 2,
+          "username" : "Qingwa"
+        }
+      ],
+      "stream" : [
+        341421,
+        341450
+      ]
+    },
+    "posts_count" : 2,
+    "slug" : "topic",
+    "title" : "在群晖NAS安装蒲公英，提示“部份设置错误，请再次输入。”"
+  },
+  "headers" : {
+    "content-type" : "application/json; charset=utf-8"
+  },
+  "status" : 200,
+  "url" : "https://meta.appinn.net/t/90860.json"
+}

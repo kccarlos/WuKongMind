@@ -1,0 +1,15 @@
+{
+  "body" : {
+    "id" : 229112,
+    "link" : "https://www.doctorofcredit.com/targeted-chase-travel-spend-500-receive-100-back/",
+    "modified_gmt" : "2026-11-01T20:12:36",
+    "title" : {
+      "rendered" : "[Targeted] Chase Travel: Spend $600+ &#038; Receive $100 Back"
+    }
+  },
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/posts/229112?_fields=id,title,link,modified_gmt"
+}

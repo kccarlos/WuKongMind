@@ -1,0 +1,911 @@
+{
+  "body" : [
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>?</p>\n"
+      },
+      "date_gmt" : "2023-08-01T02:09:27",
+      "id" : 1663519,
+      "parent" : 1663517
+    },
+    {
+      "author_name" : "Daniel",
+      "content" : {
+        "rendered" : "<p>A lot of the titles on this page are for offers that since expired and have an updated title in the post it’s linked to (usually with a lower offer)</p>\n"
+      },
+      "date_gmt" : "2023-08-01T09:46:44",
+      "id" : 1663662,
+      "parent" : 1663519
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>If you let me know which ones are inaccurate I can update them, it&#8217;s usually a bit messy at the end of a month</p>\n"
+      },
+      "date_gmt" : "2023-08-01T11:05:41",
+      "id" : 1663680,
+      "parent" : 1663662
+    },
+    {
+      "author_name" : "Josh",
+      "content" : {
+        "rendered" : "<p>Amex Platinum 150,000 is over. Ended June 7 per the post in the link. United Explorer 70,000 also over, is now 60,000.</p>\n"
+      },
+      "date_gmt" : "2023-08-02T12:55:12",
+      "id" : 1664564,
+      "parent" : 1663680
+    },
+    {
+      "author_name" : "Daniel",
+      "content" : {
+        "rendered" : "<p>I&#8217;ll have to go thru them again to see, thanks</p>\n"
+      },
+      "date_gmt" : "2023-08-02T19:11:22",
+      "id" : 1664853,
+      "parent" : 1663680
+    },
+    {
+      "author_name" : "AAA",
+      "content" : {
+        "rendered" : "<p>I need to hit my spend bonus amount tomorrow. Does anyone know any companies that charge the card the same day so it isn&#8217;t pending tomorrow?</p>\n"
+      },
+      "date_gmt" : "2023-08-17T17:48:48",
+      "id" : 1674061,
+      "parent" : 0
+    },
+    {
+      "author_name" : "AAA",
+      "content" : {
+        "rendered" : "<p>Update: the charges were pending as of the cut-off, but didn&#8217;t post until a couple days later. I still received the bonus.</p>\n"
+      },
+      "date_gmt" : "2023-08-23T14:12:00",
+      "id" : 1678207,
+      "parent" : 1674061
+    },
+    {
+      "author_name" : "DK",
+      "content" : {
+        "rendered" : "<p>Chase IHG Biz is expired</p>\n"
+      },
+      "date_gmt" : "2023-08-24T00:34:44",
+      "id" : 1678679,
+      "parent" : 1663680
+    },
+    {
+      "author_name" : "D",
+      "content" : {
+        "rendered" : "<p>CSP 80k/90k offers are gone</p>\n"
+      },
+      "date_gmt" : "2023-08-28T20:56:49",
+      "id" : 1681890,
+      "parent" : 1663680
+    },
+    {
+      "author_name" : "Alex",
+      "content" : {
+        "rendered" : "<p><a class='hint hint--right' data-ucm_user_id='2' href='https://www.doctorofcredit.com/author/will/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;William Charles</a>  <a class='hint hint--right' data-ucm_user_id='6' href='https://www.doctorofcredit.com/author/chucksithe/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/6581771f6d6c07578202c34dd35680cd5e37f8e5b2b5af89f03bde48286dade3?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/6581771f6d6c07578202c34dd35680cd5e37f8e5b2b5af89f03bde48286dade3?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;Chuck</a> </p>\n<p>Looks like Discover It referral bonus is back up to $100. No chance there will ever be a new place to post links for that, is there?</p>\n"
+      },
+      "date_gmt" : "2023-08-30T16:31:11",
+      "id" : 1682962,
+      "parent" : 0
+    },
+    {
+      "author_name" : "bankrupt",
+      "content" : {
+        "rendered" : "<p>which one gets the most cash/statementcredit bonus do you all in this community recommend? </p>\n<p>*besides the chase sapphire one</p>\n"
+      },
+      "date_gmt" : "2023-08-30T21:29:36",
+      "id" : 1683155,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Dylan M.",
+      "content" : {
+        "rendered" : "<p>Citi Premier 75k SUB has been gone for a while&#8230; it&#8217;s back at 60k</p>\n"
+      },
+      "date_gmt" : "2023-08-31T15:34:37",
+      "id" : 1683537,
+      "parent" : 1663680
+    },
+    {
+      "author_name" : "bankrupt",
+      "content" : {
+        "rendered" : "<p>why Blue cash preferred still say 400 back? every ref link i tried keeps popping only 250</p>\n"
+      },
+      "date_gmt" : "2023-09-01T11:02:41",
+      "id" : 1684033,
+      "parent" : 0
+    },
+    {
+      "author_name" : "bankrupt",
+      "content" : {
+        "rendered" : "<p>since penfed ref program is dead plz remove the so call $50 bonus</p>\n"
+      },
+      "date_gmt" : "2023-09-01T11:04:03",
+      "id" : 1684035,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Tom",
+      "content" : {
+        "rendered" : "<p>IHG 165k points has been expired for awhile, it&#8217;s back down to 140k.</p>\n"
+      },
+      "date_gmt" : "2023-09-01T18:41:37",
+      "id" : 1684269,
+      "parent" : 0
+    },
+    {
+      "author_name" : "ganjiandi",
+      "content" : {
+        "rendered" : "<p>the lufthansa card is now 100K for same spend- offer on main page</p>\n"
+      },
+      "date_gmt" : "2023-09-06T04:21:46",
+      "id" : 1686720,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Matt",
+      "content" : {
+        "rendered" : "<p>These have expired:<br />\nChase Ink Unlimited 90K<br />\nChase Southwest 60K + 30% Coupon</p>\n"
+      },
+      "date_gmt" : "2023-09-08T08:24:22",
+      "id" : 1688762,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Matt",
+      "content" : {
+        "rendered" : "<p>Just received an email for Choice Privileges Select Mastercard: 90,000 points for $3000 spend in 3 months with $95 annual fee waived first year. I see in the best bonuses history that the bonus for choice cards has topped out at 75,000 points so figured this may be worth mentioning.</p>\n"
+      },
+      "date_gmt" : "2023-09-14T14:37:43",
+      "id" : 1693586,
+      "parent" : 0
+    },
+    {
+      "author_name" : "LAG",
+      "content" : {
+        "rendered" : "<p><a class='hint hint--right' data-ucm_user_id='2' href='https://www.doctorofcredit.com/author/will/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;William Charles</a> Looks like the Amex green should be removed from this list or at least updated to the lowered 40k offer based on the 60k+$200 expiration</p>\n"
+      },
+      "date_gmt" : "2023-09-22T01:18:02",
+      "id" : 1699649,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Done</p>\n"
+      },
+      "date_gmt" : "2023-09-22T02:29:15",
+      "id" : 1699691,
+      "parent" : 1699649
+    },
+    {
+      "author_name" : "Jonathan",
+      "content" : {
+        "rendered" : "<p>&#8220;Barclays Wyndham Earner+ Rewards – 75,000 Points&#8221; offer appears to be expired. All referral links results in a 404 error.</p>\n"
+      },
+      "date_gmt" : "2023-09-26T01:06:42",
+      "id" : 1702305,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Davis",
+      "content" : {
+        "rendered" : "<p>Workers Credit Union: $150 cash back for spending $500 within 90 days, no annual fee <a href=\"https://creditcardlearnmore.com/11t3/index?ecdma-lc=33334\" rel=\"nofollow ugc\">https://creditcardlearnmore.com/11t3/index?ecdma-lc=33334</a></p>\n"
+      },
+      "date_gmt" : "2023-09-26T22:20:28",
+      "id" : 1702973,
+      "parent" : 0
+    },
+    {
+      "author_name" : "HT",
+      "content" : {
+        "rendered" : "<p>Air France offer is down to 50k miles. Still get $100 by doing a dummy booking.</p>\n"
+      },
+      "date_gmt" : "2023-09-27T21:38:13",
+      "id" : 1703856,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Will",
+      "content" : {
+        "rendered" : "<p>i was looking at the app, it asks for the length of time you&#8217;ve had a worker&#8217;s credit union account, do you have to have a credit union account with them in order to get approved for the credit card?</p>\n"
+      },
+      "date_gmt" : "2023-09-30T18:01:31",
+      "id" : 1706353,
+      "parent" : 1702973
+    },
+    {
+      "author_name" : "Will",
+      "content" : {
+        "rendered" : "<p>this offer is pretty good, one thing to note: &#8220;requiring at least 10 card purchase transactions totaling at least net $1,000 within 90 days of card approval&#8221;</p>\n"
+      },
+      "date_gmt" : "2023-09-30T18:05:02",
+      "id" : 1706356,
+      "parent" : 1602104
+    },
+    {
+      "author_name" : "Davis",
+      "content" : {
+        "rendered" : "<p>Yes</p>\n"
+      },
+      "date_gmt" : "2023-10-01T14:01:31",
+      "id" : 1706699,
+      "parent" : 1706353
+    },
+    {
+      "author_name" : "iianma",
+      "content" : {
+        "rendered" : "<p>Got an offer for the World of Hyatt card where you get a $300 statement credit and 10k SUB after spending $3k in 3 months</p>\n<p><a href=\"https://imgur.com/a/wguBluM\" rel=\"nofollow ugc\">https://imgur.com/a/wguBluM</a></p>\n<p>Link: <a href=\"https://creditcards.chase.com/lp/worldofhyattcc/ResPathT2?CELL=6518\" rel=\"nofollow ugc\">https://creditcards.chase.com/lp/worldofhyattcc/ResPathT2?CELL=6518</a></p>\n"
+      },
+      "date_gmt" : "2023-10-03T03:57:59",
+      "id" : 1707710,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Johnny",
+      "content" : {
+        "rendered" : "<p>Is this list updated? The same CC&#8217;s with signup bonuses have been on the top of the list for several months now.</p>\n"
+      },
+      "date_gmt" : "2023-10-14T18:59:52",
+      "id" : 1715497,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Hcasim",
+      "content" : {
+        "rendered" : "<p>What do you guys think about the chase unlimited offer double cash back for the year?</p>\n"
+      },
+      "date_gmt" : "2023-10-18T05:06:43",
+      "id" : 1717662,
+      "parent" : 0
+    },
+    {
+      "author_name" : "J",
+      "content" : {
+        "rendered" : "<p>Heads up &#8211; Vectra Bank offers a business credit card with $1000 in rewards after $5000 is spent in 3 months.</p>\n"
+      },
+      "date_gmt" : "2023-10-20T06:25:11",
+      "id" : 1719235,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Dyl",
+      "content" : {
+        "rendered" : "<p>Should the 150k Amex Biz Gold offer be added to this list?</p>\n"
+      },
+      "date_gmt" : "2023-10-20T17:37:11",
+      "id" : 1719567,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p><a href=\"https://www.doctorofcredit.com/ca-tx-nv-amazing-business-credit-card-500-1000-sign-bonus/\" rel=\"ugc\">https://www.doctorofcredit.com/ca-tx-nv-amazing-business-credit-card-500-1000-sign-bonus/</a></p>\n"
+      },
+      "date_gmt" : "2023-10-20T19:46:45",
+      "id" : 1719681,
+      "parent" : 1719235
+    },
+    {
+      "author_name" : "Tom",
+      "content" : {
+        "rendered" : "<p>The Capital One Savor does not belong here since that is a terrible bonus for 3k spend.    </p>\n<p>On the other hand, the US Bank Altitude Connect belongs here.    $500 for 2k spend/4 months with Global Entry is great.    I actually paid for Global Entry renewal this summer since the $4k signup bonus spend on other cards wasn&#8217;t going to happen.    I wish the Altitude Connect card had been listed here.</p>\n"
+      },
+      "date_gmt" : "2023-10-29T03:07:29",
+      "id" : 1725539,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Tom",
+      "content" : {
+        "rendered" : "<p>I think the Chase Sapphire Preferred and Citi Premier should be on the list.    Presumably the reason they are not is that sometimes there are offers above the standard 60k.   I find the standard offer to be comparable to the Altitude Reserve, Venture, and Premium Rewards cards.   I guess those are permanently on the list since they never have improved offers.    However, why not list the Sapphire Preferred and Premier while explaining that waiting for an improved offer may be prudent for those willing to wait?    For me, the 4k spending can be tough so I look for a new good credit card in late Oct when I can put property tax and a few other big bills on it.</p>\n"
+      },
+      "date_gmt" : "2023-10-29T23:15:52",
+      "id" : 1725935,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Tom",
+      "content" : {
+        "rendered" : "<p>These should be removed or updated as they are expired:</p>\n<p>1. The Amex offers are not very useful if they are referral only.    The spending is increased for the Gold and Platinum to $6k and $8k respectively.   The public offers are 75k and 125k respectively.  The Resy offers are 75k/20% and 100k/10x respectively at the new spending levels.  BCP standard offer is $250 for $3k spend.</p>\n<p>2.  FlyingBlue back down to the standard offer.</p>\n<p>3.  Wyndham reported to be lowered and possibly not working at all since none of the posted referral links work.</p>\n<p>4.  Emirates is actually up to 60k and 70k.    Could remove due to lack of interest.</p>\n<p>5.  Best Western still 80k points but there is no link.</p>\n<p>6.  Cash Magnet down to $200.</p>\n<p>7.  Sears still at $225 but there is no link.</p>\n<p>8.  Citi Rewards+ back down to 20k.</p>\n<p>9.  Ford card no longer has the $100 bonus.</p>\n<p>10.  Instacart down to $100.</p>\n<p>11.  Gesa down to $100.</p>\n<p>12.  Upromise down to $100.</p>\n<p>13.  Amazon down to $60.</p>\n<p>14.  No bonus on Paypal.</p>\n<p>15.   AT&amp;T Access has been replaced with the lousy AT&amp;T Points Plus bonus of $100 which doesn&#8217;t belong on this list.</p>\n<p>16.  Sallie Mae cards no longer available.</p>\n<p>17.  Don&#8217;t see Sofi on creditkarma.</p>\n<p>18.  No bonus on Citizens Bank.</p>\n<p>19.  No Apple Card bonus.</p>\n"
+      },
+      "date_gmt" : "2023-10-30T02:48:30",
+      "id" : 1726010,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p>Thanks! Updated the link for the Apple bonus now. Also removed Paypal and Instacart and AT&#038;T bonuses. Updated Upromise and Rewards+ cards.</p>\n"
+      },
+      "date_gmt" : "2023-10-30T03:33:42",
+      "id" : 1726031,
+      "parent" : 1726010
+    },
+    {
+      "author_name" : "xcch",
+      "content" : {
+        "rendered" : "<p>Thanks for keeping track! <a class='hint hint--right' data-ucm_user_id='6' href='https://www.doctorofcredit.com/author/chucksithe/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/6581771f6d6c07578202c34dd35680cd5e37f8e5b2b5af89f03bde48286dade3?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/6581771f6d6c07578202c34dd35680cd5e37f8e5b2b5af89f03bde48286dade3?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;Chuck</a> with such knowledgable and diligent people in the community, is there a plan to give some of them moderation rights?</p>\n"
+      },
+      "date_gmt" : "2023-10-30T14:18:20",
+      "id" : 1726186,
+      "parent" : 1726010
+    },
+    {
+      "author_name" : "Billy Bob",
+      "content" : {
+        "rendered" : "<p>This one not here?<br />\n<a href=\"https://www.doctorofcredit.com/cardless-to-launch-new-tap-air-portugal-card/\" rel=\"ugc\">https://www.doctorofcredit.com/cardless-to-launch-new-tap-air-portugal-card/</a></p>\n"
+      },
+      "date_gmt" : "2023-10-30T14:28:49",
+      "id" : 1726194,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p>Hmm, no plans I&#8217;m aware of</p>\n"
+      },
+      "date_gmt" : "2023-10-30T19:03:09",
+      "id" : 1726347,
+      "parent" : 1726186
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>no</p>\n"
+      },
+      "date_gmt" : "2023-10-30T21:17:06",
+      "id" : 1726439,
+      "parent" : 1726186
+    },
+    {
+      "author_name" : "Aleks",
+      "content" : {
+        "rendered" : "<p>NO LONGER VALID:<br />\n1. Lufthansa Miles &amp; More 100,000 Miles<br />\n2. Amex Gold 90,000+</p>\n"
+      },
+      "date_gmt" : "2023-11-01T14:08:10",
+      "id" : 1727745,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Monte",
+      "content" : {
+        "rendered" : "<p>Do you know if there will be any better offers than 60K for the Chase Sapphire Reserve anytime soon ?</p>\n"
+      },
+      "date_gmt" : "2023-11-02T21:45:56",
+      "id" : 1728940,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Adam Garrett",
+      "content" : {
+        "rendered" : "<p>Choice Privileges has a solid 90k SUB at the moment on a keeper card. If you had a card that was converted to Wells Fargo (i.e. if you were a former Choice Privileges cardholder that was converted to the WF no annual fee Choice Card) you are ineligible for the bonus, even if you close out your card, for 15 months from the time they converted your card.</p>\n"
+      },
+      "date_gmt" : "2023-11-03T15:16:28",
+      "id" : 1729341,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Kevin Shaughnessy",
+      "content" : {
+        "rendered" : "<p>DP: stuck in amex popup jail for months and still stuck otherwise, 15+ inquiries on experian, well over 5/24, approved for 350/3000 sub on Morgan Stanley BCP. Seems like a decent loophole out of pop-up jail if you have an etrade account.</p>\n"
+      },
+      "date_gmt" : "2023-11-03T16:31:10",
+      "id" : 1729421,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Mike 🔗",
+      "content" : {
+        "rendered" : "<p><a class='wpd-umcguest'  href='https://www.doctorofcredit.com/best-current-credit-card-sign-bonuses/#comment-1729421'><img alt='' src='https://secure.gravatar.com/avatar/593a93256cb9c520485091647d1b8454c8cb3c24928ef3c83f261e0df694c1c9?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/593a93256cb9c520485091647d1b8454c8cb3c24928ef3c83f261e0df694c1c9?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>Kevin Shaughnessy</a><br />\nDo they make you log into your eTrade account or how do they verify that you are a Morgan Stanley client? Will any eTrade account work, or only the advisory accounts?</p>\n"
+      },
+      "date_gmt" : "2023-11-03T23:11:44",
+      "id" : 1729764,
+      "parent" : 1729421
+    },
+    {
+      "author_name" : "Kevin Shaughnessy",
+      "content" : {
+        "rendered" : "<p>They pretty much just made me check that I had an account, I assume they verified using my ssn, I used a normal E*trade account I’ve had for a few years</p>\n"
+      },
+      "date_gmt" : "2023-11-04T01:24:02",
+      "id" : 1729846,
+      "parent" : 1729764
+    },
+    {
+      "author_name" : "DRO_Churner",
+      "content" : {
+        "rendered" : "<p>Looks like there is a publicly-available 80k United Mile, 500 PQP SUB offer for the Quest card when you open the United web page.  Look for the banner in the lower right part of the welcome screen, it may be a generic &#8220;up to 80k&#8221; offer for several cards or a specific 80k offer for the Quest.  YMMV, but for some reason Firefox seems to work better to generate the offer.</p>\n"
+      },
+      "date_gmt" : "2023-11-06T16:32:11",
+      "id" : 1731178,
+      "parent" : 0
+    },
+    {
+      "author_name" : "credit_learner",
+      "content" : {
+        "rendered" : "<p>Wells Fargo Autograph still comes with 30,000 points sign up offer<br />\n<a href=\"https://creditcards.wellsfargo.com/autograph-visa-credit-card?DTATST=XN7IZKQ&#038;sub_channel=SEO&#038;vendor_code=G\" rel=\"nofollow ugc\">https://creditcards.wellsfargo.com/autograph-visa-credit-card?DTATST=XN7IZKQ&#038;sub_channel=SEO&#038;vendor_code=G</a></p>\n"
+      },
+      "date_gmt" : "2023-11-07T03:56:30",
+      "id" : 1731582,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p>Added back to this list, thanks</p>\n"
+      },
+      "date_gmt" : "2023-11-07T04:48:01",
+      "id" : 1731601,
+      "parent" : 1731582
+    },
+    {
+      "author_name" : "JoshL",
+      "content" : {
+        "rendered" : "<p>FNBO has Amtrak 30K again, now through Dec 6</p>\n"
+      },
+      "date_gmt" : "2023-11-14T19:15:52",
+      "id" : 1736773,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Thanks</p>\n"
+      },
+      "date_gmt" : "2023-11-14T22:51:10",
+      "id" : 1736886,
+      "parent" : 1736773
+    },
+    {
+      "author_name" : "SomebodyInGNV",
+      "content" : {
+        "rendered" : "<p>Wells Fargo Active Cash listed twice (1.18 and 1.19).</p>\n"
+      },
+      "date_gmt" : "2023-11-19T14:54:13",
+      "id" : 1739833,
+      "parent" : 0
+    },
+    {
+      "author_name" : "dizzy",
+      "content" : {
+        "rendered" : "<p>Barclays aaviator red is down to 60k and $99 AF</p>\n"
+      },
+      "date_gmt" : "2023-12-05T00:26:59",
+      "id" : 1751155,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Aleks",
+      "content" : {
+        "rendered" : "<p><a class='hint hint--right' data-ucm_user_id='2' href='https://www.doctorofcredit.com/author/will/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;William Charles</a> <a class='hint hint--right' data-ucm_user_id='6' href='https://www.doctorofcredit.com/author/chucksithe/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/6581771f6d6c07578202c34dd35680cd5e37f8e5b2b5af89f03bde48286dade3?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/6581771f6d6c07578202c34dd35680cd5e37f8e5b2b5af89f03bde48286dade3?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;Chuck</a>  LOTS of CC offers were removed or expired in the past 30-45 days and this page did not get updates for the same amount of time.<br />\nAre there some new nice CC SUBs that can be put on the list??</p>\n<p>***It&#8217;s typically my go to page for this matters, but has been lagging behind all of 2023. Due for refresh and TLC in 2024 to be back a full steam!**</p>\n"
+      },
+      "date_gmt" : "2023-12-20T19:01:05",
+      "id" : 1762073,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Sam",
+      "content" : {
+        "rendered" : "<p>I don&#8217;t think this page is updated in a while</p>\n"
+      },
+      "date_gmt" : "2023-12-27T21:14:17",
+      "id" : 1766016,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Sam",
+      "content" : {
+        "rendered" : "<p>CITI DOUBLE CASH $200 OFFER &#8211; 1/9/2024</p>\n"
+      },
+      "date_gmt" : "2024-01-09T19:57:25",
+      "id" : 1774444,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p>Added now</p>\n"
+      },
+      "date_gmt" : "2024-01-09T20:10:12",
+      "id" : 1774456,
+      "parent" : 1774444
+    },
+    {
+      "author_name" : "sparky",
+      "content" : {
+        "rendered" : "<p>TD Bank has a Business Solutions cc that has $400 cash back on $3,000 spend.<br />\n<a href=\"https://www.td.com/us/en/personal-banking/credit-cards/business-solutions-credit-card\" rel=\"nofollow ugc\">https://www.td.com/us/en/personal-banking/credit-cards/business-solutions-credit-card</a></p>\n"
+      },
+      "date_gmt" : "2024-01-09T22:00:47",
+      "id" : 1774555,
+      "parent" : 0
+    },
+    {
+      "author_name" : "AdoptaPetInstead",
+      "content" : {
+        "rendered" : "<p>Just opened a WF Active in December for $300/$500</p>\n"
+      },
+      "date_gmt" : "2024-01-13T13:11:58",
+      "id" : 1776987,
+      "parent" : 1739833
+    },
+    {
+      "author_name" : "Lakers",
+      "content" : {
+        "rendered" : "<p>Does it show up on your personal credit report?</p>\n"
+      },
+      "date_gmt" : "2024-01-20T17:26:07",
+      "id" : 1781936,
+      "parent" : 1774555
+    },
+    {
+      "author_name" : "NBG",
+      "content" : {
+        "rendered" : "<p>According to DoC DP, yes, it does &#8211; <a href=\"https://www.doctorofcredit.com/which-business-credit-cards-report/#TD_Bank\" rel=\"ugc\">https://www.doctorofcredit.com/which-business-credit-cards-report/#TD_Bank</a></p>\n"
+      },
+      "date_gmt" : "2024-01-25T02:02:15",
+      "id" : 1785205,
+      "parent" : 1781936
+    },
+    {
+      "author_name" : "My Yearbook Live",
+      "content" : {
+        "rendered" : "<p>This is something new information which i have read today in the evening.</p>\n"
+      },
+      "date_gmt" : "2024-02-01T18:00:03",
+      "id" : 1790534,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Boozi",
+      "content" : {
+        "rendered" : "<p>Any reason the other US Bank biz cards aren&#8217;t on the list? The connect and the standard leverage are also decent SUBs</p>\n"
+      },
+      "date_gmt" : "2024-02-01T22:40:47",
+      "id" : 1790754,
+      "parent" : 0
+    },
+    {
+      "author_name" : "cameron",
+      "content" : {
+        "rendered" : "<p>I agree us bank has three solid business cards not to mention the sweet personal deals</p>\n"
+      },
+      "date_gmt" : "2024-02-01T23:47:45",
+      "id" : 1790810,
+      "parent" : 1790754
+    },
+    {
+      "author_name" : "liloz",
+      "content" : {
+        "rendered" : "<p>BoA Alaska Airlines card has 70k Alaska miles after spending 3k in 3 months</p>\n"
+      },
+      "date_gmt" : "2024-02-04T22:43:29",
+      "id" : 1792730,
+      "parent" : 0
+    },
+    {
+      "author_name" : "EddieSpaghetti",
+      "content" : {
+        "rendered" : "<p>Hudson Valley Credit Union (NY) Visa Signature offers 25,000 points after $3,000 spend in three months.<br />\nAlso earns 2x points per dollar and has an annual bonus of 50,000 points after spending $50,000. Points are worth 1.25 cents when redeeming for Stockpile.com gift cards (starting at 2,000 points for $25).<br />\nNo annual or FTF fee.</p>\n<p>Seems pretty good if you can spend (or MS) exactly $50,000. Works out to be roughly 3.75% cash back.<br />\n<a href=\"https://www.hvcu.org/personal/bank/credit-cards/visa-signature-credit-card/\" rel=\"nofollow ugc\">https://www.hvcu.org/personal/bank/credit-cards/visa-signature-credit-card/</a></p>\n"
+      },
+      "date_gmt" : "2024-02-05T04:38:02",
+      "id" : 1792900,
+      "parent" : 0
+    },
+    {
+      "author_name" : "noobchurner",
+      "content" : {
+        "rendered" : "<p>This page needs to be updated, some of the offers are no longer available</p>\n"
+      },
+      "date_gmt" : "2024-02-12T21:45:22",
+      "id" : 1796836,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>If you see any offers that aren&#8217;t valid let us know and we will update it.</p>\n"
+      },
+      "date_gmt" : "2024-02-12T23:00:13",
+      "id" : 1796857,
+      "parent" : 1796836
+    },
+    {
+      "author_name" : "Ugh",
+      "content" : {
+        "rendered" : "<p>USB Altitude Reserve has at least 3 benefits listed that no longer exist, and possibly a 4th.  The Gogo wifi was removed two years ago!</p>\n"
+      },
+      "date_gmt" : "2024-02-18T18:12:43",
+      "id" : 1799537,
+      "parent" : 1796857
+    },
+    {
+      "author_name" : "Doug",
+      "content" : {
+        "rendered" : "<p>I don&#8217;t see the US Bank Altitude Connect listed.  This is a great deal with the new benefits. $500 SUB, no annual fee for the first year, lounge access, and more.  <a href=\"https://www.usbank.com/credit-cards/altitude-connect-visa-signature-credit-card.html\" rel=\"nofollow ugc\">https://www.usbank.com/credit-cards/altitude-connect-visa-signature-credit-card.html</a></p>\n"
+      },
+      "date_gmt" : "2024-02-20T16:59:11",
+      "id" : 1800553,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Garrett",
+      "content" : {
+        "rendered" : "<p>Today I received a targeted mailer from Amex with Gold card &#8220;pre-approval&#8221; offer:</p>\n<p>90k MR point SUB after<br />\n$6k spend in 6 months</p>\n<p>Expires 4/30/24</p>\n"
+      },
+      "date_gmt" : "2024-02-23T22:11:08",
+      "id" : 1802251,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Mr. Seg",
+      "content" : {
+        "rendered" : "<p><a class='hint hint--right' data-ucm_user_id='2' href='https://www.doctorofcredit.com/author/will/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;William Charles</a></p>\n"
+      },
+      "date_gmt" : "2024-02-27T03:58:41",
+      "id" : 1803593,
+      "parent" : 1790754
+    },
+    {
+      "author_name" : "dats_a_nice_boulder",
+      "content" : {
+        "rendered" : "<p>BOA Alaska Biz is currently offering 75k miles + companion fare when spending $4k in first 90 days</p>\n"
+      },
+      "date_gmt" : "2024-02-27T15:53:40",
+      "id" : 1803731,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Mr. Seg",
+      "content" : {
+        "rendered" : "<p><a class='hint hint--right' data-ucm_user_id='6' href='https://www.doctorofcredit.com/author/chucksithe/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/6581771f6d6c07578202c34dd35680cd5e37f8e5b2b5af89f03bde48286dade3?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/6581771f6d6c07578202c34dd35680cd5e37f8e5b2b5af89f03bde48286dade3?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;Chuck</a> i don&#8217;t see this alaska listed above</p>\n"
+      },
+      "date_gmt" : "2024-03-05T21:18:30",
+      "id" : 1808436,
+      "parent" : 1792730
+    },
+    {
+      "author_name" : "Mr. Seg",
+      "content" : {
+        "rendered" : "<p>the alaska business offer is not listed</p>\n"
+      },
+      "date_gmt" : "2024-03-05T21:19:00",
+      "id" : 1808437,
+      "parent" : 1796857
+    },
+    {
+      "author_name" : "Jeff",
+      "content" : {
+        "rendered" : "<p><span>For anyone who has recently completed a US Bank Credit Card bonus, did you have a spending tracker in the mobile app towards the bonus? I had this show when I did the Altitude Connect, but it is not showing for the Business Leverage card. It was very convenient, so wondering if anyone knows why it&#8217;s not showing in the app.</span></p>\n"
+      },
+      "date_gmt" : "2024-03-06T17:04:57",
+      "id" : 1808909,
+      "parent" : 0
+    },
+    {
+      "author_name" : "eli",
+      "content" : {
+        "rendered" : "<p>you forgot the 75k citi aa card</p>\n"
+      },
+      "date_gmt" : "2024-03-10T05:19:08",
+      "id" : 1811365,
+      "parent" : 0
+    },
+    {
+      "author_name" : "j",
+      "content" : {
+        "rendered" : "<p>I see the Chase IHG bonus is up to 165k bonus points, is this historically worth it/good?</p>\n<p><a href=\"https://creditcards.chase.com/a1/ihg/PremierQ124AEP?SPID=HCWW&#038;CELL=6M1R&#038;cm_sp=WEB-_-6C-_-US-_-EN-_-CC-_-ChasePremierQ12024-_-HPH-_-M1R&#038;cm_sp1=WEB-_-6C-_-HOME-_-HERO-_-US-EN-_-CC-_-CHASEPREMIERQ12024-_-M1R&#038;ihgid=undefined\" rel=\"nofollow ugc\">https://creditcards.chase.com/a1/ihg/PremierQ124AEP?SPID=HCWW&#038;CELL=6M1R&#038;cm_sp=WEB-_-6C-_-US-_-EN-_-CC-_-ChasePremierQ12024-_-HPH-_-M1R&#038;cm_sp1=WEB-_-6C-_-HOME-_-HERO-_-US-EN-_-CC-_-CHASEPREMIERQ12024-_-M1R&#038;ihgid=undefined</a></p>\n"
+      },
+      "date_gmt" : "2024-03-13T19:59:03",
+      "id" : 1813164,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Yawgoog",
+      "content" : {
+        "rendered" : "<p>FYI: Senator Durbin will have a hearing on April 9 regarding the Credit Card Competition Act:</p>\n<p>&#8220;The chair of the Senate Judiciary Committee on Monday asked the CEOs of American Airlines, United Airlines, Visa and Mastercard to testify at an April 9 hearing on credit card competition, according to letters seen by Reuters.&#8221;</p>\n<p><a href=\"https://www.reuters.com/world/us/us-senator-wants-airline-credit-card-ceos-testify-fees-2024-02-12/\" rel=\"nofollow ugc\">https://www.reuters.com/world/us/us-senator-wants-airline-credit-card-ceos-testify-fees-2024-02-12/</a></p>\n<p>An article on what may or may not happen if the bill passes:</p>\n<p><a href=\"https://www.nerdwallet.com/article/credit-cards/what-to-expect-if-the-credit-card-competition-act-passes\" rel=\"nofollow ugc\">https://www.nerdwallet.com/article/credit-cards/what-to-expect-if-the-credit-card-competition-act-passes</a></p>\n<p>Past attempts to get the bill attached to other legislation have failed, so the bipartisan sponsors are hoping for a stand-alone bill later this year:</p>\n<p><a href=\"https://www.nerdwallet.com/article/credit-cards/is-congress-going-to-kill-credit-card-rewards\" rel=\"nofollow ugc\">https://www.nerdwallet.com/article/credit-cards/is-congress-going-to-kill-credit-card-rewards</a></p>\n<p>The bill:</p>\n<p><a href=\"https://www.congress.gov/bill/118th-congress/senate-bill/1838\" rel=\"nofollow ugc\">https://www.congress.gov/bill/118th-congress/senate-bill/1838</a></p>\n"
+      },
+      "date_gmt" : "2024-03-20T13:30:18",
+      "id" : 1816954,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Mark",
+      "content" : {
+        "rendered" : "<p> <a class='hint hint--right' data-ucm_user_id='2' href='https://www.doctorofcredit.com/author/will/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;William Charles</a> Capital One Spark Cash&nbsp;Plus offer is expired (down to $1200)</p>\n"
+      },
+      "date_gmt" : "2024-03-23T20:04:54",
+      "id" : 1818905,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Yawgoog",
+      "content" : {
+        "rendered" : "<p>It looks the CEOs will not attend the hearing:</p>\n<p>Airline, credit card CEOs refuse to testify at US Senate hearing<a href=\"https://finance.yahoo.com/news/airline-credit-card-ceos-refuse-162909996.html\" target=\"_blank\" rel=\"noopener nofollow ugc\">https://finance.yahoo.com/news/airline-credit-card-ceos-refuse-162909996.html</a></p>\n"
+      },
+      "date_gmt" : "2024-03-25T12:04:54",
+      "id" : 1819373,
+      "parent" : 1816954
+    },
+    {
+      "author_name" : "AdoptaPetInstead",
+      "content" : {
+        "rendered" : "<p>Does BCP still have $400 or $350 on the sign up?</p>\n"
+      },
+      "date_gmt" : "2024-03-25T18:42:16",
+      "id" : 1819498,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Ben",
+      "content" : {
+        "rendered" : "<p>You still list WF Autograph with a $300 SUB, but the linked article states it was changed to $200 almost a year ago.</p>\n"
+      },
+      "date_gmt" : "2024-03-27T02:04:13",
+      "id" : 1820368,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Ali",
+      "content" : {
+        "rendered" : "<p>Premium credit card holders, like chase Sapphire and so on, Pay Attention !!<br />\nYou may pay more thanks to $30B Visa-Mastercard settlement.<br />\nOn the First Page of the NY Post Today</p>\n<p><a href=\"https://nypost.com/2024/03/27/business/premium-credit-card-holders-may-pay-more-thanks-to-visa-mastercard-settlement/\" rel=\"nofollow ugc\">https://nypost.com/2024/03/27/business/premium-credit-card-holders-may-pay-more-thanks-to-visa-mastercard-settlement/</a></p>\n"
+      },
+      "date_gmt" : "2024-03-28T01:06:15",
+      "id" : 1821015,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Thanks, removed</p>\n"
+      },
+      "date_gmt" : "2024-03-28T01:44:09",
+      "id" : 1821057,
+      "parent" : 1820368
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>We already posted about this</p>\n"
+      },
+      "date_gmt" : "2024-03-28T02:17:11",
+      "id" : 1821085,
+      "parent" : 1821015
+    },
+    {
+      "author_name" : "slacker",
+      "content" : {
+        "rendered" : "<p>Has anyone tried paying taxes with the Amex business gold using the temporary card and if it goes towards the SUB?</p>\n"
+      },
+      "date_gmt" : "2024-04-09T01:18:15",
+      "id" : 1828027,
+      "parent" : 0
+    },
+    {
+      "author_name" : "payyoutuesday",
+      "content" : {
+        "rendered" : "<p>Wells Fargo Signify should be about #10 on the business card list. It has a similar bonus/fee to the BoA Customized Cash Rewards, but it also has 0% financing for 12 months.</p>\n<p><a href=\"https://creditcards.wellsfargo.com/business-credit-cards/signify-business-cash-credit-card\" rel=\"nofollow ugc\">https://creditcards.wellsfargo.com/business-credit-cards/signify-business-cash-credit-card</a></p>\n"
+      },
+      "date_gmt" : "2024-04-25T22:13:44",
+      "id" : 1835913,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Taxi",
+      "content" : {
+        "rendered" : "<p>Aviator Red is back down to 50K</p>\n"
+      },
+      "date_gmt" : "2024-04-25T22:52:15",
+      "id" : 1835937,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Seems to still be 70k for me? requires referral</p>\n"
+      },
+      "date_gmt" : "2024-04-26T03:53:47",
+      "id" : 1836089,
+      "parent" : 1835937
+    },
+    {
+      "author_name" : "Anonymous",
+      "content" : {
+        "rendered" : "<p>Looks like Citi / AAdvantage Platinum Select has dropped to the 50K miles offer now</p>\n"
+      },
+      "date_gmt" : "2024-04-26T17:24:43",
+      "id" : 1836347,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Nathan",
+      "content" : {
+        "rendered" : "<p><a class='hint hint--right' data-ucm_user_id='2' href='https://www.doctorofcredit.com/author/will/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;William Charles</a><br />\nI am seeing a SUB for 60,000 points ($4,000 spend in 3 months) for the Autograph Journey on my WF home page. </p>\n<p>Not sure if targeted but here&#8217;s the link that is showing it: <a href=\"https://creditcards.wellsfargo.com/autograph-journey-visa-credit-card/?FPID=0127E1I0P10000&#038;sub_channel=WEB&#038;vendor_code=IA&#038;lang=en&#038;product_code=CC&#038;placement_id=HPP&#038;offerid=C_ccd_tk1autographjourneyrspv_hpprimary&#038;slotid=WF_CON_HP_PRIMARY&#038;linkloc=HP&#038;OfferType=TK1&#038;RCTTST=RCTCTL1\" rel=\"nofollow ugc\">https://creditcards.wellsfargo.com/autograph-journey-visa-credit-card/?FPID=0127E1I0P10000&#038;sub_channel=WEB&#038;vendor_code=IA&#038;lang=en&#038;product_code=CC&#038;placement_id=HPP&#038;offerid=C_ccd_tk1autographjourneyrspv_hpprimary&#038;slotid=WF_CON_HP_PRIMARY&#038;linkloc=HP&#038;OfferType=TK1&#038;RCTTST=RCTCTL1</a></p>\n"
+      },
+      "date_gmt" : "2024-04-28T13:39:59",
+      "id" : 1836973,
+      "parent" : 1821057
+    },
+    {
+      "author_name" : "Nathan",
+      "content" : {
+        "rendered" : "<p>Not sure why my other comment got automatically marked as spam? Just trying to let you know about the 60,000 point/$600 SUB for the Autograph Journey</p>\n"
+      },
+      "date_gmt" : "2024-04-28T13:42:15",
+      "id" : 1836974,
+      "parent" : 1821057
+    },
+    {
+      "author_name" : "Eric 🔗",
+      "content" : {
+        "rendered" : "<p>Did you have any links in your other comment? The system probably moved your comment to &#8220;moderation&#8221;, not &#8220;Spam&#8221;. </p>\n<p>However, if you saw the word &#8220;Spam&#8221; appear, you will have to ask Will or Chuck to pull it out of Spam.</p>\n"
+      },
+      "date_gmt" : "2024-04-28T15:08:17",
+      "id" : 1837005,
+      "parent" : 1836974
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Not sure, but I&#8217;ve removed it from spam.</p>\n"
+      },
+      "date_gmt" : "2024-04-29T05:45:35",
+      "id" : 1837252,
+      "parent" : 1836974
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Thanks, think that&#8217;s the standard bonus though</p>\n"
+      },
+      "date_gmt" : "2024-04-29T05:46:10",
+      "id" : 1837253,
+      "parent" : 1836973
+    },
+    {
+      "author_name" : "Dean",
+      "content" : {
+        "rendered" : "<p>Targeted &#8211; Wells Fargo Autograph Journey: 70k bonus points (vs. 60k) after $4 spend in 3 months. $95 annual fee partly offset by $50 travel credit.</p>\n"
+      },
+      "date_gmt" : "2024-05-03T22:55:11",
+      "id" : 1839717,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Dean",
+      "content" : {
+        "rendered" : "<p>&#8220;exclusive offer for Premier Checking clients,&#8221; i.e. anyone doing the $2,500 brokerage bonus.</p>\n"
+      },
+      "date_gmt" : "2024-05-03T22:57:32",
+      "id" : 1839719,
+      "parent" : 1839717
+    },
+    {
+      "author_name" : "Rudy",
+      "content" : {
+        "rendered" : "<p>Yes it does. Just did it two weeks ago.</p>\n"
+      },
+      "date_gmt" : "2024-05-04T18:25:36",
+      "id" : 1840061,
+      "parent" : 1828027
+    },
+    {
+      "author_name" : "Private",
+      "content" : {
+        "rendered" : "<p>You don&#8217;t seem to add many of the regional banks even if they cover larger areas, yet I see a lot of local banks with tight geo-restrictions.</p>\n<p>Regions Bank is doing 2 rewards cards with $200 on $1,000 with 0% for 12 Months:</p>\n<p><a href=\"https://www.regions.com/personal-banking/credit-cards/prestige-credit-card\" rel=\"nofollow ugc\">https://www.regions.com/personal-banking/credit-cards/prestige-credit-card</a></p>\n<p><a href=\"https://www.regions.com/personal-banking/credit-cards/cash-rewards-credit-card\" rel=\"nofollow ugc\">https://www.regions.com/personal-banking/credit-cards/cash-rewards-credit-card</a></p>\n<p><a class='hint hint--right' data-ucm_user_id='6' href='https://www.doctorofcredit.com/author/chucksithe/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/6581771f6d6c07578202c34dd35680cd5e37f8e5b2b5af89f03bde48286dade3?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/6581771f6d6c07578202c34dd35680cd5e37f8e5b2b5af89f03bde48286dade3?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;Chuck</a></p>\n"
+      },
+      "date_gmt" : "2024-05-08T13:23:37",
+      "id" : 1841743,
+      "parent" : 0
+    }
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "1797",
+    "x-wp-totalpages" : "18"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/comments?post=28140&per_page=100&page=12&order=asc&orderby=date_gmt&_fields=id,parent,author_name,date_gmt,content"
+}

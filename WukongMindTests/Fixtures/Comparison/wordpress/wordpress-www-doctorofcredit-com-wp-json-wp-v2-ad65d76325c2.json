@@ -1,0 +1,911 @@
+{
+  "body" : [
+    {
+      "author_name" : "Vic",
+      "content" : {
+        "rendered" : "<p>There is this Fidelity Rewards Visa Signature Card. For those having any accounts with Fidelity Investments it&#8217;s pretty good. No annual fee. Pays straight 2% cash back for any purchase (I think they also have some kind of &#8220;points&#8221; program but those don&#8217;e seem to be very good). They also have some kind of sign up bonus I think.</p>\n<p>The only catch is that you do have to have an account with Fidelity because this 2% rebate goes there.  For millions of Fidelity customers this should present no problem. The money goes to that account automatically, at $25 minimum I think. Once in the account, you may choose to have it remain there or simply transfer to the external non-Fidelity account or withdraw.</p>\n<p>Clean, simple, automatic and try to find many other cards giving 2% back.  I recommend it.  Have had it for 6-7 years now.</p>\n"
+      },
+      "date_gmt" : "2019-05-13T21:11:51",
+      "id" : 759000,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Tim",
+      "content" : {
+        "rendered" : "<p>Your internal link in 1.12 (Propel 50k) says that the offer is expired, seems like there is some inconsistent information?</p>\n"
+      },
+      "date_gmt" : "2019-05-15T13:50:51",
+      "id" : 759646,
+      "parent" : 0
+    },
+    {
+      "author_name" : "atexit8",
+      "content" : {
+        "rendered" : "<p>I have this credit card.<br />\nI use it for a lot of in-store purchases that are not covered by Chase&#8217;s 5% rotating categories.<br />\nI pair it with with Bank of America credit card with its 3% for online purchases.</p>\n"
+      },
+      "date_gmt" : "2019-05-15T20:33:11",
+      "id" : 759797,
+      "parent" : 759000
+    },
+    {
+      "author_name" : "Charles Mann",
+      "content" : {
+        "rendered" : "<p>You always do a great job!</p>\n"
+      },
+      "date_gmt" : "2019-05-15T23:04:16",
+      "id" : 759833,
+      "parent" : 756875
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Let me remove, thanks</p>\n"
+      },
+      "date_gmt" : "2019-05-15T23:23:28",
+      "id" : 759839,
+      "parent" : 759646
+    },
+    {
+      "author_name" : "Alex",
+      "content" : {
+        "rendered" : "<p>Any reason the Navy Federal Flagship 50k offer isn&#8217;t back on here?</p>\n"
+      },
+      "date_gmt" : "2019-05-22T20:36:00",
+      "id" : 762044,
+      "parent" : 0
+    },
+    {
+      "author_name" : "MikeG",
+      "content" : {
+        "rendered" : "<p>Why not include the Capital One Venture card offering 50,000 miles for $3,000 in spend in 90 days?  That&#8217;s worth $560 in a statement credit if at least $560 of the $3,000 was for travel.  </p>\n<p>I saw an offer of 70,000 miles for $5,000 in spend in the fall of 2018, but have not seen that offered since.</p>\n"
+      },
+      "date_gmt" : "2019-05-24T11:33:18",
+      "id" : 762605,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Oliver",
+      "content" : {
+        "rendered" : "<p>Should the Alaska Airlines Business credit card be included? 40,000 miles but you have to pay regular price for the annual companion fare.</p>\n"
+      },
+      "date_gmt" : "2019-05-25T18:42:59",
+      "id" : 762986,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Hari",
+      "content" : {
+        "rendered" : "<p><a class='hint hint--right' data-ucm_user_id='2' href='https://www.doctorofcredit.com/author/will/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;William Charles</a> Can we take Barclay off top of the chart because its dead?</p>\n"
+      },
+      "date_gmt" : "2019-06-15T12:19:23",
+      "id" : 770462,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p>I&#8217;ve removed that now, thanks</p>\n"
+      },
+      "date_gmt" : "2019-06-16T05:20:08",
+      "id" : 770618,
+      "parent" : 770462
+    },
+    {
+      "author_name" : "az",
+      "content" : {
+        "rendered" : "<p>No Chase Hyatt? 50k points worth $800.</p>\n"
+      },
+      "date_gmt" : "2019-06-17T16:06:41",
+      "id" : 770919,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Aleks",
+      "content" : {
+        "rendered" : "<p>The main list needs to be updated (i.e. Southwest Personal 60,000 offers are not available in June/July 2019; Hawaiian 70,000 is not listed, etc.).</p>\n"
+      },
+      "date_gmt" : "2019-06-27T18:10:41",
+      "id" : 775524,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Riko",
+      "content" : {
+        "rendered" : "<p>These don&#8217;t seem to be current&#8230;please advise:</p>\n<p>1.10 AmEx EveryDay 25,000 Points + 0% APY For 15 Months With $0 BT Fee<br />\n1.11 American Express Hilton Ascend – 150,000 Points</p>\n"
+      },
+      "date_gmt" : "2019-06-30T02:03:10",
+      "id" : 776446,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Both should still be available, but are YMMV because they are incognito mode offers</p>\n"
+      },
+      "date_gmt" : "2019-06-30T03:27:19",
+      "id" : 776453,
+      "parent" : 776446
+    },
+    {
+      "author_name" : "datapoint",
+      "content" : {
+        "rendered" : "<p>East Boston Savings Bank offered a Visa Signature Real Rewards card with a bonus of $100 for 1st purchase.</p>\n"
+      },
+      "date_gmt" : "2019-07-01T01:59:02",
+      "id" : 776722,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Jay",
+      "content" : {
+        "rendered" : "<p>You should add the US Bank Business Cash Rewards Master Card: $500 bonus with $4,500 spend in 150 days &#8211; <a href=\"https://bizcards.usbank.com/credit/business-edge-cash-rewards.do\" rel=\"nofollow ugc\">https://bizcards.usbank.com/credit/business-edge-cash-rewards.do</a>.</p>\n"
+      },
+      "date_gmt" : "2019-07-04T11:27:08",
+      "id" : 778479,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Gary",
+      "content" : {
+        "rendered" : "<p>US Bank needs any proof of business or just approve online using the filled details?</p>\n"
+      },
+      "date_gmt" : "2019-07-04T22:23:10",
+      "id" : 778726,
+      "parent" : 778479
+    },
+    {
+      "author_name" : "Dan",
+      "content" : {
+        "rendered" : "<p>Do you think applying for a chase  business card 3 months before applying for a residential mortgage would have a affect on the mortgage process?</p>\n"
+      },
+      "date_gmt" : "2019-07-10T02:23:37",
+      "id" : 780647,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Rick",
+      "content" : {
+        "rendered" : "<p>deleted question as i found the answer</p>\n"
+      },
+      "date_gmt" : "2019-07-12T13:23:25",
+      "id" : 782107,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Terry",
+      "content" : {
+        "rendered" : "<p>Barclay Hawaiian Biz now showing only 60k bonus (50+10). Is there another link?</p>\n"
+      },
+      "date_gmt" : "2019-07-21T01:30:43",
+      "id" : 785946,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Nah, we have a separate cash list though. It needs an update</p>\n"
+      },
+      "date_gmt" : "2019-07-26T02:33:52",
+      "id" : 788745,
+      "parent" : 0
+    },
+    {
+      "author_name" : "E",
+      "content" : {
+        "rendered" : "<p>I received an upgrade offer of my Amex gold card to platinum recently. $5000 spend, 60k MR points.</p>\n"
+      },
+      "date_gmt" : "2019-07-26T22:19:52",
+      "id" : 789658,
+      "parent" : 0
+    },
+    {
+      "author_name" : "New Radisson Rewards bonus announced today",
+      "content" : {
+        "rendered" : "<p>Just got Raddison Rewards credit card bonus offer in USPS mail toady. Spend $1,250 then get 20%  Raddison Rewards bonus. You can sign up with 800 phone number or online. Easy sign up via 800 phone number</p>\n"
+      },
+      "date_gmt" : "2019-07-26T23:10:18",
+      "id" : 789696,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Jr",
+      "content" : {
+        "rendered" : "<p>Citi prestige isnt listed as one of the best . It should be number 2 after us bank altitude</p>\n"
+      },
+      "date_gmt" : "2019-07-27T08:48:45",
+      "id" : 789905,
+      "parent" : 0
+    },
+    {
+      "author_name" : "JayP",
+      "content" : {
+        "rendered" : "<p>Where are you mentioning application rules, for example 5/24 and 48 mo Sapphire rule on Sapphire Preferred? </p>\n<p>&#8220;I won’t be taking into account special application rules (e.g Chase 5/24 rule or American Express once per lifetime rule), but I will mention them clearly.&#8221;</p>\n"
+      },
+      "date_gmt" : "2019-07-28T04:51:44",
+      "id" : 790199,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>They are mentioned on the individual review pages. Let me make this clearer</p>\n"
+      },
+      "date_gmt" : "2019-07-28T06:05:19",
+      "id" : 790209,
+      "parent" : 790199
+    },
+    {
+      "author_name" : "Greg",
+      "content" : {
+        "rendered" : "<p>Is it possible to contact Chase to determine how things look on the 5/24 with them?</p>\n"
+      },
+      "date_gmt" : "2019-08-02T13:57:25",
+      "id" : 792768,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Mark",
+      "content" : {
+        "rendered" : "<p>United Explorer card has a $250 stmt credit after first purchase plus 25000 bonus miles after $2k spend in 90 days. Annual fee waived for first year.  Can&#8217;t have received bonus for this card in last 24 months AND cannot currently have this card.  Must have United frequent flier miles account &#8211; when you try to apply, it will ask you to log into that account. Don&#8217;t know if this is targeted; I found offer here and just got approved for the CC (perhaps I was targeted &amp; didn&#8217;t realize it although I haven&#8217;t received any emails saying that).  Assume I&#8217;ll get statement credit in a few months.  Link to offer towards end of thread.   <a href=\"https://www.flyertalk.com/forum/united-airlines-mileageplus/1978089-chase-refuses-honor-their-ad-offer-250-statement-credit-2.html\" rel=\"nofollow ugc\">https://www.flyertalk.com/forum/united-airlines-mileageplus/1978089-chase-refuses-honor-their-ad-offer-250-statement-credit-2.html</a></p>\n"
+      },
+      "date_gmt" : "2019-08-02T20:37:01",
+      "id" : 792974,
+      "parent" : 0
+    },
+    {
+      "author_name" : "HonestTea",
+      "content" : {
+        "rendered" : "<p>Hi DoC &#8211; Is there a way to circumvent the restriction of businesses that do not accept AmEx?</p>\n"
+      },
+      "date_gmt" : "2019-08-06T02:46:51",
+      "id" : 794116,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>nope</p>\n"
+      },
+      "date_gmt" : "2019-08-06T02:48:59",
+      "id" : 794119,
+      "parent" : 794116
+    },
+    {
+      "author_name" : "Josh",
+      "content" : {
+        "rendered" : "<p>I&#8217;m seeing a 50K mile offer on the AA Citi Plat (personal), but not with the 200 credit.  Beats 40K though.</p>\n"
+      },
+      "date_gmt" : "2019-08-06T19:36:45",
+      "id" : 794542,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Paul",
+      "content" : {
+        "rendered" : "<p>FYI DoC: the 70k AA biz public offer is gone (the &#8220;not on list&#8221; item), it&#8217;s now 65k with no fee.</p>\n"
+      },
+      "date_gmt" : "2019-08-07T15:13:56",
+      "id" : 794980,
+      "parent" : 0
+    },
+    {
+      "author_name" : "ELi",
+      "content" : {
+        "rendered" : "<p>@ William Charles &#8211; why don&#8217;t you post and review capital one cc offers?</p>\n"
+      },
+      "date_gmt" : "2019-08-07T16:23:21",
+      "id" : 795025,
+      "parent" : 0
+    },
+    {
+      "author_name" : "ELi",
+      "content" : {
+        "rendered" : "<p>where do you see a 65k offer with no AF? on citi it&#8217;s advertised as 60k with AF waived for first 12 months.</p>\n"
+      },
+      "date_gmt" : "2019-08-07T17:15:53",
+      "id" : 795042,
+      "parent" : 794980
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p>We do write about Capital One credit card offers.</p>\n"
+      },
+      "date_gmt" : "2019-08-07T18:48:51",
+      "id" : 795087,
+      "parent" : 795025
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Thanks</p>\n"
+      },
+      "date_gmt" : "2019-08-07T22:38:02",
+      "id" : 795198,
+      "parent" : 794980
+    },
+    {
+      "author_name" : "DP",
+      "content" : {
+        "rendered" : "<p>Found a small credit union in LA with an interesting business credit bonus&#8230;<br />\n1.5% cash back on all purchases<br />\nNew accounts earn $500 bonus cash back after $4500 spent in purchases within the first 90 days of account opening<br />\nNo annual fee<br />\n<a href=\"https://www.neighborsfcu.org/commercial/business-credit-card/\" rel=\"nofollow ugc\">https://www.neighborsfcu.org/commercial/business-credit-card/</a></p>\n"
+      },
+      "date_gmt" : "2019-08-12T06:28:23",
+      "id" : 796858,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Paul",
+      "content" : {
+        "rendered" : "<p><a href=\"https://creditcards.aa.com/citi-business-card-american-airlines-footerhv/\" rel=\"nofollow ugc\">https://creditcards.aa.com/citi-business-card-american-airlines-footerhv/</a></p>\n"
+      },
+      "date_gmt" : "2019-08-13T18:27:12",
+      "id" : 797643,
+      "parent" : 795042
+    },
+    {
+      "author_name" : "nuff",
+      "content" : {
+        "rendered" : "<p>The Southwest offers are all 40,000 now.  Needs updating.</p>\n"
+      },
+      "date_gmt" : "2019-08-17T17:24:38",
+      "id" : 799588,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Eegah77",
+      "content" : {
+        "rendered" : "<p>Wonder if this reports to personal CB.  Any DPs? </p>\n<p>From the terms:</p>\n<p>18. CREDIT REVIEW AND RELEASE OF INFORMATION. You authorize the credit union to investigate your credit<br />\nstanding when opening or reviewing your account. You authorize the credit union to disclose information regarding your<br />\naccount to credit bureaus and creditors who inquire about your credit standing.</p>\n"
+      },
+      "date_gmt" : "2019-08-19T23:36:30",
+      "id" : 800325,
+      "parent" : 796858
+    },
+    {
+      "author_name" : "Menachem",
+      "content" : {
+        "rendered" : "<p>What’s with Barclays miles an smiles 75k offer</p>\n"
+      },
+      "date_gmt" : "2019-09-02T16:22:24",
+      "id" : 805525,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Big Bob",
+      "content" : {
+        "rendered" : "<p>Howdy. Is there a September &#8216;Update&#8217; coming soon?</p>\n"
+      },
+      "date_gmt" : "2019-09-03T02:08:34",
+      "id" : 805624,
+      "parent" : 0
+    },
+    {
+      "author_name" : "henriq",
+      "content" : {
+        "rendered" : "<p>time to update this to September 🙂</p>\n"
+      },
+      "date_gmt" : "2019-09-03T02:16:33",
+      "id" : 805627,
+      "parent" : 0
+    },
+    {
+      "author_name" : "TKO",
+      "content" : {
+        "rendered" : "<p>Why not add the Capital One Venture? Sign-up bonus is no longer 75,000 miles but is still 50,000 miles after spending $3,000 in the first 3 months. I think the 50,000 miles sign-up bonus is worth adding to this list.</p>\n"
+      },
+      "date_gmt" : "2019-09-11T17:15:47",
+      "id" : 808858,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Pat S",
+      "content" : {
+        "rendered" : "<p>Small typo in current list of best biz cards Wells Fargo platinum is still $500 for $3000 spend. When you click on write up it mentions it but is also wrong. Here is your wording</p>\n<p>“Nice and simple $500 bonus for $5,000 in spend. Deal becomes even better when you pair it with a new Wells Fargo business checking bonus of $500 or $1,000.”</p>\n<p>Just got approved for 3rd time in 18 months.</p>\n"
+      },
+      "date_gmt" : "2019-09-28T03:40:55",
+      "id" : 815779,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Cameron",
+      "content" : {
+        "rendered" : "<p>No way!  3 in 18 months?  Using different businesses or same?  I closed mine in Apr. 2019.  How long do you wait after closing?   tems: &#8220;Only one cash back bonus per company. This offer is not available if the business already has a Wells Fargo business credit card or had a Wells Fargo business credit card opened or closed in the immediately preceding 12 months.&#8221;   You are using different EINs?</p>\n"
+      },
+      "date_gmt" : "2019-09-28T06:02:02",
+      "id" : 815808,
+      "parent" : 815779
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Fixed, thanks</p>\n"
+      },
+      "date_gmt" : "2019-09-29T01:45:55",
+      "id" : 815999,
+      "parent" : 815779
+    },
+    {
+      "author_name" : "DeeezNuuts",
+      "content" : {
+        "rendered" : "<p>The 40,000 point bonus Wells Fargo Propel World offer might be dead, I called to apply today (10/1) and the rep said the only offer she could find on that card is an introductory no interest offer.</p>\n"
+      },
+      "date_gmt" : "2019-10-01T17:20:03",
+      "id" : 816868,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Hmm, thanks for the info</p>\n"
+      },
+      "date_gmt" : "2019-10-02T01:23:00",
+      "id" : 817121,
+      "parent" : 816868
+    },
+    {
+      "author_name" : "DeeezNuuts",
+      "content" : {
+        "rendered" : "<p>I just called again today (10/2) to try out a different rep.  She couldn&#8217;t find the 40,000 point offer either for the Propel world.  She double checked and still couldn&#8217;t find it.  The 30,000 point offer for the regular Propel card is still active.</p>\n"
+      },
+      "date_gmt" : "2019-10-02T14:44:25",
+      "id" : 817353,
+      "parent" : 817121
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Thanks</p>\n"
+      },
+      "date_gmt" : "2019-10-03T01:14:51",
+      "id" : 817761,
+      "parent" : 817353
+    },
+    {
+      "author_name" : "DD",
+      "content" : {
+        "rendered" : "<p>40,000 point Wells Fargo offer is NOT dead. Just applied for it over the phone tonight.</p>\n"
+      },
+      "date_gmt" : "2019-10-04T05:22:24",
+      "id" : 818362,
+      "parent" : 0
+    },
+    {
+      "author_name" : "DeeezNuuts",
+      "content" : {
+        "rendered" : "<p>Thanks for the heads up.  Just called now (10/4) and was able to apply.  This time the rep said she doesn&#8217;t know if there is a 40K offer until she sends over the disclosure (it&#8217;s there).  It looks like the offer is not listed in there system to apply, but is listed in the disclosure.</p>\n"
+      },
+      "date_gmt" : "2019-10-04T13:04:31",
+      "id" : 818416,
+      "parent" : 818362
+    },
+    {
+      "author_name" : "max martori",
+      "content" : {
+        "rendered" : "<p><a class='hint hint--right' data-ucm_user_id='2' href='https://www.doctorofcredit.com/author/will/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;William Charles</a><br />\nfor the ridgewood bank 500$ bonus should say 5k spend not 2k.<br />\nThanks for an awesome site!!</p>\n"
+      },
+      "date_gmt" : "2019-10-07T14:12:00",
+      "id" : 819913,
+      "parent" : 0
+    },
+    {
+      "author_name" : "JG",
+      "content" : {
+        "rendered" : "<p>Haha maybe if this were 2016. Card is useless now.</p>\n"
+      },
+      "date_gmt" : "2019-10-08T13:21:27",
+      "id" : 820310,
+      "parent" : 789905
+    },
+    {
+      "author_name" : "K-Man",
+      "content" : {
+        "rendered" : "<p>Cards one can get approved for if you are over 5/24? Just for research. Not applying.</p>\n"
+      },
+      "date_gmt" : "2019-10-08T13:36:24",
+      "id" : 820319,
+      "parent" : 0
+    },
+    {
+      "author_name" : "SeanK",
+      "content" : {
+        "rendered" : "<p><a class='wpd-umcguest'  href='https://www.doctorofcredit.com/best-current-credit-card-sign-bonuses/#comment-820319'><img alt='' src='https://secure.gravatar.com/avatar/474a791de9971ee0c2c682a8227f9ac0da340fd623689a75f71b35f8859626bb?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/474a791de9971ee0c2c682a8227f9ac0da340fd623689a75f71b35f8859626bb?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>K-Man</a> Not sure if I&#8217;m allowed to link so I didn&#8217;t link it but search for reddit churning flowchart. There&#8217;s a list of card recommendations depending on whether one is under or over 5/24</p>\n"
+      },
+      "date_gmt" : "2019-10-10T21:58:02",
+      "id" : 821969,
+      "parent" : 820319
+    },
+    {
+      "author_name" : "TomT",
+      "content" : {
+        "rendered" : "<p>The BBVA $300 bonus expired on 10/4. Now it is only $200</p>\n"
+      },
+      "date_gmt" : "2019-10-12T04:14:41",
+      "id" : 823874,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Thanks, removing now</p>\n"
+      },
+      "date_gmt" : "2019-10-13T23:51:11",
+      "id" : 824588,
+      "parent" : 823874
+    },
+    {
+      "author_name" : "Josh",
+      "content" : {
+        "rendered" : "<p>Is there a reason the Capital One Spark for Business with $500 bonus for $4500 spend in 3 months isn&#8217;t on the list?</p>\n"
+      },
+      "date_gmt" : "2019-10-16T23:55:00",
+      "id" : 826232,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Dinarte",
+      "content" : {
+        "rendered" : "<p>Probably because it reports to the credit bureaus, which will show for 5/24</p>\n"
+      },
+      "date_gmt" : "2019-10-22T06:05:35",
+      "id" : 828694,
+      "parent" : 826232
+    },
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>Would be helpful to include the spending requirements in the summary of benefits.</p>\n"
+      },
+      "date_gmt" : "2019-10-27T03:23:51",
+      "id" : 831224,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Alex",
+      "content" : {
+        "rendered" : "<p>Why isn&#8217;t the Wells Fargo Propel one here, given that the Capital One Savor is listed with an almost identical bonus?</p>\n"
+      },
+      "date_gmt" : "2019-10-31T21:31:02",
+      "id" : 833556,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Joe",
+      "content" : {
+        "rendered" : "<p>&#8220;Not on the list&#8221; &#8211; TPGs Amex Surpass 150k offer + $100?</p>\n<p>I mean I&#8217;m not an advocate for affiliate links, but I do believe this qualifies as a best offer.</p>\n"
+      },
+      "date_gmt" : "2019-11-04T03:59:52",
+      "id" : 834737,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Alex",
+      "content" : {
+        "rendered" : "<p>Pathfinder should be removed</p>\n"
+      },
+      "date_gmt" : "2019-11-04T18:18:23",
+      "id" : 834935,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Abey",
+      "content" : {
+        "rendered" : "<p>Great updated post. Thanks Doc!</p>\n"
+      },
+      "date_gmt" : "2019-11-11T04:44:21",
+      "id" : 839677,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Jason",
+      "content" : {
+        "rendered" : "<p>Wells Fargo is absolutely refusing to budge on approving me for the Business Platinum without some kind of documentation of the business. I applied as a sole prop using my legal name and not a dba, and straight from the California Secretary of State website you simply do NOT have to file anything unless you&#8217;re using a dba.</p>\n<p>&#8220;A sole proprietorship is set up to allow an individual to own and operate a business. A sole proprietor has total control, receives all profits from and is responsible for taxes and liabilities of the business. If a sole proprietorship is formed with a name other than the individual’s name (example: John Smiths Fishing Shop), a Fictitious Business Name Statement must be filed with the county where the principal place of business is located.</p>\n<p>&#8220;No formation documents are filed with the California Secretary of State’s office. Other state filings may be required depending on the type of business.&#8221;</p>\n<p><a href=\"https://www.sos.ca.gov/business-programs/business-entities/starting-business/types/#sole\" rel=\"nofollow ugc\">https://www.sos.ca.gov/business-programs/business-entities/starting-business/types/#sole</a></p>\n"
+      },
+      "date_gmt" : "2019-11-13T00:57:45",
+      "id" : 840669,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Avi",
+      "content" : {
+        "rendered" : "<p>Do you have a Wells Fargo business checking account? That always helps. Or you could try showing them a Schedule C, business website or other evidence of your business. Best to try to plead your case in person at a branch, I&#8217;d think.</p>\n"
+      },
+      "date_gmt" : "2019-11-17T12:23:08",
+      "id" : 844194,
+      "parent" : 840669
+    },
+    {
+      "author_name" : "Avi",
+      "content" : {
+        "rendered" : "<p>Yeah, 3 hard credit pulls, shows on personal credit report, and virtually impossible to be approved for unless you have a mediocre credit score and some credit card debt. No thanks!</p>\n"
+      },
+      "date_gmt" : "2019-11-17T12:25:29",
+      "id" : 844195,
+      "parent" : 828694
+    },
+    {
+      "author_name" : "Jack",
+      "content" : {
+        "rendered" : "<p>The BoA Amtrak offer is not available anymore and should be updated/removed. Thanks.</p>\n"
+      },
+      "date_gmt" : "2019-11-20T02:04:52",
+      "id" : 846131,
+      "parent" : 0
+    },
+    {
+      "author_name" : "WayUpNorth49",
+      "content" : {
+        "rendered" : "<p>The Citi Expedia+ Voyager appears to be no longer available.</p>\n"
+      },
+      "date_gmt" : "2019-11-20T20:00:05",
+      "id" : 846520,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Rena",
+      "content" : {
+        "rendered" : "<p>Applied for CIP. Went pending. Both Equifax and Experian were pulled.</p>\n"
+      },
+      "date_gmt" : "2019-12-03T03:35:10",
+      "id" : 852329,
+      "parent" : 0
+    },
+    {
+      "author_name" : "TheMechE",
+      "content" : {
+        "rendered" : "<p><a class='hint hint--right' data-ucm_user_id='2' href='https://www.doctorofcredit.com/author/will/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;William Charles</a> What happened to the latest Hilton offer?</p>\n"
+      },
+      "date_gmt" : "2019-12-07T22:14:37",
+      "id" : 854604,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Steve",
+      "content" : {
+        "rendered" : "<p>The Amex Schwab 100,000 point offer expired a couple months ago, so it should probably be removed from this list.</p>\n"
+      },
+      "date_gmt" : "2019-12-07T23:16:12",
+      "id" : 854621,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Done</p>\n"
+      },
+      "date_gmt" : "2019-12-08T00:59:35",
+      "id" : 854643,
+      "parent" : 854621
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>What one?</p>\n"
+      },
+      "date_gmt" : "2019-12-08T00:59:40",
+      "id" : 854644,
+      "parent" : 854604
+    },
+    {
+      "author_name" : "TheMechE",
+      "content" : {
+        "rendered" : "<p><a href=\"https://www.doctorofcredit.com/american-express-hilton-surpass-formerly-ascend-150000-point-bonus-100-statement-credit/\" rel=\"ugc\">https://www.doctorofcredit.com/american-express-hilton-surpass-formerly-ascend-150000-point-bonus-100-statement-credit/</a></p>\n"
+      },
+      "date_gmt" : "2019-12-08T02:26:53",
+      "id" : 854687,
+      "parent" : 854644
+    },
+    {
+      "author_name" : "marpa",
+      "content" : {
+        "rendered" : "<p>Hi, is there a reason that you do not list any of the AMEX Bonvoy cards?</p>\n"
+      },
+      "date_gmt" : "2019-12-11T16:16:41",
+      "id" : 856005,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Rena",
+      "content" : {
+        "rendered" : "<p>Applied for Wells Fargo Propel World via phone. Went pending. Both TransUnion and Experian were pulled.</p>\n"
+      },
+      "date_gmt" : "2019-12-15T15:05:09",
+      "id" : 857641,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Alex",
+      "content" : {
+        "rendered" : "<p><a class='hint hint--right' data-ucm_user_id='2' href='https://www.doctorofcredit.com/author/will/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;William Charles</a> Schwab Investor card should be removed &#8211; that bonus is back to $100</p>\n"
+      },
+      "date_gmt" : "2019-12-17T20:30:53",
+      "id" : 858709,
+      "parent" : 0
+    },
+    {
+      "author_name" : "glt",
+      "content" : {
+        "rendered" : "<p>USC bonus now alumni only, probably too niche for this list now<br />\n<a href=\"https://www.doctorofcredit.com/ca-only-usc-credit-union-250-platinum-credit-card-bonus/#comment-833315\" rel=\"ugc\">https://www.doctorofcredit.com/ca-only-usc-credit-union-250-platinum-credit-card-bonus/#comment-833315</a></p>\n"
+      },
+      "date_gmt" : "2019-12-21T20:06:39",
+      "id" : 860798,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Thanks</p>\n"
+      },
+      "date_gmt" : "2019-12-22T10:08:33",
+      "id" : 860926,
+      "parent" : 860798
+    },
+    {
+      "author_name" : "joe",
+      "content" : {
+        "rendered" : "<p>Its only to 75k now, 100k offer is better when it comes around</p>\n"
+      },
+      "date_gmt" : "2019-12-24T02:04:16",
+      "id" : 861457,
+      "parent" : 856005
+    },
+    {
+      "author_name" : "Alex",
+      "content" : {
+        "rendered" : "<p>A couple suggested edits:</p>\n<p>&#8211; Both Navy Federal offers should be removed, because the offers expired and neither card has a sign-up bonus anymore.</p>\n<p>&#8211; Avianca offers should probably be removed, because the offers were set to expire at the end of 2019. I haven&#8217;t been able to confirm whether the promo code actually stopped working, though.</p>\n<p>&#8211; Hilton surpass might need to be removed or moved to the &#8220;YMMV&#8221; section. I&#8217;m seeing a 150,000 point offer, but no offer that includes the $100 statement credit.</p>\n<p>&#8211; AmEx EveryDay should be removed or moved to &#8220;YMMV&#8221; section. Even with the incognito trick, I can only see a $10k offer (plus 0% intro APR and $0 balance transfer fee)</p>\n<p>&#8211; Radisson offer should be removed, because the offer expired. Current offer is 85,000 points, which is not nearly as attractive.</p>\n<p>&#8211; PenFed Pathfinder should be removed, because the card is no longer accepting applications.</p>\n<p>&#8211; Consider adding the Capital One Venture, since 50,000 points for $3000 in spend and no AF is one of the best available offers right now. I understand that it used to be 75,000, but it seems unlikely to go back up to that level in the near future. If you don&#8217;t include it on the list, maybe put it on the &#8220;Not on List&#8221; section to be clear.</p>\n<p>&#8211; Also consider the JetBlue Plus offer (40,000 TrueBlue points for $1000 in spend and $99 AF).  It&#8217;s not the highest ever (they had a 60,000 point offer in 2017), but the net value by my valuations is competitive with the AmEx Green offer 45k offer and the Alaska 40k offer. It also has lower required spend than either of those offers.</p>\n"
+      },
+      "date_gmt" : "2020-01-03T16:41:27",
+      "id" : 864559,
+      "parent" : 0
+    },
+    {
+      "author_name" : "bax",
+      "content" : {
+        "rendered" : "<p>Link for the PNC BusinessOptions $750 Bonus is now 404. It was working 10+ days ago.</p>\n"
+      },
+      "date_gmt" : "2020-01-03T18:22:46",
+      "id" : 864616,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Should be working now</p>\n"
+      },
+      "date_gmt" : "2020-01-03T22:01:47",
+      "id" : 864759,
+      "parent" : 864616
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Thanks, updating this now</p>\n"
+      },
+      "date_gmt" : "2020-01-03T22:14:44",
+      "id" : 864769,
+      "parent" : 864559
+    },
+    {
+      "author_name" : "Richard",
+      "content" : {
+        "rendered" : "<p>Here is a link to a Bank Of America credit card for a $200.00 bonus after spending $1000.00 with cash back.  <a href=\"https://www.bankofamerica.com/credit-cards/products/cash-back-credit-card/\" rel=\"nofollow ugc\">https://www.bankofamerica.com/credit-cards/products/cash-back-credit-card/</a></p>\n"
+      },
+      "date_gmt" : "2020-01-07T20:47:51",
+      "id" : 867416,
+      "parent" : 0
+    },
+    {
+      "author_name" : "RJS11",
+      "content" : {
+        "rendered" : "<p>Has anyone applied for the Lafayette Federal Credit Union Mastercard? Do you need to be a member of the credit union before you apply for the card?</p>\n"
+      },
+      "date_gmt" : "2020-01-08T20:44:19",
+      "id" : 868875,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Lauren",
+      "content" : {
+        "rendered" : "<p>US Bank business cash rewards is down to $200 for $1000 spend. 😞</p>\n"
+      },
+      "date_gmt" : "2020-01-08T21:52:24",
+      "id" : 868962,
+      "parent" : 0
+    },
+    {
+      "author_name" : "JK",
+      "content" : {
+        "rendered" : "<p>Southwest 75k offer is public</p>\n"
+      },
+      "date_gmt" : "2020-01-09T15:10:35",
+      "id" : 869855,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Charlie",
+      "content" : {
+        "rendered" : "<p>How frequently does Navy Federal Credit Union run signup bonuses on their credit cards?  Seems like none of their cards have signup bonuses this month.</p>\n"
+      },
+      "date_gmt" : "2020-01-11T15:41:30",
+      "id" : 872271,
+      "parent" : 0
+    },
+    {
+      "author_name" : "anki",
+      "content" : {
+        "rendered" : "<p>Chase 5/24 rule: I got a credit card despite having opened around 10 accounts in the past 2 years.<br />\nI got a Chase “pre selected” offer for a card. I was aware of the 5/24 rule, so I was almost sure that it would be denied. But the 200$ promo bonus was too attractive to not try. My score is around 720. I applied towards the end of the application date, when the offer had almost expired. I have heard that the card companies are required to accept a certain minimum percentage of pre approved offers. If that is the case, they might have almost finished their share of denials before they got to me lol. Just a theory.</p>\n"
+      },
+      "date_gmt" : "2020-01-12T02:42:47",
+      "id" : 872871,
+      "parent" : 0
+    },
+    {
+      "author_name" : "PS",
+      "content" : {
+        "rendered" : "<p>got rejected for cap one venture again. i hate this card now. probably wont apply any capone unless pre qualified.<br />\nstats &#8211; 5/24</p>\n"
+      },
+      "date_gmt" : "2020-01-14T02:08:45",
+      "id" : 875184,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Rico",
+      "content" : {
+        "rendered" : "<p>Has anyone ever received a 1099 from a bank after getting a CREDIT CARD signup bonus? We get it if the bonus comes from the BANKING side of things, but if the credit card bonus is contingent on the holder using the card in order to get the sign up bonus, the IRS would consider that a &#8220;rebate&#8221; not income. So is this correct?</p>\n"
+      },
+      "date_gmt" : "2020-01-17T21:43:54",
+      "id" : 879715,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Josh",
+      "content" : {
+        "rendered" : "<p>Correct.</p>\n"
+      },
+      "date_gmt" : "2020-01-21T13:33:25",
+      "id" : 883311,
+      "parent" : 879715
+    },
+    {
+      "author_name" : "SMan",
+      "content" : {
+        "rendered" : "<p>I am a Preferred rewards member of Bank of America. Can I have two or more credit cards from Bank of America and get Preferred rewards for all of them ? is there any limit on number of cards to get preferred rewards ?</p>\n"
+      },
+      "date_gmt" : "2020-01-21T15:26:56",
+      "id" : 883387,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p>No limit</p>\n"
+      },
+      "date_gmt" : "2020-01-21T15:27:34",
+      "id" : 883388,
+      "parent" : 883387
+    },
+    {
+      "author_name" : "SMan",
+      "content" : {
+        "rendered" : "<p>&#8220;Chase Pre selected&#8221; offers does not look at 5/24 . Hence you got the card.</p>\n"
+      },
+      "date_gmt" : "2020-01-21T15:30:42",
+      "id" : 883391,
+      "parent" : 872871
+    },
+    {
+      "author_name" : "Oliver",
+      "content" : {
+        "rendered" : "<p>Correct. However, bonuses from referrals can trigger a 1099.</p>\n"
+      },
+      "date_gmt" : "2020-01-22T00:11:26",
+      "id" : 883896,
+      "parent" : 879715
+    }
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "1797",
+    "x-wp-totalpages" : "18"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/comments?post=28140&per_page=100&page=7&order=asc&orderby=date_gmt&_fields=id,parent,author_name,date_gmt,content"
+}

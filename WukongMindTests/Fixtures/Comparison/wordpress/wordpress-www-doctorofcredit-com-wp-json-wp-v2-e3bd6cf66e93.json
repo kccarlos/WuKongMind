@@ -1,0 +1,884 @@
+{
+  "body" : [
+    {
+      "author_name" : "Jay",
+      "content" : {
+        "rendered" : "<p><span>This is a very useful page! One possible improvement would be to separate cards with and without annual fees in the contents. Thanks!</span></p>\n"
+      },
+      "date_gmt" : "2026-07-17T05:28:47",
+      "id" : 2369096,
+      "parent" : 0
+    },
+    {
+      "author_name" : "David Pilcher",
+      "content" : {
+        "rendered" : "<p>Grab the Walmart One pay to continue to get 5% at Wally World on shipping, delivery &amp; in store.<br />\nPlus that app we&#8217;ve saved a ton on gasoline &#8211; all summer each Wednesday has been $1.40+ back off PER GALLON.<br />\nAccording to my notes I got $350 cashback for doing 1 direct deposit with them too.</p>\n"
+      },
+      "date_gmt" : "2026-07-21T19:50:26",
+      "id" : 2372139,
+      "parent" : 2328249
+    },
+    {
+      "author_name" : "David",
+      "content" : {
+        "rendered" : "<p>Commerce Bank is available in several states such as <span>Arizona, Arkansas, Florida, Indiana, Iowa, Kentucky, Michigan, Minnesota, Ohio, Nebraska, South Carolina, Tennessee, Texas, Wisconsin, Missouri, Kansas, Colorado, Oklahoma, and more.. A full list is available on their by the numbers page. </span></p>\n<p><span>They currently have a SUB of 150.00 for their Toggle Visa Signature card and you can pre qualify for it and see your limit and APR before accepting and getting a hard pull. Mine came with a low APR of 12.99 and 0% APR for 12 months. Just FYI. </span></p>\n"
+      },
+      "date_gmt" : "2026-07-24T13:06:06",
+      "id" : 2374259,
+      "parent" : 0
+    },
+    {
+      "author_name" : "AC",
+      "content" : {
+        "rendered" : "<p>U.S. Bank Altitude Connect is down to $200.</p>\n"
+      },
+      "date_gmt" : "2026-07-28T03:01:41",
+      "id" : 2376338,
+      "parent" : 0
+    },
+    {
+      "author_name" : "NMB",
+      "content" : {
+        "rendered" : "<p>Citi custom cash needs to be removed 😔</p>\n"
+      },
+      "date_gmt" : "2026-07-28T03:39:21",
+      "id" : 2376353,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Gadget 🕵️‍♂️ Bank Bonus Geek 🔗",
+      "content" : {
+        "rendered" : "<p>And, &#8220;1.36 Discover it – $100 + Double Cash Back&#8221; should be removed.  It&#8217;s old.</p>\n<p>1.8 <span>$200 + Double Cash Back </span>covers the Discover it.  <a class='hint hint--right' data-ucm_user_id='2' href='https://www.doctorofcredit.com/author/will/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;William Charles</a></p>\n"
+      },
+      "date_gmt" : "2026-07-28T03:52:09",
+      "id" : 2376359,
+      "parent" : 2376353
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Removed, thanks</p>\n"
+      },
+      "date_gmt" : "2026-07-28T04:02:58",
+      "id" : 2376364,
+      "parent" : 2376353
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p><span style=\"color: rgb(119, 119, 119);\">Removed, thanks</span></p>\n"
+      },
+      "date_gmt" : "2026-07-28T04:03:02",
+      "id" : 2376365,
+      "parent" : 2376359
+    },
+    {
+      "author_name" : "Gadget 🕵️‍♂️ Bank Bonus Geek 🔗",
+      "content" : {
+        "rendered" : "<p>Also, U.S. Bank Amazon Prime Business $200-$750 is listed on personal &amp; business.</p>\n"
+      },
+      "date_gmt" : "2026-07-28T04:54:25",
+      "id" : 2376377,
+      "parent" : 2376365
+    },
+    {
+      "author_name" : "Tom MacDonald",
+      "content" : {
+        "rendered" : "<p>Targeted $200 for $1k spend. Fifththird bank.  Trans union hard pull.  3 hard pulls in 7 mo. 790 score.  Got approved instantly.</p>\n"
+      },
+      "date_gmt" : "2026-07-29T12:31:15",
+      "id" : 2377384,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Danny",
+      "content" : {
+        "rendered" : "<p>The expired <span>Removed Citi AAdvantage Globe 90,000</span><span>Links to something outside of Doctor of Credit.</span></p>\n"
+      },
+      "date_gmt" : "2026-07-29T16:09:45",
+      "id" : 2377526,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Edit: NVM. Fixed now</p>\n<p>Seems OK to me?</p>\n"
+      },
+      "date_gmt" : "2026-07-30T02:12:21",
+      "id" : 2377931,
+      "parent" : 2377526
+    },
+    {
+      "author_name" : "Yichen",
+      "content" : {
+        "rendered" : "<p>I think the two personal United cards have been expired for a while</p>\n"
+      },
+      "date_gmt" : "2026-07-30T18:36:44",
+      "id" : 2378370,
+      "parent" : 0
+    },
+    {
+      "author_name" : "AC",
+      "content" : {
+        "rendered" : "<p>Fidelity 2% Card $150 Bonus is no longer a public offer.</p>\n"
+      },
+      "date_gmt" : "2026-08-04T00:49:33",
+      "id" : 2381647,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Denver_Hiker",
+      "content" : {
+        "rendered" : "<p><a class='hint hint--right' data-ucm_user_id='2' href='https://www.doctorofcredit.com/author/will/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;William Charles</a>   <a class='hint hint--right' data-ucm_user_id='6' href='https://www.doctorofcredit.com/author/chucksithe/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/6581771f6d6c07578202c34dd35680cd5e37f8e5b2b5af89f03bde48286dade3?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/6581771f6d6c07578202c34dd35680cd5e37f8e5b2b5af89f03bde48286dade3?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;Chuck</a><br />\nHuge update to Cap1 Quicksilver cards, copy pasted from an email below. can forward you the email if you&#8217;d like.</p>\n<p>IMPORTANT UPDATE&nbsp;Coming soon: Unlimited 3% cash back at gas stations and grocery stores</p>\n<p>Exciting updates are coming soon to your Quicksilver Credit Card:</p>\n<p>You’ll earn unlimited 3% cash back at gas stations and grocery stores¹ plus continue earning unlimited 1.5% cash back on all other purchases.Your card will be updated to run on Capital One’s Discover Network.You’ll receive a new card with an updated card number in the mail.You have until Sept. 1, 2026 to opt out.²<br />\ngrocery doesn&#8217;t include target or walmart</p>\n"
+      },
+      "date_gmt" : "2026-08-18T16:44:30",
+      "id" : 2392087,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Thanks, got that here: <a href=\"https://www.doctorofcredit.com/capital-one-quicksilver-moves-to-discover-network-get-3-cashback-on-gas-grocery-1-5-everywhere/\" rel=\"ugc\">https://www.doctorofcredit.com/capital-one-quicksilver-moves-to-discover-network-get-3-cashback-on-gas-grocery-1-5-everywhere/</a></p>\n"
+      },
+      "date_gmt" : "2026-08-20T04:07:21",
+      "id" : 2393333,
+      "parent" : 2392087
+    },
+    {
+      "author_name" : "Grant",
+      "content" : {
+        "rendered" : "<p>Here&#8217;s a list of out of date links on this web page:</p>\n<p>* Citi AAdvantage Executive (down to 75k)<br />\n* Atmos Summit (down to 80k)<br />\n* Atmos Ascent (down to 70k)<br />\n* Chase United Quest (down to 60k+10k (AU)+5k (FA code))<br />\n* Chase United Explorer (same as above)<br />\n* Synchrony Virgin Red (not seeing elevated offer on dummy booking, no reports for months?)<br />\n* Amex Marriott Bonvoy Brilliant link is dead<br />\n* Amex Marriot Bonvoy Bevy link is dead<br />\n* Fidelity Visa Rewards link is dead<br />\n* Citi AAdvantage Business (down to 65k)</p>\n"
+      },
+      "date_gmt" : "2026-08-20T05:17:32",
+      "id" : 2393369,
+      "parent" : 0
+    },
+    {
+      "author_name" : "naw",
+      "content" : {
+        "rendered" : "<p>IHG cards are way down. now 140k / 80k</p>\n"
+      },
+      "date_gmt" : "2026-08-21T01:04:49",
+      "id" : 2394101,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Bill",
+      "content" : {
+        "rendered" : "<p>Just got back from the Honda dealer for servicing and they charged a 3% credit card fee. A lot of restaurants and some gas stations are doing this now as well with dual pricing. If this is the trend, credit card rewards are mostly worthless. Back to the ATM and will pay in crinkled cash bills if this continues.</p>\n"
+      },
+      "date_gmt" : "2026-08-21T16:49:48",
+      "id" : 2394505,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Mike",
+      "content" : {
+        "rendered" : "<p>Discover cards no more</p>\n"
+      },
+      "date_gmt" : "2026-08-23T16:13:24",
+      "id" : 2395639,
+      "parent" : 2393369
+    },
+    {
+      "author_name" : "Frank",
+      "content" : {
+        "rendered" : "<p>Gas stations always did that. Restaurants are getting it pushed by payment processing companies (local one just switched and added it); they&#8217;re also pushing higher tips &#8212; 18%, 22%, and 25%  🙄</p>\n"
+      },
+      "date_gmt" : "2026-08-23T16:16:03",
+      "id" : 2395642,
+      "parent" : 2394505
+    },
+    {
+      "author_name" : "Bill",
+      "content" : {
+        "rendered" : "<p>Yup. Which is why we don’t eat out near as much. IMO, this trend is going to push more people to churn cards. Then you will see more companies taking the AMEX approach of a once in a card lifetime sign on bonus. Then it’s game over.</p>\n"
+      },
+      "date_gmt" : "2026-08-23T19:37:36",
+      "id" : 2395730,
+      "parent" : 2395642
+    },
+    {
+      "author_name" : "Jason",
+      "content" : {
+        "rendered" : "<p>Just a correction: </p>\n<p>Amex Platinum is $12,000 minimum spend within 6 months. You still have the old $8,000 MSR</p>\n"
+      },
+      "date_gmt" : "2026-08-24T14:25:34",
+      "id" : 2396063,
+      "parent" : 0
+    },
+    {
+      "author_name" : "hmm",
+      "content" : {
+        "rendered" : "<p>why are you reposting this to the main feed when so many are out of date? all the IHG / Atmos offers are lower than listed</p>\n"
+      },
+      "date_gmt" : "2026-08-24T14:48:24",
+      "id" : 2396073,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Harcourt Fenton Mudd",
+      "content" : {
+        "rendered" : "<p>Also the TYPE of restaurant pushing for tips seems to be expanding.  I&#8217;ve noticed it in some fast food and drive-thru coffee establishments.  I think this is nuts but that&#8217;s me.</p>\n"
+      },
+      "date_gmt" : "2026-08-24T15:28:41",
+      "id" : 2396089,
+      "parent" : 2395642
+    },
+    {
+      "author_name" : "Chris",
+      "content" : {
+        "rendered" : "<p>It basically washes out with the credit card rewards. I would still use credit card as long as you&#8217;re getting back at least 3%</p>\n"
+      },
+      "date_gmt" : "2026-08-24T15:40:41",
+      "id" : 2396102,
+      "parent" : 2394505
+    },
+    {
+      "author_name" : "sg77",
+      "content" : {
+        "rendered" : "<p>This page is about &#8220;sign up bonuses&#8221;. Those will basically always be worth more than 3%.</p>\n"
+      },
+      "date_gmt" : "2026-08-24T16:07:47",
+      "id" : 2396123,
+      "parent" : 2394505
+    },
+    {
+      "author_name" : "Saph",
+      "content" : {
+        "rendered" : "<p>Chase Quest 100,000 offer seems to have expired a year ago? 8/20/25. No current offer?</p>\n"
+      },
+      "date_gmt" : "2026-08-24T16:36:30",
+      "id" : 2396138,
+      "parent" : 0
+    },
+    {
+      "author_name" : "barrytuneup",
+      "content" : {
+        "rendered" : "<p>As a former small biz owner in a past lifetime&#8230;(auto diagnostics for 25 years. Honest) It was getting so hard to make a decent profit even back then. Had 4 high tech employees, plus myself, (for total of 5) workers comp insurance, shop insurance, rent, utilities, benefits for employees, taxes&#8230;etc. Bad weather killed us ..snowstorms, flooding. Back then credit cards were charging me 1.6% and AMEX was 2.7%..I feel for the small biz man today. Almost impossible to make a decent profit. Then you had state auditors checking receipts for sales taxes, Insurance checking salaries and job descriptions for workers comp insurance. Every so often I would get a letter from the IRS..&#8221;you owe 675.00 plus interest from 3 years ago!&#8221;. BS but had to pay. Just look at all the businesses today. Mostly huge chains all over.</p>\n<p>In my area, Acme grocery is owned by Safeway, Stop and Shop is owned by a European company, same with Lidl etc.. After selling a decent profit, I joined the NYPD with free benefits!! Retired now. But still with all those great benefits.</p>\n<p>Most folks don&#8217;t even know the cost of doing business. Sorry for being wordy but those are the facts.</p>\n<p>Plus a friend in the gasoline biz had a pump out of order. 1800 to repair it, not even mentioning the drivers who drive off with the nozzle still in the gas filler!! 300 to replace!!</p>\n"
+      },
+      "date_gmt" : "2026-08-24T23:31:59",
+      "id" : 2396384,
+      "parent" : 2394505
+    },
+    {
+      "author_name" : "Bill",
+      "content" : {
+        "rendered" : "<p>I know the cost of doing business. Not my problem. I’m on this site to make money for churning credit cards with rewards and bank bonuses. Not interested in excuses that will eventually sunset this activity. Not sure why you people are here. Go after big brother red tape instead on backdooring to eliminate these rewards for the average person.</p>\n"
+      },
+      "date_gmt" : "2026-08-25T00:17:29",
+      "id" : 2396403,
+      "parent" : 2396384
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Removed, thanks</p>\n"
+      },
+      "date_gmt" : "2026-08-25T02:36:02",
+      "id" : 2396449,
+      "parent" : 2396138
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Fixed thanks</p>\n"
+      },
+      "date_gmt" : "2026-08-25T02:36:08",
+      "id" : 2396450,
+      "parent" : 2396073
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p><span style=\"color: rgb(119, 119, 119);\">Fixed thanks</span></p>\n"
+      },
+      "date_gmt" : "2026-08-25T02:36:12",
+      "id" : 2396451,
+      "parent" : 2396063
+    },
+    {
+      "author_name" : "Bob dyland",
+      "content" : {
+        "rendered" : "<p>Atmos Summit isn&#8217;t 100k anymore, link doesn&#8217;t work.</p>\n"
+      },
+      "date_gmt" : "2026-08-25T07:14:44",
+      "id" : 2396525,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Tyler",
+      "content" : {
+        "rendered" : "<p>Car dealerships generally don&#8217;t even take credit cards.  If they allow it, they usually will only allow up to a max of 3 to 5k.  It&#8217;s not a surprised that they will charge a credit card fee when they make most of their money on financing deals at the dealership.</p>\n"
+      },
+      "date_gmt" : "2026-08-25T15:25:45",
+      "id" : 2396675,
+      "parent" : 2394505
+    },
+    {
+      "author_name" : "Gadget 🕵️‍♂️ Bank Bonus Geek 🔗",
+      "content" : {
+        "rendered" : "<p>Barclays Upromise is a $100 bonus; not $300. <a class='hint hint--right' data-ucm_user_id='2' href='https://www.doctorofcredit.com/author/will/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;William Charles</a></p>\n"
+      },
+      "date_gmt" : "2026-08-30T18:56:46",
+      "id" : 2400989,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Gadget 🕵️‍♂️ Bank Bonus Geek 🔗",
+      "content" : {
+        "rendered" : "<p>Received $250 BMO Cash Back MC &#8220;prescreened&#8221; bonus offer via snail mail, requires $1K spend in the first 3 months.  <strong>Instantly denied.</strong>  No hard pull.  Weird.  Tried twice.</p>\n<p>Public link:<br />\n<a href=\"https://www.bmo.com/en-us/main/personal/credit-cards/bmo-cash-back-credit-card/\" rel=\"nofollow ugc\">https://www.bmo.com/en-us/main/personal/credit-cards/bmo-cash-back-credit-card/</a></p>\n<p>Applied via the public link, and this time the application pended.  LoL</p>\n"
+      },
+      "date_gmt" : "2026-08-30T22:57:04",
+      "id" : 2401083,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Removed, thanks</p>\n"
+      },
+      "date_gmt" : "2026-08-31T00:50:19",
+      "id" : 2401159,
+      "parent" : 2400989
+    },
+    {
+      "author_name" : "Nick",
+      "content" : {
+        "rendered" : "<p>Dead: &#8220;Citi AAdvantage Business 75,000 American Airlines Miles&#8221;</p>\n"
+      },
+      "date_gmt" : "2026-08-31T16:58:20",
+      "id" : 2401465,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Jean",
+      "content" : {
+        "rendered" : "<p>Rakuten BOA travel card is $350 and it doesn&#8217;t requires any spending</p>\n"
+      },
+      "date_gmt" : "2026-09-01T12:53:30",
+      "id" : 2402194,
+      "parent" : 0
+    },
+    {
+      "author_name" : "JD",
+      "content" : {
+        "rendered" : "<p>&#8220;Chase Aeroplan Card: 75,000 + 25,000 Point Offer&#8221; has been dead for a minute.</p>\n"
+      },
+      "date_gmt" : "2026-09-03T20:56:46",
+      "id" : 2404728,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Thanks, removed</p>\n"
+      },
+      "date_gmt" : "2026-09-03T21:09:15",
+      "id" : 2404741,
+      "parent" : 2404728
+    },
+    {
+      "author_name" : "Gadget 🕵️‍♂️ Bank Bonus Geek 🔗",
+      "content" : {
+        "rendered" : "<p>LoL&#8230; still waiting on my denial letter.</p>\n<p>Logged in BMO today to see they are now offering me &#8220;<strong>pre-selected</strong>&#8221; for the same card as before, this time with the cash back doubled for the same year.</p>\n<p><strong>Transunion</strong> was pulled on 8/31&#8230; presumably because of my 2nd application that went pending.</p>\n"
+      },
+      "date_gmt" : "2026-09-04T21:50:41",
+      "id" : 2405693,
+      "parent" : 2401083
+    },
+    {
+      "author_name" : "N",
+      "content" : {
+        "rendered" : "<p>The Discover It $200 SUB has been unavailable for a few weeks now.</p>\n"
+      },
+      "date_gmt" : "2026-09-05T20:28:56",
+      "id" : 2406300,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Frank",
+      "content" : {
+        "rendered" : "<p>Chase emailing offering a 75k bonus despite knowing I’m not going to be eligible because THEY gave me a bonus a decade ago…</p>\n"
+      },
+      "date_gmt" : "2026-09-05T21:34:20",
+      "id" : 2406329,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Gadget 🕵️‍♂️ Bank Bonus Geek 🔗",
+      "content" : {
+        "rendered" : "<p>&#8220;Lifetime&#8221; likely really doesn&#8217;t mean birth-death.  I think there are some DP&#8217;s 10-ish year success DP&#8217;s.  If you don&#8217;t get a pop-up when applying, you should be good to go.  GL!</p>\n"
+      },
+      "date_gmt" : "2026-09-05T22:32:19",
+      "id" : 2406351,
+      "parent" : 2406329
+    },
+    {
+      "author_name" : "Relax and Smile",
+      "content" : {
+        "rendered" : "<p>Means nothing. Marketing department is different from department that approves/disapproves. Chase keeps sending me postal mailers about their business checking bonus, but denies me when I apply.</p>\n"
+      },
+      "date_gmt" : "2026-09-05T23:51:35",
+      "id" : 2406383,
+      "parent" : 2406329
+    },
+    {
+      "author_name" : "Gadget 🕵️‍♂️ Bank Bonus Geek 🔗",
+      "content" : {
+        "rendered" : "<p>BMO adverse action letter states:</p>\n<p>Lack of recent installment loan information (Closed one last year after paying one monthly payment on it.)<br />\nLack of recent retail account information  (Like I want a store card in the 2020&#8217;s?)<br />\nToo many inquiries last 12 months (Two on TU, including this one by BMO &#8211; LOL)<br />\nToo few accounts currently paid as agreed (Total BS)</p>\n<p>Used Transunion<br />\nCredit Score = 734  (seems low)</p>\n<p>I think the real reason is I have too many open CC accounts (30)&#8230;</p>\n"
+      },
+      "date_gmt" : "2026-09-06T00:49:36",
+      "id" : 2406397,
+      "parent" : 2405693
+    },
+    {
+      "author_name" : "Joe",
+      "content" : {
+        "rendered" : "<p>Where would latest delta offers rank on this list</p>\n"
+      },
+      "date_gmt" : "2026-09-06T20:38:06",
+      "id" : 2406781,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Karl",
+      "content" : {
+        "rendered" : "<p>To be fair, the first reason might be legitimate. The other 3 are BS.</p>\n<p>Lack of an open installment dings your FICO 25-35 points. That would be the main reason your score was low.</p>\n<p>Another cause of an unexpectedly low score is zero CCs reporting a balance on the day they happen to pull your report. A $1+ balance reporting on 1 card solves that. $3 to be safe, in case of small balance waivers.</p>\n"
+      },
+      "date_gmt" : "2026-09-09T00:50:11",
+      "id" : 2408207,
+      "parent" : 2406397
+    },
+    {
+      "author_name" : "Gadget 🕵️‍♂️ Bank Bonus Geek 🔗",
+      "content" : {
+        "rendered" : "<p>Partially because of the Paze promo, I have about 10 cards reporting a balance.  In fact, I am thinking the opposite&#8230; It looks bad to have that many active.</p>\n<p>Total available revolving credit is almost $300K.  I have 30 open CC&#8217;s, with a total &#8220;debt&#8221; balance of about $500-$1000, depending on the snapshot they took.  <span>I really think I need to start closing out some &#8220;duplicate&#8221; cards I have&#8230; </span></p>\n<p>PNC recently closed my $1K LOC that I had open for over 20 years, closed due to inactivity (never used it &#8211; it was opened as overdraft protection).  That was my only open non-revolving account.</p>\n<p>That score doesn&#8217;t feel right to me, regardless.  I pulled my FICO via Bank of America just now. 788/850.  Uses Experian.  Discover uses Transunion, and showing an 800 FICO for 8/27/26.  Barclays, the same score, for <span>08/16/2026.</span></p>\n<p><span>Free FICO&#8217;s:  </span><a href=\"https://www.doctorofcredit.com/comparison-free-fico-scores-banks-cus/\" rel=\"ugc\">https://www.doctorofcredit.com/comparison-free-fico-scores-banks-cus/</a></p>\n"
+      },
+      "date_gmt" : "2026-09-09T02:01:23",
+      "id" : 2408285,
+      "parent" : 2408207
+    },
+    {
+      "author_name" : "Karl",
+      "content" : {
+        "rendered" : "<p>10/30 is too many accounts with balances, but no way could that account for a 60+ point change. Not even close.</p>\n<p>You can have up to 21% of cards showing small balances with no effect on FICO 8. So with 30 open cards, anywhere from 1-6 balances would be optimal. But again, a 60 point drop for 10/30 would be ridiculous.</p>\n<p>I wonder if BMO is using a different scoring model. Did they mention which version? BoA, Barclays and Discover are all FICO 8 (the most common).</p>\n<p>Wells Fargo gives a FICO 9 score (albeit EX) and US Bank uses FICO 10 so maybe you could compare those.</p>\n<p>Or possibly BMO was using an internal score, like Chase? I&#8217;d love to know where they got that score, it just seems ludicrous.</p>\n"
+      },
+      "date_gmt" : "2026-09-09T02:50:05",
+      "id" : 2408313,
+      "parent" : 2408285
+    },
+    {
+      "author_name" : "Gadget 🕵️‍♂️ Bank Bonus Geek 🔗",
+      "content" : {
+        "rendered" : "<p>USB, I don&#8217;t see a FICO option.</p>\n<p>USB = 828 <span>Based on VantageScore® 3.0 as of 09/08/2026</span><br />\n<span>My BMO checking acct online banking uses creditviewdashboard.com, just like USB.</span></p>\n<p><span>WF = 808 </span>Updated 09/08/2026 FICO® Score 9 Experian® data</p>\n<p>BMO adverse action doesn&#8217;t say the model.  Just says 734/850.  Trans Union is mentioned on the letter.</p>\n<p>I guess I could try to call &#8220;recon&#8221; and see if they will tell me anything.</p>\n"
+      },
+      "date_gmt" : "2026-09-09T03:36:09",
+      "id" : 2408345,
+      "parent" : 2408313
+    },
+    {
+      "author_name" : "Karl",
+      "content" : {
+        "rendered" : "<p>USB gives you FICO 10 but I forgot the caveat&#8230; you have to get denied for the privilege. I&#8217;ve been able to track my TU FICO 10 by applying for TripleCashes too often&#8230; 🙁</p>\n"
+      },
+      "date_gmt" : "2026-09-09T05:11:44",
+      "id" : 2408387,
+      "parent" : 2408345
+    },
+    {
+      "author_name" : "Boozi",
+      "content" : {
+        "rendered" : "<p>PNC Small Biz Card has bonus of $400 for $3k spending, comes with 1.5% cashback. Downside is that they require prior checking relationship</p>\n<p><a href=\"https://www.pnc.com/en/small-business/borrowing/business-credit-cards/pnc-cash-rewards-visa-signature-business-credit-card.html\" rel=\"nofollow ugc\">https://www.pnc.com/en/small-business/borrowing/business-credit-cards/pnc-cash-rewards-visa-signature-business-credit-card.html</a></p>\n"
+      },
+      "date_gmt" : "2026-09-09T20:52:02",
+      "id" : 2408992,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Karl",
+      "content" : {
+        "rendered" : "<p>I&#8217;d re-frame that downside as &#8220;You have to do the $400 checking account bonus before the $400 CC bonus.&#8221;</p>\n<p>A potential downside for the CC is bank account funding does not count toward the $3k minimum spend.</p>\n"
+      },
+      "date_gmt" : "2026-09-09T23:34:00",
+      "id" : 2409149,
+      "parent" : 2408992
+    },
+    {
+      "author_name" : "MarcoPolo",
+      "content" : {
+        "rendered" : "<p><a class='hint hint--right' data-ucm_user_id='2' href='https://www.doctorofcredit.com/author/will/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;William Charles</a><br />\nI think there should be separate posts for &#8220;Best Current Credit Card Sign Up Bonuses&#8221; (the master list) AND separate post each month for &#8220;Current Credit Card Sign Up Bonuses&#8221; for the corresponding months e.g. September, 2026 for this month.<br />\nIMHO that will be much more useful and similar posts can be made for Bank Account bonuses.</p>\n"
+      },
+      "date_gmt" : "2026-09-11T03:59:14",
+      "id" : 2410494,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>I don&#8217;t think I understand what you&#8217;re suggesting. What&#8217;s the difference between the two?</p>\n"
+      },
+      "date_gmt" : "2026-09-11T10:27:13",
+      "id" : 2410597,
+      "parent" : 2410494
+    },
+    {
+      "author_name" : "MarcoPolo",
+      "content" : {
+        "rendered" : "<p>The current thread lists all best credit card offers till date.<br />\nI am suggesting a new post every month only for the best credit card offers posted that month (at the end of that month).<br />\nHope this makes sense.</p>\n"
+      },
+      "date_gmt" : "2026-09-12T00:29:19",
+      "id" : 2411191,
+      "parent" : 2410597
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Don&#8217;t think it makes much sense and adds more workload, you can already look at the recently changes section to get the same info</p>\n"
+      },
+      "date_gmt" : "2026-09-12T22:56:05",
+      "id" : 2411547,
+      "parent" : 2411191
+    },
+    {
+      "author_name" : "Brian",
+      "content" : {
+        "rendered" : "<p>Can someone explain why the Chase cards were taken down? I know the better deals aren&#8217;t on them right now, but even without those, they seem objectively better than a lot on this list? Take the IHG ones. Nothing comes close to that amount of points for that amount of spending.</p>\n<p>I could be misunderstanding something though, as I am new. Only on my first churn card. I ask specifically about Chase because I wanted to frontload Chase due to the 5/24 rule.</p>\n"
+      },
+      "date_gmt" : "2026-09-16T19:34:56",
+      "id" : 2414127,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Because it&#8217;s better to wait for the bigger offers to return? Also points aren&#8217;t equal in value.</p>\n"
+      },
+      "date_gmt" : "2026-09-16T21:26:13",
+      "id" : 2414261,
+      "parent" : 2414127
+    },
+    {
+      "author_name" : "Stj.Mo",
+      "content" : {
+        "rendered" : "<p>Does anyone know of a groceru store in NYC where they sell money orders?</p>\n"
+      },
+      "date_gmt" : "2026-09-18T11:13:16",
+      "id" : 2415697,
+      "parent" : 0
+    },
+    {
+      "author_name" : "TOm",
+      "content" : {
+        "rendered" : "<p>Not sure where to post this but&#8230;<br />\nI received a MC debit gift card with $4.46 balance on it. I used to transfer the balance to the Amazon gift card but now Amazon will only do transfers if the debit gift card has a $5 min balance on it. I have no clue on how to drain this debit card to zero. I prefer to spend it at Amazon but any suggestions are highly appreciated.</p>\n"
+      },
+      "date_gmt" : "2026-09-19T00:27:44",
+      "id" : 2416287,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Gadget 🕵️‍♂️ Bank Bonus Geek 🔗",
+      "content" : {
+        "rendered" : "<p>My grocery store drains gift cards without asking them to split a purchase. <a class='wpd-umcguest'  href='https://www.doctorofcredit.com/best-current-credit-card-sign-bonuses/#comment-2416287'><img alt='' src='https://secure.gravatar.com/avatar/76c003d95b50b49712c5bbeb126aad94f480385637b27f4fdcd5e197cb952a72?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/76c003d95b50b49712c5bbeb126aad94f480385637b27f4fdcd5e197cb952a72?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>TOm</a> But, who knows if yours does?</p>\n<p>Some utility bills, insurance, will take a small debit card payment online.</p>\n<p>Best resource for your query: <a href=\"https://www.doctorofcredit.com/share-your-tips-for-meeting-small-1-spent-transactions/\" rel=\"ugc\">https://www.doctorofcredit.com/share-your-tips-for-meeting-small-1-spent-transactions/</a></p>\n"
+      },
+      "date_gmt" : "2026-09-19T01:29:34",
+      "id" : 2416320,
+      "parent" : 2416287
+    },
+    {
+      "author_name" : "TOm",
+      "content" : {
+        "rendered" : "<p>Thanks Gadget. One thing I did not mention is that I received a virtual gift card not a physical card, so I can&#8217;t figure out how to use that at the Publix terminal.</p>\n"
+      },
+      "date_gmt" : "2026-09-19T09:35:43",
+      "id" : 2416421,
+      "parent" : 2416320
+    },
+    {
+      "author_name" : "nmr6",
+      "content" : {
+        "rendered" : "<p>This has been a pain point for me and I have spent a lot of time coming up with solutions — a couple of options: 1) check if your utilities allow you to pay with a debit card without a fee; often can do very small amounts for electricity, phone bill, etc. 2) if you use E-ZPass (or your local equivalent) for tolls, I have loaded as little as $2.12 before. 3) if you have a Target gift card balance, you can adjust the amount used from the balance and then split payment with another card; so if your total is $9.99, use $5.53 of your available Target GC balance, leaving exactly $4.46 left to pay, then use the MC GC for that — it will drain it to $0.00… have successfully done it for $0.10! (just be careful if your area charges for plastic bags at pick up, my Targets automatically charge $0.50 for 10 bags and then refund you based on the number actually used; not an issue for orders that are shipped). Good luck!</p>\n"
+      },
+      "date_gmt" : "2026-09-19T20:59:00",
+      "id" : 2416703,
+      "parent" : 2416421
+    },
+    {
+      "author_name" : "TOm",
+      "content" : {
+        "rendered" : "<p>Thanks nmr6. I gave up after spending too many brain calories on such a small amount. I gave my card info to my GF to spend it at StrBcks as she sees fit.</p>\n<p>The most annoying part of not being able to balance transfer a gift card issued for under $5 is that the debit card also comes with a monthly 95 cent penalty if you don&#8217;t start to spend it down within 6-months of issue.</p>\n"
+      },
+      "date_gmt" : "2026-09-20T23:19:52",
+      "id" : 2417321,
+      "parent" : 2416703
+    },
+    {
+      "author_name" : "Skdkd",
+      "content" : {
+        "rendered" : "<p>Chase freedom signup bonus $200 with the belo link</p>\n<p>Earn cash back with the Chase Freedom Unlimited or Chase Freedom Flex credit card. I can be rewarded if you apply here and are approved for the card. Learn more.<br />\n&nbsp;[removed and banned, follow the rules you agreed to]</p>\n"
+      },
+      "date_gmt" : "2026-09-22T16:23:37",
+      "id" : 2418739,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Tom",
+      "content" : {
+        "rendered" : "<p>I have a business bank account with chase and they offered me a 125k point bonus when I spend $5000 within 3 months on the chase saffire preferred (personal card). The offer popped up in the chase app and was pre approved.</p>\n"
+      },
+      "date_gmt" : "2026-09-23T02:55:12",
+      "id" : 2419274,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Gadget 🕵️‍♂️ Bank Bonus Geek 🔗",
+      "content" : {
+        "rendered" : "<p>The PenFed entry needs to be updated.</p>\n<p><em>PenFed Pathfinder Rewards – 50,000 Points + $50</em><br />\n<em><span>﻿</span>Card also comes with a $100 airline credit, honors members don’t have to pay any annual fee making the card worth keeping long term.</em></p>\n<p>The +$50 referral has been gone for years.<br />\nThe part about the annual fee is no longer true as of this month.</p>\n"
+      },
+      "date_gmt" : "2026-09-23T16:50:07",
+      "id" : 2419596,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Thanks, updated</p>\n"
+      },
+      "date_gmt" : "2026-09-24T02:27:01",
+      "id" : 2420001,
+      "parent" : 2419596
+    },
+    {
+      "author_name" : "Jon",
+      "content" : {
+        "rendered" : "<p>Southwest Premier Business card is up to 80k points.<br />\n<a href=\"https://creditcards.chase.com/business-credit-cards/southwest/premier-business?iCELL=6C1Y\" rel=\"nofollow ugc\">https://creditcards.chase.com/business-credit-cards/southwest/premier-business?iCELL=6C1Y</a></p>\n"
+      },
+      "date_gmt" : "2026-09-24T17:49:35",
+      "id" : 2420423,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Db",
+      "content" : {
+        "rendered" : "<p>Explorer card 85k is expired. You actually even say this in the linked page. There is an 80k deal right now (70k + 10k for AU) that&#8217;s &#8220;targeted&#8221; but seems to be for anyone if you log in since annecdotally the 4 people I can check with all have it (and many have had the card recently).</p>\n"
+      },
+      "date_gmt" : "2026-09-30T17:49:41",
+      "id" : 2424354,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Thanks, updated</p>\n"
+      },
+      "date_gmt" : "2026-09-30T23:04:02",
+      "id" : 2424525,
+      "parent" : 2424354
+    },
+    {
+      "author_name" : "John Doe",
+      "content" : {
+        "rendered" : "<p>IHG One Rewards Premier Select Card is just released.</p>\n<p><a href=\"https://media.chase.com/news/ihg-premier-select-card-portfolio-updates\" rel=\"nofollow ugc\">https://media.chase.com/news/ihg-premier-select-card-portfolio-updates</a></p>\n<p><a href=\"https://www.chase.com/personal/credit-cards/ihg/premierselect\" rel=\"nofollow ugc\">https://www.chase.com/personal/credit-cards/ihg/premierselect</a></p>\n<p> <a class='hint hint--right' data-ucm_user_id='2' href='https://www.doctorofcredit.com/author/will/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;William Charles</a>  <a class='hint hint--right' data-ucm_user_id='6' href='https://www.doctorofcredit.com/author/chucksithe/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/6581771f6d6c07578202c34dd35680cd5e37f8e5b2b5af89f03bde48286dade3?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/6581771f6d6c07578202c34dd35680cd5e37f8e5b2b5af89f03bde48286dade3?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;Chuck</a></p>\n"
+      },
+      "date_gmt" : "2026-10-01T18:59:06",
+      "id" : 2425145,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Rob",
+      "content" : {
+        "rendered" : "<p>IIRC this 50k deal for the no fee United Gateway is highest ever. Useful to pair with the United Business card for the annual 5k personal+business cardholder bonus.<br />\n<a href=\"https://creditcards.chase.com/travel-credit-cards/united/united-gateway\" rel=\"nofollow ugc\">https://creditcards.chase.com/travel-credit-cards/united/united-gateway</a></p>\n"
+      },
+      "date_gmt" : "2026-10-02T03:54:14",
+      "id" : 2425732,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Luigi",
+      "content" : {
+        "rendered" : "<p>I&#8217;m looking for credit card sign up bonus that is $200 for $1,000 spent and I have already done all the big banks like Chase, Capital One, Citi, Bank of America, and Wells Fargo.  Are there any smaller banks that you guys know that offer the $200 SUB for $1,000 spend?</p>\n"
+      },
+      "date_gmt" : "2026-10-05T23:50:06",
+      "id" : 2428224,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Db",
+      "content" : {
+        "rendered" : "<p>Ha! Its already back, thanks for the updated post. I guess might as well add it back now since its at 90k?</p>\n"
+      },
+      "date_gmt" : "2026-10-07T03:16:10",
+      "id" : 2429157,
+      "parent" : 2424525
+    },
+    {
+      "author_name" : "TOm",
+      "content" : {
+        "rendered" : "<p>Update. My GF was also unable to use the gift card at StrBks. However I just placed an online order with RockAuto and they allow split payments. When I was ready to check out I checked the split payment option, paid with the debit card and told them how much to pull from the debit card, the system then asked me what other form of payment I wanted to use to cover the remaining balance (see below). Finally I was unable to unload this low balance GC.</p>\n<p>RockAuto info:<br />\nCan I use multiple payment methods on one order?<br />\nYes (up to four, not counting Gift Certificates/Store Credits). Check the &#8220;Split Payment&#8221; box, select your first payment method, enter its information and the amount you wish to be applied to it, and click &#8220;Add Payment&#8221;. Then repeat to specify other payment method(s) for the remaining balance.</p>\n<p>Your payments will be shown in the &#8220;Payments&#8221; section. Click remove next to a method if you decide not to use it.</p>\n<p>To specify a payment method for the remaining balance (shown in the “Amount” box), choose the method, enter in any necessary information, and click &#8220;Place Order&#8221;.</p>\n"
+      },
+      "date_gmt" : "2026-10-07T13:30:41",
+      "id" : 2429401,
+      "parent" : 2416703
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p><a href=\"https://www.doctorofcredit.com/best-current-credit-card-sign-bonuses/#Chase_United_Explorer_75000-90000_Miles_Signup_Bonus\" rel=\"ugc\">https://www.doctorofcredit.com/best-current-credit-card-sign-bonuses/#Chase_United_Explorer_75000-90000_Miles_Signup_Bonus</a> already have added it back</p>\n"
+      },
+      "date_gmt" : "2026-10-07T20:50:55",
+      "id" : 2429861,
+      "parent" : 2429157
+    },
+    {
+      "author_name" : "Nice Me",
+      "content" : {
+        "rendered" : "<p>I just did one for Commerce Bank. It was a targeted offer though.</p>\n"
+      },
+      "date_gmt" : "2026-10-08T00:10:21",
+      "id" : 2430026,
+      "parent" : 2428224
+    },
+    {
+      "author_name" : "John P",
+      "content" : {
+        "rendered" : "<p>United MileagePlus Business is now 90-100k, but $150 annual fee not waived</p>\n"
+      },
+      "date_gmt" : "2026-10-10T14:23:11",
+      "id" : 2432042,
+      "parent" : 2429861
+    },
+    {
+      "author_name" : "Bockrr🔗",
+      "content" : {
+        "rendered" : "<p><a href=\"https://www.yolofcu.org/visa-platinum\" rel=\"nofollow ugc\">https://www.yolofcu.org/visa-platinum</a> ($1000)</p>\n<p><a href=\"https://www.vlfcu.org/70k-points/\" rel=\"nofollow ugc\">https://www.vlfcu.org/70k-points/</a> (~$550)</p>\n"
+      },
+      "date_gmt" : "2026-10-19T03:55:12",
+      "id" : 2437823,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Jon",
+      "content" : {
+        "rendered" : "<p>Got a mailer for the IHG Premier select card.  200k points.</p>\n<p><a href=\"https://www.chase.com/ihgpremierselect200\" rel=\"nofollow ugc\">https://www.chase.com/ihgpremierselect200</a></p>\n"
+      },
+      "date_gmt" : "2026-10-23T16:05:31",
+      "id" : 2441365,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Jared B",
+      "content" : {
+        "rendered" : "<p>The American Express Blue Business Cash/Plus is listed under personal on the list. Just FYI. </p>\n"
+      },
+      "date_gmt" : "2026-10-23T17:22:27",
+      "id" : 2441434,
+      "parent" : 0
+    },
+    {
+      "author_name" : "AA",
+      "content" : {
+        "rendered" : "<p>Are they legit? How is your experience? Name looks funny.</p>\n"
+      },
+      "date_gmt" : "2026-10-27T00:31:03",
+      "id" : 2443211,
+      "parent" : 2437823
+    },
+    {
+      "author_name" : "Gadget 🕵️‍♂️ Bank Bonus Geek 🔗",
+      "content" : {
+        "rendered" : "<p><strong>Yolo</strong>&#8230; <a href=\"https://www.yolofcu.org/welcome\" rel=\"nofollow ugc\">https://www.yolofcu.org/welcome</a></p>\n<p><em>&#8220;</em><em>Everyone who lives, works, worships, or attends school in </em><strong><em>Yolo,</em></strong><br />\n<strong><em>Sacramento, Placer,</em></strong><em> or </em><strong><em>El Dorado</em></strong><em> counties </em><span>(in California)</span><em> is eligible for membership.&#8221;</em></p>\n<p><strong>Vacationland</strong><span>&#8230; </span><a href=\"https://www.vlfcu.org/become-a-member/membership-qualifications/\" rel=\"nofollow ugc\">https://www.vlfcu.org/become-a-member/membership-qualifications/</a></p>\n<p><em>&#8220;Persons who live, work, worship, or attend school in, and businesses and other legal entities in Erie, Huron, Lorain, Ottawa, and Sandusky&#8221;</em><span> </span><span>counties in Ohio.</span></p>\n"
+      },
+      "date_gmt" : "2026-10-27T00:47:13",
+      "id" : 2443224,
+      "parent" : 2443211
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Isn&#8217;t that just the standard bonus?</p>\n"
+      },
+      "date_gmt" : "2026-10-27T02:19:45",
+      "id" : 2443275,
+      "parent" : 2441365
+    },
+    {
+      "author_name" : "Jonathan",
+      "content" : {
+        "rendered" : "<p>Yeah my bad.</p>\n"
+      },
+      "date_gmt" : "2026-10-27T11:07:14",
+      "id" : 2443389,
+      "parent" : 2443275
+    },
+    {
+      "author_name" : "🔗 Flynn",
+      "content" : {
+        "rendered" : "<p><a class='hint hint--right' data-ucm_user_id='2' href='https://www.doctorofcredit.com/author/will/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;William Charles</a> you can now remove the USB Leverage and add the two new biz cards,Essentials and Essentials Plus.</p>\n"
+      },
+      "date_gmt" : "2026-10-28T21:33:46",
+      "id" : 2444527,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Costco corgi",
+      "content" : {
+        "rendered" : "<p>Skyla. Also 4x back during Black Friday times (11/22-12/5)</p>\n<p><a href=\"https://www.skylacu.com/credit-cards/\" rel=\"nofollow ugc\">https://www.skylacu.com/credit-cards/</a></p>\n"
+      },
+      "date_gmt" : "2026-10-30T00:32:20",
+      "id" : 2445268,
+      "parent" : 2428224
+    },
+    {
+      "author_name" : "Costco corgi",
+      "content" : {
+        "rendered" : "<p><a href=\"https://www.skylacu.com/credit-cards/\" rel=\"nofollow ugc\">https://www.skylacu.com/credit-cards/</a></p>\n"
+      },
+      "date_gmt" : "2026-10-30T00:33:31",
+      "id" : 2445269,
+      "parent" : 2428224
+    },
+    {
+      "author_name" : "Tikky 🔗 👈",
+      "content" : {
+        "rendered" : "<p>Sharonview FCU</p>\n<p>Not on the list. They have an interesting selection of competitive Personal and Business cards (Elan) offers available. Included a few no fee CC&#8217;s, and many with Intro APR* for Purchases and Balance Transfers 0% introductory APR for the first 12 billing cycles. Maybe useful to some.</p>\n<p><a href=\"https://www.mycardapply.com/synindex?ecdma-lc=31380&#038;ecid=OTHE_25940&#038;offertype=0\" rel=\"nofollow ugc\">https://www.mycardapply.com/synindex?ecdma-lc=31380&#038;ecid=OTHE_25940&#038;offertype=0</a></p>\n<p><strong>UNLIMITED CASH CARD</strong> (No annual fee)Simple cash back for everyday spending with 3% cash back on ALL purchases for the first 12 billing cycles<br />\n3% cash backOn all purchases for 12 billing cycles on purchases up to $20,000</p>\n<p>Pay over timeTake advantage of a special card ExtendPay® plan offer, available each calendar year.</p>\n<p>1.5% cash backOn all purchases after the introductory period</p>\n<p>5% cash backOn prepaid hotel and car reservations booked directly in the Travel Center when you use your card</p>\n<p>Choose your rewardsRedeem cash back as a statement credit, rewards card, or as a deposit into an eligible Account with this Financial Institution. There&#8217;s no cap on the cash you can earn.</p>\n<p><strong>MAX CASH PREFERRED CARD</strong> (No annual fee)*Designed to give back: $150 Bonus PLUS up to 5% cash back in 2 categories you choose<br />\n5% cash backIn two categories of your choice – first $2,000 in combined purchases each quarter</p>\n<p>$150 bonusAwarded when you spend $500 within the first 90 days</p>\n<p>2% unlimited cash backOn one everyday category of your choice<br />\n1% unlimited cash backOn all other eligible purchases</p>\n<p><strong>TRAVEL REWARDS+ CARD</strong> (No annual fee) Earn 4X points on eligible travel and more, plus receive 25,000 bonus points<br />\n4X pointsOn eligible travel, gas stations and EV charging stations,** entertainment, and recreation purchases<br />\n1.5X pointsOn all other eligible purchases</p>\n<p>Earn 25,000 points (worth up to $250 When you spend $2,000 within the first 120 days<br />\nAirport Lounge AccessComplimentary Priority Pass™ Select Membership that gives access to more than 1,700 VIP lounges and experiences worldwide</p>\n"
+      },
+      "date_gmt" : "2026-10-30T03:12:00",
+      "id" : 2445358,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Joe",
+      "content" : {
+        "rendered" : "<p>Why are the 100k Chase Ink Cash/Unlimited still listed here in November if they expired in September?</p>\n"
+      },
+      "date_gmt" : "2026-11-03T19:51:26",
+      "id" : 2448419,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Bankrupt",
+      "content" : {
+        "rendered" : "<p>There’s one more offer that is 500 statement credit any minimum spend first transaction, and 30000 miles after adding authorized user and spending 3000 within threemonth</p>\n"
+      },
+      "date_gmt" : "2026-11-09T17:39:11",
+      "id" : 2451763,
+      "parent" : 2424354
+    },
+    {
+      "author_name" : "Bankrupt",
+      "content" : {
+        "rendered" : "<p>Got notification letter in the mail saying check an account no longer waived annual fee</p>\n"
+      },
+      "date_gmt" : "2026-11-09T17:39:49",
+      "id" : 2451764,
+      "parent" : 2419596
+    }
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "1797",
+    "x-wp-totalpages" : "18"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/comments?post=28140&per_page=100&page=18&order=asc&orderby=date_gmt&_fields=id,parent,author_name,date_gmt,content"
+}

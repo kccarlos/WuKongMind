@@ -1,0 +1,8 @@
+{
+  "headers" : {
+    "content-type" : "text/plain; charset=utf-8"
+  },
+  "status" : 200,
+  "textBody" : "TangXing | 2026-08-28 14:54:31 UTC | #1\n\n## 在群晖NAS安装蒲公英，提示“部份设置错误，请再次输入。”\n\n## 计划任务的“setuid pgyvpn”没提示错误，**添加开机启动加载虚拟网卡提示错误**\n\n![001|485x500](upload://3JoQvBuiqNqPSYx2ptrDkXG3Ggv.jpeg)\n\n![003|480x500](upload://60ETUEXJnw6g8FEoIu1oLvHa2c0.jpeg)\n\n![002|481x500](upload://onv88rwGOGdEBntqGXJ89fT05j8.jpeg)请指教\n\n-------------------------\n\nQingwa | 2026-08-29 01:32:59 UTC | #2\n\n任务名是空的？显示了红色\n\n-------------------------\n\n",
+  "url" : "https://meta.appinn.net/raw/90860?page=1"
+}

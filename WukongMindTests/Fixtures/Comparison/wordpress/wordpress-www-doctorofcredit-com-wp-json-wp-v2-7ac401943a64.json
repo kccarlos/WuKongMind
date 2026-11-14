@@ -1,0 +1,125 @@
+{
+  "body" : [
+    {
+      "_embedded" : {
+        "author" : [
+          {
+            "name" : "William Charles"
+          }
+        ]
+      },
+      "author" : 2,
+      "date_gmt" : "2026-10-30T20:52:33",
+      "excerpt" : {
+        "rendered" : "<p>It can be difficult to keep track of all the deals we post and I know a lot of readers get angry at themselves when they miss a deal. I have a calendar set up reminding me when deals are set to expire and thought having something publicly facing would be useful. This should give [&hellip;]</p>\n"
+      },
+      "id" : 55927,
+      "link" : "https://www.doctorofcredit.com/deal-calendar-full-list-deals-credit-card-bank-bonuses-expiry-dates/",
+      "title" : {
+        "rendered" : "Deal Calendar (Full List Of Deals, Credit Card &#038; Bank Bonuses + Their Expiry Dates)"
+      }
+    },
+    {
+      "_embedded" : {
+        "author" : [
+          {
+            "name" : "William Charles"
+          }
+        ]
+      },
+      "author" : 2,
+      "date_gmt" : "2026-10-29T20:15:15",
+      "excerpt" : {
+        "rendered" : "<p>View all of the best credit card sign up bonuses. We list all of the best bonuses, unlike other sites that only list cards that pay them a commission!</p>\n"
+      },
+      "id" : 28140,
+      "link" : "https://www.doctorofcredit.com/best-current-credit-card-sign-bonuses/",
+      "title" : {
+        "rendered" : "Best Current Credit Card Sign Up Bonuses &#038; Offers For November, 2026"
+      }
+    },
+    {
+      "_embedded" : {
+        "author" : [
+          {
+            "name" : "William Charles"
+          }
+        ]
+      },
+      "author" : 2,
+      "date_gmt" : "2026-10-26T10:00:55",
+      "excerpt" : {
+        "rendered" : "<p>List of all the best checking, savings and bank account bonuses for November, 2026. $3,500+ in nationwide bonuses. $10,000+ in state bonuses. </p>\n"
+      },
+      "id" : 4263,
+      "link" : "https://www.doctorofcredit.com/best-bank-account-bonuses/",
+      "title" : {
+        "rendered" : "Best Bank Account Bonuses For November, 2026"
+      }
+    },
+    {
+      "_embedded" : {
+        "author" : [
+          {
+            "name" : "William Charles"
+          }
+        ]
+      },
+      "author" : 2,
+      "date_gmt" : "2026-10-19T13:00:25",
+      "excerpt" : {
+        "rendered" : "<p>There are reports that Lululemon gift cards are no longer triggering the American Express platinum statement credit. American Express is also no longer automatically pooling membership rewards points from new cards. There is a rumor that the Platinum card will be adding a $250 AirBnB experiences credit. Southwest is making changes including the companion pass [&hellip;]</p>\n"
+      },
+      "id" : 267382,
+      "link" : "https://www.doctorofcredit.com/best-posts-last-week-chase-900-checking-new-airbnb-credit-more/",
+      "title" : {
+        "rendered" : "Best Posts Last Week: Chase $900 Checking, New AirBnB Credit &#038; More"
+      }
+    },
+    {
+      "_embedded" : {
+        "author" : [
+          {
+            "name" : "William Charles"
+          }
+        ]
+      },
+      "author" : 2,
+      "date_gmt" : "2026-07-13T13:00:21",
+      "excerpt" : {
+        "rendered" : "<p>Was a slow week for credit cards, but the death of an OG has been announced with American Express discontinuing the Old Blue Cash. Chase has made changes to restaurants eligible for the Sapphire Reserve exclusive tables program $300 credit with 91 being added and 64 removed. Chase Freedom Flex is losing phone protection on [&hellip;]</p>\n"
+      },
+      "id" : 262051,
+      "link" : "https://www.doctorofcredit.com/best-posts-last-week-obc-discontinued-new-nationwide-bank-bonuses-u-s-mint-coin-deals/",
+      "title" : {
+        "rendered" : "Best Posts Last Week: OBC Discontinued, New Nationwide Bank Bonuses &#038; U.S. Mint Coin Deals"
+      }
+    },
+    {
+      "_embedded" : {
+        "author" : [
+          {
+            "name" : "William Charles"
+          }
+        ]
+      },
+      "author" : 2,
+      "date_gmt" : "2026-06-08T12:00:54",
+      "excerpt" : {
+        "rendered" : "<p>American Express has increased sign up bonuses on the Delta cards (both personal and business). AmEx has also added a new second checked bag free to those cards and new $120 rideshare credit on the gold cards on renewal. Chase is offering 125,000 points + free night certificate on the Bonvoy boundless card. American Express [&hellip;]</p>\n"
+      },
+      "id" : 259621,
+      "link" : "https://www.doctorofcredit.com/best-posts-last-week-new-delta-offers-etrade-400-savings-bonus-more/",
+      "title" : {
+        "rendered" : "Best Posts Last Week: New Delta Offers, E*Trade $400 Savings Bonus &#038; More"
+      }
+    }
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "6",
+    "x-wp-totalpages" : "1"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/posts?search=highest%20credit%20card%20sign-up%20bonus%20points%20offer&per_page=20&page=1&_fields=id,title,link,date_gmt,excerpt,author,_embedded,_links&after=2026-06-01T00:00:00&_embed=author"
+}

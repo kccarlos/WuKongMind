@@ -1,0 +1,103 @@
+{
+  "body" : {
+    "posts" : [
+      {
+        "blurb" : "原始链接在： https://www.appinn.com/synology-ransomware-attack-dsm-security-update/ 群晖发布公告：确认勒索病毒攻击利用了2024年12月已修复漏洞，请立即升级 DSM 到最新版 - 小众软件 群晖刚刚 https://www.synology.cn/zh-cn/company/news/article/C3RB3R 发布公告 ，确认本次《 https://www.appinn.com/synology-nas-ransomware-2026/ 勒索病毒攻击 》事件：恶意攻击者正利用 2024 年 12 月已完成修复的...",
+        "id" : 355819,
+        "post_number" : 1,
+        "topic_id" : 94828,
+        "username" : "Qingwa"
+      },
+      {
+        "blurb" : "image 群晖: 请加钱 不知道Synology_HDD_db能不能解决",
+        "id" : 333171,
+        "post_number" : 10,
+        "topic_id" : 88307,
+        "username" : "Cassius"
+      },
+      {
+        "blurb" : "原始链接在： https://www.appinn.com/synology-dsm-27-security-vulnerabilities-2026/ 群晖公布 27 个 DSM 安全漏洞，最高危 9.8 分！与此前勒索攻击有关吗？ - 小众软件 前不久，群晖发出紧急警告： https://www.appinn.com/synology-nas-ransomware-2026/ 部分 NAS 遭到 C3RB3R 勒索软件攻击 ，大量文件被加密，用户被要求支付赎金。 当时群晖特别强调，攻击者利用的是一个 https://www.appinn.com/synology-ransomware...",
+        "id" : 358531,
+        "post_number" : 1,
+        "topic_id" : 95756,
+        "username" : "Qingwa"
+      },
+      {
+        "blurb" : "原始链接在： https://www.appinn.com/synology-dsm-telnetd-cve-2026-24061-cve-2026-32746/ 群晖两连更：几乎没人用功能，Telnetd 爆出两个 9.8 分 CVE 漏洞 - 小众软件 省流：不开 Telnet 服务无任何影响。去检查下吧 最近几日，群晖的 DSM 系统接连更新，修复了 CVE-2026-24061 / CVE-2026-32746 两个涉及 Telnetd 的高危漏洞。 在 CVE-2026-24061 刚刚爆出之后，群晖就修复了这个错误（7.3.2-86009 Update 1，2026-01-2...",
+        "id" : 311231,
+        "post_number" : 1,
+        "topic_id" : 82916,
+        "username" : "Qingwa"
+      },
+      {
+        "blurb" : "原始链接在： https://www.appinn.com/wangyunchuan-com/ 没有公网 IP，如何低成本 8 年稳定远程访问内网 - 小众软件 很多人都想随时随地地 远程控制 在家或办公室的电脑，或者出门在外也能访问 NAS 里的文件、公司内部的 OA 系统，甚至小主机、路由器、打印机等设备。但由于没有公网 IP，这些设备都处于内网，无法直接访问。 内网穿透就可以解决这个问题 ，它能让你不受局域网的限制，在任何地点，用手机或电脑，也能访问家里或公司里的电脑、NAS、路由器等网络设备。 在2026年，内网穿透还意味着，你可以把办公室、家里的本地 AI 大模型也穿透出来，在...",
+        "id" : 304345,
+        "post_number" : 1,
+        "topic_id" : 81113,
+        "username" : "Qingwa"
+      }
+    ],
+    "topics" : [
+      {
+        "bumped_at" : "2026-11-09T05:14:27.980Z",
+        "fancy_title" : "群晖发布公告：确认勒索病毒攻击利用了2024年12月已修复漏洞，请立即升级 DSM 到最新版",
+        "has_accepted_answer" : false,
+        "id" : 94828,
+        "last_posted_at" : "2026-11-09T05:14:27.980Z",
+        "pinned" : false,
+        "posts_count" : 11,
+        "slug" : "topic",
+        "title" : "群晖发布公告：确认勒索病毒攻击利用了2024年12月已修复漏洞，请立即升级 DSM 到最新版"
+      },
+      {
+        "bumped_at" : "2026-07-18T00:31:13.758Z",
+        "fancy_title" : "群晖 DSM 7.4：原生数据去重/压缩功能，可节省硬盘空间。是 DS216+、DS918+ 的最后一个版本",
+        "has_accepted_answer" : false,
+        "id" : 88307,
+        "last_posted_at" : "2026-07-18T00:31:13.758Z",
+        "pinned" : false,
+        "posts_count" : 10,
+        "slug" : "topic",
+        "title" : "群晖 DSM 7.4：原生数据去重/压缩功能，可节省硬盘空间。是 DS216+、DS918+ 的最后一个版本"
+      },
+      {
+        "bumped_at" : "2026-11-12T07:18:31.950Z",
+        "fancy_title" : "群晖公布 27 个 DSM 安全漏洞，最高危 9.8 分！与此前勒索攻击有关吗？",
+        "has_accepted_answer" : false,
+        "id" : 95756,
+        "last_posted_at" : "2026-11-12T07:18:31.950Z",
+        "pinned" : false,
+        "posts_count" : 4,
+        "slug" : "topic",
+        "title" : "群晖公布 27 个 DSM 安全漏洞，最高危 9.8 分！与此前勒索攻击有关吗？"
+      },
+      {
+        "bumped_at" : "2026-03-21T09:29:00.192Z",
+        "fancy_title" : "群晖两连更：几乎没人用功能，Telnetd 爆出两个 9.8 分 CVE 漏洞",
+        "has_accepted_answer" : false,
+        "id" : 82916,
+        "last_posted_at" : "2026-03-21T09:29:00.192Z",
+        "pinned" : false,
+        "posts_count" : 8,
+        "slug" : "topic",
+        "title" : "群晖两连更：几乎没人用功能，Telnetd 爆出两个 9.8 分 CVE 漏洞"
+      },
+      {
+        "bumped_at" : "2026-02-03T09:24:38.350Z",
+        "fancy_title" : "没有公网 IP，如何低成本 8 年稳定远程访问内网",
+        "has_accepted_answer" : false,
+        "id" : 81113,
+        "last_posted_at" : "2026-02-03T09:24:38.350Z",
+        "pinned" : false,
+        "posts_count" : 10,
+        "slug" : "topic",
+        "title" : "没有公网 IP，如何低成本 8 年稳定远程访问内网"
+      }
+    ]
+  },
+  "headers" : {
+    "content-type" : "application/json; charset=utf-8"
+  },
+  "status" : 200,
+  "url" : "https://meta.appinn.net/search.json?q=%E7%BE%A4%E6%99%96%20DSM%20%E5%B7%B2%E8%A7%A3%E5%86%B3%20after:2026-01-01"
+}

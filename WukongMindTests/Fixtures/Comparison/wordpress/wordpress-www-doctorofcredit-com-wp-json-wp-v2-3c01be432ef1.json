@@ -1,0 +1,111 @@
+{
+  "body" : [
+    {
+      "author_name" : "Sam F.",
+      "content" : {
+        "rendered" : "<p>You likely have the Gubhub membership extended through next year. With the Amazon change to UberEats, GH is doing a 50% off deal that works with groceries as well. (They do charge both a Instacart and GH service fee, though.)</p>\n"
+      },
+      "date_gmt" : "2026-11-14T01:43:49",
+      "id" : 2454403,
+      "parent" : 2451904,
+      "post" : 268365
+    },
+    {
+      "author_name" : "Nicole",
+      "content" : {
+        "rendered" : "<p>I&#8217;d love if one of the donation options (I often use these if I haven&#8217;t used my various credit card credits in a given month) offered turkeys (I believe they call it Community Carts). would be nice to be able to combine so that you end up donating a turkey plus some sides to a food bank.</p>\n"
+      },
+      "date_gmt" : "2026-11-13T19:01:51",
+      "id" : 2454138,
+      "parent" : 0,
+      "post" : 268674
+    },
+    {
+      "author_name" : "Mark",
+      "content" : {
+        "rendered" : "<p>So what&#8217;s the idea?  Have your cart ready to go before noon, and then at noon the discount shows up and you finish quickly?</p>\n"
+      },
+      "date_gmt" : "2026-11-12T23:31:18",
+      "id" : 2453698,
+      "parent" : 0,
+      "post" : 268674
+    },
+    {
+      "author_name" : "Justine",
+      "content" : {
+        "rendered" : "<p>FYI, I bought 3 different nights at 3 different hotels and had it in my cart, checked out in one transaction. It posted as one transaction over $600 and I got the $100 back!</p>\n"
+      },
+      "date_gmt" : "2026-11-12T03:48:35",
+      "id" : 2453302,
+      "parent" : 0,
+      "post" : 229112
+    },
+    {
+      "author_name" : "PeteyPablo",
+      "content" : {
+        "rendered" : "<p>Instacart has been up for the last 3+ days for me</p>\n"
+      },
+      "date_gmt" : "2026-11-11T22:50:14",
+      "id" : 2453176,
+      "parent" : 0,
+      "post" : 207182
+    },
+    {
+      "author_name" : "Dima",
+      "content" : {
+        "rendered" : "<p>Just did a pickup order today, 11/11. Same prices for Instacart and in-store on many items at Aldi, so GrubHub essentially gave me $20 towards groceries.</p>\n"
+      },
+      "date_gmt" : "2026-11-11T20:31:39",
+      "id" : 2453090,
+      "parent" : 2451387,
+      "post" : 162972
+    },
+    {
+      "author_name" : "Jesse",
+      "content" : {
+        "rendered" : "<p>It doesn&#8217;t look like there&#8217;s any package discount, it&#8217;s just simplifying adding stuff to a cart.</p>\n"
+      },
+      "date_gmt" : "2026-11-10T16:13:04",
+      "id" : 2452280,
+      "parent" : 0,
+      "post" : 268568
+    },
+    {
+      "author_name" : "ck",
+      "content" : {
+        "rendered" : "<p>Agree, walking around Walmart and Target has begun to feel more like you are walking around an Amazon warehouse because you are having to try and navigate the aisles that are filled with huge carts being pushed around by the online order fulfillment people.</p>\n"
+      },
+      "date_gmt" : "2026-11-10T02:25:47",
+      "id" : 2452064,
+      "parent" : 2451977,
+      "post" : 263474
+    },
+    {
+      "author_name" : "Lollipop Cheong",
+      "content" : {
+        "rendered" : "<p>It’s interesting how cashback and shopping offers can make a purchase feel more worthwhile than it really is. I think the key is making sure the offer is helping with something you already planned to buy, rather than becoming the reason to spend in the first place.</p>\n"
+      },
+      "date_gmt" : "2026-11-10T01:32:20",
+      "id" : 2452044,
+      "parent" : 0,
+      "post" : 238498
+    },
+    {
+      "author_name" : "ck",
+      "content" : {
+        "rendered" : "<p>Why in the world do these companies reward people for delivery/pickup orders rather than in-store shoppers? They have to waste a bunch of employee time doing the shopping for customers and the stores are terrible for actual customers shopping in them because every aisle has some employee pushing a massive cart blocking the aisle to fulfill the orders.</p>\n<p>Reward the customers who actually come in and shop for themselves.</p>\n"
+      },
+      "date_gmt" : "2026-11-09T20:46:15",
+      "id" : 2451860,
+      "parent" : 0,
+      "post" : 263474
+    }
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "7188",
+    "x-wp-totalpages" : "719"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/comments?search=cart&per_page=10&page=1&order=desc&orderby=date_gmt&_fields=id,post,parent,author_name,date_gmt,content"
+}

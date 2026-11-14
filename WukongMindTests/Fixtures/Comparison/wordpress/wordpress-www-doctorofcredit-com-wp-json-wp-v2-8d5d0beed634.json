@@ -1,0 +1,911 @@
+{
+  "body" : [
+    {
+      "author_name" : "John",
+      "content" : {
+        "rendered" : "<p>The promo code box is back on the Avianca card.  Any idea if the old code still works to get the 60K bonus?</p>\n"
+      },
+      "date_gmt" : "2017-12-17T04:27:02",
+      "id" : 536990,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Terri Clark",
+      "content" : {
+        "rendered" : "<p>Thank you!  Just got instant approved using that link, same 50K Bonus.</p>\n"
+      },
+      "date_gmt" : "2017-12-17T16:43:05",
+      "id" : 537186,
+      "parent" : 536974
+    },
+    {
+      "author_name" : "Pinky brown",
+      "content" : {
+        "rendered" : "<p>What’s with the United Explorer card ? Why isn’t it mentioned ? And what’s the current Best bonus besides for the 70k. I’m not targeted for that. Thank you !</p>\n"
+      },
+      "date_gmt" : "2017-12-22T02:19:20",
+      "id" : 539800,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Somebody else said it doesn&#8217;t accept the old code, if anybody finds one it does accept let us know.</p>\n"
+      },
+      "date_gmt" : "2017-12-23T03:21:27",
+      "id" : 540401,
+      "parent" : 536990
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>I believe the best offer currently is 55k + $50 and that is also targeted. Best public bonus 40k and that is significantly lower than 75k + $50 and that&#8217;s why it&#8217;s not listed</p>\n"
+      },
+      "date_gmt" : "2017-12-23T03:22:25",
+      "id" : 540403,
+      "parent" : 539800
+    },
+    {
+      "author_name" : "TD",
+      "content" : {
+        "rendered" : "<p>I got a 40k + 5k AU + $100 statement credit going through an incognito window and dummy booking on Thursday.</p>\n"
+      },
+      "date_gmt" : "2017-12-23T03:32:14",
+      "id" : 540407,
+      "parent" : 540403
+    },
+    {
+      "author_name" : "adam",
+      "content" : {
+        "rendered" : "<p>I am curious as to why Citi AAdvantage is not listed. Right now the public offer has 60K miles after 3K spending with annual fee waived for the first year.</p>\n"
+      },
+      "date_gmt" : "2017-12-27T03:16:33",
+      "id" : 541701,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Charles",
+      "content" : {
+        "rendered" : "<p>He only lists the best &#8220;Deals&#8221; ,  so that one is pretty good but not a top offer.  Many people also don&#8217;t qualify with the 24 month terms listed.  (I consider 60K AA to be a pretty decent deal.)</p>\n<p>Personally I wish &#8220;Decent&#8221;  offers were included as I like this list format a lot better than scouring through the excel sheet looking for other cards to include in a group of applications.  (FYI the 60K Citi business offer will be at the top of my list.)   In another 4 months I will be at 4/24 if I don&#8217;t have any new Aps.  therefore I could get another Chase card.  In the meantime I could qualify for several business bonuses.  (Legitimate new business.)</p>\n<p>I don&#8217;t see how adding a few more cards to the lists or even in their own grouping if need be, would do anything but be convenient for people?</p>\n<p>Glad for what we have though.  DOC is one of the most thorough and updated on the internet.</p>\n"
+      },
+      "date_gmt" : "2017-12-27T16:51:17",
+      "id" : 541893,
+      "parent" : 541701
+    },
+    {
+      "author_name" : "Jeremy",
+      "content" : {
+        "rendered" : "<p>There is a 120K offer from Marriot for those who can spend $12K within a year. Annual fee is waived.<br />\n<a href=\"https://creditcards.chase.com/a1/marriottpremier/naep/120K?CELL=6XZX&#038;jp_cmp=cc/10798530/ext/95249850/209222792\" rel=\"nofollow ugc\">https://creditcards.chase.com/a1/marriottpremier/naep/120K?CELL=6XZX&#038;jp_cmp=cc/10798530/ext/95249850/209222792</a></p>\n"
+      },
+      "date_gmt" : "2017-12-27T17:46:11",
+      "id" : 541930,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Maybe I&#8217;ll add more options, what do other readers think?</p>\n"
+      },
+      "date_gmt" : "2017-12-27T22:35:31",
+      "id" : 542110,
+      "parent" : 541893
+    },
+    {
+      "author_name" : "Blue",
+      "content" : {
+        "rendered" : "<p>Keep it as it is.  This list is invaluable for finding the gems out there that are not hyped.  It&#8217;s how I got the Merril+ and a couple of days ago the Premier.</p>\n"
+      },
+      "date_gmt" : "2017-12-28T01:53:39",
+      "id" : 542200,
+      "parent" : 542110
+    },
+    {
+      "author_name" : "Yet Another Redditor",
+      "content" : {
+        "rendered" : "<p>While I could argue both sides, I would also say keep it as is. The post is called *Best* Current Offers for a reason. It is a good place to review periodically and also send people to.</p>\n"
+      },
+      "date_gmt" : "2017-12-28T03:01:59",
+      "id" : 542237,
+      "parent" : 542110
+    },
+    {
+      "author_name" : "Krista",
+      "content" : {
+        "rendered" : "<p>Curious as to whether those replying do any volume of credit applications?  </p>\n<p>I can see some merit from the poster stating this is &#8220;Best Current Offers&#8221;  for a reason.  Yet, I could see a wider range of offers in the $200-$500 range being useful and still qualify as &#8220;Best&#8221;.  That said, I would hate to see offers under $200 on here without strong justification.</p>\n<p>Thanks DoC for a great list.</p>\n"
+      },
+      "date_gmt" : "2018-01-04T16:20:24",
+      "id" : 547095,
+      "parent" : 542237
+    },
+    {
+      "author_name" : "banananon",
+      "content" : {
+        "rendered" : "<p>Updates needed:  WF Visa Signature offer is dead, US Bank Flexperks Gold is only worth $450 max now.</p>\n"
+      },
+      "date_gmt" : "2018-01-05T18:19:03",
+      "id" : 547767,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Blue",
+      "content" : {
+        "rendered" : "<p>Damn I missed on the WF Sig.  Guess that makes my choice of World Propel for me.</p>\n"
+      },
+      "date_gmt" : "2018-01-05T23:13:43",
+      "id" : 547856,
+      "parent" : 547767
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Thanks, made those changes.</p>\n"
+      },
+      "date_gmt" : "2018-01-08T06:52:59",
+      "id" : 548656,
+      "parent" : 547767
+    },
+    {
+      "author_name" : "Ma Barker",
+      "content" : {
+        "rendered" : "<p>I still see the 20,000 pts wys $1K sign up bonus for WF signature visa with this link: <a href=\"https://www.wellsfargo.com/credit-cards/visa-signature/\" rel=\"nofollow ugc\">https://www.wellsfargo.com/credit-cards/visa-signature/</a></p>\n<p>The link I attached shows full details of the offer.</p>\n"
+      },
+      "date_gmt" : "2018-01-08T13:08:51",
+      "id" : 548675,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>I don&#8217;t see the offer there, can you take a screenshot?</p>\n"
+      },
+      "date_gmt" : "2018-01-09T03:08:54",
+      "id" : 548913,
+      "parent" : 548675
+    },
+    {
+      "author_name" : "mommafrica",
+      "content" : {
+        "rendered" : "<p>Today, the S/O and I received a MP Club offer in the mail with an offer of no AF for the 1st yr (sign-up by 3/31), but no miles offering. Is this the norm? If not, is this still worth signing up for?</p>\n"
+      },
+      "date_gmt" : "2018-01-12T00:23:44",
+      "id" : 549984,
+      "parent" : 0
+    },
+    {
+      "author_name" : "AG",
+      "content" : {
+        "rendered" : "<p>Citi Premier 50,000 Point Offer link is not working.</p>\n"
+      },
+      "date_gmt" : "2018-01-12T02:26:05",
+      "id" : 550008,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Kyle",
+      "content" : {
+        "rendered" : "<p>NO!!! I&#8217;m 2 days away from 2 years on the Prestige, was gonna grab the Premier. Damnit. Hopefully a new link pops up.</p>\n"
+      },
+      "date_gmt" : "2018-01-12T23:37:49",
+      "id" : 550320,
+      "parent" : 550008
+    },
+    {
+      "author_name" : "DTCGuy",
+      "content" : {
+        "rendered" : "<p>Discover is no longer a double earner</p>\n"
+      },
+      "date_gmt" : "2018-01-12T23:54:18",
+      "id" : 550327,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Fixed, thanks.</p>\n"
+      },
+      "date_gmt" : "2018-01-13T04:07:59",
+      "id" : 550373,
+      "parent" : 550327
+    },
+    {
+      "author_name" : "igno",
+      "content" : {
+        "rendered" : "<p>fyi: Wells Fargo business specialist here, if you open a new business account with the bank you can get what is called a BACC offer for one of our business cards (ie. you don&#8217;t have to have an account for 12 months) right now $500 bonus for any new business credit cars that are opened through march 31st.</p>\n"
+      },
+      "date_gmt" : "2018-01-13T06:34:33",
+      "id" : 550415,
+      "parent" : 0
+    },
+    {
+      "author_name" : "SMan",
+      "content" : {
+        "rendered" : "<p>How come DoC does not mention about Diners Club Cards ?</p>\n"
+      },
+      "date_gmt" : "2018-01-13T12:31:42",
+      "id" : 550444,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Because they aren&#8217;t available for sign up?</p>\n"
+      },
+      "date_gmt" : "2018-01-14T05:14:33",
+      "id" : 550580,
+      "parent" : 550444
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Thanks, igno.</p>\n"
+      },
+      "date_gmt" : "2018-01-14T05:18:41",
+      "id" : 550584,
+      "parent" : 550415
+    },
+    {
+      "author_name" : "Vince",
+      "content" : {
+        "rendered" : "<p>Discover it no longer has cash back match for the first year. Still a decent card but don&#8217;t think it should be on this list anymore.</p>\n<p>Thanks</p>\n"
+      },
+      "date_gmt" : "2018-01-15T23:13:16",
+      "id" : 550932,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>It still has the cash back match. The sign up bonus just isn&#8217;t matched.</p>\n"
+      },
+      "date_gmt" : "2018-01-16T02:02:56",
+      "id" : 550969,
+      "parent" : 550932
+    },
+    {
+      "author_name" : "Lrdx",
+      "content" : {
+        "rendered" : "<p>The $75 signup bonus is still available though? If nothing else, though Amazon. Both for the It and It Miles cards.</p>\n<p>But if one can refer a family member, the referral is still better as it gives $50 to both referral and referee.</p>\n"
+      },
+      "date_gmt" : "2018-01-16T02:46:51",
+      "id" : 550978,
+      "parent" : 550969
+    },
+    {
+      "author_name" : "Kapil",
+      "content" : {
+        "rendered" : "<p>Hey any ideas why prestige 75k points is not in the best credit cards , it has all the similar benefits as platinum, earlier there was premier but now that is also gone.</p>\n"
+      },
+      "date_gmt" : "2018-01-16T19:06:55",
+      "id" : 551171,
+      "parent" : 0
+    },
+    {
+      "author_name" : "CongestionCharge",
+      "content" : {
+        "rendered" : "<p>Don’t think that Prestige offer has been available for quite sometime. If you find a working link I’m very interested!</p>\n"
+      },
+      "date_gmt" : "2018-01-16T19:31:06",
+      "id" : 551183,
+      "parent" : 551171
+    },
+    {
+      "author_name" : "Kapil",
+      "content" : {
+        "rendered" : "<p>It was on doc link review itself<br />\n<a href=\"https://citicards.citi.com/usc/LPACA/citi/cards/prestige/external_LTO/index.html?BT_TX=1&#038;ProspectID=9E3D0D41FFB543158E3BCDD0D5884A8E\" rel=\"nofollow ugc\">https://citicards.citi.com/usc/LPACA/citi/cards/prestige/external_LTO/index.html?BT_TX=1&#038;ProspectID=9E3D0D41FFB543158E3BCDD0D5884A8E</a></p>\n"
+      },
+      "date_gmt" : "2018-01-17T00:30:15",
+      "id" : 551289,
+      "parent" : 551183
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>When you click apply it errors out.</p>\n"
+      },
+      "date_gmt" : "2018-01-17T01:53:47",
+      "id" : 551315,
+      "parent" : 551289
+    },
+    {
+      "author_name" : "james",
+      "content" : {
+        "rendered" : "<p>didnt see no capital one venture offer. 50000 points after 3k spent</p>\n"
+      },
+      "date_gmt" : "2018-01-17T14:09:54",
+      "id" : 551477,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Kapil",
+      "content" : {
+        "rendered" : "<p>yes my bad, I was just looking at the first page</p>\n"
+      },
+      "date_gmt" : "2018-01-17T21:05:35",
+      "id" : 551630,
+      "parent" : 551315
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>No problem, you got me excited for a second there!</p>\n"
+      },
+      "date_gmt" : "2018-01-17T22:14:02",
+      "id" : 551667,
+      "parent" : 551630
+    },
+    {
+      "author_name" : "mommafrica",
+      "content" : {
+        "rendered" : "<p>Not certain if I&#8217;m in the right place but I do remember reading at 1 point about the AMEX Surpass via the AMEX site. If I get the card through the site I know that there will be no hard pull. But if I&#8217;m correct, the card will become something different (can&#8217;t remember the name of the new card) in a matter of months which would prevent me from signing up for that bonus later: correct?</p>\n"
+      },
+      "date_gmt" : "2018-01-18T02:21:59",
+      "id" : 551739,
+      "parent" : 0
+    },
+    {
+      "author_name" : "ted",
+      "content" : {
+        "rendered" : "<p>Why does the new site look so cluttered</p>\n"
+      },
+      "date_gmt" : "2018-01-23T06:56:40",
+      "id" : 553350,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Only thing that has changed is the comments section&#8230;</p>\n"
+      },
+      "date_gmt" : "2018-01-23T22:51:06",
+      "id" : 553546,
+      "parent" : 553350
+    },
+    {
+      "author_name" : "Tom",
+      "content" : {
+        "rendered" : "<p>I just applied and got approved for IHG card offer after dummy booking:<br />\nScreenshots available<br />\n$49 annual fee/waived first year<br />\n80,000 IHG Points / $2K spend / 3 months<br />\n$50 Statement Credit after first purchase<br />\n5,000 point usual add bonus for authorized user<br />\nFree anniversary night standard<br />\nPlatinum Elite Status<br />\nNo Fx Fees<br />\nI&#8217;m at 12/24 and also got Hyatt card Nov 2017</p>\n"
+      },
+      "date_gmt" : "2018-01-29T14:12:13",
+      "id" : 555174,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Mitch",
+      "content" : {
+        "rendered" : "<p>Wells Fargo Cash wise Visa Card $200 on $1k spend<br />\n<a href=\"https://www.wellsfargo.com/credit-cards/visa-wise/\" rel=\"nofollow ugc\">https://www.wellsfargo.com/credit-cards/visa-wise/</a></p>\n"
+      },
+      "date_gmt" : "2018-02-01T10:53:13",
+      "id" : 556379,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Bart",
+      "content" : {
+        "rendered" : "<p>I&#8217;m surprised not to see the Capital One Venture on here &#8212; 50k bonus (worth $500 for easy-to-use, unrestricted travel) on $3k spend, a new bonus category of 10x on hotels.com (must pay at booking, but can do flights and hotels here), 2x unlimited for all other spending. The $95 AF is waived 1st year. Given that I already have the Chase Ink Business Preferred, Sapphire Preferred and Sapphire Reserve, I don&#8217;t see a better deal out there. What am I missing?<br />\n   A strong second place, as I&#8217;m seeing it, for the Barclaycard Arrival Plus World Elite Mastercard &#8211; 40k bonus (worth $420 in travel because of 5% redemption bonus) after $3k spend, effective earnings of 2.1x on everything, easy redemption for any travel expense, $89 AF waived 1st year.<br />\n  Both cards have great bonuses and are pretty good choices for Everyday Spend.<br />\n  I&#8217;m still fairly new at this and would be very interested in what others see here.</p>\n"
+      },
+      "date_gmt" : "2018-02-06T17:24:21",
+      "id" : 558020,
+      "parent" : 0
+    },
+    {
+      "author_name" : "David",
+      "content" : {
+        "rendered" : "<p>Another perk of the Chase Freedom card (beyond signup bonus of $150, etc) is that you have the opportunity to earn $500 in bonuses referring others once you have the card. Please use my referral link to apply:<br />\n<a href=\"https://www.referyourchasecard.com/2/M22L4HNO6B\" rel=\"nofollow ugc\">https://www.referyourchasecard.com/2/M22L4HNO6B</a><br />\nYou’ll help me get a $100 referral bonus as well Thanks!!</p>\n"
+      },
+      "date_gmt" : "2018-02-09T01:58:49",
+      "id" : 559026,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Dustin",
+      "content" : {
+        "rendered" : "<p>almost impossible to get venture rewards if you do any credit card churning. they pretty much deny everyone</p>\n"
+      },
+      "date_gmt" : "2018-02-12T06:25:22",
+      "id" : 559864,
+      "parent" : 558020
+    },
+    {
+      "author_name" : "LG",
+      "content" : {
+        "rendered" : "<p>Got any cards that offer cashback bonuses instead of traveling points? Already got Discover it but looking for another one with zero payments for 6 months to a year for a large purchase.<br />\nPlease let me know if you find one. Thanks.</p>\n"
+      },
+      "date_gmt" : "2018-02-12T14:52:12",
+      "id" : 559913,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Shawn",
+      "content" : {
+        "rendered" : "<p>Wyndham 45k is gone</p>\n"
+      },
+      "date_gmt" : "2018-02-16T20:53:11",
+      "id" : 561386,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Mateo",
+      "content" : {
+        "rendered" : "<p>No Amex PRG 50k?</p>\n"
+      },
+      "date_gmt" : "2018-02-16T21:18:16",
+      "id" : 561392,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Has been offers of 75k in the past,I know we haven&#8217;t seen them in awhile but it&#8217;s a sizable difference and I think we will see them again.</p>\n"
+      },
+      "date_gmt" : "2018-02-16T21:36:23",
+      "id" : 561404,
+      "parent" : 561392
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Still working, just a new link: <a href=\"https://www.barclaycardus.com/apply/Landing.action?campaignId=2284&#038;cellNumber=70\" rel=\"nofollow ugc\">https://www.barclaycardus.com/apply/Landing.action?campaignId=2284&#038;cellNumber=70</a>. Updated our post</p>\n"
+      },
+      "date_gmt" : "2018-02-16T21:38:21",
+      "id" : 561405,
+      "parent" : 561386
+    },
+    {
+      "author_name" : "TimF",
+      "content" : {
+        "rendered" : "<p>Seems like a slow time for CC sign up bonuses&#8230; would you agree?</p>\n"
+      },
+      "date_gmt" : "2018-02-17T00:07:58",
+      "id" : 561432,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Abey",
+      "content" : {
+        "rendered" : "<p>I have a friend who tells me the best Credit card in his mind is Citi double cash because not only do you get 2% cash back with no annual fee, but also because CITI IS THE ONLY BANK WHERE YOU CAN PUSH IN YOUR CREDIT CARD IN THEIR ATM MACHINE AND DO A CASH PAYMENT&#8230;<br />\nHe says this is gold. Unlike Chase and others where you have to show ID or answer where you work and provide a social or with Amex where you have to deposit first into your checking account.</p>\n"
+      },
+      "date_gmt" : "2018-02-17T05:37:40",
+      "id" : 561475,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Blue",
+      "content" : {
+        "rendered" : "<p>There is&#8230;another reason&#8230;about payment that makes Citi very nice.  This isn&#8217;t it.</p>\n"
+      },
+      "date_gmt" : "2018-02-17T14:54:19",
+      "id" : 561514,
+      "parent" : 561475
+    },
+    {
+      "author_name" : "Charles",
+      "content" : {
+        "rendered" : "<p>Wells Fargo Propel and the Business Card are in the list.</p>\n"
+      },
+      "date_gmt" : "2018-02-17T19:57:25",
+      "id" : 561566,
+      "parent" : 559913
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Not really, just had several new Hilton cards launched. This time of year is always a bit slower than November/December but have still seen some good bonuses added.</p>\n"
+      },
+      "date_gmt" : "2018-02-17T23:40:52",
+      "id" : 561590,
+      "parent" : 561432
+    },
+    {
+      "author_name" : "NeGourmand",
+      "content" : {
+        "rendered" : "<p>How about capital one spark, $500 CB for $4500 spend? I know it’s not the highest of $1k for $10k, but it’s still pretty good.</p>\n"
+      },
+      "date_gmt" : "2018-03-11T07:11:49",
+      "id" : 568602,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Gary",
+      "content" : {
+        "rendered" : "<p>Can anyone clarify this Chase 5/24 question?  I know that Chase offers certain cards that are exempt from the 5/24 rule (e.g. Chase Hyatt card), meaning you are eligible for this card without regard to how many cards you&#8217;ve opened in the previous 24 months. Does that also mean that this card does not count against you in regard to 5/24 for any future applications to Chase for cards that are subject to 5/24?</p>\n"
+      },
+      "date_gmt" : "2018-03-22T15:22:57",
+      "id" : 572925,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Charles DoC Fan",
+      "content" : {
+        "rendered" : "<p>No, certain business cards are the ONLY thing that will not count against 5/24.  Chase tells whether you are 5/24 (mainly) by looking at your credit report.  Nearly all cards are reported to your credit report.</p>\n<p>You CAN get certain Chase cards even if you are over 5/24.  (I believe Marriott and IHG are examples.)</p>\n"
+      },
+      "date_gmt" : "2018-03-26T19:15:43",
+      "id" : 574102,
+      "parent" : 572925
+    },
+    {
+      "author_name" : "Edgar",
+      "content" : {
+        "rendered" : "<p>Heck yes.  This would be great.</p>\n"
+      },
+      "date_gmt" : "2018-03-28T07:58:14",
+      "id" : 574900,
+      "parent" : 478034
+    },
+    {
+      "author_name" : "Jay",
+      "content" : {
+        "rendered" : "<p>I went incognito at amex and it showed the amex green offer of 25k with 2k spend. annual fee is also waived ther first year. I applied and got approved.</p>\n"
+      },
+      "date_gmt" : "2018-03-28T15:51:13",
+      "id" : 574988,
+      "parent" : 0
+    },
+    {
+      "author_name" : "SMan",
+      "content" : {
+        "rendered" : "<p>Now it is 75K and AF waived. Lot of us posted our referral links.</p>\n"
+      },
+      "date_gmt" : "2018-03-29T09:22:41",
+      "id" : 575331,
+      "parent" : 507701
+    },
+    {
+      "author_name" : "Jay",
+      "content" : {
+        "rendered" : "<p>amex green is showing 25k MR offer with 1k spend in incognito. AF is also waived the first year.</p>\n"
+      },
+      "date_gmt" : "2018-03-29T18:04:11",
+      "id" : 575502,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Been available for some time, YMMV if it shows up</p>\n"
+      },
+      "date_gmt" : "2018-03-29T22:41:30",
+      "id" : 575640,
+      "parent" : 575502
+    },
+    {
+      "author_name" : "MarcoPolo",
+      "content" : {
+        "rendered" : "<p><a class='hint hint--right' data-ucm_user_id='2' href='https://www.doctorofcredit.com/author/will/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;William Charles</a><br />\nI think you can now safely remove American Express Mercedes-Benz Platinum from this list 🙂</p>\n"
+      },
+      "date_gmt" : "2018-04-13T01:47:04",
+      "id" : 581081,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Rene",
+      "content" : {
+        "rendered" : "<p>I received the targeted AMEX gold offer of 50000 miles in my account even though I&#8217;ve had the card a couple of years ago.  Didn&#8217;t find any &#8220;lifetime language&#8221; and called AMEX to verify the offer of 50000 miles with $2000 spend and he said yes when completed in 90 days.  I said great as I&#8217;ve had the card before and wanted to doulble check.  Well, that was a mistake!  First, he said no, you won&#8217;t get the bonus then he agreed to open an &#8220;investigation&#8221; and I am to check back next week.  Has anyone else done this?  Wish I had known to keep my mouth shut.  Just like to do things on the &#8220;up and up.&#8221;</p>\n"
+      },
+      "date_gmt" : "2018-04-17T00:42:21",
+      "id" : 582567,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Rene",
+      "content" : {
+        "rendered" : "<p>Forgot to mention I applied for and received the card a couple of days ago.</p>\n"
+      },
+      "date_gmt" : "2018-04-17T00:45:26",
+      "id" : 582569,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Orin",
+      "content" : {
+        "rendered" : "<p>I checked out pre qualified offers for Amex. I have other cards but never an Amex. I got a personal gold 50k bonus for only 1k spending in first three months. First year no fee.</p>\n"
+      },
+      "date_gmt" : "2018-04-22T17:14:32",
+      "id" : 584998,
+      "parent" : 0
+    },
+    {
+      "author_name" : "datapoint",
+      "content" : {
+        "rendered" : "<p>Amex SimplyCash Plus Business Card is offering a permanent 5 % cash reward for any wireless charges monthly and 3 % on user selectable categories, ie. Gas station(s). No annual fee. Also comes with $3000/$200 bonus reward for first 3 months total spend</p>\n"
+      },
+      "date_gmt" : "2018-04-25T00:08:17",
+      "id" : 585945,
+      "parent" : 584998
+    },
+    {
+      "author_name" : "Ughnoodles",
+      "content" : {
+        "rendered" : "<p>I have the same offer, is this a good first Amex card?</p>\n"
+      },
+      "date_gmt" : "2018-05-01T17:58:23",
+      "id" : 588625,
+      "parent" : 584998
+    },
+    {
+      "author_name" : "Watcher",
+      "content" : {
+        "rendered" : "<p>Is there an active Wyndham link?</p>\n"
+      },
+      "date_gmt" : "2018-05-06T02:21:57",
+      "id" : 590924,
+      "parent" : 0
+    },
+    {
+      "author_name" : "TomT",
+      "content" : {
+        "rendered" : "<p>Why is the Amex Mercedes-Benz still listed as a top card bonus for the month of May when all links for new applications were taken down in April?</p>\n"
+      },
+      "date_gmt" : "2018-05-07T20:05:38",
+      "id" : 591513,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Thanks, just removed it.</p>\n"
+      },
+      "date_gmt" : "2018-05-07T23:25:45",
+      "id" : 591586,
+      "parent" : 591513
+    },
+    {
+      "author_name" : "Brandon",
+      "content" : {
+        "rendered" : "<p>Shouldn&#8217;t the $200 for $500 spend on AARP card be on there? The 3% dining and gas is not the best, but no slouch either.</p>\n"
+      },
+      "date_gmt" : "2018-05-08T05:14:30",
+      "id" : 591725,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>This page is just for sign up bonuses, $200 isn&#8217;t that high.</p>\n"
+      },
+      "date_gmt" : "2018-05-08T06:33:08",
+      "id" : 591739,
+      "parent" : 591725
+    },
+    {
+      "author_name" : "Jamie",
+      "content" : {
+        "rendered" : "<p>How does the application for the Business card work? Can you apply using your SSN or do you need an EIN for associated with a business? Unfortunately, I closed my personal CItiAA account with a plan to open a new one and then found out that I have to wait 24 months&#8230;I&#8217;m still in pain over this. Will this 24-month wait affect me applying for the business (as myself) using my SSN?</p>\n"
+      },
+      "date_gmt" : "2018-05-10T19:45:30",
+      "id" : 592880,
+      "parent" : 0
+    },
+    {
+      "author_name" : "ToThePoint",
+      "content" : {
+        "rendered" : "<p>Called in and ask for Amex Business Gold 75k offer. No luck and was only offered 50k. I&#8217;ll trying calling again latter. Anyone else have luck getting this offer?</p>\n"
+      },
+      "date_gmt" : "2018-05-11T00:50:49",
+      "id" : 593022,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Brandon",
+      "content" : {
+        "rendered" : "<p>So why the Disney card? Afterall, the AARP can be used as a cash statement. Considering I can&#8217;t get the $100 referral bonus on top of the $200 for signing up, it is basically the same amount.</p>\n"
+      },
+      "date_gmt" : "2018-05-11T05:25:17",
+      "id" : 593155,
+      "parent" : 591739
+    },
+    {
+      "author_name" : "Franyurt",
+      "content" : {
+        "rendered" : "<p>I applied for chase freedom and freedom unlimited credit cards.<br />\nChase closed my accounts of the Chase  Sapphire and United Rewards Chase because they said I had applied for too many credit cards. I have excellent credit scores, always pay off the cards, have them on auto pay in case I forget the monthly due date, but none of that mattered. When I called to inquire about why my cards were cancelled, I was treated like a loser, like dirt. Very disconcerting. Where is it stated or written that applying for too many Chase credit cards, or applying too often, results in the cancelling of your current Chase credit cards? Thanks very much.</p>\n"
+      },
+      "date_gmt" : "2018-05-14T22:18:47",
+      "id" : 594545,
+      "parent" : 0
+    },
+    {
+      "author_name" : "petitesybarite",
+      "content" : {
+        "rendered" : "<p>is the wells fargo propel bonus still available? post says it ended 3/31/2018</p>\n"
+      },
+      "date_gmt" : "2018-05-16T02:05:37",
+      "id" : 595198,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Chris",
+      "content" : {
+        "rendered" : "<p>You can apply for a business card as a sole proprietor using your SSN. Some issuers may want credible information supporting your claim to be in business. Others are less concerned about that.</p>\n"
+      },
+      "date_gmt" : "2018-05-16T13:26:52",
+      "id" : 595337,
+      "parent" : 592880
+    },
+    {
+      "author_name" : "Jf",
+      "content" : {
+        "rendered" : "<p>It was just at 500.</p>\n"
+      },
+      "date_gmt" : "2018-05-18T00:52:25",
+      "id" : 596391,
+      "parent" : 585945
+    },
+    {
+      "author_name" : "C Doc Fan",
+      "content" : {
+        "rendered" : "<p>Sorry this to you happened to you.  A lot of recent reports like this.  When you called, did you have a good reason why you wanted the new cards?  Did you comply with anything they asked of you?  Most of the reports seemed to indicate Chase was doing this as a fraud prevention measure and many were able to get their accounts re-instated.</p>\n<p>I guess I should count myself lucky that Chase denied my recent applications rather than cancel me all-together</p>\n"
+      },
+      "date_gmt" : "2018-05-18T18:37:47",
+      "id" : 596697,
+      "parent" : 594545
+    },
+    {
+      "author_name" : "Yet Another Redditor",
+      "content" : {
+        "rendered" : "<p><a class='hint hint--right' data-ucm_user_id='2' href='https://www.doctorofcredit.com/author/will/' rel='author external'><img alt='' src='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=30&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/e4d9b4ba0d31b459230ab77cac58d79479ad3ec69611bdc14b48861b2454c35e?s=60&#038;d=mm&#038;r=g 2x' class='avatar avatar-30 photo' height='30' width='30' loading='lazy' decoding='async'/>&nbsp;William Charles</a> Could you please add the CIU to this list and also to the new CCs list?</p>\n"
+      },
+      "date_gmt" : "2018-05-24T22:47:42",
+      "id" : 598881,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Yup, just waiting until I have time to write a full review.</p>\n"
+      },
+      "date_gmt" : "2018-05-25T15:17:27",
+      "id" : 599133,
+      "parent" : 598881
+    },
+    {
+      "author_name" : "Joe",
+      "content" : {
+        "rendered" : "<p>just curious why the CSP 80k point offer is not on this list, or at the very top of this list even? Going in branch for the Ink 100k is a deterrent for some, and near impossible for myself being over 100miles from the nearest branch.</p>\n"
+      },
+      "date_gmt" : "2018-05-25T18:20:17",
+      "id" : 599244,
+      "parent" : 0
+    },
+    {
+      "author_name" : "petitesybarite",
+      "content" : {
+        "rendered" : "<p>what&#8217;s CIU?</p>\n"
+      },
+      "date_gmt" : "2018-05-25T18:24:08",
+      "id" : 599248,
+      "parent" : 598881
+    },
+    {
+      "author_name" : "Scott Reppa",
+      "content" : {
+        "rendered" : "<p>Chase&#8217;s new Ink Unlimited.</p>\n"
+      },
+      "date_gmt" : "2018-06-02T01:55:18",
+      "id" : 601608,
+      "parent" : 599248
+    },
+    {
+      "author_name" : "Brynne",
+      "content" : {
+        "rendered" : "<p>I think the Delta Biz needs to be removed. It expired the same time as the personal but was overlooked in the removal. No longer possible to get 70k skymiles.</p>\n"
+      },
+      "date_gmt" : "2018-06-17T14:59:44",
+      "id" : 606473,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Brett",
+      "content" : {
+        "rendered" : "<p>World Propel is dead, right?</p>\n"
+      },
+      "date_gmt" : "2018-06-20T14:46:32",
+      "id" : 607360,
+      "parent" : 0
+    },
+    {
+      "author_name" : "Jay",
+      "content" : {
+        "rendered" : "<p>Wish this page would be updated on occasion. It&#8217;s a great resource, but not so much when there have been zero changes in a month and a half.</p>\n"
+      },
+      "date_gmt" : "2018-06-27T18:05:47",
+      "id" : 609235,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>What new offers would you like to see added?</p>\n"
+      },
+      "date_gmt" : "2018-06-28T01:00:35",
+      "id" : 609410,
+      "parent" : 609235
+    },
+    {
+      "author_name" : "Jay",
+      "content" : {
+        "rendered" : "<p>My comment was more in the realm of clarity than anything. For example, the #1 card is still available per the comment section (multiple DPs) of your article found at:  <a href=\"https://www.doctorofcredit.com/rumor-wells-fargo-propel-world-discontinued-march-31st/\" rel=\"ugc\">https://www.doctorofcredit.com/rumor-wells-fargo-propel-world-discontinued-march-31st/</a> .</p>\n<p>The section for said card on this page, however, states &#8220;We’ve put this card is #1 as it seems likely it will become unavailable after March 31st, 2018.&#8221; So basically people have no idea if this page is accurate or not. My point is proven by the post below mine dated 6/20: &#8220;World Propel is dead, right?&#8221; &#8211; Brett. He didn&#8217;t even get a response.</p>\n<p>Also, we have things like the Delta business card (2.8) as no longer available but still on the list? Your own page says it&#8217;s gone: <a href=\"https://www.doctorofcredit.com/american-express-delta-platinum-70000-miles-100-statement-credit-10000-mqm-personal-business-2/\" rel=\"ugc\">https://www.doctorofcredit.com/american-express-delta-platinum-70000-miles-100-statement-credit-10000-mqm-personal-business-2/</a> .</p>\n"
+      },
+      "date_gmt" : "2018-06-28T19:40:57",
+      "id" : 609884,
+      "parent" : 609410
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p>Hey man, take it easy 🙂<br />\nThere are dozens of pages which have to get updated and limited amount of time to do so. You are right, things aren&#8217;t updated as often and well as they should be. We do are best to update &#8211; usually in batches, like updating a whole page once every month or so &#8211; and try updating in between as well, when possible.<br />\nComments pointing out specific things that need updating are very helpful.</p>\n"
+      },
+      "date_gmt" : "2018-06-28T20:10:56",
+      "id" : 609898,
+      "parent" : 609884
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Hi Jay,</p>\n<p>I&#8217;ll try to completely update this over the weekend. I&#8217;ve just gotten back from vacation, but the page in general could probably be better kept up to date. I want to add a new section for YMMV offers as well. As chuck mentions, pointing out specific things that are wrong is always really helpful as it means we can quickly fix them whenever we have time.</p>\n"
+      },
+      "date_gmt" : "2018-06-29T04:23:22",
+      "id" : 610157,
+      "parent" : 609884
+    },
+    {
+      "author_name" : "Jay",
+      "content" : {
+        "rendered" : "<p>I appreciate the response from both you and William; my initial post was mainly made as I hit up your site daily and would rather come here for my up-to-date info rather than someone else&#8217;s site.</p>\n<p>I was merely linking you that info as &#8220;proof&#8221; as sometimes people just dismiss concerns without it. Thanks for the work you guys do, none of my comments were meant to be super-critical, so sorry if they came off that way.</p>\n"
+      },
+      "date_gmt" : "2018-06-29T15:31:31",
+      "id" : 610339,
+      "parent" : 609898
+    },
+    {
+      "author_name" : "Chuck",
+      "content" : {
+        "rendered" : "<p>Thanks &#8211; we appreciate our readers!</p>\n"
+      },
+      "date_gmt" : "2018-06-29T18:14:03",
+      "id" : 610453,
+      "parent" : 610339
+    },
+    {
+      "author_name" : "Shane",
+      "content" : {
+        "rendered" : "<p>I think the Avianca offer is dead.</p>\n"
+      },
+      "date_gmt" : "2018-06-30T02:06:17",
+      "id" : 610624,
+      "parent" : 0
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Updated, thanks</p>\n"
+      },
+      "date_gmt" : "2018-06-30T03:20:28",
+      "id" : 610671,
+      "parent" : 610624
+    },
+    {
+      "author_name" : "William Charles",
+      "content" : {
+        "rendered" : "<p>Not at all, Jay! Appreciate the comments, sorry if we came off as defensive as that wasn&#8217;t our intention either.</p>\n"
+      },
+      "date_gmt" : "2018-07-01T00:48:41",
+      "id" : 610901,
+      "parent" : 610339
+    },
+    {
+      "author_name" : "Marie",
+      "content" : {
+        "rendered" : "<p>Bank of America business cards are a real pain &#8211; I want to warn people about them.  I know you don&#8217;t have them listed right now, but I wanted to make you aware.   I have been trying to get the $200 promotional credit that I earned for several months.  When you call, there&#8217;s always a 20-30 minute wait stated, although call-backs are available.  I&#8217;ve had to wait over an hour for a call-back, even when they said it would be 20-30 minutes.  B of America is trying to do everything they can to not provide customer service.  They want you to provide the date you opened the card, your FULL social security number (providing this to a person increases your risk of identity theft), and answer a series of questions.  I&#8217;ve called twice now  about the promotion and both times, it was confirmed I had met the terms.  The first time, I had just met the terms so I waited 2 months to call back.   The second time, the person said they were putting in a request for me to get the promotion &#8211; that was a over a month ago.  Still no promotion.  I can&#8217;t imagine business owners are willing to put up with this.  I&#8217;ll be taking my credit card business elsewhere.</p>\n"
+      },
+      "date_gmt" : "2018-07-02T16:11:43",
+      "id" : 611646,
+      "parent" : 0
+    }
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "1797",
+    "x-wp-totalpages" : "18"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/comments?post=28140&per_page=100&page=4&order=asc&orderby=date_gmt&_fields=id,parent,author_name,date_gmt,content"
+}

@@ -1,0 +1,68 @@
+{
+  "body" : [
+    {
+      "_embedded" : {
+        "author" : [
+          {
+            "name" : "Chuck"
+          }
+        ]
+      },
+      "author" : 6,
+      "date_gmt" : "2026-09-18T19:12:20",
+      "excerpt" : {
+        "rendered" : "<p>Brex Business is offering a $1,000 bonus when you sign up for a Brex account and a Brex card and then spend $4,000 within 30 days of card activation </p>\n"
+      },
+      "id" : 265650,
+      "link" : "https://www.doctorofcredit.com/brex-business-card-1000-signup-bonus-after-4000-spend/",
+      "title" : {
+        "rendered" : "Brex Business Card $1,000 Signup Bonus After $4,000 Spend"
+      }
+    },
+    {
+      "_embedded" : {
+        "author" : [
+          {
+            "name" : "William Charles"
+          }
+        ]
+      },
+      "author" : 2,
+      "date_gmt" : "2026-09-18T01:44:47",
+      "excerpt" : {
+        "rendered" : "<p>Recently there has been some discussion regarding Chase changing the 5/24 rule when applying for a Chase business card as a sole proprietor. This is because front line Chase reps are telling applicants that call reconsideration that there is a new rule for sole proprietors and that they will be denied if they have opened [&hellip;]</p>\n"
+      },
+      "id" : 265640,
+      "link" : "https://www.doctorofcredit.com/has-chase-changed-the-5-24-rule-for-sole-props-3-24-for-sole-props/",
+      "title" : {
+        "rendered" : "Has Chase Changed The 5/24 Rule For Sole Props? (3/24 For Sole Props)"
+      }
+    },
+    {
+      "_embedded" : {
+        "author" : [
+          {
+            "name" : "Chuck"
+          }
+        ]
+      },
+      "author" : 6,
+      "date_gmt" : "2026-09-16T21:15:05",
+      "excerpt" : {
+        "rendered" : "<p>American Express is offering a bonus of 20,000 Membership Rewards points when you open a new business checking account and fund $5,000 and do 10 transactions</p>\n"
+      },
+      "id" : 192939,
+      "link" : "https://www.doctorofcredit.com/american-express-business-checking-20000-membership-rewards-points-bonus-1-10-apy-earn-points-with-debit-card-spend/",
+      "title" : {
+        "rendered" : "American Express Business Checking 35,000 Membership Rewards Points Bonus (1% APY; Earn Points With Debit Card Spend)"
+      }
+    }
+  ],
+  "headers" : {
+    "content-type" : "application/json; charset=UTF-8",
+    "x-wp-total" : "3",
+    "x-wp-totalpages" : "1"
+  },
+  "status" : 200,
+  "url" : "https://www.doctorofcredit.com/wp-json/wp/v2/posts?search=Chase%20Ink%20business%20sole%20proprietor%20approved&per_page=20&page=1&_fields=id,title,link,date_gmt,excerpt,author,_embedded,_links&after=2026-01-01T00:00:00&_embed=author"
+}
