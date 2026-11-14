@@ -4,8 +4,9 @@ import Foundation
 //
 // Tools that change the page take a small snapshot of it before and after
 // they run, and fixed rules (no model call) decide whether the change may
-// have broken the page. The result text gets a "Page changes" line and, on a
-// warning, a first line "The page may be broken: <reasons>".
+// have broken the page. The result gets a "Page changes" tool note and, on a
+// warning, a first note "The page may be broken: <reasons>" (trusted, before
+// the untrusted wrapper; `ToolNote.pageFeedback`).
 
 /// The seven numbers of page-feedback.md "How" 1, plus the address they
 /// were read at (a changed address skips the comparison).
@@ -72,19 +73,22 @@ struct PageFeedbackReport: Codable, Equatable, Sendable {
         return "Page changes: " + changes.joined(separator: "; ")
     }
 
-    /// Adds the lines around a tool's (already saved or truncated) output:
-    /// the warning first, the changes last.
+    /// The changes line as a trusted tool note (`ToolNote.pageFeedback`): a changed address is
+    /// only named there, since the URL comes from the page.
+    var changesNote: String {
+        urlChanged ? "Page changes: not compared, the page address changed (the new address is at the end of the result)."
+            : changesLine
+    }
+
+    /// The tool's (already saved or truncated) output for the wrapped part: the warning and
+    /// changes go before the wrapper as tool notes; only a new address, page text, stays here.
     func decorate(_ output: String) -> String {
-        var parts: [String] = []
-        if let warningLine { parts.append(warningLine) }
-        if !output.isEmpty { parts.append(output) }
-        parts.append(changesLine)
-        return parts.joined(separator: "\n\n")
+        guard urlChanged, let after else { return output }
+        let line = "New page address: \(after.url)"
+        return output.isEmpty ? line : output + "\n\n" + line
     }
 }
 
-/// The thresholds and the comparison, in one place (page-feedback.md "How" 3
-/// and 8). They are a starting point, to be tuned after the trial.
 enum PageFeedbackRules {
     /// "Dropped by more than half": after < before × this.
     static let dropRatio = 0.5

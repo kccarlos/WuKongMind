@@ -637,7 +637,7 @@ final class AgentBridge: NSObject, AgentPageDriving {
                 return JSExecutionResult(
                     valueJSON: nil,
                     consoleOutput: [],
-                    error: Self.decoratePageWorldCSPHint(message, environment: environment)
+                    error: message
                 )
             default:
                 throw bridgeError
@@ -657,21 +657,16 @@ final class AgentBridge: NSObject, AgentPageDriving {
             return JSExecutionResult(valueJSON: valueJSON, consoleOutput: consoleLines, error: nil)
         } else {
             let rawError = (payload["error"] as? String) ?? "JavaScript execution failed."
-            let decorated = Self.decoratePageWorldCSPHint(rawError, environment: environment)
-            return JSExecutionResult(valueJSON: nil, consoleOutput: consoleLines, error: decorated)
+            return JSExecutionResult(valueJSON: nil, consoleOutput: consoleLines, error: rawError)
         }
     }
 
-    private static func decoratePageWorldCSPHint(
-        _ message: String,
-        environment: AgentExecutionEnvironment
-    ) -> String {
-        guard environment == .page else { return message }
+    /// A page-world failure on the page's Content Security Policy: `run_js` then adds
+    /// `ToolNote.pageWorldCSP` (outside the untrusted wrapper; the message itself is page text).
+    nonisolated static func isPageWorldCSPError(_ message: String, environment: AgentExecutionEnvironment) -> Bool {
+        guard environment == .page else { return false }
         let triggers = ["EvalError", "Load failed", "Content Security Policy", "unsafe-eval"]
-        guard triggers.contains(where: { message.localizedCaseInsensitiveContains($0) }) else {
-            return message
-        }
-        return message + " (Hint: the page's Content Security Policy restricts eval or cross-origin requests in the 'page' world; retry with environment: 'isolated' unless you specifically need page JS globals.)"
+        return triggers.contains { message.localizedCaseInsensitiveContains($0) }
     }
 
     // MARK: - inject_css

@@ -289,7 +289,9 @@ final class ForumToolsTests: XCTestCase {
 
         let comments = try await registry.dispatch(toolName: "search_comments", arguments: ["query": .string("wal")])
         XCTAssertFalse(comments.isError)
-        XCTAssertTrue(comments.output.contains(ForumRendering.unnumberedHitsNote))
+        XCTAssertFalse(comments.output.contains(ForumRendering.unnumberedHitsNote), "the note is a trusted tool note now")
+        XCTAssertEqual(comments.notes, [.unnumberedHits])
+        XCTAssertTrue(comments.modelContent.hasPrefix("\(ToolNote.label) \(ForumRendering.unnumberedHitsNote)\n<untrusted_web_content"))
         XCTAssertTrue(comments.resultSummary.contains("comment"))
 
         let latest = try await registry.dispatch(toolName: "list_latest", arguments: [:])
@@ -444,7 +446,8 @@ final class ForumToolsTests: XCTestCase {
         XCTAssertTrue(savedRead.output.contains("Article: (Update) Sample Cards & Notes – Part 1"))
         XCTAssertTrue(savedRead.output.contains("[Older middle replies omitted"))
         XCTAssertTrue(savedRead.output.contains("#31\nReply body 30"))
-        XCTAssertTrue(savedRead.output.hasSuffix("Read any part with file_read(path, offset)."))
+        XCTAssertEqual(savedRead.notes, [.readSavedFile])
+        XCTAssertFalse(savedRead.output.contains("file_read"))
         XCTAssertFalse(savedRead.output.contains(secret))
         if case .thread(let thread)? = savedRead.shape { XCTAssertEqual(thread.posts.count, 31) } else { XCTFail("Expected .thread") }
 
@@ -466,7 +469,8 @@ final class ForumToolsTests: XCTestCase {
         XCTAssertFalse(fallbackRead.wasTruncated)
         XCTAssertEqual(fallbackRead.resultSummary, "31 posts")
         XCTAssertFalse(fallbackRead.output.contains("saved to results/"))
-        XCTAssertFalse(fallbackRead.output.contains("Read any part with file_read"))
+        XCTAssertFalse(fallbackRead.output.contains("file_read"))
+        XCTAssertEqual(fallbackRead.notes, [])
         XCTAssertTrue(fallbackRead.output.contains("Article: (Update) Sample Cards & Notes – Part 1"))
         XCTAssertTrue(fallbackRead.output.contains("[Older middle replies omitted"))
         XCTAssertTrue(fallbackRead.output.contains("#31\nReply body 30"))

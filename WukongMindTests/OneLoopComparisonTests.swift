@@ -200,22 +200,31 @@ final class OneLoopComparisonTests: XCTestCase {
         let terms = try XCTUnwrap(text.range(of: "| #261\n"), "comment #261 matches")
         XCTAssertTrue(text[terms.upperBound...].hasPrefix("This offer is back."))
         XCTAssertLessThan(text.distance(from: text.startIndex, to: terms.lowerBound), 12_000, "#261 inside the first file_read window")
-        XCTAssertTrue(read.result.content.contains(ForumToolHint.queryInTopic(topic: "post")), "the hint survives the saved-file preview")
+        Self.assertNoteBeforeWrapper(read.result.content, .queryInTopic(topic: "post"), .readSavedFile)
+        XCTAssertFalse(text.contains(ToolNote.label), "the saved file stays raw")
     }
 
     /// H3: a query inside the named thread tells the model it covers that thread only, and the
     /// prompt's rule asks for a forum search beyond it.
     func testInThreadQueryPointsToAForumSearch() async throws {
         let read = try await toolResult("H3", tool: "read_topic", arguments: ["topic_id": .string("44809166"), "query": .string("funnel")])
-        XCTAssertTrue(read.result.content.contains(ForumToolHint.queryInTopic(topic: "story")), read.result.content.prefix(400).description)
+        Self.assertNoteBeforeWrapper(read.result.content, .queryInTopic(topic: "story"))
         XCTAssertTrue(read.system.contains("search the site for it (`search_forum`) beyond that story before answering"))
     }
 
     /// H4: the latest list says it is titles only and asks for a read before recommending.
     func testLatestListAsksForAReadBeforeRecommending() async throws {
         let list = try await toolResult("H4", tool: "list_latest", arguments: [:])
-        XCTAssertTrue(list.result.content.contains(ForumToolHint.latest(topic: "story")))
+        Self.assertNoteBeforeWrapper(list.result.content, .latestList(topic: "story"))
+        print("H4 list_latest tool result (first 500 characters):\n\(list.result.content.prefix(500))")
         XCTAssertTrue(list.system.contains("never recommend from titles alone"))
+    }
+
+    /// WUKO-69: the hint is a trusted tool note, the only text before the untrusted wrapper.
+    static func assertNoteBeforeWrapper(_ content: String, _ notes: ToolNote..., file: StaticString = #filePath, line: UInt = #line) {
+        let prefix = notes.map { "\(ToolNote.label) \($0.text)\n" }.joined() + UntrustedWebContent.openingTagPrefix
+        XCTAssertTrue(content.hasPrefix(prefix), content.prefix(600).description, file: file, line: line)
+        XCTAssertEqual(content.components(separatedBy: ToolNote.label).count, notes.count + 1, "only these notes, outside the wrapper", file: file, line: line)
     }
 
     // MARK: Record (task 8)

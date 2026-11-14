@@ -8,20 +8,6 @@ enum ForumToolName {
     static let readTopic = "read_topic"
 }
 
-/// One-line nudges at the top of a forum result, where a small model reads them (gate 2:
-/// H4 recommended from titles only, H3 answered "others say" from the named thread only).
-enum ForumToolHint {
-    static func latest(topic: String) -> String {
-        "Note: these are titles and excerpts only. Before recommending any, read or summarize at least one "
-            + "promising \(topic) (`read_topic`), and say which ones you only saw listed."
-    }
-
-    static func queryInTopic(topic: String) -> String {
-        "Note: these are matches inside this \(topic) only. To find what others say about it in other "
-            + "\(topic)s, search the forum (`search_forum`) too."
-    }
-}
-
 extension ToolRegistry {
     /// Forum search, comment search, latest listing, and thread reading tools for
     /// the current run's recognized forum (`design-one-loop.md` "Decisions").
@@ -59,24 +45,27 @@ extension ToolRegistry {
                     case ForumToolName.searchForum:
                         let result = try await forum.service.search(arguments: stringArgs, scope: forum.scope)
                         return ToolExecutionOutput(
-                            content: result.content,
+                            content: result.body ?? result.content,
                             summary: countLabel(result.topics.count, singular: "thread", plural: "threads"),
-                            shape: .list(result.shape)
+                            shape: .list(result.shape),
+                            notes: result.showsUnnumberedHits ? [.unnumberedHits] : []
                         )
                     case ForumToolName.searchComments:
                         let result = try await forum.service.searchComments(arguments: stringArgs, scope: forum.scope)
                         return ToolExecutionOutput(
-                            content: result.content,
+                            content: result.body ?? result.content,
                             summary: countLabel(result.hits.count, singular: "comment", plural: "comments"),
-                            shape: .list(result.shape)
+                            shape: .list(result.shape),
+                            notes: result.showsUnnumberedHits ? [.unnumberedHits] : []
                         )
                     case ForumToolName.listLatest:
                         let result = try await forum.service.listLatest(arguments: stringArgs, scope: forum.scope)
                         let topic = forum.scope.adapter.agent.topicNoun
                         return ToolExecutionOutput(
-                            content: result.topics.isEmpty ? result.content : ForumToolHint.latest(topic: topic) + "\n\n" + result.content,
+                            content: result.content,
                             summary: countLabel(result.topics.count, singular: "thread", plural: "threads"),
-                            shape: .list(result.shape)
+                            shape: .list(result.shape),
+                            notes: result.topics.isEmpty ? [] : [.latestList(topic: topic)]
                         )
                     default:
                         throw SiteQueryError.unsupported
@@ -164,7 +153,7 @@ extension ToolRegistry {
                     let notice = "Full thread: \(grouped(postCount)) \(postCount == 1 ? "post" : "posts"), "
                         + "\(grouped(scrubbedCompact.count)) characters, saved to \(saved.path)"
                     return ToolExecutionOutput(
-                        content: "\(header)\n\(notice)\n\n\(bounded)\n\nRead any part with file_read(path, offset).",
+                        content: "\(header)\n\(notice)\n\n\(bounded)",
                         summary: "saved to \(saved.path)", savedPath: saved.path,
                         isRanged: true, shape: .thread(result.shape)
                     )
@@ -178,8 +167,10 @@ extension ToolRegistry {
                 content: result.content, summary: defaultSummary, isRanged: true, shape: .thread(result.shape)
             )
         }
-        let content = hasQuery && !hasPage ? ForumToolHint.queryInTopic(topic: profile.topicNoun) + "\n" + result.content : result.content
-        return ToolExecutionOutput(content: content, summary: defaultSummary, shape: .thread(result.shape))
+        return ToolExecutionOutput(
+            content: result.content, summary: defaultSummary, shape: .thread(result.shape),
+            notes: hasQuery && !hasPage ? [.queryInTopic(topic: profile.topicNoun)] : []
+        )
     }
 
     private static func stringArguments(from arguments: [String: JSONValue]) -> [String: String] {

@@ -37,6 +37,8 @@ struct TaskExportDocument: Codable, Equatable, Sendable {
         var resultSummary: String
         var images: [AgentImage]
         var shape: ForumShape?
+        /// The app's own notes, rebuilt before the wrapper in `history` (absent in older exports).
+        var notes: [ToolNote]?
     }
 
     struct Turn: Codable, Equatable, Sendable {
@@ -252,7 +254,7 @@ enum TaskExport {
                 history.append(.toolResults(turn.toolResults.map {
                     AgentModelToolResult(
                         toolCallID: $0.callID, toolName: $0.name,
-                        content: UntrustedWebContent.wrap($0.output, toolName: $0.name),
+                        content: UntrustedWebContent.modelContent($0.output, toolName: $0.name, notes: $0.notes ?? []),
                         isError: $0.isError, images: $0.images
                     )
                 }))

@@ -445,14 +445,15 @@ final class BrowserToolsTests: XCTestCase {
         XCTAssertTrue(client.requests.first?.system.contains("The page may be broken") == true, "The prompt carries rule 6")
         XCTAssertTrue(client.requests.first?.system.contains("never report done straight away") == true)
 
-        // The second request carries the warning as the run_js result's first line.
+        // The second request carries the warning as the run_js result's first tool note, before the wrapper.
         guard case .toolResults(let results)? = client.requests[1].messages.last else {
             return XCTFail("Expected tool results in the second request")
         }
         let content = try XCTUnwrap(results.first?.content)
-        let inner = content.components(separatedBy: "\n").dropFirst().first ?? ""
-        XCTAssertTrue(inner.hasPrefix("The page may be broken: visible text dropped from 8,000 to 0 characters"), content)
-        XCTAssertTrue(content.contains("Page changes: text 8,000 → 0"))
+        let lines = content.components(separatedBy: "\n")
+        XCTAssertTrue(lines[0].hasPrefix("\(ToolNote.label) The page may be broken: visible text dropped from 8,000 to 0 characters"), content)
+        XCTAssertTrue(lines[1].hasPrefix("\(ToolNote.label) Page changes: text 8,000 → 0"), content)
+        XCTAssertTrue(lines[2].hasPrefix(UntrustedWebContent.openingTagPrefix), content)
 
         XCTAssertEqual(session.toolCalls.map(\.toolName), ["run_js", "read_page"])
         XCTAssertEqual(driver.readCount, 1)
