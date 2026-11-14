@@ -31,7 +31,7 @@ enum DiscourseAgent {
             + "[title](url/N): the topic url plus /N, its post number.",
         siteTools: [
             AgentToolSpec(
-                name: AgentToolName.searchForum.rawValue,
+                name: ForumToolName.searchForum,
                 description: "Search this forum's posts. Supports Discourse syntax: "
                     + "#category, order:latest, after:YYYY-MM-DD, in:title, topic:<id>. Returns up to "
                     + "20 topics with id, title, post count, last activity, and the matching posts "
@@ -39,21 +39,21 @@ enum DiscourseAgent {
                 parameters: [.init(name: "query", description: "Search text", required: true)]
             ),
             AgentToolSpec(
-                name: AgentToolName.listLatest.rawValue,
+                name: ForumToolName.listLatest,
                 description: "List the forum's most recently active topics (about 30).",
                 parameters: []
             )
         ],
         query: { tool, arguments in
             switch tool {
-            case .searchForum:
+            case ForumToolName.searchForum:
                 guard let text = arguments["query"]?.trimmingCharacters(in: .whitespacesAndNewlines),
                       !text.isEmpty
                 else {
                     throw AgentError.missingArgument("query")
                 }
                 return .search(text: text, scope: .forum)
-            case .listLatest:
+            case ForumToolName.listLatest:
                 return .latest
             default:
                 throw SiteQueryError.unsupported

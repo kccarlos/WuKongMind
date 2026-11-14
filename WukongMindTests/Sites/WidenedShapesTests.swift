@@ -2,8 +2,7 @@ import XCTest
 @testable import WukongMind
 
 /// The shapes a second platform needs (P1 W5): search options, numberless
-/// hits and listings, `invalidArgument`, the page revision and the tool
-/// presentation table. Discourse's own output is pinned by the S0 goldens.
+/// hits and listings, `invalidArgument` and the page revision. Discourse's own output is pinned by the S0 goldens.
 final class WidenedShapesTests: XCTestCase {
     private let site = "https://fake.example.com"
 
@@ -16,15 +15,15 @@ final class WidenedShapesTests: XCTestCase {
 
     func testListingsPrintPostsOnlyWhenKnown() {
         XCTAssertEqual(
-            AgentPrompt.format(listings: [listing(count: 12, last: "2026-10-01T10:00:00Z")]),
+            ForumRendering.format(listings: [listing(count: 12, last: "2026-10-01T10:00:00Z")]),
             "- id 1: Title 1 — 12 posts, last activity 2026-10-01 — \(site)/topic/1"
         )
-        XCTAssertEqual(AgentPrompt.format(listings: [listing(count: 12)]), "- id 1: Title 1 — 12 posts — \(site)/topic/1")
+        XCTAssertEqual(ForumRendering.format(listings: [listing(count: 12)]), "- id 1: Title 1 — 12 posts — \(site)/topic/1")
         XCTAssertEqual(
-            AgentPrompt.format(listings: [listing(last: "2026-10-01T10:00:00Z")]),
+            ForumRendering.format(listings: [listing(last: "2026-10-01T10:00:00Z")]),
             "- id 1: Title 1 — last activity 2026-10-01 — \(site)/topic/1"
         )
-        XCTAssertEqual(AgentPrompt.format(listings: [listing(excerpt: "Hi")]), "- id 1: Title 1 — \(site)/topic/1\n  Hi")
+        XCTAssertEqual(ForumRendering.format(listings: [listing(excerpt: "Hi")]), "- id 1: Title 1 — \(site)/topic/1\n  Hi")
     }
 
     func testHitsPrintTheirNumberOrTheirAuthorAndDate() {
@@ -34,7 +33,7 @@ final class WidenedShapesTests: XCTestCase {
                 url: URL(string: "\(site)/topic/1#c\(number ?? 0)")!
             )
         }
-        let text = AgentPrompt.format(listings: [listing(count: 3)], hits: [
+        let text = ForumRendering.format(listings: [listing(count: 3)], hits: [
             hit(4, user: "alice", date: "2026-10-02T00:00:00Z"),
             hit(nil, user: "bob", date: "2026-10-03T00:00:00Z"),
             hit(nil, user: nil, date: nil),
@@ -47,7 +46,7 @@ final class WidenedShapesTests: XCTestCase {
               Text
               #7
 
-            \(AgentPrompt.unnumberedHitsNote)
+            \(ForumRendering.unnumberedHitsNote)
             """)
     }
 
@@ -72,7 +71,7 @@ final class WidenedShapesTests: XCTestCase {
 
     func testTheFakeProfileValidatesOptions() throws {
         let query = FakeSiteAdapter().agent.query
-        guard case .search(_, _, let options) = try query(.searchComments, ["query": "q", "category": "News", "page": "3", "after": "2026-01-31"])
+        guard case .search(_, _, let options) = try query(ForumToolName.searchComments, ["query": "q", "category": "News", "page": "3", "after": "2026-01-31"])
         else { return XCTFail() }
         XCTAssertEqual(options.category, "News")
         XCTAssertEqual(options.page, 3)
@@ -82,7 +81,7 @@ final class WidenedShapesTests: XCTestCase {
             (["query": "q", "page": "0"], "page"), (["query": "q", "page": "x"], "page"),
             (["query": "q", "before": "2026-1-5"], "before"), (["query": "q", "after": "2026-13-45"], "after")
         ] {
-            XCTAssertThrowsError(try query(.searchComments, arguments), name) { error in
+            XCTAssertThrowsError(try query(ForumToolName.searchComments, arguments), name) { error in
                 guard case AgentError.invalidArgument(let invalid, _) = error else { return XCTFail("\(error)") }
                 XCTAssertEqual(invalid, name)
             }
@@ -108,20 +107,5 @@ final class WidenedShapesTests: XCTestCase {
         XCTAssertNil(decoded.postsCount)
         let legacy = try JSONDecoder().decode(ForumTopicListing.self, from: JSONEncoder().encode(listing(count: 4)))
         XCTAssertEqual(legacy.postsCount, 4)
-    }
-
-    func testEveryToolHasAPresentationRow() {
-        for tool in AgentToolName.allCases {
-            XCTAssertFalse(tool.symbol.isEmpty, tool.rawValue)
-            XCTAssertFalse(tool.title(query: "q", topic: { "T" }).isEmpty, tool.rawValue)
-        }
-        XCTAssertEqual(AgentToolName.searchComments.symbol, "text.bubble")
-        XCTAssertEqual(AgentToolName.searchComments.title(query: "fees", topic: { "T" }), "Searched comments for “fees”")
-        XCTAssertEqual(AgentToolName.searchForum.title(query: "fees", topic: { "T" }), "Searched “fees”")
-        XCTAssertEqual(AgentToolName.listLatest.title(query: "", topic: { "T" }), "Listed the latest")
-        XCTAssertEqual(AgentToolName.readTopic.title(query: "", topic: { "T" }), "Read T")
-        XCTAssertEqual(AgentToolName.finalAnswer.rawValue, AgentPrompt.finalAnswerTool)
-        // Titles need no tool-specific string in the panel any more.
-        XCTAssertEqual(AgentToolName.searchComments.tint, .search)
     }
 }

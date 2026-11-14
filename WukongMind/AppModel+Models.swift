@@ -13,12 +13,10 @@ import Foundation
 // by both roles. Favorites are provider + model pairs, shared too.
 
 extension ModelRole {
-    /// Summary and Chat share the assistant model; Ask the forum and the
-    /// browser agent each have their own model.
+    /// Summary uses the assistant model; the Agent has its own.
     init(mode: AssistantMode) {
         switch mode {
         case .summary: self = .assistant
-        case .agent: self = .agent
         case .browserAgent: self = .browserAgent
         }
     }
@@ -387,16 +385,6 @@ extension AppModel {
         return model.isEmpty ? state : "\(model) · \(state)"
     }
 
-    /// The model an Ask the forum search that is running now keeps, when the
-    /// pill's role is the agent's (§6: a change applies to the next question).
-    func runningSearchModel(for role: ModelRole) -> String? {
-        let running = agentRuns.compactMap { run -> ModelSelection? in
-            guard let record = activeRecord(forAgentRun: run.id), record.status == .running else { return nil }
-            return ModelSelection(provider: record.provider, model: record.model)
-        }
-        return ModelPill.runningSearchModel(role: role, running: running)
-    }
-
     /// Gives `role.other` the same provider and model as `role`.
     func useSameModel(as role: ModelRole) {
         let chosen = selection(for: role)
@@ -546,7 +534,7 @@ enum ModelFavorites {
 
 /// The drawer header's model pill (§6).
 enum ModelPill {
-    /// Summary and This topic use the assistant model; Whole forum the agent's.
+    /// Summary uses the assistant model; the Agent its own.
     static func role(for mode: AssistantMode) -> ModelRole { ModelRole(mode: mode) }
 
     /// The model name, or the provider's for Apple Intelligence (its stored
@@ -555,13 +543,6 @@ enum ModelPill {
         let model = selection.model.trimmingCharacters(in: .whitespacesAndNewlines)
         if selection.provider.isAppleIntelligence || model.isEmpty { return selection.provider.displayName }
         return AppleIntelligenceBackend.displayModel(model)
-    }
-
-    /// The model a running search keeps, for the agent role's menu footer:
-    /// nil for the assistant role or when no search is running.
-    static func runningSearchModel(role: ModelRole, running: [ModelSelection]) -> String? {
-        guard role == .agent, let first = running.first else { return nil }
-        return label(for: first)
     }
 }
 

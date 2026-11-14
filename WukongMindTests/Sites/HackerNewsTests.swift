@@ -124,8 +124,8 @@ final class HackerNewsTests: XCTestCase {
         XCTAssertEqual(active.requests, 1)
         XCTAssertEqual(active.failures, 0)
         XCTAssertFalse(active.topics?.isEmpty ?? true)
-        XCTAssertEqual(try a.agent.query(.searchForum, ["query": "sqlite", "page": "2"]), .search(text: "sqlite", scope: .forum, options: options))
-        XCTAssertThrowsError(try a.agent.query(.searchForum, ["query": " "]))
+        XCTAssertEqual(try a.agent.query(ForumToolName.searchForum, ["query": "sqlite", "page": "2"]), .search(text: "sqlite", scope: .forum, options: options))
+        XCTAssertThrowsError(try a.agent.query(ForumToolName.searchForum, ["query": " "]))
     }
     func testRealLargeTreePagesCallbacksAndParentReferencesCrossPages() async throws {
         let fixture = HackerNewsFixture()

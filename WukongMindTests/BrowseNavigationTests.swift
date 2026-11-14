@@ -262,53 +262,6 @@ final class BrowseNavigationTests: XCTestCase {
         XCTAssertEqual(missing.status, .notFound)
     }
 
-    // MARK: Research
-
-    /// A new request cancels the running one, which hands back `.cancelled`
-    /// and never fills the list; the newer answer's sources do, at source 1.
-    @MainActor
-    func testResearchRunsOneAtATime() async throws {
-        let planner = BrowsePlanner(answer: "Use CSS ([fix](\(site)/t/hide-badges/240488/5)) or [this](\(site)/t/hide-badges/240488/10).")
-        let app = makeApp(planner: planner)
-        useLocalProvider(app)
-
-        let slow = Task { await app.research("slow: anything new?", siteURL: site) }
-        try await waitUntil { planner.isWaiting }
-        XCTAssertTrue(app.isResearching)
-        let fast = await app.research("How do I hide the badges link?", siteURL: site)
-        let replaced = await slow.value
-        planner.release()
-
-        XCTAssertEqual(replaced.status, .cancelled)
-        XCTAssertEqual(fast.status, .answered)
-        XCTAssertTrue(fast.content?.hasPrefix("Use CSS") ?? false)
-        XCTAssertEqual(fast.hits?.map(\.postNumber), [5, 10])
-        XCTAssertEqual(app.browseCursor.origin, .research("How do I hide the badges link?"))
-        XCTAssertEqual(app.browseCursor.items.map(\.postNumber), [5, 10])
-        XCTAssertEqual(app.browseCursor.index, 0)
-        XCTAssertFalse(app.isResearching)
-        let runs = app.agentRuns.map(\.result)
-        XCTAssertEqual(runs.filter { $0 == .cancelled }.count, 1)
-        XCTAssertEqual(runs.filter { $0 == .completed }.count, 1)
-    }
-
-    @MainActor
-    func testCancellingResearchStopsTheRun() async throws {
-        let planner = BrowsePlanner(answer: "n/a")
-        let app = makeApp(planner: planner)
-        useLocalProvider(app)
-        XCTAssertEqual(app.cancelResearch().status, .unavailable)
-
-        let running = Task { await app.research("slow: never mind", siteURL: site) }
-        try await waitUntil { planner.isWaiting }
-        XCTAssertEqual(app.cancelResearch().status, .cancelled)
-        let result = await running.value
-        planner.release()
-        XCTAssertEqual(result.status, .cancelled)
-        XCTAssertTrue(app.browseCursor.isEmpty)
-        try await waitUntil { app.agentRuns.first?.result == .cancelled }
-    }
-
     // MARK: Results
 
     func testResultContentIsTrimmedAtASentence() throws {
@@ -357,7 +310,7 @@ final class BrowseNavigationTests: XCTestCase {
     }
 
     @MainActor
-    private func makeApp(planner: AgentPlanner? = nil) -> AppModel {
+    private func makeApp() -> AppModel {
         PostLevelURLStub.requests = []
         PostLevelURLStub.cookies = []
         let configuration = URLSessionConfiguration.ephemeral
@@ -375,65 +328,10 @@ final class BrowseNavigationTests: XCTestCase {
         let app = AppModel(
             store: store,
             forumService: ForumService(session: session, pacer: ForumRequestPacer(clock: InstantPacingClock())),
-            aiService: AIService(session: session),
-            planner: planner
+            aiService: AIService(session: session)
         )
         app.usesDirectForumRequests = true
         return app
-    }
-
-    @MainActor
-    private func useLocalProvider(_ app: AppModel) {
-        app.selectModel(ModelSelection(provider: .ollama, model: "test-model"), for: .both)
-    }
-
-    @MainActor
-    private func waitUntil(timeout: TimeInterval = 10, _ condition: () -> Bool) async throws {
-        let deadline = Date().addingTimeInterval(timeout)
-        while Date() < deadline, !condition() {
-            try await Task.sleep(for: .milliseconds(20))
-        }
-        XCTAssertTrue(condition(), "Timed out")
-    }
-}
-
-/// Answers at once, except a goal starting "slow:", which waits until
-/// released (ignoring task cancellation, as a slow provider would).
-private final class BrowsePlanner: AgentPlanner, @unchecked Sendable {
-    private let answer: String
-    private let lock = NSLock()
-    private var waiting = false
-    private var continuation: CheckedContinuation<Void, Never>?
-
-    init(answer: String) {
-        self.answer = answer
-    }
-
-    var isWaiting: Bool { lock.withLock { waiting } }
-
-    func release() {
-        lock.withLock {
-            continuation?.resume()
-            continuation = nil
-        }
-    }
-
-    func nextAction(
-        system: String,
-        transcript: [ChatMessage],
-        configuration: ProviderConfiguration,
-        provider: AIProvider
-    ) async throws -> AgentAction {
-        if transcript.first?.content.contains("slow:") == true {
-            await withCheckedContinuation { continuation in
-                lock.withLock {
-                    self.continuation = continuation
-                    waiting = true
-                }
-            }
-            return AgentAction(thought: "", tool: AgentPrompt.finalAnswerTool, arguments: ["answer": "Late"])
-        }
-        return AgentAction(thought: "", tool: AgentPrompt.finalAnswerTool, arguments: ["answer": answer])
     }
 }
 

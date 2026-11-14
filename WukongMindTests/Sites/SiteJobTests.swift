@@ -17,8 +17,7 @@ final class SiteJobTests: XCTestCase {
     private func makeHarness(
         forums: [Forum],
         watched: [WatchedTopic] = [],
-        fake: FakeSiteAdapter = FakeSiteAdapter(),
-        planner: AgentPlanner? = nil
+        fake: FakeSiteAdapter = FakeSiteAdapter()
     ) -> Harness {
         let directory = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
@@ -33,8 +32,7 @@ final class SiteJobTests: XCTestCase {
             store: store,
             forumService: ForumService(),
             sites: SiteRegistry(adapters: [DiscourseAdapter(), fake]),
-            aiService: ai,
-            planner: planner
+            aiService: ai
         )
         app.usesDirectForumRequests = true
         var provider = app.settings.configuration(for: .ollama)
@@ -121,15 +119,6 @@ final class SiteJobTests: XCTestCase {
         XCTAssertTrue(harness.ai.calls.isEmpty)
     }
 
-    func testAgentRunOnASiteWithoutAnAdapterFailsWithNoForum() async throws {
-        let harness = makeHarness(forums: [Forum(siteURL: ghostSite, kind: SiteKind("ghost"), name: "Ghost")])
-        harness.app.startAgentRun(goal: "What is new?", siteURL: ghostSite)
-        try await waitUntil { harness.app.agentRuns.first?.isFinished ?? false }
-        XCTAssertEqual(harness.app.agentRuns.first?.result, .failed)
-        XCTAssertEqual(harness.app.agentRuns.first?.error, AssistantError.noForum.localizedDescription)
-        XCTAssertEqual(harness.app.activities.first?.status, .failed)
-    }
-
     func testWatchCheckReadsThroughTheAdapterAndSkipsASiteWithoutOne() async throws {
         func watched(_ site: String) -> WatchedTopic {
             WatchedTopic(siteURL: site, topicID: "42", url: URL(string: "\(site)/topic/42")!, title: "Topic 42", knownPostCount: 1)
@@ -152,7 +141,26 @@ final class SiteJobTests: XCTestCase {
 
     // MARK: Agent (S10)
 
-    func testAnAgentRunOnAnotherToolsetOffersAndRunsThatToolset() async throws {
+    /// The Agent's forum tools for the fake site (One loop 13 ported these
+    /// tests from the old Research loop to the tool level).
+    private func toolRegistry(_ fake: FakeSiteAdapter) -> ToolRegistry {
+        var sessions: [String: TopicSession] = [:]
+        let service = ForumToolService(
+            sessionLookup: { sessions[$0] }, sessionWrite: { sessions[$0] = $1 },
+            makeNetwork: { siteURL, _, _ in ForumService().net(siteURL, pace: .fast) }
+        )
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        addTeardownBlock { try? FileManager.default.removeItem(at: directory) }
+        return ToolRegistry.m3(context: AgentToolContext(
+            bridge: FixturePageDriver(page: .init(url: fakeSite, title: "Fake")),
+            workspace: nil,
+            scriptStore: ScriptStore(directoryURL: directory),
+            settings: AgentToolSettings(truncationLimit: ToolRegistry.defaultTruncationLimit, redactedSecrets: []),
+            forum: ForumToolContext(service: service, scope: ForumRunScope(adapter: fake, siteURL: fakeSite), forumName: "Fake")
+        ))
+    }
+
+    func testTheForumToolsOnAnotherToolsetOfferAndRunThatToolset() async throws {
         var fake = FakeSiteAdapter()
         fake.queryResult = SiteQueryResult(topics: [
             ForumTopicListing(
@@ -160,108 +168,62 @@ final class SiteJobTests: XCTestCase {
                 url: URL(string: "\(fakeSite)/topic/42")!, postsCount: 2
             )
         ])
-        let planner = ScriptedAgentPlanner(actions: [
-            // Not this site's tool: refused, with the run's own list.
-            AgentAction(thought: "", tool: "list_latest", arguments: [:]),
-            AgentAction(thought: "", tool: "search_comments", arguments: ["query": "fees"]),
-            AgentAction(thought: "", tool: "read_topic", arguments: ["topic_id": "42"]),
-            AgentAction(
-                thought: "", tool: AgentPrompt.finalAnswerTool,
-                arguments: ["answer": "See [Topic 42](\(fakeSite)/topic/42#p2) and [again](\(fakeSite)/topic/42)."]
-            )
-        ])
-        let harness = makeHarness(
-            forums: [Forum(siteURL: fakeSite, kind: FakeSiteAdapter.kind, name: "Fake")],
-            fake: fake,
-            planner: planner
-        )
-        harness.app.startAgentRun(goal: "What is said about fees?", siteURL: fakeSite)
-        try await waitUntil { harness.app.agentRuns.first?.isFinished ?? false }
-        let run = try XCTUnwrap(harness.app.agentRuns.first)
-        XCTAssertEqual(run.result, .completed, run.error)
+        let registry = toolRegistry(fake)
+        let names = registry.definitions.map(\.name)
+        XCTAssertTrue(names.contains("search_comments") && names.contains("read_topic"), "\(names)")
+        XCTAssertFalse(names.contains("list_latest") || names.contains("search_forum"), "not this site's tools: \(names)")
 
-        // The prompt is the profile's, with the fake's tool and no Discourse one.
-        let system = planner.system
-        XCTAssertTrue(system.contains("(\(fakeSite)), a fake site."))
-        XCTAssertTrue(system.contains("- search_comments — Search the comments of this site."))
-        XCTAssertTrue(system.contains("Prefer search_comments first"))
-        XCTAssertTrue(system.contains("Cite a specific post as the thread url plus #pN."))
-        XCTAssertFalse(system.contains("list_latest"))
-        XCTAssertFalse(system.contains("search_forum"))
-        XCTAssertFalse(system.contains("Discourse"))
+        let refused = try await registry.dispatch(toolName: "list_latest", arguments: [:])
+        XCTAssertTrue(refused.isError, refused.output)
+        // The site tool runs through the fake's query and result, the read through its pages.
+        let search = try await registry.dispatch(toolName: "search_comments", arguments: ["query": .string("fees")])
+        XCTAssertTrue(search.output.contains("- id 42: Topic 42"), search.output)
+        let read = try await registry.dispatch(toolName: "read_topic", arguments: ["topic_id": .string("42")])
+        XCTAssertFalse(read.isError, read.output)
+        XCTAssertTrue(read.output.contains("Opening post of the fake topic."), read.output)
 
-        // A tool outside the run's set is an error that lists the run's own tools.
-        let refused = try XCTUnwrap(planner.transcripts[1].last?.content)
-        XCTAssertEqual(
-            refused,
-            "ERROR from list_latest:\nUnknown tool \"list_latest\". Available: search_comments, read_topic, "
-                + "summarize_topic, saved_summaries, watch_topic, final_answer"
-        )
-        // The site tool ran through the fake's query and result, the read through its link hint.
-        let search = try XCTUnwrap(planner.transcripts[2].last?.content)
-        XCTAssertTrue(search.contains("- id 42: Topic 42"), search)
-        let read = try XCTUnwrap(planner.transcripts[3].last?.content)
-        XCTAssertTrue(read.contains("(post N: \(fakeSite)/topic/42#pN)"), read)
-        XCTAssertEqual(run.steps.map(\.tool), ["list_latest", "search_comments", "read_topic", AgentPrompt.finalAnswerTool])
-
-        // The answer's links parse through the fake's `links`: the post and the topic fold.
-        let parse = harness.app.linkParser(siteURL: fakeSite)
-        let sources = AgentSources.extract(from: run.answer, run: run, sessions: harness.app.sessions, parse: parse)
+        // An answer's links parse through the fake's `links`: the post and the topic fold.
+        let app = makeHarness(forums: [Forum(siteURL: fakeSite, kind: FakeSiteAdapter.kind, name: "Fake")], fake: fake).app
+        let parse = app.linkParser(siteURL: fakeSite)
+        let answer = "See [Topic 42](\(fakeSite)/topic/42#p2) and [again](\(fakeSite)/topic/42)."
+        let sources = AgentSources.extract(from: answer, visits: [], parse: parse)
         XCTAssertEqual(sources.count, 1)
         XCTAssertEqual(sources.first?.postNumber, 2)
         XCTAssertEqual(parse(try XCTUnwrap(sources.first?.url))?.topicID, "42")
     }
 
-    /// The widened shapes end to end: options reach the adapter, an invalid
-    /// argument is a recoverable observation, and numberless hits and listings
-    /// print their numberless forms.
-    func testWidenedQueriesAndResultsRunThroughTheAgent() async throws {
+    /// The widened shapes through the forum tools: options reach the adapter,
+    /// an invalid argument is a recoverable error, and numberless hits and
+    /// listings print their numberless forms.
+    func testWidenedQueriesAndResultsRunThroughTheForumTools() async throws {
         var fake = FakeSiteAdapter()
+        let listing = ForumTopicListing(
+            siteURL: fakeSite, id: 42, title: "Topic 42", slug: "42",
+            url: URL(string: "\(fakeSite)/topic/42")!, postsCount: nil, lastPostedAt: "2026-10-21T08:00:00Z"
+        )
         fake.queryResult = SiteQueryResult(
-            topics: [ForumTopicListing(
-                siteURL: fakeSite, id: 42, title: "Topic 42", slug: "42",
-                url: URL(string: "\(fakeSite)/topic/42")!, postsCount: nil, lastPostedAt: "2026-10-21T08:00:00Z"
-            )],
+            topics: [listing],
             hits: [ForumSearchHit(
-                topic: ForumTopicListing(
-                    siteURL: fakeSite, id: 42, title: "Topic 42", slug: "42",
-                    url: URL(string: "\(fakeSite)/topic/42")!, postsCount: nil
-                ),
-                postNumber: nil, username: "bob", blurb: "Fees went up.", postedAt: "2026-10-21T08:00:00Z",
+                topic: listing, postNumber: nil, username: "bob", blurb: "Fees went up.", postedAt: "2026-10-21T08:00:00Z",
                 url: URL(string: "\(fakeSite)/topic/42#comment-9")!
             )]
         )
-        let planner = ScriptedAgentPlanner(actions: [
-            AgentAction(thought: "", tool: "search_comments", arguments: ["query": "fees", "after": "yesterday"]),
-            AgentAction(thought: "", tool: "search_comments", arguments: ["query": "fees", "page": "9"]),
-            AgentAction(thought: "", tool: "search_comments", arguments: [
-                "query": "fees", "category": "News", "after": "2026-10-01", "before": "2026-10-31", "page": "2"
-            ]),
-            AgentAction(thought: "", tool: AgentPrompt.finalAnswerTool, arguments: ["answer": "Done."])
+        let registry = toolRegistry(fake)
+        let badDate = try await registry.dispatch(
+            toolName: "search_comments", arguments: ["query": .string("fees"), "after": .string("yesterday")]
+        )
+        XCTAssertTrue(badDate.isError && badDate.output.contains("Invalid argument \"after\": use the form YYYY-MM-DD."), badDate.output)
+        let badPage = try await registry.dispatch(toolName: "search_comments", arguments: ["query": .string("fees"), "page": .int(9)])
+        XCTAssertTrue(badPage.isError && badPage.output.contains("Invalid argument \"page\": use a number from 1 to 3."), badPage.output)
+        let found = try await registry.dispatch(toolName: "search_comments", arguments: [
+            "query": .string("fees"), "category": .string("News"), "after": .string("2026-10-01"),
+            "before": .string("2026-10-31"), "page": .int(2)
         ])
-        let harness = makeHarness(
-            forums: [Forum(siteURL: fakeSite, kind: FakeSiteAdapter.kind, name: "Fake")], fake: fake, planner: planner
-        )
-        harness.app.startAgentRun(goal: "fees?", siteURL: fakeSite)
-        try await waitUntil { harness.app.agentRuns.first?.isFinished ?? false }
-        let run = try XCTUnwrap(harness.app.agentRuns.first)
-        XCTAssertEqual(run.result, .completed, run.error)
+        XCTAssertFalse(found.isError, found.output)
+        XCTAssertTrue(found.output.contains("- id 42: Topic 42 — last activity 2026-10-21 — \(fakeSite)/topic/42"), found.output)
+        XCTAssertTrue(found.output.contains("@bob (2026-10-21): Fees went up."), found.output)
+        XCTAssertEqual(found.notes, [.unnumberedHits])
 
-        XCTAssertEqual(
-            planner.transcripts[1].last?.content,
-            "ERROR from search_comments:\nInvalid argument \"after\": use the form YYYY-MM-DD."
-        )
-        XCTAssertEqual(
-            planner.transcripts[2].last?.content,
-            "ERROR from search_comments:\nInvalid argument \"page\": use a number from 1 to 3."
-        )
-        XCTAssertEqual(planner.transcripts[3].last?.content, """
-            OBSERVATION from search_comments:
-            - id 42: Topic 42 — last activity 2026-10-21 — \(fakeSite)/topic/42
-              @bob (2026-10-21): Fees went up.
-
-            \(AgentPrompt.unnumberedHitsNote)
-            """)
         // Only the valid call reached the adapter, with its options.
         let queries = fake.queryLog.all
         XCTAssertEqual(queries.count, 1)
@@ -325,30 +287,5 @@ final class SiteJobTests: XCTestCase {
             }
             try await Task.sleep(for: .milliseconds(20))
         }
-    }
-}
-
-/// Plays the model's actions in order, then answers; records the prompt and every turn's transcript.
-final class ScriptedAgentPlanner: AgentPlanner, @unchecked Sendable {
-    private var actions: [AgentAction]
-    private(set) var system = ""
-    private(set) var transcripts: [[ChatMessage]] = []
-
-    init(actions: [AgentAction]) {
-        self.actions = actions
-    }
-
-    func nextAction(
-        system: String,
-        transcript: [ChatMessage],
-        configuration: ProviderConfiguration,
-        provider: AIProvider
-    ) async throws -> AgentAction {
-        self.system = system
-        transcripts.append(transcript)
-        guard !actions.isEmpty else {
-            return AgentAction(thought: "", tool: AgentPrompt.finalAnswerTool, arguments: ["answer": "n/a"])
-        }
-        return actions.removeFirst()
     }
 }

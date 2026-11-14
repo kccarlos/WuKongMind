@@ -252,35 +252,6 @@ final class StateTransitionTests: XCTestCase {
         XCTAssertEqual(harness.ai.calls.last?.customPrompt, "Topic two only")
     }
 
-    /// Lowering the step budget below the steps already used ends the run at
-    /// its next step with an answer, not a failure.
-    func testLoweringTheAgentStepBudgetMidRunEndsItGracefully() async throws {
-        let planner = SteppingPlanner()
-        let harness = makeHarness(planner: planner)
-        let app = harness.app
-        select(app, .ollama, model: "model-a")
-        app.settings.agentMaxSteps = 10
-
-        app.startAgentRun(goal: "Keep looking", siteURL: site)
-        for step in 1...3 {
-            try await waitUntil { planner.calls == step && planner.isWaiting }
-            planner.release()
-        }
-        try await waitUntil { planner.calls == 4 && planner.isWaiting }
-        app.settings.agentMaxSteps = AgentLimits.stepRange.lowerBound
-        planner.release()
-        try await waitUntil { planner.calls == 5 && planner.isWaiting }
-        XCTAssertTrue(planner.lastTranscript.last?.content.contains("budget") ?? false)
-        planner.release()
-
-        try await waitUntil { app.agentRuns.first?.isFinished == true }
-        let run = try XCTUnwrap(app.agentRuns.first)
-        XCTAssertEqual(run.result, .completed)
-        XCTAssertEqual(run.steps.count, 5)
-        XCTAssertEqual(run.steps.last?.outcome, "Stopped at the step budget")
-        XCTAssertEqual(run.provider, .ollama)
-    }
-
     // MARK: 5. Forums
 
     func testRemovingTheOpenForumWithItsDataMidRun() async throws {
@@ -291,7 +262,6 @@ final class StateTransitionTests: XCTestCase {
         app.recordVisit(siteURL: site, kind: .discourse, name: "Example", iconURL: nil)
         app.pin(try XCTUnwrap(app.forum(for: site)))
         harness.deliver(topicPage(topic("1")))
-        app.agentSiteURL = site
         XCTAssertEqual(app.currentForum?.siteURL, site)
 
         for id in ["1", "2", "3"] { XCTAssertTrue(app.enqueueSummary(for: topic(id))) }
@@ -301,8 +271,6 @@ final class StateTransitionTests: XCTestCase {
         XCTAssertNil(app.forum(for: site))
         XCTAssertTrue(app.activities.isEmpty)
         XCTAssertTrue(app.sessions.isEmpty)
-        XCTAssertNil(app.agentSiteURL)
-        XCTAssertEqual(app.agentForum?.siteURL, site, "the agent falls back to the page's forum")
         XCTAssertEqual(app.currentForum?.siteURL, other)
         XCTAssertTrue(app.pinnedForums.isEmpty)
 
@@ -502,18 +470,14 @@ final class StateTransitionTests: XCTestCase {
         try await waitUntil { harness.ai.waiting == 1 }
         XCTAssertFalse(app.streams.isEmpty)
         app.drafts.goal = "Unsent goal"
-        app.drafts.followUp = "Unsent follow-up for the deleted run"
 
         app.clearAllSavedData()
         XCTAssertTrue(app.sessions.isEmpty)
         XCTAssertTrue(app.activities.isEmpty)
         XCTAssertTrue(app.agentRuns.isEmpty)
-        XCTAssertNil(app.selectedAgentRunID)
         XCTAssertTrue(app.streams.isEmpty)
-        XCTAssertTrue(app.streams.isEmpty)
-        // Unsent text is kept on purpose, except the draft for a deleted run.
+        // Unsent text is kept on purpose.
         XCTAssertEqual(app.drafts.goal, "Unsent goal")
-        XCTAssertEqual(app.drafts.followUp, "")
 
         harness.ai.gated = false
         harness.ai.releaseAll()
@@ -583,7 +547,7 @@ final class StateTransitionTests: XCTestCase {
         select(app, .ollama, model: "model-a")
         app.settings.hasCompletedOnboarding = true
         harness.deliver(topicPage(topic("1")))
-        app.assistantMode = .agent
+        app.assistantMode = .browserAgent
         app.panelRoute = .history
         XCTAssertTrue(app.enqueueSummary(for: topic("1")))
         try await waitUntil { harness.ai.waiting == 1 }
@@ -593,7 +557,7 @@ final class StateTransitionTests: XCTestCase {
         app.saveSettings()
         app.completeOnboarding()
         XCTAssertTrue(app.settings.hasCompletedOnboarding)
-        XCTAssertEqual(app.assistantMode, .agent)
+        XCTAssertEqual(app.assistantMode, .browserAgent)
         XCTAssertEqual(app.panelRoute, .history)
         XCTAssertEqual(app.currentTopic?.topicKey, topic("1").topicKey)
         XCTAssertEqual(app.activities.first?.status, .running)
@@ -811,34 +775,6 @@ final class StateTransitionTests: XCTestCase {
         withExtendedLifetime(progressToken) {}
     }
 
-    /// The agent's bar is the steps used of its budget.
-    func testAgentProgressFollowsItsSteps() async throws {
-        let planner = SteppingPlanner()
-        let harness = makeHarness(planner: planner)
-        let app = harness.app
-        select(app, .ollama, model: "model-a")
-        app.settings.agentMaxSteps = 9
-
-        app.startAgentRun(goal: "Keep looking", siteURL: site)
-        var seen: [Double] = []
-        for step in 1...3 {
-            try await waitUntil { planner.calls == step && planner.isWaiting }
-            let agentRecord = try XCTUnwrap(app.activities.first { $0.type == .agent })
-            let progress = try XCTUnwrap(app.progress.value(for: agentRecord.id))
-            XCTAssertEqual(progress, WorkProgress.agent(completedSteps: step - 1, maxSteps: 9), accuracy: 1e-9)
-            seen.append(progress)
-            planner.release()
-        }
-        XCTAssertEqual(seen, seen.sorted())
-        XCTAssertGreaterThan(seen.last ?? 0, 0)
-        app.cancel(record: try XCTUnwrap(app.activities.first { $0.type == .agent }))
-        XCTAssertTrue(app.progress.isEmpty)
-        planner.release()
-    }
-
-    /// Many progress ticks and text deltas during a stream cause zero
-    /// `AppModel.objectWillChange` publishes while `ProgressStore` advances
-    /// monotonically and clears when the stream finishes.
     func testStreamingProgressTicksDoNotPublishAppModelAndClearAtEnd() async throws {
         let harness = makeHarness()
         let app = harness.app
@@ -1065,11 +1001,7 @@ final class StateTransitionTests: XCTestCase {
     /// answers on the agent model, and its `summarize_topic` tool runs on
     /// the assistant model. Each record says what it ran with.
     func testEachJobRunsOnItsRolesModel() async throws {
-        let planner = RolePlanner(actions: [
-            AgentAction(thought: "", tool: "summarize_topic", arguments: ["topic_id": "2"]),
-            AgentAction(thought: "", tool: AgentPrompt.finalAnswerTool, arguments: ["answer": "Done"])
-        ])
-        let harness = makeHarness(planner: planner)
+        let harness = makeHarness()
         let app = harness.app
         harness.ai.gated = false
         setRoles(app, assistant: ModelSelection(provider: .ollama, model: "cheap"),
@@ -1079,61 +1011,8 @@ final class StateTransitionTests: XCTestCase {
         try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
         XCTAssertEqual(harness.ai.calls.map(\.label), ["ollama/cheap"])
         XCTAssertEqual(app.activities.first?.provider, .ollama)
-
-        app.startAgentRun(goal: "What changed?", siteURL: site)
-        try await waitUntil { app.agentRuns.first?.isFinished == true }
-        let run = try XCTUnwrap(app.agentRuns.first)
-        XCTAssertEqual(run.result, .completed, run.error)
-        XCTAssertEqual(planner.labels, ["lmstudio/reasoner", "lmstudio/reasoner"])
-        XCTAssertEqual(run.provider, .lmStudio)
-        XCTAssertEqual(run.model, "reasoner")
-        XCTAssertEqual(app.activities.first { $0.type == .agent }?.model, "reasoner")
-        // summarize_topic: the cheap model, recorded on the saved summary.
-        XCTAssertEqual(harness.ai.calls.last?.label, "ollama/cheap")
-        XCTAssertEqual(app.sessions[topic("2").topicKey]?.provider, .ollama)
-        XCTAssertEqual(app.sessions[topic("2").topicKey]?.model, "cheap")
     }
 
-    /// Switching the agent model mid-run: the run keeps what it started
-    /// with; the follow-up uses the new model; the assistant role is untouched.
-    func testChangingTheAgentModelMidRunKeepsTheRunAndTheFollowUpUsesTheNewOne() async throws {
-        let planner = RolePlanner(actions: [
-            AgentAction(thought: "", tool: "saved_summaries", arguments: [:]),
-            AgentAction(thought: "", tool: AgentPrompt.finalAnswerTool, arguments: ["answer": "Done"])
-        ], gated: true)
-        let harness = makeHarness(planner: planner)
-        let app = harness.app
-        setRoles(app, assistant: ModelSelection(provider: .ollama, model: "cheap"),
-                 agent: ModelSelection(provider: .lmStudio, model: "reasoner"))
-
-        app.startAgentRun(goal: "Keep looking", siteURL: site)
-        try await waitUntil { planner.calls == 1 && planner.isWaiting }
-        app.activateFavorite(FavoriteModel(provider: .ollama, model: "reasoner-2"), for: .agent)
-        XCTAssertEqual(app.settings.assistantModel, ModelSelection(provider: .ollama, model: "cheap"))
-        planner.release()
-        try await waitUntil { planner.calls == 2 && planner.isWaiting }
-        planner.release()
-        try await waitUntil { app.agentRuns.first?.isFinished == true }
-        XCTAssertEqual(planner.labels, ["lmstudio/reasoner", "lmstudio/reasoner"])
-
-        let id = try XCTUnwrap(app.agentRuns.first?.id)
-        planner.restart()
-        app.continueAgentRun(id: id, question: "And then?")
-        try await waitUntil { planner.calls == 1 && planner.isWaiting }
-        planner.release()
-        try await waitUntil { planner.calls == 2 && planner.isWaiting }
-        planner.release()
-        try await waitUntil { app.agentRuns.first?.isFinished == true }
-        XCTAssertEqual(planner.labels, ["ollama/reasoner-2", "ollama/reasoner-2"])
-        let run = try XCTUnwrap(app.agentRuns.first)
-        XCTAssertEqual(run.provider, .lmStudio, "the run keeps the model of its first answer")
-        let turns = app.activities.filter { $0.type == .agent }
-        XCTAssertEqual(Set(turns.map(\.model)), ["reasoner", "reasoner-2"], "each turn records its model")
-        XCTAssertEqual(app.settings.assistantModel.provider, .ollama)
-    }
-
-    /// The header switcher changes the current mode's role only: Summary has
-    /// the assistant model, Ask the forum has its own.
     func testHeaderSwitcherOnlyChangesTheCurrentModesRole() {
         let harness = makeHarness()
         let app = harness.app
@@ -1153,24 +1032,18 @@ final class StateTransitionTests: XCTestCase {
         }
 
         setRoles(app, assistant: cheap, agent: agentic)
-        app.assistantMode = .agent
+        app.assistantMode = .browserAgent
         app.activateFavorite(favorite, for: app.currentRole)
-        XCTAssertEqual(app.settings.agentModel, ModelSelection(provider: .openAI, model: "gpt-5-mini"))
+        XCTAssertEqual(app.settings.browserAgentModel, ModelSelection(provider: .openAI, model: "gpt-5-mini"))
         XCTAssertEqual(app.settings.assistantModel, cheap)
         XCTAssertEqual(app.settings.assistantModel.provider, .gemini)
         XCTAssertEqual(app.providerSummary, "OpenAI · gpt-5-mini")
     }
 
-    /// Deleting the key of the agent's provider: Ask the forum isn't ready
-    /// (and fails clearly), summaries keep working; the agent's
-    /// summarize_topic fails as a step (not the run) when the assistant
-    /// model isn't ready.
+    /// Deleting the key of the agent role's provider: that role isn't ready,
+    /// summaries keep working.
     func testDeletingTheKeyOfOneRolesProviderOnlyAffectsThatRole() async throws {
-        let planner = RolePlanner(actions: [
-            AgentAction(thought: "", tool: "summarize_topic", arguments: ["topic_id": "2"]),
-            AgentAction(thought: "", tool: AgentPrompt.finalAnswerTool, arguments: ["answer": "Read it instead"])
-        ])
-        let harness = makeHarness(planner: planner)
+        let harness = makeHarness()
         let app = harness.app
         harness.ai.gated = false
         setKey(app, "sk-openai", for: .openAI)
@@ -1183,26 +1056,9 @@ final class StateTransitionTests: XCTestCase {
         XCTAssertTrue(app.isProviderReady(for: .assistant))
         XCTAssertFalse(app.isProviderReady(for: .agent))
         XCTAssertFalse(app.isProviderReady)
-        app.startAgentRun(goal: "Anything?", siteURL: site)
-        try await waitUntil { app.agentRuns.first?.isFinished == true }
-        XCTAssertEqual(app.agentRuns.first?.result, .failed)
-        XCTAssertTrue(app.agentRuns.first?.error.contains("DeepSeek") ?? false)
-        XCTAssertEqual(planner.calls, 0)
         XCTAssertTrue(app.enqueueSummary(for: topic("1")))
         try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
         XCTAssertEqual(app.activities.first { $0.type == .summary }?.status, .completed)
-
-        // Now the other way round: the assistant's key is gone.
-        setKey(app, "sk-deepseek", for: .deepSeek)
-        setKey(app, "", for: .openAI)
-        app.dismissPresentedError()
-        app.startAgentRun(goal: "Summarize it", siteURL: site)
-        try await waitUntil { app.agentRuns.first?.isFinished == true }
-        let run = try XCTUnwrap(app.agentRuns.first)
-        XCTAssertEqual(run.result, .completed, run.error)
-        XCTAssertEqual(run.steps.first?.isError, true)
-        XCTAssertTrue(run.steps.first?.outcome.contains("OpenAI") ?? false, run.steps.first?.outcome ?? "")
-        XCTAssertEqual(run.answer, "Read it instead")
     }
 
     func testRemovingAFavoriteInUseKeepsBothRoles() {
@@ -1219,20 +1075,20 @@ final class StateTransitionTests: XCTestCase {
         XCTAssertFalse(app.isFavorite(app.settings.agentModel))
     }
 
-    /// Asking the forum needs the agent model; a summary share only the
+    /// Asking the forum needs the Agent's model; a summary share only the
     /// assistant model.
     func testProviderSetupAsksForTheRoleTheHandOffNeeds() throws {
         let harness = makeHarness()
         let app = harness.app
         app.settings.hasCompletedOnboarding = true
-        setRoles(app, assistant: ModelSelection(provider: .ollama, model: "cheap"),
-                 agent: ModelSelection(provider: .deepSeek, model: "deepseek-v4-flash"))
+        app.selectModel(ModelSelection(provider: .ollama, model: "cheap"), for: .role(.assistant))
+        app.selectModel(ModelSelection(provider: .deepSeek, model: "deepseek-v4-flash"), for: .role(.browserAgent))
         app.recordVisit(siteURL: site, kind: .discourse, name: "Example", iconURL: nil)
         app.askForum(try XCTUnwrap(app.forum(for: site)))
-        XCTAssertEqual(app.needsProviderSetup, .agent)
-        // Setting up the assistant role doesn't clear an agent request.
+        XCTAssertEqual(app.needsProviderSetup, .browserAgent)
+        // Setting up the assistant role doesn't clear an Agent request.
         app.selectModel(ModelSelection(provider: .lmStudio, model: "other"), for: .role(.assistant))
-        XCTAssertEqual(app.needsProviderSetup, .agent)
+        XCTAssertEqual(app.needsProviderSetup, .browserAgent)
         setKey(app, "sk-deepseek", for: .deepSeek)
         XCTAssertNil(app.needsProviderSetup)
     }
@@ -1368,80 +1224,7 @@ final class StateTransitionTests: XCTestCase {
         XCTAssertEqual(app.sessions[topic("1").topicKey]?.summary ?? "", "", "a cancelled job's late answer is dropped")
     }
 
-    // MARK: Ask box
-
-    /// A run's live status is its work record's; only the outcome is stored.
-    func testAgentRunStatusIsDerivedFromItsRecordAndStoresOnlyTheOutcome() async throws {
-        let planner = SteppingPlanner()
-        let harness = makeHarness(planner: planner)
-        let app = harness.app
-        select(app, .ollama, model: "model-a")
-        app.settings.agentMaxSteps = 1
-        app.startAgentRun(goal: "Derive", siteURL: site)
-        try await waitUntil { planner.isWaiting }
-        var run = try XCTUnwrap(app.agentRuns.first)
-        XCTAssertNil(run.result, "nothing about a live run is stored")
-        XCTAssertEqual(app.status(of: run), .running)
-        XCTAssertEqual(app.activeRecord(forAgentRun: run.id)?.status, .running)
-
-        // Cancelled: the outcome is stored, the record is gone.
-        app.cancelAgentRun(id: run.id)
-        planner.release()
-        try await waitUntil { app.agentRuns.first?.isFinished == true }
-        run = try XCTUnwrap(app.agentRuns.first)
-        XCTAssertEqual(run.result, .cancelled)
-        XCTAssertEqual(app.status(of: run), .cancelled)
-    }
-
-    /// When a running agent task is cancelled and unwinds with a non-`CancellationError`
-    /// (such as `URLError(.cancelled)`), both the work record and the stored `AgentRun`
-    /// outcome are marked `.cancelled`.
-    func testAgentRunTaskCancelledWithNonCancellationErrorMarksRunCancelled() async throws {
-        struct TaskCancellingPlanner: AgentPlanner {
-            func nextAction(
-                system: String,
-                transcript: [ChatMessage],
-                configuration: ProviderConfiguration,
-                provider: AIProvider
-            ) async throws -> AgentAction {
-                withUnsafeCurrentTask { $0?.cancel() }
-                throw URLError(.cancelled)
-            }
-        }
-        let harness = makeHarness(planner: TaskCancellingPlanner())
-        let app = harness.app
-        select(app, .ollama, model: "model-a")
-        app.startAgentRun(goal: "Cancel via URLSession", siteURL: site)
-        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
-
-        let record = try XCTUnwrap(app.activities.first)
-        let run = try XCTUnwrap(app.agentRuns.first)
-        XCTAssertEqual(record.status, .cancelled)
-        XCTAssertEqual(run.result, .cancelled)
-        XCTAssertNotNil(run.completedAt)
-        XCTAssertEqual(app.status(of: run), .cancelled)
-    }
-
-    /// App killed mid-run: the run with a record resumes as queued; one whose
-    /// record is gone is closed out instead of spinning.
-    func testRelaunchResumesARunWithItsRecordAndClosesOneWithout() throws {
-        let resumable = AgentRun(siteURL: site, goal: "Resume me", provider: .ollama, model: "model-a")
-        let orphan = AgentRun(siteURL: site, goal: "Orphan", provider: .ollama, model: "model-a")
-        var record = WorkRecord(
-            type: .agent, siteURL: site, topicID: AppModel.agentTopicPrefix + resumable.id.uuidString,
-            title: "Resume me", url: URL(string: site)!, provider: .ollama, model: "model-a"
-        )
-        record.status = .running
-        let harness = makeHarness(snapshot: AppSnapshot(activities: [record], agentRuns: [resumable, orphan]))
-        let app = harness.app
-        let resumed = try XCTUnwrap(app.agentRuns.first { $0.id == resumable.id })
-        XCTAssertNil(resumed.result)
-        XCTAssertEqual(app.status(of: resumed), .queued, "the interrupted record is requeued")
-        let closed = try XCTUnwrap(app.agentRuns.first { $0.id == orphan.id })
-        XCTAssertEqual(closed.result, .cancelled)
-        XCTAssertEqual(app.status(of: closed), .cancelled)
-        XCTAssertFalse(closed.error.isEmpty)
-    }
+    // MARK: Saved data
 
     /// Topic chat is deleted, but what it saved stays: a session with chat
     /// history (and its chat timestamp) still decodes, and a queued chat
@@ -1470,47 +1253,6 @@ final class StateTransitionTests: XCTestCase {
         XCTAssertEqual(app.activities.first?.status, .cancelled)
         XCTAssertTrue(harness.ai.calls.isEmpty, "no model call for a deleted feature")
         XCTAssertEqual(app.sessions[session.topicKey]?.history.count, 2, "saved chat stays stored")
-    }
-
-    /// Text typed in the Ask box stays in front when the run it waits for
-    /// finishes, or another run is selected: the box never swaps it for the
-    /// other, empty draft.
-    func testTypedAskTextSurvivesTheRunFinishingAndAnotherRunBeingSelected() async throws {
-        let planner = SteppingPlanner()
-        let harness = makeHarness(planner: planner)
-        let app = harness.app
-        select(app, .ollama, model: "model-a")
-        app.settings.agentMaxSteps = 1
-        app.chooseAskForum(siteURL: site)
-        app.startAgentRun(goal: "First", siteURL: site)
-        try await waitUntil { planner.isWaiting }
-        XCTAssertTrue(app.askWaitsForRun)
-        app.askDraft = "Typed while it runs"
-        XCTAssertFalse(app.canSendAsk, "waits for the run")
-
-        planner.release()
-        try await waitUntil { planner.calls == 2 && planner.isWaiting }
-        planner.release()
-        try await waitUntil { app.agentRuns.first?.isFinished == true }
-        XCTAssertEqual(app.askDraft, "Typed while it runs")
-        XCTAssertEqual(app.askDraftTarget, .goal)
-        XCTAssertTrue(app.canSendAsk)
-
-        // A follow-up typed for the finished run stays when a running one
-        // is selected, and waits for it.
-        app.askDraft = ""
-        XCTAssertEqual(app.askDraftTarget, .followUp)
-        app.askDraft = "A follow-up"
-        let second = try app.startAgentRun(goal: "Second", siteURL: site) { _ in }
-        app.selectedAgentRunID = second
-        XCTAssertEqual(app.askDraft, "A follow-up")
-        XCTAssertEqual(app.askDraftTarget, .followUp)
-        XCTAssertFalse(app.canSendAsk)
-        // Fast repeated taps on Send do nothing while it can't send.
-        app.sendAsk()
-        app.sendAsk()
-        XCTAssertEqual(app.askDraft, "A follow-up")
-        XCTAssertEqual(app.agentRuns.count, 2)
     }
 
     // MARK: Background
@@ -1617,7 +1359,6 @@ final class StateTransitionTests: XCTestCase {
 
     private func makeHarness(
         snapshot: AppSnapshot? = nil,
-        planner: AgentPlanner? = nil,
         backgroundGrace: BackgroundGracing? = nil,
         seedsForum: Bool = true
     ) -> Harness {
@@ -1636,7 +1377,6 @@ final class StateTransitionTests: XCTestCase {
             store: store,
             forumService: ForumService(session: session, pacer: ForumRequestPacer(clock: InstantPacingClock())),
             aiService: ai,
-            planner: planner,
             backgroundGrace: backgroundGrace
         )
         app.usesDirectForumRequests = true
@@ -1754,18 +1494,19 @@ final class StateTransitionTests: XCTestCase {
         let savedSession = try XCTUnwrap(app.sessions[topic("11").topicKey])
         let savedRecord = try XCTUnwrap(app.activities.first)
 
-        // 1. From Forums Home, modal History sheet (.expanded(.history)) dismisses on Open,
-        // exits Forums Home, and opens the AI view on Ask runs.
+        // 1. From Forums Home, a saved Ask run opens read-only inside History
+        // (`SavedAnswerView`); nothing else moves.
         app.showForumsHome()
         XCTAssertTrue(app.browser.showsForumsHome)
         app.openPanelRoute(.history)
         XCTAssertEqual(app.router.item, .expanded(.history))
 
         app.openAgentRun(id: runA.id)
-        XCTAssertNil(app.router.item)
-        XCTAssertFalse(app.browser.showsForumsHome)
-        XCTAssertTrue(app.router.wantsDrawer)
-        XCTAssertEqual(app.assistantMode, .agent)
+        XCTAssertEqual(app.savedAnswerRunID, runA.id)
+        XCTAssertEqual(app.router.item, .expanded(.history))
+        XCTAssertTrue(app.browser.showsForumsHome)
+        XCTAssertEqual(app.assistantMode, .summary)
+        app.savedAnswerRunID = nil
 
         // Modal History sheet also dismisses on Open for saved sessions, records, and watched topics.
         app.openPanelRoute(.history)
@@ -1783,74 +1524,17 @@ final class StateTransitionTests: XCTestCase {
         app.openWatched(watched)
         XCTAssertNil(app.router.item)
 
-        // 2. Opening a saved Summary/Chat from in-panel/in-drawer History while in .agent mode
+        // 2. Opening a saved Summary from in-panel/in-drawer History while in Agent mode
         // resets assistantMode to .summary and steps a .large drawer down to .medium.
         app.router.presentDrawer()
         app.router.drawerAppeared()
         app.router.drawerDetent = .large
-        app.assistantMode = .agent
+        app.assistantMode = .browserAgent
         app.panelRoute = .history
         app.open(session: savedSession)
         XCTAssertEqual(app.panelRoute, .topic)
         XCTAssertEqual(app.assistantMode, .summary)
         XCTAssertEqual(app.router.drawerDetent, .medium)
-
-        // 3. While browsing Forum B (`other`), opening `runA` from Forum A synchronizes `agentForum`
-        // with `selectedAgentRun` and `askFollowUpRun`.
-        harness.deliver(topicPage(topic("22", site: other)))
-        app.agentSiteURL = nil
-        app.openAgentRun(id: runA.id)
-        XCTAssertEqual(app.selectedAgentRun?.siteURL, site)
-        XCTAssertEqual(app.agentForum?.siteURL, site)
-        XCTAssertEqual(app.askFollowUpRun?.siteURL, site)
-    }
-
-    func testForumHomeRecentRunResetsAcrossForumHomesAndAllowsOverviewReturn() async throws {
-        let run = finishedRun()
-        var seeded = AppSnapshot()
-        seeded.agentRuns = [run]
-        let harness = makeHarness(snapshot: seeded)
-        let app = harness.app
-        select(app, .ollama, model: "model-a")
-
-        let home1 = PageContext(
-            url: URL(string: site)!,
-            site: .discourse,
-            siteURL: site,
-            forumName: "Stub Forum",
-            topic: nil,
-            state: .forumHome
-        )
-        harness.deliver(home1)
-        XCTAssertEqual(app.assistantPageState, .forumHome)
-        XCTAssertEqual(app.assistantMode, .summary)
-        XCTAssertNil(app.currentTopic)
-
-        // User taps a recent run in ForumHomeState, then can return directly to Forum overview.
-        app.openAgentRun(id: run.id)
-        XCTAssertEqual(app.assistantMode, .agent)
-        XCTAssertNil(app.currentTopic)
-        app.showForumOverview()
-        XCTAssertEqual(app.assistantMode, .summary)
-        XCTAssertNil(app.agentSiteURL)
-
-        // Re-opening the recent run and navigating to another forum's home page also resets out of .agent.
-        app.openAgentRun(id: run.id)
-        XCTAssertEqual(app.assistantMode, .agent)
-
-        // Navigating to another forum's home page resets out of .agent so Forum B's ForumHomeState shows.
-        let home2 = PageContext(
-            url: URL(string: other)!,
-            site: .discourse,
-            siteURL: other,
-            forumName: "Other Forum",
-            topic: nil,
-            state: .forumHome
-        )
-        harness.deliver(home2)
-        XCTAssertEqual(app.assistantPageState, .forumHome)
-        XCTAssertEqual(app.assistantMode, .summary)
-        XCTAssertNil(app.agentSiteURL)
     }
 
     func testBatchLimitPresetRegeneratesSummaryAndRapidStartSummaryIsIdempotent() async throws {
@@ -1882,41 +1566,6 @@ final class StateTransitionTests: XCTestCase {
         harness.ai.gated = false
         harness.ai.releaseAll()
         try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
-    }
-
-    func testAnswerReadyDoesNotFireForAlreadyViewedAgentRun() async throws {
-        let planner = RolePlanner(actions: [
-            AgentAction(thought: "Done 1", tool: AgentPrompt.finalAnswerTool, arguments: ["answer": "Read while open"]),
-            AgentAction(thought: "Done 2", tool: AgentPrompt.finalAnswerTool, arguments: ["answer": "Read before closing"])
-        ])
-        let harness = makeHarness(planner: planner)
-        let app = harness.app
-        select(app, .ollama, model: "model-a")
-        harness.deliver(topicPage(topic("18")))
-        app.router.presentDrawer()
-        app.router.drawerAppeared()
-        XCTAssertTrue(app.isAIViewShown)
-
-        // 1. User switches to Ask the forum, watches the run finish in AgentPanel, then switches back to the summary.
-        app.assistantMode = .agent
-        try await Task.sleep(for: .milliseconds(20))
-        app.startAgentRun(goal: "What is new?", siteURL: site)
-        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
-        XCTAssertEqual(app.assistantMode, .agent)
-        XCTAssertNil(app.readyAnswer)
-
-        app.assistantMode = .summary
-        XCTAssertNil(app.readyAnswer)
-
-        // 2. User starts another Ask the forum run, watches it finish while drawer is open, then closes the drawer.
-        app.assistantMode = .agent
-        try await Task.sleep(for: .milliseconds(20))
-        app.startAgentRun(goal: "Second question", siteURL: site)
-        try await waitUntil { app.activities.allSatisfy(\.status.isTerminal) }
-        app.router.closeDrawer()
-        app.router.drawerDismissed()
-        app.aiViewVisibilityChanged()
-        XCTAssertNil(app.readyAnswer)
     }
 
     func testSavedDataCountsOnlySavedItemsExcludesEmptyForumsAndEnablesClearAllWithDigests() async throws {
@@ -2148,133 +1797,6 @@ final class StateTransitionTests: XCTestCase {
         XCTAssertEqual(toggle?.isOn, false, "Make the podcast every day must appear off when Make a digest every day is off")
     }
 
-    func testResumedAgentRunPreservesStepsUsedAndSkipsOrphanedVoiceRuns() async throws {
-        let planner = RolePlanner(actions: [
-            AgentAction(thought: "Step 1", tool: "saved_summaries", arguments: [:]),
-            AgentAction(thought: "Step 2", tool: "saved_summaries", arguments: [:]),
-            AgentAction(thought: "Fallback answer", tool: "saved_summaries", arguments: [:])
-        ])
-        var settings = AppSettings()
-        settings.assistantModel = ModelSelection(provider: .ollama, model: "m")
-        settings.agentModel = ModelSelection(provider: .ollama, model: "m")
-        settings.agentMaxSteps = 3
-
-        let typedID = UUID()
-        var typedRun = AgentRun(id: typedID, siteURL: site, goal: "Typed", provider: .ollama, model: "m", origin: .typed)
-        typedRun.steps = [
-            AgentStep(tool: "saved_summaries", outcome: "1"),
-            AgentStep(tool: "saved_summaries", outcome: "2")
-        ]
-        typedRun.transcript = [
-            AgentPrompt.goalMessage("Typed"),
-            ChatMessage(role: .assistant, content: #"{"tool":"saved_summaries"}"#),
-            AgentPrompt.observation(tool: "saved_summaries", result: "none", isError: false)
-        ]
-
-        let voiceID = UUID()
-        let voiceRun = AgentRun(id: voiceID, siteURL: site, goal: "Voice", provider: .ollama, model: "m", origin: .voice)
-
-        let followUpID = UUID()
-        var followUpRun = AgentRun(id: followUpID, siteURL: site, goal: "Completed first", provider: .ollama, model: "m", origin: .typed)
-        followUpRun.initialAnswer = "Initial answer"
-        followUpRun.answer = "Initial answer"
-        followUpRun.followUps = [ChatMessage(role: .user, content: "Follow-up")]
-        followUpRun.result = nil
-
-        var typedRecord = WorkRecord(
-            type: .agent, siteURL: site,
-            topicID: "agent:\(typedID.uuidString)", title: "Typed",
-            url: URL(string: site)!, provider: .ollama, model: "m"
-        )
-        typedRecord.status = .running
-        var voiceRecord = WorkRecord(
-            type: .agent, siteURL: site,
-            topicID: "agent:\(voiceID.uuidString)", title: "Voice",
-            url: URL(string: site)!, provider: .ollama, model: "m"
-        )
-        voiceRecord.status = .running
-
-        let harness = makeHarness(
-            snapshot: AppSnapshot(
-                settings: settings,
-                activities: [typedRecord, voiceRecord],
-                agentRuns: [typedRun, voiceRun, followUpRun]
-            ),
-            planner: planner
-        )
-        let app = harness.app
-
-        // Voice run and its work record are cancelled on relaunch, not re-queued.
-        XCTAssertEqual(app.activities.first(where: { $0.id == voiceRecord.id })?.status, .cancelled)
-        XCTAssertEqual(app.agentRuns.first(where: { $0.id == voiceID })?.result, .cancelled)
-
-        // Completed run with an un-restorable follow-up keeps its completed result.
-        let reconciledFollowUp = try XCTUnwrap(app.agentRuns.first(where: { $0.id == followUpID }))
-        XCTAssertEqual(reconciledFollowUp.result, .completed)
-        XCTAssertEqual(reconciledFollowUp.error, "")
-
-        // Resuming the typed run with 2 completed steps and maxSteps = 3 allows only 1 more tool step before stopping at the budget.
-        app.restorePendingTasksIfNeeded()
-        try await waitUntil { app.agentRuns.first(where: { $0.id == typedID })?.isFinished == true }
-        let finishedTyped = try XCTUnwrap(app.agentRuns.first(where: { $0.id == typedID }))
-        XCTAssertEqual(finishedTyped.steps.count, 4, "Resumed run must count already-completed steps against agentMaxSteps")
-        XCTAssertEqual(finishedTyped.steps.last?.outcome, "Stopped at the step budget")
-        XCTAssertEqual(planner.calls, 2)
-    }
-
-    func testAgentFollowUpKillPreservesStepsUsedAgainstBudget() async throws {
-        let planner = RolePlanner(actions: [
-            AgentAction(thought: "Step", tool: "saved_summaries", arguments: [:])
-        ])
-        var settings = AppSettings()
-        settings.hasCompletedOnboarding = true
-        settings.assistantModel = ModelSelection(provider: .ollama, model: "m")
-        settings.agentModel = ModelSelection(provider: .ollama, model: "m")
-        settings.agentMaxSteps = 3
-
-        let runID = UUID()
-        var followUpRun = AgentRun(id: runID, siteURL: site, goal: "Initial goal", provider: .ollama, model: "m", origin: .typed)
-        followUpRun.initialAnswer = "Initial answer"
-        followUpRun.answer = "Initial answer"
-        followUpRun.steps = [
-            AgentStep(tool: "saved_summaries", outcome: "init-1"),
-            AgentStep(tool: "saved_summaries", outcome: "followup-1"),
-            AgentStep(tool: "saved_summaries", outcome: "followup-2")
-        ]
-        followUpRun.followUps = [ChatMessage(role: .user, content: "Follow-up question")]
-        followUpRun.transcript = [
-            AgentPrompt.goalMessage("Initial goal"),
-            ChatMessage(role: .assistant, content: #"{"tool":"final_answer","arguments":{"answer":"Initial answer"}}"#),
-            AgentPrompt.followUpMessage("Follow-up question"),
-            ChatMessage(role: .assistant, content: #"{"tool":"saved_summaries"}"#),
-            AgentPrompt.observation(tool: "saved_summaries", result: "1", isError: false),
-            ChatMessage(role: .assistant, content: #"{"tool":"saved_summaries"}"#),
-            AgentPrompt.observation(tool: "saved_summaries", result: "2", isError: false)
-        ]
-        followUpRun.result = nil
-
-        var record = WorkRecord(
-            type: .agent, siteURL: site,
-            topicID: "agent:\(runID.uuidString)", title: "Follow-up question",
-            url: URL(string: site)!, provider: .ollama, model: "m"
-        )
-        record.status = .running
-
-        let h = makeHarness(
-            snapshot: AppSnapshot(settings: settings, activities: [record], agentRuns: [followUpRun]),
-            planner: planner
-        )
-        h.app.restorePendingTasksIfNeeded()
-        try await waitUntil { h.app.agentRuns.first(where: { $0.id == runID })?.isFinished == true }
-        let resumed = try XCTUnwrap(h.app.agentRuns.first(where: { $0.id == runID }))
-
-        XCTAssertLessThanOrEqual(
-            resumed.steps.count,
-            5,
-            "Kill & relaunch mid-Agent follow-up reset stepsUsed to 0, running \(planner.calls) additional planner calls instead of 2 (steps.count=\(resumed.steps.count))"
-        )
-    }
-
     func testNowPlayingSheetPresentsMissingGoogleKeyAlert() async throws {
         let h = makeHarness()
         let app = h.app
@@ -2495,91 +2017,6 @@ final class StateAIStub: AIService, @unchecked Sendable {
         let call = Call(kind: "complete", provider: provider, configuration: configuration)
         await arrive(call)
         return "Completed by \(call.label)"
-    }
-}
-
-/// Answers each step with `saved_summaries` (no network), waiting for the
-/// test to release it.
-private final class SteppingPlanner: AgentPlanner, @unchecked Sendable {
-    private let lock = NSLock()
-    private var continuation: CheckedContinuation<Void, Never>?
-    private var callCount = 0
-    private var transcript: [ChatMessage] = []
-
-    var calls: Int { lock.withLock { callCount } }
-    var isWaiting: Bool { lock.withLock { continuation != nil } }
-    var lastTranscript: [ChatMessage] { lock.withLock { transcript } }
-
-    func release() {
-        lock.withLock {
-            continuation?.resume()
-            continuation = nil
-        }
-    }
-
-    func nextAction(
-        system: String,
-        transcript: [ChatMessage],
-        configuration: ProviderConfiguration,
-        provider: AIProvider
-    ) async throws -> AgentAction {
-        await withCheckedContinuation { continuation in
-            lock.withLock {
-                callCount += 1
-                self.transcript = transcript
-                self.continuation = continuation
-            }
-        }
-        return AgentAction(thought: "", tool: "saved_summaries", arguments: [:])
-    }
-}
-
-/// Plays `actions` in order (the last one repeats), recording the model
-/// each step ran with. `gated`: each step waits for `release()`.
-private final class RolePlanner: AgentPlanner, @unchecked Sendable {
-    private let lock = NSLock()
-    private let actions: [AgentAction]
-    private let gated: Bool
-    private var continuation: CheckedContinuation<Void, Never>?
-    private var recorded: [String] = []
-
-    init(actions: [AgentAction], gated: Bool = false) {
-        self.actions = actions
-        self.gated = gated
-    }
-
-    var calls: Int { lock.withLock { recorded.count } }
-    var labels: [String] { lock.withLock { recorded } }
-    var isWaiting: Bool { lock.withLock { continuation != nil } }
-
-    func release() {
-        lock.withLock {
-            continuation?.resume()
-            continuation = nil
-        }
-    }
-
-    /// Starts the script over (for a follow-up).
-    func restart() {
-        lock.withLock { recorded = [] }
-    }
-
-    func nextAction(
-        system: String,
-        transcript: [ChatMessage],
-        configuration: ProviderConfiguration,
-        provider: AIProvider
-    ) async throws -> AgentAction {
-        let index: Int = lock.withLock {
-            recorded.append("\(provider.rawValue)/\(configuration.model)")
-            return recorded.count - 1
-        }
-        if gated {
-            await withCheckedContinuation { continuation in
-                lock.withLock { self.continuation = continuation }
-            }
-        }
-        return actions[min(index, actions.count - 1)]
     }
 }
 

@@ -393,44 +393,6 @@ final class DrawerUITests: DCUITestCase {
         XCTAssertFalse(retry.exists, "The failure stays after a successful run.")
     }
 
-    /// §5 and the citation chips (no network: `-dc-no-provider` fails a run
-    /// at once). Text typed under This topic moves along to Whole forum and
-    /// to a new question; the run it starts shows in History. The sample
-    /// summary's `#3 #7` chips are 44 pt wide and at least 4 pt apart.
-    /// "Answer ready" over the bar (iPhone: drawer closed; iPad split: panel
-    /// hidden) brings the AI view forward on the run that finished, not the
-    /// selected one, and the row goes (audit A1, A2).
-    func testAnswerReadyShowsTheFinishedRunInTheAIView() throws {
-        let app = launch(sample + ["-dc-answer-ready"], orientation: isPhone ? .portrait : .landscapeLeft)
-        let split = !usesDrawerLayout(app)
-        let panel = any(app, "aiPanel")
-        if split {
-            XCTAssertTrue(waitOrDump(panel, timeout: 20, in: app), "The sample did not show the panel.")
-            // After the sample's second "show the assistant" (1.2 s in).
-            RunLoop.current.run(until: Date().addingTimeInterval(3))
-            app.buttons["aiPanelToggle"].tap()
-            XCTAssertTrue(waitForGone(panel, timeout: 5), "The panel did not hide.")
-        } else {
-            XCTAssertTrue(waitOrDump(drawerState(in: app), timeout: 20, in: app), "The sample did not open the drawer.")
-            RunLoop.current.run(until: Date().addingTimeInterval(2))
-            closeDrawer(in: app)
-        }
-        let row = app.buttons["dockAnswerReady"]
-        XCTAssertTrue(waitOrDump(row, timeout: 10, in: app), "No Answer ready row.")
-        row.tap()
-        if split {
-            XCTAssertTrue(panel.waitForExistence(timeout: 5), "Answer ready did not show the panel.")
-        } else {
-            XCTAssertTrue(drawerState(in: app).waitForExistence(timeout: 10), "Answer ready did not open the drawer.")
-        }
-        let goal = app.staticTexts["agentRunGoal"]
-        XCTAssertTrue(goal.waitForExistence(timeout: 10), "Ask the forum did not show a run.")
-        if Locale.preferredLanguages.first?.hasPrefix("en") ?? true {
-            XCTAssertTrue(goal.label.contains("rate limits"), "Not the finished run: \(goal.label)")
-        }
-        XCTAssertTrue(waitForGone(row, timeout: 5), "Answer ready stayed after it was shown.")
-    }
-
     // MARK: Helpers
 
     private func launchWithDrawer(presenting kind: String, at detent: String) throws -> XCUIApplication {

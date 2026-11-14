@@ -20,20 +20,20 @@ enum HackerNewsAgent {
             + "[Reply to #N; item ID] names the parent. Cite the story URL, or use a known comment item id as its fragment.",
         postCitation: "Cite a story as [title](url), retaining its ?id= parameter.",
         siteTools: [
-            .init(name: AgentToolName.searchForum.rawValue,
-                  description: "Search Hacker News stories by keyword. Returns up to 20 stories per page. Example: {\"tool\": \"search_forum\", \"arguments\": {\"query\": \"sqlite\"}}.", parameters: parameters),
-            .init(name: AgentToolName.searchComments.rawValue,
-                  description: "Search comments across stories, returning up to 10 authored excerpts and story ids. Read the story for context. Example: {\"tool\": \"search_comments\", \"arguments\": {\"query\": \"sqlite\"}}.", parameters: parameters),
-            .init(name: AgentToolName.listLatest.rawValue,
-                  description: "List the newest 30 stories. Example: {\"tool\": \"list_latest\", \"arguments\": {}}.", parameters: [])
+            .init(name: ForumToolName.searchForum,
+                  description: "Search Hacker News stories by keyword. Returns up to 20 stories per page.", parameters: parameters),
+            .init(name: ForumToolName.searchComments,
+                  description: "Search comments across stories, returning up to 10 authored excerpts and story ids. Read the story for context.", parameters: parameters),
+            .init(name: ForumToolName.listLatest,
+                  description: "List the newest 30 stories.", parameters: [])
         ], query: { tool, arguments in
             switch tool {
-            case .listLatest: return .latest
-            case .searchForum, .searchComments:
+            case ForumToolName.listLatest: return .latest
+            case ForumToolName.searchForum, ForumToolName.searchComments:
                 guard let text = arguments["query"]?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty else {
                     throw AgentError.missingArgument("query")
                 }
-                return .search(text: text, scope: tool == .searchComments ? .comments : .forum,
+                return .search(text: text, scope: tool == ForumToolName.searchComments ? .comments : .forum,
                                options: try SearchOptions(arguments: arguments, allowsCategory: false))
             default: throw SiteQueryError.unsupported
             }

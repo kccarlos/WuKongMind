@@ -3,11 +3,10 @@ import XCTest
 @testable import WukongMind
 
 /// The One loop comparison (design-one-loop.md "Comparison test").
-/// - Record (`ONE_LOOP_RECORD=1`, task 8, real quota): for each confirmed question, old Research
-///   runs once live (its result goes only into the report), then the new Agent runs on the same
-///   text and page. Forum traffic goes through `ForumSnapshot` in record mode; the new side's runs
-///   are saved under `Fixtures/Comparison/runs/`; the report goes to `docs/wukongmind/one-loop-comparison.md`.
-/// - Replay (no flag, CI): each saved new-side run replays with the real registry over the snapshot.
+/// - Record (task 8, WUKO-63): old Research and the new Agent each ran once live; the report is
+///   `docs/wukongmind/one-loop-comparison.md`. One loop 13 deleted the old loop and its record path.
+/// - Replay (CI): each saved new-side run under `Fixtures/Comparison/` replays with the real
+///   registry over the snapshot.
 @MainActor
 final class OneLoopComparisonTests: XCTestCase {
     private func temporaryFolder() throws -> URL {
@@ -227,90 +226,29 @@ final class OneLoopComparisonTests: XCTestCase {
         XCTAssertEqual(content.components(separatedBy: ToolNote.label).count, notes.count + 1, "only these notes, outside the wrapper", file: file, line: line)
     }
 
-    // MARK: Record (task 8)
+    // MARK: Record the new side (task 8's record path, without old Research)
 
-    func testRecordComparison() async throws {
+    /// `ONE_LOOP_RECORD=1` records the new Agent's run of each confirmed question (or
+    /// `ONE_LOOP_ONLY=W2,H3`) live into `ONE_LOOP_SET`'s runs, which the replay test then plays.
+    /// The old Research side and its report went with the old loop (One loop 13).
+    func testRecordNewSideRuns() async throws {
         let env = ProcessInfo.processInfo.environment
         guard env["ONE_LOOP_RECORD"] == "1" else { throw XCTSkip("Record mode only: ONE_LOOP_RECORD=1 (TEST_RUNNER_ONE_LOOP_RECORD).") }
         let models = try ComparisonModels.fromEnvironment(env)
-        // `ONE_LOOP_SET=<name>` records into Fixtures/Comparison/<name>/ (a fresh snapshot, runs and
-        // audit log) and writes the report to `ONE_LOOP_REPORT_OUT`, leaving task 8's files alone.
         let set = env["ONE_LOOP_SET"].map(ComparisonSet.named) ?? .main
-        let reportURL = env["ONE_LOOP_REPORT_OUT"].map { URL(fileURLWithPath: $0) } ?? OneLoopReport.defaultURL
-        if set.name != "main" {
-            XCTAssertNotEqual(reportURL, OneLoopReport.defaultURL, "a re-record set needs ONE_LOOP_REPORT_OUT")
-            guard reportURL != OneLoopReport.defaultURL else { return }
-        }
         let only = env["ONE_LOOP_ONLY"].map { $0.split(separator: ",").map(String.init) }
-        let questions = try ComparisonQuestion.confirmed().filter { question in only?.contains(question.id) ?? true }
-        // Each finished question is saved at once (`ONE_LOOP_ROWS_DIR`, outside the repo: the old side
-        // lives only in the report), so a crashed test host loses at most the question it was on.
-        let rowsDirectory = URL(fileURLWithPath: env["ONE_LOOP_ROWS_DIR"] ?? NSTemporaryDirectory()).appendingPathComponent("one-loop-rows", isDirectory: true)
-        try FileManager.default.createDirectory(at: rowsDirectory, withIntermediateDirectories: true)
-        var snapshots: [String: ForumSnapshot] = [:]
-        var toolCost = (try? JSONDecoder().decode(SavedToolCost.self, from: Data(contentsOf: rowsDirectory.appendingPathComponent("tools.json")))) ?? SavedToolCost(count: 0, tokens: nil)
-        func snapshot(for question: ComparisonQuestion) throws -> ForumSnapshot {
-            let value = try snapshots[question.kind] ?? set.snapshot(question.siteKind, mode: .record)
-            snapshots[question.kind] = value
-            return value
-        }
-        for question in questions {
-            let file = rowsDirectory.appendingPathComponent("row-\(question.id).json")
-            if FileManager.default.fileExists(atPath: file.path) { continue }
-            let snapshot = try snapshot(for: question)
-            ModelAudit.shared.reset()
-            let old = try await OldSideRun.run(question, snapshot: snapshot, models: models, folder: try temporaryFolder())
-            snapshot.resetMisses()
+        for question in try ComparisonQuestion.confirmed() where only?.contains(question.id) ?? true {
+            let snapshot = try set.snapshot(question.siteKind, mode: .record)
             let new = try await NewSideRun.run(
                 question, snapshot: snapshot, ai: ComparisonAIService(session: ModelAudit.session()), modelClient: nil, models: models, folder: try temporaryFolder()
             )
             try new.write(to: set, id: question.id)
-            if toolCost.tokens == nil, let tools = new.document.toolSets.values.first {
-                toolCost = SavedToolCost(count: tools.count, tokens: try? await ToolDefinitionCost.anthropicTokens(tools: tools, models: models))
-                try JSONEncoder().encode(toolCost).write(to: rowsDirectory.appendingPathComponent("tools.json"))
-            }
-            try JSONEncoder().encode(SavedRow(id: question.id, old: old, new: new.side, misses: snapshot.misses.map(\.absoluteString), audit: ModelAudit.shared.recorded))
-                .write(to: file, options: .atomic)
         }
-        var rows: [ComparisonRow] = []
-        var audit: [ModelAudit.Entry] = []
-        for question in try ComparisonQuestion.confirmed() {
-            guard let saved = try? JSONDecoder().decode(SavedRow.self, from: Data(contentsOf: rowsDirectory.appendingPathComponent("row-\(question.id).json"))) else { continue }
-            rows.append(ComparisonRow(question: question, old: saved.old, new: saved.new, misses: saved.misses))
-            audit += saved.audit
-        }
-        let reportQuestions = rows.map(\.question)
-        let report = OneLoopReport.markdown(
-            header: ComparisonHeader(
-                date: ISO8601DateFormatter.string(from: Date(), timeZone: .current, formatOptions: [.withFullDate]),
-                agentModel: models.agent.label, summaryModel: models.summary.label, appCommit: env["ONE_LOOP_COMMIT"] ?? "unknown",
-                forums: Dictionary(grouping: reportQuestions, by: \.kind).keys.sorted().compactMap { kind in
-                    reportQuestions.first { $0.kind == kind }.map { "\(kind): \($0.siteURL)" }
-                },
-                textToolCount: toolCost.count, toolDefinitionTokens: toolCost.tokens
-            ),
-            rows: rows,
-            isSnapshotThread: { question, url in
-                ComparisonCitations.isThread(url, question: question, snapshot: try? snapshot(for: question))
-            }
-        )
-        XCTAssertFalse(audit.isEmpty)
-        XCTAssertTrue(audit.allSatisfy { $0.model == ModelAudit.allowedModel }, "a call used a model other than \(ModelAudit.allowedModel)")
-        try ModelAudit.writeLog(audit, to: set.auditLog)
-        let models_ = Dictionary(grouping: audit, by: \.model).mapValues(\.count).sorted { $0.key < $1.key }
-            .map { "\($0.value) × `\($0.key)`" }.joined(separator: ", ")
-        let auditSection = "\n## Model audit\n\nEvery model request of this record run (old loop, new loop, summaries and the tool-definition count) "
-            + "passed through `ModelAudit`, which reads the request body's `model` and refuses anything but `\(ModelAudit.allowedModel)`. "
-            + "\(audit.count) calls: \(models_). The log (host, path, model, status; no keys) is `\(set.relativePath)model-audit.jsonl`; "
-            + "the recorded new-side runs under `\(set.relativePath)runs/` name the model per turn as well.\n"
-        try Data(report.replacingOccurrences(of: "\n## Approval", with: auditSection + "\n## Approval").utf8).write(to: reportURL, options: .atomic)
+        XCTAssertTrue(ModelAudit.shared.recorded.allSatisfy { $0.model == ModelAudit.allowedModel }, "a call used a model other than \(ModelAudit.allowedModel)")
     }
 }
 
 // MARK: - Inputs
-
-struct SavedToolCost: Codable { var count: Int; var tokens: Int? }
-struct SavedRow: Codable { var id: String; var old: ComparisonSide; var new: ComparisonSide; var misses: [String]; var audit: [ModelAudit.Entry] }
 
 struct ComparisonQuestion: Equatable, Sendable {
     var id: String
@@ -494,41 +432,11 @@ enum ComparisonApp {
             settings.setConfiguration(configuration, for: model.selection.provider)
         }
         app.settings = settings
-        // The Agent model on both loops (the Research role too), the Summaries model for summaries.
+        // The Agent model for the loop, the Summaries model for summaries.
         app.selectModel(models.agent.selection, for: .role(.browserAgent))
-        app.selectModel(models.agent.selection, for: .role(.agent))
         app.selectModel(models.summary.selection, for: .role(.assistant))
         app.recordVisit(siteURL: question.siteURL, kind: question.siteKind, name: nil, iconURL: nil)
         return app
-    }
-}
-
-// MARK: - Old side (record mode only: one live pass, written into the report)
-
-@MainActor
-enum OldSideRun {
-    static func run(_ question: ComparisonQuestion, snapshot: ForumSnapshot, models: ComparisonModels, folder: URL) async throws -> ComparisonSide {
-        let ai = ComparisonAIService(session: ModelAudit.session())
-        let app = try ComparisonApp.make(question, snapshot: snapshot, ai: ai, models: models, folder: folder)
-        let started = Date()
-        app.startAgentRun(goal: question.prompt, siteURL: question.siteURL)
-        let deadline = Date().addingTimeInterval(900)
-        while Date() < deadline, !(app.agentRuns.first?.isFinished ?? false) { try await Task.sleep(for: .milliseconds(200)) }
-        guard let run = app.agentRuns.first else { throw AssistantError.invalidResponse }
-        let steps = run.steps.filter { $0.tool != AgentPrompt.finalAnswerTool }
-        let reads: Set<String> = [AgentToolName.readTopic.rawValue, AgentToolName.summarizeTopic.rawValue]
-        return ComparisonSide(
-            calls: steps.map { step in
-                ComparisonCall(
-                    tool: step.tool, arguments: step.arguments.sorted { $0.key < $1.key }.map { "\($0.key)=\($0.value)" }.joined(separator: " "),
-                    result: step.outcome, isError: step.isError
-                )
-            },
-            answer: run.answer.isEmpty ? "Error: \(run.error)" : run.answer,
-            loopTokens: ai.loopUsage.usage, summaryTokens: TokenUsageSink.covers(models.summary.selection.provider) ? ai.summaryUsage.usage : nil,
-            topicsRead: Set(steps.filter { reads.contains($0.tool) && !$0.isError }.compactMap { $0.topicKey ?? $0.topicID }).count,
-            seconds: Date().timeIntervalSince(started)
-        )
     }
 }
 
@@ -707,33 +615,6 @@ enum NewSideRun {
             document: document,
             summaries: ai.recordedSummaries
         )
-    }
-}
-
-/// The header row's definition cost: the provider's count of one request with and without the tool list.
-enum ToolDefinitionCost {
-    static func anthropicTokens(tools: [AgentToolDefinition], models: ComparisonModels) async throws -> Int {
-        func count(_ withTools: Bool) async throws -> Int {
-            var body: [String: Any] = [
-                "model": models.agent.selection.model, "system": "x", "messages": [["role": "user", "content": "x"]]
-            ]
-            if withTools {
-                body["tools"] = tools.map { tool in
-                    ["name": tool.name, "description": tool.description, "input_schema": JSONValue.object(tool.inputSchema).toFoundation()]
-                }
-            }
-            var request = URLRequest(url: URL(string: "\(AIProvider.anthropic.defaultBaseURL)/messages/count_tokens")!)
-            request.httpMethod = "POST"
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.setValue(models.agent.apiKey, forHTTPHeaderField: "x-api-key")
-            request.setValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
-            request.httpBody = try JSONSerialization.data(withJSONObject: body)
-            let (data, _) = try await ModelAudit.session().data(for: request)
-            let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
-            guard let tokens = json?["input_tokens"] as? Int else { throw AssistantError.invalidResponse }
-            return tokens
-        }
-        return try await count(true) - count(false)
     }
 }
 

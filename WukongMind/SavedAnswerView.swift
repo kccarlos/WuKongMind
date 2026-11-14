@@ -1,8 +1,9 @@
 import SwiftUI
 
-/// A saved Agent answer, read-only: the forum or site seal and the date, the
+/// A saved answer, read-only: the forum or site seal and the date, the
 /// question as the title, the answer with its citation chips, then the numbered
-/// sources. There is no composer and no follow-up. Layout follows
+/// sources. There is no composer. An old Research run also shows its
+/// follow-up questions and answers, or why it has no answer. Layout follows
 /// `docs/wukongmind/design/unified-canvas/PhoneSavedAnswer.dc.html`.
 struct SavedAnswerView: View {
     let run: AgentRun
@@ -15,8 +16,25 @@ struct SavedAnswerView: View {
     let onOpenSource: ([AgentSources.Source], AgentSources.Source) -> Void
     /// Any other link in the answer opens in the app's browser.
     var onOpenLink: (URL) -> Void = { _ in }
+    /// The saved topics, for an old Research run's sources (it has no snapshot).
+    var sessions: [String: TopicSession] = [:]
 
-    private var sources: [AgentSources.Source] { run.sources.compactMap(\.source) }
+    /// The answer under the question: a Research run's first answer (its
+    /// follow-up answers come after), else the saved text.
+    static func mainAnswer(of run: AgentRun) -> String {
+        run.loop == .research && !run.initialAnswer.isEmpty ? run.initialAnswer : run.answer
+    }
+
+    /// An Agent answer's sources snapshot; a Research run's sources rebuilt
+    /// from its answers and the topics it read, as its old panel did.
+    static func sources(of run: AgentRun, sessions: [String: TopicSession], parse: AgentSources.Parse) -> [AgentSources.Source] {
+        switch run.loop {
+        case .agent: run.sources.compactMap(\.source)
+        case .research: AgentSources.extract(from: mainAnswer(of: run), run: run, sessions: sessions, parse: parse)
+        }
+    }
+
+    private var sources: [AgentSources.Source] { Self.sources(of: run, sessions: sessions, parse: parse) }
 
     /// "Answer · 12 Nov"; there is no "read-only" in it.
     static func subtitle(for date: Date) -> String {
@@ -66,10 +84,23 @@ struct SavedAnswerView: View {
                         .accessibilityAddTraits(.isHeader)
                         .accessibilityIdentifier("savedAnswerQuestion")
 
-                    MarkdownView(AgentSources.annotate(run.answer, sources: sources, parse: parse))
+                    MarkdownView(AgentSources.annotate(Self.mainAnswer(of: run), sources: sources, parse: parse))
                         .font(.subheadline)
                         .textSelection(.enabled)
                         .accessibilityIdentifier("savedAnswerText")
+
+                    // A run that failed or was stopped says why.
+                    if run.result != .completed, !run.error.isEmpty {
+                        Label(run.error, systemImage: "exclamationmark.triangle.fill")
+                            .font(.subheadline)
+                            .foregroundStyle(DCTheme.danger)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityIdentifier("savedAnswerError")
+                    }
+
+                    ForEach(run.followUps) { message in
+                        followUp(message)
+                    }
 
                     if !sources.isEmpty {
                         DCSourcesList(sources: sources) { source in
@@ -98,5 +129,24 @@ struct SavedAnswerView: View {
         .background(DCTheme.pageBackground)
         .toolbar(.hidden, for: .navigationBar)
         .accessibilityIdentifier("savedAnswerView")
+    }
+
+    /// A Research run's follow-up: the question in bold, the answer with its chips.
+    @ViewBuilder
+    private func followUp(_ message: ChatMessage) -> some View {
+        if message.role == .user {
+            Text(verbatim: message.content)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(DCTheme.ink)
+                .fixedSize(horizontal: false, vertical: true)
+                .textSelection(.enabled)
+                .padding(.top, 6)
+                .accessibilityIdentifier("savedAnswerFollowUpQuestion")
+        } else {
+            MarkdownView(AgentSources.annotate(message.content, sources: sources, parse: parse))
+                .font(.subheadline)
+                .textSelection(.enabled)
+                .accessibilityIdentifier("savedAnswerFollowUpAnswer")
+        }
     }
 }

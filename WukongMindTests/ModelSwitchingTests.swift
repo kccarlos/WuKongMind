@@ -33,7 +33,7 @@ final class ModelSwitchingTests: XCTestCase {
 
     func testPillFollowsTheScopesRole() {
         XCTAssertEqual(ModelPill.role(for: .summary), .assistant)
-        XCTAssertEqual(ModelPill.role(for: .agent), .agent, "Whole forum")
+        XCTAssertEqual(ModelPill.role(for: .browserAgent), .browserAgent)
     }
 
     func testPillLabelShowsTheModelOrTheProviderForAppleIntelligence() {
@@ -113,20 +113,6 @@ final class ModelSwitchingTests: XCTestCase {
         XCTAssertEqual(
             ModelFavorites.readyAlternatives(settings: settings, role: .assistant, appleIntelligence: .unavailable(.deviceNotEligible)),
             [claude, FavoriteModel(provider: .anthropic, model: "claude-opus")]
-        )
-    }
-
-    // MARK: Next question
-
-    func testAChangeAppliesToTheNextQuestionWhileASearchRuns() {
-        let running = [ModelSelection(provider: .anthropic, model: "claude-opus")]
-        XCTAssertEqual(ModelPill.runningSearchModel(role: .agent, running: running), "claude-opus")
-        XCTAssertNil(ModelPill.runningSearchModel(role: .agent, running: []), "no search running")
-        XCTAssertNil(ModelPill.runningSearchModel(role: .assistant, running: running), "summaries & chat aren't affected")
-        // An Apple Intelligence run records its backend; it shows the provider.
-        XCTAssertEqual(
-            ModelPill.runningSearchModel(role: .agent, running: [ModelSelection(provider: .appleIntelligence, model: "On-device")]),
-            AIProvider.appleIntelligence.displayName
         )
     }
 

@@ -5,7 +5,6 @@ import SwiftUI
 //
 // - `assistantPageState`           page state the Assistant shows (`.topic` while a topic is selected)
 // - `assistantForum`               forum of the page (directory entry or ad hoc), else `currentForum`
-// - `agentForum`                   forum the next agent run searches (`agentSiteURL` → page forum)
 // - `forumInfo(siteURL:)`          directory entry for a site URL, or a placeholder built from it
 // - `manageForums`                 forums that own saved data, pinned first (Manage grouping)
 // - `recentSessions(siteURL:limit:)` saved topics on one forum, newest first
@@ -24,12 +23,6 @@ extension AppModel {
             return forumInfo(siteURL: siteURL)
         }
         return currentForum
-    }
-
-    /// The forum the next agent run searches.
-    var agentForum: Forum? {
-        if let agentSiteURL { return forumInfo(siteURL: agentSiteURL) }
-        return assistantForum
     }
 
     func forumInfo(siteURL: String) -> Forum {
@@ -419,12 +412,8 @@ extension AppModel {
             session(longThreads, posts: 32, summary: text.longThreadsSummary, updated: 60 * 5)
         ]
 
-        // Ask the forum shows the featured run, which is on the OpenAI forum,
-        // so agent mode opens that forum's topic unless `-dc-topic` says
-        // otherwise (then the run on the open forum is shown instead): the
-        // forum in the header is always the forum the answer comes from.
-        let isAgentMode = AssistantDebug.value("-dc-assistant-mode")?.lowercased() == AssistantMode.agent.rawValue.lowercased()
-        let topicChoice = AssistantDebug.value("-dc-topic") ?? (isAgentMode ? "openai" : "meta")
+        // The Meta topic opens unless `-dc-topic` says otherwise.
+        let topicChoice = AssistantDebug.value("-dc-topic") ?? "meta"
         let openTopic = topicChoice == "openai" ? streaming : tips
         if AssistantDebug.has("-dc-no-summary"),
            let index = sessions.firstIndex(where: { $0.topicKey == openTopic.topicKey }) {
@@ -463,7 +452,7 @@ extension AppModel {
                       startedAt: ago(19), finishedAt: ago(19)),
             read(batching, posts: 27, thought: 4, at: 18.8),
             read(higherLimit, posts: 9, thought: 5, at: 18.5),
-            AgentStep(tool: AgentPrompt.finalAnswerTool, thought: text.agentThoughts[6], outcome: String(localized: "Answered"),
+            AgentStep(tool: "final_answer", thought: text.agentThoughts[6], outcome: String(localized: "Answered"),
                       startedAt: ago(18.2), finishedAt: ago(18))
         ]
         let urls = sources.map(\.url.absoluteString)
@@ -486,7 +475,7 @@ extension AppModel {
         olderRun.initialAnswer = olderRun.answer
         olderRun.steps = [
             AgentStep(tool: "search_forum", arguments: ["query": text.olderSearchQuery], outcome: String(localized: "\(3) topics")),
-            AgentStep(tool: AgentPrompt.finalAnswerTool, outcome: String(localized: "Answered"))
+            AgentStep(tool: "final_answer", outcome: String(localized: "Answered"))
         ]
         olderRun.topicIDs = [tips.topicID]
 
@@ -715,15 +704,14 @@ extension AppModel {
         }
         if AssistantDebug.has("-dc-open-history") { panelRoute = .history }
         if AssistantDebug.has("-dc-open-saved-answer") {
-            savedAnswerRunID = fanless.id
+            // `-dc-open-saved-answer research`: the old Research run instead.
+            savedAnswerRunID = AssistantDebug.value("-dc-open-saved-answer") == "research" ? currentRun.id : fanless.id
             Task { @MainActor in
                 try? await Task.sleep(for: .seconds(1))
                 self.openPanelRoute(.history)
             }
         }
         if AssistantDebug.has("-dc-answer-ready") { router.answersSeenAt = ago(5) }
-        // The run on the open forum: the featured one, or the older run.
-        selectedAgentRunID = (openForum.siteURL == openAI.siteURL ? currentRun : olderRun).id
         if !sampleTickers.isEmpty {
             let tickers = sampleTickers
             Task { @MainActor in

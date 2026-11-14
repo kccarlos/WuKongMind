@@ -20,8 +20,6 @@ import SwiftUI
 // - `openCard(_:)`             a card of the current list
 // - `back()` / `forward()`     the browser's history
 // - `read(post:)`              a post's text: the page first, else posts.json
-// - `research(_:)` / `cancelResearch()`  Ask the forum, one at a time; the
-//                              sources become the current list
 // - `openLink(_:)`             a tapped forum link (Ask the forum, Today)
 // - `pageChanges`              page context changes, debounced
 //
@@ -567,72 +565,7 @@ extension AppModel {
         return nil
     }
 
-    // MARK: Research
-
-    /// Runs Ask the forum on the current forum, one at a time: a new request
-    /// cancels the running one, which then returns `.cancelled`. On an
-    /// answer the sources become the current list and the first opens at its
-    /// post. The run's agent never moves the page; this does.
-    @discardableResult
-    func research(_ request: String, siteURL: String? = nil) async -> BrowseResult {
-        researchTask?.cancel()
-        researchGeneration += 1
-        let generation = researchGeneration
-        let forum = siteURL ?? pageContext.siteURL
-        let task = Task { @MainActor in try await self.performAgentRun(goal: request, siteURL: forum, origin: .voice) }
-        researchTask = task
-        let outcome: AgentRunOutcome
-        do {
-            outcome = try await task.value
-        } catch {
-            guard generation == researchGeneration else {
-                return BrowseResult(status: .cancelled, shown: "Replaced by a newer request.")
-            }
-            researchTask = nil
-            return BrowseResult(status: .failed, shown: "The research couldn't start: \(error.localizedDescription)")
-        }
-        guard generation == researchGeneration else {
-            return BrowseResult(status: .cancelled, shown: "Replaced by a newer request.")
-        }
-        researchTask = nil
-        switch outcome.status {
-        case .completed:
-            break
-        case .cancelled:
-            return BrowseResult(status: .cancelled, shown: "The research was stopped.")
-        default:
-            return BrowseResult(status: .failed, shown: "The research failed: \(outcome.error)")
-        }
-        let runSite = agentRuns.first { $0.id == outcome.runID }?.siteURL ?? forum ?? ""
-        let items = sourceItems(outcome.sources, siteURL: runSite)
-        browseCursor.replace(with: items, origin: .research(request), current: items.isEmpty ? nil : 0)
-        browser.expandChrome()
-        guard let first = items.first else {
-            return BrowseResult(status: .answered, shown: "Answered without sources to open.", content: outcome.answer)
-        }
-        let opened = await openTopic(.item(first), at: first.postNumber.map(BrowseLanding.post) ?? .firstNew, includeContent: false)
-        let landing = opened.status == .opened ? " Opened source 1 of \(items.count): \(opened.shown)" : ""
-        return BrowseResult(
-            status: .answered,
-            shown: "Answered with \(items.count) sources on the cards.\(landing)",
-            content: outcome.answer,
-            hits: Self.hits(items)
-        )
-    }
-
-    /// Stops the running research ("never mind").
-    @discardableResult
-    func cancelResearch() -> BrowseResult {
-        guard let task = researchTask else {
-            return BrowseResult(status: .unavailable, shown: "No research is running.")
-        }
-        researchGeneration += 1
-        researchTask = nil
-        task.cancel()
-        return BrowseResult(status: .cancelled, shown: "The research was stopped.")
-    }
-
-    var isResearching: Bool { researchTask != nil }
+    // MARK: Sources
 
     /// Agent sources as current-list items.
     func sourceItems(_ sources: [AgentSources.Source], siteURL: String) -> [BrowseItem] {

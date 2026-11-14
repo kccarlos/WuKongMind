@@ -42,22 +42,41 @@ extension AppModel: SystemEntryRouting {
         }
     }
 
-    /// Ask a Forum: Ask the forum on that forum, its page in the browser.
+    /// Ask a Forum: the forum opens and the question goes to the Agent once
+    /// the forum's page is up, so the run has that forum's tools. Not ready
+    /// (no model, walkthrough not done, a run going): the question waits in
+    /// the composer.
     private func ask(_ question: String, siteURL: String) {
-        if let forum = forum(for: siteURL), pageContext.siteURL != forum.siteURL {
+        if let forum = forum(for: siteURL), pageContext.siteURL != forum.siteURL || browser.showsForumsHome {
             openForum(forum)
         }
-        agentSiteURL = siteURL
-        assistantMode = .agent
+        assistantMode = .browserAgent
         panelRoute = .topic
         requestAssistant()
-        guard acceptsSystemWork, isProviderReady(for: .agent) else {
-            // Kept as the draft: the user starts it once ready.
+        guard acceptsSystemWork, isProviderReady(for: .browserAgent), !browserAgent.isRunning else {
             drafts.goal = question
-            if !isProviderReady(for: .agent) { needsProviderSetup = .agent }
+            if !isProviderReady(for: .browserAgent) { needsProviderSetup = .browserAgent }
             return
         }
-        startAgentRun(goal: question, siteURL: siteURL, origin: .shortcut)
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            if await self.waitForForumPage(siteURL: siteURL), !self.browserAgent.isRunning {
+                self.browserAgent.send(question, origin: .shortcut)
+            } else {
+                self.drafts.goal = question
+            }
+        }
+    }
+
+    /// Waits (up to `timeout`) until the browser shows a page of `siteURL`'s
+    /// forum that the Agent's forum tools recognize.
+    func waitForForumPage(siteURL: String, timeout: Duration = .seconds(15)) async -> Bool {
+        let deadline = ContinuousClock.now + timeout
+        while ContinuousClock.now < deadline {
+            if pageContext.isForum, pageContext.siteURL == siteURL, !browser.isLoading { return true }
+            try? await Task.sleep(for: .milliseconds(200))
+        }
+        return false
     }
 
     /// Starts voice; without a Gemini or Vertex key, Settings › Voice.

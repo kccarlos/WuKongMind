@@ -22,7 +22,6 @@ final class DrawerHintTests: XCTestCase {
         XCTAssertNil(action(.topic) { $0.hasSummary = true; $0.totalPosts = 14; $0.summaryPostCount = 14 })
         XCTAssertNil(action(.topic) { $0.hasSummary = true })
         XCTAssertNil(action(.topic) { $0.summaryRunning = true })
-        XCTAssertNil(action(.topic) { $0.mode = .agent })
         XCTAssertEqual(action(.topic) { $0.providerReady = false }, .setUpAI)
         for state in [PageContext.State.notForum, .maybe, .forumHome, .loading] {
             XCTAssertNil(action(state), "\(state)")
@@ -55,7 +54,6 @@ final class DrawerHintTests: XCTestCase {
         // Nothing to say: no row.
         XCTAssertNil(row(.topic, tip: true) { $0.hasSummary = true; $0.totalPosts = 14; $0.summaryPostCount = 14 })
         XCTAssertNil(row(.topic, tip: true) { $0.summaryRunning = true })
-        XCTAssertNil(row(.topic, tip: true) { $0.mode = .agent })
         XCTAssertNil(row(.forumHome, tip: true))
         XCTAssertNil(row(.notForum, tip: true) { $0.providerReady = false })
     }

@@ -9,7 +9,6 @@ extension AssistantMode {
     var title: String {
         switch self {
         case .summary: String(localized: "Summary", comment: "Assistant mode: the topic's AI summary")
-        case .agent: String(localized: "Ask the forum", comment: "Assistant mode: the research agent that searches the whole forum")
         case .browserAgent:
             String(
                 localized: "assistantMode.browserAgent",
@@ -24,7 +23,6 @@ extension AssistantMode {
     var accessibilityTitle: String {
         switch self {
         case .summary: String(localized: "Summary", comment: "Assistant mode: the topic's AI summary")
-        case .agent: String(localized: "Agent", comment: "VoiceOver name of the “Ask the forum” assistant mode (the research agent)")
         case .browserAgent: title
         }
     }
@@ -33,7 +31,6 @@ extension AssistantMode {
     var shortTitle: String {
         switch self {
         case .summary: String(localized: "Summary", comment: "Assistant mode: the topic's AI summary")
-        case .agent: String(localized: "Ask", comment: "Short form of the “Ask the forum” assistant mode, for narrow switchers")
         case .browserAgent: title
         }
     }
@@ -41,7 +38,6 @@ extension AssistantMode {
     var systemImage: String {
         switch self {
         case .summary: "text.alignleft"
-        case .agent: "sparkle.magnifyingglass"
         case .browserAgent: "sparkles"
         }
     }
@@ -49,7 +45,7 @@ extension AssistantMode {
     var tint: Color {
         switch self {
         case .summary: DCTheme.summaryTint
-        case .agent, .browserAgent: DCTheme.agentTint
+        case .browserAgent: DCTheme.agentTint
         }
     }
 }
@@ -350,8 +346,7 @@ struct AssistantProgressBar: View {
     }
 }
 
-/// Observes `ProgressStore` for one running job so parent screens (`AgentView`,
-/// `HistoryView`) do not redraw on every progress tick.
+/// Observes `ProgressStore` for one running job so parent screens (`HistoryView`) do not redraw on every progress tick.
 struct WorkProgressBar: View {
     let recordID: UUID?
     @ObservedObject var progress: ProgressStore

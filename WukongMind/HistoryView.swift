@@ -130,9 +130,9 @@ struct HistoryView: View {
 
     // MARK: Body
 
-    /// The saved Agent answer being read, if one is open.
+    /// The saved answer being read (an Agent answer or an old Research run), if one is open.
     private var openAnswer: AgentRun? {
-        app.savedAnswerRunID.flatMap { id in app.agentRuns.first { $0.id == id && $0.loop == .agent } }
+        app.savedAnswerRunID.flatMap { id in app.agentRuns.first { $0.id == id } }
     }
 
     var body: some View {
@@ -148,7 +148,8 @@ struct HistoryView: View {
                     onOpenSource: { sources, source in
                         app.openSavedSource(source, of: sources, siteURL: run.siteURL)
                     },
-                    onOpenLink: { url in app.openSavedLink(url) }
+                    onOpenLink: { url in app.openSavedLink(url) },
+                    sessions: app.sessions
                 )
             } else {
                 listBody

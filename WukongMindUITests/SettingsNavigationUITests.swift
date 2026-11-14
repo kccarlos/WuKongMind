@@ -436,29 +436,6 @@ final class SettingsNavigationUITests: DCUITestCase {
         app.buttons.matching(NSPredicate(format: "label CONTAINS %@", ", \(model) · ")).firstMatch
     }
 
-    /// Only the role that can't run shows the setup card: here Ask the
-    /// forum's provider has no key while chat works.
-    func testSetupCardShowsOnlyForTheRoleThatIsNotReady() throws {
-        let args = ["-dc-sample", "-dc-topic", "openai",
-                    "-dc-agent-model", "deepseek:deepseek-v4-flash", "-dc-no-agent-key"]
-        var app = launch(args + ["-dc-assistant-mode", "agent"])
-        let card = any(app, "providerSetupCard")
-        XCTAssertTrue(card.waitForExistence(timeout: 20), "Ask the forum should ask for its model.")
-        XCTAssertTrue(
-            app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "deepseek-v4-flash isn’t ready")).firstMatch.exists,
-            "The card names the model that isn't ready."
-        )
-        XCTAssertTrue(app.buttons["providerSetupButton"].label.contains("Key"), "Got “\(app.buttons["providerSetupButton"].label)”.")
-        // Never a dead end: the ready favorite is offered (ModelSetup).
-        XCTAssertTrue(any(app, "readyModel-anthropic:claude-sonnet-4-5").exists)
-        capture("setup-card-agent")
-        app.terminate()
-
-        app = launch(args + ["-dc-assistant-mode", "chat"])
-        XCTAssertTrue(app.buttons["assistantMoreMenu"].waitForExistence(timeout: 20))
-        XCTAssertFalse(any(app, "providerSetupCard").exists, "Chat's model is ready.")
-    }
-
     /// Home › Settings (a sheet) › Help & about › Show onboarding again: the
     /// sheet goes and the walkthrough covers the screen (audit A6).
     func testShowOnboardingAgainFromTheSettingsSheet() throws {

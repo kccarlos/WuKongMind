@@ -86,12 +86,10 @@ extension AppModel {
     }
 
     /// Whether the split layout's AI panel has content to show: always on a web
-    /// page, and over Home once a page or topic has been opened, History is up,
-    /// or Ask the forum has a target forum.
+    /// page, and over Home once a page or topic has been opened or History is up.
     var isSplitPanelAvailable: Bool {
         if !browser.showsForumsHome { return true }
         if panelRoute != .topic { return true }
-        if assistantMode == .agent, agentForum != nil { return true }
         if assistantPageState == .loading, !browser.isLoading { return false }
         return browser.currentURL != nil || currentTopic != nil
     }
@@ -162,9 +160,6 @@ extension AppModel {
     /// History or Settings it last showed. Not while a dropped drawer is
     /// tried again (still wanted).
     func aiViewVisibilityChanged() {
-        if isAIViewShown, assistantMode == .agent, panelRoute == .topic {
-            router.answersSeenAt = Date()
-        }
         if !isAIViewShown, !router.wantsDrawer, !voice.isActive {
             voice.dismiss()
         }
@@ -172,24 +167,11 @@ extension AppModel {
         panelRoute = .topic
     }
 
-    /// "Answer ready" and research progress (the row over the bar, the
-    /// drawer's status row): Ask the forum on that record's run (a voice or
-    /// Shortcuts run as well as the selected one). Over the Forums home the
-    /// run's forum opens first. Seen only once the AI view shows it.
+    /// "Answer ready" (the row over the bar, the drawer's status row): an old
+    /// Research run's record opens its saved answer, read-only in History.
     func showAnswer(for record: WorkRecord) {
-        let run = agentRunID(for: record).flatMap { id in agentRuns.first { $0.id == id } }
-        if browser.showsForumsHome, let run {
-            let forum = forumInfo(siteURL: run.siteURL)
-            if isCurrent(forum), browser.currentURL != nil {
-                browser.hideForumsHome()
-            } else {
-                openForum(forum)
-            }
-        }
-        guard showAIView() else { return }
-        if let run { selectedAgentRunID = run.id }
-        showSelectedAgentRun()
-        panelRoute = .topic
+        guard let id = agentRunID(for: record), agentRuns.contains(where: { $0.id == id }) else { return }
+        openAgentRun(id: id)
         router.answersSeenAt = Date()
     }
 

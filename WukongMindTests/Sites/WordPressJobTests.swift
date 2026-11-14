@@ -19,8 +19,7 @@ final class WordPressJobTests: XCTestCase {
     private func makeHarness(
         wordpress: WordPressFixtureSite = WordPressFixtureSite(commentCount: 250),
         forums: [Forum]? = nil,
-        watched: [WatchedTopic] = [],
-        planner: AgentPlanner? = nil
+        watched: [WatchedTopic] = []
     ) -> Harness {
         let directory = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
@@ -38,8 +37,7 @@ final class WordPressJobTests: XCTestCase {
             store: store,
             forumService: wordpress.service(),
             sites: .standard,
-            aiService: ai,
-            planner: planner
+            aiService: ai
         )
         app.usesDirectForumRequests = true
         app.browser.stopLoading()
@@ -119,24 +117,6 @@ final class WordPressJobTests: XCTestCase {
         let checked = try XCTUnwrap(harness.app.watchedTopics.first)
         XCTAssertEqual(checked.newReplies, 50, "251 posts now, 201 known")
         XCTAssertNotNil(checked.lastCheckedAt)
-    }
-
-    // MARK: Agent
-
-    func testAnAgentRunSearchesCommentsOnTheStandardRegistry() async throws {
-        let planner = ScriptedAgentPlanner(actions: [
-            AgentAction(thought: "", tool: "search_comments", arguments: ["query": "number 7"]),
-            AgentAction(thought: "", tool: AgentPrompt.finalAnswerTool, arguments: ["answer": "Found it."])
-        ])
-        let harness = makeHarness(planner: planner)
-        harness.app.startAgentRun(goal: "Who mentions 7?", siteURL: siteURL)
-        try await waitUntil { harness.app.agentRuns.first?.isFinished ?? false }
-        let run = try XCTUnwrap(harness.app.agentRuns.first)
-        XCTAssertEqual(run.result, .completed, run.error)
-        XCTAssertTrue(planner.system.contains("search_comments"))
-        let hits = try XCTUnwrap(planner.transcripts[1].last?.content)
-        XCTAssertTrue(hits.hasPrefix("OBSERVATION from search_comments:"), hits)
-        XCTAssertTrue(hits.contains("Comment number 7"), hits)
     }
 
     // MARK: Page context (separate from the Discourse matrix)

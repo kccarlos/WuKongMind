@@ -38,33 +38,30 @@ enum WordPressAgent {
         postCitation: "When a point comes from a post, cite it as [title](url): the post's url.",
         siteTools: [
             AgentToolSpec(
-                name: AgentToolName.searchForum.rawValue,
+                name: ForumToolName.searchForum,
                 description: "Search the site's posts (articles) by keyword; results are ranked by relevance. "
-                    + "Returns up to about 20 posts with id, title, date and an excerpt. "
-                    + "Example: {\"tool\": \"search_forum\", \"arguments\": {\"query\": \"chase sapphire bonus\", \"after\": \"2026-01-01\"}}.",
+                    + "Returns up to about 20 posts with id, title, date and an excerpt.",
                 parameters: [
                     searchParameters[0],
                     .init(name: "category", description: "Category name or slug", required: false)
                 ] + searchParameters.dropFirst()
             ),
             AgentToolSpec(
-                name: AgentToolName.searchComments.rawValue,
+                name: ForumToolName.searchComments,
                 description: "Search reader comments across all posts by keyword (newest first). Slow, so it returns "
                     + "only 10 comments per page, each with the post id and title, author, date and a text excerpt. "
-                    + "Use it to find what readers report; then read_topic the post to get a citable source. "
-                    + "Example: {\"tool\": \"search_comments\", \"arguments\": {\"query\": \"approved instantly\"}}.",
+                    + "Use it to find what readers report; then read_topic the post to get a citable source.",
                 parameters: searchParameters
             ),
             AgentToolSpec(
-                name: AgentToolName.listLatest.rawValue,
-                description: "List the site's newest posts (about 30). "
-                    + "Example: {\"tool\": \"list_latest\", \"arguments\": {}}.",
+                name: ForumToolName.listLatest,
+                description: "List the site's newest posts (about 30).",
                 parameters: []
             )
         ],
         query: { tool, arguments in
             switch tool {
-            case .searchForum, .searchComments:
+            case ForumToolName.searchForum, ForumToolName.searchComments:
                 guard let text = arguments["query"]?.trimmingCharacters(in: .whitespacesAndNewlines),
                       !text.isEmpty
                 else {
@@ -72,10 +69,10 @@ enum WordPressAgent {
                 }
                 return .search(
                     text: text,
-                    scope: tool == .searchComments ? .comments : .forum,
-                    options: try SearchOptions(arguments: arguments, allowsCategory: tool == .searchForum)
+                    scope: tool == ForumToolName.searchComments ? .comments : .forum,
+                    options: try SearchOptions(arguments: arguments, allowsCategory: tool == ForumToolName.searchForum)
                 )
-            case .listLatest:
+            case ForumToolName.listLatest:
                 return .latest
             default:
                 throw SiteQueryError.unsupported
