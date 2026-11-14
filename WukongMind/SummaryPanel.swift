@@ -1371,7 +1371,8 @@ private struct ChatThread<Leading: View>: View {
 
     var body: some View {
         ScrollViewReader { proxy in
-            VStack(spacing: 0) {
+            // A ZStack, not a VStack: the jump button floats over the text with no row of its own.
+            ZStack(alignment: .bottomTrailing) {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
                         Color.clear
@@ -1589,8 +1590,7 @@ private struct ChatThread<Leading: View>: View {
                     }
                     .buttonStyle(.plain)
                     .padding(.horizontal, 14)
-                    .padding(.vertical, 4)
-                    .frame(maxWidth: .infinity, alignment: .trailing)
+                    .padding(.vertical, 8)
                     .transition(.scale(scale: 0.7).combined(with: .opacity))
                     .accessibilityLabel("Scroll to latest message")
                     .accessibilityIdentifier("chatScrollToBottom")

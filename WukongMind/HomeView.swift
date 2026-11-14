@@ -558,7 +558,7 @@ private struct SiteTileLabel<Icon: View>: View {
             if isCurrent {
                 RoundedRectangle(cornerRadius: DCTheme.radiusMd, style: .continuous)
                     .strokeBorder(DCTheme.goldInk.opacity(0.55), lineWidth: 1.5)
-                    .padding(-2)
+                    .padding(2.5)
                     .allowsHitTesting(false)
             }
         }

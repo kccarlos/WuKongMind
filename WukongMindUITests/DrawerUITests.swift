@@ -182,6 +182,26 @@ final class DrawerUITests: DCUITestCase {
         XCTAssertEqual(marker.frame.minY, before, accuracy: 2, "Typing must not scroll the summary")
     }
 
+    /// The scroll-to-bottom button floats over the text: the scroll view keeps its full
+    /// height and the button sits inside it (no band of its own above the suggestions).
+    func testScrollToBottomButtonFloatsOverTheConversation() throws {
+        let app = launch(sample)
+        XCTAssertTrue(waitOrDump(any(app, "askBox"), timeout: 20, in: app))
+        dragDrawer(in: app, to: 0.08)
+        let scroll = any(app, "agentScroll")
+        XCTAssertTrue(scroll.waitForExistence(timeout: 5))
+        let jump = app.buttons["chatScrollToBottom"]
+        for _ in 0..<4 where !jump.exists { scroll.swipeDown() }
+        XCTAssertTrue(jump.waitForExistence(timeout: 5), "No scroll-to-bottom button after scrolling up")
+        XCTAssertLessThan(jump.frame.width, 60, "The button must be only the round control")
+        XCTAssertLessThanOrEqual(jump.frame.maxY, scroll.frame.maxY + 1)
+        XCTAssertGreaterThan(jump.frame.minY, scroll.frame.maxY - 80, "The button floats at the scroll view's bottom edge")
+        let shot = XCTAttachment(screenshot: app.screenshot())
+        shot.name = "jump-button"
+        shot.lifetime = .keepAlways
+        add(shot)
+    }
+
     /// A Settings page request (Start a Voice Chat without voice set up).
     func testSettingsRequestShowsOverTheDrawer() throws {
         let app = try launchWithDrawer(presenting: "settings", at: "large")
