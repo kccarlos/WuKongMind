@@ -934,6 +934,7 @@ final class ScriptStoreWebTests: XCTestCase {
         private var turn = 0
         private(set) var recordedSystemPrompts: [String] = []
         private(set) var recordedToolNames: [String] = []
+        private(set) var secondTurnToolResult: String?
 
         func completeToolTurn(
             system: String,
@@ -964,6 +965,29 @@ final class ScriptStoreWebTests: XCTestCase {
                     ],
                     stopReason: "tool_use",
                     usage: AgentTokenUsage(inputTokens: 320, outputTokens: 85)
+                )
+            }
+            if turn == 2 {
+                if case .toolResults(let results)? = messages.last {
+                    secondTurnToolResult = results.first?.content
+                }
+                return AgentModelTurnResponse(
+                    text: "",
+                    toolCalls: [
+                        AgentModelToolCall(
+                            id: "call_save_op_only_confirmed",
+                            name: "script_save",
+                            arguments: [
+                                "name": .string("OP Only & Dark Mode"),
+                                "match_rules": .array([.string("*://127.0.0.1/t/*")]),
+                                "css": .string("body { background-color: rgb(15, 23, 42) !important; } article.reply { display: none !important; }"),
+                                "js": .string("document.body.dataset.appSavedScript = 'active';"),
+                                "confirm_change": .bool(true)
+                            ]
+                        )
+                    ],
+                    stopReason: "tool_use",
+                    usage: AgentTokenUsage(inputTokens: 390, outputTokens: 90)
                 )
             }
             return AgentModelTurnResponse(
@@ -1084,6 +1108,10 @@ final class ScriptStoreWebTests: XCTestCase {
 
             await app.browserAgent.sendAndWait(userPrompt)
 
+            let refusalMessage = await fakeClient.secondTurnToolResult ?? ""
+            XCTAssertTrue(refusalMessage.contains("Error: Not saved:"), refusalMessage)
+            XCTAssertTrue(refusalMessage.contains("confirm_change: true"), refusalMessage)
+
             let exposedTools = await fakeClient.recordedToolNames
             XCTAssertTrue(exposedTools.contains("script_save"))
             XCTAssertTrue(exposedTools.contains("script_list"))
@@ -1160,5 +1188,69 @@ final class ScriptStoreWebTests: XCTestCase {
         try await waitUntil(timeoutSeconds: 10.0) {
             trackedApp == nil && trackedStore == nil && trackedController == nil
         }
+    }
+
+    func testWebViewUserscriptRunnerAutoDisablesAfterThreeErrorLoadsAndCleanLoadResets() async throws {
+        let baseURL = try await sharedFixtureBaseURL()
+        let store = ScriptStore(directoryURL: tempDirectory.appendingPathComponent("auto-disable-web", isDirectory: true))
+        let script = try store.create(
+            id: "route-sensitive",
+            name: "Route Sensitive Script",
+            matchRules: ["*://127.0.0.1/t/*"],
+            js: """
+            document.documentElement.dataset.ranRouteSensitive = 'yes';
+            if (!window.location.pathname.endsWith('/clean')) {
+              throw new Error('Route exploded');
+            }
+            """,
+            environment: .page
+        )
+
+        let harness = makeHarness(store: store)
+
+        // Two erroring page loads -> count reaches 2, still enabled.
+        for path in ["t/err1", "t/err2"] {
+            let previousErrors = store.error(for: script.id)?.count ?? 0
+            try await harness.waiter.waitForLoad {
+                _ = harness.webView.load(URLRequest(url: baseURL.appendingPathComponent(path)))
+            }
+            try await waitUntil { (store.error(for: script.id)?.count ?? 0) > previousErrors }
+        }
+        XCTAssertEqual(store.consecutiveErrorLoads[script.id], 2)
+        XCTAssertEqual(store.script(id: script.id)?.isEnabled, true)
+
+        // Clean page load resets consecutiveErrorLoads to 0!
+        try await harness.waiter.waitForLoad {
+            _ = harness.webView.load(URLRequest(url: baseURL.appendingPathComponent("t/clean")))
+        }
+        try await waitUntil { store.consecutiveErrorLoads[script.id] == 0 }
+        XCTAssertNil(store.error(for: script.id))
+
+        // Three erroring page loads in a row -> auto-disables with disabledReason!
+        for (idx, path) in ["t/err3", "t/err4", "t/err5"].enumerated() {
+            let expectedErrors = idx + 1
+            try await harness.waiter.waitForLoad {
+                _ = harness.webView.load(URLRequest(url: baseURL.appendingPathComponent(path)))
+            }
+            try await waitUntil { (store.error(for: script.id)?.count ?? 0) >= expectedErrors }
+        }
+
+        let disabled = try XCTUnwrap(store.script(id: script.id))
+        XCTAssertFalse(disabled.isEnabled)
+        XCTAssertTrue(
+            disabled.disabledReason?.hasPrefix("Turned off after errors on 3 page loads in a row:") == true,
+            String(describing: disabled.disabledReason)
+        )
+        XCTAssertTrue(disabled.disabledReason?.contains("Route exploded") == true)
+
+        // Subsequent page load does NOT run the auto-disabled script.
+        try await harness.waiter.waitForLoad {
+            _ = harness.webView.load(URLRequest(url: baseURL.appendingPathComponent("t/clean")))
+        }
+        let ranMarker = try await harness.bridge.runJS(
+            code: "return document.documentElement.dataset.ranRouteSensitive || 'not-run';",
+            environment: .isolated
+        )
+        XCTAssertEqual(ranMarker.valueJSON, "\"not-run\"")
     }
 }

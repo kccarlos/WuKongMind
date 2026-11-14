@@ -764,6 +764,7 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
     var updatedAt: Date
     var versions: [UserScriptVersion]
     var versionOrigin: ScriptVersionOrigin?
+    var disabledReason: String?
 
     init(
         id: String,
@@ -779,7 +780,8 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
         createdAt: Date = Date(),
         updatedAt: Date = Date(),
         versions: [UserScriptVersion] = [],
-        versionOrigin: ScriptVersionOrigin? = nil
+        versionOrigin: ScriptVersionOrigin? = nil,
+        disabledReason: String? = nil
     ) {
         self.id = id
         self.name = name
@@ -795,6 +797,7 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
         self.updatedAt = updatedAt
         self.versions = versions.sorted { $0.version < $1.version }
         self.versionOrigin = versionOrigin
+        self.disabledReason = disabledReason
     }
 
     var hasJS: Bool {
@@ -956,6 +959,9 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
         lines.append("// @wukong-id \(Self.encodeHeaderValue(id))")
         lines.append("// @wukong-environment \(environment.rawValue)")
         lines.append("// @wukong-enabled \(isEnabled ? "true" : "false")")
+        if let disabledReason, !disabledReason.isEmpty {
+            lines.append("// @wukong-disabled-reason \(Self.encodeHeaderValue(disabledReason))")
+        }
         lines.append("// @wukong-source \(source.kindIdentifier)")
         if case .agent(let prompt) = source, !prompt.isEmpty {
             lines.append("// @wukong-prompt \(Self.encodeHeaderValue(prompt))")
@@ -1020,6 +1026,7 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
         var injectionTime: ScriptInjectionTime = .defaultTime
         var environment: AgentExecutionEnvironment = .defaultEnvironment
         var isEnabled = true
+        var disabledReason: String?
         var sourceKind: String?
         var userPrompt = ""
         var versionOriginKind: String?
@@ -1091,6 +1098,10 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
                     isEnabled = false
                 default:
                     throw ScriptStoreError.malformedUserScript("Unsupported @wukong-enabled value '\(value)'.")
+                }
+            case "@wukong-disabled-reason":
+                if !value.isEmpty {
+                    disabledReason = value
                 }
             case "@wukong-source":
                 sourceKind = value.lowercased()
@@ -1167,7 +1178,8 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
             createdAt: created,
             updatedAt: updated,
             versions: [],
-            versionOrigin: parsedVersionOrigin
+            versionOrigin: parsedVersionOrigin,
+            disabledReason: isEnabled ? nil : disabledReason
         )
     }
 
@@ -1383,6 +1395,8 @@ final class ScriptStore {
         var identifierHost: String { host ?? "all" }
     }
 
+    static let autoDisableErrorLoadLimit = 3
+
     let directoryURL: URL
     private(set) var scripts: [UserScript] = [] {
         didSet { onStoreChanged?() }
@@ -1390,9 +1404,15 @@ final class ScriptStore {
     private(set) var scriptErrors: [String: ScriptRuntimeError] = [:] {
         didSet { onStoreChanged?() }
     }
+    private(set) var consecutiveErrorLoads: [String: Int] = [:] {
+        didSet { onStoreChanged?() }
+    }
     private(set) var lastExecutedAt: [String: Date] = [:] {
         didSet { onStoreChanged?() }
     }
+
+    @ObservationIgnored
+    private var lastErrorLoadIDs: [String: String] = [:]
 
     var isGlobalEnabled: Bool {
         didSet {
@@ -1591,8 +1611,13 @@ final class ScriptStore {
 
     // MARK: CRUD, Versioning & Rollback
 
-    @discardableResult
-    func create(
+    struct ProspectiveUpdate {
+        let previous: UserScript
+        let updated: UserScript
+        let touchesVersionedFields: Bool
+    }
+
+    func makeCandidateForCreate(
         id: String? = nil,
         name: String,
         matchRules: [String],
@@ -1626,7 +1651,7 @@ final class ScriptStore {
             resolvedID = Self.makeSlugID(from: trimmedName, existingIDs: existingIDs)
         }
 
-        let created = UserScript(
+        return UserScript(
             id: resolvedID,
             name: trimmedName,
             matchRules: cleanedRules,
@@ -1641,13 +1666,46 @@ final class ScriptStore {
             updatedAt: now,
             versions: []
         )
+    }
 
+    @discardableResult
+    func commitCreated(_ created: UserScript) throws -> UserScript {
         try writeScriptFile(created)
         scripts.append(created)
         sortScriptsInPlace()
         scriptErrors.removeValue(forKey: created.id)
+        consecutiveErrorLoads.removeValue(forKey: created.id)
+        lastErrorLoadIDs.removeValue(forKey: created.id)
         syncAttachedUserScripts()
         return created
+    }
+
+    @discardableResult
+    func create(
+        id: String? = nil,
+        name: String,
+        matchRules: [String],
+        js: String = "",
+        css: String = "",
+        injectionTime: ScriptInjectionTime = .defaultTime,
+        environment: AgentExecutionEnvironment = .defaultEnvironment,
+        isEnabled: Bool = true,
+        source: ScriptSource = .imported,
+        now: Date = Date()
+    ) throws -> UserScript {
+        let created = try makeCandidateForCreate(
+            id: id,
+            name: name,
+            matchRules: matchRules,
+            js: js,
+            css: css,
+            injectionTime: injectionTime,
+            environment: environment,
+            isEnabled: isEnabled,
+            source: source,
+            now: now
+        )
+        return try commitCreated(created)
     }
 
     @discardableResult
@@ -1674,23 +1732,24 @@ final class ScriptStore {
         return parsed
     }
 
-    @discardableResult
-    func update(
+    func makeCandidateForUpdate(
         id: String,
         patch: ScriptUpdatePatch,
         origin: ScriptVersionOrigin? = nil,
         now: Date = Date()
-    ) throws -> UserScript {
-        guard let idx = scripts.firstIndex(where: { $0.id == id }) else {
+    ) throws -> ProspectiveUpdate {
+        guard let existing = scripts.first(where: { $0.id == id }) else {
             throw ScriptStoreError.scriptNotFound(id)
         }
-        let existing = scripts[idx]
 
         if !patch.touchesVersionedFields {
-            if let enabled = patch.isEnabled {
-                return try setEnabled(id: id, isEnabled: enabled, now: now)
+            var next = existing
+            if let enabled = patch.isEnabled, enabled != existing.isEnabled {
+                next.isEnabled = enabled
+                next.disabledReason = nil
+                next.updatedAt = now
             }
-            return existing
+            return ProspectiveUpdate(previous: existing, updated: next, touchesVersionedFields: false)
         }
 
         let nextName: String
@@ -1739,17 +1798,45 @@ final class ScriptStore {
             createdAt: existing.createdAt,
             updatedAt: now,
             versions: updatedVersions,
-            versionOrigin: origin
+            versionOrigin: origin,
+            disabledReason: nil
         )
+        return ProspectiveUpdate(previous: existing, updated: updated, touchesVersionedFields: true)
+    }
 
-        try writeVersionArchive(for: existing)
-        try writeScriptFile(updated)
+    @discardableResult
+    func commitUpdated(_ prospective: ProspectiveUpdate) throws -> UserScript {
+        let id = prospective.previous.id
+        if !prospective.touchesVersionedFields {
+            if prospective.updated.isEnabled != prospective.previous.isEnabled {
+                return try setEnabled(id: id, isEnabled: prospective.updated.isEnabled, now: prospective.updated.updatedAt)
+            }
+            return prospective.previous
+        }
+        guard let idx = scripts.firstIndex(where: { $0.id == id }) else {
+            throw ScriptStoreError.scriptNotFound(id)
+        }
+        try writeVersionArchive(for: prospective.previous)
+        try writeScriptFile(prospective.updated)
 
-        scripts[idx] = updated
+        scripts[idx] = prospective.updated
         sortScriptsInPlace()
         scriptErrors.removeValue(forKey: id)
+        consecutiveErrorLoads.removeValue(forKey: id)
+        lastErrorLoadIDs.removeValue(forKey: id)
         syncAttachedUserScripts()
-        return updated
+        return prospective.updated
+    }
+
+    @discardableResult
+    func update(
+        id: String,
+        patch: ScriptUpdatePatch,
+        origin: ScriptVersionOrigin? = nil,
+        now: Date = Date()
+    ) throws -> UserScript {
+        let prospective = try makeCandidateForUpdate(id: id, patch: patch, origin: origin, now: now)
+        return try commitUpdated(prospective)
     }
 
     @discardableResult
@@ -1763,16 +1850,21 @@ final class ScriptStore {
             throw ScriptStoreError.scriptNotFound(id)
         }
         var current = scripts[idx]
-        guard current.isEnabled != isEnabled else {
+        guard current.isEnabled != isEnabled || current.disabledReason != nil else {
             return current
         }
+        let changedEnabled = current.isEnabled != isEnabled
         current.isEnabled = isEnabled
+        current.disabledReason = nil
         current.updatedAt = now
         try writeScriptFile(current)
         scripts[idx] = current
+        consecutiveErrorLoads.removeValue(forKey: id)
+        lastErrorLoadIDs.removeValue(forKey: id)
         if !isEnabled {
             scriptErrors.removeValue(forKey: id)
         }
+        guard changedEnabled else { return current }
         syncAttachedUserScripts()
         for entry in attachedControllers {
             guard let controller = entry.controller else { continue }
@@ -1835,7 +1927,8 @@ final class ScriptStore {
             createdAt: current.createdAt,
             updatedAt: now,
             versions: updatedVersions,
-            versionOrigin: .restored(fromVersion: target.version)
+            versionOrigin: .restored(fromVersion: target.version),
+            disabledReason: nil
         )
 
         try writeVersionArchive(for: current)
@@ -1844,6 +1937,8 @@ final class ScriptStore {
         scripts[idx] = restored
         sortScriptsInPlace()
         scriptErrors.removeValue(forKey: id)
+        consecutiveErrorLoads.removeValue(forKey: id)
+        lastErrorLoadIDs.removeValue(forKey: id)
         syncAttachedUserScripts()
         for entry in attachedControllers {
             guard let controller = entry.controller else { continue }
@@ -1865,6 +1960,8 @@ final class ScriptStore {
         }
         let removed = scripts.remove(at: idx)
         scriptErrors.removeValue(forKey: id)
+        consecutiveErrorLoads.removeValue(forKey: id)
+        lastErrorLoadIDs.removeValue(forKey: id)
         try removeScriptFilesFromDisk(id: id)
         syncAttachedUserScripts()
         for entry in attachedControllers {
@@ -1961,12 +2058,78 @@ final class ScriptStore {
         )
     }
 
+    /// Fed once per page load by the userscript runner when a script errors on
+    /// that load. Bumps `consecutiveErrorLoads` once per `loadID`, and at
+    /// `autoDisableErrorLoadLimit` (3) disables the script with `disabledReason`
+    /// while preserving `scriptErrors[scriptID]` for "Let the Agent fix it".
+    func recordPageLoadError(
+        scriptID: String,
+        message: String,
+        line: Int? = nil,
+        url: String? = nil,
+        loadID: String? = nil,
+        occurredAt: Date = Date()
+    ) {
+        recordError(
+            scriptID: scriptID,
+            message: message,
+            line: line,
+            url: url,
+            occurredAt: occurredAt
+        )
+        guard let idx = scripts.firstIndex(where: { $0.id == scriptID }), scripts[idx].isEnabled else {
+            return
+        }
+        if let loadID, !loadID.isEmpty {
+            if lastErrorLoadIDs[scriptID] == loadID {
+                return
+            }
+            lastErrorLoadIDs[scriptID] = loadID
+        }
+        let nextLoads = (consecutiveErrorLoads[scriptID] ?? 0) + 1
+        consecutiveErrorLoads[scriptID] = nextLoads
+        guard nextLoads >= Self.autoDisableErrorLoadLimit else { return }
+
+        let cleanMessage = scriptErrors[scriptID]?.message ?? message
+        var disabled = scripts[idx]
+        disabled.isEnabled = false
+        disabled.disabledReason = "Turned off after errors on \(Self.autoDisableErrorLoadLimit) page loads in a row: \(cleanMessage)"
+        disabled.updatedAt = occurredAt
+        try? writeScriptFile(disabled)
+        scripts[idx] = disabled
+        consecutiveErrorLoads[scriptID] = 0
+        syncAttachedUserScripts()
+        for entry in attachedControllers {
+            guard let controller = entry.controller else { continue }
+            Task { @MainActor in
+                await controller.removeLiveScript(id: scriptID)
+            }
+        }
+    }
+
+    /// Fed once per page load by the userscript runner when a script finishes a
+    /// load without error. Resets `consecutiveErrorLoads` and clears any prior
+    /// runtime error for that script.
+    func recordPageLoadClean(scriptID: String, loadID: String? = nil) {
+        if let loadID, !loadID.isEmpty, lastErrorLoadIDs[scriptID] == loadID {
+            return
+        }
+        consecutiveErrorLoads[scriptID] = 0
+        lastErrorLoadIDs.removeValue(forKey: scriptID)
+        scriptErrors.removeValue(forKey: scriptID)
+        noteExecuted(scriptID: scriptID)
+    }
+
     func clearError(for scriptID: String) {
         scriptErrors.removeValue(forKey: scriptID)
+        consecutiveErrorLoads.removeValue(forKey: scriptID)
+        lastErrorLoadIDs.removeValue(forKey: scriptID)
     }
 
     func clearAllErrors() {
         scriptErrors.removeAll()
+        consecutiveErrorLoads.removeAll()
+        lastErrorLoadIDs.removeAll()
     }
 
     // MARK: Disk Persistence
@@ -2192,6 +2355,13 @@ protocol ScriptLiveApplying: Sendable {
     @MainActor func applyLiveScript(_ script: UserScript, runJS: Bool) async -> ScriptLiveApplicationOutcome
     @MainActor func removeLiveScript(id: String) async
     @MainActor func syncLiveGlobalState(isEnabled: Bool) async
+    @MainActor func beginCandidateVerification(_ candidate: UserScript, replacingScriptID: String?)
+    @MainActor func endCandidateVerification() -> ScriptRuntimeError?
+}
+
+extension ScriptLiveApplying {
+    @MainActor func beginCandidateVerification(_ candidate: UserScript, replacingScriptID: String?) {}
+    @MainActor func endCandidateVerification() -> ScriptRuntimeError? { nil }
 }
 
 /// Bridges a `ScriptStore` to a `WKWebView` + `AgentBridge`:
@@ -2212,10 +2382,17 @@ final class ScriptWebController: ScriptLiveApplying {
     let store: ScriptStore
     weak var agentBridge: AgentBridge?
 
+    private struct CandidateVerification {
+        var candidate: UserScript
+        var replacingScriptID: String?
+        var capturedError: ScriptRuntimeError?
+    }
+
     private lazy var relayToken = UUID().uuidString
     private var managedUserScripts: [ObjectIdentifier: WKUserScript] = [:]
     private var previousReplyRouter: (([String: Any]) async throws -> Any?)?
     private var isReplyRouterInstalled = false
+    private var activeVerification: CandidateVerification?
 
     init(webView: WKWebView, store: ScriptStore, agentBridge: AgentBridge) {
         self.webView = webView
@@ -2227,6 +2404,7 @@ final class ScriptWebController: ScriptLiveApplying {
     }
 
     func detach() {
+        activeVerification = nil
         store.unregisterWebController(self)
         removeAllManagedUserScripts()
         if isReplyRouterInstalled {
@@ -2236,17 +2414,41 @@ final class ScriptWebController: ScriptLiveApplying {
         }
     }
 
+    func beginCandidateVerification(_ candidate: UserScript, replacingScriptID: String?) {
+        activeVerification = CandidateVerification(
+            candidate: candidate,
+            replacingScriptID: replacingScriptID,
+            capturedError: nil
+        )
+        syncUserScripts()
+    }
+
+    func endCandidateVerification() -> ScriptRuntimeError? {
+        let captured = activeVerification?.capturedError
+        activeVerification = nil
+        syncUserScripts()
+        return captured
+    }
+
     private func installReplyRouterIfNeeded() {
         guard !isReplyRouterInstalled, let agentBridge else { return }
         let fallbackRouter = agentBridge.replyRouter
         previousReplyRouter = fallbackRouter
         isReplyRouterInstalled = true
         agentBridge.replyRouter = { [weak self] payload in
-            if let action = payload["action"] as? String, action == "scriptError" {
-                await MainActor.run {
-                    self?.handleReportedScriptError(payload)
+            if let action = payload["action"] as? String {
+                if action == "scriptError" {
+                    await MainActor.run {
+                        self?.handleReportedScriptError(payload)
+                    }
+                    return ["ok": true]
                 }
-                return ["ok": true]
+                if action == "scriptLoadClean" {
+                    await MainActor.run {
+                        self?.handleReportedCleanLoad(payload)
+                    }
+                    return ["ok": true]
+                }
             }
             if let fallbackRouter {
                 return try await fallbackRouter(payload)
@@ -2270,7 +2472,15 @@ final class ScriptWebController: ScriptLiveApplying {
     /// `routeObserverScript` and Discourse browse bridges).
     func syncUserScripts() {
         guard let webView else { return }
-        let enabledScripts = store.isGlobalEnabled ? store.scripts.filter(\.isEnabled) : []
+        var enabledScripts = store.isGlobalEnabled ? store.scripts.filter(\.isEnabled) : []
+        if let verification = activeVerification, store.isGlobalEnabled {
+            enabledScripts.removeAll { script in
+                script.id == verification.candidate.id || script.id == verification.replacingScriptID
+            }
+            if verification.candidate.isEnabled {
+                enabledScripts.append(verification.candidate)
+            }
+        }
         if managedUserScripts.isEmpty, enabledScripts.isEmpty {
             return
         }
@@ -2548,7 +2758,42 @@ final class ScriptWebController: ScriptLiveApplying {
             return nil
         }()
         let url = (payload["url"] as? String).flatMap { $0.isEmpty ? nil : $0 }
-        store.recordError(scriptID: scriptID, message: message, line: line, url: url)
+        let loadID = (payload["loadId"] as? String).flatMap { $0.isEmpty ? nil : $0 }
+
+        if var verification = activeVerification, verification.candidate.id == scriptID {
+            let cleanMessage = message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                ? "Unknown userscript error"
+                : message
+            let nextCount = (verification.capturedError?.count ?? 0) + 1
+            verification.capturedError = ScriptRuntimeError(
+                scriptID: scriptID,
+                scriptName: verification.candidate.name,
+                message: cleanMessage,
+                line: line,
+                url: url,
+                occurredAt: Date(),
+                count: nextCount
+            )
+            activeVerification = verification
+            return
+        }
+
+        store.recordPageLoadError(
+            scriptID: scriptID,
+            message: message,
+            line: line,
+            url: url,
+            loadID: loadID
+        )
+    }
+
+    private func handleReportedCleanLoad(_ payload: [String: Any]) {
+        guard let scriptID = payload["scriptId"] as? String, !scriptID.isEmpty else { return }
+        if activeVerification?.candidate.id == scriptID {
+            return
+        }
+        let loadID = (payload["loadId"] as? String).flatMap { $0.isEmpty ? nil : $0 }
+        store.recordPageLoadClean(scriptID: scriptID, loadID: loadID)
     }
 
     private func currentLoadedURL() async -> URL? {
@@ -2813,41 +3058,53 @@ final class ScriptWebController: ScriptLiveApplying {
             }
           };
 
-          window.__wukongReportScriptError = function(payload) {
+          const postAgent = (msg) => {
             try {
-              const handler = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.wukongAgent;
-              if (handler && typeof handler.postMessage === "function") {
-                const p = handler.postMessage({
-                  action: "scriptError",
-                  scriptId: String(payload.scriptId || ""),
-                  message: String(payload.message || "Unknown userscript error"),
-                  line: typeof payload.line === "number" ? payload.line : 0,
-                  url: String(payload.url || window.location.href || "")
-                });
-                if (p && typeof p.catch === "function") {
-                  p.catch(() => {});
-                }
+              const h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.wukongAgent;
+              if (h && typeof h.postMessage === "function") {
+                const p = h.postMessage(msg);
+                if (p && typeof p.catch === "function") p.catch(() => {});
               }
             } catch (_) {}
           };
 
-          document.addEventListener("__wukong_script_error", () => {
-            const root = document.documentElement || document;
-            if (!root.querySelectorAll) return;
-            const nodes = root.querySelectorAll("template[data-wukong-script-error]");
-            for (let i = 0; i < nodes.length; i++) {
-              const node = nodes[i];
-              const raw = node.getAttribute("data-wukong-script-error");
-              node.remove();
-              if (!raw) continue;
-              try {
-                const parsed = JSON.parse(raw);
-                if (parsed && parsed.token === RELAY_TOKEN) {
-                  window.__wukongReportScriptError(parsed);
-                }
-              } catch (_) {}
-            }
-          });
+          window.__wukongReportScriptError = function(payload) {
+            postAgent({
+              action: "scriptError",
+              scriptId: String(payload.scriptId || ""),
+              message: String(payload.message || "Unknown userscript error"),
+              line: typeof payload.line === "number" ? payload.line : 0,
+              url: String(payload.url || window.location.href || ""),
+              loadId: String(payload.loadId || "")
+            });
+          };
+
+          window.__wukongReportScriptLoadClean = function(payload) {
+            postAgent({
+              action: "scriptLoadClean",
+              scriptId: String(payload.scriptId || ""),
+              loadId: String(payload.loadId || "")
+            });
+          };
+
+          const bindTemplateRelay = (eventName, attrName, forward) => {
+            document.addEventListener(eventName, () => {
+              const root = document.documentElement || document;
+              if (!root.querySelectorAll) return;
+              const nodes = root.querySelectorAll("template[" + attrName + "]");
+              for (let i = 0; i < nodes.length; i++) {
+                const raw = nodes[i].getAttribute(attrName);
+                nodes[i].remove();
+                if (!raw) continue;
+                try {
+                  const parsed = JSON.parse(raw);
+                  if (parsed && parsed.token === RELAY_TOKEN) forward(parsed);
+                } catch (_) {}
+              }
+            });
+          };
+          bindTemplateRelay("__wukong_script_error", "data-wukong-script-error", window.__wukongReportScriptError);
+          bindTemplateRelay("__wukong_script_clean", "data-wukong-script-clean", window.__wukongReportScriptLoadClean);
         })();
         """
     }
@@ -2902,7 +3159,7 @@ final class ScriptWebController: ScriptLiveApplying {
         switch environment {
         case .isolated:
             return """
-            const reportError = (err) => {
+            const reportError = (err, loadId) => {
               const msg = err && (err.stack || err.message) ? String(err.message || err.stack) : String(err);
               const line = err && typeof err.line === "number" ? err.line : 0;
               if (typeof window.__wukongReportScriptError === "function") {
@@ -2910,29 +3167,30 @@ final class ScriptWebController: ScriptLiveApplying {
                   scriptId: \(scriptIDJSON),
                   message: msg,
                   line: line,
-                  url: String(window.location.href || "")
+                  url: String(window.location.href || ""),
+                  loadId: String(loadId || "")
                 });
               }
               return msg;
             };
+            const reportCleanLoad = (loadId) => {
+              if (typeof window.__wukongReportScriptLoadClean === "function") {
+                window.__wukongReportScriptLoadClean({
+                  scriptId: \(scriptIDJSON),
+                  loadId: String(loadId || "")
+                });
+              }
+            };
             """
         case .page:
             return """
-            const reportError = (err) => {
-              const msg = err && (err.stack || err.message) ? String(err.message || err.stack) : String(err);
-              const line = err && typeof err.line === "number" ? err.line : 0;
+            const relayViaDOM = (attrName, eventName, payloadObj) => {
               const sendViaDOM = (host) => {
                 const tpl = document.createElement("template");
-                tpl.setAttribute("data-wukong-script-error", JSON.stringify({
-                  token: \(relayTokenJSON),
-                  scriptId: \(scriptIDJSON),
-                  message: msg,
-                  line: line,
-                  url: String(window.location.href || "")
-                }));
+                tpl.setAttribute(attrName, JSON.stringify(payloadObj));
                 try {
                   host.appendChild(tpl);
-                  document.dispatchEvent(new Event("__wukong_script_error"));
+                  document.dispatchEvent(new Event(eventName));
                 } finally {
                   tpl.remove();
                 }
@@ -2950,7 +3208,26 @@ final class ScriptWebController: ScriptLiveApplying {
                 };
                 document.addEventListener("readystatechange", onReady);
               }
+            };
+            const reportError = (err, loadId) => {
+              const msg = err && (err.stack || err.message) ? String(err.message || err.stack) : String(err);
+              const line = err && typeof err.line === "number" ? err.line : 0;
+              relayViaDOM("data-wukong-script-error", "__wukong_script_error", {
+                token: \(relayTokenJSON),
+                scriptId: \(scriptIDJSON),
+                message: msg,
+                line: line,
+                url: String(window.location.href || ""),
+                loadId: String(loadId || "")
+              });
               return msg;
+            };
+            const reportCleanLoad = (loadId) => {
+              relayViaDOM("data-wukong-script-clean", "__wukong_script_clean", {
+                token: \(relayTokenJSON),
+                scriptId: \(scriptIDJSON),
+                loadId: String(loadId || "")
+              });
             };
             """
         }
@@ -2992,11 +3269,12 @@ final class ScriptWebController: ScriptLiveApplying {
         (() => {
           const SCRIPT_ID = \(idJSON);
           const RULES = \(rulesJSON);
+          const LOAD_ID = Math.random().toString(36).slice(2) + "-" + Date.now();
           \(reporter)
           \(mainDecl)
 
           let lastExecutedHref = null;
-          const runIfMatching = () => {
+          const runIfMatching = (isInitialLoad) => {
             if (!window.__wukongScriptsGlobalEnabled) return;
             if (window.__wukongDisabledScriptIDs && window.__wukongDisabledScriptIDs[SCRIPT_ID]) return;
             const href = String(window.location.href || "");
@@ -3008,17 +3286,22 @@ final class ScriptWebController: ScriptLiveApplying {
             lastExecutedHref = href;
             try {
               const promise = __wukongUserMain();
-              if (promise && typeof promise.catch === "function") {
-                promise.catch((err) => { reportError(err); });
+              if (promise && typeof promise.then === "function") {
+                promise.then(
+                  () => { if (isInitialLoad) reportCleanLoad(LOAD_ID); },
+                  (err) => { reportError(err, LOAD_ID); }
+                );
+              } else if (isInitialLoad) {
+                reportCleanLoad(LOAD_ID);
               }
             } catch (err) {
-              reportError(err);
+              reportError(err, LOAD_ID);
             }
           };
 
-          runIfMatching();
+          runIfMatching(true);
           if (window.__wukongLiveJSRouteHandlers) {
-            window.__wukongLiveJSRouteHandlers.set(SCRIPT_ID, runIfMatching);
+            window.__wukongLiveJSRouteHandlers.set(SCRIPT_ID, () => runIfMatching(false));
           }
         })();
         """

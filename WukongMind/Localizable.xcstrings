@@ -7570,6 +7570,23 @@
         }
       }
     },
+    "Fix the script %@" : {
+      "comment" : "User message sent to the Agent when tapping Let the Agent fix it on an auto-disabled script",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "修复脚本 %@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "修復指令碼 %@"
+          }
+        }
+      }
+    },
     "Following" : {
       "comment" : "History segment: followed topics\nSettings page: followed topics and new-reply checks\nThis page popover toggle: follow new replies on the open forum topic",
       "localizations" : {
@@ -9336,6 +9353,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "小林"
+          }
+        }
+      }
+    },
+    "Let the Agent fix it" : {
+      "comment" : "Quiet button under an auto-disabled script in This page that asks the Agent to fix the broken script",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "让代理修复"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "讓代理修復"
           }
         }
       }
@@ -18455,6 +18489,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "此頁面"
+          }
+        }
+      }
+    },
+    "This page looks broken" : {
+      "comment" : "Suggestion above the Agent composer when active scripts run on the current page",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此页面显示似乎有问题"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此頁面顯示似乎有問題"
           }
         }
       }

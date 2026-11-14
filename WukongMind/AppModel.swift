@@ -473,6 +473,12 @@ final class AppModel: ObservableObject {
                 currentUserPrompt: { [weak self] in
                     self?.browserAgent.lastUserPrompt
                 },
+                pageBaseline: { [weak self] in
+                    self?.browserAgent.pageBaseline
+                },
+                pageBaselineImage: { [weak self] in
+                    self?.browserAgent.pageBaselineImage
+                },
                 settings: AgentToolSettings(
                     truncationLimit: limit,
                     redactedSecrets: secrets,

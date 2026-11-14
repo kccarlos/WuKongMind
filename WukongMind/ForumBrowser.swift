@@ -165,6 +165,7 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     /// Sample launches seed fake domains whose loads are not meant to alert.
     var ignoresNavigationFailures = false
     var visiblePostsOverride: [VisiblePost]?
+    private var activeSamplePage: (html: String, url: URL)?
     #endif
     /// The page's web content process quit repeatedly; auto-reload paused
     /// and the page shows a small Reload banner.
@@ -388,6 +389,9 @@ final class ForumBrowserModel: NSObject, ObservableObject {
 
     func load(_ url: URL, silentOnFailure: Bool = false) {
         guard Self.isBrowsableURL(url) else { return }
+        #if DEBUG
+        activeSamplePage = nil
+        #endif
         let startedFromHome = showsForumsHome || loadStartedFromForumsHome
         hideForumsHome()
         loadStartedFromForumsHome = startedFromHome
@@ -426,6 +430,7 @@ final class ForumBrowserModel: NSObject, ObservableObject {
         deferredLoad = nil
         hideForumsHome()
         currentURL = url
+        activeSamplePage = (html, url)
         activeNavigation = webView.loadHTMLString(html, baseURL: url)
         activeNavigationStarted = false
     }
@@ -541,6 +546,13 @@ final class ForumBrowserModel: NSObject, ObservableObject {
 
     func reload() {
         suppressLoadError = false
+        #if DEBUG
+        if let sample = activeSamplePage, (webView.url ?? currentURL) == sample.url {
+            activeNavigation = webView.loadHTMLString(sample.html, baseURL: sample.url)
+            activeNavigationStarted = false
+            return
+        }
+        #endif
         activeNavigation = webView.reload()
         activeNavigationStarted = false
     }

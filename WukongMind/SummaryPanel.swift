@@ -496,7 +496,10 @@ struct AssistantPanel: View {
             PageCapabilitiesView(
                 app: app,
                 pageURL: currentScriptPageURL,
-                isPresented: $showsPageCapabilitiesPopover
+                isPresented: $showsPageCapabilitiesPopover,
+                onFixScript: { script in
+                    sendFixScriptRequest(for: script)
+                }
             )
             .presentationCompactAdaptation(.popover)
         }
@@ -810,7 +813,9 @@ struct AssistantPanel: View {
         return PageSuggestions.suggestions(
             for: suggestionKind,
             isFollowing: isFollowing,
-            isSummarizing: activeSummary != nil || activePull != nil
+            isSummarizing: activeSummary != nil || activePull != nil,
+            hasActiveScripts: scriptStore.isGlobalEnabled && !enabledMatchingPageScripts.isEmpty,
+            hasScriptErrors: matchingPageScriptErrorCount > 0
         )
     }
 
@@ -846,6 +851,17 @@ struct AssistantPanel: View {
                 }
                 sendAgentPrompt(suggestion.text)
             }
+        case .agent where suggestion == .pageBroken:
+            Task { @MainActor in
+                let snapshot = await browser.agentBridge.pageSnapshot()
+                let active = scriptStore.isGlobalEnabled ? enabledMatchingPageScripts : []
+                let block = PageFeedbackContext.brokenPageBlock(
+                    snapshot: snapshot,
+                    activeScripts: active,
+                    errorsByScriptID: scriptStore.scriptErrors
+                )
+                sendAgentPrompt(suggestion.text, attachedBlock: block)
+            }
         case .agent:
             if suggestion.fillsComposer {
                 agentDraft = suggestion.composerText
@@ -856,13 +872,25 @@ struct AssistantPanel: View {
         }
     }
 
+    private func sendFixScriptRequest(for script: UserScript) {
+        let prompt = String(
+            localized: "Fix the script \(script.name)",
+            comment: "User message sent to the Agent when tapping Let the Agent fix it on an auto-disabled script"
+        )
+        let block = PageFeedbackContext.fixScriptBlock(
+            script: script,
+            latestError: scriptStore.error(for: script.id)
+        )
+        sendAgentPrompt(prompt, attachedBlock: block)
+    }
+
     private func sendAgentPrompt() {
         sendAgentPrompt(agentDraft)
     }
 
     /// Sends to the Agent, except a completed "Search this forum…", which
     /// goes to the old Research loop (transitional routing).
-    private func sendAgentPrompt(_ text: String) {
+    private func sendAgentPrompt(_ text: String, attachedBlock: String? = nil) {
         let prompt = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !prompt.isEmpty, !browserAgent.isRunning else { return }
         // Sending takes what is in the box; the microphone closes.
@@ -894,7 +922,7 @@ struct AssistantPanel: View {
                 app.router.drawerDetent = .medium
             }
         }
-        browserAgent.send(prompt, context: app.takeAgentHandoffContext())
+        browserAgent.send(prompt, context: app.takeAgentHandoffContext(), attachedBlock: attachedBlock)
     }
 
     // MARK: Summary & Unified Transcript

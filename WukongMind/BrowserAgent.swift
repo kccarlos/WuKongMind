@@ -908,6 +908,7 @@ final class BrowserAgentSession {
     /// The page as it was before this run's first page change (page
     /// feedback's baseline; verify before saving compares against it).
     private(set) var pageBaseline: PageStateSnapshot?
+    private(set) var pageBaselineImage: AgentImage?
 
     init(
         pageDriver: AgentPageDriving,
@@ -936,26 +937,42 @@ final class BrowserAgentSession {
     }
 
     /// Like `send(_:)`, with `context` (old-engine results from suggestions)
-    /// put before the question in the model's turn only; the bubble and the
-    /// run show the bare question.
-    func send(_ prompt: String, context: String?) {
+    /// and/or `attachedBlock` (page snapshot / script diagnostics) put before
+    /// the question in the model's turn only; the bubble and the run show the
+    /// bare question.
+    func send(_ prompt: String, context: String?, attachedBlock: String? = nil) {
         let trimmed = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, !isRunning else { return }
-        startTurn(userPrompt: trimmed, appendUserMessage: true, modelPrompt: Self.modelPrompt(trimmed, context: context))
+        startTurn(
+            userPrompt: trimmed,
+            appendUserMessage: true,
+            modelPrompt: Self.modelPrompt(trimmed, context: context, attachedBlock: attachedBlock)
+        )
     }
 
     /// Awaits a full agent turn from start to completion; convenient for tests
     /// and programmatic callers.
-    func sendAndWait(_ prompt: String, context: String? = nil) async {
+    func sendAndWait(_ prompt: String, context: String? = nil, attachedBlock: String? = nil) async {
         let trimmed = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, !isRunning else { return }
-        startTurn(userPrompt: trimmed, appendUserMessage: true, modelPrompt: Self.modelPrompt(trimmed, context: context))
+        startTurn(
+            userPrompt: trimmed,
+            appendUserMessage: true,
+            modelPrompt: Self.modelPrompt(trimmed, context: context, attachedBlock: attachedBlock)
+        )
         await activeTask?.value
     }
 
-    static func modelPrompt(_ prompt: String, context: String?) -> String {
-        guard let context, !context.isEmpty else { return prompt }
-        return "Context from earlier in this conversation (results the app showed the user):\n\(context)\n\nThe user's message:\n\(prompt)"
+    static func modelPrompt(_ prompt: String, context: String?, attachedBlock: String? = nil) -> String {
+        var sections: [String] = []
+        if let context, !context.isEmpty {
+            sections.append("Context from earlier in this conversation (results the app showed the user):\n\(context)")
+        }
+        if let attachedBlock, !attachedBlock.isEmpty {
+            sections.append(attachedBlock)
+        }
+        guard !sections.isEmpty else { return prompt }
+        return sections.joined(separator: "\n\n") + "\n\nThe user's message:\n\(prompt)"
     }
 
     /// Shows a reply the app gave itself (a suggestion an existing feature
@@ -1045,6 +1062,7 @@ final class BrowserAgentSession {
         lastUserPrompt = nil
         pageBaseline = nil
         wireSizes = [:]
+        pageBaselineImage = nil
         runState = .idle
     }
 
@@ -1060,6 +1078,7 @@ final class BrowserAgentSession {
         maxSteps = BrowserAgentLimits.clampSteps(runtime.maxSteps)
         currentStep = 0
         pageBaseline = nil
+        pageBaselineImage = nil
         if appendUserMessage || lastUserPrompt == nil {
             lastUserPrompt = userPrompt
         }
@@ -1181,6 +1200,7 @@ final class BrowserAgentSession {
                     guard let self, self.activeGeneration == generation else { return }
                     if self.pageBaseline == nil, let before = updatedRow.pageFeedback?.before {
                         self.pageBaseline = before
+                        self.pageBaselineImage = updatedRow.pageFeedback?.beforeImage
                     }
                     if let idx = self.toolCalls.firstIndex(where: { $0.id == updatedRow.id }) {
                         self.toolCalls[idx] = updatedRow
@@ -1624,7 +1644,8 @@ actor BrowserAgentDemoClient: AgentModelClient {
                                 });
                                 """),
                                 "injection_time": .string("document-end"),
-                                "environment": .string("isolated")
+                                "environment": .string("isolated"),
+                                "confirm_change": .bool(true)
                             ]
                         )
                     ],

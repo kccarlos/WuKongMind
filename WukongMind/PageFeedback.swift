@@ -34,6 +34,17 @@ struct PageFeedbackReport: Codable, Equatable, Sendable {
     var after: PageStateSnapshot?
     /// The warning reasons, in rule order; empty when nothing matched.
     var reasons: [String]
+    /// Kept in memory from before the call so a later verify-before-save can
+    /// pair the run's baseline screenshot with the post-reload screenshot.
+    var beforeImage: AgentImage? = nil
+
+    private enum CodingKeys: String, CodingKey {
+        case before, after, reasons
+    }
+
+    static func == (lhs: PageFeedbackReport, rhs: PageFeedbackReport) -> Bool {
+        lhs.before == rhs.before && lhs.after == rhs.after && lhs.reasons == rhs.reasons
+    }
 
     var urlChanged: Bool {
         guard let after else { return false }
@@ -284,12 +295,69 @@ extension ToolRegistry {
             guard let before else { return output }
             try Task.checkCancellation()
             let after = await bridge.pageSnapshot()
-            let report = PageFeedbackRules.compare(before: before, after: after)
+            var report = PageFeedbackRules.compare(before: before, after: after)
+            report.beforeImage = beforeImage
             output.pageFeedback = report
             if report.isWarning, supportsImageInput {
                 output.images = await warningScreenshots(beforeImage: beforeImage, bridge: bridge)
             }
             return output
         }
+    }
+}
+
+// MARK: - Attached Context for Broken-Page Suggestion & Auto-Disabled Script Fix
+
+enum PageFeedbackContext {
+    /// Short context block attached to the user turn when "This page looks broken" is tapped.
+    static func brokenPageBlock(
+        snapshot: PageStateSnapshot?,
+        activeScripts: [UserScript],
+        errorsByScriptID: [String: ScriptRuntimeError]
+    ) -> String {
+        var lines: [String] = []
+        if let snapshot {
+            lines.append(
+                "Current page snapshot (\(snapshot.url)): text \(snapshot.textLength) chars, height \(snapshot.documentHeight)px, scrollable \(snapshot.isScrollable ? "yes" : "no"), links \(snapshot.linkCount), form controls \(snapshot.formControlCount), images \(snapshot.visibleImageCount), page errors \(snapshot.pageErrorCount)."
+            )
+        } else {
+            lines.append("Current page snapshot: unavailable.")
+        }
+        if activeScripts.isEmpty {
+            lines.append("Active scripts on this page: none.")
+        } else {
+            lines.append("Active scripts on this page:")
+            for script in activeScripts {
+                if let err = errorsByScriptID[script.id] {
+                    let linePart = err.line.flatMap { $0 > 0 ? " (line \($0))" : nil } ?? ""
+                    lines.append("- \(script.name) (id: \(script.id)) — latest error: \(err.message)\(linePart)")
+                } else {
+                    lines.append("- \(script.name) (id: \(script.id)) — latest error: none")
+                }
+            }
+        }
+        return lines.joined(separator: "\n")
+    }
+
+    /// Short context block attached to the user turn when "Let the Agent fix it" is tapped.
+    static func fixScriptBlock(
+        script: UserScript,
+        latestError: ScriptRuntimeError?
+    ) -> String {
+        var lines = [
+            "Script to fix: \(script.name) (id: \(script.id))"
+        ]
+        if let latestError {
+            let linePart = latestError.line.flatMap { $0 > 0 ? " (line \($0))" : nil } ?? ""
+            lines.append("Latest error: \(latestError.message)\(linePart)")
+        } else if let reason = script.disabledReason, !reason.isEmpty {
+            lines.append("Latest error: \(reason)")
+        } else {
+            lines.append("Latest error: none recorded")
+        }
+        if !script.isEnabled {
+            lines.append("The script is currently disabled; pass enabled: true in script_update once fixed.")
+        }
+        return lines.joined(separator: "\n")
     }
 }
