@@ -51,10 +51,10 @@ final class ModelAudit: @unchecked Sendable {
         return json["model"] as? String
     }
 
-    func writeLog(to url: URL) throws {
+    static func writeLog(_ entries: [Entry], to url: URL) throws {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.sortedKeys]
-        let lines = try recorded.map { String(decoding: try encoder.encode($0), as: UTF8.self) }
+        let lines = try entries.enumerated().map { index, entry in var entry = entry; entry.sequence = index + 1; return entry }.map { String(decoding: try encoder.encode($0), as: UTF8.self) }
         try Data((lines.joined(separator: "\n") + "\n").utf8).write(to: url, options: .atomic)
     }
 }
