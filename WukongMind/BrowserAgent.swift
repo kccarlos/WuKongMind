@@ -940,6 +940,21 @@ struct BrowserAgentRuntimeConfig: Equatable, Sendable {
     var allScripts: [UserScript] = []
 }
 
+/// A finished turn's answer, handed to `BrowserAgentSession.onAnswer` for the
+/// app to save (see `AppModel.saveAgentAnswer`). The tool log isn't in it.
+struct BrowserAgentAnswer: Equatable, Sendable {
+    var question: String
+    var text: String
+    /// Every forum and capability result shape of the turn's tool calls.
+    var shapes: [ForumShape]
+    var provider: AIProvider
+    var model: String
+    var origin: AgentRunOrigin
+    /// The page the turn started on.
+    var pageURL: String
+    var startedAt: Date
+}
+
 /// `@Observable` session driving one browser agent conversation.
 ///
 /// Exposed on `AppModel` as `app.browserAgent`. The M1 UI (`WUKO-5`) observes:
@@ -979,6 +994,9 @@ final class BrowserAgentSession {
     /// The on-disk audit log and task records. Nil in tests that don't need them.
     let auditLog: AuditLog?
     let taskRecords: TaskRecordStore?
+    /// Called once at the end of a turn that completed with a final answer; a
+    /// failed, stopped or step-limited turn, or empty text, never calls it.
+    @ObservationIgnored var onAnswer: (@MainActor (BrowserAgentAnswer) -> Void)?
     /// The task ID of the latest run (the run's UUID string).
     private(set) var currentTaskID: String?
     private(set) var lastUserPrompt: String?
@@ -1007,35 +1025,39 @@ final class BrowserAgentSession {
 
     /// Starts a new agent turn asynchronously. Ignored if `prompt` is blank or
     /// another run is currently active.
-    func send(_ prompt: String) {
+    func send(_ prompt: String, origin: AgentRunOrigin = .typed) {
         let trimmed = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, !isRunning else { return }
-        startTurn(userPrompt: trimmed, appendUserMessage: true)
+        startTurn(userPrompt: trimmed, appendUserMessage: true, origin: origin)
     }
 
     /// Like `send(_:)`, with `context` (old-engine results from suggestions)
     /// and/or `attachedBlock` (page snapshot / script diagnostics) put before
     /// the question in the model's turn only; the bubble and the run show the
     /// bare question.
-    func send(_ prompt: String, context: String?, attachedBlock: String? = nil) {
+    func send(_ prompt: String, context: String?, attachedBlock: String? = nil, origin: AgentRunOrigin = .typed) {
         let trimmed = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, !isRunning else { return }
         startTurn(
             userPrompt: trimmed,
             appendUserMessage: true,
-            modelPrompt: Self.modelPrompt(trimmed, context: context, attachedBlock: attachedBlock)
+            modelPrompt: Self.modelPrompt(trimmed, context: context, attachedBlock: attachedBlock),
+            origin: origin
         )
     }
 
     /// Awaits a full agent turn from start to completion; convenient for tests
     /// and programmatic callers.
-    func sendAndWait(_ prompt: String, context: String? = nil, attachedBlock: String? = nil) async {
+    func sendAndWait(
+        _ prompt: String, context: String? = nil, attachedBlock: String? = nil, origin: AgentRunOrigin = .typed
+    ) async {
         let trimmed = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, !isRunning else { return }
         startTurn(
             userPrompt: trimmed,
             appendUserMessage: true,
-            modelPrompt: Self.modelPrompt(trimmed, context: context, attachedBlock: attachedBlock)
+            modelPrompt: Self.modelPrompt(trimmed, context: context, attachedBlock: attachedBlock),
+            origin: origin
         )
         await activeTask?.value
     }
@@ -1149,7 +1171,8 @@ final class BrowserAgentSession {
         userPrompt: String,
         appendUserMessage: Bool,
         appendToHistory: Bool = true,
-        modelPrompt: String? = nil
+        modelPrompt: String? = nil,
+        origin: AgentRunOrigin = .typed
     ) {
         let runtime = configProvider()
         maxSteps = BrowserAgentLimits.clampSteps(runtime.maxSteps)
@@ -1185,6 +1208,8 @@ final class BrowserAgentSession {
             history.append(.user(modelPrompt ?? userPrompt))
         }
 
+        // A "continue" after the step limit answers the original question.
+        let question = lastUserPrompt ?? userPrompt
         let runID = UUID()
         let taskID = runID.uuidString
         currentTaskID = taskID
@@ -1378,13 +1403,26 @@ final class BrowserAgentSession {
                 self.activeTask = nil
 
                 switch result.outcome {
-                case .completed(_, let steps, let duration):
+                case .completed(let text, let steps, let duration):
                     let finalState = BrowserAgentRunState.completed(steps: steps, duration: duration)
                     self.closeTask(taskID: taskID, runID: runID, outcome: "completed", duration: duration)
                     self.runState = finalState
                     if let runIdx = self.runs.firstIndex(where: { $0.id == runID }) {
                         self.runs[runIdx].state = finalState
                         self.runs[runIdx].duration = duration
+                    }
+                    let answerText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !answerText.isEmpty {
+                        self.onAnswer?(BrowserAgentAnswer(
+                            question: question,
+                            text: answerText,
+                            shapes: result.toolRows.compactMap(\.shape),
+                            provider: selection.provider,
+                            model: selection.model,
+                            origin: origin,
+                            pageURL: pageMeta.url,
+                            startedAt: runRecord.startedAt
+                        ))
                     }
 
                 case .stepLimitReached(let limit, let notice, let duration):

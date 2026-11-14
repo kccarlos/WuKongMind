@@ -335,15 +335,19 @@ final class HomeTests: XCTestCase {
         }
         var run = AgentRun(siteURL: "https://forum.example", goal: "Which boxes do people regret?\nsecond line", provider: .ollama, model: "m")
         run.createdAt = Date(timeIntervalSince1970: 5)
+        var answer = AgentRun(siteURL: "https://news.example.com", goal: "Make this page dark and hide the sidebar", provider: .ollama, model: "m")
+        answer.loop = .agent
+        answer.createdAt = Date(timeIntervalSince1970: 30)
         let items = HomeRecent.items(
             sessions: [session("1", at: 10), session("2", at: 40), session("3", at: 20)],
-            runs: [run],
-            conversation: (prompt: "Make this page dark and hide the sidebar", host: "news.example.com", date: Date(timeIntervalSince1970: 30))
+            runs: [run, answer]
         )
         XCTAssertEqual(items.count, 3)
         XCTAssertEqual(items[1].title, "Make this page dark and hide the sidebar")
         XCTAssertTrue(items[1].isAgent)
-        XCTAssertEqual(items[1].target, .conversation)
+        XCTAssertEqual(items[1].kind, .agent)
+        XCTAssertEqual(items[1].target, .askRun(answer.id))
+        XCTAssertEqual(items[1].host, "news.example.com")
         XCTAssertFalse(items[0].isAgent)
         XCTAssertEqual(items.map(\.id).first, "session-\(session("2", at: 40).topicKey)")
         XCTAssertEqual(HomeRecent.firstWords(String(repeating: "word ", count: 40)).count < HomeRecent.titleLength + 2, true)

@@ -46,7 +46,7 @@ extension AppModel {
     var manageForums: [Forum] {
         var siteURLs = Set(sessions.values.map(\.siteURL))
         siteURLs.formUnion(activities.map(\.siteURL))
-        siteURLs.formUnion(agentRuns.map(\.siteURL))
+        siteURLs.formUnion(agentRuns.filter(isForumRecord).map(\.siteURL))
         siteURLs.formUnion(watchedTopics.map(\.siteURL))
         siteURLs.remove("")
         let known = siteURLs.map(forumInfo(siteURL:))
@@ -298,6 +298,7 @@ struct AssistantDebugSeed {
 /// - `-dc-topic meta|openai`           which sample topic is open (default meta)
 /// - `-dc-assistant-mode <mode>`       summary | chat | agent
 /// - `-dc-open-history`                opens History
+/// - `-dc-open-saved-answer`           opens History on a saved Agent answer (sample forum record)
 /// - `-dc-no-provider`                 leaves the AI provider unconfigured
 /// - `-dc-agent-model <provider>:<model>` a different Ask the forum model (e.g.
 ///                                     `deepseek:deepseek-v4-flash`), with a placeholder key
@@ -488,6 +489,42 @@ extension AppModel {
         ]
         olderRun.topicIDs = [tips.topicID]
 
+        // Saved Agent answers: one from a forum, one from an ordinary page.
+        func savedAnswer(_ site: String, goal: String, answer: String, sources: [SavedSource], minutes: Double) -> AgentRun {
+            var value = AgentRun(
+                siteURL: site, goal: goal, provider: sampleAgent.provider, model: sampleAgent.model
+            )
+            value.loop = .agent
+            value.result = .completed
+            value.answer = answer
+            value.initialAnswer = answer
+            value.sources = sources
+            value.createdAt = ago(minutes)
+            value.completedAt = ago(minutes)
+            return value
+        }
+        let closet = topic(meta, "101", "quiet-closet", "Which home server for a quiet closet? Fanless builds compared").url.absoluteString
+        let emmc = topic(meta, "102", "emmc-died", "eMMC died after 20 months, what now?").url.absoluteString
+        let n100 = topic(meta, "103", "n100-m2", "N100 boards with M.2: the short list").url.absoluteString
+        let fanless = savedAnswer(
+            meta.siteURL,
+            goal: "Which fanless boxes do people regret?",
+            answer: "Mostly the ones with **soldered eMMC storage**. Two owners say theirs wore out within two years of logging [S1](\(closet)/14) [S2](\(emmc)).\n\n- Boxes with an M.2 slot are the usual fix: swap the drive, keep the box [S3](\(n100)/3).\n- Throttling in a warm closet is a complaint, not a regret; a timed USB fan solves it [S1](\(closet)/14).",
+            sources: [
+                SavedSource(number: 1, title: "Which home server for a quiet closet? Fanless builds compared", url: "\(closet)/14", topicID: "101", postNumber: 14),
+                SavedSource(number: 2, title: "eMMC died after 20 months, what now?", url: emmc, topicID: "102"),
+                SavedSource(number: 3, title: "N100 boards with M.2: the short list", url: "\(n100)/3", topicID: "103", postNumber: 3)
+            ],
+            minutes: 90
+        )
+        let pageAnswer = savedAnswer(
+            "https://news.example.com",
+            goal: "Summarize the story about the new ferry line",
+            answer: "The article reports that a new ferry line opens next spring, linking the harbour district with the airport in 18 minutes. Tickets start at 4 euros, and the city expects about 2,000 riders a day. Critics in the comments worry about noise near the old pier.",
+            sources: [],
+            minutes: 200
+        )
+
         var activities: [WorkRecord] = []
         func record(_ type: WorkType, _ topic: ForumTopic, _ minutes: Double, status: WorkStatus = .completed, text: String = String(localized: "Completed")) -> WorkRecord {
             var value = WorkRecord(type: type, siteURL: topic.siteURL, topicID: topic.topicID,
@@ -617,7 +654,7 @@ extension AppModel {
             forums: [meta, openAI, hackerNews],
             sessions: sessions,
             activities: activities,
-            agentRuns: [currentRun, olderRun],
+            agentRuns: [currentRun, olderRun, fanless, pageAnswer],
             watchedTopics: [watchedMeta, watchedStream, watchedWorkingOn].filter {
                 !AssistantDebug.has("-dc-not-following") || $0.topicKey != openTopic.topicKey
             },
@@ -686,6 +723,13 @@ extension AppModel {
             assistantMode = AssistantMode.allCases.first { $0.rawValue.lowercased() == mode } ?? .summary
         }
         if AssistantDebug.has("-dc-open-history") { panelRoute = .history }
+        if AssistantDebug.has("-dc-open-saved-answer") {
+            savedAnswerRunID = fanless.id
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(1))
+                self.openPanelRoute(.history)
+            }
+        }
         if AssistantDebug.has("-dc-answer-ready") { router.answersSeenAt = ago(5) }
         // The run on the open forum: the featured one, or the older run.
         selectedAgentRunID = (openForum.siteURL == openAI.siteURL ? currentRun : olderRun).id

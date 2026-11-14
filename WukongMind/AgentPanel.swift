@@ -163,7 +163,7 @@ struct AgentView: View {
 
     private var historyMenu: some View {
         Menu {
-            ForEach(app.agentRuns) { previous in
+            ForEach(app.researchRuns) { previous in
                 Button {
                     withAnimation(DCMotion.respecting(reduceMotion)) {
                         app.openAgentRun(id: previous.id)
@@ -221,7 +221,7 @@ struct AgentView: View {
     @ViewBuilder
     private var askBoxHeader: some View {
         let onForumHome = app.currentTopic == nil && app.assistantPageState == .forumHome
-        let hasRuns = !app.agentRuns.isEmpty
+        let hasRuns = !app.researchRuns.isEmpty
         if hasRuns || onForumHome {
             HStack(spacing: 8) {
                 if onForumHome {
@@ -273,7 +273,7 @@ struct AgentView: View {
     /// Empty Whole forum: example questions, the recent runs on this forum,
     /// then how it works and its budget.
     private var askBoxEmptyState: some View {
-        let runs = Array(app.agentRuns.filter { $0.siteURL == forum?.siteURL }.prefix(3))
+        let runs = Array(app.researchRuns.filter { $0.siteURL == forum?.siteURL }.prefix(3))
         return VStack(alignment: .leading, spacing: 14) {
             VStack(alignment: .leading, spacing: 10) {
                 DCSectionHeader(title: forum.map {

@@ -193,6 +193,8 @@ final class AppModel: ObservableObject {
     @Published var settingsStatus = ""
     /// Models each provider offers, from the last successful load.
     @Published var discoveredModels: [AIProvider: [String]] = [:]
+    /// The saved Agent answer History shows (`SavedAnswerView`); nil shows the list.
+    @Published var savedAnswerRunID: UUID?
     @Published private(set) var agentRuns: [AgentRun] {
         didSet { deliverAgentRunOutcomes() }
     }
@@ -446,7 +448,10 @@ final class AppModel: ObservableObject {
     /// Observable browser agent session (`BrowserAgent.swift`) for page inspection,
     /// JavaScript execution, CSS injection, userscript persistence, and multi-step
     /// tool calling on any page.
-    private(set) lazy var browserAgent: BrowserAgentSession = BrowserAgentSession(
+    private(set) lazy var browserAgent: BrowserAgentSession = makeBrowserAgent()
+
+    private func makeBrowserAgent() -> BrowserAgentSession {
+        let session = BrowserAgentSession(
         pageDriver: browser.agentBridge,
         modelClient: aiService,
         configProvider: { [weak self] in
@@ -494,7 +499,10 @@ final class AppModel: ObservableObject {
         },
         auditLog: auditLog,
         taskRecords: taskRecordStore
-    )
+        )
+        session.onAnswer = { [weak self] answer in self?.saveAgentAnswer(answer) }
+        return session
+    }
     /// Where podcast audio is cached (`Caches/Podcasts`; tests pass their own).
     let podcastDirectory: URL
     /// The browser Agent's files: `Documents/`, shown in the Files app (tests pass their own).
@@ -575,7 +583,7 @@ final class AppModel: ObservableObject {
         let loadedRuns = snapshot.agentRuns.sorted { $0.createdAt > $1.createdAt }
         agentRuns = loadedRuns
         watchedTopics = snapshot.watchedTopics
-        selectedAgentRunID = loadedRuns.first?.id
+        selectedAgentRunID = loadedRuns.first { $0.loop == .research }?.id
         var loadedSettings = snapshot.settings
         var loadedKeys: [AIProvider: String] = [:]
         for provider in AIProvider.allCases {
@@ -1327,10 +1335,10 @@ final class AppModel: ObservableObject {
     /// After runs were deleted: select a remaining run, and drop a follow-up
     /// draft that belonged to a deleted one.
     func reconcileAgentSelection() {
-        guard let selectedAgentRunID, !agentRuns.contains(where: { $0.id == selectedAgentRunID }) else {
+        guard let selectedAgentRunID, !researchRuns.contains(where: { $0.id == selectedAgentRunID }) else {
             return
         }
-        self.selectedAgentRunID = agentRuns.first?.id
+        self.selectedAgentRunID = researchRuns.first?.id
         drafts.followUp = ""
     }
 
@@ -1684,11 +1692,106 @@ final class AppModel: ObservableObject {
             origin: origin
         )
         run.transcript = [AgentPrompt.goalMessage(goal)]
-        agentRuns.insert(run, at: 0)
-        cloudSync.notePruned(kind: .run, ids: agentRuns.dropFirst(50).map(\.id.uuidString))
-        agentRuns = Array(agentRuns.prefix(50))
+        insertAgentRun(run)
         launchAgentRecord(for: run, title: goal)
         return run.id
+    }
+
+    /// The newest records kept in `agentRuns`, Research and Agent together.
+    static let agentRunLimit = 50
+
+    /// Puts a new record first and applies the shared cap and its sync prune.
+    private func insertAgentRun(_ run: AgentRun) {
+        agentRuns.insert(run, at: 0)
+        cloudSync.notePruned(kind: .run, ids: agentRuns.dropFirst(Self.agentRunLimit).map(\.id.uuidString))
+        agentRuns = Array(agentRuns.prefix(Self.agentRunLimit))
+    }
+
+    /// The old Research runs. The panel's run lists, the selection and the
+    /// follow-ups read these only; Agent records open in `SavedAnswerView`.
+    var researchRuns: [AgentRun] { agentRuns.filter { $0.loop == .research } }
+
+    /// Whether an answer needs saving: it cites a source, or is long enough to
+    /// be worth coming back to. "Done, the page is dark now" is not.
+    static let savedAnswerMinimumLength = 200
+
+    static func shouldSaveAnswer(text: String, sourceCount: Int) -> Bool {
+        sourceCount > 0 || text.trimmingCharacters(in: .whitespacesAndNewlines).count >= savedAnswerMinimumLength
+    }
+
+    /// Saves one Agent turn's final answer as an `AgentRun` record (see
+    /// design-one-loop "Agent answers in History"): the question, the answer
+    /// and its sources, with the visited topics so retention keeps them. The
+    /// tool log stays in the task record.
+    @discardableResult
+    func saveAgentAnswer(_ answer: BrowserAgentAnswer) -> AgentRun? {
+        let text = answer.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return nil }
+
+        // Forum tools ran: the forum's site URL. Otherwise the page's origin.
+        let sample = answer.shapes.lazy.compactMap { shape -> URL? in
+            switch shape {
+            case .thread(let thread): URL(string: thread.url)
+            case .list(let list): list.items.first.flatMap { URL(string: $0.url) }
+            }
+        }.first
+        let forumURL = sample.flatMap { siteURL(containing: $0) }
+        let siteURL = forumURL ?? Self.origin(ofPage: answer.pageURL) ?? ""
+
+        let visits = AgentSources.visits(of: answer.shapes)
+        var sources: [SavedSource] = []
+        if forumURL != nil || !answer.shapes.isEmpty {
+            let parse = linkParser(siteURL: siteURL, shapes: answer.shapes)
+            sources = AgentSources.extract(from: text, visits: visits, parse: parse)
+                .prefix(SavedSource.limit).map(SavedSource.init)
+        }
+        guard Self.shouldSaveAnswer(text: text, sourceCount: sources.count) else { return nil }
+
+        var run = AgentRun(
+            siteURL: siteURL, goal: answer.question, provider: answer.provider, model: answer.model, origin: answer.origin
+        )
+        run.loop = .agent
+        run.result = .completed
+        run.answer = text
+        run.initialAnswer = text
+        run.sources = sources
+        if forumURL != nil {
+            var seen = Set<String>()
+            run.topicIDs = visits.compactMap(\.topicID).filter { !$0.isEmpty && seen.insert($0).inserted }
+            if let links = adapter(for: siteURL)?.links {
+                var found: [(url: URL, topicID: String)] = []
+                for shape in answer.shapes {
+                    switch shape {
+                    case .thread(let thread):
+                        if let url = URL(string: thread.url), let id = thread.id, !id.isEmpty { found.append((url: url, topicID: id)) }
+                    case .list(let list):
+                        for item in list.items {
+                            if let url = URL(string: item.url), let id = item.id, !id.isEmpty { found.append((url: url, topicID: id)) }
+                        }
+                    }
+                }
+                run.remember(found, links: links)
+            }
+        }
+        run.createdAt = answer.startedAt
+        run.completedAt = Date()
+        insertAgentRun(run)
+        save()
+        return run
+    }
+
+    /// `scheme://host` of a page address.
+    static func origin(ofPage pageURL: String) -> String? {
+        guard let url = URL(string: pageURL), let scheme = url.scheme?.lowercased(),
+              scheme == "http" || scheme == "https", let host = url.host?.lowercased(), !host.isEmpty
+        else { return nil }
+        return "\(scheme)://\(host)"
+    }
+
+    /// Whether `run`'s `siteURL` is a forum (a Research run's always is). An
+    /// Agent record from an ordinary page must not become a forum.
+    func isForumRecord(_ run: AgentRun) -> Bool {
+        run.loop == .research || forum(for: run.siteURL) != nil || adapter(for: run.siteURL) != nil
     }
 
     /// Hands each waiting run that has ended (or is gone) its outcome, once.
@@ -1728,7 +1831,8 @@ final class AppModel: ObservableObject {
         let question = rawQuestion.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !question.isEmpty,
               let index = agentRuns.firstIndex(where: { $0.id == id }),
-              agentRuns[index].isFinished
+              agentRuns[index].isFinished,
+              agentRuns[index].loop == .research
         else {
             return
         }
@@ -1756,6 +1860,12 @@ final class AppModel: ObservableObject {
     }
 
     func openAgentRun(id: UUID) {
+        // A saved Agent answer opens read-only in History (`SavedAnswerView`).
+        if let saved = agentRuns.first(where: { $0.id == id }), saved.loop == .agent {
+            savedAnswerRunID = id
+            openPanelRoute(.history)
+            return
+        }
         dismissHistoryIfNeeded()
         if let run = agentRuns.first(where: { $0.id == id }) {
             agentSiteURL = run.siteURL
@@ -1777,6 +1887,28 @@ final class AppModel: ObservableObject {
         showAIView()
     }
 
+    /// A source tapped in `SavedAnswerView`: the sources become the current
+    /// list, History closes and the browser opens the page.
+    func openSavedSource(_ source: AgentSources.Source, of sources: [AgentSources.Source], siteURL: String) {
+        followSources(sources, selecting: source, siteURL: siteURL)
+        savedAnswerRunID = nil
+        dismissHistoryIfNeeded()
+        assistantMode = .summary
+        openLink(source.url)
+        panelRoute = .topic
+        stepDownDrawerIfShown()
+    }
+
+    /// Another link in a saved answer: History closes and the browser opens it.
+    func openSavedLink(_ url: URL) {
+        savedAnswerRunID = nil
+        dismissHistoryIfNeeded()
+        assistantMode = .summary
+        openLink(url)
+        panelRoute = .topic
+        stepDownDrawerIfShown()
+    }
+
     func showForumOverview() {
         guard currentTopic == nil, assistantPageState == .forumHome else { return }
         assistantMode = .summary
@@ -1784,8 +1916,9 @@ final class AppModel: ObservableObject {
     }
 
     var selectedAgentRun: AgentRun? {
-        guard let selectedAgentRunID else { return agentRuns.first }
-        return agentRuns.first { $0.id == selectedAgentRunID } ?? agentRuns.first
+        let runs = researchRuns
+        guard let selectedAgentRunID else { return runs.first }
+        return runs.first { $0.id == selectedAgentRunID } ?? runs.first
     }
 
     /// The run's status: its outcome once it ended, else its work record's
@@ -2639,7 +2772,7 @@ final class AppModel: ObservableObject {
         currentTopic = seed.currentTopic
         currentSiteURL = seed.currentForum?.siteURL
         seededPageContext = seed.pageContext
-        selectedAgentRunID = seed.agentRuns.first?.id
+        selectedAgentRunID = seed.agentRuns.first { $0.loop == .research }?.id
         // No automatic watch check (network, summary refresh) for the seed.
         lastWatchCheck = Date()
     }
