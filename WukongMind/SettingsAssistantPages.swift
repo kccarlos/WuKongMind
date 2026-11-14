@@ -464,6 +464,7 @@ struct AuditTaskPage: View {
     @ObservedObject var app: AppModel
     let task: AuditTask
     var focusStep: Int?
+    @State private var exportTaskID: String?
 
     var body: some View {
         ScrollViewReader { proxy in
@@ -491,6 +492,17 @@ struct AuditTaskPage: View {
         .tint(DCTheme.goldInk)
         .navigationTitle(Text(verbatim: task.prompt.split(separator: "\n").first.map(String.init) ?? ""))
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if app.settings.agentDeveloperMode {
+                ToolbarItem(placement: .primaryAction) {
+                    Button(String(localized: "Export", comment: "Audit log task page: export this task as a file (developer mode)")) {
+                        exportTaskID = task.id
+                    }
+                    .accessibilityIdentifier("auditExportTask")
+                }
+            }
+        }
+        .taskExportPrompt(app: app, taskID: $exportTaskID)
     }
 
     private func stepRow(_ step: AuditLine) -> some View {
