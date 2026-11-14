@@ -808,6 +808,13 @@ struct BrowserAgentRunsView: View {
                 toolCallsSection(for: run)
             }
 
+            if isLatest {
+                ForEach(app.agentConfirmations.pending) { item in
+                    AgentConfirmationCard(confirmation: item, gate: app.agentConfirmations)
+                        .dcRiseIn()
+                }
+            }
+
             let savedEntries = savedScriptEntries(in: run)
             if !savedEntries.isEmpty {
                 ForEach(savedEntries) { entry in

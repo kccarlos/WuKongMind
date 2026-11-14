@@ -444,7 +444,7 @@
       }
     },
     "%lld errors" : {
-      "comment" : "Browser agent steps header: tool error count\nPlural error count in context chip",
+      "comment" : "Agent steps header: tool error count\nPlural error count in context chip",
       "localizations" : {
         "en" : {
           "variations" : {
@@ -1383,7 +1383,7 @@
       }
     },
     "%lld steps" : {
-      "comment" : "Agent run detail: tool calls made\nAsk the forum run progress: tool calls made\nSettings root, Agent row: configured step limit, e.g. 30 steps",
+      "comment" : "Agent run detail: tool calls made\nAsk the forum run progress: tool calls made\nAudit log task row: number of steps\nSettings root, Agent row: configured step limit, e.g. 30 steps",
       "localizations" : {
         "en" : {
           "variations" : {
@@ -2590,7 +2590,7 @@
       }
     },
     "Agent" : {
-      "comment" : "AI model role: the tool-calling model used by the Agent\nHome Recent: a forum search the Agent ran\nHome Recent: an Agent conversation\nSettings page: Agent step limits, safety, audit log, developer mode and forum search\nTitle of the Agent panel\nVoiceOver name of the “Ask the forum” assistant mode (the research agent)",
+      "comment" : "AI model role: the tool-calling model used by the Agent\nHome Recent: a forum search the Agent ran\nHome Recent: an Agent conversation\nSettings page: Agent step limits, safety, audit log, developer mode and forum search\nVoiceOver name of the “Ask the forum” assistant mode (the research agent)",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -2769,6 +2769,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "所有網站 · 僅 CSS"
+          }
+        }
+      }
+    },
+    "Allow" : {
+      "comment" : "Confirmation card button that lets the Agent go ahead",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "允许"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "允許"
           }
         }
       }
@@ -3004,6 +3021,53 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "回答已就緒"
+          }
+        }
+      }
+    },
+    "Answer · %lld sources" : {
+      "comment" : "Answer card header; the placeholder is the number of sources",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Answer · %lld source"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Answer · %lld sources"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "回答 · %lld 个来源"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "回答 · %lld 個來源"
+                }
+              }
+            }
           }
         }
       }
@@ -3605,6 +3669,22 @@
         }
       }
     },
+    "Asks before the Agent sends a network request. Reading cookies, and sending your login to another site, always ask." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "代理发送网络请求前会先询问。读取 Cookie 和向其他网站发送你的登录状态时，一律会询问。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "代理傳送網路請求前會先詢問。讀取 Cookie 和向其他網站傳送你的登入狀態時，一律會詢問。"
+          }
+        }
+      }
+    },
     "Asks one of your forums a question: WukongMind searches and reads its topics and answers with sources." : {
       "localizations" : {
         "zh-Hans" : {
@@ -3672,7 +3752,7 @@
       }
     },
     "Audit log" : {
-      "comment" : "Navigation bar title of the Agent audit log screen\nSettings › Agent › Records row opening the tool-call audit log",
+      "comment" : "Assistant more menu: open the Agent's audit log\nNavigation bar title of the Agent audit log screen\nSettings › Agent › Records row opening the tool-call audit log",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -4606,6 +4686,23 @@
         }
       }
     },
+    "Checking saved summaries" : {
+      "comment" : "Agent step while running",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在查看已存摘要"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在查看已存摘要"
+          }
+        }
+      }
+    },
     "Checking the site…" : {
       "localizations" : {
         "zh-Hans" : {
@@ -4657,7 +4754,7 @@
       }
     },
     "Choose a model" : {
-      "comment" : "First-run step 3 without a model: the button\nFirst-run step 3 without a model: the title\nHint row over the bar when no AI model is set up, and its button\nPlaceholder for browser agent model field when no model is chosen",
+      "comment" : "Hint row over the bar when no AI model is set up, and its button\nPlaceholder for browser agent model field when no model is chosen",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -4902,6 +4999,23 @@
         }
       }
     },
+    "Clear audit log" : {
+      "comment" : "Confirm clearing the audit log\nSettings › Agent › Audit log destructive button",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清除审计日志"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清除稽核記錄"
+          }
+        }
+      }
+    },
     "Clear saved data" : {
       "localizations" : {
         "zh-Hans" : {
@@ -4963,6 +5077,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "要清除此論壇的已儲存資料嗎？"
+          }
+        }
+      }
+    },
+    "Clear the audit log?" : {
+      "comment" : "Confirmation title for clearing the audit log",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清除审计日志？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清除稽核記錄？"
           }
         }
       }
@@ -6141,6 +6272,38 @@
         }
       }
     },
+    "Deleted script" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已删除脚本"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已刪除腳本"
+          }
+        }
+      }
+    },
+    "Deleting script" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在删除脚本"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在刪除腳本"
+          }
+        }
+      }
+    },
     "Detailed" : {
       "comment" : "Voice answer length setting: thorough spoken answers",
       "localizations" : {
@@ -6395,8 +6558,25 @@
         }
       }
     },
+    "Don't allow" : {
+      "comment" : "Confirmation card button that stops the Agent from going ahead",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不允许"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不允許"
+          }
+        }
+      }
+    },
     "Done" : {
-      "comment" : "First-run step 3: close the first run\nKeyboard toolbar button to dismiss the code keyboard",
+      "comment" : "Closes the audit log sheet\nFirst-run step 3: close the first run\nKeyboard toolbar button to dismiss the code keyboard",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -7403,6 +7583,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "追蹤"
+          }
+        }
+      }
+    },
+    "Following %@" : {
+      "comment" : "Agent step while running; the placeholder is a topic title",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在关注 %@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在關注 %@"
           }
         }
       }
@@ -8519,6 +8716,23 @@
         }
       }
     },
+    "In the Files app: On My iPhone › WukongMind" : {
+      "comment" : "Settings › Agent › Workspace footer when the Files app can't be opened",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在“文件”App 中：我的 iPhone › WukongMind"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在「檔案」App 中：我的 iPhone › WukongMind"
+          }
+        }
+      }
+    },
     "In the digest" : {
       "localizations" : {
         "zh-Hans" : {
@@ -8946,38 +9160,6 @@
         }
       }
     },
-    "Listed files" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已列出文件"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已列出檔案"
-          }
-        }
-      }
-    },
-    "Listing files" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在列出文件"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在列出檔案"
-          }
-        }
-      }
-    },
     "LM Studio (Local)" : {
       "comment" : "AI provider name: LM Studio running on the user's own computer. Keep \"LM Studio\".",
       "localizations" : {
@@ -9262,6 +9444,38 @@
         }
       }
     },
+    "Listed files" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已列出文件"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已列出檔案"
+          }
+        }
+      }
+    },
+    "Listed scripts" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已列出脚本"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已列出腳本"
+          }
+        }
+      }
+    },
     "Listed the latest" : {
       "comment" : "Agent step",
       "localizations" : {
@@ -9343,6 +9557,55 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在聆聽…"
+          }
+        }
+      }
+    },
+    "Listing files" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在列出文件"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在列出檔案"
+          }
+        }
+      }
+    },
+    "Listing scripts" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在列出脚本"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在列出腳本"
+          }
+        }
+      }
+    },
+    "Listing the latest" : {
+      "comment" : "Agent step while running",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在列出最新内容"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在列出最新內容"
           }
         }
       }
@@ -10528,19 +10791,19 @@
         }
       }
     },
-    "No tool calls recorded in this session yet." : {
+    "No tool calls recorded yet." : {
       "comment" : "Settings › Agent › Audit log empty state",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本次会话尚未记录任何工具调用。"
+            "value" : "还没有记录任何工具调用。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此次工作階段尚未記錄任何工具呼叫。"
+            "value" : "尚未記錄任何工具呼叫。"
           }
         }
       }
@@ -12756,6 +13019,22 @@
         }
       }
     },
+    "Ran script" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已运行脚本"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已執行腳本"
+          }
+        }
+      }
+    },
     "Read" : {
       "comment" : "Walkthrough welcome: read forums",
       "localizations" : {
@@ -12786,6 +13065,53 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已閱讀 %@"
+          }
+        }
+      }
+    },
+    "Read %lld cookies for %@?" : {
+      "comment" : "Confirmation card: the Agent wants to read cookies. First placeholder is the count, second the domain",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Read %1$lld cookie for %2$@?"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Read %1$lld cookies for %2$@?"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "读取 %2$@ 的 %1$lld 个 Cookie？"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "讀取 %2$@ 的 %1$lld 個 Cookie？"
+                }
+              }
+            }
           }
         }
       }
@@ -13047,6 +13373,22 @@
         }
       }
     },
+    "Read page" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已读取页面"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已讀取頁面"
+          }
+        }
+      }
+    },
     "Read page %lld of %lld" : {
       "comment" : "Ask the forum step outcome: page read in a topic",
       "localizations" : {
@@ -13109,6 +13451,22 @@
         }
       }
     },
+    "Read script" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已读取脚本"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已讀取腳本"
+          }
+        }
+      }
+    },
     "Read size" : {
       "localizations" : {
         "zh-Hans" : {
@@ -13138,6 +13496,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已閱讀，未引用 · %@"
+          }
+        }
+      }
+    },
+    "Reading %@" : {
+      "comment" : "Agent step while running; the placeholder is a topic title",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在阅读 %@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在閱讀 %@"
           }
         }
       }
@@ -13279,6 +13654,22 @@
         }
       }
     },
+    "Reading page" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在读取页面"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在讀取頁面"
+          }
+        }
+      }
+    },
     "Reading response page %lld of %lld…" : {
       "comment" : "Progress while downloading a forum topic's replies, before a page arrives",
       "localizations" : {
@@ -13298,6 +13689,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在讀取回覆第 %1$lld 頁（共 %2$lld 頁）…"
+          }
+        }
+      }
+    },
+    "Reading script" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在读取脚本"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在讀取腳本"
           }
         }
       }
@@ -13848,6 +14255,22 @@
         }
       }
     },
+    "Removes every recorded task from this device. It can't be undone." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "会从此设备删除所有已记录的任务，无法撤销。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "會從此裝置移除所有已記錄的任務，且無法復原。"
+          }
+        }
+      }
+    },
     "Remove…" : {
       "localizations" : {
         "zh-Hans" : {
@@ -14229,6 +14652,22 @@
         }
       }
     },
+    "Running script" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在运行脚本"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在執行腳本"
+          }
+        }
+      }
+    },
     "Runs" : {
       "comment" : "Settings › Agent section header for step and result limits",
       "localizations" : {
@@ -14445,6 +14884,22 @@
         }
       }
     },
+    "Saved script" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已保存脚本"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已儲存腳本"
+          }
+        }
+      }
+    },
     "Saved sites, search & pins" : {
       "comment" : "Settings › Sites › Forums row subtitle",
       "localizations" : {
@@ -14491,6 +14946,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已儲存的摘要已包含所有回覆。"
+          }
+        }
+      }
+    },
+    "Saved. Faster next time." : {
+      "comment" : "Note after the Agent saves a script",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已保存。下次会更快。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已儲存。下次會更快。"
+          }
+        }
+      }
+    },
+    "Saving script" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在保存脚本"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在儲存腳本"
           }
         }
       }
@@ -14953,6 +15441,40 @@
         }
       }
     },
+    "Searching comments for “%@”" : {
+      "comment" : "Agent step while running; the placeholder is the search query",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在搜索评论：“%@”"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在搜尋留言：「%@」"
+          }
+        }
+      }
+    },
+    "Searching “%@”" : {
+      "comment" : "Agent step while running; the placeholder is the search query",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在搜索“%@”"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在搜尋「%@」"
+          }
+        }
+      }
+    },
     "Second host" : {
       "comment" : "Settings: the podcast's second host's name",
       "localizations" : {
@@ -15017,6 +15539,46 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "傳送"
+          }
+        }
+      }
+    },
+    "Send a %@ request to %@?" : {
+      "comment" : "Confirmation card: the Agent wants to send an HTTP request. First placeholder is the method, second is host and path",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send a %1$@ request to %2$@?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "向 %2$@ 发送 %1$@ 请求？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "向 %2$@ 傳送 %1$@ 請求？"
+          }
+        }
+      }
+    },
+    "Send a request to %@ using your login there?" : {
+      "comment" : "Confirmation card: the Agent wants to call another site with the person's cookies. The placeholder is a host name",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用你在 %@ 的登录状态向其发送请求？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用你在 %@ 的登入狀態向其傳送請求？"
           }
         }
       }
@@ -16022,7 +16584,7 @@
       }
     },
     "Steps %lld" : {
-      "comment" : "Folded browser agent steps header showing the number of tool calls",
+      "comment" : "Folded Agent steps header showing the number of tool calls",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -16039,7 +16601,7 @@
       }
     },
     "Stop" : {
-      "comment" : "Browser agent stop button title\nButton: stop the Agent",
+      "comment" : "Browser agent stop button title",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -16213,6 +16775,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "安全儲存在 iOS 鑰匙圈中"
+          }
+        }
+      }
+    },
+    "Styled page" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已调整页面样式"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已調整頁面樣式"
+          }
+        }
+      }
+    },
+    "Styling page" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在调整页面样式"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在調整頁面樣式"
           }
         }
       }
@@ -16601,6 +17195,23 @@
         }
       }
     },
+    "Summarizing %@" : {
+      "comment" : "Agent step while running; the placeholder is a topic title",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在总结 %@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在摘要 %@"
+          }
+        }
+      }
+    },
     "Summarizing %@…" : {
       "comment" : "Status; the placeholder is a forum topic's title",
       "localizations" : {
@@ -16659,7 +17270,7 @@
       }
     },
     "Summary" : {
-      "comment" : "Assistant mode: the topic's AI summary\nHome Recent: a saved summary",
+      "comment" : "Assistant mode: the topic's AI summary\nHome Recent: a saved summary\nSummary result card header",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -18664,7 +19275,7 @@
       }
     },
     "Try the Agent once" : {
-      "comment" : "First-run step 3\nFirst-run step 3 title",
+      "comment" : "First-run step 3",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -19137,6 +19748,38 @@
         }
       }
     },
+    "Updated script" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已更新脚本"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已更新腳本"
+          }
+        }
+      }
+    },
+    "Updating script" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在更新脚本"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在更新腳本"
+          }
+        }
+      }
+    },
     "Updating summary with %lld new posts…" : {
       "comment" : "Status while a saved summary is updated with the topic's new replies",
       "localizations" : {
@@ -19348,6 +19991,22 @@
         }
       }
     },
+    "Used a tool" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已使用工具"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已使用工具"
+          }
+        }
+      }
+    },
     "Used for %@" : {
       "comment" : "Provider settings: the model roles that use this provider, e.g. Summaries & chat, Ask the forum",
       "localizations" : {
@@ -19542,6 +20201,22 @@
         }
       }
     },
+    "Using a tool" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在使用工具"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在使用工具"
+          }
+        }
+      }
+    },
     "Version" : {
       "localizations" : {
         "zh-Hans" : {
@@ -19684,6 +20359,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "檢視程式碼"
+          }
+        }
+      }
+    },
+    "View in audit log" : {
+      "comment" : "Quiet button under an expanded tool row that opens this step in the audit log",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在审计日志中查看"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在稽核記錄中檢視"
           }
         }
       }
@@ -19920,6 +20612,22 @@
         }
       }
     },
+    "Waited for page" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已等待页面"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已等待頁面"
+          }
+        }
+      }
+    },
     "Waiting" : {
       "comment" : "Podcast chapter: queued behind other chapters",
       "localizations" : {
@@ -19967,6 +20675,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在排隊等待處理…"
+          }
+        }
+      }
+    },
+    "Waiting for page" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在等待页面"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在等待頁面"
           }
         }
       }
@@ -20441,6 +21165,23 @@
         }
       }
     },
+    "Workspace" : {
+      "comment" : "Settings › Agent › Records row opening the Agent's files in the Files app",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "工作区"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "工作區"
+          }
+        }
+      }
+    },
     "Wrap-up" : {
       "comment" : "Now Playing: the closing chapter",
       "localizations" : {
@@ -20520,6 +21261,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在撰寫摘要…"
+          }
+        }
+      }
+    },
+    "Writing the answer" : {
+      "comment" : "Agent step while running",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在撰写回答"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在撰寫回答"
           }
         }
       }
@@ -20670,22 +21428,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "專為網頁與各個論壇打造的代理瀏覽器。"
-          }
-        }
-      }
-    },
-    "Your choice is saved now. Asking before network requests, cookie reads and form submits starts working with the M3 safety update." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "你的选择已保存。在网络请求、读取 Cookie 和提交表单前先询问，将随 M3 安全更新生效。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "你的選擇已儲存。在網路請求、讀取 Cookie 和提交表單前先詢問，將隨 M3 安全更新生效。"
           }
         }
       }
@@ -21336,638 +22078,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "「%@」"
-          }
-        }
-      }
-    },
-    "Answer · %lld sources" : {
-      "comment" : "Answer card header; the placeholder is the number of sources",
-      "localizations" : {
-        "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "Answer · %lld source"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "Answer · %lld sources"
-                }
-              }
-            }
-          }
-        },
-        "zh-Hans" : {
-          "variations" : {
-            "plural" : {
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "回答 · %lld 个来源"
-                }
-              }
-            }
-          }
-        },
-        "zh-Hant" : {
-          "variations" : {
-            "plural" : {
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "回答 · %lld 個來源"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "Checking saved summaries" : {
-      "comment" : "Agent step while running",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在查看已存摘要"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在查看已存摘要"
-          }
-        }
-      }
-    },
-    "Deleted script" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已删除脚本"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已刪除腳本"
-          }
-        }
-      }
-    },
-    "Deleting script" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在删除脚本"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在刪除腳本"
-          }
-        }
-      }
-    },
-    "Following %@" : {
-      "comment" : "Agent step while running; the placeholder is a topic title",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在关注 %@"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在關注 %@"
-          }
-        }
-      }
-    },
-    "Listed scripts" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已列出脚本"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已列出腳本"
-          }
-        }
-      }
-    },
-    "Listing scripts" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在列出脚本"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在列出腳本"
-          }
-        }
-      }
-    },
-    "Listing the latest" : {
-      "comment" : "Agent step while running",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在列出最新内容"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在列出最新內容"
-          }
-        }
-      }
-    },
-    "Ran script" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已运行脚本"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已執行腳本"
-          }
-        }
-      }
-    },
-    "Read page" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已读取页面"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已讀取頁面"
-          }
-        }
-      }
-    },
-    "Read script" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已读取脚本"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已讀取腳本"
-          }
-        }
-      }
-    },
-    "Reading %@" : {
-      "comment" : "Agent step while running; the placeholder is a topic title",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在阅读 %@"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在閱讀 %@"
-          }
-        }
-      }
-    },
-    "Reading page" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在读取页面"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在讀取頁面"
-          }
-        }
-      }
-    },
-    "Reading script" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在读取脚本"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在讀取腳本"
-          }
-        }
-      }
-    },
-    "Running script" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在运行脚本"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在執行腳本"
-          }
-        }
-      }
-    },
-    "Saved script" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已保存脚本"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已儲存腳本"
-          }
-        }
-      }
-    },
-    "Saved. Faster next time." : {
-      "comment" : "Note after the Agent saves a script",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已保存。下次会更快。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已儲存。下次會更快。"
-          }
-        }
-      }
-    },
-    "Saving script" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在保存脚本"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在儲存腳本"
-          }
-        }
-      }
-    },
-    "Searching comments for “%@”" : {
-      "comment" : "Agent step while running; the placeholder is the search query",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在搜索评论：“%@”"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在搜尋留言：「%@」"
-          }
-        }
-      }
-    },
-    "Searching “%@”" : {
-      "comment" : "Agent step while running; the placeholder is the search query",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在搜索“%@”"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在搜尋「%@」"
-          }
-        }
-      }
-    },
-    "Styled page" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已调整页面样式"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已調整頁面樣式"
-          }
-        }
-      }
-    },
-    "Styling page" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在调整页面样式"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在調整頁面樣式"
-          }
-        }
-      }
-    },
-    "Summarizing %@" : {
-      "comment" : "Agent step while running; the placeholder is a topic title",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在总结 %@"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在摘要 %@"
-          }
-        }
-      }
-    },
-    "Updated script" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已更新脚本"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已更新腳本"
-          }
-        }
-      }
-    },
-    "Updating script" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在更新脚本"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在更新腳本"
-          }
-        }
-      }
-    },
-    "Used a tool" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已使用工具"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已使用工具"
-          }
-        }
-      }
-    },
-    "Using a tool" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在使用工具"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在使用工具"
-          }
-        }
-      }
-    },
-    "Waited for page" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已等待页面"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已等待頁面"
-          }
-        }
-      }
-    },
-    "Waiting for page" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在等待页面"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在等待頁面"
-          }
-        }
-      }
-    },
-    "Writing the answer" : {
-      "comment" : "Agent step while running",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在撰写回答"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在撰寫回答"
-          }
-        }
-      }
-    },
-    "No tool calls recorded yet." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "还没有记录任何工具调用。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "尚未記錄任何工具呼叫。"
-          }
-        }
-      }
-    },
-    "Removes every recorded task from this device. It can't be undone." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "会从此设备删除所有已记录的任务，无法撤销。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "會從此裝置移除所有已記錄的任務，且無法復原。"
-          }
-        }
-      }
-    },
-    "Clear audit log" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "清除审计日志"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "清除稽核記錄"
-          }
-        }
-      }
-    },
-    "Clear the audit log?" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "清除审计日志？"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "清除稽核記錄？"
-          }
-        }
-      }
-    },
-    "View in audit log" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在审计日志中查看"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在稽核記錄中檢視"
-          }
-        }
-      }
-    },
-    "Workspace" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "工作区"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "工作區"
-          }
-        }
-      }
-    },
-    "In the Files app: On My iPhone › WukongMind" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在“文件”App 中：我的 iPhone › WukongMind"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在「檔案」App 中：我的 iPhone › WukongMind"
           }
         }
       }

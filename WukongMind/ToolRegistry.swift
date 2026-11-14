@@ -1834,6 +1834,10 @@ struct AgentToolContext: Sendable {
     var liveApplier: ScriptLiveApplying?
     var currentUserPrompt: (@MainActor @Sendable () -> String?)?
     var settings: AgentToolSettings
+    /// The HTTP client and cookie access behind `http_request` and `cookies_get`.
+    var network: AgentHTTPClient?
+    /// Where confirmation cards wait for an answer.
+    var confirmations: AgentConfirmationGate?
 
     init(
         bridge: AgentPageDriving,
@@ -1841,7 +1845,9 @@ struct AgentToolContext: Sendable {
         scriptStore: ScriptStore,
         liveApplier: ScriptLiveApplying? = nil,
         currentUserPrompt: (@MainActor @Sendable () -> String?)? = nil,
-        settings: AgentToolSettings = AgentToolSettings()
+        settings: AgentToolSettings = AgentToolSettings(),
+        network: AgentHTTPClient? = nil,
+        confirmations: AgentConfirmationGate? = nil
     ) {
         self.bridge = bridge
         self.workspace = workspace
@@ -1849,6 +1855,8 @@ struct AgentToolContext: Sendable {
         self.liveApplier = liveApplier
         self.currentUserPrompt = currentUserPrompt
         self.settings = settings
+        self.network = network
+        self.confirmations = confirmations
     }
 }
 
