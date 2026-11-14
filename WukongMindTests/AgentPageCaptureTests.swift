@@ -42,6 +42,10 @@ final class AgentPageCaptureTests: XCTestCase {
                 listener.newConnectionHandler = { [weak self] conn in self?.handle(conn) }
                 listener.start(queue: queue)
             }
+            // Prove the loopback listener answers before a page depends on it.
+            let probeSession = URLSession(configuration: .ephemeral)
+            defer { probeSession.invalidateAndCancel() }
+            _ = try await probeSession.data(from: baseURL.appendingPathComponent("__ready"))
         }
 
         func stop() {
@@ -77,11 +81,32 @@ final class AgentPageCaptureTests: XCTestCase {
 
         private func handle(_ connection: NWConnection) {
             connection.start(queue: queue)
-            connection.receive(minimumIncompleteLength: 1, maximumLength: 65_536) { [weak self] data, _, _, _ in
-                guard let self, let data, let req = String(data: data, encoding: .utf8) else {
-                    connection.cancel(); return
+            receiveRequest(on: connection, buffer: Data())
+        }
+
+        /// Reads until the request headers and any `Content-Length` body are in. Answering (and
+        /// later closing) with part of a POST body still unread makes the kernel send a TCP RST
+        /// instead of a clean close, which fails the page's fetch.
+        private func receiveRequest(on connection: NWConnection, buffer: Data) {
+            connection.receive(minimumIncompleteLength: 1, maximumLength: 65_536) { [weak self] data, _, isComplete, error in
+                guard let self else { connection.cancel(); return }
+                var buffer = buffer
+                if let data { buffer.append(data) }
+                guard let headEnd = buffer.range(of: Data("\r\n\r\n".utf8)) else {
+                    if error != nil || isComplete { connection.cancel() } else { self.receiveRequest(on: connection, buffer: buffer) }
+                    return
                 }
-                let parts = (req.split(separator: "\r\n").first ?? "").split(separator: " ")
+                let head = String(decoding: buffer[..<headEnd.lowerBound], as: UTF8.self)
+                let contentLength = head.split(separator: "\r\n").dropFirst().compactMap { line -> Int? in
+                    let kv = line.split(separator: ":", maxSplits: 1)
+                    guard kv.count == 2, kv[0].lowercased() == "content-length" else { return nil }
+                    return Int(kv[1].trimmingCharacters(in: .whitespaces))
+                }.first ?? 0
+                if buffer.count - headEnd.upperBound < contentLength, error == nil, !isComplete {
+                    self.receiveRequest(on: connection, buffer: buffer)
+                    return
+                }
+                let parts = (head.split(separator: "\r\n").first ?? "").split(separator: " ")
                 self.respond(to: parts.count > 1 ? String(parts[1]) : "/", on: connection)
             }
         }
@@ -180,7 +205,7 @@ final class AgentPageCaptureTests: XCTestCase {
                 + "\(extra)Cache-Control: no-store\r\nConnection: close\r\n\r\n"
             let closeQueue = queue
             connection.send(content: Data(header.utf8) + bodyData, contentContext: .finalMessage, isComplete: true, completion: .contentProcessed { _ in
-                closeQueue.asyncAfter(deadline: .now() + .milliseconds(250)) {
+                closeQueue.asyncAfter(deadline: .now() + .seconds(2)) {
                     connection.cancel()
                 }
             })
@@ -245,8 +270,13 @@ final class AgentPageCaptureTests: XCTestCase {
 
     func testNetworkLogAndConsoleCaptureFetchAndXHRWithoutCookieOrAuthHeaders() async throws {
         let registry = makeRegistry(supportsImageInput: true)
-        let outcome = try await browser.agentBridge.load(server.baseURL.appendingPathComponent("capture"), wait: true, timeout: 30)
-        let ready = try await browser.agentBridge.waitFor(selector: "body[data-ready='1']", milliseconds: 15_000)
+        var outcome = try await browser.agentBridge.load(server.baseURL.appendingPathComponent("capture"), wait: true, timeout: 30)
+        var ready = try await browser.agentBridge.waitFor(selector: "body[data-ready='1']", milliseconds: 15_000)
+        if outcome.failure != nil || outcome.timedOut || !ready.matched {
+            // A cold WebKit.Networking process on a loaded runner can miss the first load; reload once.
+            outcome = try await browser.agentBridge.load(server.baseURL.appendingPathComponent("capture"), wait: true, timeout: 45)
+            ready = try await browser.agentBridge.waitFor(selector: "body[data-ready='1']", milliseconds: 15_000)
+        }
         // Say why when the fixture page never finished (a failed load or a slow runner) instead of
         // reporting only an empty log.
         XCTAssertTrue(ready.matched, "Fixture page never became ready. load: \(outcome)")
@@ -278,6 +308,8 @@ final class AgentPageCaptureTests: XCTestCase {
 
         let withBodies = try await registry.dispatch(toolName: "network_log", arguments: ["include_bodies": .bool(true)])
         let bodyLines = withBodies.output.split(separator: "\n").map(String.init)
+        XCTAssertEqual(bodyLines.count, 2)
+        guard bodyLines.count == 2 else { return }
         XCTAssertEqual(try JSONValue.parseObjectJSON(bodyLines[0])["response_preview"], .string("xhr body note"))
         XCTAssertEqual(try JSONValue.parseObjectJSON(bodyLines[1])["response_preview"]?.stringValue?.count, 2_000)
 
@@ -287,6 +319,7 @@ final class AgentPageCaptureTests: XCTestCase {
 
         let consoleEntries = try await browser.agentBridge.consoleLog()
         XCTAssertEqual(consoleEntries.count, 2)
+        guard consoleEntries.count == 2 else { return }
         XCTAssertEqual(consoleEntries[0].level, "warn")
         XCTAssertEqual(consoleEntries[0].text.count, 500)
         XCTAssertTrue(consoleEntries[1].text.contains("page boot"))
