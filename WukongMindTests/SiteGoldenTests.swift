@@ -10,8 +10,8 @@ import XCTest
 //
 // Inputs are fixed here (date, language, names, settings) so the result is
 // the same on any machine and locale. The only language-dependent text is the
-// app-language sentence of `AgentPrompt.system` and `PromptBuilder.chunkPrompt`
-// (both read `AppLanguage.current`); `english(_:)` swaps it for the English one.
+// app-language sentence of `PromptBuilder.chunkPrompt`
+// (it reads `AppLanguage.current`); `english(_:)` swaps it for the English one.
 
 /// The values the goldens pin, produced from the current code.
 enum SiteGoldens {
