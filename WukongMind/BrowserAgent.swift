@@ -1430,6 +1430,30 @@ actor BrowserAgentDemoClient: AgentModelClient {
         self.mode = mode
     }
 
+    /// Records a small synthetic exchange so developer mode's Request and Response rows have
+    /// something to open in demo and UI-test runs.
+    func completeToolTurn(
+        system: String,
+        messages: [AgentModelTurn],
+        tools: [AgentToolDefinition],
+        configuration: ProviderConfiguration,
+        provider: AIProvider,
+        maxTokens: Int,
+        recorder: AgentWireRecorder?
+    ) async throws -> AgentModelTurnResponse {
+        let response = try await completeToolTurn(
+            system: system, messages: messages, tools: tools,
+            configuration: configuration, provider: provider, maxTokens: maxTokens
+        )
+        await recorder?.record(AgentWireExchange(
+            url: "https://demo.invalid/v1/messages", method: "POST",
+            requestBody: #"{"model":"\#(configuration.model)","messages":\#(messages.count),"tools":\#(tools.count)}"#,
+            status: 200,
+            responseBody: #"{"stop_reason":"\#(response.stopReason ?? "end_turn")"}"#
+        ))
+        return response
+    }
+
     func completeToolTurn(
         system: String,
         messages: [AgentModelTurn],

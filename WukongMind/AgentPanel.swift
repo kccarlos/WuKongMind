@@ -831,6 +831,9 @@ struct BrowserAgentRunsView: View {
                     .textSelection(.enabled)
                     .padding(.vertical, 2)
                     .accessibilityIdentifier("agentAssistantReply")
+                if app.settings.agentDeveloperMode, let info = run.finalTurn {
+                    DevDetailsButton(app: app, session: session, taskID: run.id.uuidString, info: info)
+                }
             }
 
             switch run.state {
@@ -953,6 +956,12 @@ struct BrowserAgentRunsView: View {
         VStack(alignment: .leading, spacing: 8) {
             if developerMode {
                 codeBlock(row.argumentsJSON, id: "agentToolArguments")
+                if let info = row.modelTurn {
+                    DevModelStepView(app: app, session: session, taskID: row.runID.uuidString, info: info)
+                }
+                if let report = row.pageFeedback {
+                    DevSnapshotsView(report: report)
+                }
             }
             codeBlock(row.resultText.isEmpty ? row.resultSummary : row.resultText, id: "agentToolResult")
             HStack {

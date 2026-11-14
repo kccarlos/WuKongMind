@@ -35,6 +35,7 @@ struct AssistantPanel: View {
     /// Opens a forum URL in the Browse workspace (the agent's step log uses it).
     let onOpenURL: ((URL) -> Void)?
     @State private var exporting = false
+    @State private var exportTaskID: String?
     /// "Tap a post number to jump to it", shown with the first summary.
     @State private var showsCitationTip = false
     @State private var renderedSummary: ThrottledParse<DrawerSummarySections.Input, (sections: Int, hasCitations: Bool, rows: [MarkdownRow])>?
@@ -570,6 +571,20 @@ struct AssistantPanel: View {
             }
 
             Section {
+                if app.settings.agentDeveloperMode {
+                    let finished = browserAgent.runs.last.flatMap { $0.state.isRunning ? nil : $0.id.uuidString }
+                    Button {
+                        exportTaskID = finished
+                    } label: {
+                        Label(
+                            String(localized: "Export task", comment: "Assistant more menu: export the last task as a file (developer mode)"),
+                            systemImage: "square.and.arrow.up"
+                        )
+                    }
+                    .disabled(finished == nil)
+                    .accessibilityIdentifier("exportTaskMenuItem")
+                }
+
                 Button {
                     app.auditLogRequest = AuditLogRequest()
                 } label: {
@@ -601,6 +616,7 @@ struct AssistantPanel: View {
         .buttonStyle(DCIconButtonStyle())
         .accessibilityLabel("More assistant actions")
         .accessibilityIdentifier("assistantMoreMenu")
+        .taskExportPrompt(app: app, taskID: $exportTaskID)
         .sheet(item: $app.auditLogRequest) { request in
             NavigationStack {
                 SettingsAuditLogPage(app: app, focus: request)

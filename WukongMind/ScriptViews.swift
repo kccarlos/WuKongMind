@@ -628,6 +628,10 @@ struct PageCapabilitiesView: View {
                     scriptsSection
 
                     siteSection
+
+                    if app.settings.agentDeveloperMode {
+                        DevPageLogRows(app: app)
+                    }
                 }
                 .padding(.vertical, 12)
             }
