@@ -5,7 +5,8 @@ import SwiftUI
 // `design-system/components/SuggestionRow`: full questions above the composer.
 // A tap sends the question; one ending in "…" fills the box instead. A
 // suggestion that does not apply is absent (no disabled state). Selection and
-// routing are pure (`PageSuggestions`) so unit tests need no engines.
+// routing are pure (`PageSuggestions`) so unit tests need no engines. A tapped
+// suggestion sends exactly what typing the same text sends (One loop 9).
 
 /// What the panel's page is, for picking suggestions.
 enum SuggestionPageKind: Equatable {
@@ -73,18 +74,12 @@ enum PageSuggestion: String, CaseIterable, Identifiable {
     }
 }
 
-/// Where a suggestion runs during One panel (transitional, next-phase §7).
+/// What a tap does. Every suggestion goes to the Agent, the same as typing it.
 enum SuggestionRoute: Equatable {
-    /// The existing summary engine.
-    case summary
-    /// The existing podcast read-aloud of the summary.
-    case podcast
-    /// Fill the box; once completed, the old Research loop.
-    case fillForResearch
-    /// The existing follow (watch) feature.
-    case follow
-    /// Send the text to the Agent.
+    /// Send the suggestion's text to the Agent.
     case agent
+    /// "Search this forum…": put its start in the box; Send goes to the Agent.
+    case fill
 }
 
 enum PageSuggestions {
@@ -126,25 +121,9 @@ enum PageSuggestions {
         return hasScriptErrors ? [.pageBroken] + base : base + [.pageBroken]
     }
 
-    /// Thread suggestions run the old engines; the rest go to the Agent.
-    static func route(for suggestion: PageSuggestion, on kind: SuggestionPageKind?) -> SuggestionRoute {
-        switch (suggestion, kind) {
-        case (.summarizeThread, .forumThread): .summary
-        case (.readAloud, .forumThread): .podcast
-        case (.followReplies, .forumThread): .follow
-        case (.searchForum, .forumThread), (.searchForum, .forumList): .fillForResearch
-        default: .agent
-        }
-    }
-
-    /// The Research query when the box still starts with the filled-in
-    /// "Search this forum" start; nil when it was removed or nothing follows.
-    static func researchQuery(from draft: String) -> String? {
-        let prefix = PageSuggestion.searchForum.composerText.trimmingCharacters(in: .whitespaces)
-        let text = draft.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard text.lowercased().hasPrefix(prefix.lowercased()) else { return nil }
-        let rest = text.dropFirst(prefix.count).trimmingCharacters(in: .whitespacesAndNewlines)
-        return rest.isEmpty ? nil : text
+    /// A "…" suggestion fills the box; every other one sends its text.
+    static func route(for suggestion: PageSuggestion) -> SuggestionRoute {
+        suggestion.fillsComposer ? .fill : .agent
     }
 }
 
