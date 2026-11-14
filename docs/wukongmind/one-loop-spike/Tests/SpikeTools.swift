@@ -162,7 +162,14 @@ enum SpikeTools {
     // MARK: Instructions
 
     /// Today's instruction with the research and precedence parts rewritten for the One loop names.
-    static func instructions(directCSS: Bool = false) -> String {
+    /// Added after Q3's first pass sent "what do people here think of X" to search_forum 3 of 3 times.
+    static let opinionRule = """
+    Questions about what people think or recommend, or anything that needs reading several threads, go to \
+    hand_off_to_agent even when they name a topic: search_forum only shows cards and can't answer them. Use \
+    search_forum when the user asks to find, search or look for something.
+    """
+
+    static func instructions(directCSS: Bool = false, opinionRule: Bool = true) -> String {
         let profile = site.profile
         let precedence = """
         Use browse_open, browse_move, browse_focus, read_post and search_forum first; they work at once and take \
@@ -176,7 +183,7 @@ enum SpikeTools {
         let grounding = VoiceInstructions.grounding.replacingOccurrences(of: "call read;", with: "call read_post;")
         return [
             VoiceInstructions.persona(.init(persona: profile.persona, findHint: profile.findHint, languageHint: profile.languageHint)),
-            VoiceInstructions.speech, VoiceInstructions.screen, precedence, handOff, grounding, VoiceInstructions.notes,
+            VoiceInstructions.speech, VoiceInstructions.screen, precedence + (opinionRule ? " " + Self.opinionRule : ""), handOff, grounding, VoiceInstructions.notes,
             VoiceInstructions.eyesFreeOff, VoiceInstructions.answerLength(.short),
             "The user is on the forum Home Lab Talk."
         ].joined(separator: "\n\n")

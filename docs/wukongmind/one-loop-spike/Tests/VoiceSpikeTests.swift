@@ -216,10 +216,33 @@ final class VoiceSpikeTests: XCTestCase {
         ("Thanks, that's all.", ["end"])
     ]
 
+    /// The first pass (results/q3-routing.json) ran without `SpikeTools.opinionRule`.
     func testQ3Routing() async throws {
+        try await routing(Self.routing, file: "q3-routing", opinionRule: false)
+    }
+
+    /// The two utterances the first pass missed, again with the opinion rule in the prompt.
+    func testQ3RoutingOpinionRule() async throws {
+        try await routing([Self.routing[3], Self.routing[4]], file: "q3-routing-opinion-rule", opinionRule: true)
+    }
+
+    /// Q2's control: the changed tool list in a fresh session, so a missed call there isn't the model's.
+    func testQ2Control() async throws {
+        let probe = SpikeTools.declaration(SpikeTools.tool("mark_checkpoint", "Mark a checkpoint. Call it whenever the user says checkpoint.", []))
+        for _ in 0..<2 {
+            let (client, ok) = await session(voiceSet.filter { $0.objectValue?["name"] != "browse_focus" } + [probe], note: nil)
+            client.say("Checkpoint.")
+            let call = ok ? await client.nextCall(after: 0, timeout: 15) : nil
+            row(["variant": "fresh-changed-tools", "setupOK": .bool(ok), "newToolCalled": .bool(call?.name == "mark_checkpoint")], client)
+            client.shutdown()
+        }
+        try write("q2-control")
+    }
+
+    func routing(_ utterances: [(String, Set<String>)], file: String, opinionRule: Bool) async throws {
         for rep in 0..<3 {
-            for (utterance, expected) in Self.routing {
-                let (client, ok) = await session(voiceSet)
+            for (utterance, expected) in utterances {
+                let (client, ok) = await session(voiceSet, instructions: SpikeTools.instructions(opinionRule: opinionRule))
                 guard ok else { row(["utterance": .string(utterance), "setupOK": false], client); continue }
                 var before: [String] = []
                 if utterance == "Never mind." {
@@ -239,7 +262,7 @@ final class VoiceSpikeTests: XCTestCase {
                 client.shutdown()
             }
         }
-        try write("q3-routing")
+        try write(file, ["opinionRule": .bool(opinionRule)])
     }
 
     // MARK: Q4 Hand-off and briefing
@@ -252,11 +275,20 @@ final class VoiceSpikeTests: XCTestCase {
     }
 
     func testQ4HandOff() async throws {
-        for (variant, delay) in [("briefing-30s", 30.0), ("briefing-90s", 90.0), ("briefing-mid-reply", 30.0), ("cancel", 0), ("cancel", 0)] {
+        try await handOff([("briefing-30s", 30.0), ("briefing-90s", 90.0), ("briefing-mid-reply", 30.0), ("cancel", 0), ("cancel", 0)], file: "q4-handoff")
+    }
+
+    /// The first pass stopped watching when the interrupted reply ended; this one waits for the briefing.
+    func testQ4MidReply() async throws {
+        try await handOff([("briefing-mid-reply", 30.0), ("briefing-mid-reply", 30.0)], file: "q4-mid-reply")
+    }
+
+    func handOff(_ variants: [(String, Double)], file: String) async throws {
+        for (variant, delay) in variants {
             let (client, ok) = await session(voiceSet)
             guard ok else { row(["variant": .string(variant), "setupOK": false], client); continue }
             client.say(Self.routing[3].0)
-            let handOff = await drive(client, maxCalls: 1)
+            let handOff = await drive(client, maxCalls: 2)
             let t0 = client.now
             var fields: [String: JSONValue] = ["variant": .string(variant), "handOff": json(handOff)]
             if variant == "cancel" {
@@ -279,9 +311,9 @@ final class VoiceSpikeTests: XCTestCase {
                 if variant == "briefing-mid-reply" {
                     _ = await client.wait(max(0, t0 + delay - client.now)) { false }
                     client.say("Tell me more about what carol said, in two or three sentences.")
-                    let audioBefore = client.audioTimes.count
-                    _ = await client.wait(20) { client.audioTimes.count > audioBefore + 3 }
-                    fields["briefingWhileSpeaking"] = .bool(client.turnCompleteTimes.last.map { $0 < client.audioTimes.last ?? 0 } ?? true)
+                    let asked = client.now, turns = client.turnCompleteTimes.count
+                    _ = await client.wait(20) { (client.audioTimes.last ?? 0) > asked + 0.5 }
+                    fields["briefingWhileSpeaking"] = .bool(client.turnCompleteTimes.count == turns && (client.audioTimes.last ?? 0) > asked)
                 } else {
                     _ = await client.wait(max(0, t0 + delay - client.now)) { false }
                 }
@@ -289,17 +321,20 @@ final class VoiceSpikeTests: XCTestCase {
                 let sent = client.now
                 fields["briefingAfterSeconds"] = .double(sent - t0)
                 briefing(client)
-                let audioCount = client.audioTimes.count
-                _ = await client.wait(30) { client.audioTimes.count > audioCount && client.turnCompleteTimes.last.map { $0 > sent } == true }
+                let keywords = ["proxmox", "16 gb", "sixteen", "watts", "sata", "low power"]
+                let heard = { keywords.contains { String(client.spoken.dropFirst(spokenBefore)).lowercased().contains($0) } }
+                _ = await client.wait(45) { heard() && (client.turnCompleteTimes.last ?? 0) > sent && client.output.isEmpty }
                 let after = String(client.spoken.dropFirst(spokenBefore)).lowercased()
                 fields["briefingSpoken"] = .string(after)
                 fields["briefingFirstAudioSeconds"] = .double(client.audioTimes.first { $0 > sent }.map { $0 - sent } ?? -1)
-                fields["correct"] = .bool(["proxmox", "16", "six watts", "6 watts", "sata"].contains { after.contains($0) })
+                fields["briefingTurnDoneSeconds"] = .double(client.events.first { $0.kind == "turnComplete" && $0.t > sent
+                    && keywords.contains(where: $0.text.lowercased().contains) }.map { $0.t - sent } ?? -1)
+                fields["correct"] = .bool(heard())
             }
             row(fields, client)
             client.shutdown()
         }
-        try write("q4-handoff")
+        try write(file)
     }
 
     // MARK: Q5 Direct dark mode
@@ -346,9 +381,19 @@ final class VoiceSpikeTests: XCTestCase {
     // MARK: Q6 Result size
 
     func testQ6ResultSize() async throws {
+        try await resultSize([1_000, 4_000, 16_000, 32_000, 64_000, 100_000], file: "q6-result-size")
+    }
+
+    /// The first pass ended its wait on the tool call's own empty turn end at 32k; this one waits for the
+    /// spoken reply, and brackets the size where the server closes with 1007.
+    func testQ6Bracket() async throws {
+        try await resultSize([32_000, 48_000, 80_000, 90_000], file: "q6-bracket")
+    }
+
+    func resultSize(_ sizes: [Int], file: String) async throws {
         let filler = "Another reply in this thread says the fan ramps up after the update, and that the noise is worst at night when the room is quiet. "
         for rep in 0..<2 {
-            for size in [1_000, 4_000, 16_000, 32_000, 64_000, 100_000] {
+            for size in sizes {
                 let (client, ok) = await session(voiceSet)
                 guard ok else { row(["chars": .int(Int64(size)), "setupOK": false], client); continue }
                 client.say("Read post 20 for me and tell me what its very last sentence says.")
@@ -357,7 +402,7 @@ final class VoiceSpikeTests: XCTestCase {
                 let body = String(repeating: filler, count: max(1, (size - fact.count) / filler.count)) + fact
                 let sent = client.now
                 client.respond(call, ["status": "read", "shown": "Post 20 by carol", "content": .string(body), "message": "Answer the user from this text only."], .whenIdle)
-                _ = await client.wait(45) { client.turnCompleteTimes.last.map { $0 > sent } == true || client.close != nil }
+                _ = await client.wait(45) { client.close != nil || client.audioTimes.first { $0 > sent }.map { first in (client.turnCompleteTimes.last ?? 0) > first } == true }
                 _ = await client.wait(3) { client.usage != nil }
                 let spoken = client.spoken.lowercased()
                 row(["rep": .int(Int64(rep)), "chars": .int(Int64(body.count)), "call": .string(call.name),
@@ -369,7 +414,7 @@ final class VoiceSpikeTests: XCTestCase {
                 client.shutdown()
             }
         }
-        try write("q6-result-size")
+        try write(file)
     }
 }
 
