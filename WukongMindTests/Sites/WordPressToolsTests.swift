@@ -34,38 +34,27 @@ final class WordPressToolsTests: XCTestCase {
     // MARK: Tool set and prompt
 
     func testTheToolSetAddsSearchCommentsAndKeepsTheSharedNames() {
-        let names = AgentPrompt.tools(for: adapter.agent).map(\.name)
-        XCTAssertEqual(names, ["search_forum", "search_comments", "list_latest", "read_topic", "summarize_topic", "saved_summaries", "watch_topic", "final_answer"])
-        XCTAssertFalse(AgentPrompt.tools(for: DiscourseAdapter().agent).map(\.name).contains("search_comments"))
-        for tool in adapter.agent.siteTools {
-            XCTAssertTrue(tool.description.contains("Example: {\"tool\": \"\(tool.name)\""), tool.name)
+        XCTAssertEqual(adapter.agent.siteTools.map(\.name), ["search_forum", "search_comments", "list_latest"])
+        XCTAssertFalse(DiscourseAdapter().agent.siteTools.map(\.name).contains("search_comments"))
+        // The old JSON planner's "Example: {"tool": …}" sentences are gone (One loop 13).
+        for tool in adapter.agent.siteTools + HackerNewsAdapter().agent.siteTools {
+            XCTAssertFalse(tool.description.contains("Example:"), tool.name)
         }
-    }
-
-    func testThePromptTalksAboutPostsAndCommentsNotDiscourse() {
-        let prompt = AgentPrompt.system(
-            profile: adapter.agent, forumName: "Example Blog", siteURL: "https://example.com",
-            maxSteps: 8, maxTopicReads: 3, customInstructions: ""
-        )
-        XCTAssertTrue(prompt.contains("a research agent for Example Blog (https://example.com), a WordPress site."))
-        XCTAssertTrue(prompt.contains("- search_comments — "))
-        XCTAssertTrue(prompt.contains("#1 is the article and later numbers are reader comments"))
-        XCTAssertFalse(prompt.contains("Discourse"))
     }
 
     func testArgumentsBecomeQueriesAndBadFiltersAreRecoverableErrors() throws {
         let agent = adapter.agent
         XCTAssertEqual(
-            try agent.query(.searchForum, ["query": " paze ", "category": "chase", "after": "2026-01-01", "page": "2"]),
+            try agent.query(ForumToolName.searchForum, ["query": " paze ", "category": "chase", "after": "2026-01-01", "page": "2"]),
             .search(text: "paze", scope: .forum, options: options(category: "chase", after: "2026-01-01", page: 2))
         )
         XCTAssertEqual(
-            try agent.query(.searchComments, ["query": "x", "category": "ignored"]),
+            try agent.query(ForumToolName.searchComments, ["query": "x", "category": "ignored"]),
             .search(text: "x", scope: .comments, options: options())
         )
-        XCTAssertEqual(try agent.query(.listLatest, [:]), .latest)
+        XCTAssertEqual(try agent.query(ForumToolName.listLatest, [:]), .latest)
         for (arguments, name) in [(["after": "last year"], "after"), (["before": "2026-13-45"], "before"), (["page": "4"], "page")] {
-            XCTAssertThrowsError(try agent.query(.searchForum, ["query": "x"].merging(arguments) { $1 })) { error in
+            XCTAssertThrowsError(try agent.query(ForumToolName.searchForum, ["query": "x"].merging(arguments) { $1 })) { error in
                 guard case AgentError.invalidArgument(let argument, _) = error else { return XCTFail("\(error)") }
                 XCTAssertEqual(argument, name)
             }
@@ -169,13 +158,13 @@ final class WordPressToolsTests: XCTestCase {
         XCTAssertEqual(hit.topic.title, "(Update) Sample Cards & Notes – Part 1")
 
         // What the model reads: the post, then the comment as `@author (date): text`.
-        let text = AgentPrompt.format(listings: result.topics, hits: result.hits)
+        let text = ForumRendering.format(listings: result.topics, hits: result.hits)
         XCTAssertTrue(text.contains("- id 1001: (Update) Sample Cards & Notes – Part 1"), text)
         XCTAssertTrue(text.contains("  @user5001 (2026-05-14): Got approved instantly – no DP"), text)
-        XCTAssertTrue(text.hasSuffix(AgentPrompt.unnumberedHitsNote), text)
+        XCTAssertTrue(text.hasSuffix(ForumRendering.unnumberedHitsNote), text)
         XCTAssertTrue(text.contains("read_topic its post (topic_id = the id above)"), text)
         // Listings without comment hits carry no note.
-        XCTAssertFalse(AgentPrompt.format(listings: result.topics).contains("untrusted"))
+        XCTAssertFalse(ForumRendering.format(listings: result.topics).contains("untrusted"))
     }
 
     func testAClosedCommentSearchIsUnavailableForEveryRefusal() async {

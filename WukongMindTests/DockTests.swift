@@ -265,24 +265,19 @@ final class AIViewIntentTests: XCTestCase {
         XCTAssertEqual(app.router.splitPanelMode, .hidden)
     }
 
-    func testAnswerReadySelectsTheFinishedRunAndMarksItSeen() throws {
-        var selected = AgentRun(siteURL: site, goal: "Selected", provider: .ollama, model: "m")
-        selected.result = .completed
+    func testAnswerReadyOpensTheFinishedRunsSavedAnswerAndMarksItSeen() throws {
+        var other = AgentRun(siteURL: site, goal: "Other", provider: .ollama, model: "m")
+        other.result = .completed
         var voiceRun = AgentRun(siteURL: site, goal: "Asked by voice", provider: .ollama, model: "m", origin: .voice)
         voiceRun.result = .completed
         let record = finished(voiceRun)
-        let app = try model(runs: [selected, voiceRun], records: [record])
+        let app = try model(runs: [other, voiceRun], records: [record])
         app.router.answersSeenAt = Date().addingTimeInterval(-60)
-        app.selectedAgentRunID = selected.id
-        app.router.splitLayout = true
-        app.router.splitPanelMode = .hidden
         onPage(app)
         XCTAssertEqual(app.readyAnswer?.id, record.id)
 
         app.showAnswer(for: record)
-        XCTAssertEqual(app.selectedAgentRunID, voiceRun.id)
-        XCTAssertEqual(app.assistantMode, .agent)
-        XCTAssertEqual(app.router.splitPanelMode, .shown)
+        XCTAssertEqual(app.savedAnswerRunID, voiceRun.id, "the run that finished, read-only")
         XCTAssertNil(app.readyAnswer, "seen once shown")
     }
 
@@ -294,22 +289,8 @@ final class AIViewIntentTests: XCTestCase {
         app.router.splitLayout = false
         app.showAnswer(for: orphan)
         XCTAssertFalse(app.router.wantsDrawer)
-        XCTAssertNotEqual(app.assistantMode, .agent)
+        XCTAssertNil(app.savedAnswerRunID)
         XCTAssertEqual(app.readyAnswer?.id, orphan.id, "not seen: it never showed")
-    }
-
-    func testAnswerReadyOverHomeOpensTheRunsForumFirst() throws {
-        var run = AgentRun(siteURL: site, goal: "Q", provider: .ollama, model: "m")
-        run.result = .completed
-        let record = finished(run)
-        let app = try model(runs: [run], records: [record])
-        app.router.answersSeenAt = Date().addingTimeInterval(-60)
-        app.router.splitLayout = false
-        XCTAssertTrue(app.browser.showsForumsHome)
-        app.showAnswer(for: record)
-        XCTAssertFalse(app.browser.showsForumsHome, "the run's forum opened")
-        XCTAssertTrue(app.router.wantsDrawer)
-        XCTAssertEqual(app.selectedAgentRunID, run.id)
     }
 }
 

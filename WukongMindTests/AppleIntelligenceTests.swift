@@ -10,9 +10,7 @@ private final class FakeAppleIntelligence: AppleIntelligenceServing {
     var tokens = 4_096
     /// Each call pops one result; the last one repeats.
     var replies: [Result<String, Error>] = [.success("OK")]
-    var actions: [Result<AppleIntelligenceActionDraft, Error>] = []
     private(set) var prompts: [(instructions: String, prompt: String, maxTokens: Int)] = []
-    private(set) var actionPrompts: [String] = []
 
     func currentStatus() -> AppleIntelligenceStatus { status }
 
@@ -30,16 +28,6 @@ private final class FakeAppleIntelligence: AppleIntelligenceServing {
         let text = try result.get()
         await onDelta(text)
         return text
-    }
-
-    func generateAgentAction(
-        backend: AppleIntelligenceBackend,
-        instructions: String,
-        prompt: String
-    ) async throws -> AppleIntelligenceActionDraft {
-        actionPrompts.append(prompt)
-        guard !actions.isEmpty else { throw AppleIntelligenceError.guidedGenerationFailed }
-        return try (actions.count > 1 ? actions.removeFirst() : actions[0]).get()
     }
 }
 
@@ -550,74 +538,6 @@ final class AppleIntelligenceTests: XCTestCase {
         #endif
     }
 
-    // MARK: Agent
-
-    func testGeneratedActionsDecodeIntoAgentActions() throws {
-        let draft = AppleIntelligenceActionDraft(
-            thought: "Search first",
-            tool: " search_forum ",
-            arguments: [.init(name: "query", value: "annual fee"), .init(name: " ", value: "ignored")]
-        )
-        XCTAssertEqual(
-            try draft.agentAction(),
-            AgentAction(thought: "Search first", tool: "search_forum", arguments: ["query": "annual fee"])
-        )
-        XCTAssertThrowsError(try AppleIntelligenceActionDraft(thought: "", tool: " ", arguments: []).agentAction())
-
-        #if canImport(FoundationModels)
-        if #available(iOS 26.0, *) {
-            // The @Generable schema decodes model output without a model.
-            let content = try GeneratedContent(json: """
-            {"thought": "Answer now", "tool": "final_answer", "arguments": [{"name": "answer", "value": "Yes."}]}
-            """)
-            let generated = try AppleIntelligenceGeneratedAction(content)
-            XCTAssertEqual(
-                try generated.draft.agentAction(),
-                AgentAction(thought: "Answer now", tool: "final_answer", arguments: ["answer": "Yes."])
-            )
-            // The guide's tool list matches the agent's tools.
-            let schema = String(describing: AppleIntelligenceGeneratedAction.generationSchema)
-            for name in SiteRegistry.standard.allAgentToolNames {
-                XCTAssertTrue(schema.contains(name), "schema is missing \(name)")
-            }
-            // The macro-bound literal `@Guide(.anyOf…)` is a copy of the registry's names: pin it.
-            let encoded = try JSONEncoder().encode(AppleIntelligenceGeneratedAction.generationSchema)
-            let json = try JSONSerialization.jsonObject(with: encoded)
-            func stringLists(in value: Any) -> [[String]] {
-                if let list = value as? [String] { return [list] }
-                if let list = value as? [Any] { return list.flatMap(stringLists) }
-                if let object = value as? [String: Any] { return object.values.flatMap(stringLists) }
-                return []
-            }
-            XCTAssertTrue(
-                stringLists(in: json).contains(SiteRegistry.standard.allAgentToolNames),
-                "AppleIntelligenceGeneratedAction.tool's @Guide list differs from allAgentToolNames: \(schema)"
-            )
-        }
-        #endif
-    }
-
-    func testAgentPlannerUsesGuidedGenerationThenFallsBackToJSON() async throws {
-        let fake = FakeAppleIntelligence()
-        fake.actions = [.success(.init(thought: "t", tool: "list_latest", arguments: []))]
-        let planner = PromptAgentPlanner(aiService: AIService(appleIntelligence: fake))
-        let transcript = [AgentPrompt.goalMessage("What's new?")]
-        let action = try await planner.nextAction(
-            system: "system", transcript: transcript, configuration: configuration, provider: .appleIntelligence
-        )
-        XCTAssertEqual(action.tool, "list_latest")
-        XCTAssertTrue(fake.prompts.isEmpty)
-
-        // Guided generation unavailable: the JSON reply is parsed instead.
-        let fallback = FakeAppleIntelligence()
-        fallback.replies = [.success("{\"thought\": \"x\", \"tool\": \"search_forum\", \"arguments\": {\"query\": \"fees\"}}")]
-        let fallbackPlanner = PromptAgentPlanner(aiService: AIService(appleIntelligence: fallback))
-        let parsed = try await fallbackPlanner.nextAction(
-            system: "system", transcript: transcript, configuration: configuration, provider: .appleIntelligence
-        )
-        XCTAssertEqual(parsed, AgentAction(thought: "x", tool: "search_forum", arguments: ["query": "fees"]))
-    }
-
     // MARK: Live (opt-in)
 
     // Run with the real model where it exists (a device, or the simulator on a
@@ -679,25 +599,6 @@ final class AppleIntelligenceTests: XCTestCase {
         XCTAssertFalse(summary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         XCTAssertTrue(streamed.contains("Reading section 3 of 3"), "context \(tokens) tokens, batch \(batch)")
         XCTAssertFalse(streamed.contains("retrying"), "the derived batch should fit the first time")
-    }
-
-    func testLiveGuidedAgentAction() async throws {
-        _ = try liveBackend()
-        let system = AgentPrompt.system(
-            profile: DiscourseAgent.profile,
-            forumName: "Example Forum",
-            siteURL: "https://forum.example.com",
-            maxSteps: 5,
-            maxTopicReads: 2,
-            customInstructions: ""
-        )
-        let action = try await PromptAgentPlanner(aiService: AIService()).nextAction(
-            system: system,
-            transcript: [AgentPrompt.goalMessage("Find discussions about annual fees.")],
-            configuration: configuration,
-            provider: .appleIntelligence
-        )
-        XCTAssertTrue(SiteRegistry.standard.allAgentToolNames.contains(action.tool), action.tool)
     }
 
     // MARK: Helpers

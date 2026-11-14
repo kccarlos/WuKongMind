@@ -6,8 +6,8 @@ import XCTest
 final class HackerNewsJobTests: XCTestCase {
     private let site = HackerNewsFixture.site
     private var topic: ForumTopic { .init(siteURL: site, topicID: "1", url: URL(string: site + "/item?id=1")!, title: "Y Combinator") }
-    private func harness(actions: [AgentAction] = [], watched: Bool = false,
-                         aiService: AIService? = nil) throws -> (AppModel, StateAIStub, ScriptedAgentPlanner, HackerNewsFixture) {
+    private func harness(watched: Bool = false,
+                         aiService: AIService? = nil) throws -> (AppModel, StateAIStub, HackerNewsFixture) {
         // Fails before implementation without changing any existing site's baseline.
         _ = try XCTUnwrap(SiteRegistry.standard.adapter(for: SiteKind("hackernews")))
         let fixture = HackerNewsFixture()
@@ -18,9 +18,8 @@ final class HackerNewsJobTests: XCTestCase {
         try store.save(snapshot)
         addTeardownBlock { try? FileManager.default.removeItem(at: directory) }
         let ai = StateAIStub(); ai.gated = false
-        let planner = ScriptedAgentPlanner(actions: actions)
         let app = AppModel(store: store, forumService: fixture.network().service, sites: .standard,
-                           aiService: aiService ?? ai, planner: planner,
+                           aiService: aiService ?? ai,
                            podcastDirectory: directory.appendingPathComponent("Podcasts"))
         app.usesDirectForumRequests = true
         app.browser.stopLoading()
@@ -34,7 +33,7 @@ final class HackerNewsJobTests: XCTestCase {
             app.podcast.pauseGeneration()
             app.podcast.player.unload()
         }
-        return (app, ai, planner, fixture)
+        return (app, ai, fixture)
     }
     private func wait(_ predicate: () -> Bool) async throws {
         let deadline = Date().addingTimeInterval(45)
@@ -44,7 +43,7 @@ final class HackerNewsJobTests: XCTestCase {
         }
     }
     func testSummaryAndVoiceReadUseNestedText() async throws {
-        let (app, ai, _, _) = try harness()
+        let (app, ai, _) = try harness()
         app.select(topic: topic)
         XCTAssertTrue(app.enqueueSummary(for: topic))
         try await wait { app.activities.allSatisfy(\.status.isTerminal) }
@@ -57,27 +56,44 @@ final class HackerNewsJobTests: XCTestCase {
         let visible = await app.postText(3, in: .init(siteURL: site, topicID: "1"), facts: facts)
         XCTAssertTrue(visible?.text.contains("[Reply to #2; item 15]") ?? false)
     }
-    func testAgentSearchLatestReadPageAndQueryThenCite() async throws {
-        func action(_ tool: String, _ args: [String: String] = [:]) -> AgentAction { .init(thought: "", tool: tool, arguments: args) }
-        let (app, _, planner, _) = try harness(actions: [
-            action("search_forum", ["query": "sqlite"]), action("list_latest"),
-            action("read_topic", ["topic_id": "1", "page": "1", "query": "Sandhill"]),
-            action("read_topic", ["topic_id": "1", "page": "2"]),
-            action("final_answer", ["answer": "See [the story](https://news.ycombinator.com/item?id=1)."])
-        ])
-        app.startAgentRun(goal: "Find and read", siteURL: site)
-        try await wait { app.agentRuns.first?.isFinished ?? false }
-        let run = try XCTUnwrap(app.agentRuns.first)
-        XCTAssertEqual(run.result, .completed, run.error)
-        XCTAssertTrue(planner.system.contains("nested"))
-        let read = planner.transcripts.flatMap { $0 }.map(\.content).joined(separator: "\n")
-        XCTAssertTrue(read.contains("Sandhill"), read)
-        XCTAssertTrue(read.contains("[Reply to #2; item 15]"), read)
-        XCTAssertTrue(run.knownLinks.values.contains("1"))
-        XCTAssertTrue(run.steps.contains { $0.arguments["page"] == "2" && $0.isError }, "Story 1 has only one logical page")
+    /// The Agent's forum tools on the fixture (One loop 13 ported this from
+    /// the old Research loop's run test).
+    private func toolRegistry(_ fixture: HackerNewsFixture) throws -> ToolRegistry {
+        let adapter = try XCTUnwrap(SiteRegistry.standard.adapter(for: SiteKind("hackernews")))
+        var sessions: [String: TopicSession] = [:]
+        let service = ForumToolService(
+            sessionLookup: { sessions[$0] }, sessionWrite: { sessions[$0] = $1 }, makeNetwork: { _, _, _ in fixture.network() }
+        )
+        let scope = ForumRunScope(adapter: adapter, siteURL: site)
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        addTeardownBlock { try? FileManager.default.removeItem(at: directory) }
+        return ToolRegistry.m3(context: AgentToolContext(
+            bridge: FixturePageDriver(page: .init(url: site, title: "Hacker News")),
+            workspace: nil,
+            scriptStore: ScriptStore(directoryURL: directory),
+            settings: AgentToolSettings(truncationLimit: ToolRegistry.defaultTruncationLimit, redactedSecrets: []),
+            forum: ForumToolContext(service: service, scope: scope, forumName: "Hacker News")
+        ))
     }
+
+    func testAgentToolsSearchLatestAndReadAPageWithAQuery() async throws {
+        let registry = try toolRegistry(HackerNewsFixture())
+        let search = try await registry.dispatch(toolName: "search_forum", arguments: ["query": .string("sqlite")])
+        XCTAssertFalse(search.isError, search.output)
+        let latest = try await registry.dispatch(toolName: "list_latest", arguments: [:])
+        XCTAssertFalse(latest.isError, latest.output)
+        let read = try await registry.dispatch(
+            toolName: "read_topic", arguments: ["topic_id": .string("1"), "page": .int(1), "query": .string("Sandhill")]
+        )
+        XCTAssertFalse(read.isError, read.output)
+        XCTAssertTrue(read.output.contains("Sandhill"), read.output)
+        XCTAssertTrue(read.output.contains("[Reply to #2; item 15]"), read.output)
+        let missing = try await registry.dispatch(toolName: "read_topic", arguments: ["topic_id": .string("1"), "page": .int(2)])
+        XCTAssertTrue(missing.isError, "Story 1 has only one logical page")
+    }
+
     func testAddingByAddressAndShareContextUsesURLStoryID() async throws {
-        let (app, _, _, _) = try harness()
+        let (app, _, _) = try harness()
         let forum = try await app.addForum(fromAddress: site + "/item?id=1")
         XCTAssertEqual(forum.kind, SiteKind("hackernews"))
         let url = topic.url
@@ -88,23 +104,20 @@ final class HackerNewsJobTests: XCTestCase {
         XCTAssertNotNil(shared)
     }
 
-    func testAgentReadsSecondLogicalPageOfARealLargeTree() async throws {
-        let (app, _, planner, fixture) = try harness(actions: [
-            .init(thought: "", tool: "read_topic", arguments: ["topic_id": "27016630", "page": "2"]),
-            .init(thought: "", tool: "final_answer", arguments: ["answer": "Read page two."])
-        ])
+    func testAgentToolReadsSecondLogicalPageOfARealLargeTree() async throws {
+        let fixture = HackerNewsFixture()
         fixture.item = HackerNewsFixture.data("hn-large", ext: "json")
-        app.startAgentRun(goal: "Read page two", siteURL: site)
-        try await wait { app.agentRuns.first?.isFinished == true }
-        let read = planner.transcripts.last?.map(\.content).joined(separator: "\n") ?? ""
-        XCTAssertTrue(read.contains("| #101"), read)
-        XCTAssertTrue(read.contains("[Reply to #"), read)
-        XCTAssertFalse(app.agentRuns.first?.steps.first?.isError ?? true)
+        let read = try await toolRegistry(fixture).dispatch(
+            toolName: "read_topic", arguments: ["topic_id": .string("27016630"), "page": .int(2)]
+        )
+        XCTAssertFalse(read.isError, read.output)
+        XCTAssertTrue(read.output.contains("| #101"), read.output)
+        XCTAssertTrue(read.output.contains("[Reply to #"), read.output)
     }
 
     func testDigestAndPodcastModelInputsKeepParents() async throws {
         let ai = HNPipelineAI()
-        let (app, _, _, _) = try harness(watched: true, aiService: ai)
+        let (app, _, _) = try harness(watched: true, aiService: ai)
         app.settings.hasCompletedOnboarding = true
         app.settings.dailyDigestIncludesTrending = false
         app.makeTodaysDigest()

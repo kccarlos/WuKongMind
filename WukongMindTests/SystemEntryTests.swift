@@ -159,24 +159,46 @@ final class SystemEntryTests: XCTestCase {
         for record in app.activities where !record.status.isTerminal { app.cancel(record: record) }
     }
 
-    func testAskStartsAskTheForumOnThatForum() throws {
+    /// Ask a Forum opens the forum and, once its page is up, sends the
+    /// question to the Agent with that forum's tools (One loop 13).
+    func testAskSendsTheQuestionToTheAgentOnceTheForumPageIsUp() async throws {
         let app = makeApp(ready: true)
+        app.recordVisit(siteURL: site, kind: .discourse, name: "Example", iconURL: nil)
+        let client = RecordedModelClient([.success(AgentModelTurnResponse(text: "People pinned the firmware."))])
+        app.browserAgent.configureDebugModelClient(client)
         app.perform(.ask(siteURL: site, question: "Did anyone fix it?"))
-        XCTAssertEqual(app.assistantMode, .agent)
+        XCTAssertEqual(app.assistantMode, .browserAgent)
         XCTAssertGreaterThan(app.assistantRequest, 0)
-        XCTAssertEqual(app.agentSiteURL, site)
-        let run = try XCTUnwrap(app.agentRuns.first)
-        XCTAssertEqual(run.goal, "Did anyone fix it?")
-        XCTAssertEqual(run.siteURL, site)
-        app.cancelAgentRun(id: run.id)
+        XCTAssertTrue(app.agentRuns.isEmpty, "no Research run")
+
+        deliverTopicPage(to: app)
+        let deadline = Date().addingTimeInterval(15)
+        while client.recordedRequests.isEmpty, Date() < deadline { try await Task.sleep(for: .milliseconds(50)) }
+        let request = try XCTUnwrap(client.recordedRequests.first, "the question never reached the Agent")
+        XCTAssertTrue(request.tools.map(\.name).contains("search_forum"), "the run has the forum's tools")
+        XCTAssertEqual(app.browserAgent.runs.first?.origin, .shortcut)
+        app.browserAgent.stop()
     }
 
     func testAskWithoutAModelKeepsTheQuestionAndAsksForSetup() {
         let app = makeApp(ready: false)
         app.perform(.ask(siteURL: site, question: "Did anyone fix it?"))
         XCTAssertTrue(app.agentRuns.isEmpty)
+        XCTAssertFalse(app.browserAgent.isRunning)
         XCTAssertEqual(app.drafts.goal, "Did anyone fix it?")
-        XCTAssertEqual(app.needsProviderSetup, .agent)
+        XCTAssertEqual(app.needsProviderSetup, .browserAgent)
+    }
+
+    /// Home's Ask the forum opens the forum and the Agent with "Search this
+    /// forum…" started in the composer.
+    func testHomesAskTheForumOpensTheAgentWithASearchStarted() throws {
+        let app = makeApp(ready: true)
+        app.recordVisit(siteURL: site, kind: .discourse, name: "Example", iconURL: nil)
+        app.askForum(try XCTUnwrap(app.forum(for: site)))
+        XCTAssertEqual(app.assistantMode, .browserAgent)
+        XCTAssertGreaterThan(app.assistantRequest, 0)
+        XCTAssertEqual(app.drafts.goal, PageSuggestion.searchForum.composerText)
+        XCTAssertNil(app.needsProviderSetup)
     }
 
     func testTodayAndThePodcastWithoutAnEpisodeOpenTheTodayPage() {
@@ -247,6 +269,7 @@ final class SystemEntryTests: XCTestCase {
         app.settings.hasCompletedOnboarding = true
         if ready {
             app.selectModel(ModelSelection(provider: .ollama, model: "llama3.2"), for: .both)
+            app.selectModel(ModelSelection(provider: .ollama, model: "llama3.2"), for: .role(.browserAgent))
         }
         return app
     }

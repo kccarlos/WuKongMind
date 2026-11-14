@@ -126,8 +126,7 @@ final class SiteRequestSequenceTests: XCTestCase {
 
     private func makeHarness(
         forum: SequenceForum = SequenceForum(),
-        snapshot: AppSnapshot? = nil,
-        planner: AgentPlanner? = nil
+        snapshot: AppSnapshot? = nil
     ) -> Harness {
         SequenceStub.reset { forum.answer($0) }
         let directory = FileManager.default.temporaryDirectory
@@ -148,8 +147,7 @@ final class SiteRequestSequenceTests: XCTestCase {
                 session: URLSession(configuration: configuration),
                 pacer: ForumRequestPacer(clock: InstantPacingClock())
             ),
-            aiService: ai,
-            planner: planner
+            aiService: ai
         )
         app.usesDirectForumRequests = true
         var provider = app.settings.configuration(for: .ollama)
@@ -205,19 +203,6 @@ final class SiteRequestSequenceTests: XCTestCase {
         XCTAssertEqual(harness.app.activities.first?.status, .completed)
         XCTAssertEqual(harness.ai.calls.map(\.kind), ["summary"])
         XCTAssertEqual(SequenceStub.requests, Expected.summary)
-    }
-
-    /// Agent `read_topic`: the topic's reads, one tool call.
-    func testAgentReadTopic() async throws {
-        let planner = SequencePlanner(actions: [
-            AgentAction(thought: "", tool: "read_topic", arguments: ["topic_id": "123"]),
-            AgentAction(thought: "", tool: AgentPrompt.finalAnswerTool, arguments: ["answer": "Done"])
-        ])
-        let harness = makeHarness(forum: SequenceForum(postCounts: ["123": 250]), planner: planner)
-        harness.app.startAgentRun(goal: "What is in topic 123?", siteURL: site)
-        try await waitUntil { harness.app.agentRuns.first?.isFinished ?? false }
-        XCTAssertEqual(harness.app.agentRuns.first?.result, .completed)
-        XCTAssertEqual(SequenceStub.requests, Expected.agentReadTopic)
     }
 
     /// The watch check: one topic JSON per watched topic, checked longest ago
@@ -309,29 +294,6 @@ final class SiteRequestSequenceTests: XCTestCase {
     }
 }
 
-/// Plays the given actions in order, then finishes.
-private final class SequencePlanner: AgentPlanner, @unchecked Sendable {
-    private let lock = NSLock()
-    private var actions: [AgentAction]
-
-    init(actions: [AgentAction]) {
-        self.actions = actions
-    }
-
-    func nextAction(
-        system: String,
-        transcript: [ChatMessage],
-        configuration: ProviderConfiguration,
-        provider: AIProvider
-    ) async throws -> AgentAction {
-        lock.withLock {
-            actions.isEmpty
-                ? AgentAction(thought: "", tool: AgentPrompt.finalAnswerTool, arguments: ["answer": "n/a"])
-                : actions.removeFirst()
-        }
-    }
-}
-
 // MARK: - Expected sequences (recorded from the pre-P0 code; do not edit)
 
 private enum Expected {
@@ -342,13 +304,6 @@ private enum Expected {
         "forum.example/forum/raw/123?page=3"
     ]
     static let summary: [String] = [
-        "forum.example/forum/t/123.json",
-        "forum.example/forum/raw/123?page=1",
-        "forum.example/forum/raw/123?page=2",
-        "forum.example/forum/raw/123?page=3"
-    ]
-    static let agentReadTopic: [String] = [
-        "forum.example/forum/t/123.json",
         "forum.example/forum/t/123.json",
         "forum.example/forum/raw/123?page=1",
         "forum.example/forum/raw/123?page=2",

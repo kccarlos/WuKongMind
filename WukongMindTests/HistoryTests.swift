@@ -129,18 +129,4 @@ final class HistoryTests: XCTestCase {
             XCTAssertEqual(try JSONDecoder().decode(AgentRun.self, from: data).origin, origin)
         }
     }
-
-    func testStartPointsSetTheOrigin() throws {
-        let app = AppModel(store: PersistentStore(
-            fileURL: FileManager.default.temporaryDirectory
-                .appendingPathComponent(UUID().uuidString, isDirectory: true)
-                .appendingPathComponent("state.json")
-        ))
-        app.selectModel(ModelSelection(provider: .ollama, model: "test-model"), for: .both)
-        app.startAgentRun(goal: "Typed", siteURL: alpha)
-        _ = try app.startAgentRun(goal: "Spoken", siteURL: alpha, origin: .voice) { _ in }
-        app.startAgentRun(goal: "Shortcut", siteURL: alpha, origin: .shortcut)
-        let origins = Dictionary(uniqueKeysWithValues: app.agentRuns.map { ($0.goal, $0.origin) })
-        XCTAssertEqual(origins, ["Typed": .typed, "Spoken": .voice, "Shortcut": .shortcut])
-    }
 }

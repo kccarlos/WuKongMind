@@ -638,7 +638,6 @@
 		E35BF422FA1A58A3066D21C781A79092 /* WordPressPagePlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC82CADDE415A1F2ABBF6D04FCAB0F73 /* WordPressPagePlan.swift */; };
 		E374B25793E91AA1C9E1A1114FDF1BAD /* strict-csp.html in Resources */ = {isa = PBXBuildFile; fileRef = BD5C41F921AAF5AF042E11F58412C48E /* strict-csp.html */; };
 		E3AAAB4A25F1B444C141EF1D7B6093E5 /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-4830446f1538.json in Resources */ = {isa = PBXBuildFile; fileRef = 4CAD77A1A68DA080685EF0D9A6D605EF /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-4830446f1538.json */; };
-		E42E1147C3F9C2A5314655DFDDFD2549 /* WordPressAgentRunTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CA8A1EE1C8B99DF8473FF63F225B004 /* WordPressAgentRunTests.swift */; };
 		E46A7ABA141D55152E68F33E015E6605 /* gate2-run-H4.summaries.json in Resources */ = {isa = PBXBuildFile; fileRef = AE6E4D8DB3FEBE4EFD9E8C4EE3CC3F53 /* gate2-run-H4.summaries.json */; };
 		E4BD1C554D83D66B3A417C6AFB6EB73A /* spa-thread.html in Resources */ = {isa = PBXBuildFile; fileRef = 457EDE7DFE54232239F94532DC62A0CA /* spa-thread.html */; };
 		E4ED69E0E47B0BE5E354BE2BD3E5D28C /* ContentBlocker.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5C16B3C7B7469567A03EF81EE7E2353 /* ContentBlocker.swift */; };
@@ -755,7 +754,6 @@
 		0C455D46F26B218371C134EEBC5E1625 /* VoiceActivityDetector.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VoiceActivityDetector.swift; path = Voice/VoiceActivityDetector.swift; sourceTree = "<group>"; };
 		0C63F649FF661F8D5C3735A7FE6171DC /* SiteGoldenTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SiteGoldenTests.swift; sourceTree = "<group>"; };
 		0C8200158B6FBD4EDE4A883F946FEBE8 /* BrowseCursor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BrowseCursor.swift; sourceTree = "<group>"; };
-		0CA8A1EE1C8B99DF8473FF63F225B004 /* WordPressAgentRunTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WordPressAgentRunTests.swift; path = Sites/WordPressAgentRunTests.swift; sourceTree = "<group>"; };
 		0D5B5DB1E25E288FD6967F774FF15716 /* discourse-meta-appinn-net-search-json-764510c031c3.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "discourse-meta-appinn-net-search-json-764510c031c3.json"; path = "Fixtures/Comparison/discourse/discourse-meta-appinn-net-search-json-764510c031c3.json"; sourceTree = "<group>"; };
 		0E7AB068E2EEBBE37EC35754ED7BB5DB /* HTMLTextTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HTMLTextTests.swift; path = Sites/HTMLTextTests.swift; sourceTree = "<group>"; };
 		0EC6BBCB98CCAB973C590CA89C1076D3 /* VoiceSite.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VoiceSite.swift; path = Voice/VoiceSite.swift; sourceTree = "<group>"; };
@@ -1787,7 +1785,6 @@
 				11416D49C54EDE9F1EB2BAA8E0A19CCF /* SiteRecognitionTests.swift */,
 				25E439CA4820E929FD7757D9C5AEA2C6 /* WidenedShapesTests.swift */,
 				CD67F4BF654B74EC20E80C550A19A724 /* WordPressAdapterTests.swift */,
-				0CA8A1EE1C8B99DF8473FF63F225B004 /* WordPressAgentRunTests.swift */,
 				2ABDC44644064E27B8540DD0B8103C6B /* WordPressFixtureSite.swift */,
 				A351A98E10156B9BDD4A5FB451E28982 /* WordPressJobTests.swift */,
 				3BB8A53AB3208A8C49BB119D017F7FCF /* WordPressRecognitionTests.swift */,
@@ -2815,7 +2812,6 @@
 				F4B2F7A0479A769BD4383FCA5BE99AD9 /* SiteRecognitionTests.swift in Sources */,
 				64A5A9D91E0CA3421679FFDE6B1045C7 /* WidenedShapesTests.swift in Sources */,
 				AC12262C3B75BDDD9E3102CD4E94D22E /* WordPressAdapterTests.swift in Sources */,
-				E42E1147C3F9C2A5314655DFDDFD2549 /* WordPressAgentRunTests.swift in Sources */,
 				D318654FDA46607D8757CA7660424B44 /* WordPressFixtureSite.swift in Sources */,
 				ABE84C377C1E06A6F097A46F6DC84563 /* WordPressJobTests.swift in Sources */,
 				5BCA0771B7C3BB369EEE6E4E1308FDC2 /* WordPressRecognitionTests.swift in Sources */,

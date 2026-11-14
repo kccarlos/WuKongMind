@@ -513,17 +513,17 @@ final class WordPressAdapterTests: XCTestCase {
         options.page = 2
         options.after = ISO8601DateFormatter().date(from: "2026-01-01T00:00:00Z")
         XCTAssertEqual(
-            try agent.query(.searchForum, ["query": " bonus ", "category": "Deals", "page": "2", "after": "2026-01-01"]),
+            try agent.query(ForumToolName.searchForum, ["query": " bonus ", "category": "Deals", "page": "2", "after": "2026-01-01"]),
             .search(text: "bonus", scope: .forum, options: options)
         )
-        XCTAssertEqual(try agent.query(.searchComments, ["query": "x", "category": "Deals"]), .search(text: "x", scope: .comments))
-        XCTAssertEqual(try agent.query(.listLatest, [:]), .latest)
+        XCTAssertEqual(try agent.query(ForumToolName.searchComments, ["query": "x", "category": "Deals"]), .search(text: "x", scope: .comments))
+        XCTAssertEqual(try agent.query(ForumToolName.listLatest, [:]), .latest)
         for bad in [["query": "x", "after": "2026-1-1"], ["query": "x", "before": "tomorrow"], ["query": "x", "page": "4"], ["query": "x", "page": "0"]] {
-            XCTAssertThrowsError(try agent.query(.searchForum, bad), "\(bad)") { error in
+            XCTAssertThrowsError(try agent.query(ForumToolName.searchForum, bad), "\(bad)") { error in
                 guard case AgentError.invalidArgument = error else { return XCTFail("\(error)") }
             }
         }
-        XCTAssertThrowsError(try agent.query(.searchForum, ["query": " "]))
+        XCTAssertThrowsError(try agent.query(ForumToolName.searchForum, ["query": " "]))
         XCTAssertEqual(agent.postLinkHint(URL(string: "https://example.com/slug/")!), "(article and comments: https://example.com/slug/)")
     }
 

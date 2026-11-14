@@ -221,11 +221,6 @@ final class SiteContractTests: XCTestCase {
     func testStandardRegistryHoldsDiscourseThenWordPressThenHackerNews() {
         let registry = SiteRegistry.standard
         XCTAssertEqual(registry.adapters.map(\.kind), [.discourse, .wordpress, .hackerNews])
-        XCTAssertEqual(
-            registry.allAgentToolNames,
-            ["search_forum", "list_latest", "search_comments", "read_topic", "summarize_topic",
-             "saved_summaries", "watch_topic", "final_answer"]
-        )
         XCTAssertEqual(SiteRecognizers.standard.map(\.kind), registry.adapters.map(\.kind))
         XCTAssertEqual(registry.firstPartyPathPatterns, ContentBlockingRules.firstPartyPathPatterns)
     }
@@ -236,30 +231,23 @@ final class SiteContractTests: XCTestCase {
         XCTAssertEqual(try JSONDecoder().decode([SiteKind].self, from: data), [.discourse])
     }
 
-    func testAgentToolNamesCoverEveryAdaptersSiteTools() {
-        let registry = SiteRegistry(adapters: allFixtures().map(\.adapter))
-        let names = registry.allAgentToolNames
-        XCTAssertEqual(Set(names).count, names.count)
+    /// Every adapter's site tools use the Agent's forum tool names.
+    func testEveryAdaptersSiteToolsUseTheForumToolNames() {
+        let names = [ForumToolName.searchForum, ForumToolName.searchComments, ForumToolName.listLatest]
         for fixture in allFixtures() {
             for tool in fixture.adapter.agent.siteTools {
                 XCTAssertTrue(names.contains(tool.name), "\(fixture.name): \(tool.name)")
-                XCTAssertNotNil(AgentToolName(rawValue: tool.name), "\(fixture.name): \(tool.name)")
             }
-        }
-        for name in names {
-            XCTAssertNotNil(AgentToolName(rawValue: name), name)
-        }
-        for tool in AgentToolName.appTools {
-            XCTAssertTrue(names.contains(tool.rawValue))
         }
     }
 
     func testSiteToolsRunThroughQueries() throws {
         for fixture in allFixtures() {
+            XCTAssertThrowsError(try fixture.adapter.agent.query(ForumToolName.readTopic, [:]), "\(fixture.name): not a site tool")
             let agent = fixture.adapter.agent
             XCTAssertTrue(fixture.adapter.supportsAgent, fixture.name)
             for spec in agent.siteTools {
-                let tool = try XCTUnwrap(AgentToolName(rawValue: spec.name))
+                let tool = spec.name
                 let arguments = Dictionary(uniqueKeysWithValues: spec.parameters.filter(\.required).map { ($0.name, "words") })
                 XCTAssertNoThrow(try agent.query(tool, arguments), "\(fixture.name): \(spec.name)")
                 for required in spec.parameters where required.required {
@@ -493,10 +481,10 @@ final class SiteContractTests: XCTestCase {
     func testDiscourseAgentQueries() throws {
         let agent = DiscourseAdapter().agent
         XCTAssertEqual(agent.siteTools.map(\.name), ["search_forum", "list_latest"])
-        XCTAssertEqual(try agent.query(.searchForum, ["query": "  hello "]), .search(text: "hello", scope: .forum))
-        XCTAssertEqual(try agent.query(.listLatest, [:]), .latest)
-        XCTAssertThrowsError(try agent.query(.searchForum, ["query": " "]))
-        XCTAssertThrowsError(try agent.query(.readTopic, [:]))
+        XCTAssertEqual(try agent.query(ForumToolName.searchForum, ["query": "  hello "]), .search(text: "hello", scope: .forum))
+        XCTAssertEqual(try agent.query(ForumToolName.listLatest, [:]), .latest)
+        XCTAssertThrowsError(try agent.query(ForumToolName.searchForum, ["query": " "]))
+        XCTAssertThrowsError(try agent.query(ForumToolName.readTopic, [:]))
         XCTAssertEqual(
             agent.postLinkHint(URL(string: "https://example.com/forum/t/topic-123/123/4")!),
             "(post N: https://example.com/forum/t/topic-123/123/N)"

@@ -263,46 +263,90 @@ final class AgentAnswerHistoryTests: XCTestCase {
         XCTAssertEqual(back.origin, run.origin)
     }
 
-    // MARK: The Research UI ignores them
+    // MARK: Saved Research runs (One loop 13)
 
-    func testTheResearchRunListsAndFollowUpsReadOnlyResearchRecords() throws {
-        let app = try makeApp()
-        let saved = try XCTUnwrap(app.saveAgentAnswer(answer(longText)))
-        XCTAssertTrue(app.researchRuns.isEmpty)
-        XCTAssertNil(app.selectedAgentRun)
-        XCTAssertTrue(app.asksNewForumQuestion)
-        app.continueAgentRun(id: saved.id, question: "And then?")
-        XCTAssertTrue(app.agentRuns.first { $0.id == saved.id }?.followUps.isEmpty ?? false)
-
-        app.selectModel(ModelSelection(provider: .ollama, model: "test-model"), for: .both)
-        app.startAgentRun(goal: "Research question", siteURL: site)
-        XCTAssertEqual(app.researchRuns.map(\.goal), ["Research question"])
-        XCTAssertEqual(app.selectedAgentRun?.goal, "Research question")
-        XCTAssertEqual(app.agentRuns.count, 2)
+    /// An old Research run as an older app saved it: no `loop` or `sources`
+    /// keys, a first answer citing one post, a follow-up, and the topic read.
+    private func savedResearchRun() throws -> AgentRun {
+        var run = AgentRun(siteURL: site, goal: "What do readers say about the card?", provider: .ollama, model: "m")
+        run.result = .completed
+        run.initialAnswer = "Readers like it [Sample](\(article))."
+        run.answer = "Some got it in a week."
+        run.followUps = [
+            ChatMessage(role: .user, content: "How fast did it arrive?"),
+            ChatMessage(role: .assistant, content: "Some got it in a week.")
+        ]
+        run.topicIDs = ["1001"]
+        run.knownLinks = [article: "1001"]
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(run)) as? [String: Any])
+        object.removeValue(forKey: "loop")
+        object.removeValue(forKey: "sources")
+        return try JSONDecoder().decode(AgentRun.self, from: JSONSerialization.data(withJSONObject: object))
     }
 
-    func testSelectionSkipsAgentRecordsOnReloadAndAfterDeletingResearch() throws {
-        var research = AgentRun(siteURL: site, goal: "Research", provider: .ollama, model: "m")
-        research.result = .completed
-        research.createdAt = Date(timeIntervalSince1970: 100)
-        var agent = AgentRun(siteURL: "https://news.example.org", goal: "Agent", provider: .ollama, model: "m")
-        agent.loop = .agent
-        agent.result = .completed
-        agent.createdAt = Date(timeIntervalSince1970: 200)
-        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("wukong-sel-\(UUID().uuidString)", isDirectory: true)
+    private func makeApp(snapshot: AppSnapshot) throws -> AppModel {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("wukong-research-\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         addTeardownBlock { try? FileManager.default.removeItem(at: dir) }
         let store = PersistentStore(fileURL: dir.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore())
-        try store.save(AppSnapshot(agentRuns: [research, agent]))
-        let app = AppModel(
+        try store.save(snapshot)
+        return AppModel(
             store: store,
             forumService: WordPressFixtureSite(commentCount: 1).service(), sites: SiteRegistry.standard, aiService: StateAIStub(),
             workspaceDirectory: dir.appendingPathComponent("ws", isDirectory: true)
         )
-        XCTAssertEqual(app.selectedAgentRunID, research.id)
-        app.deleteAgentRun(id: research.id)
-        XCTAssertNil(app.selectedAgentRunID)
-        XCTAssertNil(app.selectedAgentRun)
+    }
+
+    func testASavedResearchRunDecodesSyncsAndOpensReadOnlyInTheSavedAnswer() throws {
+        let research = try savedResearchRun()
+        XCTAssertEqual(research.loop, .research)
+        let app = try makeApp(snapshot: AppSnapshot(
+            agentRuns: [research], forums: [Forum(siteURL: site, kind: .wordpress, name: "Example Blog")]
+        ))
+        XCTAssertEqual(app.agentRuns, [research], "loads unchanged")
+
+        // Sync: the run rides the `.run` record kind as before.
+        let units = try XCTUnwrap(SyncSchema.runUnits(research))
+        let back = try SyncCoding.decode(AgentRun.self, from: .object(SyncSchema.object(kind: .run, units: units)))
+        XCTAssertEqual(back.id, research.id)
+        XCTAssertEqual(back.loop, .research)
+        XCTAssertEqual(back.initialAnswer, research.initialAnswer)
+        XCTAssertEqual(back.followUps.map(\.content), research.followUps.map(\.content))
+
+        // History lists it and opens it read-only in `SavedAnswerView`.
+        let feed = HistoryFeed(forum: nil, activities: [], sessions: [], runs: app.agentRuns, watched: [])
+        XCTAssertEqual(feed.asks.map(\.id), [research.id])
+        app.openAgentRun(id: research.id)
+        XCTAssertEqual(app.savedAnswerRunID, research.id)
+        XCTAssertEqual(app.assistantMode, .summary, "nothing switches to a run mode")
+
+        // The page shows the first answer, then the follow-up, with the
+        // sources rebuilt from the answers (no snapshot was saved).
+        XCTAssertEqual(SavedAnswerView.mainAnswer(of: research), research.initialAnswer)
+        let sources = SavedAnswerView.sources(of: research, sessions: app.sessions, parse: app.linkParser(for: research))
+        XCTAssertEqual(sources.map(\.url.absoluteString), [article])
+        XCTAssertEqual(sources.first?.cited, true)
+    }
+
+    func testAnUnfinishedResearchRunAndItsRecordAreClosedOutAtLaunch() throws {
+        var finished = try savedResearchRun()
+        finished.result = nil
+        var empty = AgentRun(siteURL: site, goal: "Never answered", provider: .ollama, model: "m")
+        empty.createdAt = Date(timeIntervalSince1970: 10)
+        var record = WorkRecord(
+            type: .agent, siteURL: site, topicID: AppModel.agentTopicPrefix + empty.id.uuidString,
+            title: empty.goal, url: URL(string: site)!, provider: .ollama, model: "m"
+        )
+        record.status = .running
+        let app = try makeApp(snapshot: AppSnapshot(activities: [record], agentRuns: [finished, empty]))
+
+        XCTAssertEqual(app.agentRuns.first { $0.id == finished.id }?.result, .completed, "it had an answer")
+        let closed = try XCTUnwrap(app.agentRuns.first { $0.id == empty.id })
+        XCTAssertEqual(closed.result, .cancelled)
+        XCTAssertEqual(app.status(of: closed), .cancelled)
+        // The old loop's record never runs again: it is cancelled, not re-queued.
+        XCTAssertEqual(app.activities.first { $0.id == record.id }?.status, .cancelled)
+        XCTAssertFalse(app.activities.contains { $0.type == .agent && !$0.status.isTerminal })
     }
 
     // MARK: History and Home
@@ -327,7 +371,6 @@ final class AgentAnswerHistoryTests: XCTestCase {
         XCTAssertNil(app.savedAnswerRunID)
         app.openAgentRun(id: page.id)
         XCTAssertEqual(app.savedAnswerRunID, page.id)
-        XCTAssertNil(app.selectedAgentRun, "Research's selection stays out of it")
     }
 
     func testTheSavedAnswerSubtitleIsAnswerAndTheDateWithoutReadOnly() {

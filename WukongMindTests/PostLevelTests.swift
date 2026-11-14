@@ -46,7 +46,7 @@ final class PostLevelTests: XCTestCase {
 
     func testSearchObservationListsHitsWithPostNumbersAndAuthors() {
         let (hits, topics) = DiscourseParsing.parseSearch(Data(DiscourseFixtures.search.utf8), siteURL: site)
-        let text = AgentPrompt.format(listings: topics, hits: hits)
+        let text = ForumRendering.format(listings: topics, hits: hits)
         let lines = text.components(separatedBy: "\n")
         XCTAssertEqual(lines.count, 6)
         XCTAssertTrue(lines[0].hasPrefix("- id 240488: How can I hide the Badges link in the sidebar? — 11 posts"))
@@ -57,16 +57,15 @@ final class PostLevelTests: XCTestCase {
         XCTAssertTrue(lines[4].hasPrefix("- id 415035: "))
         XCTAssertTrue(lines[5].hasPrefix("  #13 @carol: "))
         // At most `hitsPerTopic` per topic; listings alone keep the excerpt.
-        XCTAssertFalse(AgentPrompt.format(listings: topics, hits: hits, hitsPerTopic: 2).contains("#10 @bob"))
-        XCTAssertFalse(AgentPrompt.format(listings: topics).contains("#5 @bob"))
+        XCTAssertFalse(ForumRendering.format(listings: topics, hits: hits, hitsPerTopic: 2).contains("#10 @bob"))
+        XCTAssertFalse(ForumRendering.format(listings: topics).contains("#5 @bob"))
         // A search within one topic shows every hit.
-        let single = AgentPrompt.format(listings: [topics[0]], hits: hits, hitsPerTopic: 2)
+        let single = ForumRendering.format(listings: [topics[0]], hits: hits, hitsPerTopic: 2)
         XCTAssertTrue(single.contains("#1 @alice") && single.contains("#5 @bob") && single.contains("#10 @bob"))
-        XCTAssertTrue(AgentPrompt.format(listings: topics).contains("\n  I imagine that sidebar"))
+        XCTAssertTrue(ForumRendering.format(listings: topics).contains("\n  I imagine that sidebar"))
 
-        let prompt = AgentPrompt.system(
-            profile: DiscourseAgent.profile, forumName: "Meta", siteURL: site, maxSteps: 5, maxTopicReads: 2, customInstructions: ""
-        )
+        // The sentences the Agent's forum section takes from the profile.
+        let prompt = DiscourseAgent.profile.postNumbering + "\n" + DiscourseAgent.profile.postCitation
         XCTAssertTrue(prompt.contains("/t/slug/id/N"))
         XCTAssertTrue(prompt.contains("\"author | date UTC | #N\""))
         XCTAssertTrue(prompt.contains("[title](url/N)"))

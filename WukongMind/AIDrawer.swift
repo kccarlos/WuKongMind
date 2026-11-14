@@ -170,9 +170,9 @@ extension AppModel {
     /// "Answer ready" (the row over the bar, the drawer's status row): an old
     /// Research run's record opens its saved answer, read-only in History.
     func showAnswer(for record: WorkRecord) {
-        router.answersSeenAt = Date()
-        guard let id = agentRunID(for: record) else { return }
+        guard let id = agentRunID(for: record), agentRuns.contains(where: { $0.id == id }) else { return }
         openAgentRun(id: id)
+        router.answersSeenAt = Date()
     }
 
     /// Presents or closes the drawer to match the request, but only while no

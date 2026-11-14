@@ -1280,59 +1280,6 @@ final class CoreTests: XCTestCase {
 
     // MARK: Agent
 
-    func testAgentActionParserToleratesFencesProseAndAliases() throws {
-        let fenced = """
-        Sure, here is my next step:
-        ```json
-        {"thought": "search first", "tool": "search_forum", "arguments": {"query": "amex platinum"}}
-        ```
-        """
-        let action = try AgentActionParser.parse(fenced)
-        XCTAssertEqual(action.tool, "search_forum")
-        XCTAssertEqual(action.arguments["query"], "amex platinum")
-        XCTAssertEqual(action.thought, "search first")
-
-        let numeric = try AgentActionParser.parse(
-            #"{"tool":"read_topic","arguments":{"topic_id":12345}}"#
-        )
-        XCTAssertEqual(numeric.arguments["topic_id"], "12345")
-
-        let direct = try AgentActionParser.parse(
-            "{\"thought\":\"done\",\"tool\":\"final_answer\",\"answer\":\"## Result\"}"
-        )
-        XCTAssertEqual(direct.arguments["answer"], "## Result")
-
-        let nested = try AgentActionParser.parse(
-            #"prefix {"action":"saved_summaries","args":{"query":"x \"quoted\" {y}"}} suffix"#
-        )
-        XCTAssertEqual(nested.tool, "saved_summaries")
-        XCTAssertEqual(nested.arguments["query"], "x \"quoted\" {y}")
-
-        XCTAssertThrowsError(try AgentActionParser.parse("I do not know what to do."))
-        XCTAssertThrowsError(try AgentActionParser.parse(#"{"arguments":{}}"#))
-    }
-
-    func testAgentSystemPromptListsToolsAndBudget() {
-        let prompt = AgentPrompt.system(
-            profile: DiscourseAgent.profile,
-            forumName: "Discourse Meta",
-            siteURL: "https://meta.discourse.org",
-            maxSteps: 7,
-            maxTopicReads: 3,
-            customInstructions: "Be terse."
-        )
-        for tool in AgentPrompt.tools(for: DiscourseAgent.profile) {
-            XCTAssertTrue(prompt.contains(tool.name), "Prompt is missing \(tool.name)")
-        }
-        XCTAssertTrue(prompt.contains("at most 7 tool calls and 3 topic reads"))
-        XCTAssertTrue(prompt.contains("Be terse."))
-        XCTAssertFalse(AgentPrompt.tools(for: DiscourseAgent.profile).contains { $0.requiresApproval })
-        // Templated on the run's forum; no single-forum or fixed-language assumptions.
-        XCTAssertTrue(prompt.contains("research agent for Discourse Meta (https://meta.discourse.org)"))
-        XCTAssertTrue(prompt.contains("same language as the user's question"))
-        XCTAssertFalse(prompt.contains("Chinese"))
-    }
-
     func testForumSearchAndLatestParsing() {
         let search = """
         {"posts":[{"topic_id":42,"blurb":"Retention offer 55k points"}],
@@ -1358,8 +1305,8 @@ final class CoreTests: XCTestCase {
         XCTAssertEqual(recent.count, 1)
         XCTAssertEqual(recent[0].url.absoluteString, "https://example.com/forum/t/a/1")
         XCTAssertEqual(recent[0].lastPostedAt, "2026-09-13T01:00:00Z")
-        XCTAssertTrue(AgentPrompt.format(listings: recent).contains("id 1: A — 2 posts"))
-        XCTAssertEqual(AgentPrompt.format(listings: []), "No topics found.")
+        XCTAssertTrue(ForumRendering.format(listings: recent).contains("id 1: A — 2 posts"))
+        XCTAssertEqual(ForumRendering.format(listings: []), "No topics found.")
     }
 
     func testWatchedTopicCountsOnlyNewReplies() {
@@ -1391,104 +1338,6 @@ final class CoreTests: XCTestCase {
         XCTAssertTrue(snapshot.settings.watchAutoRefreshSummaries)
         XCTAssertTrue(snapshot.agentRuns.isEmpty)
         XCTAssertTrue(snapshot.watchedTopics.isEmpty)
-    }
-
-    @MainActor
-    func testAgentRunSearchesReadsAndAnswersWithScriptedPlanner() async throws {
-        let directory = FileManager.default.temporaryDirectory
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        let store = PersistentStore(fileURL: directory.appendingPathComponent("state.json"))
-        var seeded = AppSnapshot()
-        seeded.ensureForum("https://forum.example.com")
-        try store.save(seeded)
-        let session = stubbedSession { request in
-            let path = request.url?.path ?? ""
-            if path == "/search.json" {
-                return Self.response(
-                    request,
-                    status: 200,
-                    body: #"{"posts":[{"topic_id":12,"blurb":"DP inside"}],"topics":[{"id":12,"title":"Retention DP","slug":"retention-dp","posts_count":2}]}"#
-                )
-            }
-            if path == "/t/12.json" {
-                return Self.response(
-                    request,
-                    status: 200,
-                    body: #"{"title":"Retention DP","slug":"retention-dp","posts_count":2}"#
-                )
-            }
-            if path == "/raw/12" {
-                return Self.response(request, status: 200, body: "Post 1: offer was 55k\n\n\nPost 2: took it")
-            }
-            return Self.response(request, status: 404, body: "missing")
-        }
-        let planner = ScriptedPlanner(actions: [
-            AgentAction(thought: "search", tool: "search_forum", arguments: ["query": "retention"]),
-            AgentAction(thought: "read", tool: "read_topic", arguments: ["topic_id": "12"]),
-            AgentAction(thought: "unknown", tool: "post_reply", arguments: [:]),
-            AgentAction(
-                thought: "done",
-                tool: AgentPrompt.finalAnswerTool,
-                arguments: ["answer": "Offer was **55k** ([Retention DP](https://forum.example.com/t/retention-dp/12))"]
-            )
-        ])
-        let app = AppModel(
-            store: store,
-            forumService: ForumService(session: session, pacer: ForumRequestPacer(clock: InstantPacingClock())),
-            aiService: AIService(session: session),
-            planner: planner
-        )
-        app.usesDirectForumRequests = true
-        var settings = app.settings
-        settings.configurations["openrouter"] = ProviderConfiguration(
-            model: "test-model", baseURL: "https://example.com/v1", apiKey: "key"
-        )
-        app.settings = settings
-
-        app.startAgentRun(
-            goal: "What retention offers are people reporting?",
-            siteURL: "https://forum.example.com"
-        )
-        let run = try await waitForTerminalAgentRun(in: app)
-
-        XCTAssertEqual(run.result, .completed)
-        XCTAssertEqual(run.steps.map(\.tool), ["search_forum", "read_topic", "post_reply", "final_answer"])
-        XCTAssertEqual(run.steps[0].outcome, "1 topic")
-        XCTAssertEqual(run.steps[1].outcome, "Read 2 posts")
-        XCTAssertTrue(run.steps[2].isError)
-        XCTAssertTrue(run.steps[2].outcome.contains("Unknown tool"))
-        XCTAssertEqual(run.topicIDs, ["12"])
-        XCTAssertTrue(run.answer.contains("55k"))
-        XCTAssertEqual(run.initialAnswer, run.answer)
-        XCTAssertEqual(run.siteURL, "https://forum.example.com")
-        XCTAssertEqual(run.steps[1].topicKey, "forum.example.com/t/12")
-        XCTAssertEqual(
-            app.sessions["forum.example.com/t/12"]?.source,
-            "Post 1: offer was 55k\n\n\nPost 2: took it"
-        )
-        XCTAssertEqual(app.sessions["forum.example.com/t/12"]?.title, "Retention DP")
-        XCTAssertTrue(app.activities.contains { $0.type == .agent && $0.status == .completed })
-
-        // The planner saw the goal, its own actions, and the observations.
-        let transcript = planner.lastTranscript
-        XCTAssertTrue(transcript.first?.content.contains("GOAL:") ?? false)
-        XCTAssertTrue(transcript.contains { $0.content.contains("OBSERVATION from search_forum") })
-        XCTAssertTrue(transcript.contains { $0.content.contains("ERROR from post_reply") })
-
-        // Persisted and reloadable.
-        let reloaded = AppModel(store: store, planner: planner)
-        XCTAssertEqual(reloaded.agentRuns.first?.answer, run.answer)
-        XCTAssertEqual(reloaded.selectedAgentRun?.id, run.id)
-    }
-
-    @MainActor
-    private func waitForTerminalAgentRun(in app: AppModel, timeout: TimeInterval = 20) async throws -> AgentRun {
-        let deadline = Date().addingTimeInterval(timeout)
-        while Date() < deadline {
-            if let run = app.agentRuns.first, run.isFinished { return run }
-            try await Task.sleep(for: .milliseconds(50))
-        }
-        return try XCTUnwrap(app.agentRuns.first, "No agent run was created.")
     }
 
     func testNVIDIAProviderUsesOpenAICompatibleDefaults() {
@@ -1767,29 +1616,6 @@ final class CoreTests: XCTestCase {
             headerFields: ["Content-Type": "application/json"]
         )!
         return (response, Data(body.utf8))
-    }
-}
-
-/// Replays a fixed list of actions and records what the run showed it.
-private final class ScriptedPlanner: AgentPlanner, @unchecked Sendable {
-    private var actions: [AgentAction]
-    private(set) var lastTranscript: [ChatMessage] = []
-
-    init(actions: [AgentAction]) {
-        self.actions = actions
-    }
-
-    func nextAction(
-        system: String,
-        transcript: [ChatMessage],
-        configuration: ProviderConfiguration,
-        provider: AIProvider
-    ) async throws -> AgentAction {
-        lastTranscript = transcript
-        guard !actions.isEmpty else {
-            return AgentAction(thought: "out of script", tool: AgentPrompt.finalAnswerTool, arguments: ["answer": "n/a"])
-        }
-        return actions.removeFirst()
     }
 }
 
@@ -2236,88 +2062,6 @@ final class LazyMarkdownTests: XCTestCase {
         XCTAssertEqual(app.currentSession?.summary, freshSummary)
     }
 
-    // Finding 8: AgentView scrollTo('agentBottom') over lazy MarkdownView reaches the bottom.
-    @MainActor
-    func testAgentViewScrollToBottomOverLongLazyMarkdownAnswerReachesBottom() throws {
-        let (app, _, _, _) = try makeTwoTopicApp(
-            summaryA: "",
-            historyA: [],
-            summaryB: "",
-            historyB: []
-        )
-        let siteURL = "https://forum.example.com"
-        var run = AgentRun(siteURL: siteURL, goal: "Best low-power NAS build?", provider: .ollama, model: "test-model")
-        run.initialAnswer = makeLongSummary(prefix: "AgentSection")
-        run.answer = run.initialAnswer
-        run.followUps = [ChatMessage(role: .user, content: "What about ECC memory support?")]
-        run.steps = [AgentStep(tool: "search_forum", outcome: "5 topics", finishedAt: Date())]
-        var agentWork = WorkRecord(
-            type: .agent,
-            siteURL: siteURL,
-            topicID: "agent:\(run.id.uuidString)",
-            title: run.goal,
-            url: URL(string: siteURL)!,
-            provider: .ollama,
-            model: "test-model"
-        )
-        agentWork.status = .running
-        agentWork.statusText = "Searching forum…"
-
-        app.applyDebugSeed(AssistantDebugSeed(
-            forums: app.forums,
-            sessions: Array(app.sessions.values),
-            activities: [agentWork],
-            agentRuns: [run],
-            watchedTopics: [],
-            currentTopic: app.currentTopic,
-            currentForum: app.forums.first,
-            pageContext: app.pageContext
-        ))
-        app.selectedAgentRunID = run.id
-        app.assistantMode = .agent
-
-        let (window, host) = hostView(
-            AgentView(app: app, showsProviderCard: false, onOpenTopic: { _ in }),
-            size: CGSize(width: 393, height: 740)
-        )
-        defer { window.isHidden = true }
-
-        let scrollView = try XCTUnwrap(findScrollView(in: host.view))
-        run.steps.append(AgentStep(tool: "read_topic", outcome: "Read 42 posts", finishedAt: Date()))
-        app.applyDebugSeed(AssistantDebugSeed(
-            forums: app.forums,
-            sessions: Array(app.sessions.values),
-            activities: [agentWork],
-            agentRuns: [run],
-            watchedTopics: [],
-            currentTopic: app.currentTopic,
-            currentForum: app.forums.first,
-            pageContext: app.pageContext
-        ))
-        app.selectedAgentRunID = run.id
-
-        let deadline = Date().addingTimeInterval(10.0)
-        while Date() < deadline {
-            RunLoop.current.run(until: Date().addingTimeInterval(0.02))
-            window.layoutIfNeeded()
-            let currentDistance = scrollView.contentSize.height - (scrollView.contentOffset.y + scrollView.bounds.height)
-            if scrollView.contentOffset.y > 0, currentDistance < 60 {
-                RunLoop.current.run(until: Date().addingTimeInterval(0.05))
-                window.layoutIfNeeded()
-                if scrollView.contentSize.height - (scrollView.contentOffset.y + scrollView.bounds.height) < 60 {
-                    break
-                }
-            }
-        }
-
-        let distance = scrollView.contentSize.height - (scrollView.contentOffset.y + scrollView.bounds.height)
-        XCTAssertLessThan(
-            distance,
-            60,
-            "AgentView scrollTo('agentBottom') over lazy MarkdownView stopped \(distance) pt short of agentBottom (offsetY=\(scrollView.contentOffset.y), contentHeight=\(scrollView.contentSize.height))!"
-        )
-    }
-
     // Finding 9: Scrolling upward from the bottom through tall upper rows does not jump.
     @MainActor
     func testScrollingUpFromBottomThroughTallUpperRowsHasNoLayoutJump() throws {
@@ -2571,114 +2315,5 @@ final class LazyMarkdownTests: XCTestCase {
         XCTAssertEqual(panelPayload.totalPosts, 500)
         XCTAssertNotNil(panelPayload.summaryUpdatedAt)
         XCTAssertTrue(panelPayload.summaryMetadataLine?.hasSuffix("· 500 of 500 posts") ?? false)
-    }
-
-    @MainActor
-    func testDiscourseAgentReadTopicSupportsPageAndQueryWithoutRefetching() async throws {
-        let page1Posts = (1...100).map { n in
-            "user\(n) | 2026-10-20 10:00:00 UTC | #\(n)\n\n"
-                + (n == 1 ? "Opening post about router firmware." : "Reply \(n) with padding \(String(repeating: "x", count: 140)).")
-        }.joined(separator: RawTopicFormat.blockSeparator)
-        let page2Posts = (101...120).map { n in
-            "user\(n) | 2026-10-20 11:00:00 UTC | #\(n)\n\n"
-                + (n == 105 ? "The secret needle workaround is setting MTU to 1492." : "Reply \(n) on page two \(String(repeating: "y", count: 140)).")
-        }.joined(separator: RawTopicFormat.blockSeparator)
-
-        let fetchLock = NSLock()
-        var rawPage1Fetches = 0
-        var rawPage2Fetches = 0
-        URLProtocolStub.handler = { request in
-            let path = request.url?.path ?? ""
-            let page = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)?
-                .queryItems?.first(where: { $0.name == "page" })?.value ?? "1"
-            let body: String
-            if path.hasSuffix("/t/42.json") {
-                body = #"{"title":"Router Firmware","slug":"router-firmware","posts_count":120,"highest_post_number":120}"#
-            } else if path.hasSuffix("/raw/42") {
-                if page == "2" {
-                    fetchLock.withLock { rawPage2Fetches += 1 }
-                    body = page2Posts
-                } else {
-                    fetchLock.withLock { rawPage1Fetches += 1 }
-                    body = page1Posts
-                }
-            } else {
-                body = "{}"
-            }
-            let response = HTTPURLResponse(
-                url: request.url!,
-                statusCode: 200,
-                httpVersion: "HTTP/1.1",
-                headerFields: ["Content-Type": path.hasSuffix(".json") ? "application/json" : "text/plain"]
-            )!
-            return (response, Data(body.utf8))
-        }
-
-        let cfg = URLSessionConfiguration.ephemeral
-        cfg.protocolClasses = [URLProtocolStub.self]
-        let session = URLSession(configuration: cfg)
-        addTeardownBlock { session.invalidateAndCancel() }
-        let forumService = ForumService(session: session, pacer: ForumRequestPacer(clock: InstantPacingClock()))
-
-        let planner = ScriptedAgentPlanner(actions: [
-            AgentAction(thought: "", tool: "read_topic", arguments: ["topic_id": "42"]),
-            AgentAction(thought: "", tool: "read_topic", arguments: ["topic_id": "42", "page": "2"]),
-            AgentAction(thought: "", tool: "read_topic", arguments: ["topic_id": "42", "query": "needle workaround"]),
-            AgentAction(thought: "", tool: "read_topic", arguments: ["topic_id": "42", "page": "0"]),
-            AgentAction(thought: "", tool: "read_topic", arguments: ["topic_id": "42", "page": "3"]),
-            AgentAction(thought: "", tool: AgentPrompt.finalAnswerTool, arguments: ["answer": "Set MTU to 1492."])
-        ])
-        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
-        let store = PersistentStore(fileURL: directory.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore())
-        try store.save(AppSnapshot(forums: [Forum(siteURL: "https://forum.example.com", kind: .discourse, name: "Forum")]))
-        addTeardownBlock { try? FileManager.default.removeItem(at: directory) }
-
-        let ai = StateAIStub()
-        ai.gated = false
-        let app = AppModel(store: store, forumService: forumService, aiService: ai, planner: planner)
-        app.usesDirectForumRequests = true
-        app.browser.stopLoading()
-        app.selectModel(ModelSelection(provider: .ollama, model: "test-model"), for: .both)
-        app.browser.onPageContextChanged = nil
-        app.settings.agentReadLimit = 10_000
-        app.settings.agentMaxTopicReads = 1
-        addTeardownBlock { @MainActor in
-            for record in app.activities where !record.status.isTerminal { app.cancel(record: record) }
-            app.browser.stopLoading()
-        }
-
-        app.startAgentRun(goal: "How to fix router MTU?", siteURL: "https://forum.example.com")
-        let deadline = Date().addingTimeInterval(45)
-        while !(app.agentRuns.first?.isFinished ?? false), Date() < deadline {
-            try await Task.sleep(for: .milliseconds(20))
-        }
-        let run = try XCTUnwrap(app.agentRuns.first)
-        XCTAssertEqual(run.result, .completed, run.error)
-        XCTAssertEqual(run.topicIDs, ["42"], "Paging/querying an already-read topic does not consume extra topic-read budget.")
-        XCTAssertEqual(fetchLock.withLock { rawPage1Fetches }, 1)
-        XCTAssertEqual(fetchLock.withLock { rawPage2Fetches }, 1)
-        guard planner.transcripts.count > 5 else {
-            XCTFail("Expected at least 6 planner transcripts, got \(planner.transcripts.count)")
-            return
-        }
-
-        let firstObs = try XCTUnwrap(planner.transcripts[1].last?.content)
-        XCTAssertTrue(firstObs.contains("pass page=2 or query=\"<keywords>\" to read other parts."), firstObs)
-
-        let page2Obs = try XCTUnwrap(planner.transcripts[2].last?.content)
-        XCTAssertTrue(page2Obs.contains("Showing: page 2 of 2"), page2Obs)
-        XCTAssertTrue(page2Obs.contains("#105\nThe secret needle workaround"), page2Obs)
-        XCTAssertFalse(page2Obs.contains("Opening post about router firmware."), page2Obs)
-
-        let queryObs = try XCTUnwrap(planner.transcripts[3].last?.content)
-        XCTAssertTrue(queryObs.contains("Showing: 1 matching post for \"needle workaround\" (of 120 posts)"), queryObs)
-        XCTAssertTrue(queryObs.contains("Opening post about router firmware."), "Includes opening post #1 for context")
-        XCTAssertTrue(queryObs.contains("#105\nThe secret needle workaround"), queryObs)
-
-        let zeroPageObs = try XCTUnwrap(planner.transcripts[4].last?.content)
-        XCTAssertEqual(zeroPageObs, "ERROR from read_topic:\nInvalid argument \"page\": use a positive integer.")
-
-        let outOfRangeObs = try XCTUnwrap(planner.transcripts[5].last?.content)
-        XCTAssertEqual(outOfRangeObs, "ERROR from read_topic:\nInvalid argument \"page\": use a number from 1 to 2.")
     }
 }
