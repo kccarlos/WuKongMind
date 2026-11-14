@@ -13,4 +13,12 @@ struct DiscussionProfile: Sendable, Equatable {
     var blocks: String
     /// Which extra signals exist: likes, accepted answers, none (a full sentence).
     var signals: String
+
+    /// Unnumbered text or page content passed to `summarize_topic`.
+    static let genericText = DiscussionProfile(
+        openingHeading: "Overview",
+        material: "a web page or text the user gave",
+        blocks: "The text is unnumbered material rather than numbered forum posts, so omit #N post citations unless numbered posts appear.",
+        signals: "There are no likes, votes, or accepted answers."
+    )
 }

@@ -55,6 +55,10 @@ enum DCToolLabel {
         case "search_comments": running ? String(localized: "Searching comments") : String(localized: "Searched comments")
         case "list_latest": running ? String(localized: "Listing latest") : String(localized: "Listed latest")
         case "read_topic": running ? String(localized: "Reading thread") : String(localized: "Read thread")
+        case "summarize_topic": running ? String(localized: "Summarizing thread") : String(localized: "Summarized thread")
+        case "read_aloud": running ? String(localized: "Starting reading aloud") : String(localized: "Reading aloud")
+        case "watch_topic": String(localized: "Following thread")
+        case "notify": running ? String(localized: "Sending notification") : String(localized: "Sent notification")
         default: running ? String(localized: "Using a tool") : String(localized: "Used a tool")
         }
     }
@@ -218,6 +222,12 @@ struct DCResultCard<Trailing: View, Content: View>: View {
                 .strokeBorder(DCTheme.hairline, lineWidth: DCTheme.hairlineWidth)
         }
         .dcRiseIn()
+    }
+}
+
+extension DCResultCard where Trailing == EmptyView {
+    init(label: String, systemImage: String = "doc.text", @ViewBuilder content: @escaping () -> Content) {
+        self.init(label: label, systemImage: systemImage, trailing: { EmptyView() }, content: content)
     }
 }
 

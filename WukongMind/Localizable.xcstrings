@@ -7832,6 +7832,22 @@
         }
       }
     },
+    "Following thread" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已关注话题"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已追蹤話題"
+          }
+        }
+      }
+    },
     "Following. I'll tell you when new replies come in." : {
       "comment" : "Agent confirmation after the Notify me of new replies suggestion",
       "localizations" : {
@@ -11516,6 +11532,22 @@
         }
       }
     },
+    "Notifications are turned off for WukongMind. Turn them on in Settings to receive alerts." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WukongMind 的通知已关闭。请在“设置”中开启以接收提醒。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WukongMind 的通知已關閉。請在「設定」中開啟以接收提醒。"
+          }
+        }
+      }
+    },
     "Notify me of new replies" : {
       "comment" : "Suggestion above the Agent composer on a forum thread: follows it",
       "localizations" : {
@@ -13945,6 +13977,22 @@
         }
       }
     },
+    "Reading aloud" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在朗读"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在朗讀"
+          }
+        }
+      }
+    },
     "Reading cookies" : {
       "localizations" : {
         "zh-Hans" : {
@@ -16193,6 +16241,22 @@
         }
       }
     },
+    "Sending notification" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在发送通知"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在傳送通知"
+          }
+        }
+      }
+    },
     "Sending request" : {
       "localizations" : {
         "zh-Hans" : {
@@ -16205,6 +16269,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在傳送請求"
+          }
+        }
+      }
+    },
+    "Sent notification" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已发送通知"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已傳送通知"
           }
         }
       }
@@ -17033,6 +17113,22 @@
         }
       }
     },
+    "Starting reading aloud" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在开始朗读"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在開始朗讀"
+          }
+        }
+      }
+    },
     "Starts a voice chat about the page in WukongMind. If voice isn’t set up yet, opens its settings." : {
       "localizations" : {
         "zh-Hans" : {
@@ -17789,6 +17885,22 @@
         }
       }
     },
+    "Summarized thread" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已生成话题摘要"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已產生話題摘要"
+          }
+        }
+      }
+    },
     "Summarizing %@" : {
       "comment" : "Agent step while running; the placeholder is a topic title",
       "localizations" : {
@@ -17842,6 +17954,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在摘要第 %1$lld 部分（共 %2$lld 部分）…"
+          }
+        }
+      }
+    },
+    "Summarizing thread" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在生成话题摘要"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在產生話題摘要"
           }
         }
       }

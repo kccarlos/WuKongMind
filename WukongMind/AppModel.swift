@@ -338,6 +338,7 @@ final class AppModel: ObservableObject {
     /// token tells a job that was paused and launched again from the old
     /// task still unwinding.
     private var runningTasks: [UUID: (token: UUID, task: Task<Void, Never>)] = [:]
+    private var recordWaiters: [UUID: [UUID: CheckedContinuation<WorkRecord?, Never>]] = [:]
     private var summaryFeeds: [UUID: SummaryProgressFeed] = [:]
     /// Extra time to finish work after the app leaves the foreground.
     private let backgroundGrace: BackgroundGracing
@@ -487,7 +488,8 @@ final class AppModel: ObservableObject {
                 ),
                 network: self.agentHTTPClient,
                 confirmations: self.agentConfirmations,
-                forum: self.makeForumToolContext()
+                forum: self.makeForumToolContext(),
+                capabilities: self.capabilityToolContext
             ))
         },
         auditLog: auditLog,
@@ -2190,6 +2192,7 @@ final class AppModel: ObservableObject {
                 $0.completedAt = Date()
             }
         }
+        resumeRecordWaiters(record.id, with: activities.first { $0.id == record.id })
         save()
     }
 
@@ -2727,6 +2730,10 @@ final class AppModel: ObservableObject {
         // Nothing runs any more (finished or paused): the grace period is
         // not needed.
         if backgroundWork != nil, runningTasks.isEmpty { endBackgroundWork() }
+        let current = activities.first { $0.id == recordID }
+        if current == nil || current?.status.isTerminal == true {
+            resumeRecordWaiters(recordID, with: current)
+        }
     }
 
     // MARK: Background
@@ -3772,6 +3779,173 @@ final class AppModel: ObservableObject {
             persistedAPIKeys[provider] = stored
         }
         if updated != settings { settings = updated }
+    }
+
+    // MARK: Capability Tools
+
+    private func resumeRecordWaiters(_ recordID: UUID, with record: WorkRecord?) {
+        recordWaiters.removeValue(forKey: recordID)?.values.forEach { $0.resume(returning: record) }
+    }
+
+    private func cancelRecordWaiter(recordID: UUID, waiterID: UUID) {
+        guard let continuation = recordWaiters[recordID]?.removeValue(forKey: waiterID) else { return }
+        if recordWaiters[recordID]?.isEmpty == true { recordWaiters.removeValue(forKey: recordID) }
+        continuation.resume(returning: nil)
+    }
+
+    private func awaitRecord(id recordID: UUID) async throws -> WorkRecord {
+        let waiterID = UUID()
+        let finished = await withTaskCancellationHandler {
+            await withCheckedContinuation { (continuation: CheckedContinuation<WorkRecord?, Never>) in
+                if Task.isCancelled { continuation.resume(returning: nil); return }
+                guard let current = activities.first(where: { $0.id == recordID }), !current.status.isTerminal else {
+                    continuation.resume(returning: activities.first(where: { $0.id == recordID })); return
+                }
+                recordWaiters[recordID, default: [:]][waiterID] = continuation
+            }
+        } onCancel: {
+            Task { @MainActor [weak self] in self?.cancelRecordWaiter(recordID: recordID, waiterID: waiterID) }
+        }
+        try Task.checkCancellation()
+        guard let finished else { throw CancellationError() }
+        return finished
+    }
+
+    /// Runs or joins a thread summary job and awaits its completion without cancelling it on Stop.
+    func summarizeForTool(_ topic: ForumTopic) async throws -> TopicSession {
+        let recordID: UUID
+        if let active = activities.first(where: { $0.topicKey == topic.topicKey && $0.type == .summary && !$0.status.isTerminal }) {
+            recordID = active.id
+        } else {
+            guard enqueueSummary(for: topic, origin: .automatic),
+                  let created = activities.first(where: { $0.topicKey == topic.topicKey && $0.type == .summary }) else {
+                throw AssistantError.missingConfiguration(String(localized: "The task queue is full. Cancel or wait for an existing task."))
+            }
+            recordID = created.id
+        }
+        let finished = try await awaitRecord(id: recordID)
+        switch finished.status {
+        case .completed:
+            guard let session = sessions[topic.topicKey], session.hasSummary else { throw AssistantError.emptyResponse }
+            return session
+        case .failed:
+            throw CapabilityToolError(finished.error.isEmpty ? String(localized: "Failed") : finished.error)
+        case .cancelled, .queued, .running:
+            throw CancellationError()
+        }
+    }
+
+    var capabilityToolContext: CapabilityToolContext {
+        CapabilityToolContext(
+            resolveTopicID: { [weak self] id in guard let self else { throw CancellationError() }; return try await self.resolveCapabilityTopic(topicID: id) },
+            resolveTopicURL: { [weak self] url in guard let self else { throw CancellationError() }; return try await self.resolveCapabilityTopic(urlString: url) },
+            summarizeThread: { [weak self] topic in guard let self else { throw CancellationError() }; return try await self.summarizeForTool(topic) },
+            summarizeText: { [weak self] text in guard let self else { throw CancellationError() }; return try await self.summarizePlainText(text) },
+            existingThreadSummary: { [weak self] key in
+                guard let self, let s = self.sessions[key], s.hasSummary, !self.hasActiveWork(topicKey: key, type: .summary) else { return nil }
+                return s
+            },
+            readAloud: { [weak self] id, title, text in guard let self else { throw CancellationError() }; return try self.startReadAloud(id: id, title: title, text: text) },
+            followThread: { [weak self] r in await self?.watch(siteURL: r.topic.siteURL, topicID: r.topic.topicID, url: r.topic.url, title: r.topic.title, knownPostCount: r.knownPostCount) },
+            notify: { [notifier] title, body in try await notifier.notify(title: title, body: body) }
+        )
+    }
+
+    func session(forThreadShape thread: ThreadShape) -> TopicSession? {
+        if let id = thread.id, let url = URL(string: thread.url), let siteURL = ForumSite.siteURL(fromPage: url),
+           let key = ForumSite.topicKey(siteURL: siteURL, topicID: id), let exact = sessions[key] {
+            return exact
+        }
+        return sessions.values.first { $0.url.absoluteString == thread.url && (thread.id == nil || $0.topicID == thread.id) }
+    }
+
+    private func summarizePlainText(_ text: String) async throws -> String {
+        let context = runSettings(role: .assistant, topicKey: "")
+        try RunSettings.requireReady(provider: context.summarizer.provider, configuration: context.summarizer.configuration)
+        return try await aiService.generateSummary(
+            content: text, configuration: context.summarizer.configuration, provider: context.summarizer.provider,
+            customPrompt: context.globalInstructions, discussion: .genericText, batchLimit: context.batchLimit, onDelta: { _ in }
+        )
+    }
+
+    private func startReadAloud(id: String, title: String, text: String) throws -> Int {
+        let stripped = PostCitations.stripped(text).trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !PodcastController.readAloudChunks(PodcastSpeechCheck.speakable(stripped)).isEmpty else {
+            throw CapabilityToolError("Nothing speakable to read aloud.")
+        }
+        if podcast.engineSelection() == .needsKey {
+            throw CapabilityToolError("Google voices need a Google Gemini or Vertex AI key in Settings.")
+        }
+        let playlistID = PodcastController.readAloudPlaylistID(id)
+        if podcast.player.playlist?.id == playlistID {
+            if !podcast.player.isActive { podcast.player.play() }
+        } else {
+            podcast.readAloud(id: id, title: title, text: stripped)
+        }
+        guard podcast.player.playlist?.id == playlistID else { throw CapabilityToolError("Could not start audio playback.") }
+        return CapabilityReadAloud.estimatedMinutes(for: stripped)
+    }
+
+    private func resolveCapabilityTopic(topicID rawID: String) async throws -> CapabilityResolvedThread {
+        let id = try ForumToolService.requiredTopicID(["topic_id": rawID])
+        guard let siteURL = pageContext.siteURL ?? currentTopic?.siteURL, let adapter = adapter(for: siteURL) else {
+            throw CapabilityToolError("No forum is open right now; pass a thread 'url' instead of 'topic_id'.")
+        }
+        return try await buildCapabilityThread(siteURL: siteURL, topicID: id, adapter: adapter)
+    }
+
+    private func resolveCapabilityTopic(urlString rawURL: String) async throws -> CapabilityResolvedThread {
+        let trimmed = rawURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let url = URL(string: trimmed), ForumSite.origin(of: url) != nil else {
+            throw CapabilityToolError("Invalid or unsupported thread URL '\(trimmed)'.")
+        }
+        if let host = url.host, let claimed = sites.claimedSite(forHost: host) {
+            guard let id = claimed.adapter.recognizer.looseTopicID(in: url) else {
+                throw CapabilityToolError("'\(trimmed)' is not a thread URL on \(claimed.adapter.recognizer.platformName).")
+            }
+            return try await buildCapabilityThread(siteURL: claimed.siteURL, topicID: id, adapter: claimed.adapter)
+        }
+        let knownSites = Array(Set(forums.map(\.siteURL) + [pageContext.siteURL].compactMap { $0 })).sorted { $0.count > $1.count }
+        for knownSite in knownSites {
+            guard let parsed = ForumSite.parse(siteURL: knownSite),
+                  ForumSite.siteURL(fromPage: url, basePath: parsed.basePath) == parsed.siteURL,
+                  let matched = adapter(for: parsed.siteURL) else { continue }
+            guard let id = matched.recognizer.topicID(fromURL: url, basePath: parsed.basePath) ?? matched.recognizer.looseTopicID(in: url) else {
+                throw CapabilityToolError("'\(trimmed)' is not a thread URL.")
+            }
+            return try await buildCapabilityThread(siteURL: parsed.siteURL, topicID: id, adapter: matched)
+        }
+        for candidateAdapter in sites.adapters {
+            for candidate in candidateAdapter.siteURLCandidates(fromAddress: trimmed) {
+                guard let parsed = ForumSite.parse(siteURL: candidate),
+                      let id = candidateAdapter.recognizer.topicID(fromURL: url, basePath: parsed.basePath) ?? candidateAdapter.recognizer.looseTopicID(in: url) else { continue }
+                let net = await network(for: parsed.siteURL, pace: settings.forumRequestPace, inPage: false)
+                guard let info = try? await candidateAdapter.siteInfo(siteURL: parsed.siteURL, net: net) else { continue }
+                var dir = self.directory
+                if dir.upsert(siteURL: parsed.siteURL, kind: candidateAdapter.kind, name: info.name, iconURL: info.iconURL, visitedAt: nil) != nil {
+                    self.directory = dir; save()
+                }
+                return try await buildCapabilityThread(siteURL: parsed.siteURL, topicID: id, adapter: candidateAdapter)
+            }
+        }
+        throw CapabilityToolError("Could not recognize a supported forum thread at '\(trimmed)'.")
+    }
+
+    private func buildCapabilityThread(siteURL: String, topicID: String, adapter: any SiteAdapter) async throws -> CapabilityResolvedThread {
+        let topicKey = TopicIdentity.key(siteURL: siteURL, topicID: topicID)
+        if let active = activities.first(where: { $0.topicKey == topicKey && $0.type == .summary && !$0.status.isTerminal }) {
+            return CapabilityResolvedThread(topic: ForumTopic(siteURL: siteURL, topicID: topicID, url: active.url, title: active.title), knownPostCount: sessions[topicKey]?.totalPosts ?? 0)
+        }
+        if let cached = sessions[topicKey] {
+            return CapabilityResolvedThread(topic: ForumTopic(siteURL: siteURL, topicID: topicID, url: cached.url, title: cached.title), knownPostCount: cached.totalPosts ?? 0)
+        }
+        let info = try await adapter.overview(TopicRef(siteURL: siteURL, topicID: topicID), net: await network(for: siteURL, pace: settings.forumRequestPace))
+        let fallbackName = ForumSite.displayName(siteURL: siteURL, name: forum(for: siteURL)?.name)
+        let title = info.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        return CapabilityResolvedThread(
+            topic: ForumTopic(siteURL: siteURL, topicID: topicID, url: info.url, title: title.isEmpty ? "\(fallbackName) topic \(topicID)" : title),
+            knownPostCount: info.postCount
+        )
     }
 }
 
