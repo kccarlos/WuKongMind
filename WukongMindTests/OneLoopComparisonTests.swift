@@ -145,6 +145,7 @@ final class OneLoopComparisonTests: XCTestCase {
         let env = ProcessInfo.processInfo.environment
         guard env["ONE_LOOP_RECORD"] == "1" else { throw XCTSkip("Record mode only: ONE_LOOP_RECORD=1 (TEST_RUNNER_ONE_LOOP_RECORD).") }
         let models = try ComparisonModels.fromEnvironment(env)
+        ModelAudit.shared.reset()
         let only = env["ONE_LOOP_ONLY"].map { $0.split(separator: ",").map(String.init) }
         let questions = try ComparisonQuestion.confirmed().filter { question in only?.contains(question.id) ?? true }
         var rows: [ComparisonRow] = []
@@ -156,7 +157,7 @@ final class OneLoopComparisonTests: XCTestCase {
             let old = try await OldSideRun.run(question, snapshot: snapshot, models: models, folder: try temporaryFolder())
             snapshot.resetMisses()
             let new = try await NewSideRun.run(
-                question, snapshot: snapshot, ai: ComparisonAIService(), modelClient: nil, models: models, folder: try temporaryFolder()
+                question, snapshot: snapshot, ai: ComparisonAIService(session: ModelAudit.session()), modelClient: nil, models: models, folder: try temporaryFolder()
             )
             try new.write(to: RecordedNewSide.defaultDirectory, id: question.id)
             rows.append(ComparisonRow(question: question, old: old, new: new.side, misses: snapshot.misses.map(\.absoluteString)))
@@ -178,7 +179,17 @@ final class OneLoopComparisonTests: XCTestCase {
                 ComparisonCitations.isThread(url, question: question, snapshot: snapshots[question.kind])
             }
         )
-        try Data(report.utf8).write(to: OneLoopReport.defaultURL, options: .atomic)
+        let audit = ModelAudit.shared.recorded
+        XCTAssertFalse(audit.isEmpty)
+        XCTAssertTrue(audit.allSatisfy { $0.model == ModelAudit.allowedModel }, "a call used a model other than \(ModelAudit.allowedModel)")
+        try audit.isEmpty ? () : ModelAudit.shared.writeLog(to: OneLoopReport.auditLogURL)
+        let models_ = Dictionary(grouping: audit, by: \.model).mapValues(\.count).sorted { $0.key < $1.key }
+            .map { "\($0.value) × `\($0.key)`" }.joined(separator: ", ")
+        let auditSection = "\n## Model audit\n\nEvery model request of this record run (old loop, new loop, summaries and the tool-definition count) "
+            + "passed through `ModelAudit`, which reads the request body's `model` and refuses anything but `\(ModelAudit.allowedModel)`. "
+            + "\(audit.count) calls: \(models_). The log (host, path, model, status; no keys) is `WukongMindTests/Fixtures/Comparison/model-audit.jsonl`; "
+            + "the recorded new-side runs under `Fixtures/Comparison/runs/` name the model per turn as well.\n"
+        try Data(report.replacingOccurrences(of: "\n## Approval", with: auditSection + "\n## Approval").utf8).write(to: OneLoopReport.defaultURL, options: .atomic)
     }
 }
 
@@ -380,7 +391,7 @@ enum ComparisonApp {
 @MainActor
 enum OldSideRun {
     static func run(_ question: ComparisonQuestion, snapshot: ForumSnapshot, models: ComparisonModels, folder: URL) async throws -> ComparisonSide {
-        let ai = ComparisonAIService()
+        let ai = ComparisonAIService(session: ModelAudit.session())
         let app = try ComparisonApp.make(question, snapshot: snapshot, ai: ai, models: models, folder: folder)
         let started = Date()
         app.startAgentRun(goal: question.prompt, siteURL: question.siteURL)
@@ -555,7 +566,7 @@ enum ToolDefinitionCost {
             request.setValue(models.agent.apiKey, forHTTPHeaderField: "x-api-key")
             request.setValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
             request.httpBody = try JSONSerialization.data(withJSONObject: body)
-            let (data, _) = try await URLSession.shared.data(for: request)
+            let (data, _) = try await ModelAudit.session().data(for: request)
             let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
             guard let tokens = json?["input_tokens"] as? Int else { throw AssistantError.invalidResponse }
             return tokens
@@ -601,6 +612,8 @@ enum ComparisonCitations {
 }
 
 enum OneLoopReport {
+    static let auditLogURL = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+        .appendingPathComponent("Fixtures/Comparison/model-audit.jsonl")
     static let defaultURL = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
         .appendingPathComponent("docs/wukongmind/one-loop-comparison.md")
 
