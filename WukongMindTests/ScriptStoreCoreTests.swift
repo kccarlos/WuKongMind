@@ -455,13 +455,19 @@ final class ScriptStoreCoreTests: XCTestCase {
         XCTAssertTrue(badInjectionTime.isError)
         XCTAssertTrue(badInjectionTime.output.contains("document-start, document-end"))
 
-        // 6. script_update with no mutable fields rejected
+        // 6. script_update with no mutable fields rejected (even with confirm_change: true)
         let emptyUpdate = try await registry.dispatch(
             toolName: "script_update",
-            arguments: ["script_id": .string("some-id")]
+            arguments: ["script_id": .string("some-id"), "confirm_change": .bool(true)]
         )
         XCTAssertTrue(emptyUpdate.isError)
         XCTAssertTrue(emptyUpdate.output.contains("at least one field to update"))
+
+        // 7. confirm_change schema exposed on both script_save and script_update
+        XCTAssertEqual(props["confirm_change"]?.objectValue?["type"], .string("boolean"))
+        let updateDef = try XCTUnwrap(registry.definitions.first { $0.name == "script_update" })
+        let updateProps = try XCTUnwrap(updateDef.inputSchema["properties"]?.objectValue)
+        XCTAssertEqual(updateProps["confirm_change"]?.objectValue?["type"], .string("boolean"))
     }
 
     @MainActor
@@ -802,5 +808,87 @@ final class ScriptStoreCoreTests: XCTestCase {
         let restored = try XCTUnwrap(reloadedAgain.script(id: "origin-test"))
         XCTAssertEqual(restored.version, 1)
         XCTAssertTrue(restored.versions.isEmpty)
+    }
+
+    @MainActor
+    func testThreeConsecutiveErrorLoadsAutoDisableAndCleanLoadResetsCount() throws {
+        let store = ScriptStore(directoryURL: tempDirectory)
+        try store.create(
+            id: "flaky-script",
+            name: "Flaky Script",
+            matchRules: ["*://example.com/*"],
+            js: "null.boom();"
+        )
+
+        // Load 1: even if two errors fire on the same loadID, consecutiveErrorLoads bumps once.
+        store.recordPageLoadError(scriptID: "flaky-script", message: "TypeError: first", line: 2, loadID: "load-1")
+        store.recordPageLoadError(scriptID: "flaky-script", message: "TypeError: duplicate on load-1", line: 2, loadID: "load-1")
+        XCTAssertEqual(store.consecutiveErrorLoads["flaky-script"], 1)
+        XCTAssertEqual(store.script(id: "flaky-script")?.isEnabled, true)
+
+        // Load 2: second erroring load in a row.
+        store.recordPageLoadError(scriptID: "flaky-script", message: "TypeError: second", line: 2, loadID: "load-2")
+        XCTAssertEqual(store.consecutiveErrorLoads["flaky-script"], 2)
+        XCTAssertEqual(store.script(id: "flaky-script")?.isEnabled, true)
+
+        // Load 3: clean run resets the consecutive error-load count!
+        store.recordPageLoadClean(scriptID: "flaky-script", loadID: "load-3")
+        XCTAssertEqual(store.consecutiveErrorLoads["flaky-script"], 0)
+        XCTAssertNil(store.error(for: "flaky-script"))
+
+        // Loads 4 & 5: two errors after a clean load do NOT auto-disable yet.
+        store.recordPageLoadError(scriptID: "flaky-script", message: "ReferenceError: missingNode", line: 7, loadID: "load-4")
+        store.recordPageLoadError(scriptID: "flaky-script", message: "ReferenceError: missingNode", line: 7, loadID: "load-5")
+        XCTAssertEqual(store.script(id: "flaky-script")?.isEnabled, true)
+        XCTAssertNil(store.script(id: "flaky-script")?.disabledReason)
+
+        // Load 6: third consecutive erroring load disables the script and persists disabledReason.
+        store.recordPageLoadError(scriptID: "flaky-script", message: "ReferenceError: missingNode", line: 7, loadID: "load-6")
+        let autoDisabled = try XCTUnwrap(store.script(id: "flaky-script"))
+        XCTAssertFalse(autoDisabled.isEnabled)
+        XCTAssertEqual(
+            autoDisabled.disabledReason,
+            "Turned off after errors on 3 page loads in a row: ReferenceError: missingNode"
+        )
+        // Latest error remains accessible for "Let the Agent fix it".
+        XCTAssertEqual(store.error(for: "flaky-script")?.message, "ReferenceError: missingNode")
+
+        // Persisted across ScriptStore reload from .user.js on disk.
+        let reloaded = ScriptStore(directoryURL: tempDirectory)
+        let persisted = try XCTUnwrap(reloaded.script(id: "flaky-script"))
+        XCTAssertFalse(persisted.isEnabled)
+        XCTAssertEqual(
+            persisted.disabledReason,
+            "Turned off after errors on 3 page loads in a row: ReferenceError: missingNode"
+        )
+
+        // Turning the script back on clears disabledReason.
+        try reloaded.setEnabled(id: "flaky-script", isEnabled: true)
+        XCTAssertNil(reloaded.script(id: "flaky-script")?.disabledReason)
+        let reloadedAfterReenable = ScriptStore(directoryURL: tempDirectory)
+        XCTAssertNil(reloadedAfterReenable.script(id: "flaky-script")?.disabledReason)
+    }
+
+    @MainActor
+    func testAgentScriptCardUndoDisablesWithoutDeleting() throws {
+        let storeURL = tempDirectory.appendingPathComponent("app-state/state.json")
+        let store = ScriptStore(directoryURL: tempDirectory.appendingPathComponent("scripts", isDirectory: true))
+        let created = try store.create(
+            id: "undo-me",
+            name: "Undo Me",
+            matchRules: ["*://example.com/*"],
+            css: "body { filter: invert(1); }"
+        )
+        let app = AppModel(
+            store: PersistentStore(fileURL: storeURL),
+            scriptStore: store
+        )
+        XCTAssertEqual(app.scriptStore.script(id: created.id)?.isEnabled, true)
+
+        AgentScriptCardView.undoSavedScript(id: created.id, in: app)
+
+        let afterUndo = try XCTUnwrap(app.scriptStore.script(id: created.id), "Undo disables the script rather than deleting it")
+        XCTAssertFalse(afterUndo.isEnabled)
+        XCTAssertNil(afterUndo.disabledReason)
     }
 }

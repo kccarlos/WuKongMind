@@ -1207,14 +1207,20 @@ extension ToolRegistry {
         bridge: AgentPageDriving,
         scriptStore: ScriptStore,
         liveApplier: ScriptLiveApplying? = nil,
-        currentUserPrompt: (@MainActor @Sendable () -> String?)? = nil
+        currentUserPrompt: (@MainActor @Sendable () -> String?)? = nil,
+        pageBaseline: (@MainActor @Sendable () -> PageStateSnapshot?)? = nil,
+        pageBaselineImage: (@MainActor @Sendable () -> AgentImage?)? = nil,
+        supportsImageInput: Bool = false
     ) -> [AgentTool] {
         [
             makeScriptSaveTool(
                 bridge: bridge,
                 scriptStore: scriptStore,
                 liveApplier: liveApplier,
-                currentUserPrompt: currentUserPrompt
+                currentUserPrompt: currentUserPrompt,
+                pageBaseline: pageBaseline,
+                pageBaselineImage: pageBaselineImage,
+                supportsImageInput: supportsImageInput
             ),
             makeScriptListTool(scriptStore: scriptStore),
             makeScriptReadTool(scriptStore: scriptStore),
@@ -1222,7 +1228,10 @@ extension ToolRegistry {
                 bridge: bridge,
                 scriptStore: scriptStore,
                 liveApplier: liveApplier,
-                currentUserPrompt: currentUserPrompt
+                currentUserPrompt: currentUserPrompt,
+                pageBaseline: pageBaseline,
+                pageBaselineImage: pageBaselineImage,
+                supportsImageInput: supportsImageInput
             ),
             makeScriptDeleteTool(
                 scriptStore: scriptStore,
@@ -1231,11 +1240,20 @@ extension ToolRegistry {
         ]
     }
 
+    private static let confirmChangeParameter = ToolParameterSchema(
+        name: "confirm_change",
+        type: .boolean,
+        description: "Set true to save even when page-feedback rules warn that the script removed major page content (for example when the user asked to keep only the article). Never overrides runtime errors."
+    )
+
     private static func makeScriptSaveTool(
         bridge: AgentPageDriving,
         scriptStore: ScriptStore,
         liveApplier: ScriptLiveApplying?,
-        currentUserPrompt: (@MainActor @Sendable () -> String?)?
+        currentUserPrompt: (@MainActor @Sendable () -> String?)?,
+        pageBaseline: (@MainActor @Sendable () -> PageStateSnapshot?)? = nil,
+        pageBaselineImage: (@MainActor @Sendable () -> AgentImage?)? = nil,
+        supportsImageInput: Bool = false
     ) -> AgentTool {
         let definition = AgentToolDefinition(
             name: "script_save",
@@ -1282,7 +1300,8 @@ extension ToolRegistry {
                         AgentExecutionEnvironment.isolated.rawValue,
                         AgentExecutionEnvironment.page.rawValue
                     ]
-                )
+                ),
+                confirmChangeParameter
             ],
             required: ["name", "match_rules"]
         )
@@ -1322,10 +1341,11 @@ extension ToolRegistry {
                 let injectionTime = ScriptInjectionTime(rawValue: injectionRaw) ?? .defaultTime
                 let envRaw = args["environment"]?.stringValue ?? AgentExecutionEnvironment.defaultEnvironment.rawValue
                 let environment = AgentExecutionEnvironment(rawValue: envRaw) ?? .defaultEnvironment
+                let confirmChange = args["confirm_change"]?.strictBoolValue ?? false
 
-                let saved: UserScript = try await MainActor.run {
+                let candidate: UserScript = try await MainActor.run {
                     let prompt = currentUserPrompt?() ?? ""
-                    return try scriptStore.create(
+                    return try scriptStore.makeCandidateForCreate(
                         name: name,
                         matchRules: rules,
                         js: js,
@@ -1337,13 +1357,29 @@ extension ToolRegistry {
                     )
                 }
 
-                let liveOutcome = await applyScriptToOpenPage(
-                    saved,
-                    runJS: saved.hasJS,
+                let verification = try await verifyCandidateBeforeSaving(
+                    candidate: candidate,
+                    replacingScriptID: nil,
+                    confirmChange: confirmChange,
                     bridge: bridge,
                     scriptStore: scriptStore,
-                    liveApplier: liveApplier
+                    liveApplier: liveApplier,
+                    pageBaseline: pageBaseline,
+                    pageBaselineImage: pageBaselineImage,
+                    supportsImageInput: supportsImageInput
                 )
+
+                if case .refused(let message, let summary, let images) = verification {
+                    return ToolExecutionOutput(content: message, summary: summary, isError: true, images: images)
+                }
+
+                let saved: UserScript = try await MainActor.run {
+                    let committed = try scriptStore.commitCreated(candidate)
+                    if case .verifiedOnCurrentPage = verification {
+                        scriptStore.noteExecuted(scriptID: committed.id)
+                    }
+                    return committed
+                }
 
                 var payload: [String: JSONValue] = [
                     "script_id": .string(saved.id),
@@ -1351,25 +1387,18 @@ extension ToolRegistry {
                     "version": .int(Int64(saved.version)),
                     "match_rules": .array(saved.matchRules.map(JSONValue.string)),
                     "injection_time": .string(saved.injectionTime.rawValue),
-                    "environment": .string(saved.environment.rawValue),
-                    "applied_to_current_page": .bool(liveOutcome.applied)
+                    "environment": .string(saved.environment.rawValue)
                 ]
-                if let runtimeError = liveOutcome.runtimeError {
-                    payload["runtime_error"] = .string(runtimeError)
-                }
 
-                let json = JSONValue.encodeCompactJSON(payload)
-                if let runtimeError = liveOutcome.runtimeError {
-                    return ToolExecutionOutput(
-                        content: json,
-                        summary: "Saved '\(saved.name)' (\(saved.id)), runtime error: \(condenseInline(runtimeError, maxChars: 48))",
-                        isError: true
-                    )
-                }
-                return ToolExecutionOutput(
-                    content: json,
-                    summary: "Saved '\(saved.name)' (\(saved.id), v\(saved.version))",
-                    isError: false
+                return try await finishVerifiedScriptWrite(
+                    script: saved,
+                    verification: verification,
+                    payload: payload,
+                    baseSummary: "Saved '\(saved.name)' (\(saved.id), v\(saved.version))",
+                    fallbackRunJS: saved.hasJS,
+                    bridge: bridge,
+                    scriptStore: scriptStore,
+                    liveApplier: liveApplier
                 )
             }
         )
@@ -1422,6 +1451,9 @@ extension ToolRegistry {
                         ]
                         if let err = scriptStore.error(for: script.id) {
                             obj["error"] = .string(err.message)
+                        }
+                        if let disabledReason = script.disabledReason {
+                            obj["disabled_reason"] = .string(disabledReason)
                         }
                         return .object(obj)
                     }
@@ -1501,6 +1533,9 @@ extension ToolRegistry {
                 if let runtimeErr {
                     payload["error"] = .string(runtimeErr.message)
                 }
+                if let disabledReason = script.disabledReason {
+                    payload["disabled_reason"] = .string(disabledReason)
+                }
 
                 return ToolExecutionOutput(
                     content: JSONValue.encodeCompactJSON(payload),
@@ -1515,7 +1550,10 @@ extension ToolRegistry {
         bridge: AgentPageDriving,
         scriptStore: ScriptStore,
         liveApplier: ScriptLiveApplying?,
-        currentUserPrompt: (@MainActor @Sendable () -> String?)? = nil
+        currentUserPrompt: (@MainActor @Sendable () -> String?)? = nil,
+        pageBaseline: (@MainActor @Sendable () -> PageStateSnapshot?)? = nil,
+        pageBaselineImage: (@MainActor @Sendable () -> AgentImage?)? = nil,
+        supportsImageInput: Bool = false
     ) -> AgentTool {
         let definition = AgentToolDefinition(
             name: "script_update",
@@ -1571,7 +1609,8 @@ extension ToolRegistry {
                     name: "enabled",
                     type: .boolean,
                     description: "Optional enabled state for the script."
-                )
+                ),
+                confirmChangeParameter
             ],
             required: ["script_id"]
         )
@@ -1609,13 +1648,17 @@ extension ToolRegistry {
             },
             summarizeArguments: { args in
                 let id = condenseInline(args["script_id"]?.stringValue ?? "", maxChars: 36)
-                let changed = ["name", "match_rules", "js", "css", "injection_time", "environment", "enabled"]
+                var changed = ["name", "match_rules", "js", "css", "injection_time", "environment", "enabled"]
                     .filter { args[$0] != nil }
+                if args["confirm_change"]?.strictBoolValue == true {
+                    changed.append("confirm_change")
+                }
                 if changed.isEmpty { return id }
                 return "\(id) (\(changed.joined(separator: ", ")))"
             },
             execute: { args in
                 let id = args["script_id"]?.stringValue?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                let confirmChange = args["confirm_change"]?.strictBoolValue ?? false
                 let matchRules: [String]?
                 if let rulesVal = args["match_rules"] {
                     matchRules = try extractValidatedMatchRules(from: rulesVal, toolName: "script_update")
@@ -1633,53 +1676,59 @@ extension ToolRegistry {
                     isEnabled: args["enabled"]?.strictBoolValue
                 )
 
-                let (wasEnabled, updated): (Bool, UserScript) = try await MainActor.run {
-                    let previouslyEnabled = scriptStore.script(id: id)?.isEnabled ?? false
+                let prospective: ScriptStore.ProspectiveUpdate = try await MainActor.run {
                     let prompt = currentUserPrompt?() ?? ""
-                    let result = try scriptStore.update(
+                    return try scriptStore.makeCandidateForUpdate(
                         id: id,
                         patch: patch,
                         origin: .changedByAgent(userPrompt: prompt)
                     )
-                    return (previouslyEnabled, result)
                 }
 
-                let shouldRunJS = updated.hasJS && (
-                    patch.js != nil
-                    || patch.environment != nil
-                    || patch.matchRules != nil
-                    || (patch.isEnabled == true && !wasEnabled)
-                )
-                let liveOutcome = await applyScriptToOpenPage(
-                    updated,
-                    runJS: shouldRunJS,
+                let verification = try await verifyCandidateBeforeSaving(
+                    candidate: prospective.updated,
+                    replacingScriptID: prospective.previous.id,
+                    confirmChange: confirmChange,
                     bridge: bridge,
                     scriptStore: scriptStore,
-                    liveApplier: liveApplier
+                    liveApplier: liveApplier,
+                    pageBaseline: pageBaseline,
+                    pageBaselineImage: pageBaselineImage,
+                    supportsImageInput: supportsImageInput
                 )
+
+                if case .refused(let message, let summary, let images) = verification {
+                    return ToolExecutionOutput(content: message, summary: summary, isError: true, images: images)
+                }
+
+                let wasEnabled = prospective.previous.isEnabled
+                let updated: UserScript = try await MainActor.run {
+                    let committed = try scriptStore.commitUpdated(prospective)
+                    if case .verifiedOnCurrentPage = verification {
+                        scriptStore.noteExecuted(scriptID: committed.id)
+                    }
+                    return committed
+                }
 
                 var payload: [String: JSONValue] = [
                     "script_id": .string(updated.id),
                     "version": .int(Int64(updated.version)),
-                    "enabled": .bool(updated.isEnabled),
-                    "applied_to_current_page": .bool(liveOutcome.applied)
+                    "enabled": .bool(updated.isEnabled)
                 ]
-                if let runtimeError = liveOutcome.runtimeError {
-                    payload["runtime_error"] = .string(runtimeError)
-                }
 
-                let json = JSONValue.encodeCompactJSON(payload)
-                if let runtimeError = liveOutcome.runtimeError {
-                    return ToolExecutionOutput(
-                        content: json,
-                        summary: "Updated '\(updated.name)' to v\(updated.version), runtime error: \(condenseInline(runtimeError, maxChars: 44))",
-                        isError: true
-                    )
-                }
-                return ToolExecutionOutput(
-                    content: json,
-                    summary: "Updated '\(updated.name)' to v\(updated.version)",
-                    isError: false
+                let shouldRunJS = updated.hasJS && (
+                    patch.js != nil || patch.environment != nil || patch.matchRules != nil
+                    || (patch.isEnabled == true && !wasEnabled)
+                )
+                return try await finishVerifiedScriptWrite(
+                    script: updated,
+                    verification: verification,
+                    payload: payload,
+                    baseSummary: "Updated '\(updated.name)' to v\(updated.version)",
+                    fallbackRunJS: shouldRunJS,
+                    bridge: bridge,
+                    scriptStore: scriptStore,
+                    liveApplier: liveApplier
                 )
             }
         )
@@ -1830,6 +1879,170 @@ extension ToolRegistry {
         }
         return ScriptLiveApplicationOutcome(applied: true, runtimeError: capturedError)
     }
+
+    private enum CandidateVerificationOutcome: Sendable {
+        case verifiedOnCurrentPage
+        case unverified(note: String)
+        case fallbackLiveApply
+        case refused(message: String, summary: String, images: [AgentImage])
+    }
+
+    private static func finishVerifiedScriptWrite(
+        script: UserScript,
+        verification: CandidateVerificationOutcome,
+        payload basePayload: [String: JSONValue],
+        baseSummary: String,
+        fallbackRunJS: Bool,
+        bridge: AgentPageDriving,
+        scriptStore: ScriptStore,
+        liveApplier: ScriptLiveApplying?
+    ) async throws -> ToolExecutionOutput {
+        var payload = basePayload
+        switch verification {
+        case .verifiedOnCurrentPage:
+            payload["applied_to_current_page"] = .bool(true)
+            payload["verified"] = .bool(true)
+            return ToolExecutionOutput(content: JSONValue.encodeCompactJSON(payload), summary: baseSummary, isError: false)
+        case .unverified(let note):
+            if !script.isEnabled { await liveApplier?.removeLiveScript(id: script.id) }
+            payload["applied_to_current_page"] = .bool(false)
+            payload["verified"] = .bool(false)
+            if script.isEnabled { payload["verification_note"] = .string(note) }
+            let summary = script.isEnabled ? "\(baseSummary) (unverified)" : baseSummary
+            return ToolExecutionOutput(content: JSONValue.encodeCompactJSON(payload), summary: summary, isError: false)
+        case .fallbackLiveApply:
+            let live = await applyScriptToOpenPage(script, runJS: fallbackRunJS, bridge: bridge, scriptStore: scriptStore, liveApplier: liveApplier)
+            payload["applied_to_current_page"] = .bool(live.applied)
+            payload["verified"] = .bool(false)
+            if let err = live.runtimeError { payload["runtime_error"] = .string(err) }
+            let json = JSONValue.encodeCompactJSON(payload)
+            if let err = live.runtimeError {
+                return ToolExecutionOutput(content: json, summary: "\(baseSummary), runtime error: \(condenseInline(err, maxChars: 48))", isError: true)
+            }
+            return ToolExecutionOutput(content: json, summary: baseSummary, isError: false)
+        case .refused(let message, let summary, let images):
+            return ToolExecutionOutput(content: message, summary: summary, isError: true, images: images)
+        }
+    }
+
+    /// Reloads the open page once with `candidate` installed as a temporary
+    /// `WKUserScript` before writing to disk (`design-m3.md` "Verify before saving").
+    private static func verifyCandidateBeforeSaving(
+        candidate: UserScript,
+        replacingScriptID: String?,
+        confirmChange: Bool,
+        bridge: AgentPageDriving,
+        scriptStore: ScriptStore,
+        liveApplier: ScriptLiveApplying?,
+        pageBaseline: (@MainActor @Sendable () -> PageStateSnapshot?)?,
+        pageBaselineImage: (@MainActor @Sendable () -> AgentImage?)? = nil,
+        supportsImageInput: Bool = false
+    ) async throws -> CandidateVerificationOutcome {
+        guard candidate.isEnabled else {
+            return .unverified(note: "Saved disabled without reloading.")
+        }
+        let globalEnabled = await MainActor.run { scriptStore.isGlobalEnabled }
+        guard globalEnabled else {
+            return .unverified(note: "Saved unverified because userscripts are currently turned off.")
+        }
+
+        let meta = await bridge.currentPageMetadata()
+        guard !meta.url.isEmpty, meta.url != "about:blank", candidate.matches(urlString: meta.url) else {
+            return .unverified(note: "Saved unverified because its match rules do not cover the current page.")
+        }
+
+        let sessionBaseline = await MainActor.run { pageBaseline?() }
+        let beforeSnapshot: PageStateSnapshot?
+        if let sessionBaseline, sessionBaseline.url == meta.url {
+            beforeSnapshot = sessionBaseline
+        } else {
+            beforeSnapshot = await bridge.pageSnapshot()
+        }
+        let beforeImage: AgentImage?
+        if supportsImageInput {
+            if let sessionBaseline, sessionBaseline.url == meta.url,
+               let sessionImage = await MainActor.run(body: { pageBaselineImage?() }) {
+                beforeImage = sessionImage
+            } else {
+                beforeImage = try? await bridge.screenshot(area: .visible).image
+            }
+        } else {
+            beforeImage = nil
+        }
+
+        await liveApplier?.beginCandidateVerification(candidate, replacingScriptID: replacingScriptID)
+
+        let reloadOutcome: AgentNavigationOutcome
+        do {
+            reloadOutcome = try await bridge.reload(timeout: ToolRegistry.navigationTimeout)
+        } catch AgentBridgeError.navigationUnavailable {
+            _ = await liveApplier?.endCandidateVerification()
+            return .fallbackLiveApply
+        } catch let cancellation as CancellationError {
+            _ = await liveApplier?.endCandidateVerification()
+            throw cancellation
+        } catch {
+            _ = await liveApplier?.endCandidateVerification()
+            return .refused(
+                message: "Error: Not saved: could not reload the page to verify the script (\(error.localizedDescription)).",
+                summary: "Not saved · reload failed",
+                images: []
+            )
+        }
+
+        if let failure = reloadOutcome.failure {
+            _ = await liveApplier?.endCandidateVerification()
+            return .refused(
+                message: "Error: Not saved: could not reload the page to verify the script (\(failure)).",
+                summary: "Not saved · reload failed",
+                images: []
+            )
+        }
+
+        if liveApplier != nil {
+            _ = try? await bridge.runJS(
+                code: "await new Promise(r => setTimeout(r, 30)); return true;",
+                environment: .isolated,
+                timeout: 2
+            )
+        }
+
+        let capturedError = await liveApplier?.endCandidateVerification()
+        if let capturedError {
+            let detail: String
+            if let line = capturedError.line, line > 0 {
+                detail = "\(capturedError.message) (line \(line))"
+            } else {
+                detail = capturedError.message
+            }
+            let images = supportsImageInput
+                ? await warningScreenshots(beforeImage: beforeImage, bridge: bridge)
+                : []
+            return .refused(
+                message: "Error: Not saved: runtime error: \(detail). Fix the script and call again.",
+                summary: "Not saved · runtime error: \(condenseInline(capturedError.message, maxChars: 48))",
+                images: images
+            )
+        }
+
+        if !confirmChange, let beforeSnapshot {
+            let afterSnapshot = await bridge.pageSnapshot()
+            let report = PageFeedbackRules.compare(before: beforeSnapshot, after: afterSnapshot)
+            if report.isWarning {
+                let reasons = report.reasons.joined(separator: "; ")
+                let images = supportsImageInput
+                    ? await warningScreenshots(beforeImage: beforeImage, bridge: bridge)
+                    : []
+                return .refused(
+                    message: "Error: Not saved: \(reasons). If this change is what the user asked for, call again with confirm_change: true.",
+                    summary: "Not saved · \(condenseInline(reasons, maxChars: 56))",
+                    images: images
+                )
+            }
+        }
+
+        return .verifiedOnCurrentPage
+    }
 }
 
 // MARK: - M3 Tool Context & Factory
@@ -1851,6 +2064,8 @@ struct AgentToolContext: Sendable {
     var scriptStore: ScriptStore
     var liveApplier: ScriptLiveApplying?
     var currentUserPrompt: (@MainActor @Sendable () -> String?)?
+    var pageBaseline: (@MainActor @Sendable () -> PageStateSnapshot?)?
+    var pageBaselineImage: (@MainActor @Sendable () -> AgentImage?)?
     var settings: AgentToolSettings
     /// The HTTP client and cookie access behind `http_request` and `cookies_get`.
     var network: AgentHTTPClient?
@@ -1863,6 +2078,8 @@ struct AgentToolContext: Sendable {
         scriptStore: ScriptStore,
         liveApplier: ScriptLiveApplying? = nil,
         currentUserPrompt: (@MainActor @Sendable () -> String?)? = nil,
+        pageBaseline: (@MainActor @Sendable () -> PageStateSnapshot?)? = nil,
+        pageBaselineImage: (@MainActor @Sendable () -> AgentImage?)? = nil,
         settings: AgentToolSettings = AgentToolSettings(),
         network: AgentHTTPClient? = nil,
         confirmations: AgentConfirmationGate? = nil
@@ -1872,6 +2089,8 @@ struct AgentToolContext: Sendable {
         self.scriptStore = scriptStore
         self.liveApplier = liveApplier
         self.currentUserPrompt = currentUserPrompt
+        self.pageBaseline = pageBaseline
+        self.pageBaselineImage = pageBaselineImage
         self.settings = settings
         self.network = network
         self.confirmations = confirmations
@@ -1893,7 +2112,10 @@ extension ToolRegistry {
             bridge: context.bridge,
             scriptStore: context.scriptStore,
             liveApplier: context.liveApplier,
-            currentUserPrompt: context.currentUserPrompt
+            currentUserPrompt: context.currentUserPrompt,
+            pageBaseline: context.pageBaseline,
+            pageBaselineImage: context.pageBaselineImage,
+            supportsImageInput: context.settings.supportsImageInput
         )
         tools += workspaceTools(context: context)
         tools += captureTools(context: context)

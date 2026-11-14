@@ -469,6 +469,17 @@ struct AgentScriptCardView: View {
                 .buttonStyle(DCActionButtonStyle(prominent: false))
                 .accessibilityIdentifier("agentScriptToggleButton")
 
+                if script.isEnabled {
+                    Button {
+                        DCHaptics.tap()
+                        Self.undoSavedScript(id: script.id, in: app)
+                    } label: {
+                        Text("Undo", comment: "Undo button after deleting or restoring a userscript")
+                    }
+                    .buttonStyle(DCButtonStyle(role: .quiet))
+                    .accessibilityIdentifier("agentScriptUndo")
+                }
+
                 Spacer(minLength: 0)
 
                 Button(role: .destructive) {
@@ -543,6 +554,12 @@ struct AgentScriptCardView: View {
         return "\(firstRule) · +\(extra) more"
     }
 
+    @MainActor
+    static func undoSavedScript(id: String, in app: AppModel) {
+        _ = try? app.scriptStore.setEnabled(id: id, isEnabled: false, runLiveJS: false)
+        app.browser.reload()
+    }
+
     @ViewBuilder
     private func statePill(isEffectivelyOn: Bool, hasError: Bool) -> some View {
         if hasError {
@@ -573,6 +590,7 @@ struct PageCapabilitiesView: View {
     @ObservedObject var app: AppModel
     let pageURL: URL?
     @Binding var isPresented: Bool
+    var onFixScript: ((UserScript) -> Void)? = nil
     @State private var hasSwitchChanges = false
     @State private var turnedOffJSIDs: Set<String> = []
     @State private var addingForum = false
@@ -923,58 +941,84 @@ struct PageCapabilitiesView: View {
 
     private func popoverScriptRow(_ script: UserScript) -> some View {
         let error = (script.isEnabled && isGlobalOn) ? app.scriptStore.error(for: script.id) : nil
+        let autoDisabledReason: String? = (!script.isEnabled && !(script.disabledReason ?? "").isEmpty)
+            ? script.disabledReason
+            : nil
 
-        return HStack(spacing: 10) {
-            Button {
-                DCHaptics.tap()
-                openSettingsScripts(targetScriptID: script.id)
-            } label: {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(script.name)
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(.primary)
-                        .multilineTextAlignment(.leading)
-                        .fixedSize(horizontal: false, vertical: true)
+        return VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: 10) {
+                Button {
+                    DCHaptics.tap()
+                    openSettingsScripts(targetScriptID: script.id)
+                } label: {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(script.name)
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(.primary)
+                            .multilineTextAlignment(.leading)
+                            .fixedSize(horizontal: false, vertical: true)
 
-                    popoverSubtitleView(for: script, error: error)
-                }
-                .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(Text(script.name))
-            .accessibilityValue(Text(rowAccessibilityValue(for: script, error: error)))
-            .accessibilityIdentifier("pageScriptRow-\(script.id)")
-
-            Toggle(
-                script.name,
-                isOn: Binding(
-                    get: { script.isEnabled },
-                    set: { newValue in
-                        DCHaptics.tap()
-                        hasSwitchChanges = true
-                        if !newValue && script.hasJS {
-                            turnedOffJSIDs.insert(script.id)
-                        } else if newValue {
-                            turnedOffJSIDs.remove(script.id)
-                        }
-                        _ = try? app.scriptStore.setEnabled(
-                            id: script.id,
-                            isEnabled: newValue,
-                            runLiveJS: newValue
-                        )
+                        popoverSubtitleView(for: script, error: error)
                     }
+                    .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text(script.name))
+                .accessibilityValue(Text(rowAccessibilityValue(for: script, error: error)))
+                .accessibilityIdentifier("pageScriptRow-\(script.id)")
+
+                Toggle(
+                    script.name,
+                    isOn: Binding(
+                        get: { script.isEnabled },
+                        set: { newValue in
+                            DCHaptics.tap()
+                            hasSwitchChanges = true
+                            if !newValue && script.hasJS {
+                                turnedOffJSIDs.insert(script.id)
+                            } else if newValue {
+                                turnedOffJSIDs.remove(script.id)
+                            }
+                            _ = try? app.scriptStore.setEnabled(
+                                id: script.id,
+                                isEnabled: newValue,
+                                runLiveJS: newValue
+                            )
+                        }
+                    )
                 )
-            )
-            .labelsHidden()
-            .tint(DCTheme.gold)
-            .disabled(!isGlobalOn)
-            .frame(minWidth: 51, minHeight: 44)
-            .accessibilityIdentifier("pageScriptToggle-\(script.id)")
+                .labelsHidden()
+                .tint(DCTheme.gold)
+                .disabled(!isGlobalOn)
+                .frame(minWidth: 51, minHeight: 44)
+                .accessibilityIdentifier("pageScriptToggle-\(script.id)")
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 6)
+            .frame(minHeight: 56)
+
+            if let autoDisabledReason {
+                Text(verbatim: autoDisabledReason)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.horizontal, 14)
+                    .accessibilityIdentifier("thisPageDisabledReason-\(script.id)")
+
+                Button {
+                    DCHaptics.tap()
+                    isPresented = false
+                    onFixScript?(script)
+                } label: {
+                    Text("Let the Agent fix it", comment: "Quiet button under an auto-disabled script in This page that asks the Agent to fix the broken script")
+                }
+                .buttonStyle(DCButtonStyle(role: .quiet))
+                .padding(.horizontal, 2)
+                .padding(.bottom, 4)
+                .accessibilityIdentifier("thisPageLetAgentFix-\(script.id)")
+            }
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 6)
-        .frame(minHeight: 56)
         .opacity(isGlobalOn ? 1 : 0.45)
     }
 

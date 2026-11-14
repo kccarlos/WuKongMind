@@ -119,6 +119,114 @@ final class SuggestionRoutingTests: XCTestCase {
         XCTAssertTrue(prompt.hasSuffix("The user's message:\nWhy?"))
     }
 
+    // MARK: - M3 Broken-page suggestion & script fix context
+
+    func testBrokenPageSuggestionPlacementAndRouting() {
+        XCTAssertEqual(PageSuggestion.pageBroken.text, "This page looks broken")
+        XCTAssertEqual(PageSuggestion.pageBroken.accessibilityIdentifier, "suggestionPageBroken")
+        XCTAssertFalse(PageSuggestion.pageBroken.fillsComposer)
+        XCTAssertEqual(PageSuggestions.route(for: .pageBroken, on: .forumThread), .agent)
+        XCTAssertEqual(PageSuggestions.route(for: .pageBroken, on: .ordinaryPage), .agent)
+
+        // Absent when no active scripts run on the page (even if hasScriptErrors is true).
+        XCTAssertFalse(
+            PageSuggestions.suggestions(for: .ordinaryPage, hasActiveScripts: false, hasScriptErrors: true)
+                .contains(.pageBroken)
+        )
+        XCTAssertEqual(
+            PageSuggestions.suggestions(for: nil, hasActiveScripts: true, hasScriptErrors: true),
+            []
+        )
+
+        // Last when active scripts have no recorded errors.
+        XCTAssertEqual(
+            PageSuggestions.suggestions(for: .ordinaryPage, hasActiveScripts: true, hasScriptErrors: false),
+            [.summarizePage, .makeDark, .removeDistractions, .pageBroken]
+        )
+        XCTAssertEqual(
+            PageSuggestions.suggestions(for: .forumThread, hasActiveScripts: true, hasScriptErrors: false).last,
+            .pageBroken
+        )
+
+        // First only when the current page's scripts have recorded errors.
+        XCTAssertEqual(
+            PageSuggestions.suggestions(for: .ordinaryPage, hasActiveScripts: true, hasScriptErrors: true),
+            [.pageBroken, .summarizePage, .makeDark, .removeDistractions]
+        )
+        XCTAssertEqual(
+            PageSuggestions.suggestions(for: .forumThread, hasActiveScripts: true, hasScriptErrors: true).first,
+            .pageBroken
+        )
+    }
+
+    func testBrokenPageAndFixScriptAttachedBlocksCarrySnapshotScriptsAndErrors() {
+        let snapshot = PageStateSnapshot(
+            url: "https://news.example.org/story",
+            textLength: 42,
+            documentHeight: 844,
+            isScrollable: false,
+            linkCount: 1,
+            formControlCount: 0,
+            visibleImageCount: 0,
+            pageErrorCount: 2
+        )
+        let cleanScript = UserScript(
+            id: "reader-layout",
+            name: "Reader Layout",
+            matchRules: ["*://news.example.org/*"],
+            css: "article { max-width: 65ch; }"
+        )
+        let brokenScript = UserScript(
+            id: "comment-hider",
+            name: "Comment Hider",
+            matchRules: ["*://news.example.org/*"],
+            js: "document.querySelector('.missing').remove();"
+        )
+        let runtimeError = ScriptRuntimeError(
+            scriptID: "comment-hider",
+            scriptName: "Comment Hider",
+            message: "TypeError: null is not an object",
+            line: 4,
+            url: "https://news.example.org/story",
+            occurredAt: Date(),
+            count: 2
+        )
+
+        let brokenBlock = PageFeedbackContext.brokenPageBlock(
+            snapshot: snapshot,
+            activeScripts: [cleanScript, brokenScript],
+            errorsByScriptID: ["comment-hider": runtimeError]
+        )
+        let brokenPrompt = BrowserAgentSession.modelPrompt(
+            PageSuggestion.pageBroken.text,
+            context: nil,
+            attachedBlock: brokenBlock
+        )
+        XCTAssertTrue(brokenPrompt.contains("https://news.example.org/story"), brokenPrompt)
+        XCTAssertTrue(brokenPrompt.contains("text 42 chars"), brokenPrompt)
+        XCTAssertTrue(brokenPrompt.contains("Reader Layout (id: reader-layout) — latest error: none"), brokenPrompt)
+        XCTAssertTrue(brokenPrompt.contains("Comment Hider (id: comment-hider) — latest error: TypeError: null is not an object (line 4)"), brokenPrompt)
+        XCTAssertTrue(brokenPrompt.hasSuffix("The user's message:\nThis page looks broken"), brokenPrompt)
+
+        var disabledScript = brokenScript
+        disabledScript.isEnabled = false
+        disabledScript.disabledReason = "Turned off after errors on 3 page loads in a row: TypeError: null is not an object"
+
+        let fixBlock = PageFeedbackContext.fixScriptBlock(
+            script: disabledScript,
+            latestError: runtimeError
+        )
+        let fixPrompt = BrowserAgentSession.modelPrompt(
+            "Fix the script \(disabledScript.name)",
+            context: nil,
+            attachedBlock: fixBlock
+        )
+        XCTAssertTrue(fixPrompt.contains("Comment Hider (id: comment-hider)"), fixPrompt)
+        XCTAssertTrue(fixPrompt.contains("TypeError: null is not an object (line 4)"), fixPrompt)
+        XCTAssertTrue(fixPrompt.contains("enabled: true"), fixPrompt)
+        XCTAssertTrue(fixPrompt.hasSuffix("The user's message:\nFix the script Comment Hider"), fixPrompt)
+    }
+
     private func makeApp(sessions: [TopicSession], runs: [AgentRun]) -> AppModel {
         let fileURL = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString, isDirectory: true)

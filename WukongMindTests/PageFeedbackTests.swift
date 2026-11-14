@@ -1,4 +1,5 @@
 import Foundation
+import Network
 import UIKit
 import WebKit
 import XCTest
@@ -149,13 +150,33 @@ final class PageFeedbackTests: XCTestCase {
     // MARK: - Real pages
 
     private var activeWindows: [UIWindow] = []
+    private var activeBrowsers: [ForumBrowserModel] = []
+    private var activeControllers: [ScriptWebController] = []
+    private var activeServers: [ArticleFixtureServer] = []
+    private var tempDirectories: [URL] = []
 
     override func tearDown() async throws {
+        for controller in activeControllers {
+            controller.detach()
+        }
+        activeControllers.removeAll()
+        for browser in activeBrowsers {
+            browser.stopLoading()
+        }
+        activeBrowsers.removeAll()
         for window in activeWindows {
             window.isHidden = true
             window.rootViewController = nil
         }
         activeWindows.removeAll()
+        for server in activeServers {
+            server.stop()
+        }
+        activeServers.removeAll()
+        for dir in tempDirectories {
+            try? FileManager.default.removeItem(at: dir)
+        }
+        tempDirectories.removeAll()
         try await super.tearDown()
     }
 
@@ -336,5 +357,283 @@ final class PageFeedbackTests: XCTestCase {
         let result = try await registry.dispatch(toolName: "read_page", arguments: ["mode": .string("text")])
         XCTAssertNil(result.pageFeedback)
         XCTAssertFalse(result.output.contains("Page changes"))
+    }
+
+    // MARK: - Verify before saving & recorded replay (M3 Task 4)
+
+    private final class ArticleFixtureServer: @unchecked Sendable {
+        private let listener: NWListener
+        private let queue = DispatchQueue(label: "PageFeedbackTests.ArticleFixtureServer")
+        private let htmlData: Data
+        private(set) var port: UInt16 = 0
+
+        init(html: String) throws {
+            self.htmlData = Data(html.utf8)
+            let params = NWParameters.tcp
+            params.requiredLocalEndpoint = NWEndpoint.hostPort(host: "127.0.0.1", port: .any)
+            self.listener = try NWListener(using: params)
+        }
+
+        var articleURL: URL { URL(string: "http://127.0.0.1:\(port)/article")! }
+
+        func start() async throws {
+            try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
+                nonisolated(unsafe) var resumed = false
+                listener.stateUpdateHandler = { [weak self] state in
+                    guard !resumed, let self else { return }
+                    if case .ready = state {
+                        resumed = true; self.port = self.listener.port?.rawValue ?? 0; cont.resume()
+                    } else if case .failed(let err) = state {
+                        resumed = true; cont.resume(throwing: err)
+                    }
+                }
+                listener.newConnectionHandler = { [htmlData, queue] conn in
+                    conn.start(queue: queue)
+                    conn.receive(minimumIncompleteLength: 1, maximumLength: 65_536) { _, _, _, _ in
+                        let head = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: \(htmlData.count)\r\nCache-Control: no-store\r\nConnection: close\r\n\r\n"
+                        conn.send(content: Data(head.utf8) + htmlData, contentContext: .finalMessage, isComplete: true, completion: .contentProcessed { _ in conn.cancel() })
+                    }
+                }
+                listener.start(queue: queue)
+            }
+        }
+
+        func stop() { listener.cancel() }
+    }
+
+    private func makeVerifiedBrowserHarness(
+        baseline: (@MainActor @Sendable () -> PageStateSnapshot?)? = nil,
+        baselineImage: (@MainActor @Sendable () -> AgentImage?)? = nil,
+        supportsImageInput: Bool = false
+    ) async throws -> (ForumBrowserModel, ScriptStore, ScriptWebController, ToolRegistry, URL) {
+        let server = try ArticleFixtureServer(html: Self.articleHTML)
+        try await server.start()
+        activeServers.append(server)
+
+        let browser = ForumBrowserModel(contentRules: ContentRuleLibrary(store: nil, directory: nil), websiteDataStore: .nonPersistent())
+        activeBrowsers.append(browser)
+
+        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.frame = CGRect(x: 0, y: 0, width: 390, height: 844)
+        let vc = UIViewController()
+        vc.view.frame = window.bounds
+        vc.view.addSubview(browser.webView)
+        browser.webView.frame = vc.view.bounds
+        window.rootViewController = vc
+        window.makeKeyAndVisible()
+        activeWindows.append(window)
+
+        let scriptsDir = FileManager.default.temporaryDirectory.appendingPathComponent("PageFeedbackTests-\(UUID().uuidString)", isDirectory: true)
+        tempDirectories.append(scriptsDir)
+        let store = ScriptStore(directoryURL: scriptsDir)
+        let controller = ScriptWebController(webView: browser.webView, store: store, agentBridge: browser.agentBridge)
+        activeControllers.append(controller)
+
+        let registry = ToolRegistry.m3(context: AgentToolContext(
+            bridge: browser.agentBridge, workspace: nil, scriptStore: store,
+            liveApplier: controller, currentUserPrompt: { "Test prompt" },
+            pageBaseline: baseline, pageBaselineImage: baselineImage,
+            settings: AgentToolSettings(supportsImageInput: supportsImageInput)
+        ))
+        let openResult = try await registry.dispatch(toolName: "navigate", arguments: ["url": .string(server.articleURL.absoluteString)])
+        XCTAssertFalse(openResult.isError, openResult.output)
+        return (browser, store, controller, registry, server.articleURL)
+    }
+
+    func testFailedVerifyCarriesBothImagesForImageModelAndNoneForTextModel() async throws {
+        let (_, _, _, visionRegistry, _) = try await makeVerifiedBrowserHarness(supportsImageInput: true)
+        let refusedWarning = try await visionRegistry.dispatch(toolName: "script_save", arguments: [
+            "name": .string("Empty Vision"),
+            "match_rules": .array([.string("*://127.0.0.1/*")]),
+            "css": .string("main { display: none !important; }")
+        ])
+        XCTAssertTrue(refusedWarning.isError, refusedWarning.output)
+        XCTAssertEqual(refusedWarning.images.count, 2, "Failed verify on an image model carries before and after screenshots")
+        XCTAssertTrue(refusedWarning.images.allSatisfy { $0.mediaType == "image/jpeg" && !$0.data.isEmpty })
+
+        let refusedThrow = try await visionRegistry.dispatch(toolName: "script_save", arguments: [
+            "name": .string("Throw Vision"),
+            "match_rules": .array([.string("*://127.0.0.1/*")]),
+            "js": .string("throw new Error('vision runtime crash');")
+        ])
+        XCTAssertTrue(refusedThrow.isError, refusedThrow.output)
+        XCTAssertEqual(refusedThrow.images.count, 2, "Runtime-error verify refusal on an image model also carries both screenshots")
+
+        let (_, _, _, textRegistry, _) = try await makeVerifiedBrowserHarness(supportsImageInput: false)
+        let refusedTextOnly = try await textRegistry.dispatch(toolName: "script_save", arguments: [
+            "name": .string("Empty Text Only"),
+            "match_rules": .array([.string("*://127.0.0.1/*")]),
+            "css": .string("main { display: none !important; }")
+        ])
+        XCTAssertTrue(refusedTextOnly.isError, refusedTextOnly.output)
+        XCTAssertTrue(refusedTextOnly.images.isEmpty, "Text-only models receive no screenshots on failed verify")
+    }
+
+    func testSavingAScriptThatThrowsIsRefusedEvenWithConfirmChange() async throws {
+        let (_, store, _, registry, _) = try await makeVerifiedBrowserHarness()
+
+        let syncThrow = try await registry.dispatch(toolName: "script_save", arguments: [
+            "name": .string("Sync Crash"),
+            "match_rules": .array([.string("*://127.0.0.1/*")]),
+            "js": .string("throw new Error('selector blew up');")
+        ])
+        XCTAssertTrue(syncThrow.isError, syncThrow.output)
+        XCTAssertTrue(syncThrow.output.hasPrefix("Error: Not saved: runtime error:"), syncThrow.output)
+        XCTAssertTrue(syncThrow.output.contains("selector blew up"), syncThrow.output)
+        XCTAssertFalse(syncThrow.output.contains("confirm_change: true"))
+        XCTAssertTrue(store.scripts.isEmpty)
+        XCTAssertTrue(store.scriptErrors.isEmpty)
+
+        let confirmedAsyncThrow = try await registry.dispatch(toolName: "script_save", arguments: [
+            "name": .string("Async Crash"),
+            "match_rules": .array([.string("*://127.0.0.1/*")]),
+            "js": .string("await Promise.resolve(); throw new Error('async explosion');"),
+            "environment": .string("page"),
+            "confirm_change": .bool(true)
+        ])
+        XCTAssertTrue(confirmedAsyncThrow.isError, confirmedAsyncThrow.output)
+        XCTAssertTrue(confirmedAsyncThrow.output.contains("async explosion"), confirmedAsyncThrow.output)
+        XCTAssertTrue(store.scripts.isEmpty)
+    }
+
+    func testScriptThatEmptiesPageIsRefusedThenSavedWithConfirmChangeAndUnmatchedSavesUnverified() async throws {
+        let (_, store, _, registry, _) = try await makeVerifiedBrowserHarness()
+
+        let refused = try await registry.dispatch(toolName: "script_save", arguments: [
+            "name": .string("Empty Everything"),
+            "match_rules": .array([.string("*://127.0.0.1/*")]),
+            "css": .string("main { display: none !important; }")
+        ])
+        XCTAssertTrue(refused.isError, refused.output)
+        XCTAssertTrue(refused.output.hasPrefix("Error: Not saved: "), refused.output)
+        XCTAssertTrue(refused.output.contains("visible text dropped"), refused.output)
+        XCTAssertTrue(refused.output.hasSuffix("If this change is what the user asked for, call again with confirm_change: true."), refused.output)
+        XCTAssertTrue(store.scripts.isEmpty)
+
+        let confirmed = try await registry.dispatch(toolName: "script_save", arguments: [
+            "name": .string("Empty Everything"),
+            "match_rules": .array([.string("*://127.0.0.1/*")]),
+            "css": .string("main { display: none !important; }"),
+            "confirm_change": .bool(true)
+        ])
+        XCTAssertFalse(confirmed.isError, confirmed.output)
+        let savedJSON = try JSONValue.parseObjectJSON(confirmed.output)
+        let scriptID = try XCTUnwrap(savedJSON["script_id"]?.stringValue)
+        XCTAssertEqual(savedJSON["verified"], .bool(true))
+        XCTAssertEqual(store.scripts.count, 1)
+
+        let safeUpdate = try await registry.dispatch(toolName: "script_update", arguments: [
+            "script_id": .string(scriptID), "css": .string("h1 { color: rgb(20, 40, 80); }")
+        ])
+        XCTAssertFalse(safeUpdate.isError, safeUpdate.output)
+        _ = try await registry.dispatch(toolName: "reload_page", arguments: [:])
+
+        let refusedUpdate = try await registry.dispatch(toolName: "script_update", arguments: [
+            "script_id": .string(scriptID), "js": .string("document.body.innerHTML = '';")
+        ])
+        XCTAssertTrue(refusedUpdate.isError, refusedUpdate.output)
+        XCTAssertEqual(store.script(id: scriptID)?.version, 2)
+
+        let confirmedUpdate = try await registry.dispatch(toolName: "script_update", arguments: [
+            "script_id": .string(scriptID), "js": .string("document.body.innerHTML = '';"), "confirm_change": .bool(true)
+        ])
+        XCTAssertFalse(confirmedUpdate.isError, confirmedUpdate.output)
+        XCTAssertEqual(store.script(id: scriptID)?.version, 3)
+
+        let unverified = try await registry.dispatch(toolName: "script_save", arguments: [
+            "name": .string("Other Domain Reader"),
+            "match_rules": .array([.string("https://other.example.org/*")]),
+            "css": .string("aside { display: none; }")
+        ])
+        XCTAssertFalse(unverified.isError, unverified.output)
+        let unverifiedJSON = try JSONValue.parseObjectJSON(unverified.output)
+        XCTAssertEqual(unverifiedJSON["verified"], .bool(false))
+        XCTAssertEqual(unverifiedJSON["applied_to_current_page"], .bool(false))
+        XCTAssertTrue(unverifiedJSON["verification_note"]?.stringValue?.contains("do not cover the current page") == true)
+    }
+
+    private final class RecordedRefusedSaveClient: AgentModelClient, @unchecked Sendable {
+        private let lock = NSLock()
+        private var responses: [AgentModelTurnResponse]
+        private(set) var requests: [[AgentModelTurn]] = []
+        init(_ responses: [AgentModelTurnResponse]) { self.responses = responses }
+        func completeToolTurn(
+            system: String, messages: [AgentModelTurn], tools: [AgentToolDefinition],
+            configuration: ProviderConfiguration, provider: AIProvider, maxTokens: Int
+        ) async throws -> AgentModelTurnResponse {
+            lock.withLock {
+                requests.append(messages)
+                return responses.isEmpty ? AgentModelTurnResponse(text: "Done.") : responses.removeFirst()
+            }
+        }
+    }
+
+    func testRecordedReplayRefusedSaveComparesAgainstRunBaselineAndSavesNarrowerFix() async throws {
+        var sessionRef: BrowserAgentSession?
+        let (browser, store, controller, _, _) = try await makeVerifiedBrowserHarness(baseline: { sessionRef?.pageBaseline })
+
+        let client = RecordedRefusedSaveClient([
+            AgentModelTurnResponse(text: "", toolCalls: [
+                AgentModelToolCall(id: "t1", name: "run_js", arguments: ["code": .string("document.getElementById('article').remove();")])
+            ], stopReason: "tool_use"),
+            AgentModelTurnResponse(text: "", toolCalls: [
+                AgentModelToolCall(id: "t2", name: "script_save", arguments: [
+                    "name": .string("Hide Boom Button"),
+                    "match_rules": .array([.string("*://127.0.0.1/*")]),
+                    "css": .string("#article { display: none !important; }")
+                ])
+            ], stopReason: "tool_use"),
+            AgentModelTurnResponse(text: "", toolCalls: [
+                AgentModelToolCall(id: "t3", name: "script_save", arguments: [
+                    "name": .string("Hide Boom Button"),
+                    "match_rules": .array([.string("*://127.0.0.1/*")]),
+                    "css": .string("#boom { display: none !important; }")
+                ])
+            ], stopReason: "tool_use"),
+            AgentModelTurnResponse(text: "Saved a narrower rule that hides only the Boom button.")
+        ])
+
+        let session = BrowserAgentSession(
+            pageDriver: browser.agentBridge,
+            modelClient: client,
+            configProvider: {
+                BrowserAgentRuntimeConfig(
+                    selection: ModelSelection(provider: .anthropic, model: "claude-haiku-5-5"),
+                    configuration: ProviderConfiguration(model: "claude-haiku-5-5", baseURL: AIProvider.anthropic.defaultBaseURL, apiKey: "fake-key"),
+                    maxSteps: 10, truncationLimit: 20_000, customInstructions: "", redactedSecrets: []
+                )
+            },
+            registryBuilder: { bridge, limit, secrets in
+                ToolRegistry.m3(context: AgentToolContext(
+                    bridge: bridge, workspace: nil, scriptStore: store, liveApplier: controller,
+                    currentUserPrompt: { sessionRef?.lastUserPrompt },
+                    pageBaseline: { sessionRef?.pageBaseline },
+                    pageBaselineImage: { sessionRef?.pageBaselineImage },
+                    settings: AgentToolSettings(
+                        truncationLimit: limit,
+                        redactedSecrets: secrets,
+                        supportsImageInput: true
+                    )
+                ))
+            }
+        )
+        sessionRef = session
+        await session.sendAndWait("Always hide the Boom button on this site")
+
+        XCTAssertEqual(session.toolCalls.map(\.toolName), ["run_js", "script_save", "script_save"])
+        XCTAssertTrue(session.toolCalls[1].isError)
+        XCTAssertFalse(session.toolCalls[2].isError, session.toolCalls[2].resultText)
+
+        guard case .toolResults(let refusedResults)? = client.requests[2].last else {
+            return XCTFail("Expected refused script_save tool result on turn 3")
+        }
+        let refusalText = refusedResults.first?.content ?? ""
+        XCTAssertTrue(refusalText.contains("Error: Not saved:"), refusalText)
+        XCTAssertTrue(refusalText.contains("confirm_change: true"), refusalText)
+        XCTAssertEqual(refusedResults.first?.images.count, 2)
+        XCTAssertNotNil(session.pageBaselineImage)
+        XCTAssertEqual(store.scripts.count, 1)
+        XCTAssertEqual(store.scripts.first?.css, "#boom { display: none !important; }")
     }
 }
