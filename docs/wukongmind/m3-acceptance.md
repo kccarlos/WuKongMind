@@ -4,15 +4,19 @@ Run for WUKO-41 against [design-m3.md "Acceptance checks"](design-m3.md#acceptan
 
 ## Result
 
-| # | Check | Result | Where it runs |
+Live runs used **claude-haiku-5-5 only** (`-dc-browser-agent-live-model claude-haiku-5-5`); every task record written holds only `"model":"claude-haiku-5-5"`. Simulator: iPhone 18 Pro, a loopback copy of the fixture forum, `-dc-browser-agent-live-prompt`. Device: `scripts/device-check.sh` on the owner's iPhone 13.
+
+| # | Check | Result | Evidence |
 |---|---|---|---|
-| 1 | Thread crawl (25-page fixture forum) | Passes locally. Live forum on the device: **not run** | `CrawlAcceptanceTests.testCrawlSavesEveryPageSummaryCoversThemAndFilesSurviveARelaunch` |
-| 2 | Files survive a kill | Passes locally as a relaunch of the workspace and record store. A real app kill mid-crawl: **not run** | same test |
-| 3 | Export replays | Passes | `CrawlAcceptanceTests.testExportedCrawlHasNoSecretsAndReplays`, `testCheckedInCrawlFixtureReplaysThroughRecordedModelClient`, `TaskExportTests` |
-| 4 | Saved reader reused on the next thread | **Not proven.** Only a live model can show it chooses to save and reuse the logic; the pieces (`script_save`, saved scripts applying on load) have unit tests (`ScriptStoreWebTests`, `PageFeedbackTests`) | live |
-| 5 | Each new tool | `screenshot` hidden for text-only models and `network_log` (`AgentPageCaptureTests`); `navigate` refuses other schemes (`BrowserToolsTests.testNavigateRefusesOtherSchemes`); `http_request` and `cookies_get` confirmations, including `cookies_get` and cross-site `send_cookies` with the switch off (`AgentNetworkToolsTests.testConfirmationMatrixWithTheSwitchOff`, `testCookiesGetMatchesParentDomainsAndAlwaysAsks`). "The Agent describes the test page from a screenshot" and "explains after Don't allow" need a live model: **not run** | unit tests |
-| 6 | Page feedback | Empty body warns, a throwing script is refused, 3 error loads auto-disable, a big asked-for change saves with `confirm_change`, replay of the warning and refused-save paths, a no-op adds one line, Undo on the saved card (`PageFeedbackTests`, `ScriptStoreCoreTests`, `ScriptStoreWebTests`). "This page looks broken" row: **not run** here | unit tests |
-| 7 | No regressions | Full unit run after the last change: 1,093 tests, 9 skipped, 0 failures; with Confirm before writes on, every `http_request` asks (`testConfirmationWithTheSwitchOnAsksForEveryRequest`) | `-only-testing:WukongMindTests` |
+| 1 | Thread crawl | **Pass.** Live (Haiku): 5 steps, 25 of 25 page files, summary cites all 25 topics. Local: `CrawlAcceptanceTests`, and `AgentBridgeTests.testCrawlOf25FixturePagesThroughWukongFetchAndFilesInRealWebKit` (real WebKit, `wukong.fetch`, `wukong.files`) | result file, workspace listing |
+| 2 | Files survive a kill | **Pass.** App killed (`simctl terminate`) mid-crawl at 4 page files; all 4 whole after relaunch; the task is in the audit log and `Tasks/` | simulator container |
+| 3 | Export replays | **Pass.** `crawl-25-pages.json` replays; no key or cookie | `CrawlAcceptanceTests`, `TaskExportTests` |
+| 4 | Saved reader | **Pass in one conversation.** Live (Haiku): `script_save`, `navigate` to the next thread, `script_read`, `run_js` with its logic, both markers returned. Across an app relaunch it is **not proven**: the live-prompt debug mode starts with no saved scripts, so a second launch found none | live result file |
+| 5 | Each new tool | `screenshot`: live (Haiku) described the page's heading and layout correctly. `network_log` listing fetch and XHR, `navigate` refusing `javascript:` and `file:`, `http_request` and `cookies_get` cards, text-only model hides `screenshot`: unit tests (`AgentPageCaptureTests`, `BrowserToolsTests`, `AgentNetworkToolsTests`). **Not run live:** the "Don't allow, then the Agent explains" path (needs tapping the card) and `network_log` on a page that makes requests (the fixture makes none) | unit tests |
+| 6 | Page feedback | Unit and replay tests (`PageFeedbackTests`, `ScriptStoreCoreTests`, `ScriptStoreWebTests`) cover every bullet and Undo. **Not run live:** the "This page looks broken" row | unit tests |
+| 7 | No regressions | **Pass.** 1,094 unit tests, 9 skipped, 0 failures; with Confirm before writes on, every `http_request` asks | `-only-testing:WukongMindTests` |
+
+**On the owner's iPhone** (`scripts/device-check.sh`, offline subset, 3 tests, 0 failures): `testAssistantPageStatesOffline`, `testManageRowsUseMailStyleSwipeActions`, `ScreenshotThumbnailUITests.testScreenshotThumbnailOpensSheet`. No live-model run was made on the phone.
 
 ## Fixtures added
 
@@ -21,5 +25,5 @@ Run for WUKO-41 against [design-m3.md "Acceptance checks"](design-m3.md#acceptan
 
 ## Scope notes
 
-- The crawl test's page driver stands in for WebKit and writes the fixture pages through `AgentWorkspace`; the `wukong.fetch` and `wukong.files` bridge itself is covered by `AgentBridgeTests` and `AgentNetworkToolsTests`.
-- The live checks need a real model key and the owner's iPhone (`scripts/device-check.sh`), and are left to the owner's trial.
+- The `CrawlAcceptanceTests` page driver stands in for WebKit; the WebKit test next to it covers the real `wukong.fetch` and `wukong.files` path.
+- Still needing a live model or a tap: check 5's Don't-allow explanation and `network_log` on a requesting page, check 6's "looks broken" row, and check 4 across a relaunch.
