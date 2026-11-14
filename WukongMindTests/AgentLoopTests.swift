@@ -549,6 +549,74 @@ final class AgentLoopTests: XCTestCase {
         return data
     }
 
+    // MARK: - Token usage of streamed completions (One loop comparison)
+
+    private static let anthropicUsageStream = [
+        #"event: message_start"#,
+        #"data: {"type":"message_start","message":{"id":"msg_1","usage":{"input_tokens":700,"cache_creation_input_tokens":12,"cache_read_input_tokens":100,"output_tokens":1}}}"#,
+        "",
+        #"data: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"{\"tool\":"}}"#,
+        #"data: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":" \"list_latest\"}"}}"#,
+        #"data: {"type":"message_delta","delta":{"stop_reason":"end_turn"},"usage":{"output_tokens":20}}"#,
+        #"data: {"type":"message_delta","delta":{},"usage":{"output_tokens":41}}"#,
+        #"data: {"type":"message_stop"}"#
+    ].joined(separator: "\n")
+
+    private func usageService(_ body: String) -> AIService {
+        let config = URLSessionConfiguration.ephemeral
+        config.protocolClasses = [RecordedToolURLProtocol.self]
+        RecordedToolURLProtocol.handler = { _ in (200, Data(body.utf8)) }
+        addTeardownBlock { RecordedToolURLProtocol.handler = nil }
+        return AIService(session: URLSession(configuration: config))
+    }
+
+    func testStreamedAnthropicUsageFillsTheSinkAcrossCalls() async throws {
+        let service = usageService(Self.anthropicUsageStream)
+        let sink = TokenUsageSink()
+        let configuration = ProviderConfiguration(model: "claude-haiku-5-5", baseURL: AIProvider.anthropic.defaultBaseURL, apiKey: "k")
+        let reply = try await TokenUsageSink.$current.withValue(sink) {
+            _ = try await service.complete(system: "s", messages: [ChatMessage(role: .user, content: "q")], configuration: configuration, provider: .anthropic)
+            return try await service.complete(system: "s", messages: [ChatMessage(role: .user, content: "q")], configuration: configuration, provider: .anthropic)
+        }
+        XCTAssertEqual(reply, #"{"tool": "list_latest"}"#)
+        XCTAssertEqual(sink.callCount, 2)
+        // Input counts cache writes and reads; output is the last cumulative count, per call.
+        XCTAssertEqual(sink.usage, AgentTokenUsage(inputTokens: 2 * 812, outputTokens: 2 * 41))
+        let fresh = TokenUsageSink()
+        XCTAssertEqual(fresh.usage, .zero, "no calls is a true zero")
+    }
+
+    func testOtherFamiliesLeaveTheSinkNotAvailable() async throws {
+        let openAIStream = [
+            #"data: {"choices":[{"delta":{"content":"Hello"}}]}"#,
+            #"data: {"choices":[],"usage":{"prompt_tokens":9,"completion_tokens":3}}"#,
+            "data: [DONE]"
+        ].joined(separator: "\n")
+        let service = usageService(openAIStream)
+        let sink = TokenUsageSink()
+        let configuration = ProviderConfiguration(model: "gpt-x", baseURL: AIProvider.openAI.defaultBaseURL, apiKey: "k")
+        let reply = try await TokenUsageSink.$current.withValue(sink) {
+            try await service.complete(system: "s", messages: [ChatMessage(role: .user, content: "q")], configuration: configuration, provider: .openAI)
+        }
+        XCTAssertEqual(reply, "Hello")
+        XCTAssertEqual(sink.callCount, 1)
+        XCTAssertNil(sink.usage, "an uncovered family shows n/a, never 0")
+
+        // One uncovered call (a summary on another family) makes the whole role n/a.
+        let mixed = TokenUsageSink()
+        mixed.record(AgentTokenUsage(inputTokens: 5, outputTokens: 1))
+        mixed.record(nil)
+        XCTAssertNil(mixed.usage)
+
+        // Without a sink nothing is recorded and the call is unchanged.
+        let anthropic = usageService(Self.anthropicUsageStream)
+        let plain = try await anthropic.complete(
+            system: "s", messages: [ChatMessage(role: .user, content: "q")],
+            configuration: ProviderConfiguration(model: "m", baseURL: AIProvider.anthropic.defaultBaseURL, apiKey: "k"), provider: .anthropic
+        )
+        XCTAssertEqual(plain, #"{"tool": "list_latest"}"#)
+    }
+
     func testAIServiceAnthropicToolCallingWireFormatRoundTrip() async throws {
         let sessionConfig = URLSessionConfiguration.ephemeral
         sessionConfig.protocolClasses = [RecordedToolURLProtocol.self]

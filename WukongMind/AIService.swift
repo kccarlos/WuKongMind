@@ -1,5 +1,45 @@
 import Foundation
 
+/// Token use of streamed completions (`streamText`, so `complete` and `generateSummary`), for the
+/// One loop comparison's report (design-one-loop.md "Token reporting"). Only one provider family
+/// reports into it: the comparison's Agent model's (`coveredFamily`). A call from any other family
+/// is counted as uncovered, so the totals read "n/a" rather than a false 0.
+/// Set it for a block of work with `TokenUsageSink.$current.withValue(sink) { … }`.
+final class TokenUsageSink: @unchecked Sendable {
+    /// The comparison's Agent model family. Anthropic streams report usage with no request option.
+    static let coveredFamily: AIProvider = .anthropic
+    @TaskLocal static var current: TokenUsageSink?
+
+    private let lock = NSLock()
+    private var input = 0
+    private var output = 0
+    private var uncovered = 0
+    private var calls = 0
+
+    init() {}
+
+    static func covers(_ provider: AIProvider) -> Bool { provider == coveredFamily }
+
+    /// One finished call: its usage, or nil when its family doesn't report here.
+    func record(_ usage: AgentTokenUsage?) {
+        lock.withLock {
+            calls += 1
+            if let usage {
+                input += usage.inputTokens
+                output += usage.outputTokens
+            } else {
+                uncovered += 1
+            }
+        }
+    }
+
+    var callCount: Int { lock.withLock { calls } }
+    /// The summed usage, or nil ("n/a") when any call was uncovered. No calls is a true zero.
+    var usage: AgentTokenUsage? {
+        lock.withLock { uncovered > 0 ? nil : AgentTokenUsage(inputTokens: input, outputTokens: output) }
+    }
+}
+
 /// Not final so tests can stand in for the provider (streams, gated answers).
 class AIService: @unchecked Sendable {
     private let session: URLSession
@@ -25,6 +65,7 @@ class AIService: @unchecked Sendable {
         onProgress: @escaping @MainActor (SummaryProgressEvent) -> Void = { _ in }
     ) async throws -> String {
         if provider == .appleIntelligence {
+            TokenUsageSink.current?.record(nil)
             return try await appleIntelligenceSummary(
                 content: content,
                 configuration: configuration,
@@ -349,6 +390,7 @@ class AIService: @unchecked Sendable {
         onDelta: @escaping @MainActor (String) -> Void
     ) async throws -> String {
         if provider == .appleIntelligence {
+            TokenUsageSink.current?.record(nil)
             return try await appleIntelligenceText(
                 system: system,
                 messages: messages,
@@ -403,8 +445,13 @@ class AIService: @unchecked Sendable {
             }
 
             var result = ""
+            let sink = TokenUsageSink.current
+            var usage = AgentTokenUsage.zero
             for try await line in bytes.lines {
                 try Task.checkCancellation()
+                if sink != nil, TokenUsageSink.covers(provider) {
+                    Self.parseStreamUsage(line: line, into: &usage)
+                }
                 guard let delta = parseDelta(line: line, provider: provider), !delta.isEmpty else {
                     continue
                 }
@@ -414,6 +461,7 @@ class AIService: @unchecked Sendable {
             guard !result.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
                 throw AssistantError.emptyResponse
             }
+            sink?.record(TokenUsageSink.covers(provider) ? usage : nil)
             return result
         }
     }
@@ -615,6 +663,27 @@ class AIService: @unchecked Sendable {
             let choices = json["choices"] as? [[String: Any]]
             let delta = choices?.first?["delta"] as? [String: Any]
             return delta?["content"] as? String
+        }
+    }
+
+    /// Anthropic stream usage: `message_start` carries the input (cache reads and writes counted as
+    /// `parseToolResponse` does), `message_delta` the output so far (cumulative, so the last wins).
+    static func parseStreamUsage(line: String, into usage: inout AgentTokenUsage) {
+        guard line.hasPrefix("data:"),
+              let data = line.dropFirst(5).trimmingCharacters(in: .whitespaces).data(using: .utf8),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+        else { return }
+        switch json["type"] as? String {
+        case "message_start":
+            guard let counts = (json["message"] as? [String: Any])?["usage"] as? [String: Any] else { return }
+            usage.inputTokens = ((counts["input_tokens"] as? Int) ?? 0)
+                + ((counts["cache_creation_input_tokens"] as? Int) ?? 0)
+                + ((counts["cache_read_input_tokens"] as? Int) ?? 0)
+            usage.outputTokens = (counts["output_tokens"] as? Int) ?? usage.outputTokens
+        case "message_delta":
+            if let output = (json["usage"] as? [String: Any])?["output_tokens"] as? Int { usage.outputTokens = output }
+        default:
+            break
         }
     }
 
