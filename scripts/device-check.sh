@@ -121,8 +121,8 @@ acquire_lock() {
   mkdir -p "$LOCK_ROOT" || die "cannot create $LOCK_ROOT"
   while :; do
     if mkdir "$dir" 2>/dev/null; then
-      LOCK_DIR="$dir"
       LOCK_TOKEN="$$.$RANDOM.$(date +%s)"
+      LOCK_DIR="$dir"
       write_owner
       log "lock taken: $dir"
       return 0
@@ -149,7 +149,9 @@ acquire_lock() {
 }
 
 release_lock() {
-  if [[ -n "$LOCK_DIR" && -f "$LOCK_DIR/token" && "$(cat "$LOCK_DIR/token" 2>/dev/null)" == "$LOCK_TOKEN" ]]; then
+  # LOCK_DIR is set only after our own mkdir succeeded; the token file may not
+  # exist yet if a signal landed between mkdir and write_owner.
+  if [[ -n "$LOCK_DIR" && ( ! -f "$LOCK_DIR/token" || "$(cat "$LOCK_DIR/token" 2>/dev/null)" == "$LOCK_TOKEN" ) ]]; then
     rm -rf "$LOCK_DIR"
     log "lock released: $LOCK_DIR"
   fi
@@ -404,7 +406,7 @@ self_test() {
   local sig
   for sig in TERM INT; do
     perl -e '$SIG{INT}="DEFAULT"; $SIG{TERM}="DEFAULT"; exec @ARGV' "$me" _lock-hold 60 >"$tmp/e.out" 2>&1 & local pe=$!
-    wait_for "[[ -d '$lock' ]]"
+    wait_for "[[ -f '$lock/token' ]]"
     kill -"$sig" "$pe"; wait "$pe" 2>/dev/null; local erc=$?
   if [[ ! -e "$lock" ]]; then check "$sig: lock removed (exit $erc)" ok; else check "$sig: lock removed (exit $erc)" no; fi
   done
