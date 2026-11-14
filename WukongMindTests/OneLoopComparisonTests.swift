@@ -225,6 +225,27 @@ final class OneLoopComparisonTests: XCTestCase {
         XCTAssertTrue(content.hasPrefix(prefix), content.prefix(600).description, file: file, line: line)
         XCTAssertEqual(content.components(separatedBy: ToolNote.label).count, notes.count + 1, "only these notes, outside the wrapper", file: file, line: line)
     }
+
+    // MARK: Record the new side (task 8's record path, without old Research)
+
+    /// `ONE_LOOP_RECORD=1` records the new Agent's run of each confirmed question (or
+    /// `ONE_LOOP_ONLY=W2,H3`) live into `ONE_LOOP_SET`'s runs, which the replay test then plays.
+    /// The old Research side and its report went with the old loop (One loop 13).
+    func testRecordNewSideRuns() async throws {
+        let env = ProcessInfo.processInfo.environment
+        guard env["ONE_LOOP_RECORD"] == "1" else { throw XCTSkip("Record mode only: ONE_LOOP_RECORD=1 (TEST_RUNNER_ONE_LOOP_RECORD).") }
+        let models = try ComparisonModels.fromEnvironment(env)
+        let set = env["ONE_LOOP_SET"].map(ComparisonSet.named) ?? .main
+        let only = env["ONE_LOOP_ONLY"].map { $0.split(separator: ",").map(String.init) }
+        for question in try ComparisonQuestion.confirmed() where only?.contains(question.id) ?? true {
+            let snapshot = try set.snapshot(question.siteKind, mode: .record)
+            let new = try await NewSideRun.run(
+                question, snapshot: snapshot, ai: ComparisonAIService(session: ModelAudit.session()), modelClient: nil, models: models, folder: try temporaryFolder()
+            )
+            try new.write(to: set, id: question.id)
+        }
+        XCTAssertTrue(ModelAudit.shared.recorded.allSatisfy { $0.model == ModelAudit.allowedModel }, "a call used a model other than \(ModelAudit.allowedModel)")
+    }
 }
 
 // MARK: - Inputs
@@ -594,33 +615,6 @@ enum NewSideRun {
             document: document,
             summaries: ai.recordedSummaries
         )
-    }
-}
-
-/// The header row's definition cost: the provider's count of one request with and without the tool list.
-enum ToolDefinitionCost {
-    static func anthropicTokens(tools: [AgentToolDefinition], models: ComparisonModels) async throws -> Int {
-        func count(_ withTools: Bool) async throws -> Int {
-            var body: [String: Any] = [
-                "model": models.agent.selection.model, "system": "x", "messages": [["role": "user", "content": "x"]]
-            ]
-            if withTools {
-                body["tools"] = tools.map { tool in
-                    ["name": tool.name, "description": tool.description, "input_schema": JSONValue.object(tool.inputSchema).toFoundation()]
-                }
-            }
-            var request = URLRequest(url: URL(string: "\(AIProvider.anthropic.defaultBaseURL)/messages/count_tokens")!)
-            request.httpMethod = "POST"
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.setValue(models.agent.apiKey, forHTTPHeaderField: "x-api-key")
-            request.setValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
-            request.httpBody = try JSONSerialization.data(withJSONObject: body)
-            let (data, _) = try await ModelAudit.session().data(for: request)
-            let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
-            guard let tokens = json?["input_tokens"] as? Int else { throw AssistantError.invalidResponse }
-            return tokens
-        }
-        return try await count(true) - count(false)
     }
 }
 

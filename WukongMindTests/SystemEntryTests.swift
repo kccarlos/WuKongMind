@@ -171,6 +171,8 @@ final class SystemEntryTests: XCTestCase {
         XCTAssertGreaterThan(app.assistantRequest, 0)
         XCTAssertTrue(app.agentRuns.isEmpty, "no Research run")
 
+        // The forum's page "loads": no real navigation, only its page context.
+        app.browser.stopLoading()
         deliverTopicPage(to: app)
         let deadline = Date().addingTimeInterval(15)
         while client.recordedRequests.isEmpty, Date() < deadline { try await Task.sleep(for: .milliseconds(50)) }
