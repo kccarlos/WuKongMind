@@ -59,6 +59,14 @@ enum AgentPageCapture {
       ? String(window.__wukongPageCapture.networkJSON()) : '[]'
     """
 
+    static let readNetworkWithBodiesAsyncScript = """
+    if (window.__wukongPageCapture && typeof window.__wukongPageCapture.networkJSONWithBodies === 'function') {
+      return String(await window.__wukongPageCapture.networkJSONWithBodies());
+    }
+    return (window.__wukongPageCapture && typeof window.__wukongPageCapture.networkJSON === 'function')
+      ? String(window.__wukongPageCapture.networkJSON()) : '[]';
+    """
+
     static let readConsoleScript = """
     (window.__wukongPageCapture && typeof window.__wukongPageCapture.consoleJSON === 'function')
       ? String(window.__wukongPageCapture.consoleJSON()) : '[]'
@@ -110,7 +118,7 @@ enum AgentPageCapture {
     (function () {
       if (Object.prototype.hasOwnProperty.call(window, '__wukongPageCapture')) return;
       const MAX_ENTRIES = 200, MAX_PREVIEW = 2000, MAX_CONSOLE = 500;
-      const network = [], consoleLines = [];
+      const network = [], consoleLines = [], pendingPreviews = new Set();
       const nowMs = () => (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
       const isoNow = () => { try { return new Date().toISOString(); } catch (_) { return ''; } };
       const resolveUrl = (raw) => {
@@ -224,7 +232,9 @@ enum AgentPageCapture {
             };
             pushBounded(network, entry);
             if (res && typeof res.clone === 'function' && isTextOrJson(ct)) {
-              return readClonePreview(res, entry, hasCl).then(() => res);
+              const p = readClonePreview(res, entry, hasCl);
+              pendingPreviews.add(p);
+              p.then(() => { pendingPreviews.delete(p); }, () => { pendingPreviews.delete(p); });
             }
             return res;
           }, (err) => {
@@ -303,6 +313,9 @@ enum AgentPageCapture {
       Object.defineProperty(window, '__wukongPageCapture', {
         value: Object.freeze({
           networkJSON: () => JSON.stringify(network),
+          networkJSONWithBodies: () => pendingPreviews.size > 0
+            ? Promise.all(Array.from(pendingPreviews)).then(() => JSON.stringify(network), () => JSON.stringify(network))
+            : Promise.resolve(JSON.stringify(network)),
           consoleJSON: () => JSON.stringify(consoleLines)
         }),
         configurable: false, enumerable: false, writable: false

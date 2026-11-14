@@ -280,6 +280,7 @@ final class AgentBridge: NSObject, AgentPageDriving {
 
     nonisolated static let screenshotTimeout: TimeInterval = 10
     nonisolated static let maxScreenshotPixelWidth = 1_280
+    nonisolated static let maxScreenshotPixelHeight = 8_000
     nonisolated static let screenshotJPEGQuality: CGFloat = 0.6
     nonisolated static let maxFullPageScreens = 8
 
@@ -290,11 +291,21 @@ final class AgentBridge: NSObject, AgentPageDriving {
     ) async throws -> [AgentNetworkEntry] {
         try Task.checkCancellation()
         guard let webView else { throw AgentBridgeError.webViewUnavailable }
-        let raw = try? await webView.evaluateJavaScript(
-            AgentPageCapture.readNetworkScript,
-            in: nil,
-            contentWorld: .page
-        )
+        let raw: Any?
+        if includeBodies {
+            raw = try? await callAsyncJS(
+                script: AgentPageCapture.readNetworkWithBodiesAsyncScript,
+                arguments: [:],
+                world: .page,
+                timeout: 2
+            )
+        } else {
+            raw = try? await webView.evaluateJavaScript(
+                AgentPageCapture.readNetworkScript,
+                in: nil,
+                contentWorld: .page
+            )
+        }
         return AgentPageCapture.decodeNetwork(
             from: raw,
             urlFilter: urlFilter,
@@ -375,9 +386,10 @@ final class AgentBridge: NSObject, AgentPageDriving {
         )
 
         let nativeScale = max(1.0, webView.window?.screen.scale ?? UITraitCollection.current.displayScale)
-        let outWidth = min(CGFloat(Self.maxScreenshotPixelWidth), max(1, (viewportWidth * nativeScale).rounded()))
-        let pxPerPt = outWidth / viewportWidth
-        let outHeight = max(1, (targetHeight * pxPerPt).rounded())
+        let maxWidthPx = min(CGFloat(Self.maxScreenshotPixelWidth), max(1, (viewportWidth * nativeScale).rounded()))
+        let pxPerPt = min(maxWidthPx / viewportWidth, CGFloat(Self.maxScreenshotPixelHeight) / targetHeight)
+        let outWidth = min(CGFloat(Self.maxScreenshotPixelWidth), max(1, (viewportWidth * pxPerPt).rounded()))
+        let outHeight = min(CGFloat(Self.maxScreenshotPixelHeight), max(1, (targetHeight * pxPerPt).rounded()))
         let format = UIGraphicsImageRendererFormat()
         format.scale = 1.0
         format.opaque = true
@@ -478,9 +490,13 @@ final class AgentBridge: NSObject, AgentPageDriving {
         let pixelWidth = image.cgImage?.width ?? max(1, Int((image.size.width * image.scale).rounded()))
         let pixelHeight = image.cgImage?.height ?? max(1, Int((image.size.height * image.scale).rounded()))
         let targetImage: UIImage
-        if pixelWidth > maxScreenshotPixelWidth {
-            let outWidth = CGFloat(maxScreenshotPixelWidth)
-            let outHeight = max(1, (CGFloat(pixelHeight) * outWidth / CGFloat(pixelWidth)).rounded())
+        if pixelWidth > maxScreenshotPixelWidth || pixelHeight > maxScreenshotPixelHeight {
+            let scale = min(
+                CGFloat(maxScreenshotPixelWidth) / CGFloat(max(1, pixelWidth)),
+                CGFloat(maxScreenshotPixelHeight) / CGFloat(max(1, pixelHeight))
+            )
+            let outWidth = min(CGFloat(maxScreenshotPixelWidth), max(1, (CGFloat(pixelWidth) * scale).rounded()))
+            let outHeight = min(CGFloat(maxScreenshotPixelHeight), max(1, (CGFloat(pixelHeight) * scale).rounded()))
             let format = UIGraphicsImageRendererFormat()
             format.scale = 1.0
             format.opaque = true

@@ -92,9 +92,25 @@ final class AgentPageCaptureTests: XCTestCase {
                 contentType = "text/plain; charset=utf-8"
                 extra += "Set-Cookie: xhr_cookie=never-leak-000; Path=/\r\n"
                 body = "xhr body note"
+            case "/slow-stream":
+                let chunk = Data("delayed body payload".utf8)
+                let head = "HTTP/1.1 200 OK\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: \(chunk.count)\r\nCache-Control: no-store\r\nConnection: close\r\n\r\n"
+                connection.send(content: Data(head.utf8), isComplete: false, completion: .contentProcessed { [weak self] _ in
+                    self?.queue.asyncAfter(deadline: .now() + .milliseconds(300)) {
+                        connection.send(content: chunk, contentContext: .finalMessage, isComplete: true, completion: .contentProcessed { _ in
+                            connection.cancel()
+                        })
+                    }
+                })
+                return
             case "/tall":
                 let bands = (1...10).map { i in
                     #"<div style="height:300px;background:hsl(\#(i * 33),70%,35%);color:#fff;font:bold 28px sans-serif">Band \#(i)</div>"#
+                }.joined()
+                body = "<!doctype html><html><body style='margin:0'>\(bands)</body></html>"
+            case "/tall-phone":
+                let bands = (1...10).map { i in
+                    #"<div style="height:900px;background:hsl(\#(i * 33),70%,35%);color:#fff;font:bold 28px sans-serif">Phone Band \#(i)</div>"#
                 }.joined()
                 body = "<!doctype html><html><body style='margin:0'>\(bands)</body></html>"
             case "/article":
@@ -208,16 +224,46 @@ final class AgentPageCaptureTests: XCTestCase {
         XCTAssertEqual(consoleEntries[0].level, "warn")
         XCTAssertEqual(consoleEntries[0].text.count, 500)
         XCTAssertTrue(consoleEntries[1].text.contains("page boot"))
+
+        // Fetch must resolve as soon as headers arrive instead of blocking up to 150 ms for body preview.
+        let timing = try await browser.agentBridge.runJS(
+            code: "const t0 = performance.now(); const r = await fetch('/slow-stream'); return Math.round(performance.now() - t0) + ':' + r.status;",
+            environment: .page,
+            timeout: 5
+        )
+        let parts = (timing.valueJSON ?? "").trimmingCharacters(in: CharacterSet(charactersIn: "\"")).split(separator: ":")
+        let headerMs = Int(parts.first ?? "999") ?? 999
+        XCTAssertEqual(parts.last, "200")
+        XCTAssertLessThan(headerMs, 120, "fetch() must not wait for body preview before resolving")
     }
 
     func testScreenshotScalesToAtMost1280PxAndCapsFullPageAtEightScreens() async throws {
+        let registry = makeRegistry(supportsImageInput: true)
+
+        // At 390x844 pt (@3x on iPhone), 8 screens is 6,752 pt (20,256 native px); pixel height must stay <= 8,000.
+        let phoneRect = CGRect(x: 0, y: 0, width: 390, height: 844)
+        window?.frame = phoneRect
+        window?.rootViewController?.view.frame = phoneRect
+        browser.webView.frame = phoneRect
+        browser.webView.layoutIfNeeded()
+        _ = try await browser.agentBridge.load(server.baseURL.appendingPathComponent("tall-phone"), wait: true, timeout: 10)
+        try await Task.sleep(for: .milliseconds(100))
+
+        let phoneFull = try await registry.dispatch(toolName: "screenshot", arguments: ["area": .string("full_page")])
+        XCTAssertEqual(phoneFull.resultSummary, "390×6752 pt")
+        XCTAssertTrue(phoneFull.output.contains("390×6752 pt, full page") && phoneFull.output.contains("capped at 8 screen heights"), phoneFull.output)
+        let phoneData = try XCTUnwrap(Data(base64Encoded: phoneFull.images[0].data))
+        let phoneCG = try XCTUnwrap(UIImage(data: phoneData)?.cgImage)
+        XCTAssertLessThanOrEqual(phoneCG.width, 1_280)
+        XCTAssertLessThanOrEqual(phoneCG.height, 8_000)
+        XCTAssertEqual(Double(phoneCG.height) / Double(phoneCG.width), 6752.0 / 390.0, accuracy: 0.08)
+
         let wideRect = CGRect(x: 0, y: 0, width: 700, height: 300)
         window?.frame = wideRect
         window?.rootViewController?.view.frame = wideRect
         browser.webView.frame = wideRect
         browser.webView.layoutIfNeeded()
 
-        let registry = makeRegistry(supportsImageInput: true)
         _ = try await browser.agentBridge.load(server.baseURL.appendingPathComponent("tall"), wait: true, timeout: 10)
         try await Task.sleep(for: .milliseconds(100))
 
@@ -228,6 +274,7 @@ final class AgentPageCaptureTests: XCTestCase {
         XCTAssertEqual([UInt8](visibleData.prefix(2)), [0xFF, 0xD8])
         let visibleCG = try XCTUnwrap(UIImage(data: visibleData)?.cgImage)
         XCTAssertLessThanOrEqual(visibleCG.width, 1_280)
+        XCTAssertLessThanOrEqual(visibleCG.height, 8_000)
 
         let fullPage = try await registry.dispatch(toolName: "screenshot", arguments: ["area": .string("full_page")])
         XCTAssertEqual(fullPage.resultSummary, "700×2400 pt")
@@ -235,6 +282,7 @@ final class AgentPageCaptureTests: XCTestCase {
         let fullData = try XCTUnwrap(Data(base64Encoded: fullPage.images[0].data))
         let fullCG = try XCTUnwrap(UIImage(data: fullData)?.cgImage)
         XCTAssertLessThanOrEqual(fullCG.width, 1_280)
+        XCTAssertLessThanOrEqual(fullCG.height, 8_000)
         XCTAssertEqual(Double(fullCG.height) / Double(fullCG.width), 2400.0 / 700.0, accuracy: 0.05)
     }
 
