@@ -294,7 +294,8 @@ final class ToolRegistryTests: XCTestCase {
         XCTAssertEqual(registry.definitions.map(\.name), [
             "read_page", "run_js", "inject_css", "wait_for",
             "script_save", "script_list", "script_read", "script_update", "script_delete",
-            "file_read", "file_write", "file_list"
+            "file_read", "file_write", "file_list",
+            "navigate", "reload_page"
         ])
         for name in ["read_page", "run_js"] {
             XCTAssertNotNil(registry.tool(named: name)?.definition.parameters.first { $0.name == "save_to" })

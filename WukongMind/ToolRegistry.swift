@@ -372,6 +372,9 @@ struct ToolExecutionOutput: Equatable, Sendable {
     var content: String
     var summary: String
     var isError: Bool
+    /// Page-changing tools' before/after comparison; its lines are added
+    /// after saving or truncation, so the model always sees them.
+    var pageFeedback: PageFeedbackReport?
     /// The workspace file the tool saved its full output to (`save_to`).
     var savedPath: String?
     /// The tool already cut its output to a range (`file_read`), so the
@@ -382,12 +385,14 @@ struct ToolExecutionOutput: Equatable, Sendable {
         content: String,
         summary: String? = nil,
         isError: Bool = false,
+        pageFeedback: PageFeedbackReport? = nil,
         savedPath: String? = nil,
         isRanged: Bool = false
     ) {
         self.content = content
         self.summary = summary ?? Self.defaultSummary(for: content)
         self.isError = isError
+        self.pageFeedback = pageFeedback
         self.savedPath = savedPath
         self.isRanged = isRanged
     }
@@ -424,6 +429,7 @@ struct ToolDispatchResult: Equatable, Sendable {
     var wasTruncated: Bool
     var totalCharacterCount: Int
     var duration: TimeInterval
+    var pageFeedback: PageFeedbackReport? = nil
     /// Where the full output went when it was saved to the workspace (over the
     /// limit, or `save_to`); `output` then holds the notice and preview.
     var savedPath: String? = nil
@@ -690,6 +696,7 @@ struct ToolRegistry: Sendable {
                 summary: execution.summary,
                 isError: execution.isError,
                 duration: Self.secondsElapsed(since: started),
+                pageFeedback: execution.pageFeedback,
                 savedPath: execution.savedPath,
                 isRanged: execution.isRanged,
                 step: step
@@ -718,6 +725,7 @@ struct ToolRegistry: Sendable {
         summary: String,
         isError: Bool,
         duration: TimeInterval,
+        pageFeedback: PageFeedbackReport? = nil,
         savedPath: String? = nil,
         isRanged: Bool = false,
         step: Int? = nil
@@ -745,6 +753,17 @@ struct ToolRegistry: Sendable {
                 finalSummary = "\(scrubbedSummary) (truncated, \(totalCount) chars total)"
             }
         }
+        // Page feedback goes on after saving or truncation (design-m3.md
+        // "Page feedback"): the model always sees it, and a saved file stays raw.
+        if let pageFeedback {
+            finalOutput = UntrustedWebContent.redactSecrets(
+                in: pageFeedback.decorate(finalOutput),
+                secrets: redactedSecrets
+            )
+        }
+        if pageFeedback?.isWarning == true {
+            finalSummary = "Page may be broken · \(finalSummary)"
+        }
         let wrapped = UntrustedWebContent.wrap(
             finalOutput,
             toolName: toolName,
@@ -761,6 +780,7 @@ struct ToolRegistry: Sendable {
             wasTruncated: wasTruncated,
             totalCharacterCount: totalCount,
             duration: duration,
+            pageFeedback: pageFeedback,
             savedPath: finalSavedPath
         )
     }
@@ -926,7 +946,7 @@ extension ToolRegistry {
                 let env = args["environment"]?.stringValue ?? AgentExecutionEnvironment.defaultEnvironment.rawValue
                 return env == AgentExecutionEnvironment.page.rawValue ? "\(snippet) (page)" : snippet
             },
-            execute: { args in
+            execute: withPageFeedback(bridge: bridge) { args in
                 let code = args["code"]?.stringValue ?? ""
                 let envRaw = args["environment"]?.stringValue ?? AgentExecutionEnvironment.defaultEnvironment.rawValue
                 let env = AgentExecutionEnvironment(rawValue: envRaw) ?? .defaultEnvironment
@@ -1021,7 +1041,7 @@ extension ToolRegistry {
                 }
                 return snippet
             },
-            execute: { args in
+            execute: withPageFeedback(bridge: bridge) { args in
                 let css = args["css"]?.stringValue ?? ""
                 let id = args["id"]?.stringValue
                 let injected = try await bridge.injectCSS(css: css, id: id)
