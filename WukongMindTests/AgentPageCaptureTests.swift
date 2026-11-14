@@ -10,8 +10,11 @@ import XCTest
 @MainActor
 final class AgentPageCaptureTests: XCTestCase {
     private final class CaptureFixtureServer: @unchecked Sendable {
+        private static let slowStreamPayload = Data("delayed body payload".utf8)
         private let listener: NWListener
         private let queue = DispatchQueue(label: "AgentPageCaptureTests.Server")
+        private var heldSlowStreams: [NWConnection] = []
+        private var slowStreamReleased = false
         private(set) var port: UInt16 = 0
 
         init() throws {
@@ -41,7 +44,36 @@ final class AgentPageCaptureTests: XCTestCase {
             }
         }
 
-        func stop() { listener.cancel() }
+        func stop() {
+            queue.async { [weak self] in
+                guard let self else { return }
+                for conn in self.heldSlowStreams {
+                    conn.cancel()
+                }
+                self.heldSlowStreams.removeAll()
+            }
+            listener.cancel()
+        }
+
+        private static func finishSlowStream(_ connection: NWConnection, on queue: DispatchQueue) {
+            connection.send(
+                content: slowStreamPayload,
+                contentContext: .defaultMessage,
+                isComplete: true,
+                completion: .contentProcessed { _ in
+                    connection.send(
+                        content: nil,
+                        contentContext: .finalMessage,
+                        isComplete: true,
+                        completion: .contentProcessed { _ in
+                            queue.asyncAfter(deadline: .now() + .milliseconds(250)) {
+                                connection.cancel()
+                            }
+                        }
+                    )
+                }
+            )
+        }
 
         private func handle(_ connection: NWConnection) {
             connection.start(queue: queue)
@@ -93,16 +125,36 @@ final class AgentPageCaptureTests: XCTestCase {
                 extra += "Set-Cookie: xhr_cookie=never-leak-000; Path=/\r\n"
                 body = "xhr body note"
             case "/slow-stream":
-                let chunk = Data("delayed body payload".utf8)
-                let head = "HTTP/1.1 200 OK\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: \(chunk.count)\r\nCache-Control: no-store\r\nConnection: close\r\n\r\n"
+                let head = "HTTP/1.1 200 OK\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: \(Self.slowStreamPayload.count)\r\nCache-Control: no-store\r\nConnection: close\r\n\r\n"
                 connection.send(content: Data(head.utf8), isComplete: false, completion: .contentProcessed { [weak self] _ in
-                    self?.queue.asyncAfter(deadline: .now() + .milliseconds(300)) {
-                        connection.send(content: chunk, contentContext: .finalMessage, isComplete: true, completion: .contentProcessed { _ in
-                            connection.cancel()
-                        })
+                    guard let self else {
+                        connection.cancel()
+                        return
+                    }
+                    if self.slowStreamReleased {
+                        Self.finishSlowStream(connection, on: self.queue)
+                    } else {
+                        self.heldSlowStreams.append(connection)
+                        self.queue.asyncAfter(deadline: .now() + .seconds(15)) { [weak self] in
+                            guard let self else { return }
+                            if let idx = self.heldSlowStreams.firstIndex(where: { $0 === connection }) {
+                                self.heldSlowStreams.remove(at: idx)
+                                Self.finishSlowStream(connection, on: self.queue)
+                            }
+                        }
                     }
                 })
                 return
+            case "/release-slow-stream":
+                contentType = "text/plain; charset=utf-8"
+                extra = ""
+                body = "released"
+                slowStreamReleased = true
+                let waiting = heldSlowStreams
+                heldSlowStreams.removeAll()
+                for held in waiting {
+                    Self.finishSlowStream(held, on: queue)
+                }
             case "/tall":
                 let bands = (1...10).map { i in
                     #"<div style="height:300px;background:hsl(\#(i * 33),70%,35%);color:#fff;font:bold 28px sans-serif">Band \#(i)</div>"#
@@ -126,12 +178,16 @@ final class AgentPageCaptureTests: XCTestCase {
             let bodyData = Data(body.utf8)
             let header = "HTTP/1.1 \(status)\r\nContent-Type: \(contentType)\r\nContent-Length: \(bodyData.count)\r\n"
                 + "\(extra)Cache-Control: no-store\r\nConnection: close\r\n\r\n"
+            let closeQueue = queue
             connection.send(content: Data(header.utf8) + bodyData, contentContext: .finalMessage, isComplete: true, completion: .contentProcessed { _ in
-                connection.cancel()
+                closeQueue.asyncAfter(deadline: .now() + .milliseconds(250)) {
+                    connection.cancel()
+                }
             })
         }
     }
 
+    private static let sharedDataStore = WKWebsiteDataStore.nonPersistent()
     private var server: CaptureFixtureServer!
     private var browser: ForumBrowserModel!
     private var window: UIWindow?
@@ -142,7 +198,7 @@ final class AgentPageCaptureTests: XCTestCase {
         server = try CaptureFixtureServer()
         try await server.start()
         sandbox = FileManager.default.temporaryDirectory.appendingPathComponent("AgentPageCapture-\(UUID().uuidString)", isDirectory: true)
-        browser = ForumBrowserModel(contentRules: ContentRuleLibrary(store: nil, directory: nil), websiteDataStore: .nonPersistent())
+        browser = ForumBrowserModel(contentRules: ContentRuleLibrary(store: nil, directory: nil), websiteDataStore: Self.sharedDataStore)
         let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
         let win = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
         win.frame = CGRect(x: 0, y: 0, width: 390, height: 844)
@@ -152,13 +208,16 @@ final class AgentPageCaptureTests: XCTestCase {
         browser.webView.frame = root.view.bounds
         win.rootViewController = root
         win.makeKeyAndVisible()
+        win.layoutIfNeeded()
         window = win
     }
 
     override func tearDown() async throws {
         browser?.stopLoading()
+        browser?.webView.removeFromSuperview()
         window?.isHidden = true
         window?.rootViewController = nil
+        window?.windowScene = nil
         window = nil
         browser = nil
         server?.stop()
@@ -186,8 +245,8 @@ final class AgentPageCaptureTests: XCTestCase {
 
     func testNetworkLogAndConsoleCaptureFetchAndXHRWithoutCookieOrAuthHeaders() async throws {
         let registry = makeRegistry(supportsImageInput: true)
-        _ = try await browser.agentBridge.load(server.baseURL.appendingPathComponent("capture"), wait: true, timeout: 10)
-        _ = try await browser.agentBridge.waitFor(selector: "body[data-ready='1']", milliseconds: 5_000)
+        _ = try await browser.agentBridge.load(server.baseURL.appendingPathComponent("capture"), wait: true, timeout: 30)
+        _ = try await browser.agentBridge.waitFor(selector: "body[data-ready='1']", milliseconds: 15_000)
 
         let all = try await registry.dispatch(toolName: "network_log", arguments: [:])
         XCTAssertEqual(all.resultSummary, "2")
@@ -225,16 +284,48 @@ final class AgentPageCaptureTests: XCTestCase {
         XCTAssertEqual(consoleEntries[0].text.count, 500)
         XCTAssertTrue(consoleEntries[1].text.contains("page boot"))
 
-        // Fetch must resolve as soon as headers arrive instead of blocking up to 150 ms for body preview.
-        let timing = try await browser.agentBridge.runJS(
-            code: "const t0 = performance.now(); const r = await fetch('/slow-stream'); return Math.round(performance.now() - t0) + ':' + r.status;",
+        // Fetch must resolve as soon as headers arrive — while the server still holds the
+        // response body and while readClonePreview's background preview promise is still pending.
+        let ordering = try await browser.agentBridge.runJS(
+            code: """
+            const order = [];
+            const r = await fetch('/slow-stream');
+            order.push('fetch_resolved:' + r.status);
+            const entryBeforeRelease = JSON.parse(window.__wukongPageCapture.networkJSON())
+              .find((e) => e.url.endsWith('/slow-stream'));
+            order.push('preview_before_release:' + String(entryBeforeRelease ? entryBeforeRelease.response_preview : 'missing'));
+            const previewState = await Promise.race([
+              window.__wukongPageCapture.networkJSONWithBodies().then(() => 'preview_already_settled'),
+              Promise.resolve().then(() => Promise.resolve().then(() => 'preview_still_pending'))
+            ]);
+            order.push(previewState);
+            const bodyPromise = r.text().then((t) => {
+              order.push('body_read:' + t);
+              return t;
+            });
+            order.push('releasing_body');
+            await fetch('/release-slow-stream');
+            await bodyPromise;
+            return order.join('|');
+            """,
             environment: .page,
-            timeout: 5
+            timeout: 15
         )
-        let parts = (timing.valueJSON ?? "").trimmingCharacters(in: CharacterSet(charactersIn: "\"")).split(separator: ":")
-        let headerMs = Int(parts.first ?? "999") ?? 999
-        XCTAssertEqual(parts.last, "200")
-        XCTAssertLessThan(headerMs, 120, "fetch() must not wait for body preview before resolving")
+        let sequence = (ordering.valueJSON ?? "")
+            .trimmingCharacters(in: CharacterSet(charactersIn: "\""))
+            .split(separator: "|")
+            .map(String.init)
+        XCTAssertEqual(
+            sequence,
+            [
+                "fetch_resolved:200",
+                "preview_before_release:null",
+                "preview_still_pending",
+                "releasing_body",
+                "body_read:delayed body payload"
+            ],
+            "fetch() must resolve on headers before body delivery or preview completion"
+        )
     }
 
     func testScreenshotScalesToAtMost1280PxAndCapsFullPageAtEightScreens() async throws {

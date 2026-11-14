@@ -100,8 +100,11 @@ final class BrowserToolsTests: XCTestCase {
                 + "Content-Length: \(bodyData.count)\r\n\(extraHeaders)Cache-Control: no-store\r\nConnection: close\r\n\r\n"
             var response = Data(header.utf8)
             response.append(bodyData)
+            let closeQueue = queue
             connection.send(content: response, contentContext: .finalMessage, isComplete: true, completion: .contentProcessed { _ in
-                connection.cancel()
+                closeQueue.asyncAfter(deadline: .now() + .milliseconds(250)) {
+                    connection.cancel()
+                }
             })
         }
 
@@ -114,6 +117,7 @@ final class BrowserToolsTests: XCTestCase {
         }
     }
 
+    private static let sharedDataStore = WKWebsiteDataStore.nonPersistent()
     private var server: FixtureServer!
     private var browser: ForumBrowserModel!
     private var window: UIWindow?
@@ -126,16 +130,18 @@ final class BrowserToolsTests: XCTestCase {
         try await server.start()
         browser = ForumBrowserModel(
             contentRules: ContentRuleLibrary(store: nil, directory: nil),
-            websiteDataStore: .nonPersistent()
+            websiteDataStore: Self.sharedDataStore
         )
         let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
         let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
         window.frame = CGRect(x: 0, y: 0, width: 390, height: 844)
         let root = UIViewController()
+        root.view.frame = window.bounds
         root.view.addSubview(browser.webView)
         browser.webView.frame = root.view.bounds
         window.rootViewController = root
         window.makeKeyAndVisible()
+        window.layoutIfNeeded()
         self.window = window
     }
 
@@ -143,8 +149,10 @@ final class BrowserToolsTests: XCTestCase {
         controller?.detach()
         controller = nil
         browser?.stopLoading()
+        browser?.webView.removeFromSuperview()
         window?.isHidden = true
         window?.rootViewController = nil
+        window?.windowScene = nil
         window = nil
         browser = nil
         server?.stop()
@@ -247,7 +255,7 @@ final class BrowserToolsTests: XCTestCase {
         XCTAssertTrue(result.resultSummary.contains("timed out"))
 
         // The browser is still usable afterwards.
-        let next = try await tools.dispatch(
+        let next = try await registry().dispatch(
             toolName: "navigate",
             arguments: ["url": .string(server.baseURL.appendingPathComponent("t/other").absoluteString)]
         )
