@@ -22,6 +22,15 @@ A newer push to the same branch or pull request cancels the run in progress.
 UI tests don't run in CI; run them locally
 ([DEVELOPMENT.md](DEVELOPMENT.md#ui-tests)).
 
+**Test retries.** `build-test` runs `xcodebuild test` with
+`-retry-tests-on-failure -test-iterations 3`: a test passes if any of up to 3
+attempts passes, so timing flakes in the inherited suite don't block pull
+requests. Nothing is hidden: an always-run step (`scripts/ci/flaky-summary.sh`)
+reads `TestResults.xcresult` and lists every test that failed an attempt but
+passed on retry under "Flaky tests (passed on retry)" in the job summary. It
+never fails the job. Fix what shows up there; known cases are in
+[flaky-tests.md](wukongmind/flaky-tests.md).
+
 **Project drift.** The generator creates random object UUIDs each run, so a
 plain `git diff` would always report changes. The check compares the object
 graph with UUIDs removed (`xcodeproj-tree.rb`) and the scheme without
