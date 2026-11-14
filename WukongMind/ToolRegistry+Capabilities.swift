@@ -140,7 +140,8 @@ extension ToolRegistry {
                 default:
                     return ToolExecutionOutput(content: try await capabilities.summarizeText(input.value), summary: CapabilityReadAloud.textTitle(input.value))
                 }
-            }
+            },
+            surfaces: [.text, .voice]
         )
     }
 
@@ -177,6 +178,15 @@ extension ToolRegistry {
                     summary: title,
                     shape: shape
                 )
+            },
+            surfaces: [.text, .voice],
+            spokenResult: { result, _ in
+                guard !result.isError else { return ToolRegistry.defaultSpokenResult(result) }
+                return [
+                    "status": "started",
+                    "shown": .string(result.output),
+                    "message": "The audio player has it (the listen row in the panel). Say in a few words that it is in the player; don't read the text yourself."
+                ]
             }
         )
     }
@@ -201,7 +211,8 @@ extension ToolRegistry {
                     summary: resolved.topic.title,
                     shape: .thread(ThreadShape(id: resolved.topic.topicID, title: resolved.topic.title, url: resolved.topic.url.absoluteString, posts: [], totalPosts: count))
                 )
-            }
+            },
+            surfaces: [.text, .voice]
         )
     }
 

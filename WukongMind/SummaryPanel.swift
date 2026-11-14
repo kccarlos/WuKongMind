@@ -28,6 +28,8 @@ struct AssistantPanel: View {
     @ObservedObject var app: AppModel
     @ObservedObject private var streams: StreamStore
     @ObservedObject private var browser: ForumBrowserModel
+    /// The composer mic shows whether a voice session is on.
+    @ObservedObject private var voice: VoiceController
     private var browserAgent: BrowserAgentSession { app.browserAgent }
     private var scriptStore: ScriptStore { app.scriptStore }
     /// Post & responses as a sheet.
@@ -69,6 +71,7 @@ struct AssistantPanel: View {
         self.app = app
         _streams = ObservedObject(wrappedValue: app.streams)
         _browser = ObservedObject(wrappedValue: app.browser)
+        _voice = ObservedObject(wrappedValue: app.voice)
         self.onExpand = onExpand
         self.onOpenURL = onOpenURL
     }
@@ -714,7 +717,10 @@ struct AssistantPanel: View {
                 onStop: { browserAgent.stop() },
                 isListening: dictation.isBusy,
                 onDictate: startDictation,
-                onStopDictation: { dictation.toggle(voiceBusy: false) }
+                onStopDictation: { dictation.toggle(voiceBusy: false) },
+                canTalk: app.voiceProvider != nil,
+                isTalking: voice.isActive,
+                onTalk: { voice.toggle() }
             )
         }
         .onChange(of: dictation.transcript) { applyDictation() }
@@ -1351,7 +1357,7 @@ private struct ChatThread<Leading: View>: View {
     }
 
     private var hasConversationEntries: Bool {
-        !browserAgent.runs.isEmpty
+        browserAgent.hasConversation
     }
 
     private var isCompletelyEmpty: Bool {
@@ -1393,7 +1399,7 @@ private struct ChatThread<Leading: View>: View {
                                 .transition(.identity)
                             }
 
-                            if !browserAgent.runs.isEmpty {
+                            if browserAgent.hasConversation {
                                 BrowserAgentRunsView(
                                     app: app,
                                     session: browserAgent,
@@ -1528,6 +1534,9 @@ private struct ChatThread<Leading: View>: View {
                     if newCount > oldCount {
                         jumpToBottom(proxy: proxy)
                     }
+                }
+                .onChange(of: browserAgent.voiceTurns.count) { oldCount, newCount in
+                    if newCount > oldCount, !userScrolling, !metricsBox.scrolledUp { scrollUnanimated(proxy: proxy) }
                 }
                 .onChange(of: browserAgent.toolCalls.count) { _, _ in
                     #if DEBUG

@@ -1,13 +1,13 @@
 import Foundation
 
 /// What the voice layer needs from the app: the navigation layer
-/// (AppModel+Navigation.swift) plus a few reads for the silent context.
-/// AppModel conforms (AppModel+Voice.swift); tests use a fake.
+/// (AppModel+Navigation.swift), the hand-off to the Agent, and a few reads
+/// for the silent context. AppModel conforms (AppModel+Voice.swift); tests
+/// use a fake.
 @MainActor
 protocol VoiceNavigator: AnyObject {
     var pageContext: PageContext { get }
     var browseCursor: BrowseCursor { get }
-    var isResearching: Bool { get }
     /// The words and tool options of the site a session starting now is on.
     var voiceSite: VoiceSite { get }
 
@@ -23,11 +23,19 @@ protocol VoiceNavigator: AnyObject {
     func read(post: Int?) async -> BrowseResult
     /// The text of every post on screen.
     func readVisible() async -> BrowseResult
-    func research(_ request: String, siteURL: String?) async -> BrowseResult
-    func cancelResearch() -> BrowseResult
-    /// The running research's latest step, in English ("Reading “Fan
-    /// noise after update”"); nil when none runs.
-    var researchProgress: String? { get }
+
+    /// A hand-off run is going.
+    var isHandingOff: Bool { get }
+    /// Sends `request` to the Agent as a voice run (`hand_off_to_agent`); nil
+    /// once a run has started, else why none did.
+    func startHandOff(_ request: String) -> String?
+    /// Waits for the hand-off run to end.
+    func handOffOutcome() async -> VoiceHandOffOutcome
+    /// Stops the hand-off run ("never mind"); false when none runs.
+    func cancelHandOff() -> Bool
+    /// The hand-off run's latest step, in English ("Step 2, read_topic 42");
+    /// nil when none runs.
+    var handOffProgress: String? { get }
 
     /// The open topic's facts for the topic brief; nil off topics.
     func voiceTopicBrief() async -> VoiceTopicBrief?
@@ -38,12 +46,88 @@ protocol VoiceNavigator: AnyObject {
     func quickSummary(topicKey: String) async -> String?
 }
 
+/// How a hand-off run ended.
+enum VoiceHandOffOutcome: Equatable {
+    case answered(String)
+    case cancelled
+    case failed(String)
+}
+
+/// Sends spoken requests to the Agent like typed ones (origin voice), one
+/// at a time: a newer hand-off replaces the running one, and a run the user
+/// typed is never stopped for one.
+@MainActor
+final class AgentHandOff {
+    let agent: BrowserAgentSession
+    private(set) var runID: UUID?
+
+    init(agent: BrowserAgentSession) {
+        self.agent = agent
+    }
+
+    private var run: BrowserAgentRun? {
+        runID.flatMap { id in agent.runs.first { $0.id == id } }
+    }
+
+    var isRunning: Bool { run?.state.isRunning == true }
+
+    /// Nil once a run has started, else why none did.
+    func start(_ request: String) -> String? {
+        if agent.isRunning {
+            guard isRunning else { return "The Agent is busy with another request. Try again when it's done." }
+            agent.stop()
+        }
+        let before = agent.runs.last?.id
+        agent.send(request, origin: .voice)
+        guard agent.isRunning, let run = agent.runs.last, run.id != before else {
+            if case .failed(let message) = agent.runState { return message }
+            return "The Agent couldn't start."
+        }
+        runID = run.id
+        return nil
+    }
+
+    /// Waits for the hand-off run to end and says how.
+    func outcome() async -> VoiceHandOffOutcome {
+        guard let id = runID else { return .failed("No hand-off is running.") }
+        await agent.waitForActiveRun()
+        guard let run = agent.runs.first(where: { $0.id == id }) else { return .cancelled }
+        if runID == id, !run.state.isRunning { runID = nil }
+        switch run.state {
+        case .completed:
+            let text = run.assistantText.trimmingCharacters(in: .whitespacesAndNewlines)
+            return text.isEmpty ? .failed("The Agent finished without an answer.") : .answered(text)
+        case .stopped, .idle, .running:
+            return .cancelled
+        case .stepLimitReached(let limit):
+            return .failed("The Agent stopped after \(limit) steps without finishing. Continue is in the panel.")
+        case .failed(let message):
+            return .failed(message)
+        }
+    }
+
+    /// "Never mind": Stop. False when no hand-off runs.
+    func cancel() -> Bool {
+        guard isRunning else { return false }
+        agent.stop()
+        runID = nil
+        return true
+    }
+
+    /// The run's latest step ("Step 2, read_topic topic 42").
+    var progress: String? {
+        guard let run, run.state.isRunning, let step = run.toolCalls.last else { return nil }
+        let detail = step.argumentSummary.isEmpty ? "" : " \(step.argumentSummary)"
+        return BrowseText.oneLine("Step \(run.toolCalls.count), \(step.toolName)\(detail)", limit: 200)
+    }
+}
+
 /// What a tool call produced.
 struct VoiceToolOutcome: Equatable {
     enum Effect: Equatable {
         case none
-        /// A research started: the session watches for an acknowledgement.
-        case researchStarted
+        /// A hand-off started: the session watches for an acknowledgement.
+        case handOffStarted
         /// End the session after the goodbye.
         case end
     }
@@ -61,9 +145,9 @@ struct VoiceBriefing: Equatable {
     static let name = "briefing"
 
     enum Kind: String {
-        case researchProgress = "research progress"
-        case researchAnswer = "research answer"
-        case researchEnded = "research ended"
+        case handOffProgress = "agent progress"
+        case handOffAnswer = "agent answer"
+        case handOffEnded = "agent ended"
         case context
     }
 
@@ -74,232 +158,232 @@ struct VoiceBriefing: Equatable {
     var spokenText: String?
 }
 
-/// Runs the voice tools on the navigation layer and turns each
-/// `BrowseResult` into a function response: `status`, `shown`, `content`,
-/// `hits`, and a `message` telling the model what to say next.
+/// Runs the voice session's tools through the registry (`.voice` tools),
+/// plus `end` and `hand_off_to_agent`, and turns each result into a
+/// function response: `status`, `shown`, `content`, `hits`, and a `message`
+/// telling the model what to say next, capped at 8,000 characters.
 @MainActor
 final class VoiceToolBridge {
     weak var navigator: VoiceNavigator?
-    /// Where research briefings go (the session).
+    /// Where hand-off briefings go (the session).
     var onBriefing: ((VoiceBriefing) -> Void)?
-    /// How often a running research is checked for progress.
+    /// How often a running hand-off is checked for progress.
     var progressInterval: Duration = .seconds(2)
-    private var researchTask: Task<Void, Never>?
-    private var researchSequence = 0
+    /// The voice registry for the page as it is now (AppModel); without
+    /// one, the browse tools alone.
+    var registryBuilder: ((BrowseToolContext) -> ToolRegistry)?
+    /// The names the session declared when it connected; a call outside them
+    /// is refused, even after a resume (spike Q2). Nil until declared.
+    private(set) var declaredNames: Set<String>?
+    private(set) var declarations: [GeminiLive.FunctionDeclaration] = []
+    private var site: VoiceSite?
+    private var handOffTask: Task<Void, Never>?
+    private var handOffSequence = 0
 
     init(navigator: VoiceNavigator?) {
         self.navigator = navigator
     }
 
+    /// Fixes the session's tools for `site` (a fresh connection) and returns
+    /// their declarations.
+    func declare(for site: VoiceSite) -> [GeminiLive.FunctionDeclaration] {
+        self.site = site
+        declarations = VoiceDeclarations.all(registry: registry(eyesFree: false))
+        declaredNames = Set(declarations.map(\.name))
+        return declarations
+    }
+
     func handle(_ call: GeminiLive.FunctionCall, eyesFree: Bool) async -> VoiceToolOutcome {
-        guard let tool = VoiceTool(rawValue: call.name) else {
-            return refusal("There is no tool called \(call.name).", scheduling: .whenIdle)
+        if let declaredNames, !declaredNames.contains(call.name) {
+            return refusal("There is no tool called \(call.name).")
         }
-        guard let navigator else {
-            return refusal("The browser isn't available.", scheduling: tool.scheduling)
-        }
-        let args = call.args
-        let result: BrowseResult
-        switch tool {
-        case .find:
-            let query = args["query"]?.textValue ?? ""
-            let scope: BrowseSearchScope = args["scope"]?.stringValue == "topic" ? .topic : .forum
-            result = await navigator.find(query, scope: scope)
-        case .open:
-            result = await open(args, navigator: navigator)
-        case .move:
-            result = await move(action: args["action"]?.stringValue ?? "", post: args["post"]?.intValue, navigator: navigator)
-        case .focus:
-            result = await focus(args, navigator: navigator)
-        case .read:
-            if args["scope"]?.stringValue == "visible" {
-                result = await navigator.readVisible()
-            } else {
-                result = await navigator.read(post: args["post"]?.intValue)
+        if let tool = VoiceTool(rawValue: call.name) {
+            switch tool {
+            case .end:
+                return VoiceToolOutcome(
+                    response: ["status": "ending", "message": "The conversation ends once your goodbye has played. Say nothing more."],
+                    scheduling: tool.scheduling,
+                    effect: .end
+                )
+            case .handOffToAgent:
+                guard let navigator else { return refusal("The browser isn't available.") }
+                return await handOff(call.args, navigator: navigator, eyesFree: eyesFree)
             }
-        case .research:
-            return await research(args, navigator: navigator, eyesFree: eyesFree)
-        case .end:
-            return VoiceToolOutcome(
-                response: ["status": "ending", "message": "The conversation ends once your goodbye has played. Say nothing more."],
-                scheduling: tool.scheduling,
-                effect: .end
-            )
         }
-        return VoiceToolOutcome(response: Self.response(result, tool: tool, eyesFree: eyesFree), scheduling: tool.scheduling)
+        guard navigator != nil else { return refusal("The browser isn't available.") }
+        return await dispatch(call.name, args: call.args, eyesFree: eyesFree)
     }
 
-    /// Stops a running research (the session ends).
+    /// The session ends: stop watching the hand-off. Its run goes on and
+    /// stays in the conversation.
     func stop() {
-        researchTask?.cancel()
-        researchTask = nil
-        if navigator?.isResearching == true { _ = navigator?.cancelResearch() }
+        handOffTask?.cancel()
+        handOffTask = nil
     }
 
-    // MARK: Tools
+    // MARK: Registry
 
-    private func open(_ args: [String: JSONValue], navigator: VoiceNavigator) async -> BrowseResult {
-        let landing: BrowseLanding? = switch args["at"]?.stringValue {
-        case "post": args["post"]?.intValue.map(BrowseLanding.post)
-        case "solution": .solution
-        case "last": .last
-        case "top": .top
-        case "unread": .firstNew
-        default: args["post"]?.intValue.map(BrowseLanding.post)
+    private func registry(eyesFree: Bool) -> ToolRegistry {
+        let browse = BrowseToolContext(navigator: navigator, site: site ?? navigator?.voiceSite ?? SiteRegistry.standard.voiceFallback)
+        browse.eyesFree = eyesFree
+        return registryBuilder?(browse) ?? ToolRegistry(tools: ToolRegistry.browseTools(browse: browse))
+    }
+
+    /// One registry tool, on the page as it is now.
+    private func dispatch(_ name: String, args: [String: JSONValue], eyesFree: Bool) async -> VoiceToolOutcome {
+        let registry = registry(eyesFree: eyesFree)
+        guard let tool = registry.tool(named: name) else {
+            return refusal("\(name) isn't available on this page.")
         }
-        if let card = args["card"]?.intValue {
-            guard landing == nil || landing == .firstNew else {
-                // A card opened somewhere else than its own post.
-                let items = navigator.browseCursor.items
-                guard items.indices.contains(card - 1) else {
-                    return BrowseResult(status: .notFound, shown: "There is no card \(card).")
+        var args = Self.lenient(args, for: tool.definition)
+        // "Summarize this", "follow this thread": voice names no thread, so the open topic it is.
+        if let topicID = navigator?.pageContext.topic?.topicID {
+            args = Self.defaultingToOpenTopic(args, topicID: topicID, for: tool.definition)
+        }
+        guard let result = try? await registry.dispatch(toolName: name, arguments: args) else {
+            return refusal("The tool was stopped.")
+        }
+        return VoiceToolOutcome(response: registry.spokenResult(result, eyesFree: eyesFree), scheduling: tool.voiceScheduling)
+    }
+
+    /// A thread tool called with no input (`{}`) gets the open topic.
+    static func defaultingToOpenTopic(_ args: [String: JSONValue], topicID: String, for definition: AgentToolDefinition) -> [String: JSONValue] {
+        guard definition.parameters.contains(where: { $0.name == "topic_id" }) else { return args }
+        let given = ["topic_id", "url", "path", "text"].contains { key in
+            !(args[key]?.textValue ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+        guard !given else { return args }
+        var args = args
+        for key in ["topic_id", "url", "path", "text"] { args[key] = nil }
+        args["topic_id"] = .string(topicID)
+        return args
+    }
+
+    /// Voice models send numbers as text ("2"); integer parameters take them.
+    static func lenient(_ args: [String: JSONValue], for definition: AgentToolDefinition) -> [String: JSONValue] {
+        var args = args
+        for parameter in definition.parameters {
+            guard let value = args[parameter.name] else { continue }
+            switch parameter.type {
+            case .integer where value.strictIntValue == nil:
+                if let number = value.intValue { args[parameter.name] = .int(Int64(number)) }
+            case .array where parameter.itemsType == .integer:
+                if let items = value.arrayValue {
+                    args[parameter.name] = .array(items.map { item in item.intValue.map { .int(Int64($0)) } ?? item })
                 }
-                return await navigator.openTopic(.item(items[card - 1]), at: landing ?? .firstNew, includeContent: true)
+            default:
+                break
             }
-            return await navigator.openCard(card - 1, includeContent: true)
         }
-        if let topic = args["topic_id"]?.textValue, !topic.filter(\.isNumber).isEmpty {
-            return await navigator.openTopic(.topic(topic), at: landing ?? .firstNew, includeContent: true)
-        }
-        guard let ref = navigator.pageContext.topic else {
-            return BrowseResult(status: .unavailable, shown: "No topic is open; search or pick a card first.")
-        }
-        return await navigator.openTopic(.topic(ref.topicID), at: landing ?? .firstNew, includeContent: true)
+        return args
     }
 
-    private func move(action: String, post: Int?, navigator: VoiceNavigator) async -> BrowseResult {
-        switch action {
-        case "next": return await navigator.next()
-        case "previous": return await navigator.previous()
-        case "back": return navigator.back()
-        case "forward": return navigator.forward()
-        case "post":
-            guard let post else { return BrowseResult(status: .notFound, shown: "No post number was given.") }
-            return await navigator.goToPost(post)
-        case "top": return await navigator.goToPost(1)
-        case "bottom":
-            guard let topic = navigator.pageContext.topic else {
-                return BrowseResult(status: .unavailable, shown: "No topic is open.")
-            }
-            return await navigator.openTopic(.topic(topic.topicID), at: .last, includeContent: true)
-        default:
-            return BrowseResult(status: .unavailable, shown: "Unknown move \"\(action)\".")
-        }
-    }
+    // MARK: Hand-off
 
-    private func focus(_ args: [String: JSONValue], navigator: VoiceNavigator) async -> BrowseResult {
-        switch args["mode"]?.stringValue {
-        case "user":
-            let name = (args["user"]?.textValue ?? "").trimmingCharacters(in: CharacterSet(charactersIn: "@ "))
-            guard !name.isEmpty else { return BrowseResult(status: .notFound, shown: "No username was given.") }
-            return await navigator.focus(.user(name))
-        case "op": return await navigator.focus(.op)
-        case "top": return await navigator.focus(.top)
-        case "posts":
-            let numbers = (args["posts"]?.arrayValue ?? []).compactMap(\.intValue)
-            return await navigator.focus(.posts(numbers))
-        case "clear": return await navigator.focus(.clear)
-        default: return BrowseResult(status: .unavailable, shown: "Unknown focus mode.")
-        }
-    }
-
-    // MARK: Research
-
-    private func research(_ args: [String: JSONValue], navigator: VoiceNavigator, eyesFree: Bool) async -> VoiceToolOutcome {
+    private func handOff(_ args: [String: JSONValue], navigator: VoiceNavigator, eyesFree: Bool) async -> VoiceToolOutcome {
         if args["action"]?.stringValue == "cancel" {
-            researchTask?.cancel()
-            researchTask = nil
-            let result = navigator.cancelResearch()
-            return VoiceToolOutcome(response: Self.response(result, tool: .research, eyesFree: eyesFree), scheduling: .whenIdle)
+            handOffTask?.cancel()
+            handOffTask = nil
+            let result = navigator.cancelHandOff()
+                ? BrowseResult(status: .cancelled, shown: "The Agent's run was stopped.")
+                : BrowseResult(status: .unavailable, shown: "No hand-off is running.")
+            return VoiceToolOutcome(response: Self.response(result, eyesFree: eyesFree), scheduling: .whenIdle)
         }
         let request = (args["request"]?.textValue ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         guard !request.isEmpty else {
-            return refusal("No question was given to research.", scheduling: .whenIdle)
+            return refusal("No request was given to hand off.")
         }
-        // Routing in code: a browser action sent to research is done here.
+        // Routing in code: a browser action sent to the Agent is done here.
         if let routed = VoiceRouting.browserAction(for: request) {
-            let result: BrowseResult
-            let tool: VoiceTool
+            let name: String
+            let routedArgs: [String: JSONValue]
             switch routed {
-            case .move(let action):
-                tool = .move
-                result = await move(action: action, post: nil, navigator: navigator)
-            case .post(let number):
-                tool = .move
-                result = await navigator.goToPost(number)
-            case .solution:
-                tool = .open
-                result = await open(["at": "solution"], navigator: navigator)
+            case .move(let action): (name, routedArgs) = (BrowseToolName.move, ["action": .string(action)])
+            case .post(let number): (name, routedArgs) = (BrowseToolName.move, ["action": "post", "post": .int(Int64(number))])
+            case .solution: (name, routedArgs) = (BrowseToolName.open, ["at": "solution"])
             }
-            var response = Self.response(result, tool: tool, eyesFree: eyesFree)
-            response["routed"] = .string("This was a browser action, done directly with \(tool.rawValue); use \(tool.rawValue) for it next time.")
-            return VoiceToolOutcome(response: response, scheduling: .whenIdle)
+            var outcome = await dispatch(name, args: routedArgs, eyesFree: eyesFree)
+            outcome.response["routed"] = .string("This was a browser action, done directly with \(name); use \(name) for it next time.")
+            outcome.scheduling = .whenIdle
+            return outcome
         }
-        startResearch(request, navigator: navigator)
+        if let reason = navigator.startHandOff(request) {
+            return refusal(reason)
+        }
+        watchHandOff(request, navigator: navigator)
         return VoiceToolOutcome(
             response: [
                 "status": "started",
-                "shown": "Research is running in the background.",
-                "message": "You have already acknowledged it, so say nothing now. The answer arrives as a briefing; don't call research again for this question."
+                "shown": "The Agent is working on it in the panel.",
+                "message": "You have already acknowledged it, so say nothing now. The answer arrives as a briefing; don't hand this request off again."
             ],
             scheduling: .silent,
-            effect: .researchStarted
+            effect: .handOffStarted
         )
     }
 
-    /// Runs one research at a time: a new one cancels the old (whose result
-    /// is then dropped), progress goes out silently, the answer WHEN_IDLE.
-    private func startResearch(_ request: String, navigator: VoiceNavigator) {
-        researchTask?.cancel()
-        researchSequence += 1
-        let sequence = researchSequence
+    /// Watches one hand-off at a time: progress goes out silently, the end
+    /// WHEN_IDLE. A newer hand-off drops the older one's briefing.
+    private func watchHandOff(_ request: String, navigator: VoiceNavigator) {
+        handOffTask?.cancel()
+        handOffSequence += 1
+        let sequence = handOffSequence
         let interval = progressInterval
         let progress = Task { @MainActor [weak self, weak navigator] in
             var last: String?
             while !Task.isCancelled {
                 try? await Task.sleep(for: interval)
-                guard let self, self.researchSequence == sequence, let step = navigator?.researchProgress, step != last else { continue }
+                guard let self, self.handOffSequence == sequence, let step = navigator?.handOffProgress, step != last else { continue }
                 last = step
                 self.onBriefing?(VoiceBriefing(
-                    kind: .researchProgress,
+                    kind: .handOffProgress,
                     facts: ["request": .string(request), "step": .string(step), "message": "Progress only; say nothing unless the user asks how it's going."],
                     scheduling: .silent
                 ))
             }
         }
-        researchTask = Task { @MainActor [weak self, weak navigator] in
+        handOffTask = Task { @MainActor [weak self, weak navigator] in
             defer { progress.cancel() }
             guard let navigator else { return }
-            let result = await navigator.research(request, siteURL: nil)
-            guard let self, self.researchSequence == sequence, !Task.isCancelled else { return }
-            self.researchTask = nil
-            self.onBriefing?(Self.researchBriefing(result, request: request))
+            let outcome = await navigator.handOffOutcome()
+            guard let self, self.handOffSequence == sequence, !Task.isCancelled else { return }
+            self.handOffTask = nil
+            self.onBriefing?(Self.handOffBriefing(outcome, request: request))
         }
     }
 
-    static func researchBriefing(_ result: BrowseResult, request: String) -> VoiceBriefing {
-        var facts = response(result, tool: .research, eyesFree: false)
-        facts["request"] = .string(request)
-        switch result.status {
-        case .answered:
-            let first = (result.hits?.isEmpty == false)
-                ? " The page is already at the first source and the sources are numbered cards, so \"next\" goes to the next one."
-                : ""
-            facts["message"] = .string("The research you started has answered. Open straight with the answer: restate it in about two sentences in the user's language and say the sources are on screen; don't read it out.\(first)")
-            return VoiceBriefing(kind: .researchAnswer, facts: facts, scheduling: .whenIdle, spokenText: result.content)
+    static func handOffBriefing(_ outcome: VoiceHandOffOutcome, request: String) -> VoiceBriefing {
+        switch outcome {
+        case .answered(let text):
+            let answer = VoiceText.spokenAnswer(text)
+            let facts = ToolRegistry.capSpoken([
+                "status": "answered",
+                "request": .string(request),
+                "answer": .string(answer),
+                "message": "The Agent you handed this to has answered. Open straight with the answer: restate it in about two sentences in the user's language, and say the full answer and its sources are in the panel. Don't read it out."
+            ])
+            return VoiceBriefing(kind: .handOffAnswer, facts: facts, scheduling: .whenIdle, spokenText: facts["answer"]?.stringValue)
         case .cancelled:
-            facts["message"] = "The research stopped. Say nothing unless the user asks."
-            return VoiceBriefing(kind: .researchEnded, facts: facts, scheduling: .silent)
-        default:
-            facts["message"] = "The research couldn't finish. Tell the user in a few words; don't start it again unless they ask."
-            return VoiceBriefing(kind: .researchEnded, facts: facts, scheduling: .whenIdle, spokenText: result.shown)
+            return VoiceBriefing(
+                kind: .handOffEnded,
+                facts: ["status": "cancelled", "request": .string(request), "message": "The Agent's run stopped. Say nothing unless the user asks."],
+                scheduling: .silent
+            )
+        case .failed(let reason):
+            return VoiceBriefing(
+                kind: .handOffEnded,
+                facts: ["status": "failed", "request": .string(request), "shown": .string(reason),
+                        "message": "The Agent couldn't finish. Tell the user in a few words; don't hand it off again unless they ask."],
+                scheduling: .whenIdle,
+                spokenText: reason
+            )
         }
     }
 
     // MARK: Results
 
     /// A `BrowseResult` as the model gets it, with what to say next.
-    static func response(_ result: BrowseResult, tool: VoiceTool, eyesFree: Bool) -> [String: JSONValue] {
+    static func response(_ result: BrowseResult, eyesFree: Bool) -> [String: JSONValue] {
         var response: [String: JSONValue] = [
             "status": .string(result.status.rawValue),
             "shown": .string(result.shown)
@@ -318,12 +402,12 @@ final class VoiceToolBridge {
                 return .object(object)
             })
         }
-        response["message"] = .string(message(for: result, tool: tool, eyesFree: eyesFree))
+        response["message"] = .string(message(for: result, eyesFree: eyesFree))
         return response
     }
 
     /// Plan B1 principle 5: every result says what to say next.
-    static func message(for result: BrowseResult, tool: VoiceTool, eyesFree: Bool) -> String {
+    static func message(for result: BrowseResult, eyesFree: Bool) -> String {
         let refusal = " Tell the user that instead, in a few words; don't retry."
         let landed = eyesFree
             ? "Tell the user in a few words where you are, then read or paraphrase the post briefly; they can't look at the screen."
@@ -336,7 +420,7 @@ final class VoiceToolBridge {
                 ? "Tell the user in a few words what the page shows now."
                 : "Give the user the count and the gist of the first post. " + (eyesFree ? "You may read it briefly." : "It's on screen: don't read it out.")
         case .found:
-            return "The hits are on screen as numbered cards. If one clearly fits what the user wants, call open with its card number now, without asking. If several could fit, say the titles of the top two or three and let the user pick. Never read out ids or URLs."
+            return "The hits are on screen as numbered cards. If one clearly fits what the user wants, call browse_open with its card number now, without asking. If several could fit, say the titles of the top two or three and let the user pick. Never read out ids or URLs."
         case .read:
             return eyesFree
                 ? "Answer the user from this text only. You may read it out or paraphrase it."
@@ -358,13 +442,28 @@ final class VoiceToolBridge {
         }
     }
 
-    private func refusal(_ shown: String, scheduling: GeminiLive.Scheduling) -> VoiceToolOutcome {
+    private func refusal(_ shown: String) -> VoiceToolOutcome {
         let result = BrowseResult(status: .unavailable, shown: shown)
-        return VoiceToolOutcome(response: Self.response(result, tool: .read, eyesFree: false), scheduling: scheduling)
+        return VoiceToolOutcome(response: Self.response(result, eyesFree: false), scheduling: .whenIdle)
     }
 }
 
-/// Routing enforced in code: a `research` request that a browser tool does
+/// The Agent's Markdown answer as speakable text: links become their titles,
+/// citations and formatting marks go.
+enum VoiceText {
+    static func spokenAnswer(_ markdown: String) -> String {
+        var text = PostCitations.stripped(markdown)
+        // Post citations as links ("[#3](…)") go whole; other links keep their title.
+        text = text.replacingOccurrences(of: #"\s?\[#?\d+\]\([^)\s]*\)"#, with: "", options: .regularExpression)
+        text = text.replacingOccurrences(of: #"!?\[((?:[^\[\]]|\[[^\[\]]*\])*)\]\([^)\s]*\)"#, with: "$1", options: .regularExpression)
+        text = text.replacingOccurrences(of: #"https?://\S+"#, with: "", options: .regularExpression)
+        text = text.replacingOccurrences(of: #"(?m)^\s{0,3}(#{1,6}|[-*+]|\d+\.)\s+"#, with: "", options: .regularExpression)
+        text = text.replacingOccurrences(of: #"[*_`]{1,3}"#, with: "", options: .regularExpression)
+        return text.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+}
+
+/// Routing enforced in code: a `hand_off_to_agent` request that a browser tool does
 /// (a bare "next", "post 37", "the solution") is done directly. Kept small
 /// on purpose: only whole requests that are nothing but a browser command.
 enum VoiceRouting {

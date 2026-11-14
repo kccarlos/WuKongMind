@@ -49,31 +49,31 @@ final class VoiceSessionTests: XCTestCase {
 
     func testToolResponseWaitsForTheCallsTurnComplete() async throws {
         let session = try await started()
-        session.receive(frame(#"{"toolCall":{"functionCalls":[{"id":"call_1","name":"move","args":{"action":"next"}}]}}"#))
+        session.receive(frame(#"{"toolCall":{"functionCalls":[{"id":"call_1","name":"browse_move","args":{"action":"next"}}]}}"#))
         await settle()
         XCTAssertEqual(navigator.calls.last, "next")
         XCTAssertFalse(sent().contains { $0.isToolResponse }, "Held until the call's turn completes")
         XCTAssertEqual(session.state, .listening)
         session.receive(frame(#"{"serverContent":{"generationComplete":true,"turnComplete":true}}"#))
-        XCTAssertEqual(sent().last, .toolResponse(id: "call_1", name: "move", scheduling: "WHEN_IDLE"))
+        XCTAssertEqual(sent().last, .toolResponse(id: "call_1", name: "browse_move", scheduling: "WHEN_IDLE"))
         XCTAssertEqual(session.state, .thinking, "The result's answer is owed")
     }
 
     func testToolResponseHoldIsCappedAtOneAndAHalfSeconds() async throws {
         let session = try await started()
-        session.receive(frame(#"{"toolCall":{"functionCalls":[{"id":"call_2","name":"read","args":{}}]}}"#))
+        session.receive(frame(#"{"toolCall":{"functionCalls":[{"id":"call_2","name":"read_post","args":{}}]}}"#))
         await settle()
         clock.advance(1.0)
         session.tick()
         XCTAssertFalse(sent().contains { $0.isToolResponse })
         clock.advance(0.5)
         session.tick()
-        XCTAssertEqual(sent().last, .toolResponse(id: "call_2", name: "read", scheduling: "WHEN_IDLE"))
+        XCTAssertEqual(sent().last, .toolResponse(id: "call_2", name: "read_post", scheduling: "WHEN_IDLE"))
     }
 
     func testCancelledCallsAreNotAnswered() async throws {
         let session = try await started()
-        session.receive(frame(#"{"toolCall":{"functionCalls":[{"id":"call_3","name":"find","args":{"query":"fan"}}]}}"#))
+        session.receive(frame(#"{"toolCall":{"functionCalls":[{"id":"call_3","name":"search_forum","args":{"query":"fan"}}]}}"#))
         await settle()
         session.receive(frame(#"{"toolCallCancellation":{"ids":["call_3"]}}"#))
         session.receive(frame(#"{"serverContent":{"turnComplete":true}}"#))
@@ -113,57 +113,69 @@ final class VoiceSessionTests: XCTestCase {
         XCTAssertTrue((response?["about_this"] as? String)?.hasPrefix("Not the user speaking") ?? false)
     }
 
-    // MARK: Research
+    // MARK: Hand-off
 
-    func testResearchStartsProgressesAndBriefsTheAnswer() async throws {
-        navigator.holdsResearch = true
+    func testHandOffStartsProgressesAndBriefsTheAnswer() async throws {
+        navigator.holdsHandOff = true
         let session = try await started()
         session.tools.progressInterval = .milliseconds(10)
-        session.receive(frame(#"{"toolCall":{"functionCalls":[{"id":"call_r","name":"research","args":{"request":"what are the main objections"}}]}}"#))
+        session.receive(frame(#"{"toolCall":{"functionCalls":[{"id":"call_r","name":"hand_off_to_agent","args":{"request":"what are the main objections"}}]}}"#))
         await settle()
         session.receive(frame(#"{"serverContent":{"turnComplete":true}}"#))
-        XCTAssertEqual(sent().last, .toolResponse(id: "call_r", name: "research", scheduling: "SILENT"), "started, at once")
+        XCTAssertEqual(sent().last, .toolResponse(id: "call_r", name: "hand_off_to_agent", scheduling: "SILENT"), "started, at once")
+        XCTAssertEqual(navigator.calls.last, "hand off what are the main objections")
 
-        navigator.researchProgress = "Step 2, read_topic 42"
+        navigator.handOffProgress = "Step 2, read_topic 42"
         try await waitUntil { self.sent().contains(.toolResponse(id: "b-1", name: "briefing", scheduling: "SILENT")) }
 
-        navigator.releaseResearch()
+        navigator.releaseHandOff()
         try await waitUntil { self.sent().contains(.toolResponse(id: "b-2", name: "briefing", scheduling: "WHEN_IDLE")) }
         let answer = try lastResponse()
-        XCTAssertEqual(answer["kind"] as? String, "research answer")
-        XCTAssertEqual(answer["content"] as? String, "Lower the fan curve in the quiet profile.")
+        XCTAssertEqual(answer["kind"] as? String, "agent answer")
+        XCTAssertEqual(answer["answer"] as? String, "Lower the fan curve in the quiet profile Fan noise.", "Links and marks go")
         XCTAssertTrue((answer["message"] as? String)?.contains("about two sentences") ?? false)
-        XCTAssertTrue((answer["message"] as? String)?.contains("sources are on screen") ?? false)
+        XCTAssertTrue((answer["message"] as? String)?.contains("in the panel") ?? false)
     }
 
-    func testANewResearchCancelsTheOldAndCancelStopsIt() async throws {
-        navigator.holdsResearch = true
+    func testANewHandOffReplacesTheOldAndCancelStopsIt() async throws {
+        navigator.holdsHandOff = true
         let session = try await started()
         session.tools.progressInterval = .seconds(60)
         for (id, question) in [("call_a", "first question"), ("call_b", "second question")] {
-            session.receive(frame(#"{"toolCall":{"functionCalls":[{"id":"\#(id)","name":"research","args":{"request":"\#(question)"}}]}}"#))
+            session.receive(frame(#"{"toolCall":{"functionCalls":[{"id":"\#(id)","name":"hand_off_to_agent","args":{"request":"\#(question)"}}]}}"#))
             await settle()
             session.receive(frame(#"{"serverContent":{"turnComplete":true}}"#))
         }
         await settle()
-        XCTAssertEqual(navigator.calls.filter { $0.hasPrefix("research") }, ["research first question", "research second question"])
+        XCTAssertEqual(navigator.calls.filter { $0.hasPrefix("hand off") }, ["hand off first question", "hand off second question"])
         XCTAssertFalse(sent().contains { if case .toolResponse(_, "briefing", _) = $0 { return true }; return false },
-                       "The replaced research briefs nothing")
+                       "The replaced hand-off briefs nothing")
 
-        session.receive(frame(#"{"toolCall":{"functionCalls":[{"id":"call_c","name":"research","args":{"action":"cancel"}}]}}"#))
+        session.receive(frame(#"{"toolCall":{"functionCalls":[{"id":"call_c","name":"hand_off_to_agent","args":{"action":"cancel"}}]}}"#))
         await settle()
         session.receive(frame(#"{"serverContent":{"turnComplete":true}}"#))
-        XCTAssertEqual(navigator.calls.last, "cancel research")
+        XCTAssertEqual(navigator.calls.last, "cancel hand-off")
         XCTAssertEqual(try lastResponse()["status"] as? String, "cancelled")
         await settle()
         XCTAssertFalse(sent().contains { if case .toolResponse(_, "briefing", _) = $0 { return true }; return false })
     }
 
-    func testUnacknowledgedResearchGetsANudgeAndAnUnspokenAnswerIsResent() async throws {
-        navigator.holdsResearch = true
+    func testAHandOffThatCannotStartIsRefusedNotStarted() async throws {
+        navigator.handOffRefusal = "Choose a tool-calling model for the browser agent in Settings."
+        let session = try await started()
+        session.receive(frame(#"{"toolCall":{"functionCalls":[{"id":"call_r","name":"hand_off_to_agent","args":{"request":"why"}}]}}"#))
+        await settle()
+        session.receive(frame(#"{"serverContent":{"turnComplete":true}}"#))
+        let response = try lastResponse()
+        XCTAssertEqual(response["status"] as? String, "unavailable")
+        XCTAssertEqual(response["shown"] as? String, "Choose a tool-calling model for the browser agent in Settings.")
+    }
+
+    func testUnacknowledgedHandOffGetsANudgeAndAnUnspokenAnswerIsResent() async throws {
+        navigator.holdsHandOff = true
         let session = try await started()
         session.tools.progressInterval = .seconds(60)
-        session.receive(frame(#"{"toolCall":{"functionCalls":[{"id":"call_r","name":"research","args":{"request":"why"}}]}}"#))
+        session.receive(frame(#"{"toolCall":{"functionCalls":[{"id":"call_r","name":"hand_off_to_agent","args":{"request":"why"}}]}}"#))
         await settle()
         session.receive(frame(#"{"serverContent":{"turnComplete":true}}"#))
         clock.advance(1.6)
@@ -172,7 +184,7 @@ final class VoiceSessionTests: XCTestCase {
 
         session.receive(audioFrame())
         session.receive(frame(#"{"serverContent":{"turnComplete":true}}"#))
-        navigator.releaseResearch()
+        navigator.releaseHandOff()
         try await waitUntil { self.sent().contains(.toolResponse(id: "b-1", name: "briefing", scheduling: "WHEN_IDLE")) }
         clock.advance(5)
         session.tick()
@@ -180,6 +192,112 @@ final class VoiceSessionTests: XCTestCase {
         clock.advance(1.1)
         session.tick()
         XCTAssertTrue(sent().last?.turnText?.contains("Lower the fan curve") ?? false, "\(String(describing: sent().last))")
+    }
+
+    /// The real hand-off: a fake-transport session sends the request to a
+    /// real Agent session (recorded model), which shows the run like a typed
+    /// one; its answer is briefed, and cancel stops the run.
+    func testAHandOffRunsTheAgentAndBriefsItsAnswerAndCancelStopsIt() async throws {
+        let client = RecordedModelClient([
+            .success(AgentModelTurnResponse(text: "", toolCalls: [AgentModelToolCall(id: "c1", name: "read_page", arguments: [:])])),
+            .success(AgentModelTurnResponse(text: "Most regret it: two boxes wore out [Soldered eMMC](https://forum.example/t/emmc/9)."))
+        ])
+        let agent = Self.agentSession(client: client)
+        navigator.agentHandOff = AgentHandOff(agent: agent)
+        let session = try await started()
+        session.tools.progressInterval = .seconds(60)
+        session.onTranscript = { role, text, date in agent.appendVoiceTurn(role, text: text, at: date) }
+        session.receive(frame(#"{"serverContent":{"inputTranscription":{"text":"What do people think of soldered eMMC?"}}}"#))
+        // The acknowledgement streams across the tool call, as it does live (spike Q4).
+        session.receive(frame(#"{"serverContent":{"outputTranscription":{"text":"I'll have"}}}"#))
+        session.receive(frame(#"{"toolCall":{"functionCalls":[{"id":"call_h","name":"hand_off_to_agent","args":{"request":"What do people here think of soldered eMMC?"}}]}}"#))
+        await settle()
+        session.receive(frame(#"{"serverContent":{"outputTranscription":{"text":" the Agent look."}}}"#))
+        session.receive(frame(#"{"serverContent":{"turnComplete":true}}"#))
+        XCTAssertEqual(sent().last, .toolResponse(id: "call_h", name: "hand_off_to_agent", scheduling: "SILENT"))
+
+        try await waitUntil(timeout: 15) { self.briefing(kinds: ["agent answer", "agent ended"]) != nil }
+        let briefed = try XCTUnwrap(briefing(kinds: ["agent answer", "agent ended"]))
+        XCTAssertEqual(briefed["answer"] as? String, "Most regret it: two boxes wore out Soldered eMMC.", "\(briefed) \(String(describing: agent.runs.last?.state))")
+        let run = try XCTUnwrap(agent.runs.last)
+        XCTAssertEqual(run.origin, .voice)
+        XCTAssertEqual(run.prompt, "What do people here think of soldered eMMC?")
+        XCTAssertEqual(run.toolNames, ["read_page"])
+        XCTAssertEqual(agent.voiceTurns.map(\.text), ["What do people think of soldered eMMC?", "I'll have the Agent look."])
+        XCTAssertLessThan(agent.voiceTurns[0].createdAt, agent.voiceTurns[1].createdAt)
+        XCTAssertLessThan(agent.voiceTurns[1].createdAt, run.startedAt, "One reply, shown before the run it announced")
+        guard case .user(let turn)? = client.recordedRequests.first?.messages.first else { return XCTFail("no user turn") }
+        XCTAssertTrue(turn.contains("(transcribed speech):\nUser: What do people think of soldered eMMC?\n\nThe user's message:"), turn)
+        XCTAssertTrue(turn.hasSuffix("The user's message:\nWhat do people here think of soldered eMMC?"), turn)
+
+        // Cancel: Stop on a running hand-off.
+        client.onRequest = { _ in try await Task.sleep(for: .seconds(30)) }
+        session.receive(frame(#"{"toolCall":{"functionCalls":[{"id":"call_2","name":"hand_off_to_agent","args":{"request":"And what about SD cards?"}}]}}"#))
+        await settle()
+        session.receive(frame(#"{"serverContent":{"turnComplete":true}}"#))
+        try await waitUntil { agent.isRunning }
+        session.receive(frame(#"{"toolCall":{"functionCalls":[{"id":"call_c","name":"hand_off_to_agent","args":{"action":"cancel"}}]}}"#))
+        await settle()
+        session.receive(frame(#"{"serverContent":{"turnComplete":true}}"#))
+        XCTAssertEqual(try lastResponse()["status"] as? String, "cancelled")
+        XCTAssertFalse(agent.isRunning)
+        if case .stopped = agent.runs.last?.state {} else { XCTFail("expected a stopped run, got \(String(describing: agent.runs.last?.state))") }
+    }
+
+    func testTheSessionDeclaresTheRegistrysVoiceToolsAndRefusesOthers() async throws {
+        let session = try await started()
+        let declared = transports[0].declaredNames
+        let browse = BrowseToolContext(navigator: navigator, site: navigator.voiceSite, isOnForum: true)
+        XCTAssertEqual(declared, FakeVoiceNavigator.forumRegistry(browse).definitions.map(\.name) + ["end", "hand_off_to_agent"])
+        XCTAssertFalse(declared.contains("find"))
+        session.receive(frame(#"{"toolCall":{"functionCalls":[{"id":"call_f","name":"find","args":{"query":"fan"}}]}}"#))
+        await settle()
+        session.receive(frame(#"{"serverContent":{"turnComplete":true}}"#))
+        XCTAssertEqual(try lastResponse()["shown"] as? String, "There is no tool called find.")
+        XCTAssertTrue(navigator.calls.isEmpty)
+    }
+
+    func testFinishedVoiceTurnsGoToTheConversation() async throws {
+        let session = try await started()
+        var turns: [String] = []
+        session.onTranscript = { role, text, _ in turns.append("\(role.rawValue): \(text)") }
+        session.receive(frame(#"{"serverContent":{"inputTranscription":{"text":"Next "}}}"#))
+        session.receive(frame(#"{"serverContent":{"inputTranscription":{"text":"post."}}}"#))
+        XCTAssertTrue(turns.isEmpty, "Not before the turn ends")
+        session.receive(frame(#"{"serverContent":{"outputTranscription":{"text":"You're on post 4."}}}"#))
+        session.receive(frame(#"{"serverContent":{"turnComplete":true}}"#))
+        XCTAssertEqual(turns, ["voiceUser: Next post.", "voiceReply: You're on post 4."])
+        session.receive(frame(#"{"serverContent":{"turnComplete":true}}"#))
+        XCTAssertEqual(turns.count, 2, "Nothing twice")
+
+        // An interrupted reply is finished where it was cut; the next turn's reply is whole.
+        session.receive(frame(#"{"serverContent":{"outputTranscription":{"text":"The long story is"}}}"#))
+        session.receive(frame(#"{"serverContent":{"interrupted":true}}"#))
+        session.receive(frame(#"{"serverContent":{"turnComplete":true}}"#))
+        session.receive(frame(#"{"serverContent":{"outputTranscription":{"text":"Short version."}}}"#))
+        session.receive(frame(#"{"serverContent":{"turnComplete":true}}"#))
+        XCTAssertEqual(turns.suffix(2), ["voiceReply: The long story is", "voiceReply: Short version."])
+
+        // Typed input ends the reply in progress before its own words.
+        session.receive(frame(#"{"serverContent":{"outputTranscription":{"text":"Half a"}}}"#))
+        session.sendText("Stop, go back")
+        session.receive(frame(#"{"serverContent":{"outputTranscription":{"text":"Going back."}}}"#))
+        session.receive(frame(#"{"serverContent":{"turnComplete":true}}"#))
+        XCTAssertEqual(turns.suffix(3), ["voiceReply: Half a", "voiceUser: Stop, go back", "voiceReply: Going back."])
+    }
+
+    static func agentSession(client: RecordedModelClient) -> BrowserAgentSession {
+        BrowserAgentSession(
+            pageDriver: FixturePageDriver(page: .init(url: "https://forum.example/t/fan-noise/42", title: "Fan noise")),
+            modelClient: client,
+            configProvider: {
+                var cfg = ProviderConfiguration(provider: .ollama); cfg.model = "agent-model"
+                return BrowserAgentRuntimeConfig(
+                    selection: ModelSelection(provider: .ollama, model: "agent-model"), configuration: cfg,
+                    maxSteps: 6, truncationLimit: 20_000, customInstructions: "", redactedSecrets: []
+                )
+            }
+        )
     }
 
     func testToolMarkupSpokenAsTextIsCutAndCorrected() async throws {
@@ -625,7 +743,7 @@ final class VoiceSessionTests: XCTestCase {
         settings: VoiceSettings = VoiceSettings(),
         usage: VoiceUsageStore? = nil
     ) -> VoiceSession {
-        VoiceSession(
+        let session = VoiceSession(
             configuration: .init(endpoint: endpoint, apiKey: key, settings: settings),
             transport: { [unowned self] in
                 let transport = FakeLiveTransport()
@@ -638,6 +756,8 @@ final class VoiceSessionTests: XCTestCase {
             usage: usage,
             runsLoop: false
         )
+        session.tools.registryBuilder = FakeVoiceNavigator.forumRegistry
+        return session
     }
 
     /// A session past `setupComplete`.
@@ -676,6 +796,19 @@ final class VoiceSessionTests: XCTestCase {
         let object = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(text.utf8)) as? [String: Any])
         let item = (((object["toolResponse"] as? [String: Any])?["functionResponses"] as? [[String: Any]])?.first)
         return try XCTUnwrap(item?["response"] as? [String: Any])
+    }
+
+    /// The newest briefing of one of `kinds`.
+    private func briefing(kinds: Set<String>) -> [String: Any]? {
+        for text in (transports.last?.sent ?? []).reversed() where text.contains("toolResponse") {
+            guard let object = try? JSONSerialization.jsonObject(with: Data(text.utf8)) as? [String: Any],
+                  let item = ((object["toolResponse"] as? [String: Any])?["functionResponses"] as? [[String: Any]])?.first,
+                  let response = item["response"] as? [String: Any],
+                  let kind = response["kind"] as? String, kinds.contains(kind)
+            else { continue }
+            return response
+        }
+        return nil
     }
 
     private func frame(_ text: String) -> Data { Data(text.utf8) }

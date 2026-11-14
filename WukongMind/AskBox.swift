@@ -164,6 +164,12 @@ struct AssistantComposer: View {
     var isListening = false
     var onDictate: () -> Void = {}
     var onStopDictation: () -> Void = {}
+    /// A Gemini or Vertex key is set: tapping the mic opens the voice
+    /// session, long-press still dictates (design-one-loop.md "Voice").
+    var canTalk = false
+    /// A voice session is on: the button ends it.
+    var isTalking = false
+    var onTalk: () -> Void = {}
     @Environment(\.composerFocusChanged) private var composerFocusChanged
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var listeningPulse = false
@@ -308,6 +314,22 @@ struct AssistantComposer: View {
                 }
             }
             .onDisappear { listeningPulse = false }
+        } else if isTalking {
+            Button {
+                DCHaptics.tap()
+                onTalk()
+            } label: {
+                Image(systemName: "waveform")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(DCTheme.onGold)
+                    .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
+                    .background(DCTheme.gold, in: Circle())
+                    .contentShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .hoverEffect(.highlight)
+            .accessibilityLabel(Text("End voice", comment: "Composer button label while a voice session is on; tapping ends it"))
+            .accessibilityIdentifier("composerVoiceEnd")
         } else if !trimmedDraft.isEmpty {
             Button {
                 onSend()
@@ -325,25 +347,39 @@ struct AssistantComposer: View {
             .accessibilityLabel(Text("Send", comment: "Browser agent send button accessibility label"))
             .accessibilityIdentifier("agentSendButton")
         } else {
-            Button {
-                DCHaptics.tap()
-                onDictate()
-            } label: {
-                Image(systemName: "mic.fill")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(DCTheme.goldInk)
-                    .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
-                    .background(Color.clear, in: Circle())
-                    .overlay {
-                        Circle()
-                            .strokeBorder(DCTheme.gold, lineWidth: DCTheme.ringWidth)
+            // Tap talks (with a voice key) or dictates; long-press always dictates.
+            Image(systemName: "mic.fill")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(DCTheme.goldInk)
+                .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
+                .background(Color.clear, in: Circle())
+                .overlay {
+                    Circle()
+                        .strokeBorder(DCTheme.gold, lineWidth: DCTheme.ringWidth)
+                }
+                .contentShape(Circle())
+                .hoverEffect(.highlight)
+                .onTapGesture {
+                    DCHaptics.tap()
+                    if canTalk { onTalk() } else { onDictate() }
+                }
+                .onLongPressGesture(minimumDuration: 0.45) {
+                    DCHaptics.tap()
+                    onDictate()
+                }
+                .accessibilityElement()
+                .accessibilityAddTraits(.isButton)
+                .accessibilityLabel(canTalk
+                    ? Text("Talk", comment: "Composer microphone button accessibility label when tapping opens a voice conversation")
+                    : Text("Dictate", comment: "Composer microphone button accessibility label in One panel"))
+                .accessibilityHint(canTalk ? Text("Touch and hold to dictate instead", comment: "Accessibility hint of the composer microphone when voice is set up") : Text(verbatim: ""))
+                .accessibilityAction { if canTalk { onTalk() } else { onDictate() } }
+                .accessibilityActions {
+                    if canTalk {
+                        Button(String(localized: "Dictate", comment: "Composer microphone button accessibility label in One panel")) { onDictate() }
                     }
-                    .contentShape(Circle())
-            }
-            .buttonStyle(.plain)
-            .hoverEffect(.highlight)
-            .accessibilityLabel(Text("Dictate", comment: "Composer microphone button accessibility label in One panel"))
-            .accessibilityIdentifier("composerMic")
+                }
+                .accessibilityIdentifier("composerMic")
         }
     }
 }

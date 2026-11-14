@@ -362,6 +362,8 @@ final class AppModel: ObservableObject {
     /// The running `research(_:)` and its generation; a newer one wins.
     var researchTask: Task<AgentRunOutcome, Error>?
     var researchGeneration = 0
+    /// Voice's hand-off to the Agent (`hand_off_to_agent`).
+    private(set) lazy var agentHandOff = AgentHandOff(agent: browserAgent)
     /// Feeds the voice session's silent context (AppModel+Voice.swift).
     var voicePageSubscription: AnyCancellable?
     /// Starts voice sessions for the UI (Voice/VoiceController.swift).

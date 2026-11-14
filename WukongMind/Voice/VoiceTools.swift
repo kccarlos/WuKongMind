@@ -1,18 +1,24 @@
 import Foundation
 
-// The voice agent's seven tools, defined once in no provider's format, with
-// a Gemini Live adapter. The descriptions are prompt engineering: each says
+// The voice session's tools come from the registry (`ToolRegistry.m3` with
+// `surface: .voice`): its `.voice` tools, converted to Gemini Live function
+// declarations, plus the two tools only voice has, `end` and
+// `hand_off_to_agent`. The descriptions are prompt engineering: each says
 // when to call the tool, what the result means and what to say next. They
 // are written for the model, so they are English and not localized.
 //
 // Every tool is NON_BLOCKING: a BLOCKING call pauses the whole server
 // stream (the user's transcript and the model's "let me check" stall until
-// it is answered). Results come back with the scheduling below.
+// it is answered). Results come back with each tool's scheduling.
 
-/// A parameter schema, in the subset every live provider accepts.
+/// A parameter schema, in the subset Gemini Live accepts (spike Q1: no
+/// `additionalProperties`; `minLength`, bounds, enums, integer arrays and
+/// nested objects pass).
 indirect enum VoiceSchema: Equatable {
-    case string(description: String, options: [String]? = nil)
-    case integer(description: String)
+    case string(description: String, options: [String]? = nil, minLength: Int? = nil)
+    case integer(description: String, minimum: Double? = nil, maximum: Double? = nil)
+    case number(description: String, minimum: Double? = nil, maximum: Double? = nil)
+    case boolean(description: String)
     case array(of: VoiceSchema, description: String)
     case object(properties: [(name: String, schema: VoiceSchema)], required: [String])
 
@@ -20,15 +26,47 @@ indirect enum VoiceSchema: Equatable {
         lhs.gemini == rhs.gemini
     }
 
+    /// One registry parameter.
+    init(_ parameter: ToolParameterSchema) {
+        let description = parameter.description
+        switch parameter.type {
+        case .string: self = .string(description: description, options: parameter.enumValues, minLength: parameter.minLength)
+        case .integer: self = .integer(description: description, minimum: parameter.minimum, maximum: parameter.maximum)
+        case .number: self = .number(description: description, minimum: parameter.minimum, maximum: parameter.maximum)
+        case .boolean: self = .boolean(description: description)
+        case .object: self = .object(properties: [], required: [])
+        case .array:
+            let item: VoiceSchema = switch parameter.itemsType {
+            case .integer: .integer(description: "An item.")
+            case .number: .number(description: "An item.")
+            case .boolean: .boolean(description: "An item.")
+            default: .string(description: "An item.")
+            }
+            self = .array(of: item, description: description)
+        }
+    }
+
+    /// A registry tool's parameters; nil for a tool without any, which then
+    /// omits `parameters`.
+    init?(_ definition: AgentToolDefinition) {
+        guard !definition.parameters.isEmpty else { return nil }
+        self = .object(properties: definition.parameters.map { ($0.name, VoiceSchema($0)) }, required: definition.required)
+    }
+
     /// Gemini's OpenAPI subset (upper-case type names).
     var gemini: JSONValue {
         switch self {
-        case .string(let description, let options):
+        case .string(let description, let options, let minLength):
             var object: [String: JSONValue] = ["type": "STRING", "description": .string(description)]
             if let options { object["enum"] = .array(options.map(JSONValue.string)) }
+            if let minLength { object["minLength"] = .int(Int64(minLength)) }
             return .object(object)
-        case .integer(let description):
-            return ["type": "INTEGER", "description": .string(description)]
+        case .integer(let description, let minimum, let maximum):
+            return Self.bounded(["type": "INTEGER", "description": .string(description)], minimum, maximum)
+        case .number(let description, let minimum, let maximum):
+            return Self.bounded(["type": "NUMBER", "description": .string(description)], minimum, maximum)
+        case .boolean(let description):
+            return ["type": "BOOLEAN", "description": .string(description)]
         case .array(let item, let description):
             return ["type": "ARRAY", "items": item.gemini, "description": .string(description)]
         case .object(let properties, let required):
@@ -40,91 +78,37 @@ indirect enum VoiceSchema: Equatable {
             return .object(object)
         }
     }
+
+    private static func bounded(_ object: [String: JSONValue], _ minimum: Double?, _ maximum: Double?) -> JSONValue {
+        var object = object
+        func number(_ value: Double) -> JSONValue { value.rounded() == value ? .int(Int64(value)) : .double(value) }
+        if let minimum { object["minimum"] = number(minimum) }
+        if let maximum { object["maximum"] = number(maximum) }
+        return .object(object)
+    }
 }
 
+/// The tools only voice has; everything else comes from the registry.
 enum VoiceTool: String, CaseIterable {
-    case find
-    case open
-    case move
-    case focus
-    case read
-    case research
     case end
+    case handOffToAgent = "hand_off_to_agent"
 
-    /// How its result is scheduled. `research` answers `started` silently;
-    /// its answer comes later as a WHEN_IDLE briefing (VoiceToolBridge).
-    var scheduling: GeminiLive.Scheduling {
-        switch self {
-        case .find, .open, .move, .focus: .whenIdle
-        // The plan has `read` silent, "then the model answers"; a silent
-        // result makes no answer until the user speaks again, so it is
-        // WHEN_IDLE: the model answers from it as soon as it arrives.
-        case .read: .whenIdle
-        case .research, .end: .silent
-        }
-    }
+    /// Both answer silently: `hand_off_to_agent` says `started`, and its answer
+    /// comes later as a WHEN_IDLE briefing (VoiceToolBridge).
+    var scheduling: GeminiLive.Scheduling { .silent }
 
-    /// The prompt text of the tool for a session on `site`.
-    func description(for site: VoiceSite) -> String {
+    /// The prompt text of the tool.
+    var description: String {
         switch self {
-        case .find:
+        case .handOffToAgent:
             return """
-            Search the forum the user is on, or only the open topic, and show the hits on screen as numbered cards, best first. \
-            Call it when the user asks to find, look for or search something, or asks whether anyone wrote about something. \
-            Pass a few distinctive words in the forum's language (the topic brief says which): \(site.profile.findHint) \
-            Scope "topic" searches inside the open topic \
-            ("where did someone mention the firmware version"). The result lists the hits by number with title, author and a line. \
-            If one hit clearly fits, call open with its card number right away, without asking. If several could fit, say the \
-            titles of the top two or three and let the user pick; they are on the cards. If nothing matched, say so and offer \
-            other words. Never read out ids, post numbers in bulk or URLs.
-            """
-        case .open:
-            return """
-            Open a topic and land on a post. Pass card for a card from the last find or research, or topic_id for a topic \
-            whose id you got from a result; pass neither to stay in the open topic. at says where to land: "post" with post, \
-            "solution" for the accepted answer, "last" for the newest post, "top" for the most liked posts, "unread" for the \
-            first post the user hasn't seen. Call it at once when the user asks to go somewhere ("take me to the solution", \
-            "open the second one", "show me the latest reply"); navigation can be undone, so don't ask first. The result says \
-            what is on screen and carries the landing post's text. Tell the user in a few words where you are and give the \
-            gist; the post is on screen, so don't read it out unless the result says reading is fine.
-            """
-        case .move:
-            return """
-            Move along the current list (the cards from the last find, research or focus) or around the open topic. action: \
-            "next" or "previous" along the list, "back" or "forward" in the browser's history, "post" with post to go to post \
-            N of the open topic, "top" for the first post, "bottom" for the last. Call it right away for "next", "go back", \
-            "post 37" or "the first post". The result carries the post now on screen: say in a few words where you are and \
-            what it says, without reading it out. At the end of the list, say so.
-            """
-        case .focus:
-            // A site that cannot narrow to an author does not mention the author modes.
-            let authors = site.offersAuthorFocus
-                ? "\"user\" with user shows only that author's posts; \"op\" only the opening poster's; " : ""
-            let examples = site.offersAuthorFocus
-                ? "\"only what the original poster said\", \"just alice's posts\", \"show me the best answers\" or \"back to everything\""
-                : "\"show me the best answers\" or \"back to everything\""
-            return """
-            Narrow the open topic. mode: \(authors)\
-            "top" the most liked posts; "posts" with posts highlights those posts as a tour, starting at the first; "clear" \
-            shows the whole topic again. The focused posts become the current list, so "next" moves along them. Call it for \
-            \(examples). \
-            The result says how many posts there are and carries the first one's text: give the user the count and the gist.
-            """
-        case .read:
-            return """
-            Get the full text of a post in the open topic: post N, or the current post when post is left out; scope "visible" \
-            returns every post on screen. Only call it when the user asks about a post whose text you haven't received in a \
-            note or a tool result; posts you navigated to already came with their text. Answer only from what it returns, \
-            never from a guess.
-            """
-        case .research:
-            return """
-            Hand a question to WukongMind's research agent, which reads across several topics or a long thread and answers \
-            with sources. Use it only for questions that need reasoning across many posts or topics ("what are the main \
-            objections", "has anyone fixed this on firmware 5"), never for something find, open, move, focus or read can do. \
-            Before calling it, say one short acknowledgement in your own words, once. It answers "started" at once and runs \
-            in the background; one research runs at a time, and a new request replaces the running one. The answer arrives \
-            later as a briefing: open with the answer. action "cancel" stops it when the user says never mind.
+            Hand a request to WukongMind's Agent, which reads across several threads or a long thread and answers with sources, \
+            and which can change the page (dark mode, hiding parts of it). Use it for questions about what people think or \
+            recommend, for anything that needs several threads, and for every change to the page; never for something \
+            search_forum, browse_open, browse_move, browse_focus or read_post can do. Before calling it, say one short \
+            acknowledgement in your own words, once. It answers "started" at once and runs in the background; one hand-off runs \
+            at a time, and a new request replaces the running one. The answer arrives later as a briefing: open with the answer. \
+            action "cancel" stops it when the user says never mind.
             """
         case .end:
             return """
@@ -134,46 +118,11 @@ enum VoiceTool: String, CaseIterable {
         }
     }
 
-    /// The parameter schema of the tool for a session on `site`.
-    func parameters(for site: VoiceSite) -> VoiceSchema? {
+    var parameters: VoiceSchema? {
         switch self {
-        case .find:
+        case .handOffToAgent:
             return .object(properties: [
-                ("query", .string(description: "A few distinctive search words, in the forum's language.")),
-                ("scope", .string(description: "\"forum\" (default) or \"topic\" for the open topic only.", options: ["forum", "topic"]))
-            ], required: ["query"])
-        case .open:
-            return .object(properties: [
-                ("card", .integer(description: "A card number from the last find or research, like 2.")),
-                ("topic_id", .string(description: "A topic id from a result. Leave out for the open topic.")),
-                ("at", .string(description: "Where to land.", options: ["post", "solution", "last", "top", "unread"])),
-                ("post", .integer(description: "The post number, with at \"post\"."))
-            ], required: [])
-        case .move:
-            return .object(properties: [
-                ("action", .string(
-                    description: "Where to move.",
-                    options: ["next", "previous", "back", "forward", "post", "top", "bottom"]
-                )),
-                ("post", .integer(description: "The post number, with action \"post\"."))
-            ], required: ["action"])
-        case .focus:
-            var properties: [(name: String, schema: VoiceSchema)] = [
-                ("mode", .string(description: "What to show.", options: site.focusModes))
-            ]
-            if site.offersAuthorFocus {
-                properties.append(("user", .string(description: "The author's username, with mode \"user\".")))
-            }
-            properties.append(("posts", .array(of: .integer(description: "A post number."), description: "Post numbers to highlight, with mode \"posts\".")))
-            return .object(properties: properties, required: ["mode"])
-        case .read:
-            return .object(properties: [
-                ("post", .integer(description: "The post number; leave out for the current post.")),
-                ("scope", .string(description: "\"post\" (default) or \"visible\" for every post on screen.", options: ["post", "visible"]))
-            ], required: [])
-        case .research:
-            return .object(properties: [
-                ("request", .string(description: "The user's question, complete, in their words.")),
+                ("request", .string(description: "The user's request, complete, in their words.")),
                 ("action", .string(description: "\"start\" (default) or \"cancel\".", options: ["start", "cancel"]))
             ], required: [])
         case .end:
@@ -181,16 +130,25 @@ enum VoiceTool: String, CaseIterable {
         }
     }
 
-    /// Gemini Live's function declarations for every tool, as a session on
-    /// `site` fixes them when it connects.
-    static func geminiDeclarations(for site: VoiceSite) -> [GeminiLive.FunctionDeclaration] {
-        allCases.map {
-            GeminiLive.FunctionDeclaration(
-                name: $0.rawValue,
-                description: $0.description(for: site),
-                parameters: $0.parameters(for: site)?.gemini,
-                behavior: .nonBlocking
-            )
-        }
+    var declaration: GeminiLive.FunctionDeclaration {
+        GeminiLive.FunctionDeclaration(name: rawValue, description: description, parameters: parameters?.gemini, behavior: .nonBlocking)
+    }
+}
+
+/// The converter from the registry to Gemini Live (`design-one-loop.md`
+/// "Voice"): upper-case types, no `additionalProperties`.
+enum VoiceDeclarations {
+    static func declaration(_ definition: AgentToolDefinition) -> GeminiLive.FunctionDeclaration {
+        GeminiLive.FunctionDeclaration(
+            name: definition.name,
+            description: definition.description,
+            parameters: VoiceSchema(definition)?.gemini,
+            behavior: .nonBlocking
+        )
+    }
+
+    /// What a session declares: the voice registry's tools, then `end` and `hand_off_to_agent`.
+    static func all(registry: ToolRegistry) -> [GeminiLive.FunctionDeclaration] {
+        registry.definitions.map(declaration) + VoiceTool.allCases.map(\.declaration)
     }
 }

@@ -476,6 +476,12 @@ struct BrowserAgentMessage: Identifiable, Equatable, Sendable {
         case user
         case assistant
         case statusNotice
+        /// What the user said to the voice session, and its spoken reply
+        /// (`design-one-loop.md` "Voice"), shown as voice bubbles.
+        case voiceUser
+        case voiceReply
+
+        var isVoice: Bool { self == .voiceUser || self == .voiceReply }
     }
 
     var id: UUID
@@ -522,6 +528,8 @@ struct BrowserAgentRun: Identifiable, Equatable, Sendable {
     var duration: TimeInterval?
     /// The final reply's turn (no tool call), for developer mode's Details.
     var finalTurn: AgentTurnInfo?
+    /// `.voice` for a run voice handed off; its request already shows as a voice bubble.
+    var origin: AgentRunOrigin = .typed
 
     var stepCount: Int { toolCalls.count }
     var errorCount: Int { toolCalls.filter(\.isError).count }
@@ -996,6 +1004,12 @@ final class BrowserAgentSession {
 
     var isRunning: Bool { runState.isRunning }
 
+    /// Voice bubbles in the conversation.
+    var voiceTurns: [BrowserAgentMessage] { messages.filter(\.role.isVoice) }
+
+    /// Runs or voice turns to show.
+    var hasConversation: Bool { !runs.isEmpty || messages.contains(where: \.role.isVoice) }
+
     static func wireKey(taskID: String, turn: Int) -> String { "\(taskID)#\(turn)" }
 
     private let pageDriver: AgentPageDriving
@@ -1085,6 +1099,32 @@ final class BrowserAgentSession {
         }
         guard !sections.isEmpty else { return prompt }
         return sections.joined(separator: "\n\n") + "\n\nThe user's message:\n\(prompt)"
+    }
+
+    /// Adds a finished voice utterance or reply to the conversation. The
+    /// next run gets the voice exchange since the last run as one context
+    /// block in its user turn (`voiceContextBlock`).
+    func appendVoiceTurn(_ role: BrowserAgentMessage.Role, text: String, at date: Date = Date()) {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard role.isVoice, !trimmed.isEmpty else { return }
+        messages.append(BrowserAgentMessage(role: role, text: trimmed, createdAt: date))
+    }
+
+    /// The voice exchange since the last run started, for the model only;
+    /// nil when there was none (the prompt then stays as typed).
+    func voiceContextBlock(since: Date?) -> String? {
+        let turns = messages.filter { $0.role.isVoice && $0.createdAt > (since ?? .distantPast) }.sorted { $0.createdAt < $1.createdAt }
+        guard !turns.isEmpty else { return nil }
+        var lines = turns.map { ($0.role == .voiceUser ? "User: " : "Voice assistant: ") + $0.text }
+        // The newest exchange matters most; keep the block small.
+        while lines.count > 1, lines.joined(separator: "\n").count > 4_000 { lines.removeFirst() }
+        return "The user talked with WukongMind's voice assistant since your last run (transcribed speech):\n"
+            + lines.joined(separator: "\n")
+    }
+
+    /// Waits for the run that is going now, if any, to end.
+    func waitForActiveRun() async {
+        await activeTask?.value
     }
 
     /// Shows a reply the app gave itself (a suggestion an existing feature
@@ -1218,7 +1258,13 @@ final class BrowserAgentSession {
         }
 
         if appendToHistory {
-            history.append(.user(modelPrompt ?? userPrompt))
+            var turn = modelPrompt ?? userPrompt
+            // Voice turns reach the next run as context, not as extra turns.
+            if appendUserMessage, let voice = voiceContextBlock(since: runs.last?.startedAt) {
+                // A model prompt with context already ends with "The user's message:".
+                turn = voice + (modelPrompt == nil ? "\n\nThe user's message:\n" : "\n\n") + turn
+            }
+            history.append(.user(turn))
         }
 
         // A "continue" after the step limit answers the original question.
@@ -1226,7 +1272,7 @@ final class BrowserAgentSession {
         let runID = UUID()
         let taskID = runID.uuidString
         currentTaskID = taskID
-        let runRecord = BrowserAgentRun(
+        var runRecord = BrowserAgentRun(
             id: runID,
             prompt: userPrompt,
             toolCalls: [],
@@ -1236,6 +1282,7 @@ final class BrowserAgentSession {
             startedAt: Date(),
             duration: nil
         )
+        runRecord.origin = origin
         runs.append(runRecord)
         runState = .running(step: 0, maxSteps: maxSteps)
 

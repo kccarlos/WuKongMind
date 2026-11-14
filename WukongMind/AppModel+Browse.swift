@@ -373,6 +373,17 @@ extension AppModel {
                 let demoPrompt = demoMode == "saved-script"
                     ? "Keep only the original poster's posts and hide the sidebar on every visit"
                     : "Make this page dark and hide the sidebar"
+                if demoMode == "voice" {
+                    // Voice turns around a hand-off run (the voice bubble's screenshots).
+                    self.browserAgent.appendVoiceTurn(.voiceUser, text: demoPrompt)
+                    self.browserAgent.appendVoiceTurn(.voiceReply, text: "I'll have the Agent do that.")
+                    try? await Task.sleep(for: .milliseconds(50))
+                    _ = self.agentHandOff.start(demoPrompt)
+                    _ = await self.agentHandOff.outcome()
+                    self.browserAgent.appendVoiceTurn(.voiceReply, text: "Done. The page is dark and the sidebar is gone; the details are in the panel.")
+                    self.browserAgent.appendVoiceTurn(.voiceUser, text: "Read me the first heading")
+                    return
+                }
                 self.browserAgent.send(demoPrompt)
             }
             return

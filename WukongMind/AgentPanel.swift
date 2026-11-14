@@ -726,6 +726,26 @@ struct AgentStatusLine: View {
     }
 }
 
+/// One row of the Agent conversation: a run, or a voice turn.
+enum ConversationItem: Identifiable {
+    case run(BrowserAgentRun)
+    case voice(BrowserAgentMessage)
+
+    var id: UUID {
+        switch self {
+        case .run(let run): run.id
+        case .voice(let message): message.id
+        }
+    }
+
+    var date: Date {
+        switch self {
+        case .run(let run): run.startedAt
+        case .voice(let message): message.createdAt
+        }
+    }
+}
+
 struct BrowserAgentRunsView: View {
     @ObservedObject var app: AppModel
     let session: BrowserAgentSession
@@ -740,8 +760,13 @@ struct BrowserAgentRunsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            ForEach(Array(session.runs.enumerated()), id: \.element.id) { index, run in
-                runSection(run, isLatest: index == session.runs.count - 1)
+            ForEach(timeline) { item in
+                switch item {
+                case .run(let run):
+                    runSection(run, isLatest: run.id == session.runs.last?.id)
+                case .voice(let message):
+                    DCVoiceBubble(text: message.text, isUser: message.role == .voiceUser)
+                }
             }
         }
         .sheet(item: $screenshotSheet) { item in
@@ -749,10 +774,21 @@ struct BrowserAgentRunsView: View {
         }
     }
 
+    /// Runs and voice turns in the order they happened.
+    private var timeline: [ConversationItem] {
+        let items = session.runs.map(ConversationItem.run) + session.voiceTurns.map(ConversationItem.voice)
+        return items.enumerated().sorted { lhs, rhs in
+            lhs.element.date == rhs.element.date ? lhs.offset < rhs.offset : lhs.element.date < rhs.element.date
+        }.map(\.element)
+    }
+
     @ViewBuilder
     private func runSection(_ run: BrowserAgentRun, isLatest: Bool) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            userBubble(run.prompt)
+            // A hand-off's request already shows as the voice bubble before it.
+            if run.origin != .voice {
+                userBubble(run.prompt)
+            }
 
             if !run.toolCalls.isEmpty {
                 toolCallsSection(for: run)

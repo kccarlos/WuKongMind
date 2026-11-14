@@ -4,13 +4,14 @@ import XCTest
 /// The Gemini Live wire format: the setup for both endpoints, every client
 /// frame, every server message decoded from fixture JSON, the tool
 /// declarations and the close codes.
+@MainActor
 final class VoiceProtocolTests: XCTestCase {
     // MARK: Setup
 
     func testAIStudioSetup() throws {
         let setup = GeminiLive.Setup(
             endpoint: .aiStudio, voice: "Puck", instructions: "Be brief.",
-            functions: VoiceTool.geminiDeclarations(for: VoiceSite(adapter: DiscourseAdapter())), vocabulary: ["Prusa", "MK4"], resumptionHandle: nil
+            functions: Self.forumDeclarations(), vocabulary: ["Prusa", "MK4"], resumptionHandle: nil
         )
         let object = try json(GeminiLive.encode(.setup(setup)))
         let body = try XCTUnwrap(object["setup"] as? [String: Any])
@@ -24,12 +25,12 @@ final class VoiceProtocolTests: XCTestCase {
         XCTAssertEqual(((body["systemInstruction"] as? [String: Any])?["parts"] as? [[String: Any]])?.first?["text"] as? String, "Be brief.")
 
         let declarations = try XCTUnwrap((body["tools"] as? [[String: Any]])?.first?["functionDeclarations"] as? [[String: Any]])
-        XCTAssertEqual(declarations.map { $0["name"] as? String }, ["find", "open", "move", "focus", "read", "research", "end"])
+        XCTAssertEqual(declarations.map { $0["name"] as? String }, ["search_forum", "browse_open", "browse_move", "browse_focus", "read_post", "end", "hand_off_to_agent"])
         XCTAssertTrue(declarations.allSatisfy { $0["behavior"] as? String == "NON_BLOCKING" })
         let find = try XCTUnwrap(declarations.first)
         XCTAssertEqual((find["parameters"] as? [String: Any])?["type"] as? String, "OBJECT")
         XCTAssertEqual((find["parameters"] as? [String: Any])?["required"] as? [String], ["query"])
-        XCTAssertNil(declarations.last?["parameters"], "end takes no arguments")
+        XCTAssertNil(declarations.first { $0["name"] as? String == "end" }?["parameters"], "end takes no arguments")
 
         let detection = (body["realtimeInputConfig"] as? [String: Any])?["automaticActivityDetection"] as? [String: Any]
         XCTAssertEqual(detection?["disabled"] as? Bool, false)
@@ -179,20 +180,53 @@ final class VoiceProtocolTests: XCTestCase {
     // MARK: Tools
 
     func testToolDefinitions() {
-        let site = VoiceSite(adapter: DiscourseAdapter())
-        XCTAssertEqual(VoiceTool.allCases.count, 7)
-        XCTAssertEqual(VoiceTool.find.scheduling, .whenIdle)
-        XCTAssertEqual(VoiceTool.open.scheduling, .whenIdle)
-        XCTAssertEqual(VoiceTool.research.scheduling, .silent, "research answers started silently; its answer is a briefing")
+        XCTAssertEqual(VoiceTool.allCases.map(\.rawValue), ["end", "hand_off_to_agent"])
+        XCTAssertEqual(VoiceTool.handOffToAgent.scheduling, .silent, "the hand-off answers started silently; its answer is a briefing")
         for tool in VoiceTool.allCases {
-            XCTAssertGreaterThan(tool.description(for: site).count, 80, tool.rawValue)
-            XCTAssertFalse(tool.description(for: site).contains("\n"), "\(tool.rawValue): one paragraph")
+            XCTAssertGreaterThan(tool.description.count, 80, tool.rawValue)
+            XCTAssertFalse(tool.description.contains("\n"), "\(tool.rawValue): one paragraph")
         }
-        XCTAssertTrue(VoiceTool.find.description(for: site).contains("Never read out ids"))
-        XCTAssertTrue(VoiceTool.find.description(for: site).contains("call open with its card number right away"))
-        XCTAssertTrue(VoiceTool.research.description(for: site).contains("never for something find, open, move, focus or read can do"))
-        guard case .object(let properties, _)? = VoiceTool.move.parameters(for: site) else { return XCTFail() }
-        XCTAssertEqual(properties.map(\.name), ["action", "post"])
+        XCTAssertTrue(VoiceTool.handOffToAgent.description.contains("never for something search_forum, browse_open, browse_move, browse_focus or read_post can do"))
+        let site = VoiceSite(adapter: DiscourseAdapter())
+        let registry = ToolRegistry(tools: ToolRegistry.browseTools(browse: BrowseToolContext(navigator: nil, site: site, isOnForum: true)))
+        let search = registry.tool(named: "search_forum")?.definition.description ?? ""
+        XCTAssertTrue(search.contains("Never read out ids"))
+        XCTAssertTrue(search.contains("call browse_open with its card number right away"))
+        XCTAssertEqual(registry.tool(named: "browse_move")?.definition.parameters.map(\.name), ["action", "post"])
+        XCTAssertTrue(registry.definitions.allSatisfy { !$0.description.contains("\n") }, "one paragraph each")
+    }
+
+    /// The converter: upper-case types, constraints kept, no `additionalProperties`.
+    func testTheConverterUpperCasesTypesAndDropsAdditionalProperties() throws {
+        let definition = AgentToolDefinition(name: "probe", description: "d", parameters: [
+            ToolParameterSchema(name: "q", type: .string, description: "q", enumValues: ["a"], minLength: 1),
+            ToolParameterSchema(name: "n", type: .integer, description: "n", minimum: 1, maximum: 50),
+            ToolParameterSchema(name: "x", type: .number, description: "x", minimum: 0.5),
+            ToolParameterSchema(name: "b", type: .boolean, description: "b"),
+            ToolParameterSchema(name: "ids", type: .array, description: "ids", itemsType: .integer)
+        ], required: ["q"])
+        XCTAssertEqual(definition.inputSchema["additionalProperties"], .bool(false), "the registry's own schema has it")
+        let declared = VoiceDeclarations.declaration(definition)
+        let parameters = try XCTUnwrap(declared.parameters)
+        XCTAssertFalse(JSONValue.encodeCompactJSON(["p": parameters]).contains("additionalProperties"))
+        XCTAssertEqual(parameters, [
+            "type": "OBJECT",
+            "required": ["q"],
+            "properties": [
+                "q": ["type": "STRING", "description": "q", "enum": ["a"], "minLength": 1],
+                "n": ["type": "INTEGER", "description": "n", "minimum": 1, "maximum": 50],
+                "x": ["type": "NUMBER", "description": "x", "minimum": .double(0.5)],
+                "b": ["type": "BOOLEAN", "description": "b"],
+                "ids": ["type": "ARRAY", "description": "ids", "items": ["type": "INTEGER", "description": "An item."]]
+            ]
+        ])
+        XCTAssertEqual(declared.behavior, .nonBlocking)
+        XCTAssertNil(VoiceDeclarations.declaration(AgentToolDefinition(name: "bare", description: "d", parameters: [])).parameters)
+    }
+
+    static func forumDeclarations() -> [GeminiLive.FunctionDeclaration] {
+        let browse = BrowseToolContext(navigator: nil, site: VoiceSite(adapter: DiscourseAdapter()), isOnForum: true)
+        return VoiceDeclarations.all(registry: ToolRegistry(tools: ToolRegistry.browseTools(browse: browse)))
     }
 
     // MARK: Helpers

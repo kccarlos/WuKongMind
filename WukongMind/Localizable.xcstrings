@@ -18320,6 +18320,23 @@
         }
       }
     },
+    "Talk" : {
+      "comment" : "Composer microphone button accessibility label when tapping opens a voice conversation",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "对话"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "對話"
+          }
+        }
+      }
+    },
     "Talk to WukongMind" : {
       "comment" : "Browser bar button: start a live voice session",
       "localizations" : {
@@ -19872,6 +19889,23 @@
         }
       }
     },
+    "Touch and hold to dictate instead" : {
+      "comment" : "Accessibility hint of the composer microphone when voice is set up",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按住改为听写"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按住改為聽寫"
+          }
+        }
+      }
+    },
     "Touch and hold to talk to WukongMind" : {
       "comment" : "Accessibility hint of the iPhone AI button when voice is set up",
       "localizations" : {
@@ -21412,6 +21446,23 @@
         }
       }
     },
+    "Voice reply: %@" : {
+      "comment" : "Accessibility label of the voice assistant's spoken reply in the conversation; the placeholder is the transcript",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "语音回复：%@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "語音回覆：%@"
+          }
+        }
+      }
+    },
     "Voice today %lld min" : {
       "comment" : "Settings header: voice minutes used today, no daily limit",
       "localizations" : {
@@ -22294,6 +22345,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "只需開啟一次，之後它就會出現在每個 App 的分享表單中。"
+          }
+        }
+      }
+    },
+    "You said: %@" : {
+      "comment" : "Accessibility label of a voice bubble with what the user said; the placeholder is the transcript",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你说：%@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你說：%@"
           }
         }
       }
