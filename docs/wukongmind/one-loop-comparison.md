@@ -145,8 +145,8 @@ Old Research and the new Agent on the confirmed question set ([one-loop-question
 
 | Owner verdict | |
 |---|---|
-| New better, same, or worse | |
-| Note | |
+| New better, same, or worse | same |
+| Note | About equal; new drifts to Synology disk-policy news. |
 
 ### D2
 
@@ -224,8 +224,8 @@ Old Research and the new Agent on the confirmed question set ([one-loop-question
 
 | Owner verdict | |
 |---|---|
-| New better, same, or worse | |
-| Note | |
+| New better, same, or worse | same |
+| Note | About equal. |
 
 ### D3
 
@@ -341,8 +341,8 @@ Old Research and the new Agent on the confirmed question set ([one-loop-question
 
 | Owner verdict | |
 |---|---|
-| New better, same, or worse | |
-| Note | |
+| New better, same, or worse | new slightly better |
+| Note | Neither side ran the search step. |
 
 ### D4
 
@@ -470,8 +470,8 @@ Old Research and the new Agent on the confirmed question set ([one-loop-question
 
 | Owner verdict | |
 |---|---|
-| New better, same, or worse | |
-| Note | |
+| New better, same, or worse | same |
+| Note | About equal. |
 
 ### D5
 
@@ -606,8 +606,8 @@ Old Research and the new Agent on the confirmed question set ([one-loop-question
 
 | Owner verdict | |
 |---|---|
-| New better, same, or worse | |
-| Note | |
+| New better, same, or worse | same |
+| Note | About equal; both wrongly say threads are "not marked solved" (88672 and 83619 are solved). |
 
 ### H1
 
@@ -702,8 +702,8 @@ HN 上对 N100 做家用服务器的整体评价偏正面，主要是“功耗�
 
 | Owner verdict | |
 |---|---|
-| New better, same, or worse | |
-| Note | |
+| New better, same, or worse | same |
+| Note | About equal. |
 
 ### H2
 
@@ -773,8 +773,8 @@ The commenter links to GitHub's docs on controlling workflow concurrency. Note t
 
 | Owner verdict | |
 |---|---|
-| New better, same, or worse | |
-| Note | |
+| New better, same, or worse | same |
+| Note | About equal (3.6x loop input). |
 
 ### H3
 
@@ -863,8 +863,8 @@ I read the eight posts that matched "funnel", so this part is based on those plu
 
 | Owner verdict | |
 |---|---|
-| New better, same, or worse | |
-| Note | |
+| New better, same, or worse | worse |
+| Note | Old better: new never searched other threads, and states the article's contents without fetching it. |
 
 ### H4
 
@@ -960,8 +960,8 @@ If you tell me whether you want the current front page (ranked by votes) or a sp
 
 | Owner verdict | |
 |---|---|
-| New better, same, or worse | |
-| Note | |
+| New better, same, or worse | worse |
+| Note | Old better: new only lists titles. |
 
 ### H5
 
@@ -1058,8 +1058,8 @@ Sources:
 
 | Owner verdict | |
 |---|---|
-| New better, same, or worse | |
-| Note | |
+| New better, same, or worse | new better |
+| Note | New better; its "Backblaze issue" detail is unsupported. |
 
 ### W1
 
@@ -1176,8 +1176,8 @@ Chuck 在 2025 年 4 月的文章中认为，不计入储蓄账户使阶梯基�
 
 | Owner verdict | |
 |---|---|
-| New better, same, or worse | |
-| Note | |
+| New better, same, or worse | same |
+| Note | About equal; new says the card "changed to metal" while comments say replacements came in plastic. |
 
 ### W2
 
@@ -1249,8 +1249,8 @@ Multiple hotel stays in one cart may count, based on the most recent reader repo
 
 | Owner verdict | |
 |---|---|
-| New better, same, or worse | |
-| Note | |
+| New better, same, or worse | worse |
+| Note | Old better: new missed the July 2026 "single transaction" terms in the snapshot and has zero linked citations. |
 
 ### W3
 
@@ -1370,8 +1370,8 @@ The forum search did not find a thread on the year-end double-dip for these thre
 
 | Owner verdict | |
 |---|---|
-| New better, same, or worse | |
-| Note | |
+| New better, same, or worse | new better |
+| Note | New better; verified Strata Elite triple-dip reports. |
 
 ### W4
 
@@ -1456,8 +1456,8 @@ Based on this, the highest offers have been large points bonuses from Chase and 
 
 | Owner verdict | |
 |---|---|
-| New better, same, or worse | |
-| Note | |
+| New better, same, or worse | same |
+| Note | About equal; both honest, new lists two lapsed offers as current. |
 
 ### W5
 
@@ -1548,8 +1548,8 @@ Source: [Has Chase Changed The 5/24 Rule For Sole Props? (3/24 For Sole Props)](
 
 | Owner verdict | |
 |---|---|
-| New better, same, or worse | |
-| Note | |
+| New better, same, or worse | new better |
+| Note | New better; dedicated sole-prop thread, quotes verified. |
 
 ## Reading notes for the gate (facts, not verdicts)
 
@@ -1576,4 +1576,15 @@ Every model request of this record run (old loop, new loop, summaries and the to
 
 ## Approval
 
-Approved by the owner on YYYY-MM-DD: yes / no
+Gate 2 approved with conditions by the orchestrator for the owner, 2026-11-14; deletion tasks wait for conditions 1-4.
+
+Decision (delegated by the owner: the orchestrator decides gate 2 for the owner). The bar (no worse on 12 of 15, nothing newly wrong in a main answer, no invented links) is met, but only just, on one run each.
+
+Conditions, met before any deletion task (9, 10, 11, 13, 14) merges:
+
+1. W2: Agent sources must be Markdown links; plain-text URLs count as zero sources (this also affects task 12's History save rule). Find why the comment query missed the "single transaction" terms (#261).
+2. H3/D3: "then find what others say about X" must search beyond the named thread.
+3. H4: a "worth reading" answer must read at least one thread, not only list titles.
+4. Then re-record W2, H3 and H4 with a fresh, empty snapshot (the current snapshot looks pre-filled by discarded attempts). The new side must be no worse than old on all three. Put the re-record in the report.
+
+Not blocking: D5 should surface the solved flag in search results (both sides); watch `summarize_topic` overuse (D4, H5) and the W3/H5 token spikes.
