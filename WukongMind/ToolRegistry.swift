@@ -380,6 +380,8 @@ struct ToolExecutionOutput: Equatable, Sendable {
     /// The tool already cut its output to a range (`file_read`), so the
     /// registry neither saves nor truncates it.
     var isRanged: Bool
+    /// Images carried with the tool result (`screenshot`, or warning screenshots).
+    var images: [AgentImage]
 
     init(
         content: String,
@@ -387,7 +389,8 @@ struct ToolExecutionOutput: Equatable, Sendable {
         isError: Bool = false,
         pageFeedback: PageFeedbackReport? = nil,
         savedPath: String? = nil,
-        isRanged: Bool = false
+        isRanged: Bool = false,
+        images: [AgentImage] = []
     ) {
         self.content = content
         self.summary = summary ?? Self.defaultSummary(for: content)
@@ -395,6 +398,7 @@ struct ToolExecutionOutput: Equatable, Sendable {
         self.pageFeedback = pageFeedback
         self.savedPath = savedPath
         self.isRanged = isRanged
+        self.images = images
     }
 
     static func defaultSummary(for text: String, maxChars: Int = 96) -> String {
@@ -433,6 +437,7 @@ struct ToolDispatchResult: Equatable, Sendable {
     /// Where the full output went when it was saved to the workspace (over the
     /// limit, or `save_to`); `output` then holds the notice and preview.
     var savedPath: String? = nil
+    var images: [AgentImage] = []
 }
 
 /// Validates tool arguments against JSON Schema, dispatches tool calls, converts
@@ -699,6 +704,7 @@ struct ToolRegistry: Sendable {
                 pageFeedback: execution.pageFeedback,
                 savedPath: execution.savedPath,
                 isRanged: execution.isRanged,
+                images: execution.images,
                 step: step
             )
         } catch let cancellation as CancellationError {
@@ -728,6 +734,7 @@ struct ToolRegistry: Sendable {
         pageFeedback: PageFeedbackReport? = nil,
         savedPath: String? = nil,
         isRanged: Bool = false,
+        images: [AgentImage] = [],
         step: Int? = nil
     ) async -> ToolDispatchResult {
         let scrubbedOutput = UntrustedWebContent.redactSecrets(in: rawOutput, secrets: redactedSecrets)
@@ -781,7 +788,8 @@ struct ToolRegistry: Sendable {
             totalCharacterCount: totalCount,
             duration: duration,
             pageFeedback: pageFeedback,
-            savedPath: finalSavedPath
+            savedPath: finalSavedPath,
+            images: images
         )
     }
 
@@ -890,7 +898,8 @@ extension ToolRegistry {
     private static func makeRunJSTool(
         bridge: AgentPageDriving,
         workspace: AgentWorkspace? = nil,
-        secrets: [String] = []
+        secrets: [String] = [],
+        supportsImageInput: Bool = false
     ) -> AgentTool {
         var definition = AgentToolDefinition(
             name: "run_js",
@@ -946,7 +955,7 @@ extension ToolRegistry {
                 let env = args["environment"]?.stringValue ?? AgentExecutionEnvironment.defaultEnvironment.rawValue
                 return env == AgentExecutionEnvironment.page.rawValue ? "\(snippet) (page)" : snippet
             },
-            execute: withPageFeedback(bridge: bridge) { args in
+            execute: withPageFeedback(bridge: bridge, supportsImageInput: supportsImageInput) { args in
                 let code = args["code"]?.stringValue ?? ""
                 let envRaw = args["environment"]?.stringValue ?? AgentExecutionEnvironment.defaultEnvironment.rawValue
                 let env = AgentExecutionEnvironment(rawValue: envRaw) ?? .defaultEnvironment
@@ -1001,7 +1010,10 @@ extension ToolRegistry {
         )
     }
 
-    private static func makeInjectCSSTool(bridge: AgentPageDriving) -> AgentTool {
+    private static func makeInjectCSSTool(
+        bridge: AgentPageDriving,
+        supportsImageInput: Bool = false
+    ) -> AgentTool {
         let definition = AgentToolDefinition(
             name: "inject_css",
             description: """
@@ -1041,7 +1053,7 @@ extension ToolRegistry {
                 }
                 return snippet
             },
-            execute: withPageFeedback(bridge: bridge) { args in
+            execute: withPageFeedback(bridge: bridge, supportsImageInput: supportsImageInput) { args in
                 let css = args["css"]?.stringValue ?? ""
                 let id = args["id"]?.stringValue
                 let injected = try await bridge.injectCSS(css: css, id: id)
@@ -1175,12 +1187,18 @@ extension ToolRegistry {
     static func pageTools(
         bridge: AgentPageDriving,
         workspace: AgentWorkspace?,
-        secrets: [String] = []
+        secrets: [String] = [],
+        supportsImageInput: Bool = false
     ) -> [AgentTool] {
         [
             makeReadPageTool(bridge: bridge, workspace: workspace, secrets: secrets),
-            makeRunJSTool(bridge: bridge, workspace: workspace, secrets: secrets),
-            makeInjectCSSTool(bridge: bridge),
+            makeRunJSTool(
+                bridge: bridge,
+                workspace: workspace,
+                secrets: secrets,
+                supportsImageInput: supportsImageInput
+            ),
+            makeInjectCSSTool(bridge: bridge, supportsImageInput: supportsImageInput),
             makeWaitForTool(bridge: bridge)
         ]
     }
@@ -1868,7 +1886,8 @@ extension ToolRegistry {
         var tools = pageTools(
             bridge: context.bridge,
             workspace: context.workspace,
-            secrets: context.settings.redactedSecrets
+            secrets: context.settings.redactedSecrets,
+            supportsImageInput: context.settings.supportsImageInput
         )
         tools += scriptTools(
             bridge: context.bridge,

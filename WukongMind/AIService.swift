@@ -813,10 +813,29 @@ class AIService: @unchecked Sendable {
 
             case .toolResults(let results):
                 let blocks: [[String: Any]] = results.map { res in
-                    [
+                    let contentField: Any
+                    if res.images.isEmpty {
+                        contentField = res.content
+                    } else {
+                        var parts: [[String: Any]] = [
+                            ["type": "text", "text": res.content]
+                        ]
+                        for image in res.images {
+                            parts.append([
+                                "type": "image",
+                                "source": [
+                                    "type": "base64",
+                                    "media_type": image.mediaType,
+                                    "data": image.data
+                                ]
+                            ])
+                        }
+                        contentField = parts
+                    }
+                    return [
                         "type": "tool_result",
                         "tool_use_id": res.toolCallID,
-                        "content": res.content,
+                        "content": contentField,
                         "is_error": res.isError
                     ]
                 }
@@ -891,6 +910,32 @@ class AIService: @unchecked Sendable {
                     }
                     result.append(msg)
                 }
+                let images = results.flatMap(\.images)
+                if !images.isEmpty {
+                    if ollamaMode {
+                        result.append([
+                            "role": "user",
+                            "content": "Tool screenshot(s) attached.",
+                            "images": images.map(\.data)
+                        ])
+                    } else {
+                        var parts: [[String: Any]] = [
+                            ["type": "text", "text": "Tool screenshot(s) attached."]
+                        ]
+                        for image in images {
+                            parts.append([
+                                "type": "image_url",
+                                "image_url": [
+                                    "url": "data:\(image.mediaType);base64,\(image.data)"
+                                ]
+                            ])
+                        }
+                        result.append([
+                            "role": "user",
+                            "content": parts
+                        ])
+                    }
+                }
             }
         }
         return result
@@ -932,8 +977,9 @@ class AIService: @unchecked Sendable {
                     contents.append(["role": "model", "parts": parts])
                 }
             case .toolResults(let results):
-                let parts: [[String: Any]] = results.map { res in
-                    [
+                var parts: [[String: Any]] = []
+                for res in results {
+                    parts.append([
                         "functionResponse": [
                             "name": res.toolName,
                             "response": [
@@ -941,7 +987,15 @@ class AIService: @unchecked Sendable {
                                 "is_error": res.isError
                             ]
                         ]
-                    ]
+                    ])
+                    for image in res.images {
+                        parts.append([
+                            "inlineData": [
+                                "mimeType": image.mediaType,
+                                "data": image.data
+                            ]
+                        ])
+                    }
                 }
                 if !parts.isEmpty {
                     contents.append(["role": "user", "parts": parts])

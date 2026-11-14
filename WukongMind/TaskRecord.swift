@@ -40,7 +40,8 @@ struct TaskRecordEvent: Codable, Equatable, Sendable {
 
     static func toolResult(
         call: AgentModelToolCall, output: String, isError: Bool, duration: TimeInterval?,
-        wasTruncated: Bool, totalCharacterCount: Int, savedPath: String?, resultSummary: String, time: Date
+        wasTruncated: Bool, totalCharacterCount: Int, savedPath: String?, resultSummary: String,
+        images: [AgentImage] = [], time: Date
     ) -> TaskRecordEvent {
         var fields: [String: JSONValue] = [
             "callID": .string(call.id),
@@ -51,7 +52,7 @@ struct TaskRecordEvent: Codable, Equatable, Sendable {
             "wasTruncated": .bool(wasTruncated),
             "totalCharacterCount": .int(Int64(totalCharacterCount)),
             "resultSummary": .string(resultSummary),
-            "images": .array([])
+            "images": JSONValue.encoding(images) ?? .array([])
         ]
         if let raw = call.rawArgumentsJSON { fields["rawArgumentsJSON"] = .string(raw) }
         if let duration { fields["durationMs"] = .int(Int64(duration * 1000)) }
@@ -337,9 +338,11 @@ actor TaskRecordStore {
                       case .string(let output)? = event.fields["output"] else { continue }
                 var isError = false
                 if case .bool(let flag)? = event.fields["isError"] { isError = flag }
+                let images = event.fields["images"]?.decoded(as: [AgentImage].self) ?? []
                 pending.append(AgentModelToolResult(
                     toolCallID: id, toolName: name,
-                    content: UntrustedWebContent.wrap(output, toolName: name), isError: isError
+                    content: UntrustedWebContent.wrap(output, toolName: name), isError: isError,
+                    images: images
                 ))
             case "history":
                 flush()

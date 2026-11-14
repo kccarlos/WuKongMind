@@ -295,6 +295,7 @@ final class ToolRegistryTests: XCTestCase {
             "read_page", "run_js", "inject_css", "wait_for",
             "script_save", "script_list", "script_read", "script_update", "script_delete",
             "file_read", "file_write", "file_list",
+            "network_log",
             "navigate", "reload_page"
         ])
         for name in ["read_page", "run_js"] {

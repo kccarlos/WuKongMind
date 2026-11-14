@@ -42,11 +42,53 @@ struct AgentModelToolCall: Codable, Equatable, Sendable {
     }
 }
 
+struct AgentImage: Codable, Equatable, Sendable {
+    var mediaType: String
+    var data: String
+
+    init(mediaType: String = "image/jpeg", data: String) {
+        self.mediaType = mediaType
+        self.data = data
+    }
+}
+
 struct AgentModelToolResult: Codable, Equatable, Sendable {
     var toolCallID: String
     var toolName: String
     var content: String
     var isError: Bool
+    var images: [AgentImage]
+
+    init(
+        toolCallID: String,
+        toolName: String,
+        content: String,
+        isError: Bool,
+        images: [AgentImage] = []
+    ) {
+        self.toolCallID = toolCallID
+        self.toolName = toolName
+        self.content = content
+        self.isError = isError
+        self.images = images
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case toolCallID
+        case toolName
+        case content
+        case isError
+        case images
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        toolCallID = try container.decode(String.self, forKey: .toolCallID)
+        toolName = try container.decode(String.self, forKey: .toolName)
+        content = try container.decode(String.self, forKey: .content)
+        isError = try container.decode(Bool.self, forKey: .isError)
+        images = try container.decodeIfPresent([AgentImage].self, forKey: .images) ?? []
+    }
 }
 
 enum AgentModelTurn: Codable, Equatable, Sendable {
@@ -173,39 +215,68 @@ enum BrowserAgentPrompt {
 // MARK: - History Trimming
 
 /// Trims what each model request carries, never the stored history
-/// (design-m3.md, "History trimming"): only the newest
-/// `keptFileReads` `file_read` results go whole; each older one becomes a
-/// one-line notice naming the path and offset to re-read. Deterministic, so
+/// (design-m3.md, "History trimming"): only the newest `keptFileReads`
+/// `file_read` results stay whole, and only the images of the
+/// `keptImageResults` newest image-bearing results stay. Deterministic, so
 /// replay rebuilds the same request.
 enum AgentHistoryPruner {
     static let keptFileReads = 3
+    static let keptImageResults = 2
 
     static func prune(_ history: [AgentModelTurn]) -> [AgentModelTurn] {
         var callArguments: [String: [String: JSONValue]] = [:]
         var fileReads: [(turn: Int, result: Int)] = []
+        var imageResults: [(turn: Int, result: Int, step: Int)] = []
+        var step = 0
         for (turnIndex, turn) in history.enumerated() {
             switch turn {
+            case .user:
+                step = 0
             case .assistant(_, let calls):
                 for call in calls { callArguments[call.id] = call.arguments }
             case .toolResults(let results):
-                for (resultIndex, result) in results.enumerated()
-                where result.toolName == "file_read" && !result.isError {
-                    fileReads.append((turnIndex, resultIndex))
+                for (resultIndex, result) in results.enumerated() {
+                    step += 1
+                    if result.toolName == "file_read", !result.isError {
+                        fileReads.append((turnIndex, resultIndex))
+                    }
+                    if !result.images.isEmpty {
+                        imageResults.append((turnIndex, resultIndex, step))
+                    }
                 }
-            case .user:
-                break
             }
         }
-        guard fileReads.count > keptFileReads else { return history }
+        let needsFilePrune = fileReads.count > keptFileReads
+        let needsImagePrune = imageResults.count > keptImageResults
+        guard needsFilePrune || needsImagePrune else { return history }
 
         var pruned = history
-        for (turnIndex, resultIndex) in fileReads.dropLast(keptFileReads) {
-            guard case .toolResults(var results) = pruned[turnIndex] else { continue }
-            let arguments = callArguments[results[resultIndex].toolCallID] ?? [:]
-            let path = arguments["path"]?.stringValue ?? "?"
-            let offset = arguments["offset"]?.strictIntValue ?? 0
-            results[resultIndex].content = "[file_read omitted, re-read by path and offset: \(path), offset \(offset)]"
-            pruned[turnIndex] = .toolResults(results)
+        if needsFilePrune {
+            for (turnIndex, resultIndex) in fileReads.dropLast(keptFileReads) {
+                guard case .toolResults(var results) = pruned[turnIndex] else { continue }
+                let arguments = callArguments[results[resultIndex].toolCallID] ?? [:]
+                let path = arguments["path"]?.stringValue ?? "?"
+                let offset = arguments["offset"]?.strictIntValue ?? 0
+                results[resultIndex].content = "[file_read omitted, re-read by path and offset: \(path), offset \(offset)]"
+                pruned[turnIndex] = .toolResults(results)
+            }
+        }
+        if needsImagePrune {
+            for (turnIndex, resultIndex, stepNumber) in imageResults.dropLast(keptImageResults) {
+                guard case .toolResults(var results) = pruned[turnIndex] else { continue }
+                let omittedCount = results[resultIndex].images.count
+                results[resultIndex].images = []
+                let markers = Array(
+                    repeating: "[screenshot omitted, taken at step \(stepNumber)]",
+                    count: omittedCount
+                ).joined(separator: "\n")
+                if results[resultIndex].content.isEmpty {
+                    results[resultIndex].content = markers
+                } else {
+                    results[resultIndex].content += "\n" + markers
+                }
+                pruned[turnIndex] = .toolResults(results)
+            }
         }
         return pruned
     }
@@ -246,6 +317,8 @@ struct BrowserAgentToolCallRow: Identifiable, Equatable, Sendable {
     var pageFeedback: PageFeedbackReport?
     /// The workspace file holding the full result, when it was saved.
     var savedPath: String?
+    /// Images attached to the tool result (`screenshot`, or warning screenshots).
+    var images: [AgentImage] = []
 
     init(
         id: UUID = UUID(),
@@ -591,6 +664,7 @@ struct AgentLoop: Sendable {
                     row.totalCharacterCount = dispatchResult.totalCharacterCount
                     row.pageFeedback = dispatchResult.pageFeedback
                     row.savedPath = dispatchResult.savedPath
+                    row.images = dispatchResult.images
                     toolRows[rowIndex] = row
                     await events.onStepFinished(row)
                     await events.onToolResult(call, row, true)
@@ -600,7 +674,8 @@ struct AgentLoop: Sendable {
                             toolCallID: call.id,
                             toolName: call.name,
                             content: dispatchResult.modelContent,
-                            isError: dispatchResult.isError
+                            isError: dispatchResult.isError,
+                            images: dispatchResult.images
                         )
                     )
                 } catch {
@@ -1081,7 +1156,8 @@ final class BrowserAgentSession {
                     await taskRecords.append(taskID: taskID, .toolResult(
                         call: call, output: output, isError: row.isError, duration: row.duration,
                         wasTruncated: row.wasTruncated, totalCharacterCount: row.totalCharacterCount,
-                        savedPath: row.savedPath, resultSummary: row.resultSummary, time: Date()
+                        savedPath: row.savedPath, resultSummary: row.resultSummary,
+                        images: row.images, time: Date()
                     ))
                 }
                 if executed {
