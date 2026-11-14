@@ -291,6 +291,19 @@ final class ToolRegistryTests: XCTestCase {
         XCTAssertTrue(content.hasSuffix(UntrustedWebContent.closingTag))
     }
 
+    func testPageWorldCSPFailureAddsTheHintAsANote() async throws {
+        let driver = StubPageDriver()
+        driver.runJSHandler = { _, _, _ in
+            JSExecutionResult(valueJSON: nil, consoleOutput: [], error: "EvalError: Refused to evaluate (Content Security Policy)")
+        }
+        let registry = ToolRegistry.m1(bridge: driver)
+        let page = try await registry.dispatch(toolName: "run_js", arguments: ["code": .string("eval('1')"), "environment": .string("page")])
+        XCTAssertEqual(page.notes, [.pageWorldCSP])
+        XCTAssertTrue(page.modelContent.hasPrefix("\(ToolNote.label) \(ToolNote.pageWorldCSP.text)\n<untrusted_web_content"))
+        let isolated = try await registry.dispatch(toolName: "run_js", arguments: ["code": .string("eval('1')")])
+        XCTAssertEqual(isolated.notes, [])
+    }
+
     func testANoteIsOneLineAndNoNotesMeansThePlainWrapper() {
         XCTAssertEqual(UntrustedWebContent.modelContent("x", toolName: "t"), UntrustedWebContent.wrap("x", toolName: "t"))
         let decoded = try? JSONDecoder().decode([ToolNote].self, from: Data(#"["a\nb"]"#.utf8))

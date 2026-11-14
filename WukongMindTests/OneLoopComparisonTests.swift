@@ -216,6 +216,7 @@ final class OneLoopComparisonTests: XCTestCase {
     func testLatestListAsksForAReadBeforeRecommending() async throws {
         let list = try await toolResult("H4", tool: "list_latest", arguments: [:])
         Self.assertNoteBeforeWrapper(list.result.content, .latestList(topic: "story"))
+        print("H4 list_latest tool result (first 500 characters):\n\(list.result.content.prefix(500))")
         XCTAssertTrue(list.system.contains("never recommend from titles alone"))
     }
 

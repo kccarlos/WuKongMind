@@ -663,7 +663,7 @@ final class AgentBridge: NSObject, AgentPageDriving {
 
     /// A page-world failure on the page's Content Security Policy: `run_js` then adds
     /// `ToolNote.pageWorldCSP` (outside the untrusted wrapper; the message itself is page text).
-    static func isPageWorldCSPError(_ message: String, environment: AgentExecutionEnvironment) -> Bool {
+    nonisolated static func isPageWorldCSPError(_ message: String, environment: AgentExecutionEnvironment) -> Bool {
         guard environment == .page else { return false }
         let triggers = ["EvalError", "Load failed", "Content Security Policy", "unsafe-eval"]
         return triggers.contains { message.localizedCaseInsensitiveContains($0) }

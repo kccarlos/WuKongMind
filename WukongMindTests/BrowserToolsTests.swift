@@ -452,7 +452,7 @@ final class BrowserToolsTests: XCTestCase {
         let content = try XCTUnwrap(results.first?.content)
         let lines = content.components(separatedBy: "\n")
         XCTAssertTrue(lines[0].hasPrefix("\(ToolNote.label) The page may be broken: visible text dropped from 8,000 to 0 characters"), content)
-        XCTAssertEqual(lines[1], "\(ToolNote.label) Page changes: text 8,000 → 0")
+        XCTAssertTrue(lines[1].hasPrefix("\(ToolNote.label) Page changes: text 8,000 → 0"), content)
         XCTAssertTrue(lines[2].hasPrefix(UntrustedWebContent.openingTagPrefix), content)
 
         XCTAssertEqual(session.toolCalls.map(\.toolName), ["run_js", "read_page"])

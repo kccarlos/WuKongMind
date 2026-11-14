@@ -523,13 +523,16 @@ final class AgentBridgeTests: XCTestCase {
         )
         XCTAssertNotEqual(inlineStyleBlocked.valueJSON, "\"rgb(200, 10, 20)\"")
 
-        // Page-world `eval` is blocked by CSP and includes the isolated-world hint.
+        // Page-world `eval` is blocked by CSP; run_js then adds the isolated-world hint as a trusted
+        // tool note (the error text itself is page text and carries no hint).
         let pageEval = try await bridge.runJS(
             code: "return eval('21 * 2');",
             environment: .page
         )
-        XCTAssertNotNil(pageEval.error)
-        XCTAssertTrue(pageEval.error?.contains("isolated") == true)
+        let pageError = try XCTUnwrap(pageEval.error)
+        XCTAssertFalse(pageError.contains("environment: 'isolated'"))
+        XCTAssertTrue(AgentBridge.isPageWorldCSPError(pageError, environment: .page), pageError)
+        XCTAssertFalse(AgentBridge.isPageWorldCSPError(pageError, environment: .isolated))
 
         // Isolated-world `eval` succeeds under the exact same strict CSP!
         let isoEval = try await bridge.runJS(
