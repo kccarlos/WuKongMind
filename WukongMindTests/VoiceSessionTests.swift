@@ -205,6 +205,7 @@ final class VoiceSessionTests: XCTestCase {
         let agent = Self.agentSession(client: client)
         navigator.agentHandOff = AgentHandOff(agent: agent)
         let session = try await started()
+        session.tools.progressInterval = .seconds(60)
         session.onTranscript = { role, text in agent.appendVoiceTurn(role, text: text) }
         session.receive(frame(#"{"serverContent":{"inputTranscription":{"text":"What do people think of soldered eMMC?"}}}"#))
         session.receive(frame(#"{"serverContent":{"outputTranscription":{"text":"I'll have the Agent look."}}}"#))
@@ -213,8 +214,9 @@ final class VoiceSessionTests: XCTestCase {
         session.receive(frame(#"{"serverContent":{"turnComplete":true}}"#))
         XCTAssertEqual(sent().last, .toolResponse(id: "call_h", name: "hand_off_to_agent", scheduling: "SILENT"))
 
-        try await waitUntil { self.sent().contains(.toolResponse(id: "b-1", name: "briefing", scheduling: "WHEN_IDLE")) }
-        XCTAssertEqual(try lastResponse()["answer"] as? String, "Most regret it: two boxes wore out Soldered eMMC.")
+        try await waitUntil(timeout: 15) { self.briefing(kinds: ["agent answer", "agent ended"]) != nil }
+        let briefed = try XCTUnwrap(briefing(kinds: ["agent answer", "agent ended"]))
+        XCTAssertEqual(briefed["answer"] as? String, "Most regret it: two boxes wore out Soldered eMMC.", "\(briefed) \(String(describing: agent.runs.last?.state))")
         let run = try XCTUnwrap(agent.runs.last)
         XCTAssertEqual(run.origin, .voice)
         XCTAssertEqual(run.prompt, "What do people here think of soldered eMMC?")
@@ -776,6 +778,19 @@ final class VoiceSessionTests: XCTestCase {
         let object = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(text.utf8)) as? [String: Any])
         let item = (((object["toolResponse"] as? [String: Any])?["functionResponses"] as? [[String: Any]])?.first)
         return try XCTUnwrap(item?["response"] as? [String: Any])
+    }
+
+    /// The newest briefing of one of `kinds`.
+    private func briefing(kinds: Set<String>) -> [String: Any]? {
+        for text in (transports.last?.sent ?? []).reversed() where text.contains("toolResponse") {
+            guard let object = try? JSONSerialization.jsonObject(with: Data(text.utf8)) as? [String: Any],
+                  let item = ((object["toolResponse"] as? [String: Any])?["functionResponses"] as? [[String: Any]])?.first,
+                  let response = item["response"] as? [String: Any],
+                  let kind = response["kind"] as? String, kinds.contains(kind)
+            else { continue }
+            return response
+        }
+        return nil
     }
 
     private func frame(_ text: String) -> Data { Data(text.utf8) }
