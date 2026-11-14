@@ -313,7 +313,7 @@ extension AppModel {
 
     func applyBrowserAgentDebugArguments() {
         if AssistantDebug.has("-dc-developer-mode") {
-            settings.developerMode = true
+            settings.agentDeveloperMode = true
         }
         let demoMode = AssistantDebug.value("-dc-browser-agent-demo")
         let livePrompt = AssistantDebug.value("-dc-browser-agent-live-prompt")

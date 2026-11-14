@@ -727,7 +727,7 @@ final class AgentLoopTests: XCTestCase {
         XCTAssertEqual(BrowserAgentPanelView.formatDuration(14.2), "14 s")
 
         // Unified status line: token count is hidden by default and shown only in developerMode.
-        XCTAssertFalse(AppSettings().developerMode)
+        XCTAssertFalse(AppSettings().agentDeveloperMode)
         XCTAssertEqual(
             BrowserAgentPanelView.statusText(
                 runState: .completed(steps: 3, duration: 9),

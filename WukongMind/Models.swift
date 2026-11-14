@@ -110,7 +110,8 @@ struct AppSettings: Codable, Equatable {
     var launchDestination: LaunchDestination = .automatic
     /// Optional confirmation before write actions (`Settings › Agent`). Off by default.
     var agentConfirmBeforeWrites = false
-    /// Shows raw tool arguments and results in step rows (`Settings › Agent`). Off by default; per device.
+    /// Developer mode, the one switch (`Settings › Agent › Developer`): raw requests, tokens per step,
+    /// tool code names and durations, and task export. Off by default; per device.
     var agentDeveloperMode = false
     var agentMaxSteps = AgentLimits.defaultMaxSteps
     var agentMaxTopicReads = AgentLimits.defaultMaxTopicReads
@@ -161,9 +162,6 @@ struct AppSettings: Codable, Equatable {
     /// Topics the user reads are offered to Siri suggestions
     /// (`NSUserActivity`). On by default; per device.
     var donatesTopicActivity = true
-    /// Shows token counts on the status line and raw tool names/durations.
-    var developerMode = false
-
     init() {}
 
     private enum CodingKeys: String, CodingKey {
@@ -206,6 +204,10 @@ struct AppSettings: Codable, Equatable {
         case readingLanguage
         case spotlightEnabled
         case donatesTopicActivity
+    }
+
+    /// The older `developerMode` key, folded into `agentDeveloperMode`: read once, never written.
+    private enum LegacyKeys: String, CodingKey {
         case developerMode
     }
 
@@ -296,7 +298,9 @@ struct AppSettings: Codable, Equatable {
         readingLanguage = try container.decodeIfPresent(String.self, forKey: .readingLanguage) ?? ""
         spotlightEnabled = try container.decodeIfPresent(Bool.self, forKey: .spotlightEnabled) ?? true
         donatesTopicActivity = try container.decodeIfPresent(Bool.self, forKey: .donatesTopicActivity) ?? true
-        developerMode = try container.decodeIfPresent(Bool.self, forKey: .developerMode) ?? false
+        if try decoder.container(keyedBy: LegacyKeys.self).decodeIfPresent(Bool.self, forKey: .developerMode) == true {
+            agentDeveloperMode = true
+        }
     }
 
     func configuration(for provider: AIProvider) -> ProviderConfiguration {

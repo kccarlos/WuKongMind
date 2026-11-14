@@ -262,11 +262,8 @@ struct SettingsAgentPage: View {
             Section {
                 Toggle(isOn: $app.settings.agentDeveloperMode) {
                     VStack(alignment: .leading, spacing: 2) {
-                        HStack(spacing: DCTheme.spacingS) {
-                            Text("Developer mode", comment: "Settings › Agent switch showing raw tool payloads")
-                            DCSeal(text: "M3", variant: .outline)
-                        }
-                        Text("Show raw tool arguments & results", comment: "Settings › Agent subtitle for Developer mode")
+                        Text("Developer mode", comment: "Settings › Agent switch showing raw tool payloads")
+                        Text("Show raw requests, tokens per step and task export", comment: "Settings › Agent subtitle for Developer mode")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }

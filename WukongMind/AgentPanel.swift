@@ -427,7 +427,7 @@ struct AgentView: View {
     }
 
     private func stepTimeline(_ run: AgentRun) -> some View {
-        let developerMode = app.settings.developerMode
+        let developerMode = app.settings.agentDeveloperMode
         let rows = VStack(alignment: .leading, spacing: 0) {
             ForEach(Array(run.steps.enumerated()), id: \.element.id) { index, step in
                 stepRow(step, isActive: !run.isFinished && index == run.steps.count - 1, developerMode: developerMode)
@@ -927,7 +927,7 @@ struct BrowserAgentRunsView: View {
 
     @ViewBuilder
     private func toolRowList(_ rows: [BrowserAgentToolCallRow]) -> some View {
-        let developerMode = app.settings.developerMode
+        let developerMode = app.settings.agentDeveloperMode
         ForEach(rows) { row in
             let expanded = expandedToolRowIDs.contains(row.id)
             DCToolRow(
