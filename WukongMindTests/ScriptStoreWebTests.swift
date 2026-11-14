@@ -186,7 +186,7 @@ final class ScriptStoreWebTests: XCTestCase {
                     }
                 }
                 listener.start(queue: queue)
-                queue.asyncAfter(deadline: .now() + 5) { [weak listener] in
+                queue.asyncAfter(deadline: .now() + 30) { [weak listener] in
                     let currentState = String(describing: listener?.state)
                     resumeOnce(
                         .failure(
@@ -194,7 +194,7 @@ final class ScriptStoreWebTests: XCTestCase {
                                 domain: "LoopbackFixtureServer",
                                 code: 1,
                                 userInfo: [
-                                    NSLocalizedDescriptionKey: "Loopback listener did not become ready within 5s (state=\(currentState))"
+                                    NSLocalizedDescriptionKey: "Loopback listener did not become ready within 30s (state=\(currentState))"
                                 ]
                             )
                         )

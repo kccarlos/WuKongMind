@@ -1053,6 +1053,24 @@ final class AppModel: ObservableObject {
         linkParser(siteURL: run.siteURL, known: run.knownLinks)
     }
 
+    /// The parser of an Agent run's links: the permalinks its forum results
+    /// showed (thread and list shapes) stand in for `AgentRun.knownLinks`.
+    func linkParser(siteURL: String, shapes: [ForumShape]) -> AgentSources.Parse {
+        guard let links = adapter(for: siteURL)?.links else { return linkParser(siteURL: siteURL) }
+        var known: [String: String] = [:]
+        func note(_ urlText: String, _ id: String?) {
+            guard let id, !id.isEmpty, known.count < AgentRun.knownLinkLimit, let url = URL(string: urlText) else { return }
+            known[AgentSources.knownKey(url, links: links)] = id
+        }
+        for shape in shapes {
+            switch shape {
+            case .thread(let thread): note(thread.url, thread.id)
+            case .list(let list): list.items.forEach { note($0.url, $0.id) }
+            }
+        }
+        return linkParser(siteURL: siteURL, known: known)
+    }
+
     private func linkParser(siteURL: String, known: [String: String]) -> AgentSources.Parse {
         let links = adapter(for: siteURL)?.links
         let basePath = ForumSite.parse(siteURL: siteURL)?.basePath ?? ""

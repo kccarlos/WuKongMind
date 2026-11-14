@@ -265,6 +265,71 @@ struct DCCitationChip: View {
     }
 }
 
+/// The numbered sources of an Agent answer: one tappable row per source, with its
+/// citation chip, title and host. Tapping calls `onSelect`; the caller opens it.
+struct DCSourcesList: View {
+    let sources: [AgentSources.Source]
+    let onSelect: (AgentSources.Source) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Sources")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .accessibilityAddTraits(.isHeader)
+            ForEach(sources) { source in
+                Button {
+                    DCHaptics.tap()
+                    onSelect(source)
+                } label: {
+                    HStack(alignment: .top, spacing: 10) {
+                        DCCitationChip(number: source.label)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(source.title)
+                                .font(.subheadline.weight(.medium))
+                                .foregroundStyle(.primary)
+                                .multilineTextAlignment(.leading)
+                                .lineLimit(2)
+                            Text(detail(of: source))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                        }
+                        Spacer(minLength: 4)
+                        Image(systemName: "arrow.up.right")
+                            .font(.caption.weight(.bold))
+                            .foregroundStyle(DCTheme.jade)
+                    }
+                    .padding(10)
+                    .background(DCTheme.surfaceRaised.opacity(0.5), in: RoundedRectangle(cornerRadius: DCTheme.radiusMd, style: .continuous))
+                    .contentShape(RoundedRectangle(cornerRadius: DCTheme.radiusMd, style: .continuous))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Source \(source.number): \(source.title)")
+                .accessibilityValue(source.postNumber.map { String(localized: "Post \($0)", comment: "Accessibility value of an Ask the forum source that is one post of a topic; the number is the post number") } ?? "")
+                .accessibilityHint(
+                    source.postNumber == nil
+                        ? String(localized: "Opens the topic in the browser")
+                        : String(localized: "Opens the topic at this post in the browser", comment: "Accessibility hint of an Ask the forum source that is one post of a topic")
+                )
+                .accessibilityIdentifier("agentSource-\(source.number)")
+            }
+        }
+    }
+
+    /// The forum host, with the post number for a post-level source.
+    private func detail(of source: AgentSources.Source) -> String {
+        let host = source.url.host ?? ""
+        if !source.cited {
+            return String(localized: "Read, not cited · \(host)", comment: "Source the agent read but didn't cite; the placeholder is the forum host")
+        }
+        if let post = source.postNumber {
+            return String(localized: "Post \(post) · \(host)", comment: "Ask the forum source that is one post of a topic; the number is the post number, the placeholder the forum host")
+        }
+        return host
+    }
+}
+
 /// The listen row: a round ink play button, the title, a gold progress bar and the time left.
 struct DCListenRow: View {
     let title: String

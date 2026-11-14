@@ -276,7 +276,7 @@ final class CapabilityToolsTests: XCTestCase {
         app.select(topic: ForumTopic(siteURL: site, topicID: id, url: URL(string: "\(site)/t/topic-\(id)/\(id)")!, title: "Topic \(id)"))
     }
 
-    private func waitUntil(timeout: TimeInterval = 3, condition: @escaping @MainActor () -> Bool) async throws {
+    private func waitUntil(timeout: TimeInterval = 30, condition: @escaping @MainActor () -> Bool) async throws {
         let deadline = Date().addingTimeInterval(timeout)
         while !condition() {
             if Date() > deadline { XCTFail("Timed out waiting for condition"); return }

@@ -468,6 +468,9 @@ struct ToolRegistry: Sendable {
     /// workspace or a task ID, output is truncated and marked instead.
     var workspace: AgentWorkspace?
     var taskID: String?
+    /// The run's forum, for the prompt's "Forum tools" section; set by the
+    /// builder next to the forum tools.
+    var forumPrompt: ForumPromptContext?
 
     init(
         tools: [AgentTool] = [],
@@ -2110,6 +2113,16 @@ struct ForumToolContext: Sendable {
     var service: ForumToolService
     var scope: ForumRunScope
     var forumName: String
+    /// The topic-read budget when the run starts, for the prompt.
+    var maxTopicReads: Int
+
+    @MainActor
+    init(service: ForumToolService, scope: ForumRunScope, forumName: String) {
+        self.service = service
+        self.scope = scope
+        self.forumName = forumName
+        maxTopicReads = scope.readBudget()
+    }
 }
 
 /// Everything an M3 tool family needs, handed to each `ToolRegistry+*.swift`
@@ -2188,11 +2201,18 @@ extension ToolRegistry {
         tools += networkTools(context: context)
         tools += forumTools(context: context)
         tools += capabilityTools(context: context)
-        return ToolRegistry(
+        var registry = ToolRegistry(
             tools: tools,
             truncationLimit: context.settings.truncationLimit,
             redactedSecrets: context.settings.redactedSecrets,
             workspace: context.workspace
         )
+        registry.forumPrompt = context.forum.map {
+            ForumPromptContext(
+                forumName: $0.forumName, siteURL: $0.scope.siteURL, adapter: $0.scope.adapter,
+                maxTopicReads: $0.maxTopicReads
+            )
+        }
+        return registry
     }
 }
