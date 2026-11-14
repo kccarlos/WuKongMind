@@ -503,14 +503,17 @@ extension AppModel {
             value.completedAt = ago(minutes)
             return value
         }
+        let closet = topic(meta, "101", "quiet-closet", "Which home server for a quiet closet? Fanless builds compared").url.absoluteString
+        let emmc = topic(meta, "102", "emmc-died", "eMMC died after 20 months, what now?").url.absoluteString
+        let n100 = topic(meta, "103", "n100-m2", "N100 boards with M.2: the short list").url.absoluteString
         let fanless = savedAnswer(
             meta.siteURL,
             goal: "Which fanless boxes do people regret?",
-            answer: "Mostly the ones with **soldered eMMC storage**. Two owners say theirs wore out within two years of logging [Which home server for a quiet closet?](\(meta.siteURL)/t/quiet-closet/101/14) [eMMC died after 20 months](\(meta.siteURL)/t/emmc-died/102).\n\n- Boxes with an M.2 slot are the usual fix: swap the drive, keep the box [N100 boards with M.2](\(meta.siteURL)/t/n100-m2/103/3).\n- Throttling in a warm closet is a complaint, not a regret; a timed USB fan solves it [Which home server for a quiet closet?](\(meta.siteURL)/t/quiet-closet/101/14).",
+            answer: "Mostly the ones with **soldered eMMC storage**. Two owners say theirs wore out within two years of logging [S1](\(closet)/14) [S2](\(emmc)).\n\n- Boxes with an M.2 slot are the usual fix: swap the drive, keep the box [S3](\(n100)/3).\n- Throttling in a warm closet is a complaint, not a regret; a timed USB fan solves it [S1](\(closet)/14).",
             sources: [
-                SavedSource(number: 1, title: "Which home server for a quiet closet? Fanless builds compared", url: "\(meta.siteURL)/t/quiet-closet/101/14", topicID: "101", postNumber: 14),
-                SavedSource(number: 2, title: "eMMC died after 20 months, what now?", url: "\(meta.siteURL)/t/emmc-died/102", topicID: "102"),
-                SavedSource(number: 3, title: "N100 boards with M.2: the short list", url: "\(meta.siteURL)/t/n100-m2/103/3", topicID: "103", postNumber: 3)
+                SavedSource(number: 1, title: "Which home server for a quiet closet? Fanless builds compared", url: "\(closet)/14", topicID: "101", postNumber: 14),
+                SavedSource(number: 2, title: "eMMC died after 20 months, what now?", url: emmc, topicID: "102"),
+                SavedSource(number: 3, title: "N100 boards with M.2: the short list", url: "\(n100)/3", topicID: "103", postNumber: 3)
             ],
             minutes: 90
         )

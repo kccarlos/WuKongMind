@@ -147,7 +147,8 @@ struct HistoryView: View {
                     onBack: { app.savedAnswerRunID = nil },
                     onOpenSource: { sources, source in
                         app.openSavedSource(source, of: sources, siteURL: run.siteURL)
-                    }
+                    },
+                    onOpenLink: { url in app.openSavedLink(url) }
                 )
             } else {
                 listBody

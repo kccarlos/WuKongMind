@@ -583,7 +583,7 @@ final class AppModel: ObservableObject {
         let loadedRuns = snapshot.agentRuns.sorted { $0.createdAt > $1.createdAt }
         agentRuns = loadedRuns
         watchedTopics = snapshot.watchedTopics
-        selectedAgentRunID = loadedRuns.first?.id
+        selectedAgentRunID = loadedRuns.first { $0.loop == .research }?.id
         var loadedSettings = snapshot.settings
         var loadedKeys: [AIProvider: String] = [:]
         for provider in AIProvider.allCases {
@@ -1335,7 +1335,7 @@ final class AppModel: ObservableObject {
     /// After runs were deleted: select a remaining run, and drop a follow-up
     /// draft that belonged to a deleted one.
     func reconcileAgentSelection() {
-        guard let selectedAgentRunID, !agentRuns.contains(where: { $0.id == selectedAgentRunID }) else {
+        guard let selectedAgentRunID, !researchRuns.contains(where: { $0.id == selectedAgentRunID }) else {
             return
         }
         self.selectedAgentRunID = researchRuns.first?.id
@@ -1894,7 +1894,17 @@ final class AppModel: ObservableObject {
         savedAnswerRunID = nil
         dismissHistoryIfNeeded()
         assistantMode = .summary
-        browser.load(source.url)
+        openLink(source.url)
+        panelRoute = .topic
+        stepDownDrawerIfShown()
+    }
+
+    /// Another link in a saved answer: History closes and the browser opens it.
+    func openSavedLink(_ url: URL) {
+        savedAnswerRunID = nil
+        dismissHistoryIfNeeded()
+        assistantMode = .summary
+        openLink(url)
         panelRoute = .topic
         stepDownDrawerIfShown()
     }
@@ -2762,7 +2772,7 @@ final class AppModel: ObservableObject {
         currentTopic = seed.currentTopic
         currentSiteURL = seed.currentForum?.siteURL
         seededPageContext = seed.pageContext
-        selectedAgentRunID = seed.agentRuns.first?.id
+        selectedAgentRunID = seed.agentRuns.first { $0.loop == .research }?.id
         // No automatic watch check (network, summary refresh) for the seed.
         lastWatchCheck = Date()
     }

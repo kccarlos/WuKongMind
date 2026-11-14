@@ -13,6 +13,8 @@ struct SavedAnswerView: View {
     let onBack: () -> Void
     /// A tapped source: the caller opens it in the browser.
     let onOpenSource: ([AgentSources.Source], AgentSources.Source) -> Void
+    /// Any other link in the answer opens in the app's browser.
+    var onOpenLink: (URL) -> Void = { _ in }
 
     private var sources: [AgentSources.Source] { run.sources.compactMap(\.source) }
 
@@ -89,7 +91,8 @@ struct SavedAnswerView: View {
                     onOpenSource(sources, source)
                     return .handled
                 }
-                return .systemAction
+                onOpenLink(url)
+                return .handled
             })
         }
         .background(DCTheme.pageBackground)

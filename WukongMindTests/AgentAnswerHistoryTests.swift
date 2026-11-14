@@ -278,6 +278,30 @@ final class AgentAnswerHistoryTests: XCTestCase {
         XCTAssertEqual(app.agentRuns.count, 2)
     }
 
+    func testSelectionSkipsAgentRecordsOnReloadAndAfterDeletingResearch() throws {
+        var research = AgentRun(siteURL: site, goal: "Research", provider: .ollama, model: "m")
+        research.result = .completed
+        research.createdAt = Date(timeIntervalSince1970: 100)
+        var agent = AgentRun(siteURL: "https://news.example.org", goal: "Agent", provider: .ollama, model: "m")
+        agent.loop = .agent
+        agent.result = .completed
+        agent.createdAt = Date(timeIntervalSince1970: 200)
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("wukong-sel-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        addTeardownBlock { try? FileManager.default.removeItem(at: dir) }
+        let store = PersistentStore(fileURL: dir.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore())
+        try store.save(AppSnapshot(agentRuns: [research, agent]))
+        let app = AppModel(
+            store: store,
+            forumService: WordPressFixtureSite(commentCount: 1).service(), sites: SiteRegistry.standard, aiService: StateAIStub(),
+            workspaceDirectory: dir.appendingPathComponent("ws", isDirectory: true)
+        )
+        XCTAssertEqual(app.selectedAgentRunID, research.id)
+        app.deleteAgentRun(id: research.id)
+        XCTAssertNil(app.selectedAgentRunID)
+        XCTAssertNil(app.selectedAgentRun)
+    }
+
     // MARK: History and Home
 
     func testAgentRecordsShowInHistoryAndHomeRecentAndOpenInTheSavedAnswer() throws {
