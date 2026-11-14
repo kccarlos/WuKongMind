@@ -195,7 +195,7 @@ final class OneLoopComparisonTests: XCTestCase {
             ),
             rows: rows,
             isSnapshotThread: { question, url in
-                ComparisonCitations.isThread(url, question: question, snapshot: snapshots[question.kind])
+                ComparisonCitations.isThread(url, question: question, snapshot: try? snapshot(for: question))
             }
         )
         XCTAssertFalse(audit.isEmpty)
