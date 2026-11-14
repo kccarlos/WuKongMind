@@ -125,6 +125,34 @@ protocol AgentModelClient: Sendable {
         provider: AIProvider,
         maxTokens: Int
     ) async throws -> AgentModelTurnResponse
+
+    /// The same turn, handing the raw HTTP exchange to `recorder` (clients without HTTP ignore it).
+    func completeToolTurn(
+        system: String,
+        messages: [AgentModelTurn],
+        tools: [AgentToolDefinition],
+        configuration: ProviderConfiguration,
+        provider: AIProvider,
+        maxTokens: Int,
+        recorder: AgentWireRecorder?
+    ) async throws -> AgentModelTurnResponse
+}
+
+extension AgentModelClient {
+    func completeToolTurn(
+        system: String,
+        messages: [AgentModelTurn],
+        tools: [AgentToolDefinition],
+        configuration: ProviderConfiguration,
+        provider: AIProvider,
+        maxTokens: Int,
+        recorder: AgentWireRecorder?
+    ) async throws -> AgentModelTurnResponse {
+        try await completeToolTurn(
+            system: system, messages: messages, tools: tools,
+            configuration: configuration, provider: provider, maxTokens: maxTokens
+        )
+    }
 }
 
 // MARK: - System Prompt
@@ -319,6 +347,8 @@ struct BrowserAgentToolCallRow: Identifiable, Equatable, Sendable {
     var savedPath: String?
     /// Images attached to the tool result (`screenshot`, or warning screenshots).
     var images: [AgentImage] = []
+    /// The model turn that asked for this call (developer mode's "Model step").
+    var modelTurn: AgentTurnInfo?
 
     init(
         id: UUID = UUID(),
@@ -384,6 +414,15 @@ struct BrowserAgentMessage: Identifiable, Equatable, Sendable {
     }
 }
 
+/// One model turn's number, model and tokens. The rows of one turn share it; `isFirstOfTurn` marks
+/// the row that shows the line.
+struct AgentTurnInfo: Equatable, Sendable {
+    var turn: Int
+    var model: String
+    var usage: AgentTokenUsage
+    var isFirstOfTurn = true
+}
+
 struct BrowserAgentRun: Identifiable, Equatable, Sendable {
     var id: UUID
     var prompt: String
@@ -393,6 +432,8 @@ struct BrowserAgentRun: Identifiable, Equatable, Sendable {
     var tokenUsage: AgentTokenUsage
     var startedAt: Date
     var duration: TimeInterval?
+    /// The final reply's turn (no tool call), for developer mode's Details.
+    var finalTurn: AgentTurnInfo?
 
     var stepCount: Int { toolCalls.count }
     var errorCount: Int { toolCalls.filter(\.isError).count }
@@ -430,6 +471,18 @@ struct AgentLoopEvents: Sendable {
     var onToolResult: @Sendable (AgentModelToolCall, BrowserAgentToolCallRow, _ executed: Bool) async -> Void = { _, _, _ in }
 }
 
+/// What `AgentLoop` dispatches tool calls through: `ToolRegistry` in the app, a recorded
+/// dispatcher when a task export is replayed.
+protocol ToolDispatching: Sendable {
+    var definitions: [AgentToolDefinition] { get }
+    var redactedSecrets: [String] { get }
+    func argumentSummary(for toolName: String, arguments: [String: JSONValue]) -> String
+    func dispatch(toolName: String, arguments: [String: JSONValue], step: Int?) async throws -> ToolDispatchResult
+    func dispatch(toolName: String, rawArgumentsJSON: String, step: Int?) async throws -> ToolDispatchResult
+}
+
+extension ToolRegistry: ToolDispatching {}
+
 /// Simulator-free multi-step tool-calling loop.
 ///
 /// Stops when:
@@ -442,20 +495,24 @@ struct AgentLoop: Sendable {
     static let stepLimitMessagePrefix = "Stopped at the step limit"
 
     var modelClient: AgentModelClient
-    var registry: ToolRegistry
+    var registry: any ToolDispatching
     var maxSteps: Int
     var maxTokensPerTurn: Int
+    /// Gets each turn's raw HTTP exchange (for the task record).
+    var wireRecorder: AgentWireRecorder?
 
     init(
         modelClient: AgentModelClient,
-        registry: ToolRegistry,
+        registry: any ToolDispatching,
         maxSteps: Int = BrowserAgentLimits.defaultMaxSteps,
-        maxTokensPerTurn: Int = 4_096
+        maxTokensPerTurn: Int = 4_096,
+        wireRecorder: AgentWireRecorder? = nil
     ) {
         self.modelClient = modelClient
         self.registry = registry
         self.maxSteps = max(1, maxSteps)
         self.maxTokensPerTurn = maxTokensPerTurn
+        self.wireRecorder = wireRecorder
     }
 
     static func stepLimitNotice(limit: Int) -> String {
@@ -522,7 +579,8 @@ struct AgentLoop: Sendable {
                     tools: registry.definitions,
                     configuration: configuration,
                     provider: provider,
-                    maxTokens: maxTokensPerTurn
+                    maxTokens: maxTokensPerTurn,
+                    recorder: wireRecorder
                 )
             } catch {
                 if Self.isCancellation(error) || Task.isCancelled {
@@ -634,6 +692,10 @@ struct AgentLoop: Sendable {
                     toolName: call.name,
                     argumentSummary: argSummary,
                     argumentsJSON: argsJSON
+                )
+                row.modelTurn = AgentTurnInfo(
+                    turn: modelTurnCount, model: configuration.model, usage: response.usage,
+                    isFirstOfTurn: callIndex == 0
                 )
                 toolRows.append(row)
                 let rowIndex = toolRows.count - 1
@@ -824,8 +886,12 @@ final class BrowserAgentSession {
     private(set) var maxSteps = BrowserAgentLimits.defaultMaxSteps
     private(set) var tokenUsage: AgentTokenUsage = .zero
     private(set) var history: [AgentModelTurn] = []
+    /// Raw request and response sizes in bytes per model turn, keyed by `wireKey(taskID:turn:)`.
+    private(set) var wireSizes: [String: (request: Int, response: Int)] = [:]
 
     var isRunning: Bool { runState.isRunning }
+
+    static func wireKey(taskID: String, turn: Int) -> String { "\(taskID)#\(turn)" }
 
     private let pageDriver: AgentPageDriving
     private var modelClient: AgentModelClient
@@ -995,6 +1061,7 @@ final class BrowserAgentSession {
         tokenUsage = .zero
         lastUserPrompt = nil
         pageBaseline = nil
+        wireSizes = [:]
         pageBaselineImage = nil
         runState = .idle
     }
@@ -1069,11 +1136,20 @@ final class BrowserAgentSession {
         // task-record retention deletes with the record of the same ID.
         registry.taskID = taskID
         let includesWorkspace = registry.tool(named: "file_read") != nil
+        // Raw capture runs whenever a record is written, whatever developer mode says.
+        let wireRecorder = taskRecords.map { store in
+            TaskWireRecorder(taskID: taskID, store: store, secrets: runtime.redactedSecrets) { [weak self] turn, request, response in
+                self?.wireSizes[Self.wireKey(taskID: taskID, turn: turn)] = (request, response)
+            }
+        }
         let loop = AgentLoop(
             modelClient: modelClient,
             registry: registry,
-            maxSteps: maxSteps
+            maxSteps: maxSteps,
+            wireRecorder: wireRecorder
         )
+        let stepLimit = maxSteps
+        let truncationLimit = registry.truncationLimit
 
         activeTask = Task { @MainActor [weak self] in
             guard let self else { return }
@@ -1101,6 +1177,10 @@ final class BrowserAgentSession {
                 model: modelName, provider: providerName, pageURL: pageMeta.url
             ))
             if let taskRecords {
+                await taskRecords.append(taskID: taskID, .task(
+                    prompt: userPrompt, provider: providerName, model: modelName, stepLimit: stepLimit,
+                    truncationLimit: truncationLimit, pageURL: pageMeta.url, time: Date()
+                ))
                 await taskRecords.touch(taskID: taskID, url: pageMeta.url)
                 await taskRecords.append(taskID: taskID, .history(startingHistory, time: Date()))
             }
@@ -1153,11 +1233,21 @@ final class BrowserAgentSession {
             )
 
             events.onModelRequest = { turn, system, history, tools in
-                await taskRecords?.appendRequest(
-                    taskID: taskID, turn: turn, historyCount: history.count, system: system, tools: tools
+                guard let taskRecords else { return }
+                let pageURL = await pageDriver.currentPageMetadata().url
+                await taskRecords.appendRequest(
+                    taskID: taskID, turn: turn, historyCount: history.count, system: system, tools: tools,
+                    pageURL: pageURL
                 )
             }
-            events.onModelResponse = { _, response in
+            events.onModelResponse = { turn, response in
+                if response.toolCalls.isEmpty {
+                    let info = AgentTurnInfo(turn: turn, model: configuration.model, usage: response.usage)
+                    await MainActor.run { [weak self] in
+                        guard let self, let runIdx = self.runs.firstIndex(where: { $0.id == runID }) else { return }
+                        self.runs[runIdx].finalTurn = info
+                    }
+                }
                 await taskRecords?.append(taskID: taskID, .response(
                     response, model: modelName, provider: providerName, time: Date()
                 ))

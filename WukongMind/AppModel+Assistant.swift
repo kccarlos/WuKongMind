@@ -609,7 +609,7 @@ extension AppModel {
             }
         }
         if AssistantDebug.has("-dc-developer-mode") {
-            sampleSettings.developerMode = true
+            sampleSettings.agentDeveloperMode = true
         }
         // In memory only: never sent anywhere unless the user starts work.
         if AssistantDebug.has("-dc-no-provider") {

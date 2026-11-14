@@ -5,7 +5,8 @@ import WebKit
 // MARK: - Events
 
 /// One line of `Application Support/WukongMind/Tasks/<task-id>.jsonl`.
-/// Types: `history`, `system`, `tools`, `request`, `raw_request`, `raw_response`, `response`, `tool_result`, `end`.
+/// Types: `task`, `host`, `history`, `system`, `tools`, `request`, `raw_request`, `raw_response`, `response`,
+/// `tool_result`, `end`.
 struct TaskRecordEvent: Codable, Equatable, Sendable {
     var type: String
     var time: Date
@@ -22,11 +23,40 @@ struct TaskRecordEvent: Codable, Equatable, Sendable {
         TaskRecordEvent(type: "history", time: time, fields: ["turns": JSONValue.encoding(turns) ?? .array([])])
     }
 
-    static func request(turn: Int, historyCount: Int, systemHash: String, toolsHash: String, time: Date) -> TaskRecordEvent {
-        TaskRecordEvent(type: "request", time: time, fields: [
+    static func request(
+        turn: Int, historyCount: Int, systemHash: String, toolsHash: String, pageURL: String? = nil, time: Date
+    ) -> TaskRecordEvent {
+        var fields: [String: JSONValue] = [
             "turn": .int(Int64(turn)), "historyCount": .int(Int64(historyCount)),
             "systemHash": .string(systemHash), "toolsHash": .string(toolsHash)
+        ]
+        if let pageURL { fields["pageURL"] = .string(pageURL) }
+        return TaskRecordEvent(type: "request", time: time, fields: fields)
+    }
+
+    /// Opens the record: what an export needs to know about the run (design-m3.md "Task export").
+    static func task(
+        prompt: String, provider: String, model: String, stepLimit: Int, truncationLimit: Int,
+        pageURL: String, time: Date
+    ) -> TaskRecordEvent {
+        TaskRecordEvent(type: "task", time: time, fields: [
+            "prompt": .string(String(prompt.prefix(500))), "provider": .string(provider), "model": .string(model),
+            "stepLimit": .int(Int64(stepLimit)), "truncationLimit": .int(Int64(truncationLimit)),
+            "pageURL": .string(pageURL)
         ])
+    }
+
+    /// `raw_request` and `raw_response` for one turn, from the captured HTTP exchange.
+    static func raw(_ exchange: AgentWireExchange, turn: Int, time: Date) -> [TaskRecordEvent] {
+        var response: [String: JSONValue] = ["turn": .int(Int64(turn)), "body": .string(exchange.responseBody)]
+        if let status = exchange.status { response["status"] = .int(Int64(status)) }
+        return [
+            TaskRecordEvent(type: "raw_request", time: time, fields: [
+                "turn": .int(Int64(turn)), "url": .string(exchange.url),
+                "method": .string(exchange.method), "body": .string(exchange.requestBody)
+            ]),
+            TaskRecordEvent(type: "raw_response", time: time, fields: response)
+        ]
     }
 
     static func response(
@@ -156,7 +186,7 @@ struct CookieScrubber: Sendable {
         for name in names where !name.isEmpty {
             let escaped = NSRegularExpression.escapedPattern(for: name)
             current = Self.replace(
-                #"(?<![\w-])"# + escaped + #"=[^;&\s"'<>,]+"#, in: current,
+                #"(?<![\w-])"# + escaped + #"=[^;&\s"'<>,\\]+"#, in: current,
                 with: NSRegularExpression.escapedTemplate(for: name) + "=" + Self.marker
             )
         }
@@ -240,7 +270,11 @@ actor TaskRecordStore {
     /// wukong.fetch, cookies_get), so its cookies get scrubbed.
     func touch(taskID: String, url: String?) {
         guard let host = url.flatMap({ URL(string: $0)?.host?.lowercased() }), !host.isEmpty else { return }
-        hosts[taskID, default: []].insert(host)
+        // Each new host is written too, so an export after a relaunch can check that host's cookies.
+        if hosts[taskID, default: []].insert(host).inserted,
+           let data = try? AuditLog.encoder.encode(TaskRecordEvent(type: "host", time: now(), fields: ["host": .string(host)])) {
+            write(line: String(decoding: data, as: UTF8.self), taskID: taskID)
+        }
     }
 
     // MARK: Writing
@@ -268,7 +302,8 @@ actor TaskRecordStore {
 
     /// Writes the `system` and `tools` lines when their hash is new for this task and returns the hashes.
     func appendRequest(
-        taskID: String, turn: Int, historyCount: Int, system: String, tools: [AgentToolDefinition]
+        taskID: String, turn: Int, historyCount: Int, system: String, tools: [AgentToolDefinition],
+        pageURL: String? = nil
     ) async {
         let systemHash = Self.hash(system)
         let sorted = JSONEncoder()
@@ -288,7 +323,8 @@ actor TaskRecordStore {
             ))
         }
         await append(taskID: taskID, .request(
-            turn: turn, historyCount: historyCount, systemHash: systemHash, toolsHash: toolsHash, time: now()
+            turn: turn, historyCount: historyCount, systemHash: systemHash, toolsHash: toolsHash,
+            pageURL: pageURL, time: now()
         ))
     }
 
@@ -401,5 +437,39 @@ actor TaskRecordStore {
                 size: values?.fileSize ?? 0, modified: values?.contentModificationDate ?? .distantPast
             )
         }
+    }
+}
+
+// MARK: - Raw capture into the record
+
+/// Writes each turn's raw HTTP exchange to the task record, numbering turns in call order (one HTTP
+/// call per model turn), and reports the body sizes for developer mode's Request and Response rows.
+actor TaskWireRecorder: AgentWireRecorder {
+    private let taskID: String
+    private let store: TaskRecordStore
+    private let secrets: [String]
+    private let onSizes: @MainActor @Sendable (_ turn: Int, _ request: Int, _ response: Int) -> Void
+    private var turn = 0
+
+    init(
+        taskID: String, store: TaskRecordStore, secrets: [String],
+        onSizes: @escaping @MainActor @Sendable (Int, Int, Int) -> Void = { _, _, _ in }
+    ) {
+        self.taskID = taskID
+        self.store = store
+        self.secrets = secrets
+        self.onSizes = onSizes
+    }
+
+    func record(_ exchange: AgentWireExchange) async {
+        turn += 1
+        var redacted = exchange
+        redacted.url = UntrustedWebContent.redactSecrets(in: exchange.url, secrets: secrets)
+        redacted.requestBody = UntrustedWebContent.redactSecrets(in: exchange.requestBody, secrets: secrets)
+        redacted.responseBody = UntrustedWebContent.redactSecrets(in: exchange.responseBody, secrets: secrets)
+        for event in TaskRecordEvent.raw(redacted, turn: turn, time: Date()) {
+            await store.append(taskID: taskID, event)
+        }
+        await onSizes(turn, redacted.requestBody.utf8.count, redacted.responseBody.utf8.count)
     }
 }

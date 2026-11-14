@@ -681,7 +681,7 @@ struct AssistantPanel: View {
             if showsFooterStatusLine {
                 AgentStatusLine(
                     session: browserAgent,
-                    developerMode: app.settings.developerMode
+                    developerMode: app.settings.agentDeveloperMode
                 )
                 .transition(.opacity)
             }

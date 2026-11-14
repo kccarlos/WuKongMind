@@ -639,6 +639,23 @@ class AIService: @unchecked Sendable {
         provider: AIProvider,
         maxTokens: Int = 4_096
     ) async throws -> AgentModelTurnResponse {
+        try await completeToolTurn(
+            system: system, messages: messages, tools: tools, configuration: configuration,
+            provider: provider, maxTokens: maxTokens, recorder: nil
+        )
+    }
+
+    /// As above; `recorder` gets the HTTP exchange (URL without the `key` query item, method,
+    /// bodies and status, never the request headers) before the response is validated.
+    func completeToolTurn(
+        system: String,
+        messages: [AgentModelTurn],
+        tools: [AgentToolDefinition],
+        configuration: ProviderConfiguration,
+        provider: AIProvider,
+        maxTokens: Int,
+        recorder: AgentWireRecorder?
+    ) async throws -> AgentModelTurnResponse {
         try Task.checkCancellation()
         guard provider.supportsToolCalling else {
             throw AssistantError.missingConfiguration(
@@ -657,6 +674,11 @@ class AIService: @unchecked Sendable {
         )
         let (data, response) = try await session.data(for: request)
         try Task.checkCancellation()
+        if let recorder {
+            await recorder.record(AgentWireExchange(
+                request: request, response: response, data: data, secrets: [configuration.apiKey]
+            ))
+        }
         try validate(response: response, data: data)
 
         guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
@@ -1148,3 +1170,45 @@ private final class StreamedCharacters: @unchecked Sendable {
 }
 
 extension AIService: AgentModelClient {}
+
+// MARK: - Raw capture (design-m3.md, "Developer mode, part 1")
+
+/// Receives each tool turn's HTTP exchange, in turn order. It is never given request headers,
+/// so `x-api-key`, `x-goog-api-key` and `Authorization` never reach it.
+protocol AgentWireRecorder: Sendable {
+    func record(_ exchange: AgentWireExchange) async
+}
+
+struct AgentWireExchange: Codable, Equatable, Sendable {
+    var url: String
+    var method: String
+    var requestBody: String
+    var status: Int?
+    var responseBody: String
+
+    init(url: String, method: String, requestBody: String, status: Int?, responseBody: String) {
+        self.url = url
+        self.method = method
+        self.requestBody = requestBody
+        self.status = status
+        self.responseBody = responseBody
+    }
+
+    /// Drops the `key` query item (Gemini puts the key there) and redacts `secrets` from both bodies.
+    init(request: URLRequest, response: URLResponse?, data: Data, secrets: [String]) {
+        var url = request.url?.absoluteString ?? ""
+        if let requestURL = request.url, var components = URLComponents(url: requestURL, resolvingAgainstBaseURL: false) {
+            let kept = components.queryItems?.filter { $0.name != "key" }
+            components.queryItems = (kept?.isEmpty ?? true) ? nil : kept
+            url = components.url?.absoluteString ?? url
+        }
+        let body = request.httpBody.map { String(decoding: $0, as: UTF8.self) } ?? ""
+        self.init(
+            url: UntrustedWebContent.redactSecrets(in: url, secrets: secrets),
+            method: request.httpMethod ?? "GET",
+            requestBody: UntrustedWebContent.redactSecrets(in: body, secrets: secrets),
+            status: (response as? HTTPURLResponse)?.statusCode,
+            responseBody: UntrustedWebContent.redactSecrets(in: String(decoding: data, as: UTF8.self), secrets: secrets)
+        )
+    }
+}
