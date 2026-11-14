@@ -123,7 +123,7 @@ All four live in `ToolRegistry+Capabilities.swift`. `summarize_topic` and `read_
 
 ## Agent answers in History
 
-When an Agent turn ends with a final answer, the app saves **one record**: the question, the final answer and its sources (the data `DCSourcesList` shows). It shows in History and in Home's Recent, and it opens read-only in `SavedAnswerView`. Only the final question and answer are saved. The full tool log stays in M3's task record (design-m3 "Task records"), which keeps its own retention.
+When an Agent turn ends with a final answer that has sources, or whose text is at least 200 characters, the app saves **one record**: the question, the final answer and its sources (the data `DCSourcesList` shows). It shows in History and in Home's Recent, and it opens read-only in `SavedAnswerView`. Only the final question and answer are saved. The full tool log stays in M3's task record (design-m3 "Task records"), which keeps its own retention.
 
 - **It reuses `AgentRun`, not a new record type.** `agentRuns` is already persisted (`Persistence.swift`), synced as the `.run` record kind (`AppModel+CloudSync.swift`), capped at the newest 50 with the sync prune (`AppModel.swift:1666`), read by `SessionRetention.topicKeys(citedBy:)` to keep cited topic pages, and listed by `HistoryFeed` and `HomeRecent.items`. A new type would need a second copy of each of those five paths and a new sync record kind, for a record that holds the same things: a question, an answer, links and a model. iCloud sync is off in this build (`DC_ENABLE_CLOUDKIT`), so the records ride the existing `.run` kind whenever it is turned on.
 - **What is stored.** `AgentRun` gains two optional fields that default when decoding, so old records and older app versions still read the store:
@@ -132,7 +132,7 @@ When an Agent turn ends with a final answer, the app saves **one record**: the q
 
   An Agent record sets `goal` to the turn's request, `answer` and `initialAnswer` to the final text, `result` to `.completed`, the run's provider and model, `origin` (`.typed`, or `.voice` for a hand-off run), and `topicIDs` and `knownLinks` from the run's visits on its forum (see [Numbered sources](#numbered-sources-on-agent-answers)), so retention keeps those cited topics as it does for Research. `topicKeys(citedBy:)` keys by the record's one `siteURL`, so a thread from another forum (`summarize_topic` with a `url`) isn't kept; the `sources` snapshot still shows it. `steps`, `transcript` and `followUps` stay empty.
 - **`siteURL`** is the run's forum site URL when forum tools ran, and otherwise the current page's origin (scheme and host).
-- **When it is saved.** One record per turn, so a follow-up question is its own record. A turn that fails, is stopped or ends with empty text saves nothing. A voice exchange that never reached the Agent saves nothing.
+- **When it is saved.** One record per turn, so a follow-up question is its own record. The final answer must have at least one source, or a body of at least 200 characters (owner decision). So a turn that only changed the page and answered briefly ("Done, the page is dark now") saves nothing. A turn that fails, is stopped or ends with empty text saves nothing. A voice exchange that never reached the Agent saves nothing.
 - **History.** Agent records join the Asks segment. `AppModel.manageForums` (the forums History groups by, and the forum list in Settings) collects every run's `siteURL`, so it skips Agent records from ordinary pages: a page someone asked about must not become a forum. Those records get an "Other sites" group after the forums, and a forum filter hides them. Deleting a forum's saved data deletes its records, as today.
 - **The old Research UI ignores them.** Until task 13, the places that list, select or continue Research runs (`AgentPanel`'s run lists, `AskBox`, `AIDrawer`, `selectedAgentRunID` and the follow-up path in `AppModel`) read only `.research` records. An Agent record has no follow-ups.
 - **The shared cap.** Agent and Research records share the newest-50 cap, so new Agent answers push the oldest Research answers out over time. That is accepted: Research stops writing records once it is deleted.
@@ -204,7 +204,7 @@ These changes depend on the gate. So does voice's hand-off (task 10, in [Voice](
   - `AgentEngine.swift`, all of it: `AgentPlanner`, `PromptAgentPlanner`, `AgentActionParser` and `AgentPrompt`. `AgentToolSpec` moves to `Sites/SiteAdapter.swift`, since the adapters' profiles use it.
   - `AgentToolName` becomes plain name constants in `ToolRegistry+Forum.swift`. `Sites/AgentToolPresentation.swift` goes, because the ToolRow table replaces it.
   - In `AppModel.swift`: `startAgentRun`, `runAgent` and their helpers, and running new runs (`WorkType.agent` records are no longer created).
-  - **Saved runs stay as data.** `AgentRun` and `agentRuns` stay, so Persistence, iCloud sync, `SessionRetention`, Home's Recent (`HomeSites`) and History keep working. Saved Research runs become read-only. From task 12 on, the new Agent's answers are saved into the same store (see [Agent answers in History](#agent-answers-in-history)), so both sit side by side under the shared newest-50 cap, and new answers push the oldest Research ones out over time. History's `openAgentRun` opens every saved answer in `SavedAnswerView` (built in task 12), in place of `AgentView`. One loop never deletes saved Research runs on purpose.
+  - **Saved runs stay as data.** `AgentRun` and `agentRuns` stay, so Persistence, iCloud sync, `SessionRetention`, Home's Recent (`HomeSites`) and History keep working. Saved Research runs become read-only. From task 12 on, the new Agent's answers that have sources or are at least 200 characters long are saved into the same store (see [Agent answers in History](#agent-answers-in-history)), so both sit side by side under the shared newest-50 cap, and new answers push the oldest Research ones out over time. History's `openAgentRun` opens every saved answer in `SavedAnswerView` (built in task 12), in place of `AgentView`. One loop never deletes saved Research runs on purpose.
   - `AppleIntelligenceAgentPlanner`.
   - `AgentView` in `AgentPanel.swift`. The file also holds the Agent's own views (`AgentStatusLine`, `BrowserAgentRunsView`), which stay.
   - `AssistantMode.agent` and `AppModel+Navigation.research(_:siteURL:)` (voice's research, replaced first by the hand-off).
@@ -271,7 +271,7 @@ From roadmap §7 "One loop", plus the gate and the parts this design adds.
 5. **The comparison came first.** `one-loop-comparison.md` carries the owner's approval line. Every deletion pull request merged after that date and links it.
 6. **Long threads.** `read_topic` on a thread over the limit writes the whole thread under `results/<task-id>/` and returns the path, the size and the bounded view (unit test, and visible in Files).
 7. **Two model roles.** Settings › Models shows Agent and Summaries. A saved `agent` selection decodes and is dropped. With Apple Intelligence as Summaries, summaries still work.
-8. **Agent answers in History.** After a typed Agent answer with forum citations, and one on an ordinary page, both show in History and Home's Recent. Each opens read-only in `SavedAnswerView` with its question, answer and sources, and still does after relaunch (on the device; unit tests for storing and decoding).
+8. **Agent answers in History.** After a typed Agent answer with forum citations, and a long answer (200 characters or more) on an ordinary page, both show in History and Home's Recent. Each opens read-only in `SavedAnswerView` with its question, answer and sources, and still does after relaunch. A short page-change turn ("Make it dark") adds nothing (on the device; unit tests for storing, decoding and the save condition).
 9. **No regressions.** All unit tests pass, and the new side's comparison replays pass in CI.
 
 ## Task split
@@ -452,7 +452,7 @@ Fourteen implementation tasks and one acceptance task. Sizes count changed lines
 - **Read:** Agent answers in History, Numbered sources on Agent answers; `SavedAnswerView`'s artboard and PNG under `docs/wukongmind/design/`.
 - **Scope:**
   - `Models.swift`: `AgentRun.loop` (`AgentRunLoop`) and `AgentRun.sources` (`SavedSource`), both decoded with defaults;
-  - `BrowserAgent.swift` and `AppModel.swift`: at the end of a turn with a final answer, save one `AgentRun` record (the question, the answer, the sources snapshot, the visits as `topicIDs` and `knownLinks`, provider, model and origin) through the existing insert, cap and sync path;
+  - `BrowserAgent.swift` and `AppModel.swift`: at the end of a turn whose final answer has sources or is at least 200 characters long, save one `AgentRun` record (the question, the answer, the sources snapshot, the visits as `topicIDs` and `knownLinks`, provider, model and origin) through the existing insert, cap and sync path;
   - `SavedAnswerView.swift` (new): the read-only answer page, following WUKO-48's exported artboard;
   - `HistoryView.swift`: Agent records in Asks, the "Other sites" group, and `openAgentRun` opening Agent records in `SavedAnswerView`;
   - `AppModel+Assistant.swift` (`manageForums` skips ordinary-page Agent records), and `AgentPanel.swift`, `AskBox.swift`, `AIDrawer.swift` and `AppModel.swift` (the Research run lists, selection and follow-ups read only `.research` records);
@@ -461,6 +461,7 @@ Fourteen implementation tasks and one acceptance task. Sizes count changed lines
 - **Size:** about 500. If it runs over, split the Research-UI filtering into a follow-up and tell the Assistant. **Depends on:** 3 (visits and `DCSourcesList`) and WUKO-48 (the `SavedAnswerView` artboard). It needs no gate.
 - **Done when:**
   - a completed turn saves one record with the question, the final answer and its sources, and no tool log; a failed, stopped or empty turn saves none (tests);
+  - the save condition: an answer with one source and short text saves, an answer with no sources and 200 characters or more saves, and a page-change turn with no sources and a short answer (under 200 characters) saves nothing (tests);
   - a hand-off run saves with origin voice (test);
   - a store written before this task, and one with Agent records, both decode, and an old app's record without the new fields decodes (tests);
   - the record keeps the 50-record cap and sync prune, and retention keeps the topics it cites (tests);
@@ -516,7 +517,7 @@ Fourteen implementation tasks and one acceptance task. Sizes count changed lines
 - **Real quota for the comparison.** Requirements §9 says model calls in tests are recorded and spend no quota. The comparison needs one live record run (task 8). CI only replays the new side.
 - **"Generate a podcast"** (roadmap §4, the Discourse scenario) against the code: `PodcastController.make` builds only the daily digest's episode. `read_aloud` reads one text aloud with the podcast player and row, which matches today's "Read it to me". A multi-chapter podcast from any thread would be new work, so it is left out (owner decision, open question 8).
 - **`saved_summaries` and `final_answer`** are Research tools that neither roadmap list carries. Both are dropped (see Decisions).
-- **Agent conversations in History.** design-m3 deferred them "to One loop", but the roadmap's One loop list doesn't include them. The owner added them at approval: task 12 saves each Agent turn's question, final answer and sources, not the full conversation or tool log.
+- **Agent conversations in History.** design-m3 deferred them "to One loop", but the roadmap's One loop list doesn't include them. The owner added them at approval: task 12 saves an Agent turn's question, final answer and sources when the answer has sources or is at least 200 characters long, not the full conversation or tool log.
 - **`AgentPanel.swift`.** design-unified marks `AgentView` for deletion. The same file holds the Agent's status line and run views, so only `AgentView` goes.
 - **Suggestion wording.** The roadmap writes "Notify me on new replies" and "Switch to dark mode". The app says "Notify me of new replies" and "Make it dark". One loop keeps the app's wording. The voice check uses the roadmap's phrase as spoken text.
 
@@ -528,7 +529,7 @@ All decided by the owner on 2026-11-13. Each decision is folded into the body; t
 2. **Pass bar.** Decided (default): the owner judges by hand. The suggested bar is new no worse on at least 12 of 15, and no answer newly wrong. Tokens are reported with no limit.
 3. **Fixture forums.** Decided (default): task 6 proposes one public forum per kind (Discourse, Hacker News, a WordPress blog with comments), and the owner confirms it with the questions.
 4. **Forum search settings.** Decided (default): keep Topics to read and Read size as forum tool limits, and drop Search steps.
-5. **Old records in History.** Decided (change 1): saved Research answers stay readable in History, read-only in `SavedAnswerView`. New Agent answers are saved there too (task 12): the question, the final answer and the sources, never the tool log. Saved topic chats stay stored but are no longer shown, and removing them is a later cleanup.
+5. **Old records in History.** Decided (change 1): saved Research answers stay readable in History, read-only in `SavedAnswerView`. New Agent answers are saved there too (task 12): the question, the final answer and the sources, never the tool log, and only when the answer has sources or is at least 200 characters long. Saved topic chats stay stored but are no longer shown, and removing them is a later cleanup.
 6. **The mic.** Decided (default): tap opens voice when a Gemini or Vertex key is set, and otherwise dictates. Long-press always dictates.
 7. **Page changes by voice.** Decided (default): always through `hand_off_to_agent`. The spike may allow a direct `inject_css`.
 8. **Podcast from a thread.** Decided (default): `read_aloud` only, as today's "Read it to me". A multi-chapter podcast of any thread waits for a real need.
