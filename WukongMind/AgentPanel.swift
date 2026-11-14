@@ -787,6 +787,7 @@ struct BrowserAgentRunsView: View {
     let session: BrowserAgentSession
     @Binding var expandedToolRowIDs: Set<UUID>
     @State private var manuallyExpandedRunIDs: Set<UUID> = []
+    @State private var screenshotSheet: ScreenshotSheetItem?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var isProviderReady: Bool { app.isProviderReady(for: .browserAgent) }
@@ -796,6 +797,9 @@ struct BrowserAgentRunsView: View {
             ForEach(Array(session.runs.enumerated()), id: \.element.id) { index, run in
                 runSection(run, isLatest: index == session.runs.count - 1)
             }
+        }
+        .sheet(item: $screenshotSheet) { item in
+            DCScreenshotSheet(item: item)
         }
     }
 
@@ -938,7 +942,7 @@ struct BrowserAgentRunsView: View {
                 codeName: developerMode ? row.toolName : nil,
                 duration: developerMode ? row.duration.map(BrowserAgentPanelView.formatDuration) : nil,
                 summary: row.isRunning ? "" : row.resultSummary,
-                state: row.isRunning ? .running : (row.isError ? .error : .done),
+                state: row.isRunning ? .running : (row.isError ? .error : (row.isPageWarning ? .warning : .done)),
                 isExpanded: expanded,
                 onToggle: {
                     DCHaptics.tap()
@@ -963,7 +967,10 @@ struct BrowserAgentRunsView: View {
                     DevSnapshotsView(report: report)
                 }
             }
-            codeBlock(row.resultText.isEmpty ? row.resultSummary : row.resultText, id: "agentToolResult")
+            codeBlock(row.resultText.isEmpty ? row.resultSummary : row.resultText, id: "agentToolResult", warning: row.isPageWarning)
+            if row.carriesImages {
+                DCScreenshotStrip(row: row) { screenshotSheet = $0 }
+            }
             HStack {
                 if row.wasTruncated {
                     Text("Truncated · \(row.totalCharacterCount) characters in total", comment: "Footer under a truncated browser agent tool output showing the original character count")
@@ -1001,10 +1008,10 @@ struct BrowserAgentRunsView: View {
         }
     }
 
-    private func codeBlock(_ text: String, id: String) -> some View {
+    private func codeBlock(_ text: String, id: String, warning: Bool = false) -> some View {
         Text(verbatim: text)
             .font(.caption.monospaced())
-            .foregroundStyle(DCTheme.ink)
+            .foregroundStyle(warning ? DCTheme.warning : DCTheme.ink)
             .textSelection(.enabled)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(10)

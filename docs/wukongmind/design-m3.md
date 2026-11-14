@@ -344,7 +344,7 @@ Everything below sits in the One panel conversation view: `AssistantPanel` (`Sum
   - "Sent request · 200 · 48 KB", "Read cookies · 14";
   - "Read file · 20,000 of 184,220", "Wrote file · crawls/…/page-007.txt", "Listed files · 26".
 
-  A page-feedback warning adds the error tint and "Page may be broken" to the summary. A result saved to the workspace adds a quiet **Open in Files** Button to the expanded row, under the result. A screenshot's expanded row shows the image as a thumbnail, which opens full size in a sheet.
+  A page-feedback warning adds "Page may be broken" to the summary in the warning colour (`DCTheme.warning`, `exclamationmark.triangle`), never cinnabar: cinnabar is for real errors and stops. A result saved to the workspace adds a quiet **Open in Files** Button to the expanded row, under the result. A screenshot's expanded row shows the image as a thumbnail, which opens full size in a sheet.
 - **Saved-script card:** the **Undo** Button (see [Page feedback](#page-feedback)).
 - **Suggestion row:** "This page looks broken", when the page has active scripts.
 - **This page:**
