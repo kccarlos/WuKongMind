@@ -206,11 +206,13 @@ final class VoiceSessionTests: XCTestCase {
         navigator.agentHandOff = AgentHandOff(agent: agent)
         let session = try await started()
         session.tools.progressInterval = .seconds(60)
-        session.onTranscript = { role, text in agent.appendVoiceTurn(role, text: text) }
+        session.onTranscript = { role, text, date in agent.appendVoiceTurn(role, text: text, at: date) }
         session.receive(frame(#"{"serverContent":{"inputTranscription":{"text":"What do people think of soldered eMMC?"}}}"#))
-        session.receive(frame(#"{"serverContent":{"outputTranscription":{"text":"I'll have the Agent look."}}}"#))
+        // The acknowledgement streams across the tool call, as it does live (spike Q4).
+        session.receive(frame(#"{"serverContent":{"outputTranscription":{"text":"I'll have"}}}"#))
         session.receive(frame(#"{"toolCall":{"functionCalls":[{"id":"call_h","name":"hand_off_to_agent","args":{"request":"What do people here think of soldered eMMC?"}}]}}"#))
         await settle()
+        session.receive(frame(#"{"serverContent":{"outputTranscription":{"text":" the Agent look."}}}"#))
         session.receive(frame(#"{"serverContent":{"turnComplete":true}}"#))
         XCTAssertEqual(sent().last, .toolResponse(id: "call_h", name: "hand_off_to_agent", scheduling: "SILENT"))
 
@@ -222,9 +224,10 @@ final class VoiceSessionTests: XCTestCase {
         XCTAssertEqual(run.prompt, "What do people here think of soldered eMMC?")
         XCTAssertEqual(run.toolNames, ["read_page"])
         XCTAssertEqual(agent.voiceTurns.map(\.text), ["What do people think of soldered eMMC?", "I'll have the Agent look."])
-        XCTAssertLessThan(agent.voiceTurns[1].createdAt, run.startedAt, "What was said shows before the run")
+        XCTAssertLessThan(agent.voiceTurns[0].createdAt, agent.voiceTurns[1].createdAt)
+        XCTAssertLessThan(agent.voiceTurns[1].createdAt, run.startedAt, "One reply, shown before the run it announced")
         guard case .user(let turn)? = client.recordedRequests.first?.messages.first else { return XCTFail("no user turn") }
-        XCTAssertTrue(turn.contains("User: What do people think of soldered eMMC?\nVoice assistant: I'll have the Agent look."), turn)
+        XCTAssertTrue(turn.contains("(transcribed speech):\nUser: What do people think of soldered eMMC?\n\nThe user's message:"), turn)
         XCTAssertTrue(turn.hasSuffix("The user's message:\nWhat do people here think of soldered eMMC?"), turn)
 
         // Cancel: Stop on a running hand-off.
@@ -257,7 +260,7 @@ final class VoiceSessionTests: XCTestCase {
     func testFinishedVoiceTurnsGoToTheConversation() async throws {
         let session = try await started()
         var turns: [String] = []
-        session.onTranscript = { role, text in turns.append("\(role.rawValue): \(text)") }
+        session.onTranscript = { role, text, _ in turns.append("\(role.rawValue): \(text)") }
         session.receive(frame(#"{"serverContent":{"inputTranscription":{"text":"Next "}}}"#))
         session.receive(frame(#"{"serverContent":{"inputTranscription":{"text":"post."}}}"#))
         XCTAssertTrue(turns.isEmpty, "Not before the turn ends")
@@ -266,6 +269,21 @@ final class VoiceSessionTests: XCTestCase {
         XCTAssertEqual(turns, ["voiceUser: Next post.", "voiceReply: You're on post 4."])
         session.receive(frame(#"{"serverContent":{"turnComplete":true}}"#))
         XCTAssertEqual(turns.count, 2, "Nothing twice")
+
+        // An interrupted reply is finished where it was cut; the next turn's reply is whole.
+        session.receive(frame(#"{"serverContent":{"outputTranscription":{"text":"The long story is"}}}"#))
+        session.receive(frame(#"{"serverContent":{"interrupted":true}}"#))
+        session.receive(frame(#"{"serverContent":{"turnComplete":true}}"#))
+        session.receive(frame(#"{"serverContent":{"outputTranscription":{"text":"Short version."}}}"#))
+        session.receive(frame(#"{"serverContent":{"turnComplete":true}}"#))
+        XCTAssertEqual(turns.suffix(2), ["voiceReply: The long story is", "voiceReply: Short version."])
+
+        // Typed input ends the reply in progress before its own words.
+        session.receive(frame(#"{"serverContent":{"outputTranscription":{"text":"Half a"}}}"#))
+        session.sendText("Stop, go back")
+        session.receive(frame(#"{"serverContent":{"outputTranscription":{"text":"Going back."}}}"#))
+        session.receive(frame(#"{"serverContent":{"turnComplete":true}}"#))
+        XCTAssertEqual(turns.suffix(3), ["voiceReply: Half a", "voiceUser: Stop, go back", "voiceReply: Going back."])
     }
 
     static func agentSession(client: RecordedModelClient) -> BrowserAgentSession {

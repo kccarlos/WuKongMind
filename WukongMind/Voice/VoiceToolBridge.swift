@@ -235,10 +235,28 @@ final class VoiceToolBridge {
         guard let tool = registry.tool(named: name) else {
             return refusal("\(name) isn't available on this page.")
         }
-        guard let result = try? await registry.dispatch(toolName: name, arguments: Self.lenient(args, for: tool.definition)) else {
+        var args = Self.lenient(args, for: tool.definition)
+        // "Summarize this", "follow this thread": voice names no thread, so the open topic it is.
+        if let topicID = navigator?.pageContext.topic?.topicID {
+            args = Self.defaultingToOpenTopic(args, topicID: topicID, for: tool.definition)
+        }
+        guard let result = try? await registry.dispatch(toolName: name, arguments: args) else {
             return refusal("The tool was stopped.")
         }
         return VoiceToolOutcome(response: registry.spokenResult(result, eyesFree: eyesFree), scheduling: tool.voiceScheduling)
+    }
+
+    /// A thread tool called with no input (`{}`) gets the open topic.
+    static func defaultingToOpenTopic(_ args: [String: JSONValue], topicID: String, for definition: AgentToolDefinition) -> [String: JSONValue] {
+        guard definition.parameters.contains(where: { $0.name == "topic_id" }) else { return args }
+        let given = ["topic_id", "url", "path", "text"].contains { key in
+            !(args[key]?.textValue ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+        guard !given else { return args }
+        var args = args
+        for key in ["topic_id", "url", "path", "text"] { args[key] = nil }
+        args["topic_id"] = .string(topicID)
+        return args
     }
 
     /// Voice models send numbers as text ("2"); integer parameters take them.

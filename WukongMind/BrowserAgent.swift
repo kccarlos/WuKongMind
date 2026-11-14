@@ -1104,16 +1104,16 @@ final class BrowserAgentSession {
     /// Adds a finished voice utterance or reply to the conversation. The
     /// next run gets the voice exchange since the last run as one context
     /// block in its user turn (`voiceContextBlock`).
-    func appendVoiceTurn(_ role: BrowserAgentMessage.Role, text: String) {
+    func appendVoiceTurn(_ role: BrowserAgentMessage.Role, text: String, at date: Date = Date()) {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard role.isVoice, !trimmed.isEmpty else { return }
-        messages.append(BrowserAgentMessage(role: role, text: trimmed))
+        messages.append(BrowserAgentMessage(role: role, text: trimmed, createdAt: date))
     }
 
     /// The voice exchange since the last run started, for the model only;
     /// nil when there was none (the prompt then stays as typed).
     func voiceContextBlock(since: Date?) -> String? {
-        let turns = messages.filter { $0.role.isVoice && $0.createdAt > (since ?? .distantPast) }
+        let turns = messages.filter { $0.role.isVoice && $0.createdAt > (since ?? .distantPast) }.sorted { $0.createdAt < $1.createdAt }
         guard !turns.isEmpty else { return nil }
         var lines = turns.map { ($0.role == .voiceUser ? "User: " : "Voice assistant: ") + $0.text }
         // The newest exchange matters most; keep the block small.

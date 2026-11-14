@@ -167,7 +167,7 @@ extension AppModel: VoiceNavigator {
                 self?.voiceToolRegistry(browse: browse) ?? ToolRegistry(tools: ToolRegistry.browseTools(browse: browse))
             }
             // Voice turns join the one conversation (design-one-loop.md "Voice").
-            session.onTranscript = { [weak self] role, text in self?.browserAgent.appendVoiceTurn(role, text: text) }
+            session.onTranscript = { [weak self] role, text, date in self?.browserAgent.appendVoiceTurn(role, text: text, at: date) }
             let subscription = pageChanges.sink { [weak session] page in session?.pageChanged(page) }
             voicePageSubscription = subscription
             // The topic brief wants the post count and the solution.

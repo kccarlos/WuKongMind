@@ -376,6 +376,40 @@ final class VoiceToolTests: XCTestCase {
         XCTAssertEqual(ordinary, ["read_page", "summarize_topic", "read_aloud", "watch_topic"])
     }
 
+    /// "Summarize this", "read it to me", "follow this thread": Gemini Live
+    /// sent `{}` in the spike (Q3); on an open topic that means the topic.
+    func testThreadToolsCalledWithNoInputTakeTheOpenTopic() async {
+        let navigator = FakeVoiceNavigator()
+        navigator.pageContext = FakeVoiceNavigator.topicPage(post: 3)
+        final class Seen: @unchecked Sendable { var args: [String: [String: JSONValue]] = [:] }
+        let seen = Seen()
+        let keys = ["topic_id", "url", "path", "text"]
+        func spy(_ name: String, keys: [String]) -> AgentTool {
+            AgentTool(
+                definition: AgentToolDefinition(name: name, description: "", parameters: keys.map {
+                    ToolParameterSchema(name: $0, type: .string, description: "", minLength: 1)
+                }),
+                summarizeArguments: { _ in "" },
+                execute: { args in seen.args[name] = args; return ToolExecutionOutput(content: "ok") },
+                surfaces: [.voice]
+            )
+        }
+        let bridge = VoiceToolBridge(navigator: navigator)
+        bridge.registryBuilder = { _ in
+            ToolRegistry(tools: [spy("summarize_topic", keys: keys), spy("read_aloud", keys: keys), spy("watch_topic", keys: ["topic_id", "url"])])
+        }
+        for name in ["summarize_topic", "read_aloud", "watch_topic"] {
+            _ = await bridge.handle(.init(id: name, name: name, args: [:]), eyesFree: false)
+            XCTAssertEqual(seen.args[name], ["topic_id": "42"], name)
+        }
+        _ = await bridge.handle(.init(id: "t", name: "summarize_topic", args: ["text": "Some text"]), eyesFree: false)
+        XCTAssertEqual(seen.args["summarize_topic"], ["text": "Some text"], "a given input stays")
+        navigator.pageContext = .empty
+        seen.args = [:]
+        _ = await bridge.handle(.init(id: "e", name: "watch_topic", args: [:]), eyesFree: false)
+        XCTAssertEqual(seen.args["watch_topic"], [:], "no open topic: nothing is filled in")
+    }
+
     /// Every voice result is capped at 8,000 characters (spike Q6).
     func testSpokenResultsAreCappedAndNumbersAsTextAreTaken() {
         let long = ToolDispatchResult(

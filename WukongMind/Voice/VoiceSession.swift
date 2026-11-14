@@ -142,7 +142,10 @@ final class VoiceSession: ObservableObject {
     @Published private(set) var connectedSeconds: Double = 0
     /// Each finished user utterance (`.voiceUser`) and model reply
     /// (`.voiceReply`), for the conversation (`BrowserAgentSession`).
-    var onTranscript: ((BrowserAgentMessage.Role, String) -> Void)?
+    /// The date orders the turn against Agent runs: a reply is dated when
+    /// its speech (or its turn's tool call) began, so an acknowledgement
+    /// stays before the hand-off run it announced.
+    var onTranscript: ((BrowserAgentMessage.Role, String, Date) -> Void)?
 
     let configuration: Configuration
     var timing = Timing()
@@ -188,7 +191,11 @@ final class VoiceSession: ObservableObject {
     private var modelTurnText = ""
     /// Transcript not yet handed to `onTranscript`.
     private var uncommittedUser = ""
-    private var modelCommitted = 0
+    private var userTurnAt: Date?
+    private var lastUserCommitAt: Date?
+    /// When this turn's model speech, and its first tool call, began.
+    private var modelTurnAt: Date?
+    private var turnCallAt: Date?
 
     // Outgoing.
     private struct PendingResponse {
@@ -478,6 +485,7 @@ final class VoiceSession: ObservableObject {
     }
 
     private func resetTurn() {
+        commitTranscripts()
         modelSpeaking = false
         gateOpen = false
         sentAudioThisTurn = false
@@ -500,6 +508,9 @@ final class VoiceSession: ObservableObject {
         if let update = message.resumption { resumptionUpdated(handle: update.handle, resumable: update.resumable) }
         if let goAway = message.goAway { goAwayReceived(timeLeft: goAway) }
         if message.interrupted {
+            // What was said before the cut is a finished reply.
+            commitTranscripts()
+            modelTurnText = ""
             audio.flushPlayback()
             modelSpeaking = false
             suppressingModelTurn = false
@@ -561,6 +572,7 @@ final class VoiceSession: ObservableObject {
             lastUserText = text
         }
         heardThisTurn = true
+        if uncommittedUser.isEmpty { userTurnAt = Date() }
         uncommittedUser += text
         // Words transcribed after the stream ended: the reply is owed now.
         if !gateOpen, !sentAudioThisTurn, comfortNoise == nil, awaitingReplySince == nil { awaitingReplySince = now }
@@ -568,6 +580,7 @@ final class VoiceSession: ObservableObject {
     }
 
     private func modelOutput(at now: Date) {
+        if modelTurnAt == nil { modelTurnAt = Date() }
         modelSpeaking = true
         lastModelOutputAt = now
         lastActivityAt = now
@@ -593,7 +606,6 @@ final class VoiceSession: ObservableObject {
 
     private func turnCompleted() {
         commitTranscripts()
-        modelCommitted = 0
         turnCompleteCount += 1
         heardThisTurn = false
         modelSpeaking = false
@@ -611,8 +623,10 @@ final class VoiceSession: ObservableObject {
     // MARK: Tools
 
     private func toolCalled(_ call: GeminiLive.FunctionCall) {
-        // What was said so far comes before the tool's effect (a hand-off run).
-        commitTranscripts()
+        // The user's words come before the tool's effect (a hand-off run); the
+        // model's speech is one reply, committed at the turn's end.
+        commitUser()
+        if turnCallAt == nil { turnCallAt = Date() }
         let now = clock.now
         lastActivityAt = now
         awaitingReplySince = nil
@@ -812,15 +826,29 @@ final class VoiceSession: ObservableObject {
 
     // MARK: Transcript
 
-    /// Hands the finished user words and the model's words so far to the conversation.
-    private func commitTranscripts() {
+    /// Hands the finished user words to the conversation.
+    private func commitUser() {
         let user = uncommittedUser.trimmingCharacters(in: .whitespacesAndNewlines)
         uncommittedUser = ""
-        if !user.isEmpty { onTranscript?(.voiceUser, user) }
-        let spoken = suppressingModelTurn ? lastModelText : modelTurnText
-        let reply = String(spoken.dropFirst(modelCommitted)).trimmingCharacters(in: .whitespacesAndNewlines)
-        modelCommitted = spoken.count
-        if !reply.isEmpty { onTranscript?(.voiceReply, reply) }
+        guard !user.isEmpty else { return }
+        let at = userTurnAt ?? Date()
+        lastUserCommitAt = at
+        onTranscript?(.voiceUser, user, at)
+    }
+
+    /// Hands the user's words and the turn's whole reply to the conversation.
+    private func commitTranscripts() {
+        commitUser()
+        let spoken = (suppressingModelTurn ? lastModelText : modelTurnText).trimmingCharacters(in: .whitespacesAndNewlines)
+        let call = turnCallAt
+        var at = [modelTurnAt, call].compactMap { $0 }.min() ?? Date()
+        modelTurnAt = nil
+        turnCallAt = nil
+        guard !spoken.isEmpty else { return }
+        // After the words it answers, never after its own tool call (the run).
+        if let user = lastUserCommitAt, at <= user { at = user.addingTimeInterval(0.000_001) }
+        if let call, at > call { at = call }
+        onTranscript?(.voiceReply, spoken, at)
     }
 
     // MARK: Typed input
@@ -839,7 +867,9 @@ final class VoiceSession: ObservableObject {
         }
         lastUserText = text
         commitTranscripts()
+        modelTurnText = ""
         uncommittedUser = text
+        userTurnAt = Date()
         lastUserSpeechAt = now
         lastActivityAt = now
         heardThisTurn = true
