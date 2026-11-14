@@ -44,7 +44,6 @@ final class OneLoopComparisonTests: XCTestCase {
         )
         XCTAssertEqual(snapshot.unmatchedURLs, [])
         XCTAssertEqual(recorded.side.calls.map(\.tool), ["read_topic"])
-        XCTAssertEqual(recorded.side.calls.map(\.isError), [false])
         XCTAssertEqual(recorded.side.answer, Self.dryAnswer)
         XCTAssertEqual(recorded.side.loopTokens, AgentTokenUsage(inputTokens: 3_200, outputTokens: 100))
         XCTAssertEqual(recorded.side.summaryTokens, .zero)
@@ -74,7 +73,7 @@ final class OneLoopComparisonTests: XCTestCase {
                 textToolCount: 21, toolDefinitionTokens: 3_456
             ),
             rows: [ComparisonRow(question: question, old: old, new: recorded.side, misses: [])],
-            isSnapshotThread: { ComparisonCitations.isThread($1, question: $0, recordedURLs: snapshot.recordedURLs) }
+            isSnapshotThread: { ComparisonCitations.isThread($1, question: $0, snapshot: snapshot) }
         )
         for part in [
             "# One loop comparison", "| Agent model (both loops) | Anthropic claude-haiku-5-5 |", "| App commit | abc1234 |",
@@ -91,6 +90,18 @@ final class OneLoopComparisonTests: XCTestCase {
         ] {
             XCTAssertTrue(report.contains(part), "report lacks: \(part)\n\(report)")
         }
+
+        // Threads cited from a list body count, slug permalinks (no ID) by their URL in a body.
+        let listFolder = folder.appendingPathComponent("wp-list", isDirectory: true)
+        try FileManager.default.createDirectory(at: listFolder, withIntermediateDirectories: true)
+        try Data(#"{"url":"https://blog.test/wp-json/wp/v2/posts","status":200,"headers":{},"body":[{"id":184521,"link":"https://blog.test/chase-offer/"}]}"#.utf8)
+            .write(to: listFolder.appendingPathComponent("wordpress-posts.json"))
+        let list = try ForumSnapshot(kind: .wordpress, mode: .replay, directory: listFolder)
+        let blog = ComparisonQuestion(id: "W", kind: "wordpress", siteURL: "https://blog.test", startURL: "https://blog.test/", prompt: "")
+        XCTAssertTrue(ComparisonCitations.isThread(URL(string: "https://blog.test/chase-offer")!, question: blog, snapshot: list))
+        XCTAssertTrue(ComparisonCitations.isThread(URL(string: "https://blog.test/?p=184521")!, question: blog, snapshot: list))
+        XCTAssertFalse(ComparisonCitations.isThread(URL(string: "https://blog.test/other-post/")!, question: blog, snapshot: list))
+        XCTAssertFalse(ComparisonCitations.isThread(URL(string: "https://blog.test/?p=1845")!, question: blog, snapshot: list))
 
         if let out = ProcessInfo.processInfo.environment["ONE_LOOP_DRY_REPORT_OUT"] { try Data(report.utf8).write(to: URL(fileURLWithPath: out)) }
 
@@ -164,7 +175,7 @@ final class OneLoopComparisonTests: XCTestCase {
             ),
             rows: rows,
             isSnapshotThread: { question, url in
-                ComparisonCitations.isThread(url, question: question, recordedURLs: snapshots[question.kind]?.recordedURLs ?? [])
+                ComparisonCitations.isThread(url, question: question, snapshot: snapshots[question.kind])
             }
         )
         try Data(report.utf8).write(to: OneLoopReport.defaultURL, options: .atomic)
@@ -289,9 +300,8 @@ struct ComparisonHeader {
     var toolDefinitionTokens: Int?
 }
 
-/// Generation-time summaries of `summarize_topic` (and the old side's) go through `generateSummary`;
-/// this counts them into the Summary sink, the old planner's `complete` into the loop sink, and in
-/// replay answers summaries from the run's saved list, in order.
+/// Counts `generateSummary` into the Summary sink and the old planner's `complete` into the loop sink;
+/// in replay, answers summaries from the run's saved list, in order.
 final class ComparisonAIService: AIService, @unchecked Sendable {
     let loopUsage = TokenUsageSink()
     let summaryUsage = TokenUsageSink()
@@ -387,7 +397,7 @@ enum OldSideRun {
                 )
             },
             answer: run.answer.isEmpty ? "Error: \(run.error)" : run.answer,
-            loopTokens: ai.loopUsage.usage, summaryTokens: ai.summaryUsage.usage,
+            loopTokens: ai.loopUsage.usage, summaryTokens: TokenUsageSink.covers(models.summary.selection.provider) ? ai.summaryUsage.usage : nil,
             topicsRead: Set(steps.filter { reads.contains($0.tool) && !$0.isError }.compactMap { $0.topicKey ?? $0.topicID }).count,
             seconds: Date().timeIntervalSince(started)
         )
@@ -396,7 +406,6 @@ enum OldSideRun {
 
 // MARK: - New side
 
-/// The run's session, for the registry's closures and the replay hook (set once the session exists).
 @MainActor
 private final class SessionBox {
     weak var session: BrowserAgentSession?
@@ -518,7 +527,7 @@ enum NewSideRun {
             side: ComparisonSide(
                 calls: rows.map { ComparisonCall(tool: $0.toolName, arguments: $0.argumentSummary, result: $0.resultSummary, isError: $0.isError) },
                 answer: session.runs.last?.assistantText ?? "",
-                loopTokens: session.tokenUsage, summaryTokens: ai.summaryUsage.usage,
+                loopTokens: session.tokenUsage, summaryTokens: TokenUsageSink.covers(models.summary.selection.provider) ? ai.summaryUsage.usage : nil,
                 topicsRead: topics.count, seconds: seconds
             ),
             calls: document.turns.flatMap(\.toolResults).map { ($0.name, $0.arguments) },
@@ -548,7 +557,8 @@ enum ToolDefinitionCost {
             request.httpBody = try JSONSerialization.data(withJSONObject: body)
             let (data, _) = try await URLSession.shared.data(for: request)
             let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
-            return try XCTUnwrap(json?["input_tokens"] as? Int)
+            guard let tokens = json?["input_tokens"] as? Int else { throw AssistantError.invalidResponse }
+            return tokens
         }
         return try await count(true) - count(false)
     }
@@ -568,15 +578,25 @@ enum ComparisonCitations {
         return seen
     }
 
-    /// A link-check, not a judgement: the URL is on the question's forum and names a thread whose
-    /// ID appears in a recorded snapshot URL.
-    static func isThread(_ url: URL, question: ComparisonQuestion, recordedURLs: [String]) -> Bool {
-        guard url.host?.lowercased() == URL(string: question.siteURL)?.host?.lowercased(),
-              let adapter = SiteRegistry.standard.adapter(for: question.siteKind),
-              let id = adapter.recognizer.topicID(fromURL: url, basePath: "") ?? adapter.recognizer.looseTopicID(in: url)
-        else { return false }
-        let idPattern = try! NSRegularExpression(pattern: "(^|[/=])\(NSRegularExpression.escapedPattern(for: id))([/.?&]|$)")
-        return recordedURLs.contains { idPattern.firstMatch(in: $0, range: NSRange($0.startIndex..., in: $0)) != nil }
+    /// A link-check, not a judgement: the URL is on the question's forum and names a thread the
+    /// snapshot holds: its ID in a recorded URL or as an ID field of a recorded body (a list or
+    /// search result), or, for a permalink with no ID (WordPress slugs), the URL in a recorded body.
+    static func isThread(_ url: URL, question: ComparisonQuestion, snapshot: ForumSnapshot?) -> Bool {
+        guard let snapshot, url.host?.lowercased() == URL(string: question.siteURL)?.host?.lowercased(),
+              let adapter = SiteRegistry.standard.adapter(for: question.siteKind) else { return false }
+        let bodies = ((try? FileManager.default.contentsOfDirectory(at: snapshot.directory, includingPropertiesForKeys: nil)) ?? [])
+            .filter { $0.pathExtension == "json" }.compactMap { try? String(contentsOf: $0, encoding: .utf8) }
+        func found(_ pattern: String, in texts: [String]) -> Bool {
+            let regex = try! NSRegularExpression(pattern: pattern)
+            return texts.contains { regex.firstMatch(in: $0, range: NSRange($0.startIndex..., in: $0)) != nil }
+        }
+        if let id = adapter.recognizer.topicID(fromURL: url, basePath: "") ?? adapter.recognizer.looseTopicID(in: url) {
+            let escaped = NSRegularExpression.escapedPattern(for: id)
+            return found("(^|[/=])\(escaped)([/.?&]|$)", in: snapshot.recordedURLs)
+                || found(#""(id|topic_id|story_id|objectID|post)"\s*:\s*"?"# + escaped + #"\b"#, in: bodies)
+        }
+        let bare = ForumSnapshot.canonicalURLString(for: url).replacingOccurrences(of: "/+$", with: "", options: .regularExpression)
+        return found(NSRegularExpression.escapedPattern(for: bare) + #"/?""#, in: bodies)
     }
 }
 

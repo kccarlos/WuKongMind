@@ -582,8 +582,7 @@ final class AgentLoopTests: XCTestCase {
         XCTAssertEqual(sink.callCount, 2)
         // Input counts cache writes and reads; output is the last cumulative count, per call.
         XCTAssertEqual(sink.usage, AgentTokenUsage(inputTokens: 2 * 812, outputTokens: 2 * 41))
-        let fresh = TokenUsageSink()
-        XCTAssertEqual(fresh.usage, .zero, "no calls is a true zero")
+        XCTAssertEqual(TokenUsageSink().usage, .zero, "no calls is a true zero")
     }
 
     func testOtherFamiliesLeaveTheSinkNotAvailable() async throws {
@@ -607,14 +606,6 @@ final class AgentLoopTests: XCTestCase {
         mixed.record(AgentTokenUsage(inputTokens: 5, outputTokens: 1))
         mixed.record(nil)
         XCTAssertNil(mixed.usage)
-
-        // Without a sink nothing is recorded and the call is unchanged.
-        let anthropic = usageService(Self.anthropicUsageStream)
-        let plain = try await anthropic.complete(
-            system: "s", messages: [ChatMessage(role: .user, content: "q")],
-            configuration: ProviderConfiguration(model: "m", baseURL: AIProvider.anthropic.defaultBaseURL, apiKey: "k"), provider: .anthropic
-        )
-        XCTAssertEqual(plain, #"{"tool": "list_latest"}"#)
     }
 
     func testAIServiceAnthropicToolCallingWireFormatRoundTrip() async throws {

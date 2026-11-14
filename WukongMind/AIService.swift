@@ -16,8 +16,6 @@ final class TokenUsageSink: @unchecked Sendable {
     private var uncovered = 0
     private var calls = 0
 
-    init() {}
-
     static func covers(_ provider: AIProvider) -> Bool { provider == coveredFamily }
 
     /// One finished call: its usage, or nil when its family doesn't report here.
