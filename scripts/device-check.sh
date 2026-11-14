@@ -15,7 +15,6 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 LOCK_ROOT="${LOCK_ROOT:-/Volumes/Ext/dev/locks}"
 LOCK_STALE_SECS="${LOCK_STALE_SECS:-2700}" # 45 minutes
 LOCK_POLL_SECS="${LOCK_POLL_SECS:-20}"
-LOCK_HEARTBEAT_SECS="${LOCK_HEARTBEAT_SECS:-60}"
 
 usage() {
   cat <<'EOF'
@@ -83,7 +82,6 @@ die() { log "ERROR: $*"; exit "${2:-1}"; }
 
 LOCK_DIR=""
 LOCK_TOKEN=""
-HEARTBEAT_PID=""
 CHILD_PID=""
 TAIL_PID=""
 CLEANUP_HOOK=""
@@ -127,7 +125,6 @@ acquire_lock() {
       LOCK_TOKEN="$$.$RANDOM.$(date +%s)"
       write_owner
       log "lock taken: $dir"
-      start_heartbeat
       return 0
     fi
     now=$(date +%s)
@@ -151,22 +148,7 @@ acquire_lock() {
   done
 }
 
-start_heartbeat() {
-  # keep the lock's mtime fresh so a long, healthy run is never taken for dead
-  (
-    while :; do
-      sleep "$LOCK_HEARTBEAT_SECS"
-      [[ -f "$LOCK_DIR/token" ]] || exit 0
-      touch "$LOCK_DIR"
-    done
-  ) &
-  HEARTBEAT_PID=$!
-  disown "$HEARTBEAT_PID" 2>/dev/null || true
-}
-
 release_lock() {
-  [[ -n "$HEARTBEAT_PID" ]] && kill "$HEARTBEAT_PID" 2>/dev/null
-  HEARTBEAT_PID=""
   if [[ -n "$LOCK_DIR" && -f "$LOCK_DIR/token" && "$(cat "$LOCK_DIR/token" 2>/dev/null)" == "$LOCK_TOKEN" ]]; then
     rm -rf "$LOCK_DIR"
     log "lock released: $LOCK_DIR"
@@ -295,14 +277,17 @@ DEVICE_FOR_CLEANUP=""
 terminate_app() {
   (( LAUNCHED )) || return 0
   local f pid
-  f="$(mktemp -t devcheck-procs).json"
+  f="$(mktemp -t devcheck-procs)"
   if xcrun devicectl device info processes --device "$DEVICE_FOR_CLEANUP" --json-output "$f" >/dev/null 2>&1; then
     pid="$(python3 -I - "$f" <<'PY'
 import json, sys
-d = json.load(open(sys.argv[1]))
-for p in d.get("result", {}).get("runningProcesses", []):
-    if "/WukongMind.app/" in p.get("executable", ""):
-        print(p["processIdentifier"]); break
+try:
+    d = json.load(open(sys.argv[1]))
+    for p in d.get("result", {}).get("runningProcesses", []):
+        if "/WukongMind.app/" in p.get("executable", ""):
+            print(p["processIdentifier"]); break
+except Exception:
+    pass
 PY
 )"
     if [[ -n "$pid" ]]; then
@@ -335,7 +320,7 @@ mode_launch() {
   local app rc=0
   app="$(find_app "$dd")"
   [[ -n "$app" ]] || { log "ERROR: no built WukongMind.app in $dd"; return 1; }
-  APP_BUNDLE_ID="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$app/Info.plist" 2>/dev/null || true)"
+  APP_BUNDLE_ID="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$app/Info.plist" 2>/dev/null)" || APP_BUNDLE_ID=""
   APP_BUNDLE_ID="${APP_BUNDLE_ID:-$BUNDLE_ID_FALLBACK}"
   DEVICE_FOR_CLEANUP="$udid"
   CLEANUP_HOOK=terminate_app
@@ -350,7 +335,12 @@ mode_launch() {
   CHILD_PID=$!
   sleep "$secs" & local sp=$!
   wait "$sp" 2>/dev/null
-  kill "$CHILD_PID" 2>/dev/null; wait "$CHILD_PID" 2>/dev/null; CHILD_PID=""
+  if kill -0 "$CHILD_PID" 2>/dev/null; then
+    kill "$CHILD_PID" 2>/dev/null; wait "$CHILD_PID" 2>/dev/null
+  else
+    wait "$CHILD_PID" || rc=$? # devicectl exited early: its failure is ours
+  fi
+  CHILD_PID=""
   terminate_app
   tail -n 15 "$out/launch.log" >&2
   return "$rc"
