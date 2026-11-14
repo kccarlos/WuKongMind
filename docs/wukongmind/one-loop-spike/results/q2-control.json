@@ -1,0 +1,81 @@
+{
+  "date" : "2026-11-14T08:00:57Z",
+  "model" : "gemini-3.8-live",
+  "question" : "q2-control",
+  "rows" : [
+    {
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.192,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.192,
+          "text" : "12280 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.468,
+          "text" : ""
+        },
+        {
+          "kind" : "user",
+          "t" : 0.508,
+          "text" : "Checkpoint."
+        },
+        {
+          "kind" : "call",
+          "t" : 1.131,
+          "text" : "mark_checkpoint {}"
+        }
+      ],
+      "newToolCalled" : true,
+      "setupOK" : true,
+      "variant" : "fresh-changed-tools"
+    },
+    {
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.129,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.129,
+          "text" : "12280 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.311,
+          "text" : ""
+        },
+        {
+          "kind" : "user",
+          "t" : 0.343,
+          "text" : "Checkpoint."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.839,
+          "text" : "mark_checkpoint {}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.86,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.86,
+          "text" : "prompt 3488 response 6"
+        }
+      ],
+      "newToolCalled" : true,
+      "setupOK" : true,
+      "variant" : "fresh-changed-tools"
+    }
+  ]
+}

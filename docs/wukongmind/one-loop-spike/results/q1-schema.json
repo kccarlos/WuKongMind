@@ -1,0 +1,1064 @@
+{
+  "date" : "2026-11-14T07:49:21Z",
+  "model" : "gemini-3.8-live",
+  "question" : "q1-schema",
+  "rows" : [
+    {
+      "called" : true,
+      "close" : "",
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.181,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.181,
+          "text" : "3530 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.511,
+          "text" : ""
+        },
+        {
+          "kind" : "user",
+          "t" : 0.546,
+          "text" : "Please call the probe tool now, with any arguments."
+        },
+        {
+          "kind" : "call",
+          "t" : 1.141,
+          "text" : "probe {\"q\":\"test\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 1.159,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 1.159,
+          "text" : "prompt 1285 response 10"
+        }
+      ],
+      "probe" : "lowercase-types",
+      "setupOK" : true
+    },
+    {
+      "called" : false,
+      "close" : "1007 Invalid JSON payload received. Unknown name \"additionalProperties\" at 'setup.tools[0].function_declarations[0].parameters':",
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.138,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.138,
+          "text" : "3536 bytes"
+        },
+        {
+          "kind" : "close",
+          "t" : 0.203,
+          "text" : "1007 Invalid JSON payload received. Unknown name \"additionalProperties\" at 'setup.tools[0].function_declarations[0].parameters':"
+        }
+      ],
+      "probe" : "additionalProperties",
+      "setupOK" : false
+    },
+    {
+      "called" : true,
+      "close" : "",
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.296,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.296,
+          "text" : "3521 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.5,
+          "text" : ""
+        },
+        {
+          "kind" : "user",
+          "t" : 0.504,
+          "text" : "Please call the probe tool now, with any arguments."
+        },
+        {
+          "kind" : "call",
+          "t" : 1.137,
+          "text" : "probe {\"q\":\"test\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 1.156,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 1.156,
+          "text" : "prompt 1282 response 10"
+        }
+      ],
+      "probe" : "minLength",
+      "setupOK" : true
+    },
+    {
+      "called" : true,
+      "close" : "",
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.139,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.139,
+          "text" : "3537 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.421,
+          "text" : ""
+        },
+        {
+          "kind" : "user",
+          "t" : 0.448,
+          "text" : "Please call the probe tool now, with any arguments."
+        },
+        {
+          "kind" : "call",
+          "t" : 1.065,
+          "text" : "probe {\"n\":1}"
+        }
+      ],
+      "probe" : "minimum-maximum",
+      "setupOK" : true
+    },
+    {
+      "called" : true,
+      "close" : "",
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.126,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.126,
+          "text" : "3524 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.298,
+          "text" : ""
+        },
+        {
+          "kind" : "user",
+          "t" : 0.332,
+          "text" : "Please call the probe tool now, with any arguments."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.875,
+          "text" : "probe {\"m\":\"a\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.89,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.89,
+          "text" : "prompt 1288 response 10"
+        }
+      ],
+      "probe" : "enum",
+      "setupOK" : true
+    },
+    {
+      "called" : true,
+      "close" : "",
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.145,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.145,
+          "text" : "3537 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.432,
+          "text" : ""
+        },
+        {
+          "kind" : "user",
+          "t" : 0.454,
+          "text" : "Please call the probe tool now, with any arguments."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.88,
+          "text" : "probe {\"posts\":[1,2,3]}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.899,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.899,
+          "text" : "prompt 1286 response 12"
+        }
+      ],
+      "probe" : "array-of-integers",
+      "setupOK" : true
+    },
+    {
+      "called" : true,
+      "close" : "",
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.123,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.123,
+          "text" : "3596 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.342,
+          "text" : ""
+        },
+        {
+          "kind" : "user",
+          "t" : 0.382,
+          "text" : "Please call the probe tool now, with any arguments."
+        },
+        {
+          "kind" : "call",
+          "t" : 1.249,
+          "text" : "probe {\"range\":{\"from\":1,\"to\":5}}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 1.261,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 1.261,
+          "text" : "prompt 1302 response 14"
+        }
+      ],
+      "probe" : "nested-object",
+      "setupOK" : true
+    },
+    {
+      "called" : true,
+      "close" : "",
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.123,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.123,
+          "text" : "3510 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.308,
+          "text" : ""
+        },
+        {
+          "kind" : "user",
+          "t" : 0.328,
+          "text" : "Please call the probe tool now, with any arguments."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.88,
+          "text" : "probe {\"opts\":{}}"
+        }
+      ],
+      "probe" : "object-without-properties",
+      "setupOK" : true
+    },
+    {
+      "called" : true,
+      "close" : "",
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.133,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.133,
+          "text" : "3486 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.317,
+          "text" : ""
+        },
+        {
+          "kind" : "user",
+          "t" : 0.342,
+          "text" : "Please call the probe tool now, with any arguments."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.847,
+          "text" : "probe {}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.865,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.865,
+          "text" : "prompt 1268 response 4"
+        }
+      ],
+      "probe" : "empty-parameters-object",
+      "setupOK" : true
+    },
+    {
+      "called" : true,
+      "close" : "",
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.122,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.122,
+          "text" : "3439 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.284,
+          "text" : ""
+        },
+        {
+          "kind" : "user",
+          "t" : 0.332,
+          "text" : "Please call the probe tool now, with any arguments."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.808,
+          "text" : "probe {}"
+        }
+      ],
+      "probe" : "no-parameters",
+      "setupOK" : true
+    },
+    {
+      "called" : false,
+      "close" : "1007 Invalid JSON payload received. Unknown name \"additionalProperties\" at 'setup.tools[0].function_declarations[0].parameters':",
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.12,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.12,
+          "text" : "3907 bytes"
+        },
+        {
+          "kind" : "close",
+          "t" : 0.183,
+          "text" : "1007 Invalid JSON payload received. Unknown name \"additionalProperties\" at 'setup.tools[0].function_declarations[0].parameters':"
+        }
+      ],
+      "probe" : "raw-inputSchema-as-parameters",
+      "setupOK" : false
+    },
+    {
+      "called" : true,
+      "close" : "",
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.12,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.12,
+          "text" : "3917 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.352,
+          "text" : ""
+        },
+        {
+          "kind" : "user",
+          "t" : 0.378,
+          "text" : "Please call the probe tool now, with any arguments."
+        },
+        {
+          "kind" : "call",
+          "t" : 1.064,
+          "text" : "probe {}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 1.084,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 1.084,
+          "text" : "prompt 1384 response 4"
+        }
+      ],
+      "probe" : "raw-inputSchema-as-parametersJsonSchema",
+      "setupOK" : true
+    },
+    {
+      "close" : "",
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.13,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.13,
+          "text" : "9693 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.346,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.39,
+          "text" : "[Screen: the user opened the topic “Fan noise after firmware 5.2” (topic id 4821) on Home Lab Talk, 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.39,
+          "text" : "Search this forum for firmware rollback."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.997,
+          "text" : "find {\"query\":\"firmware rollback\",\"scope\":\"forum\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.998,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.998,
+          "text" : "prompt 2782 response 18"
+        }
+      ],
+      "firstCall" : "find object([\"query\": SpikeTests.JSONValue.string(\"firmware rollback\"), \"scope\": SpikeTests.JSONValue.string(\"forum\")])",
+      "set" : "today-7",
+      "setupOK" : true,
+      "tools" : 7
+    },
+    {
+      "close" : "",
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.118,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.118,
+          "text" : "12895 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.293,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.33,
+          "text" : "[Screen: the user opened the topic “Fan noise after firmware 5.2” (topic id 4821) on Home Lab Talk, 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.33,
+          "text" : "Search this forum for firmware rollback."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.888,
+          "text" : "search_forum {\"query\":\"firmware rollback\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.889,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.889,
+          "text" : "prompt 3670 response 14"
+        }
+      ],
+      "firstCall" : "search_forum object([\"query\": SpikeTests.JSONValue.string(\"firmware rollback\")])",
+      "set" : "voice-12-converted",
+      "setupOK" : true,
+      "tools" : 12
+    },
+    {
+      "close" : "",
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.132,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.132,
+          "text" : "14094 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.324,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.345,
+          "text" : "[Screen: the user opened the topic “Fan noise after firmware 5.2” (topic id 4821) on Home Lab Talk, 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.345,
+          "text" : "Search this forum for firmware rollback."
+        },
+        {
+          "kind" : "call",
+          "t" : 1.13,
+          "text" : "search_forum {\"query\":\"firmware rollback\"}"
+        }
+      ],
+      "firstCall" : "search_forum object([\"query\": SpikeTests.JSONValue.string(\"firmware rollback\")])",
+      "set" : "fifteen-converted",
+      "setupOK" : true,
+      "tools" : 15
+    },
+    {
+      "close" : "1007 Invalid JSON payload received. Unknown name \"additionalProperties\" at 'setup.tools[0].function_declarations[0].parameters':",
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.115,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.115,
+          "text" : "14500 bytes"
+        },
+        {
+          "kind" : "close",
+          "t" : 0.19,
+          "text" : "1007 Invalid JSON payload received. Unknown name \"additionalProperties\" at 'setup.tools[0].function_declarations[0].parameters':"
+        }
+      ],
+      "firstCall" : "",
+      "set" : "fifteen-raw",
+      "setupOK" : false,
+      "tools" : 15
+    },
+    {
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.121,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.121,
+          "text" : "9693 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.356,
+          "text" : ""
+        },
+        {
+          "kind" : "user",
+          "t" : 0.388,
+          "text" : "Say hello in one short sentence."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.166,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 4.956,
+          "text" : "Hello! I am here to help you navigate and explore the forum."
+        },
+        {
+          "kind" : "usage",
+          "t" : 4.956,
+          "text" : "prompt 2782 response 100"
+        }
+      ],
+      "firstAudioSeconds" : 0.7776349782943726,
+      "promptTokens" : 2782,
+      "run" : 0,
+      "setupOK" : true,
+      "setupSeconds" : 0.35572004318237305,
+      "timing" : "today-7"
+    },
+    {
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.122,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.122,
+          "text" : "14094 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.308,
+          "text" : ""
+        },
+        {
+          "kind" : "user",
+          "t" : 0.336,
+          "text" : "Say hello in one short sentence."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 0.947,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 5.477,
+          "text" : "Welcome to Home Lab Talk, I'm here to help you navigate and explore the forum today."
+        },
+        {
+          "kind" : "usage",
+          "t" : 5.477,
+          "text" : "prompt 3960 response 119"
+        }
+      ],
+      "firstAudioSeconds" : 0.611312985420227,
+      "promptTokens" : 3960,
+      "run" : 1,
+      "setupOK" : true,
+      "setupSeconds" : 0.3076930046081543,
+      "timing" : "fifteen-converted"
+    },
+    {
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.117,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.117,
+          "text" : "9693 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.304,
+          "text" : ""
+        },
+        {
+          "kind" : "user",
+          "t" : 0.331,
+          "text" : "Say hello in one short sentence."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.082,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 4.51,
+          "text" : "Hello, I'm here to help you read and navigate the forum."
+        },
+        {
+          "kind" : "usage",
+          "t" : 4.51,
+          "text" : "prompt 2782 response 85"
+        }
+      ],
+      "firstAudioSeconds" : 0.751039981842041,
+      "promptTokens" : 2782,
+      "run" : 2,
+      "setupOK" : true,
+      "setupSeconds" : 0.3038480281829834,
+      "timing" : "today-7"
+    },
+    {
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.141,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.141,
+          "text" : "14094 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.335,
+          "text" : ""
+        },
+        {
+          "kind" : "user",
+          "t" : 0.352,
+          "text" : "Say hello in one short sentence."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.079,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 6.46,
+          "text" : "Hello, I'm your WukongMind reading companion, ready to help you navigate the Home Lab Talk forum."
+        },
+        {
+          "kind" : "usage",
+          "t" : 6.46,
+          "text" : "prompt 3960 response 140"
+        }
+      ],
+      "firstAudioSeconds" : 0.7271590232849121,
+      "promptTokens" : 3960,
+      "run" : 3,
+      "setupOK" : true,
+      "setupSeconds" : 0.33458805084228516,
+      "timing" : "fifteen-converted"
+    },
+    {
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.118,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.118,
+          "text" : "9693 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.405,
+          "text" : ""
+        },
+        {
+          "kind" : "user",
+          "t" : 0.429,
+          "text" : "Say hello in one short sentence."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.707,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 5.406,
+          "text" : "Hello and welcome, I'm ready to help you navigate the forum today."
+        },
+        {
+          "kind" : "usage",
+          "t" : 5.406,
+          "text" : "prompt 2782 response 98"
+        }
+      ],
+      "firstAudioSeconds" : 1.278433084487915,
+      "promptTokens" : 2782,
+      "run" : 4,
+      "setupOK" : true,
+      "setupSeconds" : 0.40499210357666016,
+      "timing" : "today-7"
+    },
+    {
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.117,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.117,
+          "text" : "14094 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.288,
+          "text" : ""
+        },
+        {
+          "kind" : "user",
+          "t" : 0.328,
+          "text" : "Say hello in one short sentence."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.135,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 4.335,
+          "text" : "Hello, I am your WukongMind reading companion."
+        },
+        {
+          "kind" : "usage",
+          "t" : 4.335,
+          "text" : "prompt 3960 response 86"
+        }
+      ],
+      "firstAudioSeconds" : 0.8065290451049805,
+      "promptTokens" : 3960,
+      "run" : 5,
+      "setupOK" : true,
+      "setupSeconds" : 0.28838610649108887,
+      "timing" : "fifteen-converted"
+    },
+    {
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.123,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.123,
+          "text" : "9693 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.286,
+          "text" : ""
+        },
+        {
+          "kind" : "user",
+          "t" : 0.33,
+          "text" : "Say hello in one short sentence."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.031,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 3.814,
+          "text" : "Hello, I'm happy to help you with the forum today."
+        },
+        {
+          "kind" : "usage",
+          "t" : 3.814,
+          "text" : "prompt 2782 response 74"
+        }
+      ],
+      "firstAudioSeconds" : 0.7008329629898071,
+      "promptTokens" : 2782,
+      "run" : 6,
+      "setupOK" : true,
+      "setupSeconds" : 0.28647303581237793,
+      "timing" : "today-7"
+    },
+    {
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.124,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.124,
+          "text" : "14094 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.335,
+          "text" : ""
+        },
+        {
+          "kind" : "user",
+          "t" : 0.335,
+          "text" : "Say hello in one short sentence."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 0.959,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 4.889,
+          "text" : "Hello, I am WukongMind, your reading companion for the forum."
+        },
+        {
+          "kind" : "usage",
+          "t" : 4.889,
+          "text" : "prompt 3960 response 100"
+        }
+      ],
+      "firstAudioSeconds" : 0.6240710020065308,
+      "promptTokens" : 3960,
+      "run" : 7,
+      "setupOK" : true,
+      "setupSeconds" : 0.33465802669525146,
+      "timing" : "fifteen-converted"
+    },
+    {
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.138,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.138,
+          "text" : "9693 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.311,
+          "text" : ""
+        },
+        {
+          "kind" : "user",
+          "t" : 0.347,
+          "text" : "Say hello in one short sentence."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 0.971,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 4.061,
+          "text" : "Hello, I'm happy to help you browse the forum today!"
+        },
+        {
+          "kind" : "usage",
+          "t" : 4.061,
+          "text" : "prompt 2782 response 83"
+        }
+      ],
+      "firstAudioSeconds" : 0.6230660676956177,
+      "promptTokens" : 2782,
+      "run" : 8,
+      "setupOK" : true,
+      "setupSeconds" : 0.3111140727996826,
+      "timing" : "today-7"
+    },
+    {
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.131,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.131,
+          "text" : "14094 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.329,
+          "text" : ""
+        },
+        {
+          "kind" : "user",
+          "t" : 0.343,
+          "text" : "Say hello in one short sentence."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.066,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 4.928,
+          "text" : "Hello! I am your WukongMind reading companion for Home Lab Talk."
+        },
+        {
+          "kind" : "usage",
+          "t" : 4.928,
+          "text" : "prompt 3960 response 102"
+        }
+      ],
+      "firstAudioSeconds" : 0.7236520051956177,
+      "promptTokens" : 3960,
+      "run" : 9,
+      "setupOK" : true,
+      "setupSeconds" : 0.3290879726409912,
+      "timing" : "fifteen-converted"
+    }
+  ]
+}

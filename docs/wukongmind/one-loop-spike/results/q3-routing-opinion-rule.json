@@ -1,0 +1,541 @@
+{
+  "date" : "2026-11-14T08:02:15Z",
+  "model" : "gemini-3.8-live",
+  "opinionRule" : true,
+  "question" : "q3-routing-opinion-rule",
+  "rows" : [
+    {
+      "before" : [
+
+      ],
+      "calls" : [
+        "search_forum",
+        "hand_off_to_agent"
+      ],
+      "correct" : false,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.16,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.16,
+          "text" : "13172 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.345,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.372,
+          "text" : "[Screen: the user opened the topic “Fan noise after firmware 5.2” (topic id 4821) on Home Lab Talk, 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.372,
+          "text" : "What do people here think of the N100 for a home server?"
+        },
+        {
+          "kind" : "call",
+          "t" : 1.122,
+          "text" : "search_forum {\"query\":\"N100\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 1.14,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 1.14,
+          "text" : "prompt 3741 response 15"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.162,
+          "text" : "search_forum WHEN_IDLE 374 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 2.117,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 2.136,
+          "text" : ""
+        },
+        {
+          "kind" : "call",
+          "t" : 2.472,
+          "text" : "hand_off_to_agent {\"request\":\"What do people here think of the N100 for a home server?\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 2.481,
+          "text" : "hand_off_to_agent SILENT 389 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 5.477,
+          "text" : "Let's see what the community's experience is with that chip."
+        },
+        {
+          "kind" : "usage",
+          "t" : 5.477,
+          "text" : "prompt 3847 response 121"
+        }
+      ],
+      "expected" : [
+        "hand_off_to_agent"
+      ],
+      "first" : "search_forum",
+      "rep" : 0,
+      "utterance" : "What do people here think of the N100 for a home server?"
+    },
+    {
+      "before" : [
+        "hand_off_to_agent"
+      ],
+      "calls" : [
+        "hand_off_to_agent"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.125,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.125,
+          "text" : "13172 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.371,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.39,
+          "text" : "[Screen: the user opened the topic “Fan noise after firmware 5.2” (topic id 4821) on Home Lab Talk, 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.39,
+          "text" : "What do people here think of the N100 for a home server?"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.254,
+          "text" : ""
+        },
+        {
+          "kind" : "call",
+          "t" : 1.714,
+          "text" : "hand_off_to_agent {\"request\":\"What do people here think of the N100 for a home server?\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.761,
+          "text" : "hand_off_to_agent SILENT 389 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 4.875,
+          "text" : "I'll check what the community says about that processor's performance."
+        },
+        {
+          "kind" : "usage",
+          "t" : 4.875,
+          "text" : "prompt 3741 response 127"
+        },
+        {
+          "kind" : "user",
+          "t" : 6.906,
+          "text" : "Never mind."
+        },
+        {
+          "kind" : "call",
+          "t" : 7.758,
+          "text" : "hand_off_to_agent {\"action\":\"cancel\",\"request\":\"What do people here think of the N100 for a home server?\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 7.775,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 7.775,
+          "text" : "prompt 4083 response 37"
+        },
+        {
+          "kind" : "response",
+          "t" : 7.804,
+          "text" : "hand_off_to_agent WHEN_IDLE 257 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 11.09,
+          "text" : "Understood, I've cancelled that request for you."
+        },
+        {
+          "kind" : "usage",
+          "t" : 11.09,
+          "text" : "prompt 4170 response 70"
+        }
+      ],
+      "expected" : [
+        "hand_off_to_agent:cancel"
+      ],
+      "first" : "hand_off_to_agent:cancel",
+      "rep" : 0,
+      "utterance" : "Never mind."
+    },
+    {
+      "before" : [
+
+      ],
+      "calls" : [
+        "hand_off_to_agent"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.128,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.128,
+          "text" : "13172 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.344,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.39,
+          "text" : "[Screen: the user opened the topic “Fan noise after firmware 5.2” (topic id 4821) on Home Lab Talk, 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.39,
+          "text" : "What do people here think of the N100 for a home server?"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.372,
+          "text" : ""
+        },
+        {
+          "kind" : "call",
+          "t" : 1.724,
+          "text" : "hand_off_to_agent {\"request\":\"What do people here think of the Intel N100 processor for a home server?\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.763,
+          "text" : "hand_off_to_agent SILENT 389 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 4.631,
+          "text" : "Let's see what the community says about that tiny powerhouse."
+        },
+        {
+          "kind" : "usage",
+          "t" : 4.631,
+          "text" : "prompt 3741 response 120"
+        }
+      ],
+      "expected" : [
+        "hand_off_to_agent"
+      ],
+      "first" : "hand_off_to_agent",
+      "rep" : 1,
+      "utterance" : "What do people here think of the N100 for a home server?"
+    },
+    {
+      "before" : [
+        "hand_off_to_agent"
+      ],
+      "calls" : [
+        "hand_off_to_agent"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.113,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.113,
+          "text" : "13172 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.37,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.377,
+          "text" : "[Screen: the user opened the topic “Fan noise after firmware 5.2” (topic id 4821) on Home Lab Talk, 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.377,
+          "text" : "What do people here think of the N100 for a home server?"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.273,
+          "text" : ""
+        },
+        {
+          "kind" : "call",
+          "t" : 1.643,
+          "text" : "hand_off_to_agent {\"request\":\"What do people here think of the N100 for a home server?\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.691,
+          "text" : "hand_off_to_agent SILENT 388 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 4.614,
+          "text" : "Let's see what the community's experience is with that processor."
+        },
+        {
+          "kind" : "usage",
+          "t" : 4.614,
+          "text" : "prompt 3741 response 120"
+        },
+        {
+          "kind" : "user",
+          "t" : 6.672,
+          "text" : "Never mind."
+        },
+        {
+          "kind" : "call",
+          "t" : 7.244,
+          "text" : "hand_off_to_agent {\"action\":\"cancel\",\"request\":\"What do people here think of the N100 for a home server?\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 7.262,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 7.262,
+          "text" : "prompt 4076 response 37"
+        },
+        {
+          "kind" : "response",
+          "t" : 7.293,
+          "text" : "hand_off_to_agent WHEN_IDLE 256 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 9.781,
+          "text" : "I've stopped that search for you."
+        },
+        {
+          "kind" : "usage",
+          "t" : 9.781,
+          "text" : "prompt 4163 response 50"
+        }
+      ],
+      "expected" : [
+        "hand_off_to_agent:cancel"
+      ],
+      "first" : "hand_off_to_agent:cancel",
+      "rep" : 1,
+      "utterance" : "Never mind."
+    },
+    {
+      "before" : [
+
+      ],
+      "calls" : [
+        "hand_off_to_agent"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.11,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.11,
+          "text" : "13172 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.341,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.373,
+          "text" : "[Screen: the user opened the topic “Fan noise after firmware 5.2” (topic id 4821) on Home Lab Talk, 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.373,
+          "text" : "What do people here think of the N100 for a home server?"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.302,
+          "text" : ""
+        },
+        {
+          "kind" : "call",
+          "t" : 1.711,
+          "text" : "hand_off_to_agent {\"request\":\"What do people think of the N100 for a home server?\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.755,
+          "text" : "hand_off_to_agent SILENT 388 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 4.339,
+          "text" : "Let's see what the community has to say about that processor."
+        },
+        {
+          "kind" : "usage",
+          "t" : 4.339,
+          "text" : "prompt 3819 response 112"
+        }
+      ],
+      "expected" : [
+        "hand_off_to_agent"
+      ],
+      "first" : "hand_off_to_agent",
+      "rep" : 2,
+      "utterance" : "What do people here think of the N100 for a home server?"
+    },
+    {
+      "before" : [
+        "hand_off_to_agent"
+      ],
+      "calls" : [
+        "hand_off_to_agent"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.132,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.132,
+          "text" : "13172 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.346,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.399,
+          "text" : "[Screen: the user opened the topic “Fan noise after firmware 5.2” (topic id 4821) on Home Lab Talk, 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.399,
+          "text" : "What do people here think of the N100 for a home server?"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.241,
+          "text" : ""
+        },
+        {
+          "kind" : "call",
+          "t" : 1.586,
+          "text" : "hand_off_to_agent {\"request\":\"What do people here think of the N100 for a home server?\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.6,
+          "text" : "hand_off_to_agent SILENT 388 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 4.497,
+          "text" : "Let's see what the community's experience has been with that chip."
+        },
+        {
+          "kind" : "usage",
+          "t" : 4.497,
+          "text" : "prompt 3741 response 118"
+        },
+        {
+          "kind" : "user",
+          "t" : 6.549,
+          "text" : "Never mind."
+        },
+        {
+          "kind" : "call",
+          "t" : 7.062,
+          "text" : "hand_off_to_agent {\"request\":\"What do people here think of the N100 for a home server?\",\"action\":\"cancel\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 7.08,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 7.08,
+          "text" : "prompt 4075 response 37"
+        },
+        {
+          "kind" : "response",
+          "t" : 7.08,
+          "text" : "hand_off_to_agent WHEN_IDLE 256 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 9.447,
+          "text" : "I've stopped that search for you."
+        },
+        {
+          "kind" : "usage",
+          "t" : 9.447,
+          "text" : "prompt 4162 response 50"
+        }
+      ],
+      "expected" : [
+        "hand_off_to_agent:cancel"
+      ],
+      "first" : "hand_off_to_agent:cancel",
+      "rep" : 2,
+      "utterance" : "Never mind."
+    }
+  ]
+}

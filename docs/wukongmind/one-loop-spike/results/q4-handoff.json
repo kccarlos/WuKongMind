@@ -1,0 +1,678 @@
+{
+  "date" : "2026-11-14T08:07:16Z",
+  "model" : "gemini-3.8-live",
+  "question" : "q4-handoff",
+  "rows" : [
+    {
+      "briefingAfterSeconds" : 43.59307599067688,
+      "briefingFirstAudioSeconds" : 0.8772579431533813,
+      "briefingSpoken" : " by the way, the community generally recommends the n100 for home servers due to its low power usage, though some note its limited sata ports for storage.",
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.219,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.219,
+          "text" : "13172 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.446,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.479,
+          "text" : "[Screen: the user opened the topic “Fan noise after firmware 5.2” (topic id 4821) on Home Lab Talk, 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.479,
+          "text" : "What do people here think of the N100 for a home server?"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.564,
+          "text" : ""
+        },
+        {
+          "kind" : "call",
+          "t" : 1.883,
+          "text" : "hand_off_to_agent {\"request\":\"What do people here think of the N100 for a home server?\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.899,
+          "text" : "hand_off_to_agent SILENT 389 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 4.544,
+          "text" : "Let's see what the community's experience is with that chip."
+        },
+        {
+          "kind" : "usage",
+          "t" : 4.544,
+          "text" : "prompt 3741 response 112"
+        },
+        {
+          "kind" : "user",
+          "t" : 8.606,
+          "text" : "Next post."
+        },
+        {
+          "kind" : "call",
+          "t" : 9.626,
+          "text" : "browse_move {\"action\":\"next\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 9.645,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 9.645,
+          "text" : "prompt 4068 response 12"
+        },
+        {
+          "kind" : "response",
+          "t" : 9.658,
+          "text" : "browse_move WHEN_IDLE 410 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 17.943,
+          "text" : "I've moved to the next post, which is the accepted solution. It mentions that rolling back the firmware to version 5.1.4 fixes the issue."
+        },
+        {
+          "kind" : "usage",
+          "t" : 17.943,
+          "text" : "prompt 4182 response 195"
+        },
+        {
+          "kind" : "user",
+          "t" : 29.047,
+          "text" : "What does post 20 say?"
+        },
+        {
+          "kind" : "call",
+          "t" : 29.642,
+          "text" : "read_post {\"post\":20}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 29.659,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 29.659,
+          "text" : "prompt 4443 response 11"
+        },
+        {
+          "kind" : "response",
+          "t" : 29.675,
+          "text" : "read_post WHEN_IDLE 351 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 37.023,
+          "text" : "Post 20 mentions that setting the fan curve back to Silent in the BIOS after the five point two update keeps the fan quiet."
+        },
+        {
+          "kind" : "usage",
+          "t" : 37.023,
+          "text" : "prompt 4533 response 169"
+        },
+        {
+          "kind" : "response",
+          "t" : 48.145,
+          "text" : "briefing WHEN_IDLE 626 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 57.687,
+          "text" : "By the way, the community generally recommends the N100 for home servers due to its low power usage, though some note its limited SATA ports for storage."
+        },
+        {
+          "kind" : "usage",
+          "t" : 57.687,
+          "text" : "prompt 4891 response 222"
+        }
+      ],
+      "handOff" : [
+        "hand_off_to_agent"
+      ],
+      "meanwhile" : [
+        "browse_move",
+        "read_post"
+      ],
+      "variant" : "briefing-30s"
+    },
+    {
+      "briefingAfterSeconds" : 90.02782201766968,
+      "briefingFirstAudioSeconds" : 0.7101279497146606,
+      "briefingSpoken" : " by the way, the community generally recommends the n100 for a home server because of its low power consumption, though some note that the limited sata ports can constrain storage expansion.",
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.203,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.203,
+          "text" : "13172 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.398,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.415,
+          "text" : "[Screen: the user opened the topic “Fan noise after firmware 5.2” (topic id 4821) on Home Lab Talk, 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.415,
+          "text" : "What do people here think of the N100 for a home server?"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.359,
+          "text" : ""
+        },
+        {
+          "kind" : "call",
+          "t" : 1.687,
+          "text" : "hand_off_to_agent {\"request\":\"What do people here think of the N100 for a home server?\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.74,
+          "text" : "hand_off_to_agent SILENT 389 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 4.659,
+          "text" : "Let's see what the community's been saying about that processor."
+        },
+        {
+          "kind" : "usage",
+          "t" : 4.659,
+          "text" : "prompt 3741 response 121"
+        },
+        {
+          "kind" : "user",
+          "t" : 8.757,
+          "text" : "Next post."
+        },
+        {
+          "kind" : "call",
+          "t" : 9.268,
+          "text" : "browse_move {\"action\":\"next\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 9.282,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 9.282,
+          "text" : "prompt 4077 response 12"
+        },
+        {
+          "kind" : "response",
+          "t" : 9.286,
+          "text" : "browse_move WHEN_IDLE 411 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 18.73,
+          "text" : "We are now at the accepted solution, which explains that rolling back to the previous firmware version fixed the fan issue by restoring the fan curve setting."
+        },
+        {
+          "kind" : "usage",
+          "t" : 18.73,
+          "text" : "prompt 4191 response 217"
+        },
+        {
+          "kind" : "user",
+          "t" : 29.86,
+          "text" : "What does post 20 say?"
+        },
+        {
+          "kind" : "call",
+          "t" : 30.683,
+          "text" : "read_post {\"post\":20}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 30.701,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 30.701,
+          "text" : "prompt 4473 response 11"
+        },
+        {
+          "kind" : "response",
+          "t" : 30.711,
+          "text" : "read_post WHEN_IDLE 350 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 37.251,
+          "text" : "The post mentions that changing the fan curve setting in the BIOS back to silent resolved the noise issue."
+        },
+        {
+          "kind" : "usage",
+          "t" : 37.251,
+          "text" : "prompt 4563 response 150"
+        },
+        {
+          "kind" : "response",
+          "t" : 94.73,
+          "text" : "briefing WHEN_IDLE 626 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 105.137,
+          "text" : "By the way, the community generally recommends the N100 for a home server because of its low power consumption, though some note that the limited SATA ports can constrain storage expansion."
+        },
+        {
+          "kind" : "usage",
+          "t" : 105.137,
+          "text" : "prompt 4895 response 247"
+        }
+      ],
+      "handOff" : [
+        "hand_off_to_agent"
+      ],
+      "meanwhile" : [
+        "browse_move",
+        "read_post"
+      ],
+      "variant" : "briefing-90s"
+    },
+    {
+      "briefingAfterSeconds" : 43.550334095954895,
+      "briefingFirstAudioSeconds" : 0.003958940505981445,
+      "briefingSpoken" : "g the fan curve setting to silent in the bios. she made this adjustment after the firmware update reset it. since applying this change, the system has remained quiet for a full week.",
+      "briefingWhileSpeaking" : true,
+      "correct" : false,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.227,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.227,
+          "text" : "13172 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.456,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.488,
+          "text" : "[Screen: the user opened the topic “Fan noise after firmware 5.2” (topic id 4821) on Home Lab Talk, 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.488,
+          "text" : "What do people here think of the N100 for a home server?"
+        },
+        {
+          "kind" : "call",
+          "t" : 1.261,
+          "text" : "search_forum {\"query\":\"N100\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 1.28,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 1.28,
+          "text" : "prompt 3741 response 15"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.286,
+          "text" : "search_forum WHEN_IDLE 374 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 2.245,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 2.282,
+          "text" : ""
+        },
+        {
+          "kind" : "call",
+          "t" : 2.615,
+          "text" : "hand_off_to_agent {\"request\":\"What do people here think of the N100 for a home server?\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 2.661,
+          "text" : "hand_off_to_agent SILENT 388 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 5.278,
+          "text" : "Let's see what the community's experience is with that chip."
+        },
+        {
+          "kind" : "usage",
+          "t" : 5.278,
+          "text" : "prompt 3847 response 113"
+        },
+        {
+          "kind" : "user",
+          "t" : 9.335,
+          "text" : "Next post."
+        },
+        {
+          "kind" : "call",
+          "t" : 9.919,
+          "text" : "browse_move {\"action\":\"next\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 9.937,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 9.937,
+          "text" : "prompt 4175 response 12"
+        },
+        {
+          "kind" : "response",
+          "t" : 9.964,
+          "text" : "browse_move WHEN_IDLE 412 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 17.963,
+          "text" : "This is the accepted solution on screen, where dave explains the fix involved rolling back the firmware to version five point one point four."
+        },
+        {
+          "kind" : "usage",
+          "t" : 17.963,
+          "text" : "prompt 4289 response 188"
+        },
+        {
+          "kind" : "user",
+          "t" : 29.031,
+          "text" : "What does post 20 say?"
+        },
+        {
+          "kind" : "call",
+          "t" : 30.019,
+          "text" : "read_post {\"post\":20}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 30.038,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 30.038,
+          "text" : "prompt 4537 response 11"
+        },
+        {
+          "kind" : "response",
+          "t" : 30.038,
+          "text" : "read_post WHEN_IDLE 351 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 36.649,
+          "text" : "Carol mentions she changed the fan curve back to Silent within the BIOS, which kept things quiet for a week."
+        },
+        {
+          "kind" : "usage",
+          "t" : 36.649,
+          "text" : "prompt 4627 response 147"
+        },
+        {
+          "kind" : "user",
+          "t" : 47.73,
+          "text" : "Tell me more about what carol said, in two or three sentences."
+        },
+        {
+          "kind" : "response",
+          "t" : 48.83,
+          "text" : "briefing WHEN_IDLE 626 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 60.424,
+          "text" : "Carol resolved the fan noise by adjusting the fan curve setting to Silent in the BIOS. She made this adjustment after the firmware update reset it. Since applying this change, the system has remained quiet for a full week."
+        },
+        {
+          "kind" : "usage",
+          "t" : 60.424,
+          "text" : "prompt 4830 response 299"
+        }
+      ],
+      "handOff" : [
+        "search_forum",
+        "hand_off_to_agent"
+      ],
+      "meanwhile" : [
+        "browse_move",
+        "read_post"
+      ],
+      "variant" : "briefing-mid-reply"
+    },
+    {
+      "cancelCall" : "hand_off_to_agent object([\"request\": SpikeTests.JSONValue.string(\"cancel current request\"), \"action\": SpikeTests.JSONValue.string(\"cancel\")])",
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.132,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.132,
+          "text" : "13172 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.373,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.397,
+          "text" : "[Screen: the user opened the topic “Fan noise after firmware 5.2” (topic id 4821) on Home Lab Talk, 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.397,
+          "text" : "What do people here think of the N100 for a home server?"
+        },
+        {
+          "kind" : "call",
+          "t" : 1.222,
+          "text" : "search_forum {\"query\":\"N100\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.238,
+          "text" : "search_forum WHEN_IDLE 374 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 1.24,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 1.24,
+          "text" : "prompt 3741 response 15"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 2.541,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 2.564,
+          "text" : ""
+        },
+        {
+          "kind" : "call",
+          "t" : 2.88,
+          "text" : "hand_off_to_agent {\"request\":\"What do people here think of the N100 for a home server?\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 2.88,
+          "text" : "hand_off_to_agent SILENT 388 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 5.541,
+          "text" : "I'll see what the community's experience is with that chip."
+        },
+        {
+          "kind" : "usage",
+          "t" : 5.541,
+          "text" : "prompt 3847 response 111"
+        },
+        {
+          "kind" : "user",
+          "t" : 10.632,
+          "text" : "Never mind, stop that."
+        },
+        {
+          "kind" : "call",
+          "t" : 11.684,
+          "text" : "hand_off_to_agent {\"request\":\"cancel current request\",\"action\":\"cancel\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 11.778,
+          "text" : "hand_off_to_agent WHEN_IDLE 257 bytes"
+        }
+      ],
+      "handOff" : [
+        "search_forum",
+        "hand_off_to_agent"
+      ],
+      "variant" : "cancel"
+    },
+    {
+      "cancelCall" : "hand_off_to_agent object([\"request\": SpikeTests.JSONValue.string(\"What do people here think of the N100 for a home server?\"), \"action\": SpikeTests.JSONValue.string(\"cancel\")])",
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.114,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.114,
+          "text" : "13172 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.31,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.324,
+          "text" : "[Screen: the user opened the topic “Fan noise after firmware 5.2” (topic id 4821) on Home Lab Talk, 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.324,
+          "text" : "What do people here think of the N100 for a home server?"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.524,
+          "text" : ""
+        },
+        {
+          "kind" : "call",
+          "t" : 1.906,
+          "text" : "hand_off_to_agent {\"request\":\"What do people here think of the N100 for a home server?\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.921,
+          "text" : "hand_off_to_agent SILENT 388 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 4.491,
+          "text" : "Let's see what the community has to say about that processor."
+        },
+        {
+          "kind" : "usage",
+          "t" : 4.491,
+          "text" : "prompt 3741 response 111"
+        },
+        {
+          "kind" : "user",
+          "t" : 9.617,
+          "text" : "Never mind, stop that."
+        },
+        {
+          "kind" : "call",
+          "t" : 10.557,
+          "text" : "hand_off_to_agent {\"action\":\"cancel\",\"request\":\"What do people here think of the N100 for a home server?\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 10.557,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 10.557,
+          "text" : "prompt 4069 response 37"
+        },
+        {
+          "kind" : "response",
+          "t" : 10.567,
+          "text" : "hand_off_to_agent WHEN_IDLE 256 bytes"
+        }
+      ],
+      "handOff" : [
+        "hand_off_to_agent"
+      ],
+      "variant" : "cancel"
+    }
+  ]
+}

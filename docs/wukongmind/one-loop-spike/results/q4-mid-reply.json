@@ -1,0 +1,343 @@
+{
+  "date" : "2026-11-14T08:13:29Z",
+  "model" : "gemini-3.8-live",
+  "question" : "q4-mid-reply",
+  "rows" : [
+    {
+      "briefingAfterSeconds" : 30.994300961494446,
+      "briefingFirstAudioSeconds" : 0.08008801937103271,
+      "briefingSpoken" : " back to the silent profile in the bios after updating to version five point two. she reported that the system has remained quiet for the past week. by the way, the community generally recommends the n100 for a home server due to its low power consumption, as it idles around six watts. most users pair it with sixteen gigabytes of ram and proxmox, though some note that the two sata ports limit internal storage.",
+      "briefingTurnDoneSeconds" : 24.802138049125674,
+      "briefingWhileSpeaking" : true,
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.193,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.193,
+          "text" : "13172 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.448,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.455,
+          "text" : "[Screen: the user opened the topic “Fan noise after firmware 5.2” (topic id 4821) on Home Lab Talk, 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.455,
+          "text" : "What do people here think of the N100 for a home server?"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.285,
+          "text" : ""
+        },
+        {
+          "kind" : "call",
+          "t" : 1.652,
+          "text" : "hand_off_to_agent {\"request\":\"What do people here think of the N100 for a home server?\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.668,
+          "text" : "hand_off_to_agent SILENT 387 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 4.463,
+          "text" : "Let's see what the community's experience has been with that chip."
+        },
+        {
+          "kind" : "usage",
+          "t" : 4.463,
+          "text" : "prompt 3741 response 117"
+        },
+        {
+          "kind" : "user",
+          "t" : 8.549,
+          "text" : "Next post."
+        },
+        {
+          "kind" : "call",
+          "t" : 8.907,
+          "text" : "browse_move {\"action\":\"next\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 8.923,
+          "text" : "browse_move WHEN_IDLE 412 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 8.924,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 8.924,
+          "text" : "prompt 4074 response 12"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 15.992,
+          "text" : "We're now on the accepted solution, which mentions that rolling back to the previous firmware fixes the fan noise."
+        },
+        {
+          "kind" : "usage",
+          "t" : 15.992,
+          "text" : "prompt 4188 response 161"
+        },
+        {
+          "kind" : "user",
+          "t" : 16.02,
+          "text" : "What does post 20 say?"
+        },
+        {
+          "kind" : "call",
+          "t" : 16.384,
+          "text" : "read_post {\"post\":20}"
+        },
+        {
+          "kind" : "response",
+          "t" : 16.389,
+          "text" : "read_post WHEN_IDLE 352 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 16.402,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 16.402,
+          "text" : "prompt 4402 response 11"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 22.4,
+          "text" : "Carol says that setting the fan curve back to Silent in the BIOS after the update keeps it quiet."
+        },
+        {
+          "kind" : "usage",
+          "t" : 22.4,
+          "text" : "prompt 4492 response 142"
+        },
+        {
+          "kind" : "user",
+          "t" : 34.555,
+          "text" : "Tell me more about what carol said, in two or three sentences."
+        },
+        {
+          "kind" : "response",
+          "t" : 35.505,
+          "text" : "briefing WHEN_IDLE 626 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 44.214,
+          "text" : "Carol changed the fan curve back to the silent profile in the BIOS after updating to version five point two. She reported that the system has remained quiet for the past week."
+        },
+        {
+          "kind" : "usage",
+          "t" : 44.214,
+          "text" : "prompt 4688 response 224"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 60.307,
+          "text" : "By the way, the community generally recommends the N100 for a home server due to its low power consumption, as it idles around six watts. Most users pair it with sixteen gigabytes of RAM and Proxmox, though some note that the two SATA ports limit internal storage."
+        },
+        {
+          "kind" : "usage",
+          "t" : 60.307,
+          "text" : "prompt 5112 response 392"
+        }
+      ],
+      "handOff" : [
+        "hand_off_to_agent"
+      ],
+      "meanwhile" : [
+        "browse_move",
+        "read_post"
+      ],
+      "variant" : "briefing-mid-reply"
+    },
+    {
+      "briefingAfterSeconds" : 31.33709704875946,
+      "briefingFirstAudioSeconds" : 0.021198034286499023,
+      "briefingSpoken" : " updating to firmware version five point two changed her fan settings. to fix the issue, she manually adjusted the fan curve back to silent within the bios. this simple adjustment successfully kept the fan quiet for an entire week. most people here recommend the n one hundred for a home server because it's very power efficient, typically using about six watts. they suggest pairing it with sixteen gigabytes of ram and proxmox, though some note the two sata ports limit your storage options.",
+      "briefingTurnDoneSeconds" : 28.040835953712467,
+      "briefingWhileSpeaking" : true,
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.163,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.163,
+          "text" : "13172 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.381,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.428,
+          "text" : "[Screen: the user opened the topic “Fan noise after firmware 5.2” (topic id 4821) on Home Lab Talk, 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.431,
+          "text" : "What do people here think of the N100 for a home server?"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.383,
+          "text" : ""
+        },
+        {
+          "kind" : "call",
+          "t" : 1.638,
+          "text" : "hand_off_to_agent {\"request\":\"What do people here think of the N100 for a home server?\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.686,
+          "text" : "hand_off_to_agent SILENT 388 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 3.886,
+          "text" : "Let's see what the community has to say about that."
+        },
+        {
+          "kind" : "usage",
+          "t" : 3.886,
+          "text" : "prompt 3741 response 94"
+        },
+        {
+          "kind" : "user",
+          "t" : 7.958,
+          "text" : "Next post."
+        },
+        {
+          "kind" : "call",
+          "t" : 8.528,
+          "text" : "browse_move {\"action\":\"next\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 8.542,
+          "text" : "browse_move WHEN_IDLE 412 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 8.548,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 8.548,
+          "text" : "prompt 4046 response 12"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 17.317,
+          "text" : "We're now on post thirty seven, where the solution is to roll back to firmware version five point one point four to fix the fan curve issue."
+        },
+        {
+          "kind" : "usage",
+          "t" : 17.317,
+          "text" : "prompt 4160 response 194"
+        },
+        {
+          "kind" : "user",
+          "t" : 17.362,
+          "text" : "What does post 20 say?"
+        },
+        {
+          "kind" : "call",
+          "t" : 18.039,
+          "text" : "read_post {\"post\":20}"
+        },
+        {
+          "kind" : "response",
+          "t" : 18.053,
+          "text" : "read_post WHEN_IDLE 351 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 18.058,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 18.058,
+          "text" : "prompt 4419 response 11"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 24.772,
+          "text" : "The post mentions that changing the fan curve back to Silent in the BIOS after the update keeps things quiet."
+        },
+        {
+          "kind" : "usage",
+          "t" : 24.772,
+          "text" : "prompt 4509 response 153"
+        },
+        {
+          "kind" : "user",
+          "t" : 33.919,
+          "text" : "Tell me more about what carol said, in two or three sentences."
+        },
+        {
+          "kind" : "response",
+          "t" : 35.235,
+          "text" : "briefing WHEN_IDLE 626 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 48.83,
+          "text" : "Carol explained that updating to firmware version five point two changed her fan settings. To fix the issue, she manually adjusted the fan curve back to silent within the BIOS. This simple adjustment successfully kept the fan quiet for an entire week."
+        },
+        {
+          "kind" : "usage",
+          "t" : 48.83,
+          "text" : "prompt 4719 response 346"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 63.276,
+          "text" : "Most people here recommend the N one hundred for a home server because it's very power efficient, typically using about six watts. They suggest pairing it with sixteen gigabytes of RAM and Proxmox, though some note the two SATA ports limit your storage options."
+        },
+        {
+          "kind" : "usage",
+          "t" : 63.276,
+          "text" : "prompt 5287 response 347"
+        }
+      ],
+      "handOff" : [
+        "hand_off_to_agent"
+      ],
+      "meanwhile" : [
+        "browse_move",
+        "read_post"
+      ],
+      "variant" : "briefing-mid-reply"
+    }
+  ]
+}
