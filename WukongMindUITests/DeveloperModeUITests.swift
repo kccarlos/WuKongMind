@@ -13,6 +13,15 @@ final class DeveloperModeUITests: DCUITestCase {
         return app
     }
 
+    private func dismissPopover(_ app: XCUIApplication) {
+        let popover = any(app, "pageScriptsPopover")
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.01)).tap()
+        if !wait(timeout: 4, until: { !popover.exists }) {
+            app.buttons["pageCapabilitiesSeal"].firstMatch.tap()
+        }
+        XCTAssertTrue(wait(timeout: 4, until: { !popover.exists }), "The This page popover did not close.")
+    }
+
     private func openMenu(_ app: XCUIApplication) {
         let menu = app.buttons["assistantMoreMenu"].firstMatch
         XCTAssertTrue(menu.waitForExistence(timeout: 10))
@@ -26,7 +35,7 @@ final class DeveloperModeUITests: DCUITestCase {
         app.buttons["pageCapabilitiesSeal"].firstMatch.tap()
         XCTAssertTrue(any(app, "pageScriptsPopover").waitForExistence(timeout: 8))
         XCTAssertFalse(any(app, "thisPageConsole").exists)
-        app.coordinate(withNormalizedOffset: CGVector(dx: 0.95, dy: 0.02)).tap()
+        dismissPopover(app)
         openMenu(app)
         XCTAssertTrue(app.buttons["Audit log"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["Export task"].exists, "Export task is a developer-mode entry.")
@@ -60,7 +69,7 @@ final class DeveloperModeUITests: DCUITestCase {
         XCTAssertTrue(any(app, "thisPageConsole").waitForExistence(timeout: 8))
         XCTAssertTrue(any(app, "thisPageNetwork").exists)
         capture("dev-mode-this-page")
-        app.coordinate(withNormalizedOffset: CGVector(dx: 0.95, dy: 0.02)).tap()
+        dismissPopover(app)
 
         // ⋯ › Export task: the alert, then the share sheet with one file.
         openMenu(app)
