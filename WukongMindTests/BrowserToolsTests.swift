@@ -198,6 +198,23 @@ final class BrowserToolsTests: XCTestCase {
         XCTAssertEqual(try object(missing.output)["title"] as? String, "Not found")
     }
 
+    func testAFailedLoadIsAnErrorResultWithoutAnAlert() async throws {
+        let closed = try FixtureServer()
+        try await closed.start()
+        let deadURL = closed.baseURL.appendingPathComponent("t/page")
+        closed.stop()
+        var alerts = 0
+        browser.onNavigationFailed = { _ in alerts += 1 }
+
+        let started = ContinuousClock.now
+        let result = try await registry().dispatch(toolName: "navigate", arguments: ["url": .string(deadURL.absoluteString)])
+        XCTAssertLessThan(started.duration(to: .now), .seconds(10), "A refused connection ends the wait")
+        XCTAssertTrue(result.isError, result.output)
+        XCTAssertTrue(result.output.hasPrefix("Error: The page didn't load: "), result.output)
+        XCTAssertNil(try object(result.output)["timed_out"])
+        XCTAssertEqual(alerts, 0, "The tool reports the failure; the app shows no alert")
+    }
+
     func testNavigateRefusesOtherSchemes() async throws {
         let tools = registry()
         for address in ["javascript:alert(1)", "file:///etc/hosts", "wukongmind://open", "data:text/html,hi"] {

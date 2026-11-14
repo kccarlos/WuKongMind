@@ -1313,13 +1313,15 @@ extension ForumBrowserModel: AgentPageNavigating {
         }
         let start: () -> Bool = { [weak self] in
             guard let self else { return false }
+            // The tool reports a failed load itself: no alert on top of it.
             if isBlank {
                 self.deferredLoad = nil
                 self.hideForumsHome()
+                self.suppressLoadError = true
                 self.activeNavigation = self.webView.load(URLRequest(url: url))
                 self.activeNavigationStarted = false
             } else {
-                self.load(url)
+                self.load(url, silentOnFailure: true)
             }
             return true
         }
@@ -1337,10 +1339,11 @@ extension ForumBrowserModel: AgentPageNavigating {
             guard let self else { return false }
             if self.webView.url != nil {
                 self.reload()
+                self.suppressLoadError = true
                 return true
             }
             if let url = self.currentURL, Self.isBrowsableURL(url) {
-                self.load(url)
+                self.load(url, silentOnFailure: true)
                 return true
             }
             return false
