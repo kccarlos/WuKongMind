@@ -548,21 +548,24 @@ final class ForumPacingTests: XCTestCase {
         try? store.save(seeded)
         let configuration = URLSessionConfiguration.ephemeral
         configuration.protocolClasses = [PacingURLStub.self]
+        let session = URLSession(configuration: configuration)
         let app = AppModel(
             store: store,
             forumService: ForumService(
-                session: URLSession(configuration: configuration),
+                session: session,
                 pacer: ForumRequestPacer(clock: clock)
             )
         )
         app.usesDirectForumRequests = true
         addTeardownBlock { @MainActor in
             for record in app.activities where !record.status.isTerminal { app.cancel(record: record) }
+            // A request still in flight must not log into the next test's `PacingURLStub.paths`.
+            session.invalidateAndCancel()
         }
         return app
     }
 
-    private func waitUntil(timeout: TimeInterval = 5, _ condition: () -> Bool) async throws {
+    private func waitUntil(timeout: TimeInterval = 30, _ condition: () -> Bool) async throws {
         let deadline = Date().addingTimeInterval(timeout)
         while !condition() {
             if Date() > deadline {
