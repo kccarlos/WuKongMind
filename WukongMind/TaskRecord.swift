@@ -186,7 +186,7 @@ struct CookieScrubber: Sendable {
         for name in names where !name.isEmpty {
             let escaped = NSRegularExpression.escapedPattern(for: name)
             current = Self.replace(
-                #"(?<![\w-])"# + escaped + #"=[^;&\s"'<>,]+"#, in: current,
+                #"(?<![\w-])"# + escaped + #"=[^;&\s"'<>,\\]+"#, in: current,
                 with: NSRegularExpression.escapedTemplate(for: name) + "=" + Self.marker
             )
         }

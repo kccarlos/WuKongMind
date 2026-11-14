@@ -270,7 +270,7 @@ enum TaskExport {
                    text.contains(String(String(decoding: data, as: UTF8.self).dropFirst().dropLast())) { return true }
             }
             let pattern = #"(?<![\w-])"# + NSRegularExpression.escapedPattern(for: "\(cookie.name)=\(cookie.value)")
-                + #"(?![^;&\s"'<>,])"#
+                + #"(?![^;&\s"'<>,\\])"#
             if text.range(of: pattern, options: .regularExpression) != nil { return true }
         }
         return false

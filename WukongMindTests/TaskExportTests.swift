@@ -53,6 +53,10 @@ final class TaskExportTests: XCTestCase {
         XCTAssertEqual(document.turns.count, 3)
         XCTAssertEqual(document.turns.map(\.turn), [1, 2, 3])
         XCTAssertTrue(document.turns.allSatisfy { $0.rawRequest != nil && $0.rawResponse?.status == 200 })
+        for turn in document.turns {
+            let body = Data((turn.rawRequest?.body ?? "").utf8)
+            XCTAssertNoThrow(try JSONSerialization.jsonObject(with: body), "turn \(turn.turn) raw request stays valid JSON")
+        }
         XCTAssertEqual(document.systems.count, 1)
         XCTAssertEqual(document.toolSets.count, 1)
         XCTAssertEqual(document.turns[1].pageURL, "https://news.example.org/story")
@@ -98,6 +102,7 @@ final class TaskExportTests: XCTestCase {
     func testSurvivingCookieValuesAreFound() {
         XCTAssertTrue(TaskExport.containsCookie("x \(Self.sessionCookie) y", cookies: Self.cookies))
         XCTAssertTrue(TaskExport.containsCookie("a=1; lang=en; b=2", cookies: Self.cookies))
+        XCTAssertTrue(TaskExport.containsCookie(#"{"text":"lang=en\n"}"#, cookies: Self.cookies), "before a JSON escape")
         XCTAssertFalse(TaskExport.containsCookie("language=english, lang=[cookie]", cookies: Self.cookies))
     }
 
@@ -176,7 +181,10 @@ final class TaskExportTests: XCTestCase {
             taskRecords: store
         )
         await session.sendAndWait("Read the page and tell me the headline")
-        guard case .completed = session.runState else { throw XCTSkip("run did not complete: \(session.runState)") }
+        guard case .completed = session.runState else {
+            XCTFail("run did not complete: \(session.runState)")
+            throw CancellationError()
+        }
         XCTAssertEqual(session.wireSizes.count, 3, "sizes for each turn's Request and Response rows")
         XCTAssertEqual(session.toolCalls.first?.modelTurn, AgentTurnInfo(
             turn: 1, model: "claude-sonnet-5-5", usage: AgentTokenUsage(inputTokens: 812, outputTokens: 41)
