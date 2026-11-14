@@ -200,7 +200,7 @@ final class OneLoopComparisonTests: XCTestCase {
         let terms = try XCTUnwrap(text.range(of: "| #261\n"), "comment #261 matches")
         XCTAssertTrue(text[terms.upperBound...].hasPrefix("This offer is back."))
         XCTAssertLessThan(text.distance(from: text.startIndex, to: terms.lowerBound), 12_000, "#261 inside the first file_read window")
-        Self.assertNoteBeforeWrapper(read.result.content, .queryInTopic(topic: "post"))
+        Self.assertNoteBeforeWrapper(read.result.content, .queryInTopic(topic: "post"), .readSavedFile)
         XCTAssertFalse(text.contains(ToolNote.label), "the saved file stays raw")
     }
 
@@ -221,10 +221,10 @@ final class OneLoopComparisonTests: XCTestCase {
     }
 
     /// WUKO-69: the hint is a trusted tool note, the only text before the untrusted wrapper.
-    static func assertNoteBeforeWrapper(_ content: String, _ note: ToolNote, file: StaticString = #filePath, line: UInt = #line) {
-        let prefix = "\(ToolNote.label) \(note.text)\n\(UntrustedWebContent.openingTagPrefix)"
-        XCTAssertTrue(content.hasPrefix(prefix), content.prefix(400).description, file: file, line: line)
-        XCTAssertEqual(content.components(separatedBy: ToolNote.label).count, 2, "one note, outside the wrapper", file: file, line: line)
+    static func assertNoteBeforeWrapper(_ content: String, _ notes: ToolNote..., file: StaticString = #filePath, line: UInt = #line) {
+        let prefix = notes.map { "\(ToolNote.label) \($0.text)\n" }.joined() + UntrustedWebContent.openingTagPrefix
+        XCTAssertTrue(content.hasPrefix(prefix), content.prefix(600).description, file: file, line: line)
+        XCTAssertEqual(content.components(separatedBy: ToolNote.label).count, notes.count + 1, "only these notes, outside the wrapper", file: file, line: line)
     }
 
     // MARK: Record (task 8)

@@ -34,7 +34,7 @@ extension ToolRegistry {
         if !preview.isEmpty {
             lines.append("Preview (first \(grouped(preview.count)) characters):\n\(preview)")
         }
-        lines.append("Read more with file_read(path, offset).")
+        // "Read more with file_read" is a trusted note (`ToolNote.readSavedFile`), added by `makeResult`.
         return (written.path, lines.joined(separator: "\n"))
     }
 

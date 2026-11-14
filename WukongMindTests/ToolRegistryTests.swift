@@ -304,6 +304,22 @@ final class ToolRegistryTests: XCTestCase {
         XCTAssertEqual(isolated.notes, [])
     }
 
+    func testAnExportRebuildsTheNoteBeforeTheWrapper() {
+        let result = TaskExportDocument.ToolResult(
+            callID: "c1", name: "list_latest", arguments: [:], rawArgumentsJSON: nil, output: "page", isError: false,
+            durationMs: nil, wasTruncated: false, totalCharacterCount: 4, savedPath: nil, resultSummary: "",
+            images: [], shape: nil, notes: [.latestList(topic: "topic")]
+        )
+        let turn = TaskExportDocument.Turn(
+            turn: 1, systemHash: "", toolsHash: "", historyCount: 0,
+            response: AgentModelTurnResponse(text: "", toolCalls: [AgentModelToolCall(id: "c1", name: "list_latest", arguments: [:])]),
+            toolResults: [result]
+        )
+        guard case .toolResults(let rebuilt)? = TaskExport.history(start: [], turns: [turn]).last else { return XCTFail("no results") }
+        XCTAssertEqual(rebuilt.first?.content, UntrustedWebContent.modelContent("page", toolName: "list_latest", notes: [.latestList(topic: "topic")]))
+        XCTAssertTrue(rebuilt.first?.content.hasPrefix(ToolNote.label) == true)
+    }
+
     func testANoteIsOneLineAndNoNotesMeansThePlainWrapper() {
         XCTAssertEqual(UntrustedWebContent.modelContent("x", toolName: "t"), UntrustedWebContent.wrap("x", toolName: "t"))
         let decoded = try? JSONDecoder().decode([ToolNote].self, from: Data(#"["a\nb"]"#.utf8))
@@ -416,10 +432,11 @@ final class ToolRegistryTests: XCTestCase {
         let expectedTotal = page.count - fakeKey.count + "[REDACTED_API_KEY]".count
         XCTAssertEqual(result.totalCharacterCount, expectedTotal)
         XCTAssertTrue(result.output.hasPrefix("Saved to results/task-abc/07-read_page.txt (\(expectedTotal.formatted(.number.locale(Locale(identifier: "en_US")))) characters)."), result.output)
-        XCTAssertTrue(result.output.contains("Preview (first 2,000 characters):\n" + String(repeating: "x", count: 2_000) + "\n"))
-        XCTAssertTrue(result.output.hasSuffix("Read more with file_read(path, offset)."))
+        XCTAssertTrue(result.output.hasSuffix("Preview (first 2,000 characters):\n" + String(repeating: "x", count: 2_000)))
+        XCTAssertFalse(result.output.contains("file_read"), "the read hint is a trusted note")
+        XCTAssertEqual(result.notes, [.readSavedFile])
         XCTAssertLessThan(result.output.count, 2_200)
-        XCTAssertTrue(result.modelContent.hasPrefix(#"<untrusted_web_content tool="read_page">"#))
+        XCTAssertTrue(result.modelContent.hasPrefix("\(ToolNote.label) \(ToolNote.readSavedFile.text)\n<untrusted_web_content tool=\"read_page\">"))
         XCTAssertTrue(result.resultSummary.contains("saved to results/task-abc/07-read_page.txt"))
 
         let saved = try String(contentsOf: root.appendingPathComponent("results/task-abc/07-read_page.txt"), encoding: .utf8)

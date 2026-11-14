@@ -153,7 +153,7 @@ extension ToolRegistry {
                     let notice = "Full thread: \(grouped(postCount)) \(postCount == 1 ? "post" : "posts"), "
                         + "\(grouped(scrubbedCompact.count)) characters, saved to \(saved.path)"
                     return ToolExecutionOutput(
-                        content: "\(header)\n\(notice)\n\n\(bounded)\n\nRead any part with file_read(path, offset).",
+                        content: "\(header)\n\(notice)\n\n\(bounded)",
                         summary: "saved to \(saved.path)", savedPath: saved.path,
                         isRanged: true, shape: .thread(result.shape)
                     )

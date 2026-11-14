@@ -414,6 +414,10 @@ struct ToolNote: Codable, Equatable, Sendable {
     /// `search_forum` / `search_comments` showed a hit without a post number.
     static let unnumberedHits = ToolNote(ForumRendering.unnumberedHitsNote)
 
+    /// A result saved to the workspace (over the limit, `save_to`, a long thread).
+    static let readSavedFile = ToolNote("The full result is in the workspace file named in the result; "
+        + "read any part with file_read(path, offset).")
+
     /// `run_js` in the page world failed on the page's Content Security Policy.
     static let pageWorldCSP = ToolNote("The page's Content Security Policy restricts eval or cross-origin requests "
         + "in the 'page' world; retry with environment: 'isolated' unless you specifically need page JS globals.")
@@ -865,6 +869,7 @@ struct ToolRegistry: Sendable {
         // "Page feedback"): the model always sees it, and a saved file stays raw.
         // Its lines are trusted notes; only a new page address stays in the output.
         var notes = notes
+        if finalSavedPath != nil { notes.append(.readSavedFile) }
         if let pageFeedback {
             notes += ToolNote.pageFeedback(pageFeedback)
             finalOutput = UntrustedWebContent.redactSecrets(
