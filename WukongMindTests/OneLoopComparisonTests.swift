@@ -102,6 +102,7 @@ final class OneLoopComparisonTests: XCTestCase {
     func testRecordedNewSideRunsReplay() async throws {
         let runs = RecordedNewSide.defaultDirectory
         let questions = try ComparisonQuestion.confirmed()
+        XCTAssertEqual(Dictionary(grouping: questions, by: \.kind).mapValues(\.count), ["discourse": 5, "hackernews": 5, "wordpress": 5])
         let ids = questions.map(\.id).filter { FileManager.default.fileExists(atPath: runs.appendingPathComponent("run-\($0).json").path) }
         guard !ids.isEmpty else { throw XCTSkip("No recorded new-side runs yet (task 8 records them).") }
         for question in questions where ids.contains(question.id) {
@@ -180,7 +181,7 @@ struct ComparisonQuestion: Equatable, Sendable {
     var prompt: String
 
     var siteKind: SiteKind { SiteKind(kind) }
-    var startsOnHome: Bool { URL(string: startURL)?.path.trimmingCharacters(in: CharacterSet(charactersIn: "/")).isEmpty ?? true }
+    var startsOnHome: Bool { URL(string: startURL).map { $0.query == nil && $0.path.trimmingCharacters(in: CharacterSet(charactersIn: "/")).isEmpty } ?? true }
 
     static let questionsURL = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
         .appendingPathComponent("docs/wukongmind/one-loop-questions.md")
@@ -343,7 +344,7 @@ enum ComparisonApp {
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         let app = AppModel(
             store: PersistentStore(fileURL: folder.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore()),
-            forumService: snapshot.makeForumService(pacer: ForumRequestPacer(clock: InstantPacingClock())),
+            forumService: snapshot.makeForumService(pacer: snapshot.mode == .replay ? ForumRequestPacer(clock: InstantPacingClock()) : ForumRequestPacer()),
             aiService: ai, workspaceDirectory: folder.appendingPathComponent("Documents", isDirectory: true)
         )
         app.usesDirectForumRequests = true
@@ -421,8 +422,7 @@ struct RecordedNewSide {
     static let defaultDirectory = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
         .appendingPathComponent("Fixtures/Comparison/runs", isDirectory: true)
 
-    /// `run-<id>.json` (the task export) and `run-<id>.summaries.json`; names stay unique in the
-    /// flattened test bundle and never start with a snapshot kind's prefix.
+    /// `run-<id>.json` (the task export) and `run-<id>.summaries.json`, never a snapshot kind's prefix.
     func write(to folder: URL, id: String) throws {
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         try TaskExport.encoder.encode(document).write(to: folder.appendingPathComponent("run-\(id).json"), options: .atomic)
@@ -430,12 +430,7 @@ struct RecordedNewSide {
     }
 
     static func load(from folder: URL, id: String) throws -> RecordedNewSide {
-        func data(_ name: String) throws -> Data {
-            let url = folder.appendingPathComponent(name)
-            if FileManager.default.fileExists(atPath: url.path) { return try Data(contentsOf: url) }
-            let bundled = try XCTUnwrap(Bundle(for: OneLoopComparisonTests.self).url(forResource: (name as NSString).deletingPathExtension, withExtension: "json"))
-            return try Data(contentsOf: bundled)
-        }
+        func data(_ name: String) throws -> Data { try Data(contentsOf: folder.appendingPathComponent(name)) }
         let document = try TaskExport.load(try data("run-\(id).json"))
         let summaries = (try? JSONDecoder().decode([String].self, from: try data("run-\(id).summaries.json"))) ?? []
         return RecordedNewSide(
