@@ -681,6 +681,7 @@ final class AppModel: ObservableObject {
         self.browser.homeSiteURL = currentSiteURL
         // Ad/tracker blocking starts before the first page load.
         configureContentBlocking()
+        self.browser.linkSettings = linkSettings
         // (DEBUG samples load only their own page: a restored forum's load
         // failing late would replace it with the Forums home.)
         if self.browser.webView.url == nil, !Self.loadsOnlySamplePage, !Self.isRunningTests {
@@ -2101,6 +2102,7 @@ final class AppModel: ObservableObject {
         }
         if let role = needsProviderSetup, isProviderReady(for: role) { needsProviderSetup = nil }
         contentBlockingSettingsDidChange(from: old)
+        browser.linkSettings = linkSettings
         digestSettingsDidChange(from: old)
         systemSettingsDidChange(from: old)
         let hadVoiceKey = !old.configuration(for: .gemini).apiKey.isEmpty || !old.configuration(for: .vertexAI).apiKey.isEmpty

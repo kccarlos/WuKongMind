@@ -578,6 +578,36 @@ struct SiteBlocking {
     }
 }
 
+/// The address-bar menu's app-link entries for the current site: the
+/// per-site switch and "Open in app" (https pages).
+struct AppLinkMenuItems: View {
+    @ObservedObject var app: AppModel
+    @ObservedObject var browser: ForumBrowserModel
+    let url: URL?
+
+    var body: some View {
+        if let host = url?.host.flatMap(ContentBlockingRules.normalizedHost) {
+            Toggle(isOn: Binding(
+                get: { app.opensApps(on: url) },
+                set: { DCHaptics.tap(); app.setOpensApps($0, on: url) }
+            )) {
+                Label("Open links in apps on this site", systemImage: "arrow.up.forward.app")
+            }
+            .accessibilityIdentifier("menuToggleAppLinksOnSite")
+            .accessibilityHint(host)
+            if url?.scheme?.lowercased() == "https" {
+                Button {
+                    DCHaptics.tap()
+                    browser.openCurrentPageInApp()
+                } label: {
+                    Label("Open in app", systemImage: "arrow.up.forward.app.fill")
+                }
+                .accessibilityIdentifier("menuOpenInApp")
+            }
+        }
+    }
+}
+
 // MARK: - AI button
 
 /// Opens the drawer at medium; a long press starts voice (when set up). A
@@ -819,15 +849,20 @@ struct ForumMenuButton: View {
                             Label("Block Ads on This Site", systemImage: "shield.lefthalf.filled")
                         }
                         .accessibilityIdentifier("menuToggleAdsOnSite")
+                        AppLinkMenuItems(app: app, browser: browser, url: pageURL)
                     } label: {
                         Text(host)
                         Image(systemName: "globe")
                     }
                     .accessibilityIdentifier("forumMenuSite")
                 } else {
-                    Button {} label: { Label(host, systemImage: "globe") }
-                        .disabled(true)
-                        .accessibilityIdentifier("forumMenuSite")
+                    Menu {
+                        AppLinkMenuItems(app: app, browser: browser, url: pageURL)
+                    } label: {
+                        Text(host)
+                        Image(systemName: "globe")
+                    }
+                    .accessibilityIdentifier("forumMenuSite")
                 }
             }
             if let forum = headerForum {

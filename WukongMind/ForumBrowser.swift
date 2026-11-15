@@ -170,6 +170,10 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     /// The page's web content process quit repeatedly; auto-reload paused
     /// and the page shows a small Reload banner.
     @Published private(set) var showsCrashNotice = false
+    /// "This page wants to open <app>": a small banner, never a modal.
+    @Published private(set) var appOpenPrompt: AppOpenPrompt?
+    /// Set by AppModel from Settings.
+    var linkSettings = LinkSettings()
     /// When the web content process last quit (auto-reload once per window).
     private var contentTerminations: [Date] = []
     /// One automatic reload per this many seconds; a second crash inside it
@@ -295,6 +299,7 @@ final class ForumBrowserModel: NSObject, ObservableObject {
         }
 
         webView = WKWebView(frame: .zero, configuration: configuration)
+        webView.customUserAgent = LinkPolicy.userAgent(isPad: UIDevice.current.userInterfaceIdiom == .pad)
         agentBridge = AgentBridge(webView: webView)
         contentBlocker = ContentBlocker(
             controller: configuration.userContentController,
@@ -1022,19 +1027,62 @@ extension ForumBrowserModel: WKNavigationDelegate {
             return
         }
 
-        let scheme = url.scheme?.lowercased() ?? ""
-        if ["http", "https", "about", "blob", "data"].contains(scheme) {
+        let navigation = LinkPolicy.Navigation(
+            url: url,
+            targetIsMainFrame: navigationAction.targetFrame?.isMainFrame == true,
+            isLinkActivated: navigationAction.navigationType == .linkActivated,
+            httpMethod: navigationAction.request.httpMethod,
+            pageHost: webView.url?.host
+        )
+        switch LinkPolicy.decide(navigation, settings: linkSettings) {
+        case .allow:
             // The rule lists for the new main page (an allowed site or a
             // sign-in page has none) go in before its requests start.
-            if navigationAction.targetFrame?.isMainFrame == true, scheme == "http" || scheme == "https" {
+            let scheme = url.scheme?.lowercased()
+            if navigation.targetIsMainFrame, scheme == "http" || scheme == "https" {
                 contentBlocker.prepare(forTopURL: url)
             }
             decisionHandler(.allow)
-        } else {
-            // mailto:, tel:, app links: hand a tapped link to the system.
+        case .reloadInPlace:
+            // Loading the URL ourselves never triggers a Universal Link.
             decisionHandler(.cancel)
-            if navigationAction.navigationType == .linkActivated {
-                Task { @MainActor in UIApplication.shared.open(url) }
+            Task { @MainActor in self.load(url) }
+        case .loadWebURL(let web):
+            decisionHandler(.cancel)
+            Task { @MainActor in self.load(web) }
+        case .promptOpenApp(let appURL):
+            decisionHandler(.cancel)
+            Task { @MainActor in
+                self.appOpenPrompt = AppOpenPrompt(appName: LinkPolicy.appName(forScheme: appURL.scheme), url: appURL)
+            }
+        case .openExternally(let external):
+            decisionHandler(.cancel)
+            Task { @MainActor in UIApplication.shared.open(external) }
+        case .cancel:
+            decisionHandler(.cancel)
+        }
+    }
+
+    /// The prompt's Open.
+    func confirmAppOpen() {
+        guard let url = appOpenPrompt?.url else { return }
+        appOpenPrompt = nil
+        UIApplication.shared.open(url)
+    }
+
+    func dismissAppOpenPrompt() { appOpenPrompt = nil }
+
+    /// "Open in app" for the current page: only when an app claims the link.
+    func openCurrentPageInApp() {
+        guard let url = currentURL, ["http", "https"].contains(url.scheme?.lowercased() ?? "") else { return }
+        UIApplication.shared.open(url, options: [.universalLinksOnly: true]) { [weak self] opened in
+            guard !opened else { return }
+            Task { @MainActor in
+                self?.appOpenPrompt = AppOpenPrompt(
+                    appName: "",
+                    url: nil,
+                    message: String(localized: "No app can open this page.", comment: "Notice after Open in app finds no app")
+                )
             }
         }
     }
@@ -1072,6 +1120,7 @@ extension ForumBrowserModel: WKNavigationDelegate {
         }
         loadStartedFromForumsHome = false
         suppressLoadError = false
+        appOpenPrompt = nil
         // A new document: the facts of the last one no longer apply.
         lastFacts = nil
         // The committed page (after redirects) decides the lists.

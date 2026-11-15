@@ -83,6 +83,7 @@ struct SettingsSitesPage: View {
             ForumRequestPaceSection(app: app)
 
             ContentBlockingSettingsSections(app: app, rules: app.contentRules)
+            LinkSettingsSections(app: app)
         }
         .formStyle(.grouped)
         .accessibilityIdentifier("sitesSettingsPage")
@@ -913,5 +914,47 @@ private struct BrowserBarPreview: View {
         .buttonStyle(.plain)
         .accessibilityLabel(accessibilityLabel)
         .accessibilityAddTraits(selected ? .isSelected : [])
+    }
+}
+
+/// Settings › Browser: whether tapped links may jump to a site's app.
+private struct LinkSettingsSections: View {
+    @ObservedObject var app: AppModel
+
+    var body: some View {
+        Section {
+            Toggle(isOn: $app.settings.openLinksInApps) {
+                Label {
+                    Text("Open links in apps")
+                } icon: {
+                    SettingsIcon(symbol: "arrow.up.forward.app.fill", tint: DCTheme.ink)
+                }
+            }
+            .accessibilityIdentifier("openLinksInAppsToggle")
+        } header: {
+            Text("Links")
+        } footer: {
+            Text("Tapped links stay in WukongMind instead of jumping to the site’s app. Pages that ask to open an app show a prompt first.")
+        }
+
+        if !app.settings.appLinkSiteOverrides.isEmpty {
+            Section {
+                ForEach(app.settings.appLinkSiteOverrides.keys.sorted(), id: \.self) { host in
+                    HStack {
+                        Text(host)
+                        Spacer()
+                        Text(app.settings.appLinkSiteOverrides[host] == true ? "Opens apps" : "Stays in WukongMind")
+                            .foregroundStyle(.secondary)
+                    }
+                    .accessibilityIdentifier("appLinkSite-\(host)")
+                }
+                .onDelete { offsets in
+                    let hosts = app.settings.appLinkSiteOverrides.keys.sorted()
+                    for index in offsets { app.settings.appLinkSiteOverrides[hosts[index]] = nil }
+                }
+            } header: {
+                Text("Sites with their own setting")
+            }
+        }
     }
 }
