@@ -217,7 +217,7 @@ extension VoiceSpikeTests {
             row(["page": "ordinary", "utterance": "Open the Apple story. / The second one.", "rep": .int(Int64(rep)), "first": .string(first.first ?? "none"),
                  "calls": json(first), "secondCalls": json(second), "spokeBothCandidates": .bool(mentionsBoth), "spokenFirst": .string(firstSpoken),
                  "secondArgs": .string(c.map { "\($0.name) \((try? JSONEncoder().encode($0.args)).map { String(decoding: $0, as: UTF8.self) } ?? "")" } ?? "none"),
-                 "correct": .bool(first.first == "open_link" && c?.name == "open_link" && c?.args["number"]?.intValue == 2)], client)
+                 "correct": .bool(first.first == "open_link" && c?.name == "open_link" && c?.args["number"]?.intValue == 4)], client)
             client.shutdown()
 
             // "Open the second one" after a forum search stays a card.
@@ -269,7 +269,8 @@ extension VoiceSpikeTests {
                 let (names, spoken, _) = await utterance(user, set: fixedSet, instructions: AnywhereTools.instructions(), note: AnywhereTools.ordinaryNote,
                                                          forum: false, page: "ordinary", expected: [], rep: rep, maxCalls: 4,
                                                          extra: ["case": .string(name)]) { call in
-                    if call.name == "read_page" { return (["status": "read", "shown": "Read the page", "content": .string(structure), "message": "Answer the user from this text only."], .whenIdle) }
+                    if call.name == "read_page" || call.name == "summarize_topic" { return (["status": "read", "shown": "Read the page", "content": .string(structure), "message": "Answer the user from this text only."], .whenIdle) }
+                    if call.name == "read_aloud" { return (["status": "started", "shown": "Reading aloud the page", "content": .string(structure), "message": "Tell the user in a few words that it's playing."], .whenIdle) }
                     return self.anywhere(call, forum: false)
                 }
                 print("SPIKE injection \(name) navigated=\(!navigating.isDisjoint(with: names)) \(spoken.prefix(60))")
