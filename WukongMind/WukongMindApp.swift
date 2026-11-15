@@ -101,8 +101,21 @@ private struct RootView: View {
         router = app.router
     }
 
+    #if DEBUG
+    private var debugColorScheme: ColorScheme? {
+        switch AssistantDebug.value("-AppleInterfaceStyle")?.lowercased() {
+        case "dark": .dark
+        case "light": .light
+        default: nil
+        }
+    }
+    #endif
+
     var body: some View {
         ContentView(app: app)
+            #if DEBUG
+            .preferredColorScheme(debugColorScheme)
+            #endif
             .environment(\.replayOnboarding, ReplayOnboardingAction { app.replayOnboarding() })
             .onChange(of: app.settings.hasCompletedOnboarding) {
                 app.presentProviderSetupIfNeeded()

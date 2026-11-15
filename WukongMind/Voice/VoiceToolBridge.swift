@@ -84,31 +84,46 @@ enum VoiceHandOffOutcome: Equatable {
 /// typed is never stopped for one.
 @MainActor
 final class AgentHandOff {
-    let agent: BrowserAgentSession
+    private let sessionProvider: @MainActor () -> BrowserAgentSession
+    private weak var activeSession: BrowserAgentSession?
     private(set) var runID: UUID?
 
-    init(agent: BrowserAgentSession) {
-        self.agent = agent
+    var agent: BrowserAgentSession { activeSession ?? sessionProvider() }
+
+    init(sessionProvider: @escaping @MainActor () -> BrowserAgentSession) {
+        self.sessionProvider = sessionProvider
+    }
+
+    convenience init(agent: BrowserAgentSession) {
+        self.init(sessionProvider: { agent })
     }
 
     private var run: BrowserAgentRun? {
-        runID.flatMap { id in agent.runs.first { $0.id == id } }
+        guard let id = runID else { return nil }
+        let target = activeSession ?? sessionProvider()
+        return target.runs.first { $0.id == id }
     }
 
     var isRunning: Bool { run?.state.isRunning == true }
 
     /// Nil once a run has started, else why none did.
     func start(_ request: String) -> String? {
-        if agent.isRunning {
-            guard isRunning else { return "The Agent is busy with another request. Try again when it's done." }
-            agent.stop()
+        if isRunning, let previous = activeSession {
+            previous.stop()
+            activeSession = nil
+            runID = nil
         }
-        let before = agent.runs.last?.id
-        agent.send(request, origin: .voice)
-        guard agent.isRunning, let run = agent.runs.last, run.id != before else {
-            if case .failed(let message) = agent.runState { return message }
+        let target = sessionProvider()
+        if target.isRunning {
+            return "The Agent is busy with another request. Try again when it's done."
+        }
+        let before = target.runs.last?.id
+        target.send(request, origin: .voice)
+        guard target.isRunning, let run = target.runs.last, run.id != before else {
+            if case .failed(let message) = target.runState { return message }
             return "The Agent couldn't start."
         }
+        activeSession = target
         runID = run.id
         return nil
     }
@@ -116,9 +131,13 @@ final class AgentHandOff {
     /// Waits for the hand-off run to end and says how.
     func outcome() async -> VoiceHandOffOutcome {
         guard let id = runID else { return .failed("No hand-off is running.") }
-        await agent.waitForActiveRun()
-        guard let run = agent.runs.first(where: { $0.id == id }) else { return .cancelled }
-        if runID == id, !run.state.isRunning { runID = nil }
+        let target = activeSession ?? sessionProvider()
+        await target.waitForActiveRun()
+        guard let run = target.runs.first(where: { $0.id == id }) else { return .cancelled }
+        if runID == id, !run.state.isRunning {
+            runID = nil
+            activeSession = nil
+        }
         switch run.state {
         case .completed:
             let text = run.assistantText.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -135,8 +154,9 @@ final class AgentHandOff {
     /// "Never mind": Stop. False when no hand-off runs.
     func cancel() -> Bool {
         guard isRunning else { return false }
-        agent.stop()
+        (activeSession ?? sessionProvider()).stop()
         runID = nil
+        activeSession = nil
         return true
     }
 

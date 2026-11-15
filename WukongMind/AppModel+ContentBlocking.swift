@@ -22,7 +22,9 @@ extension AppModel {
     /// and the first page load never waits.
     func configureContentBlocking() {
         let policy = effectiveContentBlockingPolicy
-        browser.applyContentBlocking(policy)
+        for tab in tabs.tabs {
+            tab.browser.applyContentBlocking(policy)
+        }
         if !policy.enabledCategories.isEmpty {
             contentRules.start()
         }
@@ -42,7 +44,12 @@ extension AppModel {
         let policy = effectiveContentBlockingPolicy
         let needsStart = !policy.enabledCategories.isEmpty && contentRules.phase == .idle
         if needsStart { contentRules.start() }
-        guard browser.applyContentBlocking(policy), !browser.showsForumsHome else { return }
+        var currentChanged = false
+        for tab in tabs.tabs {
+            let changed = tab.browser.applyContentBlocking(policy)
+            if tab.id == tabs.currentTabID { currentChanged = changed }
+        }
+        guard currentChanged, !browser.showsForumsHome else { return }
         if needsStart || contentRules.isPreparing {
             let page = browser.currentURL
             Task { [weak self] in

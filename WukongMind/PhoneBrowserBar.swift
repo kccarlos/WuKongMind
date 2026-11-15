@@ -624,6 +624,7 @@ struct PhoneAIButton: View {
     let isAvailable: Bool
     let onOpen: () -> Void
     @State private var completedBrowserAgentBounce = 0
+    @State private var observedAgentID: ObjectIdentifier?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var browserAgent: BrowserAgentSession { app.browserAgent }
@@ -686,8 +687,12 @@ struct PhoneAIButton: View {
                 DCHaptics.tap()
                 voice.toggle()
             }
+            .onAppear { observedAgentID = ObjectIdentifier(browserAgent) }
+            .onChange(of: ObjectIdentifier(browserAgent)) { _, newID in observedAgentID = newID }
             .onChange(of: browserAgent.isRunning) { wasRunning, isRunning in
-                if wasRunning, !isRunning, !app.isAIViewShown, browserAgent.runs.last != nil {
+                let currentID = ObjectIdentifier(browserAgent)
+                defer { observedAgentID = currentID }
+                if observedAgentID == currentID, wasRunning, !isRunning, !app.isAIViewShown, browserAgent.runs.last != nil {
                     completedBrowserAgentBounce &+= 1
                 }
             }

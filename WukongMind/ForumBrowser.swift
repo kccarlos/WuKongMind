@@ -224,6 +224,9 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     var onPageContextChanged: ((PageContext) -> Void)?
     /// Called when a main-frame navigation fails (excluding cancellations).
     var onNavigationFailed: ((Error) -> Void)?
+    /// Called when a link with `target="_blank"` or user-gesture `window.open`
+    /// requests a new window (`BrowserTabs` creates a front tab and returns its `WKWebView`).
+    var onCreatePopupWebView: ((WKWebViewConfiguration, WKNavigationAction) -> WKWebView?)?
     /// Called when only the position fields of `pageContext` change (posts on
     /// screen, highlights, the topic's facts): cheap, and often while scrolling.
     var onPagePositionChanged: ((PageContext) -> Void)?
@@ -263,15 +266,25 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     init(
         contentRules: ContentRuleLibrary? = nil,
         sites: SiteRegistry = .standard,
-        websiteDataStore: WKWebsiteDataStore? = nil
+        websiteDataStore: WKWebsiteDataStore? = nil,
+        popupConfiguration: WKWebViewConfiguration? = nil
     ) {
         let contentRules = contentRules ?? .shared
         let probeExpression = sites.probeExpression
         self.sites = sites
         self.probeExpression = probeExpression
-        let configuration = WKWebViewConfiguration()
-        configuration.websiteDataStore = websiteDataStore ?? .default()
+        let configuration: WKWebViewConfiguration
+        if let popupConfiguration {
+            // Keep WebKit's popup configuration (process pool, related web view,
+            // and shared data store), with this tab's own content controller.
+            popupConfiguration.userContentController = WKUserContentController()
+            configuration = popupConfiguration
+        } else {
+            configuration = WKWebViewConfiguration()
+            configuration.websiteDataStore = websiteDataStore ?? .default()
+        }
         configuration.defaultWebpagePreferences.allowsContentJavaScript = true
+        configuration.preferences.javaScriptCanOpenWindowsAutomatically = false
         configuration.preferences.isElementFullscreenEnabled = true
         #if DEBUG
         if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil {
@@ -560,6 +573,25 @@ final class ForumBrowserModel: NSObject, ObservableObject {
         #endif
         activeNavigation = webView.reload()
         activeNavigationStarted = false
+    }
+
+    /// Primes a newly opened popup tab (`target="_blank"` or `window.open`) with
+    /// its initial URL so it never flashes Home while WebKit starts loading.
+    func prepareForPopupNavigation(to url: URL) {
+        guard Self.isBrowsableURL(url) else { return }
+        hideForumsHome()
+        if currentURL == nil { currentURL = url }
+    }
+
+    /// Clears delegate-facing callbacks when closing a tab so late WebKit IPC
+    /// from the closed web view cannot update app state.
+    func detachCallbacks() {
+        onPageContextChanged = nil
+        onPagePositionChanged = nil
+        onNavigationFailed = nil
+        onCreatePopupWebView = nil
+        knownForumLookup = nil
+        topicFactsLookup = nil
     }
 
     func stopLoading() {
@@ -1292,9 +1324,11 @@ extension ForumBrowserModel: WKUIDelegate {
         for navigationAction: WKNavigationAction,
         windowFeatures: WKWindowFeatures
     ) -> WKWebView? {
-        guard navigationAction.targetFrame == nil,
-              let url = navigationAction.request.url
-        else {
+        guard navigationAction.targetFrame == nil else { return nil }
+        if let onCreatePopupWebView {
+            return onCreatePopupWebView(configuration, navigationAction)
+        }
+        guard let url = navigationAction.request.url else {
             return nil
         }
         Task { @MainActor in
