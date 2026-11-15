@@ -202,6 +202,35 @@ final class DrawerUITests: DCUITestCase {
         add(shot)
     }
 
+    func testNewConversationHeaderButtonClearsConversation() throws {
+        let app = launch(["-dc-browser-agent-fixture-page", "-dc-browser-agent-demo", "recorded",
+                          "-dc-drawer-detent", "large"])
+        showAssistant(in: app)
+        let button = app.buttons["agentNewConversationHeader"]
+        XCTAssertTrue(button.waitForExistence(timeout: 20))
+        XCTAssertTrue(any(app, "agentUserMessage").waitForExistence(timeout: 30))
+        XCTAssertTrue(button.isEnabled)
+        button.tap()
+        XCTAssertTrue(wait(timeout: 10) { !any(app, "agentUserMessage").exists })
+        XCTAssertFalse(button.isEnabled)
+        XCTAssertTrue(any(app, "agentEmptyState").exists)
+    }
+
+    func testJumpToBottomDuringDeceleration() throws {
+        let app = launch(sample)
+        XCTAssertTrue(waitOrDump(any(app, "askBox"), timeout: 20, in: app))
+        dragDrawer(in: app, to: 0.08)
+        let scroll = any(app, "agentScroll")
+        let jump = app.buttons["chatScrollToBottom"]
+        for _ in 0..<4 where !jump.exists { scroll.swipeDown() }
+        XCTAssertTrue(jump.waitForExistence(timeout: 5))
+        let start = scroll.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.3))
+        let end = scroll.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.8))
+        start.press(forDuration: 0.05, thenDragTo: end, withVelocity: .fast, thenHoldForDuration: 0)
+        jump.tap()
+        XCTAssertTrue(wait(timeout: 5) { !jump.exists }, "Tapping while momentum continues must reach the bottom")
+    }
+
     /// A Settings page request (Start a Voice Chat without voice set up).
     func testSettingsRequestShowsOverTheDrawer() throws {
         let app = try launchWithDrawer(presenting: "settings", at: "large")
