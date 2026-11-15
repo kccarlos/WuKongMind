@@ -221,6 +221,55 @@ Notes:
 - To start from a clean slate, uninstall the app:
   `xcrun simctl uninstall <udid> io.github.kccarlos.wukongmind`.
 
+### Simulator builds and tests on the Mac mini
+
+`scripts/remote-test.sh` runs `xcodebuild` on the owner's Mac mini
+(`kechengs-mac-mini-2`, over Tailscale SSH) so heavy simulator work does not
+compete with the agents on this Mac. Device tests stay on `scripts/device-check.sh`.
+
+```sh
+scripts/remote-test.sh -only-testing:WukongMindTests            # unit tests, iPhone 18 Pro
+scripts/remote-test.sh --sim ipad -only-testing:WukongMindUITests/OnboardingUITests
+scripts/remote-test.sh build                                    # build only, no simulator, no lock
+# Live checks: the key is read from this shell's environment (never from the command line)
+herdr-secret run ANTHROPIC_API_KEY -- scripts/remote-test.sh \
+  --secret ANTHROPIC_API_KEY=TEST_RUNNER_ANTHROPIC_API_KEY -only-testing:WukongMindUITests/PhysicalDeviceSmokeTests/testLiveBrowserAgentDarkAndHideSidebar
+herdr-secret run VERTEX_API_KEY -- scripts/remote-test.sh \
+  --secret VERTEX_API_KEY=TEST_RUNNER_VERTEX_API_KEY -only-testing:WukongMindTests/CoreTests/testVertexAIProviderLiveConnectionAndStreaming
+scripts/remote-test.sh --help
+```
+
+- **What it does:** takes the simulator lock on the mini, rsyncs this worktree to
+  `~/remote-test/<worktree>/`, regenerates the project there, runs `xcodebuild`
+  with `-parallel-testing-enabled NO` and `CODE_SIGNING_ALLOWED=NO` and a
+  per-worktree DerivedData (`~/remote-test/<worktree>.dd`, so reruns are
+  incremental), copies the results back, and shuts down a simulator it booted.
+  Only the iPhone 18 Pro and iPad Air 11-inch (M4) simulators are allowed. Run one
+  remote-test per worktree at a time.
+- **Lock:** `mkdir ~/remote-test/locks/<udid>.lock` on the mini. A waiting caller
+  retries every 20 s and prints the holder; a lock older than 45 minutes is dead
+  and taken over. It is released on exit, failure, Ctrl-C and TERM (only a lock
+  this run took), and a run kept alive by a heartbeat is never taken for dead.
+- **Results:** `/Volumes/Ext/dev/build/wukongmind-remote-test/<worktree>-<run>/`
+  (or `--out`): `exit-status`, `failing-tests.txt`, `log-tail.txt`, `run.log`,
+  `timings.txt` and `test.xcresult` (screenshots and attachments are in it). The
+  script exits with xcodebuild's status.
+- **Fallback:** if the mini is unreachable the script prints
+  `REMOTE-TEST UNAVAILABLE` and exits 69. Only then run local `xcodebuild`
+  (see Tests above).
+- **Secrets:** `--secret NAME=TEST_RUNNER_NAME` reads `NAME` from the local
+  environment, sends it over the SSH stdin into a 0600 file in a fresh temp dir
+  on the mini that a trap deletes, and exports it only for `xcodebuild`. Values
+  never appear in a command line on either Mac. Before anything is copied back the
+  results and log are searched for the values: on a hit nothing is copied and the
+  script exits 70. `TEST_RUNNER_KEY=value` arguments are refused.
+  The Anthropic key is for `claude-haiku-5-5` tests only. Live Gemini checks use
+  Vertex first (`VERTEX_API_KEY`, optional `VERTEX_MODEL`) and fall back to AI
+  Studio (`GEMINI_LIVE_KEY`) only if Vertex fails; say which one ran.
+- **Mini setup (one time, done):** Xcode, xcodegen and Homebrew are on the mini;
+  the system Ruby 2.6 needed `gem install --user-install xcodeproj` (user-local
+  gem for `scripts/generate_project.rb`). Everything lives under `~/remote-test`.
+
 ### The shared test iPhone
 
 KC's iPhone 13 (`00008110-001614E8368A601E`) stays plugged into the build Mac
