@@ -110,7 +110,7 @@ final class FixtureSpaForumServer: @unchecked Sendable {
         }
 
         if path == "/plain" {
-            let page = Data("<!doctype html><html><head><title>Plain page</title></head><body><p>Just a page.</p></body></html>".utf8)
+            let page = Data("<!doctype html><html><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Plain page</title></head><body><p>Just a page.</p><p><a href=\"twitter://timeline\">Open Twitter app</a></p></body></html>".utf8)
             let head = [
                 "HTTP/1.1 200 OK", "Content-Type: text/html; charset=utf-8", "Cache-Control: no-store",
                 "Content-Length: \(page.count)", "Connection: close", "", ""

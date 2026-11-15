@@ -1,0 +1,44 @@
+simulator: iPhone 18 Pro (scripts/remote-test.sh)
+passing classes on 1.3.1 (0 failures):
+- BrowseUITests: 2 passed (testOpeningAtAPostHighlightsItAndTheCardsMoveAlongTheHits passed on isolated rerun, 25.417 s)
+- DeveloperModeUITests: 2 passed
+- DictationUITests: 2 passed, 1 skipped
+- ForumMenuUITests: 1 passed (13.429 s)
+- HistoryUITests: 3 passed
+- HomeUITests: 10 passed
+- OnboardingUITests: 5 passed
+- OneLoopLiveAcceptanceUITests: testLivePageChangeSummarizesTheNewPage passed on claude-haiku-5-5
+- ScreenshotThumbnailUITests: 1 passed
+- TodayUITests: 5 passed
+- VoiceUITests: 2 passed, 1 skipped
+- XComLiveUITests: 4 passed
+
+25 failing UI tests verified on v1.3.0 base (cc3b976) via scripts/remote-test.sh — every one fails there too (tracked in WUKO-106):
+- DrawerStreamPerfUITests/testDragIdle — fails at v1.3.0 (cc3b976) too (46.470 s)
+- DrawerStreamPerfUITests/testDragLongTextIdle — fails at v1.3.0 (cc3b976) too (44.570 s)
+- DrawerStreamPerfUITests/testDragWhileStreaming — fails at v1.3.0 (cc3b976) too (44.594 s)
+- DrawerUITests/testAFailedSummaryShowsItsErrorAndRetryWritesIt — fails at v1.3.0 (cc3b976) too (33.102 s; 15 other DrawerUITests pass on 1.3.1, 1 skipped)
+- DrawerUITests/testCitationJumpScrollsThePageAndLowersTheDrawer — fails at v1.3.0 (cc3b976) too (37.708 s)
+- DrawerUITests/testScrollToBottomButtonFloatsOverTheConversation — fails at v1.3.0 (cc3b976) too (16.017 s)
+- PhysicalDeviceSmokeTests/testAgentModeAndWatchedTopics — fails at v1.3.0 (cc3b976) too (24.815 s; 4 other PhysicalDeviceSmokeTests pass on 1.3.1, 2 skipped)
+- PhysicalDeviceSmokeTests/testExpandedWorkspacesRenderMarkdownAndKeepChatComposerVisible — fails at v1.3.0 (cc3b976) too (30.315 s)
+- PhysicalDeviceSmokeTests/testPhoneBrowserToolbarExposesAllActions — fails at v1.3.0 (cc3b976) too (49.717 s)
+- PhysicalDeviceSmokeTests/testPortraitUsesBrowseAssistantWorkspaceSwitcher — fails at v1.3.0 (cc3b976) too (9.148 s)
+- ScriptManagerUITests/testSpaForumPersistReloadReopenRouteAndManagerToggleOff — fails at v1.3.0 (cc3b976) too (22.412 s; 4 other ScriptManagerUITests pass on 1.3.1, 1 skipped)
+- SettingsNavigationUITests/testAgentPageShowsDefaultsSwitchesAndAuditLog — fails at v1.3.0 (cc3b976) too (24.568 s; 15 other SettingsNavigationUITests pass on 1.3.1, 1 skipped; testAIModelsPageShowsBothRolesAndOpensARolesPicker passed in 64.603 s on 1.3.1 and 64.596 s at cc3b976)
+- ShareHandoffUITests/testChatLinkOpensTheChatMode — fails at v1.3.0 (cc3b976) too (88.439 s; 1 other ShareHandoffUITests passes on 1.3.1)
+- ShareHandoffUITests/testSummaryLinkOpensTopicAndAsksForAProvider — fails at v1.3.0 (cc3b976) too (73.531 s)
+- SuggestionRowUITests/testNotifyMeFollowsTheThread — fails at v1.3.0 (cc3b976) too (24.620 s; 4 other SuggestionRowUITests pass on 1.3.1)
+- SuggestionRowUITests/testReadAloudWithoutASummarySummarizesFirst — fails at v1.3.0 (cc3b976) too (38.079 s)
+- SuggestionRowUITests/testSearchThisForumFillsTheBoxThenRunsResearch — fails at v1.3.0 (cc3b976) too (12.503 s)
+- SuggestionRowUITests/testSummarizeThenReadAloudUseTheExistingEngines — fails at v1.3.0 (cc3b976) too (37.923 s)
+- WordPressUITests/testAWordPressPostIsRecognizedAndSummarizedThroughTheInPageLoader — fails at v1.3.0 (cc3b976) too (34.592 s)
+- WordPressUITests/testCitationTapsAfterScrolling — fails at v1.3.0 (cc3b976) too (36.705 s)
+- WordPressUITests/testCitationTapsFromLargeDetent — fails at v1.3.0 (cc3b976) too (36.785 s)
+- WordPressUITests/testCitationTapsWhileStreaming — fails at v1.3.0 (cc3b976) too (36.770 s)
+- WordPressUITests/testCitationTapsWithKeyboardFocused — fails at v1.3.0 (cc3b976) too (36.694 s)
+- WordPressUITests/testCitationTapTargets — fails at v1.3.0 (cc3b976) too (37.505 s)
+- WordPressUITests/testGroupedCitationScrollsToItsNativeCommentWithoutReloading — fails at v1.3.0 (cc3b976) too (40.429 s)
+
+single unverified UI failure on 1.3.1 (listed under Not proven; tracked in WUKO-106):
+- SettingsNavigationUITests/testSavedAPIKeyFieldTakesFocusToReplaceTheKey — failed once on 1.3.1 (18.857 s, masked key length mismatch); passed at v1.3.0 (cc3b976) in 19.004 s; not re-run in isolation on 1.3.1, cause unknown.

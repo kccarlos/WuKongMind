@@ -1,0 +1,6 @@
+PAGE-CHANGE run 1 answer (186 chars): 这是一个 wiki 式帖子，汇总了跨设备剪贴板推送、同步和获取工具。讨论的核心难点是 Android 10 之后后台无法可靠读写剪贴板，iOS 也受权限限制，目前没有通用解法。选工具前应先确认所用版本和系统是否仍被维护，因为帖子跨越 2020 到 2024 年。
+PAGE-CHANGE run 2 answer (491 chars): A five-year survey of 120 western Pacific reefs found that coral cover recovered to 80% of pre-bleaching levels within four years on reefs protected from fishing, about twice as fast as predicted. Unprotected reefs recovered only half as much. The researchers credit grazing fish that keep algae from smothering young coral. They warn that recovery depends on bleaching events being at least six years apart, a gap that ocean warming is shrinking. The authors call for more no-fishing zones.
+PAGE-CHANGE turn 1: ["summarize_topic"] in=9210 cacheRead=9206 out=54
+PAGE-CHANGE turn 2: [] in=11663 cacheRead=9206 out=303
+PAGE-CHANGE turn 3: ["read_page"] in=11973 cacheRead=11661 out=72
+PAGE-CHANGE turn 4: [] in=12304 cacheRead=11969 out=205

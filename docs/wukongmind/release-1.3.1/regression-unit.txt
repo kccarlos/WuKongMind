@@ -1,0 +1,12 @@
+simulator: iPhone 18 Pro (scripts/remote-test.sh -only-testing:WukongMindTests, exit 0)
+Test Suite 'ForumMenuHeaderTests' passed (3 tests, 0 failures).
+Test Suite 'LinkPolicyTests' passed (11 tests, 0 failures).
+Test Suite 'OneLoopAcceptanceTests' passed:
+  testMultiStepDiscourseRequestReplays passed (0.187 seconds).
+  testPageChangeReadsTheNewPageAndKeepsTheSummaryShort passed (0.013 seconds).
+  testRequestPrefixIsIdenticalAcrossAPageChange passed (0.041 seconds).
+  testThePromptPutsTheWholeAnswerInTheFinalMessage passed (0.000 seconds).
+Test Suite 'OneLoopComparisonTests' passed:
+  testRecordedNewSideRunsReplay passed (4.494 seconds).
+Test Suite 'WukongMindTests.xctest' passed at 2026-11-15 03:12:18.740.
+Executed 1123 tests, with 11 tests skipped and 0 failures (0 unexpected) in 106.318 seconds.
