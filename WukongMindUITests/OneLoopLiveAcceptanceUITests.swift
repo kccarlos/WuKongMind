@@ -196,4 +196,65 @@ final class OneLoopLiveAcceptanceUITests: DCUITestCase {
         XCTAssertTrue(waitOrDump(any(app, "savedAnswerView"), timeout: 10, in: app), "SavedAnswerView did not open.")
         capture("check8-saved-answer-long")
     }
+
+    /// WUKO-73, the owner's 1.3.0 flow: summarize a uscardforum thread, go to bbc.com, then
+    /// "Summarize this page". The second run must read the BBC page, not re-summarize the thread,
+    /// and the forum reply must not restate the summary card. `TEST_RUNNER_PAGE_CHANGE_THREAD`
+    /// picks the thread.
+    func testLivePageChangeSummarizesTheNewPage() throws {
+        guard !apiKey.isEmpty else { throw XCTSkip("Set TEST_RUNNER_ANTHROPIC_API_KEY.") }
+        try requireNetwork()
+        let picked = ProcessInfo.processInfo.environment["PAGE_CHANGE_THREAD"].flatMap { $0.isEmpty ? nil : $0 }
+        let app = launchLive(["-dc-open", picked ?? "https://www.uscardforum.com/latest", "-dc-browser-agent-live-key"])
+        if picked == nil {
+            // No thread given: open the first topic on the latest list, as a person would.
+            showBrowser(in: app)
+            let topic = app.webViews.links.matching(NSPredicate(format: "label MATCHES %@", ".{12,}")).element(boundBy: 3)
+            XCTAssertTrue(waitOrDump(topic, timeout: 90, in: app), "No topic on uscardforum's latest list.")
+            capture("page-change-0-latest")
+            topic.tap()
+            sleep(5)
+        }
+        let thread = app.buttons["browserTitle"].firstMatch.label
+        showAssistant(in: app)
+        let recognized = app.buttons["suggestion-summarizeThread"].firstMatch.waitForExistence(timeout: 90)
+        capture("page-change-1-thread")
+        XCTAssertTrue(recognized, "\(thread) was not recognized as a thread.")
+        type("Summarize this thread and replies", in: app)
+        let first = waitForTurn(app, timeout: 420)
+        capture("page-change-2-forum-summary")
+        let firstRows = toolRows(app)
+        let replies = { app.descendants(matching: .any).matching(identifier: "agentAssistantReply").allElementsBoundByIndex.map(\.label) }
+        let forumReply = replies().joined(separator: "\n")
+        evidence("page-change-forum", "model: \(Self.model)\nthread: \(thread)\nstatus: \(first)\ntools:\n"
+                 + firstRows.joined(separator: "\n") + "\nreply (\(forumReply.count) characters): \(forumReply)")
+        XCTAssertTrue(first.contains("Done"), first)
+        XCTAssertTrue(firstRows.contains { $0.contains("Summarized thread") }, "\(firstRows)")
+
+        // The person goes to bbc.com in the browser.
+        showBrowser(in: app)
+        let title = app.buttons["browserTitle"].firstMatch
+        XCTAssertTrue(waitOrDump(title, timeout: 10, in: app), "No browser title.")
+        title.tap()
+        let field = app.textFields["addressField"]
+        XCTAssertTrue(waitOrDump(field, timeout: 10, in: app), "No address field.")
+        RunLoop.current.run(until: Date().addingTimeInterval(1))
+        field.typeText("https://www.bbc.com\n")
+        _ = wait(timeout: 60) { title.exists && title.label.lowercased().contains("bbc") }
+        sleep(3)
+        capture("page-change-3-bbc")
+
+        showAssistant(in: app)
+        let before = replies().count
+        type("Summarize this page", in: app)
+        let second = waitForTurn(app, timeout: 300)
+        capture("page-change-4-bbc-summary")
+        let allRows = toolRows(app)
+        let newsReply = replies().dropFirst(before).joined(separator: "\n")
+        evidence("page-change-news", "model: \(Self.model)\nbrowser title: \(title.exists ? title.label : "(none)")\nstatus: \(second)\n"
+                 + "tools (both runs):\n" + allRows.joined(separator: "\n") + "\nreply: \(newsReply)")
+        XCTAssertTrue(second.contains("Done"), second)
+        XCTAssertFalse(newsReply.isEmpty, "No reply to \"Summarize this page\".")
+        XCTAssertEqual(allRows.filter { $0.contains("Summarized thread") }.count, 1, "The thread was summarized again: \(allRows)")
+    }
 }
