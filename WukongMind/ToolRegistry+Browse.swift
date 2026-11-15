@@ -21,7 +21,7 @@ final class BrowseToolContext {
     weak var navigator: VoiceNavigator?
     nonisolated let site: VoiceSite
     /// The page is a recognized forum home or topic: the forum and browse tools apply.
-    nonisolated let isOnForum: Bool
+    var isOnForum: Bool
     var eyesFree = false
 
     init(navigator: VoiceNavigator?, site: VoiceSite, isOnForum: Bool? = nil) {
@@ -30,7 +30,10 @@ final class BrowseToolContext {
         self.isOnForum = isOnForum ?? (navigator?.pageContext.isForum ?? false)
     }
 
-    func run(_ body: (VoiceNavigator) async -> BrowseResult) async -> String {
+    func run(forumOnly: Bool = false, _ body: (VoiceNavigator) async -> BrowseResult) async -> String {
+        if forumOnly, !isOnForum {
+            return Self.encode(BrowseResult(status: .unavailable, shown: VoiceToolBridge.notForumMessage), eyesFree: eyesFree)
+        }
         guard let navigator else {
             return Self.encode(BrowseResult(status: .unavailable, shown: "The browser isn't available."), eyesFree: eyesFree)
         }
@@ -74,19 +77,25 @@ final class BrowseToolContext {
 
     func move(action: String, post: Int?, navigator: VoiceNavigator) async -> BrowseResult {
         switch action {
-        case "next": return await navigator.next()
-        case "previous": return await navigator.previous()
         case "back": return navigator.back()
         case "forward": return navigator.forward()
-        case "post":
-            guard let post else { return BrowseResult(status: .notFound, shown: "No post number was given.") }
-            return await navigator.goToPost(post)
-        case "top": return await navigator.goToPost(1)
-        case "bottom":
-            guard let topic = navigator.pageContext.topic else {
-                return BrowseResult(status: .unavailable, shown: "No topic is open.")
+        case "next", "previous", "post", "top", "bottom":
+            guard isOnForum else {
+                return BrowseResult(status: .unavailable, shown: VoiceToolBridge.notForumMessage)
             }
-            return await navigator.openTopic(.topic(topic.topicID), at: .last, includeContent: true)
+            switch action {
+            case "next": return await navigator.next()
+            case "previous": return await navigator.previous()
+            case "post":
+                guard let post else { return BrowseResult(status: .notFound, shown: "No post number was given.") }
+                return await navigator.goToPost(post)
+            case "top": return await navigator.goToPost(1)
+            default:
+                guard let topic = navigator.pageContext.topic else {
+                    return BrowseResult(status: .unavailable, shown: "No topic is open.")
+                }
+                return await navigator.openTopic(.topic(topic.topicID), at: .last, includeContent: true)
+            }
         default:
             return BrowseResult(status: .unavailable, shown: "Unknown move \"\(action)\".")
         }
@@ -110,9 +119,9 @@ final class BrowseToolContext {
 }
 
 extension ToolRegistry {
-    /// The voice session's own tools: `read_page` in structure mode, plus, on
-    /// a forum page, `search_forum` with results as cards and the four browse
-    /// tools. All `[.voice]`.
+    /// The voice session's own tools: `read_page` in structure mode,
+    /// `search_forum` with results as cards, and the four browse tools.
+    /// Declared on every page; forum-only calls refuse off a forum. All `[.voice]`.
     static func browseTools(context: AgentToolContext) -> [AgentTool] {
         guard let browse = context.browse else { return [] }
         return [voiceReadPageTool(bridge: context.bridge)] + browseTools(browse: browse)
@@ -121,15 +130,14 @@ extension ToolRegistry {
     /// The navigator-backed tools alone (also the bridge's registry when the
     /// app gives it no builder).
     static func browseTools(browse: BrowseToolContext) -> [AgentTool] {
-        guard browse.isOnForum else { return [] }
-        return [
+        [
             searchCardsTool(browse: browse),
-            browseTool(BrowseToolName.open, browse: browse) { args, navigator in await browse.open(args, navigator: navigator) },
-            browseTool(BrowseToolName.move, browse: browse) { args, navigator in
+            browseTool(BrowseToolName.open, browse: browse, forumOnly: true) { args, navigator in await browse.open(args, navigator: navigator) },
+            browseTool(BrowseToolName.move, browse: browse, forumOnly: false) { args, navigator in
                 await browse.move(action: args["action"]?.stringValue ?? "", post: args["post"]?.intValue, navigator: navigator)
             },
-            browseTool(BrowseToolName.focus, browse: browse) { args, navigator in await browse.focus(args, navigator: navigator) },
-            browseTool(BrowseToolName.readPost, browse: browse) { args, navigator in
+            browseTool(BrowseToolName.focus, browse: browse, forumOnly: true) { args, navigator in await browse.focus(args, navigator: navigator) },
+            browseTool(BrowseToolName.readPost, browse: browse, forumOnly: true) { args, navigator in
                 args["scope"]?.stringValue == "visible" ? await navigator.readVisible() : await navigator.read(post: args["post"]?.intValue)
             }
         ]
@@ -142,20 +150,19 @@ extension ToolRegistry {
     }
 
     private static func searchCardsTool(browse: BrowseToolContext) -> AgentTool {
-        let site = browse.site
-        return AgentTool(
+        AgentTool(
             definition: AgentToolDefinition(
                 name: ForumToolName.searchForum,
                 description: """
                 Search the forum the user is on, or only the open topic, and show the hits on screen as numbered cards, best first. \
                 Call it when the user asks to find, look for or search something, or asks whether anyone wrote about something. It \
-                only shows cards: questions about what people think or recommend go to hand_off_to_agent. \
-                Pass a few distinctive words in the forum's language (the topic brief says which): \(site.profile.findHint) \
-                Scope "topic" searches inside the open topic \
-                ("where did someone mention the firmware version"). The result lists the hits by number with title, author and a line. \
-                If one hit clearly fits, call browse_open with its card number right away, without asking. If several could fit, say \
-                the titles of the top two or three and let the user pick; they are on the cards. If nothing matched, say so and offer \
-                other words. Never read out ids, post numbers in bulk or URLs.
+                only shows cards: questions about what people think or recommend go to hand_off_to_agent. Pass a few distinctive \
+                words in the forum's language (the screen note says which): \(VoiceSiteProfile.neutral.findHint) Scope "topic" \
+                searches inside the open topic ("where did someone mention the firmware version"). The result lists the hits by \
+                number with title, author and a line. If one hit clearly fits, call browse_open with its card number right away, \
+                without asking. If several could fit, say the titles of the top two or three and let the user pick; they are on \
+                the cards. If nothing matched, say so and offer other words. Never read out ids, post numbers in bulk or URLs. \
+                Only works when the screen note says the user is on a forum; elsewhere it refuses.
                 """,
                 parameters: [
                     ToolParameterSchema(name: "query", type: .string, description: "A few distinctive search words, in the forum's language.", minLength: 1),
@@ -165,7 +172,7 @@ extension ToolRegistry {
             ),
             summarizeArguments: { $0["query"]?.stringValue ?? "" },
             execute: { args in
-                let content = await browse.run { navigator in
+                let content = await browse.run(forumOnly: true) { navigator in
                     await navigator.find(args["query"]?.textValue ?? "", scope: args["scope"]?.stringValue == "topic" ? .topic : .forum)
                 }
                 return ToolExecutionOutput(content: content)
@@ -178,13 +185,16 @@ extension ToolRegistry {
     private static func browseTool(
         _ name: String,
         browse: BrowseToolContext,
+        forumOnly: Bool,
         body: @escaping @MainActor ([String: JSONValue], VoiceNavigator) async -> BrowseResult
     ) -> AgentTool {
         AgentTool(
-            definition: browseDefinition(name, site: browse.site),
+            definition: browseDefinition(name),
             summarizeArguments: { JSONValue.encodeCompactJSON($0) },
             execute: { args in
-                ToolExecutionOutput(content: await browse.run { navigator in await body(args, navigator) })
+                ToolExecutionOutput(content: await browse.run(forumOnly: forumOnly) { navigator in
+                    await body(args, navigator)
+                })
             },
             surfaces: [.voice],
             spokenResult: browseSpokenResult
@@ -213,7 +223,7 @@ extension ToolRegistry {
         )
     }
 
-    private static func browseDefinition(_ name: String, site: VoiceSite) -> AgentToolDefinition {
+    private static func browseDefinition(_ name: String) -> AgentToolDefinition {
         switch name {
         case BrowseToolName.open:
             return AgentToolDefinition(
@@ -225,7 +235,8 @@ extension ToolRegistry {
                 the first post the user hasn't seen. Call it at once when the user asks to go somewhere ("take me to the solution", \
                 "open the second one", "show me the latest reply"); navigation can be undone, so don't ask first. The result says \
                 what is on screen and carries the landing post's text. Tell the user in a few words where you are and give the \
-                gist; the post is on screen, so don't read it out unless the result says reading is fine.
+                gist; the post is on screen, so don't read it out unless the result says reading is fine. Only works when the \
+                screen note says the user is on a forum; elsewhere it refuses.
                 """,
                 parameters: [
                     ToolParameterSchema(name: "card", type: .integer, description: "A card number from the last search, like 2.", minimum: 1),
@@ -238,11 +249,11 @@ extension ToolRegistry {
             return AgentToolDefinition(
                 name: name,
                 description: """
-                Move along the current list (the cards from the last search or focus) or around the open topic. action: "next" or \
-                "previous" along the list, "back" or "forward" in the browser's history, "post" with post to go to post N of the \
-                open topic, "top" for the first post, "bottom" for the last. Call it right away for "next", "go back", "post 37" or \
-                "the first post". The result carries the post now on screen: say in a few words where you are and what it says, \
-                without reading it out. At the end of the list, say so.
+                Move along the current list (the cards from the last search or focus), around the open topic, or in browser history. \
+                action: "back" or "forward" in the browser's history (works on any page); on a forum, "next" or "previous" along the \
+                list, "post" with post to go to post N of the open topic, "top" for the first post, "bottom" for the last. Call it \
+                right away for "next", "go back", "post 37" or "the first post". The result carries the post now on screen: say in a \
+                few words where you are and what it says, without reading it out. At the end of the list, say so.
                 """,
                 parameters: [
                     ToolParameterSchema(name: "action", type: .string, description: "Where to move.", enumValues: ["next", "previous", "back", "forward", "post", "top", "bottom"]),
@@ -251,27 +262,21 @@ extension ToolRegistry {
                 required: ["action"]
             )
         case BrowseToolName.focus:
-            // A site that cannot narrow to an author does not mention the author modes.
-            let authors = site.offersAuthorFocus
-                ? "\"user\" with user shows only that author's posts; \"op\" only the opening poster's; " : ""
-            let examples = site.offersAuthorFocus
-                ? "\"only what the original poster said\", \"just alice's posts\", \"show me the best answers\" or \"back to everything\""
-                : "\"show me the best answers\" or \"back to everything\""
-            var parameters = [ToolParameterSchema(name: "mode", type: .string, description: "What to show.", enumValues: site.focusModes)]
-            if site.offersAuthorFocus {
-                parameters.append(ToolParameterSchema(name: "user", type: .string, description: "The author's username, with mode \"user\"."))
-            }
-            parameters.append(ToolParameterSchema(name: "posts", type: .array, description: "Post numbers to highlight, with mode \"posts\".", itemsType: .integer))
             return AgentToolDefinition(
                 name: name,
                 description: """
-                Narrow the open topic. mode: \(authors)\
+                Narrow the open topic. mode: "user" with user shows only that author's posts; "op" only the opening poster's; \
                 "top" the most liked posts; "posts" with posts highlights those posts as a tour, starting at the first; "clear" \
                 shows the whole topic again. The focused posts become the current list, so "next" moves along them. Call it for \
-                \(examples). \
-                The result says how many posts there are and carries the first one's text: give the user the count and the gist.
+                "only what the original poster said", "just alice's posts", "show me the best answers" or "back to everything". \
+                The result says how many posts there are and carries the first one's text: give the user the count and the gist. \
+                Only works when the screen note says the user is on a forum; elsewhere it refuses.
                 """,
-                parameters: parameters,
+                parameters: [
+                    ToolParameterSchema(name: "mode", type: .string, description: "What to show.", enumValues: VoiceSite.allFocusModes),
+                    ToolParameterSchema(name: "user", type: .string, description: "The author's username, with mode \"user\"."),
+                    ToolParameterSchema(name: "posts", type: .array, description: "Post numbers to highlight, with mode \"posts\".", itemsType: .integer)
+                ],
                 required: ["mode"]
             )
         default:
@@ -281,7 +286,7 @@ extension ToolRegistry {
                 Get the full text of a post in the open topic: post N, or the current post when post is left out; scope "visible" \
                 returns every post on screen. Only call it when the user asks about a post whose text you haven't received in a \
                 note or a tool result; posts you navigated to already came with their text. Answer only from what it returns, \
-                never from a guess.
+                never from a guess. Only works when the screen note says the user is on a forum; elsewhere it refuses.
                 """,
                 parameters: [
                     ToolParameterSchema(name: "post", type: .integer, description: "The post number; leave out for the current post.", minimum: 1),

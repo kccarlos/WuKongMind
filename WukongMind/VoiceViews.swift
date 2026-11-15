@@ -409,7 +409,7 @@ struct SettingsVoicePage: View {
                 Toggle(isOn: $app.settings.voiceEnabled) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Talk to WukongMind")
-                        Text("A microphone in the browser bar starts a live conversation that can find, open and read posts for you.")
+                        Text("A microphone in the browser bar starts a live conversation that can open pages, move around and read what is on screen.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -417,7 +417,7 @@ struct SettingsVoicePage: View {
                 .tint(DCTheme.goldInk)
                 .accessibilityIdentifier("voiceEnabled")
             } footer: {
-                Text("Voice uses Google Gemini Live with your own Google Gemini or Vertex AI key. This setting is kept on this device.")
+                Text("Voice sends your audio, the title and host of each page you visit (never the full address) and page text when needed to Google Gemini Live, with your own Google Gemini or Vertex AI key. This setting is kept on this device.")
             }
 
             if providers.isEmpty {

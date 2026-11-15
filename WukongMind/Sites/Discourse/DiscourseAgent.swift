@@ -5,7 +5,6 @@ import Foundation
 enum DiscourseAgent {
     /// Its words in the voice agent.
     static let voice = VoiceSiteProfile(
-        persona: "a reading companion for Discourse forums",
         findHint: "Discourse matches words, so search an English forum in English even when the user speaks another language.",
         languageHint: "Discourse search matches words, so a Chinese question about an English forum is searched with English words."
     )

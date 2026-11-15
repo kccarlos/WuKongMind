@@ -10,18 +10,30 @@ enum ForumToolName {
 
 extension ToolRegistry {
     /// Forum search, comment search, latest listing, and thread reading tools
-    /// (`design-one-loop.md` "Decisions"). The text Agent declares the same four
-    /// on every page, with wording that names no site, so the tool list stays
-    /// byte-identical across page changes and the prompt cache holds (WUKO-73);
-    /// off a supported site, or for a tool the site lacks, they refuse. The
-    /// site's own words go in the page context instead. Voice keeps the
-    /// site's `read_topic` only while on a forum.
+    /// (`design-one-loop.md` "Decisions"). Both surfaces declare site-neutral
+    /// definitions on every page; off a supported site, or for a tool the site
+    /// lacks, they refuse. Voice declares only `read_topic` from this group
+    /// (`search_forum` is the card tool in `ToolRegistry+Browse.swift`).
     static func forumTools(context: AgentToolContext, surface: ToolSurface = .text) -> [AgentTool] {
         guard surface == .text else {
-            guard let forum = context.forum else { return [] }
-            return [makeReadTopicTool(forum: forum, definition: readTopicDefinition(
-                topic: forum.scope.adapter.agent.topicNoun, urlHint: "Thread URL on \(forum.scope.siteURL)"
-            ))]
+            var voiceReadTopic = readTopicDefinition(topic: "thread", urlHint: "Thread or post URL on the current site")
+            voiceReadTopic.description += " Only works when the screen note says the user is on a forum; elsewhere it refuses."
+            if let forum = context.forum {
+                return [makeReadTopicTool(forum: forum, definition: voiceReadTopic)]
+            }
+            return [AgentTool(
+                definition: voiceReadTopic,
+                summarizeArguments: { summarizeReadTopicArguments($0) },
+                execute: { _ in
+                    let content = await BrowseToolContext.encode(
+                        BrowseResult(status: .unavailable, shown: VoiceToolBridge.notForumMessage),
+                        eyesFree: false
+                    )
+                    return ToolExecutionOutput(content: content, summary: "Not a forum")
+                },
+                surfaces: [.voice],
+                spokenResult: browseSpokenResult
+            )]
         }
         let forum = context.forum
         let specs = forum?.scope.adapter.agent.siteTools ?? []

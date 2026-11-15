@@ -49,9 +49,20 @@ extension AppModel: VoiceNavigator {
     func cancelHandOff() -> Bool { agentHandOff.cancel() }
     var handOffProgress: String? { agentHandOff.progress }
 
-    /// The page's site, else the current forum's, else the registry's fallback.
+    /// The page's site, else the registry's fallback.
     var voiceSite: VoiceSite {
-        sites.voiceSite(for: pageContext.site ?? currentForum?.kind)
+        sites.voiceSite(for: pageContext.site)
+    }
+
+    var pageTitle: String? {
+        if let topicTitle = pageContext.topic?.title.trimmingCharacters(in: .whitespacesAndNewlines), !topicTitle.isEmpty {
+            return topicTitle
+        }
+        if let webTitle = browser.webView.title?.trimmingCharacters(in: .whitespacesAndNewlines), !webTitle.isEmpty {
+            return webTitle
+        }
+        let current = browser.pageTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        return current.isEmpty || current == ForumBrowserModel.defaultPageTitle ? nil : current
     }
 
     func voiceTopicBrief() async -> VoiceTopicBrief? {
@@ -180,8 +191,7 @@ extension AppModel: VoiceNavigator {
     /// `.voice` tools, with a fresh forum read budget per call.
     func voiceToolRegistry(browse: BrowseToolContext) -> ToolRegistry {
         let forum = makeForumToolContext()
-        let pageBrowse = BrowseToolContext(navigator: browse.navigator, site: browse.site, isOnForum: forum != nil)
-        pageBrowse.eyesFree = browse.eyesFree
+        browse.isOnForum = forum != nil
         return ToolRegistry.m3(context: AgentToolContext(
             bridge: browser.agentBridge,
             workspace: agentWorkspace,
@@ -189,7 +199,7 @@ extension AppModel: VoiceNavigator {
             settings: AgentToolSettings(redactedSecrets: browserAgentRuntimeConfig.redactedSecrets),
             forum: forum,
             capabilities: capabilityToolContext,
-            browse: pageBrowse
+            browse: browse
         ), surface: .voice)
     }
 

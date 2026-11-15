@@ -2,7 +2,6 @@ import Foundation
 
 enum HackerNewsAgent {
     static let voice = VoiceSiteProfile(
-        persona: "a reading companion for Hacker News stories and nested comments",
         findHint: "Search Hacker News with concise English technical terms, then read the story and its comments.",
         languageHint: "Search in English even when the user asks in another language; answer in the user's language.")
     static let discussion = DiscussionProfile(

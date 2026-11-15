@@ -147,8 +147,17 @@ final class ManualVoiceClock: VoiceClock {
 @MainActor
 final class FakeVoiceNavigator: VoiceNavigator {
     var pageContext = PageContext.empty
+    var explicitPageTitle: String?
     var browseCursor = BrowseCursor()
     var voiceSite = SiteRegistry.standard.voiceFallback
+
+    var pageTitle: String? {
+        if let explicitPageTitle { return explicitPageTitle }
+        guard let title = pageContext.topic?.title.trimmingCharacters(in: .whitespacesAndNewlines), !title.isEmpty else {
+            return nil
+        }
+        return title
+    }
     var handOffProgress: String?
     /// A real hand-off over a real Agent session; nil: scripted.
     var agentHandOff: AgentHandOff?
@@ -251,9 +260,8 @@ final class FakeVoiceNavigator: VoiceNavigator {
     /// The voice registry a forum page gets (the browse tools), whatever
     /// the fake page says.
     static func forumRegistry(_ browse: BrowseToolContext) -> ToolRegistry {
-        let onForum = BrowseToolContext(navigator: browse.navigator, site: browse.site, isOnForum: true)
-        onForum.eyesFree = browse.eyesFree
-        return ToolRegistry(tools: ToolRegistry.browseTools(browse: onForum))
+        browse.isOnForum = true
+        return ToolRegistry(tools: ToolRegistry.browseTools(browse: browse))
     }
 
     func voiceTopicBrief() async -> VoiceTopicBrief? { brief }

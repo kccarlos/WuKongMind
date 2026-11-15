@@ -5,7 +5,6 @@ import Foundation
 enum WordPressAgent {
     /// Its words in the voice agent.
     static let voice = VoiceSiteProfile(
-        persona: "a reading companion for WordPress sites: articles with reader comments",
         findHint: "WordPress search matches words, so search in the site's own language even when the user speaks another.",
         languageHint: "WordPress search matches words, so a question in another language is searched with words in the site's language."
     )
