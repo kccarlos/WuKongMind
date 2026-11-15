@@ -245,7 +245,7 @@ modelContext.registerTool({
 
 ## Suggestions
 
-`PageSuggestions` (`SuggestionRow.swift:85`, `:102`) reads the page kind from `PageContext.State`. It gains two inputs: the site's state, and one fixed page check.
+`PageSuggestions` (`SuggestionRow.swift:85`, `:103`) reads the page kind from `PageContext.State`. It gains two inputs: the site's state, and one fixed page check.
 
 | Page | Suggestions |
 |---|---|
