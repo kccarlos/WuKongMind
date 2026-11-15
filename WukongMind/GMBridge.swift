@@ -182,7 +182,6 @@ final class GMBridge {
 
     func syncHandlers(
         for scriptIDs: Set<String>,
-        hasPageScripts: Bool = false,
         worlds: [String: WKContentWorld] = [:],
         on controller: WKUserContentController
     ) {
@@ -194,12 +193,7 @@ final class GMBridge {
         for id in scriptIDs where registeredHandlers[id] == nil {
             ensureHandlerRegistered(for: id, world: worlds[id], on: controller)
         }
-        if hasPageScripts {
-            ensurePageHandlerRegistered(on: controller)
-        } else if pageReportHandler != nil {
-            pageReportHandler = nil
-            controller.removeScriptMessageHandler(forName: Self.pageReportHandlerName, contentWorld: .page)
-        }
+        ensurePageHandlerRegistered(on: controller)
     }
 
     func ensureHandlerRegistered(
@@ -464,18 +458,9 @@ final class GMBridge {
         let ungranted = powerFns.map { "const \($0) = () => { throw new Error(\(UserScript.encodeSingleLineJSONString("`\($0)` needs `@grant \($0)`"))); };" }.joined(separator: "\n")
         let unsupported = unsupportedGMFunctions.map { "const \($0) = () => { throw new Error(\(UserScript.encodeSingleLineJSONString("`\($0)` is not supported in WukongMind"))); };" }.joined(separator: "\n")
         return """
-        const GM_info = (() => {
-          const info = \(infoJSON);
-          if (info && info.script) {
-            if (Array.isArray(info.script.matches)) Object.freeze(info.script.matches);
-            if (Array.isArray(info.script.grant)) Object.freeze(info.script.grant);
-            Object.freeze(info.script);
-          }
-          return Object.freeze(info);
-        })();
-        const __wukongOrigLog = console.log.bind(console);
-        const GM_log = (...args) => { __wukongOrigLog("[" + \(nameJSON) + "]", ...args); };
-        const GM_addStyle = (css) => window.__wukongAddPageScriptStyle(\(scriptIDJSON), String(css == null ? "" : css));
+        const GM_info = __wukongFreezeInfo(\(infoJSON));
+        const GM_log = (...args) => __wukongLog("[" + \(nameJSON) + "]", ...args);
+        const GM_addStyle = (css) => __wukongAddStyle(\(scriptIDJSON), css);
         \(ungranted)
         \(unsupported)
         """
@@ -531,7 +516,12 @@ private final class GMPageReplyHandler: NSObject, WKScriptMessageHandlerWithRepl
             replyHandler(["ok": false], nil)
             return
         }
-        if let payload = message.body as? [String: Any] {
+        if var payload = message.body as? [String: Any] {
+            if (payload["url"] as? String)?.isEmpty != false {
+                payload["url"] = message.webView?.url?.absoluteString
+                    ?? message.frameInfo.request.url?.absoluteString
+                    ?? ""
+            }
             bridge.onPageScriptReport?(payload)
         }
         replyHandler(["ok": true], nil)

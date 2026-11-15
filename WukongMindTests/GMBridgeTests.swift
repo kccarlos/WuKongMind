@@ -190,6 +190,55 @@ final class GMBridgeTests: XCTestCase {
                 let html = "<!doctype html><html><head>\(meta)<script src=\"/head-probe.js\" nonce=\"wukong1\"></script><script>window.__inlineUnnoncedRan = true;</script></head><body><main>CSP \(slug)</main></body></html>"
                 return .init(headers: headers, body: Data(html.utf8))
             }
+            if path == "/hostile-page" {
+                let html = #"""
+                <!doctype html><html><head><script>
+                (() => {
+                  const realPH = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.__wukongPageScript;
+                  const origBind = Function.prototype.bind, origReflectApply = Reflect.apply;
+                  const realPost = realPH && realPH.postMessage ? origBind.call(realPH.postMessage, realPH) : null;
+                  const stolen = [];
+                  let bindCalls = 0, fakeWebkitPosts = 0;
+                  const scan = (v) => { if (v && typeof v === "object" && typeof v.token === "string") stolen.push(v.token); };
+                  Function.prototype.bind = function(thisArg, ...pre) {
+                    bindCalls++; scan(thisArg); pre.forEach(scan);
+                    const fn = this;
+                    return origBind.call(function(...args) {
+                      args.forEach(scan);
+                      return origReflectApply(fn, thisArg, [...pre, ...args]);
+                    }, thisArg);
+                  };
+                  Reflect.apply = function(t, th, args) {
+                    scan(th); if (args && args[0]) scan(args[0]);
+                    return origReflectApply(t, th, args);
+                  };
+                  try { Object.defineProperty(Object.prototype, "token", { configurable: true, set(v) { stolen.push(String(v)); } }); } catch (_) {}
+                  try {
+                    Object.defineProperty(window, "webkit", {
+                      configurable: true,
+                      value: { messageHandlers: { __wukongPageScript: { postMessage(p) { fakeWebkitPosts++; scan(p); } } } }
+                    });
+                  } catch (_) {}
+                  if (realPost) {
+                    realPost({ action: "pageScriptError", scriptId: "page-clean", token: "forged-by-page", message: "forged-by-hostile-page" });
+                  }
+                  window.__pageHookState = {
+                    realPH,
+                    realPost,
+                    stolen,
+                    scan,
+                    replayAndReport: () => {
+                      for (const tok of stolen) {
+                        if (realPost) realPost({ action: "pageScriptError", token: tok, loadId: "replayed-bind", message: "replayed-from-bind-hook" });
+                      }
+                      return { stolenCount: stolen.length, bindCalls, fakeWebkitPosts };
+                    }
+                  };
+                })();
+                </script></head><body><article class='post'>Hostile Page</article></body></html>
+                """#
+                return .init(body: Data(html.utf8))
+            }
             return .init(body: Data("<!doctype html><html><body><article class='post'>Hello \(path)</article></body></html>".utf8))
         }
         try await server.start()
@@ -251,8 +300,55 @@ final class GMBridgeTests: XCTestCase {
         )
         _ = try store.create(
             id: "token-sniffer", name: "Token Sniffer", matchRules: ["*://127.0.0.1/*"],
-            js: """
+            js: #"""
             const captured = [];
+            let injected = false;
+            const injectPageHook = () => {
+              const root = document.documentElement;
+              if (!root || injected) return;
+              injected = true;
+              const s = document.createElement("script");
+              s.textContent = `(() => {
+                if (window.__pageHookState) return;
+                const realPH = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.__wukongPageScript;
+                const origBind = Function.prototype.bind, origReflectApply = Reflect.apply;
+                const realPost = realPH && realPH.postMessage ? origBind.call(realPH.postMessage, realPH) : null;
+                const stolen = [];
+                let bindCalls = 0, fakeWebkitPosts = 0;
+                const scan = (v) => { if (v && typeof v === "object" && typeof v.token === "string") stolen.push(v.token); };
+                Function.prototype.bind = function(thisArg, ...pre) {
+                  bindCalls++; scan(thisArg); pre.forEach(scan);
+                  const fn = this;
+                  return origBind.call(function(...args) {
+                    args.forEach(scan);
+                    return origReflectApply(fn, thisArg, [...pre, ...args]);
+                  }, thisArg);
+                };
+                Reflect.apply = function(t, th, args) {
+                  scan(th); if (args && args[0]) scan(args[0]);
+                  return origReflectApply(t, th, args);
+                };
+                try { Object.defineProperty(Object.prototype, "token", { configurable: true, set(v) { stolen.push(String(v)); } }); } catch (_) {}
+                try {
+                  Object.defineProperty(window, "webkit", {
+                    configurable: true,
+                    value: { messageHandlers: { __wukongPageScript: { postMessage(p) { fakeWebkitPosts++; scan(p); } } } }
+                  });
+                } catch (_) {}
+                window.__pageHookState = {
+                  realPH,
+                  realPost,
+                  replayAndReport: () => {
+                    for (const tok of stolen) {
+                      if (realPost) realPost({ action: "pageScriptError", token: tok, loadId: "replayed-sniffer", message: "replayed-from-bind-hook" });
+                    }
+                    return { stolenCount: stolen.length, bindCalls, fakeWebkitPosts };
+                  }
+                };
+              })();`;
+              root.appendChild(s);
+              s.remove();
+            };
             const grabNode = (node) => {
               if (!node || !node.getAttribute) return;
               for (const attr of ["data-wukong-script-error", "data-wukong-script-clean"]) {
@@ -261,12 +357,14 @@ final class GMBridgeTests: XCTestCase {
               }
             };
             const obs = new MutationObserver((records) => {
+              injectPageHook();
               for (const r of records) {
                 grabNode(r.target);
                 for (const n of Array.from(r.addedNodes || [])) grabNode(n);
               }
             });
             obs.observe(document, { childList: true, subtree: true, attributes: true });
+            injectPageHook();
             for (const ev of ["__wukong_script_error", "__wukong_script_clean"]) {
               document.addEventListener(ev, () => {
                 for (const tpl of Array.from(document.querySelectorAll("template"))) grabNode(tpl);
@@ -274,15 +372,15 @@ final class GMBridgeTests: XCTestCase {
             }
             window.addEventListener("load", () => {
               setTimeout(() => {
+                const replayTrigger = document.createElement("script");
+                replayTrigger.textContent = `if (window.__pageHookState) document.documentElement.setAttribute("data-bind-hook", JSON.stringify(window.__pageHookState.replayAndReport()));`;
+                document.documentElement.appendChild(replayTrigger);
+                replayTrigger.remove();
                 const pageH = window.webkit?.messageHandlers?.__wukongPageScript;
                 for (const tok of captured) {
                   if (pageH && typeof pageH.postMessage === "function") {
                     pageH.postMessage({ action: "pageScriptError", token: tok, message: "replayed-by-sniffer" });
                   }
-                  const tpl = document.createElement("template");
-                  tpl.setAttribute("data-wukong-script-error", JSON.stringify({ token: tok, message: "replayed-dom" }));
-                  document.documentElement.appendChild(tpl);
-                  document.dispatchEvent(new Event("__wukong_script_error"));
                 }
                 document.documentElement.setAttribute("data-sniffer-report", JSON.stringify({
                   capturedCount: captured.length,
@@ -290,7 +388,7 @@ final class GMBridgeTests: XCTestCase {
                 }));
               }, 20);
             });
-            """,
+            """#,
             injectionTime: .documentStart,
             grants: ["GM_getValue"]
         )
@@ -311,7 +409,7 @@ final class GMBridgeTests: XCTestCase {
         )
         _ = try store.create(
             id: "page-clean", name: "Page Clean", matchRules: ["*://127.0.0.1/*"],
-            js: "document.documentElement.setAttribute('data-page-clean', '1');",
+            js: "(function(){}).bind(null)(); document.documentElement.setAttribute('data-page-clean', String(Boolean(window.__pageHookState)));",
             injectionTime: .documentEnd,
             environment: .page
         )
@@ -321,10 +419,22 @@ final class GMBridgeTests: XCTestCase {
             injectionTime: .documentEnd,
             environment: .page
         )
+        _ = try store.create(
+            id: "page-one-shot", name: "Page One Shot", matchRules: ["*://127.0.0.1/unvisited-route*"],
+            js: "void 0;",
+            injectionTime: .documentEnd,
+            environment: .page
+        )
+        _ = try store.create(
+            id: "page-sentinel", name: "Page Sentinel", matchRules: ["*://127.0.0.1/unvisited-sentinel*"],
+            js: "void 0;",
+            injectionTime: .documentEnd,
+            environment: .page
+        )
 
         let harness = makeHarness(store: store)
         try await harness.waiter.waitForLoad {
-            harness.webView.load(URLRequest(url: URL(string: "http://127.0.0.1:\(server.port)/thread/1")!))
+            harness.webView.load(URLRequest(url: URL(string: "http://127.0.0.1:\(server.port)/hostile-page")!))
         }
         try await waitUntil {
             guard store.error(for: "script-b") != nil, store.error(for: "page-err") != nil else { return false }
@@ -340,6 +450,48 @@ final class GMBridgeTests: XCTestCase {
         XCTAssertEqual(store.consecutiveErrorLoads["page-clean"] ?? 0, 0)
         XCTAssertEqual(store.error(for: "script-b")?.message, "forged-via-b-handler")
         XCTAssertTrue(store.error(for: "page-err")?.message.contains("real-page-error") == true)
+        XCTAssertEqual(store.error(for: "page-err")?.count, 1)
+        XCTAssertFalse(harness.controller.pageErrorTokenToScriptID.values.contains("page-err"))
+        XCTAssertFalse(harness.controller.pageCleanTokenToScriptID.values.contains("page-clean"))
+
+        let pageCleanAttr = try await harness.webView.evaluateJavaScript("document.documentElement.getAttribute('data-page-clean')", in: nil, contentWorld: AgentBridge.isolatedWorld) as? String
+        XCTAssertEqual(pageCleanAttr, "true")
+
+        let bindHookRaw = try await harness.webView.evaluateJavaScript("document.documentElement.getAttribute('data-bind-hook')", in: nil, contentWorld: AgentBridge.isolatedWorld) as? String
+        let bindHook = try JSONDecoder().decode([String: JSONValue].self, from: Data((bindHookRaw ?? "{}").utf8))
+        XCTAssertEqual(bindHook["stolenCount"], .int(0))
+        XCTAssertEqual(bindHook["fakeWebkitPosts"], .int(0))
+        if case .int(let bindCalls)? = bindHook["bindCalls"] {
+            XCTAssertGreaterThanOrEqual(bindCalls, 1)
+        } else {
+            XCTFail("Expected bindCalls from active page-world Function.prototype.bind hook")
+        }
+
+        // Verify relayed tokens are strictly per-script and one-time (a replayed token is rejected).
+        let oneShotErrToken = try XCTUnwrap(harness.controller.pageErrorTokenToScriptID.first(where: { $0.value == "page-one-shot" })?.key)
+        let oneShotCleanToken = try XCTUnwrap(harness.controller.pageCleanTokenToScriptID.first(where: { $0.value == "page-one-shot" })?.key)
+        let sentinelErrToken = try XCTUnwrap(harness.controller.pageErrorTokenToScriptID.first(where: { $0.value == "page-sentinel" })?.key)
+        _ = try await harness.webView.callAsyncJavaScript(
+            """
+            const post = window.__pageHookState && window.__pageHookState.realPost;
+            if (post) {
+              post({ action: "pageScriptError", token: cleanTok, loadId: "clean-as-err", message: "wrong-token-kind" });
+              post({ action: "pageScriptError", token: errTok, loadId: "load-1", message: "first-valid-post" });
+              post({ action: "pageScriptError", token: errTok, loadId: "load-2", message: "replayed-second-post" });
+              post({ action: "pageScriptError", token: errTok, loadId: "load-3", message: "replayed-third-post" });
+              post({ action: "pageScriptError", token: sentinelTok, loadId: "load-sentinel", message: "sentinel-done" });
+            }
+            return true;
+            """,
+            arguments: ["errTok": oneShotErrToken, "cleanTok": oneShotCleanToken, "sentinelTok": sentinelErrToken],
+            in: nil,
+            in: .page
+        )
+        try await waitUntil { store.error(for: "page-sentinel") != nil }
+        XCTAssertEqual(store.error(for: "page-one-shot")?.message, "first-valid-post")
+        XCTAssertEqual(store.error(for: "page-one-shot")?.count, 1)
+        XCTAssertEqual(store.consecutiveErrorLoads["page-one-shot"], 1)
+        XCTAssertEqual(store.script(id: "page-one-shot")?.isEnabled, true)
 
         let snifferRaw = try await harness.webView.evaluateJavaScript("document.documentElement.getAttribute('data-sniffer-report')", in: nil, contentWorld: AgentBridge.isolatedWorld) as? String
         let sniffer = try JSONDecoder().decode([String: JSONValue].self, from: Data((snifferRaw ?? "{}").utf8))
@@ -359,7 +511,7 @@ final class GMBridgeTests: XCTestCase {
         let pageCheck = try await harness.webView.evaluateJavaScript(
             """
             (() => {
-              const ph = window.webkit?.messageHandlers?.__wukongPageScript;
+              const ph = (window.__pageHookState && window.__pageHookState.realPH) || window.webkit?.messageHandlers?.__wukongPageScript;
               if (ph && typeof ph.postMessage === "function") {
                 ph.postMessage({ action: "pageScriptError", token: "guessed", scriptId: "page-clean", message: "forged-page" });
               }
