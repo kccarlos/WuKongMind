@@ -4,7 +4,7 @@
 
 Learn on ask lets the Agent read a forum the app has no adapter for. The first time the user asks for a thread or a list there, the Agent finds how the site serves its data, writes a small script that reads it, and the app checks that script on real pages before saving it. From then on the site's threads read like a built-in forum's. The same plumbing lets the Agent call tools a website registers itself (WebMCP).
 
-Sources, in order of precedence: [next-phase.md](next-phase.md) (§3 product rules, §4 suggestions, §5 architecture, §7 "Learn on ask", §8 developer mode, §10 "Not doing for now"), then [design-one-loop.md](design-one-loop.md) (the registry, the forum tools, the two shapes, the stable prefix and tool notes), the M4 design (`design-m4.md`, a proposal on branch `t78-m4-design-1-4-0-gm-api-import-repair-syn`, not merged: script worlds, grants, the repair loop), [voice-review.md](voice-review.md), [m0-csp-and-worlds.md](m0-csp-and-worlds.md) and [requirements.md](requirements.md) §8. The format follows design-one-loop.md. Where the sources disagree, the conflict is named in [Conflicts](#conflicts-called-out).
+Sources, in order of precedence: [next-phase.md](next-phase.md) (§3 product rules, §4 suggestions, §5 architecture, §7 "Learn on ask", §8 developer mode, §10 "Not doing for now"), then [design-one-loop.md](design-one-loop.md) (the registry, the forum tools, the two shapes, the stable prefix and tool notes), the M4 design ([design-m4.md](design-m4.md), approved 2026-11-15 and not built yet: script worlds, grants, the repair loop), [voice-review.md](voice-review.md), [m0-csp-and-worlds.md](m0-csp-and-worlds.md) and [requirements.md](requirements.md) §8. The format follows design-one-loop.md. Where the sources disagree, the conflict is named in [Conflicts](#conflicts-called-out).
 
 Code references are as of `563aeef` (main, 1.3.1). The WebMCP draft read for this page is the Community Group report dated 13 November 2026.
 
@@ -512,7 +512,7 @@ One design task, one spike, nine implementation tasks and one acceptance task. S
   - the live runs' steps and tokens are in the proof, with the model IDs.
 
 ### 7. Learn on ask 7: invalidation and repair
-- **Read:** Invalidation and repair (the two requirements, and the starting point for the signals); `design-m4.md` "Errors and the repair loop".
+- **Read:** Invalidation and repair (the two requirements, and the starting point for the signals); [design-m4.md](design-m4.md) "Errors and the repair loop".
 - **Scope:**
   - **Settle the failure signals first.** Build the fixtures (a thread page and a list page with an inline login form; a list whose items changed since verification; a sign-in page served in place of each), try the starting point on them, change it until requirements (a) and (b) hold, and write the final rule back into this page's "How the app tells them apart".
   - `ToolRegistry+Forum.swift`: the light check on every call, the three failure kinds and the settled checks that tell them apart, the full check on a changed hash or a synced script.
@@ -592,7 +592,7 @@ One design task, one spike, nine implementation tasks and one acceptance task. S
 - **The failure signals are left to task 7.** This page fixes what the classification must achieve, as two requirements, and gives a starting point. It does not claim the exact signals are right: three drafts each missed a real kind of page. Task 7 settles them on fixtures and writes them back here.
 - **"Its status rolls back"** (roadmap §7) against a saved script that still claims the slot. Rolling back to untried would make the next run learn a second script for the same site. The status becomes `broken`: not trusted, repaired in place, one script per slot.
 - **M4's "Fixing a script" section** is present only in a run started by a repair request. A learned reader fails in the middle of a run, so its repair rules are in the always-present section.
-- **M4 is a proposal, not built.** This page names its `ScriptRepair` and `ScriptMetadata` as designed there. Only task 7 depends on them.
+- **M4 is approved, not built.** This page names its `ScriptRepair` and `ScriptMetadata` as designed in [design-m4.md](design-m4.md). Only task 7 depends on them.
 - **Summaries on a learned thread** (roadmap §7: "gives the summary") against the summary engine, which is tied to the adapters' `TopicSession`. A learned thread is summarized as text with a thread profile: no disk cache, no "new replies only", no post chips.
 - **The WebMCP draft** changed its entry point once already. The roadmap names `document.modelContext` with the older `navigator.modelContext`; the draft of 13 November 2026 agrees, and has no `unregisterTool`: a tool is removed by its signal.
 - **`docs/wukongmind/trial-notes.md` does not exist yet.** Nothing here cites it.
