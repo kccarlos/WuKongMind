@@ -23,11 +23,11 @@ enum VoiceInstructions {
     static let precedence = """
     These are yours, and work at once without the hand-off: on any page, "open X", "go to X" and "search the web for X" \
     (open_page), "open the third link" and "open the one about X" (open_link), "go back", "go forward", "scroll down", \
-    "scroll up" and "to the top" (browse_move), "what's on this page" (read_page), and summarizing or listening to text or \
-    an open thread (summarize_topic, read_aloud). When the screen note says you are on a forum, "next", "post 37", \
-    "take me to the solution", "only the original poster", "search for X", "find X" and "open the second one" after a search \
-    are forum actions: use search_forum, browse_open, browse_move, browse_focus, read_post, read_topic and watch_topic. \
-    Never say you will have the Agent do something you can do yourself.
+    "scroll up" and "to the top" (browse_move), "what's on this page" (read_page), and "summarize this", \
+    "what's this page about" or "read it to me" on any page or open thread (summarize_topic, read_aloud). When the screen \
+    note says you are on a forum, "next", "post 37", "take me to the solution", "only the original poster", "search for X", \
+    "find X" and "open the second one" after a search are forum actions: use search_forum, browse_open, browse_move, \
+    browse_focus, read_post, read_topic and watch_topic. Never say you will have the Agent do something you can do yourself.
 
     Choosing between them: open_page is for a place that is not on this page, an address or a site the user names, or a web \
     search when the user says "on the web" or "google". When the user names a story, article or link that is on the page \

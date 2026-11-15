@@ -54,11 +54,11 @@ struct CapabilityToolContext: Sendable {
 }
 
 extension ToolRegistry {
-    static func capabilityTools(context: AgentToolContext) -> [AgentTool] {
+    static func capabilityTools(context: AgentToolContext, surface: ToolSurface = .text) -> [AgentTool] {
         guard let capabilities = context.capabilities else { return [] }
         return [
-            makeSummarizeTopicTool(capabilities: capabilities, workspace: context.workspace),
-            makeReadAloudTool(capabilities: capabilities, workspace: context.workspace),
+            makeSummarizeTopicTool(capabilities: capabilities, workspace: context.workspace, surface: surface),
+            makeReadAloudTool(capabilities: capabilities, workspace: context.workspace, surface: surface),
             makeWatchTopicTool(capabilities: capabilities),
             makeNotifyTool(capabilities: capabilities)
         ]
@@ -112,12 +112,19 @@ extension ToolRegistry {
         return .thread(ThreadShape(id: session.topicID, title: session.title, url: session.url.absoluteString, posts: [], totalPosts: count))
     }
 
-    private static func makeSummarizeTopicTool(capabilities: CapabilityToolContext, workspace: AgentWorkspace?) -> AgentTool {
+    private static func makeSummarizeTopicTool(
+        capabilities: CapabilityToolContext,
+        workspace: AgentWorkspace?,
+        surface: ToolSurface = .text
+    ) -> AgentTool {
         let keys = ["topic_id", "url", "path", "text"]
+        let description = surface == .voice
+            ? "Summarize what the user is looking at. With no input it summarizes the open thread on a forum topic, and on any other page the page's readable text (\"summarize this\", \"what's this page about\"); leave all parameters out for the current page instead of passing 'text'. Also takes a forum thread ('topic_id' or 'url'), a workspace file ('path'), or plain 'text'. Give the gist in a few spoken sentences."
+            : "Summarize a forum thread ('topic_id' on the open forum or 'url' on any supported Discourse, Hacker News, or WordPress thread), a workspace file ('path'), or plain 'text'."
         return AgentTool(
             definition: AgentToolDefinition(
                 name: "summarize_topic",
-                description: "Summarize a forum thread ('topic_id' on the open forum or 'url' on any supported Discourse, Hacker News, or WordPress thread), a workspace file ('path'), or plain 'text'.",
+                description: description,
                 parameters: capabilityContentParameters
             ),
             customValidate: { _ = try parseSingleInput($0, keys: keys, toolName: "summarize_topic") },
@@ -145,12 +152,19 @@ extension ToolRegistry {
         )
     }
 
-    private static func makeReadAloudTool(capabilities: CapabilityToolContext, workspace: AgentWorkspace?) -> AgentTool {
+    private static func makeReadAloudTool(
+        capabilities: CapabilityToolContext,
+        workspace: AgentWorkspace?,
+        surface: ToolSurface = .text
+    ) -> AgentTool {
         let keys = ["topic_id", "url", "path", "text"]
+        let description = surface == .voice
+            ? "Start reading aloud in the audio player and return immediately with the length. With no input it reads the open thread's summary on a forum topic (summarizing first if needed), and on any other page the page's readable text (\"read it to me\", \"listen to this page\"); leave all parameters out for the current page instead of passing 'text'. Also takes a forum thread ('topic_id' or 'url'), a workspace file ('path'), or plain 'text'."
+            : "Start reading a forum thread summary ('topic_id' or 'url', summarizing first if needed), a workspace file ('path'), or plain 'text' aloud in the audio player and return immediately."
         return AgentTool(
             definition: AgentToolDefinition(
                 name: "read_aloud",
-                description: "Start reading a forum thread summary ('topic_id' or 'url', summarizing first if needed), a workspace file ('path'), or plain 'text' aloud in the audio player and return immediately.",
+                description: description,
                 parameters: capabilityContentParameters
             ),
             customValidate: { _ = try parseSingleInput($0, keys: keys, toolName: "read_aloud") },

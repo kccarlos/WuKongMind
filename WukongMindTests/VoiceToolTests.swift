@@ -469,8 +469,9 @@ final class VoiceToolTests: XCTestCase {
     }
 
     /// "Summarize this", "read it to me", "follow this thread": Gemini Live
-    /// sent `{}` in the spike (Q3); on an open topic that means the topic.
-    func testThreadToolsCalledWithNoInputTakeTheOpenTopic() async {
+    /// sends `{}`; on an open topic that means the topic, and off a topic
+    /// `summarize_topic` and `read_aloud` take the page's readable text.
+    func testThreadToolsCalledWithNoInputTakeOpenTopicOrReadablePageText() async {
         let navigator = FakeVoiceNavigator()
         navigator.pageContext = FakeVoiceNavigator.topicPage(post: 3)
         final class Seen: @unchecked Sendable { var args: [String: [String: JSONValue]] = [:] }
@@ -494,12 +495,36 @@ final class VoiceToolTests: XCTestCase {
             _ = await bridge.handle(.init(id: name, name: name, args: [:]), eyesFree: false)
             XCTAssertEqual(seen.args[name], ["topic_id": "42"], name)
         }
+        XCTAssertFalse(navigator.calls.contains("pageReadableText"), "Open topic never reads ordinary-page DOM")
         _ = await bridge.handle(.init(id: "t", name: "summarize_topic", args: ["text": "Some text"]), eyesFree: false)
         XCTAssertEqual(seen.args["summarize_topic"], ["text": "Some text"], "a given input stays")
-        navigator.pageContext = .empty
+
+        // Ordinary page: `{}` (or whitespace-only keys) reads the page's readable text via app code.
+        navigator.pageContext = PageContext(url: URL(string: "https://news.example.org/story")!, state: .notForum)
+        navigator.readableText = "Tariff talks resume\n\nNegotiators met in Geneva."
         seen.args = [:]
-        _ = await bridge.handle(.init(id: "e", name: "summarize_topic", args: [:]), eyesFree: false)
-        XCTAssertEqual(seen.args["summarize_topic"], [:], "no open topic: nothing is filled in")
+        _ = await bridge.handle(.init(id: "s1", name: "summarize_topic", args: [:]), eyesFree: false)
+        _ = await bridge.handle(.init(id: "r1", name: "read_aloud", args: ["text": "   "]), eyesFree: false)
+        XCTAssertEqual(seen.args["summarize_topic"], ["text": "Tariff talks resume\n\nNegotiators met in Geneva."])
+        XCTAssertEqual(seen.args["read_aloud"], ["text": "Tariff talks resume\n\nNegotiators met in Geneva."])
+        _ = await bridge.handle(.init(id: "u1", name: "read_aloud", args: ["url": "https://forum.example/t/9"]), eyesFree: false)
+        XCTAssertEqual(seen.args["read_aloud"], ["url": "https://forum.example/t/9"], "Explicit input overrides page default")
+
+        // Empty page vs Home: clean refusal without calling the tool with `{}`.
+        navigator.readableText = " \n "
+        seen.args = [:]
+        let blankPage = await bridge.handle(.init(id: "b1", name: "summarize_topic", args: [:]), eyesFree: false)
+        XCTAssertEqual(blankPage.response["status"], "unavailable")
+        XCTAssertEqual(blankPage.response["shown"], "There is no readable text on this page.")
+        XCTAssertTrue(seen.args.isEmpty)
+
+        navigator.pageContext = .empty
+        navigator.readableText = nil
+        let noPage = await bridge.handle(.init(id: "e", name: "read_aloud", args: [:]), eyesFree: false)
+        XCTAssertEqual(noPage.response["status"], "unavailable")
+        XCTAssertEqual(noPage.response["shown"], "No page is open to read.")
+        XCTAssertTrue(seen.args.isEmpty)
+
         let watchOffForum = await bridge.handle(.init(id: "w", name: "watch_topic", args: [:]), eyesFree: false)
         XCTAssertEqual(watchOffForum.response["shown"], .string(VoiceToolBridge.notForumMessage))
     }
@@ -834,6 +859,107 @@ final class VoiceToolTests: XCTestCase {
         XCTAssertEqual(app.browser.webView.url?.path, "/two")
     }
 
+    // MARK: Voice anywhere 5: listen and summarize on any page
+
+    func testListenAndSummarizeOnOrdinaryPageAndOpenTopicInWebKit() async throws {
+        let server = try LocalPageServer()
+        try await server.start()
+        addTeardownBlock { server.stop() }
+
+        PostLevelURLStub.requests = []
+        PostLevelURLStub.cookies = []
+        PostLevelURLStub.handler = { request in
+            let path = request.url?.path ?? ""
+            if path.hasSuffix("/t/42.json") {
+                return (200, #"{"title":"Quiet Fan Curve","slug":"quiet-fan-curve","posts_count":2}"#)
+            }
+            if path.hasPrefix("/raw/42") {
+                return (200, "alice | 2026-10-20 12:00:00 UTC | #1\nLower the PWM curve to 35 percent.\n\n\nbob | 2026-10-20 12:05:00 UTC | #2\nConfirmed silent on firmware 4.2.\n")
+            }
+            return (404, "missing")
+        }
+        addTeardownBlock { PostLevelURLStub.handler = nil }
+
+        let config = URLSessionConfiguration.ephemeral
+        config.protocolClasses = [PostLevelURLStub.self]
+        let urlSession = URLSession(configuration: config)
+        let ai = StateAIStub()
+        ai.gated = false
+        ai.echoContentInSummary = true
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        let store = PersistentStore(fileURL: folder.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore())
+        var seeded = AppSnapshot(); seeded.ensureForum("https://forum.example"); try? store.save(seeded)
+        let app = AppModel(
+            store: store,
+            forumService: ForumService(session: urlSession, pacer: ForumRequestPacer(clock: InstantPacingClock())),
+            aiService: ai,
+            podcastDirectory: folder.appendingPathComponent("podcast", isDirectory: true),
+            workspaceDirectory: folder.appendingPathComponent("workspace", isDirectory: true)
+        )
+        app.usesDirectForumRequests = true
+        app.settings.assistantModel = ModelSelection(provider: .ollama, model: "summary-model")
+        var ollama = app.settings.configuration(for: .ollama); ollama.model = "summary-model"
+        app.setConfiguration(ollama, for: .ollama)
+        let speech = InstantSpeechStub()
+        app.podcast.makeEngine = { _, _, _ in speech }
+        app.settings.podcast.engine = .onDevice
+        addTeardownBlock { @MainActor in
+            app.podcast.cancelReadAloud()
+            urlSession.invalidateAndCancel()
+            try? FileManager.default.removeItem(at: folder)
+        }
+
+        await attachWebView(app, port: server.port)
+        let bridge = VoiceToolBridge(navigator: app)
+        bridge.registryBuilder = app.voiceToolRegistry
+        _ = bridge.declare()
+
+        // 1. Ordinary long article (>9,000 chars): app code reads full readable text without chrome/hidden/button noise.
+        let opened = await app.openPage("127.0.0.1:\(server.port)/article", timeout: 20)
+        XCTAssertEqual(opened, .opened(kind: .address, title: "Grid Battery Breakthrough", host: "127.0.0.1"))
+        app.browser.setPageContext(PageContext(url: app.browser.webView.url, state: .notForum))
+
+        let sumOutcome = await bridge.handle(.init(id: "s1", name: "summarize_topic", args: [:]), eyesFree: false)
+        XCTAssertEqual(sumOutcome.response["status"], "done")
+        XCTAssertLessThanOrEqual(JSONValue.encodeCompactJSON(sumOutcome.response).count, ToolRegistry.spokenResultLimit)
+        XCTAssertTrue(sumOutcome.response["result"]?.stringValue?.hasSuffix("…[cut]") == true, "Over-limit summary is capped for Gemini Live")
+        let captured = try XCTUnwrap(ai.calls.last?.content)
+        XCTAssertGreaterThan(captured.count, 9_000, "App code reads past the 8,000-char voice window")
+        XCTAssertTrue(captured.contains("Grid Battery Breakthrough") && captured.contains("Sodium-iron cells held 94 percent capacity"))
+        for noise in ["Top Nav Menu", "Sidebar Promo", "Cookie Footer", "Hidden Secret", "Share Button"] {
+            XCTAssertFalse(captured.contains(noise), "Readable text leaked \(noise)")
+        }
+
+        let readOutcome = await bridge.handle(.init(id: "r1", name: "read_aloud", args: [:]), eyesFree: false)
+        XCTAssertEqual(readOutcome.response["status"], "started")
+        XCTAssertLessThanOrEqual(JSONValue.encodeCompactJSON(readOutcome.response).count, ToolRegistry.spokenResultLimit)
+        XCTAssertTrue(readOutcome.response["shown"]?.stringValue?.hasPrefix("Reading aloud: Grid Battery Breakthrough, about ") == true, "\(readOutcome.response)")
+        XCTAssertEqual(app.podcast.player.playlist?.title, "Grid Battery Breakthrough")
+
+        // 2. Multi-article index page keeps all sibling <article> cards instead of only the first.
+        _ = await app.openPage("127.0.0.1:\(server.port)/digest", timeout: 20)
+        app.browser.setPageContext(PageContext(url: app.browser.webView.url, state: .notForum))
+        let rawDigest = await app.pageReadableText()
+        let digestText = try XCTUnwrap(rawDigest)
+        XCTAssertTrue(digestText.contains("First Card Headline") && digestText.contains("Second Card Headline"), digestText)
+
+        // 3. Open forum topic still uses the thread pipeline (`topic_id`), and Home over it refuses cleanly.
+        let topic = ForumTopic(siteURL: "https://forum.example", topicID: "42", url: URL(string: "https://forum.example/t/quiet-fan-curve/42")!, title: "Quiet Fan Curve")
+        app.browser.setPageContext(PageContext(url: topic.url, site: .discourse, siteURL: "https://forum.example", forumName: "Example", topic: topic, state: .topic))
+        let topicSum = await bridge.handle(.init(id: "s2", name: "summarize_topic", args: [:]), eyesFree: false)
+        XCTAssertEqual(topicSum.response["status"], "done")
+        XCTAssertEqual(app.sessions["forum.example/t/42"]?.hasSummary, true, "Used open forum thread summary pipeline")
+        let topicRead = await bridge.handle(.init(id: "r2", name: "read_aloud", args: [:]), eyesFree: false)
+        XCTAssertEqual(topicRead.response["status"], "started")
+        XCTAssertTrue(app.podcast.isReadingAloud("forum.example/t/42"))
+
+        app.browser.showForumsHome()
+        let onHome = await bridge.handle(.init(id: "h1", name: "summarize_topic", args: [:]), eyesFree: false)
+        XCTAssertEqual(onHome.response["status"], "unavailable")
+        XCTAssertEqual(onHome.response["shown"], "No page is open to read.")
+    }
+
     private static func openForumHome(_ app: AppModel) {
         app.browser.onPageContextChanged = nil
         app.browser.setPageContext(PageContext(
@@ -938,6 +1064,23 @@ private final class LocalPageServer: @unchecked Sendable {
                 <a href="javascript:void(0)">Script Link</a><a href="mailto:ed@example.com">Mail Link</a><a href="#">Hash Link</a>
                 <a href="/buy" role="button">Button Role</a><button>Button Tag</button><a href="/blank" style="display:inline-block;width:20px;height:20px"></a>
                 <div style="position:absolute;top:1500px;left:20px">\(archive)</div></body></html>
+                """
+            } else if path.hasPrefix("/article") {
+                let paragraphs = (1...110).map { "<p>Paragraph \($0): Sodium-iron cells held 94 percent capacity across winter grid cycling tests.</p>" }.joined()
+                body = """
+                <!doctype html><html><head><title>Grid Battery Breakthrough</title></head><body>
+                <header><nav>Top Nav Menu</nav></header>
+                <main><article><header><h1>Grid Battery Breakthrough</h1></header>
+                \(paragraphs)
+                <div style="display:none">Hidden Secret</div><button>Share Button</button>
+                </article><aside>Sidebar Promo</aside></main>
+                <footer>Cookie Footer</footer></body></html>
+                """
+            } else if path.hasPrefix("/digest") {
+                body = """
+                <!doctype html><html><head><title>Morning Digest</title></head><body>
+                <main><article><h2>First Card Headline</h2><p>Summary one.</p></article>
+                <article><h2>Second Card Headline</h2><p>Summary two.</p></article></main></body></html>
                 """
             } else {
                 let title = path.hasPrefix("/story") ? "Tariff Talks Lead" : (path.hasPrefix("/two") ? "Second Article" : "First Article")
