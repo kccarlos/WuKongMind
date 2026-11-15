@@ -799,5 +799,213 @@ extension AppModel {
             break
         }
     }
+
+    /// Loads deterministic in-memory HTML fixtures (`-dc-bar-morph-fixture long|short|agent-running|result-cards`)
+    /// without touching saved settings, forums, or scripts on disk.
+    func applyBarMorphDebugArguments() {
+        guard let mode = AssistantDebug.value("-dc-bar-morph-fixture") else { return }
+        settings.hasCompletedOnboarding = true
+        needsProviderSetup = nil
+        if AssistantDebug.value("-dc-bar") == nil {
+            settings.browserBarPosition = .automatic
+        }
+        browser.onPageContextChanged = { _ in }
+        browser.ignoresNavigationFailures = true
+        browser.hideForumsHome()
+
+        let url = URL(string: mode == "short"
+            ? "https://news.example.org/story/short-note"
+            : "https://news.example.org/story/bar-morph"
+        )!
+        let html = mode == "short" ? Self.barMorphShortFixtureHTML : Self.barMorphLongFixtureHTML
+        browser.loadSamplePage(html, at: url)
+        browser.setPageContext(PageContext(url: url, state: .notForum))
+
+        if mode == "result-cards" {
+            browseCursor.replace(
+                with: [
+                    BrowseItem(
+                        kind: .source,
+                        siteURL: "https://news.example.org",
+                        topicID: "101",
+                        postNumber: 1,
+                        title: "Liquid glass capsule geometry",
+                        excerpt: "Continuous progress p maps user scroll deltas over 64 points."
+                    ),
+                    BrowseItem(
+                        kind: .source,
+                        siteURL: "https://news.example.org",
+                        topicID: "102",
+                        postNumber: 1,
+                        title: "Rest-only bottom inset switching",
+                        excerpt: "Web view contentInset.bottom switches between 86 and 0 strictly at rest."
+                    ),
+                    BrowseItem(
+                        kind: .source,
+                        siteURL: "https://news.example.org",
+                        topicID: "103",
+                        postNumber: 1,
+                        title: "Split result-card chip minimize",
+                        excerpt: "Scrolling with the split panel hidden shrinks result cards to a chip."
+                    )
+                ],
+                origin: .sources,
+                current: 0
+            )
+        }
+
+        // Configure Ollama (no Keychain write needed on unsigned simulator builds) so the Agent ring is enabled.
+        var config = settings.configuration(for: .ollama)
+        config.baseURL = "http://127.0.0.1:11434"
+        config.model = "fixture-model"
+        config.apiKey = ""
+        settings.setConfiguration(config, for: .ollama)
+        settings.setModel(ModelSelection(provider: .ollama, model: "fixture-model"), for: .assistant)
+        settings.setModel(ModelSelection(provider: .ollama, model: "fixture-model"), for: .browserAgent)
+
+        if mode == "agent-running" {
+            // `loadsOnlySamplePage` routes `scriptStore` to a throwaway temp directory, never user data.
+            settings.browserScriptsEnabled = true
+            _ = try? scriptStore.create(
+                id: "reader-width",
+                name: "Comfortable column width",
+                matchRules: ["*://news.example.org/*"],
+                js: "",
+                css: ".post { max-width: 68ch; }",
+                injectionTime: .documentEnd,
+                environment: .isolated,
+                isEnabled: true,
+                source: .agent(userPrompt: "Keep post lines comfortable")
+            )
+            _ = try? scriptStore.create(
+                id: "calm-links",
+                name: "Calm link underlines",
+                matchRules: ["*://news.example.org/*"],
+                js: "",
+                css: "a { text-underline-offset: 2px; }",
+                injectionTime: .documentEnd,
+                environment: .isolated,
+                isEnabled: true,
+                source: .agent(userPrompt: "Tidy link underlines")
+            )
+            browserAgent.configureDebugModelClient(BrowserAgentDemoClient(mode: .running))
+            Task { @MainActor [weak self] in
+                try? await Task.sleep(for: .milliseconds(400))
+                guard let self else { return }
+                await self.browser.waitUntilSettled(timeout: .seconds(5))
+                self.browserAgent.send("Clean up the layout")
+            }
+        }
+    }
+
+    private static let barMorphLongFixtureHTML: String = {
+        let posts = (1...28).map { index in
+            let extraInput = index == 4
+                ? """
+                  <form class="filter-bar" onsubmit="document.activeElement?.blur(); return false;">
+                    <input id="mid-field" type="text" enterkeyhint="done" aria-label="Reply note" placeholder="Reply note" onkeydown="if (event.key === 'Enter') { this.blur(); event.preventDefault(); }">
+                  </form>
+                  """
+                : ""
+            return """
+            <section class="post" id="post-\(index)">
+              <div class="meta">Post #\(index) · Reader notes</div>
+              <p>Continuous bar morphing maps finger scroll delta over 64 points while keeping web view insets stable during active touch and coasting.</p>
+              \(extraInput)
+            </section>
+            """
+        }.joined(separator: "\n")
+        return """
+        <!doctype html>
+        <html lang="en">
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <title>Browser Bar Motion Spec</title>
+          <style>
+            * { box-sizing: border-box; }
+            body {
+              margin: 0;
+              font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+              background: #fafaf7;
+              color: #1c1917;
+              line-height: 1.5;
+            }
+            header {
+              padding: 18px 20px;
+              border-bottom: 1px solid #e7e5e4;
+              font-weight: 700;
+              font-size: 1.15rem;
+            }
+            .filter-bar {
+              margin: 0;
+              padding: 10px 20px;
+              border-bottom: 1px solid #ece9e4;
+            }
+            .filter-bar input {
+              width: 100%;
+              font-size: 16px;
+              padding: 8px 12px;
+              border: 1px solid #d6d3d1;
+              border-radius: 10px;
+              background: #ffffff;
+              color: #1c1917;
+            }
+            .post {
+              min-height: 120px;
+              padding: 16px 20px;
+              border-bottom: 1px solid #ece9e4;
+            }
+            .meta {
+              font-size: 0.82rem;
+              font-weight: 600;
+              color: #78716c;
+              margin-bottom: 6px;
+            }
+            footer#page-end {
+              padding: 20px;
+              font-weight: 700;
+              background: #f3efe8;
+              color: #292524;
+            }
+          </style>
+        </head>
+        <body>
+          <header>Browser Bar Motion Spec</header>
+          <form class="filter-bar" onsubmit="document.activeElement?.blur(); return false;">
+            <input id="page-field" type="text" enterkeyhint="done" aria-label="Filter notes" placeholder="Filter notes" onkeydown="if (event.key === 'Enter') { this.blur(); event.preventDefault(); }">
+          </form>
+          \(posts)
+          <footer id="page-end">End of thread · Post 28</footer>
+        </body>
+        </html>
+        """
+    }()
+
+    private static let barMorphShortFixtureHTML = """
+    <!doctype html>
+    <html lang="en">
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>Short Pinned Note</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 24px 20px;
+          font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+          background: #fafaf7;
+          color: #1c1917;
+        }
+        h1 { margin: 0 0 8px; font-size: 1.2rem; }
+        p { margin: 0; color: #57534e; }
+      </style>
+    </head>
+    <body>
+      <h1>Short Pinned Note</h1>
+      <p>This page fits comfortably inside one viewport height and never collapses the bar.</p>
+    </body>
+    </html>
+    """
 }
 #endif

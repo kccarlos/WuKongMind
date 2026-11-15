@@ -196,13 +196,54 @@ struct WorkspaceView: View {
     let actions: BrowserActions
     let addressFocusRequest: Int
     let onOpenURL: (URL) -> Void
+
+    private var isSplit: Bool { router.splitLayout ?? ContentView.usesSplitLayout(width: width) }
+
+    private var panelVisible: Bool {
+        app.showsSplitPanel(forWidth: width)
+    }
+
+    var body: some View {
+        let split = isSplit
+        let showsPanel = panelVisible
+        let resolvedPosition = split ? BrowserBarPosition.top : app.settings.browserBarPosition.resolved(isSplit: false)
+        PhoneBrowser(
+            app: app,
+            browser: browser,
+            voice: app.voice,
+            position: resolvedPosition,
+            actions: actions,
+            addressFocusRequest: addressFocusRequest,
+            width: width,
+            split: split ? SplitBarContext(panelShown: showsPanel, togglePanel: app.toggleAIView) : nil
+        ) { dockClearance in
+            WorkspaceSplitRow(
+                app: app,
+                browser: browser,
+                router: router,
+                width: width,
+                dockClearance: dockClearance,
+                actions: actions,
+                onOpenURL: onOpenURL
+            )
+        }
+    }
+}
+
+private struct WorkspaceSplitRow: View {
+    @ObservedObject var app: AppModel
+    @ObservedObject var browser: ForumBrowserModel
+    @ObservedObject var router: PresentationRouter
+    let width: CGFloat
+    let dockClearance: CGFloat
+    let actions: BrowserActions
+    let onOpenURL: (URL) -> Void
     /// The panel's width: what the reader chose with the handle (0 = 40% of
     /// the window).
     @AppStorage("dc.assistantPanelWidth") private var storedWidth: Double = 0
     @State private var dragStartWidth: CGFloat?
     @State private var dragWidth: CGFloat?
     @State private var dropTargeted = false
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var isSplit: Bool { router.splitLayout ?? ContentView.usesSplitLayout(width: width) }
 
@@ -221,29 +262,21 @@ struct WorkspaceView: View {
         let split = isSplit
         let showsPanel = panelVisible
         let showsWebView = !browser.showsForumsHome
-        PhoneBrowser(
-            app: app,
-            browser: browser,
-            voice: app.voice,
-            position: split ? .top : app.settings.browserBarPosition.resolved(isSplit: false),
-            actions: actions,
-            addressFocusRequest: addressFocusRequest,
-            width: width,
-            split: split ? SplitBarContext(panelShown: showsPanel, togglePanel: app.toggleAIView) : nil
-        ) {
-            HStack(spacing: 0) {
-                BrowserContent(
-                    app: app,
-                    browser: browser,
-                    voice: app.voice,
-                    actions: actions,
-                    webViewIgnoresBottomSafeArea: showsWebView,
-                    dockFloatsTrailing: split && !showsPanel
-                )
-                .ignoresSafeArea(.keyboard, edges: showsWebView ? .bottom : [])
-                .frame(maxWidth: .infinity)
-                if showsPanel { panel }
-            }
+        let resolvedPosition = split ? BrowserBarPosition.top : app.settings.browserBarPosition.resolved(isSplit: false)
+        HStack(spacing: 0) {
+            BrowserContent(
+                app: app,
+                browser: browser,
+                voice: app.voice,
+                actions: actions,
+                cardsBottomInset: dockClearance,
+                floatingTopBarInset: (!split && resolvedPosition == .top) ? 64 : 0,
+                webViewIgnoresBottomSafeArea: showsWebView,
+                dockFloatsTrailing: split && !showsPanel
+            )
+            .ignoresSafeArea(.keyboard, edges: showsWebView ? .bottom : [])
+            .frame(maxWidth: .infinity)
+            if showsPanel { panel }
         }
     }
 

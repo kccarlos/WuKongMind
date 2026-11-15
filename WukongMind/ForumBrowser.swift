@@ -129,6 +129,60 @@ final class ForumBrowserModel: NSObject, ObservableObject {
 
     static let defaultPageTitle = "WukongMind"
 
+    /// Isolated-world focus observer (`BrowseScript.world`) that reports whether an editable
+    /// web-page form control (`<input>`, `<textarea>`, `<select>`, or `contenteditable`) is focused.
+    nonisolated static let formFocusObserverScript = """
+    (() => {
+      if (window.__dcFormFocusInstalled) return;
+      window.__dcFormFocusInstalled = true;
+      const nonTextTypes = new Set([
+        "button", "checkbox", "color", "file", "hidden", "image", "radio", "range", "reset", "submit"
+      ]);
+      const isEditableControl = el => {
+        if (!el || el === document.body || el === document.documentElement) return false;
+        if (el.isContentEditable) return true;
+        const tag = (el.tagName || "").toUpperCase();
+        if (tag === "TEXTAREA" || tag === "SELECT") return true;
+        if (tag === "INPUT") {
+          const type = (el.type || "text").toLowerCase();
+          return !nonTextTypes.has(type) && !el.readOnly && !el.disabled;
+        }
+        return false;
+      };
+      let lastEditing = false;
+      const post = editing => {
+        if (editing !== lastEditing) {
+          lastEditing = editing;
+          window.webkit?.messageHandlers?.wukongmindBrowse?.postMessage({ formEditing: editing });
+        }
+      };
+      const reportActive = () => {
+        post(isEditableControl(document.activeElement));
+      };
+      const onFocusIn = event => {
+        if (isEditableControl(event.target)) {
+          post(true);
+        }
+        window.setTimeout(reportActive, 0);
+      };
+      const onFocusOut = () => {
+        window.setTimeout(reportActive, 0);
+      };
+      document.addEventListener("focusin", onFocusIn, true);
+      document.addEventListener("focus", reportActive, true);
+      document.addEventListener("focusout", onFocusOut, true);
+      document.addEventListener("blur", onFocusOut, true);
+      window.addEventListener("focusin", onFocusIn, true);
+      window.addEventListener("focusout", onFocusOut, true);
+      window.addEventListener("pagehide", () => { post(false); });
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", reportActive, { once: true });
+      } else {
+        reportActive();
+      }
+    })();
+    """
+
     @Published private(set) var currentURL: URL?
     @Published private(set) var pageTitle = ForumBrowserModel.defaultPageTitle
     @Published private(set) var isLoading = false
@@ -138,9 +192,26 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     /// The signed-in user's name when the forum's page reports it (memory
     /// only; never saved or synced).
     @Published private(set) var signedInUsername: String?
-    /// Safari-style chrome: scrolling down the page minimizes the browser bar,
-    /// scrolling back up (or reaching the top) restores it.
+    /// Safari-style chrome: derived from `barProgress` with 0.6 / 0.4 hysteresis.
     @Published private(set) var isChromeMinimized = false
+    /// Whether the browser address field is currently being edited.
+    @Published private(set) var isEditingAddress = false
+    /// Whether an editable form control inside the web page currently owns focus.
+    @Published private(set) var isPageFormInputFocused = false
+    /// Whether UIKit's software keyboard or input-assistant bar currently overlaps the screen.
+    @Published private(set) var isSystemKeyboardVisible = false
+    /// Additional page-keyboard freeze signal reported by the UIKit/SwiftUI keyboard observers.
+    private var isExternalKeyboardFrozen = false
+    /// Dedicated live progress publisher (`0` expanded … `1` collapsed) observed only by the morphing bar.
+    let barProgressModel = BrowserBarProgressModel()
+    var barProgress: CGFloat { barProgressModel.progress }
+    var barMorphState: BrowserBarMorphState { barMorph.state }
+    #if DEBUG
+    /// Incremented under `-dc-browse-debug` so `BrowserBarDebugState` tracks scroll offset even while `p` is clamped.
+    @Published private(set) var barDebugTick = 0
+    #endif
+    /// Scroll-driven morph state and `WKWebView.scrollView` delegate coordinator.
+    let barMorph = BrowserBarScrollCoordinator()
     /// What the assistant knows about the current page.
     @Published private(set) var pageContext = PageContext.empty
     /// The current forum: the last Discourse forum shown (or opened by the app).
@@ -192,6 +263,41 @@ final class ForumBrowserModel: NSObject, ObservableObject {
             holdsHomeOverLoad = true
         }
         if !isForumsHomeRequested { isForumsHomeRequested = true }
+        if isEditingAddress { isEditingAddress = false }
+        if isPageFormInputFocused { isPageFormInputFocused = false }
+        syncPageKeyboardFreeze()
+    }
+
+    func setEditingAddress(_ editing: Bool) {
+        if isEditingAddress != editing {
+            isEditingAddress = editing
+        }
+        syncPageKeyboardFreeze()
+    }
+
+    func setPageFormInputFocused(_ focused: Bool) {
+        if isPageFormInputFocused != focused {
+            isPageFormInputFocused = focused
+        }
+        syncPageKeyboardFreeze()
+    }
+
+    func setSystemKeyboardVisible(_ visible: Bool) {
+        if isSystemKeyboardVisible != visible {
+            isSystemKeyboardVisible = visible
+        }
+    }
+
+    func setExternalKeyboardFrozen(_ frozen: Bool) {
+        if isExternalKeyboardFrozen != frozen {
+            isExternalKeyboardFrozen = frozen
+        }
+        syncPageKeyboardFreeze()
+    }
+
+    private func syncPageKeyboardFreeze() {
+        let shouldFreeze = !isEditingAddress && !showsForumsHome && (isPageFormInputFocused || isExternalKeyboardFrozen)
+        barMorph.setPageKeyboardFrozen(shouldFreeze)
     }
 
     /// Returns to the page under Home (no-op without one).
@@ -199,6 +305,7 @@ final class ForumBrowserModel: NSObject, ObservableObject {
         holdsHomeOverLoad = false
         loadStartedFromForumsHome = false
         if isForumsHomeRequested { isForumsHomeRequested = false }
+        syncPageKeyboardFreeze()
     }
 
     let webView: WKWebView
@@ -254,15 +361,10 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     /// across its routes, dropped when a navigation commits.
     private var lastFacts: PageFacts?
     private let routeMessageHandler = ForumRouteMessageHandler()
-    private var scrollObservation: NSKeyValueObservation?
     private var progressObservation: NSKeyValueObservation?
-    private var lastScrollOffset: CGFloat = 0
-    private var wasTracking = false
     /// Fires when the user starts scrolling the page (once per drag), so the
     /// workspace knows the page is where they are working.
     let userInteraction = PassthroughSubject<Void, Never>()
-    private var scrollTravel: CGFloat = 0
-    private static let chromeToggleTravel: CGFloat = 36
 
     /// `contentRules` nil: the shared library (see `ContentBlocker.init`).
     init(
@@ -298,6 +400,14 @@ final class ForumBrowserModel: NSObject, ObservableObject {
                 source: Self.routeObserverScript(probeExpression: probeExpression),
                 injectionTime: .atDocumentStart,
                 forMainFrameOnly: true
+            )
+        )
+        configuration.userContentController.addUserScript(
+            WKUserScript(
+                source: Self.formFocusObserverScript,
+                injectionTime: .atDocumentStart,
+                forMainFrameOnly: true,
+                in: BrowseScript.world
             )
         )
         // The in-page bridge scripts of every registered site scroll to,
@@ -338,12 +448,13 @@ final class ForumBrowserModel: NSObject, ObservableObject {
         webView.allowsBackForwardNavigationGestures = true
         webView.allowsLinkPreview = true
         webView.scrollView.keyboardDismissMode = .interactive
-        scrollObservation = webView.scrollView.observe(\.contentOffset, options: [.new]) {
-            [weak self] scrollView, _ in
-            Task { @MainActor [weak self] in
-                self?.handleScroll(scrollView)
-            }
+        barMorph.onUserScrollBegan = { [weak self] in
+            self?.userInteraction.send()
         }
+        barMorph.onChange = { [weak self] state, transition in
+            self?.applyBarMorphChange(state, transition: transition)
+        }
+        barMorph.attach(to: webView.scrollView)
         progressObservation = webView.observe(\.estimatedProgress, options: [.new]) {
             [weak self] webView, _ in
             let progress = webView.estimatedProgress
@@ -357,41 +468,70 @@ final class ForumBrowserModel: NSObject, ObservableObject {
         }
     }
 
-    func expandChrome() {
-        scrollTravel = 0
-        if isChromeMinimized { isChromeMinimized = false }
+    func expandChrome(deferIfTracking: Bool = false) {
+        barMorph.requestExpand(deferIfTracking: deferIfTracking)
     }
 
-    private func handleScroll(_ scrollView: UIScrollView) {
-        if scrollView.isTracking != wasTracking {
-            wasTracking = scrollView.isTracking
-            if wasTracking { userInteraction.send() }
-        }
-        let offset = scrollView.contentOffset.y + scrollView.adjustedContentInset.top
-        let maximumOffset = max(
-            0,
-            scrollView.contentSize.height
-                - scrollView.bounds.height
-                + scrollView.adjustedContentInset.bottom
-        )
-        let delta = offset - lastScrollOffset
-        lastScrollOffset = offset
-
-        // Ignore rubber-banding past either end so the bar does not flicker.
-        guard delta != 0, offset >= 0, offset <= maximumOffset else { return }
-        if offset <= 0 {
-            expandChrome()
+    private func applyBarMorphChange(_ state: BrowserBarMorphState, transition: BrowserBarTransitionKind?) {
+        #if DEBUG
+        let tracksDebug = ProcessInfo.processInfo.arguments.contains("-dc-browse-debug")
+        #endif
+        if barMorph.reduceMotion {
+            let targetProgress: CGFloat = state.reduceMotionCollapsed ? 1 : 0
+            if isChromeMinimized != state.isChromeMinimized || barProgressModel.progress != targetProgress {
+                withAnimation(.easeInOut(duration: BrowserBarMorphMetrics.reduceMotionCrossFadeDuration)) {
+                    if isChromeMinimized != state.isChromeMinimized {
+                        isChromeMinimized = state.isChromeMinimized
+                    }
+                    if barProgressModel.progress != targetProgress {
+                        barProgressModel.progress = targetProgress
+                    }
+                    #if DEBUG
+                    if tracksDebug { barDebugTick &+= 1 }
+                    #endif
+                }
+            } else {
+                #if DEBUG
+                if tracksDebug {
+                    var tx = Transaction(animation: nil)
+                    tx.disablesAnimations = true
+                    withTransaction(tx) { barDebugTick &+= 1 }
+                }
+                #endif
+            }
             return
         }
 
-        // Accumulate travel in one direction; reverse direction resets it so a
-        // small flick is enough to toggle without reacting to every jitter.
-        if (delta > 0) != (scrollTravel > 0) { scrollTravel = 0 }
-        scrollTravel += delta
-        if scrollTravel > Self.chromeToggleTravel, !isChromeMinimized {
-            isChromeMinimized = true
-        } else if scrollTravel < -Self.chromeToggleTravel, isChromeMinimized {
-            isChromeMinimized = false
+        switch transition {
+        case .spring(let target):
+            withAnimation(
+                .spring(
+                    response: BrowserBarMorphMetrics.springResponse,
+                    dampingFraction: BrowserBarMorphMetrics.springDamping
+                )
+            ) {
+                barProgressModel.progress = target
+                if isChromeMinimized != state.isChromeMinimized {
+                    isChromeMinimized = state.isChromeMinimized
+                }
+                #if DEBUG
+                if tracksDebug { barDebugTick &+= 1 }
+                #endif
+            }
+        case .immediate, nil:
+            var tx = Transaction(animation: nil)
+            tx.disablesAnimations = true
+            withTransaction(tx) {
+                if barProgressModel.progress != state.progress {
+                    barProgressModel.progress = state.progress
+                }
+                if isChromeMinimized != state.isChromeMinimized {
+                    isChromeMinimized = state.isChromeMinimized
+                }
+                #if DEBUG
+                if tracksDebug { barDebugTick &+= 1 }
+                #endif
+            }
         }
     }
 
@@ -418,6 +558,7 @@ final class ForumBrowserModel: NSObject, ObservableObject {
         #endif
         let startedFromHome = showsForumsHome || loadStartedFromForumsHome
         hideForumsHome()
+        expandChrome(deferIfTracking: true)
         loadStartedFromForumsHome = startedFromHome
         suppressLoadError = silentOnFailure
         // The first load (the restored forum at launch) would otherwise leave
@@ -555,6 +696,7 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     func go(to item: WKBackForwardListItem) {
         let startedFromHome = showsForumsHome || loadStartedFromForumsHome
         hideForumsHome()
+        expandChrome(deferIfTracking: true)
         loadStartedFromForumsHome = startedFromHome
         suppressLoadError = false
         activeNavigation = webView.go(to: item)
@@ -606,6 +748,8 @@ final class ForumBrowserModel: NSObject, ObservableObject {
         activeNavigation = nil
         activeNavigationStarted = false
         webView.stopLoading()
+        if isLoading { isLoading = false }
+        barMorph.setLoading(false)
         finishAgentNavigation(.failed("Loading was stopped."))
     }
 
@@ -913,6 +1057,7 @@ final class ForumBrowserModel: NSObject, ObservableObject {
         canGoBack = webView.canGoBack
         canGoForward = webView.canGoForward
         isLoading = webView.isLoading
+        barMorph.setLoading(webView.isLoading)
 
         let made = PageContext.make(
             url: resolvedURL,
@@ -1152,7 +1297,7 @@ extension ForumBrowserModel: WKNavigationDelegate {
             updateNavigationState()
             return
         }
-        expandChrome()
+        expandChrome(deferIfTracking: true)
         if !holdsHomeOverLoad {
             let startedFromHome = loadStartedFromForumsHome
             hideForumsHome()
@@ -1169,6 +1314,10 @@ extension ForumBrowserModel: WKNavigationDelegate {
         loadStartedFromForumsHome = false
         suppressLoadError = false
         appOpenPrompt = nil
+        if isPageFormInputFocused {
+            isPageFormInputFocused = false
+            syncPageKeyboardFreeze()
+        }
         // A new document: the facts of the last one no longer apply.
         lastFacts = nil
         // The committed page (after redirects) decides the lists.

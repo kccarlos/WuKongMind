@@ -261,6 +261,7 @@ final class AppModel: ObservableObject {
             || value("-dc-scripts-sample") != nil
             || arguments.contains("-dc-scripts-sample")
             || value("-dc-m4-import-preview") != nil
+            || value("-dc-bar-morph-fixture") != nil
             || value("-dc-fixture-model") != nil
             || arguments.contains("-dc-no-provider")
     }
@@ -408,6 +409,10 @@ final class AppModel: ObservableObject {
         )
         let sessionBox = WeakBox<BrowserAgentSession>()
         let confirmations = AgentConfirmationGate()
+        confirmations.onAsk = { [weak appBox, weak tabBrowser] _ in
+            guard let app = appBox?.value, let tabBrowser, app.browser === tabBrowser, !app.isAIViewShown else { return }
+            tabBrowser.expandChrome(deferIfTracking: true)
+        }
         confirmations.onAnswer = { [weak sessionBox] tool, question, answer in
             sessionBox?.value?.recordConfirmation(tool: tool, question: question, answer: answer)
         }
@@ -497,6 +502,10 @@ final class AppModel: ObservableObject {
         sessionBox.value = agentSession
         agentSession.onAnswer = { [weak appBox] answer in
             _ = appBox?.value?.saveAgentAnswer(answer)
+        }
+        agentSession.onRunFinished = { [weak appBox, weak tabBrowser] in
+            guard let app = appBox?.value, let tabBrowser, app.browser === tabBrowser, !app.isAIViewShown else { return }
+            tabBrowser.expandChrome(deferIfTracking: true)
         }
 
         tabBrowser.knownForumLookup = { [weak appBox] url in
@@ -847,6 +856,7 @@ final class AppModel: ObservableObject {
             seedUITestSession()
         }
         applyBrowserAgentDebugArguments()
+        applyBarMorphDebugArguments()
         seedScriptsSampleIfNeeded()
         seedM4ImportPreviewIfNeeded()
         // Sample only: never over the real digests or with a real key.
@@ -1107,6 +1117,9 @@ final class AppModel: ObservableObject {
         #if DEBUG
         seededPageContext = nil
         #endif
+        oldTab?.browser.setEditingAddress(false)
+        oldTab?.browser.setSystemKeyboardVisible(false)
+        oldTab?.browser.setExternalKeyboardFrozen(false)
         let context = newTab.browser.pageContext
         if let siteURL = context.siteURL ?? newTab.browser.homeSiteURL {
             if currentSiteURL != siteURL { currentSiteURL = siteURL }

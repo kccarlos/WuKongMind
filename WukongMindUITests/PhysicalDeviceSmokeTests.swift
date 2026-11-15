@@ -558,6 +558,11 @@ final class PhysicalDeviceSmokeTests: DCUITestCase {
         XCTAssertTrue(webView.waitForExistence(timeout: 30))
         let title = app.buttons["browserTitle"]
         XCTAssertTrue(title.waitForExistence(timeout: 20))
+        if title.frame.minY <= webView.frame.midY {
+            // Clean up if an earlier interrupted run left the bar set to Top.
+            setBrowserBar("Automatic", in: app, singlePane: false)
+            XCTAssertTrue(title.waitForExistence(timeout: 10))
+        }
         XCTAssertGreaterThan(title.frame.minY, webView.frame.midY, "Automatic puts the bar at the bottom on iPhone.")
         _ = webView.links.firstMatch.waitForExistence(timeout: 30)
         _ = wait(timeout: 20) { !app.staticTexts["Stop loading"].exists }

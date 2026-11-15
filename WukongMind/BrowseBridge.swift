@@ -266,9 +266,16 @@ final class BrowseMessageHandler: NSObject, WKScriptMessageHandler {
         _ userContentController: WKUserContentController,
         didReceive message: WKScriptMessage
     ) {
-        guard message.frameInfo.isMainFrame,
-              let report = ForumBrowserModel.bridgeReport(from: message.body)
-        else {
+        guard message.frameInfo.isMainFrame else { return }
+        if let body = message.body as? [String: Any],
+           let raw = body["formEditing"],
+           let editing = (raw as? Bool) ?? (raw as? NSNumber)?.boolValue {
+            Task { @MainActor [weak browser] in
+                browser?.setPageFormInputFocused(editing)
+            }
+            return
+        }
+        guard let report = ForumBrowserModel.bridgeReport(from: message.body) else {
             return
         }
         Task { @MainActor [weak browser] in

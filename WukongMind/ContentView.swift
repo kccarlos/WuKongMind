@@ -1,3 +1,4 @@
+import Combine
 import SwiftUI
 
 struct ContentView: View {
@@ -253,8 +254,10 @@ struct BrowserContent: View {
     @ObservedObject var browser: ForumBrowserModel
     @ObservedObject var voice: VoiceController
     let actions: BrowserActions
-    /// Room the cards leave at the bottom (the home indicator).
+    /// Room the cards leave at the bottom (above the floating browser bar).
     var cardsBottomInset: CGFloat = 0
+    /// Room Home and top banners leave under the floating iPhone top bar.
+    var floatingTopBarInset: CGFloat = 0
     /// iPhone: the page runs under the bottom toolbar and the home indicator
     /// (WKWebView insets its own scroll view); the cards stay above them.
     var webViewIgnoresBottomSafeArea = false
@@ -274,13 +277,15 @@ struct BrowserContent: View {
                 .accessibilityHidden(showsHome)
             if showsHome {
                 HomeView(app: app, actions: actions)
+                    .safeAreaPadding(.top, floatingTopBarInset)
+                    .safeAreaPadding(.bottom, cardsBottomInset)
                     .zIndex(1)
             }
         }
         .overlay(alignment: .top) {
             if browser.showsCrashNotice, !showsHome {
                 WebContentCrashBanner(onReload: browser.retryAfterCrash, onDismiss: browser.dismissCrashNotice)
-                    .padding(.top, DCTheme.spacingS)
+                    .padding(.top, DCTheme.spacingS + floatingTopBarInset)
                     .padding(.horizontal, DCTheme.spacingM)
                     .transition(DCMotion.slide(.top, reduceMotion: reduceMotion))
             }
@@ -288,7 +293,7 @@ struct BrowserContent: View {
         .overlay(alignment: .top) {
             if let prompt = browser.appOpenPrompt, !showsHome {
                 AppOpenBanner(prompt: prompt, onOpen: browser.confirmAppOpen, onDismiss: browser.dismissAppOpenPrompt)
-                    .padding(.top, DCTheme.spacingS)
+                    .padding(.top, DCTheme.spacingS + floatingTopBarInset)
                     .padding(.horizontal, DCTheme.spacingM)
                     .transition(DCMotion.slide(.top, reduceMotion: reduceMotion))
             }
@@ -323,7 +328,12 @@ struct BrowserContent: View {
         }
         #if DEBUG
         .overlay(alignment: .topLeading) {
-            if AssistantDebug.has("-dc-browse-debug") { BrowseDebugState(app: app, browser: app.browser) }
+            if AssistantDebug.has("-dc-browse-debug") {
+                VStack(alignment: .leading, spacing: 0) {
+                    BrowseDebugState(app: app, browser: app.browser)
+                    BrowserBarDebugState(browser: app.browser, progressModel: app.browser.barProgressModel)
+                }
+            }
         }
         #endif
         .animation(DCMotion.respecting(reduceMotion, DCMotion.spring), value: browser.showsCrashNotice)
@@ -398,6 +408,63 @@ private struct BrowseDebugState: View {
             .allowsHitTesting(false)
             .accessibilityLabel(Text(verbatim: state))
             .accessibilityIdentifier("browseDebugState")
+    }
+}
+
+/// `-dc-browse-debug`: exposes morph progress, rest state, and `WKWebView.scrollView`
+/// bottom insets to UI tests (`browserBarDebugState`).
+private struct BrowserBarDebugState: View {
+    @ObservedObject var browser: ForumBrowserModel
+    @ObservedObject var progressModel: BrowserBarProgressModel
+    @State private var layoutTick = 0
+
+    private var state: String {
+        _ = layoutTick
+        _ = browser.barDebugTick
+        _ = browser.isLoading
+        _ = progressModel.progress
+        let scrollView = browser.webView.scrollView
+        let morph = browser.barMorphState
+        let topInset = scrollView.adjustedContentInset.top
+        let sample = BrowserScrollSample(
+            offsetY: scrollView.contentOffset.y + topInset,
+            contentHeight: scrollView.contentSize.height,
+            viewportHeight: scrollView.bounds.height - topInset,
+            bottomInset: scrollView.adjustedContentInset.bottom
+        )
+        let offsetY = Int(sample.offsetY.rounded())
+        let maxOffsetY = Int(sample.maxOffsetY.rounded())
+        let insetBottom = Int(scrollView.contentInset.bottom.rounded())
+        let adjustedBottom = Int(scrollView.adjustedContentInset.bottom.rounded())
+        return String(
+            format: "p=%.3f displayP=%.3f minimized=%d atRest=%d insetBottom=%d adjustedBottom=%d offsetY=%d maxOffsetY=%d minCount=%d expCount=%d",
+            morph.progress,
+            browser.barProgress,
+            browser.isChromeMinimized ? 1 : 0,
+            morph.isAtRest ? 1 : 0,
+            insetBottom,
+            adjustedBottom,
+            offsetY,
+            maxOffsetY,
+            morph.minimizeCount,
+            morph.expandCount
+        )
+    }
+
+    var body: some View {
+        Text(verbatim: state)
+            .font(.system(size: 2))
+            .frame(width: 4, height: 4)
+            .opacity(0.02)
+            .allowsHitTesting(false)
+            .accessibilityLabel(Text(verbatim: state))
+            .accessibilityIdentifier("browserBarDebugState")
+            .onReceive(browser.webView.scrollView.publisher(for: \.contentSize)) { _ in
+                layoutTick &+= 1
+            }
+            .onReceive(browser.webView.scrollView.publisher(for: \.contentInset)) { _ in
+                layoutTick &+= 1
+            }
     }
 }
 #endif
