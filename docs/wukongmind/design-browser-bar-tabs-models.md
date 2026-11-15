@@ -2,7 +2,7 @@
 
 Status: **proposed**. Visual only, with no app code. The owner asked for three things after 1.3.0, and this page designs all three before any of them is built.
 
-- **Boards:** unified design canvas (https://claude.ai/artifact/Daefr4AsZcSm2EWbTLU9uK), version 61, section "WUKO-77".
+- **Boards:** unified design canvas (https://claude.ai/artifact/Daefr4AsZcSm2EWbTLU9uK), version 62, section "WUKO-77".
 - **Export:** `design/unified-canvas/` holds the boards' `*.dc.html` files and 2x PNGs in `png/` (light and dark).
 
 | Board | What it shows |
@@ -35,7 +35,7 @@ Looks come from the design system (https://claude.ai/artifact/5fGhnS4fmcmWYZbPoK
   - It sits 9 pt above the bottom edge, over the home indicator.
   - Page content runs under it to the bottom edge, and the web view's bottom inset becomes 0 while collapsed.
 - **Expands on:**
-  - scrolling up, with the finger: 32 pt of upward travel from collapsed brings p below 0.5, so letting go opens the bar (see "Motion spec");
+  - scrolling up, with the finger: from collapsed, 32 pt of upward travel brings p to 0.5 and more than 32 pt below it. Either way, letting go opens the bar, because the tie at exactly 0.5 expands (see "Motion spec");
   - a tap on the pill;
   - reaching the end of the page (the scroll view's bottom bounce);
   - a new page load;
@@ -81,15 +81,16 @@ On iPad the widths run from page-column width − 24 to 200, the height from 52 
 
 ### Motion spec
 
-- **Progress p** (0 expanded, 1 collapsed) is signed and runs from wherever it was when the scroll began:
-  `p = clamp(p₀ + Δy ÷ 64 pt, 0, 1)`.
-  - p₀ is p when the finger touches down (or when momentum scrolling begins). Δy is the content offset change since then: positive while the page scrolls down, negative while it scrolls up.
-  - So scrolling down collapses the bar and scrolling up expands it, both following the finger. Reversing mid-drag simply reverses p, with no reset and no threshold.
+- **Progress p** (0 expanded, 1 collapsed) is integrated on every content-offset change:
+  `p = clamp(p_prev + δy ÷ 64 pt, 0, 1)`.
+  - δy is this change's offset delta: positive while the page scrolls down, negative while it scrolls up. p_prev is p after the previous change. Nothing is anchored at touch-down.
+  - Clamping each step means travel past either end never builds up. Reversing mid-drag moves p straight away: after any long drag down, 10 pt back up gives p = 1 − 10/64 at once.
+  - So scrolling down collapses the bar and scrolling up expands it, both following the finger.
   - Only offsets inside the content count: no bounce, and no changes while the page loads or while the keyboard shows.
   - Momentum scrolling after a flick keeps driving p with the same formula.
   - p follows the finger frame by frame: no animation runs while the finger or momentum drives it.
 - **When scrolling stops** (finger up with no momentum, or momentum ends) with 0 < p < 1:
-  - It settles to the nearer end.
+  - It settles to the nearer end: p > 0.5 collapses; p ≤ 0.5 expands (the tie at exactly 0.5 expands).
   - A flick faster than 300 pt/s settles in its own direction (down: collapsed; up: expanded).
   - Spring: `.spring(response: 0.24, dampingFraction: 1.0)`. It is critically damped (no bounce) and visually done within 250 ms.
 - **Discrete triggers** spring to p = 0 with the same spring, and only when no finger is on the page: a tap on the pill, reaching the page end, a page load, address editing. Scrolling up is never a discrete trigger, because it is finger-driven.
