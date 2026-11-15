@@ -155,7 +155,7 @@ final class OneLoopAcceptanceTests: XCTestCase {
         XCTAssertTrue(forumTurn.contains("- URL: https://meta.appinn.net/t/18527") && forumTurn.contains("- Forum: you are on"))
         XCTAssertTrue(newsTurn.contains("- URL: \(PageChangeRun.newsPage.url)"))
         XCTAssertTrue(newsTurn.contains("The page changed since the user's previous message"))
-        XCTAssertTrue(newsTurn.contains("Not a forum or a supported site"))
+        XCTAssertTrue(newsTurn.contains("- No reading tool for this site yet."))
         XCTAssertTrue(newsTurn.hasSuffix("The user's message:\n\(Self.newsPrompt)"))
     }
 

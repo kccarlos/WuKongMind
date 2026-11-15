@@ -601,6 +601,8 @@ struct ToolRegistry: Sendable {
     /// The run's forum, for the prompt's "Forum tools" section; set by the
     /// builder next to the forum tools.
     var forumPrompt: ForumPromptContext?
+    /// Site reading state for `<page_context>` on non-adapter sites.
+    var siteReadingPrompt: SiteReadingPromptState = .none
 
     init(
         tools: [AgentTool] = [],
@@ -2482,6 +2484,22 @@ struct ForumToolContext: Sendable {
     }
 }
 
+/// Per-run state for learned reading tools on a site without a built-in adapter.
+struct LearnedSiteContext: Sendable {
+    var host: String
+    var state: SiteToolState
+    var pageToolBridge: PageToolBridge
+    var scope: LearnedRunScope
+    var promptState: SiteReadingPromptState
+
+    @MainActor
+    init(host: String, state: SiteToolState, pageToolBridge: PageToolBridge, scriptStore: ScriptStore, scope: LearnedRunScope? = nil) {
+        self.host = SiteToolState.normalizedHost(host) ?? host.lowercased()
+        self.state = state; self.pageToolBridge = pageToolBridge; self.scope = scope ?? LearnedRunScope()
+        self.promptState = SiteToolState.readingPromptState(state: state, scripts: scriptStore.scripts, pageToolsEnabled: pageToolBridge.isEnabled)
+    }
+}
+
 /// Everything an M3 tool family needs, handed to each `ToolRegistry+*.swift`
 /// file by `ToolRegistry.m3`. Later tasks add their own fields (the cookie
 /// store and the confirmation gate) with defaults, so call sites stay put.
@@ -2500,6 +2518,8 @@ struct AgentToolContext: Sendable {
     var confirmations: AgentConfirmationGate?
     /// The recognized forum for this run (`search_forum`, `read_topic`, …).
     var forum: ForumToolContext?
+    /// Learned reading tools and state on a site without a built-in adapter.
+    var learnedSite: LearnedSiteContext?
     /// Summarize, read aloud, follow, and local notification capabilities.
     var capabilities: CapabilityToolContext?
     /// The voice session's navigator, behind the voice-only browse tools.
@@ -2517,6 +2537,7 @@ struct AgentToolContext: Sendable {
         network: AgentHTTPClient? = nil,
         confirmations: AgentConfirmationGate? = nil,
         forum: ForumToolContext? = nil,
+        learnedSite: LearnedSiteContext? = nil,
         capabilities: CapabilityToolContext? = nil,
         browse: BrowseToolContext? = nil
     ) {
@@ -2531,6 +2552,7 @@ struct AgentToolContext: Sendable {
         self.network = network
         self.confirmations = confirmations
         self.forum = forum
+        self.learnedSite = learnedSite
         self.capabilities = capabilities
         self.browse = browse
     }
@@ -2575,6 +2597,7 @@ extension ToolRegistry {
                 maxTopicReads: $0.maxTopicReads
             )
         }
+        registry.siteReadingPrompt = context.forum == nil ? (context.learnedSite?.promptState ?? .none) : .none
         return registry
     }
 }

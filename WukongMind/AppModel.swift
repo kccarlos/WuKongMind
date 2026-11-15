@@ -366,6 +366,8 @@ final class AppModel: ObservableObject {
     /// Userscript importer and daily foreground update checker (`ScriptImport.swift`).
     let scriptImporter: ScriptImporter
     private var scriptImporterCancellable: AnyCancellable?
+    /// Per-host learned reading tool state (`SiteToolState.swift`).
+    let siteToolStateStore: SiteToolStateStore
     /// The agent's on-disk audit log and task records (`AuditLog.swift`, `TaskRecord.swift`).
     let auditLog: AuditLog
     let taskRecordStore: TaskRecordStore
@@ -467,10 +469,11 @@ final class AppModel: ObservableObject {
                 }
                 return app.browserAgentRuntimeConfig
             },
-            registryBuilder: { [weak appBox, weak tabBrowser, weak scriptWebController, weak confirmations, weak httpClient, weak sessionBox] bridge, limit, secrets in
+            registryBuilder: { [weak appBox, weak tabBrowser, weak pageToolBridge, weak scriptWebController, weak confirmations, weak httpClient, weak sessionBox] bridge, limit, secrets in
                 guard let app = appBox?.value else {
                     return ToolRegistry.m1(bridge: bridge, truncationLimit: limit, redactedSecrets: secrets)
                 }
+                let forum = tabBrowser.flatMap { app.makeForumToolContext(for: $0) }
                 return ToolRegistry.m3(context: AgentToolContext(
                     bridge: bridge,
                     workspace: app.agentWorkspace,
@@ -493,7 +496,8 @@ final class AppModel: ObservableObject {
                     ),
                     network: httpClient,
                     confirmations: confirmations,
-                    forum: tabBrowser.flatMap { app.makeForumToolContext(for: $0) },
+                    forum: forum,
+                    learnedSite: forum == nil ? app.makeLearnedSiteContext(for: tabBrowser, pageToolBridge: pageToolBridge) : nil,
                     capabilities: tabBrowser.map { app.capabilityToolContext(for: $0) }
                 ))
             },
@@ -593,7 +597,8 @@ final class AppModel: ObservableObject {
         spotlightIndex: SpotlightIndexing? = nil,
         topicActivityDonor: TopicActivityDonating? = nil,
         backgroundGrace: BackgroundGracing? = nil,
-        scriptStore: ScriptStore? = nil
+        scriptStore: ScriptStore? = nil,
+        siteToolStateStore: SiteToolStateStore? = nil
     ) {
         self.store = store
         let workspaceRoot = workspaceDirectory ?? AgentWorkspace.defaultRoot
@@ -693,6 +698,18 @@ final class AppModel: ObservableObject {
             )
         }
         self.scriptStore = resolvedScriptStore
+        if let siteToolStateStore {
+            self.siteToolStateStore = siteToolStateStore
+        } else {
+            #if DEBUG
+            let siteToolsDir = (Self.loadsOnlySamplePage && store.usesDefaultLocation)
+                ? FileManager.default.temporaryDirectory.appendingPathComponent("wukong-debug-sitetools-\(UUID().uuidString)", isDirectory: true)
+                : store.directoryURL.appendingPathComponent("SiteTools", isDirectory: true)
+            #else
+            let siteToolsDir = store.directoryURL.appendingPathComponent("SiteTools", isDirectory: true)
+            #endif
+            self.siteToolStateStore = SiteToolStateStore(directoryURL: siteToolsDir)
+        }
         let box = self.appBox
         let resolvedImporter = ScriptImporter(
             scriptStore: resolvedScriptStore,
@@ -3126,6 +3143,28 @@ final class AppModel: ObservableObject {
             isPaced: settings.forumRateLimitingEnabled
         )
         return ForumToolContext(service: forumToolService(for: targetBrowser), scope: scope, forumName: forumName)
+    }
+
+    /// Builds per-run learned-site context when Page tools is enabled and the open page has no built-in adapter.
+    func makeLearnedSiteContext(
+        for targetBrowser: ForumBrowserModel? = nil,
+        pageToolBridge: PageToolBridge? = nil
+    ) -> LearnedSiteContext? {
+        guard settings.agentPageToolsEnabled, makeForumToolContext(for: targetBrowser) == nil else { return nil }
+        let bridge = pageToolBridge
+            ?? tabs.tabs.first(where: { $0.browser === targetBrowser })?.pageToolBridge
+            ?? self.pageToolBridge
+        guard bridge.isEnabled else { return nil }
+        let page = targetBrowser?.pageContext ?? pageContext
+        let candidateURL = page.url ?? targetBrowser?.webView.url ?? browser.webView.url
+        guard let url = candidateURL,
+              let host = SiteToolState.normalizedHost(from: url),
+              let state = siteToolStateStore.state(forHost: host) else { return nil }
+        let scope = LearnedRunScope(
+            readBudget: { [weak self] in self?.settings.agentMaxTopicReads ?? AgentLimits.defaultMaxTopicReads },
+            readLimit: settings.agentReadLimit
+        )
+        return LearnedSiteContext(host: host, state: state, pageToolBridge: bridge, scriptStore: scriptStore, scope: scope)
     }
 
     /// Reads a job's topic, cached pages reused. Every new page goes into

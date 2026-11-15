@@ -52,6 +52,38 @@ final class ForumRunScope {
     }
 }
 
+/// Per-run topic-read budget and read limit for learned site readers (`design-learn-on-ask.md` "How a slot runs on a learned site").
+@MainActor
+final class LearnedRunScope {
+    var readURLs: [String]
+    let readBudget: () -> Int
+    var readLimit: Int
+
+    init(
+        readURLs: [String] = [],
+        readBudget: @escaping () -> Int = { AgentLimits.defaultMaxTopicReads },
+        readLimit: Int = AgentLimits.defaultReadLimit
+    ) {
+        self.readURLs = readURLs
+        self.readBudget = readBudget
+        self.readLimit = readLimit
+    }
+
+    convenience init(maxTopicReads: Int, readLimit: Int = AgentLimits.defaultReadLimit) {
+        self.init(readBudget: { maxTopicReads }, readLimit: readLimit)
+    }
+
+    func checkTopicBudget(for threadKey: String) throws {
+        guard !readURLs.contains(threadKey) else { return }
+        let limit = readBudget()
+        guard readURLs.count < limit else { throw AgentError.topicBudgetExhausted(limit) }
+    }
+
+    func recordTopicRead(_ threadKey: String) {
+        if !readURLs.contains(threadKey) { readURLs.append(threadKey) }
+    }
+}
+
 /// Model-facing text rendering for forum lists and threads (`design-one-loop.md` "The two shapes").
 enum ForumRendering {
     static func format(listings: [ForumTopicListing], limit: Int = 20) -> String {
@@ -208,6 +240,111 @@ enum ForumRendering {
             String(localized: "Read \(session.totalPosts ?? 0) posts", comment: "Ask the forum step outcome: number of posts read in a topic"),
             "\(headerBase)\n\n\(bounded)"
         )
+    }
+
+    static func format(list: ListShape, limit: Int = 20) -> String {
+        let parts = formatParts(list: list, limit: limit)
+        return parts.showsUnnumberedHits ? parts.body + "\n\n" + unnumberedHitsNote : parts.body
+    }
+
+    static func formatParts(
+        list: ListShape, limit: Int = 20, hitsPerTopic: Int = 3, singleTopicHits: Int = 30
+    ) -> (body: String, showsUnnumberedHits: Bool) {
+        guard !list.items.isEmpty else { return ("No topics found.", false) }
+        let perTopic = list.items.count == 1 ? singleTopicHits : hitsPerTopic
+        var shownUnnumbered = false
+        let body = list.items.prefix(limit).map { item in
+            var facts: [String] = []
+            if let count = item.postsCount { facts.append("\(count) posts") }
+            if let last = item.lastActivity, !last.isEmpty { facts.append("last activity \(last.prefix(10))") }
+            let id = item.id?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            var line = id.isEmpty ? "- \(item.title)" : "- id \(id): \(item.title)"
+            if !facts.isEmpty { line += " — \(facts.joined(separator: ", "))" }
+            line += " — \(item.url)"
+            if let topicHits = item.hits, !topicHits.isEmpty {
+                for hit in topicHits.prefix(perTopic) {
+                    if hit.number == nil { shownUnnumbered = true }
+                    var head = hit.number.map { "#\($0)" } ?? ""
+                    if let author = hit.author, !author.isEmpty {
+                        head += head.isEmpty ? "@\(author)" : " @\(author)"
+                    }
+                    line += "\n  \(head)"
+                    let blurb = hit.blurb?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                    if !blurb.isEmpty { line += (head.isEmpty ? "" : ": ") + "\(blurb.prefix(160))" }
+                }
+            } else if let excerpt = item.excerpt?.trimmingCharacters(in: .whitespacesAndNewlines), !excerpt.isEmpty {
+                line += "\n  \(excerpt.prefix(200))"
+            }
+            return line
+        }.joined(separator: "\n")
+        return (body, shownUnnumbered)
+    }
+
+    static func topicHeader(thread: ThreadShape) -> String {
+        (thread.title.isEmpty ? "" : "Topic: \(thread.title)\n") + "URL: \(thread.url)"
+    }
+
+    static func rawTopicText(from thread: ThreadShape) -> String {
+        guard !thread.posts.isEmpty else { return "" }
+        return RawTopicFormat.render(thread.posts.map { post in
+            (PostBlock(number: post.number, author: post.author, date: parsePostDate(post.date), anchor: "\(post.number)", score: post.score), post.body)
+        })
+    }
+
+    static func formatLearnedTopicRead(
+        envelope: LearnedToolResult<ThreadShape>, rawSource: String,
+        requestedPage: Int?, query: String, readLimit: Int
+    ) throws -> String {
+        let readerPaged = envelope.page != nil || envelope.totalPages != nil
+        let totalPages = max(1, envelope.totalPages ?? RawTopicFormat.pageCount(of: rawSource))
+        if let requestedPage, requestedPage > totalPages {
+            throw AgentError.invalidArgument("page", reason: "no such page \(requestedPage) (use 1 to \(totalPages)).")
+        }
+        let headerBase = topicHeader(thread: envelope.shape)
+        let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if !trimmedQuery.isEmpty {
+            let targetSource = (!readerPaged && requestedPage != nil)
+                ? RawTopicFormat.pageText(requestedPage!, pages: [], fallbackText: rawSource) : rawSource
+            let openingPost = RawTopicFormat.postBlocks(targetSource).first
+            let (op, matches, opMatched) = RawTopicFormat.matchingBlocks(in: targetSource, query: trimmedQuery, openingPost: openingPost)
+            let activePage = requestedPage ?? (readerPaged && totalPages > 1 ? envelope.page : nil)
+            if !matches.isEmpty {
+                let combined = ([op].compactMap { $0 } + matches).joined(separator: RawTopicFormat.blockSeparator)
+                let bounded = PromptBuilder.boundedForumContext(combined, limit: readLimit)
+                let noun = matches.count == 1 ? "matching post" : "matching posts"
+                let suffix = activePage.map { " on page \($0) of \(totalPages)" } ?? (envelope.shape.totalPosts.map { " (of \($0) posts)" } ?? "")
+                return "\(headerBase)\nShowing: \(matches.count) \(noun) for \"\(trimmedQuery)\"\(suffix), best matches first\n\n\(bounded)"
+            } else if !opMatched {
+                let body = op.map { PromptBuilder.boundedForumContext($0, limit: readLimit) } ?? ""
+                let suffix = activePage.map { " on page \($0) of \(totalPages)" } ?? ""
+                return "\(headerBase)\nShowing: 0 matching posts for \"\(trimmedQuery)\"\(suffix)\n\n\(body)"
+            }
+        }
+        if let page = requestedPage {
+            let pageText = readerPaged ? rawSource : RawTopicFormat.pageText(page, pages: [], fallbackText: rawSource)
+            let bounded = PromptBuilder.boundedForumContext(pageText, limit: readLimit)
+            return "\(headerBase)\nShowing: page \(readerPaged ? (envelope.page ?? page) : page) of \(totalPages)\n\n\(bounded)"
+        }
+        let bounded = PromptBuilder.boundedForumContext(rawSource, limit: readLimit, totalPages: totalPages)
+        if readerPaged, let page = envelope.page, totalPages > 1 {
+            return "\(headerBase)\nShowing: page \(page) of \(totalPages)\n\n\(bounded)"
+        }
+        return "\(headerBase)\n\n\(bounded)"
+    }
+
+    private static func parsePostDate(_ raw: String?) -> Date? {
+        guard let trimmed = raw?.trimmingCharacters(in: .whitespacesAndNewlines), !trimmed.isEmpty else { return nil }
+        for opts: ISO8601DateFormatter.Options in [[.withInternetDateTime, .withFractionalSeconds], [.withInternetDateTime]] {
+            let f = ISO8601DateFormatter(); f.formatOptions = opts
+            if let date = f.date(from: trimmed) { return date }
+        }
+        let df = DateFormatter(); df.locale = Locale(identifier: "en_US_POSIX"); df.timeZone = TimeZone(secondsFromGMT: 0)
+        for fmt in ["yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd"] {
+            df.dateFormat = fmt
+            if let date = df.date(from: trimmed) { return date }
+        }
+        return nil
     }
 }
 
