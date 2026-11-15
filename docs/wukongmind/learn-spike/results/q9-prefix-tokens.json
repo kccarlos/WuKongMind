@@ -1,11 +1,15 @@
 {
   "anthropicBaselineTokens" : 8728,
-  "anthropicCandidateTokens" : 9837,
-  "anthropicDeltaTokens" : 1109,
+  "anthropicCandidateTokens" : 10329,
+  "anthropicDeltaTokens" : 1601,
+  "anthropicThreeToolsAndPromptDelta" : 1265,
+  "anthropicThreeToolsAndPromptTokens" : 9993,
   "baselineToolCount" : 25,
   "candidateToolCount" : 28,
   "geminiCountProvider" : "vertexai",
   "vertexBaselineTokens" : 3918,
-  "vertexCandidateTokens" : 4548,
-  "vertexDeltaTokens" : 630
+  "vertexCandidateTokens" : 4795,
+  "vertexDeltaTokens" : 877,
+  "vertexThreeToolsAndPromptDelta" : 757,
+  "vertexThreeToolsAndPromptTokens" : 4675
 }

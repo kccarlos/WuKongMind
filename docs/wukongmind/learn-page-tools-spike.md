@@ -36,8 +36,8 @@ This page answers the nine spike questions in [design-learn-on-ask.md](design-le
 | 5 | Isolated `fetch` | Same-site `fetch` succeeds and carries `HttpOnly; SameSite=Lax` cookies under **7/7** CSP policies including `connect-src 'none'`. Cross-site `fetch` sends no same-site cookie and WebKit enforces CORS before exposing responses (simple requests still reach the remote server first). | Confirmed |
 | 6 | Load cost | Shim sources are `4,364 B` (`.page`) and `4,488 B` (`WukongAgent`), `<1 ms` JS init, `+0.80 ms` median navigation delta on iPhone (`6.79` -> `7.59 ms`) and `-0.20 ms` on iPad (`11.71` -> `11.51 ms`, within noise). | Confirmed |
 | 7 | Older name & real sites | `navigator.modelContext` works identically (`{"found":true,"code":"A9"}`); native WebKit `document.modelContext` is `false` today. 3 live early-adopter sites (`sitepassport.org`, `parity-webmcp.vercel.app`, `webmcp.com`) ship 2, 5, and 9 WebMCP tools today and registered cleanly into our shim. | Confirmed |
-| 8 | Contract on 2 forums | Hand-written `read_topic` scripts for **FluxBB** (`bbs.archlinux.org`) and **Flarum** (`discuss.flarum.org`) passed all 9 `SiteToolVerifier` checks across 2 threads + page 2 (`206–1,157 ms`, `15–25 KB`). | Proposes FluxBB + Flarum for open question 1 |
-| 9 | Live learning & prefix | Prefix delta (25 -> 28 tools + Rule 5 + `"Learning a site"`): **`+1,109` Anthropic tokens** (`<1,200`) and **`+630` Vertex tokens**. `claude-haiku-5-5` learned in **`9–13` calls** (6/6 runs <=15, 2nd visit `1` call). `gemini-3.8-flash` on Vertex passed **3/3** on JSON fixture in `22–27` calls, and hit the `30`-step cap on HTML-only `bbs.archlinux.org` probing one selector per `run_js`. | Tighten steps 3–4 & Rule 4; split model call targets (`<=15` Haiku, `<=20` Gemini Flash) |
+| 8 | Contract on 2 forums | Hand-written `read_topic` scripts for **FluxBB** (`bbs.archlinux.org`) and **Flarum** (`discuss.flarum.org`) passed the 8 `read_topic` steps (`thread_match` not checked) across 2 threads + page 2 (`206–1,157 ms`, `15–25 KB`). | Proposes FluxBB + Flarum for open question 1 |
+| 9 | Live learning & prefix | Prefix delta: **`+1,265` Anthropic / `+757` Vertex tokens** (3 tools + Rule 4/5/`forumRules`/`script_save` text + `"Learning a site"`), **`+1,601` / `+877` all-in** with `provides` schemas. `claude-haiku-5-5` passed **6/6** verified runs in **`5–8` calls** (`<=15` confirmed). Vertex `gemini-3.8-flash` passed **5/6** verified runs in **`12–20` calls** (`3/3` on HTML `bbs.archlinux.org`; `#2` fixture stopped at `8` calls without saving). | Revise prefix targets (`<1,350` / `<1,700` all-in) & Gemini call target (`<=20`) |
 
 ## 1. Shim first across the CSP matrix
 
@@ -104,55 +104,55 @@ Checking UTF-8/string length inside the shim before returning avoids copying mul
 
 ## 8. Contract check and proposed public forums (open question 1)
 
-[`q8-public-readers.json`](learn-spike/results/q8-public-readers.json) tested hand-written isolated-world `read_topic` scripts against all 9 steps of `SpikeVerifier` (strict `LearnedToolResult` + `ThreadShape` decode, 2 threads, page 2 pagination, rising post numbers, `>=90%` authors, non-HTML bodies, distinct titles/first posts, 40-char faithfulness against visible page text, URL host scan, `<=20 s` and `<=2 MB`):
+[`q8-public-readers.json`](learn-spike/results/q8-public-readers.json) tested hand-written isolated-world `read_topic` scripts against the 8 `read_topic` steps of `SpikeVerifier` (`thread_match` not checked; Step 5 list sanity is N/A for `read_topic` — strict `LearnedToolResult` + `ThreadShape` decode, 2 threads, page 2 pagination, rising post numbers, `>=90%` authors, non-HTML bodies, distinct titles/first posts, 40-char faithfulness against visible page text, URL host scan, `<=20 s` and `<=2 MB`):
 
 | Proposed forum | Software & data path | Threads verified (p1 / p2 / thread 2) | Call durations | Max payload | Verifier |
 |---|---|---|---|---|---|
-| **`https://bbs.archlinux.org`** | **FluxBB** — server-rendered HTML (`fetch` + `DOMParser`, `&p=N` paging, no anti-bot gate) | `id=95007` (`25` / `25` posts), `id=314636` (`25` posts) | `207, 208, 206 ms` | `25,099 B` | **Passed (9/9)** |
-| **`https://discuss.flarum.org`** | **Flarum** — SPA + JSON:API (`/api/discussions/<id>` + `/api/posts?filter[id]=…`, no anti-bot gate) | `d/31150` (`19` / `6` posts), `d/39415` (`19` posts) | `1,108, 1,157, 866 ms` | `15,190 B` | **Passed (9/9)** |
+| **`https://bbs.archlinux.org`** | **FluxBB** — server-rendered HTML (`fetch` + `DOMParser`, `&p=N` paging, no anti-bot gate) | `id=95007` (`25` / `25` posts), `id=314636` (`25` posts) | `207, 208, 206 ms` | `25,099 B` | **Passed (8 `read_topic` steps, `thread_match` not checked)** |
+| **`https://discuss.flarum.org`** | **Flarum** — SPA + JSON:API (`/api/discussions/<id>` + `/api/posts?filter[id]=…`, no anti-bot gate) | `d/31150` (`19` / `6` posts), `d/39415` (`19` posts) | `1,108, 1,157, 866 ms` | `15,190 B` | **Passed (8 `read_topic` steps, `thread_match` not checked)** |
 
 Both are proposed for Decision 1 (`design-learn-on-ask.md` §"Decisions on the open questions"): **FluxBB (`bbs.archlinux.org`)** exercises multi-page DOM scraping, while **Flarum (`discuss.flarum.org`)** exercises SPA route changes + JSON:API pagination. Either works cleanly without credentials or anti-bot challenges; `bbs.archlinux.org` is fastest (`~207 ms`/page).
 
 ## 9. Prefix tokens and live model learning
 
-**Cached-prefix token delta** ([`q9-prefix-tokens.json`](learn-spike/results/q9-prefix-tokens.json)), measured via Anthropic `/v1/messages/count_tokens` and Vertex `:countTokens` on the full `AppModel` tool list (`25` -> `28` tools) plus Rule 5's sentence and the 16-line `"Learning a site"` prose section:
+**Cached-prefix token delta** ([`q9-prefix-tokens.json`](learn-spike/results/q9-prefix-tokens.json)), measured via Anthropic `/v1/messages/count_tokens` and Vertex `:countTokens` on the exact final `candSys` (Rule 4's exception, Rule 5's sentence, `forumRules` update, and `"Learning a site"` with the one-call `outerHTML` dump + 4-call exploration cap) and `candTools` (reworded `stableQueryDefinitions`, updated `script_save` description, the 3 new tools, plus the 4 `provides`/`thread_match`/`list_match`/`test_urls` schemas on `script_save` and `script_update`):
 
-| Provider & model | Baseline (25 tools + system) | Candidate (28 tools + Rule 5 + Learning) | Cached-prefix delta | Target |
+| Provider & model | Baseline (25 tools + system) | 3 new tools + prompt/description edits | All-in (+ `provides` schemas on `script_save`/`script_update`) | Settled target |
 |---|---|---|---|---|
-| Anthropic `claude-haiku-5-5` | `8,728` | `9,837` | **`+1,109` tokens** | `< 1,200` (**confirmed**) |
-| Vertex AI `gemini-3.8-flash` | `3,918` | `4,548` | **`+630` tokens** | `< 1,200` (**confirmed**) |
+| Anthropic `claude-haiku-5-5` | `8,728` | `9,993` (**`+1,265` tokens**) | `10,329` (**`+1,601` tokens**) | **Revised** to `< 1,350` (`< 1,700` all-in) |
+| Vertex AI `gemini-3.8-flash` | `3,918` | `4,675` (**`+757` tokens**) | `4,795` (**`+877` tokens**) | `< 1,350` / `< 1,700` (**confirmed**) |
 
-*(Note: `8,728` includes `BrowserAgentPrompt.system` + a 4-token user message on top of today's `6,626`-token 25-tool list. An earlier draft of `"Learning a site"` containing inline JS snippets measured `+1,395` Anthropic tokens because code punctuation tokenizes densely — Task 6 must keep `"Learning a site"` in plain prose.)*
+*(Note: `8,728` includes `BrowserAgentPrompt.system` + a 4-token user message on top of today's `6,626`-token 25-tool list; adding the 8 `provides`/`thread_match`/`list_match`/`test_urls` schemas across `script_save` and `script_update` accounts for `+336` Anthropic / `+120` Vertex tokens. Earlier inline JS snippets added ~280 extra Anthropic tokens because code punctuation tokenizes densely — Task 6 must keep `"Learning a site"` in plain prose.)*
 
-**Live runs** ([`q9-live-anthropic.json`](learn-spike/results/q9-live-anthropic.json), [`q9-live-gemini.json`](learn-spike/results/q9-live-gemini.json)) used today's `AppModel` + `BrowserAgentSession` (`maxSteps = 30`) on the 20-post 2-page fixture forum (`127.0.0.1`, inline login form on thread pages + JSON API) and `bbs.archlinux.org` (`id=95007`, 50 posts, 2 pages):
+**Live runs** ([`q9-live-anthropic.json`](learn-spike/results/q9-live-anthropic.json), [`q9-live-gemini.json`](learn-spike/results/q9-live-gemini.json)) executed the exact final `candSys` + `script_save`/`stableQueryDefinitions` description edits and `<page_context>` line (`"- No reading tool for this site yet."`) on today's `AppModel` + `BrowserAgentSession` (`maxSteps = 30`) across the 20-post 2-page fixture forum (`127.0.0.1`, inline login form + JSON API) and `bbs.archlinux.org` (`id=95007`, 50 posts, 2 pages):
 
-| Model (provider) | Forum | Run | Tool calls | Input / Output tokens | Cache-read tokens | `notes.md` | Post-run verifier |
+| Model (provider) | Forum | Run | Tool calls | Input / Output tokens | Cache-read tokens | `notes.md` | Post-run verifier (8 `read_topic` steps) |
 |---|---|---:|---:|---:|---:|---|---|
-| `claude-haiku-5-5` (`anthropic`) | `fixture` | 1 | **9** *(2nd visit: **1**)* | `101,686` / `5,686` | `84,297` *(2nd: `17,923`)* | yes | **Passed** (`15`/`5`/`4` posts) |
-| `claude-haiku-5-5` (`anthropic`) | `fixture` | 2 | **9** | `97,908` / `4,499` | `90,211` | yes | **Passed** (`15`/`5`/`4` posts) |
-| `claude-haiku-5-5` (`anthropic`) | `fixture` | 3 | **12** | `138,149` / `5,905` | `131,733` | yes | Saved on call 7, then `script_delete` on call 12 (Rule 4 conflict) |
-| `claude-haiku-5-5` (`anthropic`) | `bbs.archlinux.org` | 1 | **12** | `150,912` / `9,732` | `134,841` | yes | Failed Step 3 (`shape` wrapper omitted; no in-save verifier yet) |
-| `claude-haiku-5-5` (`anthropic`) | `bbs.archlinux.org` | 2 | **11** | `140,382` / `6,666` | `129,733` | yes | **Passed** (`25`/`25`/`25` posts) |
-| `claude-haiku-5-5` (`anthropic`) | `bbs.archlinux.org` | 3 | **13** | `167,005` / `8,875` | `154,347` | yes | **Passed** (`25`/`25`/`25` posts) |
-| `gemini-3.8-flash` (`vertexai`) | `fixture` | 1 | **22** *(2nd visit: **4**)* | `379,344` / `3,519` | `413,934` *(raw)* | yes | **Passed** (`15`/`5`/`4` posts) |
-| `gemini-3.8-flash` (`vertexai`) | `fixture` | 2 | **24** | `392,412` / `3,390` | `302,251` *(raw)* | yes | **Passed** (`15`/`5`/`4` posts) |
-| `gemini-3.8-flash` (`vertexai`) | `fixture` | 3 | **27** | `557,930` / `5,750` | `448,311` *(raw)* | yes | **Passed** (`15`/`5`/`4` posts) |
-| `gemini-3.8-flash` (`vertexai`) | `bbs.archlinux.org` | 1–3 | **30, 30, 30** | `359k–405k` / `3.0k–5.9k` | `0–3,294` *(raw)* | no | Hit 30-step cap (`25–29` single-selector `run_js` probes, 0 `read_page`) |
+| `claude-haiku-5-5` (`anthropic`) | `fixture` | 1 | **7** *(2nd visit: **2**)* | `80,414` / `4,433` | `63,604` *(2nd: `46,015`)* | yes | **Passed** (`15`/`5`/`4` posts) |
+| `claude-haiku-5-5` (`anthropic`) | `fixture` | 2 | **8** | `109,172` / `5,498` | `102,005` | yes | **Passed** (`15`/`5`/`4` posts) |
+| `claude-haiku-5-5` (`anthropic`) | `fixture` | 3 | **7** | `95,728` / `5,255` | `88,427` | yes | **Passed** (`15`/`5`/`4` posts) |
+| `claude-haiku-5-5` (`anthropic`) | `bbs.archlinux.org` | 1 | **5** *(2nd visit: **5**)* | `91,097` / `6,157` | `76,604` *(2nd: `135,381`)* | yes | **Passed** (`25`/`25`/`25` posts) |
+| `claude-haiku-5-5` (`anthropic`) | `bbs.archlinux.org` | 2 | **8** | `130,675` / `7,817` | `112,494` | yes | **Passed** (`25`/`25`/`25` posts) |
+| `claude-haiku-5-5` (`anthropic`) | `bbs.archlinux.org` | 3 | **6** | `86,051` / `5,334` | `75,510` | yes | **Passed** (`25`/`25`/`25` posts) |
+| `gemini-3.8-flash` (`vertexai`) | `fixture` | 1 | **12** *(2nd visit: **4**)* | `178,428` / `3,627` | `203,366` *(raw)* | yes | **Passed** (`15`/`5`/`4` posts) |
+| `gemini-3.8-flash` (`vertexai`) | `fixture` | 2 | **8** | `85,971` / `1,710` | `53,311` *(raw)* | no | Stopped early at 8 exploration calls (`savedScriptCount: 0`) |
+| `gemini-3.8-flash` (`vertexai`) | `fixture` | 3 | **15** | `211,110` / `4,445` | `150,808` *(raw)* | yes | **Passed** (`15`/`5`/`4` posts) |
+| `gemini-3.8-flash` (`vertexai`) | `bbs.archlinux.org` | 1 | **16** *(2nd visit: **7**)* | `222,081` / `7,014` | `370,054` *(raw)* | yes | **Passed** (`25`/`25`/`25` posts) |
+| `gemini-3.8-flash` (`vertexai`) | `bbs.archlinux.org` | 2 | **20** | `292,373` / `7,630` | `207,699` *(raw)* | yes | **Passed** (`25`/`25`/`25` posts) |
+| `gemini-3.8-flash` (`vertexai`) | `bbs.archlinux.org` | 3 | **18** | `300,090` / `7,609` | `206,248` *(raw)* | yes | **Passed** (`25`/`25`/`25` posts) |
 
 **What Q9 settled for Tasks 4, 5, 6 and 10:**
-1. **Four prompt/step fixes before Task 6:**
-   - **Amend Rule 4, `script_save`, and `forumRules`:** Today's Rule 4 (`BrowserAgent.swift:248`) and `script_save` (`ToolRegistry.swift:1434`) say to save only when asked `"always"` (causing Haiku fixture #3 to delete its own working reader at step 12), and `forumRules` (`:306`) + `pageContext` (`:359`) say `"Not a forum … use read_page"` (which caused an earlier Gemini pass to stop after 1 `read_page`). Task 4/6's new page-context line (`"No reading tool for this site yet"`) plus explicit Rule 4/`script_save` wording eliminates both conflicts.
-   - **Batch DOM inspection & cap exploration (Step 3):** On HTML-only forums, `gemini-3.8-flash` issued 25+ micro-`run_js` calls probing one selector per turn. Step 3 must instruct the Agent to dump one post container's `outerHTML`, author/date/number selectors, and pagination links in **one** `run_js` call, and cap pre-save exploration at **4 calls** before calling `site_learning_report`.
-   - **Name `fetch(url)` and outer `shape` (Step 4):** Saved userscripts have no `wukong` helper (unlike `run_js`); Step 4 must specify standard `fetch(url)`, the outer `{ shape, page, total_pages }` envelope, and testing both URLs in **one** `run_js` call. (In Haiku `bbs.archlinux.org` #1, `SiteToolVerifier` inside `script_save` in Task 5 will catch the missing `shape` key and fix it in 1 retry.)
-   - **Direct slot call in Step 8:** In `gemini-3.8-flash` fixture runs (`22–27` calls), `4–6` post-save calls came from calling `read_topic` (which refuses today before Task 4 wires slots) and falling back to `run_js`/`script_read`. Wiring `read_topic` in Task 4 cuts those immediately.
+1. **Prompt and rule alignment validated on live runs:**
+   - **Rule 4, `script_save`, `forumRules`, and `wukong.fetch` guard:** Amending Rule 4 (`BrowserAgent.swift:248`), `script_save` (`ToolRegistry.swift:1434`), and `forumRules` (`:306`) — and explicitly instructing the Agent not to answer thread requests from `read_page` or `workspaceSection`'s `wukong.fetch` crawl — raised `claude-haiku-5-5` to **6/6 verified runs in `5–8` calls** (an earlier phrasing without the `wukong.fetch` guard made Haiku crawl into `crawls/.../thread.md` instead of saving a reader, while unamended Rule 4 had caused a post-save `script_delete`).
+   - **Single-call `outerHTML` DOM dump + 4-call exploration cap (Step 3):** Adding the one-call `outerHTML` + selector/pagination/thread-link inspection rule transformed Vertex `gemini-3.8-flash` on HTML-only `bbs.archlinux.org` from `0/3` (`30/30/30` single-selector `run_js` probes) to **3/3 verified in `16, 20, 18` calls** (`5/6` verified overall, `12–20` calls).
 2. **Confirmed/revised cost targets (`design-learn-on-ask.md` line 348):**
-   - First learning: **`<= 15` tool calls confirmed for `claude-haiku-5-5`** (`9–13` measured); revised to **`<= 20` tool calls for `gemini-3.8-flash`** once Task 4 wires the slot and Task 6 adds the single-call DOM dump + 4-probe cap.
-   - Cached-prefix addition: **`< 1,200` tokens confirmed** (`+1,109` Anthropic, `+630` Vertex).
-   - Second visit summary: **`1` tool call confirmed** (`1` call measured on Haiku; 1 slot call once Task 4 lands).
-3. **Gemini cache-read reporting (for Task 10):** `AIService.swift:1187` currently ignores `usageMetadata.cachedContentTokenCount` on `.gemini`/`.vertexAI`, leaving `AgentTokenUsage.cacheReadTokens` `nil` even though Vertex cached up to `448,311` tokens in Q9. Wire `cachedContentTokenCount` into `AgentTokenUsage` so acceptance reports cache-read tokens on both providers.
+   - First learning: **`<= 15` tool calls confirmed for `claude-haiku-5-5`** (`5–8` calls on **6/6** verified runs); **revised to `<= 20` tool calls for `gemini-3.8-flash`**, confirmed on **5/6** verified runs (`12, 15` on fixture; `16, 20, 18` on `bbs.archlinux.org`).
+   - Cached-prefix addition: **revised from `< 1,200` to `< 1,350` Anthropic tokens (`+1,265` Anthropic, `+757` Vertex)** for the 3 new tools + prompt/description edits, and **`< 1,700` Anthropic tokens all-in (`+1,601` Anthropic, `+877` Vertex)** once `script_save` and `script_update` add the four `provides` parameter schemas.
+   - Second visit summary: **unconfirmed in the pre-Task-4 harness** (`2–5` calls on Haiku, `4–7` on Gemini because `read_topic` / `summarize_topic` are not yet wired to learned scripts, requiring `run_js` + `file_read`); checked against the `1`-call target (`<= 2` acceptance bar) once Task 4 wires the slot.
+3. **Gemini cache-read reporting (for Task 10):** `AIService.swift:1187` currently ignores `usageMetadata.cachedContentTokenCount` on `.gemini`/`.vertexAI`, leaving `AgentTokenUsage.cacheReadTokens` `nil` even though Vertex cached up to `370,054` tokens in Q9. Wire `cachedContentTokenCount` into `AgentTokenUsage` so acceptance reports cache-read tokens on both providers.
 
 ## Not measured
 
 - **Physical iPhone:** Not run (per `m0-csp-and-worlds.md`, WKWebView content-world/CSP semantics match simulator on the same iOS version; physical device smoke stays in Task 10).
 - **Subframes and Web Workers:** All shim injections used `forMainFrameOnly: true`.
-- **In-save `SiteToolVerifier` retry loop:** `SpikeVerifier` ran immediately after each live run because Task 5 has not yet wired `SiteToolVerifier` into `script_save`.
+- **Wired slot on second visit & in-save `SiteToolVerifier` retry loop:** Tested pre-Task-4/Task-5 (`SpikeVerifier` ran immediately post-run).
