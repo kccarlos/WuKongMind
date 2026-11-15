@@ -1046,6 +1046,9 @@ extension ForumBrowserModel: WKNavigationDelegate {
             // Loading the URL ourselves never triggers a Universal Link.
             decisionHandler(.cancel)
             Task { @MainActor in self.load(url) }
+        case .loadWebURL(let web):
+            decisionHandler(.cancel)
+            Task { @MainActor in self.load(web) }
         case .promptOpenApp(let appURL):
             decisionHandler(.cancel)
             Task { @MainActor in

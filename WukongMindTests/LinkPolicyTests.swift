@@ -52,6 +52,13 @@ final class LinkPolicyTests: XCTestCase {
         XCTAssertEqual(LinkPolicy.decide(nav("javascript:void(0)"), settings: .init()), .cancel)
     }
 
+    func testSafariHandoffSchemeLoadsTheWebURL() {
+        XCTAssertEqual(
+            LinkPolicy.decide(nav("x-safari-https://x.com/a?b=1", tapped: false), settings: .init()),
+            .loadWebURL(URL(string: "https://x.com/a?b=1")!)
+        )
+    }
+
     func testUserAgentLooksLikeSafari() {
         let os = OperatingSystemVersion(majorVersion: 26, minorVersion: 1, patchVersion: 0)
         let phone = LinkPolicy.userAgent(osVersion: os, isPad: false)

@@ -52,6 +52,8 @@ enum LinkPolicy {
         /// Cancel and hand to the system at once (a tapped mailto:, or an
         /// app link while "Open links in apps" is on for the site).
         case openExternally(URL)
+        /// A browser-handoff scheme (x-safari-https://…): load its web URL here.
+        case loadWebURL(URL)
         case cancel
     }
 
@@ -75,6 +77,7 @@ enum LinkPolicy {
             return settings.allowsApps(forHost: nav.url.host) ? .allow : .reloadInPlace
         }
         if scheme.isEmpty || scheme == "javascript" { return .cancel }
+        if let web = webURL(fromHandoff: nav.url) { return .loadWebURL(web) }
         if systemSchemes.contains(scheme) {
             return nav.isLinkActivated ? .openExternally(nav.url) : .cancel
         }
@@ -82,6 +85,17 @@ enum LinkPolicy {
         // that is allowed to use apps opens at once; everything else asks.
         if nav.isLinkActivated, settings.openInApps { return .openExternally(nav.url) }
         return .promptOpenApp(nav.url)
+    }
+
+    /// "x-safari-https://x.com/a" (a site asking Safari to take over) → https://x.com/a.
+    static func webURL(fromHandoff url: URL) -> URL? {
+        guard let scheme = url.scheme?.lowercased() else { return nil }
+        for web in ["https", "http"] where scheme == "x-safari-\(web)" {
+            var parts = URLComponents(url: url, resolvingAgainstBaseURL: false)
+            parts?.scheme = web
+            return parts?.url
+        }
+        return nil
     }
 
     static func appName(forScheme scheme: String?) -> String {
