@@ -1,0 +1,13 @@
+# Check 3 grep, 87b9ad6, 2026-11-14
+$ ls WukongMind/AgentEngine.swift
+ls: WukongMind/AgentEngine.swift: No such file or directory
+$ grep -rnw --include='*.swift' AgentPlanner WukongMind WukongMindTests WukongMindUITests WukongMindShare | wc -l
+0
+$ grep -rnw --include='*.swift' AgentPrompt WukongMind WukongMindTests WukongMindUITests WukongMindShare | wc -l
+0
+$ grep -rnw --include='*.swift' AgentToolName WukongMind WukongMindTests WukongMindUITests WukongMindShare | wc -l
+0
+$ grep -rnw --include='*.swift' startAgentRun WukongMind WukongMindTests WukongMindUITests WukongMindShare | wc -l
+0
+$ grep -rnw --include='*.swift' sendChat WukongMind WukongMindTests WukongMindUITests WukongMindShare | wc -l
+0

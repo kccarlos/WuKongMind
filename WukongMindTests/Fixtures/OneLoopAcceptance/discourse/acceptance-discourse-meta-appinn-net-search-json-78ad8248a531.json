@@ -1,0 +1,157 @@
+{
+  "body" : {
+    "posts" : [
+      {
+        "blurb" : "软件名称 即刻贴（GeekPaste） 应用平台 Android macOS Windows （新建文件夹） 一句简介 一款基于 低功耗蓝牙（BLE） 的 Android ↔ macOS/ Windows 剪贴板同步工具，让剪贴板同步像 iPhone 与 Mac 一样丝滑。 开源地址 https://github.com/h3110w0r1d-y/GeekPaste github.com https://github.com/h3110w0r1d-y/GeekPaste GitHub - h3110w0r1d-y/GeekPaste: 即刻贴 (GeekPaste) 基于低功耗蓝牙(BL...",
+        "id" : 289962,
+        "post_number" : 1,
+        "topic_id" : 77390,
+        "username" : "h3110w0r1d"
+      },
+      {
+        "blurb" : "鉴于很多人无法访问 googleblog，我来转载并机器翻译 https://android-developers.googleblog.com/ Android Developers Blog 昨天发布的最新文章： https://android-developers.googleblog.com/2021/02/android-12-dp1.html First preview of Android 12 ，全文使用 DeepL 翻译。 由于链接众多，想要了解详情的同学请前往原文。 https://android-developers.googleblog.com/2021/02/a...",
+        "id" : 65619,
+        "post_number" : 1,
+        "topic_id" : 21929,
+        "username" : "Qingwa"
+      },
+      {
+        "blurb" : "码上来 手机收到的短信和验证码，无需拿出手机将会立刻出现在电脑上。 局域网直连 · AES-256-GCM 加密 · 不经过任何服务器 · 不收集任何数据 · 免费 网页版： https://dingyaoyao.github.io/sms-to-pc/ 码上来 · 手机短信和验证码自动同步到电脑 仓库地址： https://github.com/DingYaoYao/sms-to-pc GitHub - DingYaoYao/sms-to-pc: 手机短信和验证码自动同步到电脑（局域网加密直连，不经过服务器） · GitHub 邮箱： mailto:dog8520963@163.com...",
+        "id" : 347385,
+        "post_number" : 1,
+        "topic_id" : 92406,
+        "username" : "dog8520963"
+      },
+      {
+        "blurb" : "JarkViewer v2.0 更新 · 2026/11/02 从 v1.34 到 v2.0，JarkViewer 对图像解码、画布渲染、界面、缓存和媒体播放进行了大规模重构，并新增编辑标注、批量处理和独立音视频播放器。 1. 界面与日常浏览全面升级 重做工具界面 ：设置、打印、编辑、批处理与重命名窗口统一使用 Dear ImGui，适配 DPI、深浅主题与小尺寸窗口；增强浅色控件轮廓，重新整理设置、帮助速查与关于页。 六种界面语言 ：支持简体中文、繁體中文、English、日本語、한국어、Русский，可跟随系统或手动选择；完善字体回退与中文输入，修复重复上屏和部分消息框乱码。 底部...",
+        "id" : 358559,
+        "post_number" : 87,
+        "topic_id" : 60968,
+        "username" : "jark006"
+      },
+      {
+        "blurb" : "我在标题处加了日期，因为如果时间太久了的话，模块会有可能失效，或者改名字了。 MIUI 相关模块 解锁MIUI键盘优化 推荐理由： 因为第三方键盘是不能用下图红框处的功能，用了这个模块就可以用了。点击左边按钮就是选择键盘，右边按钮就是剪贴板，手指在中间滑动可以控制光标移动。（P.S. 左右按钮均可在系统设置中自定义） image MiPush Enhance 推荐理由： 因为我会冻结应用的习惯，一来是为了减少耗电（很多应用有保活服务或者相互唤醒），二来可以减少RAM占用（虽然我是12GB RAM）。如果冻结了应用，你就不能及时获得通知了。有了这个模块，你就可以在应用冻结时也能获得通知。但...",
+        "id" : 107879,
+        "post_number" : 1,
+        "topic_id" : 32459,
+        "username" : "kimpvp"
+      },
+      {
+        "blurb" : "软件名称 SanFrame 一句简介 桌面端用于截图标注、离线文字识别和资料整理，剪贴板管理，配套安卓端可在局域网内与电脑互传文字、图片和文件。 应用平台 Windows x64 macOS 13.4 及以上，支持 Apple Silicon 和 Intel Android 10 及以上（SanFrame 传输，配套手机传输端） 推荐类型 〖开发者自荐〗 是否收费 免费使用。 应用简介 image 主界面截图 上面大概是 5.7.1 版本（官网展示图） 下面是主界面的图片处理历史栏，正在截取上图（套娃），也是官网提供的 5.22.0 版本 image 摘录网页、整理扫描文档或反馈界面问题...",
+        "id" : 352640,
+        "post_number" : 1,
+        "topic_id" : 93866,
+        "username" : "sansan"
+      },
+      {
+        "blurb" : "方便大家了解更多详情，我把链接放在这里： https://remobax.top/ 锐连|手机远程协助，远程控制 scrcpy相信大家都不陌生，绿色开源免费，利用adb，scrcpy可以在电脑屏幕上同步显示手机屏幕，并且可以使用电脑的键盘和鼠标给安卓手机发送输入事件，可谓手机控制神器。手机软件的丰富，电脑的大屏幕显示，键盘鼠标的快捷输入，都为这种PC和手机间协作的方式提供了丰富的动力。 但是scrcpy也有其缺点，最明显的就是需要基于 USB线缆或者wifi 的adb连接。基于USB线缆的话，手机只能放在电脑旁边；基于wireless adb的话，必须在一个局域网中完成。这两个限制都让手...",
+        "id" : 166603,
+        "post_number" : 1,
+        "topic_id" : 47217,
+        "username" : "xuantesoft"
+      },
+      {
+        "blurb" : "原始链接在： https://www.appinn.com/11-github-261025/ 11 个有意思的 GitHub 项目：把截图晾起来、关广告、破甲，还有一本黑话词典 - 小众软件 这次带来 10 个 GitHub 项目。 有给服务器任务装上操作界面的，有把截图挂到了屏幕上方的「晾衣绳」上的，还有帮安卓手机关广告，以及看看闲鱼卖家到底在说什么的。最后一个项目面向成年人。 目录 #semaphore-ui：给服务器上的部署、脚本任务加个操作界面 Semaphore UI：给命令行添加图形界面 #uu-远程接入指南：从自己的-app-发起远控，还能开画中画小窗 UU 远程接入指南...",
+        "id" : 354601,
+        "post_number" : 1,
+        "topic_id" : 94448,
+        "username" : "Qingwa"
+      }
+    ],
+    "topics" : [
+      {
+        "bumped_at" : "2025-11-16T16:11:15.230Z",
+        "fancy_title" : "【开源自荐】即刻贴 - 基于低功耗蓝牙的Android-PC剪贴板/文件同步工具",
+        "has_accepted_answer" : false,
+        "id" : 77390,
+        "last_posted_at" : "2025-11-16T16:11:15.230Z",
+        "pinned" : false,
+        "posts_count" : 1,
+        "slug" : "topic",
+        "title" : "【开源自荐】即刻贴 - 基于低功耗蓝牙的Android-PC剪贴板/文件同步工具"
+      },
+      {
+        "bumped_at" : "2021-02-19T05:20:52.778Z",
+        "fancy_title" : "Android 12 DP1 开放下载，第一个开发者预览版详情【机器翻译】",
+        "has_accepted_answer" : false,
+        "id" : 21929,
+        "last_posted_at" : "2021-02-19T05:20:52.778Z",
+        "pinned" : false,
+        "posts_count" : 1,
+        "slug" : "topic",
+        "title" : "Android 12 DP1 开放下载，第一个开发者预览版详情【机器翻译】"
+      },
+      {
+        "bumped_at" : "2026-10-13T00:49:58.602Z",
+        "fancy_title" : "【开发者自荐】手机收到的短信和验证码，无需拿出手机将会立刻出现在电脑上",
+        "has_accepted_answer" : false,
+        "id" : 92406,
+        "last_posted_at" : "2026-10-13T00:49:58.602Z",
+        "pinned" : false,
+        "posts_count" : 6,
+        "slug" : "topic",
+        "title" : "【开发者自荐】手机收到的短信和验证码，无需拿出手机将会立刻出现在电脑上"
+      },
+      {
+        "bumped_at" : "2026-11-12T08:32:54.159Z",
+        "fancy_title" : "jarkViewer - 开源看图软件",
+        "has_accepted_answer" : false,
+        "id" : 60968,
+        "last_posted_at" : "2026-11-12T08:32:54.159Z",
+        "pinned" : false,
+        "posts_count" : 88,
+        "slug" : "topic",
+        "title" : "jarkViewer - 开源看图软件"
+      },
+      {
+        "bumped_at" : "2022-06-29T03:09:54.343Z",
+        "fancy_title" : "自用Xposed模块推荐分享-2022-5-14",
+        "has_accepted_answer" : false,
+        "id" : 32459,
+        "last_posted_at" : "2022-06-29T03:09:54.343Z",
+        "pinned" : false,
+        "posts_count" : 33,
+        "slug" : "topic",
+        "title" : "自用Xposed模块推荐分享-2022-5-14"
+      },
+      {
+        "bumped_at" : "2026-10-31T12:34:50.617Z",
+        "fancy_title" : "〖开发者自荐〗SanFrame：截图识字、资料整理与电脑手机互传",
+        "has_accepted_answer" : false,
+        "id" : 93866,
+        "last_posted_at" : "2026-10-31T12:34:50.617Z",
+        "pinned" : false,
+        "posts_count" : 2,
+        "slug" : "topic",
+        "title" : "〖开发者自荐〗SanFrame：截图识字、资料整理与电脑手机互传"
+      },
+      {
+        "bumped_at" : "2026-06-17T07:25:09.662Z",
+        "fancy_title" : "【锐连】一款绿色小巧的类似于scrcpy的安卓手机远程控制软件",
+        "has_accepted_answer" : false,
+        "id" : 47217,
+        "last_posted_at" : "2026-06-17T07:25:09.662Z",
+        "pinned" : false,
+        "posts_count" : 13,
+        "slug" : "topic",
+        "title" : "【锐连】一款绿色小巧的类似于scrcpy的安卓手机远程控制软件"
+      },
+      {
+        "bumped_at" : "2026-10-27T08:29:19.071Z",
+        "fancy_title" : "11 个有意思的 GitHub 项目：把截图晾起来、关广告、破甲，还有一本黑话词典",
+        "has_accepted_answer" : false,
+        "id" : 94448,
+        "last_posted_at" : "2026-10-27T08:29:19.071Z",
+        "pinned" : false,
+        "posts_count" : 8,
+        "slug" : "topic",
+        "title" : "11 个有意思的 GitHub 项目：把截图晾起来、关广告、破甲，还有一本黑话词典"
+      }
+    ]
+  },
+  "headers" : {
+    "content-type" : "application/json; charset=utf-8"
+  },
+  "status" : 200,
+  "url" : "https://meta.appinn.net/search.json?q=Android%2010%20%E5%90%8E%E5%8F%B0%20%E5%89%AA%E8%B4%B4%E6%9D%BF%20%E9%99%90%E5%88%B6"
+}

@@ -1,0 +1,6 @@
+# Check 5: deletion PRs vs the approval (WUKO-63, #65 merged 2026-11-14T18:15:08Z)
+#66 merged 2026-11-14T18:57:35Z links one-loop-comparison.md: false — WUKO-64: One loop 9: suggestions send their text
+#67 merged 2026-11-14T19:19:39Z links one-loop-comparison.md: false — WUKO-66: One loop 11: delete Topic chat
+#69 merged 2026-11-14T19:59:15Z links one-loop-comparison.md: false — WUKO-65: One loop 10: voice shares the registry and hands off to the Agent
+#70 merged 2026-11-14T21:34:44Z links one-loop-comparison.md: true — WUKO-67: One loop 13: delete the old Research loop
+#71 merged 2026-11-14T22:07:31Z links one-loop-comparison.md: true — WUKO-68: One loop 14: two model roles and the leftover settings

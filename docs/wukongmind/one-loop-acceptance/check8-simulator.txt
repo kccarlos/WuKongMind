@@ -1,0 +1,14 @@
+# Check 8 on the iPhone 18 Pro simulator, built-in fixture page
+# OneLoopLiveAcceptanceUITests.testLiveShortPageChangeIsNotSavedAndLongAnswerIs: passed
+reply (436 characters): The page is now dark. The background is near-black (#121212), the article and sidebar are dark gray, and the text is light. Links are a soft blue, and the headline is white. The change is temporary and applies only to this page until you reload it.
+A bright divider line under the header is still visible. I can darken it if you want.
+If you'd like this to apply to every visit to news.example.org, I can save it as a persistent script.
+model: claude-haiku-5-5
+first turn: Done · 4 steps · 8 s
+second turn: Done · 0 steps · 3 s
+long reply characters: 338
+rows: 2
+In three short paragraphs, explain what this article argues and who it is for. Do not change the page. · Answer · 10 seconds ago · Open
+Make it dark · Answer · 23 seconds ago · Open
+# With the shipped prompt, "Make it dark" was saved every time (432, 436 and 444 characters, plus one earlier run whose length wasn't logged).
+# A 174-character reply that stayed out came only while a brevity sentence was briefly in the prompt; that sentence was removed.
