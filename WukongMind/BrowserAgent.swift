@@ -352,7 +352,8 @@ enum BrowserAgentPrompt {
         pageChanged: Bool,
         forum: ForumPromptContext?,
         includesForumTools: Bool,
-        matchingScripts: [UserScript] = []
+        matchingScripts: [UserScript] = [],
+        siteReading: SiteReadingPromptState = .none
     ) -> String {
         func clean(_ text: String, limit: Int) -> String {
             let flat = text.split(whereSeparator: \.isNewline).joined(separator: " ")
@@ -371,7 +372,7 @@ enum BrowserAgentPrompt {
         if let forum {
             lines += forum.lines
         } else if includesForumTools {
-            lines.append("- Not a forum or a supported site: the forum tools refuse here.")
+            lines.append(siteReading.pageContextLine)
         }
         if !matchingScripts.isEmpty {
             lines.append("- Saved userscripts matching this page:")
@@ -1428,6 +1429,7 @@ final class BrowserAgentSession {
         let includesForumTools = registry.tool(named: ForumToolName.searchForum) != nil
         let offersSummary = registry.tool(named: "summarize_topic") != nil
         let forumPrompt = includesForumTools ? registry.forumPrompt : nil
+        let siteReading = includesForumTools ? registry.siteReadingPrompt : .none
         let systemPrompt = BrowserAgentPrompt.system(
             customInstructions: runtime.customInstructions,
             includesWorkspace: includesWorkspace,
@@ -1464,7 +1466,8 @@ final class BrowserAgentSession {
                     pageChanged: self.lastContextURL.map { $0 != pageMeta.url } ?? false,
                     forum: forumPrompt,
                     includesForumTools: includesForumTools,
-                    matchingScripts: matchingScripts
+                    matchingScripts: matchingScripts,
+                    siteReading: siteReading
                 )
                 self.lastContextURL = pageMeta.url
                 var parts = [context]

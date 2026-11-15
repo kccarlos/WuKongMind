@@ -37,12 +37,20 @@ extension ToolRegistry {
         }
         let forum = context.forum
         let specs = forum?.scope.adapter.agent.siteTools ?? []
-        var tools = stableQueryDefinitions.map { definition in
-            makeSiteQueryTool(definition: definition, spec: specs.first { $0.name == definition.name }, forum: forum)
+        var tools = stableQueryDefinitions.map { definition -> AgentTool in
+            if forum != nil {
+                return makeSiteQueryTool(definition: definition, spec: specs.first { $0.name == definition.name }, forum: forum)
+            }
+            if let slot = SiteToolSlot(rawValue: definition.name), let learned = context.learnedSite {
+                return makeLearnedSlotTool(definition: definition, slot: slot, learned: learned, context: context)
+            }
+            return refusingTool(definition: definition, forum: nil)
         }
         let readTopic = readTopicDefinition(topic: "thread", urlHint: "Thread or post URL on the current site")
         if let forum {
             tools.append(makeReadTopicTool(forum: forum, definition: readTopic))
+        } else if let learned = context.learnedSite {
+            tools.append(makeLearnedSlotTool(definition: readTopic, slot: .readTopic, learned: learned, context: context))
         } else {
             tools.append(refusingTool(definition: readTopic, forum: nil))
         }
@@ -58,8 +66,8 @@ extension ToolRegistry {
         return [
             AgentToolDefinition(
                 name: ForumToolName.searchForum,
-                description: "Search the current site's threads or posts when the page context says you are on a supported "
-                    + "site (Discourse forum, Hacker News or WordPress); the page context says what its search supports. "
+                description: "Search the current site's threads or posts when you are on a site the page context says "
+                    + "can be read; the page context says what its search supports. "
                     + "Returns up to about 20 threads with id, title and matches.",
                 parameters: [
                     ToolParameterSchema(name: "query", type: .string, description: "Search text"),
@@ -81,8 +89,8 @@ extension ToolRegistry {
             ),
             AgentToolDefinition(
                 name: ForumToolName.listLatest,
-                description: "List the current site's most recently active threads or newest posts (about 30), when the page "
-                    + "context says you are on a supported site.",
+                description: "List the current site's most recently active threads or newest posts (about 30), when you "
+                    + "are on a site the page context says can be read.",
                 parameters: []
             )
         ]
@@ -106,8 +114,8 @@ extension ToolRegistry {
     /// The model-facing refusal of a forum tool where it can't run (WUKO-73).
     static func forumToolRefusal(_ name: String, forum: ForumToolContext?) -> String {
         guard let forum else {
-            return "This page isn't a forum or a supported site, so `\(name)` can't run here. "
-                + "Use `read_page` to read the current page."
+            return "No reading tool for this site yet. If the request needs the whole thread or a list, "
+                + "learn the site (see Learning a site); otherwise use `read_page`."
         }
         return "`\(name)` isn't available on \(forum.forumName); use `search_forum` or `read_topic` there."
     }
@@ -203,56 +211,205 @@ extension ToolRegistry {
         let session = result.session
         let blocks = RawTopicFormat.postBlocks(session.source)
         let postCount = session.totalPosts ?? blocks.count
-        let defaultSummary = countLabel(postCount, singular: "post", plural: "posts")
-
         let hasPage = !(stringArgs["page"]?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
         let hasQuery = !((stringArgs["query"] ?? stringArgs["q"])?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
+        let totalPages = max(1, session.rawPages.isEmpty ? RawTopicFormat.pageCount(of: session.source) : session.rawPages.count)
+        let readLimit = await MainActor.run { forum.scope.readLimit }
+        return try await finishTopicReadOutput(
+            rawSource: session.source, renderedContent: result.content,
+            header: ForumRendering.topicHeader(session: session, profile: profile),
+            postCount: postCount, totalPages: totalPages, readLimit: readLimit,
+            hasPage: hasPage, hasQuery: hasQuery, topicNoun: profile.topicNoun,
+            shape: result.shape, callContext: callContext
+        )
+    }
 
+    private static func finishTopicReadOutput(
+        rawSource: String, renderedContent: String, header: String,
+        postCount: Int, totalPages: Int, readLimit: Int,
+        hasPage: Bool, hasQuery: Bool, topicNoun: String,
+        shape: ThreadShape, callContext: ToolCallContext
+    ) async throws -> ToolExecutionOutput {
+        let defaultSummary = countLabel(postCount, singular: "post", plural: "posts")
         if !hasPage && !hasQuery {
-            let compact = blocks.joined(separator: RawTopicFormat.blockSeparator)
+            let compact = RawTopicFormat.postBlocks(rawSource).joined(separator: RawTopicFormat.blockSeparator)
             let scrubbedCompact = UntrustedWebContent.redactSecrets(in: compact, secrets: callContext.redactedSecrets)
             let limit = max(1, callContext.truncationLimit)
             if scrubbedCompact.count > limit {
-                let header = ForumRendering.topicHeader(session: session, profile: profile)
-                let totalPages = max(
-                    1, session.rawPages.isEmpty ? RawTopicFormat.pageCount(of: session.source) : session.rawPages.count
-                )
-                let readLimit = await MainActor.run { forum.scope.readLimit }
                 let boundedLimit = max(1, min(readLimit, limit))
-                let bounded = PromptBuilder.boundedForumContext(
-                    session.source, limit: boundedLimit, minimum: min(5_000, boundedLimit), totalPages: totalPages
-                )
-                if let workspace = callContext.workspace,
-                   let taskID = callContext.taskID,
+                let bounded = PromptBuilder.boundedForumContext(rawSource, limit: boundedLimit, minimum: min(5_000, boundedLimit), totalPages: totalPages)
+                if let workspace = callContext.workspace, let taskID = callContext.taskID,
                    let saved = try? await saveOutput(
-                       compact,
-                       to: resultPath(taskID: taskID, step: callContext.step, toolName: ForumToolName.readTopic),
-                       workspace: workspace,
-                       secrets: callContext.redactedSecrets,
-                       previewLength: 0
+                       compact, to: resultPath(taskID: taskID, step: callContext.step, toolName: ForumToolName.readTopic),
+                       workspace: workspace, secrets: callContext.redactedSecrets, previewLength: 0
                    ) {
                     try Task.checkCancellation()
-                    let notice = "Full thread: \(grouped(postCount)) \(postCount == 1 ? "post" : "posts"), "
-                        + "\(grouped(scrubbedCompact.count)) characters, saved to \(saved.path)"
-                    return ToolExecutionOutput(
-                        content: "\(header)\n\(notice)\n\n\(bounded)",
-                        summary: "saved to \(saved.path)", savedPath: saved.path,
-                        isRanged: true, shape: .thread(result.shape)
-                    )
+                    let notice = "Full thread: \(grouped(postCount)) \(postCount == 1 ? "post" : "posts"), \(grouped(scrubbedCompact.count)) characters, saved to \(saved.path)"
+                    return ToolExecutionOutput(content: "\(header)\n\(notice)\n\n\(bounded)", summary: "saved to \(saved.path)", savedPath: saved.path, isRanged: true, shape: .thread(shape))
                 }
-                return ToolExecutionOutput(
-                    content: "\(header)\n\n\(bounded)", summary: defaultSummary,
-                    isRanged: true, shape: .thread(result.shape)
-                )
+                return ToolExecutionOutput(content: "\(header)\n\n\(bounded)", summary: defaultSummary, isRanged: true, shape: .thread(shape))
             }
+            return ToolExecutionOutput(content: renderedContent, summary: defaultSummary, isRanged: true, shape: .thread(shape))
+        }
+        return ToolExecutionOutput(content: renderedContent, summary: defaultSummary, shape: .thread(shape), notes: hasQuery && !hasPage ? [.queryInTopic(topic: topicNoun)] : [])
+    }
+
+    private static func makeLearnedSlotTool(
+        definition: AgentToolDefinition, slot: SiteToolSlot, learned: LearnedSiteContext, context: AgentToolContext
+    ) -> AgentTool {
+        let defaultCall = ToolCallContext(workspace: nil, taskID: nil, step: nil, truncationLimit: ToolRegistry.defaultTruncationLimit, redactedSecrets: [])
+        return AgentTool(
+            definition: definition,
+            summarizeArguments: { args in slot == .readTopic ? summarizeReadTopicArguments(args) : summarizeQueryArguments(args) },
+            execute: { args in try await runForumCall { try await executeLearnedSlot(slot: slot, arguments: args, learned: learned, context: context, callContext: defaultCall) } },
+            executeWithContext: { args, callContext in try await runForumCall { try await executeLearnedSlot(slot: slot, arguments: args, learned: learned, context: context, callContext: callContext) } }
+        )
+    }
+
+    private static func executeLearnedSlot(
+        slot: SiteToolSlot, arguments: [String: JSONValue],
+        learned: LearnedSiteContext, context: AgentToolContext, callContext: ToolCallContext
+    ) async throws -> ToolExecutionOutput {
+        let gate: (refusal: ToolExecutionOutput?, scriptID: String?) = await MainActor.run {
+            guard learned.pageToolBridge.isEnabled else {
+                return (ToolExecutionOutput(content: forumToolRefusal(slot.rawValue, forum: nil), summary: "Not a forum", isError: true), nil)
+            }
+            let slotState = learned.state.slot(slot)
+            guard let scriptID = slotState.scriptID, let script = context.scriptStore.script(id: scriptID) else {
+                return (ToolExecutionOutput(content: forumToolRefusal(slot.rawValue, forum: nil), summary: "Not a forum", isError: true), nil)
+            }
+            if !script.isEnabled && (script.disabledReason ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                return (ToolExecutionOutput(
+                    content: "Error: The reading tool for this site is turned off in This page; use `read_page`.",
+                    summary: "Turned off in This page", isError: true
+                ), nil)
+            }
+            guard context.scriptStore.isGlobalEnabled else {
+                return (ToolExecutionOutput(content: "Error: Userscripts are turned off in Settings; use `read_page`.", summary: "Userscripts off", isError: true), nil)
+            }
+            guard (slotState.status == .learned || slotState.status == .broken), script.isEnabled else {
+                return (ToolExecutionOutput(content: forumToolRefusal(slot.rawValue, forum: nil), summary: "Not a forum", isError: true), nil)
+            }
+            return (nil, scriptID)
+        }
+        if let refusal = gate.refusal { return refusal }
+        let scriptID = gate.scriptID!
+
+        switch slot {
+        case .readTopic:
+            let rawTopicID = arguments["topic_id"]?.stringValue?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            let rawURL = arguments["url"]?.stringValue?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            if rawURL.isEmpty && !rawTopicID.isEmpty {
+                return ToolExecutionOutput(content: "Error: this site has no thread ids; pass the thread's URL.", isError: true)
+            }
+            guard !rawURL.isEmpty else { throw AgentError.missingArgument("url") }
+            guard let validURL = SiteToolState.sameSiteURL(rawURL, host: learned.host) else {
+                return ToolExecutionOutput(content: "Error: that address is not on this site.", isError: true)
+            }
+            let requestedPage = try validatedPageArgument(arguments)
+            let threadKey = SiteToolState.canonicalThreadKey(for: validURL)
+            try await MainActor.run { try learned.scope.checkTopicBudget(for: threadKey) }
+
+            var payload: [String: JSONValue] = ["url": .string(validURL.absoluteString)]
+            if let requestedPage { payload["page"] = .int(Int64(requestedPage)) }
+            let call = await callLearnedReader(slot: slot, scriptID: scriptID, payload: payload, learned: learned, shapeNoun: "thread", as: ThreadShape.self)
+            if let errorOutput = call.error { return errorOutput }
+            let envelope = call.envelope!
+            if envelope.currentPageOnly == true {
+                let openURL = await context.bridge.currentPageMetadata().url
+                guard SiteToolState.isSameDocument(validURL, openURLString: openURL) else {
+                    return ToolExecutionOutput(content: "Error: open that thread first.", isError: true)
+                }
+            }
+            guard !envelope.shape.posts.isEmpty,
+                  envelope.shape.posts.allSatisfy({ !$0.body.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) else {
+                return ToolExecutionOutput(content: "Error: The reading tool returned no posts.", isError: true)
+            }
+            let rawSource = ForumRendering.rawTopicText(from: envelope.shape)
+            let query = (arguments["query"]?.stringValue ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            let readLimit = await MainActor.run { learned.scope.readLimit }
+            let rendered = try ForumRendering.formatLearnedTopicRead(
+                envelope: envelope, rawSource: rawSource, requestedPage: requestedPage, query: query, readLimit: readLimit
+            )
+            await MainActor.run { learned.scope.recordTopicRead(threadKey) }
+            let postCount = envelope.shape.totalPosts ?? envelope.shape.posts.count
+            let totalPages = max(1, envelope.totalPages ?? RawTopicFormat.pageCount(of: rawSource))
+            return try await finishTopicReadOutput(
+                rawSource: rawSource, renderedContent: rendered,
+                header: ForumRendering.topicHeader(thread: envelope.shape),
+                postCount: postCount, totalPages: totalPages, readLimit: readLimit,
+                hasPage: requestedPage != nil, hasQuery: !query.isEmpty, topicNoun: "thread",
+                shape: envelope.shape, callContext: callContext
+            )
+
+        case .listLatest:
+            let call = await callLearnedReader(slot: slot, scriptID: scriptID, learned: learned, shapeNoun: "list", as: ListShape.self)
+            if let errorOutput = call.error { return errorOutput }
+            let envelope = call.envelope!
+            guard !envelope.shape.items.isEmpty else {
+                return ToolExecutionOutput(content: "Error: The reading tool returned no items.", isError: true)
+            }
+            let parts = ForumRendering.formatParts(list: envelope.shape, limit: 30)
             return ToolExecutionOutput(
-                content: result.content, summary: defaultSummary, isRanged: true, shape: .thread(result.shape)
+                content: parts.body,
+                summary: countLabel(envelope.shape.items.count, singular: "thread", plural: "threads"),
+                shape: .list(envelope.shape),
+                notes: [.latestList(topic: "thread")]
+            )
+
+        case .searchForum:
+            for key in ["category", "after", "before"] {
+                if let val = arguments[key]?.stringValue?.trimmingCharacters(in: .whitespacesAndNewlines), !val.isEmpty {
+                    return ToolExecutionOutput(content: "Error: not supported on this site: search with the query only.", isError: true)
+                }
+            }
+            let query = (arguments["query"]?.stringValue ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !query.isEmpty else { throw AgentError.missingArgument("query") }
+            let requestedPage = try validatedPageArgument(arguments)
+            var payload: [String: JSONValue] = ["query": .string(query)]
+            if let requestedPage { payload["page"] = .int(Int64(requestedPage)) }
+            let call = await callLearnedReader(slot: slot, scriptID: scriptID, payload: payload, learned: learned, shapeNoun: "list", as: ListShape.self)
+            if let errorOutput = call.error { return errorOutput }
+            let envelope = call.envelope!
+            if let requestedPage, let total = envelope.totalPages, total >= 1, requestedPage > total {
+                throw AgentError.invalidArgument("page", reason: "no such page \(requestedPage) (use 1 to \(total)).")
+            }
+            let parts = ForumRendering.formatParts(list: envelope.shape, limit: 20)
+            return ToolExecutionOutput(
+                content: parts.body,
+                summary: countLabel(envelope.shape.items.count, singular: "thread", plural: "threads"),
+                shape: .list(envelope.shape),
+                notes: parts.showsUnnumberedHits ? [.unnumberedHits] : []
             )
         }
-        return ToolExecutionOutput(
-            content: result.content, summary: defaultSummary, shape: .thread(result.shape),
-            notes: hasQuery && !hasPage ? [.queryInTopic(topic: profile.topicNoun)] : []
+    }
+
+    private static func validatedPageArgument(_ arguments: [String: JSONValue]) throws -> Int? {
+        guard let raw = arguments["page"], !raw.isNull else { return nil }
+        if let text = raw.stringValue?.trimmingCharacters(in: .whitespacesAndNewlines), text.isEmpty { return nil }
+        guard let page = raw.intValue, page >= 1 else {
+            throw AgentError.invalidArgument("page", reason: "use a positive integer.")
+        }
+        return page
+    }
+
+    private static func callLearnedReader<Shape: Codable & Equatable & Sendable>(
+        slot: SiteToolSlot, scriptID: String, payload: [String: JSONValue] = [:],
+        learned: LearnedSiteContext, shapeNoun: String, as _: Shape.Type
+    ) async -> (envelope: LearnedToolResult<Shape>?, error: ToolExecutionOutput?) {
+        let outcome = await learned.pageToolBridge.callScriptTool(
+            scriptID: scriptID, name: slot.rawValue, argumentsJSON: JSONValue.encodeCompactJSON(payload)
         )
+        guard case .success(let callResult) = outcome else {
+            if case .failure(let failure) = outcome {
+                return (nil, ToolExecutionOutput(content: "Error: \(failure.message)", isError: true))
+            }
+            return (nil, ToolExecutionOutput(content: "Error: Tool call failed.", isError: true))
+        }
+        guard let envelope = try? JSONDecoder().decode(LearnedToolResult<Shape>.self, from: Data(callResult.json.utf8)) else {
+            return (nil, ToolExecutionOutput(content: "Error: The reading tool returned an invalid \(shapeNoun) shape.", isError: true))
+        }
+        return (envelope, nil)
     }
 
     private static func stringArguments(from arguments: [String: JSONValue]) -> [String: String] {
