@@ -359,6 +359,7 @@ struct AssistantPanel: View {
                     headerStatusOrPageSeal
                 }
                 Spacer(minLength: 0)
+                newConversationButton
                 drawerMoreMenu
             }
             if dynamicTypeSize.isAccessibilitySize {
@@ -512,6 +513,19 @@ struct AssistantPanel: View {
             return ModelPill.label(for: selection)
         }
         return readiness.title
+    }
+
+    private var newConversationButton: some View {
+        Button {
+            DCHaptics.tap()
+            browserAgent.resetConversation()
+        } label: {
+            Image(systemName: "plus.bubble")
+        }
+        .buttonStyle(DCIconButtonStyle())
+        .accessibilityLabel(String(localized: "New conversation", comment: "Browser agent menu action: clear the conversation and start fresh"))
+        .accessibilityIdentifier("agentNewConversationHeader")
+        .disabled(browserAgent.runs.isEmpty && browserAgent.messages.isEmpty && !browserAgent.isRunning)
     }
 
     private var drawerMoreMenu: some View {
@@ -1426,9 +1440,9 @@ private struct ChatThread<Leading: View>: View {
                     .animation(DCMotion.respecting(reduceMotion), value: browserAgent.runs.count)
                 }
                 .defaultScrollAnchor(.top)
-                .modifier(ChatScrollTracker(onPhaseChange: { scrolling in
-                    userScrolling = scrolling
-                    if scrolling {
+                .modifier(ChatScrollTracker(onPhaseChange: { interacting, decelerating in
+                    userScrolling = interacting || (decelerating && scrollTask == nil)
+                    if interacting {
                         metricsBox.pinningBottom = false
                         scrollTask?.cancel()
                         scrollTask = nil
@@ -1541,7 +1555,7 @@ private struct ChatThread<Leading: View>: View {
                 }
                 if !atBottom, hasConversationEntries {
                     Button {
-                        jumpToBottom(proxy: proxy)
+                        jumpToBottom(proxy: proxy, explicit: true)
                     } label: {
                         Image(systemName: "arrow.down")
                             .font(.system(size: 16, weight: .bold))
@@ -1586,8 +1600,13 @@ private struct ChatThread<Leading: View>: View {
         withTransaction(transaction) { proxy.scrollTo(id, anchor: anchor) }
     }
 
-    private func jumpToBottom(proxy: ScrollViewProxy) {
+    private func jumpToBottom(proxy: ScrollViewProxy, explicit: Bool = false) {
         scrollTask?.cancel()
+        if explicit {
+            userScrolling = false
+            // An immediate scroll interrupts any momentum before the settling animation.
+            scrollUnanimated(proxy: proxy)
+        }
         metricsBox.scrolledUp = false
         atBottom = true
         #if DEBUG
@@ -2017,14 +2036,14 @@ private struct ScrollState: Equatable {
 /// Tracks scroll phase and whether the bottom of `ChatThread` is in view
 /// (iOS 18+; older systems use the bottom anchor's appear/disappear instead).
 private struct ChatScrollTracker: ViewModifier {
-    let onPhaseChange: (Bool) -> Void
+    let onPhaseChange: (Bool, Bool) -> Void
     let onStateChange: (ScrollState, ScrollState) -> Void
 
     func body(content: Content) -> some View {
         if #available(iOS 18.0, *) {
             content
                 .onScrollPhaseChange { _, phase in
-                    onPhaseChange(phase == .interacting || phase == .decelerating)
+                    onPhaseChange(phase == .interacting, phase == .decelerating)
                 }
                 .onScrollGeometryChange(for: ScrollState.self) { geometry in
                     ScrollState(
