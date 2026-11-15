@@ -9,34 +9,112 @@ enum ForumToolName {
 }
 
 extension ToolRegistry {
-    /// Forum search, comment search, latest listing, and thread reading tools for
-    /// the current run's recognized forum (`design-one-loop.md` "Decisions").
-    static func forumTools(context: AgentToolContext) -> [AgentTool] {
-        guard let forum = context.forum else { return [] }
-        let profile = forum.scope.adapter.agent
-        var tools = profile.siteTools.compactMap { makeSiteQueryTool(spec: $0, forum: forum) }
-        tools.append(makeReadTopicTool(forum: forum, profile: profile))
+    /// Forum search, comment search, latest listing, and thread reading tools
+    /// (`design-one-loop.md` "Decisions"). The text Agent declares the same four
+    /// on every page, with wording that names no site, so the tool list stays
+    /// byte-identical across page changes and the prompt cache holds (WUKO-73);
+    /// off a supported site, or for a tool the site lacks, they refuse. The
+    /// site's own words go in the page context instead. Voice keeps the
+    /// site's `read_topic` only while on a forum.
+    static func forumTools(context: AgentToolContext, surface: ToolSurface = .text) -> [AgentTool] {
+        guard surface == .text else {
+            guard let forum = context.forum else { return [] }
+            return [makeReadTopicTool(forum: forum, definition: readTopicDefinition(
+                topic: forum.scope.adapter.agent.topicNoun, urlHint: "Thread URL on \(forum.scope.siteURL)"
+            ))]
+        }
+        let forum = context.forum
+        let specs = forum?.scope.adapter.agent.siteTools ?? []
+        var tools = stableQueryDefinitions.map { definition in
+            makeSiteQueryTool(definition: definition, spec: specs.first { $0.name == definition.name }, forum: forum)
+        }
+        let readTopic = readTopicDefinition(topic: "thread", urlHint: "Thread or post URL on the current site")
+        if let forum {
+            tools.append(makeReadTopicTool(forum: forum, definition: readTopic))
+        } else {
+            tools.append(refusingTool(definition: readTopic, forum: nil))
+        }
         return tools
     }
 
-    private static func makeSiteQueryTool(spec: AgentToolSpec, forum: ForumToolContext) -> AgentTool? {
-        guard [ForumToolName.searchForum, ForumToolName.searchComments, ForumToolName.listLatest].contains(spec.name) else {
-            return nil
-        }
-        let parameters = spec.parameters.map { parameter in
-            ToolParameterSchema(
-                name: parameter.name,
-                type: parameter.name == "page" ? .integer : .string,
-                description: parameter.description
-            )
-        }
-        return AgentTool(
-            definition: AgentToolDefinition(
-                name: spec.name,
-                description: spec.description,
-                parameters: parameters,
-                required: spec.parameters.filter(\.required).map(\.name)
+    /// The text Agent's site query tools, the same on every page: every
+    /// adapter's parameters, in one schema (WUKO-73).
+    static let stableQueryDefinitions: [AgentToolDefinition] = {
+        let page = ToolParameterSchema(name: "page", type: .integer, description: "Optional result page, 1 to 3 (Hacker News and WordPress).")
+        let after = ToolParameterSchema(name: "after", type: .string, description: "Optional: only items after this date, YYYY-MM-DD (WordPress).")
+        let before = ToolParameterSchema(name: "before", type: .string, description: "Optional: only items before this date, YYYY-MM-DD (WordPress).")
+        return [
+            AgentToolDefinition(
+                name: ForumToolName.searchForum,
+                description: "Search the current site's threads or posts when the page context says you are on a supported "
+                    + "site (Discourse forum, Hacker News or WordPress); the page context says what its search supports. "
+                    + "Returns up to about 20 threads with id, title and matches.",
+                parameters: [
+                    ToolParameterSchema(name: "query", type: .string, description: "Search text"),
+                    ToolParameterSchema(name: "category", type: .string, description: "Optional category name or slug (WordPress)."),
+                    after, before, page
+                ],
+                required: ["query"]
             ),
+            AgentToolDefinition(
+                name: ForumToolName.searchComments,
+                description: "Search comments across the current site's threads (Hacker News and WordPress only), returning "
+                    + "about 10 authored excerpts with their thread ids; read the thread for context and a citable source.",
+                parameters: [ToolParameterSchema(name: "query", type: .string, description: "Search text"), after, before, page],
+                required: ["query"]
+            ),
+            AgentToolDefinition(
+                name: ForumToolName.listLatest,
+                description: "List the current site's most recently active threads or newest posts (about 30), when the page "
+                    + "context says you are on a supported site.",
+                parameters: []
+            )
+        ]
+    }()
+
+    static func readTopicDefinition(topic: String, urlHint: String) -> AgentToolDefinition {
+        AgentToolDefinition(
+            name: ForumToolName.readTopic,
+            description: "Pull a \(topic)'s posts and return them (long \(topic)s are saved to the workspace "
+                + "and trimmed inline to the beginning and the newest replies). Counts toward the "
+                + "\(topic)-read budget the first time a \(topic) is read.",
+            parameters: [
+                ToolParameterSchema(name: "topic_id", type: .string, description: "Numeric \(topic) id (provide topic_id or url)."),
+                ToolParameterSchema(name: "url", type: .string, description: "\(urlHint) (alternative to topic_id)."),
+                ToolParameterSchema(name: "page", type: .integer, description: "Optional part of a long \(topic), in pages of \(RawForumPage.size) posts."),
+                ToolParameterSchema(name: "query", type: .string, description: "Optional keywords to filter matching posts within this \(topic).")
+            ]
+        )
+    }
+
+    /// The model-facing refusal of a forum tool where it can't run (WUKO-73).
+    static func forumToolRefusal(_ name: String, forum: ForumToolContext?) -> String {
+        guard let forum else {
+            return "This page isn't a forum or a supported site, so `\(name)` can't run here. "
+                + "Use `read_page` to read the current page."
+        }
+        return "`\(name)` isn't available on \(forum.forumName); use `search_forum` or `read_topic` there."
+    }
+
+    private static func refusingTool(definition: AgentToolDefinition, forum: ForumToolContext?) -> AgentTool {
+        AgentTool(
+            definition: definition,
+            summarizeArguments: { summarizeQueryArguments($0) },
+            execute: { _ in
+                let message = forumToolRefusal(definition.name, forum: forum)
+                return ToolExecutionOutput(
+                    content: message,
+                    summary: forum == nil ? "Not a forum" : "Not on this site",
+                    isError: true
+                )
+            }
+        )
+    }
+
+    private static func makeSiteQueryTool(definition: AgentToolDefinition, spec: AgentToolSpec?, forum: ForumToolContext?) -> AgentTool {
+        guard let forum, let spec else { return refusingTool(definition: definition, forum: forum) }
+        return AgentTool(
+            definition: definition,
             summarizeArguments: { summarizeQueryArguments($0) },
             execute: { args in
                 try await runForumCall {
@@ -75,21 +153,8 @@ extension ToolRegistry {
         )
     }
 
-    private static func makeReadTopicTool(forum: ForumToolContext, profile: AgentSiteProfile) -> AgentTool {
-        let topic = profile.topicNoun
-        let siteURL = forum.scope.siteURL
-        let definition = AgentToolDefinition(
-            name: ForumToolName.readTopic,
-            description: "Pull a \(topic)'s posts and return them (long \(topic)s are saved to the workspace "
-                + "and trimmed inline to the beginning and the newest replies). Counts toward the "
-                + "\(topic)-read budget the first time a \(topic) is read.",
-            parameters: [
-                ToolParameterSchema(name: "topic_id", type: .string, description: "Numeric \(topic) id (provide topic_id or url)."),
-                ToolParameterSchema(name: "url", type: .string, description: "Thread URL on \(siteURL) (alternative to topic_id)."),
-                ToolParameterSchema(name: "page", type: .integer, description: "Optional part of a long \(topic), in pages of \(RawForumPage.size) posts."),
-                ToolParameterSchema(name: "query", type: .string, description: "Optional keywords to filter matching posts within this \(topic).")
-            ]
-        )
+    private static func makeReadTopicTool(forum: ForumToolContext, definition: AgentToolDefinition) -> AgentTool {
+        let profile = forum.scope.adapter.agent
         return AgentTool(
             definition: definition,
             summarizeArguments: { summarizeReadTopicArguments($0) },
@@ -193,7 +258,7 @@ extension ToolRegistry {
         return converted
     }
 
-    private static func summarizeQueryArguments(_ args: [String: JSONValue]) -> String {
+    fileprivate static func summarizeQueryArguments(_ args: [String: JSONValue]) -> String {
         var parts: [String] = []
         if let query = args["query"]?.stringValue?.trimmingCharacters(in: .whitespacesAndNewlines), !query.isEmpty {
             parts.append("\"\(query)\"")

@@ -67,8 +67,15 @@ final class ForumToolsTests: XCTestCase {
         let forumNames: Set<String> = [
             ForumToolName.searchForum, ForumToolName.searchComments, ForumToolName.listLatest, ForumToolName.readTopic
         ]
-        func activeForumTools() throws -> [String] {
-            try makeRegistry(forum: app.makeForumToolContext()).definitions.map(\.name).filter { forumNames.contains($0) }
+        // WUKO-73: the text Agent declares the same forum tools, byte for byte, on every page;
+        // where the page isn't a supported site, or the site lacks a tool, the tool refuses.
+        let allForumTools = ["search_forum", "search_comments", "list_latest", "read_topic"]
+        var declared: [[AgentToolDefinition]] = []
+        func forumTools() throws -> ToolRegistry {
+            let registry = try makeRegistry(forum: app.makeForumToolContext())
+            XCTAssertEqual(registry.definitions.map(\.name).filter { forumNames.contains($0) }, allForumTools)
+            declared.append(registry.definitions)
+            return registry
         }
 
         for ctx in [
@@ -77,7 +84,17 @@ final class ForumToolsTests: XCTestCase {
             PageContext(url: URL(string: "https://meta.discourse.org/t/slug/42"), siteURL: "https://meta.discourse.org", state: .maybe)
         ] {
             app.browser.setPageContext(ctx)
-            XCTAssertEqual(try activeForumTools(), [])
+            let registry = try forumTools()
+            for name in allForumTools {
+                let arguments: [String: JSONValue] = switch name {
+                case "list_latest": [:]
+                case "read_topic": ["topic_id": .string("1")]
+                default: ["query": .string("x")]
+                }
+                let refused = try await registry.dispatch(toolName: name, arguments: arguments)
+                XCTAssertTrue(refused.isError, name)
+                XCTAssertTrue(refused.output.contains("This page isn't a forum or a supported site, so `\(name)` can't run here. Use `read_page`"), refused.output)
+            }
         }
 
         for state in [PageContext.State.forumHome, .topic] {
@@ -85,15 +102,17 @@ final class ForumToolsTests: XCTestCase {
                 url: URL(string: "https://meta.discourse.org"), site: .discourse,
                 siteURL: "https://meta.discourse.org", forumName: "Meta", state: state
             ))
-            XCTAssertEqual(try activeForumTools(), ["search_forum", "list_latest", "read_topic"])
+            let refused = try await forumTools().dispatch(toolName: "search_comments", arguments: ["query": .string("x")])
+            XCTAssertTrue(refused.isError && refused.output.contains("`search_comments` isn't available on Meta"), refused.output)
         }
 
         for (kind, siteURL) in [(SiteKind("hackernews"), "https://news.ycombinator.com"), (.wordpress, WordPressFixtureSite.siteURL)] {
             for state in [PageContext.State.forumHome, .topic] {
                 app.browser.setPageContext(PageContext(url: URL(string: siteURL), site: kind, siteURL: siteURL, state: state))
-                XCTAssertEqual(try activeForumTools(), ["search_forum", "search_comments", "list_latest", "read_topic"])
+                _ = try forumTools()
             }
         }
+        XCTAssertTrue(declared.allSatisfy { $0 == declared[0] }, "the tool list is the same on every page")
 
         // A BrowserAgentSession run keeps its starting forum across mid-run page changes, then re-evaluates next run.
         app.browser.setPageContext(PageContext(
@@ -141,8 +160,8 @@ final class ForumToolsTests: XCTestCase {
         client.append(.success(AgentModelTurnResponse(text: "Plain page.")))
         session.send("Check again")
         while session.isRunning, Date() < deadline { try await Task.sleep(for: .milliseconds(10)) }
-        let nextRunTools = try XCTUnwrap(client.recordedRequests.last?.tools).map(\.name)
-        XCTAssertTrue(forumNames.isDisjoint(with: nextRunTools))
+        let nextRunTools = try XCTUnwrap(client.recordedRequests.last?.tools)
+        XCTAssertEqual(nextRunTools, client.recordedRequests[0].tools, "off the forum, the same tools are declared")
     }
 
     // MARK: - Schemas (SiteGoldenTests port) & ToolRow Labels
@@ -158,25 +177,24 @@ final class ForumToolsTests: XCTestCase {
             service: service, scope: ForumRunScope(adapter: DiscourseAdapter(), siteURL: "https://example.com/forum"),
             forumName: "Example Forum"
         ))
+        // WUKO-73: one schema for every site, so the declared tools never change with the page.
         let dSearch = try XCTUnwrap(discourseReg.tool(named: "search_forum")?.definition)
-        XCTAssertEqual(dSearch.parameters.map(\.name), ["query"])
-        XCTAssertEqual(dSearch.parameters.map(\.type), [.string])
+        XCTAssertEqual(dSearch.parameters.map(\.name), ["query", "category", "after", "before", "page"])
+        XCTAssertEqual(dSearch.parameters.map(\.type), [.string, .string, .string, .string, .integer])
         XCTAssertEqual(dSearch.required, ["query"])
         XCTAssertFalse(dSearch.additionalProperties)
-        XCTAssertNil(discourseReg.tool(named: "search_comments"))
         let unknownComments = try await discourseReg.dispatch(toolName: "search_comments", arguments: ["query": .string("x")])
-        XCTAssertTrue(unknownComments.isError && unknownComments.output.contains("Unknown tool 'search_comments'"))
+        XCTAssertTrue(unknownComments.isError && unknownComments.output.contains("`search_comments` isn't available on Example Forum"))
 
         let hnAdapter = try XCTUnwrap(SiteRegistry.standard.adapter(for: SiteKind("hackernews")))
         let hnReg = try makeRegistry(forum: ForumToolContext(
             service: service, scope: ForumRunScope(adapter: hnAdapter, siteURL: HackerNewsFixture.site), forumName: "Hacker News"
         ))
-        for name in ["search_forum", "search_comments"] {
-            let def = try XCTUnwrap(hnReg.tool(named: name)?.definition)
-            XCTAssertEqual(def.parameters.map(\.name), ["query", "page"])
-            XCTAssertEqual(def.parameters.map(\.type), [.string, .integer])
-            XCTAssertEqual(def.required, ["query"])
-        }
+        let comments = try XCTUnwrap(hnReg.tool(named: "search_comments")?.definition)
+        XCTAssertEqual(comments.parameters.map(\.name), ["query", "after", "before", "page"])
+        XCTAssertEqual(comments.parameters.map(\.type), [.string, .string, .string, .integer])
+        XCTAssertEqual(comments.required, ["query"])
+        XCTAssertEqual(hnReg.definitions, discourseReg.definitions)
 
         let wpReg = try makeRegistry(forum: ForumToolContext(
             service: service, scope: ForumRunScope(adapter: WordPressAdapter(), siteURL: WordPressFixtureSite.siteURL),
