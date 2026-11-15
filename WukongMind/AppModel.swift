@@ -409,7 +409,7 @@ final class AppModel: ObservableObject {
         }
         let httpClient = AgentHTTPClient(
             pacer: forumService.pacer,
-            scriptLimiter: scriptStore.requestLimiter,
+            scriptLimiter: scriptStore.valuesStore.requestLimiter,
             environment: AgentNetworkEnvironment(
                 cookies: { [weak tabBrowser] in
                     guard let tabBrowser else { return [] }

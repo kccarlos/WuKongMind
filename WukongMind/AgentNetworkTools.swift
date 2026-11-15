@@ -334,24 +334,20 @@ final class AgentHTTPClient: @unchecked Sendable {
     /// Sends a `GM_xmlhttpRequest` with `@connect` fencing on every hop,
     /// `Confirm before writes`, same-site-only cookies, 5 MB cap, and per-script limits.
     func sendScriptRequest(_ request: ScriptHTTPRequest) async throws -> AgentHTTPResponse {
+        try scriptLimiter.acquire(scriptID: request.scriptID)
+        defer { scriptLimiter.release(scriptID: request.scriptID) }
+        try Task.checkCancellation()
         let clampedTimeout = request.timeout > 0 ? min(request.timeout, Self.maxScriptTimeout) : Self.defaultScriptTimeout
         if let body = request.body, body.utf8.count > Self.maxScriptBodyBytes {
             throw ScriptHTTPError(kind: .tooLarge, message: "Request body exceeds the 5 MB script limit.")
         }
-        let resolvedPageURL: URL? = if let explicit = request.pageURL {
-            explicit
-        } else if request.useEnvironmentPageURL {
-            await environment.currentPageURL()
-        } else {
-            nil
-        }
+        let resolvedPageURL: URL? = if let explicit = request.pageURL { explicit }
+            else if request.useEnvironmentPageURL { await environment.currentPageURL() }
+            else { nil }
         let confirmWrites = await environment.confirmBeforeWrites()
         let trimmedMethod = request.method.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
         let normalizedMethod = trimmedMethod.isEmpty ? "GET" : trimmedMethod
-
         try validateScriptHop(url: request.url, method: normalizedMethod, pageURL: resolvedPageURL, connect: request.connect, confirmBeforeWrites: confirmWrites)
-        try scriptLimiter.acquire(scriptID: request.scriptID)
-        defer { scriptLimiter.release(scriptID: request.scriptID) }
 
         do {
             return try await withTimeout(clampedTimeout, timeoutError: ScriptHTTPError(kind: .timeout, message: "The request timed out.")) { [self] in

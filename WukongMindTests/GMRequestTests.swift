@@ -155,7 +155,7 @@ final class GMRequestTests: XCTestCase {
         controller.gmBridge.httpClient = AgentHTTPClient(
             configuration: stubSessionConfig(),
             pacer: ForumRequestPacer(clock: InstantPacingClock()),
-            scriptLimiter: store.requestLimiter,
+            scriptLimiter: ScriptRequestLimiter(),
             environment: AgentNetworkEnvironment(
                 cookies: { cookies },
                 currentPageURL: { [weak webView] in await webView?.url },
@@ -220,11 +220,11 @@ final class GMRequestTests: XCTestCase {
         ]
         StubURLProtocol.reset { _ in StubReply(status: 200, body: Data("ok".utf8)) }
         let client = makeClient(page: "https://public.example.com/")
-        for allowed in ["https://public.example.com/ok", "http://172.15.0.1/ok", "http://172.32.0.1/ok", "http://[2606:4700:4700::1111]/ok", "http://[::ffff:93.184.216.34]/ok"] {
-            let res = try await client.sendScriptRequest(ScriptHTTPRequest(scriptID: "s", url: URL(string: allowed)!, connect: ["*"]))
+        for (idx, allowed) in ["https://public.example.com/ok", "http://172.15.0.1/ok", "http://172.32.0.1/ok", "http://[2606:4700:4700::1111]/ok", "http://[::ffff:93.184.216.34]/ok"].enumerated() {
+            let res = try await client.sendScriptRequest(ScriptHTTPRequest(scriptID: "allow-\(idx)", url: URL(string: allowed)!, connect: ["*"]))
             XCTAssertEqual(res.status, 200, "Expected \(allowed) to pass @connect *")
         }
-        for bad in forbiddenTargets {
+        for (idx, bad) in forbiddenTargets.enumerated() {
             let redirectTarget = bad
             let badURL = try XCTUnwrap(URL(string: bad))
             StubURLProtocol.reset { req in
@@ -232,8 +232,18 @@ final class GMRequestTests: XCTestCase {
                     ? StubReply(status: 302, headers: ["Location": redirectTarget])
                     : StubReply(status: 200, body: Data("ok".utf8))
             }
-            await XCTAssertThrowsErrorAsync(try await client.sendScriptRequest(ScriptHTTPRequest(scriptID: "s", url: badURL, connect: ["*"])), "Hop 0 should refuse \(bad)")
-            await XCTAssertThrowsErrorAsync(try await client.sendScriptRequest(ScriptHTTPRequest(scriptID: "s", url: URL(string: "https://public.example.com/bounce")!, connect: ["*"])), "Redirect hop should refuse \(bad)")
+            do {
+                _ = try await client.sendScriptRequest(ScriptHTTPRequest(scriptID: "hop0-\(idx)", url: badURL, connect: ["*"]))
+                XCTFail("Hop 0 should refuse \(bad)")
+            } catch let err as ScriptHTTPError {
+                XCTAssertEqual(err.kind, .blocked, "Hop 0 should block \(bad)")
+            }
+            do {
+                _ = try await client.sendScriptRequest(ScriptHTTPRequest(scriptID: "redir-\(idx)", url: URL(string: "https://public.example.com/bounce")!, connect: ["*"]))
+                XCTFail("Redirect hop should refuse \(bad)")
+            } catch let err as ScriptHTTPError {
+                XCTAssertEqual(err.kind, .blocked, "Redirect hop should block \(bad)")
+            }
         }
         let localNamed = try await client.sendScriptRequest(ScriptHTTPRequest(scriptID: "s", url: URL(string: "http://localhost:8080/a")!, connect: ["localhost"]))
         XCTAssertEqual(localNamed.status, 200)
@@ -392,6 +402,56 @@ final class GMRequestTests: XCTestCase {
         XCTAssertEqual(harness.auditLog.days().first?.tasks.first?.prompt, "Request Runner")
     }
 
+    func testRefusedRequestsCountAgainstPerScriptLimitAndCapAuditLinesAtSixty() async throws {
+        StubURLProtocol.reset { _ in StubReply(status: 200) }
+        let harness = makeWebHarness()
+        _ = try harness.store.importUserScript(
+            """
+            // ==UserScript==
+            // @name         Refused Flood
+            // @match        https://forum.example.org/*
+            // @grant        GM_xmlhttpRequest
+            // @connect      *
+            // ==/UserScript==
+            let errors = 0;
+            for (let i = 0; i < 200; i++) {
+              const target = i % 4 === 0 ? "http://[::1" : "http://10.0.0.1/secret";
+              await new Promise((r) => GM_xmlhttpRequest({ url: target, onerror() { errors += 1; r(); } }));
+            }
+            document.documentElement.setAttribute("data-flood", String(errors));
+            """,
+            preferredID: "refused-flood"
+        )
+        _ = try harness.store.importUserScript(
+            """
+            // ==UserScript==
+            // @name         Parallel Flood
+            // @match        https://forum.example.org/*
+            // @grant        GM_xmlhttpRequest
+            // @connect      *
+            // ==/UserScript==
+            let errors = 0;
+            await Promise.all(Array.from({ length: 200 }, () => new Promise((r) => GM_xmlhttpRequest({ url: "http://10.0.0.1/", onerror() { errors += 1; r(); } }))));
+            document.documentElement.setAttribute("data-burst", String(errors));
+            """,
+            preferredID: "parallel-flood"
+        )
+
+        try await harness.waiter.wait { harness.webView.loadHTMLString("<html><body>flood</body></html>", baseURL: URL(string: "https://forum.example.org/t/1")!) }
+        try await waitUntil(timeout: 10) {
+            let a = try await harness.webView.evaluateJavaScript("document.documentElement.getAttribute('data-flood')", in: nil, contentWorld: AgentBridge.isolatedWorld) as? String
+            let b = try await harness.webView.evaluateJavaScript("document.documentElement.getAttribute('data-burst')", in: nil, contentWorld: AgentBridge.isolatedWorld) as? String
+            return a == "200" && b == "200"
+        }
+
+        let seqLines = harness.auditLog.allLines().filter { $0.kind == .scriptRequest && $0.scriptID == "refused-flood" }
+        let burstLines = harness.auditLog.allLines().filter { $0.kind == .scriptRequest && $0.scriptID == "parallel-flood" }
+        XCTAssertEqual(seqLines.count, 60)
+        XCTAssertLessThanOrEqual(burstLines.count, 60)
+        XCTAssertFalse(seqLines.contains { ($0.resultSummary ?? "").contains("limit reached") })
+        XCTAssertFalse(burstLines.contains { ($0.resultSummary ?? "").contains("limit reached") })
+    }
+
     func testMenuCommandsRegisterInvokeUnregisterAndClearOnDisableOrNavigate() async throws {
         let harness = makeWebHarness()
         _ = try harness.store.importUserScript(
@@ -405,37 +465,38 @@ final class GMRequestTests: XCTestCase {
             GM_registerMenuCommand("Tidy Threads settings…", () => { count += 1; document.body.setAttribute("data-cmd-runs", String(count)); });
             const tempId = GM_registerMenuCommand("Temporary action", () => {});
             GM_unregisterMenuCommand(tempId);
-            GM_registerMenuCommand("Show folded posts", () => { document.body.setAttribute("data-unfolded", "yes"); });
+            GM_registerMenuCommand("Show folded posts", () => { document.body.setAttribute("data-unfolded", "yes"); return new Promise(() => {}); });
             """,
             preferredID: "tidy-threads"
         )
         _ = try harness.store.create(id: "ungranted-menu", name: "Ungranted Menu", matchRules: ["https://forum.example.org/*"], js: "GM_registerMenuCommand('Nope', () => {});")
 
         try await harness.waiter.wait { harness.webView.loadHTMLString("<html><body>thread</body></html>", baseURL: URL(string: "https://forum.example.org/t/88")!) }
-        try await waitUntil { harness.controller.menuCommands(for: "tidy-threads").count == 2 && harness.store.error(for: "ungranted-menu") != nil }
+        try await waitUntil { harness.controller.gmBridge.menuCommands(for: "tidy-threads").count == 2 && harness.store.error(for: "ungranted-menu") != nil }
         XCTAssertEqual(harness.store.error(for: "ungranted-menu")?.message, "`GM_registerMenuCommand` needs `@grant GM_registerMenuCommand`")
-        let cmds = harness.controller.menuCommands(for: "tidy-threads")
+        let cmds = harness.controller.gmBridge.menuCommands(for: "tidy-threads")
         XCTAssertEqual(cmds.map(\.title), ["Tidy Threads settings…", "Show folded posts"])
         guard cmds.count == 2 else { return }
 
-        let ranFirst = await harness.controller.invokeMenuCommandAsync(scriptID: "tidy-threads", commandID: cmds[0].id)
-        let ranSecond = await harness.controller.invokeMenuCommandAsync(scriptID: "tidy-threads", commandID: cmds[1].id)
+        let ranFirst = await harness.controller.gmBridge.invokeMenuCommandAsync(scriptID: "tidy-threads", commandID: cmds[0].id)
+        let ranSecond = await harness.controller.gmBridge.invokeMenuCommandAsync(scriptID: "tidy-threads", commandID: cmds[1].id)
         XCTAssertTrue(ranFirst && ranSecond)
         let domState = try await harness.webView.evaluateJavaScript("[document.body.getAttribute('data-cmd-runs'), document.body.getAttribute('data-unfolded')]", in: nil, contentWorld: .page) as? [String]
         XCTAssertEqual(domState, ["1", "yes"])
 
         _ = try harness.store.setEnabled(id: "tidy-threads", isEnabled: false)
-        XCTAssertTrue(harness.controller.menuCommands(for: "tidy-threads").isEmpty)
+        XCTAssertTrue(harness.controller.gmBridge.menuCommands(for: "tidy-threads").isEmpty)
+        try await Task.sleep(for: .milliseconds(40))
         _ = try harness.store.setEnabled(id: "tidy-threads", isEnabled: true, runLiveJS: true)
-        try await waitUntil { harness.controller.menuCommands(for: "tidy-threads").count == 2 }
-        XCTAssertEqual(harness.controller.menuCommands(for: "tidy-threads").map(\.title), ["Tidy Threads settings…", "Show folded posts"])
+        try await waitUntil { harness.controller.gmBridge.menuCommands(for: "tidy-threads").count == 2 }
+        XCTAssertEqual(harness.controller.gmBridge.menuCommands(for: "tidy-threads").map(\.title), ["Tidy Threads settings…", "Show folded posts"])
 
         _ = try await harness.webView.evaluateJavaScript("history.pushState({}, '', '/t/89'); true", in: nil, contentWorld: .page)
-        try await waitUntil { harness.controller.menuCommands(for: "tidy-threads").count == 2 }
-        XCTAssertEqual(harness.controller.menuCommands(for: "tidy-threads").map(\.title), ["Tidy Threads settings…", "Show folded posts"])
+        try await waitUntil { harness.controller.gmBridge.menuCommands(for: "tidy-threads").count == 2 }
+        XCTAssertEqual(harness.controller.gmBridge.menuCommands(for: "tidy-threads").map(\.title), ["Tidy Threads settings…", "Show folded posts"])
 
         try await harness.waiter.wait { harness.webView.loadHTMLString("<html><body>other</body></html>", baseURL: URL(string: "https://elsewhere.org/")!) }
-        XCTAssertTrue(harness.controller.menuCommands(for: "tidy-threads").isEmpty)
+        XCTAssertTrue(harness.controller.gmBridge.menuCommands(for: "tidy-threads").isEmpty)
     }
 
     func testGMDotPromiseFormsAndGrantSpellings() async throws {
@@ -600,12 +661,12 @@ final class GMRequestTests: XCTestCase {
         await app.browser.waitUntilSettled(timeout: .seconds(20))
         try await waitUntil {
             let pong = try await app.browser.webView.evaluateJavaScript("document.documentElement.getAttribute('data-pong')", in: nil, contentWorld: AgentBridge.isolatedWorld) as? String
-            return pong == "true" && app.scriptWebController.menuCommands(for: script.id).count == 1
+            return pong == "true" && app.scriptWebController.gmBridge.menuCommands(for: script.id).count == 1
         }
 
-        let cmd = try XCTUnwrap(app.scriptWebController.menuCommands(for: script.id).first)
+        let cmd = try XCTUnwrap(app.scriptWebController.gmBridge.menuCommands(for: script.id).first)
         XCTAssertEqual(cmd.title, "Ping thread")
-        let ran = await app.scriptWebController.invokeMenuCommandAsync(scriptID: script.id, commandID: cmd.id)
+        let ran = await app.scriptWebController.gmBridge.invokeMenuCommandAsync(scriptID: script.id, commandID: cmd.id)
         XCTAssertTrue(ran)
         let outText = try await app.browser.webView.evaluateJavaScript("document.getElementById('out').textContent", in: nil, contentWorld: .page) as? String
         XCTAssertEqual(outText, "menu-ran")

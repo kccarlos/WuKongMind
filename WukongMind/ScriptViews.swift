@@ -945,7 +945,7 @@ struct PageCapabilitiesView: View {
 
     private func popoverScriptRow(_ script: UserScript) -> some View {
         let error = (script.isEnabled && isGlobalOn) ? app.scriptStore.error(for: script.id) : nil
-        let commands = (script.isEnabled && isGlobalOn) ? app.scriptWebController.menuCommands(for: script.id) : []
+        let commands = (script.isEnabled && isGlobalOn) ? app.scriptWebController.gmBridge.menuCommands(for: script.id) : []
         let autoDisabledReason: String? = (!script.isEnabled && !(script.disabledReason ?? "").isEmpty)
             ? script.disabledReason
             : nil
@@ -1012,7 +1012,7 @@ struct PageCapabilitiesView: View {
                         Button {
                             DCHaptics.tap()
                             isPresented = false
-                            app.scriptWebController.invokeMenuCommand(scriptID: script.id, commandID: command.id)
+                            app.scriptWebController.gmBridge.invokeMenuCommand(scriptID: script.id, commandID: command.id)
                         } label: {
                             HStack(spacing: 10) {
                                 Image(systemName: "command")

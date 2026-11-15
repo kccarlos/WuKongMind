@@ -1,4 +1,5 @@
 import Foundation
+import Observation
 import WebKit
 
 enum GMBridgeError: LocalizedError, Equatable, Sendable {
@@ -26,6 +27,7 @@ enum GMBridgeError: LocalizedError, Equatable, Sendable {
 @MainActor
 final class ScriptValuesStore {
     let directoryURL: URL
+    let requestLimiter = ScriptRequestLimiter()
     private var cache: [String: [String: JSONValue]] = [:]
     private var deletedSnapshots: [String: Data] = [:]
 
@@ -150,6 +152,7 @@ struct ScriptMenuCommand: Identifiable, Equatable, Sendable {
 /// `WKScriptMessageHandlerWithReply` registration, Swift-side `@grant` checks,
 /// and the `GM_*` / `GM.*` runtime surface.
 @MainActor
+@Observable
 final class GMBridge {
     nonisolated static let worldPrefix = "WukongScript."
     nonisolated static let handlerName = "gm"
@@ -176,21 +179,21 @@ final class GMBridge {
             || grants.contains("GM.getValue") || grants.contains("GM.listValues")
     }
 
-    let valuesStore: ScriptValuesStore
-    var httpClient: AgentHTTPClient = AgentHTTPClient()
-    var auditLog: AuditLog?
-    var resolveScript: ((String) -> UserScript?)?
-    var onValuesMutated: ((String) -> Void)?
-    var onMenuCommandsChanged: (() -> Void)?
-    var onScriptError: ((String, [String: Any]) -> Void)?
-    var onScriptLoadClean: ((String, [String: Any]) -> Void)?
-    var onPageScriptReport: (([String: Any]) -> Void)?
-    private var registeredHandlers: [String: GMScriptReplyHandler] = [:]
-    private var pageReportHandler: GMPageReplyHandler?
-    private var inFlightRequests: [String: Task<Void, Never>] = [:]
+    @ObservationIgnored let valuesStore: ScriptValuesStore
+    @ObservationIgnored weak var webView: WKWebView?
+    @ObservationIgnored var httpClient: AgentHTTPClient = AgentHTTPClient()
+    @ObservationIgnored var auditLog: AuditLog?
+    @ObservationIgnored var resolveScript: ((String) -> UserScript?)?
+    @ObservationIgnored var onValuesMutated: ((String) -> Void)?
+    @ObservationIgnored var onScriptError: ((String, [String: Any]) -> Void)?
+    @ObservationIgnored var onScriptLoadClean: ((String, [String: Any]) -> Void)?
+    @ObservationIgnored var onPageScriptReport: (([String: Any]) -> Void)?
+    @ObservationIgnored private var registeredHandlers: [String: GMScriptReplyHandler] = [:]
+    @ObservationIgnored private var pageReportHandler: GMPageReplyHandler?
+    @ObservationIgnored private var inFlightRequests: [String: Task<Void, Never>] = [:]
     private var menuCommandsByScriptID: [String: [ScriptMenuCommand]] = [:]
-    private var activeDocTokenByScriptID: [String: String] = [:]
-    private var retiredDocTokens: Set<String> = []
+    @ObservationIgnored private var activeDocTokenByScriptID: [String: String] = [:]
+    @ObservationIgnored private var retiredDocTokens: Set<String> = []
 
     init(valuesStore: ScriptValuesStore) {
         self.valuesStore = valuesStore
@@ -198,20 +201,36 @@ final class GMBridge {
 
     func menuCommands(for scriptID: String) -> [ScriptMenuCommand] { menuCommandsByScriptID[scriptID] ?? [] }
 
+    func invokeMenuCommand(scriptID: String, commandID: String) {
+        Task { @MainActor [weak self] in _ = await self?.invokeMenuCommandAsync(scriptID: scriptID, commandID: commandID) }
+    }
+
+    @discardableResult
+    func invokeMenuCommandAsync(scriptID: String, commandID: String) async -> Bool {
+        guard let webView, let script = resolveScript?(scriptID), !script.runsInPageWorld,
+              let world = registeredHandlers[scriptID]?.expectedWorld else { return false }
+        let js = "return typeof window.__wukongInvokeMenuCommand === 'function' ? window.__wukongInvokeMenuCommand(commandId) : { ok: false };"
+        guard let res = (try? await webView.callAsyncJavaScript(js, arguments: ["commandId": commandID], in: nil, contentWorld: world)) as? [String: Any] else {
+            return false
+        }
+        if let err = res["error"] as? String, !err.isEmpty {
+            onScriptError?(scriptID, ["message": err, "url": webView.url?.absoluteString ?? ""])
+            return false
+        }
+        return (res["ok"] as? Bool) == true
+    }
+
     func clearMenuCommands(for scriptID: String) {
         cancelRequests(for: scriptID)
         if let token = activeDocTokenByScriptID.removeValue(forKey: scriptID) { rememberRetiredToken(token) }
-        if menuCommandsByScriptID.removeValue(forKey: scriptID) != nil { onMenuCommandsChanged?() }
+        menuCommandsByScriptID.removeValue(forKey: scriptID)
     }
 
     func clearAllMenuCommands() {
         cancelAllRequests()
         activeDocTokenByScriptID.values.forEach { rememberRetiredToken($0) }
         activeDocTokenByScriptID.removeAll()
-        if !menuCommandsByScriptID.isEmpty {
-            menuCommandsByScriptID.removeAll()
-            onMenuCommandsChanged?()
-        }
+        if !menuCommandsByScriptID.isEmpty { menuCommandsByScriptID.removeAll() }
     }
 
     private func rememberRetiredToken(_ token: String) {
@@ -271,6 +290,7 @@ final class GMBridge {
     }
 
     func removeAllHandlers(from controller: WKUserContentController?) {
+        webView = nil
         clearAllMenuCommands()
         if let controller {
             for handler in registeredHandlers.values {
@@ -383,24 +403,21 @@ final class GMBridge {
             list.removeAll { $0.id == cmdID }
             list.append(ScriptMenuCommand(id: cmdID, scriptID: scriptID, title: title))
             menuCommandsByScriptID[scriptID] = list
-            onMenuCommandsChanged?()
             replyHandler(["ok": true], nil)
         case "unregisterMenuCommand":
             guard requireActiveGrantedScript(scriptID, grants: ["GM_registerMenuCommand", "GM_unregisterMenuCommand"], reportName: "GM_registerMenuCommand", replyHandler: replyHandler) != nil else { return }
             if let cmdID = payload["id"] as? String, var list = menuCommandsByScriptID[scriptID] {
-                let before = list.count
                 list.removeAll { $0.id == cmdID }
                 menuCommandsByScriptID[scriptID] = list.isEmpty ? nil : list
-                if list.count != before { onMenuCommandsChanged?() }
             }
             replyHandler(["ok": true], nil)
         case "clearMenuCommands":
             let nextToken = (payload["docToken"] as? String) ?? ""
             if let existing = activeDocTokenByScriptID[scriptID], existing != nextToken {
                 rememberRetiredToken(existing)
-                if menuCommandsByScriptID.removeValue(forKey: scriptID) != nil { onMenuCommandsChanged?() }
+                menuCommandsByScriptID.removeValue(forKey: scriptID)
             } else if nextToken.isEmpty {
-                if menuCommandsByScriptID.removeValue(forKey: scriptID) != nil { onMenuCommandsChanged?() }
+                menuCommandsByScriptID.removeValue(forKey: scriptID)
             }
             if !nextToken.isEmpty, !retiredDocTokens.contains(nextToken) {
                 activeDocTokenByScriptID[scriptID] = nextToken
@@ -452,8 +469,16 @@ final class GMBridge {
 
         guard let parsedURL = URL(string: rawURL), !rawURL.isEmpty else {
             let errMsg = "GM_xmlhttpRequest requires a valid http or https URL."
-            recordAudit(rawURL, nil, true, errMsg)
-            replyHandler(["ok": false, "kind": "error", "error": errMsg, "finalUrl": rawURL], nil)
+            do {
+                try client.scriptLimiter.acquire(scriptID: scriptID)
+                client.scriptLimiter.release(scriptID: scriptID)
+                recordAudit(rawURL, nil, true, errMsg)
+                replyHandler(["ok": false, "kind": "error", "error": errMsg, "finalUrl": rawURL], nil)
+            } catch let limitErr as ScriptHTTPError {
+                replyHandler(["ok": false, "kind": "error", "error": limitErr.message, "finalUrl": rawURL], nil)
+            } catch {
+                replyHandler(["ok": false, "kind": "error", "error": errMsg, "finalUrl": rawURL], nil)
+            }
             return
         }
 
@@ -480,7 +505,9 @@ final class GMBridge {
                 recordAudit(target, nil, true, "Aborted")
                 replyHandler(["ok": false, "kind": "abort", "error": "Request aborted", "finalUrl": target], nil)
             } catch let scriptErr as ScriptHTTPError {
-                recordAudit(target, nil, true, scriptErr.message)
+                if scriptErr.kind != .limit {
+                    recordAudit(target, nil, true, scriptErr.message)
+                }
                 replyHandler(["ok": false, "kind": scriptErr.kind == .timeout ? "timeout" : "error", "error": scriptErr.message, "finalUrl": target], nil)
             } catch {
                 recordAudit(target, nil, true, error.localizedDescription)
@@ -621,13 +648,14 @@ final class GMBridge {
             docToken = makeDocToken();
             if (notifyHost) postMsg({ action: "clearMenuCommands", docToken }).catch(() => {});
           };
-          window.__wukongInvokeMenuCommand = async (id) => {
+          window.__wukongInvokeMenuCommand = (id) => {
             if (!window.__wukongScriptsGlobalEnabled) return { ok: false };
             if (window.__wukongDisabledScriptIDs && window.__wukongDisabledScriptIDs[OWNED_SCRIPT_ID]) return { ok: false };
             const fn = menuCallbacks.get(String(id));
             if (typeof fn !== "function") return { ok: false };
             try {
-              await fn();
+              const out = fn();
+              if (out && typeof out.then === "function") out.then(null, reportAsyncErr);
               return { ok: true };
             } catch (err) {
               const msg = err && (err.message || err.stack) ? String(err.message || err.stack) : String(err);
