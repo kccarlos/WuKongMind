@@ -727,6 +727,7 @@ final class VoiceSession: ObservableObject {
     /// forum page, or the topic brief and position delta on a topic.
     func pageChanged(_ page: PageContext) {
         guard !state.isOver else { return }
+        tools.pageChanged(page)
         if let topic = page.topic, page.state == .topic {
             if let number = page.currentPost, dwell?.topicKey != topic.topicKey || dwell?.number != number {
                 dwell = (topic.topicKey, number, clock.now)

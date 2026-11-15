@@ -19,11 +19,13 @@ final class VoiceToolTests: XCTestCase {
             BrowseItem(kind: .searchHit, siteURL: "https://forum.example", topicID: "7", postNumber: 2, title: "A"),
             BrowseItem(kind: .searchHit, siteURL: "https://forum.example", topicID: "8", postNumber: 5, title: "B")
         ], origin: .search("fan"))
+        navigator.links = [PageLink(text: "Tariffs", url: URL(string: "https://herald.example/t")!, host: "herald.example")]
         let bridge = VoiceToolBridge(navigator: navigator)
         let cases: [(String, [String: JSONValue], String)] = [
             ("search_forum", ["query": "fan noise"], "find fan noise forum"),
             ("search_forum", ["query": "firmware", "scope": "topic"], "find firmware topic"),
             ("open_page", ["target": "bbc.com"], "openPage bbc.com"),
+            ("open_link", ["words": "tariffs"], "followLink Tariffs @ herald.example"),
             ("browse_open", ["card": 2], "card 1"),
             ("browse_open", ["card": "2", "at": "solution"], "open item 8/5 at solution"),
             ("browse_open", ["topic_id": "123", "at": "post", "post": 37], "open topic 123 at post(37)"),
@@ -216,8 +218,8 @@ final class VoiceToolTests: XCTestCase {
         ).map(\.name))
         let promptCorpus = text + "\n" + VoiceTool.allCases.map(\.description).joined(separator: "\n")
         XCTAssertTrue(promptCorpus.contains("open_page"))
+        XCTAssertTrue(promptCorpus.contains("open_link"))
         XCTAssertTrue(promptCorpus.contains("scroll down"))
-        XCTAssertFalse(promptCorpus.contains("open_link"), "open_link is declared in Task 4")
         let snakeCase = try! NSRegularExpression(pattern: "\\b[a-z]+_[a-z_]+\\b")
         let range = NSRange(promptCorpus.startIndex..<promptCorpus.endIndex, in: promptCorpus)
         let mentioned = Set(snakeCase.matches(in: promptCorpus, range: range).compactMap {
@@ -417,9 +419,9 @@ final class VoiceToolTests: XCTestCase {
         let voice = app.voiceToolRegistry(browse: BrowseToolContext(navigator: app, site: app.voiceSite))
         XCTAssertEqual(fromForum.map(\.name), voice.definitions.map(\.name) + ["end", "hand_off_to_agent"])
         XCTAssertEqual(Set(voice.definitions.map(\.name)), [
-            "read_page", "open_page", "search_forum", "read_topic", "summarize_topic", "read_aloud", "watch_topic",
+            "read_page", "open_page", "open_link", "search_forum", "read_topic", "summarize_topic", "read_aloud", "watch_topic",
             "browse_open", "browse_move", "browse_focus", "read_post"
-        ], "13 with end and the hand-off; navigate, heavy tools, notify and inject_css stay text-only")
+        ], "14 with end and the hand-off; navigate, heavy tools, notify and inject_css stay text-only")
         XCTAssertNil(voice.tool(named: "navigate"), "navigate stays text-only")
         XCTAssertNil(voice.tool(named: "read_page")?.definition.parameters.first { $0.name == "mode" }, "structure only")
 
@@ -430,7 +432,7 @@ final class VoiceToolTests: XCTestCase {
             browse: BrowseToolContext(navigator: app, site: app.voiceSite, isOnForum: true)
         )
         let text = Set(ToolRegistry.m3(context: context).definitions.map(\.name))
-        XCTAssertTrue(text.isDisjoint(with: ["open_page", "browse_open", "browse_move", "browse_focus", "read_post"]), "\(text)")
+        XCTAssertTrue(text.isDisjoint(with: ["open_page", "open_link", "browse_open", "browse_move", "browse_focus", "read_post"]), "\(text)")
         XCTAssertTrue(text.isSuperset(of: ["navigate", "reload_page", "search_forum", "read_topic", "read_page", "inject_css", "notify"]))
         XCTAssertNotNil(ToolRegistry.m3(context: context).tool(named: "read_page")?.definition.parameters.first { $0.name == "mode" })
     }
@@ -617,6 +619,7 @@ final class VoiceToolTests: XCTestCase {
         window.isHidden = false
         window.layoutIfNeeded()
         addTeardownBlock { app.browser.webView.removeFromSuperview(); window.isHidden = true }
+        _ = try? await app.browser.agentLoad(URL(string: "http://127.0.0.1:\(server.port)/warm")!, wait: true, timeout: 20)
 
         let bridge = VoiceToolBridge(navigator: app)
         bridge.registryBuilder = app.voiceToolRegistry
@@ -676,6 +679,161 @@ final class VoiceToolTests: XCTestCase {
         XCTAssertTrue(failed.response["shown"]?.stringValue?.contains("Couldn't open 127.0.0.1:") == true)
     }
 
+    // MARK: Voice anywhere 4: open_link
+
+    func testOpenLinkSchemaNoAddressAndHandOffRefusal() async throws {
+        let navigator = FakeVoiceNavigator()
+        navigator.pageContext = PageContext(url: URL(string: "https://heraldexample.com/front?tok=priv#top")!, state: .notForum)
+        let bridge = VoiceToolBridge(navigator: navigator)
+        let declared = bridge.declare()
+        let openLink = try XCTUnwrap(declared.first { $0.name == "open_link" })
+        let props = try XCTUnwrap(openLink.parameters?.objectValue?["properties"]?.objectValue)
+        XCTAssertEqual(Set(props.keys), ["words", "number"], "No address/url/href/target parameter")
+        XCTAssertNil(openLink.parameters?.objectValue?["required"])
+        XCTAssertEqual(props["number"]?.objectValue?["minimum"], 1)
+        XCTAssertEqual(props["number"]?.objectValue?["maximum"], 40)
+
+        navigator.holdsHandOff = true
+        navigator.links = [PageLink(text: "Tariffs", url: URL(string: "https://heraldexample.com/a?x=1#s")!, host: "heraldexample.com")]
+        _ = await bridge.handle(.init(id: "h", name: "hand_off_to_agent", args: ["request": "Make it dark"]), eyesFree: false)
+        for args: [String: JSONValue] in [["words": "tariffs"], ["number": 1]] {
+            let refused = await bridge.handle(.init(id: "r", name: "open_link", args: args), eyesFree: false)
+            XCTAssertEqual(refused.response["status"], "unavailable")
+            XCTAssertEqual(refused.response["shown"], .string(VoiceToolBridge.handOffBusyMessage))
+        }
+        XCTAssertFalse(navigator.calls.contains { $0.hasPrefix("followLink") })
+        _ = await bridge.handle(.init(id: "c", name: "hand_off_to_agent", args: ["action": "cancel"]), eyesFree: false)
+
+        // 7 matches cap at 5 candidates; bare-URL link text and cross-host open never leak an address.
+        navigator.links = (1...7).map {
+            PageLink(text: "Chapter \($0) https://docs.example/secret/\($0)?tok=abc#p", url: URL(string: "https://docs.example/secret/\($0)?tok=abc#p")!, host: "docs.example")
+        }
+        let choices = await bridge.handle(.init(id: "m", name: "open_link", args: ["words": "chapter"]), eyesFree: false)
+        XCTAssertEqual(choices.response["status"], "choices")
+        XCTAssertEqual(choices.response["candidates"]?.arrayValue?.count, 5)
+        XCTAssertEqual(choices.response["candidates"]?.arrayValue?.first, "1. Chapter 1 docs.example (docs.example)")
+
+        let opened = await bridge.handle(.init(id: "n", name: "open_link", args: ["number": 2]), eyesFree: false)
+        XCTAssertEqual(opened.response["status"], "opened")
+        XCTAssertEqual(opened.response["host"], "docs.example")
+        XCTAssertTrue(opened.response["message"]?.stringValue?.contains("left heraldexample.com") == true)
+
+        let miss = await bridge.handle(.init(id: "z", name: "open_link", args: ["words": "weather"]), eyesFree: false)
+        XCTAssertEqual(miss.response["status"], "notFound")
+        for outcome in [choices, opened, miss] {
+            let encoded = JSONValue.encodeCompactJSON(outcome.response)
+            for forbidden in ["http://", "https://", "/secret", "tok=", "#p"] {
+                XCTAssertFalse(encoded.contains(forbidden), "Leaked \(forbidden) in \(encoded)")
+            }
+        }
+    }
+
+    func testOpenLinkWordsNumberAndDroppedListOnNewPage() async {
+        let navigator = FakeVoiceNavigator()
+        let page1 = PageContext(url: URL(string: "https://heraldexample.com/front")!, state: .notForum)
+        let page2 = PageContext(url: URL(string: "https://heraldexample.com/other")!, state: .notForum)
+        navigator.pageContext = page1
+        navigator.links = [
+            PageLink(text: "Top stories", url: URL(string: "https://heraldexample.com/top")!, host: "heraldexample.com"),
+            PageLink(text: "Opinion: why tariffs miss the point", url: URL(string: "https://heraldexample.com/tariffs")!, host: "heraldexample.com"),
+            PageLink(text: "Apple unveils new iPad lineup", url: URL(string: "https://heraldexample.com/ipad")!, host: "heraldexample.com"),
+            PageLink(text: "Apple shareholders back buyback plan", url: URL(string: "https://ft-example.com/buyback")!, host: "ft-example.com"),
+            PageLink(text: "BBC News world desk", url: URL(string: "https://bbc.example/world")!, host: "bbc.example"),
+            PageLink(text: "气候峰会下周召开", url: URL(string: "https://cn.example/climate")!, host: "cn.example")
+        ]
+        let bridge = VoiceToolBridge(navigator: navigator)
+        _ = bridge.declare()
+
+        // 1. Single match opens immediately; with no kept list, `number` counts screen links from the top.
+        let one = await bridge.handle(.init(id: "1", name: "open_link", args: ["words": "the one about tariffs"]), eyesFree: false)
+        XCTAssertEqual(one.response["status"], "opened")
+        XCTAssertEqual(navigator.calls.last, "followLink Opinion: why tariffs miss the point @ heraldexample.com")
+        let news = await bridge.handle(.init(id: "2", name: "open_link", args: ["words": "news"]), eyesFree: false)
+        XCTAssertEqual(news.response["status"], "opened")
+        XCTAssertEqual(navigator.calls.last, "followLink BBC News world desk @ bbc.example")
+        let cjk = await bridge.handle(.init(id: "3", name: "open_link", args: ["words": "关于气候的那篇"]), eyesFree: false)
+        XCTAssertEqual(cjk.response["status"], "opened")
+        XCTAssertEqual(navigator.calls.last, "followLink 气候峰会下周召开 @ cn.example")
+        let third = await bridge.handle(.init(id: "4", name: "open_link", args: ["number": "3"]), eyesFree: false)
+        XCTAssertEqual(third.response["status"], "opened")
+        XCTAssertEqual(navigator.calls.last, "followLink Apple unveils new iPad lineup @ heraldexample.com")
+
+        // 2. Multiple matches keep a candidate list ("Top stories" not matched by generic "story"); `number` picks from it.
+        let apple = await bridge.handle(.init(id: "5", name: "open_link", args: ["words": "the Apple story"]), eyesFree: false)
+        XCTAssertEqual(apple.response["status"], "choices")
+        XCTAssertEqual(apple.response["candidates"], ["1. Apple unveils new iPad lineup (heraldexample.com)", "2. Apple shareholders back buyback plan (ft-example.com)"])
+        let outOfList = await bridge.handle(.init(id: "6", name: "open_link", args: ["number": 4]), eyesFree: false)
+        XCTAssertEqual(outOfList.response["status"], "notFound", "Does not fall through to screen link 4")
+        let picked = await bridge.handle(.init(id: "7", name: "open_link", args: ["number": 2]), eyesFree: false)
+        XCTAssertEqual(picked.response["status"], "opened")
+        XCTAssertEqual(navigator.calls.last, "followLink Apple shareholders back buyback plan @ ft-example.com")
+
+        // 3. Partial matches never open silently: 1-of-3 shared word is notFound; 2-of-3 returns choices for confirmation.
+        let beforeFollows = navigator.calls.filter { $0.hasPrefix("followLink") }.count
+        let weak = await bridge.handle(.init(id: "8", name: "open_link", args: ["words": "the new iPhone review"]), eyesFree: false)
+        XCTAssertEqual(weak.response["status"], "notFound")
+        XCTAssertEqual(navigator.calls.filter { $0.hasPrefix("followLink") }.count, beforeFollows)
+        let partial = await bridge.handle(.init(id: "9", name: "open_link", args: ["words": "Apple iPad review"]), eyesFree: false)
+        XCTAssertEqual(partial.response["status"], "choices")
+        XCTAssertEqual(partial.response["candidates"], ["1. Apple unveils new iPad lineup (heraldexample.com)"])
+        XCTAssertEqual(navigator.calls.filter { $0.hasPrefix("followLink") }.count, beforeFollows)
+
+        // 4. A candidate list from the previous page refuses once on the new page, then clears so screen numbers work.
+        navigator.pageContext = page2
+        bridge.pageChanged(page2)
+        let stale = await bridge.handle(.init(id: "10", name: "open_link", args: ["number": 1]), eyesFree: false)
+        XCTAssertEqual(stale.response["status"], "unavailable")
+        XCTAssertEqual(stale.response["shown"], .string(VoiceToolBridge.staleLinkListMessage))
+        let screenSecond = await bridge.handle(.init(id: "11", name: "open_link", args: ["number": 2]), eyesFree: false)
+        XCTAssertEqual(screenSecond.response["status"], "opened")
+        XCTAssertEqual(navigator.calls.last, "followLink Opinion: why tariffs miss the point @ heraldexample.com")
+    }
+
+    func testOpenLinkFiltersOrdersMergesCapsAndPreservesQueryAndFragmentInWebKit() async throws {
+        let server = try LocalPageServer()
+        try await server.start()
+        addTeardownBlock { server.stop() }
+
+        let app = makeApp()
+        await attachWebView(app, port: server.port)
+        let bridge = VoiceToolBridge(navigator: app)
+        bridge.registryBuilder = app.voiceToolRegistry
+        _ = bridge.declare()
+
+        let loaded = await app.openPage("127.0.0.1:\(server.port)/links", timeout: 20)
+        XCTAssertEqual(loaded, .opened(kind: .address, title: "Links Hub", host: "127.0.0.1"))
+        app.browser.setPageContext(PageContext(url: app.browser.webView.url, state: .notForum))
+
+        let links = await app.pageLinks()
+        XCTAssertEqual(links.count, 40, "Merged duplicates, excluded bad links, capped at 40")
+        guard links.count == 40 else { return }
+        XCTAssertEqual(links[0].text, "Banner Lead", "Higher on screen (top=30) comes before earlier DOM link at top=180")
+        XCTAssertEqual(links[1].text, "Tariff talks resume Thursday", "Duplicate URL merged and upgraded from aria-label to visible text")
+        XCTAssertEqual(links[2].text, "Icon Search", "Rendered aria-label link kept")
+        XCTAssertTrue(links[0].inViewport && links[1].inViewport && links[2].inViewport)
+        XCTAssertFalse(links[3].inViewport)
+        XCTAssertEqual(links[3].text, "Archive 1", "Off-screen links follow in page order")
+        for bad in ["Hidden", "Zero", "Script", "Mail", "Hash", "Button", "Closed"] {
+            XCTAssertFalse(links.contains { $0.text.contains(bad) }, "Excluded \(bad): \(links.map(\.text))")
+        }
+
+        let opened = await bridge.handle(.init(id: "l1", name: "open_link", args: ["words": "tariff talks"]), eyesFree: false)
+        XCTAssertEqual(opened.response["status"], "opened")
+        XCTAssertEqual(opened.response["title"], "Tariff Talks Lead")
+        XCTAssertEqual(opened.response["host"], "127.0.0.1")
+        XCTAssertEqual(app.browser.webView.url?.absoluteString, "http://127.0.0.1:\(server.port)/story?id=42&src=front#lead")
+        let encoded = JSONValue.encodeCompactJSON(opened.response)
+        XCTAssertFalse(encoded.contains("http://") || encoded.contains("id=42") || encoded.contains("#lead"), encoded)
+
+        _ = app.back()
+        await app.browser.waitUntilSettled(timeout: .seconds(10))
+        app.browser.setPageContext(PageContext(url: app.browser.webView.url, state: .notForum))
+        let first = await bridge.handle(.init(id: "l2", name: "open_link", args: ["number": 1]), eyesFree: false)
+        XCTAssertEqual(first.response["status"], "opened")
+        XCTAssertEqual(first.response["title"], "Second Article")
+        XCTAssertEqual(app.browser.webView.url?.path, "/two")
+    }
+
     private static func openForumHome(_ app: AppModel) {
         app.browser.onPageContextChanged = nil
         app.browser.setPageContext(PageContext(
@@ -703,6 +861,20 @@ final class VoiceToolTests: XCTestCase {
         )
         app.usesDirectForumRequests = true
         return app
+    }
+
+    private func attachWebView(_ app: AppModel, port: UInt16) async {
+        app.browser.onPageContextChanged = nil
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let hostVC = UIViewController()
+        hostVC.view.frame = window.bounds
+        app.browser.webView.frame = window.bounds
+        hostVC.view.addSubview(app.browser.webView)
+        window.rootViewController = hostVC
+        window.isHidden = false
+        window.layoutIfNeeded()
+        addTeardownBlock { app.browser.webView.removeFromSuperview(); window.isHidden = true }
+        _ = try? await app.browser.agentLoad(URL(string: "http://127.0.0.1:\(port)/warm")!, wait: true, timeout: 20)
     }
 }
 
@@ -750,8 +922,27 @@ private final class LocalPageServer: @unchecked Sendable {
             let parts = (request.split(separator: "\r\n").first ?? "").split(separator: " ")
             let path = parts.count > 1 ? String(parts[1]) : "/"
             if path.hasPrefix("/slow") { self.held.append(connection); return }
-            let title = path.hasPrefix("/two") ? "Second Article" : "First Article"
-            let body = "<!doctype html><html><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>\(title)</title></head><body style=\"margin:0\"><div style=\"height:3600px;padding:24px\"><h1>\(title)</h1></div></body></html>"
+            let body: String
+            if path.hasPrefix("/links") {
+                let archive = (1...45).map { "<p><a href=\"/item/\($0)\">Archive \($0)</a></p>" }.joined()
+                body = """
+                <!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><title>Links Hub</title></head>
+                <body style="margin:0;position:relative;height:4000px">
+                <a href="/story?id=42&amp;src=front#lead" aria-label="Thumb" style="position:absolute;top:180px;left:20px;width:120px;height:24px;display:block"></a>
+                <a href="/two" style="position:absolute;top:30px;left:20px">Banner Lead</a>
+                <a href="/story?id=42&amp;src=front#lead" style="position:absolute;top:220px;left:20px">Tariff talks resume Thursday</a>
+                <a href="/search" aria-label="Icon Search" style="position:absolute;top:270px;left:20px;width:40px;height:24px;display:block"><span></span></a>
+                <a href="/h1" style="display:none">Hidden Display</a><a href="/h2" hidden>Hidden Attr</a><a href="/h3" style="visibility:hidden">Hidden Vis</a>
+                <a href="/h4" style="opacity:0">Hidden Opacity</a><div style="display:none"><a href="/h5">Hidden Parent</a></div><a href="/h6" aria-hidden="true">Hidden Aria</a>
+                <details><summary>More</summary><a href="/h7">Closed Details</a></details><a href="/z1" style="display:inline-block;width:0;height:0;overflow:hidden">Zero Box</a>
+                <a href="javascript:void(0)">Script Link</a><a href="mailto:ed@example.com">Mail Link</a><a href="#">Hash Link</a>
+                <a href="/buy" role="button">Button Role</a><button>Button Tag</button><a href="/blank" style="display:inline-block;width:20px;height:20px"></a>
+                <div style="position:absolute;top:1500px;left:20px">\(archive)</div></body></html>
+                """
+            } else {
+                let title = path.hasPrefix("/story") ? "Tariff Talks Lead" : (path.hasPrefix("/two") ? "Second Article" : "First Article")
+                body = "<!doctype html><html><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>\(title)</title></head><body style=\"margin:0\"><div style=\"height:3600px;padding:24px\"><h1>\(title)</h1><div id=\"lead\">Lead</div></div></body></html>"
+            }
             let bodyData = Data(body.utf8)
             let header = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: \(bodyData.count)\r\nCache-Control: no-store\r\nConnection: close\r\n\r\n"
             let closeQueue = self.queue

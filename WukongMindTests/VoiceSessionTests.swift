@@ -981,11 +981,17 @@ final class VoiceSessionTests: XCTestCase {
         XCTAssertFalse((ordinaryReplies.last ?? "").isEmpty)
         ordinarySession.stop()
 
-        // 3. Ordinary page navigation and scroll (Task 3): "Open bbc.com." -> open_page, "Scroll down." -> browse_move.
+        // 3. Ordinary page navigation, scroll, and link following (Tasks 3 & 4).
         let fake = FakeVoiceNavigator()
         fake.holdsHandOff = true
         fake.pageContext = PageContext(url: ordinaryURL, state: .notForum)
         fake.explicitPageTitle = "Markets steady as tariff talks resume"
+        fake.links = [
+            PageLink(text: "Top stories", url: URL(string: "https://heraldexample.com/top")!, host: "heraldexample.com"),
+            PageLink(text: "Opinion: why tariffs miss the point", url: URL(string: "https://heraldexample.com/tariffs?src=home#lead")!, host: "heraldexample.com"),
+            PageLink(text: "Apple unveils new iPad lineup", url: URL(string: "https://heraldexample.com/ipad")!, host: "heraldexample.com"),
+            PageLink(text: "Apple shareholders back buyback plan", url: URL(string: "https://ft-example.com/buyback")!, host: "ft-example.com")
+        ]
         var navReplies: [String] = []
         let navSession = VoiceSession(
             configuration: .init(endpoint: endpoint, apiKey: chosenKey, settings: settings),
@@ -1007,6 +1013,18 @@ final class VoiceSessionTests: XCTestCase {
         try await waitUntil(timeout: 20) { navSession.tick(); return navReplies.count > beforeScroll && navSession.state == .listening }
         print("[LIVE-VOICE] ordinary scroll_down calls=\(fake.calls) reply=\(navReplies.last ?? "")")
         XCTAssertTrue(fake.calls.contains("scroll down"), "Expected browse_move down for 'Scroll down.', got \(fake.calls)")
+
+        let beforeThird = navReplies.count
+        navSession.sendText("Open the third link.")
+        try await waitUntil(timeout: 20) { navSession.tick(); return navReplies.count > beforeThird && navSession.state == .listening }
+        print("[LIVE-VOICE] ordinary open_link_number calls=\(fake.calls) reply=\(navReplies.last ?? "")")
+        XCTAssertTrue(fake.calls.contains("followLink Apple unveils new iPad lineup @ heraldexample.com"), "Expected open_link #3, got \(fake.calls)")
+
+        let beforeWords = navReplies.count
+        navSession.sendText("Open the one about tariffs.")
+        try await waitUntil(timeout: 20) { navSession.tick(); return navReplies.count > beforeWords && navSession.state == .listening }
+        print("[LIVE-VOICE] ordinary open_link_words calls=\(fake.calls) reply=\(navReplies.last ?? "")")
+        XCTAssertTrue(fake.calls.contains("followLink Opinion: why tariffs miss the point @ heraldexample.com"), "Expected open_link tariffs, got \(fake.calls)")
         navSession.stop()
     }
 

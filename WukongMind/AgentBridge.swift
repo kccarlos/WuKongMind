@@ -78,6 +78,14 @@ struct AgentScreenshot: Equatable, Sendable {
     var wasCapped: Bool
 }
 
+/// One rendered `http`/`https` link on the page (`open_link`); `url` stays in app code.
+struct PageLink: Equatable, Sendable {
+    var text: String
+    var url: URL
+    var host: String
+    var inViewport: Bool = true
+}
+
 enum AgentBridgeError: LocalizedError, Equatable, Sendable {
     case webViewUnavailable
     case invalidSelector(String)
@@ -146,6 +154,8 @@ protocol AgentPageDriving: Sendable {
     func networkLog(urlFilter: String?, limit: Int, includeBodies: Bool) async throws -> [AgentNetworkEntry]
     /// Reads captured page-world `console.*` lines, newest first.
     func consoleLog() async throws -> [AgentConsoleEntry]
+    /// Rendered `http`/`https` links on the page, viewport first, merged by URL, at most 40.
+    func pageLinks() async throws -> [PageLink]
 }
 
 extension AgentPageDriving {
@@ -177,9 +187,8 @@ extension AgentPageDriving {
         []
     }
 
-    func consoleLog() async throws -> [AgentConsoleEntry] {
-        []
-    }
+    func consoleLog() async throws -> [AgentConsoleEntry] { [] }
+    func pageLinks() async throws -> [PageLink] { [] }
 }
 
 /// How a `navigate` or `reload_page` load ended.
@@ -747,6 +756,37 @@ final class AgentBridge: NSObject, AgentPageDriving {
                 + "\n...[truncated to max_length=\(maxLength), \(total) characters in total]"
         }
         return content
+    }
+
+    // MARK: - pageLinks (open_link)
+
+    nonisolated static let maxPageLinks = 40
+
+    func pageLinks() async throws -> [PageLink] {
+        try Task.checkCancellation()
+        let raw = try await callAsyncJS(
+            script: Self.pageLinksScript, arguments: ["limit": Self.maxPageLinks],
+            world: Self.isolatedWorld, timeout: Self.defaultJSTimeout
+        )
+        guard let items = raw as? [[String: Any]] else { return [] }
+        var seen: Set<String> = [], links: [PageLink] = []
+        for item in items {
+            guard let href = item["href"] as? String, let url = URL(string: href),
+                  ForumBrowserModel.isBrowsableURL(url), let host = url.host?.lowercased(), !host.isEmpty else { continue }
+            let text = Self.cleanLinkText((item["text"] as? String) ?? "")
+            guard !text.isEmpty, seen.insert(url.absoluteString).inserted else { continue }
+            links.append(PageLink(text: text, url: url, host: host, inViewport: (item["inViewport"] as? Bool) ?? false))
+            if links.count >= Self.maxPageLinks { break }
+        }
+        return links
+    }
+
+    nonisolated static func cleanLinkText(_ raw: String) -> String {
+        let collapsed = raw
+            .replacingOccurrences(of: #"https?://([^\s/?#]+)\S*"#, with: "$1", options: .regularExpression)
+            .replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return collapsed.count > 140 ? String(collapsed.prefix(139)) + "…" : collapsed
     }
 
     // MARK: - wait_for
@@ -1475,4 +1515,71 @@ extension AgentBridge {
     }
     return { content: lines.join("\\n") };
     """
+
+    private static let pageLinksScript = #"""
+    const maxLinks = (typeof limit === "number" && limit > 0) ? limit : 40;
+    const collapse = (s) => String(s || "").replace(/\s+/g, " ").trim();
+    const IGNORED = new Set(["SCRIPT", "STYLE", "NOSCRIPT", "TEMPLATE", "HEAD"]);
+    const isRendered = (el, rect) => {
+      if (!(rect.width > 0 && rect.height > 0)) return false;
+      const elStyle = window.getComputedStyle(el);
+      if (elStyle && (elStyle.visibility === "hidden" || elStyle.visibility === "collapse" || elStyle.clip === "rect(0px, 0px, 0px, 0px)")) return false;
+      for (let cur = el; cur && cur.nodeType === 1; cur = cur.parentElement) {
+        if (IGNORED.has(cur.tagName) || cur.hidden || cur.hasAttribute("inert") || cur.getAttribute("aria-hidden") === "true") return false;
+        if (cur.tagName === "DETAILS" && !cur.open && !(cur.querySelector(":scope > summary") || { contains: () => false }).contains(el)) return false;
+        const st = cur === el ? elStyle : window.getComputedStyle(cur);
+        if (!st) continue;
+        if (st.display === "none" || parseFloat(st.opacity || "1") === 0) return false;
+        if (cur !== el && cur !== document.body && cur !== document.documentElement) {
+          const ox = st.overflowX || st.overflow || "", oy = st.overflowY || st.overflow || "";
+          if ((ox === "hidden" || ox === "clip" || oy === "hidden" || oy === "clip")) {
+            const cr = cur.getBoundingClientRect();
+            if (cr.width <= 0 || cr.height <= 0) return false;
+          }
+        }
+      }
+      return true;
+    };
+    const labelFor = (el) => {
+      const primary = collapse(el.innerText);
+      if (primary) return { text: primary, fallback: false };
+      for (const val of [el.getAttribute("aria-label"), el.getAttribute("title")]) {
+        const clean = collapse(val);
+        if (clean) return { text: clean, fallback: true };
+      }
+      const labelledBy = collapse(el.getAttribute("aria-labelledby"));
+      if (labelledBy) {
+        const joined = collapse(labelledBy.split(/\s+/).map((id) => (document.getElementById(id)?.innerText || document.getElementById(id)?.textContent || "")).join(" "));
+        if (joined) return { text: joined, fallback: true };
+      }
+      const alt = collapse(el.querySelector("img[alt]")?.getAttribute("alt"));
+      return alt ? { text: alt, fallback: true } : null;
+    };
+    const vw = window.innerWidth || 0, vh = window.innerHeight || 0, raw = [], anchors = document.querySelectorAll("a[href]");
+    for (let i = 0; i < anchors.length; i++) {
+      const el = anchors[i], rawHref = (el.getAttribute("href") || "").trim();
+      if (el.tagName?.toUpperCase() !== "A" || (el.getAttribute("role") || "").toLowerCase() === "button" || el.closest("button") || !rawHref || rawHref === "#") continue;
+      let resolved;
+      try { resolved = new URL(rawHref, document.baseURI); } catch (_) { continue; }
+      if ((resolved.protocol !== "http:" && resolved.protocol !== "https:") || !resolved.hostname) continue;
+      const rect = el.getBoundingClientRect();
+      if (!isRendered(el, rect)) continue;
+      const label = labelFor(el);
+      if (!label?.text) continue;
+      const inViewport = vw > 0 && vh > 0 && rect.bottom > 0 && rect.top < vh && rect.right > 0 && rect.left < vw;
+      raw.push({ text: label.text.slice(0, 160), fallback: label.fallback, href: resolved.href, inViewport, top: rect.top, left: rect.left, index: i });
+    }
+    raw.sort((a, b) => a.inViewport !== b.inViewport ? (a.inViewport ? -1 : 1)
+      : (a.inViewport && Math.abs(a.top - b.top) > 1 ? a.top - b.top
+      : (a.inViewport && Math.abs(a.left - b.left) > 1 ? a.left - b.left : a.index - b.index)));
+    const byHref = new Map(), merged = [];
+    for (const item of raw) {
+      const existing = byHref.get(item.href);
+      if (existing) { if (existing.fallback && !item.fallback) { existing.text = item.text; existing.fallback = false; } continue; }
+      const entry = { text: item.text, href: item.href, inViewport: item.inViewport, fallback: item.fallback };
+      byHref.set(item.href, entry);
+      merged.push(entry);
+    }
+    return merged.slice(0, maxLinks).map(({ text, href, inViewport }) => ({ text, href, inViewport }));
+    """#
 }
