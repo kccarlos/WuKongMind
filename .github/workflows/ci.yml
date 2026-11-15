@@ -90,11 +90,15 @@ jobs:
           set -o pipefail
           formatter=(cat)
           if command -v xcbeautify >/dev/null; then formatter=(xcbeautify --renderer github-actions); fi
+          # Fast offline UI suites (~3m local); 6-11m multi-launch UI suites,
+          # xctrace perf loops, and live meta.discourse.org suites stay manual.
           xcodebuild test \
             -project "$PROJECT" \
             -scheme "$SCHEME" \
             -destination "$DESTINATION" \
             -only-testing:WukongMindTests \
+            -only-testing:WukongMindUITests/SuggestionRowUITests \
+            -only-testing:WukongMindUITests/ScriptManagerUITests \
             -parallel-testing-enabled NO \
             -retry-tests-on-failure \
             -test-iterations 3 \

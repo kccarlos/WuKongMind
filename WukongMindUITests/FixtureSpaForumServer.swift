@@ -532,8 +532,15 @@ extension DCUITestCase {
             waitOrDump(scriptCard, timeout: 10, in: app),
             "Saved userscript card must appear in the agent conversation."
         )
-        let toolRows = app.buttons.matching(identifier: "agentToolRow")
-        XCTAssertGreaterThanOrEqual(toolRows.count, 1)
+        if usesDrawerLayout(app) {
+            dragDrawer(in: app, to: 0.08)
+        }
+        let stepsSummary = any(app, "agentStepsSummary")
+        if stepsSummary.waitForExistence(timeout: 5), (stepsSummary.value as? String) == "Collapsed" {
+            stepsSummary.tap()
+        }
+        let toolRows = app.descendants(matching: .any).matching(identifier: "agentToolRow")
+        XCTAssertTrue(wait(timeout: 5) { toolRows.count >= 1 })
         let rowLabels = (0..<toolRows.count).map { "[\($0 + 1)] \(toolRows.element(boundBy: $0).label)" }
         XCTAssertTrue(
             rowLabels.contains { $0.localizedCaseInsensitiveContains("script_save") || $0.localizedCaseInsensitiveContains("Saved script") },
@@ -563,9 +570,11 @@ extension DCUITestCase {
         }
 
         // 3. Reload the page: the saved script still applies on a fresh HTTP document load.
+        let loadsBeforeReload = server.totalHTMLLoads
+        let thread101BeforeReload = server.requestCount(forPath: "/threads/101")
         reloadCurrentPage(in: app)
-        XCTAssertTrue(webView.staticTexts["Load #2"].waitForExistence(timeout: 15), "Page did not reload from server.")
-        XCTAssertGreaterThanOrEqual(server.requestCount(forPath: "/threads/101"), 2)
+        XCTAssertTrue(webView.staticTexts["Load #\(loadsBeforeReload + 1)"].waitForExistence(timeout: 15), "Page did not reload from server.")
+        XCTAssertGreaterThanOrEqual(server.requestCount(forPath: "/threads/101"), thread101BeforeReload + 1)
         XCTAssertTrue(
             webView.staticTexts[FixtureSpaForumServer.thread101OP].waitForExistence(timeout: 10),
             "OP post must remain visible after reload."
@@ -587,14 +596,17 @@ extension DCUITestCase {
         // 4. Kill and reopen the app: ScriptStore reloads `.user.js` from disk and injects automatically.
         app.terminate()
 
+        let loadsBeforeReopen = server.totalHTMLLoads
+        let thread101BeforeReopen = server.requestCount(forPath: "/threads/101")
         let reopenedApp = makeConfiguredApp(resetBox: false)
         let reopenedWebView = reopenedApp.webViews.firstMatch
         XCTAssertTrue(reopenedWebView.waitForExistence(timeout: 20), "Reopened app web view did not appear.")
+        let reopenStamp = "Load #\(loadsBeforeReopen + 1)"
         XCTAssertTrue(
-            reopenedWebView.staticTexts["Load #3"].waitForExistence(timeout: 15),
+            reopenedWebView.staticTexts[reopenStamp].waitForExistence(timeout: 15),
             "Reopened app did not load fixture thread #101."
         )
-        XCTAssertGreaterThanOrEqual(server.requestCount(forPath: "/threads/101"), 3)
+        XCTAssertGreaterThanOrEqual(server.requestCount(forPath: "/threads/101"), thread101BeforeReopen + 1)
         XCTAssertTrue(
             reopenedWebView.staticTexts[FixtureSpaForumServer.thread101OP].waitForExistence(timeout: 10),
             "OP post must remain visible after killing and reopening the app."
@@ -634,8 +646,8 @@ extension DCUITestCase {
             "SPA pushState route did not render thread #102."
         )
         XCTAssertTrue(
-            reopenedWebView.staticTexts["Load #3"].exists,
-            "SPA navigation should keep Load #3 without reloading the document."
+            reopenedWebView.staticTexts[reopenStamp].exists,
+            "SPA navigation should keep \(reopenStamp) without reloading the document."
         )
         XCTAssertEqual(
             server.requestCount(forPath: "/threads/102"),
@@ -695,9 +707,10 @@ extension DCUITestCase {
         tapNavigationBack(in: reopenedApp)
         closeSettings(in: reopenedApp)
 
+        let loadsBeforeDisableReload = server.totalHTMLLoads
         reloadCurrentPage(in: reopenedApp)
         XCTAssertTrue(
-            reopenedWebView.staticTexts["Load #4"].waitForExistence(timeout: 15),
+            reopenedWebView.staticTexts["Load #\(loadsBeforeDisableReload + 1)"].waitForExistence(timeout: 15),
             "Page did not reload after disabling the script."
         )
         XCTAssertTrue(

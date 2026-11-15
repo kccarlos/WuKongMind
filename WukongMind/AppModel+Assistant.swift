@@ -680,6 +680,7 @@ extension AppModel {
         }
         // In memory only: never sent anywhere unless the user starts work.
         if AssistantDebug.has("-dc-no-provider") {
+            sampleSettings.setModel(ModelSelection(provider: .anthropic, model: sampleModel), for: .browserAgent)
             for provider in AIProvider.allCases where provider.requiresAPIKey {
                 var configuration = sampleSettings.configuration(for: provider)
                 configuration.apiKey = ""
@@ -700,6 +701,13 @@ extension AppModel {
                 .compactMap(FavoriteModel.init(selection:))
         }
         settings = sampleSettings
+        if !AssistantDebug.has("-dc-no-provider"),
+           !AssistantDebug.has("-dc-no-agent-key"),
+           AssistantDebug.value("-dc-browser-agent-demo") == nil,
+           !AssistantDebug.has("-dc-browser-agent-live-key"),
+           AssistantDebug.value("-dc-browser-agent-live-prompt") == nil {
+            browserAgent.configureDebugModelClient(BrowserAgentDemoClient(mode: .forumSample))
+        }
 
         if let mode = AssistantDebug.value("-dc-assistant-mode")?.lowercased() {
             assistantMode = AssistantMode.allCases.first { $0.rawValue.lowercased() == mode } ?? .summary

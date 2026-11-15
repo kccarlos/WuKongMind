@@ -78,9 +78,14 @@ final class WordPressUITests: DCUITestCase {
             ? ([text] + Array(repeating: " more", count: 3000), 0.12)
             : ([text + (long ? String(repeating: "\n\nReaders compare their experiences and discuss the options.", count: 40) : "")], 0.01)
         let app = launchOnPost()
-        let summarize = app.buttons["dockHintAction"].firstMatch
+        showAssistant(in: app)
+        let summarize = app.buttons["suggestion-summarizeThread"].firstMatch
         XCTAssertTrue(waitOrDump(summarize, timeout: 30, in: app))
+        XCTAssertTrue(waitForHittable(summarize))
         summarize.tap()
+        if !streaming {
+            XCTAssertTrue(any(app, "capabilityThreadSummaryCard").waitForExistence(timeout: 60))
+        }
         XCTAssertTrue(app.buttons["citation-1"].firstMatch.waitForExistence(timeout: 60))
         return app
     }
@@ -97,7 +102,10 @@ final class WordPressUITests: DCUITestCase {
         }
         func visibleCitation(_ number: Int) -> XCUIElement {
             let chip = app.buttons["citation-\(number)"].firstMatch
-            for _ in 0..<6 {
+            for _ in 0..<12 where chip.exists && chip.frame.maxY > any(app, "askBox").frame.minY + 300 {
+                any(app, "agentScroll").swipeUp(velocity: .fast)
+            }
+            for _ in 0..<12 {
                 let top = any(app, "drawerHeader").frame.maxY
                 let bottom = any(app, "askBox").frame.minY
                 if chip.frame.minY >= top && chip.frame.maxY <= bottom { break }
@@ -146,8 +154,10 @@ final class WordPressUITests: DCUITestCase {
         """
         server.streamedSummary = (["Readers agree [#2 #3]."], 0.01)
         let app = launchOnPost()
-        let summarize = app.buttons["dockHintAction"].firstMatch
+        showAssistant(in: app)
+        let summarize = app.buttons["suggestion-summarizeThread"].firstMatch
         XCTAssertTrue(waitOrDump(summarize, timeout: 30, in: app))
+        XCTAssertTrue(waitForHittable(summarize))
         summarize.tap()
         let first = app.buttons["citation-2"].firstMatch
         let last = app.buttons["citation-3"].firstMatch
@@ -166,15 +176,17 @@ final class WordPressUITests: DCUITestCase {
 
     func testAWordPressPostIsRecognizedAndSummarizedThroughTheInPageLoader() throws {
         let app = launchOnPost()
+        showAssistant(in: app)
 
-        // Recognized: the post is a topic, so the Dock hint offers Summarize.
-        let summarize = app.buttons["dockHintAction"].firstMatch
+        // Recognized: the post is a topic, so the Agent suggestion row offers Summarize.
+        let summarize = app.buttons["suggestion-summarizeThread"].firstMatch
         XCTAssertTrue(waitOrDump(summarize, timeout: 30, in: app), "A WordPress post offers no summary.")
         XCTAssertTrue(waitForHittable(summarize))
         summarize.tap()
 
         let summary = any(app, "summaryContent")
         XCTAssertTrue(waitOrDump(summary, timeout: 60, in: app), "The summary did not appear.")
+        XCTAssertTrue(any(app, "capabilityThreadSummaryCard").waitForExistence(timeout: 30), "Missing summary card under summarize_topic.")
         XCTAssertTrue(
             wait(timeout: 30) { self.server.modelRequests.contains { $0.contains("Comment number 250") } },
             "The model was not handed the last comment; requests: \(server.modelRequests.map(\.count))"

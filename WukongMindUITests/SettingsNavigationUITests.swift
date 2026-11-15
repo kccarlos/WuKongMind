@@ -225,6 +225,14 @@ final class SettingsNavigationUITests: DCUITestCase {
         XCTAssertTrue(reveal(auditLog, in: app))
         auditLog.tap()
         XCTAssertTrue(app.navigationBars["Audit log"].waitForExistence(timeout: 10))
+        if !any(app, "auditLogEmptyState").waitForExistence(timeout: 2) {
+            let clear = app.buttons["auditClear"]
+            XCTAssertTrue(reveal(clear, in: app))
+            clear.tap()
+            let confirm = app.buttons.matching(NSPredicate(format: "label == 'Clear audit log' AND identifier != 'auditClear'")).firstMatch
+            XCTAssertTrue(confirm.waitForExistence(timeout: 5))
+            confirm.tap()
+        }
         XCTAssertTrue(any(app, "auditLogEmptyState").waitForExistence(timeout: 5))
         tapNavigationBack(in: app)
         XCTAssertTrue(app.navigationBars["Agent"].waitForExistence(timeout: 10))
@@ -273,8 +281,9 @@ final class SettingsNavigationUITests: DCUITestCase {
         anthropic.tap()
         let field = app.secureTextFields["apiKeyField"]
         XCTAssertTrue(field.waitForExistence(timeout: 5))
-        XCTAssertTrue(any(app, "apiKeyMaskedBullets").exists)
-        field.tap()
+        let bullets = any(app, "apiKeyMaskedBullets")
+        XCTAssertTrue(waitForHittable(bullets, timeout: 5))
+        bullets.tap()
         XCTAssertTrue(wait(timeout: 5) { field.value(forKey: "hasKeyboardFocus") as? Bool == true }, "Tapping a saved key's field should focus it.")
         field.typeText("NEWKEY")
         XCTAssertEqual(field.value as? String, "••••••", "Typing into a saved key's field should replace the key.")

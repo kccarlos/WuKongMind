@@ -83,9 +83,8 @@ final class PhysicalDeviceSmokeTests: DCUITestCase {
         XCTAssertTrue(app.staticTexts["4x points"].exists)
         XCTAssertTrue(app.descendants(matching: .any)["summaryContent"].exists)
 
-        // Export lives in the More menu; its options open a sheet of toggles.
-        // (Menu items lose their identifiers; match the labels.)
-        app.buttons["assistantMoreMenu"].tap()
+        // Summary actions moved to the summary card's More menu (design-unified.md §1).
+        app.buttons["summaryMoreMenu"].tap()
         XCTAssertTrue(app.buttons["Export .txt"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.buttons["Share"].exists)
         XCTAssertTrue(app.buttons["Copy"].exists)
@@ -96,8 +95,8 @@ final class PhysicalDeviceSmokeTests: DCUITestCase {
         XCTAssertTrue(app.switches["excludeChatHistory"].exists)
         app.buttons["Done"].tap()
 
-        // The pulled post opens full screen from the same menu.
-        app.buttons["assistantMoreMenu"].tap()
+        // The pulled post opens full screen from the summary card's More menu.
+        app.buttons["summaryMoreMenu"].tap()
         XCTAssertTrue(app.buttons["Post & Responses"].waitForExistence(timeout: 10))
         app.buttons["Post & Responses"].tap()
         XCTAssertTrue(app.navigationBars["Post & responses"].waitForExistence(timeout: 10))
@@ -107,11 +106,11 @@ final class PhysicalDeviceSmokeTests: DCUITestCase {
         postDisclosure.tap()
         XCTAssertTrue(app.descendants(matching: .any)["pulledPostContent"].exists)
         app.buttons["Done"].tap()
+        XCTAssertTrue(waitForGone(app.navigationBars["Post & responses"], timeout: 10))
 
         // The one prompt field stays pinned and visible.
-        let prompt = any(app, "agentPromptInput")
-        XCTAssertTrue(prompt.waitForExistence(timeout: 10))
-        XCTAssertTrue(prompt.isHittable, "The prompt field must stay pinned and visible.")
+        let prompt = app.textFields["agentPromptInput"]
+        XCTAssertTrue(waitForHittable(prompt, timeout: 10), "The prompt field must stay pinned and visible.")
 
         // Manage is the drawer menu's History for now; Settings is in the
         // forum menu (SettingsNavigationUITests).
@@ -127,40 +126,38 @@ final class PhysicalDeviceSmokeTests: DCUITestCase {
 
     func testAgentModeAndWatchedTopics() throws {
         try skipUnlessPhone("The old iPad shell is gone; IPadLayoutUITests covers the split and drawer layouts.")
-        let app = launch(["-ui-test-sample-session"])
+        let app = launch(["-ui-test-sample-session", "-dc-open", Self.forumLatest])
         let aiButton = app.buttons["aiButton"]
         XCTAssertTrue(waitForBarItem(aiButton, timeout: 20), "The bar's AI button is missing.")
         tapBarItem(aiButton)
-        // The one Agent conversation: prompt field, model menu, More menu.
+        // The one Agent conversation: prompt field, This page Following switch, and More menu.
         XCTAssertTrue(any(app, "agentPromptInput").waitForExistence(timeout: 10), "The drawer did not open.")
-        XCTAssertTrue(app.buttons["agentModelMenu"].exists)
-        let watchLabel = "Watch Topic"
-        let unwatchLabel = "Unwatch Topic"
-
-        // Watch the current topic from the More menu (grant notifications if asked).
-        app.buttons["assistantMoreMenu"].tap()
-        // Menu items may lose their identifiers; match the labels too.
-        let watchButton = app.buttons.matching(NSPredicate(
-            format: "identifier == 'toggleWatchTopic' OR label IN %@", [watchLabel, unwatchLabel]
-        )).firstMatch
-        XCTAssertTrue(watchButton.waitForExistence(timeout: 10))
-        if watchButton.label == unwatchLabel {
-            // Left watched by an interrupted earlier run: start from unwatched.
-            watchButton.tap()
-            app.buttons["assistantMoreMenu"].tap()
-            XCTAssertTrue(watchButton.waitForExistence(timeout: 10))
+        let seal = app.buttons["pageCapabilitiesSeal"].firstMatch
+        XCTAssertTrue(seal.waitForExistence(timeout: 10), "This page seal is missing.")
+        seal.tap()
+        let popover = any(app, "pageScriptsPopover")
+        XCTAssertTrue(popover.waitForExistence(timeout: 8), "This page popover did not open.")
+        let followToggle = app.switches["pageTopicFollowing"].firstMatch
+        XCTAssertTrue(followToggle.waitForExistence(timeout: 5), "This page has no Following switch.")
+        if (followToggle.value as? String) == "1" {
+            followToggle.tap()
+            XCTAssertTrue(wait(timeout: 5) { (followToggle.value as? String) == "0" })
         }
-        XCTAssertEqual(watchButton.label, watchLabel)
-        watchButton.tap()
+        followToggle.tap()
         let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
         let allow = springboard.buttons["Allow"]
         if allow.waitForExistence(timeout: 5) {
             allow.tap()
         }
+        XCTAssertTrue(wait(timeout: 5) { (followToggle.value as? String) == "1" })
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.01)).tap()
+        if !wait(timeout: 4, until: { !popover.exists }) { seal.tap() }
 
         app.buttons["assistantMoreMenu"].tap()
-        XCTAssertTrue(watchButton.waitForExistence(timeout: 10))
-        XCTAssertEqual(watchButton.label, unwatchLabel)
+        let modelSubmenu = app.buttons.matching(NSPredicate(
+            format: "identifier == 'agentModelMenu' OR label BEGINSWITH 'Model'"
+        )).firstMatch
+        XCTAssertTrue(modelSubmenu.waitForExistence(timeout: 5), "The Agent Model submenu is missing.")
         // Manage is the drawer menu's History for now.
         app.buttons.matching(NSPredicate(
             format: "identifier == 'openHistoryMenu' OR (label == 'History' AND identifier != 'agentHistoryMenu')"
@@ -184,13 +181,14 @@ final class PhysicalDeviceSmokeTests: DCUITestCase {
         XCTAssertTrue(waitForGone(watchedRow, timeout: 5))
         for _ in 0..<8 where !app.buttons["backToTopic"].isHittable { app.swipeDown() }
         app.buttons["backToTopic"].tap()
+        XCTAssertTrue(waitForGone(app.collectionViews["historyView"], timeout: 10))
 
         // Settings: the agent budget is under Agent, follow options under Sites › Following.
         openSettings(in: app)
         XCTAssertTrue(app.staticTexts["Models"].waitForExistence(timeout: 10))
         app.buttons["settingsRow-agent"].tap()
         XCTAssertTrue(app.navigationBars["Agent"].waitForExistence(timeout: 10))
-        XCTAssertTrue(reveal(any(app, "agentMaxTopicReads"), in: app))
+        XCTAssertTrue(reveal(any(app, "browserAgentMaxSteps"), in: app))
         XCTAssertFalse(any(app, "agentMaxSteps").exists, "Search steps is gone")
         tapNavigationBack(in: app)
 
@@ -418,6 +416,7 @@ final class PhysicalDeviceSmokeTests: DCUITestCase {
             return
         }
 
+        let finalStatus = statusLine.label
         RunLoop.current.run(until: Date().addingTimeInterval(1.5))
         attachScreenshot(named: "m1-after-medium")
 
@@ -425,23 +424,25 @@ final class PhysicalDeviceSmokeTests: DCUITestCase {
             webView.staticTexts["Sponsored Sidebar"].exists,
             "The sidebar should be hidden after the browser agent runs."
         )
-        let toolRows = app.buttons.matching(identifier: "agentToolRow")
-        XCTAssertGreaterThanOrEqual(toolRows.count, 1, "Every tool call must appear in the conversation.")
         XCTAssertTrue(any(app, "agentAssistantReply").exists, "The assistant reply must appear after tool calls finish.")
-
-        let rowLabels = (0..<toolRows.count).map { "[\($0 + 1)] \(toolRows.element(boundBy: $0).label)" }
-        attachText(
-            (["Status: \(statusLine.label)"] + rowLabels).joined(separator: "\n"),
-            named: "m1-tool-calls"
-        )
 
         if usesDrawerLayout(app) {
             dragDrawer(in: app, to: 0.08)
-            let scroll = app.scrollViews["agentScroll"].firstMatch
-            if scroll.exists { scroll.swipeDown() }
-            RunLoop.current.run(until: Date().addingTimeInterval(1.0))
-            attachScreenshot(named: "m1-after-tools")
         }
+        let stepsSummary = any(app, "agentStepsSummary")
+        if stepsSummary.waitForExistence(timeout: 5), (stepsSummary.value as? String) == "Collapsed" {
+            stepsSummary.tap()
+        }
+        let toolRows = app.descendants(matching: .any).matching(identifier: "agentToolRow")
+        XCTAssertTrue(wait(timeout: 5) { toolRows.count >= 1 }, "Every tool call must appear in the conversation.")
+
+        let rowLabels = (0..<toolRows.count).map { "[\($0 + 1)] \(toolRows.element(boundBy: $0).label)" }
+        attachText(
+            (["Status: \(finalStatus)"] + rowLabels).joined(separator: "\n"),
+            named: "m1-tool-calls"
+        )
+        RunLoop.current.run(until: Date().addingTimeInterval(1.0))
+        attachScreenshot(named: "m1-after-tools")
         app.terminate()
     }
 
@@ -535,14 +536,13 @@ final class PhysicalDeviceSmokeTests: DCUITestCase {
         XCTAssertTrue(history.waitForExistence(timeout: 5), "Long-pressing the title shows no history menu.")
         dismissMenu(in: app)
 
-        // Home over the page: the title becomes the search and address
-        // field; the forum menu's Back returns to the page.
+        // Home over the page: Home renders its own search/address bar while
+        // keeping the bottom switcher + AI button for the open page; Back returns.
         openForumsHomeFromSwitcher(in: app)
         XCTAssertTrue(any(app, "home").waitForExistence(timeout: 10))
         XCTAssertTrue(any(app, "homeSettings").exists)
-        XCTAssertTrue(waitForBarItem(title))
-        XCTAssertTrue(title.label.hasPrefix("Search or enter"), "The title is “\(title.label)”.")
-        XCTAssertFalse(app.buttons["aiButton"].exists, "Home has no AI button.")
+        XCTAssertTrue(any(app, "homeAddress").waitForExistence(timeout: 5))
+        XCTAssertTrue(any(app, "aiButton").exists, "Home over an open page keeps the AI button.")
         openForumMenu(in: app)
         let back = app.buttons["Back"].firstMatch
         XCTAssertTrue(back.waitForExistence(timeout: 5))
@@ -635,7 +635,8 @@ final class PhysicalDeviceSmokeTests: DCUITestCase {
         )
         // Manage is the drawer menu's History; Settings is in the forum menu.
         XCTAssertTrue(app.buttons["assistantMoreMenu"].exists)
-        XCTAssertTrue(app.buttons["modelPill"].exists)
+        XCTAssertTrue(any(app, "pageCapabilitiesSeal").exists)
+        XCTAssertTrue(app.buttons["agentNewConversationHeader"].exists)
         closeDrawer(in: app)
         XCTAssertTrue(app.webViews.firstMatch.waitForExistence(timeout: 10))
         XCTAssertTrue(waitForBarItem(button, timeout: 5))

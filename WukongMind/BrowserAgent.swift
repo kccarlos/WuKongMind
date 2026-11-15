@@ -1678,6 +1678,7 @@ actor BrowserAgentDemoClient: AgentModelClient {
         case recorded
         case savedScript = "saved-script"
         case spaOpOnly = "spa-op-only"
+        case forumSample = "forum-sample"
         case running
         case stepLimit = "step-limit"
         case error
@@ -1970,6 +1971,39 @@ actor BrowserAgentDemoClient: AgentModelClient {
                     usage: AgentTokenUsage(inputTokens: 940, outputTokens: 46)
                 )
             }
+
+        case .forumSample:
+            let usage = AgentTokenUsage(inputTokens: 120, outputTokens: 12)
+            if case .toolResults(let results) = messages.last {
+                if let err = results.first(where: \.isError) {
+                    return AgentModelTurnResponse(text: err.content, stopReason: "end_turn", usage: usage)
+                }
+                let text = results.first?.toolName == "watch_topic" ? "Following." : "Done."
+                return AgentModelTurnResponse(text: text, stopReason: "end_turn", usage: usage)
+            }
+            let userText = messages.reversed().compactMap { turn -> String? in
+                if case .user(let text) = turn { return text }
+                return nil
+            }.first ?? ""
+            let url = userText.components(separatedBy: .newlines)
+                .first { $0.hasPrefix("- URL: ") }
+                .map { String($0.dropFirst("- URL: ".count)).trimmingCharacters(in: .whitespaces) } ?? ""
+            let prompt = userText.components(separatedBy: "The user's message:\n").last?
+                .trimmingCharacters(in: .whitespacesAndNewlines) ?? userText
+            let toolName: String? = if prompt.hasPrefix("Summarize") {
+                "summarize_topic"
+            } else if prompt.localizedCaseInsensitiveContains("Read it to me") {
+                "read_aloud"
+            } else if prompt.localizedCaseInsensitiveContains("Notify me") {
+                "watch_topic"
+            } else {
+                nil
+            }
+            if let toolName, !url.isEmpty {
+                let call = AgentModelToolCall(id: "call_sample_\(turn)", name: toolName, arguments: ["url": .string(url)])
+                return AgentModelTurnResponse(text: "", toolCalls: [call], stopReason: "tool_use", usage: usage)
+            }
+            return AgentModelTurnResponse(text: "Searched the forum.", stopReason: "end_turn", usage: usage)
         }
     }
 }
