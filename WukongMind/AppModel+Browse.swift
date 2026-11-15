@@ -687,5 +687,117 @@ extension AppModel {
             }
         }
     }
+
+    func seedM4ImportPreviewIfNeeded() {
+        guard let mode = AssistantDebug.value("-dc-m4-import-preview") else { return }
+        settings.hasCompletedOnboarding = true
+        settings.assistantModel = ModelSelection(provider: .anthropic, model: "Claude Haiku 5.5")
+        needsProviderSetup = nil
+        browser.hideForumsHome()
+        _ = browser.webView.loadHTMLString(
+            """
+            <!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1">
+            <style>body{font-family:-apple-system,system-ui,sans-serif;margin:24px 16px;background:#fff;color:#1e1e1e}
+            @media(prefers-color-scheme:dark){body{background:#16171a;color:#e6e6e8}}
+            h1{font-size:22px;line-height:1.25}</style></head>
+            <body><h1>Which home server for a quiet closet? Fanless builds compared</h1></body></html>
+            """,
+            baseURL: URL(string: "https://talk.example.org/t/fanless-home-server/42")
+        )
+
+        for existing in scriptStore.scripts {
+            _ = scriptStore.deleteIfPresent(id: existing.id)
+        }
+
+        let rawV1 = """
+        // ==UserScript==
+        // @name        Tidy Threads
+        // @namespace   https://greasyfork.example.org/users/mira
+        // @version     2.4.1
+        // @author      mira
+        // @match       *://*/*
+        // @match       https://talk.example.org/t/*
+        // @include     /forum/
+        // @run-at      context-menu
+        // @grant       GM_getValue
+        // @grant       GM_setValue
+        // @grant       GM_xmlhttpRequest
+        // @grant       GM_ai
+        // @grant       GM_notification
+        // @grant       GM_openInTab
+        // @connect     api.example.org
+        // @connect     cdn.example.net
+        // @require     https://cdn.example.net/libs/jquery-3.7.1.min.js
+        // ==/UserScript==
+        document.querySelectorAll('.noise').forEach(el => el.remove());
+        """
+
+        guard let parsedV1 = try? ScriptImporter.parseExternalUserScript(rawV1) else { return }
+        let libMeta = ScriptLoadedLibrary(
+            meta: ScriptRequiredLibrary(
+                url: "https://cdn.example.net/libs/jquery-3.7.1.min.js",
+                sha256: ScriptStore.sha256Hex(Data("/* jquery */".utf8)),
+                sizeBytes: 89_088
+            ),
+            code: "/* jquery */"
+        )
+        let installURL = "https://greasyfork.example.org/scripts/4821/tidy-threads.user.js"
+
+        switch mode {
+        case "add":
+            let review = ScriptImportReview(
+                duplicateNameHost: "scripts.example.com",
+                candidate: parsedV1.script,
+                rawSource: rawV1,
+                installURL: installURL,
+                finalHost: "greasyfork.example.org",
+                upstreamHash: ScriptStore.sha256Hex(Data(rawV1.utf8)),
+                author: parsedV1.author,
+                libraries: [libMeta],
+                unsupportedItems: parsedV1.unsupported
+            )
+            Task { @MainActor [weak self] in
+                try? await Task.sleep(for: .milliseconds(350))
+                self?.scriptImporter.presentDebugPhase(.ready(review))
+            }
+
+        case "failed":
+            let failure = ScriptImportFailure(
+                linkURL: installURL,
+                reason: "Couldn’t fetch the file: the server answered 404 Not Found."
+            )
+            Task { @MainActor [weak self] in
+                try? await Task.sleep(for: .milliseconds(350))
+                self?.scriptImporter.presentDebugPhase(.failed(failure))
+            }
+
+        case "settings", "detail":
+            var specificV1 = parsedV1.script
+            if mode == "settings" {
+                specificV1.matchRules = ["https://talk.example.org/t/*"]
+            }
+            guard let saved = try? scriptStore.saveImportedScript(
+                specificV1,
+                installURL: installURL,
+                sourceHost: "greasyfork.example.org",
+                upstreamHash: ScriptStore.sha256Hex(Data(rawV1.utf8)),
+                libraries: [libMeta],
+                turnOn: true
+            ) else { return }
+            try? scriptStore.valuesStore.setValue(rawJSON: "\"compact\"", forKey: "density", scriptID: saved.id)
+            try? scriptStore.valuesStore.setValue(rawJSON: "true", forKey: "hidePromo", scriptID: saved.id)
+            try? scriptStore.valuesStore.setValue(rawJSON: "2", forKey: "schema", scriptID: saved.id)
+            if mode == "detail" {
+                requestedScriptID = saved.id
+            }
+            Task { @MainActor [weak self] in
+                try? await Task.sleep(for: .milliseconds(350))
+                self?.requestedSettingsPage = .scripts
+            }
+
+        default:
+            break
+        }
+    }
 }
 #endif

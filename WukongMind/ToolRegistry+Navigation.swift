@@ -146,6 +146,9 @@ extension ToolRegistry {
         if outcome.timedOut { fields["timed_out"] = .bool(true) }
         let json = JSONValue.encodeCompactJSON(fields)
 
+        if let intercepted = outcome.interceptedMessage {
+            return ToolExecutionOutput(content: intercepted, summary: intercepted, isError: false)
+        }
         if let failure = outcome.failure {
             return ToolExecutionOutput(
                 content: "Error: The page didn't load: \(failure)\n\n\(json)",

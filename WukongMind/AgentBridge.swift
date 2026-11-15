@@ -202,6 +202,8 @@ struct AgentNavigationOutcome: Equatable, Sendable {
     /// Set when the load failed (no connection, a bad host); the page may
     /// still show the previous document.
     var failure: String?
+    /// Set when the browser intercepted a `.user.js` navigation to open import review.
+    var interceptedMessage: String? = nil
 }
 
 /// The browser that owns the page: awaitable loads and reloads for the

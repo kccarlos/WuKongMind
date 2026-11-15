@@ -224,6 +224,8 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     var onPageContextChanged: ((PageContext) -> Void)?
     /// Called when a main-frame navigation fails (excluding cancellations).
     var onNavigationFailed: ((Error) -> Void)?
+    /// Called when a main-frame `.user.js` navigation is stopped so the import sheet opens.
+    var onUserScriptNavigation: ((URL) -> Void)?
     /// Called when a link with `target="_blank"` or user-gesture `window.open`
     /// requests a new window (`BrowserTabs` creates a front tab and returns its `WKWebView`).
     var onCreatePopupWebView: ((WKWebViewConfiguration, WKNavigationAction) -> WKWebView?)?
@@ -407,6 +409,10 @@ final class ForumBrowserModel: NSObject, ObservableObject {
 
     func load(_ url: URL, silentOnFailure: Bool = false) {
         guard Self.isBrowsableURL(url) else { return }
+        if ScriptImporter.isUserScriptURL(url) {
+            onUserScriptNavigation?(url)
+            return
+        }
         #if DEBUG
         activeSamplePage = nil
         #endif
@@ -589,6 +595,7 @@ final class ForumBrowserModel: NSObject, ObservableObject {
         onPageContextChanged = nil
         onPagePositionChanged = nil
         onNavigationFailed = nil
+        onUserScriptNavigation = nil
         onCreatePopupWebView = nil
         knownForumLookup = nil
         topicFactsLookup = nil
@@ -1059,6 +1066,15 @@ extension ForumBrowserModel: WKNavigationDelegate {
             return
         }
 
+        if navigationAction.targetFrame?.isMainFrame == true,
+           (navigationAction.request.httpMethod ?? "GET").uppercased() == "GET",
+           ScriptImporter.isUserScriptURL(url) {
+            finishAgentNavigation(.intercepted(ScriptImporter.navigateInterceptMessage, url.absoluteString))
+            decisionHandler(.cancel)
+            Task { @MainActor in self.onUserScriptNavigation?(url) }
+            return
+        }
+
         let navigation = LinkPolicy.Navigation(
             url: url,
             targetIsMainFrame: navigationAction.targetFrame?.isMainFrame == true,
@@ -1325,6 +1341,12 @@ extension ForumBrowserModel: WKUIDelegate {
         windowFeatures: WKWindowFeatures
     ) -> WKWebView? {
         guard navigationAction.targetFrame == nil else { return nil }
+        if let url = navigationAction.request.url,
+           (navigationAction.request.httpMethod ?? "GET").uppercased() == "GET",
+           ScriptImporter.isUserScriptURL(url) {
+            Task { @MainActor in self.onUserScriptNavigation?(url) }
+            return nil
+        }
         if let onCreatePopupWebView {
             return onCreatePopupWebView(configuration, navigationAction)
         }
@@ -1362,6 +1384,7 @@ private extension String {
 enum AgentNavigationEnding: Equatable {
     case finished
     case failed(String)
+    case intercepted(String, String)
     case timedOut
     case cancelled
 }
@@ -1404,6 +1427,17 @@ extension ForumBrowserModel: AgentPageNavigating {
                 status: nil,
                 loadMs: 0,
                 failure: "Only http, https and about:blank addresses can be opened."
+            )
+        }
+        if ScriptImporter.isUserScriptURL(url) {
+            finishAgentNavigation(.cancelled)
+            onUserScriptNavigation?(url)
+            return AgentNavigationOutcome(
+                url: url.absoluteString,
+                title: webView.title ?? "",
+                status: nil,
+                loadMs: 0,
+                interceptedMessage: ScriptImporter.navigateInterceptMessage
             )
         }
         let start: () -> Bool = { [weak self] in
@@ -1488,6 +1522,9 @@ extension ForumBrowserModel: AgentPageNavigating {
         switch ending {
         case .finished:
             break
+        case .intercepted(let message, let interceptedURL):
+            outcome.url = interceptedURL
+            outcome.interceptedMessage = message
         case .timedOut:
             outcome.timedOut = true
         case .failed(let message):
