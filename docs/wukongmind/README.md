@@ -8,6 +8,7 @@ WukongMind is a fork of Forumind into a self-use, open-source iOS/iPadOS browser
 - The One loop (1.3.0) design, comparison test and task split are in [design-one-loop.md](design-one-loop.md) (owner-approved and final, 2026-11-13). Deleting the old Research loop and Topic chat waits for the owner's approval of that comparison.
 - The M4 "Self-extension and Tampermonkey compatibility" (1.4.0) design and its task split are in [design-m4.md](design-m4.md) (approved 2026-11-15 by the owner's delegation after the Fable review).
 - The Learn on ask (1.5.0) design and its task split are in [design-learn-on-ask.md](design-learn-on-ask.md) (provisional, approved 2026-11-15 under the owner's delegation after a Fable review; revised after the trial notes).
+- The Safari-like address bar, multiple tabs and the provider page model list are designed in [design-browser-bar-tabs-models.md](design-browser-bar-tabs-models.md) (proposed, WUKO-77).
 - English first: code, docs, commits and pull requests are in English.
 - This repo started as a copy of Forumind `main` (e046b43). The `forumind` remote is fetch-only; never push to it.
 - Milestones run in order per [section 7 of next-phase.md](next-phase.md#7-milestones); each needs the owner's acceptance before the next.
