@@ -141,7 +141,7 @@ final class ScriptWorldsTests: SpikeCase {
 
     func testQ4Errors() async throws {
         let q = "Q4 Errors"
-        func listeners(_ tag: String) -> String { // tag labels the world only; a `//# sourceURL` pragma is NOT used (it makes WebKit sanitize the world's own errors to "Script error.")
+        func listeners(_ tag: String) -> String { // tag labels the world only (a `//# sourceURL` pragma was tried and made no difference)
             """
             (function () {
               function send(k, e) {

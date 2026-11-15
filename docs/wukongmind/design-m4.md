@@ -426,6 +426,7 @@ One spike, eight implementation tasks and one acceptance task, plus the design t
 - **Scope:**
   - `GMBridge.swift` (new): one world and one reply handler per script, the grant check, `GM_addStyle`, `GM_info`, `GM_log`, the four value functions and the `GM.` forms, the values file, and its limits.
   - `ScriptStore.swift`: `ScriptWebController` picks the world per script; error and clean-load reports from script worlds; live apply, removal and candidate verification run in the script's world; the stale-list rebuild at the start of a page load.
+  - `ScriptStore.swift`: per-host injection (the spike's adopted fallback): `syncUserScripts` is rebuilt at the start of each main-frame navigation from `UserScript.matchesDomain`, adding only scripts that can match the page's host.
   - Tests: `GMBridgeTests.swift` (new, real `WKWebView`, local fixtures).
 - **Size:** about 600. If it runs over, move the `GM.` promise forms into task 4 and tell the Assistant. **Depends on:** 1, 2.
 - **Done when:**
@@ -433,6 +434,7 @@ One spike, eight implementation tasks and one acceptance task, plus the design t
   - a value set on one load is read synchronously at document start on the next, under each CSP in the M0 matrix;
   - a script with no grant and made by the Agent runs in its own world (spike question 7 found the shared world unsafe), with the same visible effect as today. The existing `ScriptStoreWebTests` pass, changed only where they name the world;
   - an ungranted or unsupported call throws the specified message.
+  - a page loads only the scripts whose rules can match its host, and a single-page-app route change still matches by path in JavaScript (tests; this is what keeps 30 enabled scripts from costing 34 to 44 MB on every page, spike question 2).
 
 ### 4. M4 4: GM_xmlhttpRequest and menu commands
 - **Read:** GM_xmlhttpRequest, Menu commands.
