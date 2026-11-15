@@ -568,9 +568,14 @@ final class SystemPodcastAudio: NSObject, PodcastAudioPlayback, AVAudioPlayerDel
 @MainActor
 final class SystemPodcastAudioSession: PodcastAudioSessioning {
     weak var player: PodcastPlayer?
+    /// True only while `VoiceAudioEngine` is running and owns `.playAndRecord` /
+    /// `.voiceChat`; once voice stops, `activateForPlayback()` restores
+    /// `.playback` / `.spokenAudio`.
+    private let isVoiceSessionActive: () -> Bool
     private var observers: [NSObjectProtocol] = []
 
-    init() {
+    init(isVoiceSessionActive: @escaping () -> Bool = { VoiceAudioEngine.hasActiveSession }) {
+        self.isVoiceSessionActive = isVoiceSessionActive
         let center = NotificationCenter.default
         observers.append(center.addObserver(forName: AVAudioSession.interruptionNotification, object: nil, queue: .main) { [weak self] note in
             MainActor.assumeIsolated { self?.interruption(note) }
@@ -584,16 +589,8 @@ final class SystemPodcastAudioSession: PodcastAudioSessioning {
         for observer in observers { NotificationCenter.default.removeObserver(observer) }
     }
 
-    /// Live voice owns `.playAndRecord` / `.voiceChat` while running; changing
-    /// the category or deactivating the session under `VoiceAudioEngine`
-    /// triggers a route-change rebuild that cuts off spoken replies.
-    private var isVoiceChatSessionActive: Bool {
-        let session = AVAudioSession.sharedInstance()
-        return session.category == .playAndRecord && session.mode == .voiceChat
-    }
-
     func activateForPlayback() throws {
-        guard !isVoiceChatSessionActive else { return }
+        guard !isVoiceSessionActive() else { return }
         let session = AVAudioSession.sharedInstance()
         if session.category != .playback || session.mode != .spokenAudio {
             try session.setCategory(.playback, mode: .spokenAudio, options: [])
@@ -602,7 +599,7 @@ final class SystemPodcastAudioSession: PodcastAudioSessioning {
     }
 
     func deactivate() {
-        guard !isVoiceChatSessionActive else { return }
+        guard !isVoiceSessionActive() else { return }
         try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
     }
 

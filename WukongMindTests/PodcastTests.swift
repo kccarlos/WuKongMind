@@ -1,3 +1,4 @@
+import AVFoundation
 import SwiftUI
 import XCTest
 @testable import WukongMind
@@ -928,6 +929,39 @@ final class PodcastTests: XCTestCase {
             observesPodcast,
             "TodayPage must observe PodcastController via @ObservedObject so toolbar menu and section react to episode completion"
         )
+    }
+
+    func testSystemPodcastAudioSessionRestoresPlaybackAfterVoiceEnds() throws {
+        let shared = AVAudioSession.sharedInstance()
+        let lease = VoiceAudioEngine.SessionLease()
+        addTeardownBlock {
+            lease.release()
+            try? shared.setActive(false, options: .notifyOthersOnDeactivation)
+        }
+        let podcastSession = SystemPodcastAudioSession()
+
+        // 1. While VoiceAudioEngine holds an active session lease, read-aloud /
+        //    podcast playback leaves .playAndRecord / .voiceChat untouched.
+        try shared.setCategory(.playAndRecord, mode: .voiceChat, options: [.allowBluetoothHFP, .allowBluetoothA2DP, .defaultToSpeaker])
+        lease.acquire()
+        XCTAssertTrue(VoiceAudioEngine.hasActiveSession)
+        try podcastSession.activateForPlayback()
+        XCTAssertEqual(shared.category, .playAndRecord)
+        XCTAssertEqual(shared.mode, .voiceChat)
+        podcastSession.deactivate()
+        XCTAssertEqual(shared.category, .playAndRecord)
+
+        // 2. When VoiceAudioEngine.stop() releases its lease (leaving category/mode
+        //    on the shared AVAudioSession), later playback switches back to
+        //    .playback / .spokenAudio instead of staying in .voiceChat / HFP.
+        lease.release()
+        XCTAssertFalse(VoiceAudioEngine.hasActiveSession)
+        try? shared.setActive(false, options: .notifyOthersOnDeactivation)
+
+        try podcastSession.activateForPlayback()
+        XCTAssertEqual(shared.category, .playback, "Once voice has stopped, activateForPlayback() must switch leftover .playAndRecord back to .playback")
+        XCTAssertEqual(shared.mode, .spokenAudio, "Once voice has stopped, activateForPlayback() must switch leftover .voiceChat back to .spokenAudio")
+        podcastSession.deactivate()
     }
 
     private static func playlist(durations: [TimeInterval?]) -> PodcastPlaylist {

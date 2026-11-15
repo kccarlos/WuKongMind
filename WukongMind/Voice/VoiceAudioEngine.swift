@@ -56,7 +56,45 @@ final class VoiceAudioEngine: ObservableObject, VoiceAudioIO {
     /// microphone away). The session ends.
     var onStopped: ((String) -> Void)?
 
+    /// Tracks whether any `VoiceAudioEngine` instance is actively running and
+    /// owns the shared `.playAndRecord` / `.voiceChat` `AVAudioSession`.
+    nonisolated final class SessionLease {
+        private static let lock = NSLock()
+        private static var activeCount = 0
+
+        static var hasActiveSession: Bool {
+            lock.withLock { activeCount > 0 }
+        }
+
+        private var isHeld = false
+
+        func acquire() {
+            Self.lock.withLock {
+                guard !isHeld else { return }
+                isHeld = true
+                Self.activeCount += 1
+            }
+        }
+
+        func release() {
+            Self.lock.withLock {
+                guard isHeld else { return }
+                isHeld = false
+                Self.activeCount = max(0, Self.activeCount - 1)
+            }
+        }
+
+        deinit {
+            release()
+        }
+    }
+
+    nonisolated static var hasActiveSession: Bool {
+        SessionLease.hasActiveSession
+    }
+
     private(set) var isRunning = false
+    private let sessionLease = SessionLease()
     private var isMuted = false
     private var interrupted = false
 
@@ -104,8 +142,14 @@ final class VoiceAudioEngine: ObservableObject, VoiceAudioIO {
         guard await Self.requestMicrophone() else { throw Failure.microphoneDenied }
         if observers.isEmpty { observe() }
         try configureSession()
-        try startEngine()
+        do {
+            try startEngine()
+        } catch {
+            try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+            throw error
+        }
         isRunning = true
+        sessionLease.acquire()
         interrupted = false
         setNeedsResume(false)
         startSteering()
@@ -125,6 +169,7 @@ final class VoiceAudioEngine: ObservableObject, VoiceAudioIO {
     func stop() {
         guard isRunning else { return }
         isRunning = false
+        sessionLease.release()
         stopSteering()
         engine.inputNode.removeTap(onBus: 0)
         player.stop()

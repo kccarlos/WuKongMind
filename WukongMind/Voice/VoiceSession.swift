@@ -335,7 +335,6 @@ final class VoiceSession: ObservableObject {
         commitTranscripts()
         recordUsage()
         flushUsage()
-        state = final
         connectionSerial += 1
         transport?.close()
         transport = nil
@@ -345,6 +344,7 @@ final class VoiceSession: ObservableObject {
         loopTask?.cancel()
         contextTasks.forEach { $0.cancel() }
         contextTasks = []
+        state = final
     }
 
     func setMuted(_ muted: Bool) {
