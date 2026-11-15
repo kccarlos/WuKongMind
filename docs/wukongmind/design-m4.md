@@ -1,12 +1,12 @@
 # M4 design: self-extension and Tampermonkey compatibility (1.4.0)
 
-**Status: proposal, 2026-11-14.** Nothing here is built. The owner approves it, with the five [open questions](#open-questions), before any implementation task starts.
+**Status: approved, 2026-11-15 (owner's delegation after Fable review).** Nothing here is built. The five [open questions](#open-questions) are decided as recommended.
 
 M4 lets saved scripts do more than change the page. A script gets a small set of Tampermonkey's `GM_*` functions, it can be imported from a link and updated, a broken one is handed to the Agent to repair, scripts sync through iCloud, and `GM_ai` lets a script ask a model a question while it runs. This page is the design and the task split. It changes no app code.
 
 Sources, in order of precedence: [next-phase.md](next-phase.md) (§3 product rules, §5 architecture, §7 "M4", §10 "Not doing for now"), then [requirements.md](requirements.md) (§3, §5, §8, §9), then [design-m3.md](design-m3.md) (verify before saving, auto-disable, confirmations, audit log), [design-m2.md](design-m2.md) (the script manager and the places it reserved for M4) and [m0-csp-and-worlds.md](m0-csp-and-worlds.md) (what each content world can do). The format follows [design-one-loop.md](design-one-loop.md). Where the sources disagree, the conflict is named in [Conflicts](#conflicts-called-out) rather than settled silently.
 
-Code references are as of `039ae29` (main when this was written).
+Code references are as of `563aeef` (main when this was written).
 
 **Visual design.** M4 adds one new screen and several new rows. A separate Claude design task draws them on the design canvas before the tasks that build them start ([README](README.md) "Where design output lives"):
 - **New screen:** the import review sheet, in its "new script" and "update" forms.
@@ -115,13 +115,13 @@ It runs on `AgentHTTPClient` (`AgentNetworkTools.swift:125`), the client behind 
 
 ### Menu commands
 
-`GM_registerMenuCommand` adds a row under the script in This page, for as long as the page is open. Tapping it runs the script's function. Many published scripts keep their settings there, and without it they would fail on their first line. There is no other menu surface, and no keyboard shortcut. See [open question 2](#open-questions).
+`GM_registerMenuCommand` adds a row under the script in This page, for as long as the page is open. Tapping it runs the script's function. Many published scripts keep their settings there, and without it they would fail on their first line. There is no other menu surface, and no keyboard shortcut. Decided (decided, [open question 2](#open-questions)).
 
 ## Import from a link
 
 - **Three ways in**, all ending at the same review sheet:
   1. Settings › Scripts › **Import from link…** (the menu design-m2 reserved): paste a URL.
-  2. Opening a link whose path ends in `.user.js` in the browser. The app stops the navigation and opens the review sheet.
+  2. Opening a link whose path ends in `.user.js` in the browser. The app stops the navigation and opens the review sheet. Only a main-frame navigation counts; a frame or a page's own request for such a file is left alone.
   3. Asking the Agent ("install this script: <link>"). The Agent opens the link with `navigate`, which leads to way 2. The Agent gets "The import review is open; the person decides" and never installs anything itself.
 - **Fetching.** `https` only, through `AgentHTTPClient` with no cookies, at most 2 MB. The text must have a `// ==UserScript==` header and at least one usable match rule. Then its `@require` libraries are fetched.
 - **The review sheet** shows, top to bottom:
@@ -133,9 +133,10 @@ It runs on `AgentHTTPClient` (`AgentNetworkTools.swift:125`), the client behind 
   - the full code, read-only, in the code style of View code;
   - **Ask the Agent to review it**: sends "Review this script before I turn it on" with the code attached as untrusted content. The Agent answers in the conversation; it changes nothing;
   - two buttons: **Add and turn on** (primary) and **Add, keep off**; and Cancel.
-- **What import saves.** A script with `source: .imported`, the install URL, the hash of the imported text, its libraries, and version 1 with origin "Imported". The same script imported again (same install URL, or same `@namespace` and `@name`) opens as an update, not a copy.
+- **What import saves.** A script with `source: .imported`, the install URL, the hash of the imported text, its libraries, and version 1 with origin "Imported". **Only the same install URL counts as the same script.** Importing from that URL again opens as an update, not a copy. A script with the same `@namespace` and `@name` from any other address is a separate script with its own empty stored values and cache: a name is free to copy, and a look-alike must never inherit another script's values, grants or on/off state. The sheet then notes "You already have a script with this name from <host>".
 - **Updates.**
-  - **Checking.** Settings › Scripts has **Check for updates** (a switch, on by default): once a day, when the app comes to the front, the app fetches `@updateURL` (or `@downloadURL`, or the install URL) for each imported script that is on. Script detail has **Check now**. A check sends no cookies and nothing about the person.
+  - **Checking.** Settings › Scripts has **Check for updates** (a switch, on by default): once a day, when the app comes to the front, the app fetches `@updateURL` (or `@downloadURL`, or the install URL; `https` only) for each imported script that is on. Script detail has **Check now**. A check sends no cookies and nothing about the person.
+  - **Where an update may come from.** `@updateURL` and `@downloadURL` are used only when they are `https`. When the update's text comes from another host than the script was installed from (a different `@updateURL` or `@downloadURL` host, or a redirect), the update form puts that first, in the danger colour: "Now comes from <new host>, was <old host>".
   - **What counts as newer:** a higher `@version`, compared part by part; with no version, a different hash.
   - **Applying.** Never automatic. The script shows an "Update available" seal. Tapping it opens the review sheet in its update form, which puts what changed first: new or removed match rules, grants, `@connect` hosts and libraries, then how many lines changed, then the code. **Update** saves it as a new version with origin "Updated", so History can restore the old one.
   - **A script changed here** (edited by the person, or repaired by the Agent) says so before updating: "This replaces your changes. They stay in History."
@@ -157,20 +158,21 @@ It runs on `AgentHTTPClient` (`AgentNetworkTools.swift:125`), the client behind 
 
   A `service` failure reaches the script as a rejected promise. If the script doesn't handle it, This page shows one grey line under the script ("Couldn't reach the model: <reason>"), and the script stays on. A provider outage must never turn a working script off or send the Agent to "fix" it.
 - **The last five errors are kept** per script (today: one), in memory as now.
-- **One request builder.** `ScriptRepair.request(for:)` (new, `ScriptRepair.swift`) builds the message and the attached block for every entry point. The block holds:
+- **One request builder.** `ScriptRepair.request(for:)` (new, `ScriptRepair.swift`) builds the message and the attached block for every entry point. **Everything in the block that a page or a third party wrote is wrapped as untrusted content** (`UntrustedWebContent.wrap`, requirements §8): the script's source, every error message and every stack. An imported script's source is someone else's text, and an error message can carry page text. Today an attached block goes into the user turn unwrapped (`modelPrompt`, `BrowserAgent.swift:1160`), so the builder wraps these parts itself, and only the app's own lines (the labels, the IDs, the on/off state) stay outside the wrapper. The block holds:
   - the script's name, ID, revision, where it came from, whether it is on, and the saved reason if it was turned off;
   - its match rules and grants;
   - the last five errors: kind, message, line, stack, page URL, time and count;
   - the source, up to 20,000 characters (longer: "read it with `script_read`");
   - whether the current page matches the script, and the URL the last error happened on.
 - **Entry points.** **Let the Agent fix it** shows in This page under any script with a `script` or `api` error, on or off. The button in Script detail (`ScriptViews.swift:2195`) starts working: it closes Settings and opens the panel. "This page looks broken" stays as it is.
-- **The loop** is prompt text plus two rules in code. `BrowserAgentPrompt.system` (`BrowserAgent.swift:236`) gains a short "Fixing a script" section, present only in a run started by a repair request:
+- **The loop** is prompt text plus two rules in code. `BrowserAgentPrompt.system` (`BrowserAgent.swift:231`) gains a short "Fixing a script" section, present only in a run started by a repair request:
   1. If the current page doesn't match the script, open the page the error happened on with `navigate`.
   2. Reproduce first: read the page, and run the failing part with `run_js`.
   3. Save the fix with `script_update` and `enabled: true`. Verify before saving checks it on the real page.
-  4. Don't widen match rules, grants or `@connect` to make an error go away. If the fix needs a new grant, say so in the answer.
+  4. Don't widen match rules, grants or `@connect` to make an error go away. The tool refuses it (see below). If the fix needs a new grant, say so in the answer, and the person decides.
   5. Say what was wrong in one or two sentences (product rule 5).
 - **In code:**
+  - **A repair can't widen a script.** In a run started by a repair request, `script_update` refuses a change that adds a match rule, a grant or a `@connect` host to the script being repaired: "Not saved: a repair can't add match rules, grants or hosts. Say what the fix needs and let the user decide." Removing one is allowed. This is the rule that matters when the script's own source tries to steer the Agent.
   - **Success** is a `script_update` that passes verification on a page the script matches. The store then clears the script's errors and its error-load count, and the script is on. The script card reads "Fixed", with **Undo**, which restores the version and the on/off state from before the repair.
   - **A bound.** After three refused `script_update` calls for the same script in one run, the tool answers "Stop: three fixes failed. Leave the script off and tell the user what you found." The script stays as it was.
   - **Unverified is not fixed.** If the fix was saved unverified (the page doesn't match), the script stays off and the answer says where to check it.
@@ -187,13 +189,13 @@ It runs on `AgentHTTPClient` (`AgentNetworkTools.swift:125`), the client behind 
   - **Version history.** A remote change arrives as a new local version with origin "Changed on another device", so each device can roll back on its own. Syncing whole histories would outgrow CloudKit's 1 MB record limit and adds merge rules for little use.
   - **Stored values, the `GM_ai` cache and its counters, update-check times.**
   - **Library bodies.** The record carries each `@require` URL and hash. The receiving device fetches it and checks the hash; a library that no longer matches keeps the script off there, with the reason.
-- **First arrival.** A script new to a device starts with the sender's on/off state (`enabledSeed`), once. After that the switch is local. See [open question 3](#open-questions).
+- **First arrival.** A script new to a device starts with the sender's on/off state (`enabledSeed`), once. After that the switch is local. Decided (decided, [open question 3](#open-questions)).
 - **Conflicts.** `content` is one unit and the newest stamp wins, as for Ask runs. When both devices changed a script, the losing text is not lost: the device that held it keeps it as a version in History ("Replaced by a change from another device"). A delete on one device and an edit on another follow the engine's rule: the newer of the two wins.
 - **Size.** A script over 512 KB stays on its device, and Script detail says so.
 - **The global scripts switch** (`browserScriptsEnabled`, `Models.swift:94`) already syncs with the other settings, because it is not in `deviceLocalKeys` (`SyncRecords.swift:128`). That stays: it is the "stop everything" switch.
 - **Older builds.** The engine keeps a list of records whose server copy it can't read and doesn't touch them (`CloudSyncEngine.swift:157`). A 1.3 build can't decode a `script` record, so it is expected to land there. That is not yet shown; the sync task proves it with a test against the 1.3 decoder.
 - **Applying a remote change** goes through `applyRemote` (`AppModel+CloudSync.swift:26`) into `ScriptStore`, which rebuilds the injected scripts. A script being verified right then is held until verification ends.
-- **CloudKit is off in this build.** `DC_ENABLE_CLOUDKIT` defaults to `NO` until the owner registers the iCloud container ([README](README.md)). The sync task is built and tested against the engine's test transport. A check on two real devices needs the container. See [open question 4](#open-questions).
+- **CloudKit is off in this build.** `DC_ENABLE_CLOUDKIT` defaults to `NO` until the owner registers the iCloud container ([README](README.md)). The sync task is built and tested against the engine's test transport. A check on two real devices needs the container. Decided (decided, [open question 4](#open-questions)).
 
 ## GM_ai
 
@@ -236,7 +238,7 @@ The format is enforced by the prompt and the check, not by a provider's own stru
 ### The model
 
 - **The Scripts row becomes real.** `ModelRole` (`ProviderModels.swift:154`) gains `scripts`. Its selection is optional: unset, it follows the Summaries model, and the row reads "Same as Summaries", as the placeholder does. `selection(for:)` (`AppModel+Models.swift:157`) resolves it.
-- **Why a separate row.** The Summaries model may be a large one, chosen for long threads. `GM_ai` runs on every page load, so a person will want a small, fast model there. See [open question 1](#open-questions).
+- **Why a separate row.** The Summaries model may be a large one, chosen for long threads. `GM_ai` runs on every page load, so a person will want a small, fast model there. Decided (decided, [open question 1](#open-questions)).
 - **Any model works**, because `GM_ai` needs no tool calling. Apple Intelligence is allowed.
 
 ### Batching and caching
@@ -244,6 +246,7 @@ The format is enforced by the prompt and the check, not by a provider's own stru
 - **Batches.** `map` packs the uncached items into as few calls as fit: at most 40 items or 12,000 characters of item text per call. One item's text is cut at 2,000 characters. For Apple Intelligence the character budget comes from the model's context size (`AppleIntelligenceClient.swift:153`: 4,096 tokens on older systems), which gives batches of about 6 to 10 posts.
 - **The cache is per item**, not per page. The key is the script, the instruction, the format, the model and the item's full text. A plain `GM_ai` call is cached by its whole prompt.
   - It is kept on disk, in `Application Support/WukongMind/ScriptAICache/<script-id>.json`: the newest 5,000 answers per script, for 30 days.
+  - **The file holds no page text.** Each entry is the SHA-256 of its key and the answer. The instruction and the item's text are never written.
   - It survives a repair, because the script's revision is not in the key.
   - Script detail has **Clear AI cache**. Deleting the script deletes it.
 - **Why per item.** Checked on a live Discourse thread at phone width (2026-11-15): the page keeps only the posts near the screen in the document (1, then 7, then 11, then 3 `article[data-post-id]` elements over six scrolls), and it rewrites the address as it goes (`…/393915`, `/21`, `/38`, `/49`), which re-runs the script (`sharedMatcherAndSpaHookJS`, `ScriptStore.swift:2862`). So a post is dropped and created again many times, and a mark the script put on it is gone each time. A cache keyed by the page or by the whole prompt would miss on every scroll. Per item, a reload makes no call, new posts make a call for those posts only, a post that comes back is answered from the cache, and an edited post is judged again.
@@ -263,6 +266,7 @@ The format is enforced by the prompt and the check, not by a provider's own stru
 | Model calls per script, per minute | 10 | `limit`; the script may ask again later |
 | Model calls per script, per day | 500 | `limit` until the next day |
 | Model calls for all scripts, per day | 2,000 | `limit` |
+| Tokens for all scripts, per day, in and out together | 2,000,000 | `limit` until the next day. Counted from the provider's usage; where it reports none, estimated as one token per four characters |
 | Calls at once, per page | 2 | The rest wait |
 | Prompt size per call | 24,000 characters | `too_long` |
 | Output per call | 1,024 tokens (`GM_ai`), 4,096 (`map`) | Cut off, then `invalid_output` |
@@ -336,7 +340,7 @@ The fold itself is CSS on `[data-wk-judged="false"]`, plus a stub the script add
 Per-script worlds are the one part of this design that no test has run yet. Task 1 is a spike in the [M0 pattern](m0-csp-and-worlds.md): a throwaway harness under `docs/wukongmind/m4-spike/`, real `WKWebView` runs, results in `docs/wukongmind/m4-script-worlds.md`, no app code. It must answer, with measurements:
 
 1. **Identity.** Does a reply handler registered in one named world receive messages only from that world, and is it invisible from the page world, the `WukongAgent` world and a second script world?
-2. **Cost.** What do 1, 10 and 30 script worlds cost per page load, in time to document end and in memory, when each holds a small wrapper?
+2. **Cost.** What do 1, 10 and 30 script worlds cost per page load, in time to document end and in memory, when each holds a small wrapper? And again when each script's source carries 256 KB of stored values and a 2 MB `@require` body, the largest the design allows?
 3. **CSS.** Does a `CSSStyleSheet` made in one script world and added to `document.adoptedStyleSheets` apply, survive another world adding its own, and come off cleanly?
 4. **Errors.** Do `error` and `unhandledrejection` listeners in a script world see that world's late errors (a timer, an event handler, a rejected promise) and nothing from the page or other worlds?
 5. **Document start.** Is a value written into the `WKUserScript` source readable synchronously at document start under every CSP in the M0 matrix?
@@ -357,14 +361,14 @@ From roadmap §7 "M4", requirements §9, and what this design adds. Live model c
    - Run live twice: with `claude-haiku-5-5` as the Scripts model, and with a Vertex Gemini model. Also kept as a recorded replay fixture, with `GM_ai` answered from recorded responses.
 2. **The model is down.** With the Scripts model's key removed, the same page loads with nothing folded and one grey line in This page. After three such loads the script is still on.
 3. **The core four.** A fixture script uses `GM_addStyle`, `GM_setValue`, `GM_getValue` and `GM_xmlhttpRequest` on a local fixture page under each CSP in the M0 matrix. A value set on one load is read synchronously at document start on the next.
-4. **Requests are fenced.** A request to a host not in `@connect` fails. A redirect that leaves `@connect` fails. A cross-site request carries no cookies. Each request is in the audit log.
+4. **Requests are fenced.** A request to a host not in `@connect` fails. A redirect that leaves `@connect` fails. With `@connect *`, a request to `localhost` or a private address fails, and so does a redirect to one, on any hop. A cross-site request carries no cookies. Each request is in the audit log.
 5. **Powers can't be borrowed.** From the page world, and from another script's world, a script cannot call a handler, read another script's values, or report an error in another script's name (tests against real `WKWebView`).
-6. **Import.** A published `.user.js` (the acceptance task picks two from a public script site, one with `@require`) opens the review sheet from a pasted link and from tapping the link in the browser. Nothing runs before **Add and turn on**. Exported again, its header still has every original line.
-7. **Update.** A fixture server serves version 2 with one more `@connect` host. The script shows "Update available", the sheet puts the new host first, and nothing changes until **Update**. History restores version 1.
+6. **Import.** A published `.user.js` (the acceptance task picks two from Greasy Fork, one with `@require`) opens the review sheet from a pasted link and from tapping the link in the browser. Nothing runs before **Add and turn on**. After **Add and turn on**, each of the two scripts runs and its effect is visible on a matching page (requirements §9: published scripts import and run). Exported again, its header still has every original line.
+7. **Update.** A fixture server serves version 2 with one more `@connect` host. The script shows "Update available", the sheet puts the new host first, and nothing changes until **Update**. History restores version 1. An update served from another host shows the changed source host first, in the danger colour. A script with the same `@namespace` and `@name` imported from another address is added as a separate script and reads none of the first one's stored values.
 8. **Repair.** Break a saved script by hand (a selector that no longer exists, then a thrown error). After three loads it is off. **Let the Agent fix it**, from This page and from Script detail, ends with the script on, its errors cleared and "Fixed" on the card; **Undo** brings back the broken version, off. A script that can't be fixed stops after three tries and stays off. Run live once and kept as a replay fixture.
 9. **A late error is seen.** A script that throws inside a click handler shows the error with its stack in This page.
 10. **Sync.** With two stores on the engine's test transport: a script saved on one appears on the other; turning it off on one leaves it on on the other; an edit on both keeps the newer text and leaves the older one in History; a delete removes it on both; a received change is not uploaded again, and after one edit both stores settle with one new History version each and no further sync passes; an older decoder leaves the record alone (unit tests). On two real devices only if the owner has registered the container.
-11. **Old scripts are untouched.** Every script saved by 1.3 loads, runs in the world it ran in, exports the same text apart from the new `@wukong-revision` line, and the existing script tests pass unchanged.
+11. **Old scripts are untouched.** Every script saved by 1.3 loads, runs in the world it ran in (or, if spike question 7 moved the Agent's scripts, in its own world with the same visible effect), exports the same text apart from the new `@wukong-revision` line, and the existing script tests pass unchanged.
 12. **No regressions.** All unit tests pass.
 
 ## Task split
@@ -381,9 +385,9 @@ One spike, eight implementation tasks and one acceptance task, plus the design t
 
 **Waves.**
 - **A:** tasks 1 and 2, and the design task.
-- **B:** task 3 (after 1 and 2) and task 9 (after 2).
+- **B:** task 3 (after 1 and 2).
 - **C:** tasks 4, 6 and 7 (after 3), and task 5 (after 3 and the design task).
-- **D:** task 8 (after 6 and 7).
+- **D:** task 8 (after 6 and 7) and task 9 (after 2 and 5).
 - **Then task 10.**
 - Shared edits sit in named places:
   - `ScriptStore.swift`: metadata and the file format (task 2), worlds and injection (task 3), error kinds (task 6), sync entry points (task 9);
@@ -394,7 +398,7 @@ One spike, eight implementation tasks and one acceptance task, plus the design t
 ### Design task. M4 artboards
 - **Read:** this page: Visual design, Import from a link, Errors and the repair loop, GM_ai (Privacy, Limits).
 - **Scope:** on the unified design canvas, draw the import review sheet (new and update forms, iPhone and iPad), and the new rows on Script detail, This page, Settings › Scripts and Settings › Models. Re-export `docs/wukongmind/design/` with a PNG of each. Runs on Claude ([README](README.md) "Who reviews what").
-- **Size:** design only. **Depends on:** the owner's approval of this page.
+- **Size:** design only. **Depends on:** nothing (this page is approved).
 - **Done when:** the owner accepts the artboards, and the export is merged.
 
 ### 1. M4 1: script worlds spike
@@ -426,7 +430,7 @@ One spike, eight implementation tasks and one acceptance task, plus the design t
 - **Done when:**
   - acceptance check 5 passes as tests;
   - a value set on one load is read synchronously at document start on the next, under each CSP in the M0 matrix;
-  - a script with no grant and made by the Agent still runs in `WukongAgent`, and the existing `ScriptStoreWebTests` pass unchanged;
+  - a script with no grant and made by the Agent still runs in `WukongAgent`, unless spike question 7 found the shared world unsafe; then it runs in its own world. Either way the existing `ScriptStoreWebTests` pass, changed only where they name the world;
   - an ungranted or unsupported call throws the specified message.
 
 ### 4. M4 4: GM_xmlhttpRequest and menu commands
@@ -437,8 +441,8 @@ One spike, eight implementation tasks and one acceptance task, plus the design t
   - `AuditLog.swift`: the script request line.
   - `ScriptViews.swift`: command rows in This page.
   - Tests: `GMRequestTests.swift` (new, with `URLProtocol` stubs).
-- **Size:** about 450. If the owner answers no to open question 2, drop menu commands (about 100). **Depends on:** 3.
-- **Done when:** acceptance check 4 passes as tests; with Confirm before writes on, only same-site reads run; a tapped command runs the script's function; each request is in the audit log.
+- **Size:** about 450. **Depends on:** 3.
+- **Done when:** acceptance check 4 passes as tests; with `@connect *`, `localhost` and private addresses (loopback, `10/8`, `172.16/12`, `192.168/16`, link-local, and their IPv6 forms) are refused on the first request and on every redirect hop unless listed by name (tests; this check is new code, `AgentHTTPClient` has none today); with Confirm before writes on, only same-site reads run; a tapped command runs the script's function; each request is in the audit log.
 
 ### 5. M4 5: import from a link, and updates
 - **Read:** Import from a link; the review sheet's artboards and PNGs.
@@ -466,7 +470,7 @@ One spike, eight implementation tasks and one acceptance task, plus the design t
   - `ScriptViews.swift`, `SummaryPanel.swift`: the fix button on scripts with errors and in Script detail, the "Fixed" card with Undo, the grey service line.
   - Tests: `ScriptRepairTests.swift` (new), and a recorded repair run in `AgentLoopTests` style.
 - **Size:** about 500. **Depends on:** 3.
-- **Done when:** acceptance checks 8 and 9 pass as tests and a recorded replay; a `service` error never turns a script off (test); the request block holds everything listed, within its size limit.
+- **Done when:** acceptance checks 8 and 9 pass as tests and a recorded replay; a `service` error never turns a script off (test); the request block holds everything listed, within its size limit; the block's source, messages and stacks are inside the untrusted wrapper, and a source holding a "Tool note" line or instructions stays inside it (test); in a repair run `script_update` refuses an added match rule, grant or host and accepts a removed one (test).
 
 ### 7. M4 7: GM_ai
 - **Read:** GM_ai (The API, How a call runs, The model, Batching and caching, Limits, Privacy).
@@ -502,14 +506,14 @@ One spike, eight implementation tasks and one acceptance task, plus the design t
   - `ScriptStore.swift`: the synced text without the device lines, applying a remote text as a new local version, keeping a replaced text in History, the size limit.
   - `SettingsSyncPage.swift` and `docs/SYNC.md`: "Scripts" under "What syncs".
   - Tests: `CloudSyncTests.swift`, `ScriptSyncTests.swift` (new).
-- **Size:** about 500. **Depends on:** 2.
+- **Size:** about 500. **Depends on:** 2 and 5 (the library fetch and storage that a receiving device uses).
 - **Done when:** acceptance check 10's unit tests pass; a test applies a remote change and asserts the next sync pass has nothing to send, for a change that arrives as a new local version and for one that replaces a local edit; a library with a changed hash keeps the script off on the receiving store; a build with CloudKit off behaves as today.
 
 ### 10. M4 acceptance and 1.4.0
 - **Read:** Acceptance checks; [README](README.md) "Versions and releases".
 - **Scope:**
-  - Run the twelve checks on a simulator and the owner's iPhone, with a proof artifact. Checks 1 and 8 run live, check 1 on both `claude-haiku-5-5` and a Vertex Gemini model.
-  - Write `docs/wukongmind/m4-acceptance.md`, and add the README risk statement of requirements §8 if it is still missing.
+  - Run the twelve checks on a simulator (`scripts/remote-test.sh`) and the owner's iPhone, with a proof artifact. The iPhone run goes only through `scripts/device-check.sh`. Checks 1 and 8 run live, check 1 on both `claude-haiku-5-5` and a Vertex Gemini model.
+  - Write `docs/wukongmind/m4-acceptance.md`. It must say that script sync ships switched off and was not tested on two devices. Add the README risk statement of requirements §8 if it is still missing.
   - Bump `marketing_version` to `1.4.0`, regenerate, and update the README table.
   - Fix only small defects.
 - **Size:** about 300. **Depends on:** 1 to 9.
@@ -517,10 +521,10 @@ One spike, eight implementation tasks and one acceptance task, plus the design t
 
 ## Conflicts called out
 
-- **"The GM API subset"** (requirements §5: four functions; roadmap §7: "original plan unchanged") against this page's list. The four are built as named. `GM_deleteValue`, `GM_listValues`, `GM_info`, `GM_log` and the `GM.` forms are added because real scripts call them beside the four and they cost little. Menu commands are a real addition: [open question 2](#open-questions).
+- **"The GM API subset"** (requirements §5: four functions; roadmap §7: "original plan unchanged") against this page's list. The four are built as named. `GM_deleteValue`, `GM_listValues`, `GM_info`, `GM_log` and the `GM.` forms are added because real scripts call them beside the four and they cost little. Menu commands are a real addition (decided, [open question 2](#open-questions)).
 - **`GM_ai(prompt, optional return format)`** (roadmap §7) against `GM_ai.map`. The roadmap's call is built as written. `map` is an addition, made because the roadmap's own acceptance script judges every post on a page, and the brief asks that one page not make 30 calls.
-- **A Scripts model role** against roadmap §10, which defers a "dedicated fast-judgement model role" because "`GM_ai` with a return format is enough". That row is about a new role for the Agent's own judgements. The Scripts row is which model `GM_ai` uses; design-unified draws it and the roadmap's §2 lists it as M4's placeholder. This page makes it a real, optional picker: [open question 1](#open-questions).
-- **"Including scripts in iCloud sync"** (roadmap §7) against the build: CloudKit is off until the owner registers the container ([README](README.md)). The sync is built and unit-tested; the two-device check waits: [open question 4](#open-questions).
+- **A Scripts model role** against roadmap §10, which defers a "dedicated fast-judgement model role" because "`GM_ai` with a return format is enough". That row is about a new role for the Agent's own judgements. The Scripts row is which model `GM_ai` uses; design-unified draws it and the roadmap's §2 lists it as M4's placeholder. This page makes it a real, optional picker (decided, [open question 1](#open-questions)).
+- **"Including scripts in iCloud sync"** (roadmap §7) against the build: CloudKit is off until the owner registers the container ([README](README.md)). The sync is built and unit-tested; the two-device check waits (decided, [open question 4](#open-questions)).
 - **Version history in sync.** [m0-module-map.md](m0-module-map.md) says "saved scripts and their version histories sync". Here only the current text syncs, and each device keeps its own history, because of CloudKit's 1 MB record limit.
 - **"No confirmation prompts"** (requirements §8) against the import review sheet. The sheet is not a prompt about something the Agent does. It is the person installing someone else's code, and the brief asks for review before enabling.
 - **Tampermonkey behaviour that M4 doesn't copy:**
@@ -536,10 +540,10 @@ One spike, eight implementation tasks and one acceptance task, plus the design t
 
 ## Open questions
 
-Five decisions for the owner. Until answered, the recommended answer is the default.
+All five are decided as recommended, on 2026-11-15, by the owner's delegation after the Fable design review, which agreed with each. This list keeps the record.
 
-1. **Should the Scripts row in Settings › Models become a real picker?** Recommended: **yes**, optional, reading "Same as Summaries" until changed. `GM_ai` runs on every page load, so it should be able to use a smaller model than Summaries. The other choice is no picker: `GM_ai` always uses the Summaries model, and the row goes.
-2. **Should M4 include menu commands (`GM_registerMenuCommand`), shown as rows in This page?** Recommended: **yes**. Many published scripts call it on their first line and fail without it; it is about 100 lines. `GM_notification`, `GM_openInTab` and `GM_setClipboard` stay out until a script the owner uses needs one.
-3. **When a script first arrives on another device by sync, is it on or off there?** Recommended: **it takes the sending device's state once, and the switch is per device from then on**; stored values and the `GM_ai` cache don't sync. The other choice is always off on arrival, which is safer for imported scripts and means turning each script on again on every device.
-4. **Does 1.4.0 wait for a two-device iCloud check?** Recommended: **no**. Script sync ships unit-tested behind the existing CloudKit flag, and the two-device check runs whenever the owner registers the iCloud container. If the owner wants sync live in 1.4.0, registering the container becomes a step before task 10.
-5. **Are the `GM_ai` defaults right: no consent screen, a "Uses AI" label, and at most 10 model calls per script per minute, 500 per script per day and 2,000 per day in all?** Recommended: **yes**. Cached answers are free, so the limits count only posts never judged before. In the probe a call for 30 posts cost 3,374 tokens in and 902 out on `claude-haiku-5-5`; 500 such calls a day are about 1.7 million tokens in.
+1. **Should the Scripts row in Settings › Models become a real picker?** Decided (as recommended): **yes**, optional, reading "Same as Summaries" until changed. `GM_ai` runs on every page load, so it should be able to use a smaller model than Summaries. The other choice is no picker: `GM_ai` always uses the Summaries model, and the row goes.
+2. **Should M4 include menu commands (`GM_registerMenuCommand`), shown as rows in This page?** Decided (as recommended): **yes**. Many published scripts call it on their first line and fail without it; it is about 100 lines. `GM_notification`, `GM_openInTab` and `GM_setClipboard` stay out until a script the owner uses needs one.
+3. **When a script first arrives on another device by sync, is it on or off there?** Decided (as recommended): **it takes the sending device's state once, and the switch is per device from then on**; stored values and the `GM_ai` cache don't sync. The other choice is always off on arrival, which is safer for imported scripts and means turning each script on again on every device.
+4. **Does 1.4.0 wait for a two-device iCloud check?** Decided (as recommended): **no**. Script sync ships unit-tested behind the existing CloudKit flag, and the two-device check runs whenever the owner registers the iCloud container. `m4-acceptance.md` says that sync ships switched off and untested on two devices.
+5. **Are the `GM_ai` defaults right: no consent screen, a "Uses AI" label, and at most 10 model calls per script per minute, 500 per script per day, and 2,000 calls and 2,000,000 tokens per day in all?** Decided (as recommended): **yes**. Cached answers are free, so the limits count only posts never judged before. In the probe a call for 30 posts cost 3,374 tokens in and 902 out on `claude-haiku-5-5`; 500 such calls a day are about 1.7 million tokens in.
