@@ -90,6 +90,7 @@ Code references are as of `563aeef` (main when this was written).
   - `GM_setValue` updates the map at once and sends the write to the app.
   - The app marks the script list as stale and rebuilds it at the start of the next page load, not on every write.
   - So a new page load always sees the latest values. Another open tab keeps its own map until its next load.
+  - The spike confirmed this under every CSP in the M0 matrix, up to the full 256 KB, read before any page script runs.
 - **Lifetime.** Values are deleted with the script, and come back with Undo. They are not part of the exported `.user.js` and do not sync.
 
 ### GM_xmlhttpRequest
