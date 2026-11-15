@@ -1,0 +1,11 @@
+# Check 8 on the owner's iPhone 13 (scripts/device-check.sh), built-in fixture page
+# OneLoopLiveAcceptanceUITests.testLiveShortPageChangeIsNotSavedAndLongAnswerIs: passed
+reply (444 characters): This change is temporary and will be lost when you reload or leave the page. If you want dark mode on this site every time you visit, I can save it as a persistent script for news.example.org.
+The page is now in dark mode for this visit. I applied a dark background (#121212) with light text (#e0e0e0) and blue links (#8ab4f8). The header title was nearly invisible at first, so I lightened it too. The screenshot confirms the text is readable.
+model: claude-haiku-5-5
+first turn: Done · 6 steps · 8 s
+second turn: Done · 0 steps · 4 s
+long reply characters: 317
+rows: 2
+In three short paragraphs, explain what this article argues and who it is for. Do not change the page. · Answer · 11 seconds ago · Open
+Make it dark · Answer · 26 seconds ago · Open

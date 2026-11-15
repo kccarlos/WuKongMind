@@ -137,9 +137,12 @@ final class OneLoopLiveAcceptanceUITests: DCUITestCase {
         if !chip.isHittable { _ = reveal(chip, in: app) }
         capture("check1-citations")
         chip.tap()
-        let opened = wait(timeout: 20) { self.address(containing: topic, in: app).exists }
+        // The browser's own title button names the page it shows ("<title>, <host>/t/…/<id>").
+        let title = app.buttons["browserTitle"].firstMatch
+        let opened = wait(timeout: 30) { title.exists && title.label.contains(topic) }
+        sleep(3)
         capture("check1-chip-opened")
-        evidence("check1-chip", "tapped \(chip.label) → \(target)\nbrowser address shows \(topic): \(opened)")
+        evidence("check1-chip", "tapped \(chip.label) → \(target)\nbrowser title: \(title.exists ? title.label : "(none)")\nshows \(topic): \(opened)")
         XCTAssertTrue(opened, "The citation chip did not open \(target).")
 
         // Check 8: the cited answer is saved and opens read-only.
