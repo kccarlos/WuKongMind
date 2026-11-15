@@ -13,6 +13,7 @@ protocol VoiceNavigator: AnyObject {
     var voiceSite: VoiceSite { get }
 
     func find(_ query: String, scope: BrowseSearchScope) async -> BrowseResult
+    func openPage(_ target: String) async -> VoiceOpenResult
     func openTopic(_ target: BrowseTarget, at landing: BrowseLanding, includeContent: Bool) async -> BrowseResult
     func openCard(_ index: Int, includeContent: Bool) async -> BrowseResult
     func goToPost(_ number: Int) async -> BrowseResult
@@ -20,6 +21,7 @@ protocol VoiceNavigator: AnyObject {
     func previous() async -> BrowseResult
     func back() -> BrowseResult
     func forward() -> BrowseResult
+    func scrollPage(_ direction: VoicePageScroll) async -> BrowseResult
     func focus(_ focus: BrowseFocus) async -> BrowseResult
     func read(post: Int?) async -> BrowseResult
     /// The text of every post on screen.
@@ -54,6 +56,20 @@ extension VoiceNavigator {
         }
         return title
     }
+}
+
+/// Where `browse_move` scrolls on an ordinary page (or a forum page without an open topic).
+enum VoicePageScroll: String, Equatable { case top, bottom, down, up }
+
+/// What `open_page` did, turned into a spoken function response.
+enum VoiceOpenResult: Equatable {
+    enum Kind: String, Equatable { case address, site, search }
+    struct Candidate: Equatable { var name: String; var host: String }
+
+    case opened(kind: Kind, title: String?, host: String, siteName: String? = nil, query: String? = nil, loading: Bool = false)
+    case choices(target: String, candidates: [Candidate])
+    case refused(String)
+    case failed(String)
 }
 
 /// How a hand-off run ended.
@@ -176,6 +192,8 @@ struct VoiceBriefing: Equatable {
 final class VoiceToolBridge {
     /// Shown when a forum-only tool is called on an ordinary page or Home.
     nonisolated static let notForumMessage = "This page isn't a forum. Use read_page for what is on it, or hand the request off."
+    /// Shown when `open_page` is called while a voice hand-off is running on the page.
+    nonisolated static let handOffBusyMessage = "The Agent is still working on this page. Say never mind to stop it."
     static let forumOnlyTools: Set<String> = [
         ForumToolName.searchForum, BrowseToolName.open, BrowseToolName.focus,
         BrowseToolName.readPost, ForumToolName.readTopic, "watch_topic"
@@ -425,6 +443,41 @@ final class VoiceToolBridge {
         }
         response["message"] = .string(message(for: result, eyesFree: eyesFree))
         return response
+    }
+
+    /// An `open_page` outcome as the model gets it, with host and title only (never a full URL).
+    static func response(_ result: VoiceOpenResult, eyesFree: Bool) -> [String: JSONValue] {
+        switch result {
+        case .opened(let kind, let title, let host, let siteName, let query, let loading):
+            let trimmed = title?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            let cleanTitle: String? = trimmed.isEmpty ? nil : trimmed
+            let (shown, message): (String, String) = switch kind {
+            case .address:
+                (cleanTitle.map { "Opened “\($0)” at \(host)." } ?? (loading ? "Opening \(host)." : "Opened \(host)."),
+                 "Say in a few words that you opened it, naming the title and host if shown.")
+            case .site:
+                (cleanTitle.map { "Opened “\($0)” at \(host)." } ?? "\(loading ? "Opening" : "Opened") \(siteName ?? host) (\(host)).",
+                 "Say in a few words that you opened the site, naming the title and host.")
+            case .search:
+                (cleanTitle.map { "Searched the web for “\(query ?? "")” (“\($0)” at \(host))." } ?? "Searching the web for “\(query ?? "")” at \(host).",
+                 "It ran a web search, not a site: tell the user so in a few words.")
+            }
+            var response: [String: JSONValue] = ["status": "opened", "kind": .string(kind.rawValue), "host": .string(host), "shown": .string(shown), "message": .string(message)]
+            if let cleanTitle { response["title"] = .string(cleanTitle) }
+            return response
+        case .choices(let target, let candidates):
+            let items = candidates.map { "\($0.name) (\($0.host))" }
+            return [
+                "status": "choices",
+                "shown": .string("Several sites match “\(target)”: \(items.joined(separator: ", "))."),
+                "candidates": .array(items.map(JSONValue.string)),
+                "message": "Several sites matched. Say this short list and ask the user which one to open."
+            ]
+        case .refused(let reason):
+            return response(BrowseResult(status: .unavailable, shown: reason), eyesFree: eyesFree)
+        case .failed(let reason):
+            return response(BrowseResult(status: .failed, shown: reason), eyesFree: eyesFree)
+        }
     }
 
     /// Plan B1 principle 5: every result says what to say next.
