@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Simulator builds and tests on the owner's Mac mini, under a per-simulator lock.
 # Run `scripts/remote-test.sh --help` for the full documentation.
-# shellcheck disable=SC2329 # cleanup/on_signal/release_lock run via trap
+# shellcheck disable=SC2016,SC2029,SC2087,SC2329 # remote script generation; cleanup/on_signal run via trap
 set -uo pipefail
 
 REMOTE_HOST="${REMOTE_TEST_HOST:-kechengs-mac-mini-2}"
@@ -118,12 +118,20 @@ LOCK_HELD=0
 CHILD_PID=""
 TAIL_PID=""
 REMOTE_DD=""
+OUT=""
+LEAK_CHECKED=0 # 0 until the results were searched for secret values
+SECRET_VALUES=()
 
 cleanup() {
   local rc=$?
   trap - EXIT INT TERM
   [[ -n "$CHILD_PID" ]] && kill "$CHILD_PID" 2>/dev/null
   [[ -n "$TAIL_PID" ]] && kill "$TAIL_PID" 2>/dev/null
+  # interrupted before the leak check: never leave unchecked output on disk
+  if (( ${#SECRET_VALUES[@]} && ! LEAK_CHECKED )) && [[ -n "$OUT" ]]; then
+    rm -rf "$OUT/run.log" "$OUT/.staging" "$OUT/log-tail.txt" "$OUT/failing-tests.txt"
+  fi
+  [[ -n "$OUT" ]] && rm -f "$OUT/remote-run.sh"
   release_lock
   exit "$rc"
 }
@@ -207,17 +215,28 @@ EOF
 
 # ---------- logged, time-limited ssh run ----------
 
+leak_check() { # leak_check <dir...>: any secret value in these files or the run log?
+  local d
+  ((${#SECRET_VALUES[@]})) || return 1
+  for d in "$@"; do
+    # patterns come from a process substitution: never in a command line
+    if grep -rqF -f <(printf '%s\n' "${SECRET_VALUES[@]}") "$d" 2>/dev/null; then return 0; fi
+  done
+  return 1
+}
+
 # run_logged <logfile> <limit-secs> <stdin-producer-function> <cmd...>; returns the status, or 124.
 run_logged() {
   local logfile="$1" limit="$2" input="$3" rc
   shift 3
   : >"$logfile"
-  tail -f -n 0 "$logfile" & TAIL_PID=$!
+  # With secrets nothing is streamed: output is shown only after the leak check.
+  if (( ${#SECRET_VALUES[@]} == 0 )); then tail -f -n 0 "$logfile" & TAIL_PID=$!; fi
   "$input" | perl -e 'alarm shift; exec @ARGV or exit 127' "$limit" "$@" >>"$logfile" 2>&1 &
   CHILD_PID=$!
   wait "$CHILD_PID"; rc=$?
   CHILD_PID=""
-  sleep 1; kill "$TAIL_PID" 2>/dev/null; TAIL_PID=""
+  sleep 1; [[ -n "$TAIL_PID" ]] && kill "$TAIL_PID" 2>/dev/null; TAIL_PID=""
   if (( rc == 142 )); then return 124; fi # SIGALRM
   return "$rc"
 }
@@ -404,14 +423,21 @@ run_logged "$OUT/run.log" "$TIMEOUT" emit_stdin \
   ssh "${SSH_OPTS[@]}" "$REMOTE_HOST" 'bash -s'
 rc=$?
 stage "generate+build+run" $((SECONDS - t))
+LEAK=0
+if leak_check "$OUT/run.log"; then
+  LEAK=1; rm -f "$OUT/run.log"
+  log "ERROR: a secret value was found in the log; it was deleted."
+elif (( ${#SECRET_VALUES[@]} )); then
+  tail -n 40 "$OUT/run.log" >&2 # withheld until now
+fi
 # The mini's SSH daemon reports exit status 0 whatever the remote command
 # returned, so the real status travels in the log (REMOTE_XCODEBUILD_RC=<n>).
-if (( rc == 0 )); then
+if (( rc == 0 && ! LEAK )); then
   marker="$(sed -n 's/^REMOTE_XCODEBUILD_RC=\([0-9]*\)$/\1/p' "$OUT/run.log" | tail -n1)"
   if [[ -n "$marker" ]]; then rc="$marker"
   else rc=1; log "ERROR: the remote run ended without reporting a status (connection lost?)"; fi
 fi
-grep -E '^STAGE ' "$OUT/run.log" | sed 's/^STAGE /  remote: /' | tee -a "$OUT/timings.txt" >&2
+[[ -f "$OUT/run.log" ]] && grep -E '^STAGE ' "$OUT/run.log" | sed 's/^STAGE /  remote: /' | tee -a "$OUT/timings.txt" >&2
 rm -f "$REMOTE_SCRIPT"
 
 if (( rc == 124 )); then
@@ -423,35 +449,25 @@ fi
 # 6. release the lock (stops a stray xcodebuild, shuts a simulator we booted), then fetch
 release_lock
 
-LEAK=0
-leak_check() { # leak_check <dir...>: any secret value in these files or the run log?
-  local d
-  ((${#SECRET_VALUES[@]})) || return 1
-  for d in "$@"; do
-    # patterns come from a process substitution: never in a command line
-    if grep -rqF -f <(printf '%s\n' "${SECRET_VALUES[@]}") "$d" 2>/dev/null; then return 0; fi
-  done
-  return 1
-}
 if (( rc != 255 )); then
-  if [[ "$MODE" == "test" ]]; then
+  if [[ "$MODE" == "test" ]] && (( ! LEAK )); then
     STAGING="$OUT/.staging"; mkdir -p "$STAGING"
     rsync -az -e "ssh ${SSH_OPTS[*]}" "$REMOTE_HOST:$RESULT_REL/" "$STAGING/" >"$OUT/fetch.log" 2>&1 \
       || log "could not copy results back; see $OUT/fetch.log"
-    if leak_check "$STAGING" "$OUT/run.log"; then
+    if leak_check "$STAGING"; then
       LEAK=1
       rm -rf "$STAGING" "$OUT/run.log"
       log "ERROR: a secret value was found in the results. Nothing was copied back and run.log was deleted."
     else
       cp -R "$STAGING/." "$OUT/" && rm -rf "$STAGING"
     fi
-  elif leak_check "$OUT/run.log"; then
-    LEAK=1; rm -f "$OUT/run.log"; log "ERROR: a secret value was found in the log; it was deleted."
   fi
   # keep the mini's result folders for a day only
   ssh_mini "find ~/$REMOTE_BASE/$WT_NAME.results -mindepth 1 -maxdepth 1 -type d -mtime +1 -exec rm -rf {} + 2>/dev/null; true" >/dev/null 2>&1
 fi
+LEAK_CHECKED=1
 if (( LEAK )); then
+  rm -f "$OUT/log-tail.txt" "$OUT/failing-tests.txt"
   echo "SECRET LEAK DETECTED: results withheld" >"$OUT/LEAK"
   (( rc == 0 )) && rc=70
   echo "$rc" >"$OUT/exit-status"
