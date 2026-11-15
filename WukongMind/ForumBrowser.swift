@@ -1031,7 +1031,8 @@ extension ForumBrowserModel: WKNavigationDelegate {
             url: url,
             targetIsMainFrame: navigationAction.targetFrame?.isMainFrame == true,
             isLinkActivated: navigationAction.navigationType == .linkActivated,
-            httpMethod: navigationAction.request.httpMethod
+            httpMethod: navigationAction.request.httpMethod,
+            pageHost: webView.url?.host
         )
         switch LinkPolicy.decide(navigation, settings: linkSettings) {
         case .allow:

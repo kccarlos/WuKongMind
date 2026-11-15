@@ -3,9 +3,9 @@ import XCTest
 
 final class LinkPolicyTests: XCTestCase {
     private func nav(
-        _ url: String, main: Bool = true, tapped: Bool = true, method: String? = "GET"
+        _ url: String, main: Bool = true, tapped: Bool = true, method: String? = "GET", page: String? = nil
     ) -> LinkPolicy.Navigation {
-        .init(url: URL(string: url)!, targetIsMainFrame: main, isLinkActivated: tapped, httpMethod: method)
+        .init(url: URL(string: url)!, targetIsMainFrame: main, isLinkActivated: tapped, httpMethod: method, pageHost: page)
     }
 
     func testTappedHTTPSLinkLoadsInPlaceByDefault() {
@@ -57,6 +57,21 @@ final class LinkPolicyTests: XCTestCase {
             LinkPolicy.decide(nav("x-safari-https://x.com/a?b=1", tapped: false), settings: .init()),
             .loadWebURL(URL(string: "https://x.com/a?b=1")!)
         )
+    }
+
+    func testHandoffAndUntappedAppSchemeFromSubframeAreCancelled() {
+        XCTAssertEqual(LinkPolicy.decide(nav("x-safari-https://evil.example", main: false, tapped: false), settings: .init()), .cancel)
+        XCTAssertEqual(LinkPolicy.decide(nav("twitter://x", main: false, tapped: false), settings: .init()), .cancel)
+    }
+
+    func testPageHostOverrideAppliesToHTTPSAndAppSchemes() {
+        let url = URL(string: "twitter://timeline")!
+        let globalOnSiteOff = LinkSettings(openInApps: true, siteOverrides: ["x.com": false])
+        XCTAssertEqual(LinkPolicy.decide(nav("twitter://timeline", page: "x.com"), settings: globalOnSiteOff), .promptOpenApp(url))
+        XCTAssertEqual(LinkPolicy.decide(nav("https://x.com/a", page: "x.com"), settings: globalOnSiteOff), .reloadInPlace)
+        let globalOffSiteOn = LinkSettings(openInApps: false, siteOverrides: ["x.com": true])
+        XCTAssertEqual(LinkPolicy.decide(nav("twitter://timeline", page: "www.x.com"), settings: globalOffSiteOn), .openExternally(url))
+        XCTAssertEqual(LinkPolicy.decide(nav("https://t.co/a", page: "x.com"), settings: globalOffSiteOn), .allow)
     }
 
     func testUserAgentLooksLikeSafari() {

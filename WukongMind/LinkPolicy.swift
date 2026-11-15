@@ -62,6 +62,9 @@ enum LinkPolicy {
         var targetIsMainFrame: Bool
         var isLinkActivated: Bool
         var httpMethod: String?
+        /// The page the navigation starts from: the one host both the
+        /// setting and the menu's "on this site" switch speak of.
+        var pageHost: String?
     }
 
     /// Schemes the system always handles from a tap, as before.
@@ -74,16 +77,23 @@ enum LinkPolicy {
         if scheme == "http" || scheme == "https" {
             let isGet = (nav.httpMethod ?? "GET").uppercased() == "GET"
             guard nav.targetIsMainFrame, nav.isLinkActivated, isGet else { return .allow }
-            return settings.allowsApps(forHost: nav.url.host) ? .allow : .reloadInPlace
+            return settings.allowsApps(forHost: nav.pageHost ?? nav.url.host) ? .allow : .reloadInPlace
         }
         if scheme.isEmpty || scheme == "javascript" { return .cancel }
-        if let web = webURL(fromHandoff: nav.url) { return .loadWebURL(web) }
+        if let web = webURL(fromHandoff: nav.url) {
+            // Only the main frame may redirect the tab: an ad iframe may not.
+            return nav.targetIsMainFrame ? .loadWebURL(web) : .cancel
+        }
         if systemSchemes.contains(scheme) {
             return nav.isLinkActivated ? .openExternally(nav.url) : .cancel
         }
         // An app scheme (twitter://): never opened silently. A tap on a site
         // that is allowed to use apps opens at once; everything else asks.
-        if nav.isLinkActivated, settings.openInApps { return .openExternally(nav.url) }
+        // A frame that isn't the page, with no tap, can't raise the banner.
+        if !nav.targetIsMainFrame, !nav.isLinkActivated { return .cancel }
+        if nav.isLinkActivated, settings.allowsApps(forHost: nav.pageHost ?? nav.url.host) {
+            return .openExternally(nav.url)
+        }
         return .promptOpenApp(nav.url)
     }
 
