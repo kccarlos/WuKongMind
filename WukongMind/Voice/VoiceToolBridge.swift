@@ -504,11 +504,14 @@ final class VoiceToolBridge {
         case .linkChoices(let words, let candidates):
             let cleanWords = AgentBridge.cleanLinkText(words)
             let items = candidates.prefix(5).enumerated().map { "\($0.offset + 1). \(AgentBridge.cleanLinkText($0.element.name)) (\($0.element.host))" }
+            let single = items.count == 1
             return [
                 "status": "choices",
-                "shown": .string("Several links match “\(cleanWords)”: \(items.joined(separator: "; "))."),
+                "shown": .string(single ? "Closest link for “\(cleanWords)”: \(items[0])." : "Several links match “\(cleanWords)”: \(items.joined(separator: "; "))."),
                 "candidates": .array(items.map(JSONValue.string)),
-                "message": "Several links matched. Say them briefly with their host and ask the user which one, then call open_link with its number."
+                "message": .string(single
+                    ? "Only a partial match was found. Name it with its host and ask if the user wants to open it, then call open_link with number 1 if so."
+                    : "Several links matched. Say them briefly with their host and ask the user which one, then call open_link with its number.")
             ]
         case .linkNotFound(let reason):
             return response(BrowseResult(status: .notFound, shown: reason), eyesFree: eyesFree)
@@ -666,6 +669,7 @@ final class VoiceLinkState {
             }
             switch state {
             case .dropped:
+                state = .none
                 return .refused(VoiceToolBridge.staleLinkListMessage)
             case .active(_, let list):
                 guard list.indices.contains(number - 1) else { return .linkNotFound("That list only has \(list.count) links.") }
@@ -718,31 +722,37 @@ enum VoiceLinkMatcher {
         let effectiveContent = contentLatin.isEmpty ? rawLatin : contentLatin
         let coreLatin = effectiveContent.filter { !genericWords.contains($0) }
         let cjk = cjkUnits(in: foldedQuery)
-        let primaryLatin = (!coreLatin.isEmpty || !cjk.isEmpty) ? coreLatin : effectiveContent
-        guard !primaryLatin.isEmpty || !cjk.isEmpty else { return .none }
+        let latinSet = Set((!coreLatin.isEmpty || !cjk.isEmpty) ? coreLatin : effectiveContent)
+        let cjkSet = Array(Set(cjk))
+        let totalUnits = latinSet.count + cjkSet.count
+        guard totalUnits > 0 else { return .none }
         let exactPhrase = cleanPhrase(foldedQuery)
 
-        struct Scored { var link: PageLink; var primary: Int; var content: Int; var host: Int; var exact: Bool }
+        struct Scored { var link: PageLink; var primary: Int; var content: Int; var host: Int; var clear: Bool; var exact: Bool }
         var scored: [Scored] = []
         for link in links {
             let foldedText = fold(link.text)
             let rawTextWords = matches("[a-z0-9]+", in: foldedText)
             let textTokens = Set(rawTextWords + rawTextWords.map(stem))
-            let primaryHits = primaryLatin.filter { textTokens.contains($0) }.count + cjk.filter { foldedText.contains($0) }.count
-            guard primaryHits > 0 else { continue }
-            let contentHits = effectiveContent.filter { textTokens.contains($0) }.count + cjk.filter { foldedText.contains($0) }.count
             let rawHost = matches("[a-z0-9]+", in: fold(link.host)).filter { !hostNoise.contains($0) }
             let hostTokens = Set(rawHost + rawHost.map(stem))
-            let hostHits = primaryLatin.filter { !textTokens.contains($0) && hostTokens.contains($0) }.count
-            let isExact = (primaryLatin.count + cjk.count) >= 2 && cleanPhrase(foldedText) == exactPhrase
-            scored.append(Scored(link: link, primary: primaryHits, content: contentHits, host: hostHits, exact: isExact))
+            let textLatin = latinSet.filter { textTokens.contains($0) }.count
+            let allLatin = latinSet.filter { textTokens.contains($0) || hostTokens.contains($0) }.count
+            let cjkHits = cjkSet.filter { foldedText.contains($0) }.count
+            let primaryHits = allLatin + cjkHits
+            guard textLatin + cjkHits > 0, primaryHits * 2 >= totalUnits else { continue }
+            let contentHits = Set(effectiveContent).filter { textTokens.contains($0) }.count + cjkHits
+            let hostHits = allLatin - textLatin
+            let isClear = allLatin == latinSet.count && cjkHits * 2 >= cjkSet.count
+            let isExact = totalUnits >= 2 && cleanPhrase(foldedText) == exactPhrase
+            scored.append(Scored(link: link, primary: primaryHits, content: contentHits, host: hostHits, clear: isClear, exact: isExact))
         }
         guard let maxPrimary = scored.map(\.primary).max() else { return .none }
         var winners = scored.filter { $0.primary == maxPrimary }
         if winners.count > 1, let maxContent = winners.map(\.content).max() { winners = winners.filter { $0.content == maxContent } }
         if winners.count > 1, let maxHost = winners.map(\.host).max(), maxHost > 0 { winners = winners.filter { $0.host == maxHost } }
-        if winners.count > 1, let onlyExact = winners.filter(\.exact).onlyElement { return .one(onlyExact.link) }
-        return winners.count == 1 ? .one(winners[0].link) : .several(winners.map(\.link))
+        if winners.count > 1, let onlyExact = winners.filter({ $0.clear && $0.exact }).onlyElement { return .one(onlyExact.link) }
+        return (winners.count == 1 && winners[0].clear) ? .one(winners[0].link) : .several(winners.map(\.link))
     }
 
     private static func fold(_ text: String) -> String {

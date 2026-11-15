@@ -772,13 +772,25 @@ final class VoiceToolTests: XCTestCase {
         XCTAssertEqual(picked.response["status"], "opened")
         XCTAssertEqual(navigator.calls.last, "followLink Apple shareholders back buyback plan @ ft-example.com")
 
-        // 4. A candidate list from the previous page is dropped when the page changes, refusing old numbers.
-        _ = await bridge.handle(.init(id: "8", name: "open_link", args: ["words": "the Apple story"]), eyesFree: false)
+        // 4. Partial matches never open silently: 1-of-3 shared word is notFound; 2-of-3 returns choices for confirmation.
+        let beforeFollows = navigator.calls.filter { $0.hasPrefix("followLink") }.count
+        let weak = await bridge.handle(.init(id: "8", name: "open_link", args: ["words": "the new iPhone review"]), eyesFree: false)
+        XCTAssertEqual(weak.response["status"], "notFound")
+        XCTAssertEqual(navigator.calls.filter { $0.hasPrefix("followLink") }.count, beforeFollows, "Never opens on a single incidental word")
+        let partial = await bridge.handle(.init(id: "9", name: "open_link", args: ["words": "Apple iPad review"]), eyesFree: false)
+        XCTAssertEqual(partial.response["status"], "choices")
+        XCTAssertEqual(partial.response["candidates"], ["1. Apple unveils new iPad lineup (heraldexample.com)"])
+        XCTAssertEqual(navigator.calls.filter { $0.hasPrefix("followLink") }.count, beforeFollows, "Asks instead of opening a partial match")
+
+        // 5. A candidate list from the previous page refuses once on the new page, then clears so screen numbers work.
         navigator.pageContext = page2
         bridge.pageChanged(page2)
-        let stale = await bridge.handle(.init(id: "9", name: "open_link", args: ["number": 1]), eyesFree: false)
+        let stale = await bridge.handle(.init(id: "10", name: "open_link", args: ["number": 1]), eyesFree: false)
         XCTAssertEqual(stale.response["status"], "unavailable")
         XCTAssertEqual(stale.response["shown"], .string(VoiceToolBridge.staleLinkListMessage))
+        let screenSecond = await bridge.handle(.init(id: "11", name: "open_link", args: ["number": 2]), eyesFree: false)
+        XCTAssertEqual(screenSecond.response["status"], "opened")
+        XCTAssertEqual(navigator.calls.last, "followLink Opinion: why tariffs miss the point @ heraldexample.com")
     }
 
     func testOpenLinkFiltersOrdersMergesCapsAndPreservesQueryAndFragmentInWebKit() async throws {
