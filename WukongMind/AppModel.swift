@@ -235,20 +235,34 @@ final class AppModel: ObservableObject {
         )
     }
 
-    private static var loadsOnlySamplePage: Bool {
+    static var loadsOnlySamplePage: Bool {
         #if DEBUG
-        return AssistantDebug.isActive
-            || AssistantDebug.value("-dc-browser-agent-demo") != nil
-            || AssistantDebug.value("-dc-browser-agent-live-prompt") != nil
-            || AssistantDebug.has("-dc-browser-agent-live-key")
-            || AssistantDebug.has("-dc-browser-agent-fixture-page")
-            || AssistantDebug.value("-dc-browser-agent-scripts-box") != nil
-            || AssistantDebug.value("-dc-scripts-sample") != nil
-            || AssistantDebug.has("-dc-scripts-sample")
+        return loadsOnlySamplePage(arguments: ProcessInfo.processInfo.arguments)
         #else
         return false
         #endif
     }
+
+    #if DEBUG
+    var suppressesPersistence = AppModel.loadsOnlySamplePage
+
+    static func loadsOnlySamplePage(arguments: [String]) -> Bool {
+        func value(_ flag: String) -> String? {
+            guard let index = arguments.firstIndex(of: flag), index + 1 < arguments.count else { return nil }
+            return arguments[index + 1]
+        }
+        return arguments.contains("-dc-sample")
+            || value("-dc-browser-agent-demo") != nil
+            || value("-dc-browser-agent-live-prompt") != nil
+            || arguments.contains("-dc-browser-agent-live-key")
+            || arguments.contains("-dc-browser-agent-fixture-page")
+            || value("-dc-browser-agent-scripts-box") != nil
+            || value("-dc-scripts-sample") != nil
+            || arguments.contains("-dc-scripts-sample")
+            || value("-dc-fixture-model") != nil
+            || arguments.contains("-dc-no-provider")
+    }
+    #endif
 
     nonisolated static var suggestedForums: [SuggestedForum] {
         return SiteRegistry.standard.adapters.flatMap(\.suggestedForums.general)
@@ -2070,7 +2084,7 @@ final class AppModel: ObservableObject {
     @discardableResult
     private func persistChangedAPIKeys() -> Bool {
         #if DEBUG
-        if Self.loadsOnlySamplePage { return true }
+        if suppressesPersistence { return true }
         #endif
         for provider in AIProvider.allCases {
             let key = settings.configuration(for: provider).apiKey
@@ -2976,12 +2990,12 @@ final class AppModel: ObservableObject {
     func save() {
         settingsSaveTask?.cancel()
         settingsSaveTask = nil
-        cloudSync.localDataDidChange()
         #if DEBUG
-        // Sample data for screenshots is never written over the real snapshot,
-        // and its placeholder key stays in memory.
-        if Self.loadsOnlySamplePage { return }
+        // Sample and fixture launches never write over the real snapshot,
+        // and their placeholder or blanked keys stay in memory.
+        if suppressesPersistence { return }
         #endif
+        cloudSync.localDataDidChange()
         persistChangedAPIKeys()
         let snapshot = AppSnapshot(
             settings: settings.persistable,

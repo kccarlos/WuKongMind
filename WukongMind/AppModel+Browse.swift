@@ -208,9 +208,11 @@ extension AppModel {
     /// - `-dc-show-switcher` opens the forum switcher after launch (ContentView)
     /// - `-dc-browse-post`, `-dc-browse-find`, `-dc-browse-debug` post-level
     ///                       browsing (AppModel+Navigation.swift)
-    func applyDebugLaunchArguments() {
+    func applyDebugLaunchArguments(arguments: [String] = ProcessInfo.processInfo.arguments) {
+        if Self.loadsOnlySamplePage(arguments: arguments) {
+            suppressesPersistence = true
+        }
         applyBrowseDebugArguments()
-        let arguments = ProcessInfo.processInfo.arguments
         if arguments.contains("-dc-seed-forums"), forums.isEmpty {
             // The sample's real public forums (SampleContent.swift) and
             // Hacker News, which the app reads as a forum too.
@@ -237,7 +239,7 @@ extension AppModel {
             inMemory.setModel(selection, for: .assistant)
             inMemory.setModel(selection, for: .browserAgent)
             settings = inMemory
-        } else if arguments.contains("-dc-no-provider"), !AssistantDebug.isActive {
+        } else if arguments.contains("-dc-no-provider"), !arguments.contains("-dc-sample") {
             let unconfigured = ModelSelection(provider: .anthropic, model: "claude-haiku-5-5")
             var inMemory = settings
             inMemory.setModel(unconfigured, for: .assistant)

@@ -319,13 +319,13 @@ They never overwrite real saved data, and Release builds ignore them.
 
 | Argument | Effect |
 | --- | --- |
-| `-dc-sample` | Loads offline sample data (required by the rest of this table): Discourse Meta and the OpenAI Developer Community (real public forums, the same as in the Chrome extension's screenshots) with invented topics, posts, usernames, summaries, chats and answers, plus Hacker News as a recent forum. The Assistant opens by itself on iPhone. In Simplified or Traditional Chinese (`-AppleLanguages "(zh-Hans)"`) the same forums carry Chinese topics and text; see `WukongMind/SampleContent.swift`. |
+| `-dc-sample` | Loads offline sample data (required by the rest of this table unless noted): Discourse Meta and the OpenAI Developer Community (real public forums, the same as in the Chrome extension's screenshots) with invented topics, posts, usernames, summaries, chats and answers, plus Hacker News as a recent forum. Unless a provider-setup or live/demo browser-agent flag is set, the Agent uses an offline sample client (`BrowserAgentDemoClient` `.forumSample`) so forum suggestions and prompts run without a real model. The Assistant opens by itself on iPhone. In Simplified or Traditional Chinese (`-AppleLanguages "(zh-Hans)"`) the same forums carry Chinese topics and text; see `WukongMind/SampleContent.swift`. |
 | `-dc-page-state <state>` | `loading`, `notForum`, `maybe`, `forumHome`, or `topic` (default). |
 | `-dc-topic meta\|openai` | Which sample topic is open: on Discourse Meta, or on the OpenAI Developer Community. Default: `meta`, but `openai` with `-dc-assistant-mode agent`, so Ask the forum shows the run from the open forum. With `-dc-topic meta` in agent mode, the run on Discourse Meta is shown. |
 | `-dc-assistant-mode <mode>` | `summary`, `chat`, or `agent`. |
 | `-dc-open-history` | Opens History. |
 | `-dc-history-segment <segment>` | History segment: `all`, `summaries`, `asks`, `watching`. |
-| `-dc-no-provider` | Leaves the AI provider unconfigured. |
+| `-dc-no-provider` | Leaves AI providers unconfigured in memory (also works without `-dc-sample`; never writes empty keys to Keychain). |
 | `-dc-agent-model <provider>:<model>` | Gives Ask the forum its own model (for example `deepseek:deepseek-v4-flash`) with a placeholder key; the sample Ask the forum runs are labeled with it, and both models become favorites. |
 | `-dc-no-agent-key` | With `-dc-agent-model`: that provider has no key, so only Ask the forum shows the setup card. |
 | `-dc-no-summary` | The open topic has no summary yet. |
@@ -363,6 +363,7 @@ runs are labeled as Apple Intelligence runs and it is the selected provider.
 | `-dc-no-forums` | With `-dc-sample`: no forums (Home as a new user sees it). |
 | `-dc-launch <automatic\|home\|lastForum>` | Applies the launch rule (`-dc-` launches skip it otherwise). |
 | `-dc-open <url>` | Opens a page on launch. |
+| `-dc-fixture-model <url>` | Points Ollama at a local fixture `/api/chat` server and selects it for Summaries and Agent in memory (nothing saved to disk). |
 | `-dc-show-switcher` | Opens the forum switcher. |
 | `-dc-voice-fake` | Voice without a key, microphone or network: a scripted Gemini Live session (`Voice/VoiceDebug.swift`) and silent audio. |
 | `-dc-add-forum` | Opens the Add forum sheet. |
