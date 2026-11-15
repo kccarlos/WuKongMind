@@ -1,0 +1,742 @@
+{
+  "date" : "2026-11-15T09:08:13Z",
+  "declarationBytes" : {
+    "fixed-14" : 11796,
+    "today-forum" : 9640,
+    "today-ordinary" : 3555
+  },
+  "model" : "gemini-3.8-live",
+  "question" : "anywhere-tokens",
+  "rows" : [
+    {
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.443,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.443,
+          "text" : "13475 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.83,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.868,
+          "text" : "[Screen: the user opened the topic “Fan noise after firmware 5.2” (topic id 4821) on Home Lab Talk, 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.868,
+          "text" : "Say hello in one short sentence."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.537,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 7.113,
+          "text" : "Hello! I'm your WukongMind companion, ready to help you navigate the Home Lab Talk forum."
+        },
+        {
+          "kind" : "usage",
+          "t" : 7.113,
+          "text" : "prompt 3784 response 143"
+        }
+      ],
+      "instructionChars" : 3320,
+      "promptTokens" : 3784,
+      "rep" : 0,
+      "setupSeconds" : 0.8297189474105835,
+      "toolCount" : 12,
+      "variant" : "today-forum (12 tools)"
+    },
+    {
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 1.925,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 1.927,
+          "text" : "7262 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 2.959,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 2.979,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 2.979,
+          "text" : "Say hello in one short sentence."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 3.711,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 6.663,
+          "text" : "Hello, I am your reading companion for this forum."
+        },
+        {
+          "kind" : "usage",
+          "t" : 6.663,
+          "text" : "prompt 2191 response 81"
+        }
+      ],
+      "instructionChars" : 3194,
+      "promptTokens" : 2191,
+      "rep" : 0,
+      "setupSeconds" : 2.9587379693984985,
+      "toolCount" : 6,
+      "variant" : "today-ordinary (6 tools)"
+    },
+    {
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.294,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.294,
+          "text" : "15898 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.83,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.875,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.875,
+          "text" : "Say hello in one short sentence."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.597,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 4.553,
+          "text" : "Hello, I am ready to help you browse the web."
+        },
+        {
+          "kind" : "usage",
+          "t" : 4.553,
+          "text" : "prompt 4398 response 81"
+        }
+      ],
+      "instructionChars" : 3569,
+      "promptTokens" : 4398,
+      "rep" : 0,
+      "setupSeconds" : 0.8295910358428955,
+      "toolCount" : 14,
+      "variant" : "fixed-14 on a forum"
+    },
+    {
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 2.809,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 2.809,
+          "text" : "15898 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 4.144,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 4.176,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 4.177,
+          "text" : "Say hello in one short sentence."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 7.619,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 15.392,
+          "text" : "Hello, I'm WukongMind and I'm ready to help you browse."
+        },
+        {
+          "kind" : "usage",
+          "t" : 15.392,
+          "text" : "prompt 4398 response 93"
+        }
+      ],
+      "instructionChars" : 3569,
+      "promptTokens" : 4398,
+      "rep" : 0,
+      "setupSeconds" : 4.144423007965088,
+      "toolCount" : 14,
+      "variant" : "fixed-14 on an ordinary page"
+    },
+    {
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.795,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.795,
+          "text" : "15631 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 1.247,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 1.266,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 1.266,
+          "text" : "Say hello in one short sentence."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.748,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 5.433,
+          "text" : "Hello, I'm your WukongMind reading companion for this forum."
+        },
+        {
+          "kind" : "usage",
+          "t" : 5.433,
+          "text" : "prompt 4293 response 92"
+        }
+      ],
+      "instructionChars" : 3320,
+      "promptTokens" : 4293,
+      "rep" : 0,
+      "setupSeconds" : 1.246932029724121,
+      "toolCount" : 14,
+      "variant" : "fixed-14 tools + today's instruction"
+    },
+    {
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 6.372,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 6.372,
+          "text" : "13475 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 9.977,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 9.999,
+          "text" : "[Screen: the user opened the topic “Fan noise after firmware 5.2” (topic id 4821) on Home Lab Talk, 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 9.999,
+          "text" : "Say hello in one short sentence."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 14.217,
+          "text" : ""
+        }
+      ],
+      "instructionChars" : 3320,
+      "promptTokens" : -1,
+      "rep" : 1,
+      "setupSeconds" : 9.977014064788818,
+      "toolCount" : 12,
+      "variant" : "today-forum (12 tools)"
+    },
+    {
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 3.91,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 3.91,
+          "text" : "7262 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 4.157,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 4.172,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 4.172,
+          "text" : "Say hello in one short sentence."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 4.92,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 8.375,
+          "text" : "Hello, I'm here to help you navigate and explore the forum."
+        },
+        {
+          "kind" : "usage",
+          "t" : 8.375,
+          "text" : "prompt 2191 response 91"
+        }
+      ],
+      "instructionChars" : 3194,
+      "promptTokens" : 2191,
+      "rep" : 1,
+      "setupSeconds" : 4.15667200088501,
+      "toolCount" : 6,
+      "variant" : "today-ordinary (6 tools)"
+    },
+    {
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.172,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.172,
+          "text" : "15898 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.561,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.587,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.587,
+          "text" : "Say hello in one short sentence."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.219,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 4.118,
+          "text" : "Hello there, I am glad to help you today."
+        },
+        {
+          "kind" : "usage",
+          "t" : 4.118,
+          "text" : "prompt 4398 response 67"
+        }
+      ],
+      "instructionChars" : 3569,
+      "promptTokens" : 4398,
+      "rep" : 1,
+      "setupSeconds" : 0.5606549978256226,
+      "toolCount" : 14,
+      "variant" : "fixed-14 on a forum"
+    },
+    {
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 8.293,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 8.293,
+          "text" : "15898 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 22.765,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 22.765,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 22.766,
+          "text" : "Say hello in one short sentence."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 24.545,
+          "text" : ""
+        }
+      ],
+      "instructionChars" : 3569,
+      "promptTokens" : -1,
+      "rep" : 1,
+      "setupSeconds" : 22.765349984169006,
+      "toolCount" : 14,
+      "variant" : "fixed-14 on an ordinary page"
+    },
+    {
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 10.007,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 10.007,
+          "text" : "15631 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 12.068,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 12.114,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 12.114,
+          "text" : "Say hello in one short sentence."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 13.195,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 15.902,
+          "text" : "Hello and welcome to the Home Lab Talk forum."
+        },
+        {
+          "kind" : "usage",
+          "t" : 15.902,
+          "text" : "prompt 4293 response 72"
+        }
+      ],
+      "instructionChars" : 3320,
+      "promptTokens" : 4293,
+      "rep" : 1,
+      "setupSeconds" : 12.068043947219849,
+      "toolCount" : 14,
+      "variant" : "fixed-14 tools + today's instruction"
+    },
+    {
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.21,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.21,
+          "text" : "13475 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.472,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.52,
+          "text" : "[Screen: the user opened the topic “Fan noise after firmware 5.2” (topic id 4821) on Home Lab Talk, 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.52,
+          "text" : "Say hello in one short sentence."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.014,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 3.796,
+          "text" : "Hello and welcome to the Home Lab Talk forum!"
+        },
+        {
+          "kind" : "usage",
+          "t" : 3.796,
+          "text" : "prompt 3784 response 72"
+        }
+      ],
+      "instructionChars" : 3320,
+      "promptTokens" : 3784,
+      "rep" : 2,
+      "setupSeconds" : 0.47185707092285156,
+      "toolCount" : 12,
+      "variant" : "today-forum (12 tools)"
+    },
+    {
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.371,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.371,
+          "text" : "7262 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.546,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.578,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.578,
+          "text" : "Say hello in one short sentence."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.256,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 4.763,
+          "text" : "Hello, I am your WukongMind assistant, ready to help."
+        },
+        {
+          "kind" : "usage",
+          "t" : 4.763,
+          "text" : "prompt 2191 response 93"
+        }
+      ],
+      "instructionChars" : 3194,
+      "promptTokens" : 2191,
+      "rep" : 2,
+      "setupSeconds" : 0.545989990234375,
+      "toolCount" : 6,
+      "variant" : "today-ordinary (6 tools)"
+    },
+    {
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 1.194,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 1.194,
+          "text" : "15898 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 1.86,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 1.875,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 1.875,
+          "text" : "Say hello in one short sentence."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 3.22,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 5.41,
+          "text" : "Hello, I'm here and ready to help."
+        },
+        {
+          "kind" : "usage",
+          "t" : 5.41,
+          "text" : "prompt 4398 response 64"
+        }
+      ],
+      "instructionChars" : 3569,
+      "promptTokens" : 4398,
+      "rep" : 2,
+      "setupSeconds" : 1.8601380586624146,
+      "toolCount" : 14,
+      "variant" : "fixed-14 on a forum"
+    },
+    {
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.167,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.167,
+          "text" : "15898 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.468,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.488,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.488,
+          "text" : "Say hello in one short sentence."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 0.998,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 4.595,
+          "text" : "Hello, I'm WukongMind and I'm ready to help you browse."
+        },
+        {
+          "kind" : "usage",
+          "t" : 4.595,
+          "text" : "prompt 4398 response 95"
+        }
+      ],
+      "instructionChars" : 3569,
+      "promptTokens" : 4398,
+      "rep" : 2,
+      "setupSeconds" : 0.46752798557281494,
+      "toolCount" : 14,
+      "variant" : "fixed-14 on an ordinary page"
+    },
+    {
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.252,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.252,
+          "text" : "15631 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.533,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.568,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.568,
+          "text" : "Say hello in one short sentence."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.086,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 5.749,
+          "text" : "Hello, I am your WukongMind reading companion for the Home Lab Talk forum."
+        },
+        {
+          "kind" : "usage",
+          "t" : 5.749,
+          "text" : "prompt 4293 response 119"
+        }
+      ],
+      "instructionChars" : 3320,
+      "promptTokens" : 4293,
+      "rep" : 2,
+      "setupSeconds" : 0.5334110260009766,
+      "toolCount" : 14,
+      "variant" : "fixed-14 tools + today's instruction"
+    }
+  ]
+}

@@ -1,0 +1,3042 @@
+{
+  "date" : "2026-11-15T09:20:46Z",
+  "model" : "gemini-3.8-live",
+  "question" : "anywhere-forum-q3",
+  "rows" : [
+    {
+      "args" : [
+        "hand_off_to_agent {\"request\":\"Switch to dark mode.\"}"
+      ],
+      "calls" : [
+        "hand_off_to_agent"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.197,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.197,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.629,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.667,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.667,
+          "text" : "Switch to dark mode."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.472,
+          "text" : ""
+        },
+        {
+          "kind" : "call",
+          "t" : 1.641,
+          "text" : "hand_off_to_agent {\"request\":\"Switch to dark mode.\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.664,
+          "text" : "hand_off_to_agent SILENT 387 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 3.405,
+          "text" : "Let's get that screen adjusted for you."
+        },
+        {
+          "kind" : "usage",
+          "t" : 3.405,
+          "text" : "prompt 4649 response 75"
+        }
+      ],
+      "expected" : [
+        "hand_off_to_agent"
+      ],
+      "first" : "hand_off_to_agent",
+      "page" : "forum",
+      "rep" : 0,
+      "secondsToFirstCall" : 0.97,
+      "set" : "fixed-14",
+      "spoken" : "Let's get that screen adjusted for you.",
+      "utterance" : "Switch to dark mode."
+    },
+    {
+      "args" : [
+        "summarize_topic {}",
+        "read_aloud {}"
+      ],
+      "calls" : [
+        "summarize_topic",
+        "read_aloud"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.399,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.399,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.716,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.761,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.761,
+          "text" : "Summarize this, then read it to me."
+        },
+        {
+          "kind" : "call",
+          "t" : 1.203,
+          "text" : "summarize_topic {}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 1.208,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 1.208,
+          "text" : "prompt 4550 response 7"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.235,
+          "text" : "summarize_topic WHEN_IDLE 509 bytes"
+        },
+        {
+          "kind" : "call",
+          "t" : 1.934,
+          "text" : "read_aloud {}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 1.935,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 1.935,
+          "text" : "prompt 4689 response 7"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.974,
+          "text" : "read_aloud WHEN_IDLE 307 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 3.192,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 3.214,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 3.214,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 13.481,
+          "text" : "The summary is on your screen: firmware five point two resets the fan curve to performance, but you can fix it by rolling back or changing to silent mode. I'm reading it aloud for you now."
+        },
+        {
+          "kind" : "usage",
+          "t" : 13.481,
+          "text" : "prompt 4761 response 272"
+        }
+      ],
+      "expected" : [
+        "read_aloud",
+        "summarize_topic"
+      ],
+      "first" : "summarize_topic",
+      "page" : "forum",
+      "rep" : 0,
+      "secondsToFirstCall" : 0.44,
+      "set" : "fixed-14",
+      "spoken" : "  The summary is on your screen: firmware five point two resets the fan curve to performance, but you can fix it by rolling back or changing to silent mode. I'm reading it aloud for you now.",
+      "utterance" : "Summarize this, then read it to me."
+    },
+    {
+      "args" : [
+        "browse_move {\"action\":\"next\"}"
+      ],
+      "calls" : [
+        "browse_move"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.544,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.544,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.82,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.853,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.853,
+          "text" : "Next post."
+        },
+        {
+          "kind" : "call",
+          "t" : 1.423,
+          "text" : "browse_move {\"action\":\"next\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 1.423,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 1.423,
+          "text" : "prompt 4543 response 12"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.471,
+          "text" : "browse_move WHEN_IDLE 242 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 4.19,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 4.234,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 6.326,
+          "text" : "I have moved to the next post on the forum."
+        },
+        {
+          "kind" : "usage",
+          "t" : 6.326,
+          "text" : "prompt 4601 response 62"
+        }
+      ],
+      "expected" : [
+        "browse_move"
+      ],
+      "first" : "browse_move",
+      "page" : "forum",
+      "rep" : 0,
+      "secondsToFirstCall" : 0.57,
+      "set" : "fixed-14",
+      "spoken" : " I have moved to the next post on the forum.",
+      "utterance" : "Next post."
+    },
+    {
+      "args" : [
+        "hand_off_to_agent {\"request\":\"What do people here think of the N100 for a home server?\"}"
+      ],
+      "calls" : [
+        "hand_off_to_agent"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.438,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.438,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.746,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.756,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.756,
+          "text" : "What do people here think of the N100 for a home server?"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 2.086,
+          "text" : ""
+        },
+        {
+          "kind" : "call",
+          "t" : 2.591,
+          "text" : "hand_off_to_agent {\"request\":\"What do people here think of the N100 for a home server?\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 2.638,
+          "text" : "hand_off_to_agent SILENT 388 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 6.189,
+          "text" : "Let's check the community discussions to see what people are saying about the N100."
+        },
+        {
+          "kind" : "usage",
+          "t" : 6.189,
+          "text" : "prompt 4556 response 140"
+        }
+      ],
+      "expected" : [
+        "hand_off_to_agent"
+      ],
+      "first" : "hand_off_to_agent",
+      "page" : "forum",
+      "rep" : 0,
+      "secondsToFirstCall" : 1.84,
+      "set" : "fixed-14",
+      "spoken" : "Let's check the community discussions to see what people are saying about the N100.",
+      "utterance" : "What do people here think of the N100 for a home server?"
+    },
+    {
+      "before" : [
+        "search_forum"
+      ],
+      "calls" : [
+
+      ],
+      "correct" : false,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.166,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.166,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.469,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.483,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.484,
+          "text" : "What do people here think of the N100 for a home server?"
+        },
+        {
+          "kind" : "call",
+          "t" : 0.991,
+          "text" : "search_forum {\"query\":\"N100\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.998,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.998,
+          "text" : "prompt 4556 response 15"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.009,
+          "text" : "search_forum WHEN_IDLE 374 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.633,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.633,
+          "text" : ""
+        },
+        {
+          "kind" : "user",
+          "t" : 11.041,
+          "text" : "Never mind."
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 16.639,
+          "text" : "I couldn't find any recent discussions on this forum about using the N one hundred for a home server."
+        },
+        {
+          "kind" : "usage",
+          "t" : 16.639,
+          "text" : "prompt 4662 response 139"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 19.405,
+          "text" : "Understood, just let me know if you need anything else."
+        },
+        {
+          "kind" : "usage",
+          "t" : 19.405,
+          "text" : "prompt 4950 response 81"
+        }
+      ],
+      "expected" : [
+        "hand_off_to_agent:cancel"
+      ],
+      "first" : "none",
+      "rep" : 0,
+      "set" : "fixed-14",
+      "utterance" : "Never mind."
+    },
+    {
+      "args" : [
+        "browse_open {\"at\":\"solution\"}"
+      ],
+      "calls" : [
+        "browse_open"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.285,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.287,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.835,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.865,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.865,
+          "text" : "Take me to the solution."
+        },
+        {
+          "kind" : "call",
+          "t" : 1.338,
+          "text" : "browse_open {\"at\":\"solution\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.343,
+          "text" : "browse_open WHEN_IDLE 412 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 1.355,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 1.355,
+          "text" : "prompt 4546 response 12"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 2.193,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 2.219,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 11.603,
+          "text" : "I've brought you to the solution, which explains that rolling back to version five point one point four fixes the issue since the fan curve setting was reset in version five point two."
+        },
+        {
+          "kind" : "usage",
+          "t" : 11.603,
+          "text" : "prompt 4660 response 242"
+        }
+      ],
+      "expected" : [
+        "browse_open"
+      ],
+      "first" : "browse_open",
+      "page" : "forum",
+      "rep" : 0,
+      "secondsToFirstCall" : 0.47,
+      "set" : "fixed-14",
+      "spoken" : " I've brought you to the solution, which explains that rolling back to version five point one point four fixes the issue since the fan curve setting was reset in version five point two.",
+      "utterance" : "Take me to the solution."
+    },
+    {
+      "args" : [
+        "search_forum {\"query\":\"firmware rollback\"}"
+      ],
+      "calls" : [
+        "search_forum"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 4.812,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 4.813,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 5.82,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 5.858,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 5.858,
+          "text" : "Search for firmware rollback."
+        },
+        {
+          "kind" : "call",
+          "t" : 6.454,
+          "text" : "search_forum {\"query\":\"firmware rollback\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 6.454,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 6.454,
+          "text" : "prompt 4545 response 14"
+        },
+        {
+          "kind" : "response",
+          "t" : 6.483,
+          "text" : "search_forum WHEN_IDLE 375 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 7.317,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 7.431,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 12.402,
+          "text" : "I found a couple of discussions, including a guide on rolling back to firmware five point two."
+        },
+        {
+          "kind" : "usage",
+          "t" : 12.402,
+          "text" : "prompt 4650 response 133"
+        }
+      ],
+      "expected" : [
+        "search_forum"
+      ],
+      "first" : "search_forum",
+      "page" : "forum",
+      "rep" : 0,
+      "secondsToFirstCall" : 0.6,
+      "set" : "fixed-14",
+      "spoken" : " I found a couple of discussions, including a guide on rolling back to firmware five point two.",
+      "utterance" : "Search for firmware rollback."
+    },
+    {
+      "args" : [
+        "browse_focus {\"mode\":\"op\"}"
+      ],
+      "calls" : [
+        "browse_focus"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 5.768,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 5.768,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 6.381,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 6.4,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 6.401,
+          "text" : "Only show what the original poster said."
+        },
+        {
+          "kind" : "call",
+          "t" : 14.767,
+          "text" : "browse_focus {\"mode\":\"op\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 14.8,
+          "text" : "browse_focus WHEN_IDLE 412 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 14.817,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 14.817,
+          "text" : "prompt 4548 response 12"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 20.782,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 20.783,
+          "text" : ""
+        }
+      ],
+      "expected" : [
+        "browse_focus"
+      ],
+      "first" : "browse_focus",
+      "page" : "forum",
+      "rep" : 0,
+      "secondsToFirstCall" : 8.37,
+      "set" : "fixed-14",
+      "spoken" : "I've focused the view on the original poster's",
+      "utterance" : "Only show what the original poster said."
+    },
+    {
+      "args" : [
+        "read_post {\"post\":20}"
+      ],
+      "calls" : [
+        "read_post"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 16.064,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 16.064,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 16.707,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 16.751,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 16.751,
+          "text" : "What does post 20 say?"
+        },
+        {
+          "kind" : "call",
+          "t" : 17.256,
+          "text" : "read_post {\"post\":20}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 17.272,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 17.272,
+          "text" : "prompt 4548 response 11"
+        },
+        {
+          "kind" : "response",
+          "t" : 17.274,
+          "text" : "read_post WHEN_IDLE 351 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 18.102,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 18.155,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 24.201,
+          "text" : "Post twenty says that changing the fan curve back to Silent in the BIOS has kept the system quiet for a week."
+        },
+        {
+          "kind" : "usage",
+          "t" : 24.201,
+          "text" : "prompt 4638 response 151"
+        }
+      ],
+      "expected" : [
+        "read_post"
+      ],
+      "first" : "read_post",
+      "page" : "forum",
+      "rep" : 0,
+      "secondsToFirstCall" : 0.51,
+      "set" : "fixed-14",
+      "spoken" : " Post twenty says that changing the fan curve back to Silent in the BIOS has kept the system quiet for a week.",
+      "utterance" : "What does post 20 say?"
+    },
+    {
+      "args" : [
+        "watch_topic {}"
+      ],
+      "calls" : [
+        "watch_topic"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 8.168,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 8.168,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 9.337,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 9.384,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 9.384,
+          "text" : "Notify me of new replies to this thread."
+        },
+        {
+          "kind" : "call",
+          "t" : 9.854,
+          "text" : "watch_topic {}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 9.875,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 9.875,
+          "text" : "prompt 4549 response 6"
+        },
+        {
+          "kind" : "response",
+          "t" : 9.905,
+          "text" : "watch_topic WHEN_IDLE 265 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 10.466,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 10.491,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 15.015,
+          "text" : "I've set up notifications for you on this thread, so you'll be alerted to any new replies."
+        },
+        {
+          "kind" : "usage",
+          "t" : 15.015,
+          "text" : "prompt 4605 response 120"
+        }
+      ],
+      "expected" : [
+        "watch_topic"
+      ],
+      "first" : "watch_topic",
+      "page" : "forum",
+      "rep" : 0,
+      "secondsToFirstCall" : 0.47,
+      "set" : "fixed-14",
+      "spoken" : " I've set up notifications for you on this thread, so you'll be alerted to any new replies.",
+      "utterance" : "Notify me of new replies to this thread."
+    },
+    {
+      "args" : [
+        "browse_move {\"action\":\"back\"}"
+      ],
+      "calls" : [
+        "browse_move"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 11.845,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 11.845,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 13.635,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 13.649,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 13.657,
+          "text" : "Go back."
+        },
+        {
+          "kind" : "call",
+          "t" : 14.252,
+          "text" : "browse_move {\"action\":\"back\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 14.278,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 14.278,
+          "text" : "prompt 4543 response 12"
+        },
+        {
+          "kind" : "response",
+          "t" : 14.286,
+          "text" : "browse_move WHEN_IDLE 241 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 17.293,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 17.345,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 19.293,
+          "text" : "We've moved back to the previous page."
+        },
+        {
+          "kind" : "usage",
+          "t" : 19.293,
+          "text" : "prompt 4601 response 51"
+        }
+      ],
+      "expected" : [
+        "browse_move"
+      ],
+      "first" : "browse_move",
+      "page" : "forum",
+      "rep" : 0,
+      "secondsToFirstCall" : 0.59,
+      "set" : "fixed-14",
+      "spoken" : " We've moved back to the previous page.",
+      "utterance" : "Go back."
+    },
+    {
+      "args" : [
+        "end {}"
+      ],
+      "calls" : [
+        "end"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.354,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.354,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.803,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.824,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.824,
+          "text" : "Thanks, that's all."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.641,
+          "text" : ""
+        },
+        {
+          "kind" : "call",
+          "t" : 2.028,
+          "text" : "end {}"
+        },
+        {
+          "kind" : "response",
+          "t" : 2.079,
+          "text" : "end SILENT 162 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 4.311,
+          "text" : "You're very welcome. Have a wonderful day!"
+        },
+        {
+          "kind" : "usage",
+          "t" : 4.311,
+          "text" : "prompt 4547 response 77"
+        }
+      ],
+      "expected" : [
+        "end"
+      ],
+      "first" : "end",
+      "page" : "forum",
+      "rep" : 0,
+      "secondsToFirstCall" : 1.2,
+      "set" : "fixed-14",
+      "spoken" : "You're very welcome. Have a wonderful day!",
+      "utterance" : "Thanks, that's all."
+    },
+    {
+      "args" : [
+        "hand_off_to_agent {\"request\":\"Switch to dark mode.\"}"
+      ],
+      "calls" : [
+        "hand_off_to_agent"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.438,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.438,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.785,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.808,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.808,
+          "text" : "Switch to dark mode."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.542,
+          "text" : ""
+        },
+        {
+          "kind" : "call",
+          "t" : 2.023,
+          "text" : "hand_off_to_agent {\"request\":\"Switch to dark mode.\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 2.023,
+          "text" : "hand_off_to_agent SILENT 389 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 3.662,
+          "text" : "Let's get the display adjusted for you."
+        },
+        {
+          "kind" : "usage",
+          "t" : 3.662,
+          "text" : "prompt 4545 response 77"
+        }
+      ],
+      "expected" : [
+        "hand_off_to_agent"
+      ],
+      "first" : "hand_off_to_agent",
+      "page" : "forum",
+      "rep" : 1,
+      "secondsToFirstCall" : 1.21,
+      "set" : "fixed-14",
+      "spoken" : "Let's get the display adjusted for you.",
+      "utterance" : "Switch to dark mode."
+    },
+    {
+      "args" : [
+
+      ],
+      "calls" : [
+
+      ],
+      "correct" : false,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.22,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.22,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.511,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.533,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.534,
+          "text" : "Summarize this, then read it to me."
+        }
+      ],
+      "expected" : [
+        "read_aloud",
+        "summarize_topic"
+      ],
+      "first" : "none",
+      "page" : "forum",
+      "rep" : 1,
+      "set" : "fixed-14",
+      "spoken" : "",
+      "utterance" : "Summarize this, then read it to me."
+    },
+    {
+      "args" : [
+        "browse_move {\"action\":\"next\"}"
+      ],
+      "calls" : [
+        "browse_move"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.723,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.723,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 1.228,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 1.246,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 1.246,
+          "text" : "Next post."
+        },
+        {
+          "kind" : "call",
+          "t" : 1.693,
+          "text" : "browse_move {\"action\":\"next\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 1.716,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 1.716,
+          "text" : "prompt 4543 response 12"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.716,
+          "text" : "browse_move WHEN_IDLE 241 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 2.832,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 2.849,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 5.165,
+          "text" : "I've moved to the next post on screen."
+        },
+        {
+          "kind" : "usage",
+          "t" : 5.165,
+          "text" : "prompt 4601 response 65"
+        }
+      ],
+      "expected" : [
+        "browse_move"
+      ],
+      "first" : "browse_move",
+      "page" : "forum",
+      "rep" : 1,
+      "secondsToFirstCall" : 0.45,
+      "set" : "fixed-14",
+      "spoken" : " I've moved to the next post on screen.",
+      "utterance" : "Next post."
+    },
+    {
+      "args" : [
+        "hand_off_to_agent {\"request\":\"What do people here think of the N100 for a home server?\"}"
+      ],
+      "calls" : [
+        "hand_off_to_agent"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.277,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.277,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.542,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.592,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.592,
+          "text" : "What do people here think of the N100 for a home server?"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.658,
+          "text" : ""
+        },
+        {
+          "kind" : "call",
+          "t" : 2.145,
+          "text" : "hand_off_to_agent {\"request\":\"What do people here think of the N100 for a home server?\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 2.156,
+          "text" : "hand_off_to_agent SILENT 389 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 5.381,
+          "text" : "Let's see what the community has to say about the N100's performance."
+        },
+        {
+          "kind" : "usage",
+          "t" : 5.381,
+          "text" : "prompt 4556 response 131"
+        }
+      ],
+      "expected" : [
+        "hand_off_to_agent"
+      ],
+      "first" : "hand_off_to_agent",
+      "page" : "forum",
+      "rep" : 1,
+      "secondsToFirstCall" : 1.55,
+      "set" : "fixed-14",
+      "spoken" : "Let's see what the community has to say about the N100's performance.",
+      "utterance" : "What do people here think of the N100 for a home server?"
+    },
+    {
+      "before" : [
+        "hand_off_to_agent"
+      ],
+      "calls" : [
+        "hand_off_to_agent"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.215,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.215,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.473,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.475,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.476,
+          "text" : "What do people here think of the N100 for a home server?"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.142,
+          "text" : ""
+        },
+        {
+          "kind" : "call",
+          "t" : 1.59,
+          "text" : "hand_off_to_agent {\"request\":\"What do people here think of the N100 for a home server?\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.612,
+          "text" : "hand_off_to_agent SILENT 388 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 4.477,
+          "text" : "Let me see what the community has to say about that processor."
+        },
+        {
+          "kind" : "usage",
+          "t" : 4.477,
+          "text" : "prompt 4556 response 118"
+        },
+        {
+          "kind" : "user",
+          "t" : 6.51,
+          "text" : "Never mind."
+        },
+        {
+          "kind" : "call",
+          "t" : 7.004,
+          "text" : "hand_off_to_agent {\"action\":\"cancel\",\"request\":\"What do people here think of the N100 for a home server?\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 7.025,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 7.025,
+          "text" : "prompt 4913 response 37"
+        },
+        {
+          "kind" : "response",
+          "t" : 7.04,
+          "text" : "hand_off_to_agent WHEN_IDLE 256 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 9.289,
+          "text" : "I've stopped the search for you."
+        },
+        {
+          "kind" : "usage",
+          "t" : 9.289,
+          "text" : "prompt 5000 response 47"
+        }
+      ],
+      "expected" : [
+        "hand_off_to_agent:cancel"
+      ],
+      "first" : "hand_off_to_agent:cancel",
+      "rep" : 1,
+      "set" : "fixed-14",
+      "utterance" : "Never mind."
+    },
+    {
+      "args" : [
+        "browse_open {\"at\":\"solution\"}"
+      ],
+      "calls" : [
+        "browse_open"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 1.992,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 1.992,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 2.988,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 3.033,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 3.035,
+          "text" : "Take me to the solution."
+        },
+        {
+          "kind" : "call",
+          "t" : 3.527,
+          "text" : "browse_open {\"at\":\"solution\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 3.545,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 3.545,
+          "text" : "prompt 4546 response 12"
+        },
+        {
+          "kind" : "response",
+          "t" : 3.562,
+          "text" : "browse_open WHEN_IDLE 411 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 4.677,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 4.677,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 12.882,
+          "text" : "I've taken you to the solution, which is now on screen. It explains that rolling back to version five point one point four fixed the issue for the user."
+        },
+        {
+          "kind" : "usage",
+          "t" : 12.882,
+          "text" : "prompt 4660 response 218"
+        }
+      ],
+      "expected" : [
+        "browse_open"
+      ],
+      "first" : "browse_open",
+      "page" : "forum",
+      "rep" : 1,
+      "secondsToFirstCall" : 0.49,
+      "set" : "fixed-14",
+      "spoken" : " I've taken you to the solution, which is now on screen. It explains that rolling back to version five point one point four fixed the issue for the user.",
+      "utterance" : "Take me to the solution."
+    },
+    {
+      "args" : [
+        "search_forum {\"query\":\"firmware rollback\"}"
+      ],
+      "calls" : [
+        "search_forum"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 6.63,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 6.63,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 9.934,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 9.983,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 9.983,
+          "text" : "Search for firmware rollback."
+        },
+        {
+          "kind" : "call",
+          "t" : 12.16,
+          "text" : "search_forum {\"query\":\"firmware rollback\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 12.16,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 12.16,
+          "text" : "prompt 4545 response 14"
+        },
+        {
+          "kind" : "response",
+          "t" : 12.173,
+          "text" : "search_forum WHEN_IDLE 373 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 13.279,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 13.438,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 21.895,
+          "text" : "I found a few discussions. Would you like me to open the firmware five point two rollback guide, the thread about the fan curve reset, or the changelog discussion?"
+        },
+        {
+          "kind" : "usage",
+          "t" : 21.895,
+          "text" : "prompt 4650 response 222"
+        }
+      ],
+      "expected" : [
+        "search_forum"
+      ],
+      "first" : "search_forum",
+      "page" : "forum",
+      "rep" : 1,
+      "secondsToFirstCall" : 2.18,
+      "set" : "fixed-14",
+      "spoken" : " I found a few discussions. Would you like me to open the firmware five point two rollback guide, the thread about the fan curve reset, or the changelog discussion?",
+      "utterance" : "Search for firmware rollback."
+    },
+    {
+      "args" : [
+        "browse_focus {\"mode\":\"op\"}"
+      ],
+      "calls" : [
+        "browse_focus"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.178,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.178,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.391,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.441,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.441,
+          "text" : "Only show what the original poster said."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.947,
+          "text" : "browse_focus {\"mode\":\"op\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.961,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.961,
+          "text" : "prompt 4548 response 12"
+        },
+        {
+          "kind" : "response",
+          "t" : 0.97,
+          "text" : "browse_focus WHEN_IDLE 413 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.824,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.846,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 11.842,
+          "text" : "I've filtered the topic to show only the original poster's messages. You can see their posts on screen now, which mainly discuss resolving the issue by rolling back to an earlier software version."
+        },
+        {
+          "kind" : "usage",
+          "t" : 11.842,
+          "text" : "prompt 4662 response 257"
+        }
+      ],
+      "expected" : [
+        "browse_focus"
+      ],
+      "first" : "browse_focus",
+      "page" : "forum",
+      "rep" : 1,
+      "secondsToFirstCall" : 0.51,
+      "set" : "fixed-14",
+      "spoken" : " I've filtered the topic to show only the original poster's messages. You can see their posts on screen now, which mainly discuss resolving the issue by rolling back to an earlier software version.",
+      "utterance" : "Only show what the original poster said."
+    },
+    {
+      "args" : [
+        "read_post {\"post\":20}"
+      ],
+      "calls" : [
+        "read_post"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.152,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.152,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.43,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.462,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.463,
+          "text" : "What does post 20 say?"
+        },
+        {
+          "kind" : "call",
+          "t" : 1.015,
+          "text" : "read_post {\"post\":20}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 1.039,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 1.039,
+          "text" : "prompt 4548 response 11"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.04,
+          "text" : "read_post WHEN_IDLE 352 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.917,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.957,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 10.554,
+          "text" : "The post explains that the user set their fan curve back to the Silent setting in the BIOS after version five point two, which has kept things quiet for a week."
+        },
+        {
+          "kind" : "usage",
+          "t" : 10.554,
+          "text" : "prompt 4638 response 221"
+        }
+      ],
+      "expected" : [
+        "read_post"
+      ],
+      "first" : "read_post",
+      "page" : "forum",
+      "rep" : 1,
+      "secondsToFirstCall" : 0.55,
+      "set" : "fixed-14",
+      "spoken" : " The post explains that the user set their fan curve back to the Silent setting in the BIOS after version five point two, which has kept things quiet for a week.",
+      "utterance" : "What does post 20 say?"
+    },
+    {
+      "args" : [
+        "watch_topic {}"
+      ],
+      "calls" : [
+        "watch_topic"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.121,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.121,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.407,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.432,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.432,
+          "text" : "Notify me of new replies to this thread."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.881,
+          "text" : "watch_topic {}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.904,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.904,
+          "text" : "prompt 4549 response 6"
+        },
+        {
+          "kind" : "response",
+          "t" : 0.907,
+          "text" : "watch_topic WHEN_IDLE 264 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.562,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.571,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 5.431,
+          "text" : "I'm following this thread now, so you'll be updated on all new replies."
+        },
+        {
+          "kind" : "usage",
+          "t" : 5.431,
+          "text" : "prompt 4605 response 102"
+        }
+      ],
+      "expected" : [
+        "watch_topic"
+      ],
+      "first" : "watch_topic",
+      "page" : "forum",
+      "rep" : 1,
+      "secondsToFirstCall" : 0.45,
+      "set" : "fixed-14",
+      "spoken" : " I'm following this thread now, so you'll be updated on all new replies.",
+      "utterance" : "Notify me of new replies to this thread."
+    },
+    {
+      "args" : [
+        "browse_move {\"action\":\"back\"}"
+      ],
+      "calls" : [
+        "browse_move"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.175,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.176,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.413,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.436,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.436,
+          "text" : "Go back."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.813,
+          "text" : "browse_move {\"action\":\"back\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.842,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.842,
+          "text" : "prompt 4543 response 12"
+        },
+        {
+          "kind" : "response",
+          "t" : 0.86,
+          "text" : "browse_move WHEN_IDLE 243 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.475,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.476,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 3.527,
+          "text" : "We've gone back to the previous page."
+        },
+        {
+          "kind" : "usage",
+          "t" : 3.527,
+          "text" : "prompt 4601 response 57"
+        }
+      ],
+      "expected" : [
+        "browse_move"
+      ],
+      "first" : "browse_move",
+      "page" : "forum",
+      "rep" : 1,
+      "secondsToFirstCall" : 0.38,
+      "set" : "fixed-14",
+      "spoken" : " We've gone back to the previous page.",
+      "utterance" : "Go back."
+    },
+    {
+      "args" : [
+        "end {}"
+      ],
+      "calls" : [
+        "end"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.266,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.266,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.775,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.792,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.792,
+          "text" : "Thanks, that's all."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.352,
+          "text" : ""
+        },
+        {
+          "kind" : "call",
+          "t" : 1.702,
+          "text" : "end {}"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.735,
+          "text" : "end SILENT 161 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 3.344,
+          "text" : "You're welcome! Have a great day."
+        },
+        {
+          "kind" : "usage",
+          "t" : 3.344,
+          "text" : "prompt 4547 response 60"
+        }
+      ],
+      "expected" : [
+        "end"
+      ],
+      "first" : "end",
+      "page" : "forum",
+      "rep" : 1,
+      "secondsToFirstCall" : 0.91,
+      "set" : "fixed-14",
+      "spoken" : "You're welcome! Have a great day.",
+      "utterance" : "Thanks, that's all."
+    },
+    {
+      "args" : [
+        "hand_off_to_agent {\"request\":\"Switch to dark mode.\"}"
+      ],
+      "calls" : [
+        "hand_off_to_agent"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 6.83,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 6.83,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 9.156,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 9.163,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 9.163,
+          "text" : "Switch to dark mode."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 15.767,
+          "text" : ""
+        },
+        {
+          "kind" : "call",
+          "t" : 16.149,
+          "text" : "hand_off_to_agent {\"request\":\"Switch to dark mode.\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 16.15,
+          "text" : "Sure thing, let me adjust that for you."
+        },
+        {
+          "kind" : "usage",
+          "t" : 16.15,
+          "text" : "prompt 4545 response 87"
+        },
+        {
+          "kind" : "response",
+          "t" : 16.159,
+          "text" : "hand_off_to_agent SILENT 388 bytes"
+        }
+      ],
+      "expected" : [
+        "hand_off_to_agent"
+      ],
+      "first" : "hand_off_to_agent",
+      "page" : "forum",
+      "rep" : 2,
+      "secondsToFirstCall" : 6.99,
+      "set" : "fixed-14",
+      "spoken" : "Sure thing, let me adjust that for you.",
+      "utterance" : "Switch to dark mode."
+    },
+    {
+      "args" : [
+        "summarize_topic {}",
+        "read_aloud {}"
+      ],
+      "calls" : [
+        "summarize_topic",
+        "read_aloud"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.232,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.232,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.528,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.552,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.552,
+          "text" : "Summarize this, then read it to me."
+        },
+        {
+          "kind" : "call",
+          "t" : 1.249,
+          "text" : "summarize_topic {}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 1.261,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 1.261,
+          "text" : "prompt 4550 response 7"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.293,
+          "text" : "summarize_topic WHEN_IDLE 510 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 2.38,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 3.399,
+          "text" : ""
+        },
+        {
+          "kind" : "call",
+          "t" : 10.975,
+          "text" : "read_aloud {}"
+        },
+        {
+          "kind" : "response",
+          "t" : 11.019,
+          "text" : "read_aloud WHEN_IDLE 307 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 14.341,
+          "text" : "The summary is now on your screen, indicating that firmware five point two resets the fan curve to performance. Rolling back or choosing the silent setting fixes it, and a vendor fix is promised in version five point three."
+        },
+        {
+          "kind" : "usage",
+          "t" : 14.341,
+          "text" : "prompt 4689 response 315"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 17.023,
+          "text" : "I'm starting the audio for you now."
+        },
+        {
+          "kind" : "usage",
+          "t" : 17.023,
+          "text" : "prompt 5136 response 56"
+        }
+      ],
+      "expected" : [
+        "read_aloud",
+        "summarize_topic"
+      ],
+      "first" : "summarize_topic",
+      "page" : "forum",
+      "rep" : 2,
+      "secondsToFirstCall" : 0.7,
+      "set" : "fixed-14",
+      "spoken" : " The summary is now on your screen, indicating that firmware five point two resets the fan curve to performance. Rolling back or choosing the silent setting fixes it, and a vendor fix is promised in version five point three. I'm starting the audio for you now.",
+      "utterance" : "Summarize this, then read it to me."
+    },
+    {
+      "args" : [
+        "browse_move {\"action\":\"next\"}"
+      ],
+      "calls" : [
+        "browse_move"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.204,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.204,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.542,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.573,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.573,
+          "text" : "Next post."
+        },
+        {
+          "kind" : "call",
+          "t" : 1.155,
+          "text" : "browse_move {\"action\":\"next\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.199,
+          "text" : "browse_move WHEN_IDLE 242 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 1.41,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 1.41,
+          "text" : "prompt 4647 response 12"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.998,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.998,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 4.157,
+          "text" : "I've moved to the next post in the topic."
+        },
+        {
+          "kind" : "usage",
+          "t" : 4.157,
+          "text" : "prompt 4705 response 61"
+        }
+      ],
+      "expected" : [
+        "browse_move"
+      ],
+      "first" : "browse_move",
+      "page" : "forum",
+      "rep" : 2,
+      "secondsToFirstCall" : 0.58,
+      "set" : "fixed-14",
+      "spoken" : " I've moved to the next post in the topic.",
+      "utterance" : "Next post."
+    },
+    {
+      "args" : [
+        "search_forum {\"query\":\"N100\"}",
+        "hand_off_to_agent {\"request\":\"What do people here think of the N100 for a home server?\"}"
+      ],
+      "calls" : [
+        "search_forum",
+        "hand_off_to_agent"
+      ],
+      "correct" : false,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.225,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.225,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.505,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.543,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.543,
+          "text" : "What do people here think of the N100 for a home server?"
+        },
+        {
+          "kind" : "call",
+          "t" : 1.119,
+          "text" : "search_forum {\"query\":\"N100\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 1.134,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 1.134,
+          "text" : "prompt 4556 response 15"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.166,
+          "text" : "search_forum WHEN_IDLE 374 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.978,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 2.003,
+          "text" : ""
+        },
+        {
+          "kind" : "call",
+          "t" : 2.346,
+          "text" : "hand_off_to_agent {\"request\":\"What do people here think of the N100 for a home server?\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 2.357,
+          "text" : "hand_off_to_agent SILENT 389 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 5.135,
+          "text" : "Let me check what the community has to say about that processor."
+        },
+        {
+          "kind" : "usage",
+          "t" : 5.135,
+          "text" : "prompt 4662 response 116"
+        }
+      ],
+      "expected" : [
+        "hand_off_to_agent"
+      ],
+      "first" : "search_forum",
+      "page" : "forum",
+      "rep" : 2,
+      "secondsToFirstCall" : 0.58,
+      "set" : "fixed-14",
+      "spoken" : " Let me check what the community has to say about that processor.",
+      "utterance" : "What do people here think of the N100 for a home server?"
+    },
+    {
+      "before" : [
+        "hand_off_to_agent"
+      ],
+      "calls" : [
+        "hand_off_to_agent"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.137,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.137,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.405,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.454,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.455,
+          "text" : "What do people here think of the N100 for a home server?"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.392,
+          "text" : ""
+        },
+        {
+          "kind" : "call",
+          "t" : 1.623,
+          "text" : "hand_off_to_agent {\"request\":\"What do people here think of the N100 for a home server?\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.662,
+          "text" : "hand_off_to_agent SILENT 388 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 4.337,
+          "text" : "Let's see what the community has to say about that hardware."
+        },
+        {
+          "kind" : "usage",
+          "t" : 4.337,
+          "text" : "prompt 4660 response 113"
+        },
+        {
+          "kind" : "user",
+          "t" : 6.366,
+          "text" : "Never mind."
+        },
+        {
+          "kind" : "call",
+          "t" : 6.903,
+          "text" : "hand_off_to_agent {\"action\":\"cancel\",\"request\":\"What do people here think of the N100 for a home server?\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 6.916,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 6.916,
+          "text" : "prompt 4887 response 37"
+        },
+        {
+          "kind" : "response",
+          "t" : 6.936,
+          "text" : "hand_off_to_agent WHEN_IDLE 256 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 10.137,
+          "text" : "Understood, I've canceled that request for you."
+        },
+        {
+          "kind" : "usage",
+          "t" : 10.137,
+          "text" : "prompt 4974 response 71"
+        }
+      ],
+      "expected" : [
+        "hand_off_to_agent:cancel"
+      ],
+      "first" : "hand_off_to_agent:cancel",
+      "rep" : 2,
+      "set" : "fixed-14",
+      "utterance" : "Never mind."
+    },
+    {
+      "args" : [
+        "browse_open {\"at\":\"solution\"}"
+      ],
+      "calls" : [
+        "browse_open"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.356,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.356,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.594,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.619,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.62,
+          "text" : "Take me to the solution."
+        },
+        {
+          "kind" : "call",
+          "t" : 1.052,
+          "text" : "browse_open {\"at\":\"solution\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 1.068,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 1.068,
+          "text" : "prompt 4546 response 12"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.096,
+          "text" : "browse_open WHEN_IDLE 412 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.785,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.785,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 22.464,
+          "text" : "I've found the solution on your screen, which suggests rolling back to version five point one point four to fix the fan curve setting reset."
+        },
+        {
+          "kind" : "usage",
+          "t" : 22.464,
+          "text" : "prompt 4660 response 214"
+        }
+      ],
+      "expected" : [
+        "browse_open"
+      ],
+      "first" : "browse_open",
+      "page" : "forum",
+      "rep" : 2,
+      "secondsToFirstCall" : 0.43,
+      "set" : "fixed-14",
+      "spoken" : " I've found the solution on your screen, which suggests rolling back to version five point one point four to fix the fan curve setting reset.",
+      "utterance" : "Take me to the solution."
+    },
+    {
+      "args" : [
+        "search_forum {\"query\":\"firmware rollback\"}"
+      ],
+      "calls" : [
+        "search_forum"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.496,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.496,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.764,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.814,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.814,
+          "text" : "Search for firmware rollback."
+        },
+        {
+          "kind" : "call",
+          "t" : 1.312,
+          "text" : "search_forum {\"query\":\"firmware rollback\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 1.313,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 1.313,
+          "text" : "prompt 4545 response 14"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.343,
+          "text" : "search_forum WHEN_IDLE 375 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 2.136,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 2.169,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 11.615,
+          "text" : "I found a few discussions. The top ones are a guide for the firmware five point two rollback and a discussion about the five point two changelog. Which one would you like to look at?"
+        },
+        {
+          "kind" : "usage",
+          "t" : 11.615,
+          "text" : "prompt 4650 response 243"
+        }
+      ],
+      "expected" : [
+        "search_forum"
+      ],
+      "first" : "search_forum",
+      "page" : "forum",
+      "rep" : 2,
+      "secondsToFirstCall" : 0.5,
+      "set" : "fixed-14",
+      "spoken" : " I found a few discussions. The top ones are a guide for the firmware five point two rollback and a discussion about the five point two changelog. Which one would you like to look at?",
+      "utterance" : "Search for firmware rollback."
+    },
+    {
+      "args" : [
+        "browse_focus {\"mode\":\"op\"}"
+      ],
+      "calls" : [
+        "browse_focus"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.215,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.215,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.509,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.559,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.559,
+          "text" : "Only show what the original poster said."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.969,
+          "text" : "browse_focus {\"mode\":\"op\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.975,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.975,
+          "text" : "prompt 4548 response 12"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.017,
+          "text" : "browse_focus WHEN_IDLE 413 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.913,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.927,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 5.525,
+          "text" : "Here are only the posts from the original poster showing on your screen now."
+        },
+        {
+          "kind" : "usage",
+          "t" : 5.525,
+          "text" : "prompt 4662 response 98"
+        }
+      ],
+      "expected" : [
+        "browse_focus"
+      ],
+      "first" : "browse_focus",
+      "page" : "forum",
+      "rep" : 2,
+      "secondsToFirstCall" : 0.41,
+      "set" : "fixed-14",
+      "spoken" : " Here are only the posts from the original poster showing on your screen now.",
+      "utterance" : "Only show what the original poster said."
+    },
+    {
+      "args" : [
+        "read_post {\"post\":20}"
+      ],
+      "calls" : [
+        "read_post"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 6.245,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 6.245,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 6.593,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 6.616,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 6.616,
+          "text" : "What does post 20 say?"
+        },
+        {
+          "kind" : "call",
+          "t" : 7.079,
+          "text" : "read_post {\"post\":20}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 7.079,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 7.079,
+          "text" : "prompt 4548 response 11"
+        },
+        {
+          "kind" : "response",
+          "t" : 7.117,
+          "text" : "read_post WHEN_IDLE 351 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 8.103,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 8.138,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 15.789,
+          "text" : "Post twenty mentions that setting the fan curve back to Silent in the BIOS after update five point two has kept the system quiet for a week."
+        },
+        {
+          "kind" : "usage",
+          "t" : 15.789,
+          "text" : "prompt 4638 response 199"
+        }
+      ],
+      "expected" : [
+        "read_post"
+      ],
+      "first" : "read_post",
+      "page" : "forum",
+      "rep" : 2,
+      "secondsToFirstCall" : 0.46,
+      "set" : "fixed-14",
+      "spoken" : " Post twenty mentions that setting the fan curve back to Silent in the BIOS after update five point two has kept the system quiet for a week.",
+      "utterance" : "What does post 20 say?"
+    },
+    {
+      "args" : [
+        "watch_topic {}"
+      ],
+      "calls" : [
+        "watch_topic"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.157,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.157,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.633,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.672,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.672,
+          "text" : "Notify me of new replies to this thread."
+        },
+        {
+          "kind" : "call",
+          "t" : 1.075,
+          "text" : "watch_topic {}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 1.076,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 1.076,
+          "text" : "prompt 4549 response 6"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.116,
+          "text" : "watch_topic WHEN_IDLE 265 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.676,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.691,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 5.822,
+          "text" : "I'm now following this thread and will notify you of any new replies."
+        },
+        {
+          "kind" : "usage",
+          "t" : 5.822,
+          "text" : "prompt 4605 response 107"
+        }
+      ],
+      "expected" : [
+        "watch_topic"
+      ],
+      "first" : "watch_topic",
+      "page" : "forum",
+      "rep" : 2,
+      "secondsToFirstCall" : 0.4,
+      "set" : "fixed-14",
+      "spoken" : " I'm now following this thread and will notify you of any new replies.",
+      "utterance" : "Notify me of new replies to this thread."
+    },
+    {
+      "args" : [
+        "browse_move {\"action\":\"back\"}"
+      ],
+      "calls" : [
+        "browse_move"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.329,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.329,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.576,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.623,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.623,
+          "text" : "Go back."
+        },
+        {
+          "kind" : "call",
+          "t" : 1.013,
+          "text" : "browse_move {\"action\":\"back\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.014,
+          "text" : "browse_move WHEN_IDLE 243 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 1.03,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 1.03,
+          "text" : "prompt 4543 response 12"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.762,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.783,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 4.148,
+          "text" : "I have moved back to the previous page."
+        },
+        {
+          "kind" : "usage",
+          "t" : 4.148,
+          "text" : "prompt 4601 response 65"
+        }
+      ],
+      "expected" : [
+        "browse_move"
+      ],
+      "first" : "browse_move",
+      "page" : "forum",
+      "rep" : 2,
+      "secondsToFirstCall" : 0.39,
+      "set" : "fixed-14",
+      "spoken" : " I have moved back to the previous page.",
+      "utterance" : "Go back."
+    },
+    {
+      "args" : [
+        "end {}"
+      ],
+      "calls" : [
+        "end"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.139,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.139,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.495,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.524,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.524,
+          "text" : "Thanks, that's all."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.113,
+          "text" : ""
+        },
+        {
+          "kind" : "call",
+          "t" : 1.487,
+          "text" : "end {}"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.509,
+          "text" : "end SILENT 162 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 3.9,
+          "text" : "You're very welcome! Have a great day."
+        },
+        {
+          "kind" : "usage",
+          "t" : 3.9,
+          "text" : "prompt 4651 response 75"
+        }
+      ],
+      "expected" : [
+        "end"
+      ],
+      "first" : "end",
+      "page" : "forum",
+      "rep" : 2,
+      "secondsToFirstCall" : 0.96,
+      "set" : "fixed-14",
+      "spoken" : "You're very welcome! Have a great day.",
+      "utterance" : "Thanks, that's all."
+    }
+  ]
+}

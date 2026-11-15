@@ -45,14 +45,16 @@ enum SpikeTools {
         return ["name": .string(name), "description": .string(description), "inputSchema": .object(schema)]
     }
 
-    static func appText(_ tool: VoiceTool) -> String {
-        var text = tool.description(for: site)
-        for (old, new) in [
-            ("call open", "call browse_open"), ("the last find or research", "the last search_forum or hand_off_to_agent"),
-            ("the last find, research or focus", "the last search_forum, hand_off_to_agent or browse_focus"),
-            ("find, open, move, focus or read", "the browse tools")
-        ] { text = text.replacingOccurrences(of: old, with: new) }
-        return text
+    enum Key { case open, move, focus, read, find, end }
+    static func appText(_ key: Key) -> String {
+        switch key {
+        case .open: return AppText.open
+        case .move: return AppText.move
+        case .focus: return AppText.focus
+        case .read: return AppText.read
+        case .find: return AppText.find
+        case .end: return AppText.end
+        }
     }
 
     static let topicID = p("topic_id", "string", "A thread id on this forum, from a result. Leave out for the open thread.", ["minLength": 1])
@@ -154,10 +156,8 @@ enum SpikeTools {
     }
 
     /// Today's seven tools, exactly as the app declares them.
-    static var today: [JSONValue] {
-        let data = try! JSONEncoder().encode(VoiceTool.geminiDeclarations(for: site))
-        return try! JSONDecoder().decode([JSONValue].self, from: data)
-    }
+    /// Today's forum set (12 tools incl. end and the hand-off), as the spike's draft declares it.
+    static var today: [JSONValue] { voice.map { declaration($0) } }
 
     // MARK: Instructions
 

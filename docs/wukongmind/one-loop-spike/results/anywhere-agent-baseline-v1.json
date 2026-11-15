@@ -1,0 +1,184 @@
+{
+  "date" : "2026-11-15T08:24:50Z",
+  "model" : "gemini-3.8-live",
+  "question" : "anywhere-agent-baseline",
+  "rows" : [
+    {
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.466,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.466,
+          "text" : "7262 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.716,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.723,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.723,
+          "text" : "Open bbc.com."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 2.063,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 6.817,
+          "text" : "I'm sorry, but I can only open and browse discussion forums and discussion sites."
+        },
+        {
+          "kind" : "usage",
+          "t" : 6.817,
+          "text" : "prompt 2190 response 124"
+        }
+      ],
+      "first" : "none",
+      "part" : "voice-to-handoff",
+      "rep" : 0,
+      "seconds" : -1
+    },
+    {
+      "final" : "I've opened bbc.com. The page title is \"BBC Home - Breaking News.\"",
+      "model" : "claude-haiku-5-5",
+      "part" : "agent-haiku-stub",
+      "rep" : 0,
+      "seconds" : 1.71,
+      "steps" : 2,
+      "tools" : [
+        "navigate"
+      ]
+    },
+    {
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.138,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.138,
+          "text" : "7262 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.359,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.403,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.403,
+          "text" : "Open bbc.com."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.367,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 9.029,
+          "text" : "I'm sorry, but I can only open forum threads or specific workspace files and cannot browse external websites like bbc.com."
+        },
+        {
+          "kind" : "usage",
+          "t" : 9.029,
+          "text" : "prompt 2190 response 197"
+        }
+      ],
+      "first" : "none",
+      "part" : "voice-to-handoff",
+      "rep" : 1,
+      "seconds" : -1
+    },
+    {
+      "final" : "I've opened bbc.com. The page title is \"BBC Home - Breaking News.\"",
+      "model" : "claude-haiku-5-5",
+      "part" : "agent-haiku-stub",
+      "rep" : 1,
+      "seconds" : 2.13,
+      "steps" : 2,
+      "tools" : [
+        "navigate"
+      ]
+    },
+    {
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.218,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.218,
+          "text" : "7262 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.408,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.43,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.43,
+          "text" : "Open bbc.com."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.16,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 6.185,
+          "text" : "I'm sorry, but I can only read and navigate online forums and discussion sites."
+        },
+        {
+          "kind" : "usage",
+          "t" : 6.185,
+          "text" : "prompt 2190 response 133"
+        }
+      ],
+      "first" : "none",
+      "part" : "voice-to-handoff",
+      "rep" : 2,
+      "seconds" : -1
+    },
+    {
+      "final" : "I've opened bbc.com. The page title is \"BBC Home - Breaking News.\"",
+      "model" : "claude-haiku-5-5",
+      "part" : "agent-haiku-stub",
+      "rep" : 2,
+      "seconds" : 1.73,
+      "steps" : 2,
+      "tools" : [
+        "navigate"
+      ]
+    }
+  ]
+}

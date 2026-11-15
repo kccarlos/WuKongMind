@@ -1,0 +1,238 @@
+{
+  "date" : "2026-11-15T08:41:37Z",
+  "model" : "gemini-3.8-live",
+  "question" : "anywhere-forum-on-ordinary",
+  "rows" : [
+    {
+      "calls" : [
+        "search_forum"
+      ],
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.115,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.115,
+          "text" : "15898 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.303,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.323,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.323,
+          "text" : "Search this forum for firmware rollback."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.935,
+          "text" : "search_forum {\"query\":\"firmware rollback\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 0.956,
+          "text" : "search_forum WHEN_IDLE 274 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.956,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.956,
+          "text" : "prompt 4398 response 14"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.695,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.7,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 4.702,
+          "text" : "I can't search this page because it's not a forum."
+        },
+        {
+          "kind" : "usage",
+          "t" : 4.702,
+          "text" : "prompt 4467 response 77"
+        }
+      ],
+      "forumToolCalls" : 1,
+      "noRetry" : true,
+      "rep" : 0,
+      "spoken" : " I can't search this page because it's not a forum.",
+      "toldUser" : true
+    },
+    {
+      "calls" : [
+        "search_forum"
+      ],
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.129,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.129,
+          "text" : "15898 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.455,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.495,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.495,
+          "text" : "Search this forum for firmware rollback."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.949,
+          "text" : "search_forum {\"query\":\"firmware rollback\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.968,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.968,
+          "text" : "prompt 4398 response 14"
+        },
+        {
+          "kind" : "response",
+          "t" : 0.968,
+          "text" : "search_forum WHEN_IDLE 273 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.638,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.688,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 4.483,
+          "text" : "I can't search this page because it's not a forum."
+        },
+        {
+          "kind" : "usage",
+          "t" : 4.483,
+          "text" : "prompt 4467 response 78"
+        }
+      ],
+      "forumToolCalls" : 1,
+      "noRetry" : true,
+      "rep" : 1,
+      "spoken" : " I can't search this page because it's not a forum.",
+      "toldUser" : true
+    },
+    {
+      "calls" : [
+        "search_forum"
+      ],
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.119,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.119,
+          "text" : "15898 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.323,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.328,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.328,
+          "text" : "Search this forum for firmware rollback."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.842,
+          "text" : "search_forum {\"query\":\"firmware rollback\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 0.856,
+          "text" : "search_forum WHEN_IDLE 273 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.86,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.86,
+          "text" : "prompt 4398 response 14"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.377,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.428,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 4.721,
+          "text" : "I can't search for that here because this page isn't a forum."
+        },
+        {
+          "kind" : "usage",
+          "t" : 4.721,
+          "text" : "prompt 4467 response 88"
+        }
+      ],
+      "forumToolCalls" : 1,
+      "noRetry" : true,
+      "rep" : 2,
+      "spoken" : " I can't search for that here because this page isn't a forum.",
+      "toldUser" : true
+    }
+  ]
+}

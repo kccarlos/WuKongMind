@@ -1,0 +1,1366 @@
+{
+  "date" : "2026-11-15T10:03:08Z",
+  "model" : "gemini-3.8-live",
+  "question" : "anywhere-links",
+  "rows" : [
+    {
+      "args" : [
+        "open_link {\"number\":3}"
+      ],
+      "calls" : [
+        "open_link"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.234,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.234,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.467,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.5,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.5,
+          "text" : "Open the third link."
+        },
+        {
+          "kind" : "call",
+          "t" : 1.105,
+          "text" : "open_link {\"number\":3}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 1.106,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 1.106,
+          "text" : "prompt 4545 response 10"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.137,
+          "text" : "open_link WHEN_IDLE 301 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.694,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.71,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 6.053,
+          "text" : "I've opened the article about the new iPad lineup on herald example dot com."
+        },
+        {
+          "kind" : "usage",
+          "t" : 6.053,
+          "text" : "prompt 4614 response 114"
+        }
+      ],
+      "expected" : [
+        "open_link"
+      ],
+      "first" : "open_link",
+      "page" : "ordinary",
+      "rep" : 0,
+      "secondsToFirstCall" : 0.6,
+      "spoken" : " I've opened the article about the new iPad lineup on herald example dot com.",
+      "utterance" : "Open the third link."
+    },
+    {
+      "args" : [
+        "open_link {\"words\":\"tariffs\"}"
+      ],
+      "calls" : [
+        "open_link"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.147,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.147,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.403,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.403,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.403,
+          "text" : "Open the one about tariffs."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.874,
+          "text" : "open_link {\"words\":\"tariffs\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.899,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.899,
+          "text" : "prompt 4546 response 13"
+        },
+        {
+          "kind" : "response",
+          "t" : 0.947,
+          "text" : "open_link WHEN_IDLE 308 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.58,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.589,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 5.837,
+          "text" : "I've opened the opinion piece on why tariffs miss the point on Herald Example."
+        },
+        {
+          "kind" : "usage",
+          "t" : 5.837,
+          "text" : "prompt 4620 response 111"
+        }
+      ],
+      "expected" : [
+        "open_link"
+      ],
+      "first" : "open_link",
+      "page" : "ordinary",
+      "rep" : 0,
+      "secondsToFirstCall" : 0.47,
+      "spoken" : " I've opened the opinion piece on why tariffs miss the point on Herald Example.",
+      "utterance" : "Open the one about tariffs."
+    },
+    {
+      "args" : [
+        "hand_off_to_agent {\"action\":\"start\",\"request\":\"Click the buy button.\"}"
+      ],
+      "calls" : [
+        "hand_off_to_agent"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.13,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.13,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.352,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.393,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.393,
+          "text" : "Click the buy button."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.158,
+          "text" : ""
+        },
+        {
+          "kind" : "call",
+          "t" : 1.372,
+          "text" : "hand_off_to_agent {\"action\":\"start\",\"request\":\"Click the buy button.\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.393,
+          "text" : "hand_off_to_agent SILENT 388 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 2.993,
+          "text" : "I can help you with that purchase."
+        },
+        {
+          "kind" : "usage",
+          "t" : 2.993,
+          "text" : "prompt 4545 response 78"
+        }
+      ],
+      "expected" : [
+        "hand_off_to_agent"
+      ],
+      "first" : "hand_off_to_agent",
+      "page" : "ordinary",
+      "rep" : 0,
+      "secondsToFirstCall" : 0.98,
+      "spoken" : "I can help you with that purchase.",
+      "utterance" : "Click the buy button."
+    },
+    {
+      "calls" : [
+        "open_link"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.175,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.175,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.481,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.49,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.491,
+          "text" : "Open the Apple story."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.977,
+          "text" : "open_link {\"words\":\"Apple story\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.995,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.995,
+          "text" : "prompt 4545 response 13"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.013,
+          "text" : "open_link WHEN_IDLE 409 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.555,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.581,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 7.772,
+          "text" : "I found two stories about Apple. Would you like to read about the new iPad lineup or the shareholder buyback plan?"
+        },
+        {
+          "kind" : "usage",
+          "t" : 7.772,
+          "text" : "prompt 4645 response 160"
+        },
+        {
+          "kind" : "user",
+          "t" : 18.849,
+          "text" : "The second one."
+        },
+        {
+          "kind" : "call",
+          "t" : 19.29,
+          "text" : "open_link {\"number\":4}"
+        },
+        {
+          "kind" : "response",
+          "t" : 19.323,
+          "text" : "open_link WHEN_IDLE 305 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 19.339,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 19.34,
+          "text" : "prompt 4889 response 10"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 24.354,
+          "text" : "I've opened the article about Apple shareholders backing the buyback plan on your screen."
+        },
+        {
+          "kind" : "usage",
+          "t" : 24.354,
+          "text" : "prompt 4960 response 117"
+        }
+      ],
+      "first" : "open_link",
+      "page" : "ordinary",
+      "rep" : 0,
+      "secondArgs" : "open_link {\"number\":4}",
+      "secondCalls" : [
+        "open_link"
+      ],
+      "spokeBothCandidates" : true,
+      "spokenFirst" : " I found two stories about Apple. Would you like to read about the new iPad lineup or the shareholder buyback plan?",
+      "utterance" : "Open the Apple story. / The second one."
+    },
+    {
+      "calls" : [
+        "open_page"
+      ],
+      "correct" : false,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.154,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.154,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.393,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.421,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.421,
+          "text" : "Search for firmware rollback."
+        },
+        {
+          "kind" : "call",
+          "t" : 1.162,
+          "text" : "open_page {\"target\":\"firmware rollback\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 1.169,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 1.169,
+          "text" : "prompt 4545 response 14"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.215,
+          "text" : "open_page WHEN_IDLE 312 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.916,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.924,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 4.387,
+          "text" : "I've searched the web for firmware rollback."
+        },
+        {
+          "kind" : "usage",
+          "t" : 4.387,
+          "text" : "prompt 4627 response 67"
+        },
+        {
+          "kind" : "user",
+          "t" : 15.476,
+          "text" : "Open the second one."
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 22.125,
+          "text" : "I'm sorry, but there aren't any search results or list items currently on the screen to select from."
+        },
+        {
+          "kind" : "usage",
+          "t" : 22.125,
+          "text" : "prompt 4827 response 136"
+        }
+      ],
+      "first" : "none",
+      "page" : "forum",
+      "rep" : 0,
+      "secondCalls" : [
+
+      ],
+      "utterance" : "Search for firmware rollback. / Open the second one."
+    },
+    {
+      "args" : [
+        "open_link {\"number\":3}"
+      ],
+      "calls" : [
+        "open_link"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.321,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.321,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.608,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.641,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.642,
+          "text" : "Open the third link."
+        },
+        {
+          "kind" : "call",
+          "t" : 1.059,
+          "text" : "open_link {\"number\":3}"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.066,
+          "text" : "open_link WHEN_IDLE 300 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 1.073,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 1.073,
+          "text" : "prompt 4546 response 10"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.703,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.781,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 6.416,
+          "text" : "I've opened the article about the new iPad lineup on heraldexample.com."
+        },
+        {
+          "kind" : "usage",
+          "t" : 6.416,
+          "text" : "prompt 4615 response 122"
+        }
+      ],
+      "expected" : [
+        "open_link"
+      ],
+      "first" : "open_link",
+      "page" : "ordinary",
+      "rep" : 1,
+      "secondsToFirstCall" : 0.42,
+      "spoken" : " I've opened the article about the new iPad lineup on heraldexample.com.",
+      "utterance" : "Open the third link."
+    },
+    {
+      "args" : [
+        "open_link {\"words\":\"tariffs\"}"
+      ],
+      "calls" : [
+        "open_link"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.134,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.134,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.376,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.4,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.4,
+          "text" : "Open the one about tariffs."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.821,
+          "text" : "open_link {\"words\":\"tariffs\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.837,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.837,
+          "text" : "prompt 4547 response 13"
+        },
+        {
+          "kind" : "response",
+          "t" : 0.876,
+          "text" : "open_link WHEN_IDLE 308 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.739,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.744,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 6.787,
+          "text" : "I've opened the opinion piece about why tariffs miss the point on herald example dot com."
+        },
+        {
+          "kind" : "usage",
+          "t" : 6.787,
+          "text" : "prompt 4621 response 132"
+        }
+      ],
+      "expected" : [
+        "open_link"
+      ],
+      "first" : "open_link",
+      "page" : "ordinary",
+      "rep" : 1,
+      "secondsToFirstCall" : 0.42,
+      "spoken" : " I've opened the opinion piece about why tariffs miss the point on herald example dot com.",
+      "utterance" : "Open the one about tariffs."
+    },
+    {
+      "args" : [
+        "hand_off_to_agent {\"request\":\"Click the buy button.\"}"
+      ],
+      "calls" : [
+        "hand_off_to_agent"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.141,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.141,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.342,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.354,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.354,
+          "text" : "Click the buy button."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 0.982,
+          "text" : ""
+        },
+        {
+          "kind" : "call",
+          "t" : 1.204,
+          "text" : "hand_off_to_agent {\"request\":\"Click the buy button.\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.243,
+          "text" : "hand_off_to_agent SILENT 389 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 2.53,
+          "text" : "I'll take care of that for you."
+        },
+        {
+          "kind" : "usage",
+          "t" : 2.53,
+          "text" : "prompt 4546 response 64"
+        }
+      ],
+      "expected" : [
+        "hand_off_to_agent"
+      ],
+      "first" : "hand_off_to_agent",
+      "page" : "ordinary",
+      "rep" : 1,
+      "secondsToFirstCall" : 0.85,
+      "spoken" : "I'll take care of that for you.",
+      "utterance" : "Click the buy button."
+    },
+    {
+      "calls" : [
+        "open_link"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.126,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.126,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.37,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.393,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.393,
+          "text" : "Open the Apple story."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.951,
+          "text" : "open_link {\"words\":\"the Apple story\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.968,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.968,
+          "text" : "prompt 4546 response 14"
+        },
+        {
+          "kind" : "response",
+          "t" : 0.969,
+          "text" : "open_link WHEN_IDLE 409 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.655,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.713,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 8.488,
+          "text" : "I found two stories about Apple. Are you interested in the new iPad lineup or the shareholders backing the buyback plan?"
+        },
+        {
+          "kind" : "usage",
+          "t" : 8.488,
+          "text" : "prompt 4647 response 177"
+        },
+        {
+          "kind" : "user",
+          "t" : 19.591,
+          "text" : "The second one."
+        },
+        {
+          "kind" : "call",
+          "t" : 20.15,
+          "text" : "open_link {\"number\":4}"
+        },
+        {
+          "kind" : "response",
+          "t" : 20.175,
+          "text" : "open_link WHEN_IDLE 306 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 20.194,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 20.194,
+          "text" : "prompt 4910 response 10"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 26.206,
+          "text" : "I've opened the article about Apple shareholders backing the buyback plan on the Financial Times website."
+        },
+        {
+          "kind" : "usage",
+          "t" : 26.206,
+          "text" : "prompt 4981 response 139"
+        }
+      ],
+      "first" : "open_link",
+      "page" : "ordinary",
+      "rep" : 1,
+      "secondArgs" : "open_link {\"number\":4}",
+      "secondCalls" : [
+        "open_link"
+      ],
+      "spokeBothCandidates" : true,
+      "spokenFirst" : " I found two stories about Apple. Are you interested in the new iPad lineup or the shareholders backing the buyback plan?",
+      "utterance" : "Open the Apple story. / The second one."
+    },
+    {
+      "calls" : [
+        "open_page"
+      ],
+      "correct" : false,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.153,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.153,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.634,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.677,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.678,
+          "text" : "Search for firmware rollback."
+        },
+        {
+          "kind" : "call",
+          "t" : 1.671,
+          "text" : "open_page {\"target\":\"firmware rollback\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 1.671,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 1.671,
+          "text" : "prompt 4546 response 14"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.676,
+          "text" : "open_page WHEN_IDLE 312 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 2.299,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 2.309,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 6.686,
+          "text" : "I've searched the web for firmware rollback and the results are now on your screen."
+        },
+        {
+          "kind" : "usage",
+          "t" : 6.686,
+          "text" : "prompt 4628 response 111"
+        },
+        {
+          "kind" : "user",
+          "t" : 17.765,
+          "text" : "Open the second one."
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 24.704,
+          "text" : "I can't open a second one because there are no search results or multiple posts selected on your screen right now."
+        },
+        {
+          "kind" : "usage",
+          "t" : 24.704,
+          "text" : "prompt 4884 response 151"
+        }
+      ],
+      "first" : "none",
+      "page" : "forum",
+      "rep" : 1,
+      "secondCalls" : [
+
+      ],
+      "utterance" : "Search for firmware rollback. / Open the second one."
+    },
+    {
+      "args" : [
+        "open_link {\"number\":3}"
+      ],
+      "calls" : [
+        "open_link"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.126,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.126,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.382,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.39,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.39,
+          "text" : "Open the third link."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.848,
+          "text" : "open_link {\"number\":3}"
+        },
+        {
+          "kind" : "response",
+          "t" : 0.862,
+          "text" : "open_link WHEN_IDLE 302 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.867,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.867,
+          "text" : "prompt 4580 response 10"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.525,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.533,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 6.443,
+          "text" : "The Apple iPad announcement is now on your screen, detailing the latest lineup."
+        },
+        {
+          "kind" : "usage",
+          "t" : 6.443,
+          "text" : "prompt 4649 response 128"
+        }
+      ],
+      "expected" : [
+        "open_link"
+      ],
+      "first" : "open_link",
+      "page" : "ordinary",
+      "rep" : 2,
+      "secondsToFirstCall" : 0.46,
+      "spoken" : " The Apple iPad announcement is now on your screen, detailing the latest lineup.",
+      "utterance" : "Open the third link."
+    },
+    {
+      "args" : [
+        "open_link {\"words\":\"tariffs\"}"
+      ],
+      "calls" : [
+        "open_link"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.146,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.146,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.422,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.463,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.463,
+          "text" : "Open the one about tariffs."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.882,
+          "text" : "open_link {\"words\":\"tariffs\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.9,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.9,
+          "text" : "prompt 4547 response 13"
+        },
+        {
+          "kind" : "response",
+          "t" : 0.933,
+          "text" : "open_link WHEN_IDLE 307 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.848,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.882,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 5.835,
+          "text" : "I've opened the opinion piece on tariffs from Herald Example on your screen."
+        },
+        {
+          "kind" : "usage",
+          "t" : 5.835,
+          "text" : "prompt 4621 response 105"
+        }
+      ],
+      "expected" : [
+        "open_link"
+      ],
+      "first" : "open_link",
+      "page" : "ordinary",
+      "rep" : 2,
+      "secondsToFirstCall" : 0.42,
+      "spoken" : " I've opened the opinion piece on tariffs from Herald Example on your screen.",
+      "utterance" : "Open the one about tariffs."
+    },
+    {
+      "args" : [
+        "hand_off_to_agent {\"request\":\"Click the buy button.\"}"
+      ],
+      "calls" : [
+        "hand_off_to_agent"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.132,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.132,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.367,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.394,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.394,
+          "text" : "Click the buy button."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.14,
+          "text" : ""
+        },
+        {
+          "kind" : "call",
+          "t" : 1.382,
+          "text" : "hand_off_to_agent {\"request\":\"Click the buy button.\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.396,
+          "text" : "hand_off_to_agent SILENT 388 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 3.3,
+          "text" : "Sure, let me take care of that for you."
+        },
+        {
+          "kind" : "usage",
+          "t" : 3.3,
+          "text" : "prompt 4546 response 79"
+        }
+      ],
+      "expected" : [
+        "hand_off_to_agent"
+      ],
+      "first" : "hand_off_to_agent",
+      "page" : "ordinary",
+      "rep" : 2,
+      "secondsToFirstCall" : 0.99,
+      "spoken" : "Sure, let me take care of that for you.",
+      "utterance" : "Click the buy button."
+    },
+    {
+      "calls" : [
+        "open_link"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.146,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.146,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.345,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.354,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.355,
+          "text" : "Open the Apple story."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.823,
+          "text" : "open_link {\"words\":\"the Apple story\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 0.824,
+          "text" : "open_link WHEN_IDLE 408 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.84,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.84,
+          "text" : "prompt 4546 response 14"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.408,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.436,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 8.689,
+          "text" : "There are a couple of Apple stories here. Are you looking for the one about the new iPad lineup or the shareholders backing a buyback plan?"
+        },
+        {
+          "kind" : "usage",
+          "t" : 8.689,
+          "text" : "prompt 4647 response 188"
+        },
+        {
+          "kind" : "user",
+          "t" : 8.73,
+          "text" : "The second one."
+        },
+        {
+          "kind" : "call",
+          "t" : 9.428,
+          "text" : "open_link {\"number\":4}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 9.446,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 9.446,
+          "text" : "prompt 4926 response 10"
+        },
+        {
+          "kind" : "response",
+          "t" : 9.466,
+          "text" : "open_link WHEN_IDLE 305 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 15.557,
+          "text" : "I've opened the report on Apple shareholders backing the buyback plan on the Financial Times website."
+        },
+        {
+          "kind" : "usage",
+          "t" : 15.557,
+          "text" : "prompt 4997 response 140"
+        }
+      ],
+      "first" : "open_link",
+      "page" : "ordinary",
+      "rep" : 2,
+      "secondArgs" : "open_link {\"number\":4}",
+      "secondCalls" : [
+        "open_link"
+      ],
+      "spokeBothCandidates" : true,
+      "spokenFirst" : " There are a couple of Apple stories here. Are you looking for the one about the new iPad lineup or the shareholders backing a buyback plan?",
+      "utterance" : "Open the Apple story. / The second one."
+    },
+    {
+      "calls" : [
+        "open_page"
+      ],
+      "correct" : false,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.138,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.138,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.419,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.459,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.459,
+          "text" : "Search for firmware rollback."
+        },
+        {
+          "kind" : "call",
+          "t" : 1.22,
+          "text" : "open_page {\"target\":\"firmware rollback\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 1.241,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 1.241,
+          "text" : "prompt 4546 response 14"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.251,
+          "text" : "open_page WHEN_IDLE 313 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.784,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.785,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 5.982,
+          "text" : "I've searched the web for firmware rollback, and the results are on your screen."
+        },
+        {
+          "kind" : "usage",
+          "t" : 5.982,
+          "text" : "prompt 4628 response 109"
+        },
+        {
+          "kind" : "user",
+          "t" : 17.1,
+          "text" : "Open the second one."
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 22.13,
+          "text" : "I'm sorry, but there are no search results or cards on your screen to open."
+        },
+        {
+          "kind" : "usage",
+          "t" : 22.13,
+          "text" : "prompt 4882 response 107"
+        }
+      ],
+      "first" : "none",
+      "page" : "forum",
+      "rep" : 2,
+      "secondCalls" : [
+
+      ],
+      "utterance" : "Search for firmware rollback. / Open the second one."
+    }
+  ]
+}

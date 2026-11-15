@@ -28,7 +28,6 @@ targets:
       - ../../../WukongMind/Voice/LiveProtocol.swift
       - ../../../WukongMind/Voice/LiveTransport.swift
       - ../../../WukongMind/Voice/VoiceAudioFormat.swift
-      - ../../../WukongMind/Voice/VoiceTools.swift
       - ../../../WukongMind/Voice/VoiceInstructions.swift
     dependencies:
       - target: SpikeHost
