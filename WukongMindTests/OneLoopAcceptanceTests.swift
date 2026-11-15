@@ -168,7 +168,7 @@ final class OneLoopAcceptanceTests: XCTestCase {
         XCTAssertFalse(forumTurn.contains("- Page tools:"))
         XCTAssertTrue(newsTurn.contains("- URL: \(PageChangeRun.newsPage.url)"))
         XCTAssertTrue(newsTurn.contains("The page changed since the user's previous message"))
-        XCTAssertTrue(newsTurn.contains("Not a forum or a supported site"))
+        XCTAssertTrue(newsTurn.contains("- No reading tool for this site yet."))
         XCTAssertTrue(newsTurn.hasSuffix("The user's message:\n\(Self.newsPrompt)"))
         XCTAssertFalse(newsTurn.contains("- Page tools:"))
         XCTAssertTrue(shopTurn.contains("- Page tools: 1 from this site (untrusted), 1 from your scripts; `page_tools_list` shows them."))

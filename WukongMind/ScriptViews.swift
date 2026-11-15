@@ -545,6 +545,20 @@ struct AgentScriptCardView: View {
                 .accessibilityIdentifier("agentScriptFixedSeal")
             }
 
+            if script.metadata.grants.contains("GM_ai") {
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Image(systemName: "sparkles")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(DCTheme.goldInk)
+                        .accessibilityHidden(true)
+                    Text("Uses AI: sends page text to \(app.scriptsModelDisplayName)", comment: "Script card and detail notice for a script with the GM_ai grant; placeholder is the active Scripts model name")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .accessibilityIdentifier("agentScriptUsesAI")
+            }
+
             HStack(spacing: 8) {
                 Button {
                     DCHaptics.tap()
@@ -1100,7 +1114,7 @@ struct PageCapabilitiesView: View {
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel(Text(script.name))
+                .accessibilityLabel(Text(verbatim: scriptRowVoiceOverLabel(for: script)))
                 .accessibilityValue(Text(rowAccessibilityValue(for: script, error: error)))
                 .accessibilityIdentifier("pageScriptRow-\(script.id)")
 
@@ -1237,6 +1251,16 @@ struct PageCapabilitiesView: View {
             Text("All sites · CSS only", comment: "Popover subtitle for an all-sites stylesheet script")
                 .font(.caption)
                 .foregroundStyle(.secondary)
+        } else if script.metadata.grants.contains("GM_ai") {
+            if let ranAt = app.scriptStore.lastExecutedAt[script.id] {
+                Text("Ran \(ScriptUIFormatting.relativeDate(ranAt)) · uses AI", comment: "Popover subtitle showing when an AI-enabled script last ran")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else {
+                Text("\(ScriptUIFormatting.injectionTimeLabel(script.injectionTime)) · uses AI", comment: "Popover subtitle showing injection timing for an AI-enabled script")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         } else if let ranAt = app.scriptStore.lastExecutedAt[script.id] {
             Text("Ran \(ScriptUIFormatting.relativeDate(ranAt)) · \(ScriptUIFormatting.environmentCardLabel(script.environment))", comment: "Popover subtitle showing when the script last ran and in which execution world")
                 .font(.caption)
@@ -1246,6 +1270,12 @@ struct PageCapabilitiesView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
+    }
+
+    private func scriptRowVoiceOverLabel(for script: UserScript) -> String {
+        guard script.metadata.grants.contains("GM_ai") else { return script.name }
+        let usesAI = String(localized: "Uses AI · \(app.scriptsModelDisplayName)", comment: "Script row subtitle in Settings › Scripts when the script has the GM_ai grant; placeholder is the active Scripts model name")
+        return "\(script.name), \(usesAI)"
     }
 
     private func rowAccessibilityValue(for script: UserScript, error: ScriptRuntimeError?) -> String {
@@ -1326,6 +1356,32 @@ struct ScriptManagerView: View {
                         Image(systemName: "nosign")
                     }
                 }
+            }
+
+            Section {
+                Toggle(
+                    isOn: Binding(
+                        get: { app.settings.browserScriptsAIEnabled },
+                        set: { newValue in
+                            app.settings.browserScriptsAIEnabled = newValue
+                            app.saveSettings()
+                            ScriptUIFormatting.announce(
+                                newValue
+                                    ? String(localized: "AI in scripts on", comment: "VoiceOver announcement when AI in scripts is turned on")
+                                    : String(localized: "AI in scripts off", comment: "VoiceOver announcement when AI in scripts is turned off")
+                            )
+                        }
+                    )
+                ) {
+                    HStack(spacing: DCTheme.spacingM) {
+                        SettingsIcon(symbol: "sparkles", tint: DCTheme.goldInk)
+                        Text("AI in scripts", comment: "Settings › Scripts: switch allowing scripts with the GM_ai grant to ask the Scripts model")
+                    }
+                }
+                .disabled(!isGlobalOn)
+                .accessibilityIdentifier("scriptsAIEnabledToggle")
+            } footer: {
+                Text("Scripts with the GM_ai grant send page text to \(app.scriptsModelDisplayName). Off, they get no answer.", comment: "Settings › Scripts footer explaining the AI in scripts switch; placeholder is the active Scripts model name")
             }
 
             if groups.isEmpty {
@@ -1530,7 +1586,7 @@ struct ScriptManagerView: View {
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel(Text(script.name))
+                .accessibilityLabel(Text(verbatim: managerRowVoiceOverLabel(for: script)))
                 .accessibilityValue(Text(managerRowAccessibilityValue(for: script, error: error)))
                 .accessibilityIdentifier("scriptRow-\(script.id)")
 
@@ -1548,7 +1604,7 @@ struct ScriptManagerView: View {
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel(Text(script.name))
+                .accessibilityLabel(Text(verbatim: managerRowVoiceOverLabel(for: script)))
                 .accessibilityValue(Text(managerRowAccessibilityValue(for: script, error: error)))
                 .accessibilityIdentifier("scriptRow-\(script.id)")
 
@@ -1590,7 +1646,19 @@ struct ScriptManagerView: View {
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
+            if error == nil, script.metadata.grants.contains("GM_ai") {
+                Text("Uses AI · \(app.scriptsModelDisplayName)", comment: "Script row subtitle in Settings › Scripts when the script has the GM_ai grant; placeholder is the active Scripts model name")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
+    }
+
+    private func managerRowVoiceOverLabel(for script: UserScript) -> String {
+        guard script.metadata.grants.contains("GM_ai") else { return script.name }
+        let usesAI = String(localized: "Uses AI · \(app.scriptsModelDisplayName)", comment: "Script row subtitle in Settings › Scripts when the script has the GM_ai grant; placeholder is the active Scripts model name")
+        return "\(script.name), \(usesAI)"
     }
 
     private func managerRowAccessibilityValue(for script: UserScript, error: ScriptRuntimeError?) -> String {
@@ -1994,6 +2062,7 @@ struct ScriptDetailView: View {
                         }
                         .padding(.vertical, 2)
                         .accessibilityElement(children: .combine)
+                        .accessibilityIdentifier(cap.id == "ai" ? "scriptCanUseAI" : "scriptCanUse-\(cap.id)")
                     }
                     if !unsupportedGrants.isEmpty {
                         HStack(alignment: .top, spacing: 12) {
@@ -2219,6 +2288,42 @@ struct ScriptDetailView: View {
                 }
             } header: {
                 Text("Code", comment: "Section header in Script detail for JavaScript and CSS editors")
+            }
+
+            if script.metadata.grants.contains("GM_ai") {
+                let usage = store.aiCache.usageToday(for: script.id)
+                Section {
+                    HStack(alignment: .top, spacing: DCTheme.spacingM) {
+                        Image(systemName: "sparkles")
+                            .foregroundStyle(DCTheme.goldInk)
+                            .padding(.top, 2)
+                            .accessibilityHidden(true)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("AI use today: \(usage.calls) calls · \(usage.cacheHits) from cache", comment: "Script detail AI use row showing today's model calls and cache hits")
+                                .monospacedDigit()
+                            Text("Model: \(app.scriptsModelDisplayName)", comment: "Script detail AI use subtitle showing the active Scripts model name")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("scriptAIUseTodayRow")
+
+                    Button {
+                        DCHaptics.tap()
+                        store.aiCache.clearCache(for: script.id)
+                        ScriptUIFormatting.announce(
+                            String(localized: "AI cache cleared", comment: "VoiceOver announcement after clearing a script's AI cache")
+                        )
+                    } label: {
+                        Text("Clear AI cache", comment: "Button in Script detail to delete cached GM_ai answers for this script")
+                    }
+                    .accessibilityIdentifier("scriptClearAICacheButton")
+                } header: {
+                    Text("AI use", comment: "Section header in Script detail showing today's GM_ai usage and cache")
+                } footer: {
+                    Text("Answers are kept for 30 days, without the page text.", comment: "Footer in Script detail AI use section explaining cache retention and privacy")
+                }
             }
 
             // 7. Source

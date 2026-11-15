@@ -169,10 +169,11 @@ final class SettingsNavigationUITests: DCUITestCase {
         XCTAssertTrue(app.navigationBars["Models"].waitForExistence(timeout: 20))
         let agent = any(app, "modelRole-browserAgent")
         let assistant = any(app, "modelRole-assistant")
-        let scriptsPlaceholder = any(app, "modelRole-scriptsPlaceholder")
+        let scripts = any(app, "modelRole-scripts")
         XCTAssertTrue(agent.waitForExistence(timeout: 5))
         XCTAssertTrue(assistant.exists)
-        XCTAssertTrue(scriptsPlaceholder.exists, "M4 Scripts placeholder row should appear under Default models.")
+        XCTAssertTrue(scripts.exists, "Scripts role row should appear under Default models.")
+        XCTAssertTrue(scripts.label.contains("Same as Summaries"), "Got “\(scripts.label)”.")
         XCTAssertFalse(any(app, "modelRole-agent").exists, "Legacy Ask the forum role row must not appear.")
         XCTAssertTrue(agent.label.contains("deepseek-v4-flash"), "Got “\(agent.label)”.")
         XCTAssertTrue(assistant.label.contains("claude-sonnet-4-5"), "Got “\(assistant.label)”.")
@@ -196,6 +197,9 @@ final class SettingsNavigationUITests: DCUITestCase {
 
         capture("ai-models")
 
+        for _ in 0..<4 where !(agent.exists && agent.isHittable) {
+            app.swipeDown()
+        }
         XCTAssertTrue(reveal(agent, in: app, swipes: 5))
         agent.tap()
         XCTAssertTrue(app.navigationBars["Agent"].waitForExistence(timeout: 10))
@@ -422,6 +426,9 @@ final class SettingsNavigationUITests: DCUITestCase {
         let useForAgent = app.buttons["Use for Agent"]
         XCTAssertTrue(waitOrDump(useForAgent, timeout: 5, in: app), "Tapping a favorite offers its roles.")
         useForAgent.tap()
+        for _ in 0..<4 where !(agent.exists && agent.isHittable) {
+            app.swipeDown()
+        }
         XCTAssertTrue(reveal(agent, in: app, swipes: 5))
         XCTAssertTrue(wait(timeout: 5) { agent.label.contains("claude-sonnet-4-5") }, "Got “\(agent.label)”.")
 
@@ -429,6 +436,9 @@ final class SettingsNavigationUITests: DCUITestCase {
         let deepseek = any(app, "favoriteModel-deepseek:deepseek-v4-flash")
         XCTAssertTrue(reveal(deepseek, in: app))
         deepseek.press(forDuration: 1.2)
+        for _ in 0..<4 where !(agent.exists && agent.isHittable) {
+            app.swipeDown()
+        }
         XCTAssertTrue(reveal(agent, in: app, swipes: 5))
         XCTAssertTrue(wait(timeout: 5) {
             agent.label.contains("deepseek-v4-flash") && assistant.label.contains("deepseek-v4-flash")

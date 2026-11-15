@@ -93,7 +93,7 @@ final class ForumToolsTests: XCTestCase {
                 }
                 let refused = try await registry.dispatch(toolName: name, arguments: arguments)
                 XCTAssertTrue(refused.isError, name)
-                XCTAssertTrue(refused.output.contains("This page isn't a forum or a supported site, so `\(name)` can't run here. Use `read_page`"), refused.output)
+                XCTAssertTrue(refused.output.contains("No reading tool for this site yet. If the request needs the whole thread or a list, learn the site (see Learning a site); otherwise use `read_page`."), refused.output)
             }
         }
 

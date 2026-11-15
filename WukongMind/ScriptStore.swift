@@ -1743,10 +1743,14 @@ final class ScriptStore {
 
     let directoryURL: URL
     let valuesDirectoryURL: URL
+    let aiCacheDirectoryURL: URL
     @ObservationIgnored
     nonisolated static let maxStoredErrorsPerScript = 5
 
     let valuesStore: ScriptValuesStore
+    let aiCache: ScriptAICache
+    @ObservationIgnored
+    let aiLimiter: GMAiLimiter
     private(set) var scripts: [UserScript] = [] {
         didSet { onStoreChanged?() }
     }
@@ -1800,23 +1804,20 @@ final class ScriptStore {
     init(
         directoryURL: URL = ScriptStore.defaultDirectoryURL(),
         valuesDirectoryURL: URL? = nil,
+        aiCacheDirectoryURL: URL? = nil,
         isGlobalEnabled: Bool = true
     ) {
         self.directoryURL = directoryURL
-        let resolvedValuesDir: URL
-        if let valuesDirectoryURL {
-            resolvedValuesDir = valuesDirectoryURL
-        } else if directoryURL.lastPathComponent == "Scripts" {
-            resolvedValuesDir = directoryURL
-                .deletingLastPathComponent()
-                .appendingPathComponent("ScriptValues", isDirectory: true)
-        } else {
-            resolvedValuesDir = directoryURL
-                .appendingPathComponent("ScriptValues", isDirectory: true)
-        }
+        let baseDir = directoryURL.lastPathComponent == "Scripts" ? directoryURL.deletingLastPathComponent() : directoryURL
+        let resolvedValuesDir = valuesDirectoryURL ?? baseDir.appendingPathComponent("ScriptValues", isDirectory: true)
+        let resolvedAICacheDir = aiCacheDirectoryURL ?? baseDir.appendingPathComponent("ScriptAICache", isDirectory: true)
         self.valuesDirectoryURL = resolvedValuesDir
+        self.aiCacheDirectoryURL = resolvedAICacheDir
         self.valuesStore = ScriptValuesStore(directoryURL: resolvedValuesDir)
+        self.aiCache = ScriptAICache(directoryURL: resolvedAICacheDir)
+        self.aiLimiter = GMAiLimiter(storageURL: resolvedAICacheDir.appendingPathComponent(".limiter-today.state", isDirectory: false))
         self.isGlobalEnabled = isGlobalEnabled
+        self.aiCache.onChanged = { [weak self] in self?.onStoreChanged?() }
         reloadFromDisk()
     }
 
@@ -2061,6 +2062,7 @@ final class ScriptStore {
     func commitCreated(_ created: UserScript) throws -> UserScript {
         valuesStore.discardDeletedSnapshot(id: created.id)
         deletedRequireSnapshots.removeValue(forKey: created.id)
+        aiCache.discardDeletedSnapshot(id: created.id)
         try writeScriptFile(created)
         scripts.append(created)
         sortScriptsInPlace()
@@ -2097,6 +2099,7 @@ final class ScriptStore {
 
         valuesStore.discardDeletedSnapshot(id: script.id)
         deletedRequireSnapshots.removeValue(forKey: script.id)
+        aiCache.discardDeletedSnapshot(id: script.id)
         try writeRequiredLibraries(libraries, for: script.id)
         if script.isEnabled, case .failure(let reason) = loadVerifiedRequiredCode(for: script) {
             script.isEnabled = false
@@ -2443,6 +2446,7 @@ final class ScriptStore {
         clearError(for: id)
         valuesStore.removeValuesForDeletedScript(id: id)
         deletedRequireSnapshots[id] = readStoredRequiredLibraries(for: id)
+        aiCache.removeCacheForDeletedScript(id: id)
         try removeScriptFilesFromDisk(id: id)
         syncAttachedUserScripts()
         for entry in attachedControllers {
@@ -2502,6 +2506,7 @@ final class ScriptStore {
         if let libs = deletedRequireSnapshots.removeValue(forKey: script.id), !libs.isEmpty {
             try? writeRequiredLibraries(libs, for: script.id)
         }
+        aiCache.restoreCacheForUndoneDelete(id: script.id)
         syncAttachedUserScripts()
         for entry in attachedControllers {
             guard let controller = entry.controller else { continue }
@@ -3063,6 +3068,10 @@ final class ScriptWebController: ScriptLiveApplying {
         self.agentBridge = agentBridge
         self.gmBridge = GMBridge(valuesStore: store.valuesStore)
         self.gmBridge.webView = webView
+        self.gmBridge.aiService = GMAiService(
+            cache: store.aiCache, limiter: store.aiLimiter,
+            runtimeProvider: { [weak store] in .unavailable(isGlobalScriptsEnabled: store?.isGlobalEnabled ?? false) }
+        )
         self.pageToolBridge = pageToolBridge
 
         pageToolBridge?.onEnabledChanged = { [weak self] _ in

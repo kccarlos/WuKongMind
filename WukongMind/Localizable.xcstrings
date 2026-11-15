@@ -400,6 +400,23 @@
         }
       }
     },
+    "%@ · uses AI" : {
+      "comment" : "Popover subtitle showing injection timing for an AI-enabled script",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ · 使用 AI"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ · 使用 AI"
+          }
+        }
+      }
+    },
     "%@, %@" : {
       "localizations" : {
         "en" : {
@@ -2286,6 +2303,74 @@
         }
       }
     },
+    "AI cache cleared" : {
+      "comment" : "VoiceOver announcement after clearing a script's AI cache",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已清除 AI 缓存"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已清除 AI 快取"
+          }
+        }
+      }
+    },
+    "AI in scripts" : {
+      "comment" : "Settings › Scripts: switch allowing scripts with the GM_ai grant to ask the Scripts model",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "脚本中的 AI"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "指令碼中的 AI"
+          }
+        }
+      }
+    },
+    "AI in scripts off" : {
+      "comment" : "VoiceOver announcement when AI in scripts is turned off",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "脚本中的 AI 已关闭"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "指令碼中的 AI 已關閉"
+          }
+        }
+      }
+    },
+    "AI in scripts on" : {
+      "comment" : "VoiceOver announcement when AI in scripts is turned on",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "脚本中的 AI 已开启"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "指令碼中的 AI 已開啟"
+          }
+        }
+      }
+    },
     "AI models…" : {
       "localizations" : {
         "zh-Hans" : {
@@ -2298,6 +2383,46 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "AI 模型…"
+          }
+        }
+      }
+    },
+    "AI use" : {
+      "comment" : "Section header in Script detail showing today's GM_ai usage and cache",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI 用量"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI 用量"
+          }
+        }
+      }
+    },
+    "AI use today: %lld calls · %lld from cache" : {
+      "comment" : "Script detail AI use row showing today's model calls and cache hits",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI use today: %1$lld calls · %2$lld from cache"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今日 AI 用量：%1$lld 次调用 · %2$lld 次来自缓存"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今日 AI 用量：%1$lld 次呼叫 · %2$lld 次來自快取"
           }
         }
       }
@@ -3039,18 +3164,19 @@
         }
       }
     },
-    "Agent requires a tool-calling model. Summaries can use Apple Intelligence or any fast, low-cost model." : {
+    "Agent requires a tool-calling model. Summaries can use Apple Intelligence or any fast, low-cost model. Scripts is the model a script asks while it runs (GM_ai). Unset, it is the same as Summaries." : {
+      "comment" : "Settings › Models: footer under Default models explaining Agent, Summaries and Scripts",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "代理需要支持工具调用的模型。摘要可使用 Apple 智能或任何快速、低成本的模型。"
+            "value" : "代理需要支持工具调用的模型。摘要可使用 Apple 智能或任何快速、低成本的模型。脚本是脚本在运行时询问的模型（GM_ai）。未设置时与摘要相同。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "代理需要支援工具呼叫的模型。摘要可使用 Apple Intelligence 或任何快速、低成本的模型。"
+            "value" : "代理需要支援工具呼叫的模型。摘要可使用 Apple Intelligence 或任何快速、低成本的模型。指令碼是指令碼在執行時詢問的模型（GM_ai）。未設定時與摘要相同。"
           }
         }
       }
@@ -3550,6 +3676,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在回答…"
+          }
+        }
+      }
+    },
+    "Answers are kept for 30 days, without the page text." : {
+      "comment" : "Footer in Script detail AI use section explaining cache retention and privacy",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "回答会保留 30 天，不保存页面文本。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "回答會保留 30 天，不儲存頁面文字。"
           }
         }
       }
@@ -4066,6 +4209,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "論壇問答會搜尋並閱讀最相關的主題，並附上可開啟的編號來源作答。"
+          }
+        }
+      }
+    },
+    "Asked model" : {
+      "comment" : "Audit/tool row label after a userscript called GM_ai",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已询问模型"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已詢問模型"
+          }
+        }
+      }
+    },
+    "Asking model" : {
+      "comment" : "Audit/tool row label while a userscript calls GM_ai",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在询问模型"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在詢問模型"
           }
         }
       }
@@ -5433,6 +5610,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "清除"
+          }
+        }
+      }
+    },
+    "Clear AI cache" : {
+      "comment" : "Button in Script detail to delete cached GM_ai answers for this script",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清除 AI 缓存"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清除 AI 快取"
           }
         }
       }
@@ -11247,6 +11441,23 @@
         }
       }
     },
+    "Model: %@" : {
+      "comment" : "Script detail AI use subtitle showing the active Scripts model name",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模型：%@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模型：%@"
+          }
+        }
+      }
+    },
     "Models" : {
       "comment" : "Settings page: AI models for Agent and Summaries, answer language, and provider keys",
       "localizations" : {
@@ -12627,6 +12838,23 @@
         }
       }
     },
+    "On: follows the Summaries model, %@." : {
+      "comment" : "Settings › Models › Scripts: footer explaining Same as Summaries; placeholder is the Summaries model name",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开启时：跟随摘要模型（%@）。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開啟時：跟隨摘要模型（%@）。"
+          }
+        }
+      }
+    },
     "One card per topic: watched topics with new replies, then today’s top topics on your pinned forums, each with a short summary and links to the posts that matter." : {
       "localizations" : {
         "zh-Hans" : {
@@ -13496,6 +13724,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "頁面快照"
+          }
+        }
+      }
+    },
+    "Page text from these scripts goes to %@ with your key." : {
+      "comment" : "Settings › Models › Scripts: provider footer explaining where page text is sent; placeholder is the provider name",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "来自这些脚本的页面文本会使用你的密钥发送到 %@。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "來自這些指令碼的頁面文字會使用你的金鑰傳送到 %@。"
+          }
+        }
+      }
+    },
+    "Page text from these scripts goes to Apple’s Private Cloud Compute." : {
+      "comment" : "Settings › Models › Scripts: provider footer when Apple Intelligence uses Private Cloud Compute",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "来自这些脚本的页面文本会发送到 Apple 的私密云计算。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "來自這些指令碼的頁面文字會傳送到 Apple 的私密雲端運算。"
+          }
+        }
+      }
+    },
+    "Page text from these scripts stays on this device." : {
+      "comment" : "Settings › Models › Scripts: provider footer when Apple Intelligence runs on-device",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "来自这些脚本的页面文本留在本设备。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "來自這些指令碼的頁面文字留在此裝置。"
           }
         }
       }
@@ -14475,6 +14754,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "執行於 %1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "Ran %@ · uses AI" : {
+      "comment" : "Popover subtitle showing when an AI-enabled script last ran",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "运行于 %@ · 使用 AI"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "執行於 %@ · 使用 AI"
           }
         }
       }
@@ -17010,6 +17306,23 @@
         }
       }
     },
+    "Scripts model" : {
+      "comment" : "Settings › Models: switches the model used by userscripts",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "脚本模型"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "指令碼模型"
+          }
+        }
+      }
+    },
     "Scripts off" : {
       "comment" : "Accessibility value of the browser toolbar Agent button when the global script switch is off",
       "localizations" : {
@@ -17074,6 +17387,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "此頁面的指令碼"
+          }
+        }
+      }
+    },
+    "Scripts that ask a model while they run use this. They run on every matching page, so a small, fast model works best." : {
+      "comment" : "Settings › Models: what the Scripts model is used for",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "运行时询问模型的脚本会使用此模型。它们会在每个匹配的页面上运行，因此小巧快速的模型效果最好。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "執行時詢問模型的指令碼會使用此模型。它們會在每個相符的頁面上執行，因此輕巧快速的模型效果最好。"
+          }
+        }
+      }
+    },
+    "Scripts with the GM_ai grant send page text to %@. Off, they get no answer." : {
+      "comment" : "Settings › Scripts footer explaining the AI in scripts switch; placeholder is the active Scripts model name",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "具有 GM_ai 权限的脚本会将页面文本发送到 %@。关闭后，它们不会获得回答。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "具有 GM_ai 權限的指令碼會將頁面文字傳送到 %@。關閉後，它們不會取得回答。"
           }
         }
       }
@@ -22639,6 +22986,23 @@
         }
       }
     },
+    "Used when a script calls GM_ai on a page." : {
+      "comment" : "Model menu (Scripts): what this model is used for",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当脚本在页面上调用 GM_ai 时使用。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "當指令碼在頁面上呼叫 GM_ai 時使用。"
+          }
+        }
+      }
+    },
     "Used when the Agent searches and reads a forum. Defaults: %lld topics, %@ per topic." : {
       "localizations" : {
         "en" : {
@@ -22715,6 +23079,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用者指令碼內容"
+          }
+        }
+      }
+    },
+    "Uses AI · %@" : {
+      "comment" : "Script row subtitle in Settings › Scripts when the script has the GM_ai grant; placeholder is the active Scripts model name",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用 AI · %@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用 AI · %@"
           }
         }
       }

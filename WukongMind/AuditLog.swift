@@ -7,7 +7,7 @@ import Foundation
 /// Full tool results are not here; they live in the task record (`TaskRecord.swift`).
 struct AuditLine: Codable, Hashable, Sendable, Identifiable {
     enum Kind: String, Codable, Sendable {
-        case task, step, fetch, confirm, end, scriptRequest
+        case task, step, fetch, confirm, end, scriptRequest, scriptAI
     }
 
     static let maxArgumentCharacters = 4_000
@@ -41,10 +41,17 @@ struct AuditLine: Codable, Hashable, Sendable, Identifiable {
     var scriptID: String?
     var scriptName: String?
     var status: Int?
+    var itemsAsked: Int?
+    var itemsFromCache: Int?
+    var tokensIn: Int?
+    var tokensOut: Int?
 
     var id: String {
         if kind == .scriptRequest {
             return "\(kind.rawValue)-\(taskID)-\(time.timeIntervalSince1970)-\(method ?? "")-\(url ?? "")-\(status ?? -1)"
+        }
+        if kind == .scriptAI {
+            return "\(kind.rawValue)-\(taskID)-\(time.timeIntervalSince1970)-\(tool ?? "")-\(outcome ?? "")-\(itemsAsked ?? 0)-\(itemsFromCache ?? 0)"
         }
         return "\(kind.rawValue)-\(taskID)-\(step ?? -1)-\(time.timeIntervalSince1970)-\(tool ?? "")"
     }
@@ -136,6 +143,26 @@ struct AuditLine: Codable, Hashable, Sendable, Identifiable {
             status: status
         )
     }
+
+    static func scriptAI(
+        scriptID: String, scriptName: String, isMap: Bool, time: Date, pageURL: String?,
+        provider: String?, model: String?, itemsAsked: Int, itemsFromCache: Int,
+        tokensIn: Int?, tokensOut: Int?, durationMs: Int, resultCode: String
+    ) -> AuditLine {
+        let tokenPart = (tokensIn != nil && tokensOut != nil) ? "tokens \(tokensIn!) in / \(tokensOut!) out" : "tokens n/a"
+        let modelLabel = [provider, model].compactMap { $0?.isEmpty == false ? $0 : nil }.joined(separator: " · ")
+        let summary = [resultCode, modelLabel.isEmpty ? nil : modelLabel, "\(itemsAsked) asked, \(itemsFromCache) cached", tokenPart]
+            .compactMap { $0 }.joined(separator: " · ")
+        return AuditLine(
+            kind: .scriptAI, time: time, taskID: "script:\(AuditLog.dayKey(time)):\(scriptID)",
+            tool: isMap ? "GM_ai.map" : "GM_ai", durationMs: durationMs,
+            resultSummary: clip(summary, maxSummaryCharacters), isError: resultCode != "ok",
+            pageURL: pageURL, model: model, provider: provider, outcome: resultCode,
+            tokens: (tokensIn != nil && tokensOut != nil) ? (tokensIn! + tokensOut!) : nil,
+            scriptID: scriptID, scriptName: clip(scriptName, maxPromptCharacters),
+            itemsAsked: itemsAsked, itemsFromCache: itemsFromCache, tokensIn: tokensIn, tokensOut: tokensOut
+        )
+    }
 }
 
 /// A task as the audit page shows it.
@@ -149,7 +176,7 @@ struct AuditTask: Identifiable, Hashable, Sendable {
     var outcome: String?
     var lines: [AuditLine]
 
-    var steps: [AuditLine] { lines.filter { $0.kind == .step || $0.kind == .scriptRequest } }
+    var steps: [AuditLine] { lines.filter { $0.kind == .step || $0.kind == .scriptRequest || $0.kind == .scriptAI } }
     var hasError: Bool { steps.contains { $0.isError == true } }
     var host: String? { pageURL.flatMap { URL(string: $0)?.host } }
 }
@@ -255,7 +282,7 @@ final class AuditLog: @unchecked Sendable {
         }
     }
 
-    var stepCount: Int { allLines().filter { $0.kind == .step || $0.kind == .scriptRequest }.count }
+    var stepCount: Int { allLines().filter { $0.kind == .step || $0.kind == .scriptRequest || $0.kind == .scriptAI }.count }
 
     /// Days newest first; inside a day, tasks newest first. A task sits on the day it started.
     func days() -> [AuditDay] {
