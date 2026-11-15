@@ -772,11 +772,16 @@ class AIService: @unchecked Sendable {
                 throw AssistantError.invalidResponse
             }
             url = endpoint
+            // Prompt caching (WUKO-73): tools, system and earlier turns stay byte-identical
+            // across turns and page changes, so one breakpoint ends the system prompt and
+            // one ends the newest turn; the next request reads everything before it.
+            var anthropicTurns = Self.anthropicMessages(from: messages)
+            Self.markCacheBreakpoint(onLastBlockOf: &anthropicTurns)
             body = [
                 "model": configuration.model,
                 "max_tokens": maxTokens,
-                "system": system,
-                "messages": Self.anthropicMessages(from: messages)
+                "system": [["type": "text", "text": system, "cache_control": ["type": "ephemeral"]]],
+                "messages": anthropicTurns
             ]
             if !tools.isEmpty {
                 body["tools"] = tools.map { tool in
@@ -861,9 +866,19 @@ class AIService: @unchecked Sendable {
         request.timeoutInterval = 300
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
-        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        // Sorted keys: the same tools and turns serialize to the same bytes, which the cache needs.
+        request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [.sortedKeys])
         applyAuthentication(to: &request, configuration: configuration, provider: provider)
         return request
+    }
+
+    /// Puts an ephemeral `cache_control` on the last content block of the last message.
+    static func markCacheBreakpoint(onLastBlockOf turns: inout [[String: Any]]) {
+        guard var last = turns.last, var blocks = last["content"] as? [[String: Any]], var block = blocks.last else { return }
+        block["cache_control"] = ["type": "ephemeral"]
+        blocks[blocks.count - 1] = block
+        last["content"] = blocks
+        turns[turns.count - 1] = last
     }
 
     private static func anthropicMessages(from turns: [AgentModelTurn]) -> [[String: Any]] {
@@ -1129,7 +1144,10 @@ class AIService: @unchecked Sendable {
                 text: textSegments.joined(separator: "\n"),
                 toolCalls: toolCalls,
                 stopReason: json["stop_reason"] as? String,
-                usage: AgentTokenUsage(inputTokens: inputTokens, outputTokens: outputTokens)
+                usage: AgentTokenUsage(
+                    inputTokens: inputTokens, outputTokens: outputTokens,
+                    cacheReadTokens: usageDict?["cache_read_input_tokens"] as? Int
+                )
             )
 
         case .gemini, .vertexAI:

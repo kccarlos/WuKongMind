@@ -358,7 +358,9 @@ final class ToolRegistryTests: XCTestCase {
             "script_save", "script_list", "script_read", "script_update", "script_delete",
             "file_read", "file_write", "file_list",
             "network_log",
-            "navigate", "reload_page"
+            "navigate", "reload_page",
+            // WUKO-73: declared on every page; they refuse off a forum.
+            "search_forum", "search_comments", "list_latest", "read_topic"
         ])
         for name in ["read_page", "run_js"] {
             XCTAssertNotNil(registry.tool(named: name)?.definition.parameters.first { $0.name == "save_to" })
