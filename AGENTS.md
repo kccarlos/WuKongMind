@@ -6,3 +6,4 @@ WukongMind is a fork of Forumind into an agent browser for iOS/iPadOS. Start wit
 - English first: code, docs, commits and pull requests.
 - Live browser-agent checks (DEBUG, no saved state touched): launch with `-dc-browser-agent-live-prompt` on a simulator, or run `WukongMindUITests/PhysicalDeviceSmokeTests/testLiveBrowserAgentDarkAndHideSidebar` with `TEST_RUNNER_ANTHROPIC_API_KEY` set; unit tests use recorded responses.
 - Real-device checks only via `scripts/device-check.sh` (it takes the shared-phone lock): never touch the physical iPhone outside it, not even for a quick `devicectl` check. See docs/DEVELOPMENT.md.
+- Run simulator builds and tests with `scripts/remote-test.sh` (they run on the Mac mini); local `xcodebuild` only when the mini is unreachable (the script says so, exit 69). Device tests stay on `scripts/device-check.sh`. See docs/DEVELOPMENT.md.
