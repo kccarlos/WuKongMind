@@ -31,8 +31,8 @@ enum ScriptRepair {
         for script: UserScript, errors: [ScriptRuntimeError] = [], currentPageURL: URL? = nil, secrets: [String] = []
     ) -> ScriptRepairRequest {
         let prompt = String(
-            localized: "Fix the script \(script.name)",
-            comment: "User message sent to the Agent when tapping Let the Agent fix it on a broken script"
+            localized: "Fix this script",
+            comment: "Prompt sent to the model when tapping Let the Agent fix it on a broken script"
         )
         let target = ScriptRepairTarget(
             scriptID: script.id, preRepairVersion: script.version, preRepairIsEnabled: script.isEnabled

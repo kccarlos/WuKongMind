@@ -82,7 +82,17 @@ extension AppModel {
                 self?.syncDrawer()
             }
         }
-        browserAgent.send(req.prompt, context: nil, attachedBlock: req.attachedBlock, repairTarget: req.target)
+        let displayPrompt = String(
+            localized: "Fix the script \(latest.name)",
+            comment: "User message sent to the Agent when tapping Let the Agent fix it on an auto-disabled script"
+        )
+        browserAgent.send(
+            req.prompt,
+            context: nil,
+            attachedBlock: req.attachedBlock,
+            displayPrompt: displayPrompt,
+            repairTarget: req.target
+        )
     }
 }
 
@@ -546,7 +556,8 @@ struct AgentScriptCardView: View {
                 .accessibilityIdentifier("agentScriptViewCode")
 
                 if let target = entry.repairTarget {
-                    let isRestored = script.versionOrigin == .restored(fromVersion: target.preRepairVersion)
+                    let isRestored = (script.versionOrigin == .restored(fromVersion: target.preRepairVersion)
+                        || script.version == target.preRepairVersion)
                         && script.isEnabled == target.preRepairIsEnabled
                     if !isRestored {
                         Button {
@@ -672,7 +683,9 @@ struct AgentScriptCardView: View {
 
     @MainActor
     static func undoRepairedScript(target: ScriptRepairTarget, in app: AppModel) {
-        _ = try? app.scriptStore.rollback(id: target.scriptID, toVersion: target.preRepairVersion)
+        if app.scriptStore.script(id: target.scriptID)?.version != target.preRepairVersion {
+            _ = try? app.scriptStore.rollback(id: target.scriptID, toVersion: target.preRepairVersion)
+        }
         _ = try? app.scriptStore.setEnabled(id: target.scriptID, isEnabled: target.preRepairIsEnabled, runLiveJS: target.preRepairIsEnabled)
         app.browser.reload()
     }
@@ -1174,7 +1187,7 @@ struct PageCapabilitiesView: View {
                     .accessibilityIdentifier("thisPageDisabledReason-\(script.id)")
             }
 
-            if error != nil || autoDisabledReason != nil {
+            if error != nil {
                 Button {
                     DCHaptics.tap()
                     isPresented = false

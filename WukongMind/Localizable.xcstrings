@@ -7953,6 +7953,23 @@
         }
       }
     },
+    "Fix this script" : {
+      "comment" : "Prompt sent to the model when tapping Let the Agent fix it on a broken script",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "修复此脚本"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "修復此指令碼"
+          }
+        }
+      }
+    },
     "Fixed · on again, errors cleared" : {
       "comment" : "Status seal on a script card after the Agent repairs a broken script",
       "localizations" : {

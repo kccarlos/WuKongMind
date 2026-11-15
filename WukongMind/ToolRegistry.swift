@@ -2024,6 +2024,9 @@ extension ToolRegistry {
                         prospectiveToCommit,
                         clearErrors: !isTargetRepair || isVerifiedRepair
                     )
+                    if isVerifiedRepair {
+                        scriptStore.clearError(for: committed.id)
+                    }
                     if case .verifiedOnCurrentPage = verification {
                         scriptStore.noteExecuted(scriptID: committed.id)
                     }

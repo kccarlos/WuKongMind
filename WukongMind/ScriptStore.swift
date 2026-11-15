@@ -2180,10 +2180,17 @@ final class ScriptStore {
     func commitUpdated(_ prospective: ProspectiveUpdate, clearErrors: Bool = true) throws -> UserScript {
         let id = prospective.previous.id
         if !prospective.touchesVersionedFields {
-            if prospective.updated.isEnabled != prospective.previous.isEnabled {
-                return try setEnabled(id: id, isEnabled: prospective.updated.isEnabled, now: prospective.updated.updatedAt)
+            let committed: UserScript
+            if prospective.updated.isEnabled != prospective.previous.isEnabled
+                || prospective.updated.disabledReason != prospective.previous.disabledReason {
+                committed = try setEnabled(id: id, isEnabled: prospective.updated.isEnabled, now: prospective.updated.updatedAt)
+            } else {
+                committed = scripts.first(where: { $0.id == id }) ?? prospective.previous
             }
-            return prospective.previous
+            if clearErrors {
+                clearError(for: id)
+            }
+            return committed
         }
         guard let idx = scripts.firstIndex(where: { $0.id == id }) else {
             throw ScriptStoreError.scriptNotFound(id)
