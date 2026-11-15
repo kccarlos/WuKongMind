@@ -724,6 +724,289 @@ final class VoiceSessionTests: XCTestCase {
         XCTAssertEqual(session.state, .listening)
     }
 
+    // MARK: Voice anywhere (fixed tool set and settled page notes)
+
+    func testSettledPagesSendOneNoteWithTitleAndHostAndNeverPathOrQuery() async throws {
+        // Loading and `.maybe` states send nothing before the page settles.
+        navigator.pageContext = PageContext(url: URL(string: "https://news.example.org/private/99?token=s3cr3t")!, state: .loading)
+        navigator.explicitPageTitle = "Quarterly Outlook at WTO"
+        let session = try await started()
+        await settle()
+        XCTAssertTrue(sent().compactMap(\.noteText).isEmpty)
+
+        navigator.pageContext.state = .maybe
+        session.pageChanged(navigator.pageContext)
+        await settle()
+        XCTAssertTrue(sent().compactMap(\.noteText).isEmpty)
+
+        // Settled ordinary page: title + host only, never scheme, path, query or fragment.
+        let ordinaryURL = URL(string: "https://news.example.org/private/room/99?token=s3cr3t&session=abc#section-2")!
+        navigator.pageContext = PageContext(url: ordinaryURL, state: .notForum)
+        session.pageChanged(navigator.pageContext)
+        await settle()
+        let notes1 = sent().compactMap(\.noteText)
+        XCTAssertEqual(notes1, [
+            "[Screen: the user is on \"Quarterly Outlook at WTO\" at news.example.org, an ordinary web page. Forum tools don't work here.]"
+        ])
+        for forbidden in ["https://", "private", "room", "99", "token", "s3cr3t", "session", "section-2"] {
+            XCTAssertFalse(notes1[0].contains(forbidden), "Leaked \(forbidden) in \(notes1[0])")
+        }
+
+        // Transcription vocabulary takes words from the ordinary page's title.
+        let vocab = VoiceSession.vocabulary(page: navigator.pageContext, title: navigator.pageTitle)
+        XCTAssertTrue(vocab.contains("Quarterly Outlook at WTO"))
+        XCTAssertTrue(vocab.contains("Quarterly"))
+        XCTAssertTrue(vocab.contains("Outlook"))
+
+        // Same settled document (including a fragment jump): no duplicate note.
+        navigator.pageContext.url = URL(string: "https://news.example.org/private/room/99?token=s3cr3t&session=abc#other")!
+        session.pageChanged(navigator.pageContext)
+        await settle()
+        XCTAssertEqual(sent().compactMap(\.noteText).count, 1)
+
+        // A reconnect on an ordinary page re-sends that settled note once.
+        session.receive(frame(#"{"sessionResumptionUpdate":{"newHandle":"h-ord","resumable":true}}"#))
+        session.receive(frame(#"{"goAway":{"timeLeft":"50s"}}"#))
+        session.tick()
+        try await waitForTransports(2)
+        session.receive(frame(#"{"setupComplete":{}}"#))
+        await settle()
+        XCTAssertEqual(transports[1].messages.compactMap(\.noteText), notes1)
+
+        // Settled forum page: forum name + kind, title + host, adapter hints, and no path or query.
+        let forumURL = URL(string: "https://forum.example.org/u/alice/messages?api_key=topsecret#inbox")!
+        navigator.voiceSite = VoiceSite(adapter: DiscourseAdapter())
+        navigator.explicitPageTitle = "Latest Discussions"
+        navigator.pageContext = PageContext(
+            url: forumURL, site: .discourse, siteURL: "https://forum.example.org", forumName: "Example", state: .forumHome
+        )
+        session.pageChanged(navigator.pageContext)
+        await settle()
+        let forumNote = try XCTUnwrap(sent().compactMap(\.noteText).last)
+        XCTAssertTrue(forumNote.hasPrefix("[Screen: the user is on the forum Example (Discourse), \"Latest Discussions\" at forum.example.org. Forum tools work here."), forumNote)
+        XCTAssertTrue(forumNote.contains(DiscourseAdapter().voice.findHint), forumNote)
+        XCTAssertTrue(forumNote.contains(DiscourseAdapter().voice.languageHint), forumNote)
+        for forbidden in ["https://", "alice", "messages", "api_key", "topsecret", "inbox"] {
+            XCTAssertFalse(forumNote.contains(forbidden), "Leaked \(forbidden) in \(forumNote)")
+        }
+
+        // Another settled ordinary page on the earlier host sends one new note.
+        navigator.voiceSite = SiteRegistry.standard.voiceFallback
+        navigator.explicitPageTitle = "Second Story"
+        navigator.pageContext = PageContext(url: URL(string: "https://news.example.org/another/path?k=v")!, state: .notForum)
+        session.pageChanged(navigator.pageContext)
+        await settle()
+        XCTAssertEqual(
+            sent().compactMap(\.noteText).last,
+            "[Screen: the user is on \"Second Story\" at news.example.org, an ordinary web page. Forum tools don't work here.]"
+        )
+    }
+
+    func testSessionMovesBetweenOrdinaryPageAndForumWithoutReconnecting() async throws {
+        let app = makeStubbedApp()
+        app.recordVisit(siteURL: "https://forum.example", kind: .discourse, name: "Example", iconURL: nil)
+
+        let ordinaryURL = URL(string: "https://bbc.example/news/story-1?token=priv#top")!
+        app.browser.webView.loadHTMLString(
+            "<html><head><title>Tariff Talks</title></head><body><h1>Tariff Talks</h1><p>Markets held steady today.</p></body></html>",
+            baseURL: ordinaryURL
+        )
+        try await waitUntil { app.browser.webView.title == "Tariff Talks" && !app.browser.webView.isLoading }
+        let ordinaryPage = PageContext(url: ordinaryURL, state: .notForum)
+        let forumPage = PageContext(
+            url: URL(string: "https://forum.example/latest")!, site: .discourse,
+            siteURL: "https://forum.example", forumName: "Example", state: .forumHome
+        )
+        var appTransports: [FakeLiveTransport] = []
+        func startAppSession(on page: PageContext) async throws -> VoiceSession {
+            app.browser.setPageContext(page)
+            appTransports = []
+            let s = try app.makeVoiceSession(audio: FakeVoiceAudio(), transport: {
+                let t = FakeLiveTransport(); appTransports.append(t); return t
+            }).get()
+            await s.start()
+            s.receive(frame(#"{"setupComplete":{}}"#))
+            await settle()
+            return s
+        }
+
+        // 1. Start on an ordinary page, then move to a forum and search it.
+        let session1 = try await startAppSession(on: ordinaryPage)
+        XCTAssertEqual(appTransports[0].messages.compactMap(\.noteText), [
+            "[Screen: the user is on \"Tariff Talks\" at bbc.example, an ordinary web page. Forum tools don't work here.]"
+        ])
+        session1.receive(frame(#"{"toolCall":{"functionCalls":[{"id":"c1","name":"search_forum","args":{"query":"badges"}}]}}"#))
+        await settle()
+        session1.receive(frame(#"{"serverContent":{"turnComplete":true}}"#))
+        XCTAssertEqual(try decodeLastResponse(in: appTransports[0])["shown"] as? String, VoiceToolBridge.notForumMessage)
+        session1.receive(frame(#"{"serverContent":{"turnComplete":true}}"#))
+
+        app.browser.setPageContext(forumPage)
+        session1.pageChanged(forumPage)
+        await settle()
+        XCTAssertEqual(appTransports.count, 1, "No reconnect when switching page kinds")
+        XCTAssertTrue(appTransports[0].messages.compactMap(\.noteText).last?.contains("Forum tools work here.") == true)
+
+        session1.receive(frame(#"{"toolCall":{"functionCalls":[{"id":"c2","name":"search_forum","args":{"query":"badges"}}]}}"#))
+        try await waitUntil {
+            session1.receive(self.frame(#"{"serverContent":{"turnComplete":true}}"#))
+            return appTransports[0].sent.filter { $0.contains("toolResponse") }.count >= 2
+        }
+        let searchedOnForum = try decodeLastResponse(in: appTransports[0])
+        XCTAssertEqual(searchedOnForum["status"] as? String, "found")
+        XCTAssertEqual((searchedOnForum["hits"] as? [[String: Any]])?.count, 4)
+        session1.stop()
+        app.voiceSessionEnded()
+
+        // 2. Start on a forum, then move to an ordinary page and run `read_page`.
+        let session2 = try await startAppSession(on: forumPage)
+        app.browser.setPageContext(ordinaryPage)
+        session2.pageChanged(ordinaryPage)
+        await settle()
+        XCTAssertEqual(appTransports.count, 1, "No reconnect when moving from forum to ordinary page")
+        XCTAssertTrue(appTransports[0].messages.compactMap(\.noteText).last?.contains("Forum tools don't work here.") == true)
+
+        session2.receive(frame(#"{"toolCall":{"functionCalls":[{"id":"c3","name":"read_page","args":{}}]}}"#))
+        try await waitUntil {
+            session2.receive(self.frame(#"{"serverContent":{"turnComplete":true}}"#))
+            return !appTransports[0].sent.filter { $0.contains("toolResponse") }.isEmpty
+        }
+        let pageRead = try decodeLastResponse(in: appTransports[0])
+        XCTAssertEqual(pageRead["status"] as? String, "done")
+        let readResult = pageRead["result"] as? String ?? ""
+        XCTAssertTrue(readResult.contains("Tariff Talks") && readResult.contains("Markets held steady today."), readResult)
+
+        session2.receive(frame(#"{"toolCall":{"functionCalls":[{"id":"c4","name":"search_forum","args":{"query":"badges"}}]}}"#))
+        await settle()
+        session2.receive(frame(#"{"serverContent":{"turnComplete":true}}"#))
+        XCTAssertEqual(try decodeLastResponse(in: appTransports[0])["shown"] as? String, VoiceToolBridge.notForumMessage)
+        session2.stop()
+        app.voiceSessionEnded()
+    }
+
+    /// Opt-in live Gemini Live routing check (voice-review.md §6 "For task 2"):
+    /// tries VERTEX_API_KEY first when set, falls back to GEMINI_LIVE_KEY.
+    func testLiveGeminiAnywhereRoutingOnForumAndOrdinaryPage() async throws {
+        let env = ProcessInfo.processInfo.environment
+        let vertexKey = (env["VERTEX_API_KEY"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        let studioKey = (env["GEMINI_LIVE_KEY"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !vertexKey.isEmpty || !studioKey.isEmpty else {
+            throw XCTSkip("Neither VERTEX_API_KEY nor GEMINI_LIVE_KEY is set for the test runner.")
+        }
+
+        var chosenEndpoint: GeminiLive.Endpoint?
+        var chosenKey = ""
+        var endpointNote = ""
+        if !vertexKey.isEmpty {
+            let project = GeminiLive.Endpoint.vertexProject(fromBaseURL: env["VERTEX_BASE_URL"] ?? "")
+                ?? (env["VERTEX_PROJECT"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            if !project.isEmpty {
+                let candidate = GeminiLive.Endpoint.vertex(project: project, location: GeminiLive.Endpoint.vertexLocation)
+                let probe = VoiceSession(configuration: .init(endpoint: candidate, apiKey: vertexKey), audio: FakeVoiceAudio(), navigator: nil, usage: nil, runsLoop: false)
+                await probe.start()
+                let deadline = Date().addingTimeInterval(10)
+                while Date() < deadline, probe.state == .connecting { try await Task.sleep(for: .milliseconds(50)) }
+                if probe.state == .listening {
+                    chosenEndpoint = candidate; chosenKey = vertexKey; endpointNote = "vertex (\(project))"
+                } else {
+                    endpointNote = "vertex failed (\(probe.state)); "
+                }
+                probe.stop()
+            } else {
+                endpointNote = "vertex skipped (no VERTEX_PROJECT/VERTEX_BASE_URL; Express mode has no Live project path); "
+            }
+        }
+        if chosenEndpoint == nil {
+            guard !studioKey.isEmpty else { throw XCTSkip("Vertex Live could not connect (\(endpointNote)) and GEMINI_LIVE_KEY is not set.") }
+            chosenEndpoint = .aiStudio; chosenKey = studioKey; endpointNote += "aiStudio (GEMINI_LIVE_KEY)"
+        }
+        let endpoint = try XCTUnwrap(chosenEndpoint)
+        print("[LIVE-VOICE] model=\(GeminiLive.model) endpoint=\(endpointNote)")
+
+        let app = makeStubbedApp()
+        app.recordVisit(siteURL: "https://forum.example", kind: .discourse, name: "Home Lab Talk", iconURL: nil)
+        var settings = VoiceSettings()
+        settings.answerLength = .short
+
+        func startLive(on page: PageContext, into replies: UnsafeMutablePointer<[String]>) async throws -> VoiceSession {
+            app.browser.setPageContext(page)
+            let s = VoiceSession(configuration: .init(endpoint: endpoint, apiKey: chosenKey, settings: settings), audio: FakeVoiceAudio(), navigator: app, usage: nil, runsLoop: false)
+            s.tools.registryBuilder = app.voiceToolRegistry
+            s.onTranscript = { role, text, _ in if role == .voiceReply { replies.pointee.append(text) } }
+            await s.start()
+            try await waitUntil(timeout: 12) { s.state == .listening }
+            try await Task.sleep(for: .milliseconds(250))
+            return s
+        }
+
+        // 1. Forum routing (3 runs): "Search for firmware rollback." -> search_forum, then "Open the second one." -> browse_open.
+        let forumPage = PageContext(url: URL(string: "https://forum.example/latest")!, site: .discourse, siteURL: "https://forum.example", forumName: "Home Lab Talk", state: .forumHome)
+        var searchHits = 0, openSecondHits = 0
+        for rep in 1...3 {
+            var replies: [String] = []
+            let session = try await startLive(on: forumPage, into: &replies)
+            session.sendText("Search for firmware rollback.")
+            try await waitUntil(timeout: 20) { session.tick(); return !replies.isEmpty && session.state == .listening }
+            let didSearch = app.browseCursor.items.count == 4
+            if didSearch { searchHits += 1 }
+            print("[LIVE-VOICE] forum rep=\(rep) search_forum=\(didSearch) reply1=\(replies.last ?? "")")
+            if didSearch {
+                let before = replies.count
+                session.sendText("Open the second one.")
+                try await waitUntil(timeout: 20) { session.tick(); return replies.count > before && session.state == .listening }
+                let didOpenSecond = app.browseCursor.index == 1
+                if didOpenSecond { openSecondHits += 1 }
+                print("[LIVE-VOICE] forum rep=\(rep) browse_open_card2=\(didOpenSecond) reply2=\(replies.last ?? "")")
+            }
+            session.stop()
+            app.browseCursor = BrowseCursor()
+        }
+        XCTAssertGreaterThanOrEqual(searchHits, 2, "search_forum routed \(searchHits)/3")
+        XCTAssertGreaterThanOrEqual(openSecondHits, 2, "browse_open card 2 routed \(openSecondHits)/3")
+
+        // 2. Ordinary page refusal: forum tool called or declined without retrying.
+        let ordinaryURL = URL(string: "https://heraldexample.com/2026/11/tariffs?token=secret")!
+        app.browser.webView.loadHTMLString(
+            "<html><head><title>Markets steady as tariff talks resume</title></head><body><h1>Markets steady as tariff talks resume</h1><p>Talks resume Thursday.</p></body></html>",
+            baseURL: ordinaryURL
+        )
+        try await waitUntil { app.browser.webView.title == "Markets steady as tariff talks resume" && !app.browser.webView.isLoading }
+        var ordinaryReplies: [String] = []
+        let ordinarySession = try await startLive(on: PageContext(url: ordinaryURL, state: .notForum), into: &ordinaryReplies)
+        PostLevelURLStub.requests = []
+        ordinarySession.sendText("Search the forum for firmware rollback.")
+        try await waitUntil(timeout: 20) { ordinarySession.tick(); return !ordinaryReplies.isEmpty && ordinarySession.state == .listening }
+        print("[LIVE-VOICE] ordinary reply=\(ordinaryReplies.last ?? "")")
+        XCTAssertTrue(PostLevelURLStub.requests.isEmpty, "No forum network call ran on an ordinary page")
+        XCTAssertFalse((ordinaryReplies.last ?? "").isEmpty)
+        ordinarySession.stop()
+    }
+
+    private func makeStubbedApp() -> AppModel {
+        PostLevelURLStub.requests = []
+        PostLevelURLStub.cookies = []
+        PostLevelURLStub.handler = { request in
+            PostLevelURLStub.requests.append(request.url!)
+            return (200, DiscourseFixtures.search)
+        }
+        addTeardownBlock { PostLevelURLStub.handler = nil }
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [PostLevelURLStub.self]
+        let urlSession = URLSession(configuration: configuration)
+        let app = AppModel(
+            store: PersistentStore(fileURL: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true).appendingPathComponent("state.json")),
+            forumService: ForumService(session: urlSession, pacer: ForumRequestPacer(clock: InstantPacingClock())),
+            aiService: AIService(session: urlSession)
+        )
+        app.usesDirectForumRequests = true
+        app.settings.voiceEnabled = true
+        var gemini = app.settings.configuration(for: .gemini)
+        gemini.apiKey = "test-key"
+        app.settings.setConfiguration(gemini, for: .gemini)
+        app.browser.onPageContextChanged = nil
+        return app
+    }
+
     // MARK: Helpers
 
     private var seed: UInt64 = 42
@@ -792,7 +1075,11 @@ final class VoiceSessionTests: XCTestCase {
 
     /// The newest tool response's `response` object.
     private func lastResponse() throws -> [String: Any] {
-        let text = try XCTUnwrap(transports.last?.sent.last { $0.contains("toolResponse") })
+        try decodeLastResponse(in: try XCTUnwrap(transports.last))
+    }
+
+    private func decodeLastResponse(in transport: FakeLiveTransport) throws -> [String: Any] {
+        let text = try XCTUnwrap(transport.sent.last { $0.contains("toolResponse") })
         let object = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(text.utf8)) as? [String: Any])
         let item = (((object["toolResponse"] as? [String: Any])?["functionResponses"] as? [[String: Any]])?.first)
         return try XCTUnwrap(item?["response"] as? [String: Any])

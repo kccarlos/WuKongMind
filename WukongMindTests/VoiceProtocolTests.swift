@@ -186,7 +186,7 @@ final class VoiceProtocolTests: XCTestCase {
             XCTAssertGreaterThan(tool.description.count, 80, tool.rawValue)
             XCTAssertFalse(tool.description.contains("\n"), "\(tool.rawValue): one paragraph")
         }
-        XCTAssertTrue(VoiceTool.handOffToAgent.description.contains("never for something search_forum, browse_open, browse_move, browse_focus or read_post can do"))
+        XCTAssertTrue(VoiceTool.handOffToAgent.description.contains("never for something another tool can do in one call"))
         let site = VoiceSite(adapter: DiscourseAdapter())
         let registry = ToolRegistry(tools: ToolRegistry.browseTools(browse: BrowseToolContext(navigator: nil, site: site, isOnForum: true)))
         let search = registry.tool(named: "search_forum")?.definition.description ?? ""

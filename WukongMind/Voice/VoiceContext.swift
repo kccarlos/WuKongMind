@@ -37,6 +37,10 @@ struct VoiceContext {
     static let lineLimit = 120
     static let visibleLimit = 6
 
+    /// The settled non-topic page note (`ordinary` or `forumHome`), and its
+    /// document identity so scrolling or a hash jump doesn't send it twice.
+    private(set) var pageNote: String?
+    private var lastPageIdentity: String?
     /// The topic the last brief was about.
     private(set) var briefedTopic: String?
     private(set) var briefNote: String?
@@ -50,11 +54,74 @@ struct VoiceContext {
     /// Posts (`topicKey#n`) whose full text the model has.
     private(set) var fullTextSent: Set<String> = []
 
+    var hasSentPage: Bool { briefedTopic != nil || pageNote != nil }
+
+    // MARK: Settled page
+
+    /// One note when a non-topic page settles: title and host only, never the
+    /// path, query or fragment. Nil while loading or when already sent.
+    mutating func settledPageNote(page: PageContext, title: String?, site: VoiceSite) -> String? {
+        switch page.state {
+        case .loading, .maybe:
+            return nil
+        case .topic:
+            pageNote = nil
+            lastPageIdentity = nil
+            return nil
+        case .notForum:
+            guard let url = page.url,
+                  let scheme = url.scheme?.lowercased(), scheme == "http" || scheme == "https",
+                  let host = url.host?.lowercased(), !host.isEmpty
+            else { return nil }
+            let cleanedTitle = Self.cleanTitle(title)
+            let identity = "ordinary|\(Self.documentIdentity(of: url))|\(cleanedTitle)"
+            guard identity != lastPageIdentity else { return nil }
+            lastPageIdentity = identity
+            clearTopic()
+            let whereText = cleanedTitle.isEmpty ? "at \(host)" : "on \"\(cleanedTitle)\" at \(host)"
+            let note = "[Screen: the user is \(whereText), an ordinary web page. Forum tools don't work here.]"
+            pageNote = note
+            return note
+        case .forumHome:
+            guard let url = page.url,
+                  let scheme = url.scheme?.lowercased(), scheme == "http" || scheme == "https",
+                  let host = url.host?.lowercased(), !host.isEmpty
+            else { return nil }
+            let cleanedTitle = Self.cleanTitle(title)
+            let rawName = Self.cleanTitle(page.forumName)
+            let name = rawName.isEmpty ? host : rawName
+            let kindText = site.platformName.isEmpty ? "" : " (\(site.platformName))"
+            let identity = "forum|\(Self.documentIdentity(of: url))|\(name)|\(kindText)|\(cleanedTitle)"
+            guard identity != lastPageIdentity else { return nil }
+            lastPageIdentity = identity
+            clearTopic()
+            let whereText = cleanedTitle.isEmpty ? " at \(host)" : ", \"\(cleanedTitle)\" at \(host)"
+            let hints = [site.profile.findHint, site.profile.languageHint].filter { !$0.isEmpty }.joined(separator: " ")
+            let trailing = hints.isEmpty ? "" : " \(hints)"
+            let note = "[Screen: the user is on the forum \(name)\(kindText)\(whereText). Forum tools work here.\(trailing)]"
+            pageNote = note
+            return note
+        }
+    }
+
+    private mutating func clearTopic() {
+        briefedTopic = nil
+        briefNote = nil
+        summaryNote = nil
+        lastCurrent = nil
+        lastVisible = []
+        lastList = nil
+        lastVisibleText = nil
+        lastPositionNote = nil
+    }
+
     // MARK: Topic brief
 
     /// The brief for a newly opened topic; nil when it was already sent.
     mutating func topicBriefNote(_ brief: VoiceTopicBrief) -> String? {
         guard brief.topicKey != briefedTopic else { return nil }
+        pageNote = nil
+        lastPageIdentity = nil
         briefedTopic = brief.topicKey
         summaryNote = nil
         lastCurrent = nil
@@ -179,7 +246,7 @@ struct VoiceContext {
     /// Everything the model should know now, whole: sent first on a new
     /// connection. Clears the delta state so later notes build on it.
     mutating func fullContextNotes() -> [String] {
-        let notes = [briefNote, briefNote?.contains("[WukongMind: AI summary") == true ? nil : summaryNote, lastPositionNote]
+        let notes = [pageNote, briefNote, briefNote?.contains("[WukongMind: AI summary") == true ? nil : summaryNote, lastPositionNote]
             .compactMap { $0 }
         fullTextSent = []
         return notes
@@ -212,6 +279,21 @@ struct VoiceContext {
     }
 
     // MARK: Helpers
+
+    static func cleanTitle(_ text: String?) -> String {
+        guard let text else { return "" }
+        let cleaned = text
+            .replacingOccurrences(of: "[", with: "(")
+            .replacingOccurrences(of: "]", with: ")")
+            .replacingOccurrences(of: "\"", with: "'")
+        return BrowseText.oneLine(cleaned, limit: 160)
+    }
+
+    private static func documentIdentity(of url: URL) -> String {
+        var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+        components?.fragment = nil
+        return components?.string ?? url.absoluteString
+    }
 
     /// The first sentence (or the whole line when it has none).
     static func firstSentence(_ text: String) -> String {

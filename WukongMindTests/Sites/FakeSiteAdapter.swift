@@ -96,7 +96,6 @@ struct FakeSiteAdapter: SiteAdapter {
 
     var voice: VoiceSiteProfile {
         VoiceSiteProfile(
-            persona: "a reading companion for fake sites",
             findHint: "Fake search matches whole sentences.",
             languageHint: "Fake search matches whole sentences, so ask it in the site's language."
         )

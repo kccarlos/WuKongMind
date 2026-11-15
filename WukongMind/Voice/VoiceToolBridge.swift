@@ -7,8 +7,9 @@ import Foundation
 @MainActor
 protocol VoiceNavigator: AnyObject {
     var pageContext: PageContext { get }
+    var pageTitle: String? { get }
     var browseCursor: BrowseCursor { get }
-    /// The words and tool options of the site a session starting now is on.
+    /// The words and tool options of the site the current page is on.
     var voiceSite: VoiceSite { get }
 
     func find(_ query: String, scope: BrowseSearchScope) async -> BrowseResult
@@ -44,6 +45,15 @@ protocol VoiceNavigator: AnyObject {
     /// A quick summary of the open topic from the summary pipeline, when it
     /// has no saved one; nil when it can't be made.
     func quickSummary(topicKey: String) async -> String?
+}
+
+extension VoiceNavigator {
+    var pageTitle: String? {
+        guard let title = pageContext.topic?.title.trimmingCharacters(in: .whitespacesAndNewlines), !title.isEmpty else {
+            return nil
+        }
+        return title
+    }
 }
 
 /// How a hand-off run ended.
@@ -164,6 +174,13 @@ struct VoiceBriefing: Equatable {
 /// telling the model what to say next, capped at 8,000 characters.
 @MainActor
 final class VoiceToolBridge {
+    /// Shown when a forum-only tool is called on an ordinary page or Home.
+    nonisolated static let notForumMessage = "This page isn't a forum. Use read_page for what is on it, or hand the request off."
+    static let forumOnlyTools: Set<String> = [
+        ForumToolName.searchForum, BrowseToolName.open, BrowseToolName.focus,
+        BrowseToolName.readPost, ForumToolName.readTopic, "watch_topic"
+    ]
+
     weak var navigator: VoiceNavigator?
     /// Where hand-off briefings go (the session).
     var onBriefing: ((VoiceBriefing) -> Void)?
@@ -176,7 +193,6 @@ final class VoiceToolBridge {
     /// is refused, even after a resume (spike Q2). Nil until declared.
     private(set) var declaredNames: Set<String>?
     private(set) var declarations: [GeminiLive.FunctionDeclaration] = []
-    private var site: VoiceSite?
     private var handOffTask: Task<Void, Never>?
     private var handOffSequence = 0
 
@@ -184,11 +200,11 @@ final class VoiceToolBridge {
         self.navigator = navigator
     }
 
-    /// Fixes the session's tools for `site` (a fresh connection) and returns
+    /// Fixes the session's tools (one neutral set on every page) and returns
     /// their declarations.
-    func declare(for site: VoiceSite) -> [GeminiLive.FunctionDeclaration] {
-        self.site = site
-        declarations = VoiceDeclarations.all(registry: registry(eyesFree: false))
+    func declare(for _: VoiceSite = SiteRegistry.standard.voiceFallback) -> [GeminiLive.FunctionDeclaration] {
+        let (_, registry) = makeRegistry(eyesFree: false)
+        declarations = VoiceDeclarations.all(registry: registry)
         declaredNames = Set(declarations.map(\.name))
         return declarations
     }
@@ -223,17 +239,21 @@ final class VoiceToolBridge {
 
     // MARK: Registry
 
-    private func registry(eyesFree: Bool) -> ToolRegistry {
-        let browse = BrowseToolContext(navigator: navigator, site: site ?? navigator?.voiceSite ?? SiteRegistry.standard.voiceFallback)
+    private func makeRegistry(eyesFree: Bool) -> (BrowseToolContext, ToolRegistry) {
+        let browse = BrowseToolContext(navigator: navigator, site: navigator?.voiceSite ?? SiteRegistry.standard.voiceFallback)
         browse.eyesFree = eyesFree
-        return registryBuilder?(browse) ?? ToolRegistry(tools: ToolRegistry.browseTools(browse: browse))
+        let registry = registryBuilder?(browse) ?? ToolRegistry(tools: ToolRegistry.browseTools(browse: browse))
+        return (browse, registry)
     }
 
     /// One registry tool, on the page as it is now.
     private func dispatch(_ name: String, args: [String: JSONValue], eyesFree: Bool) async -> VoiceToolOutcome {
-        let registry = registry(eyesFree: eyesFree)
+        let (browse, registry) = makeRegistry(eyesFree: eyesFree)
         guard let tool = registry.tool(named: name) else {
             return refusal("\(name) isn't available on this page.")
+        }
+        if !browse.isOnForum, Self.forumOnlyTools.contains(name) {
+            return refusal(Self.notForumMessage)
         }
         var args = Self.lenient(args, for: tool.definition)
         // "Summarize this", "follow this thread": voice names no thread, so the open topic it is.
@@ -294,7 +314,8 @@ final class VoiceToolBridge {
             return refusal("No request was given to hand off.")
         }
         // Routing in code: a browser action sent to the Agent is done here.
-        if let routed = VoiceRouting.browserAction(for: request) {
+        if let routed = VoiceRouting.browserAction(for: request),
+           routed == .move("back") || navigator.pageContext.isForum {
             let name: String
             let routedArgs: [String: JSONValue]
             switch routed {

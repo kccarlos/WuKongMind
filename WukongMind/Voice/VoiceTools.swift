@@ -102,13 +102,13 @@ enum VoiceTool: String, CaseIterable {
         switch self {
         case .handOffToAgent:
             return """
-            Hand a request to WukongMind's Agent, which reads across several threads or a long thread and answers with sources, \
-            and which can change the page (dark mode, hiding parts of it). Use it for questions about what people think or \
-            recommend, for anything that needs several threads, and for every change to the page; never for something \
-            search_forum, browse_open, browse_move, browse_focus or read_post can do. Before calling it, say one short \
-            acknowledgement in your own words, once. It answers "started" at once and runs in the background; one hand-off runs \
-            at a time, and a new request replaces the running one. The answer arrives later as a briefing: open with the answer. \
-            action "cancel" stops it when the user says never mind.
+            Hand a request to WukongMind's Agent, which looks at the page, clicks and types, reads across several threads or \
+            pages, changes the page (dark mode, hiding things, bigger text) and answers with sources in the conversation. Use it \
+            for every change to a page, for clicking buttons, typing and forms, and for questions that need reasoning across \
+            many posts or pages; never for something another tool can do in one call (opening a page or a link, moving, \
+            searching a forum, reading). Before calling it, say one short acknowledgement in your own words, once. It answers \
+            "started" at once and runs in the background; one hand-off runs at a time, and a new request replaces the running \
+            one. The answer arrives later as a briefing: open with the answer. action "cancel" stops it when the user says never mind.
             """
         case .end:
             return """

@@ -153,9 +153,6 @@ final class VoiceSession: ObservableObject {
     private let audio: VoiceAudioIO
     let tools: VoiceToolBridge
     private weak var navigator: VoiceNavigator?
-    /// The site the session's words and tool options came from, fixed when a
-    /// fresh Gemini session connects (a resume keeps it).
-    private var site: VoiceSite?
     private let clock: VoiceClock
     private let usage: VoiceUsageStore?
     /// Runs the tick loop and the audio; tests drive `tick()` themselves.
@@ -386,35 +383,32 @@ final class VoiceSession: ObservableObject {
     /// The setup for a connection (the whole of it again when resuming).
     func setup(handle: String?) -> GeminiLive.Setup {
         let page = navigator?.pageContext
-        // A fresh session reads the site it starts on; a resumed one is the same session.
-        let site = handle == nil ? nil : self.site
-        let fixed = site ?? navigator?.voiceSite ?? SiteRegistry.standard.voiceFallback
-        self.site = fixed
         return GeminiLive.Setup(
             endpoint: configuration.endpoint,
             model: configuration.model,
             voice: configuration.settings.voiceName,
             instructions: VoiceInstructions.system(
                 answerLength: configuration.settings.answerLength,
-                eyesFree: eyesFree,
-                forumName: page?.forumName,
-                site: fixed.profile
+                eyesFree: eyesFree
             ),
             // Declared once per fresh session; a resume sends the same list (the server keeps the old one anyway).
-            functions: handle == nil || tools.declaredNames == nil ? tools.declare(for: fixed) : tools.declarations,
-            vocabulary: Self.vocabulary(page: page),
+            functions: handle == nil || tools.declaredNames == nil ? tools.declare() : tools.declarations,
+            vocabulary: Self.vocabulary(page: page, title: navigator?.pageTitle),
             resumptionHandle: handle
         )
     }
 
-    /// Custom vocabulary for transcription: the forum's and topic's names.
-    static func vocabulary(page: PageContext?) -> [String] {
+    /// Custom vocabulary for transcription: the forum's and page's names.
+    static func vocabulary(page: PageContext?, title: String? = nil) -> [String] {
         guard let page else { return [] }
         var words: [String] = []
         if !page.forumName.isEmpty { words.append(page.forumName) }
-        if let title = page.topic?.title, !title.isEmpty {
-            words.append(title)
-            words += title.split(whereSeparator: { !$0.isLetter && !$0.isNumber })
+        let topicTitle = page.topic?.title.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let pageTitle = title?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let resolvedTitle = !topicTitle.isEmpty ? topicTitle : pageTitle
+        if !resolvedTitle.isEmpty {
+            words.append(resolvedTitle)
+            words += resolvedTitle.split(whereSeparator: { !$0.isLetter && !$0.isNumber })
                 .map(String.init)
                 .filter { $0.count >= 4 && $0.first?.isUppercase == true }
         }
@@ -535,7 +529,7 @@ final class VoiceSession: ObservableObject {
         setupDone = true
         reconnectFailures = 0
         lastUsageTick = clock.now
-        let first = freshAt != nil && noteQueue.isEmpty && context.briefedTopic == nil
+        let first = freshAt != nil && noteQueue.isEmpty && !context.hasSentPage
         // Context sent after the last handle is lost: send all of it again.
         noteQueue.insert(contentsOf: context.fullContextNotes(), at: 0)
         if first, let page = navigator?.pageContext { pageChanged(page) }
@@ -729,8 +723,8 @@ final class VoiceSession: ObservableObject {
 
     // MARK: Silent context
 
-    /// The page settled (AppModel.pageChanges): the topic brief when the
-    /// topic is new, then the position delta.
+    /// The page settled (AppModel.pageChanges): one note for an ordinary or
+    /// forum page, or the topic brief and position delta on a topic.
     func pageChanged(_ page: PageContext) {
         guard !state.isOver else { return }
         if let topic = page.topic, page.state == .topic {
@@ -740,10 +734,20 @@ final class VoiceSession: ObservableObject {
         } else {
             dwell = nil
         }
+        if let note = context.settledPageNote(
+            page: page,
+            title: navigator?.pageTitle,
+            site: navigator?.voiceSite ?? SiteRegistry.standard.voiceFallback
+        ) {
+            queueNote(note)
+        }
+        guard page.state == .topic else { return }
         let task = Task { @MainActor [weak self] in
             guard let self, let navigator = self.navigator else { return }
             if let topic = page.topic, page.state == .topic, topic.topicKey != self.context.briefedTopic,
-               let brief = await navigator.voiceTopicBrief(), brief.topicKey == topic.topicKey {
+               let brief = await navigator.voiceTopicBrief(),
+               brief.topicKey == topic.topicKey,
+               navigator.pageContext.topic?.topicKey == topic.topicKey {
                 if let note = self.context.topicBriefNote(brief) { self.queueNote(note) }
                 if brief.summary == nil { self.requestSummary(brief) }
             }

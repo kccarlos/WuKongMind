@@ -2122,18 +2122,18 @@
         }
       }
     },
-    "A microphone in the browser bar starts a live conversation that can find, open and read posts for you." : {
+    "A microphone in the browser bar starts a live conversation that can open pages, move around and read what is on screen." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "浏览器栏中的麦克风会开始实时对话，帮你查找、打开和朗读帖子。"
+            "value" : "浏览器栏中的麦克风会开始实时对话，帮你打开网页、在页面中移动并朗读屏幕上的内容。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "瀏覽器列中的麥克風會開始即時對話，幫你尋找、開啟和朗讀貼文。"
+            "value" : "瀏覽器列中的麥克風會開始即時對話，幫你開啟網頁、在頁面中移動並朗讀螢幕上的內容。"
           }
         }
       }
@@ -21301,6 +21301,22 @@
         }
       }
     },
+    "Voice sends your audio, the title and host of each page you visit (never the full address) and page text when needed to Google Gemini Live, with your own Google Gemini or Vertex AI key. This setting is kept on this device." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "语音会使用你自己的 Google Gemini 或 Vertex AI 密钥，将你的音频、所访问每个页面的标题和域名（从不发送完整网址）以及需要时的页面正文发送给 Google Gemini Live。此设置只保存在本设备上。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "語音會使用你自己的 Google Gemini 或 Vertex AI 金鑰，將你的音訊、造訪的每個頁面的標題和網域名稱（絕不傳送完整網址）以及需要時的頁面文字傳送給 Google Gemini Live。此設定只儲存在本裝置上。"
+          }
+        }
+      }
+    },
     "Voice today %lld min" : {
       "comment" : "Settings header: voice minutes used today, no daily limit",
       "localizations" : {
@@ -21331,22 +21347,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "今日語音 %1$lld / %2$lld 分鐘"
-          }
-        }
-      }
-    },
-    "Voice uses Google Gemini Live with your own Google Gemini or Vertex AI key. This setting is kept on this device." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "语音使用 Google Gemini Live，并使用你自己的 Google Gemini 或 Vertex AI 密钥。此设置只保存在本设备上。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "語音使用 Google Gemini Live，並使用你自己的 Google Gemini 或 Vertex AI 金鑰。此設定只儲存在本裝置上。"
           }
         }
       }
