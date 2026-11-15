@@ -250,37 +250,101 @@ final class GMBridgeTests: XCTestCase {
             grants: ["GM_getValue", "GM_setValue", "GM_listValues"]
         )
         _ = try store.create(
+            id: "token-sniffer", name: "Token Sniffer", matchRules: ["*://127.0.0.1/*"],
+            js: """
+            const captured = [];
+            const grabNode = (node) => {
+              if (!node || !node.getAttribute) return;
+              for (const attr of ["data-wukong-script-error", "data-wukong-script-clean"]) {
+                const raw = node.getAttribute(attr);
+                if (raw) { try { const p = JSON.parse(raw); if (p && p.token) captured.push(p.token); } catch (_) {} }
+              }
+            };
+            const obs = new MutationObserver((records) => {
+              for (const r of records) {
+                grabNode(r.target);
+                for (const n of Array.from(r.addedNodes || [])) grabNode(n);
+              }
+            });
+            obs.observe(document, { childList: true, subtree: true, attributes: true });
+            for (const ev of ["__wukong_script_error", "__wukong_script_clean"]) {
+              document.addEventListener(ev, () => {
+                for (const tpl of Array.from(document.querySelectorAll("template"))) grabNode(tpl);
+              }, true);
+            }
+            window.addEventListener("load", () => {
+              setTimeout(() => {
+                const pageH = window.webkit?.messageHandlers?.__wukongPageScript;
+                for (const tok of captured) {
+                  if (pageH && typeof pageH.postMessage === "function") {
+                    pageH.postMessage({ action: "pageScriptError", token: tok, message: "replayed-by-sniffer" });
+                  }
+                  const tpl = document.createElement("template");
+                  tpl.setAttribute("data-wukong-script-error", JSON.stringify({ token: tok, message: "replayed-dom" }));
+                  document.documentElement.appendChild(tpl);
+                  document.dispatchEvent(new Event("__wukong_script_error"));
+                }
+                document.documentElement.setAttribute("data-sniffer-report", JSON.stringify({
+                  capturedCount: captured.length,
+                  pageHandlerType: typeof pageH
+                }));
+              }, 20);
+            });
+            """,
+            injectionTime: .documentStart,
+            grants: ["GM_getValue"]
+        )
+        _ = try store.create(
             id: "script-b", name: "Script B", matchRules: ["*://127.0.0.1/*"],
             js: """
             document.documentElement.setAttribute("data-b-probe", JSON.stringify({
               leakedValue: GM_getValue("secretToken", "not-found"),
               ownKeys: GM_listValues(),
               sawAGlobal: typeof window.__scriptAInternal,
-              sawAgentHandler: typeof (window.webkit?.messageHandlers?.wukongAgent)
+              sawAgentHandler: typeof (window.webkit?.messageHandlers?.wukongAgent),
+              sawPageHandler: typeof (window.webkit?.messageHandlers?.__wukongPageScript)
             }));
             await window.webkit.messageHandlers.gm.postMessage({ action: "scriptError", scriptId: "script-a", message: "forged-via-b-handler" });
-            const tpl = document.createElement("template");
-            tpl.setAttribute("data-wukong-script-error", JSON.stringify({ token: "forged", scriptId: "script-a", message: "forged-dom" }));
-            document.documentElement.appendChild(tpl);
-            document.dispatchEvent(new Event("__wukong_script_error"));
             """,
             injectionTime: .documentEnd,
             grants: ["GM_getValue", "GM_setValue", "GM_listValues"]
         )
         _ = try store.create(
             id: "page-clean", name: "Page Clean", matchRules: ["*://127.0.0.1/*"],
-            js: "document.documentElement.setAttribute('data-page-clean', '1');", environment: .page
+            js: "document.documentElement.setAttribute('data-page-clean', '1');",
+            injectionTime: .documentEnd,
+            environment: .page
+        )
+        _ = try store.create(
+            id: "page-err", name: "Page Err", matchRules: ["*://127.0.0.1/*"],
+            js: "throw new Error('real-page-error');",
+            injectionTime: .documentEnd,
+            environment: .page
         )
 
         let harness = makeHarness(store: store)
         try await harness.waiter.waitForLoad {
             harness.webView.load(URLRequest(url: URL(string: "http://127.0.0.1:\(server.port)/thread/1")!))
         }
-        try await waitUntil { store.error(for: "script-b") != nil }
+        try await waitUntil {
+            guard store.error(for: "script-b") != nil, store.error(for: "page-err") != nil else { return false }
+            let report = try await harness.webView.evaluateJavaScript(
+                "document.documentElement.getAttribute('data-sniffer-report')",
+                in: nil, contentWorld: AgentBridge.isolatedWorld
+            ) as? String
+            return report != nil
+        }
 
         XCTAssertNil(store.error(for: "script-a"))
         XCTAssertNil(store.error(for: "page-clean"))
+        XCTAssertEqual(store.consecutiveErrorLoads["page-clean"] ?? 0, 0)
         XCTAssertEqual(store.error(for: "script-b")?.message, "forged-via-b-handler")
+        XCTAssertTrue(store.error(for: "page-err")?.message.contains("real-page-error") == true)
+
+        let snifferRaw = try await harness.webView.evaluateJavaScript("document.documentElement.getAttribute('data-sniffer-report')", in: nil, contentWorld: AgentBridge.isolatedWorld) as? String
+        let sniffer = try JSONDecoder().decode([String: JSONValue].self, from: Data((snifferRaw ?? "{}").utf8))
+        XCTAssertEqual(sniffer["capturedCount"], .int(0))
+        XCTAssertEqual(sniffer["pageHandlerType"], .string("undefined"))
 
         let probeRaw = try await harness.webView.evaluateJavaScript("document.documentElement.getAttribute('data-b-probe')", in: nil, contentWorld: AgentBridge.isolatedWorld) as? String
         let probe = try JSONDecoder().decode([String: JSONValue].self, from: Data((probeRaw ?? "{}").utf8))
@@ -288,26 +352,33 @@ final class GMBridgeTests: XCTestCase {
         XCTAssertEqual(probe["ownKeys"], .array([]))
         XCTAssertEqual(probe["sawAGlobal"], .string("undefined"))
         XCTAssertEqual(probe["sawAgentHandler"], .string("undefined"))
+        XCTAssertEqual(probe["sawPageHandler"], .string("undefined"))
         let aAgent = try await harness.webView.evaluateJavaScript("document.documentElement.getAttribute('data-a-agent')", in: nil, contentWorld: AgentBridge.isolatedWorld) as? String
         XCTAssertEqual(aAgent, "undefined")
 
         let pageCheck = try await harness.webView.evaluateJavaScript(
             """
             (() => {
-              const tpl = document.createElement("template");
-              tpl.setAttribute("data-wukong-script-error", JSON.stringify({ token: "guessed", scriptId: "script-a", message: "forged-page" }));
-              document.documentElement.appendChild(tpl);
-              document.dispatchEvent(new Event("__wukong_script_error"));
-              return { gm: typeof (window.webkit?.messageHandlers?.gm), agent: typeof (window.webkit?.messageHandlers?.wukongAgent) };
+              const ph = window.webkit?.messageHandlers?.__wukongPageScript;
+              if (ph && typeof ph.postMessage === "function") {
+                ph.postMessage({ action: "pageScriptError", token: "guessed", scriptId: "page-clean", message: "forged-page" });
+              }
+              return {
+                gm: typeof (window.webkit?.messageHandlers?.gm),
+                agent: typeof (window.webkit?.messageHandlers?.wukongAgent),
+                phFrozen: Boolean(ph && Object.isFrozen(ph) && Object.isFrozen(Object.getPrototypeOf(ph)))
+              };
             })()
             """,
             in: nil, contentWorld: .page
-        ) as? [String: String]
-        XCTAssertEqual(pageCheck?["gm"], "undefined")
-        XCTAssertEqual(pageCheck?["agent"], "undefined")
+        ) as? [String: Any]
+        XCTAssertEqual(pageCheck?["gm"] as? String, "undefined")
+        XCTAssertEqual(pageCheck?["agent"] as? String, "undefined")
+        XCTAssertEqual(pageCheck?["phFrozen"] as? Bool, true)
         let agentGM = try await harness.webView.evaluateJavaScript("typeof (window.webkit?.messageHandlers?.gm)", in: nil, contentWorld: AgentBridge.isolatedWorld) as? String
         XCTAssertEqual(agentGM, "undefined")
         XCTAssertNil(store.error(for: "script-a"))
+        XCTAssertNil(store.error(for: "page-clean"))
         XCTAssertEqual(store.valuesDirectoryURL.lastPathComponent, "ScriptValues")
         XCTAssertTrue(FileManager.default.fileExists(atPath: store.valuesStore.fileURL(for: "script-a").path))
         XCTAssertFalse(FileManager.default.fileExists(atPath: store.valuesStore.fileURL(for: "script-b").path))
@@ -359,60 +430,67 @@ final class GMBridgeTests: XCTestCase {
         XCTAssertNil(store.error(for: "csp-sync-store"))
     }
 
-    func testValueLifecyclePromiseFormsSizeLimitsAndDeleteUndoRestore() async throws {
+    func testValueLifecycleSizeLimitsAndDeleteUndoRestore() async throws {
         let server = try await fixtureServer()
         let pageURL = URL(string: "http://127.0.0.1:\(server.port)/values")!
         let store = ScriptStore(directoryURL: tempDir.appendingPathComponent("Scripts", isDirectory: true))
         _ = try store.create(
-            id: "gm-dot-values", name: "GM Dot Values", matchRules: ["*://127.0.0.1/*"],
+            id: "gm-values", name: "GM Values", matchRules: ["*://127.0.0.1/*"],
             js: """
-            const prior = await GM.getValue("persisted", null);
+            const prior = GM_getValue("persisted", null);
             if (!prior) {
-              await GM.setValue("persisted", { ok: true, items: [1, "two", null] });
-              await GM.setValue("ephemeral", "temp");
-              await GM.deleteValue("ephemeral");
+              GM_setValue("persisted", { ok: true, items: [1, "two", null] });
+              GM_setValue("ephemeral", "temp");
+              GM_deleteValue("ephemeral");
               let overSingle = false, overTotal = false;
-              try { await GM.setValue("big", "x".repeat(100 * 1024 + 16)); } catch (e) { overSingle = String(e).includes("100 KB"); }
-              await GM.setValue("fill1", "a".repeat(95 * 1024));
-              await GM.setValue("fill2", "b".repeat(95 * 1024));
-              try { await GM.setValue("fill3", "c".repeat(80 * 1024)); } catch (e) { overTotal = String(e).includes("256 KB"); }
-              await GM.addStyle("body { color: rgb(9, 8, 7) !important; }");
-              document.documentElement.setAttribute("data-dot-p1", JSON.stringify({
-                overSingle, overTotal, keys: (await GM.listValues()).sort(), handler: GM.info.scriptHandler
+              try { GM_setValue("big", "x".repeat(100 * 1024 + 16)); } catch (e) { overSingle = String(e).includes("100 KB"); }
+              GM_setValue("fill1", "a".repeat(95 * 1024));
+              GM_setValue("fill2", "b".repeat(95 * 1024));
+              try { GM_setValue("fill3", "c".repeat(80 * 1024)); } catch (e) { overTotal = String(e).includes("256 KB"); }
+              GM_addStyle("body { color: rgb(9, 8, 7) !important; }");
+              document.documentElement.setAttribute("data-gm-p1", JSON.stringify({
+                overSingle, overTotal, keys: GM_listValues().sort(), handler: GM_info.scriptHandler, gmDotType: typeof window.GM
               }));
             } else {
-              document.documentElement.setAttribute("data-dot-p2", JSON.stringify({ prior, keys: (await GM.listValues()).sort() }));
+              document.documentElement.setAttribute("data-gm-p2", JSON.stringify({ prior, keys: GM_listValues().sort() }));
             }
             """,
-            grants: ["GM.getValue", "GM.setValue", "GM.deleteValue", "GM.listValues"]
+            grants: ["GM_getValue", "GM_setValue", "GM_deleteValue", "GM_listValues"]
         )
 
         let harness = makeHarness(store: store)
         try await harness.waiter.waitForLoad { harness.webView.load(URLRequest(url: pageURL)) }
+        let valuesFile = store.valuesStore.fileURL(for: "gm-values")
         try await waitUntil {
-            (try await harness.webView.evaluateJavaScript("document.documentElement.getAttribute('data-dot-p1')", in: nil, contentWorld: AgentBridge.isolatedWorld) as? String) != nil
+            guard store.valuesStore.values(for: "gm-values").keys.sorted() == ["fill1", "fill2", "persisted"],
+                  FileManager.default.fileExists(atPath: valuesFile.path) else { return false }
+            let attr = try await harness.webView.evaluateJavaScript(
+                "document.documentElement.getAttribute('data-gm-p1')",
+                in: nil, contentWorld: AgentBridge.isolatedWorld
+            ) as? String
+            return attr != nil
         }
-        let p1Raw = try await harness.webView.evaluateJavaScript("document.documentElement.getAttribute('data-dot-p1')", in: nil, contentWorld: AgentBridge.isolatedWorld) as? String
+        let p1Raw = try await harness.webView.evaluateJavaScript("document.documentElement.getAttribute('data-gm-p1')", in: nil, contentWorld: AgentBridge.isolatedWorld) as? String
         let p1 = try JSONDecoder().decode([String: JSONValue].self, from: Data((p1Raw ?? "{}").utf8))
         XCTAssertEqual(p1["overSingle"], .bool(true))
         XCTAssertEqual(p1["overTotal"], .bool(true))
         XCTAssertEqual(p1["keys"], .array([.string("fill1"), .string("fill2"), .string("persisted")]))
         XCTAssertEqual(p1["handler"], .string("WukongMind"))
+        XCTAssertEqual(p1["gmDotType"], .string("undefined"))
 
-        let valuesFile = store.valuesStore.fileURL(for: "gm-dot-values")
         XCTAssertTrue(FileManager.default.fileExists(atPath: valuesFile.path))
-        XCTAssertFalse(try XCTUnwrap(store.script(id: "gm-dot-values")).toUserScriptFileContent().contains(String(repeating: "a", count: 1024)))
+        XCTAssertFalse(try XCTUnwrap(store.script(id: "gm-values")).toUserScriptFileContent().contains(String(repeating: "a", count: 1024)))
 
-        let deleted = try store.delete(id: "gm-dot-values")
+        let deleted = try store.delete(id: "gm-values")
         XCTAssertFalse(FileManager.default.fileExists(atPath: valuesFile.path))
         try store.restore(deleted)
         XCTAssertTrue(FileManager.default.fileExists(atPath: valuesFile.path))
 
         try await harness.waiter.waitForLoad { harness.webView.reload() }
         try await waitUntil {
-            (try await harness.webView.evaluateJavaScript("document.documentElement.getAttribute('data-dot-p2')", in: nil, contentWorld: AgentBridge.isolatedWorld) as? String) != nil
+            (try await harness.webView.evaluateJavaScript("document.documentElement.getAttribute('data-gm-p2')", in: nil, contentWorld: AgentBridge.isolatedWorld) as? String) != nil
         }
-        let p2Raw = try await harness.webView.evaluateJavaScript("document.documentElement.getAttribute('data-dot-p2')", in: nil, contentWorld: AgentBridge.isolatedWorld) as? String
+        let p2Raw = try await harness.webView.evaluateJavaScript("document.documentElement.getAttribute('data-gm-p2')", in: nil, contentWorld: AgentBridge.isolatedWorld) as? String
         let p2 = try JSONDecoder().decode([String: JSONValue].self, from: Data((p2Raw ?? "{}").utf8))
         XCTAssertEqual(p2["keys"], .array([.string("fill1"), .string("fill2"), .string("persisted")]))
         XCTAssertEqual(p2["prior"], .object(["ok": .bool(true), "items": .array([.int(1), .string("two"), .null])]))

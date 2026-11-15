@@ -142,11 +142,12 @@ final class ScriptValuesStore {
 
 /// Manages per-script `WKContentWorld`s (`WukongScript.<id>`), per-script
 /// `WKScriptMessageHandlerWithReply` registration, Swift-side `@grant` checks,
-/// and the `GM_*` / `GM.*` runtime surface.
+/// and the `GM_*` runtime surface.
 @MainActor
 final class GMBridge {
     nonisolated static let worldPrefix = "WukongScript."
     nonisolated static let handlerName = "gm"
+    nonisolated static let pageReportHandlerName = "__wukongPageScript"
     nonisolated static let maxSingleValueBytes = 100 * 1024
     nonisolated static let maxTotalValuesBytes = 256 * 1024
 
@@ -158,30 +159,12 @@ final class GMBridge {
         "GM_getResourceURL", "GM_download", "GM_cookie", "GM_addElement",
         "GM_addValueChangeListener", "GM_removeValueChangeListener", "GM_getTab", "GM_saveTab", "GM_getTabs",
     ]
-    static let unsupportedGMDotMethods = [
-        "notification", "openInTab", "setClipboard", "getResourceText",
-        "getResourceUrl", "download", "cookie", "addElement",
-        "addValueChangeListener", "removeValueChangeListener", "getTab", "saveTab", "getTabs",
-    ]
     static let futureM4GrantFunctions = [
         "GM_xmlhttpRequest", "GM_registerMenuCommand", "GM_unregisterMenuCommand", "GM_ai",
     ]
 
-    static func hasGrant(in grants: [String], for callName: String) -> Bool {
-        switch callName {
-        case "GM_addStyle", "GM.addStyle", "GM_info", "GM.info", "GM_log": return true
-        case "GM.getValue": return grants.contains("GM.getValue") || grants.contains("GM_getValue")
-        case "GM.setValue": return grants.contains("GM.setValue") || grants.contains("GM_setValue")
-        case "GM.deleteValue": return grants.contains("GM.deleteValue") || grants.contains("GM_deleteValue")
-        case "GM.listValues": return grants.contains("GM.listValues") || grants.contains("GM_listValues")
-        case "GM.xmlHttpRequest": return grants.contains("GM.xmlHttpRequest") || grants.contains("GM_xmlhttpRequest")
-        default: return grants.contains(callName)
-        }
-    }
-
     static func hasAnyValueReadGrant(_ grants: [String]) -> Bool {
-        grants.contains("GM_getValue") || grants.contains("GM.getValue")
-            || grants.contains("GM_listValues") || grants.contains("GM.listValues")
+        grants.contains("GM_getValue") || grants.contains("GM_listValues")
     }
 
     let valuesStore: ScriptValuesStore
@@ -189,7 +172,9 @@ final class GMBridge {
     var onValuesMutated: ((String) -> Void)?
     var onScriptError: ((String, [String: Any]) -> Void)?
     var onScriptLoadClean: ((String, [String: Any]) -> Void)?
+    var onPageScriptReport: (([String: Any]) -> Void)?
     private var registeredHandlers: [String: GMScriptReplyHandler] = [:]
+    private var pageReportHandler: GMPageReplyHandler?
 
     init(valuesStore: ScriptValuesStore) {
         self.valuesStore = valuesStore
@@ -197,6 +182,7 @@ final class GMBridge {
 
     func syncHandlers(
         for scriptIDs: Set<String>,
+        hasPageScripts: Bool = false,
         worlds: [String: WKContentWorld] = [:],
         on controller: WKUserContentController
     ) {
@@ -207,6 +193,12 @@ final class GMBridge {
         }
         for id in scriptIDs where registeredHandlers[id] == nil {
             ensureHandlerRegistered(for: id, world: worlds[id], on: controller)
+        }
+        if hasPageScripts {
+            ensurePageHandlerRegistered(on: controller)
+        } else if pageReportHandler != nil {
+            pageReportHandler = nil
+            controller.removeScriptMessageHandler(forName: Self.pageReportHandlerName, contentWorld: .page)
         }
     }
 
@@ -223,13 +215,25 @@ final class GMBridge {
         controller.addScriptMessageHandler(handler, contentWorld: contentWorld, name: Self.handlerName)
     }
 
+    func ensurePageHandlerRegistered(on controller: WKUserContentController) {
+        guard pageReportHandler == nil else { return }
+        let handler = GMPageReplyHandler(bridge: self)
+        pageReportHandler = handler
+        controller.removeScriptMessageHandler(forName: Self.pageReportHandlerName, contentWorld: .page)
+        controller.addScriptMessageHandler(handler, contentWorld: .page, name: Self.pageReportHandlerName)
+    }
+
     func removeAllHandlers(from controller: WKUserContentController?) {
         if let controller {
             for handler in registeredHandlers.values {
                 controller.removeScriptMessageHandler(forName: Self.handlerName, contentWorld: handler.expectedWorld)
             }
+            if pageReportHandler != nil {
+                controller.removeScriptMessageHandler(forName: Self.pageReportHandlerName, contentWorld: .page)
+            }
         }
         registeredHandlers.removeAll()
+        pageReportHandler = nil
     }
 
     fileprivate func handleMessage(
@@ -256,10 +260,8 @@ final class GMBridge {
             guard let script = resolveScript?(scriptID), !script.runsInPageWorld else {
                 return (nil, "Script is not active.")
             }
-            let caller = (payload["caller"] as? String) == "GM.setValue" ? "GM.setValue" : "GM_setValue"
-            let grants = script.metadata.grants
-            guard grants.contains("GM_setValue") || grants.contains("GM.setValue") else {
-                let msg = GMBridgeError.ungranted(caller).errorDescription ?? "Missing grant"
+            guard script.metadata.grants.contains("GM_setValue") else {
+                let msg = GMBridgeError.ungranted("GM_setValue").errorDescription ?? "Missing grant"
                 onScriptError?(scriptID, ["message": msg])
                 return (nil, msg)
             }
@@ -277,10 +279,8 @@ final class GMBridge {
             guard let script = resolveScript?(scriptID), !script.runsInPageWorld else {
                 return (nil, "Script is not active.")
             }
-            let caller = (payload["caller"] as? String) == "GM.deleteValue" ? "GM.deleteValue" : "GM_deleteValue"
-            let grants = script.metadata.grants
-            guard grants.contains("GM_deleteValue") || grants.contains("GM.deleteValue") else {
-                let msg = GMBridgeError.ungranted(caller).errorDescription ?? "Missing grant"
+            guard script.metadata.grants.contains("GM_deleteValue") else {
+                let msg = GMBridgeError.ungranted("GM_deleteValue").errorDescription ?? "Missing grant"
                 onScriptError?(scriptID, ["message": msg])
                 return (nil, msg)
             }
@@ -301,7 +301,7 @@ final class GMBridge {
         (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String) ?? "1.3.0"
     }
 
-    static func gmInfoJSONLiteral(for script: UserScript, appVersion: String? = nil) -> String {
+    static func gmInfoJSONLiteral(for script: UserScript) -> String {
         let info: [String: Any] = [
             "script": [
                 "name": script.name,
@@ -311,7 +311,7 @@ final class GMBridge {
                 "grant": script.metadata.grants,
             ],
             "scriptHandler": "WukongMind",
-            "version": appVersion ?? appMarketingVersion,
+            "version": appMarketingVersion,
         ]
         guard let data = try? JSONSerialization.data(withJSONObject: info, options: [.sortedKeys]),
               let json = String(data: data, encoding: .utf8) else { return "{}" }
@@ -417,7 +417,6 @@ final class GMBridge {
           const needGrant = (fn) => { throw new Error("`" + fn + "` needs `@grant " + fn + "`"); };
           const notSupported = (fn) => { throw new Error("`" + fn + "` is not supported in WukongMind"); };
           const req = (fn) => { if (!grants.has(fn)) needGrant(fn); };
-          const reqEither = (dot, gm) => { if (!grants.has(dot) && !grants.has(gm)) needGrant(dot); };
           const uLen = (s) => enc.encode(s).length;
           const prepareSet = (key, value) => {
             const k = String(key), ser = JSON.stringify(value);
@@ -439,7 +438,7 @@ final class GMBridge {
             req("GM_setValue");
             const [k, ser] = prepareSet(key, value), had = values.has(k), prev = values.get(k);
             values.set(k, ser);
-            if (postFn) postFn({ action: "setValue", caller: "GM_setValue", key: k, rawJSON: ser }).catch((e) => {
+            if (postFn) postFn({ action: "setValue", key: k, rawJSON: ser }).catch((e) => {
               if (had) values.set(k, prev); else values.delete(k);
               reportAsyncErr(e);
             });
@@ -447,35 +446,13 @@ final class GMBridge {
           window.GM_deleteValue = (key) => {
             req("GM_deleteValue");
             const k = String(key); values.delete(k);
-            if (postFn) postFn({ action: "deleteValue", caller: "GM_deleteValue", key: k }).catch(reportAsyncErr);
+            if (postFn) postFn({ action: "deleteValue", key: k }).catch(reportAsyncErr);
           };
           window.GM_listValues = () => { req("GM_listValues"); return Array.from(values.keys()); };
           for (const fn of \(jsonArray(futureM4GrantFunctions))) window[fn] = () => { req(fn); notSupported(fn); };
           for (const fn of \(jsonArray(unsupportedGMFunctions))) window[fn] = () => notSupported(fn);
           window.close = () => notSupported("window.close");
           window.focus = () => notSupported("window.focus");
-
-          const gmObj = {
-            get info() { return currentInfo; },
-            addStyle: async (css) => addStyleImpl(css),
-            getValue: async (key, def) => { reqEither("GM.getValue", "GM_getValue"); const k = String(key); return values.has(k) ? JSON.parse(values.get(k)) : def; },
-            setValue: async (key, value) => {
-              reqEither("GM.setValue", "GM_setValue");
-              const [k, ser] = prepareSet(key, value), had = values.has(k), prev = values.get(k);
-              values.set(k, ser);
-              try { if (postFn) await postFn({ action: "setValue", caller: "GM.setValue", key: k, rawJSON: ser }); }
-              catch (e) { if (had) values.set(k, prev); else values.delete(k); throw e; }
-            },
-            deleteValue: async (key) => {
-              reqEither("GM.deleteValue", "GM_deleteValue");
-              const k = String(key); values.delete(k);
-              if (postFn) await postFn({ action: "deleteValue", caller: "GM.deleteValue", key: k });
-            },
-            listValues: async () => { reqEither("GM.listValues", "GM_listValues"); return Array.from(values.keys()); },
-            xmlHttpRequest: async () => { reqEither("GM.xmlHttpRequest", "GM_xmlhttpRequest"); notSupported("GM.xmlHttpRequest"); }
-          };
-          for (const m of \(jsonArray(unsupportedGMDotMethods))) gmObj[m] = async () => notSupported("GM." + m);
-          window.GM = Object.freeze(gmObj);
         })();
         """
     }
@@ -486,7 +463,6 @@ final class GMBridge {
         let powerFns = ["GM_getValue", "GM_setValue", "GM_deleteValue", "GM_listValues"] + futureM4GrantFunctions
         let ungranted = powerFns.map { "const \($0) = () => { throw new Error(\(UserScript.encodeSingleLineJSONString("`\($0)` needs `@grant \($0)`"))); };" }.joined(separator: "\n")
         let unsupported = unsupportedGMFunctions.map { "const \($0) = () => { throw new Error(\(UserScript.encodeSingleLineJSONString("`\($0)` is not supported in WukongMind"))); };" }.joined(separator: "\n")
-        let dotUnsupported = unsupportedGMDotMethods.map { "\($0): async () => { throw new Error(\(UserScript.encodeSingleLineJSONString("`GM.\($0)` is not supported in WukongMind"))); }" }.joined(separator: ", ")
         return """
         const GM_info = (() => {
           const info = \(infoJSON);
@@ -502,16 +478,6 @@ final class GMBridge {
         const GM_addStyle = (css) => window.__wukongAddPageScriptStyle(\(scriptIDJSON), String(css == null ? "" : css));
         \(ungranted)
         \(unsupported)
-        const GM = Object.freeze({
-          info: GM_info,
-          addStyle: async (css) => GM_addStyle(css),
-          getValue: async () => { throw new Error("`GM.getValue` needs `@grant GM.getValue`"); },
-          setValue: async () => { throw new Error("`GM.setValue` needs `@grant GM.setValue`"); },
-          deleteValue: async () => { throw new Error("`GM.deleteValue` needs `@grant GM.deleteValue`"); },
-          listValues: async () => { throw new Error("`GM.listValues` needs `@grant GM.listValues`"); },
-          xmlHttpRequest: async () => { throw new Error("`GM.xmlHttpRequest` needs `@grant GM.xmlHttpRequest`"); },
-          \(dotUnsupported)
-        });
         """
     }
 }
@@ -545,5 +511,29 @@ private final class GMScriptReplyHandler: NSObject, WKScriptMessageHandlerWithRe
             expectedWorld: expectedWorld
         )
         replyHandler(reply, err)
+    }
+}
+
+@MainActor
+private final class GMPageReplyHandler: NSObject, WKScriptMessageHandlerWithReply {
+    weak var bridge: GMBridge?
+
+    init(bridge: GMBridge) {
+        self.bridge = bridge
+    }
+
+    func userContentController(
+        _ userContentController: WKUserContentController,
+        didReceive message: WKScriptMessage,
+        replyHandler: @escaping (Any?, String?) -> Void
+    ) {
+        guard let bridge, message.frameInfo.isMainFrame, message.world === WKContentWorld.page else {
+            replyHandler(["ok": false], nil)
+            return
+        }
+        if let payload = message.body as? [String: Any] {
+            bridge.onPageScriptReport?(payload)
+        }
+        replyHandler(["ok": true], nil)
     }
 }
