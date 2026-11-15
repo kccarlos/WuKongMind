@@ -14,8 +14,7 @@ protocol PageToolDriving: AnyObject, Sendable {
     var isEnabled: Bool { get }
     func collectTools(pullTimeout: TimeInterval) async -> PageToolSnapshot
     func callTool(
-        prefixedName: String, arguments: [String: JSONValue],
-        timeout: TimeInterval, maxResponseBytes: Int
+        prefixedName: String, arguments: [String: JSONValue], timeout: TimeInterval, maxResponseBytes: Int
     ) async -> Result<PageToolCallResult, PageToolCallFailure>
 }
 
@@ -88,12 +87,8 @@ enum PageToolSchema {
             return "`arguments` must be a JSON object, got \(arguments.typeDescription)."
         }
         let encodedBytes = JSONValue.encodeCompactJSON(dict).utf8.count
-        if encodedBytes > maxArgumentsBytes {
-            return "`arguments` exceeds the 64 KB limit (\(encodedBytes) bytes)."
-        }
-        if nestingDepth(arguments) > maxArgumentsDepth {
-            return "`arguments` exceeds the maximum nesting depth of \(maxArgumentsDepth)."
-        }
+        if encodedBytes > maxArgumentsBytes { return "`arguments` exceeds the 64 KB limit (\(encodedBytes) bytes)." }
+        if nestingDepth(arguments) > maxArgumentsDepth { return "`arguments` exceeds the maximum nesting depth of \(maxArgumentsDepth)." }
         return nil
     }
 
@@ -104,9 +99,7 @@ enum PageToolSchema {
     }
 
     private static func usableRoot(_ schema: JSONValue?, schemaJSON: String?) -> [String: JSONValue]? {
-        guard let schema, !schema.isNull, case .object(let root) = schema, root["type"] == .string("object") else {
-            return nil
-        }
+        guard let schema, !schema.isNull, case .object(let root) = schema, root["type"] == .string("object") else { return nil }
         let length = schemaJSON?.count ?? JSONValue.encodeCompactJSON(root).count
         return length <= PageToolBridge.maxSchemaCharacters ? root : nil
     }
@@ -125,10 +118,8 @@ enum PageToolSchema {
         for (key, val) in schemaObj where !ignoredKeywords.contains(key) {
             guard checkedKeywords.contains(key) else { partial = true; continue }
             switch key {
-            case "type":
-                if case .string(let t) = val, supportedTypes.contains(t) {} else { partial = true }
-            case "additionalProperties":
-                if val.strictBoolValue == nil { partial = true }
+            case "type": if case .string(let t) = val, supportedTypes.contains(t) {} else { partial = true }
+            case "additionalProperties": if val.strictBoolValue == nil { partial = true }
             case "properties":
                 guard case .object(let props) = val else { partial = true; continue }
                 for (_, sub) in props {
@@ -138,24 +129,17 @@ enum PageToolSchema {
             case "items":
                 guard case .object(let itemObj) = val else { partial = true; continue }
                 if level >= maxSchemaDepth || hasUnsupportedPart(itemObj, level: level + 1) { partial = true }
-            case "required":
-                if case .array(let reqs) = val, reqs.allSatisfy({ $0.stringValue != nil }) {} else { partial = true }
-            case "enum":
-                if case .array(let vals) = val, !vals.isEmpty {} else { partial = true }
-            case "minLength", "maxLength", "minItems", "maxItems":
-                if let n = val.strictIntValue, n >= 0 {} else { partial = true }
-            case "minimum", "maximum":
-                if let d = val.strictDoubleValue, d.isFinite {} else { partial = true }
-            default:
-                partial = true
+            case "required": if case .array(let reqs) = val, reqs.allSatisfy({ $0.stringValue != nil }) {} else { partial = true }
+            case "enum": if case .array(let vals) = val, !vals.isEmpty {} else { partial = true }
+            case "minLength", "maxLength", "minItems", "maxItems": if let n = val.strictIntValue, n >= 0 {} else { partial = true }
+            case "minimum", "maximum": if let d = val.strictDoubleValue, d.isFinite {} else { partial = true }
+            default: partial = true
             }
         }
         return partial
     }
 
-    private static func validateNode(
-        _ value: JSONValue, schemaObj: [String: JSONValue], path: String, level: Int
-    ) -> String? {
+    private static func validateNode(_ value: JSONValue, schemaObj: [String: JSONValue], path: String, level: Int) -> String? {
         guard level <= maxSchemaDepth else { return nil }
         if case .string(let t)? = schemaObj["type"], supportedTypes.contains(t), !matchesType(value, expectedType: t) {
             let label = ["object", "array", "integer"].contains(t) ? "an \(t)" : (t == "null" ? "null" : "a \(t)")
@@ -201,8 +185,7 @@ enum PageToolSchema {
                     if let err = validateNode(propVal, schemaObj: propSchema, path: childPath(key), level: level + 1) { return err }
                 }
             }
-        case .bool, .null:
-            break
+        case .bool, .null: break
         }
         return nil
     }
@@ -226,9 +209,7 @@ enum PageToolSchema {
     }
 
     private static func formatNumber(_ value: Double) -> String {
-        if value.rounded(.towardZero) == value, value >= Double(Int64.min), value <= Double(Int64.max) {
-            return String(Int64(value))
-        }
+        if value.rounded(.towardZero) == value, value >= Double(Int64.min), value <= Double(Int64.max) { return String(Int64(value)) }
         return String(value)
     }
 
@@ -254,6 +235,11 @@ extension ToolRegistry {
     struct PageToolConfirmation: Equatable, Sendable {
         var question: String
         var detail: String
+    }
+
+    private static func siteHostLabel(for urlString: String) -> String {
+        guard let url = URL(string: urlString), let host = url.host, !host.isEmpty else { return urlString }
+        return url.port.map { "\(host):\($0)" } ?? host
     }
 
     static func confirmationForPageTool(
@@ -334,9 +320,7 @@ extension ToolRegistry {
     }
 
     private static func makePageToolCallTool(context: AgentToolContext, pageTools: PageToolContext) -> AgentTool {
-        let gate = context.confirmations
-        let pageBridge = context.bridge
-        let defaultConfirmWrites = context.settings.confirmBeforeWrites
+        let gate = context.confirmations, pageBridge = context.bridge, defaultConfirmWrites = context.settings.confirmBeforeWrites
         return AgentTool(
             definition: AgentToolDefinition(
                 name: "page_tool_call",
@@ -354,6 +338,7 @@ extension ToolRegistry {
                 }
                 let rawArguments = args["arguments"] ?? .object([:])
                 if let alwaysError = PageToolSchema.validateAlways(rawArguments) { throw PageToolDispatchError(alwaysError) }
+                let initialMeta = await pageBridge.currentPageMetadata()
                 guard await pageTools.bridge.isEnabled else { throw PageToolDispatchError("Page tools are turned off.") }
                 let snapshot = await pageTools.collectDispatcherTools()
                 guard let tool = snapshot.tools.first(where: { $0.prefixedName == prefixedName }) else {
@@ -364,11 +349,19 @@ extension ToolRegistry {
                 }
                 let argumentsObject = rawArguments.objectValue ?? [:]
                 let confirmWrites = if let override = pageTools.confirmBeforeWrites { await override() } else { defaultConfirmWrites }
-                let meta = await pageBridge.currentPageMetadata()
-                let host = URL(string: meta.url)?.host ?? meta.url
+                let beforeAskMeta = await pageBridge.currentPageMetadata()
+                guard beforeAskMeta.url == initialMeta.url else {
+                    throw PageToolDispatchError("The page changed before '\(prefixedName)' could run.")
+                }
+                let host = siteHostLabel(for: initialMeta.url)
                 if let confirmation = confirmationForPageTool(tool: tool, siteHost: host, arguments: argumentsObject, confirmBeforeWrites: confirmWrites) {
                     let allowed = try await gate?.ask(tool: "page_tool_call", question: confirmation.question, detail: confirmation.detail) ?? false
                     guard allowed else { throw PageToolDispatchError(declinedMessage) }
+                    let afterAskMeta = await pageBridge.currentPageMetadata()
+                    guard afterAskMeta.url == initialMeta.url, !initialMeta.url.isEmpty || afterAskMeta.title == initialMeta.title else {
+                        throw PageToolDispatchError("The page changed while waiting for confirmation; did not run '\(prefixedName)'.")
+                    }
+                    guard await pageTools.bridge.isEnabled else { throw PageToolDispatchError("Page tools are turned off.") }
                 }
                 switch await pageTools.bridge.callTool(
                     prefixedName: prefixedName, arguments: argumentsObject,
