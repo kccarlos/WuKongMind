@@ -24,6 +24,8 @@ final class FixtureSpaForumServer: @unchecked Sendable {
     var baseURL: String { "http://127.0.0.1:\(port)" }
     var thread101URL: String { "\(baseURL)/threads/101" }
     var thread102URL: String { "\(baseURL)/threads/102" }
+    /// A bare page that is not a forum.
+    var plainURL: String { "\(baseURL)/plain" }
 
     var totalHTMLLoads: Int {
         lock.withLock { htmlLoads }
@@ -105,6 +107,15 @@ final class FixtureSpaForumServer: @unchecked Sendable {
         if path == "/favicon.ico" {
             let headers = "HTTP/1.1 204 No Content\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
             return Data(headers.utf8)
+        }
+
+        if path == "/plain" {
+            let page = Data("<!doctype html><html><head><title>Plain page</title></head><body><p>Just a page.</p></body></html>".utf8)
+            let head = [
+                "HTTP/1.1 200 OK", "Content-Type: text/html; charset=utf-8", "Cache-Control: no-store",
+                "Content-Length: \(page.count)", "Connection: close", "", ""
+            ].joined(separator: "\r\n")
+            return Data(head.utf8) + page
         }
 
         if path.hasPrefix("/crawl/page-"), let page = Self.crawlPage(path) {

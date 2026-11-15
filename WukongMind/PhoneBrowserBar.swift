@@ -730,6 +730,10 @@ struct ForumMenuButton: View {
     let actions: BrowserActions
 
     private var forum: Forum? { app.barForum }
+    /// The forum the menu header describes: only when the page really is that forum (`barForum` falls back to the last forum).
+    private var headerForum: Forum? {
+        ForumMenuHeader.forum(barForum: forum, pageIsForum: browser.pageContext.isForum, showsHome: showsHome)
+    }
     private var showsHome: Bool { browser.showsForumsHome }
     private var pageURL: URL? { showsHome ? nil : browser.currentURL }
     private var topic: ForumTopic? { showsHome ? nil : browser.pageContext.topic }
@@ -765,17 +769,7 @@ struct ForumMenuButton: View {
             .menuActionDismissBehavior(.enabled)
             pageSection
             if let pageURL {
-                Menu {
-                    ShareLink(item: pageURL) {
-                        Label("Share Page", systemImage: "square.and.arrow.up")
-                    }
-                    Button {
-                        UIPasteboard.general.url = pageURL
-                        DCHaptics.success()
-                    } label: {
-                        Label("Copy Link", systemImage: "link")
-                    }
-                } label: {
+                ShareLink(item: pageURL) {
                     Label("Share", systemImage: "square.and.arrow.up")
                 }
                 .accessibilityIdentifier("forumMenuShare")
@@ -817,7 +811,26 @@ struct ForumMenuButton: View {
     @ViewBuilder
     private var headerSection: some View {
         Section {
-            if let forum {
+            if headerForum == nil, let host = ForumMenuHeader.plainHost(pageURL) {
+                // An ordinary page: its host, no sign-in part (design-unified is silent).
+                if let blocks = SiteBlocking(app: app, url: pageURL).isBlockingHere {
+                    Menu {
+                        Toggle(isOn: blocks) {
+                            Label("Block Ads on This Site", systemImage: "shield.lefthalf.filled")
+                        }
+                        .accessibilityIdentifier("menuToggleAdsOnSite")
+                    } label: {
+                        Text(host)
+                        Image(systemName: "globe")
+                    }
+                    .accessibilityIdentifier("forumMenuSite")
+                } else {
+                    Button {} label: { Label(host, systemImage: "globe") }
+                        .disabled(true)
+                        .accessibilityIdentifier("forumMenuSite")
+                }
+            }
+            if let forum = headerForum {
                 Menu {
                     // A site without a sign-in page offers neither the entry nor its help.
                     if browser.isAuthenticated ? app.accountURL != nil : app.loginURL != nil {
@@ -905,5 +918,19 @@ struct ForumMenuButton: View {
     private func openAccount() {
         let opened = browser.isAuthenticated ? app.loadAccount() : app.loadLogin()
         if !opened { actions.showForumsHome() }
+    }
+}
+
+
+/// What the browser menu's site row shows: the forum only while the page is
+/// that forum, otherwise the plain host (never a stale last forum).
+enum ForumMenuHeader {
+    static func forum(barForum: Forum?, pageIsForum: Bool, showsHome: Bool) -> Forum? {
+        pageIsForum && !showsHome ? barForum : nil
+    }
+
+    static func plainHost(_ url: URL?) -> String? {
+        let host = BrowserAddress.host(url)
+        return host.isEmpty ? nil : host
     }
 }
