@@ -68,6 +68,18 @@ final class OneLoopLiveAcceptanceUITests: DCUITestCase {
         if asks.waitForExistence(timeout: 10) { asks.tap() }
     }
 
+    /// Types a request into the composer and sends it.
+    private func type(_ text: String, in app: XCUIApplication) {
+        let input = app.descendants(matching: .any)["agentPromptInput"].firstMatch
+        XCTAssertTrue(waitOrDump(input, timeout: 10, in: app), "No composer.")
+        input.tap()
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 10), "The composer did not take focus.")
+        app.typeText(text)
+        app.buttons["agentSendButton"].firstMatch.tap()
+        let status = any(app, "agentStatusLine")
+        _ = wait(timeout: 15) { !(status.exists && status.label.contains("Done")) }
+    }
+
     /// A History row opens with its Open button.
     private func openRow(_ row: XCUIElement) {
         let open = row.buttons.matching(label(contains: "Open")).firstMatch
@@ -80,7 +92,24 @@ final class OneLoopLiveAcceptanceUITests: DCUITestCase {
     func testLiveMultiStepDiscourseRequest() throws {
         guard !apiKey.isEmpty else { throw XCTSkip("Set TEST_RUNNER_ANTHROPIC_API_KEY.") }
         try requireNetwork()
-        let app = launchLive(["-dc-open", "https://meta.appinn.net/t/18527", "-dc-browser-agent-live-prompt", Self.multiStep])
+        // Typed as a person would: once the thread's suggestions show, the page is recognized and the
+        // run gets the forum tools.
+        // `TEST_RUNNER_ONE_LOOP_THREAD` picks another Discourse thread (default: D3's).
+        let thread = ProcessInfo.processInfo.environment["ONE_LOOP_THREAD"].flatMap { $0.isEmpty ? nil : $0 } ?? "https://meta.appinn.net/t/18527"
+        let host = URL(string: thread)?.host ?? "meta.appinn.net"
+        let app = launchLive(["-dc-open", thread, "-dc-browser-agent-live-key"])
+        showAssistant(in: app)
+        let summarize = app.buttons["suggestion-summarizeThread"].firstMatch
+        let recognized = summarize.waitForExistence(timeout: 90)
+        capture("check1-recognized-thread")
+        guard recognized else {
+            showBrowser(in: app)
+            capture("check1-unrecognized-browser")
+            attachTree(app, named: "check1-unrecognized-tree")
+            XCTFail("\(thread) was not recognized as a thread (no thread suggestions).")
+            return
+        }
+        type(Self.multiStep, in: app)
         let status = waitForTurn(app, timeout: 420)
         capture("check1-after-run")
         let rows = toolRows(app)
@@ -96,14 +125,15 @@ final class OneLoopLiveAcceptanceUITests: DCUITestCase {
         // A citation chip opens the cited thread in the browser.
         // The answer's numbered chips are links ("S2", identifier = the cited URL). Tap one that cites
         // another thread, and the browser opens that thread.
-        let chips = app.links.matching(NSPredicate(format: "label BEGINSWITH 'S' AND identifier CONTAINS 'meta.appinn.net/t/'"))
+        let chips = app.links.matching(NSPredicate(format: "label BEGINSWITH 'S' AND identifier CONTAINS %@", "\(host)/t/"))
         attachTree(app, named: "check1-answer-tree")
         let all = chips.allElementsBoundByIndex
         evidence("check1-chips", all.map { "\($0.label) → \($0.identifier)" }.joined(separator: "\n"))
-        let other = all.first { !$0.identifier.contains("/18527") }
+        let threadID = thread.split(separator: "/").last.map(String.init) ?? ""
+        let other = all.first { !$0.identifier.contains("/\(threadID)") }
         let chip = try XCTUnwrap(other ?? all.first, "No citation chip in the answer.")
         let target = chip.identifier
-        let topic = target.split(separator: "/").last { Int($0) != nil && $0.count > 3 }.map(String.init) ?? "meta.appinn.net"
+        let topic = target.split(separator: "/").last { Int($0) != nil && $0.count > 3 }.map(String.init) ?? host
         if !chip.isHittable { _ = reveal(chip, in: app) }
         capture("check1-citations")
         chip.tap()
@@ -140,13 +170,7 @@ final class OneLoopLiveAcceptanceUITests: DCUITestCase {
         evidence("check8-make-it-dark", "reply (\(darkLength) characters): \(darkText)")
         XCTAssertTrue(first.contains("Done"), first)
 
-        let input = app.descendants(matching: .any)["agentPromptInput"].firstMatch
-        XCTAssertTrue(waitOrDump(input, timeout: 10, in: app), "No composer.")
-        input.tap()
-        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 10), "The composer did not take focus.")
-        app.typeText("In three short paragraphs, explain what this article argues and who it is for. Do not change the page.")
-        app.buttons["agentSendButton"].firstMatch.tap()
-        _ = wait(timeout: 10) { !(self.any(app, "agentStatusLine").label.contains("Done")) }
+        type("In three short paragraphs, explain what this article argues and who it is for. Do not change the page.", in: app)
         let second = waitForTurn(app, timeout: 240)
         let reply = app.descendants(matching: .any).matching(identifier: "agentAssistantReply").allElementsBoundByIndex.last
         evidence("check8-ordinary-page", "model: \(Self.model)\nfirst turn: \(first)\nsecond turn: \(second)\nlong reply characters: \(reply?.label.count ?? 0)")
