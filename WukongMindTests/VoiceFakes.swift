@@ -164,6 +164,8 @@ final class FakeVoiceNavigator: VoiceNavigator {
     private(set) var calls: [String] = []
     var results: [String: BrowseResult] = [:]
     var openResults: [String: VoiceOpenResult] = [:]
+    var links: [PageLink] = []
+    var followLinkResults: [String: VoiceOpenResult] = [:]
     var brief: VoiceTopicBrief?
     var visible: [VisiblePost] = []
     var summary: String?
@@ -186,6 +188,18 @@ final class FakeVoiceNavigator: VoiceNavigator {
     func openPage(_ target: String) async -> VoiceOpenResult {
         calls.append("openPage \(target)")
         return openResults[target] ?? .opened(kind: .address, title: nil, host: target, loading: true)
+    }
+
+    func pageLinks() async -> [PageLink] {
+        calls.append("pageLinks")
+        return links
+    }
+
+    func followLink(_ link: PageLink) async -> VoiceOpenResult {
+        calls.append("followLink \(link.text) @ \(link.host)")
+        let prev = pageContext.url?.host?.lowercased()
+        return followLinkResults[link.url.absoluteString]
+            ?? .opened(kind: .link, title: link.text, host: link.host, previousHost: prev)
     }
 
     func openTopic(_ target: BrowseTarget, at landing: BrowseLanding, includeContent: Bool) async -> BrowseResult {

@@ -100,6 +100,16 @@ extension AppModel: VoiceNavigator {
         await browser.postsOnScreen()
     }
 
+    func pageLinks() async -> [PageLink] {
+        guard !browser.showsForumsHome else { return [] }
+        return (try? await browser.agentBridge.pageLinks()) ?? []
+    }
+
+    var linkPageIdentity: String {
+        if browser.showsForumsHome { return "home" }
+        return VoiceLinkState.pageKey(url: browser.webView.url ?? browser.currentURL, page: pageContext)
+    }
+
     /// Queues the topic's summary in the existing pipeline and waits for it
     /// (at most two minutes).
     func quickSummary(topicKey: String) async -> String? {

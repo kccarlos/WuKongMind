@@ -8,6 +8,7 @@ import Foundation
 
 enum BrowseToolName {
     static let openPage = "open_page"
+    static let openLink = "open_link"
     static let open = "browse_open"
     static let move = "browse_move"
     static let focus = "browse_focus"
@@ -21,13 +22,15 @@ enum BrowseToolName {
 final class BrowseToolContext {
     weak var navigator: VoiceNavigator?
     nonisolated let site: VoiceSite
+    let linkState: VoiceLinkState
     /// The page is a recognized forum home or topic: the forum and browse tools apply.
     var isOnForum: Bool
     var eyesFree = false
 
-    init(navigator: VoiceNavigator?, site: VoiceSite, isOnForum: Bool? = nil) {
+    init(navigator: VoiceNavigator?, site: VoiceSite, isOnForum: Bool? = nil, linkState: VoiceLinkState? = nil) {
         self.navigator = navigator
         self.site = site
+        self.linkState = linkState ?? VoiceLinkState()
         self.isOnForum = isOnForum ?? (navigator?.pageContext.isForum ?? false)
     }
 
@@ -53,6 +56,15 @@ final class BrowseToolContext {
             return JSONValue.encodeCompactJSON(VoiceToolBridge.response(.refused(VoiceToolBridge.handOffBusyMessage), eyesFree: eyesFree))
         }
         let outcome = await navigator.openPage(target)
+        if case .opened = outcome { linkState.noteNavigation(to: navigator.linkPageIdentity) }
+        return JSONValue.encodeCompactJSON(VoiceToolBridge.response(outcome, eyesFree: eyesFree))
+    }
+
+    func runOpenLink(words: String?, number: Int?) async -> String {
+        guard let navigator else {
+            return JSONValue.encodeCompactJSON(VoiceToolBridge.response(.refused("The browser isn't available."), eyesFree: eyesFree))
+        }
+        let outcome = await linkState.openLink(words: words, number: number, navigator: navigator)
         return JSONValue.encodeCompactJSON(VoiceToolBridge.response(outcome, eyesFree: eyesFree))
     }
 
@@ -74,12 +86,18 @@ final class BrowseToolContext {
                 guard items.indices.contains(card - 1) else {
                     return BrowseResult(status: .notFound, shown: "There is no card \(card).")
                 }
-                return await navigator.openTopic(.item(items[card - 1]), at: landing ?? .firstNew, includeContent: true)
+                let result = await navigator.openTopic(.item(items[card - 1]), at: landing ?? .firstNew, includeContent: true)
+                if result.status == .opened || result.status == .noSolution { linkState.noteNavigation(to: navigator.linkPageIdentity) }
+                return result
             }
-            return await navigator.openCard(card - 1, includeContent: true)
+            let result = await navigator.openCard(card - 1, includeContent: true)
+            if result.status == .opened || result.status == .moved { linkState.noteNavigation(to: navigator.linkPageIdentity) }
+            return result
         }
         if let topic = args["topic_id"]?.textValue, !topic.filter(\.isNumber).isEmpty {
-            return await navigator.openTopic(.topic(topic), at: landing ?? .firstNew, includeContent: true)
+            let result = await navigator.openTopic(.topic(topic), at: landing ?? .firstNew, includeContent: true)
+            if result.status == .opened || result.status == .noSolution { linkState.noteNavigation(to: navigator.linkPageIdentity) }
+            return result
         }
         guard let ref = navigator.pageContext.topic else {
             return BrowseResult(status: .unavailable, shown: "No topic is open; search or pick a card first.")
@@ -89,8 +107,14 @@ final class BrowseToolContext {
 
     func move(action: String, post: Int?, navigator: VoiceNavigator) async -> BrowseResult {
         switch action {
-        case "back": return navigator.back()
-        case "forward": return navigator.forward()
+        case "back":
+            let result = navigator.back()
+            if result.status == .opened || result.status == .moved { linkState.noteNavigation(to: navigator.linkPageIdentity) }
+            return result
+        case "forward":
+            let result = navigator.forward()
+            if result.status == .opened || result.status == .moved { linkState.noteNavigation(to: navigator.linkPageIdentity) }
+            return result
         case "down": return await navigator.scrollPage(.down)
         case "up": return await navigator.scrollPage(.up)
         case "top":
@@ -150,6 +174,7 @@ extension ToolRegistry {
     static func browseTools(browse: BrowseToolContext) -> [AgentTool] {
         [
             openPageTool(browse: browse),
+            openLinkTool(browse: browse),
             searchCardsTool(browse: browse),
             browseTool(BrowseToolName.open, browse: browse, forumOnly: true) { args, navigator in await browse.open(args, navigator: navigator) },
             browseTool(BrowseToolName.move, browse: browse, forumOnly: false) { args, navigator in
@@ -169,7 +194,7 @@ extension ToolRegistry {
                 description: """
                 Open a page for the user: an address they said ("bbc.com"), the name of a site they use ("BBC News", "GitHub"), \
                 or plain words, which become a web search. Pass the user's words as they said them; never add an address of your \
-                own. Not for a link that is on the page now (use hand_off_to_agent) and not for a forum search. It works on any \
+                own. Not for a link that is on the page now (use open_link) and not for a forum search. It works on any \
                 page, and it is how "open X", "go to X" and "search the web for X" are done. It returns once the page has started \
                 to load, and says whether it opened a site or ran a search: tell the user which, and the title and host once \
                 known. If several sites match, it returns a short list: ask which one.
@@ -187,6 +212,31 @@ extension ToolRegistry {
             summarizeArguments: { $0["target"]?.stringValue ?? "" },
             execute: { args in
                 ToolExecutionOutput(content: await browse.runOpen(args["target"]?.textValue ?? ""))
+            },
+            surfaces: [.voice],
+            spokenResult: browseSpokenResult
+        )
+    }
+
+    private static func openLinkTool(browse: BrowseToolContext) -> AgentTool {
+        AgentTool(
+            definition: AgentToolDefinition(
+                name: BrowseToolName.openLink,
+                description: """
+                Follow a link that is on the page now, by its number or by the words the user used for it ("the third link", \
+                "the one about tariffs"). You never pass an address. If one link matches it opens. If several match, it returns up \
+                to five numbered candidates with their text and host: say them and let the user pick, then call it again with the \
+                number. Say the page it opened by title and host, and say the host when it differs from the site the user was on. \
+                It only follows plain links; buttons, forms and anything that needs a click go to hand_off_to_agent.
+                """,
+                parameters: [
+                    ToolParameterSchema(name: "words", type: .string, description: "What the user called the link, in their words.", minLength: 1),
+                    ToolParameterSchema(name: "number", type: .integer, description: "A link number from the last list this tool returned; with no list, the Nth link on screen from the top.", minimum: 1, maximum: Double(AgentBridge.maxPageLinks))
+                ]
+            ),
+            summarizeArguments: { $0["number"]?.intValue.map { "#\($0)" } ?? $0["words"]?.stringValue ?? "" },
+            execute: { args in
+                ToolExecutionOutput(content: await browse.runOpenLink(words: args["words"]?.textValue, number: args["number"]?.intValue))
             },
             surfaces: [.voice],
             spokenResult: browseSpokenResult

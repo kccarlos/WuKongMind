@@ -14,6 +14,9 @@ protocol VoiceNavigator: AnyObject {
 
     func find(_ query: String, scope: BrowseSearchScope) async -> BrowseResult
     func openPage(_ target: String) async -> VoiceOpenResult
+    func pageLinks() async -> [PageLink]
+    func followLink(_ link: PageLink) async -> VoiceOpenResult
+    var linkPageIdentity: String { get }
     func openTopic(_ target: BrowseTarget, at landing: BrowseLanding, includeContent: Bool) async -> BrowseResult
     func openCard(_ index: Int, includeContent: Bool) async -> BrowseResult
     func goToPost(_ number: Int) async -> BrowseResult
@@ -56,18 +59,24 @@ extension VoiceNavigator {
         }
         return title
     }
+
+    var linkPageIdentity: String {
+        VoiceLinkState.pageKey(url: nil, page: pageContext)
+    }
 }
 
 /// Where `browse_move` scrolls on an ordinary page (or a forum page without an open topic).
 enum VoicePageScroll: String, Equatable { case top, bottom, down, up }
 
-/// What `open_page` did, turned into a spoken function response.
+/// What `open_page` or `open_link` did, turned into a spoken function response.
 enum VoiceOpenResult: Equatable {
-    enum Kind: String, Equatable { case address, site, search }
+    enum Kind: String, Equatable { case address, site, search, link }
     struct Candidate: Equatable { var name: String; var host: String }
 
-    case opened(kind: Kind, title: String?, host: String, siteName: String? = nil, query: String? = nil, loading: Bool = false)
+    case opened(kind: Kind, title: String?, host: String, siteName: String? = nil, query: String? = nil, previousHost: String? = nil, loading: Bool = false)
     case choices(target: String, candidates: [Candidate])
+    case linkChoices(words: String, candidates: [Candidate])
+    case linkNotFound(String)
     case refused(String)
     case failed(String)
 }
@@ -192,14 +201,17 @@ struct VoiceBriefing: Equatable {
 final class VoiceToolBridge {
     /// Shown when a forum-only tool is called on an ordinary page or Home.
     nonisolated static let notForumMessage = "This page isn't a forum. Use read_page for what is on it, or hand the request off."
-    /// Shown when `open_page` is called while a voice hand-off is running on the page.
+    /// Shown when `open_page` or `open_link` is called while a voice hand-off is running on the page.
     nonisolated static let handOffBusyMessage = "The Agent is still working on this page. Say never mind to stop it."
+    /// Shown when `open_link` is given a number from a candidate list of a previous page.
+    nonisolated static let staleLinkListMessage = "That link list was from the previous page. Name the link you want on this page."
     static let forumOnlyTools: Set<String> = [
         ForumToolName.searchForum, BrowseToolName.open, BrowseToolName.focus,
         BrowseToolName.readPost, ForumToolName.readTopic, "watch_topic"
     ]
 
     weak var navigator: VoiceNavigator?
+    let linkState = VoiceLinkState()
     /// Where hand-off briefings go (the session).
     var onBriefing: ((VoiceBriefing) -> Void)?
     /// How often a running hand-off is checked for progress.
@@ -255,10 +267,19 @@ final class VoiceToolBridge {
         handOffTask = nil
     }
 
+    /// Drops any kept `open_link` candidate list when the browser moves to another page.
+    func pageChanged(_ page: PageContext) {
+        linkState.pageChanged(to: VoiceLinkState.pageKey(url: nil, page: page))
+    }
+
     // MARK: Registry
 
     private func makeRegistry(eyesFree: Bool) -> (BrowseToolContext, ToolRegistry) {
-        let browse = BrowseToolContext(navigator: navigator, site: navigator?.voiceSite ?? SiteRegistry.standard.voiceFallback)
+        let browse = BrowseToolContext(
+            navigator: navigator,
+            site: navigator?.voiceSite ?? SiteRegistry.standard.voiceFallback,
+            linkState: linkState
+        )
         browse.eyesFree = eyesFree
         let registry = registryBuilder?(browse) ?? ToolRegistry(tools: ToolRegistry.browseTools(browse: browse))
         return (browse, registry)
@@ -281,6 +302,7 @@ final class VoiceToolBridge {
         guard let result = try? await registry.dispatch(toolName: name, arguments: args) else {
             return refusal("The tool was stopped.")
         }
+        if name == "read_page", !result.isError { linkState.clearDropped() }
         return VoiceToolOutcome(response: registry.spokenResult(result, eyesFree: eyesFree), scheduling: tool.voiceScheduling)
     }
 
@@ -445,12 +467,13 @@ final class VoiceToolBridge {
         return response
     }
 
-    /// An `open_page` outcome as the model gets it, with host and title only (never a full URL).
+    /// An `open_page` or `open_link` outcome as the model gets it, with host and title only (never a full URL).
     static func response(_ result: VoiceOpenResult, eyesFree: Bool) -> [String: JSONValue] {
         switch result {
-        case .opened(let kind, let title, let host, let siteName, let query, let loading):
-            let trimmed = title?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-            let cleanTitle: String? = trimmed.isEmpty ? nil : trimmed
+        case .opened(let kind, let title, let host, let siteName, let query, let previousHost, let loading):
+            let stripped = (title ?? "").replacingOccurrences(of: #"https?://\S+"#, with: "", options: .regularExpression)
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            let cleanTitle: String? = stripped.isEmpty ? nil : stripped
             let (shown, message): (String, String) = switch kind {
             case .address:
                 (cleanTitle.map { "Opened “\($0)” at \(host)." } ?? (loading ? "Opening \(host)." : "Opened \(host)."),
@@ -461,6 +484,11 @@ final class VoiceToolBridge {
             case .search:
                 (cleanTitle.map { "Searched the web for “\(query ?? "")” (“\($0)” at \(host))." } ?? "Searching the web for “\(query ?? "")” at \(host).",
                  "It ran a web search, not a site: tell the user so in a few words.")
+            case .link:
+                (cleanTitle.map { "Opened “\($0)” at \(host)." } ?? (loading ? "Opening \(host)." : "Opened \(host)."),
+                 (previousHost.map { !$0.isEmpty && $0.lowercased() != host.lowercased() } ?? false)
+                     ? "Say in a few words that you opened it, naming the title and the new host (\(host)), since it left \(previousHost ?? "")."
+                     : "Say in a few words that you opened it, naming the title and host if shown.")
             }
             var response: [String: JSONValue] = ["status": "opened", "kind": .string(kind.rawValue), "host": .string(host), "shown": .string(shown), "message": .string(message)]
             if let cleanTitle { response["title"] = .string(cleanTitle) }
@@ -473,6 +501,17 @@ final class VoiceToolBridge {
                 "candidates": .array(items.map(JSONValue.string)),
                 "message": "Several sites matched. Say this short list and ask the user which one to open."
             ]
+        case .linkChoices(let words, let candidates):
+            let cleanWords = AgentBridge.cleanLinkText(words)
+            let items = candidates.prefix(5).enumerated().map { "\($0.offset + 1). \(AgentBridge.cleanLinkText($0.element.name)) (\($0.element.host))" }
+            return [
+                "status": "choices",
+                "shown": .string("Several links match “\(cleanWords)”: \(items.joined(separator: "; "))."),
+                "candidates": .array(items.map(JSONValue.string)),
+                "message": "Several links matched. Say them briefly with their host and ask the user which one, then call open_link with its number."
+            ]
+        case .linkNotFound(let reason):
+            return response(BrowseResult(status: .notFound, shown: reason), eyesFree: eyesFree)
         case .refused(let reason):
             return response(BrowseResult(status: .unavailable, shown: reason), eyesFree: eyesFree)
         case .failed(let reason):
@@ -574,4 +613,174 @@ enum VoiceRouting {
         }
         return nil
     }
+}
+
+/// Keeps the last multi-match `open_link` candidate list for the current page,
+/// and drops it when the page changes so an old number is refused.
+@MainActor
+final class VoiceLinkState {
+    enum State: Equatable {
+        case none
+        case active(pageKey: String, links: [PageLink])
+        case dropped(onPageKey: String)
+    }
+
+    private(set) var state: State = .none
+
+    static func pageKey(url: URL?, page: PageContext) -> String {
+        if let topicKey = page.topic?.topicKey, page.state == .topic { return "topic:\(topicKey)" }
+        guard let url = url ?? page.url else { return "\(page.state.rawValue):\(page.siteURL ?? "")" }
+        var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+        components?.fragment = nil
+        return components?.string ?? url.absoluteString
+    }
+
+    func clearDropped() { if case .dropped = state { state = .none } }
+
+    func pageChanged(to newPageKey: String) {
+        switch state {
+        case .none: break
+        case .active(let pageKey, _): if pageKey != newPageKey { state = .dropped(onPageKey: newPageKey) }
+        case .dropped(let onPageKey):
+            if onPageKey.isEmpty { state = .dropped(onPageKey: newPageKey) }
+            else if !newPageKey.isEmpty, onPageKey != newPageKey { state = .none }
+        }
+    }
+
+    func noteNavigation(to newPageKey: String = "") {
+        switch state {
+        case .none: break
+        case .active: state = .dropped(onPageKey: newPageKey)
+        case .dropped: state = .none
+        }
+    }
+
+    func openLink(words: String?, number: Int?, navigator: VoiceNavigator) async -> VoiceOpenResult {
+        if navigator.isHandingOff { return .refused(VoiceToolBridge.handOffBusyMessage) }
+        let currentKey = navigator.linkPageIdentity
+        pageChanged(to: currentKey)
+
+        if let number {
+            guard (1...AgentBridge.maxPageLinks).contains(number) else {
+                return .linkNotFound("Link numbers run from 1 to \(AgentBridge.maxPageLinks).")
+            }
+            switch state {
+            case .dropped:
+                return .refused(VoiceToolBridge.staleLinkListMessage)
+            case .active(_, let list):
+                guard list.indices.contains(number - 1) else { return .linkNotFound("That list only has \(list.count) links.") }
+                state = .none
+                return await navigator.followLink(list[number - 1])
+            case .none:
+                let links = await navigator.pageLinks()
+                guard !links.isEmpty else { return .linkNotFound("There are no links on this page.") }
+                guard links.indices.contains(number - 1) else { return .linkNotFound("There are only \(links.count) links on this page.") }
+                return await navigator.followLink(links[number - 1])
+            }
+        }
+
+        let query = (words ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty else { return .refused("Say which link to open, by its words or its number.") }
+        let links = await navigator.pageLinks()
+        guard !links.isEmpty else { state = .none; return .linkNotFound("There are no links on this page.") }
+        switch VoiceLinkMatcher.match(query, in: links) {
+        case .none:
+            state = .none
+            return .linkNotFound("No link on this page matches “\(AgentBridge.cleanLinkText(query))”.")
+        case .one(let link):
+            state = .none
+            return await navigator.followLink(link)
+        case .several(let choices):
+            let top = Array(choices.prefix(5))
+            state = .active(pageKey: currentKey, links: top)
+            return .linkChoices(words: query, candidates: top.map { .init(name: $0.text, host: $0.host) })
+        }
+    }
+}
+
+/// Pure text matcher for `open_link` (`voice-review.md` "Following a link").
+enum VoiceLinkMatcher {
+    enum Match: Equatable { case none, one(PageLink), several([PageLink]) }
+
+    private static let stopWords: Set<String> = [
+        "a", "an", "the", "of", "to", "in", "on", "at", "for", "with", "from", "by", "about", "into",
+        "over", "after", "under", "that", "this", "these", "those", "it", "its", "is", "are", "was", "were", "be", "and", "or", "please"
+    ]
+    private static let genericWords: Set<String> = ["link", "story", "article", "page", "post", "item", "one", "open", "follow", "called", "named", "titled"]
+    private static let nonPluralS: Set<String> = ["news", "ios", "macos", "tvos", "watchos", "visionos", "aws", "series", "species", "paris", "texas", "mars", "gas", "lens", "always", "does", "goes", "was", "has", "his", "its", "this"]
+    private static let hostNoise: Set<String> = ["www", "com", "org", "net", "io", "co", "uk", "edu", "gov"]
+    private static let cjkWrappers = ["请打开", "打开", "点开", "点击", "关于", "有关", "那个", "那篇", "那条", "这个", "这篇", "这条", "的链接", "链接", "的文章", "文章", "的新闻", "新闻", "的"]
+
+    static func match(_ words: String, in links: [PageLink]) -> Match {
+        let foldedQuery = fold(words)
+        let rawLatin = matches("[a-z0-9]+", in: foldedQuery).map(stem)
+        let contentLatin = rawLatin.filter { !stopWords.contains($0) }
+        let effectiveContent = contentLatin.isEmpty ? rawLatin : contentLatin
+        let coreLatin = effectiveContent.filter { !genericWords.contains($0) }
+        let cjk = cjkUnits(in: foldedQuery)
+        let primaryLatin = (!coreLatin.isEmpty || !cjk.isEmpty) ? coreLatin : effectiveContent
+        guard !primaryLatin.isEmpty || !cjk.isEmpty else { return .none }
+        let exactPhrase = cleanPhrase(foldedQuery)
+
+        struct Scored { var link: PageLink; var primary: Int; var content: Int; var host: Int; var exact: Bool }
+        var scored: [Scored] = []
+        for link in links {
+            let foldedText = fold(link.text)
+            let rawTextWords = matches("[a-z0-9]+", in: foldedText)
+            let textTokens = Set(rawTextWords + rawTextWords.map(stem))
+            let primaryHits = primaryLatin.filter { textTokens.contains($0) }.count + cjk.filter { foldedText.contains($0) }.count
+            guard primaryHits > 0 else { continue }
+            let contentHits = effectiveContent.filter { textTokens.contains($0) }.count + cjk.filter { foldedText.contains($0) }.count
+            let rawHost = matches("[a-z0-9]+", in: fold(link.host)).filter { !hostNoise.contains($0) }
+            let hostTokens = Set(rawHost + rawHost.map(stem))
+            let hostHits = primaryLatin.filter { !textTokens.contains($0) && hostTokens.contains($0) }.count
+            let isExact = (primaryLatin.count + cjk.count) >= 2 && cleanPhrase(foldedText) == exactPhrase
+            scored.append(Scored(link: link, primary: primaryHits, content: contentHits, host: hostHits, exact: isExact))
+        }
+        guard let maxPrimary = scored.map(\.primary).max() else { return .none }
+        var winners = scored.filter { $0.primary == maxPrimary }
+        if winners.count > 1, let maxContent = winners.map(\.content).max() { winners = winners.filter { $0.content == maxContent } }
+        if winners.count > 1, let maxHost = winners.map(\.host).max(), maxHost > 0 { winners = winners.filter { $0.host == maxHost } }
+        if winners.count > 1, let onlyExact = winners.filter(\.exact).onlyElement { return .one(onlyExact.link) }
+        return winners.count == 1 ? .one(winners[0].link) : .several(winners.map(\.link))
+    }
+
+    private static func fold(_ text: String) -> String {
+        text.folding(options: [.caseInsensitive, .diacriticInsensitive, .widthInsensitive], locale: Locale(identifier: "en_US_POSIX")).lowercased()
+    }
+
+    private static func cleanPhrase(_ folded: String) -> String {
+        (matches("[a-z0-9]+", in: folded) + matches("[\\p{Han}\\p{Hiragana}\\p{Katakana}\\p{Hangul}]+", in: folded)).joined(separator: " ")
+    }
+
+    private static func matches(_ pattern: String, in text: String) -> [String] {
+        guard let rx = try? NSRegularExpression(pattern: pattern) else { return [] }
+        return rx.matches(in: text, range: NSRange(text.startIndex..<text.endIndex, in: text)).compactMap { Range($0.range, in: text).map { String(text[$0]) } }
+    }
+
+    private static func cjkUnits(in folded: String) -> [String] {
+        var units: [String] = []
+        for run in matches("[\\p{Han}\\p{Hiragana}\\p{Katakana}\\p{Hangul}]+", in: folded) {
+            var stripped = run
+            for wrapper in cjkWrappers { stripped = stripped.replacingOccurrences(of: wrapper, with: " ") }
+            let parts = stripped.split(separator: " ").map(String.init).filter { !$0.isEmpty }
+            for part in (parts.isEmpty ? [run] : parts) {
+                let chars = Array(part)
+                if chars.count <= 2 { units.append(part) } else { for i in 0..<(chars.count - 1) { units.append(String(chars[i...i + 1])) } }
+            }
+        }
+        return units
+    }
+
+    private static func stem(_ word: String) -> String {
+        guard !nonPluralS.contains(word) else { return word }
+        if word.count >= 5, word.hasSuffix("ies") { return String(word.dropLast(3)) + "y" }
+        if word.count >= 5, ["ches", "shes", "xes", "zes", "sses"].contains(where: word.hasSuffix) { return String(word.dropLast(2)) }
+        if word.count >= 4, word.hasSuffix("s"), !word.hasSuffix("ss"), !word.hasSuffix("us"), !word.hasSuffix("is") { return String(word.dropLast()) }
+        return word
+    }
+}
+
+private extension Array {
+    var onlyElement: Element? { count == 1 ? first : nil }
 }

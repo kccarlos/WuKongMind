@@ -594,6 +594,20 @@ extension AppModel {
         await openPage(target, timeout: Self.openPageLoadWait)
     }
 
+    func followLink(_ link: PageLink) async -> VoiceOpenResult {
+        await followLink(link, timeout: Self.openPageLoadWait)
+    }
+
+    func followLink(_ link: PageLink, timeout: TimeInterval) async -> VoiceOpenResult {
+        if isHandingOff { return .refused(VoiceToolBridge.handOffBusyMessage) }
+        if browserAgent.isRunning { return .refused("The Agent is busy with another request. Try again when it's done.") }
+        guard ForumBrowserModel.isBrowsableURL(link.url) else {
+            return .refused(VoicePageNavigation.nonWebSchemeMessage)
+        }
+        let previousHost = (browser.webView.url ?? browser.currentURL ?? pageContext.url)?.host?.lowercased()
+        return await loadVoicePage(link.url, kind: .link, previousHost: previousHost, timeout: timeout)
+    }
+
     func openPage(_ target: String, timeout: TimeInterval) async -> VoiceOpenResult {
         if isHandingOff { return .refused(VoiceToolBridge.handOffBusyMessage) }
         if browserAgent.isRunning { return .refused("The Agent is busy with another request. Try again when it's done.") }
@@ -622,7 +636,7 @@ extension AppModel {
     }
 
     private func loadVoicePage(
-        _ url: URL, kind: VoiceOpenResult.Kind, siteName: String? = nil, query: String? = nil, timeout: TimeInterval
+        _ url: URL, kind: VoiceOpenResult.Kind, siteName: String? = nil, query: String? = nil, previousHost: String? = nil, timeout: TimeInterval
     ) async -> VoiceOpenResult {
         let previousURL = browser.webView.url
         let previousTitle = browser.webView.title?.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -632,14 +646,20 @@ extension AppModel {
         }
         homeVisibilityChanged()
         if let failure = outcome.failure {
+            let cleanFailure = failure.replacingOccurrences(of: #"https?://\S+"#, with: fallbackHost, options: .regularExpression)
             let verb = kind == .search ? "Couldn't search the web (\(fallbackHost))" : "Couldn't open \(fallbackHost)"
-            return .failed("\(verb): \(failure)")
+            return .failed("\(verb): \(cleanFailure)")
         }
         let committed = outcome.timedOut ? (browser.webView.url != previousURL ? browser.webView.url : nil) : (URL(string: outcome.url) ?? url)
         let host = (committed ?? url).host?.lowercased() ?? fallbackHost
-        let rawTitle = (outcome.timedOut && committed == nil) ? "" : outcome.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        var rawTitle = (outcome.timedOut && committed == nil) ? "" : outcome.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !outcome.timedOut, rawTitle.isEmpty,
+           let docTitle = (try? await browser.webView.evaluateJavaScript("document.title", in: nil, contentWorld: AgentBridge.isolatedWorld)) as? String {
+            rawTitle = docTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        rawTitle = rawTitle.replacingOccurrences(of: #"https?://\S+"#, with: "", options: .regularExpression).trimmingCharacters(in: .whitespacesAndNewlines)
         let title = (rawTitle.isEmpty || rawTitle == ForumBrowserModel.defaultPageTitle || (outcome.timedOut && rawTitle == previousTitle)) ? nil : rawTitle
-        return .opened(kind: kind, title: title, host: host, siteName: siteName, query: query, loading: outcome.timedOut)
+        return .opened(kind: kind, title: title, host: host, siteName: siteName, query: query, previousHost: previousHost, loading: outcome.timedOut)
     }
 
     @discardableResult
@@ -680,7 +700,7 @@ extension AppModel {
         scrollView.setContentOffset(CGPoint(x: scrollView.contentOffset.x, y: targetY - topInset), animated: false)
         browser.webView.layoutIfNeeded()
         _ = try? await browser.webView.callAsyncJavaScript(
-            "window.scrollTo({top:y,behavior:'instant'});return window.scrollY;",
+            "window.scrollTo({top:y,behavior:'instant'});for(let i=0;i<20&&Math.abs((window.scrollY||0)-y)>2;i++)await new Promise(r=>setTimeout(r,10));return window.scrollY;",
             arguments: ["y": Double(targetY.rounded())], in: nil, contentWorld: .defaultClient
         )
         let shown: String = switch direction {
