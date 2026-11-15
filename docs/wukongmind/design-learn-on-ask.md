@@ -141,7 +141,7 @@ modelContext.registerTool({
 
   `ThreadShape` and `ListShape` themselves don't change.
 - **An author may be an empty string.** `author` is a required string in `ThreadShape.Post`, so a post with no visible author (a deleted account) carries `""`. A missing `author` key fails decoding.
-- **Header keys.** `@wukong-provides` (one or more slots), `@wukong-thread-match` and `@wukong-list-match` (match patterns saying which pages are a thread or a list, for suggestions), and `@wukong-test-url` (the two URLs the reader was verified on; they travel with the script, so another device can check it). They are written by `toUserScriptFileContent` and read by `parseUserScriptFile` (`ScriptStore.swift:950`, `:1003`). If M4's task 2 has landed, they are kept as part of `ScriptMetadata`.
+- **Header keys.** `@wukong-provides` (one or more slots), `@wukong-thread-match` and `@wukong-list-match` (match patterns saying which pages are a thread or a list, for suggestions), and `@wukong-test-url` (the URLs the reader was verified on: two threads for `read_topic`, one list page for `list_latest` and `search_forum`; they travel with the script, so another device can check it). They are written by `toUserScriptFileContent` and read by `parseUserScriptFile` (`ScriptStore.swift:950`, `:1003`). If M4's task 2 has landed, they are kept as part of `ScriptMetadata`.
 
 ### How a slot runs on a learned site
 
@@ -198,7 +198,7 @@ modelContext.registerTool({
 - the script runs in the isolated world, at document end;
 - the app runs the verification below, and saves only if it passes; there is no unverified save (see [Verification](#verification));
 - the slot must be free, or already this script's (see [Invalidation and repair](#invalidation-and-repair), one provider per host and slot);
-- the app writes the two test URLs into the script's header once they pass.
+- the app writes the slot's test URLs (two threads, or one list page) into the script's header once they pass.
 
 ## Verification
 
@@ -216,20 +216,21 @@ modelContext.registerTool({
 | 8 | **Bounded.** Each call ends within 20 seconds and 2 MB | the time or size |
 | 9 | **Stays home.** The source names no `http(s)://` host other than the site's | the host |
 
-- Passing writes the slot as learned, with the script's ID, the hash of its text, the two test URLs, two post starts for each and the counts, and writes the test URLs into the script's `@wukong-test-url` lines. The save result tells the Agent "verified on 2 threads: 84 and 12 posts".
+- Passing writes the slot as learned, with the script's ID, the hash of its text, the slot's test URLs (two thread URLs for `read_topic`, one list page for `list_latest` and `search_forum`) and the counts, and writes those URLs into the script's `@wukong-test-url` lines. The save result tells the Agent what was checked, per slot: "verified on 2 threads: 84 and 12 posts" for `read_topic`, "verified on the list page: 30 threads" for `list_latest`, and "verified with a search for 'fan': 7 results" for `search_forum`.
 - Failing saves nothing. The refusal is an `Error:` result with the reason. The third refusal for one script in one run answers "Stop: three attempts failed", as M4's repair bound does, and the app writes the slot as failed.
 - **No unverified save.** Today's verify before saving saves a script unverified when it is saved disabled, when userscripts are turned off, or when its match rules miss the open page (`ToolRegistry.swift:2112`). With `provides` each of those is a refusal: "a reading tool is saved only when it can be checked: open a thread of the site", or "userscripts are turned off in Settings". A refusal for one of these three reasons is not counted toward the three, and never writes the slot as failed: the Agent tells the user and answers from `read_page`.
 - Step 7 is the one that catches a tool that returns plausible posts that aren't the page's. Step 9 is a text scan, not a guard: see [Privacy and cost](#privacy-and-cost-limits).
 
 ## Site state
 
-`SiteToolState` (new, `SiteToolState.swift`), stored as one JSON file per host in `Application Support/WukongMind/SiteTools/`. The host is lower-cased with a leading `www.` removed. It is never shown in the normal interface (roadmap §5), is not synced, and holds no page content beyond the short post starts named below.
+`SiteToolState` (new, `SiteToolState.swift`), stored as one JSON file per host in `Application Support/WukongMind/SiteTools/`. The host is lower-cased with a leading `www.` removed. It is never shown in the normal interface (roadmap §5), is not synced, and holds no page content, beyond the short post starts named below if task 7 keeps them.
 
 | Field | Values |
 |---|---|
 | Per slot: `status` | `untried`, `learned`, `broken` (a saved reader that failed and awaits repair), `failed`, `notApplicable` |
 | Per slot: `scriptID` | set when a reader is saved, and kept while the slot is `learned`, `broken` or `failed`: the script is still saved and still the slot's one provider. Cleared only when the script is deleted |
-| Per slot: `scriptHash`, `testURLs`, `postStarts`, `verifiedAt` | set at each passing verification. `testURLs` holds two thread URLs for `read_topic` and one list page for `list_latest` and `search_forum`. `postStarts` is the start of two posts per thread URL, or of two item titles for a list page (40 characters, whitespace folded), taken from the verified result |
+| Per slot: `scriptHash`, `testURLs`, `verifiedAt` | set at each passing verification. `testURLs` holds two thread URLs for `read_topic` and one list page for `list_latest` and `search_forum` |
+| Per slot: `postStarts` | the start of two posts per thread test URL (40 characters, whitespace folded), from the verified result. Kept only if task 7's failure rule ends up using it |
 | Per slot: `repairFailures` | how many runs in a row ended with the slot still `broken`. Three makes the slot `failed` and turns the script off. A verified repair resets it to 0 |
 | Per slot: `failure` | a code (`no_posts`, `shape`, `threw`, `timeout`, `refused_3`, `repair_3`, `load_errors_3`, `gave_up`), the app's sentence for it, the date, and the Agent's own reason text |
 | `threadMatch`, `listMatch` | from the script's header |
@@ -237,7 +238,7 @@ modelContext.registerTool({
 | `log` | the newest 20 events: learned, failed, broken, repaired, turned off, forgotten; each with its date and task ID |
 
 - Only the code, the app's sentence and the date reach the page context. The Agent's free text is shown in the inspector only.
-- A learned script arriving by M4's sync has no state on the new device. Its header says what it provides and carries its two `@wukong-test-url` lines, so the slot starts as learned but unchecked. Its first call there runs the full check on those two URLs and the requested one, and only then answers. If the header has no test URLs (a hand-made file), the full check runs on the requested URL alone, without the "not constant" step.
+- A learned script arriving by M4's sync has no state on the new device. Its header says what it provides and carries its `@wukong-test-url` lines (two for a thread reader, one for a list reader), so the slot starts as learned but unchecked. Its first call there runs the full check on those URLs and, for a thread, the requested one, and only then answers. If the header has no test URLs (a hand-made file), the full check runs on the requested URL alone, without the "not constant" step.
 
 ## Site notes
 
@@ -270,13 +271,16 @@ modelContext.registerTool({
   | `service` | The device is offline; the site answered 401, 403, 429 or 5xx; a sign-in page came back | **No.** The result says so, and the Agent tells the user |
   | `page` | This URL is not a thread, though the reader still works on others | No. An ordinary error |
 
-- **How the app tells them apart.** A reader that meets a sign-in page usually just throws (`.json()` on HTML, a selector that finds nothing), so the script's own error can't decide. When a call fails the light check, the app runs two fixed checks of its own before it blames the tool:
-  1. **It asks the site itself.** App code, not the script, fetches the requested URL once from the site's page, with the session. The device is offline, the request fails, the status is 401, 403, 429 or 5xx, or the answer redirects to another host or to a path that isn't the thread's: the failure is `service`.
-     - **A password field alone proves nothing.** Many forums show a login box beside every thread, to signed-in readers too; the repo's own fixture `WukongMindTests/Fixtures/AgentBridge/article.html` has one next to its article. So a password field counts as a sign-in page only when the thread is also gone: the app fetches one saved test URL the same way, and looks for the post starts it recorded for that URL at verification (the state's `postStarts`). A password field and none of the recorded starts: `service`. The starts are there: the site is serving threads, and the next check decides.
-  2. **It runs the reader on a known-good input.** Otherwise the app calls the reader on one saved test URL. It passes: the failure is `page`. It fails too, and the same site check on that URL is clean: the failure is `tool`.
-  - **`list_latest` and `search_forum` have no URL argument,** so the two checks change for them. Check 1 fetches the slot's saved test URL, the list page it was verified on (the open page if none is saved), with the same rules: offline, a failed request, 401, 403, 429, 5xx or a redirect away is `service`; a password field counts only when the item titles recorded for that page at verification (its `postStarts`) are gone too. Check 2 is skipped: there is no second input to try. A clean site check means `tool`. These two slots never give a `page` failure.
-  - A reader that knows better can say so: an error thrown with `code: "service"` is taken as `service` without the two checks. It can never claim `tool` or `page`.
-  - A `service` or `page` failure never changes the slot, never counts toward turning the script off, and is not added to the script's error list. So an expired session leaves a working reader alone.
+- **How the app tells them apart: two requirements, with the signals settled by task 7.** A reader that meets a sign-in page usually just throws (`.json()` on HTML, a selector that finds nothing), so the script's own error can't decide, and the app has to judge for itself. What it must get right is fixed here, as two tests that hold for thread and list slots alike:
+  - **(a) The site's trouble is never the reader's.** An expired session, a 429 or an outage never marks a reader broken, never counts toward turning its script off, and adds nothing to the script's error list.
+  - **(b) A broken reader is found.** A reader that truly stopped working becomes `broken`, also on a site that shows a login box on every page.
+- **The exact signals are not settled on paper.** Three drafts of them each failed on a case the one before missed: a login box beside every thread (the repo's own fixture `WukongMindTests/Fixtures/AgentBridge/article.html` has one next to its article), then a latest list whose items had changed. A rule about real sites needs real pages. So task 7 settles the signals on fixtures (a thread page and a list page with an inline login form, and a list whose items changed since verification), proves (a) and (b) on them, and writes the rule it ends with back into this section.
+- **The starting point for task 7**, not settled text:
+  1. **Ask the site itself.** After a call fails the light check, app code, not the script, fetches a page of the site once, with the session: the requested URL for `read_topic`, the slot's saved list page for `list_latest` and `search_forum`. The device is offline, the request fails, the status is 401, 403, 429 or 5xx, or the answer redirects to another host: `service`.
+  2. **A password field alone proves nothing.** It points at a sign-in page only when the content is gone too. For a list page: fewer than 5 links matching `thread_match`, verification step 5's own bar. For a thread: a saved test URL, fetched the same way, no longer shows the post starts recorded for it at verification.
+  3. **Run the reader on a known-good input** (`read_topic` only): one saved test URL. It passes: `page`. It fails too, and the site check on that URL is clean: `tool`. The list slots have no second input, so a clean site check means `tool`, and they never give a `page` failure.
+  4. A reader may say so itself: an error thrown with `code: "service"` is taken as `service`. It can never claim `tool` or `page`.
+- A `service` or `page` failure never changes the slot. That part is settled: it is requirement (a).
 
 - **Rolling back** (roadmap §7). On a `tool` failure the slot's status goes from `learned` to `broken`: the script stays saved and stays the slot's one provider, but the slot is no longer trusted. The error is added to the script's error list (`ScriptStore.recordError`, `ScriptStore.swift:2034`), and the tool result is the error plus a trusted note (`ToolNote`, `ToolRegistry.swift:382`): "The saved reading tool for this site no longer works. Repair it before answering." A `broken` slot still runs when called, so a repair can reproduce the failure, and every call gets the full check.
 - **Repair reuses M4's mechanism.** The failing result carries the block M4's `ScriptRepair.request(for:)` builds: the script, its last errors and its source. The Agent fixes it with `script_update`, which runs the verification again with the saved test URLs and the URL that failed. M4's rules hold: three refused updates stop the attempt, a verified update clears the errors, and the card reads "Fixed" with Undo. The repair happens inside the run that needed the tool, with no tap. It never starts by itself.
@@ -338,7 +342,7 @@ Both are in This page › Developer, the group that holds Console and Network to
   | A failed site is tried again | after 14 days, an app update, or when asked |
   | Steps in a run | 30, unchanged (`BrowserAgentLimits.defaultMaxSteps`) |
   | Verification | no model call; at most 3 tool calls of 20 seconds |
-  | The failure checks (the app's own fetch, and the reader on a saved test URL) | only after a call has failed the light check: at most 2 fetches and 1 reader call. A call that succeeds adds none |
+  | The failure checks (the app's own fetch, and the reader on a saved test URL) | only after a call has failed the light check; a call that succeeds adds none. The starting point is at most 2 fetches and 1 reader call, and task 7 keeps it within that |
   | Tools listed per page | 30 |
 
 - **Cost targets, to be measured** (spike question 9, then acceptance): a first learning in at most 15 tool calls; three new tool definitions and the "Learning a site" section together under 1,200 tokens of cached prefix (the tool list is 25 tools and 6,626 tokens today, [one-loop-comparison.md](one-loop-comparison.md)); a second visit's summary in one tool call. Each live check reports input, output and cache-read tokens (`AgentTokenUsage`, `BrowserAgent.swift:6`).
@@ -487,7 +491,7 @@ One design task, one spike, nine implementation tasks and one acceptance task. S
   - a `provides` script saved disabled, with userscripts off, or on a page its rules miss is refused, uncounted, and the slot is not failed (tests);
   - a second `script_save` for a slot that has a script is refused and names that script (test);
   - an empty search verifies as a failure only for the app's own word, a post with an empty author passes while more than 1 in 10 fails, and a missing `author` key fails decoding (tests);
-  - a passing save writes the two test URLs into the header (test);
+  - a passing save writes the slot's test URLs into the header, two for `read_topic` and one list page otherwise, and its result text is the slot's own (tests);
   - a script file with the new keys round-trips, and a 1.3 script file decodes unchanged (tests);
   - `site_learning_report` writes the slot and its reason.
 
@@ -508,9 +512,10 @@ One design task, one spike, nine implementation tasks and one acceptance task. S
   - the live runs' steps and tokens are in the proof, with the model IDs.
 
 ### 7. Learn on ask 7: invalidation and repair
-- **Read:** Invalidation and repair; `design-m4.md` "Errors and the repair loop".
+- **Read:** Invalidation and repair (the two requirements, and the starting point for the signals); `design-m4.md` "Errors and the repair loop".
 - **Scope:**
-  - `ToolRegistry+Forum.swift`: the light check on every call, the three failure kinds and the two checks that tell them apart, the full check on a changed hash or a synced script.
+  - **Settle the failure signals first.** Build the fixtures (a thread page and a list page with an inline login form; a list whose items changed since verification; a sign-in page served in place of each), try the starting point on them, change it until requirements (a) and (b) hold, and write the final rule back into this page's "How the app tells them apart".
+  - `ToolRegistry+Forum.swift`: the light check on every call, the three failure kinds and the settled checks that tell them apart, the full check on a changed hash or a synced script.
   - `SiteToolState.swift`: the `broken` status, unfinished repairs, the 14-day rule, scripts turned off by the person or by the app, deleted scripts.
   - `ScriptRepair.swift` (M4): the block reused in the failing result.
   - `BrowserAgent.swift`: the broken line of the page context, and the repair rules in "Learning a site".
@@ -520,11 +525,13 @@ One design task, one spike, nine implementation tasks and one acceptance task. S
   - a reader edited to return nothing fails its next call, the slot becomes `broken`, and the recorded run repairs it and answers (acceptance check 5 as a replay);
   - a run that ends with the slot still `broken` is followed by a run that repairs the same script: the site never has two scripts for one slot (test);
   - three runs whose repair failed leave the slot `failed` and the script off (test);
-  - on a fixture thread page with an inline login form, a reader edited to return nothing is a `tool` failure and the slot becomes `broken`; the same site answering a sign-in page in place of the thread is `service` (tests);
+  - **requirement (b):** on a fixture thread page with an inline login form, a reader edited to return nothing is a `tool` failure and the slot becomes `broken`; the same holds for `list_latest` on a list page with an inline login form whose items have all changed since verification (tests);
+  - **requirement (a):** on the same fixtures, a sign-in page served in place of the thread or the list is `service` (tests);
+  - this page's "How the app tells them apart" states the rule the tests prove, in place of the starting point;
   - `repairFailures` counts runs that end `broken`, is reset by a verified repair, and at three sets `repair_3`; three page-load errors set `load_errors_3`; `scriptID` stays set while the slot is `broken` or `failed` (tests);
   - a sign-in page, a 429 and a reader whose `.json()` throws on HTML each count as `service`: the slot stays learned, the script stays on and nothing is added to its error list (tests);
   - a URL that is not a thread, while a saved test URL still reads, is a `page` failure (test);
-  - `list_latest` on a sign-in page or a 429 is `service` and the slot stays learned; with the list page served normally, a `list_latest` that returns nothing is `tool` (tests);
+  - `list_latest` on a 429 is `service` and the slot stays learned; with the list page served normally, a `list_latest` that returns nothing is `tool` (tests);
   - a search with no results is not a failure (test);
   - the broken line holds no script name or ID (test);
   - a script the person turned off is never turned on or re-learned; a script the app turned off is turned on again by a verified `script_update` (tests);
@@ -582,6 +589,7 @@ One design task, one spike, nine implementation tasks and one acceptance task. S
 - **Four suggestion sources** (roadmap §4). Built-in by page type and saved tools are built. "Previously asked here" is not in the brief and is left out. A site's own tools add none ([decision 3](#decisions-on-the-open-questions)).
 - **A named exception: a site's own tool always asks.** Roadmap §5 says a tool's "has consequences" annotation hooks into Confirm before writes, "which stays off by default", and requirements §8 asks for no confirmation prompts. Here every `site.*` call asks first, whatever the switch says, because it is unverified third-party code. The annotations are the page's own claims and can never lower the confirmation. The roadmap's rule still holds for the user's own script tools, and a learned reader never asks.
 - **The registry's validator** checks the app's own tool definitions, not a JSON Schema from a page. The dispatcher checks a stated subset and says when a schema was checked only in part.
+- **The failure signals are left to task 7.** This page fixes what the classification must achieve, as two requirements, and gives a starting point. It does not claim the exact signals are right: three drafts each missed a real kind of page. Task 7 settles them on fixtures and writes them back here.
 - **"Its status rolls back"** (roadmap §7) against a saved script that still claims the slot. Rolling back to untried would make the next run learn a second script for the same site. The status becomes `broken`: not trusted, repaired in place, one script per slot.
 - **M4's "Fixing a script" section** is present only in a run started by a repair request. A learned reader fails in the middle of a run, so its repair rules are in the always-present section.
 - **M4 is a proposal, not built.** This page names its `ScriptRepair` and `ScriptMetadata` as designed there. Only task 7 depends on them.
