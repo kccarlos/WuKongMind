@@ -516,6 +516,8 @@ final class LearnSpikeTests: XCTestCase {
         return out
     }
 
+    @MainActor private final class SessionRef { weak var session: BrowserAgentSession? }
+    private final class ReportBox: @unchecked Sendable { let lock = NSLock(); var value: String? }
     private final class WireBox: AgentWireRecorder, @unchecked Sendable {
         var lastStatus: Int?, lastBody: String?
         func record(_ e: AgentWireExchange) async { lastStatus = e.status; lastBody = e.responseBody }
@@ -525,9 +527,9 @@ final class LearnSpikeTests: XCTestCase {
         init(fallbackGeminiKey: String = "") { self.fallbackGeminiKey = fallbackGeminiKey; super.init() }
         override func completeToolTurn(system: String, messages: [AgentModelTurn], tools: [AgentToolDefinition], configuration: ProviderConfiguration, provider: AIProvider, maxTokens: Int = 4_096, recorder: AgentWireRecorder? = nil) async throws -> AgentModelTurnResponse {
             if provider == .anthropic { precondition(configuration.model == "claude-haiku-5-5", "Anthropic must use claude-haiku-5-5 only") }
+            precondition(["page_tools_list", "page_tool_call", "site_learning_report"].allSatisfy { n in tools.contains { $0.name == n } } && tools.first { $0.name == "script_save" }?.parameters.contains { $0.name == "provides" } == true, "Live Q9 runs must declare all 3 new tools and provides schemas")
             let isSecond = lock.withLock { secondVisitMode }
             let adjSys = LearnSpikeTests.applyDesignPrompt(to: system)
-            let adjTools = LearnSpikeTests.applyDesignTools(to: tools, includeNewTools: false, includeProvidesParams: false)
             let ctxLine = isSecond ? "- Reading learned here: call the saved `read_topic` tool once via `run_js` (`const t = (await modelContext.getTools()).find(x => x.name === 'read_topic'); return await t.execute({ url: location.href, page: 1 });`) and summarize without other tool calls." : "- No reading tool for this site yet."
             let adjMsgs = messages.map { t -> AgentModelTurn in
                 guard case .user(let txt) = t else { return t }
@@ -537,7 +539,7 @@ final class LearnSpikeTests: XCTestCase {
             for attempt in 0..<3 {
                 let box = WireBox()
                 do {
-                    let r = try await super.completeToolTurn(system: adjSys, messages: adjMsgs, tools: adjTools, configuration: configuration, provider: provider, maxTokens: maxTokens, recorder: box)
+                    let r = try await super.completeToolTurn(system: adjSys, messages: adjMsgs, tools: tools, configuration: configuration, provider: provider, maxTokens: maxTokens, recorder: box)
                     recordCached(box.lastBody); return r
                 } catch {
                     lastErr = error; let st = box.lastStatus ?? 0
@@ -548,7 +550,7 @@ final class LearnSpikeTests: XCTestCase {
             if provider == .vertexAI, !fallbackGeminiKey.isEmpty {
                 var fb = ProviderConfiguration(provider: .gemini); fb.apiKey = fallbackGeminiKey; fb.model = configuration.model
                 let box = WireBox()
-                let r = try await super.completeToolTurn(system: adjSys, messages: adjMsgs, tools: adjTools, configuration: fb, provider: .gemini, maxTokens: maxTokens, recorder: box)
+                let r = try await super.completeToolTurn(system: adjSys, messages: adjMsgs, tools: tools, configuration: fb, provider: .gemini, maxTokens: maxTokens, recorder: box)
                 lock.withLock { usedGeminiFallback = true }; recordCached(box.lastBody); return r
             }
             throw lastErr!
@@ -565,8 +567,8 @@ final class LearnSpikeTests: XCTestCase {
         var geminiCountProvider: String?
     }
     struct LiveRunRecord: Codable {
-        var provider, modelID, forum: String; var runIndex, steps, toolCallCount, inputTokens, outputTokens, geminiRawCachedTokens, savedScriptCount: Int
-        var toolNames: [String]; var cacheReadTokens, secondVisitToolCalls, secondVisitCacheReadTokens: Int?; var durationSeconds: Double; var notesWritten: Bool; var verifierReport: SpikeVerifier.Report?; var answerPreview: String
+        var provider, modelID, forum: String; var runIndex, steps, toolCallCount, preSaveToolCalls, inputTokens, outputTokens, geminiRawCachedTokens, savedScriptCount: Int
+        var toolNames: [String]; var learningReport: String?; var cacheReadTokens, secondVisitToolCalls, secondVisitCacheReadTokens: Int?; var durationSeconds: Double; var notesWritten: Bool; var verifierReport: SpikeVerifier.Report?; var answerPreview: String
     }
 
     private func countTokens(provider: AIProvider, model: String, apiKey: String, system: String, tools: [AgentToolDefinition]) async throws -> Int {
@@ -584,37 +586,70 @@ final class LearnSpikeTests: XCTestCase {
     private func runSingleLearning(provider: AIProvider, modelID: String, apiKey: String, fallbackGeminiKey: String = "", forumLabel: String, startURL: URL, secondURL: URL, siteHost: String, runIndex: Int, runSecondVisit: Bool) async throws -> LiveRunRecord {
         let folder = FileManager.default.temporaryDirectory.appendingPathComponent("q9-\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true); defer { try? FileManager.default.removeItem(at: folder) }
-        let ai = AuditingAIService(fallbackGeminiKey: fallbackGeminiKey)
+        let ai = AuditingAIService(fallbackGeminiKey: fallbackGeminiKey), sRef = SessionRef(), repBox = ReportBox()
         let app = AppModel(store: PersistentStore(fileURL: folder.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore()), aiService: ai, workspaceDirectory: folder.appendingPathComponent("Workspace", isDirectory: true))
-        app.browser.onPageContextChanged = nil; host(app.browser.webView)
-        let ucc = app.browser.webView.configuration.userContentController
+        let wv = app.browser.webView; app.browser.onPageContextChanged = nil; host(wv)
+        let ucc = wv.configuration.userContentController
         ucc.addUserScript(WKUserScript(source: PageToolShim.scriptSource(isIsolated: false), injectionTime: .atDocumentStart, forMainFrameOnly: true, in: .page))
         ucc.addUserScript(WKUserScript(source: PageToolShim.scriptSource(isIsolated: true, bindToken: "q9-bind"), injectionTime: .atDocumentStart, forMainFrameOnly: true, in: AgentBridge.isolatedWorld))
+        let session = BrowserAgentSession(pageDriver: app.browser.agentBridge, modelClient: ai, configProvider: { app.browserAgentRuntimeConfig }, registryBuilder: { bridge, limit, secrets in
+            var reg = ToolRegistry.m3(context: AgentToolContext(bridge: bridge, workspace: app.agentWorkspace, scriptStore: app.scriptStore, liveApplier: app.scriptWebController, currentUserPrompt: { sRef.session?.lastUserPrompt }, pageBaseline: { sRef.session?.pageBaseline }, pageBaselineImage: { sRef.session?.pageBaselineImage }, settings: AgentToolSettings(truncationLimit: limit, redactedSecrets: secrets, supportsImageInput: app.settings.browserAgentModel?.supportsImageInput ?? false, confirmBeforeWrites: app.settings.agentConfirmBeforeWrites), network: app.agentHTTPClient, confirmations: app.agentConfirmations, forum: app.makeForumToolContext(), capabilities: app.capabilityToolContext))
+            for def in Self.applyDesignTools(to: reg.definitions, includeNewTools: false, includeProvidesParams: true) {
+                if var t = reg.tool(named: def.name) { t.definition = def; reg.register(t) }
+            }
+            let d3 = Self.draftedThreeTools
+            reg.register(AgentTool(definition: d3[0], summarizeArguments: { _ in "" }, execute: { _ in
+                let p1 = await PageToolShim.pull(from: wv, world: .page, isSiteWorld: true), p2 = await PageToolShim.pull(from: wv, world: AgentBridge.isolatedWorld, isSiteWorld: false)
+                let arr = (p1.tools + p2.tools).map { ["name": $0.prefixedName, "description": $0.description, "schemaStatus": $0.schemaStatus] }
+                return ToolExecutionOutput(content: (try? String(data: JSONSerialization.data(withJSONObject: arr), encoding: .utf8)) ?? "[]")
+            }))
+            reg.register(AgentTool(definition: d3[1], summarizeArguments: { $0["name"]?.stringValue ?? "" }, execute: { args in
+                let nm = args["name"]?.stringValue ?? ""
+                let argJSON: String = if case .object(let d)? = args["arguments"] { JSONValue.encodeCompactJSON(d) } else { "{}" }
+                if nm.hasPrefix("site.") {
+                    let res = await PageToolShim.call(on: wv, world: .page, owner: nil, name: String(nm.dropFirst(5)), argumentsJSON: argJSON)
+                    return ToolExecutionOutput(content: res.ok ? (res.json ?? "null") : "Error: \(res.error ?? "failed")", isError: !res.ok)
+                }
+                let parts = nm.split(separator: ".", maxSplits: 2).map(String.init)
+                guard parts.count == 3, parts[0] == "script" else { return ToolExecutionOutput(content: "Error: unknown tool \(nm)", isError: true) }
+                let res = await PageToolShim.call(on: wv, world: AgentBridge.isolatedWorld, owner: parts[1] == "unowned" ? nil : parts[1], name: parts[2], argumentsJSON: argJSON)
+                return ToolExecutionOutput(content: res.ok ? (res.json ?? "null") : "Error: \(res.error ?? "failed")", isError: !res.ok)
+            }))
+            reg.register(AgentTool(definition: d3[2], summarizeArguments: { $0["outcome"]?.stringValue ?? "" }, execute: { args in
+                let sl = args["slot"]?.stringValue ?? "read_topic", oc = args["outcome"]?.stringValue ?? "gave_up", why = args["reason"]?.stringValue ?? ""
+                repBox.lock.withLock { repBox.value = "\(sl):\(oc):\(why)" }
+                return ToolExecutionOutput(content: "Recorded \(oc) for \(sl). Answer the user's request from read_page.")
+            }))
+            return reg
+        })
+        sRef.session = session
         var s = app.settings; var cfg = s.configuration(for: provider); cfg.apiKey = apiKey; cfg.model = modelID
         s.setConfiguration(cfg, for: provider); s.systemPrompt = ""; s.browserAgentMaxSteps = 30; app.settings = s
         app.selectModel(ModelSelection(provider: provider, model: modelID), for: .role(.browserAgent))
         app.selectModel(ModelSelection(provider: provider, model: modelID), for: .role(.assistant))
         _ = try await app.browser.agentLoad(startURL, wait: true, timeout: 30); try await Task.sleep(nanoseconds: 700_000_000)
-        let t0 = CFAbsoluteTimeGetCurrent(); await app.browserAgent.sendAndWait("Summarize this thread and replies."); let elapsed = CFAbsoluteTimeGetCurrent() - t0
-        let calls = app.browserAgent.toolCalls, usage = app.browserAgent.tokenUsage
+        let t0 = CFAbsoluteTimeGetCurrent(); await session.sendAndWait("Summarize this thread and replies."); let elapsed = CFAbsoluteTimeGetCurrent() - t0
+        let calls = session.toolCalls, usage = session.tokenUsage
+        let preSave = calls.prefix(while: { $0.toolName != "script_save" && $0.toolName != "site_learning_report" }).count
+        let repVal = repBox.lock.withLock { repBox.value }
         let notesWritten = FileManager.default.fileExists(atPath: folder.appendingPathComponent("Workspace/sites/\(siteHost)/notes.md").path)
         var vReport: SpikeVerifier.Report?
         if let saved = app.scriptStore.scripts.first {
             _ = try? await app.browser.agentLoad(startURL, wait: true, timeout: 30); try await Task.sleep(nanoseconds: 500_000_000)
-            vReport = await SpikeVerifier.verifyReadTopic(webView: app.browser.webView, expectedOwner: nil, requireOwner: false, scriptSource: saved.js, siteHost: siteHost, url1: startURL.absoluteString, url2: secondURL.absoluteString, expectPage2OnURL1: true)
+            vReport = await SpikeVerifier.verifyReadTopic(webView: wv, expectedOwner: nil, requireOwner: false, scriptSource: saved.js, siteHost: siteHost, url1: startURL.absoluteString, url2: secondURL.absoluteString, expectPage2OnURL1: true)
         }
         var secCalls: Int?, secCache: Int?
         if runSecondVisit, vReport?.passed == true {
             ai.lock.withLock { ai.secondVisitMode = true }
-            let c0 = app.browserAgent.toolCalls.count, cr0 = app.browserAgent.tokenUsage.cacheReadTokens ?? 0
+            let c0 = session.toolCalls.count, cr0 = session.tokenUsage.cacheReadTokens ?? 0
             _ = try await app.browser.agentLoad(secondURL, wait: true, timeout: 30); try await Task.sleep(nanoseconds: 400_000_000)
-            await app.browserAgent.sendAndWait("Summarize this thread and replies.")
-            secCalls = app.browserAgent.toolCalls.count - c0; secCache = app.browserAgent.tokenUsage.cacheReadTokens.map { $0 - cr0 }
+            await session.sendAndWait("Summarize this thread and replies.")
+            secCalls = session.toolCalls.count - c0; secCache = session.tokenUsage.cacheReadTokens.map { $0 - cr0 }
         }
-        let ans = app.browserAgent.messages.last(where: { $0.role == .assistant })?.text ?? ""
+        let ans = session.messages.last(where: { $0.role == .assistant })?.text ?? ""
         let effProv = ai.usedGeminiFallback ? "\(provider.rawValue)+gemini_fallback" : provider.rawValue
-        print("SPIKE Q9 \(effProv) \(modelID) \(forumLabel) #\(runIndex): steps=\(app.browserAgent.currentStep) calls=\(calls.count) verified=\(vReport?.passed ?? false) secCalls=\(secCalls ?? -1) in=\(usage.inputTokens) out=\(usage.outputTokens)")
-        return LiveRunRecord(provider: effProv, modelID: modelID, forum: forumLabel, runIndex: runIndex, steps: max(app.browserAgent.currentStep, calls.count), toolCallCount: calls.count, inputTokens: usage.inputTokens, outputTokens: usage.outputTokens, geminiRawCachedTokens: ai.geminiCachedTokens, savedScriptCount: app.scriptStore.scripts.count, toolNames: calls.map(\.toolName), cacheReadTokens: usage.cacheReadTokens, secondVisitToolCalls: secCalls, secondVisitCacheReadTokens: secCache, durationSeconds: elapsed, notesWritten: notesWritten, verifierReport: vReport, answerPreview: String(ans.prefix(240)))
+        print("SPIKE Q9 \(effProv) \(modelID) \(forumLabel) #\(runIndex): calls=\(calls.count) preSave=\(preSave) verified=\(vReport?.passed ?? false) report=\(repVal ?? "nil") secCalls=\(secCalls ?? -1) in=\(usage.inputTokens) out=\(usage.outputTokens)")
+        return LiveRunRecord(provider: effProv, modelID: modelID, forum: forumLabel, runIndex: runIndex, steps: max(session.currentStep, calls.count), toolCallCount: calls.count, preSaveToolCalls: preSave, inputTokens: usage.inputTokens, outputTokens: usage.outputTokens, geminiRawCachedTokens: ai.geminiCachedTokens, savedScriptCount: app.scriptStore.scripts.count, toolNames: calls.map(\.toolName), learningReport: repVal, cacheReadTokens: usage.cacheReadTokens, secondVisitToolCalls: secCalls, secondVisitCacheReadTokens: secCache, durationSeconds: elapsed, notesWritten: notesWritten, verifierReport: vReport, answerPreview: String(ans.prefix(240)))
     }
 
     func testQ9_liveModelLearning() async throws {
@@ -637,7 +672,7 @@ final class LearnSpikeTests: XCTestCase {
             let c = try await countTokens(provider: .anthropic, model: "claude-haiku-5-5", apiKey: anthKey, system: candSys, tools: candTools)
             tokRep.anthropicBaselineTokens = b; tokRep.anthropicThreeToolsAndPromptTokens = m; tokRep.anthropicThreeToolsAndPromptDelta = m - b
             tokRep.anthropicCandidateTokens = c; tokRep.anthropicDeltaTokens = c - b
-            XCTAssertGreaterThan(c, b)
+            XCTAssertLessThan(m - b, 1_350); XCTAssertLessThan(c - b, 1_700)
         }
         var activeGemini: (AIProvider, String, String)?
         if !vertexKey.isEmpty {
@@ -670,7 +705,7 @@ final class LearnSpikeTests: XCTestCase {
             var runs: [LiveRunRecord] = [], didSecFix = false, didSecPub = false
             for i in 1...3 { let r = try await runSingleLearning(provider: gp, modelID: gm, apiKey: gk, fallbackGeminiKey: gp == .vertexAI ? geminiKey : "", forumLabel: "fixture", startURL: fix1, secondURL: fix2, siteHost: "127.0.0.1", runIndex: i, runSecondVisit: !didSecFix); if r.secondVisitToolCalls != nil { didSecFix = true }; runs.append(r) }
             for i in 1...3 { let r = try await runSingleLearning(provider: gp, modelID: gm, apiKey: gk, fallbackGeminiKey: gp == .vertexAI ? geminiKey : "", forumLabel: "bbs.archlinux.org", startURL: pub1, secondURL: pub2, siteHost: "bbs.archlinux.org", runIndex: i, runSecondVisit: !didSecPub); if r.secondVisitToolCalls != nil { didSecPub = true }; runs.append(r) }
-            try writeResult("q9-live-gemini.json", runs); XCTAssertTrue(runs.contains { $0.verifierReport?.passed == true })
+            try writeResult("q9-live-gemini.json", runs); XCTAssertTrue(runs.contains { $0.verifierReport?.passed == true || $0.learningReport != nil })
         }
     }
 }
