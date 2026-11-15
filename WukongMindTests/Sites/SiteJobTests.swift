@@ -171,7 +171,8 @@ final class SiteJobTests: XCTestCase {
         let registry = toolRegistry(fake)
         let names = registry.definitions.map(\.name)
         XCTAssertTrue(names.contains("search_comments") && names.contains("read_topic"), "\(names)")
-        XCTAssertFalse(names.contains("list_latest") || names.contains("search_forum"), "not this site's tools: \(names)")
+        // WUKO-73: every forum tool is declared; one the site lacks refuses.
+        XCTAssertTrue(names.contains("list_latest") && names.contains("search_forum"), "\(names)")
 
         let refused = try await registry.dispatch(toolName: "list_latest", arguments: [:])
         XCTAssertTrue(refused.isError, refused.output)

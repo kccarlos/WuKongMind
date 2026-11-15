@@ -191,8 +191,8 @@ final class ForumToolsTests: XCTestCase {
             service: service, scope: ForumRunScope(adapter: hnAdapter, siteURL: HackerNewsFixture.site), forumName: "Hacker News"
         ))
         let comments = try XCTUnwrap(hnReg.tool(named: "search_comments")?.definition)
-        XCTAssertEqual(comments.parameters.map(\.name), ["query", "after", "before", "page"])
-        XCTAssertEqual(comments.parameters.map(\.type), [.string, .string, .string, .integer])
+        XCTAssertEqual(comments.parameters.map(\.name), ["query", "category", "after", "before", "page"])
+        XCTAssertEqual(comments.parameters.map(\.type), [.string, .string, .string, .string, .integer])
         XCTAssertEqual(comments.required, ["query"])
         XCTAssertEqual(hnReg.definitions, discourseReg.definitions)
 

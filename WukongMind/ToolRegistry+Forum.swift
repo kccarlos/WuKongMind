@@ -60,7 +60,11 @@ extension ToolRegistry {
                 name: ForumToolName.searchComments,
                 description: "Search comments across the current site's threads (Hacker News and WordPress only), returning "
                     + "about 10 authored excerpts with their thread ids; read the thread for context and a citable source.",
-                parameters: [ToolParameterSchema(name: "query", type: .string, description: "Search text"), after, before, page],
+                parameters: [
+                    ToolParameterSchema(name: "query", type: .string, description: "Search text"),
+                    ToolParameterSchema(name: "category", type: .string, description: "Optional category name or slug."),
+                    after, before, page
+                ],
                 required: ["query"]
             ),
             AgentToolDefinition(

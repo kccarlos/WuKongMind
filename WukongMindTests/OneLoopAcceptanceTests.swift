@@ -171,7 +171,13 @@ final class OneLoopAcceptanceTests: XCTestCase {
         let recording = PageChangeRecording(model: models.agent.selection.model, responses: recorder.responses, summaries: ai.recordedSummaries)
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        try encoder.encode(recording).write(to: Self.pageChangeRun)
+        let json = try encoder.encode(recording)
+        try json.write(to: Self.pageChangeRun)
+        // A remote run writes on the other Mac: the attachment carries the recording back.
+        let attachment = XCTAttachment(data: json, uniformTypeIdentifier: "public.json")
+        attachment.name = Self.pageChangeRun.lastPathComponent
+        attachment.lifetime = .keepAlways
+        add(attachment)
         for (index, response) in recorder.responses.enumerated() {
             let usage = response.usage
             print("PAGE-CHANGE turn \(index + 1): \(response.toolCalls.map(\.name)) in=\(usage.inputTokens) cacheRead=\(usage.cacheReadTokens.map(String.init) ?? "n/a") out=\(usage.outputTokens)")

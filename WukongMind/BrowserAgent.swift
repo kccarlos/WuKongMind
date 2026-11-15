@@ -1404,7 +1404,11 @@ final class BrowserAgentSession {
                 var parts = [context]
                 if let voiceBlock { parts.append(voiceBlock) }
                 // A model prompt with context already ends with "The user's message:".
-                parts.append(modelPrompt ?? "The user's message:\n\(userPrompt)")
+                if let modelPrompt, modelPrompt != userPrompt {
+                    parts.append(modelPrompt)
+                } else {
+                    parts.append("The user's message:\n\(userPrompt)")
+                }
                 self.history.append(.user(parts.joined(separator: "\n\n")))
             }
             let startingHistory = self.history
