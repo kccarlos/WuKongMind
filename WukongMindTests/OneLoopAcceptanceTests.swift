@@ -161,7 +161,8 @@ final class OneLoopAcceptanceTests: XCTestCase {
 
     func testRecordPageChangeRun() async throws {
         let env = ProcessInfo.processInfo.environment
-        guard env["PAGE_CHANGE_RECORD"] == "1" else { throw XCTSkip("Record mode only: PAGE_CHANGE_RECORD=1.") }
+        // Any value records (remote-test passes it as a `--secret`, which a value like "1" can't be).
+        guard !(env["PAGE_CHANGE_RECORD"] ?? "").isEmpty else { throw XCTSkip("Record mode only: PAGE_CHANGE_RECORD=1.") }
         let models = try ComparisonModels.fromEnvironment(env)
         ModelAudit.shared.reset()
         let ai = ComparisonAIService(session: ModelAudit.session())
