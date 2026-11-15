@@ -354,6 +354,29 @@
         }
       }
     },
+    "%@ · edited %@" : {
+      "comment" : "Script detail header subtitle showing imported @version and relative edit time",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · edited %2$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · 编辑于 %2$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · 編輯於 %2$@"
+          }
+        }
+      }
+    },
     "%@ · step %lld" : {
       "comment" : "Subtitle of the full-size screenshot sheet: the capture summary and the step number",
       "localizations" : {
@@ -1850,6 +1873,29 @@
         }
       }
     },
+    "%lld values · %@" : {
+      "comment" : "GM_getValue storage summary in Script detail showing count and byte size",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld values · %2$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld 项设置 · %2$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld 項設定 · %2$@"
+          }
+        }
+      }
+    },
     "%lld versions" : {
       "comment" : "Trailing count on the Version history row in Script detail",
       "localizations" : {
@@ -2005,6 +2051,23 @@
         }
       }
     },
+    "1 value · %@" : {
+      "comment" : "GM_getValue storage summary in Script detail when one value is stored",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 项设置 · %@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 項設定 · %@"
+          }
+        }
+      }
+    },
     "1M characters" : {
       "comment" : "Chat context size: one million characters\nSummary batch size: one million characters of text",
       "localizations" : {
@@ -2090,6 +2153,74 @@
         }
       }
     },
+    "A call to any of these fails." : {
+      "comment" : "Subtitle when multiple unsupported grants are declared on a script",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "调用其中任一项都会失败。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "呼叫其中任一項都會失敗。"
+          }
+        }
+      }
+    },
+    "A call to any of these fails; the rest of the script runs." : {
+      "comment" : "Explanation in Not supported here when unsupported GM_* grants are declared",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "调用其中任一项都会失败，脚本其余部分仍会运行。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "呼叫其中任一項都會失敗，指令碼其餘部分仍會執行。"
+          }
+        }
+      }
+    },
+    "A call to either fails; the rest of the script runs." : {
+      "comment" : "Explanation in Not supported here when two unsupported GM_* grants are declared",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "调用其中任一项都会失败，脚本其余部分仍会运行。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "呼叫其中任一項都會失敗，指令碼其餘部分仍會執行。"
+          }
+        }
+      }
+    },
+    "A call to it fails." : {
+      "comment" : "Subtitle when one unsupported grant is declared on a script",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "调用它会失败。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "呼叫它會失敗。"
+          }
+        }
+      }
+    },
     "A forum topic’s web address. Leave empty to use the clipboard." : {
       "localizations" : {
         "zh-Hans" : {
@@ -2138,53 +2269,19 @@
         }
       }
     },
-    "Actions" : {
-      "comment" : "VoiceOver action name for a model row's more menu",
+    "A regular-expression @include can’t be used." : {
+      "comment" : "Explanation in Not supported here when a script uses a regex @include rule",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "操作"
+            "value" : "不支持正则表达式形式的 @include。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "動作"
-          }
-        }
-      }
-    },
-    "Add your API key above to see this provider's models." : {
-      "comment" : "Provider settings › Models: shown before an API key is entered",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请先在上方填写 API 密钥，以查看此提供方的模型。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "請先在上方填寫 API 金鑰，以查看此供應商的模型。"
-          }
-        }
-      }
-    },
-    "after load" : {
-      "comment" : "Metadata tag when a userscript error occurred after initial page load",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "加载后"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "載入後"
+            "value" : "不支援正規表示式形式的 @include。"
           }
         }
       }
@@ -2267,6 +2364,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已採納的答案"
+          }
+        }
+      }
+    },
+    "Actions" : {
+      "comment" : "VoiceOver action name for a model row's more menu",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "操作"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "動作"
           }
         }
       }
@@ -2503,6 +2617,23 @@
         }
       }
     },
+    "Add and turn on" : {
+      "comment" : "Primary import button that saves and enables the script",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "添加并开启"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "加入並開啟"
+          }
+        }
+      }
+    },
     "Add as a forum" : {
       "comment" : "This page popover action to add an unconfirmed forum site",
       "localizations" : {
@@ -2554,6 +2685,23 @@
         }
       }
     },
+    "Add script" : {
+      "comment" : "Navigation title of the userscript import review sheet",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "添加脚本"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "加入指令碼"
+          }
+        }
+      }
+    },
     "Add to favorites" : {
       "localizations" : {
         "zh-Hans" : {
@@ -2570,6 +2718,23 @@
         }
       }
     },
+    "Add your API key above to see this provider's models." : {
+      "comment" : "Provider settings › Models: shown before an API key is entered",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请先在上方填写 API 密钥，以查看此提供方的模型。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請先在上方填寫 API 金鑰，以查看此供應商的模型。"
+          }
+        }
+      }
+    },
     "Add your API key to see every model." : {
       "localizations" : {
         "zh-Hans" : {
@@ -2582,6 +2747,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "加入 API 金鑰後即可查看所有模型。"
+          }
+        }
+      }
+    },
+    "Add, keep off" : {
+      "comment" : "Secondary import button that saves the script disabled",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "添加但保持关闭"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "加入但保持關閉"
           }
         }
       }
@@ -2615,6 +2797,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "網址"
+          }
+        }
+      }
+    },
+    "Adds commands to This page" : {
+      "comment" : "Capability row for GM_registerMenuCommand grant",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "向“此页面”添加命令"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在「此頁面」加入命令"
+          }
+        }
+      }
+    },
+    "Adds custom styles to the page" : {
+      "comment" : "Capability row for GM_addStyle grant",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "向页面添加自定义样式"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "為頁面加入自訂樣式"
           }
         }
       }
@@ -3747,6 +3963,23 @@
         }
       }
     },
+    "Ask the Agent to review it" : {
+      "comment" : "Button in the script import sheet that opens the Agent to review the untrusted script code",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "让代理审查此脚本"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "讓代理審查此指令碼"
+          }
+        }
+      }
+    },
     "Ask the Agent…" : {
       "comment" : "Unified Agent panel composer placeholder",
       "localizations" : {
@@ -4436,57 +4669,6 @@
         }
       }
     },
-    "Clear search" : {
-      "comment" : "Clears the model search field",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "清除搜索"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "清除搜尋"
-          }
-        }
-      }
-    },
-    "Copy model name" : {
-      "comment" : "Provider model menu: copies the model identifier to the clipboard",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "复制模型名称"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "複製模型名稱"
-          }
-        }
-      }
-    },
-    "Couldn’t reach the model: %@" : {
-      "comment" : "Grey status line in This page and Script detail when a script's AI model call fails with a service error",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法连接模型：%@"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "無法連線至模型：%@"
-          }
-        }
-      }
-    },
     "CSS" : {
       "comment" : "Code language label for CSS\nScript card badge when a script contains CSS",
       "shouldTranslate" : false
@@ -4504,6 +4686,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "CSS 程式碼"
+          }
+        }
+      }
+    },
+    "Can use" : {
+      "comment" : "Section header listing capabilities and GM_* grants a userscript can use",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可用权限"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可用權限"
           }
         }
       }
@@ -4605,6 +4804,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已取消 · %@"
+          }
+        }
+      }
+    },
+    "Can’t add this script" : {
+      "comment" : "Header title when fetching or validating an imported userscript fails",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法添加此脚本"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法加入此指令碼"
           }
         }
       }
@@ -5361,6 +5577,23 @@
         }
       }
     },
+    "Clear search" : {
+      "comment" : "Clears the model search field",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清除搜索"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清除搜尋"
+          }
+        }
+      }
+    },
     "Clear the audit log?" : {
       "comment" : "Confirmation title for clearing the audit log",
       "localizations" : {
@@ -5848,6 +6081,23 @@
         }
       }
     },
+    "Copy model name" : {
+      "comment" : "Provider model menu: copies the model identifier to the clipboard",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "复制模型名称"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "複製模型名稱"
+          }
+        }
+      }
+    },
     "Copy, Share, and Export use the complete post and responses." : {
       "localizations" : {
         "zh-Hans" : {
@@ -5963,6 +6213,86 @@
         }
       }
     },
+    "Couldn’t fetch required library from %@: %@" : {
+      "comment" : "Import error when fetching a @require JavaScript library fails",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t fetch required library from %1$@: %2$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法从 %1$@ 获取依赖库：%2$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法從 %1$@ 取得相依程式庫：%2$@"
+          }
+        }
+      }
+    },
+    "Couldn’t fetch required library from %@: the server answered %@." : {
+      "comment" : "Import error when a @require library server returns a non-2xx HTTP status",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t fetch required library from %1$@: the server answered %2$@."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法从 %1$@ 获取依赖库：服务器返回 %2$@。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法從 %1$@ 取得相依程式庫：伺服器回應 %2$@。"
+          }
+        }
+      }
+    },
+    "Couldn’t fetch the file: %@" : {
+      "comment" : "Import error when downloading the .user.js file fails with a network or redirect error",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法获取文件：%@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法取得檔案：%@"
+          }
+        }
+      }
+    },
+    "Couldn’t fetch the file: the server answered %@." : {
+      "comment" : "Import error when the server returns a non-2xx HTTP status for a .user.js file",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法获取文件：服务器返回 %@。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法取得檔案：伺服器回應 %@。"
+          }
+        }
+      }
+    },
     "Couldn’t load models" : {
       "localizations" : {
         "zh-Hans" : {
@@ -6023,6 +6353,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無法連線至該論壇。請檢查網址和網路連線。"
+          }
+        }
+      }
+    },
+    "Couldn’t reach the model: %@" : {
+      "comment" : "Grey status line in This page and Script detail when a script's AI model call fails with a service error",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法连接模型：%@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法連線至模型：%@"
           }
         }
       }
@@ -7309,6 +7656,23 @@
         }
       }
     },
+    "Enter a full HTTPS link to a .user.js file." : {
+      "comment" : "Validation error when the user submits a blank or malformed link in Import from link",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请输入指向 .user.js 文件的完整 HTTPS 链接。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請輸入指向 .user.js 檔案的完整 HTTPS 連結。"
+          }
+        }
+      }
+    },
     "Enter a valid host, like example.org or *.example.org" : {
       "comment" : "Validation error when a @match rule host is invalid",
       "localizations" : {
@@ -7486,6 +7850,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "所有已儲存的摘要、聊天、回答和追蹤的話題都將被刪除。你的論壇和設定會保留。"
+          }
+        }
+      }
+    },
+    "Every site" : {
+      "comment" : "Danger label in import review when a script matches all websites (*://*/*)",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所有网站"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所有網站"
           }
         }
       }
@@ -7787,23 +8168,6 @@
         }
       }
     },
-    "favorite" : {
-      "comment" : "VoiceOver segment on a provider model row when the model is starred",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已收藏"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已收藏"
-          }
-        }
-      }
-    },
     "Favorite models" : {
       "localizations" : {
         "zh-Hans" : {
@@ -7833,6 +8197,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "剛剛已用你的金鑰取得。收藏模型即可將其保留在代理的模型選單中。"
+          }
+        }
+      }
+    },
+    "Fetching script…" : {
+      "comment" : "Loading status while downloading a .user.js file to review",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在获取脚本…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在取得指令碼…"
           }
         }
       }
@@ -8201,6 +8582,23 @@
         }
       }
     },
+    "Forum tools" : {
+      "comment" : "Settings › Agent section header for the limits the forum tools read",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "论坛工具"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "論壇工具"
+          }
+        }
+      }
+    },
     "Forum: %@" : {
       "comment" : "Accessibility label of Manage's forum filter; the placeholder is a forum name",
       "localizations" : {
@@ -8329,6 +8727,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "基礎模型"
+          }
+        }
+      }
+    },
+    "From %@" : {
+      "comment" : "Accessibility label for the source host badge on the import review sheet",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "来自 %@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "來自 %@"
           }
         }
       }
@@ -9099,6 +9514,40 @@
         }
       }
     },
+    "Import from link" : {
+      "comment" : "Alert title prompting for a .user.js link",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从链接导入"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "從連結匯入"
+          }
+        }
+      }
+    },
+    "Import from link…" : {
+      "comment" : "Menu item in Settings › Scripts to import a .user.js file from an HTTPS link",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从链接导入…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "從連結匯入…"
+          }
+        }
+      }
+    },
     "Imported" : {
       "comment" : "Version history row title for an imported userscript",
       "localizations" : {
@@ -9510,6 +9959,23 @@
         }
       }
     },
+    "Keeps its own settings" : {
+      "comment" : "Capability row for GM_getValue / GM_setValue storage grants",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存其自身设置"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存其自身設定"
+          }
+        }
+      }
+    },
     "Kept" : {
       "comment" : "Badge: the user chose to keep this summary (not cleared automatically)",
       "localizations" : {
@@ -9823,6 +10289,23 @@
         }
       }
     },
+    "Libraries" : {
+      "comment" : "Section header listing @require external JavaScript libraries",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "依赖库"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "程式庫"
+          }
+        }
+      }
+    },
     "Licences" : {
       "localizations" : {
         "zh-Hans" : {
@@ -9879,6 +10362,22 @@
       }
     },
     "Link" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "链接"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "連結"
+          }
+        }
+      }
+    },
+    "Links" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -10759,6 +11258,23 @@
         }
       }
     },
+    "More: import from link" : {
+      "comment" : "Accessibility label for the More menu button in Settings › Scripts",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更多：从链接导入"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更多：從連結匯入"
+          }
+        }
+      }
+    },
     "Most helpful answers about getting started" : {
       "comment" : "Example question for the forum research agent",
       "localizations" : {
@@ -11054,6 +11570,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "未儲存 API 金鑰"
+          }
+        }
+      }
+    },
+    "No app can open this page." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有 App 可以打开此页面。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "沒有 App 可以打開此頁面。"
           }
         }
       }
@@ -11524,6 +12056,40 @@
         }
       }
     },
+    "Not supported here" : {
+      "comment" : "Section header listing unsupported Tampermonkey directives or grants",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此处不支持"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此處不支援"
+          }
+        }
+      }
+    },
+    "Not supported here: %@" : {
+      "comment" : "Row in Script detail listing Tampermonkey grants that are unsupported",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此处不支持：%@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此處不支援：%@"
+          }
+        }
+      }
+    },
     "Not supported on this device" : {
       "comment" : "Provider menu: Apple Intelligence is unavailable because this device does not support it",
       "localizations" : {
@@ -11722,6 +12288,23 @@
         }
       }
     },
+    "Nothing was installed." : {
+      "comment" : "Subtitle reassuring the user that a failed userscript import changed nothing",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未安装任何内容。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未安裝任何內容。"
+          }
+        }
+      }
+    },
     "Nothing was recorded for this turn." : {
       "comment" : "Developer mode: no raw body in the task record",
       "localizations" : {
@@ -11804,23 +12387,6 @@
         }
       }
     },
-    "Off · 3 errors in a row" : {
-      "comment" : "State pill in Script detail when a script was turned off after errors on 3 loads in a row",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已停用 · 连续 3 次出错"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已停用 · 連續 3 次出錯"
-          }
-        }
-      }
-    },
     "OK" : {
       "localizations" : {
         "zh-Hans" : {
@@ -11867,6 +12433,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "預設關閉，以尊重仰賴廣告維持的論壇站長。開啟任一開關，即可在內建瀏覽器中阻擋。"
+          }
+        }
+      }
+    },
+    "Off · 3 errors in a row" : {
+      "comment" : "State pill in Script detail when a script was turned off after errors on 3 loads in a row",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已停用 · 连续 3 次出错"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已停用 · 連續 3 次出錯"
           }
         }
       }
@@ -12000,6 +12583,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "一組金鑰，數百種模型。輕鬆上手。"
+          }
+        }
+      }
+    },
+    "Only HTTPS links can be imported." : {
+      "comment" : "Import error when a .user.js link uses http:// or another non-HTTPS scheme",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仅支持导入 HTTPS 链接。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "僅支援匯入 HTTPS 連結。"
           }
         }
       }
@@ -12331,6 +12931,70 @@
         }
       }
     },
+    "Open in app" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 App 中打开"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 App 中打開"
+          }
+        }
+      }
+    },
+    "Open links in apps" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 App 中打开链接"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 App 中打開連結"
+          }
+        }
+      }
+    },
+    "Open links in apps on %@" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 %@ 的链接中打开 App"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 %@ 的連結中打開 App"
+          }
+        }
+      }
+    },
+    "Open links in apps on this site" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在此网站的链接中打开 App"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在此網站的連結中打開 App"
+          }
+        }
+      }
+    },
     "Open models hosted by NVIDIA, with free credits to start." : {
       "localizations" : {
         "zh-Hans" : {
@@ -12505,6 +13169,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在 WukongMind 中打開你讀過的話題。"
+          }
+        }
+      }
+    },
+    "Opens apps" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开 App"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打開 App"
           }
         }
       }
@@ -12754,6 +13434,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "貼上網站的任一頁面，或輸入其網址。"
+          }
+        }
+      }
+    },
+    "Paste the link to a .user.js file. You’ll see what it does before anything runs." : {
+      "comment" : "Alert message explaining that pasting a .user.js link opens a review before anything executes",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "粘贴 .user.js 文件链接。在运行任何代码之前，你可以先查看它的行为。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "貼上 .user.js 檔案連結。在執行任何程式碼之前，你可以先檢視它的行為。"
           }
         }
       }
@@ -15071,6 +15768,74 @@
         }
       }
     },
+    "Required library from %@ is larger than 2 MB." : {
+      "comment" : "Import error when a single @require library exceeds the 2 MB size cap",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "来自 %@ 的依赖库超过 2 MB。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "來自 %@ 的相依程式庫超過 2 MB。"
+          }
+        }
+      }
+    },
+    "Required library from %@ isn’t UTF-8 text." : {
+      "comment" : "Import error when a @require library is not valid UTF-8 text",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "来自 %@ 的依赖库不是有效的 UTF-8 文本。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "來自 %@ 的相依程式庫不是有效的 UTF-8 文字。"
+          }
+        }
+      }
+    },
+    "Required library hash didn’t match for %@." : {
+      "comment" : "Import error when a @require library fails its #sha256 integrity hash check",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 的依赖库校验值不匹配。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 的相依程式庫雜湊值不符。"
+          }
+        }
+      }
+    },
+    "Required library isn’t an HTTPS link (%@)." : {
+      "comment" : "Import error when a @require URL does not use HTTPS",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "依赖库链接不是 HTTPS（%@）。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "相依程式庫連結不是 HTTPS（%@）。"
+          }
+        }
+      }
+    },
     "Requires iOS 26 or later" : {
       "comment" : "Apple Intelligence status",
       "localizations" : {
@@ -15352,6 +16117,23 @@
         }
       }
     },
+    "Review this script before I turn it on" : {
+      "comment" : "User prompt sent to the Browser Agent when tapping Ask the Agent to review it in the script import sheet",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在我开启此脚本之前，请先帮我审查它"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在我開啟此指令碼之前，請先幫我審查它"
+          }
+        }
+      }
+    },
     "Right after the digest is made when you open WukongMind: one request per chapter to your AI provider, then the voices." : {
       "localizations" : {
         "zh-Hans" : {
@@ -15482,6 +16264,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "執行時機"
+          }
+        }
+      }
+    },
+    "Runs at document end." : {
+      "comment" : "Explanation in Not supported here when an unknown @run-at value falls back to document-end",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将在文档加载完成后运行。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "將在文件載入完成後執行。"
           }
         }
       }
@@ -15904,6 +16703,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "指令碼"
+          }
+        }
+      }
+    },
+    "Script code, read-only" : {
+      "comment" : "Accessibility label for the read-only source preview in the import review sheet",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "脚本代码，只读"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "指令碼程式碼，唯讀"
           }
         }
       }
@@ -16544,6 +17360,74 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在傳送請求"
+          }
+        }
+      }
+    },
+    "Sends requests to %@" : {
+      "comment" : "Capability row showing which hosts GM_xmlhttpRequest can reach",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "向 %@ 发送请求"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "向 %@ 發送請求"
+          }
+        }
+      }
+    },
+    "Sends requests to any site" : {
+      "comment" : "Capability row when @connect * allows requests to any domain",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "向任意网站发送请求"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "向任意網站發送請求"
+          }
+        }
+      }
+    },
+    "Sends requests to the page’s own site" : {
+      "comment" : "Capability row when GM_xmlhttpRequest has no @connect hosts and is restricted to same-site",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "向当前网站自身发送请求"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "向目前網站自身發送請求"
+          }
+        }
+      }
+    },
+    "Sends text from the page to your Scripts model (%@)" : {
+      "comment" : "Danger-highlighted capability row in import review when a script requests GM_ai",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将页面文本发送给你的脚本模型（%@）"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "將頁面文字傳送給你的指令碼模型（%@）"
           }
         }
       }
@@ -17200,6 +18084,22 @@
         }
       }
     },
+    "Sites with their own setting" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "单独设置的网站"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "單獨設定的網站"
+          }
+        }
+      }
+    },
     "Skip" : {
       "comment" : "First-run step 3: skip trying the Agent",
       "localizations" : {
@@ -17433,6 +18333,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "狀態"
+          }
+        }
+      }
+    },
+    "Stays in WukongMind" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "留在悟空脑"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "留在悟空腦"
           }
         }
       }
@@ -18712,6 +19628,22 @@
         }
       }
     },
+    "Tapped links stay in WukongMind instead of jumping to the site’s app. Pages that ask to open an app show a prompt first." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "点按的链接会留在悟空脑内，而不会跳转到网站的 App。页面请求打开 App 时会先询问。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "點按的連結會留在悟空腦內，而不會跳轉到網站的 App。頁面要求打開 App 時會先詢問。"
+          }
+        }
+      }
+    },
     "Task file ready" : {
       "comment" : "Task export share sheet title",
       "localizations" : {
@@ -18924,6 +19856,23 @@
         }
       }
     },
+    "The file has no // ==UserScript== header." : {
+      "comment" : "Import error when a .user.js file lacks the Userscript metadata block",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "该文件没有 // ==UserScript== 头部。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "該檔案沒有 // ==UserScript== 標頭。"
+          }
+        }
+      }
+    },
     "The file includes the pages and results the Agent read. API keys and cookies are removed." : {
       "comment" : "Task export alert message",
       "localizations" : {
@@ -18937,6 +19886,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "檔案包含智慧代理讀取的頁面和結果。API 金鑰和 Cookie 已移除。"
+          }
+        }
+      }
+    },
+    "The file isn’t readable UTF-8 text." : {
+      "comment" : "Import error when the downloaded .user.js body is empty or not valid UTF-8",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "该文件不是可读的 UTF-8 文本。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "該檔案不是可讀取的 UTF-8 文字。"
           }
         }
       }
@@ -19052,6 +20018,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "最近五筆錯誤會保留至應用程式結束。"
+          }
+        }
+      }
+    },
+    "The link" : {
+      "comment" : "Section header above the URL that failed to import",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "链接"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "連結"
           }
         }
       }
@@ -19233,6 +20216,91 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無法寫出 Podcast 腳本。"
+          }
+        }
+      }
+    },
+    "The script file is larger than 2 MB." : {
+      "comment" : "Import error when a .user.js file exceeds the 2 MB size cap",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "脚本文件超过 2 MB。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "指令碼檔案超過 2 MB。"
+          }
+        }
+      }
+    },
+    "The script has an invalid @match rule (%@)." : {
+      "comment" : "Import error when one of the script's @match patterns is malformed",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "脚本包含无效的 @match 规则（%@）。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "指令碼包含無效的 @match 規則（%@）。"
+          }
+        }
+      }
+    },
+    "The script has no JavaScript code." : {
+      "comment" : "Import error when a userscript has an empty body",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "脚本中没有 JavaScript 代码。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "指令碼中沒有 JavaScript 程式碼。"
+          }
+        }
+      }
+    },
+    "The script has no usable @match or @include rules." : {
+      "comment" : "Import error when a userscript declares no valid match patterns",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "脚本没有可用的 @match 或 @include 规则。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "指令碼沒有可用的 @match 或 @include 規則。"
+          }
+        }
+      }
+    },
+    "The script’s @require libraries exceed 5 MB in total." : {
+      "comment" : "Import error when all @require libraries combined exceed 5 MB",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "脚本的 @require 依赖库总大小超过 5 MB。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "指令碼的 @require 相依程式庫總大小超過 5 MB。"
           }
         }
       }
@@ -19476,6 +20544,23 @@
         }
       }
     },
+    "This @include pattern can’t be used." : {
+      "comment" : "Explanation in Not supported here when a script uses a glob @include rule",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法使用此 @include 规则。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法使用此 @include 規則。"
+          }
+        }
+      }
+    },
     "This device’s voices read it, free and offline." : {
       "comment" : "Today page: the podcast is spoken by the built-in voices",
       "localizations" : {
@@ -19489,6 +20574,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "由本裝置的聲音朗讀，免費且可離線。"
+          }
+        }
+      }
+    },
+    "This exclude rule can’t be used, so the script isn’t excluded there." : {
+      "comment" : "Explanation in Not supported here when an @exclude rule cannot be applied",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此排除规则无法使用，因此脚本不会在该处被排除。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此排除規則無法使用，因此指令碼不會在該處被排除。"
           }
         }
       }
@@ -19571,6 +20673,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "此頁面已停止回應"
+          }
+        }
+      }
+    },
+    "This page wants to open %@" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此页面想要打开 %@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此頁面想要打開 %@"
           }
         }
       }
@@ -19667,6 +20785,29 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "此截圖已無法使用。"
+          }
+        }
+      }
+    },
+    "This script is already installed." : {
+      "comment" : "Import error when a script from the exact same install URL is already installed",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This script is already installed."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此脚本已安装。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此指令碼已安裝。"
           }
         }
       }
@@ -21151,22 +22292,6 @@
         }
       }
     },
-    "Use for both" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "两者都使用"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "兩者都使用"
-          }
-        }
-      }
-    },
     "Use for Summaries" : {
       "comment" : "Provider model menu: sets this model as the Summaries model",
       "localizations" : {
@@ -21180,6 +22305,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "用於摘要"
+          }
+        }
+      }
+    },
+    "Use for both" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "两者都使用"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "兩者都使用"
           }
         }
       }
@@ -21266,23 +22407,6 @@
         }
       }
     },
-    "used for %@" : {
-      "comment" : "VoiceOver segment on a provider model row naming the roles using this model, e.g. used for Agent",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "用于%@"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "用於%@"
-          }
-        }
-      }
-    },
     "Used for summaries, digests and reply checks." : {
       "comment" : "Model menu (Summaries): what this model is used for",
       "localizations" : {
@@ -21348,6 +22472,52 @@
         }
       }
     },
+    "Used when the Agent searches and reads a forum. Defaults: %lld topics, %@ per topic." : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Used when the Agent searches and reads a forum. Defaults: %1$lld topic, %2$@ per topic."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Used when the Agent searches and reads a forum. Defaults: %1$lld topics, %2$@ per topic."
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "用于智能体搜索和阅读论坛时。默认值：%1$lld 个话题，每个话题 %2$@。"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "用於智慧代理搜尋和閱讀論壇時。預設值：%1$lld 個話題，每個話題 %2$@。"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "User" : {
       "comment" : "Exported chat transcript: label for the user's messages",
       "localizations" : {
@@ -21378,6 +22548,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用者指令碼內容"
+          }
+        }
+      }
+    },
+    "Uses AI: sends page text to %@" : {
+      "comment" : "Capability row in Script detail when a script has the GM_ai grant",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用 AI：将页面文本发送给 %@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用 AI：將頁面文字傳送給 %@"
           }
         }
       }
@@ -22614,6 +23801,23 @@
         }
       }
     },
+    "You already have a script with this name from %@. This one is added separately." : {
+      "comment" : "Import review notice when another script already shares the same name",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你已有一个来自 %@ 的同名脚本。此脚本将单独添加。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你已有一個來自 %@ 的同名指令碼。此指令碼將單獨加入。"
+          }
+        }
+      }
+    },
     "You only need to turn it on once. After that it appears in every app’s share sheet." : {
       "localizations" : {
         "zh-Hans" : {
@@ -22825,6 +24029,23 @@
         }
       }
     },
+    "after load" : {
+      "comment" : "Metadata tag when a userscript error occurred after initial page load",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "加载后"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "載入後"
+          }
+        }
+      }
+    },
     "assistantMode.browserAgent" : {
       "comment" : "Browser agent mode title in the AI drawer header and mode switcher",
       "extractionState" : "extracted_with_value",
@@ -22845,6 +24066,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "瀏覽器代理"
+          }
+        }
+      }
+    },
+    "by %@" : {
+      "comment" : "Script author attribution in the import review header",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "作者：%@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "作者：%@"
           }
         }
       }
@@ -22879,6 +24117,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "錯誤"
+          }
+        }
+      }
+    },
+    "favorite" : {
+      "comment" : "VoiceOver segment on a provider model row when the model is starred",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已收藏"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已收藏"
           }
         }
       }
@@ -23262,6 +24517,23 @@
         }
       }
     },
+    "this device" : {
+      "comment" : "Fallback host label when a duplicate-named script was created locally on this device",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此设备"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此裝置"
+          }
+        }
+      }
+    },
     "topic %@" : {
       "comment" : "A topic without a known title; the placeholder is its number",
       "localizations" : {
@@ -23275,6 +24547,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "話題 %@"
+          }
+        }
+      }
+    },
+    "used for %@" : {
+      "comment" : "VoiceOver segment on a provider model row naming the roles using this model, e.g. used for Agent",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用于%@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用於%@"
           }
         }
       }
@@ -23309,245 +24598,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "「%@」"
-          }
-        }
-      }
-    },
-    "Forum tools" : {
-      "comment" : "Settings › Agent section header for the limits the forum tools read",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "论坛工具"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "論壇工具"
-          }
-        }
-      }
-    },
-    "Used when the Agent searches and reads a forum. Defaults: %lld topics, %@ per topic." : {
-      "localizations" : {
-        "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "Used when the Agent searches and reads a forum. Defaults: %1$lld topic, %2$@ per topic."
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "Used when the Agent searches and reads a forum. Defaults: %1$lld topics, %2$@ per topic."
-                }
-              }
-            }
-          }
-        },
-        "zh-Hans" : {
-          "variations" : {
-            "plural" : {
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "用于智能体搜索和阅读论坛时。默认值：%1$lld 个话题，每个话题 %2$@。"
-                }
-              }
-            }
-          }
-        },
-        "zh-Hant" : {
-          "variations" : {
-            "plural" : {
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "用於智慧代理搜尋和閱讀論壇時。預設值：%1$lld 個話題，每個話題 %2$@。"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "Open links in apps" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在 App 中打开链接"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在 App 中打開連結"
-          }
-        }
-      }
-    },
-    "Open links in apps on this site" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在此网站的链接中打开 App"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在此網站的連結中打開 App"
-          }
-        }
-      }
-    },
-    "Open in app" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在 App 中打开"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在 App 中打開"
-          }
-        }
-      }
-    },
-    "No app can open this page." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "没有 App 可以打开此页面。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "沒有 App 可以打開此頁面。"
-          }
-        }
-      }
-    },
-    "This page wants to open %@" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此页面想要打开 %@"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此頁面想要打開 %@"
-          }
-        }
-      }
-    },
-    "Links" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "链接"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "連結"
-          }
-        }
-      }
-    },
-    "Tapped links stay in WukongMind instead of jumping to the site’s app. Pages that ask to open an app show a prompt first." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "点按的链接会留在悟空脑内，而不会跳转到网站的 App。页面请求打开 App 时会先询问。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "點按的連結會留在悟空腦內，而不會跳轉到網站的 App。頁面要求打開 App 時會先詢問。"
-          }
-        }
-      }
-    },
-    "Sites with their own setting" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "单独设置的网站"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "單獨設定的網站"
-          }
-        }
-      }
-    },
-    "Opens apps" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "打开 App"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "打開 App"
-          }
-        }
-      }
-    },
-    "Stays in WukongMind" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "留在悟空脑"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "留在悟空腦"
-          }
-        }
-      }
-    },
-    "Open links in apps on %@" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在 %@ 的链接中打开 App"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在 %@ 的連結中打開 App"
           }
         }
       }

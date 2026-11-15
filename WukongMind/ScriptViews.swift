@@ -1276,6 +1276,8 @@ struct ScriptManagerView: View {
     @State private var pushedScriptID: String?
     @State private var deletedToastScript: UserScript?
     @State private var toastDismissTask: Task<Void, Never>?
+    @State private var showingImportLinkAlert = false
+    @State private var importLinkText = ""
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -1423,6 +1425,68 @@ struct ScriptManagerView: View {
         }
         .onChange(of: app.requestedScriptID) { _, _ in
             consumeRequestedScriptIDIfNeeded()
+        }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu {
+                    Button {
+                        DCHaptics.tap()
+                        importLinkText = ""
+                        showingImportLinkAlert = true
+                    } label: {
+                        Label(
+                            String(localized: "Import from link…", comment: "Menu item in Settings › Scripts to import a .user.js file from an HTTPS link"),
+                            systemImage: "arrow.down.to.line"
+                        )
+                    }
+                    .accessibilityIdentifier("scriptsImportFromLinkMenuButton")
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                }
+                .accessibilityLabel(
+                    Text("More: import from link", comment: "Accessibility label for the More menu button in Settings › Scripts")
+                )
+                .accessibilityIdentifier("scriptsMoreMenu")
+            }
+        }
+        .alert(
+            String(localized: "Import from link", comment: "Alert title prompting for a .user.js link"),
+            isPresented: $showingImportLinkAlert
+        ) {
+            TextField(
+                String(localized: "Link", comment: "Text field label for the .user.js HTTPS URL in Import from link alert"),
+                text: $importLinkText
+            )
+            .keyboardType(.URL)
+            .textInputAutocapitalization(.never)
+            .autocorrectionDisabled()
+            .accessibilityIdentifier("scriptsImportLinkField")
+
+            Button(role: .cancel) {
+                importLinkText = ""
+            } label: {
+                Text("Cancel", comment: "Cancel button in Import from link alert")
+            }
+
+            Button {
+                let raw = importLinkText
+                importLinkText = ""
+                app.scriptImporter.openImport(rawLink: raw, inSettings: true)
+            } label: {
+                Text("Continue", comment: "Confirm button in Import from link alert that fetches the script for review")
+            }
+            .accessibilityIdentifier("scriptsImportContinueButton")
+        } message: {
+            Text("Paste the link to a .user.js file. You’ll see what it does before anything runs.", comment: "Alert message explaining that pasting a .user.js link opens a review before anything executes")
+        }
+        .sheet(
+            isPresented: Binding(
+                get: { app.scriptImporter.activeSessionID != nil && app.scriptImporter.presentsInSettings },
+                set: { if !$0 { app.scriptImporter.dismissImport() } }
+            )
+        ) {
+            ScriptImportSheet(app: app)
+                .tint(DCTheme.goldInk)
         }
     }
 
@@ -1904,6 +1968,65 @@ struct ScriptDetailView: View {
                 }
             }
 
+            // 2b. Can use (M4)
+            let capabilities = detailCapabilities(for: script)
+            let unsupportedGrants = detailUnsupportedGrants(for: script)
+            if !capabilities.isEmpty || !unsupportedGrants.isEmpty {
+                Section {
+                    ForEach(capabilities) { cap in
+                        HStack(alignment: .top, spacing: 12) {
+                            Image(systemName: cap.icon.rawValue)
+                                .font(.subheadline.weight(.medium))
+                                .foregroundStyle(DCTheme.ink)
+                                .frame(width: 20, alignment: .center)
+                                .padding(.top, 2)
+                                .accessibilityHidden(true)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(cap.title)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.primary)
+                                if let sub = cap.subtitle {
+                                    Text(sub)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                        }
+                        .padding(.vertical, 2)
+                        .accessibilityElement(children: .combine)
+                    }
+                    if !unsupportedGrants.isEmpty {
+                        HStack(alignment: .top, spacing: 12) {
+                            Image(systemName: "nosign")
+                                .font(.subheadline.weight(.medium))
+                                .foregroundStyle(DCTheme.ink)
+                                .frame(width: 20, alignment: .center)
+                                .padding(.top, 2)
+                                .accessibilityHidden(true)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(
+                                    "Not supported here: \(unsupportedGrants.joined(separator: ", "))",
+                                    comment: "Row in Script detail listing Tampermonkey grants that are unsupported"
+                                )
+                                .font(.subheadline)
+                                .foregroundStyle(.primary)
+                                Text(
+                                    unsupportedGrants.count == 1
+                                        ? String(localized: "A call to it fails.", comment: "Subtitle when one unsupported grant is declared on a script")
+                                        : String(localized: "A call to any of these fails.", comment: "Subtitle when multiple unsupported grants are declared on a script")
+                                )
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            }
+                        }
+                        .padding(.vertical, 2)
+                        .accessibilityElement(children: .combine)
+                    }
+                } header: {
+                    Text("Can use", comment: "Section header listing capabilities and GM_* grants a userscript can use")
+                }
+            }
+
             // 3. Name
             Section {
                 VStack(alignment: .leading, spacing: 6) {
@@ -2295,6 +2418,10 @@ struct ScriptDetailView: View {
                     Text("Version \(script.version) · unsaved changes", comment: "Script detail header subtitle while draft has unsaved changes")
                         .font(.caption)
                         .foregroundStyle(DCTheme.warning)
+                } else if let authorVer = script.metadata.authorVersion, !authorVer.isEmpty {
+                    Text("\(authorVer) · edited \(ScriptUIFormatting.relativeDate(script.updatedAt))", comment: "Script detail header subtitle showing imported @version and relative edit time")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 } else {
                     Text("Version \(script.version) · edited \(ScriptUIFormatting.relativeDate(script.updatedAt))", comment: "Script detail header subtitle showing current version number and relative edit time")
                         .font(.caption)
@@ -2501,18 +2628,50 @@ struct ScriptDetailView: View {
                 }
             case .imported:
                 HStack(spacing: 6) {
-                    Image(systemName: "square.and.arrow.down")
+                    Image(systemName: "arrow.down.to.line")
                         .font(.footnote.weight(.semibold))
                         .foregroundStyle(DCTheme.agentTint)
                         .accessibilityHidden(true)
                     Text("Imported · \(ScriptUIFormatting.shortDate(script.createdAt))", comment: "Source row in Script detail when imported from a .user.js file")
                         .font(.subheadline)
                 }
+                if let installURL = script.metadata.installURL, !installURL.isEmpty {
+                    Text(verbatim: installURL)
+                        .font(.caption.monospaced())
+                        .foregroundStyle(.secondary)
+                        .textSelection(.enabled)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
         }
         .padding(.vertical, 2)
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("scriptSource")
+    }
+
+    private func detailCapabilities(for script: UserScript) -> [ScriptCapabilitySummary] {
+        let storedValues = store.valuesStore.values(for: script.id)
+        let valueSummary: String?
+        if storedValues.isEmpty {
+            valueSummary = nil
+        } else {
+            let jsonBytes = Data(store.valuesStore.serializedJSON(for: script.id).utf8).count
+            let sizeStr = jsonBytes < 1024 ? "\(max(1, jsonBytes)) B" : "\(max(1, Int((Double(jsonBytes) / 1024.0).rounded()))) KB"
+            valueSummary = storedValues.count == 1
+                ? String(localized: "1 value · \(sizeStr)", comment: "GM_getValue storage summary in Script detail when one value is stored")
+                : String(localized: "\(storedValues.count) values · \(sizeStr)", comment: "GM_getValue storage summary in Script detail showing count and byte size")
+        }
+        return ScriptImporter.capabilitySummaries(
+            for: script,
+            scriptsModelName: app.scriptsModelDisplayName,
+            valueSummary: valueSummary,
+            forImportSheet: false
+        )
+    }
+
+    private func detailUnsupportedGrants(for script: UserScript) -> [String] {
+        let supported = Set(ScriptMetadata.supportedGrants)
+        return script.metadata.grants.filter { !supported.contains($0) }
     }
 
     private func inlineValidationLabel(_ text: String) -> some View {
