@@ -41,13 +41,14 @@ The gold band is drawn as a circle with a gold stroke and nothing inside.
 - It is the running state of a tool: an open gold ring that turns.
 - It is the focus indicator (`ring-width` in `gold-ink`).
 
-Only ring things are round (`radius-full`): those buttons and switches. Everything else is a rounded rectangle.
+Only ring things (those buttons and switches) and the glass browser bar and its collapsed pill are round or capsule-shaped (`radius-full` / `height ÷ 2`). Everything else is a rounded rectangle.
 
 ### Shape
 
-- Chips, badges and labels are **seals**: squared, `radius-sm`. No capsules.
+- Chips, badges and labels are **seals**: squared, `radius-sm`. No capsules on seals, chips or buttons.
 - Buttons, fields and suggestion chips are `radius-md`.
-- Cards, list sections and the browser bar are `radius-lg`.
+- Cards and list sections are `radius-lg`.
+- The **browser bar** and its collapsed pill are the one capsule exception (`radius = height ÷ 2`, in glass; see [BrowserBar](components/BrowserBar/README.md) and [design-browser-bar-tabs-models.md](../../design-browser-bar-tabs-models.md)).
 - Edges are hairlines, not shadows. Shadows exist only for things that float: the assistant panel (`shadow-panel`) and popovers and the bar (`shadow-pop`).
 
 ### Type
@@ -91,4 +92,4 @@ Button, Composer, SuggestionRow, Message, ToolRow, ResultCard, ScriptCard, Brows
 - Every text and icon colour pairs with the grounds named in its token note at 4.5:1 or better, in both themes; control edges and the ring at 3:1.
 - `ink-faint` is for `ground` and `surface` only.
 - Honour Increase Contrast by switching `hairline` to `border-strong`.
-- Motion: the turning ring is the only continuous animation; it means the Agent is working. Short functional transitions are allowed when they explain cause and effect: a suggestion moving into the input box, a new result rising into the conversation, and standard sheet transitions. Keep each under 250 ms on the system's standard curve. Decorative motion is not allowed: no rolling counts, zooming tiles, bounces or parallax. With Reduce Motion on, transitions become a fade and the ring is shown still.
+- Motion: the turning ring is the only continuous animation; it means the Agent is working. Short functional transitions are allowed when they explain cause and effect: a suggestion moving into the input box, a new result rising into the conversation, the browser bar morphing between its expanded bar and collapsed pill, and standard sheet transitions. Keep each under 250 ms with no bounce. Decorative motion is not allowed: no rolling counts, zooming tiles, bounces or parallax. With Reduce Motion on, transitions become a fade (a 0.2 s cross-fade at `p > 0.6` / `p < 0.4` for the browser bar) and the ring is shown still.

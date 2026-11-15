@@ -25,7 +25,7 @@ It follows roadmap v2, "Just ask" ([next-phase.md](next-phase.md), which v2 repl
   - **Seal** labels are squared, never capsules: the ink This page seal beside the title, and gold seals for Agent counts.
   - **Switch** has a gold track with a dark knob.
   - Settings rows are **ListRow**s with ink tiles. The Agent's tile is gold with a ring.
-  - The **BrowserBar** carries the Agent ring.
+  - The **BrowserBar** is a glass capsule that carries the Agent ring and morphs on scroll into a collapsed domain pill ([design-browser-bar-tabs-models.md](design-browser-bar-tabs-models.md)).
 - **The Agent's mark is the thin gold ring.** It is the Agent button in the browser bar (44 pt, a `gold` stroke of `ring-width` (2 px), empty centre, with an ink seal for the script count) and the composer's button, and it turns while a tool runs. There is no sparkle and no purple anywhere.
 - **Logo.** Onboarding step 1 shows the mark (the split ink and gold square with three thin rings), with "WukongMind" beside it in semibold `ink`.
 - **Mascot** (at most one per screen; the design system's Mascot README):
@@ -34,7 +34,7 @@ It follows roadmap v2, "Just ask" ([next-phase.md](next-phase.md), which v2 repl
   - `cheer` shows when a run ends, for about 3 seconds, and in onboarding's "You're set" card.
   - It never appears in the bar, in buttons, in lists, beside every message or with errors.
   - With Reduce Motion it doesn't change pose mid-run; it shows `think` until the result.
-- **Motion.** The turning ring is the only continuous animation. By the owner's decision, two short transitions are allowed besides the system ones: a suggestion flying into the input box, and a result rising into view (section 6).
+- **Motion.** The turning ring is the only continuous animation. By the owner's decision, three short transitions are allowed besides the system ones: a suggestion flying into the input box, a result rising into view, and the browser bar morphing between its expanded bar and collapsed pill (section 6).
 
 **The end state in one line:** one input box and a mic on every page, no modes, no target switch, one Agent loop. Forum summary, search, podcast and voice become the Agent's tools. The boards draw that look, which the One panel milestone already ships. What changes between milestones is only what runs behind a tap (section 1, "Phases").
 
@@ -398,15 +398,16 @@ OnboardingFlow
 
 ### 6. Motion
 
-**The owner's decision (2026-11-12, a compromise; the design system's motion rules will be updated to match):** the turning gold ring is the only continuous animation, and it means the Agent is working. Two short transitions come back, because they explain cause and effect. Each lasts at most 250 ms, uses a standard system curve, and becomes a fade with Reduce Motion. Haptics are not motion and stay (`DCHaptics`).
+**The owner's decision (2026-11-12, updated with the browser bar morph in [design-browser-bar-tabs-models.md](design-browser-bar-tabs-models.md)):** the turning gold ring is the only continuous animation, and it means the Agent is working. Three short transitions are allowed because they explain cause and effect: a suggestion flying into the input box, a result rising into view, and the browser bar morphing between its expanded bar and collapsed pill. Each finishes within 250 ms with no bounce, and becomes a fade with Reduce Motion. Haptics are not motion and stay (`DCHaptics`).
 
 | Moment | What happens | How (SwiftUI) |
 |---|---|---|
 | Tap a suggestion | The chip flies into the input box. A full question then sends, and the text becomes your bubble; a "…" suggestion stays in the box with the caret at the end. The row closes the gap | `matchedGeometryEffect` from the chip to the field text, `.snappy(duration: 0.25)` or shorter; Reduce Motion: `.opacity` |
 | A result arrives | The result card (summary, sourced answer, listen row) or the ScriptCard rises into view at the bottom of the conversation, which scrolls to it | `.transition(.move(edge: .bottom).combined(with: .opacity))` within 250 ms, then `scrollPosition` to the bottom; Reduce Motion: `.opacity` |
+| Scroll the page / expand the bar | The glass browser bar morphs between its expanded bar and collapsed domain pill (`p = clamp(p_prev + δy ÷ 64 pt, 0, 1)` on user scroll while tracking or coasting; buttons fade and shrink over `p = 0…0.5`). Settles when scrolling stops, and springs open on a pill tap, reaching the page end, a page load, address editing, or the Agent finishing or asking while collapsed ([design-browser-bar-tabs-models.md](design-browser-bar-tabs-models.md)) | `@Animatable` progress `p`; settle and discrete triggers use `.spring(response: 0.24, dampingFraction: 1.0)` (no bounce, under 250 ms); Reduce Motion: `0.2 s` cross-fade at `p > 0.6` / `p < 0.4` |
 | A tool runs | Its ToolRow disc is an open gold ring that turns. It is the only continuous animation | `rotationEffect` on a repeating linear animation; Reduce Motion: still |
-| The Agent works with the panel closed | The bar's Agent ring turns. It replaces `ResearchRing` | Same animation |
-| A run ends | The ring stops and becomes the check. Success haptic; the mascot swaps to `cheer` for about 3 s (a swap, not an animation). With the panel closed the Dock shows "Answer ready" | `DCHaptics.success()` |
+| The Agent works with the panel closed | The bar's Agent ring turns (or a 16 pt turning ring replaces the lock inside the collapsed pill). It replaces `ResearchRing` | Same animation |
+| A run ends | The ring stops and becomes the check. Success haptic; the mascot swaps to `cheer` for about 3 s (a swap, not an animation). With the panel closed, a collapsed bar springs open once no finger is on the page, and the Dock shows "Answer ready" | `DCHaptics.success()` |
 | A run fails or hits the step limit | Warning haptic. The explanation appears in the conversation and is announced | `DCHaptics.warning()` |
 | Open This page, Settings, the code sheet, Now playing | The system popover and sheet transitions; Settings push and pop | `.popover`, `.sheet`, `NavigationStack` |
 | The drawer moves between detents; the keyboard rises | System behaviour | `presentationDetents`, the keyboard |
@@ -414,7 +415,7 @@ OnboardingFlow
 
 **Still removed:** rolling counts on the seal and badge, and the Home tile zoom (both by the owner's decision); also suggestion crossfades, Home pin reordering, the Dock's `glassEffectID` morph, the button bounce, and the onboarding dot stretch and staggered prompts.
 
-**Reduce Motion.** The two transitions become fades, the ring stands still, the mascot keeps one pose until the result, and haptics stay.
+**Reduce Motion.** The three transitions become fades (a `0.2 s` cross-fade at `p > 0.6` / `p < 0.4` for the browser bar), the ring stands still, the mascot keeps one pose until the result, and haptics stay.
 
 ## Migration list
 
@@ -562,7 +563,7 @@ One word per thing, the same in the UI and the docs. The code column shows today
 - **The same panel everywhere.** Opening the panel on a forum thread and on an ordinary page shows the same title row ("Agent" and the This page seal) and input box with its mic. Only the suggestions differ (artboards 1 and 2). No mode or target switch appears anywhere.
 - **A tap equals typing.** Every suggestion's text, typed or said, asks for the same thing. In One panel the forum search gap above is the one accepted exception.
 - **No grey states.** No suggestion, row or button is drawn disabled outside the dashed placeholders.
-- **Gold means Agent.** No gold fill or ring on anything that isn't the Agent or the one primary action. No purple, sparkle, gradient or capsule anywhere.
+- **Gold means Agent.** No gold fill or ring on anything that isn't the Agent or the one primary action. No purple, sparkle or gradient anywhere, and no capsule anywhere except the glass browser bar and its collapsed pill ([design-browser-bar-tabs-models.md](design-browser-bar-tabs-models.md)).
 - **Order.** Implementation goes assistant panel, then settings, then home and onboarding. Each part ships alone within One panel (roadmap section 7).
 
 The review rounds that shaped this page (the owner's ten points, roadmap v2, the third-draft feedback and the motion decision) are recorded in [design-unified-history.md](design-unified-history.md).
