@@ -2,13 +2,13 @@
 
 Status: **proposed**. Visual only, with no app code. The owner asked for three things after 1.3.0, and this page designs all three before any of them is built.
 
-- **Boards:** unified design canvas (https://claude.ai/artifact/Daefr4AsZcSm2EWbTLU9uK), version 59, section "WUKO-77".
+- **Boards:** unified design canvas (https://claude.ai/artifact/Daefr4AsZcSm2EWbTLU9uK), version 60, section "WUKO-77".
 - **Export:** `design/unified-canvas/` holds the boards' `*.dc.html` files and 2x PNGs in `png/` (light and dark).
 
 | Board | What it shows |
 |---|---|
 | `PhoneBar` / `PhoneBarDark` | iPhone bar: expanded, 25 %, 50 %, 75 %, collapsed. Agent running (expanded and collapsed), bar at the top, Home, and the motion card |
-| `IPadBar` / `IPadBarDark` | iPad bar: expanded, 50 %, collapsed, and collapsed with the Agent panel open |
+| `IPadBar` / `IPadBarDark` | iPad bar: expanded, 25 %, 50 %, 75 %, collapsed, and collapsed with the Agent panel open |
 | `PhoneTabs` / `PhoneTabsDark` | Tab overview, one conversation per tab (the Agent opens a tab), closing a tab |
 | `IPadTabs` / `IPadTabsDark` | iPad tab overview |
 | `PhoneProviderModels` / `PhoneProviderModelsDark` | Settings › Models › Anthropic with the Models list, the ⋯ menu, its four states, and a provider without tool calling |
@@ -28,7 +28,7 @@ Looks come from the design system (https://claude.ai/artifact/5fGhnS4fmcmWYZbPoK
 - **One element.** The bar and the pill are the same glass shape. Scrolling down morphs its width, height, bottom inset, corner radius and text size. The side buttons fade and shrink inside it. Nothing swaps.
 - **Expanded (iPhone):** `back | address field | tabs | Agent ring`.
   - The address field holds three things: the page menu at its leading edge (the forum avatar on forums, ⋯ elsewhere; today's `ForumMenuButton` moves here), the domain, and reload at its trailing edge.
-  - The page menu sits inside the field because five 44 pt buttons beside a field leave the domain about 70 pt on a 390 pt phone, which truncates even `news.example.com`. With the menu inside, the domain gets about 140 pt. Safari's compact bar makes the same trade.
+  - The page menu sits inside the field because five 44 pt buttons beside a field leave the domain about 70 pt on a 390 pt phone, which truncates even `news.example.com`. With the menu inside, the domain gets about 140 pt. Safari's compact bar seems to make the same trade, but that is from memory; I haven't seen the owner's screenshots.
   - Forward goes in the page menu and in back's long-press history (today the history list is the title capsule's long press).
 - **Collapsed (iPhone):** a small centred glass pill holding the lock and the domain.
   - It is as wide as the domain needs, between 120 and 240 pt, and 34 pt high.
@@ -61,6 +61,7 @@ Looks come from the design system (https://claude.ai/artifact/5fGhnS4fmcmWYZbPoK
   - Collapsed, the pill is centred over the **page column**, under the status bar (top 26 pt, 200 × 34).
   - The Agent panel never collapses: it keeps its own header and input box.
   - The bar's mic and the panel's mic start the same voice session.
+  - Collapsed with the panel hidden, the Agent and the mic are one tap away: tap the pill, then the ring or the mic.
 - **Result cards** read `isChromeMinimized` today. Keep the name as a derived value, `progress > 0.5`.
 
 ### Geometry (iPhone 390 pt; every value is linear in the progress p)
@@ -145,9 +146,9 @@ How it behaves:
 - **When the Agent opens a tab** (the M3 `tabs` tool), the tool row reads "Opened a new tab · <url> · in the background" with **Show**. The run stays in the tab that asked: it can read the new tab through the `tabs` tool, but the new tab starts with an **empty** conversation of its own. The Agent switches tabs on screen only when you asked it to show something; otherwise new tabs open in the background.
 - **Closing a tab:**
   - If its Agent is working, the run stops first, as Stop does.
-  - The conversation is saved to History, as ⋯ › New conversation does.
+  - The conversation is saved to History, as New conversation (the panel header's button, WUKO-74) does.
   - A toast reads "Tab closed. Its conversation is in History." with **Undo** for 5 s.
-- **New conversation** (⋯) affects only the current tab.
+- **New conversation** (the panel header's button) affects only the current tab.
 - **Voice** joins the current tab's conversation, as typed turns do.
 - **Cross-tab questions** ("compare these two tabs") go through the `tabs` tool from one tab's conversation. No shared conversation is needed for that.
 
