@@ -1,0 +1,4 @@
+device: iPhone 13 (00008110-001614E8368A601E) via scripts/device-check.sh
+build: TEST BUILD SUCCEEDED (signed Debug-iphoneos)
+attempt 1 (01:22): exit 3 — phone locked ("passcode required")
+attempt 2 (03:09): exit 3 — Device 00008110-001614E8368A601E is not usable: not connected, not paired, or unreachable (CoreDeviceError error 2: The device must be paired before it can be connected); lock released

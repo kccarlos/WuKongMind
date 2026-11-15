@@ -40,6 +40,7 @@ Marketing versions follow milestones on the `1.x` line (see [section 7 of next-p
 | One panel | `1.1.x` | Unified conversation view, suggestion row, start page, settings and onboarding (engines unchanged) |
 | M3 | `1.2.0` | Accepted on recorded tests, version bumped ([m3-acceptance.md](m3-acceptance.md)); live checks left to the trial. Full abilities, workspace, developer mode part 1 (raw request inspection and task export) |
 | One loop | `1.3.0` | Acceptance run, version bumped ([one-loop-acceptance.md](one-loop-acceptance.md)); `v1.3.0` waits for the owner's approval. One Agent loop; adapters and capabilities become Agent tools; voice shares tools |
+| 1.3.1 | `1.3.1` | Feedback fixes for 1.3.0 (A: Agent context and prompt caching, B: New conversation and scroll-to-bottom, C: Share and site row, D: x.com in the app). Acceptance run, version bumped ([release-1.3.1.md](release-1.3.1.md)); the Assistant tags `v1.3.1` after acceptance |
 | M4 | `1.4.0` | Self-extension, Tampermonkey compatibility and `GM_ai` |
 | Trial | No release | Two-week daily-use trial (`docs/wukongmind/trial-notes.md` and task exports) |
 | Learn on ask | `1.5.0` | Learn page tools (WebMCP shape) automatically when asked, plus site inspector |

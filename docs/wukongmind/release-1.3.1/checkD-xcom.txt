@@ -1,0 +1,10 @@
+simulator: iPhone 18 Pro (scripts/remote-test.sh, exit 0)
+Test Case '-[WukongMindUITests.XComLiveUITests testTypedXComAndSiteOverrideAndSettings]' passed (55.542 seconds).
+  typed x.com title: X. It’s what’s happening / X, x.com?ct=rw-null
+  menu per-site override toggled -> Settings > Sites shows Open links in apps = off, x.com = Opens apps
+Test Case '-[WukongMindUITests.XComLiveUITests testTappedXComLinkOnGoogleResultsStaysInTheApp]' passed (26.100 seconds).
+  google query: https://www.google.com/search?q=site%3Ax.com+nasa&hl=en
+  title after tap: X - The Everything App / X, x.com/i/jf/onboarding/web?redirect_after_login=%2FNASA%2Fhighlights&mode=login
+Test Case '-[WukongMindUITests.XComLiveUITests testAppSchemeLinkAsksFirst]' passed (10.113 seconds).
+  tapped twitter://timeline -> appOpenBanner ("This page wants to open Twitter") shown with Open button; app stayed foreground
+unit: LinkPolicyTests (11 tests, 0 failures)

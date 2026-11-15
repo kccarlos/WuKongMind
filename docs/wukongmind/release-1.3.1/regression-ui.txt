@@ -1,0 +1,24 @@
+simulator: iPhone 18 Pro (scripts/remote-test.sh)
+passing classes (0 failures):
+- BrowseUITests: 2 passed (testOpeningAtAPostHighlightsItAndTheCardsMoveAlongTheHits passed on isolated rerun)
+- DeveloperModeUITests: 2 passed
+- DictationUITests: 2 passed, 1 skipped
+- ForumMenuUITests: 1 passed
+- HistoryUITests: 3 passed
+- HomeUITests: 10 passed
+- OnboardingUITests: 5 passed
+- OneLoopLiveAcceptanceUITests: testLivePageChangeSummarizesTheNewPage passed on claude-haiku-5-5
+- ScreenshotThumbnailUITests: 1 passed
+- TodayUITests: 5 passed
+- VoiceUITests: 2 passed, 1 skipped
+- XComLiveUITests: 4 passed
+
+classes with pre-existing failures (0 app code lines changed vs main):
+- DrawerStreamPerfUITests: 3 failed (standalone summary prompt removed in 1.3.0 One loop)
+- DrawerUITests: 15 passed, 1 skipped, 3 failed (standalone summary retry/citation and empty sample scroll from 1.3.0 One loop)
+- PhysicalDeviceSmokeTests: 4 passed, 2 skipped, 4 failed (pre-1.3.0 workspace/toolbar assertions)
+- ScriptManagerUITests: 4 passed, 1 skipped, 1 failed (finished tool rows folded behind agentStepsSummary in 1.3.0)
+- SettingsNavigationUITests: 16 passed, 1 skipped, 1 simulator-state failure (auditLogEmptyState after live run) + 1 focus flake on rerun
+- ShareHandoffUITests: 1 passed, 2 failed (deep-link standalone summary/chat provider prompt after 1.3.0)
+- SuggestionRowUITests: 4 passed, 4 failed (suggestions routed to Agent in 1.3.0 One loop)
+- WordPressUITests: 7 failed (dockHintAction / standalone WordPress summary removed in 1.3.0)
