@@ -1134,6 +1134,20 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
         return false
     }
 
+    var runsInPageWorld: Bool {
+        switch metadata.injectInto {
+        case "page":
+            return true
+        case "content", "auto":
+            return false
+        default:
+            if !metadata.grants.isEmpty {
+                return false
+            }
+            return environment == .page
+        }
+    }
+
     fileprivate func snapshotVersion(savedAt: Date? = nil) -> UserScriptVersion {
         UserScriptVersion(
             version: version,
@@ -1640,7 +1654,7 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
         return out
     }
 
-    fileprivate static func encodeSingleLineJSONString(_ value: String) -> String {
+    static func encodeSingleLineJSONString(_ value: String) -> String {
         guard let data = try? JSONEncoder().encode(value),
               let encoded = String(data: data, encoding: .utf8) else {
             return "\"\""
@@ -1691,6 +1705,9 @@ final class ScriptStore {
     static let autoDisableErrorLoadLimit = 3
 
     let directoryURL: URL
+    let valuesDirectoryURL: URL
+    @ObservationIgnored
+    let valuesStore: ScriptValuesStore
     private(set) var scripts: [UserScript] = [] {
         didSet { onStoreChanged?() }
     }
@@ -1706,6 +1723,8 @@ final class ScriptStore {
 
     @ObservationIgnored
     private var lastErrorLoadIDs: [String: String] = [:]
+    @ObservationIgnored
+    private var pendingErrorWithoutLoadID: Set<String> = []
 
     var isGlobalEnabled: Bool {
         didSet {
@@ -1731,9 +1750,23 @@ final class ScriptStore {
 
     init(
         directoryURL: URL = ScriptStore.defaultDirectoryURL(),
+        valuesDirectoryURL: URL? = nil,
         isGlobalEnabled: Bool = true
     ) {
         self.directoryURL = directoryURL
+        let resolvedValuesDir: URL
+        if let valuesDirectoryURL {
+            resolvedValuesDir = valuesDirectoryURL
+        } else if directoryURL.lastPathComponent == "Scripts" {
+            resolvedValuesDir = directoryURL
+                .deletingLastPathComponent()
+                .appendingPathComponent("ScriptValues", isDirectory: true)
+        } else {
+            resolvedValuesDir = directoryURL
+                .appendingPathComponent("ScriptValues", isDirectory: true)
+        }
+        self.valuesDirectoryURL = resolvedValuesDir
+        self.valuesStore = ScriptValuesStore(directoryURL: resolvedValuesDir)
         self.isGlobalEnabled = isGlobalEnabled
         reloadFromDisk()
     }
@@ -1969,6 +2002,7 @@ final class ScriptStore {
 
     @discardableResult
     func commitCreated(_ created: UserScript) throws -> UserScript {
+        valuesStore.discardDeletedSnapshot(id: created.id)
         try writeScriptFile(created)
         scripts.append(created)
         sortScriptsInPlace()
@@ -2282,6 +2316,8 @@ final class ScriptStore {
         scriptErrors.removeValue(forKey: id)
         consecutiveErrorLoads.removeValue(forKey: id)
         lastErrorLoadIDs.removeValue(forKey: id)
+        pendingErrorWithoutLoadID.remove(id)
+        valuesStore.removeValuesForDeletedScript(id: id)
         try removeScriptFilesFromDisk(id: id)
         syncAttachedUserScripts()
         for entry in attachedControllers {
@@ -2337,6 +2373,7 @@ final class ScriptStore {
             scripts.append(script)
         }
         sortScriptsInPlace()
+        valuesStore.restoreValuesForUndoneDelete(id: script.id)
         syncAttachedUserScripts()
         for entry in attachedControllers {
             guard let controller = entry.controller else { continue }
@@ -2402,10 +2439,13 @@ final class ScriptStore {
             return
         }
         if let loadID, !loadID.isEmpty {
+            pendingErrorWithoutLoadID.remove(scriptID)
             if lastErrorLoadIDs[scriptID] == loadID {
                 return
             }
             lastErrorLoadIDs[scriptID] = loadID
+        } else {
+            pendingErrorWithoutLoadID.insert(scriptID)
         }
         let nextLoads = (consecutiveErrorLoads[scriptID] ?? 0) + 1
         consecutiveErrorLoads[scriptID] = nextLoads
@@ -2432,6 +2472,10 @@ final class ScriptStore {
     /// load without error. Resets `consecutiveErrorLoads` and clears any prior
     /// runtime error for that script.
     func recordPageLoadClean(scriptID: String, loadID: String? = nil) {
+        if pendingErrorWithoutLoadID.remove(scriptID) != nil {
+            if let loadID, !loadID.isEmpty { lastErrorLoadIDs[scriptID] = loadID }
+            return
+        }
         if let loadID, !loadID.isEmpty, lastErrorLoadIDs[scriptID] == loadID {
             return
         }
@@ -2445,12 +2489,14 @@ final class ScriptStore {
         scriptErrors.removeValue(forKey: scriptID)
         consecutiveErrorLoads.removeValue(forKey: scriptID)
         lastErrorLoadIDs.removeValue(forKey: scriptID)
+        pendingErrorWithoutLoadID.remove(scriptID)
     }
 
     func clearAllErrors() {
         scriptErrors.removeAll()
         consecutiveErrorLoads.removeAll()
         lastErrorLoadIDs.removeAll()
+        pendingErrorWithoutLoadID.removeAll()
     }
 
     // MARK: Disk Persistence
@@ -2651,6 +2697,13 @@ final class ScriptStore {
         }
     }
 
+    fileprivate func markAttachedUserScriptsStale() {
+        attachedControllers.removeAll { $0.controller == nil }
+        for entry in attachedControllers {
+            entry.controller?.markUserScriptsStale()
+        }
+    }
+
     private func syncAttachedWebControllersForGlobalToggle() {
         attachedControllers.removeAll { $0.controller == nil }
         let enabled = isGlobalEnabled
@@ -2687,22 +2740,22 @@ extension ScriptLiveApplying {
 }
 
 /// Bridges a `ScriptStore` to a `WKWebView` + `AgentBridge`:
-/// - Registers enabled userscripts as `WKUserScript`s at `.atDocumentStart` or
-///   `.atDocumentEnd` in `.page` or `AgentBridge.isolatedWorld` without removing
-///   WukongMind's own built-in `WKUserScript`s.
+/// - Registers enabled userscripts matching the active host as `WKUserScript`s at
+///   `.atDocumentStart` or `.atDocumentEnd` in `.page` or their own
+///   `WukongScript.<id>` content world without touching `AgentBridge`'s handler.
 /// - Injects userscript CSS via `CSSStyleSheet` + `adoptedStyleSheets` across
 ///   `document` and open shadow roots so styles work under strict `style-src` CSP
 ///   and can be removed cleanly when disabled, deleted, or globally switched off.
 /// - Re-runs matching userscripts on SPA route changes (`pushState`, `replaceState`,
 ///   `popstate`, `hashchange`).
-/// - Captures userscript errors from both `.isolated` and `.page` worlds through the
-///   isolated-only `wukongAgent` message handler, logging them and updating
-///   `ScriptStore.scriptErrors`.
+/// - Captures userscript errors and clean loads from each script's own reply handler
+///   (or per-script DOM relay token for `.page` scripts).
 @MainActor
 final class ScriptWebController: ScriptLiveApplying {
     weak var webView: WKWebView?
     let store: ScriptStore
     weak var agentBridge: AgentBridge?
+    let gmBridge: GMBridge
 
     private struct CandidateVerification {
         var candidate: UserScript
@@ -2710,30 +2763,123 @@ final class ScriptWebController: ScriptLiveApplying {
         var capturedError: ScriptRuntimeError?
     }
 
-    private lazy var relayToken = UUID().uuidString
     private var managedUserScripts: [ObjectIdentifier: WKUserScript] = [:]
+    var managedUserScriptCount: Int { managedUserScripts.count }
+    private var pageRelayTokenToScriptID: [String: String] = [:]
+    private var pageRelayTokenByScriptID: [String: String] = [:]
+    private var activeScriptWorlds: [String: WKContentWorld] = [:]
+    private var syncedDomainKey: String?
+    private var hasSyncedForCurrentTarget = false
+    private(set) var isUserScriptListStale = true
+    private(set) var userScriptRebuildCount = 0
+    nonisolated(unsafe) private var urlObservation: NSKeyValueObservation?
+    nonisolated(unsafe) private var loadingObservation: NSKeyValueObservation?
     private var previousReplyRouter: (([String: Any]) async throws -> Any?)?
     private var isReplyRouterInstalled = false
+    private var isDetached = false
     private var activeVerification: CandidateVerification?
 
     init(webView: WKWebView, store: ScriptStore, agentBridge: AgentBridge) {
         self.webView = webView
         self.store = store
         self.agentBridge = agentBridge
+        self.gmBridge = GMBridge(valuesStore: store.valuesStore)
+
+        gmBridge.resolveScript = { [weak self] id in
+            self?.resolveActiveScript(id: id)
+        }
+        gmBridge.onValuesMutated = { [weak store] _ in
+            store?.markAttachedUserScriptsStale()
+        }
+        gmBridge.onScriptError = { [weak self] scriptID, payload in
+            self?.handleReportedScriptError(scriptID: scriptID, payload: payload)
+        }
+        gmBridge.onScriptLoadClean = { [weak self] scriptID, payload in
+            self?.handleReportedCleanLoad(scriptID: scriptID, payload: payload)
+        }
+
+        let notifyNavigationChange: @Sendable () -> Void = { [weak self] in
+            if Thread.isMainThread {
+                MainActor.assumeIsolated { self?.handleObservedNavigationChange() }
+            } else {
+                Task { @MainActor [weak self] in self?.handleObservedNavigationChange() }
+            }
+        }
+
+        urlObservation = webView.observe(\.url, options: [.new]) { _, _ in
+            notifyNavigationChange()
+        }
+
+        loadingObservation = webView.observe(\.isLoading, options: [.new]) { _, change in
+            guard change.newValue == true else { return }
+            notifyNavigationChange()
+        }
 
         store.registerWebController(self)
-        syncUserScripts()
+        if webView.url != nil {
+            syncUserScripts()
+        }
+    }
+
+    deinit {
+        urlObservation?.invalidate()
+        loadingObservation?.invalidate()
+    }
+
+    private func handleObservedNavigationChange() {
+        guard !isDetached, let liveWebView = webView, let targetKey = Self.domainMatchKey(for: liveWebView.url) else { return }
+        if !hasSyncedForCurrentTarget
+            || targetKey != syncedDomainKey
+            || (isUserScriptListStale && liveWebView.isLoading) {
+            rebuildUserScripts(forDomainKey: targetKey)
+        }
     }
 
     func detach() {
+        guard !isDetached else { return }
+        isDetached = true
+        urlObservation?.invalidate()
+        urlObservation = nil
+        loadingObservation?.invalidate()
+        loadingObservation = nil
         activeVerification = nil
         store.unregisterWebController(self)
+        gmBridge.removeAllHandlers(from: webView?.configuration.userContentController)
         removeAllManagedUserScripts()
+        pageRelayTokenToScriptID.removeAll()
+        pageRelayTokenByScriptID.removeAll()
+        activeScriptWorlds.removeAll()
         if isReplyRouterInstalled {
             agentBridge?.replyRouter = previousReplyRouter
             previousReplyRouter = nil
             isReplyRouterInstalled = false
         }
+        webView = nil
+        agentBridge = nil
+    }
+
+    func markUserScriptsStale() {
+        isUserScriptListStale = true
+    }
+
+    func prepareForNavigation(to url: URL?) {
+        let targetKey = Self.domainMatchKey(for: url)
+        if !hasSyncedForCurrentTarget || targetKey != syncedDomainKey || isUserScriptListStale {
+            rebuildUserScripts(forDomainKey: targetKey)
+        }
+    }
+
+    static func domainMatchKey(for url: URL?) -> String? {
+        guard let url else { return nil }
+        if url.scheme?.lowercased() == "file" {
+            return "file"
+        }
+        let host = MatchPattern.extractNormalizedHost(from: url.absoluteString)
+        return host.isEmpty ? nil : host
+    }
+
+    static func contentWorld(for script: UserScript) -> WKContentWorld {
+        script.runsInPageWorld ? .page : GMBridge.world(for: script.id)
     }
 
     func beginCandidateVerification(_ candidate: UserScript, replacingScriptID: String?) {
@@ -2752,6 +2898,31 @@ final class ScriptWebController: ScriptLiveApplying {
         return captured
     }
 
+    private func resolveActiveScript(id: String) -> UserScript? {
+        if let verification = activeVerification {
+            if verification.candidate.id == id {
+                return verification.candidate.isEnabled ? verification.candidate : nil
+            }
+            if verification.replacingScriptID == id {
+                return nil
+            }
+        }
+        guard store.isGlobalEnabled, let script = store.script(id: id), script.isEnabled else {
+            return nil
+        }
+        return script
+    }
+
+    private func pageRelayToken(for scriptID: String) -> String {
+        if let existing = pageRelayTokenByScriptID[scriptID] {
+            return existing
+        }
+        let token = UUID().uuidString
+        pageRelayTokenByScriptID[scriptID] = token
+        pageRelayTokenToScriptID[token] = scriptID
+        return token
+    }
+
     private func installReplyRouterIfNeeded() {
         guard !isReplyRouterInstalled, let agentBridge else { return }
         let fallbackRouter = agentBridge.replyRouter
@@ -2759,15 +2930,15 @@ final class ScriptWebController: ScriptLiveApplying {
         isReplyRouterInstalled = true
         agentBridge.replyRouter = { [weak self] payload in
             if let action = payload["action"] as? String {
-                if action == "scriptError" {
+                if action == "pageScriptError" {
                     await MainActor.run {
-                        self?.handleReportedScriptError(payload)
+                        self?.handleRelayedPageScriptError(payload)
                     }
                     return ["ok": true]
                 }
-                if action == "scriptLoadClean" {
+                if action == "pageScriptLoadClean" {
                     await MainActor.run {
-                        self?.handleReportedCleanLoad(payload)
+                        self?.handleRelayedPageCleanLoad(payload)
                     }
                     return ["ok": true]
                 }
@@ -2780,34 +2951,74 @@ final class ScriptWebController: ScriptLiveApplying {
         }
     }
 
-    private static func contentWorld(for environment: AgentExecutionEnvironment) -> WKContentWorld {
-        switch environment {
-        case .page:
-            return .page
-        case .isolated:
-            return AgentBridge.isolatedWorld
+    /// Rebuilds managed `WKUserScript`s on `webView.configuration.userContentController`
+    /// for the current page's host while preserving WukongMind's built-in `WKUserScript`s.
+    func syncUserScripts() {
+        guard !isDetached, let webView else { return }
+        guard let currentURL = webView.url, let targetKey = Self.domainMatchKey(for: currentURL) else {
+            gmBridge.syncHandlers(for: [], on: webView.configuration.userContentController)
+            removeAllManagedUserScripts()
+            syncedDomainKey = nil
+            hasSyncedForCurrentTarget = false
+            isUserScriptListStale = true
+            return
         }
+        rebuildUserScripts(forDomainKey: targetKey)
     }
 
-    /// Rebuilds managed `WKUserScript`s on `webView.configuration.userContentController`
-    /// while preserving all non-ScriptStore `WKUserScript`s (such as WukongMind's
-    /// `routeObserverScript` and Discourse browse bridges).
-    func syncUserScripts() {
-        guard let webView else { return }
-        var enabledScripts = store.isGlobalEnabled ? store.scripts.filter(\.isEnabled) : []
-        if let verification = activeVerification, store.isGlobalEnabled {
-            enabledScripts.removeAll { script in
-                script.id == verification.candidate.id || script.id == verification.replacingScriptID
-            }
-            if verification.candidate.isEnabled {
-                enabledScripts.append(verification.candidate)
+    private func retainedScriptWorld(for scriptID: String) -> WKContentWorld {
+        if let existing = activeScriptWorlds[scriptID] {
+            return existing
+        }
+        let created = GMBridge.world(for: scriptID)
+        activeScriptWorlds[scriptID] = created
+        return created
+    }
+
+    private func rebuildUserScripts(forDomainKey domainKey: String?) {
+        guard !isDetached, let webView else { return }
+        let previousDomainKey = syncedDomainKey
+        syncedDomainKey = domainKey
+        hasSyncedForCurrentTarget = true
+        isUserScriptListStale = false
+
+        var enabledScripts: [UserScript] = []
+        if let domainKey, store.isGlobalEnabled {
+            enabledScripts = store.scripts.filter { $0.isEnabled && $0.matchesDomain(domainKey) }
+            if let verification = activeVerification {
+                enabledScripts.removeAll { script in
+                    script.id == verification.candidate.id || script.id == verification.replacingScriptID
+                }
+                if verification.candidate.isEnabled, verification.candidate.matchesDomain(domainKey) {
+                    enabledScripts.append(verification.candidate)
+                }
             }
         }
+
+        let controller = webView.configuration.userContentController
+        let scriptWorldIDs = Set(enabledScripts.filter { !$0.runsInPageWorld && $0.hasJS }.map(\.id))
+        for id in scriptWorldIDs {
+            _ = retainedScriptWorld(for: id)
+        }
+        gmBridge.syncHandlers(for: scriptWorldIDs, worlds: activeScriptWorlds, on: controller)
+        if previousDomainKey != nil, previousDomainKey != domainKey {
+            for staleID in Set(activeScriptWorlds.keys).subtracting(scriptWorldIDs) {
+                activeScriptWorlds.removeValue(forKey: staleID)
+            }
+        }
+
+        let activePageIDs = Set(enabledScripts.filter { $0.runsInPageWorld && $0.hasJS }.map(\.id))
+        for stalePageID in Set(pageRelayTokenByScriptID.keys).subtracting(activePageIDs) {
+            if let oldToken = pageRelayTokenByScriptID.removeValue(forKey: stalePageID) {
+                pageRelayTokenToScriptID.removeValue(forKey: oldToken)
+            }
+        }
+
         if managedUserScripts.isEmpty, enabledScripts.isEmpty {
             return
         }
 
-        let controller = webView.configuration.userContentController
+        userScriptRebuildCount += 1
         let preserved = controller.userScripts.filter { managedUserScripts[ObjectIdentifier($0)] == nil }
         controller.removeAllUserScripts()
         managedUserScripts.removeAll()
@@ -2821,7 +3032,7 @@ final class ScriptWebController: ScriptLiveApplying {
 
         addManagedUserScript(
             WKUserScript(
-                source: Self.isolatedBootstrapSource(relayToken: relayToken),
+                source: Self.isolatedBootstrapSource(),
                 injectionTime: .atDocumentStart,
                 forMainFrameOnly: true,
                 in: AgentBridge.isolatedWorld
@@ -2831,7 +3042,7 @@ final class ScriptWebController: ScriptLiveApplying {
 
         addManagedUserScript(
             WKUserScript(
-                source: Self.pageBootstrapSource(relayToken: relayToken),
+                source: Self.pageBootstrapSource(),
                 injectionTime: .atDocumentStart,
                 forMainFrameOnly: true,
                 in: .page
@@ -2853,13 +3064,17 @@ final class ScriptWebController: ScriptLiveApplying {
             }
 
             if script.hasJS {
-                let targetWorld = Self.contentWorld(for: script.environment)
+                let isPage = script.runsInPageWorld
+                let token = isPage ? pageRelayToken(for: script.id) : nil
+                let valuesJSON = (!isPage && GMBridge.hasAnyValueReadGrant(script.metadata.grants))
+                    ? store.valuesStore.serializedJSON(for: script.id)
+                    : "{}"
                 addManagedUserScript(
                     WKUserScript(
-                        source: Self.buildJSUserScriptSource(for: script, relayToken: relayToken),
+                        source: Self.buildJSUserScriptSource(for: script, relayToken: token, initialValuesJSON: valuesJSON),
                         injectionTime: script.injectionTime.wkInjectionTime,
                         forMainFrameOnly: true,
-                        in: targetWorld
+                        in: isPage ? .page : retainedScriptWorld(for: script.id)
                     ),
                     to: controller
                 )
@@ -2870,11 +3085,12 @@ final class ScriptWebController: ScriptLiveApplying {
     // MARK: Live Page Sync (script_save / script_update / script_delete / global switch)
 
     func applyLiveScript(_ script: UserScript, runJS: Bool) async -> ScriptLiveApplicationOutcome {
+        guard !isDetached else { return .notApplied }
         guard store.isGlobalEnabled, script.isEnabled else {
             await removeLiveScript(id: script.id)
             return .notApplied
         }
-        guard let currentURL = await currentLoadedURL() else {
+        guard let currentURL = await currentLoadedURL(), !isDetached else {
             return .notApplied
         }
         guard script.matches(url: currentURL) else {
@@ -2884,47 +3100,33 @@ final class ScriptWebController: ScriptLiveApplying {
 
         installReplyRouterIfNeeded()
         await ensureBootstrapsInstalledOnCurrentPage()
+        guard !isDetached else { return .notApplied }
 
         if script.hasCSS {
             _ = try? await evalAsync(
                 script: """
-                if (typeof window.__wukongSetUserScriptCSS === "function") {
-                  window.__wukongSetUserScriptCSS(scriptId, cssText);
-                }
-                if (window.__wukongDisabledScriptIDs) {
-                  delete window.__wukongDisabledScriptIDs[scriptId];
-                }
-                const rules = compiledRules;
+                if (typeof window.__wukongSetUserScriptCSS === "function") window.__wukongSetUserScriptCSS(scriptId, cssText);
+                if (window.__wukongDisabledScriptIDs) delete window.__wukongDisabledScriptIDs[scriptId];
                 const syncCSSOnRoute = () => {
                   if (!window.__wukongScriptsGlobalEnabled) return;
                   if (window.__wukongDisabledScriptIDs && window.__wukongDisabledScriptIDs[scriptId]) return;
-                  if (window.__wukongMatchesRules(rules, String(window.location.href || ""))) {
+                  if (window.__wukongMatchesRules(compiledRules, String(window.location.href || ""))) {
                     window.__wukongSetUserScriptCSS(scriptId, cssText);
                   } else {
                     window.__wukongRemoveUserScriptCSS(scriptId);
                   }
                 };
-                if (window.__wukongLiveCSSRouteHandlers) {
-                  window.__wukongLiveCSSRouteHandlers.set(scriptId, syncCSSOnRoute);
-                }
+                if (window.__wukongLiveCSSRouteHandlers) window.__wukongLiveCSSRouteHandlers.set(scriptId, syncCSSOnRoute);
                 return true;
                 """,
-                arguments: [
-                    "scriptId": script.id,
-                    "cssText": script.css,
-                    "compiledRules": Self.compiledRulesArray(for: script)
-                ],
+                arguments: ["scriptId": script.id, "cssText": script.css, "compiledRules": Self.compiledRulesArray(for: script)],
                 world: AgentBridge.isolatedWorld
             )
         } else {
             _ = try? await evalAsync(
                 script: """
-                if (typeof window.__wukongRemoveUserScriptCSS === "function") {
-                  window.__wukongRemoveUserScriptCSS(scriptId);
-                }
-                if (window.__wukongLiveCSSRouteHandlers) {
-                  window.__wukongLiveCSSRouteHandlers.delete(scriptId);
-                }
+                if (typeof window.__wukongRemoveUserScriptCSS === "function") window.__wukongRemoveUserScriptCSS(scriptId);
+                if (window.__wukongLiveCSSRouteHandlers) window.__wukongLiveCSSRouteHandlers.delete(scriptId);
                 return true;
                 """,
                 arguments: ["scriptId": script.id],
@@ -2934,41 +3136,36 @@ final class ScriptWebController: ScriptLiveApplying {
 
         var capturedError: String?
         if script.hasJS {
-            let otherWorld: WKContentWorld = (script.environment == .page) ? AgentBridge.isolatedWorld : .page
-            _ = try? await evalAsync(
-                script: """
-                if (window.__wukongLiveJSRouteHandlers) {
-                  window.__wukongLiveJSRouteHandlers.delete(scriptId);
+            let isPage = script.runsInPageWorld
+            let world: WKContentWorld
+            if isPage {
+                await cleanupScriptWorldIfActive(id: script.id)
+                world = .page
+            } else {
+                await cleanupPageWorldScript(id: script.id)
+                let scriptWorld = retainedScriptWorld(for: script.id)
+                if let controller = webView?.configuration.userContentController {
+                    gmBridge.ensureHandlerRegistered(for: script.id, world: scriptWorld, on: controller)
                 }
-                return true;
-                """,
-                arguments: ["scriptId": script.id],
-                world: otherWorld
-            )
-            let world = Self.contentWorld(for: script.environment)
+                world = scriptWorld
+            }
+            let token = isPage ? pageRelayToken(for: script.id) : nil
+            let valuesJSON = (!isPage && GMBridge.hasAnyValueReadGrant(script.metadata.grants))
+                ? store.valuesStore.serializedJSON(for: script.id)
+                : "{}"
             let liveRunner = Self.buildLiveJSInstallAndRunSource(
                 for: script,
-                relayToken: relayToken,
+                relayToken: token,
+                initialValuesJSON: valuesJSON,
                 executeImmediately: runJS
             )
             if let dict = (try? await evalAsync(script: liveRunner, arguments: [:], world: world)) as? [String: Any],
-               let errMessage = dict["error"] as? String,
-               !errMessage.isEmpty {
+               let errMessage = dict["error"] as? String, !errMessage.isEmpty {
                 capturedError = errMessage
             }
         } else {
-            for world in [AgentBridge.isolatedWorld, WKContentWorld.page] {
-                _ = try? await evalAsync(
-                    script: """
-                    if (window.__wukongLiveJSRouteHandlers) {
-                      window.__wukongLiveJSRouteHandlers.delete(scriptId);
-                    }
-                    return true;
-                    """,
-                    arguments: ["scriptId": script.id],
-                    world: world
-                )
-            }
+            await cleanupPageWorldScript(id: script.id)
+            await cleanupScriptWorldIfActive(id: script.id)
         }
 
         store.noteExecuted(scriptID: script.id)
@@ -2976,73 +3173,55 @@ final class ScriptWebController: ScriptLiveApplying {
     }
 
     func removeLiveScript(id: String) async {
-        guard webView != nil else { return }
+        guard !isDetached, webView != nil else { return }
         _ = try? await evalAsync(
             script: """
             if (!window.__wukongDisabledScriptIDs) window.__wukongDisabledScriptIDs = {};
             window.__wukongDisabledScriptIDs[scriptId] = true;
-            if (typeof window.__wukongRemoveUserScriptCSS === "function") {
-              window.__wukongRemoveUserScriptCSS(scriptId);
-            }
-            if (window.__wukongLiveCSSRouteHandlers) {
-              window.__wukongLiveCSSRouteHandlers.delete(scriptId);
-            }
-            if (window.__wukongLiveJSRouteHandlers) {
-              window.__wukongLiveJSRouteHandlers.delete(scriptId);
-            }
+            if (typeof window.__wukongRemoveUserScriptCSS === "function") window.__wukongRemoveUserScriptCSS(scriptId);
+            if (window.__wukongLiveCSSRouteHandlers) window.__wukongLiveCSSRouteHandlers.delete(scriptId);
             return true;
             """,
             arguments: ["scriptId": id],
             world: AgentBridge.isolatedWorld
         )
-        _ = try? await evalAsync(
-            script: """
-            if (!window.__wukongDisabledScriptIDs) window.__wukongDisabledScriptIDs = {};
-            window.__wukongDisabledScriptIDs[scriptId] = true;
-            if (window.__wukongLiveJSRouteHandlers) {
-              window.__wukongLiveJSRouteHandlers.delete(scriptId);
-            }
-            return true;
-            """,
-            arguments: ["scriptId": id],
-            world: .page
-        )
+        guard !isDetached else { return }
+        await cleanupPageWorldScript(id: id)
+        await cleanupScriptWorldIfActive(id: id)
     }
 
     func syncLiveGlobalState(isEnabled: Bool) async {
-        guard webView != nil else { return }
+        guard !isDetached, webView != nil else { return }
         if !isEnabled {
             _ = try? await evalAsync(
-                script: """
-                window.__wukongScriptsGlobalEnabled = false;
-                if (typeof window.__wukongRemoveAllUserScriptCSS === "function") {
-                  window.__wukongRemoveAllUserScriptCSS();
-                }
-                return true;
-                """,
-                arguments: [:],
-                world: AgentBridge.isolatedWorld
+                script: "window.__wukongScriptsGlobalEnabled = false; if (typeof window.__wukongRemoveAllUserScriptCSS === \"function\") window.__wukongRemoveAllUserScriptCSS(); return true;",
+                arguments: [:], world: AgentBridge.isolatedWorld
             )
             _ = try? await evalAsync(
-                script: "window.__wukongScriptsGlobalEnabled = false; return true;",
-                arguments: [:],
-                world: .page
+                script: "window.__wukongScriptsGlobalEnabled = false; if (typeof window.__wukongClearAllPageScriptStyles === \"function\") window.__wukongClearAllPageScriptStyles(); return true;",
+                arguments: [:], world: .page
             )
+            for world in activeScriptWorlds.values {
+                guard !isDetached else { return }
+                _ = try? await evalAsync(
+                    script: "window.__wukongScriptsGlobalEnabled = false; if (typeof window.__wukongClearGMStyles === \"function\") window.__wukongClearGMStyles(); return true;",
+                    arguments: [:], world: world
+                )
+            }
         } else {
             installReplyRouterIfNeeded()
-        await ensureBootstrapsInstalledOnCurrentPage()
-            _ = try? await evalAsync(
-                script: "window.__wukongScriptsGlobalEnabled = true; return true;",
-                arguments: [:],
-                world: AgentBridge.isolatedWorld
-            )
-            _ = try? await evalAsync(
-                script: "window.__wukongScriptsGlobalEnabled = true; return true;",
-                arguments: [:],
-                world: .page
-            )
-            if let currentURL = await currentLoadedURL() {
+            await ensureBootstrapsInstalledOnCurrentPage()
+            guard !isDetached else { return }
+            let enableJS = "window.__wukongScriptsGlobalEnabled = true; return true;"
+            _ = try? await evalAsync(script: enableJS, arguments: [:], world: AgentBridge.isolatedWorld)
+            _ = try? await evalAsync(script: enableJS, arguments: [:], world: .page)
+            for world in activeScriptWorlds.values {
+                guard !isDetached else { return }
+                _ = try? await evalAsync(script: enableJS, arguments: [:], world: world)
+            }
+            if let currentURL = await currentLoadedURL(), !isDetached {
                 for script in store.scripts where script.isEnabled && script.matches(url: currentURL) && script.hasCSS {
+                    guard !isDetached else { return }
                     _ = await applyLiveScript(script, runJS: false)
                 }
             }
@@ -3050,6 +3229,39 @@ final class ScriptWebController: ScriptLiveApplying {
     }
 
     // MARK: Private Helpers
+
+    private func cleanupPageWorldScript(id: String) async {
+        _ = try? await evalAsync(
+            script: """
+            if (!window.__wukongDisabledScriptIDs) window.__wukongDisabledScriptIDs = {};
+            window.__wukongDisabledScriptIDs[scriptId] = true;
+            if (window.__wukongLiveJSRouteHandlers) window.__wukongLiveJSRouteHandlers.delete(scriptId);
+            if (typeof window.__wukongClearPageScriptStyles === "function") window.__wukongClearPageScriptStyles(scriptId);
+            return true;
+            """,
+            arguments: ["scriptId": id],
+            world: .page
+        )
+    }
+
+    private func cleanupScriptWorldIfActive(id: String) async {
+        guard let world = activeScriptWorlds[id] else { return }
+        _ = try? await evalAsync(
+            script: """
+            if (!window.__wukongDisabledScriptIDs) window.__wukongDisabledScriptIDs = {};
+            window.__wukongDisabledScriptIDs[scriptId] = true;
+            if (window.__wukongLiveJSRouteHandlers) window.__wukongLiveJSRouteHandlers.delete(scriptId);
+            if (typeof window.__wukongClearGMStyles === "function") window.__wukongClearGMStyles();
+            return true;
+            """,
+            arguments: ["scriptId": id],
+            world: world
+        )
+        if let active = resolveActiveScript(id: id), !active.runsInPageWorld, active.hasJS {
+            return
+        }
+        activeScriptWorlds.removeValue(forKey: id)
+    }
 
     private func addManagedUserScript(_ script: WKUserScript, to controller: WKUserContentController) {
         managedUserScripts[ObjectIdentifier(script)] = script
@@ -3071,8 +3283,30 @@ final class ScriptWebController: ScriptLiveApplying {
         }
     }
 
-    private func handleReportedScriptError(_ payload: [String: Any]) {
-        guard let scriptID = payload["scriptId"] as? String, !scriptID.isEmpty else { return }
+    private func handleRelayedPageScriptError(_ payload: [String: Any]) {
+        guard let token = payload["token"] as? String,
+              !token.isEmpty,
+              let scriptID = pageRelayTokenToScriptID[token],
+              let script = resolveActiveScript(id: scriptID),
+              script.runsInPageWorld else {
+            return
+        }
+        handleReportedScriptError(scriptID: scriptID, payload: payload)
+    }
+
+    private func handleRelayedPageCleanLoad(_ payload: [String: Any]) {
+        guard let token = payload["token"] as? String,
+              !token.isEmpty,
+              let scriptID = pageRelayTokenToScriptID[token],
+              let script = resolveActiveScript(id: scriptID),
+              script.runsInPageWorld else {
+            return
+        }
+        handleReportedCleanLoad(scriptID: scriptID, payload: payload)
+    }
+
+    private func handleReportedScriptError(scriptID: String, payload: [String: Any]) {
+        guard !scriptID.isEmpty else { return }
         let message = (payload["message"] as? String) ?? "Unknown userscript error"
         let line: Int? = {
             if let intLine = payload["line"] as? Int, intLine > 0 { return intLine }
@@ -3109,8 +3343,8 @@ final class ScriptWebController: ScriptLiveApplying {
         )
     }
 
-    private func handleReportedCleanLoad(_ payload: [String: Any]) {
-        guard let scriptID = payload["scriptId"] as? String, !scriptID.isEmpty else { return }
+    private func handleReportedCleanLoad(scriptID: String, payload: [String: Any]) {
+        guard !scriptID.isEmpty else { return }
         if activeVerification?.candidate.id == scriptID {
             return
         }
@@ -3130,12 +3364,12 @@ final class ScriptWebController: ScriptLiveApplying {
 
     private func ensureBootstrapsInstalledOnCurrentPage() async {
         _ = try? await evalAsync(
-            script: Self.isolatedBootstrapSource(relayToken: relayToken) + "\nreturn true;",
+            script: Self.isolatedBootstrapSource() + "\nreturn true;",
             arguments: [:],
             world: AgentBridge.isolatedWorld
         )
         _ = try? await evalAsync(
-            script: Self.pageBootstrapSource(relayToken: relayToken) + "\nreturn true;",
+            script: Self.pageBootstrapSource() + "\nreturn true;",
             arguments: [:],
             world: .page
         )
@@ -3305,14 +3539,12 @@ final class ScriptWebController: ScriptLiveApplying {
     }
     """#
 
-    private static func isolatedBootstrapSource(relayToken: String) -> String {
-        let tokenJSON = UserScript.encodeSingleLineJSONString(relayToken)
-        return """
+    private static func isolatedBootstrapSource() -> String {
+        """
         (() => {
           \(sharedMatcherAndSpaHookJS)
           if (window.__wukongIsolatedBootstrapInstalled) return;
           window.__wukongIsolatedBootstrapInstalled = true;
-          const RELAY_TOKEN = \(tokenJSON);
 
           if (!window.__wukongUserScriptSheets) {
             window.__wukongUserScriptSheets = new Map();
@@ -3406,25 +3638,6 @@ final class ScriptWebController: ScriptLiveApplying {
             } catch (_) {}
           };
 
-          window.__wukongReportScriptError = function(payload) {
-            postAgent({
-              action: "scriptError",
-              scriptId: String(payload.scriptId || ""),
-              message: String(payload.message || "Unknown userscript error"),
-              line: typeof payload.line === "number" ? payload.line : 0,
-              url: String(payload.url || window.location.href || ""),
-              loadId: String(payload.loadId || "")
-            });
-          };
-
-          window.__wukongReportScriptLoadClean = function(payload) {
-            postAgent({
-              action: "scriptLoadClean",
-              scriptId: String(payload.scriptId || ""),
-              loadId: String(payload.loadId || "")
-            });
-          };
-
           const bindTemplateRelay = (eventName, attrName, forward) => {
             document.addEventListener(eventName, () => {
               const root = document.documentElement || document;
@@ -3436,22 +3649,91 @@ final class ScriptWebController: ScriptLiveApplying {
                 if (!raw) continue;
                 try {
                   const parsed = JSON.parse(raw);
-                  if (parsed && parsed.token === RELAY_TOKEN) forward(parsed);
+                  if (parsed && typeof parsed.token === "string" && parsed.token.length > 0) {
+                    forward(parsed);
+                  }
                 } catch (_) {}
               }
             });
           };
-          bindTemplateRelay("__wukong_script_error", "data-wukong-script-error", window.__wukongReportScriptError);
-          bindTemplateRelay("__wukong_script_clean", "data-wukong-script-clean", window.__wukongReportScriptLoadClean);
+          bindTemplateRelay("__wukong_script_error", "data-wukong-script-error", (p) => {
+            postAgent({
+              action: "pageScriptError",
+              token: String(p.token),
+              message: String(p.message || "Unknown userscript error"),
+              line: typeof p.line === "number" ? p.line : 0,
+              url: String(p.url || window.location.href || ""),
+              loadId: String(p.loadId || "")
+            });
+          });
+          bindTemplateRelay("__wukong_script_clean", "data-wukong-script-clean", (p) => {
+            postAgent({
+              action: "pageScriptLoadClean",
+              token: String(p.token),
+              loadId: String(p.loadId || "")
+            });
+          });
         })();
         """
     }
 
-    private static func pageBootstrapSource(relayToken: String) -> String {
-        _ = relayToken
-        return """
+    private static func pageBootstrapSource() -> String {
+        """
         (() => {
           \(sharedMatcherAndSpaHookJS)
+          if (window.__wukongPageStylesBootstrapInstalled) return;
+          window.__wukongPageStylesBootstrapInstalled = true;
+          const sheetsByScript = new Map();
+          const styleTargets = () => {
+            const out = [document], walk = (n) => {
+              for (const el of Array.from((n && n.children) || [])) {
+                if (el.shadowRoot) { out.push(el.shadowRoot); walk(el.shadowRoot); }
+                walk(el);
+              }
+            };
+            if (document.documentElement) walk(document.documentElement);
+            return out;
+          };
+          const dropSet = (owned) => {
+            for (const s of owned) { try { s.replaceSync(""); } catch (_) {} }
+            for (const t of styleTargets()) {
+              try {
+                const cur = Array.from(t.adoptedStyleSheets || []);
+                const next = cur.filter((s) => !owned.has(s));
+                if (next.length !== cur.length) t.adoptedStyleSheets = next;
+              } catch (_) {}
+            }
+          };
+          window.__wukongAddPageScriptStyle = (scriptId, cssText) => {
+            let set = sheetsByScript.get(scriptId);
+            if (!set) { set = new Set(); sheetsByScript.set(scriptId, set); }
+            const sheet = new CSSStyleSheet();
+            sheet.replaceSync(String(cssText || ""));
+            set.add(sheet);
+            const apply = () => {
+              const curSet = sheetsByScript.get(scriptId);
+              if (!curSet || !curSet.has(sheet)) return;
+              for (const t of styleTargets()) {
+                const cur = Array.from(t.adoptedStyleSheets || []);
+                if (!cur.includes(sheet)) t.adoptedStyleSheets = [...cur, sheet];
+              }
+            };
+            apply();
+            if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", apply, { once: true });
+            return sheet;
+          };
+          window.__wukongClearPageScriptStyles = (scriptId) => {
+            const set = sheetsByScript.get(scriptId);
+            if (!set || !set.size) return;
+            sheetsByScript.delete(scriptId);
+            dropSet(new Set(set));
+          };
+          window.__wukongClearAllPageScriptStyles = () => {
+            const owned = new Set();
+            for (const set of sheetsByScript.values()) for (const s of set) owned.add(s);
+            sheetsByScript.clear();
+            if (owned.size) dropSet(owned);
+          };
         })();
         """
     }
@@ -3463,86 +3745,44 @@ final class ScriptWebController: ScriptLiveApplying {
 
         return """
         (() => {
-          const SCRIPT_ID = \(idJSON);
-          const CSS_TEXT = \(cssJSON);
-          const RULES = \(rulesJSON);
-
+          const SCRIPT_ID = \(idJSON), CSS_TEXT = \(cssJSON), RULES = \(rulesJSON);
           const applyOrRemove = () => {
             if (!window.__wukongScriptsGlobalEnabled) return;
             if (window.__wukongDisabledScriptIDs && window.__wukongDisabledScriptIDs[SCRIPT_ID]) return;
-            const href = String(window.location.href || "");
-            if (window.__wukongMatchesRules(RULES, href)) {
+            if (window.__wukongMatchesRules(RULES, String(window.location.href || ""))) {
               window.__wukongSetUserScriptCSS(SCRIPT_ID, CSS_TEXT);
             } else {
               window.__wukongRemoveUserScriptCSS(SCRIPT_ID);
             }
           };
-
           applyOrRemove();
-          if (document.readyState === "loading") {
-            document.addEventListener("DOMContentLoaded", applyOrRemove, { once: true });
-          }
-          if (window.__wukongLiveCSSRouteHandlers) {
-            window.__wukongLiveCSSRouteHandlers.set(SCRIPT_ID, applyOrRemove);
-          }
+          if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", applyOrRemove, { once: true });
+          if (window.__wukongLiveCSSRouteHandlers) window.__wukongLiveCSSRouteHandlers.set(SCRIPT_ID, applyOrRemove);
         })();
         """
     }
 
-    private static func errorReporterSnippet(
-        for environment: AgentExecutionEnvironment,
-        scriptIDJSON: String,
-        relayTokenJSON: String
-    ) -> String {
-        switch environment {
-        case .isolated:
-            return """
-            const reportError = (err, loadId) => {
-              const msg = err && (err.stack || err.message) ? String(err.message || err.stack) : String(err);
-              const line = err && typeof err.line === "number" ? err.line : 0;
-              if (typeof window.__wukongReportScriptError === "function") {
-                window.__wukongReportScriptError({
-                  scriptId: \(scriptIDJSON),
-                  message: msg,
-                  line: line,
-                  url: String(window.location.href || ""),
-                  loadId: String(loadId || "")
-                });
-              }
-              return msg;
-            };
-            const reportCleanLoad = (loadId) => {
-              if (typeof window.__wukongReportScriptLoadClean === "function") {
-                window.__wukongReportScriptLoadClean({
-                  scriptId: \(scriptIDJSON),
-                  loadId: String(loadId || "")
-                });
-              }
-            };
-            """
-        case .page:
-            return """
-            const relayViaDOM = (attrName, eventName, payloadObj) => {
-              const sendViaDOM = (host) => {
+    private static func jsPreambleAndMain(
+        for script: UserScript,
+        idJSON: String,
+        relayToken: String?,
+        initialValuesJSON: String
+    ) -> (worldSetup: String, reporter: String, mainDecl: String, clearStyles: String) {
+        if let relayToken {
+            let tokenJSON = UserScript.encodeSingleLineJSONString(relayToken)
+            let reporter = """
+            const relayViaDOM = (attr, ev, obj) => {
+              const send = (host) => {
                 const tpl = document.createElement("template");
-                tpl.setAttribute(attrName, JSON.stringify(payloadObj));
-                try {
-                  host.appendChild(tpl);
-                  document.dispatchEvent(new Event(eventName));
-                } finally {
-                  tpl.remove();
-                }
+                tpl.setAttribute(attr, JSON.stringify(obj));
+                try { host.appendChild(tpl); document.dispatchEvent(new Event(ev)); } finally { tpl.remove(); }
               };
-              const immediateHost = document.documentElement || document.body;
-              if (immediateHost) {
-                sendViaDOM(immediateHost);
-              } else {
+              const host = document.documentElement || document.body;
+              if (host) send(host);
+              else {
                 const onReady = () => {
-                  const deferredHost = document.documentElement || document.body;
-                  if (deferredHost) {
-                    document.removeEventListener("readystatechange", onReady);
-                    sendViaDOM(deferredHost);
-                  }
+                  const h = document.documentElement || document.body;
+                  if (h) { document.removeEventListener("readystatechange", onReady); send(h); }
                 };
                 document.addEventListener("readystatechange", onReady);
               }
@@ -3550,85 +3790,68 @@ final class ScriptWebController: ScriptLiveApplying {
             const reportError = (err, loadId) => {
               const msg = err && (err.stack || err.message) ? String(err.message || err.stack) : String(err);
               const line = err && typeof err.line === "number" ? err.line : 0;
-              relayViaDOM("data-wukong-script-error", "__wukong_script_error", {
-                token: \(relayTokenJSON),
-                scriptId: \(scriptIDJSON),
-                message: msg,
-                line: line,
-                url: String(window.location.href || ""),
-                loadId: String(loadId || "")
-              });
+              relayViaDOM("data-wukong-script-error", "__wukong_script_error", { token: \(tokenJSON), message: msg, line, url: String(window.location.href || ""), loadId: String(loadId || "") });
+              return msg;
+            };
+            const reportCleanLoad = (loadId) => relayViaDOM("data-wukong-script-clean", "__wukong_script_clean", { token: \(tokenJSON), loadId: String(loadId || "") });
+            """
+            let gmLexical = GMBridge.pageWorldLexicalGMBindingsJS(for: script, scriptIDJSON: idJSON)
+            let mainDecl = "\(gmLexical)\nasync function __wukongUserMain() {\n\(script.js)\n}"
+            let clearStyles = "if (typeof window.__wukongClearPageScriptStyles === \"function\") window.__wukongClearPageScriptStyles(\(idJSON));"
+            return ("", reporter, mainDecl, clearStyles)
+        } else {
+            let setup = "\(sharedMatcherAndSpaHookJS)\n\(GMBridge.scriptWorldBootstrapJS(for: script, initialValuesJSON: initialValuesJSON))"
+            let reporter = """
+            const reportError = (err, loadId) => {
+              const msg = err && (err.stack || err.message) ? String(err.message || err.stack) : String(err);
+              const line = err && typeof err.line === "number" ? err.line : 0;
+              if (typeof window.__wukongPostGM === "function") {
+                window.__wukongPostGM({ action: "scriptError", message: msg, line, url: String(window.location.href || ""), loadId: String(loadId || "") }).catch(() => {});
+              }
               return msg;
             };
             const reportCleanLoad = (loadId) => {
-              relayViaDOM("data-wukong-script-clean", "__wukong_script_clean", {
-                token: \(relayTokenJSON),
-                scriptId: \(scriptIDJSON),
-                loadId: String(loadId || "")
-              });
+              if (typeof window.__wukongPostGM === "function") window.__wukongPostGM({ action: "scriptLoadClean", loadId: String(loadId || "") }).catch(() => {});
             };
             """
-        }
-    }
-
-    private static func userMainDeclarationSnippet(for script: UserScript) -> String {
-        switch script.environment {
-        case .isolated:
             let codeJSON = UserScript.encodeSingleLineJSONString(script.js)
-            return """
+            let mainDecl = """
             const USER_CODE = \(codeJSON);
             const AsyncFn = Object.getPrototypeOf(async function(){}).constructor;
-            const __wukongUserMain = () => {
-              const fn = new AsyncFn(USER_CODE);
-              return fn();
-            };
+            const __wukongUserMain = () => (new AsyncFn(USER_CODE))();
             """
-        case .page:
-            return """
-            async function __wukongUserMain() {
-            \(script.js)
-            }
-            """
+            let clearStyles = "if (typeof window.__wukongClearGMStyles === \"function\") window.__wukongClearGMStyles();"
+            return (setup, reporter, mainDecl, clearStyles)
         }
     }
 
-    private static func buildJSUserScriptSource(for script: UserScript, relayToken: String) -> String {
+    private static func buildJSUserScriptSource(
+        for script: UserScript,
+        relayToken: String?,
+        initialValuesJSON: String
+    ) -> String {
         let idJSON = UserScript.encodeSingleLineJSONString(script.id)
-        let tokenJSON = UserScript.encodeSingleLineJSONString(relayToken)
         let rulesJSON = compiledRulesJSONLiteral(for: script)
-        let reporter = errorReporterSnippet(
-            for: script.environment,
-            scriptIDJSON: idJSON,
-            relayTokenJSON: tokenJSON
-        )
-        let mainDecl = userMainDeclarationSnippet(for: script)
-
+        let parts = jsPreambleAndMain(for: script, idJSON: idJSON, relayToken: relayToken, initialValuesJSON: initialValuesJSON)
         return """
         (() => {
-          const SCRIPT_ID = \(idJSON);
-          const RULES = \(rulesJSON);
+          \(parts.worldSetup)
+          const SCRIPT_ID = \(idJSON), RULES = \(rulesJSON);
           const LOAD_ID = Math.random().toString(36).slice(2) + "-" + Date.now();
-          \(reporter)
-          \(mainDecl)
-
+          \(parts.reporter)
+          \(parts.mainDecl)
           let lastExecutedHref = null;
           const runIfMatching = (isInitialLoad) => {
             if (!window.__wukongScriptsGlobalEnabled) return;
             if (window.__wukongDisabledScriptIDs && window.__wukongDisabledScriptIDs[SCRIPT_ID]) return;
             const href = String(window.location.href || "");
-            if (!window.__wukongMatchesRules(RULES, href)) {
-              lastExecutedHref = null;
-              return;
-            }
+            if (!window.__wukongMatchesRules(RULES, href)) { lastExecutedHref = null; return; }
             if (href === lastExecutedHref) return;
             lastExecutedHref = href;
             try {
               const promise = __wukongUserMain();
               if (promise && typeof promise.then === "function") {
-                promise.then(
-                  () => { if (isInitialLoad) reportCleanLoad(LOAD_ID); },
-                  (err) => { reportError(err, LOAD_ID); }
-                );
+                promise.then(() => { if (isInitialLoad) reportCleanLoad(LOAD_ID); }, (err) => { reportError(err, LOAD_ID); });
               } else if (isInitialLoad) {
                 reportCleanLoad(LOAD_ID);
               }
@@ -3636,72 +3859,53 @@ final class ScriptWebController: ScriptLiveApplying {
               reportError(err, LOAD_ID);
             }
           };
-
           runIfMatching(true);
-          if (window.__wukongLiveJSRouteHandlers) {
-            window.__wukongLiveJSRouteHandlers.set(SCRIPT_ID, () => runIfMatching(false));
-          }
+          if (window.__wukongLiveJSRouteHandlers) window.__wukongLiveJSRouteHandlers.set(SCRIPT_ID, () => runIfMatching(false));
         })();
         """
     }
 
     private static func buildLiveJSInstallAndRunSource(
         for script: UserScript,
-        relayToken: String,
+        relayToken: String?,
+        initialValuesJSON: String,
         executeImmediately: Bool
     ) -> String {
         let idJSON = UserScript.encodeSingleLineJSONString(script.id)
-        let tokenJSON = UserScript.encodeSingleLineJSONString(relayToken)
         let rulesJSON = compiledRulesJSONLiteral(for: script)
-        let reporter = errorReporterSnippet(
-            for: script.environment,
-            scriptIDJSON: idJSON,
-            relayTokenJSON: tokenJSON
-        )
-        let mainDecl = userMainDeclarationSnippet(for: script)
-        let runFlag = executeImmediately ? "true" : "false"
-
+        let parts = jsPreambleAndMain(for: script, idJSON: idJSON, relayToken: relayToken, initialValuesJSON: initialValuesJSON)
+        let enableGlobal = relayToken == nil ? "window.__wukongScriptsGlobalEnabled = true;" : ""
+        let clearStyles = executeImmediately ? parts.clearStyles : ""
         return """
-        const SCRIPT_ID = \(idJSON);
-        const RULES = \(rulesJSON);
-        if (window.__wukongDisabledScriptIDs) {
-          delete window.__wukongDisabledScriptIDs[SCRIPT_ID];
-        }
-        \(reporter)
-        \(mainDecl)
-
+        \(parts.worldSetup)
+        \(enableGlobal)
+        \(clearStyles)
+        const SCRIPT_ID = \(idJSON), RULES = \(rulesJSON);
+        if (window.__wukongDisabledScriptIDs) delete window.__wukongDisabledScriptIDs[SCRIPT_ID];
+        \(parts.reporter)
+        \(parts.mainDecl)
         let lastExecutedHref = String(window.location.href || "");
         const runOnSpaRoute = () => {
           if (!window.__wukongScriptsGlobalEnabled) return;
           if (window.__wukongDisabledScriptIDs && window.__wukongDisabledScriptIDs[SCRIPT_ID]) return;
           const href = String(window.location.href || "");
-          if (!window.__wukongMatchesRules(RULES, href)) {
-            lastExecutedHref = null;
-            return;
-          }
+          if (!window.__wukongMatchesRules(RULES, href)) { lastExecutedHref = null; return; }
           if (href === lastExecutedHref) return;
           lastExecutedHref = href;
           try {
             const promise = __wukongUserMain();
-            if (promise && typeof promise.catch === "function") {
-              promise.catch((err) => { reportError(err); });
-            }
+            if (promise && typeof promise.catch === "function") promise.catch((err) => { reportError(err); });
           } catch (err) {
             reportError(err);
           }
         };
-
-        if (window.__wukongLiveJSRouteHandlers) {
-          window.__wukongLiveJSRouteHandlers.set(SCRIPT_ID, runOnSpaRoute);
-        }
-
-        if (\(runFlag)) {
+        if (window.__wukongLiveJSRouteHandlers) window.__wukongLiveJSRouteHandlers.set(SCRIPT_ID, runOnSpaRoute);
+        if (\(executeImmediately ? "true" : "false")) {
           try {
             await __wukongUserMain();
             return { ok: true };
           } catch (err) {
-            const msg = reportError(err);
-            return { ok: false, error: msg };
+            return { ok: false, error: reportError(err) };
           }
         }
         return { ok: true };
