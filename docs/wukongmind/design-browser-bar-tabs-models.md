@@ -2,7 +2,7 @@
 
 Status: **proposed**. Visual only, with no app code. The owner asked for three things after 1.3.0, and this page designs all three before any of them is built.
 
-- **Boards:** unified design canvas (https://claude.ai/artifact/Daefr4AsZcSm2EWbTLU9uK), version 60, section "WUKO-77".
+- **Boards:** unified design canvas (https://claude.ai/artifact/Daefr4AsZcSm2EWbTLU9uK), version 61, section "WUKO-77".
 - **Export:** `design/unified-canvas/` holds the boards' `*.dc.html` files and 2x PNGs in `png/` (light and dark).
 
 | Board | What it shows |
@@ -35,7 +35,7 @@ Looks come from the design system (https://claude.ai/artifact/5fGhnS4fmcmWYZbPoK
   - It sits 9 pt above the bottom edge, over the home indicator.
   - Page content runs under it to the bottom edge, and the web view's bottom inset becomes 0 while collapsed.
 - **Expands on:**
-  - scrolling up (16 pt or more of upward travel);
+  - scrolling up, with the finger: 32 pt of upward travel from collapsed brings p below 0.5, so letting go opens the bar (see "Motion spec");
   - a tap on the pill;
   - reaching the end of the page (the scroll view's bottom bounce);
   - a new page load;
@@ -81,14 +81,18 @@ On iPad the widths run from page-column width − 24 to 200, the height from 52 
 
 ### Motion spec
 
-- **Progress p** (0 expanded, 1 collapsed) = the scroll distance travelled since the last change of direction, divided by **64 pt**, clamped to 0…1.
+- **Progress p** (0 expanded, 1 collapsed) is signed and runs from wherever it was when the scroll began:
+  `p = clamp(p₀ + Δy ÷ 64 pt, 0, 1)`.
+  - p₀ is p when the finger touches down (or when momentum scrolling begins). Δy is the content offset change since then: positive while the page scrolls down, negative while it scrolls up.
+  - So scrolling down collapses the bar and scrolling up expands it, both following the finger. Reversing mid-drag simply reverses p, with no reset and no threshold.
   - Only offsets inside the content count: no bounce, and no changes while the page loads or while the keyboard shows.
-  - p follows the finger frame by frame: no animation runs while you drag.
-- **On release** with 0 < p < 1:
+  - Momentum scrolling after a flick keeps driving p with the same formula.
+  - p follows the finger frame by frame: no animation runs while the finger or momentum drives it.
+- **When scrolling stops** (finger up with no momentum, or momentum ends) with 0 < p < 1:
   - It settles to the nearer end.
-  - A flick faster than 300 pt/s settles in its own direction.
+  - A flick faster than 300 pt/s settles in its own direction (down: collapsed; up: expanded).
   - Spring: `.spring(response: 0.24, dampingFraction: 1.0)`. It is critically damped (no bounce) and visually done within 250 ms.
-- **Discrete triggers** animate with the same spring: tap, page end, load, address edit, scroll-up threshold.
+- **Discrete triggers** spring to p = 0 with the same spring, and only when no finger is on the page: a tap on the pill, reaching the page end, a page load, address editing. Scrolling up is never a discrete trigger, because it is finger-driven.
 - **Buttons** fade over the first half of the gesture (opacity = max(0, 1 − 2p)) and scale from 1 to 0.7. Size, radius, position and text size change over the whole gesture. That way the buttons are gone before the shape is small enough to clip them.
 - **The design-system motion rule** (design-system README, "Motion"): this is a functional transition that explains cause and effect. It is under 250 ms, has no bounce, and is not decorative. It adds a third transition beside the two on the `Motion` board, so the owner confirms it.
 - **The turning ring** keeps turning in both states. Inside the pill it is the same animation at 16 pt.
