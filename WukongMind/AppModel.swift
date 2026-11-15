@@ -260,6 +260,7 @@ final class AppModel: ObservableObject {
             || value("-dc-browser-agent-scripts-box") != nil
             || value("-dc-scripts-sample") != nil
             || arguments.contains("-dc-scripts-sample")
+            || value("-dc-m4-import-preview") != nil
             || value("-dc-fixture-model") != nil
             || arguments.contains("-dc-no-provider")
     }
@@ -362,6 +363,9 @@ final class AppModel: ObservableObject {
     private(set) lazy var playPauseShortcut = PlayPauseShortcut(podcast: podcast)
     /// Per-site userscript store and automatic WKWebView injector (`ScriptStore.swift`).
     let scriptStore: ScriptStore
+    /// Userscript importer and daily foreground update checker (`ScriptImport.swift`).
+    let scriptImporter: ScriptImporter
+    private var scriptImporterCancellable: AnyCancellable?
     /// The agent's on-disk audit log and task records (`AuditLog.swift`, `TaskRecord.swift`).
     let auditLog: AuditLog
     let taskRecordStore: TaskRecordStore
@@ -522,6 +526,9 @@ final class AppModel: ObservableObject {
         }
         tabBrowser.topicFactsLookup = { [weak appBox] topic in
             appBox?.value?.topicOverviews[topic.topicKey]?.facts
+        }
+        tabBrowser.onUserScriptNavigation = { [weak appBox] url in
+            appBox?.value?.openScriptImportFromBrowser(url)
         }
         if let app = appBox.value {
             tabBrowser.homeSiteURL = app.currentSiteURL
@@ -690,6 +697,13 @@ final class AppModel: ObservableObject {
         }
         self.scriptStore = resolvedScriptStore
         let box = self.appBox
+        let resolvedImporter = ScriptImporter(
+            scriptStore: resolvedScriptStore,
+            httpClientProvider: {
+                box.value?.agentHTTPClient ?? AgentHTTPClient()
+            }
+        )
+        self.scriptImporter = resolvedImporter
         let workspace = self.agentWorkspace
         let initialPageToolsEnabled = loadedSettings.agentPageToolsEnabled
         self.tabs = BrowserTabs(
@@ -774,6 +788,9 @@ final class AppModel: ObservableObject {
         self.scriptStore.onStoreChanged = { [weak self] in
             self?.objectWillChange.send()
         }
+        self.scriptImporterCancellable = resolvedImporter.objectWillChange.sink { [weak self] _ in
+            self?.objectWillChange.send()
+        }
         // Start on the most recently visited forum (or the first pinned one);
         // with none, the browser stays empty and the UI shows the Forums home.
         currentSiteURL = Self.startForum(in: forums)?.siteURL
@@ -840,6 +857,7 @@ final class AppModel: ObservableObject {
         }
         applyBrowserAgentDebugArguments()
         seedScriptsSampleIfNeeded()
+        seedM4ImportPreviewIfNeeded()
         // Sample only: never over the real digests or with a real key.
         if AssistantDebug.isActive, AssistantDebug.has("-dc-digest-sample") { seedDigestSample() }
         // `-dc-no-forums`: the sample as a new user sees Home (never saved).
@@ -972,6 +990,67 @@ final class AppModel: ObservableObject {
         if !isProviderReady(for: .browserAgent) {
             needsProviderSetup = .browserAgent
         }
+    }
+
+    /// Display name of the model used for userscript capabilities (`Summaries` fallback until M4 `GM_ai`).
+    var scriptsModelDisplayName: String {
+        let label = modelLabel(for: .assistant)
+        return label.isEmpty ? selection(for: .assistant).provider.displayName : label
+    }
+
+    /// Opens the userscript import review sheet when a `.user.js` navigation is intercepted.
+    /// Ignores background or follow-up `.user.js` navigations while an import sheet is already active
+    /// so a page behind the sheet can never swap what the person is reviewing.
+    func openScriptImportFromBrowser(_ url: URL) {
+        guard scriptImporter.activeSessionID == nil, scriptImporter.phase == nil else { return }
+        let inSettings = (requestedSettingsPage == .scripts)
+        if !inSettings {
+            requestedSettingsPage = nil
+            router.item = nil
+        }
+        scriptImporter.openImport(from: url, inSettings: inSettings)
+    }
+
+    /// Dismisses the import review sheet, opens the Browser Agent, and sends the
+    /// third-party script wrapped as untrusted web content for a read-only review.
+    func askAgentToReviewImportedScript(_ review: ScriptImportReview) {
+        scriptImporter.dismissImport()
+        requestedSettingsPage = nil
+        requestedScriptID = nil
+        openBrowserAgent()
+        guard isProviderReady(for: .browserAgent) else { return }
+        let attached = Self.makeScriptReviewAttachedBlock(
+            review: review,
+            redactedSecrets: browserAgentRuntimeConfig.redactedSecrets
+        )
+        browserAgent.send(
+            String(localized: "Review this script before I turn it on", comment: "User prompt sent to the Browser Agent when tapping Ask the Agent to review it in the script import sheet"),
+            context: nil,
+            attachedBlock: attached
+        )
+    }
+
+    static func makeScriptReviewAttachedBlock(
+        review: ScriptImportReview,
+        redactedSecrets: [String]
+    ) -> String {
+        let untrustedPayload = """
+        Install URL: \(review.installURL)
+        Source host: \(review.finalHost)
+
+        \(review.rawSource)
+        """
+        let wrapped = UntrustedWebContent.wrap(
+            untrustedPayload,
+            toolName: "userscript_import_review",
+            secrets: redactedSecrets
+        )
+        return """
+        The person is reviewing a third-party userscript before deciding whether to install it.
+        Do NOT call script_save, script_delete, navigate, or any page-modifying tool. Explain in plain words what the script does, which sites and hosts it reaches, and any privacy or security risks.
+
+        \(wrapped)
+        """
     }
 
     /// Live configuration snapshot read by `browserAgent` when starting a turn.

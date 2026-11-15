@@ -227,6 +227,8 @@ struct AgentHTTPRequest: Sendable {
     var body: String?
     /// Attach the target site's cookies from the browser's store.
     var sendCookies = false
+    var httpsOnly = false
+    var maxBytes: Int = AgentHTTPClient.maxBodyBytes
     var timeout: TimeInterval = 30
 }
 
@@ -326,8 +328,15 @@ final class AgentHTTPClient: @unchecked Sendable {
     }
 
     func send(_ request: AgentHTTPRequest) async throws -> AgentHTTPResponse {
-        try await withTimeout(request.timeout, timeoutError: AgentHTTPError(message: "The request timed out after \(Int(request.timeout)) seconds.")) { [self] in
-            try await perform(request)
+        if request.httpsOnly, request.url.scheme?.lowercased() != "https" {
+            throw AgentHTTPError(message: "Only HTTPS links are allowed.")
+        }
+        let cap = max(1, min(request.maxBytes, Self.maxBodyBytes))
+        let hopCheck: ((URL, String) throws -> Void)? = request.httpsOnly ? { hopURL, _ in
+            if hopURL.scheme?.lowercased() != "https" { throw AgentHTTPError(message: "Redirected to a non-HTTPS address.") }
+        } : nil
+        return try await withTimeout(request.timeout, timeoutError: AgentHTTPError(message: "The request timed out after \(Int(request.timeout)) seconds.")) { [self] in
+            try await perform(request, maxBodyBytes: cap, scriptHopCheck: hopCheck)
         }
     }
 
@@ -490,7 +499,7 @@ final class AgentHTTPClient: @unchecked Sendable {
                 if failOnOverflow, data.count > maxBodyBytes {
                     throw ScriptHTTPError(kind: .tooLarge, message: "Response exceeds the 5 MB script limit.")
                 }
-                if !failOnOverflow, data.count >= maxBodyBytes { truncated = true; break }
+                if !failOnOverflow, data.count > maxBodyBytes { truncated = true; break }
             }
         }
         if !truncated { data.append(contentsOf: buffer) }

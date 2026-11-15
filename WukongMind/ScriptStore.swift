@@ -1,3 +1,4 @@
+import CryptoKit
 import Darwin
 import Foundation
 import Observation
@@ -133,6 +134,17 @@ enum ScriptVersionOrigin: Codable, Equatable, Sendable {
             return nil
         }
     }
+}
+
+struct ScriptRequiredLibrary: Codable, Equatable, Sendable {
+    var url: String
+    var sha256: String
+    var sizeBytes: Int
+}
+
+struct ScriptLoadedLibrary: Codable, Equatable, Sendable {
+    var meta: ScriptRequiredLibrary
+    var code: String
 }
 
 enum ScriptVersionChangedField: String, CaseIterable, Equatable, Sendable {
@@ -822,6 +834,8 @@ struct ScriptMetadata: Codable, Equatable, Sendable {
     var runAtText: String?
     /// `@wukong-install-url`: where an imported script came from.
     var installURL: String?
+    /// `@wukong-source-host`: final host the script's text came from when imported.
+    var sourceHost: String?
     /// `@wukong-upstream-hash`: SHA-256 of the text that was imported.
     var upstreamHash: String?
     /// `@wukong-locally-changed`: edited here since it was imported or last updated.
@@ -832,6 +846,7 @@ struct ScriptMetadata: Codable, Equatable, Sendable {
         authorVersion: String? = nil,
         runAtText: String? = nil,
         installURL: String? = nil,
+        sourceHost: String? = nil,
         upstreamHash: String? = nil,
         locallyChanged: Bool = false
     ) {
@@ -839,6 +854,7 @@ struct ScriptMetadata: Codable, Equatable, Sendable {
         self.authorVersion = authorVersion
         self.runAtText = runAtText
         self.installURL = installURL
+        self.sourceHost = sourceHost
         self.upstreamHash = upstreamHash
         self.locallyChanged = locallyChanged
     }
@@ -849,6 +865,7 @@ struct ScriptMetadata: Codable, Equatable, Sendable {
         authorVersion = try container.decodeIfPresent(String.self, forKey: .authorVersion)
         runAtText = try container.decodeIfPresent(String.self, forKey: .runAtText)
         installURL = try container.decodeIfPresent(String.self, forKey: .installURL)
+        sourceHost = try container.decodeIfPresent(String.self, forKey: .sourceHost)
         upstreamHash = try container.decodeIfPresent(String.self, forKey: .upstreamHash)
         locallyChanged = try container.decodeIfPresent(Bool.self, forKey: .locallyChanged) ?? false
     }
@@ -1178,8 +1195,8 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
 
     // MARK: Standard `.user.js` Format
 
-    private static let headerStartMarker = "// ==UserScript=="
-    private static let headerEndMarker = "// ==/UserScript=="
+    static let headerStartMarker = "// ==UserScript=="
+    static let headerEndMarker = "// ==/UserScript=="
     private static let cssBlockStartMarker = "// ==WukongCSS=="
     private static let cssBlockEndMarker = "// ==/WukongCSS=="
     private static let cssDeclarationPrefix = "  const css = "
@@ -1247,6 +1264,9 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
         lines.append("// @wukong-updated-at \(Self.formatISO8601(updatedAt))")
         if let installURL = metadata.installURL, !installURL.isEmpty {
             lines.append("// @wukong-install-url \(Self.encodeHeaderValue(installURL))")
+        }
+        if let sourceHost = metadata.sourceHost, !sourceHost.isEmpty {
+            lines.append("// @wukong-source-host \(Self.encodeHeaderValue(sourceHost))")
         }
         if let upstreamHash = metadata.upstreamHash, !upstreamHash.isEmpty {
             lines.append("// @wukong-upstream-hash \(Self.encodeHeaderValue(upstreamHash))")
@@ -1316,6 +1336,7 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
         var versionText: String?
         var runAtText: String?
         var installURL: String?
+        var sourceHost: String?
         var upstreamHash: String?
         var locallyChanged = false
         var keptLines: [ScriptMetadata.Line] = []
@@ -1403,6 +1424,8 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
                 updatedAt = parseISO8601(value)
             case "@wukong-install-url":
                 installURL = value.isEmpty ? nil : value
+            case "@wukong-source-host":
+                sourceHost = value.isEmpty ? nil : value.lowercased()
             case "@wukong-upstream-hash":
                 upstreamHash = value.isEmpty ? nil : value
             case "@wukong-locally-changed":
@@ -1497,6 +1520,7 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
                 authorVersion: authorVersion,
                 runAtText: runAtText,
                 installURL: installURL,
+                sourceHost: sourceHost,
                 upstreamHash: upstreamHash,
                 locallyChanged: locallyChanged
             )
@@ -1748,6 +1772,8 @@ final class ScriptStore {
     private var lastServiceErrorLoadIDs: [String: String] = [:]
     @ObservationIgnored
     private var pendingErrorWithoutLoadID: Set<String> = []
+    @ObservationIgnored
+    private var deletedRequireSnapshots: [String: [ScriptLoadedLibrary]] = [:]
 
     var isGlobalEnabled: Bool {
         didSet {
@@ -2034,12 +2060,64 @@ final class ScriptStore {
     @discardableResult
     func commitCreated(_ created: UserScript) throws -> UserScript {
         valuesStore.discardDeletedSnapshot(id: created.id)
+        deletedRequireSnapshots.removeValue(forKey: created.id)
         try writeScriptFile(created)
         scripts.append(created)
         sortScriptsInPlace()
         clearError(for: created.id)
         syncAttachedUserScripts()
         return created
+    }
+
+    @discardableResult
+    func saveImportedScript(
+        _ candidate: UserScript,
+        installURL: String,
+        sourceHost: String? = nil,
+        upstreamHash: String,
+        libraries: [ScriptLoadedLibrary],
+        turnOn: Bool,
+        now: Date = Date()
+    ) throws -> UserScript {
+        var script = candidate
+        let existingIDs = Set(scripts.map(\.id))
+        script.id = Self.makeSlugID(from: script.name, existingIDs: existingIDs)
+        script.source = .imported
+        script.version = 1
+        script.versions = []
+        script.versionOrigin = .imported
+        script.isEnabled = turnOn
+        script.disabledReason = nil
+        script.createdAt = now
+        script.updatedAt = now
+        script.metadata.installURL = installURL
+        script.metadata.sourceHost = sourceHost?.lowercased() ?? URL(string: installURL)?.host?.lowercased()
+        script.metadata.upstreamHash = upstreamHash
+        script.metadata.locallyChanged = false
+
+        valuesStore.discardDeletedSnapshot(id: script.id)
+        deletedRequireSnapshots.removeValue(forKey: script.id)
+        try writeRequiredLibraries(libraries, for: script.id)
+        if script.isEnabled, case .failure(let reason) = loadVerifiedRequiredCode(for: script) {
+            script.isEnabled = false
+            script.disabledReason = reason
+        }
+        try writeScriptFile(script)
+        scripts.append(script)
+        sortScriptsInPlace()
+        clearError(for: script.id)
+        syncAttachedUserScripts()
+        if script.isEnabled {
+            applyLiveToAttachedControllers(script, runJS: true)
+        }
+        return script
+    }
+
+    private func applyLiveToAttachedControllers(_ script: UserScript, runJS: Bool) {
+        for entry in attachedControllers {
+            guard let controller = entry.controller else { continue }
+            Task { @MainActor in _ = await controller.applyLiveScript(script, runJS: runJS) }
+        }
     }
 
     @discardableResult
@@ -2229,6 +2307,15 @@ final class ScriptStore {
             throw ScriptStoreError.scriptNotFound(id)
         }
         var current = scripts[idx]
+        if isEnabled, case .failure(let reason) = loadVerifiedRequiredCode(for: current) {
+            current.isEnabled = false
+            current.disabledReason = reason
+            current.updatedAt = now
+            try writeScriptFile(current)
+            scripts[idx] = current
+            syncAttachedUserScripts()
+            return current
+        }
         guard current.isEnabled != isEnabled || current.disabledReason != nil else {
             return current
         }
@@ -2303,7 +2390,7 @@ final class ScriptStore {
         let maxKnownVersion = max(current.version, updatedVersions.map(\.version).max() ?? 0)
         let nextVersion = maxKnownVersion + 1
 
-        let restored = UserScript(
+        var restored = UserScript(
             id: current.id,
             name: target.name,
             matchRules: target.matchRules,
@@ -2323,6 +2410,11 @@ final class ScriptStore {
         )
 
         try writeVersionArchive(for: current)
+        try restoreVersionRequiredLibraries(id: current.id, fromVersion: target.version)
+        if restored.isEnabled, case .failure(let reason) = loadVerifiedRequiredCode(for: restored) {
+            restored.isEnabled = false
+            restored.disabledReason = reason
+        }
         try writeScriptFile(restored)
 
         scripts[idx] = restored
@@ -2350,6 +2442,7 @@ final class ScriptStore {
         let removed = scripts.remove(at: idx)
         clearError(for: id)
         valuesStore.removeValuesForDeletedScript(id: id)
+        deletedRequireSnapshots[id] = readStoredRequiredLibraries(for: id)
         try removeScriptFilesFromDisk(id: id)
         syncAttachedUserScripts()
         for entry in attachedControllers {
@@ -2406,6 +2499,9 @@ final class ScriptStore {
         }
         sortScriptsInPlace()
         valuesStore.restoreValuesForUndoneDelete(id: script.id)
+        if let libs = deletedRequireSnapshots.removeValue(forKey: script.id), !libs.isEmpty {
+            try? writeRequiredLibraries(libs, for: script.id)
+        }
         syncAttachedUserScripts()
         for entry in attachedControllers {
             guard let controller = entry.controller else { continue }
@@ -2565,6 +2661,102 @@ final class ScriptStore {
             .appendingPathComponent("v\(version).user.js", isDirectory: false)
     }
 
+    func requireDirectoryURL(for id: String) -> URL {
+        directoryURL.appendingPathComponent("\(id).require", isDirectory: true)
+    }
+
+    func versionRequireDirectoryURL(for id: String, version: Int) -> URL {
+        versionsDirectoryURL(for: id).appendingPathComponent("v\(version).require", isDirectory: true)
+    }
+
+    nonisolated static func sha256Hex(_ data: Data) -> String {
+        SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
+    }
+
+    func writeRequiredLibraries(_ libraries: [ScriptLoadedLibrary], for id: String) throws {
+        let fm = FileManager.default
+        let dir = requireDirectoryURL(for: id)
+        do {
+            if fm.fileExists(atPath: dir.path) {
+                try fm.removeItem(at: dir)
+            }
+            guard !libraries.isEmpty else { return }
+            try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+            for (index, item) in libraries.enumerated() {
+                try Data(item.code.utf8).write(
+                    to: dir.appendingPathComponent("\(index).js", isDirectory: false),
+                    options: .atomic
+                )
+            }
+            let manifestData = try JSONEncoder().encode(libraries.map(\.meta))
+            try manifestData.write(to: dir.appendingPathComponent("manifest.json", isDirectory: false), options: .atomic)
+        } catch {
+            throw ScriptStoreError.persistenceFailed(error.localizedDescription)
+        }
+    }
+
+    func readStoredRequiredLibraries(for id: String) -> [ScriptLoadedLibrary] {
+        let dir = requireDirectoryURL(for: id)
+        let manifestURL = dir.appendingPathComponent("manifest.json", isDirectory: false)
+        guard let manifestData = try? Data(contentsOf: manifestURL),
+              let manifest = try? JSONDecoder().decode([ScriptRequiredLibrary].self, from: manifestData) else {
+            return []
+        }
+        var result: [ScriptLoadedLibrary] = []
+        for (index, meta) in manifest.enumerated() {
+            let fileURL = dir.appendingPathComponent("\(index).js", isDirectory: false)
+            guard let code = try? String(contentsOf: fileURL, encoding: .utf8) else { return [] }
+            result.append(ScriptLoadedLibrary(meta: meta, code: code))
+        }
+        return result
+    }
+
+    enum VerifiedRequireResult: Equatable, Sendable {
+        case success([String])
+        case failure(String)
+    }
+
+    func loadVerifiedRequiredCode(for script: UserScript) -> VerifiedRequireResult {
+        let required = script.metadata.requireURLs
+        guard !required.isEmpty else { return .success([]) }
+        let dir = requireDirectoryURL(for: script.id)
+        let manifestURL = dir.appendingPathComponent("manifest.json", isDirectory: false)
+        guard let manifestData = try? Data(contentsOf: manifestURL),
+              let manifest = try? JSONDecoder().decode([ScriptRequiredLibrary].self, from: manifestData),
+              manifest.count == required.count else {
+            return .failure("A required library is missing on this device.")
+        }
+        var bodies: [String] = []
+        bodies.reserveCapacity(required.count)
+        for (index, expectedURL) in required.enumerated() {
+            let entry = manifest[index]
+            let host = URL(string: expectedURL)?.host ?? expectedURL
+            guard entry.url == expectedURL else {
+                return .failure("Required library list changed for \(host).")
+            }
+            let fileURL = dir.appendingPathComponent("\(index).js", isDirectory: false)
+            guard let data = try? Data(contentsOf: fileURL),
+                  let code = String(data: data, encoding: .utf8) else {
+                return .failure("Missing required library from \(host).")
+            }
+            guard Self.sha256Hex(data).lowercased() == entry.sha256.lowercased() else {
+                return .failure("Required library hash changed for \(host).")
+            }
+            bodies.append(code)
+        }
+        return .success(bodies)
+    }
+
+    func disableForLibraryFailure(id: String, reason: String, now: Date = Date()) {
+        guard let idx = scripts.firstIndex(where: { $0.id == id }), scripts[idx].isEnabled else { return }
+        var updated = scripts[idx]
+        updated.isEnabled = false
+        updated.disabledReason = reason
+        updated.updatedAt = now
+        try? writeScriptFile(updated)
+        scripts[idx] = updated
+    }
+
     func reloadFromDisk() {
         let fm = FileManager.default
         guard fm.fileExists(atPath: directoryURL.path) else {
@@ -2602,6 +2794,10 @@ final class ScriptStore {
                     defaultTimestamp: mtime
                 )
                 script.versions = loadArchivedVersions(for: script.id)
+                if script.isEnabled, case .failure(let reason) = loadVerifiedRequiredCode(for: script) {
+                    script.isEnabled = false
+                    script.disabledReason = reason
+                }
                 loaded.append(script)
             } catch {
                 Self.log.error(
@@ -2670,10 +2866,34 @@ final class ScriptStore {
     private func writeVersionArchive(for script: UserScript) throws {
         let fm = FileManager.default
         let versionDir = versionsDirectoryURL(for: script.id)
+        let currentReq = requireDirectoryURL(for: script.id)
+        let versionReq = versionRequireDirectoryURL(for: script.id, version: script.version)
         do {
             try fm.createDirectory(at: versionDir, withIntermediateDirectories: true)
             let data = Data(script.toUserScriptFileContent().utf8)
             try data.write(to: versionFileURL(for: script.id, version: script.version), options: .atomic)
+            if fm.fileExists(atPath: versionReq.path) {
+                try fm.removeItem(at: versionReq)
+            }
+            if fm.fileExists(atPath: currentReq.path) {
+                try fm.copyItem(at: currentReq, to: versionReq)
+            }
+        } catch {
+            throw ScriptStoreError.persistenceFailed(error.localizedDescription)
+        }
+    }
+
+    private func restoreVersionRequiredLibraries(id: String, fromVersion version: Int) throws {
+        let fm = FileManager.default
+        let currentReq = requireDirectoryURL(for: id)
+        let versionReq = versionRequireDirectoryURL(for: id, version: version)
+        do {
+            if fm.fileExists(atPath: currentReq.path) {
+                try fm.removeItem(at: currentReq)
+            }
+            if fm.fileExists(atPath: versionReq.path) {
+                try fm.copyItem(at: versionReq, to: currentReq)
+            }
         } catch {
             throw ScriptStoreError.persistenceFailed(error.localizedDescription)
         }
@@ -2683,12 +2903,16 @@ final class ScriptStore {
         let fm = FileManager.default
         let fileURL = scriptFileURL(for: id)
         let versionDir = versionsDirectoryURL(for: id)
+        let requireDir = requireDirectoryURL(for: id)
         do {
             if fm.fileExists(atPath: fileURL.path) {
                 try fm.removeItem(at: fileURL)
             }
             if fm.fileExists(atPath: versionDir.path) {
                 try fm.removeItem(at: versionDir)
+            }
+            if fm.fileExists(atPath: requireDir.path) {
+                try fm.removeItem(at: requireDir)
             }
         } catch {
             throw ScriptStoreError.persistenceFailed(error.localizedDescription)
@@ -3037,13 +3261,24 @@ final class ScriptWebController: ScriptLiveApplying {
 
         var enabledScripts: [UserScript] = []
         if let domainKey, store.isGlobalEnabled {
-            enabledScripts = store.scripts.filter { $0.isEnabled && $0.matchesDomain(domainKey) }
+            var candidates = store.scripts.filter { $0.isEnabled && $0.matchesDomain(domainKey) }
             if let verification = activeVerification {
-                enabledScripts.removeAll { script in
+                candidates.removeAll { script in
                     script.id == verification.candidate.id || script.id == verification.replacingScriptID
                 }
                 if verification.candidate.isEnabled, verification.candidate.matchesDomain(domainKey) {
-                    enabledScripts.append(verification.candidate)
+                    candidates.append(verification.candidate)
+                }
+            }
+            for var candidate in candidates {
+                switch store.loadVerifiedRequiredCode(for: candidate) {
+                case .success(let libs):
+                    if !libs.isEmpty {
+                        candidate.js = (libs + [candidate.js]).joined(separator: "\n;\n")
+                    }
+                    enabledScripts.append(candidate)
+                case .failure(let reason):
+                    store.disableForLibraryFailure(id: candidate.id, reason: reason)
                 }
             }
         }
@@ -3176,6 +3411,17 @@ final class ScriptWebController: ScriptLiveApplying {
             await removeLiveScript(id: script.id)
             return .notApplied
         }
+        var executableScript = script
+        switch store.loadVerifiedRequiredCode(for: script) {
+        case .success(let libs):
+            if !libs.isEmpty {
+                executableScript.js = (libs + [script.js]).joined(separator: "\n;\n")
+            }
+        case .failure(let reason):
+            store.disableForLibraryFailure(id: script.id, reason: reason)
+            await removeLiveScript(id: script.id)
+            return .notApplied
+        }
 
         if script.hasJS, script.runsInPageWorld, let controller = webView?.configuration.userContentController {
             gmBridge.ensurePageHandlerRegistered(on: controller)
@@ -3236,7 +3482,7 @@ final class ScriptWebController: ScriptLiveApplying {
                 ? store.valuesStore.serializedJSON(for: script.id)
                 : "{}"
             let liveRunner = Self.buildLiveJSInstallAndRunSource(
-                for: script,
+                for: executableScript,
                 isPage: isPage,
                 initialValuesJSON: valuesJSON,
                 pageToolShimJS: isPage ? "" : (pageToolBridge?.scriptWorldShimJS(forScriptID: script.id) ?? ""),
@@ -3925,7 +4171,7 @@ final class ScriptWebController: ScriptLiveApplying {
           return (typeof fn === "function" ? fn(\(bindJSON), "bind", SCRIPT_ID) : null) || __wukongNoopCtx;
         };
         const AsyncFn = Object.getPrototypeOf(async function(){}).constructor;
-        const __wukongUserMain = () => (new AsyncFn("modelContext", USER_CODE))(__wukongResolveCtx());
+        const __wukongUserMain = () => (new AsyncFn("modelContext", USER_CODE)).call(window, __wukongResolveCtx());
         """
         return (setup, reporter, mainDecl)
     }

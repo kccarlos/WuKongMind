@@ -47,6 +47,8 @@ enum RootPresentation: Identifiable, Equatable {
     case shareHowTo
     /// The Today podcast's player (NowPlaying.swift).
     case nowPlaying
+    /// M4 userscript import review sheet (`ScriptImportViews.swift`).
+    case scriptImport
     #if DEBUG
     /// `-dc-show-settings <page>`: Settings as a cover (screenshots).
     case debugSettings(SettingsPage?)
@@ -67,6 +69,7 @@ enum RootPresentation: Identifiable, Equatable {
         case .addForum: "addForum"
         case .shareHowTo: "shareHowTo"
         case .nowPlaying: "nowPlaying"
+        case .scriptImport: "scriptImport"
         #if DEBUG
         case .debugSettings(let page): "debugSettings-\(page?.rawValue ?? "root")"
         #endif
@@ -364,6 +367,9 @@ extension AppModel {
         // The sheet the replay was asked from is leaving: nothing else comes.
         if router.onboardingReplay == .waitingForSheet { return nil }
         if let item = router.item { return item }
+        if scriptImporter.activeSessionID != nil && !scriptImporter.presentsInSettings {
+            return .scriptImport
+        }
         if let page = requestedSettingsPage { return .settings(page) }
         return nil
     }
@@ -377,6 +383,9 @@ extension AppModel {
         case .settings:
             requestedSettingsPage = nil
             requestedScriptID = nil
+            if scriptImporter.presentsInSettings { scriptImporter.dismissImport() }
+        case .scriptImport:
+            scriptImporter.dismissImport()
         case .providerSetup:
             router.item = nil
             needsProviderSetup = nil
@@ -552,6 +561,8 @@ struct RouterHost: ViewModifier {
         case .nowPlaying:
             NowPlayingView(app: app, podcast: podcast)
                 .nowPlayingZoomDestination()
+        case .scriptImport:
+            ScriptImportSheet(app: app)
         #if DEBUG
         case .debugSettings(let page):
             NavigationStack {
