@@ -27,12 +27,11 @@ Code references are as of `563aeef` (main when this was written).
 
 ## Decisions
 
-- **A script that gets powers gets its own world.** The shared isolated world is not safe for third-party code. Every script there can post to the app's `wukongAgent` handler, and the handler takes the script's ID from the message itself (`ScriptStore.swift:2433`), so one script could report errors, and later read values or spend grants, in another script's name. The same world also runs the Agent's `run_js`, whose `wukong.files` and `wukong.fetch` helpers are guarded only by a token passed through that handler (`helpersScript`, `AgentBridge.swift:1031`; `activeCallTokens`, `AgentBridge.swift:239`). Whether a script in that world can catch the token is spike question 7. So:
+- **A script that gets powers gets its own world.** The shared isolated world is not safe for third-party code. Every script there can post to the app's `wukongAgent` handler, and the handler takes the script's ID from the message itself (`ScriptStore.swift:2433`), so one script could report errors, and later read values or spend grants, in another script's name. The same world also runs the Agent's `run_js`, whose `wukong.files` and `wukong.fetch` helpers are guarded only by a token passed through that handler (`helpersScript`, `AgentBridge.swift:1031`; `activeCallTokens`, `AgentBridge.swift:239`). The spike (question 7, [m4-script-worlds.md](m4-script-worlds.md)) showed that a script in that world can catch the token four ways, so the Agent's own scripts move out of it too. `WukongAgent` keeps only `run_js` and its helpers. So:
 
   | Script | World | What it can call |
   |---|---|---|
-  | Made by the Agent, no grants (every script today) | `WukongAgent`, as today | Nothing new. It keeps working unchanged |
-  | Any imported script, and any script with a grant | Its own world, `WukongScript.<id>` | The `GM_*` functions its grants allow |
+  | Every script that runs in a script world: made by the Agent (with or without grants), imported, or with a grant | Its own world, `WukongScript.<id>` | The `GM_*` functions its grants allow (none, for a script with no grant) |
   | `@inject-into page` (or the app's page environment) | The page world | `GM_addStyle`, `GM_info`, `GM_log` only |
 
   Each script world gets its own reply handler object, which knows which script it belongs to. The app never trusts a script ID sent in a message. Error and clean-load reports from a script world go through that handler too.
@@ -41,6 +40,7 @@ Code references are as of `563aeef` (main when this was written).
 - **Scripts can't stop to ask.** A script runs on every page load with nobody watching, so nothing a script does opens a confirmation card. Each power has a fixed limit decided when the script is saved or imported: `@connect` for requests, limits for `GM_ai`.
 - **Nothing third-party runs before the person has seen it.** Import always goes through the review sheet. An update never applies by itself.
 - **One model call path.** `GM_ai` calls `AIService.complete` (`AIService.swift:252`) in the app. The page never sees an API key.
+- **Scripts are injected per host.** Because 30 worlds cost 34 to 44 MB (spike question 2), `syncUserScripts` is rebuilt at the start of each main-frame navigation and adds only the scripts that can match the page's host; a route change inside a single-page app still matches by path in JavaScript.
 - **Small and removable.** All `GM_*` code lives in `GMBridge.swift` (new) and `GMAi.swift` (new). The global scripts switch turns all of it off at once.
 
 ## Metadata
@@ -147,7 +147,7 @@ It runs on `AgentHTTPClient` (`AgentNetworkTools.swift:125`), the client behind 
 
 **What M4 adds.**
 
-- **Wider capture**, in script worlds. The wrapper listens for `error` and `unhandledrejection` in its own world, and wraps every callback the script hands to a `GM_*` function. Each report carries a kind, a stack (at most 2,000 characters) and whether it happened during load or later.
+- **Wider capture**, in script worlds. The spike (question 4) showed that a plain `error` listener in a script world is useless: it also receives the page's errors and other worlds' rejections, and an error thrown by the script's own timer or click handler arrives as "Script error." with no stack. So the wrapper replaces `setTimeout`, `setInterval` and `addEventListener` (and the observer constructors) in its own world with versions that run the callback in a `try`/`catch`, report the error with its stack and rethrow, keeps a map so `removeEventListener` still works, and filters `unhandledrejection` by `e.promise instanceof Promise` (only the world's own promises). It also wraps every callback the script hands to a `GM_*` function. The plain `error` event is ignored. Each report carries a kind, a stack (at most 2,000 characters) and whether it happened during load or later.
 - **Three kinds of error** (`ScriptRuntimeError` gains `kind`, `ScriptStore.swift:47`):
 
   | Kind | Example | Counts toward auto-disable | Offers the fix |
@@ -347,7 +347,7 @@ Per-script worlds are the one part of this design that no test has run yet. Task
 6. **Live apply.** Can `callAsyncJavaScript` run a candidate in a named script world on an already loaded page, for verify before saving and Undo?
 7. **Today's shared world.** Can a script in `WukongAgent` replace or wrap `window.webkit.messageHandlers.wukongAgent` and so catch the `run_js` call token? If yes, the Agent's own scripts move to their own worlds too, in task 3.
 
-**The fallback, named now.** If 30 worlds per page cost too much (more than 50 ms or 20 MB on the test device), the app injects only scripts that can match the page's host. `syncUserScripts` is then rebuilt at the start of each main-frame navigation from `UserScript.matchesDomain`, and a route change inside a single-page app still matches by path in JavaScript as today. If question 1 or 4 fails, the design goes back to the owner before any implementation task starts.
+**The fallback, named now (adopted: 30 small worlds cost 34 to 44 MB on both simulators).** If 30 worlds per page cost too much (more than 50 ms or 20 MB on the test device), the app injects only scripts that can match the page's host. `syncUserScripts` is then rebuilt at the start of each main-frame navigation from `UserScript.matchesDomain`, and a route change inside a single-page app still matches by path in JavaScript as today. If question 1 or 4 fails, the design goes back to the owner before any implementation task starts.
 
 ## Acceptance checks
 
@@ -368,7 +368,7 @@ From roadmap §7 "M4", requirements §9, and what this design adds. Live model c
 8. **Repair.** Break a saved script by hand (a selector that no longer exists, then a thrown error). After three loads it is off. **Let the Agent fix it**, from This page and from Script detail, ends with the script on, its errors cleared and "Fixed" on the card; **Undo** brings back the broken version, off. A script that can't be fixed stops after three tries and stays off. Run live once and kept as a replay fixture.
 9. **A late error is seen.** A script that throws inside a click handler shows the error with its stack in This page.
 10. **Sync.** With two stores on the engine's test transport: a script saved on one appears on the other; turning it off on one leaves it on on the other; an edit on both keeps the newer text and leaves the older one in History; a delete removes it on both; a received change is not uploaded again, and after one edit both stores settle with one new History version each and no further sync passes; an older decoder leaves the record alone (unit tests). On two real devices only if the owner has registered the container.
-11. **Old scripts are untouched.** Every script saved by 1.3 loads, runs in the world it ran in (or, if spike question 7 moved the Agent's scripts, in its own world with the same visible effect), exports the same text apart from the new `@wukong-revision` line, and the existing script tests pass unchanged.
+11. **Old scripts are untouched.** Every script saved by 1.3 loads, runs in the world it ran in (or, since spike question 7 moved the Agent's scripts, in its own world with the same visible effect), exports the same text apart from the new `@wukong-revision` line, and the existing script tests pass unchanged.
 12. **No regressions.** All unit tests pass.
 
 ## Task split
@@ -381,7 +381,7 @@ One spike, eight implementation tasks and one acceptance task, plus the design t
 - Done means the unit tests pass. Simulator builds and tests run with `scripts/remote-test.sh` ([docs/DEVELOPMENT.md](../DEVELOPMENT.md)).
 - Model calls in tests are recorded, and WebKit tests use local fixtures.
 - **New screens and rows follow the artboards.** Tasks 5, 6 and 7 build their UI from the exported artboards and check it against the PNGs. None starts its UI before the design task is accepted.
-- **Tasks 3 to 8 don't start before the spike (task 1) has answered its seven questions** and this page is updated with the answers.
+- **Tasks 3 to 8 don't start before the spike (task 1) has answered its seven questions** and this page is updated with the answers. Done: see [m4-script-worlds.md](m4-script-worlds.md). The spike adopted the fallback (inject per host), moved the Agent's scripts to their own worlds, and changed late-error capture to wrapping.
 
 **Waves.**
 - **A:** tasks 1 and 2, and the design task.
@@ -430,7 +430,7 @@ One spike, eight implementation tasks and one acceptance task, plus the design t
 - **Done when:**
   - acceptance check 5 passes as tests;
   - a value set on one load is read synchronously at document start on the next, under each CSP in the M0 matrix;
-  - a script with no grant and made by the Agent still runs in `WukongAgent`, unless spike question 7 found the shared world unsafe; then it runs in its own world. Either way the existing `ScriptStoreWebTests` pass, changed only where they name the world;
+  - a script with no grant and made by the Agent runs in its own world (spike question 7 found the shared world unsafe), with the same visible effect as today. The existing `ScriptStoreWebTests` pass, changed only where they name the world;
   - an ungranted or unsupported call throws the specified message.
 
 ### 4. M4 4: GM_xmlhttpRequest and menu commands

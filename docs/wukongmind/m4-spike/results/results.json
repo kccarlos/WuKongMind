@@ -1,0 +1,1311 @@
+[
+  {
+    "check" : "handler visible only in its own world, from page; a claimed id 'B' in the body is ignored",
+    "detail" : "gm=n\/a wukongAgent=n\/a; reply gm=none wukongAgent=none",
+    "outcome" : "yes",
+    "question" : "Q1 Identity",
+    "variant" : "no CSP"
+  },
+  {
+    "check" : "handler visible only in its own world, from WukongAgent; a claimed id 'B' in the body is ignored",
+    "detail" : "gm=undefined wukongAgent=object; reply gm=none wukongAgent=agent\/WukongAgent",
+    "outcome" : "yes",
+    "question" : "Q1 Identity",
+    "variant" : "no CSP"
+  },
+  {
+    "check" : "handler visible only in its own world, from script A; a claimed id 'B' in the body is ignored",
+    "detail" : "gm=object wukongAgent=undefined; reply gm=A\/world WukongScript.a\/native world ok 1 wukongAgent=none",
+    "outcome" : "yes",
+    "question" : "Q1 Identity",
+    "variant" : "no CSP"
+  },
+  {
+    "check" : "handler visible only in its own world, from script B; a claimed id 'B' in the body is ignored",
+    "detail" : "gm=object wukongAgent=undefined; reply gm=B\/world WukongScript.b\/native world ok 1 wukongAgent=none",
+    "outcome" : "yes",
+    "question" : "Q1 Identity",
+    "variant" : "no CSP"
+  },
+  {
+    "check" : "handler visible only in its own world, from page; a claimed id 'B' in the body is ignored",
+    "detail" : "gm=n\/a wukongAgent=n\/a; reply gm=none wukongAgent=none",
+    "outcome" : "yes",
+    "question" : "Q1 Identity",
+    "variant" : "self (header)"
+  },
+  {
+    "check" : "handler visible only in its own world, from WukongAgent; a claimed id 'B' in the body is ignored",
+    "detail" : "gm=undefined wukongAgent=object; reply gm=none wukongAgent=agent\/WukongAgent",
+    "outcome" : "yes",
+    "question" : "Q1 Identity",
+    "variant" : "self (header)"
+  },
+  {
+    "check" : "handler visible only in its own world, from script A; a claimed id 'B' in the body is ignored",
+    "detail" : "gm=object wukongAgent=undefined; reply gm=A\/world WukongScript.a\/native world ok 1 wukongAgent=none",
+    "outcome" : "yes",
+    "question" : "Q1 Identity",
+    "variant" : "self (header)"
+  },
+  {
+    "check" : "handler visible only in its own world, from script B; a claimed id 'B' in the body is ignored",
+    "detail" : "gm=object wukongAgent=undefined; reply gm=B\/world WukongScript.b\/native world ok 1 wukongAgent=none",
+    "outcome" : "yes",
+    "question" : "Q1 Identity",
+    "variant" : "self (header)"
+  },
+  {
+    "check" : "handler visible only in its own world, from page; a claimed id 'B' in the body is ignored",
+    "detail" : "gm=n\/a wukongAgent=n\/a; reply gm=none wukongAgent=none",
+    "outcome" : "yes",
+    "question" : "Q1 Identity",
+    "variant" : "self (meta)"
+  },
+  {
+    "check" : "handler visible only in its own world, from WukongAgent; a claimed id 'B' in the body is ignored",
+    "detail" : "gm=undefined wukongAgent=object; reply gm=none wukongAgent=agent\/WukongAgent",
+    "outcome" : "yes",
+    "question" : "Q1 Identity",
+    "variant" : "self (meta)"
+  },
+  {
+    "check" : "handler visible only in its own world, from script A; a claimed id 'B' in the body is ignored",
+    "detail" : "gm=object wukongAgent=undefined; reply gm=A\/world WukongScript.a\/native world ok 1 wukongAgent=none",
+    "outcome" : "yes",
+    "question" : "Q1 Identity",
+    "variant" : "self (meta)"
+  },
+  {
+    "check" : "handler visible only in its own world, from script B; a claimed id 'B' in the body is ignored",
+    "detail" : "gm=object wukongAgent=undefined; reply gm=B\/world WukongScript.b\/native world ok 1 wukongAgent=none",
+    "outcome" : "yes",
+    "question" : "Q1 Identity",
+    "variant" : "self (meta)"
+  },
+  {
+    "check" : "handler visible only in its own world, from page; a claimed id 'B' in the body is ignored",
+    "detail" : "gm=n\/a wukongAgent=n\/a; reply gm=none wukongAgent=none",
+    "outcome" : "yes",
+    "question" : "Q1 Identity",
+    "variant" : "nonce (header)"
+  },
+  {
+    "check" : "handler visible only in its own world, from WukongAgent; a claimed id 'B' in the body is ignored",
+    "detail" : "gm=undefined wukongAgent=object; reply gm=none wukongAgent=agent\/WukongAgent",
+    "outcome" : "yes",
+    "question" : "Q1 Identity",
+    "variant" : "nonce (header)"
+  },
+  {
+    "check" : "handler visible only in its own world, from script A; a claimed id 'B' in the body is ignored",
+    "detail" : "gm=object wukongAgent=undefined; reply gm=A\/world WukongScript.a\/native world ok 1 wukongAgent=none",
+    "outcome" : "yes",
+    "question" : "Q1 Identity",
+    "variant" : "nonce (header)"
+  },
+  {
+    "check" : "handler visible only in its own world, from script B; a claimed id 'B' in the body is ignored",
+    "detail" : "gm=object wukongAgent=undefined; reply gm=B\/world WukongScript.b\/native world ok 1 wukongAgent=none",
+    "outcome" : "yes",
+    "question" : "Q1 Identity",
+    "variant" : "nonce (header)"
+  },
+  {
+    "check" : "handler visible only in its own world, from page; a claimed id 'B' in the body is ignored",
+    "detail" : "gm=n\/a wukongAgent=n\/a; reply gm=none wukongAgent=none",
+    "outcome" : "yes",
+    "question" : "Q1 Identity",
+    "variant" : "nonce (meta)"
+  },
+  {
+    "check" : "handler visible only in its own world, from WukongAgent; a claimed id 'B' in the body is ignored",
+    "detail" : "gm=undefined wukongAgent=object; reply gm=none wukongAgent=agent\/WukongAgent",
+    "outcome" : "yes",
+    "question" : "Q1 Identity",
+    "variant" : "nonce (meta)"
+  },
+  {
+    "check" : "handler visible only in its own world, from script A; a claimed id 'B' in the body is ignored",
+    "detail" : "gm=object wukongAgent=undefined; reply gm=A\/world WukongScript.a\/native world ok 1 wukongAgent=none",
+    "outcome" : "yes",
+    "question" : "Q1 Identity",
+    "variant" : "nonce (meta)"
+  },
+  {
+    "check" : "handler visible only in its own world, from script B; a claimed id 'B' in the body is ignored",
+    "detail" : "gm=object wukongAgent=undefined; reply gm=B\/world WukongScript.b\/native world ok 1 wukongAgent=none",
+    "outcome" : "yes",
+    "question" : "Q1 Identity",
+    "variant" : "nonce (meta)"
+  },
+  {
+    "check" : "handler visible only in its own world, from page; a claimed id 'B' in the body is ignored",
+    "detail" : "gm=n\/a wukongAgent=n\/a; reply gm=none wukongAgent=none",
+    "outcome" : "yes",
+    "question" : "Q1 Identity",
+    "variant" : "strict-dynamic (header)"
+  },
+  {
+    "check" : "handler visible only in its own world, from WukongAgent; a claimed id 'B' in the body is ignored",
+    "detail" : "gm=undefined wukongAgent=object; reply gm=none wukongAgent=agent\/WukongAgent",
+    "outcome" : "yes",
+    "question" : "Q1 Identity",
+    "variant" : "strict-dynamic (header)"
+  },
+  {
+    "check" : "handler visible only in its own world, from script A; a claimed id 'B' in the body is ignored",
+    "detail" : "gm=object wukongAgent=undefined; reply gm=A\/world WukongScript.a\/native world ok 1 wukongAgent=none",
+    "outcome" : "yes",
+    "question" : "Q1 Identity",
+    "variant" : "strict-dynamic (header)"
+  },
+  {
+    "check" : "handler visible only in its own world, from script B; a claimed id 'B' in the body is ignored",
+    "detail" : "gm=object wukongAgent=undefined; reply gm=B\/world WukongScript.b\/native world ok 1 wukongAgent=none",
+    "outcome" : "yes",
+    "question" : "Q1 Identity",
+    "variant" : "strict-dynamic (header)"
+  },
+  {
+    "check" : "handler visible only in its own world, from page; a claimed id 'B' in the body is ignored",
+    "detail" : "gm=n\/a wukongAgent=n\/a; reply gm=none wukongAgent=none",
+    "outcome" : "yes",
+    "question" : "Q1 Identity",
+    "variant" : "strict-dynamic (meta)"
+  },
+  {
+    "check" : "handler visible only in its own world, from WukongAgent; a claimed id 'B' in the body is ignored",
+    "detail" : "gm=undefined wukongAgent=object; reply gm=none wukongAgent=agent\/WukongAgent",
+    "outcome" : "yes",
+    "question" : "Q1 Identity",
+    "variant" : "strict-dynamic (meta)"
+  },
+  {
+    "check" : "handler visible only in its own world, from script A; a claimed id 'B' in the body is ignored",
+    "detail" : "gm=object wukongAgent=undefined; reply gm=A\/world WukongScript.a\/native world ok 1 wukongAgent=none",
+    "outcome" : "yes",
+    "question" : "Q1 Identity",
+    "variant" : "strict-dynamic (meta)"
+  },
+  {
+    "check" : "handler visible only in its own world, from script B; a claimed id 'B' in the body is ignored",
+    "detail" : "gm=object wukongAgent=undefined; reply gm=B\/world WukongScript.b\/native world ok 1 wukongAgent=none",
+    "outcome" : "yes",
+    "question" : "Q1 Identity",
+    "variant" : "strict-dynamic (meta)"
+  },
+  {
+    "check" : "0 worlds, small wrapper",
+    "detail" : "median load→didFinish 17 ms (+0 vs 0 worlds); median document-end (DCL) 11 ms (+0); web process footprint 59.9 MB (+0.0 MB vs 0 worlds); handlers registered 0",
+    "outcome" : "info",
+    "question" : "Q2 Cost",
+    "variant" : "no CSP"
+  },
+  {
+    "check" : "1 worlds, small wrapper",
+    "detail" : "median load→didFinish 20 ms (+4 vs 0 worlds); median document-end (DCL) 15 ms (+4); web process footprint 61.9 MB (+2.0 MB vs 0 worlds); handlers registered 1",
+    "outcome" : "info",
+    "question" : "Q2 Cost",
+    "variant" : "no CSP"
+  },
+  {
+    "check" : "10 worlds, small wrapper",
+    "detail" : "median load→didFinish 16 ms (-1 vs 0 worlds); median document-end (DCL) 11 ms (+0); web process footprint 77.8 MB (+17.9 MB vs 0 worlds); handlers registered 10",
+    "outcome" : "info",
+    "question" : "Q2 Cost",
+    "variant" : "no CSP"
+  },
+  {
+    "check" : "30 worlds, small wrapper",
+    "detail" : "median load→didFinish 19 ms (+3 vs 0 worlds); median document-end (DCL) 15 ms (+4); web process footprint 104.1 MB (+44.2 MB vs 0 worlds); handlers registered 30",
+    "outcome" : "info",
+    "question" : "Q2 Cost",
+    "variant" : "no CSP"
+  },
+  {
+    "check" : "1 worlds, heavy (256 KB values + 2 MB require each)",
+    "detail" : "median load→didFinish 17 ms (+1 vs 0 worlds); median document-end (DCL) 12 ms (+1); web process footprint 98.4 MB (+38.5 MB vs 0 worlds); handlers registered 1",
+    "outcome" : "info",
+    "question" : "Q2 Cost",
+    "variant" : "no CSP"
+  },
+  {
+    "check" : "10 worlds, heavy (256 KB values + 2 MB require each)",
+    "detail" : "median load→didFinish 41 ms (+24 vs 0 worlds); median document-end (DCL) 32 ms (+21); web process footprint 454.4 MB (+394.5 MB vs 0 worlds); handlers registered 10",
+    "outcome" : "info",
+    "question" : "Q2 Cost",
+    "variant" : "no CSP"
+  },
+  {
+    "check" : "30 worlds, heavy (256 KB values + 2 MB require each)",
+    "detail" : "median load→didFinish 75 ms (+59 vs 0 worlds); median document-end (DCL) 71 ms (+60); web process footprint 492.1 MB (+432.2 MB vs 0 worlds); handlers registered 30",
+    "outcome" : "info",
+    "question" : "Q2 Cost",
+    "variant" : "no CSP"
+  },
+  {
+    "check" : "A's and B's sheets both apply (from document-start scripts)",
+    "detail" : "page sees {\"bg\":\"rgb(1, 2, 3)\",\"border\":\"0px\",\"color\":\"rgb(4, 5, 6)\",\"len\":2}",
+    "outcome" : "yes",
+    "question" : "Q3 CSS",
+    "variant" : "no CSP"
+  },
+  {
+    "check" : "each world's adoptedStyleSheets list (length, contains its own sheet)",
+    "detail" : "A {\"hasMine\":true,\"len\":2}; B {\"hasMine\":true,\"len\":2}; page 2",
+    "outcome" : "info",
+    "question" : "Q3 CSS",
+    "variant" : "no CSP"
+  },
+  {
+    "check" : "a sheet the page adds afterwards does not remove A's or B's",
+    "detail" : "{\"bg\":\"rgb(1, 2, 3)\",\"border\":\"5px\",\"color\":\"rgb(4, 5, 6)\",\"len\":3}",
+    "outcome" : "yes",
+    "question" : "Q3 CSS",
+    "variant" : "no CSP"
+  },
+  {
+    "check" : "A removes its own sheet: A's rule goes, B's and the page's stay",
+    "detail" : "{\"bg\":\"rgba(0, 0, 0, 0)\",\"border\":\"5px\",\"color\":\"rgb(4, 5, 6)\",\"len\":2}",
+    "outcome" : "yes",
+    "question" : "Q3 CSS",
+    "variant" : "no CSP"
+  },
+  {
+    "check" : "B removes its own: only the page's sheet is left",
+    "detail" : "{\"bg\":\"rgba(0, 0, 0, 0)\",\"border\":\"5px\",\"color\":\"rgb(0, 0, 0)\",\"len\":1}",
+    "outcome" : "yes",
+    "question" : "Q3 CSS",
+    "variant" : "no CSP"
+  },
+  {
+    "check" : "A's and B's sheets both apply (from document-start scripts)",
+    "detail" : "page sees {\"bg\":\"rgb(1, 2, 3)\",\"border\":\"0px\",\"color\":\"rgb(4, 5, 6)\",\"len\":2}",
+    "outcome" : "yes",
+    "question" : "Q3 CSS",
+    "variant" : "self (header)"
+  },
+  {
+    "check" : "each world's adoptedStyleSheets list (length, contains its own sheet)",
+    "detail" : "A {\"hasMine\":true,\"len\":2}; B {\"hasMine\":true,\"len\":2}; page 2",
+    "outcome" : "info",
+    "question" : "Q3 CSS",
+    "variant" : "self (header)"
+  },
+  {
+    "check" : "a sheet the page adds afterwards does not remove A's or B's",
+    "detail" : "{\"bg\":\"rgb(1, 2, 3)\",\"border\":\"5px\",\"color\":\"rgb(4, 5, 6)\",\"len\":3}",
+    "outcome" : "yes",
+    "question" : "Q3 CSS",
+    "variant" : "self (header)"
+  },
+  {
+    "check" : "A removes its own sheet: A's rule goes, B's and the page's stay",
+    "detail" : "{\"bg\":\"rgba(0, 0, 0, 0)\",\"border\":\"5px\",\"color\":\"rgb(4, 5, 6)\",\"len\":2}",
+    "outcome" : "yes",
+    "question" : "Q3 CSS",
+    "variant" : "self (header)"
+  },
+  {
+    "check" : "B removes its own: only the page's sheet is left",
+    "detail" : "{\"bg\":\"rgba(0, 0, 0, 0)\",\"border\":\"5px\",\"color\":\"rgb(0, 0, 0)\",\"len\":1}",
+    "outcome" : "yes",
+    "question" : "Q3 CSS",
+    "variant" : "self (header)"
+  },
+  {
+    "check" : "A's and B's sheets both apply (from document-start scripts)",
+    "detail" : "page sees {\"bg\":\"rgb(1, 2, 3)\",\"border\":\"0px\",\"color\":\"rgb(4, 5, 6)\",\"len\":2}",
+    "outcome" : "yes",
+    "question" : "Q3 CSS",
+    "variant" : "self (meta)"
+  },
+  {
+    "check" : "each world's adoptedStyleSheets list (length, contains its own sheet)",
+    "detail" : "A {\"hasMine\":true,\"len\":2}; B {\"hasMine\":true,\"len\":2}; page 2",
+    "outcome" : "info",
+    "question" : "Q3 CSS",
+    "variant" : "self (meta)"
+  },
+  {
+    "check" : "a sheet the page adds afterwards does not remove A's or B's",
+    "detail" : "{\"bg\":\"rgb(1, 2, 3)\",\"border\":\"5px\",\"color\":\"rgb(4, 5, 6)\",\"len\":3}",
+    "outcome" : "yes",
+    "question" : "Q3 CSS",
+    "variant" : "self (meta)"
+  },
+  {
+    "check" : "A removes its own sheet: A's rule goes, B's and the page's stay",
+    "detail" : "{\"bg\":\"rgba(0, 0, 0, 0)\",\"border\":\"5px\",\"color\":\"rgb(4, 5, 6)\",\"len\":2}",
+    "outcome" : "yes",
+    "question" : "Q3 CSS",
+    "variant" : "self (meta)"
+  },
+  {
+    "check" : "B removes its own: only the page's sheet is left",
+    "detail" : "{\"bg\":\"rgba(0, 0, 0, 0)\",\"border\":\"5px\",\"color\":\"rgb(0, 0, 0)\",\"len\":1}",
+    "outcome" : "yes",
+    "question" : "Q3 CSS",
+    "variant" : "self (meta)"
+  },
+  {
+    "check" : "A's and B's sheets both apply (from document-start scripts)",
+    "detail" : "page sees {\"bg\":\"rgb(1, 2, 3)\",\"border\":\"0px\",\"color\":\"rgb(4, 5, 6)\",\"len\":2}",
+    "outcome" : "yes",
+    "question" : "Q3 CSS",
+    "variant" : "nonce (header)"
+  },
+  {
+    "check" : "each world's adoptedStyleSheets list (length, contains its own sheet)",
+    "detail" : "A {\"hasMine\":true,\"len\":2}; B {\"hasMine\":true,\"len\":2}; page 2",
+    "outcome" : "info",
+    "question" : "Q3 CSS",
+    "variant" : "nonce (header)"
+  },
+  {
+    "check" : "a sheet the page adds afterwards does not remove A's or B's",
+    "detail" : "{\"bg\":\"rgb(1, 2, 3)\",\"border\":\"5px\",\"color\":\"rgb(4, 5, 6)\",\"len\":3}",
+    "outcome" : "yes",
+    "question" : "Q3 CSS",
+    "variant" : "nonce (header)"
+  },
+  {
+    "check" : "A removes its own sheet: A's rule goes, B's and the page's stay",
+    "detail" : "{\"bg\":\"rgba(0, 0, 0, 0)\",\"border\":\"5px\",\"color\":\"rgb(4, 5, 6)\",\"len\":2}",
+    "outcome" : "yes",
+    "question" : "Q3 CSS",
+    "variant" : "nonce (header)"
+  },
+  {
+    "check" : "B removes its own: only the page's sheet is left",
+    "detail" : "{\"bg\":\"rgba(0, 0, 0, 0)\",\"border\":\"5px\",\"color\":\"rgb(0, 0, 0)\",\"len\":1}",
+    "outcome" : "yes",
+    "question" : "Q3 CSS",
+    "variant" : "nonce (header)"
+  },
+  {
+    "check" : "A's and B's sheets both apply (from document-start scripts)",
+    "detail" : "page sees {\"bg\":\"rgb(1, 2, 3)\",\"border\":\"0px\",\"color\":\"rgb(4, 5, 6)\",\"len\":2}",
+    "outcome" : "yes",
+    "question" : "Q3 CSS",
+    "variant" : "nonce (meta)"
+  },
+  {
+    "check" : "each world's adoptedStyleSheets list (length, contains its own sheet)",
+    "detail" : "A {\"hasMine\":true,\"len\":2}; B {\"hasMine\":true,\"len\":2}; page 2",
+    "outcome" : "info",
+    "question" : "Q3 CSS",
+    "variant" : "nonce (meta)"
+  },
+  {
+    "check" : "a sheet the page adds afterwards does not remove A's or B's",
+    "detail" : "{\"bg\":\"rgb(1, 2, 3)\",\"border\":\"5px\",\"color\":\"rgb(4, 5, 6)\",\"len\":3}",
+    "outcome" : "yes",
+    "question" : "Q3 CSS",
+    "variant" : "nonce (meta)"
+  },
+  {
+    "check" : "A removes its own sheet: A's rule goes, B's and the page's stay",
+    "detail" : "{\"bg\":\"rgba(0, 0, 0, 0)\",\"border\":\"5px\",\"color\":\"rgb(4, 5, 6)\",\"len\":2}",
+    "outcome" : "yes",
+    "question" : "Q3 CSS",
+    "variant" : "nonce (meta)"
+  },
+  {
+    "check" : "B removes its own: only the page's sheet is left",
+    "detail" : "{\"bg\":\"rgba(0, 0, 0, 0)\",\"border\":\"5px\",\"color\":\"rgb(0, 0, 0)\",\"len\":1}",
+    "outcome" : "yes",
+    "question" : "Q3 CSS",
+    "variant" : "nonce (meta)"
+  },
+  {
+    "check" : "A's and B's sheets both apply (from document-start scripts)",
+    "detail" : "page sees {\"bg\":\"rgb(1, 2, 3)\",\"border\":\"0px\",\"color\":\"rgb(4, 5, 6)\",\"len\":2}",
+    "outcome" : "yes",
+    "question" : "Q3 CSS",
+    "variant" : "strict-dynamic (header)"
+  },
+  {
+    "check" : "each world's adoptedStyleSheets list (length, contains its own sheet)",
+    "detail" : "A {\"hasMine\":true,\"len\":2}; B {\"hasMine\":true,\"len\":2}; page 2",
+    "outcome" : "info",
+    "question" : "Q3 CSS",
+    "variant" : "strict-dynamic (header)"
+  },
+  {
+    "check" : "a sheet the page adds afterwards does not remove A's or B's",
+    "detail" : "{\"bg\":\"rgb(1, 2, 3)\",\"border\":\"5px\",\"color\":\"rgb(4, 5, 6)\",\"len\":3}",
+    "outcome" : "yes",
+    "question" : "Q3 CSS",
+    "variant" : "strict-dynamic (header)"
+  },
+  {
+    "check" : "A removes its own sheet: A's rule goes, B's and the page's stay",
+    "detail" : "{\"bg\":\"rgba(0, 0, 0, 0)\",\"border\":\"5px\",\"color\":\"rgb(4, 5, 6)\",\"len\":2}",
+    "outcome" : "yes",
+    "question" : "Q3 CSS",
+    "variant" : "strict-dynamic (header)"
+  },
+  {
+    "check" : "B removes its own: only the page's sheet is left",
+    "detail" : "{\"bg\":\"rgba(0, 0, 0, 0)\",\"border\":\"5px\",\"color\":\"rgb(0, 0, 0)\",\"len\":1}",
+    "outcome" : "yes",
+    "question" : "Q3 CSS",
+    "variant" : "strict-dynamic (header)"
+  },
+  {
+    "check" : "A's and B's sheets both apply (from document-start scripts)",
+    "detail" : "page sees {\"bg\":\"rgb(1, 2, 3)\",\"border\":\"0px\",\"color\":\"rgb(4, 5, 6)\",\"len\":2}",
+    "outcome" : "yes",
+    "question" : "Q3 CSS",
+    "variant" : "strict-dynamic (meta)"
+  },
+  {
+    "check" : "each world's adoptedStyleSheets list (length, contains its own sheet)",
+    "detail" : "A {\"hasMine\":true,\"len\":2}; B {\"hasMine\":true,\"len\":2}; page 2",
+    "outcome" : "info",
+    "question" : "Q3 CSS",
+    "variant" : "strict-dynamic (meta)"
+  },
+  {
+    "check" : "a sheet the page adds afterwards does not remove A's or B's",
+    "detail" : "{\"bg\":\"rgb(1, 2, 3)\",\"border\":\"5px\",\"color\":\"rgb(4, 5, 6)\",\"len\":3}",
+    "outcome" : "yes",
+    "question" : "Q3 CSS",
+    "variant" : "strict-dynamic (meta)"
+  },
+  {
+    "check" : "A removes its own sheet: A's rule goes, B's and the page's stay",
+    "detail" : "{\"bg\":\"rgba(0, 0, 0, 0)\",\"border\":\"5px\",\"color\":\"rgb(4, 5, 6)\",\"len\":2}",
+    "outcome" : "yes",
+    "question" : "Q3 CSS",
+    "variant" : "strict-dynamic (meta)"
+  },
+  {
+    "check" : "B removes its own: only the page's sheet is left",
+    "detail" : "{\"bg\":\"rgba(0, 0, 0, 0)\",\"border\":\"5px\",\"color\":\"rgb(0, 0, 0)\",\"len\":1}",
+    "outcome" : "yes",
+    "question" : "Q3 CSS",
+    "variant" : "strict-dynamic (meta)"
+  },
+  {
+    "check" : "plain window listener: A sees its own late errors (timer, event handler, rejection) with their messages",
+    "detail" : "A received [\"error:Error: PAGE-click\", \"error:Error: PAGE-timer\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"rejection:A-reject\", \"rejection:B-reject\", \"rejection:PAGE-reject\"]",
+    "outcome" : "no",
+    "question" : "Q4 Errors",
+    "variant" : "no CSP"
+  },
+  {
+    "check" : "plain window listener: B sees its own late errors (timer, event handler, rejection) with their messages",
+    "detail" : "B received [\"error:Error: PAGE-click\", \"error:Error: PAGE-timer\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"rejection:A-reject\", \"rejection:B-reject\", \"rejection:PAGE-reject\"]",
+    "outcome" : "no",
+    "question" : "Q4 Errors",
+    "variant" : "no CSP"
+  },
+  {
+    "check" : "plain window listener: A sees nothing from B or from the page",
+    "detail" : "A received [\"error:Error: PAGE-click\", \"error:Error: PAGE-timer\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"rejection:A-reject\", \"rejection:B-reject\", \"rejection:PAGE-reject\"]",
+    "outcome" : "no",
+    "question" : "Q4 Errors",
+    "variant" : "no CSP"
+  },
+  {
+    "check" : "plain window listener: B sees nothing from A or from the page",
+    "detail" : "B received [\"error:Error: PAGE-click\", \"error:Error: PAGE-timer\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"rejection:A-reject\", \"rejection:B-reject\", \"rejection:PAGE-reject\"]",
+    "outcome" : "no",
+    "question" : "Q4 Errors",
+    "variant" : "no CSP"
+  },
+  {
+    "check" : "world-local wrappers (setTimeout, addEventListener) report exactly the world's own timer and click errors, with a stack",
+    "detail" : "A own [\"A-click\", \"A-click\", \"A-click\", \"A-timer\"] foreign []; B own [\"B-click\", \"B-click\", \"B-timer\"] foreign []; stacks present true",
+    "outcome" : "yes",
+    "question" : "Q4 Errors",
+    "variant" : "no CSP"
+  },
+  {
+    "check" : "an unhandledrejection whose `promise instanceof Promise` is the world's own is exactly the world's own rejection",
+    "detail" : "A own [\"A-reject\"] foreign []; B own [\"B-reject\"] foreign []",
+    "outcome" : "yes",
+    "question" : "Q4 Errors",
+    "variant" : "no CSP"
+  },
+  {
+    "check" : "the plain window `error` event, from script code in the world, names its script",
+    "detail" : "A's raw error events: [\"Script error.\", \"Script error.\", \"Script error.\", \"Script error.\", \"Script error.\", \"Script error.\", \"Error: PAGE-click\", \"Script error.\", \"Error: PAGE-timer\"]",
+    "outcome" : "no",
+    "question" : "Q4 Errors",
+    "variant" : "no CSP"
+  },
+  {
+    "check" : "samples of what a listener gets (kind, errType, inst, filename, stack head)",
+    "detail" : "[\"A-click wrapped object inst=1 file= stack=@user-script:97:20:104\\n@user-script:97:13:46\\nclick\",\"Script error. error object inst=0 file= stack=\",\"A-reject rejection object inst=1 file= stack=@user-script:97:21:29\\n@\",\"A-timer wrapped object inst=1 file= stack=@user-script:97:19:45\\n@user-script:97:13:46\",\"Script error. error object inst=0 file= stack=\",\"A-click wrapped object inst=1 file= stack=@user-script:97:20:104\\n@user-script:97:13:46\\nclick\",\"Script error. error object inst=0 file= stack=\",\"Script error. error object inst=0 file= stack=\",\"B-reject rejection object inst=0 file= stack=@user-script:98:21:29\\n@\",\"A-click wrapped object inst=1 file= stack=@user-script:97:20:104\\n@user-script:97:13:46\\nclick\",\"Script error. error object inst=0 file= stack=\",\"Script error. error object inst=0 file= stack=\",\"Error: PAGE-click error object inst=1 file=undefined stack=@\\nclick@[native code]\\n@\",\"PAGE-reject rejection object inst=0 file= stack=@\",\"Script error. error object inst=0 file= stack=\",\"Error: PAGE-timer error object inst=1 file=undefined stack=@\"]",
+    "outcome" : "info",
+    "question" : "Q4 Errors",
+    "variant" : "no CSP"
+  },
+  {
+    "check" : "plain window listener: A sees its own late errors (timer, event handler, rejection) with their messages",
+    "detail" : "A received [\"error:Error: PAGE-click\", \"error:Error: PAGE-timer\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"rejection:A-reject\", \"rejection:B-reject\", \"rejection:PAGE-reject\"]",
+    "outcome" : "no",
+    "question" : "Q4 Errors",
+    "variant" : "self (header)"
+  },
+  {
+    "check" : "plain window listener: B sees its own late errors (timer, event handler, rejection) with their messages",
+    "detail" : "B received [\"error:Error: PAGE-click\", \"error:Error: PAGE-timer\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"rejection:A-reject\", \"rejection:B-reject\", \"rejection:PAGE-reject\"]",
+    "outcome" : "no",
+    "question" : "Q4 Errors",
+    "variant" : "self (header)"
+  },
+  {
+    "check" : "plain window listener: A sees nothing from B or from the page",
+    "detail" : "A received [\"error:Error: PAGE-click\", \"error:Error: PAGE-timer\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"rejection:A-reject\", \"rejection:B-reject\", \"rejection:PAGE-reject\"]",
+    "outcome" : "no",
+    "question" : "Q4 Errors",
+    "variant" : "self (header)"
+  },
+  {
+    "check" : "plain window listener: B sees nothing from A or from the page",
+    "detail" : "B received [\"error:Error: PAGE-click\", \"error:Error: PAGE-timer\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"rejection:A-reject\", \"rejection:B-reject\", \"rejection:PAGE-reject\"]",
+    "outcome" : "no",
+    "question" : "Q4 Errors",
+    "variant" : "self (header)"
+  },
+  {
+    "check" : "world-local wrappers (setTimeout, addEventListener) report exactly the world's own timer and click errors, with a stack",
+    "detail" : "A own [\"A-click\", \"A-click\", \"A-click\", \"A-timer\"] foreign []; B own [\"B-click\", \"B-click\", \"B-timer\"] foreign []; stacks present true",
+    "outcome" : "yes",
+    "question" : "Q4 Errors",
+    "variant" : "self (header)"
+  },
+  {
+    "check" : "an unhandledrejection whose `promise instanceof Promise` is the world's own is exactly the world's own rejection",
+    "detail" : "A own [\"A-reject\"] foreign []; B own [\"B-reject\"] foreign []",
+    "outcome" : "yes",
+    "question" : "Q4 Errors",
+    "variant" : "self (header)"
+  },
+  {
+    "check" : "the plain window `error` event, from script code in the world, names its script",
+    "detail" : "A's raw error events: [\"Script error.\", \"Script error.\", \"Script error.\", \"Script error.\", \"Script error.\", \"Error: PAGE-click\", \"Script error.\", \"Script error.\", \"Error: PAGE-timer\"]",
+    "outcome" : "no",
+    "question" : "Q4 Errors",
+    "variant" : "self (header)"
+  },
+  {
+    "check" : "samples of what a listener gets (kind, errType, inst, filename, stack head)",
+    "detail" : "[\"A-click wrapped object inst=1 file= stack=@user-script:99:20:104\\n@user-script:99:13:46\\nclick\",\"Script error. error object inst=0 file= stack=\",\"A-reject rejection object inst=1 file= stack=@user-script:99:21:29\\n@\",\"A-click wrapped object inst=1 file= stack=@user-script:99:20:104\\n@user-script:99:13:46\\nclick\",\"Script error. error object inst=0 file= stack=\",\"Script error. error object inst=0 file= stack=\",\"B-reject rejection object inst=0 file= stack=@user-script:100:21:29\\n@\",\"A-click wrapped object inst=1 file= stack=@user-script:99:20:104\\n@user-script:99:13:46\\nclick\",\"Script error. error object inst=0 file= stack=\",\"Script error. error object inst=0 file= stack=\",\"Error: PAGE-click error object inst=1 file=undefined stack=@\\nclick@[native code]\\n@\",\"PAGE-reject rejection object inst=0 file= stack=@\",\"A-timer wrapped object inst=1 file= stack=@user-script:99:19:45\\n@user-script:99:13:46\",\"Script error. error object inst=0 file= stack=\",\"Script error. error object inst=0 file= stack=\",\"Error: PAGE-timer error object inst=1 file=undefined stack=@\"]",
+    "outcome" : "info",
+    "question" : "Q4 Errors",
+    "variant" : "self (header)"
+  },
+  {
+    "check" : "plain window listener: A sees its own late errors (timer, event handler, rejection) with their messages",
+    "detail" : "A received [\"error:Error: PAGE-click\", \"error:Error: PAGE-timer\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"rejection:A-reject\", \"rejection:B-reject\", \"rejection:PAGE-reject\"]",
+    "outcome" : "no",
+    "question" : "Q4 Errors",
+    "variant" : "self (meta)"
+  },
+  {
+    "check" : "plain window listener: B sees its own late errors (timer, event handler, rejection) with their messages",
+    "detail" : "B received [\"error:Error: PAGE-click\", \"error:Error: PAGE-timer\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"rejection:A-reject\", \"rejection:B-reject\", \"rejection:PAGE-reject\"]",
+    "outcome" : "no",
+    "question" : "Q4 Errors",
+    "variant" : "self (meta)"
+  },
+  {
+    "check" : "plain window listener: A sees nothing from B or from the page",
+    "detail" : "A received [\"error:Error: PAGE-click\", \"error:Error: PAGE-timer\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"rejection:A-reject\", \"rejection:B-reject\", \"rejection:PAGE-reject\"]",
+    "outcome" : "no",
+    "question" : "Q4 Errors",
+    "variant" : "self (meta)"
+  },
+  {
+    "check" : "plain window listener: B sees nothing from A or from the page",
+    "detail" : "B received [\"error:Error: PAGE-click\", \"error:Error: PAGE-timer\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"rejection:A-reject\", \"rejection:B-reject\", \"rejection:PAGE-reject\"]",
+    "outcome" : "no",
+    "question" : "Q4 Errors",
+    "variant" : "self (meta)"
+  },
+  {
+    "check" : "world-local wrappers (setTimeout, addEventListener) report exactly the world's own timer and click errors, with a stack",
+    "detail" : "A own [\"A-click\", \"A-click\", \"A-click\", \"A-timer\"] foreign []; B own [\"B-click\", \"B-click\", \"B-timer\"] foreign []; stacks present true",
+    "outcome" : "yes",
+    "question" : "Q4 Errors",
+    "variant" : "self (meta)"
+  },
+  {
+    "check" : "an unhandledrejection whose `promise instanceof Promise` is the world's own is exactly the world's own rejection",
+    "detail" : "A own [\"A-reject\"] foreign []; B own [\"B-reject\"] foreign []",
+    "outcome" : "yes",
+    "question" : "Q4 Errors",
+    "variant" : "self (meta)"
+  },
+  {
+    "check" : "the plain window `error` event, from script code in the world, names its script",
+    "detail" : "A's raw error events: [\"Script error.\", \"Script error.\", \"Script error.\", \"Script error.\", \"Script error.\", \"Error: PAGE-click\", \"Script error.\", \"Script error.\", \"Error: PAGE-timer\"]",
+    "outcome" : "no",
+    "question" : "Q4 Errors",
+    "variant" : "self (meta)"
+  },
+  {
+    "check" : "samples of what a listener gets (kind, errType, inst, filename, stack head)",
+    "detail" : "[\"A-click wrapped object inst=1 file= stack=@user-script:101:20:104\\n@user-script:101:13:46\\ncli\",\"Script error. error object inst=0 file= stack=\",\"A-reject rejection object inst=1 file= stack=@user-script:101:21:29\\n@\",\"A-click wrapped object inst=1 file= stack=@user-script:101:20:104\\n@user-script:101:13:46\\ncli\",\"Script error. error object inst=0 file= stack=\",\"Script error. error object inst=0 file= stack=\",\"B-reject rejection object inst=0 file= stack=@user-script:102:21:29\\n@\",\"A-click wrapped object inst=1 file= stack=@user-script:101:20:104\\n@user-script:101:13:46\\ncli\",\"Script error. error object inst=0 file= stack=\",\"Script error. error object inst=0 file= stack=\",\"Error: PAGE-click error object inst=1 file=undefined stack=@\\nclick@[native code]\\n@\",\"PAGE-reject rejection object inst=0 file= stack=@\",\"A-timer wrapped object inst=1 file= stack=@user-script:101:19:45\\n@user-script:101:13:46\",\"Script error. error object inst=0 file= stack=\",\"Script error. error object inst=0 file= stack=\",\"Error: PAGE-timer error object inst=1 file=undefined stack=@\"]",
+    "outcome" : "info",
+    "question" : "Q4 Errors",
+    "variant" : "self (meta)"
+  },
+  {
+    "check" : "plain window listener: A sees its own late errors (timer, event handler, rejection) with their messages",
+    "detail" : "A received [\"error:Error: PAGE-click\", \"error:Error: PAGE-timer\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"rejection:A-reject\", \"rejection:B-reject\", \"rejection:PAGE-reject\"]",
+    "outcome" : "no",
+    "question" : "Q4 Errors",
+    "variant" : "nonce (header)"
+  },
+  {
+    "check" : "plain window listener: B sees its own late errors (timer, event handler, rejection) with their messages",
+    "detail" : "B received [\"error:Error: PAGE-click\", \"error:Error: PAGE-timer\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"rejection:A-reject\", \"rejection:B-reject\", \"rejection:PAGE-reject\"]",
+    "outcome" : "no",
+    "question" : "Q4 Errors",
+    "variant" : "nonce (header)"
+  },
+  {
+    "check" : "plain window listener: A sees nothing from B or from the page",
+    "detail" : "A received [\"error:Error: PAGE-click\", \"error:Error: PAGE-timer\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"rejection:A-reject\", \"rejection:B-reject\", \"rejection:PAGE-reject\"]",
+    "outcome" : "no",
+    "question" : "Q4 Errors",
+    "variant" : "nonce (header)"
+  },
+  {
+    "check" : "plain window listener: B sees nothing from A or from the page",
+    "detail" : "B received [\"error:Error: PAGE-click\", \"error:Error: PAGE-timer\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"rejection:A-reject\", \"rejection:B-reject\", \"rejection:PAGE-reject\"]",
+    "outcome" : "no",
+    "question" : "Q4 Errors",
+    "variant" : "nonce (header)"
+  },
+  {
+    "check" : "world-local wrappers (setTimeout, addEventListener) report exactly the world's own timer and click errors, with a stack",
+    "detail" : "A own [\"A-click\", \"A-click\", \"A-click\", \"A-timer\"] foreign []; B own [\"B-click\", \"B-click\", \"B-timer\"] foreign []; stacks present true",
+    "outcome" : "yes",
+    "question" : "Q4 Errors",
+    "variant" : "nonce (header)"
+  },
+  {
+    "check" : "an unhandledrejection whose `promise instanceof Promise` is the world's own is exactly the world's own rejection",
+    "detail" : "A own [\"A-reject\"] foreign []; B own [\"B-reject\"] foreign []",
+    "outcome" : "yes",
+    "question" : "Q4 Errors",
+    "variant" : "nonce (header)"
+  },
+  {
+    "check" : "the plain window `error` event, from script code in the world, names its script",
+    "detail" : "A's raw error events: [\"Script error.\", \"Script error.\", \"Script error.\", \"Script error.\", \"Script error.\", \"Error: PAGE-click\", \"Script error.\", \"Script error.\", \"Error: PAGE-timer\"]",
+    "outcome" : "no",
+    "question" : "Q4 Errors",
+    "variant" : "nonce (header)"
+  },
+  {
+    "check" : "samples of what a listener gets (kind, errType, inst, filename, stack head)",
+    "detail" : "[\"A-click wrapped object inst=1 file= stack=@user-script:103:20:104\\n@user-script:103:13:46\\ncli\",\"Script error. error object inst=0 file= stack=\",\"A-reject rejection object inst=1 file= stack=@user-script:103:21:29\\n@\",\"A-click wrapped object inst=1 file= stack=@user-script:103:20:104\\n@user-script:103:13:46\\ncli\",\"Script error. error object inst=0 file= stack=\",\"Script error. error object inst=0 file= stack=\",\"B-reject rejection object inst=0 file= stack=@user-script:104:21:29\\n@\",\"A-click wrapped object inst=1 file= stack=@user-script:103:20:104\\n@user-script:103:13:46\\ncli\",\"Script error. error object inst=0 file= stack=\",\"Script error. error object inst=0 file= stack=\",\"Error: PAGE-click error object inst=1 file=undefined stack=@\\nclick@[native code]\\n@\",\"PAGE-reject rejection object inst=0 file= stack=@\",\"A-timer wrapped object inst=1 file= stack=@user-script:103:19:45\\n@user-script:103:13:46\",\"Script error. error object inst=0 file= stack=\",\"Script error. error object inst=0 file= stack=\",\"Error: PAGE-timer error object inst=1 file=undefined stack=@\"]",
+    "outcome" : "info",
+    "question" : "Q4 Errors",
+    "variant" : "nonce (header)"
+  },
+  {
+    "check" : "plain window listener: A sees its own late errors (timer, event handler, rejection) with their messages",
+    "detail" : "A received [\"error:Error: PAGE-click\", \"error:Error: PAGE-timer\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"rejection:A-reject\", \"rejection:B-reject\", \"rejection:PAGE-reject\"]",
+    "outcome" : "no",
+    "question" : "Q4 Errors",
+    "variant" : "nonce (meta)"
+  },
+  {
+    "check" : "plain window listener: B sees its own late errors (timer, event handler, rejection) with their messages",
+    "detail" : "B received [\"error:Error: PAGE-click\", \"error:Error: PAGE-timer\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"rejection:A-reject\", \"rejection:B-reject\", \"rejection:PAGE-reject\"]",
+    "outcome" : "no",
+    "question" : "Q4 Errors",
+    "variant" : "nonce (meta)"
+  },
+  {
+    "check" : "plain window listener: A sees nothing from B or from the page",
+    "detail" : "A received [\"error:Error: PAGE-click\", \"error:Error: PAGE-timer\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"rejection:A-reject\", \"rejection:B-reject\", \"rejection:PAGE-reject\"]",
+    "outcome" : "no",
+    "question" : "Q4 Errors",
+    "variant" : "nonce (meta)"
+  },
+  {
+    "check" : "plain window listener: B sees nothing from A or from the page",
+    "detail" : "B received [\"error:Error: PAGE-click\", \"error:Error: PAGE-timer\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"rejection:A-reject\", \"rejection:B-reject\", \"rejection:PAGE-reject\"]",
+    "outcome" : "no",
+    "question" : "Q4 Errors",
+    "variant" : "nonce (meta)"
+  },
+  {
+    "check" : "world-local wrappers (setTimeout, addEventListener) report exactly the world's own timer and click errors, with a stack",
+    "detail" : "A own [\"A-click\", \"A-click\", \"A-click\", \"A-timer\"] foreign []; B own [\"B-click\", \"B-click\", \"B-timer\"] foreign []; stacks present true",
+    "outcome" : "yes",
+    "question" : "Q4 Errors",
+    "variant" : "nonce (meta)"
+  },
+  {
+    "check" : "an unhandledrejection whose `promise instanceof Promise` is the world's own is exactly the world's own rejection",
+    "detail" : "A own [\"A-reject\"] foreign []; B own [\"B-reject\"] foreign []",
+    "outcome" : "yes",
+    "question" : "Q4 Errors",
+    "variant" : "nonce (meta)"
+  },
+  {
+    "check" : "the plain window `error` event, from script code in the world, names its script",
+    "detail" : "A's raw error events: [\"Script error.\", \"Script error.\", \"Script error.\", \"Script error.\", \"Script error.\", \"Error: PAGE-click\", \"Script error.\", \"Script error.\", \"Error: PAGE-timer\"]",
+    "outcome" : "no",
+    "question" : "Q4 Errors",
+    "variant" : "nonce (meta)"
+  },
+  {
+    "check" : "samples of what a listener gets (kind, errType, inst, filename, stack head)",
+    "detail" : "[\"A-click wrapped object inst=1 file= stack=@user-script:105:20:104\\n@user-script:105:13:46\\ncli\",\"Script error. error object inst=0 file= stack=\",\"A-reject rejection object inst=1 file= stack=@user-script:105:21:29\\n@\",\"A-click wrapped object inst=1 file= stack=@user-script:105:20:104\\n@user-script:105:13:46\\ncli\",\"Script error. error object inst=0 file= stack=\",\"Script error. error object inst=0 file= stack=\",\"B-reject rejection object inst=0 file= stack=@user-script:106:21:29\\n@\",\"A-click wrapped object inst=1 file= stack=@user-script:105:20:104\\n@user-script:105:13:46\\ncli\",\"Script error. error object inst=0 file= stack=\",\"Script error. error object inst=0 file= stack=\",\"Error: PAGE-click error object inst=1 file=undefined stack=@\\nclick@[native code]\\n@\",\"PAGE-reject rejection object inst=0 file= stack=@\",\"A-timer wrapped object inst=1 file= stack=@user-script:105:19:45\\n@user-script:105:13:46\",\"Script error. error object inst=0 file= stack=\",\"Script error. error object inst=0 file= stack=\",\"Error: PAGE-timer error object inst=1 file=undefined stack=@\"]",
+    "outcome" : "info",
+    "question" : "Q4 Errors",
+    "variant" : "nonce (meta)"
+  },
+  {
+    "check" : "plain window listener: A sees its own late errors (timer, event handler, rejection) with their messages",
+    "detail" : "A received [\"error:Error: PAGE-click\", \"error:Error: PAGE-timer\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"rejection:A-reject\", \"rejection:B-reject\", \"rejection:PAGE-reject\"]",
+    "outcome" : "no",
+    "question" : "Q4 Errors",
+    "variant" : "strict-dynamic (header)"
+  },
+  {
+    "check" : "plain window listener: B sees its own late errors (timer, event handler, rejection) with their messages",
+    "detail" : "B received [\"error:Error: PAGE-click\", \"error:Error: PAGE-timer\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"rejection:A-reject\", \"rejection:B-reject\", \"rejection:PAGE-reject\"]",
+    "outcome" : "no",
+    "question" : "Q4 Errors",
+    "variant" : "strict-dynamic (header)"
+  },
+  {
+    "check" : "plain window listener: A sees nothing from B or from the page",
+    "detail" : "A received [\"error:Error: PAGE-click\", \"error:Error: PAGE-timer\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"rejection:A-reject\", \"rejection:B-reject\", \"rejection:PAGE-reject\"]",
+    "outcome" : "no",
+    "question" : "Q4 Errors",
+    "variant" : "strict-dynamic (header)"
+  },
+  {
+    "check" : "plain window listener: B sees nothing from A or from the page",
+    "detail" : "B received [\"error:Error: PAGE-click\", \"error:Error: PAGE-timer\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"rejection:A-reject\", \"rejection:B-reject\", \"rejection:PAGE-reject\"]",
+    "outcome" : "no",
+    "question" : "Q4 Errors",
+    "variant" : "strict-dynamic (header)"
+  },
+  {
+    "check" : "world-local wrappers (setTimeout, addEventListener) report exactly the world's own timer and click errors, with a stack",
+    "detail" : "A own [\"A-click\", \"A-click\", \"A-click\", \"A-timer\"] foreign []; B own [\"B-click\", \"B-click\", \"B-timer\"] foreign []; stacks present true",
+    "outcome" : "yes",
+    "question" : "Q4 Errors",
+    "variant" : "strict-dynamic (header)"
+  },
+  {
+    "check" : "an unhandledrejection whose `promise instanceof Promise` is the world's own is exactly the world's own rejection",
+    "detail" : "A own [\"A-reject\"] foreign []; B own [\"B-reject\"] foreign []",
+    "outcome" : "yes",
+    "question" : "Q4 Errors",
+    "variant" : "strict-dynamic (header)"
+  },
+  {
+    "check" : "the plain window `error` event, from script code in the world, names its script",
+    "detail" : "A's raw error events: [\"Script error.\", \"Script error.\", \"Script error.\", \"Script error.\", \"Script error.\", \"Error: PAGE-click\", \"Script error.\", \"Script error.\", \"Error: PAGE-timer\"]",
+    "outcome" : "no",
+    "question" : "Q4 Errors",
+    "variant" : "strict-dynamic (header)"
+  },
+  {
+    "check" : "samples of what a listener gets (kind, errType, inst, filename, stack head)",
+    "detail" : "[\"A-click wrapped object inst=1 file= stack=@user-script:107:20:104\\n@user-script:107:13:46\\ncli\",\"Script error. error object inst=0 file= stack=\",\"A-reject rejection object inst=1 file= stack=@user-script:107:21:29\\n@\",\"A-click wrapped object inst=1 file= stack=@user-script:107:20:104\\n@user-script:107:13:46\\ncli\",\"Script error. error object inst=0 file= stack=\",\"Script error. error object inst=0 file= stack=\",\"B-reject rejection object inst=0 file= stack=@user-script:108:21:29\\n@\",\"A-click wrapped object inst=1 file= stack=@user-script:107:20:104\\n@user-script:107:13:46\\ncli\",\"Script error. error object inst=0 file= stack=\",\"Script error. error object inst=0 file= stack=\",\"Error: PAGE-click error object inst=1 file=undefined stack=@\\nclick@[native code]\\n@\",\"PAGE-reject rejection object inst=0 file= stack=@\",\"A-timer wrapped object inst=1 file= stack=@user-script:107:19:45\\n@user-script:107:13:46\",\"Script error. error object inst=0 file= stack=\",\"Script error. error object inst=0 file= stack=\",\"Error: PAGE-timer error object inst=1 file=undefined stack=@\"]",
+    "outcome" : "info",
+    "question" : "Q4 Errors",
+    "variant" : "strict-dynamic (header)"
+  },
+  {
+    "check" : "plain window listener: A sees its own late errors (timer, event handler, rejection) with their messages",
+    "detail" : "A received [\"error:Error: PAGE-click\", \"error:Error: PAGE-timer\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"rejection:A-reject\", \"rejection:B-reject\", \"rejection:PAGE-reject\"]",
+    "outcome" : "no",
+    "question" : "Q4 Errors",
+    "variant" : "strict-dynamic (meta)"
+  },
+  {
+    "check" : "plain window listener: B sees its own late errors (timer, event handler, rejection) with their messages",
+    "detail" : "B received [\"error:Error: PAGE-click\", \"error:Error: PAGE-timer\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"rejection:A-reject\", \"rejection:B-reject\", \"rejection:PAGE-reject\"]",
+    "outcome" : "no",
+    "question" : "Q4 Errors",
+    "variant" : "strict-dynamic (meta)"
+  },
+  {
+    "check" : "plain window listener: A sees nothing from B or from the page",
+    "detail" : "A received [\"error:Error: PAGE-click\", \"error:Error: PAGE-timer\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"rejection:A-reject\", \"rejection:B-reject\", \"rejection:PAGE-reject\"]",
+    "outcome" : "no",
+    "question" : "Q4 Errors",
+    "variant" : "strict-dynamic (meta)"
+  },
+  {
+    "check" : "plain window listener: B sees nothing from A or from the page",
+    "detail" : "B received [\"error:Error: PAGE-click\", \"error:Error: PAGE-timer\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"error:Script error.\", \"rejection:A-reject\", \"rejection:B-reject\", \"rejection:PAGE-reject\"]",
+    "outcome" : "no",
+    "question" : "Q4 Errors",
+    "variant" : "strict-dynamic (meta)"
+  },
+  {
+    "check" : "world-local wrappers (setTimeout, addEventListener) report exactly the world's own timer and click errors, with a stack",
+    "detail" : "A own [\"A-click\", \"A-click\", \"A-click\", \"A-timer\"] foreign []; B own [\"B-click\", \"B-click\", \"B-timer\"] foreign []; stacks present true",
+    "outcome" : "yes",
+    "question" : "Q4 Errors",
+    "variant" : "strict-dynamic (meta)"
+  },
+  {
+    "check" : "an unhandledrejection whose `promise instanceof Promise` is the world's own is exactly the world's own rejection",
+    "detail" : "A own [\"A-reject\"] foreign []; B own [\"B-reject\"] foreign []",
+    "outcome" : "yes",
+    "question" : "Q4 Errors",
+    "variant" : "strict-dynamic (meta)"
+  },
+  {
+    "check" : "the plain window `error` event, from script code in the world, names its script",
+    "detail" : "A's raw error events: [\"Script error.\", \"Script error.\", \"Script error.\", \"Script error.\", \"Script error.\", \"Error: PAGE-click\", \"Script error.\", \"Script error.\", \"Error: PAGE-timer\"]",
+    "outcome" : "no",
+    "question" : "Q4 Errors",
+    "variant" : "strict-dynamic (meta)"
+  },
+  {
+    "check" : "samples of what a listener gets (kind, errType, inst, filename, stack head)",
+    "detail" : "[\"A-click wrapped object inst=1 file= stack=@user-script:109:20:104\\n@user-script:109:13:46\\ncli\",\"Script error. error object inst=0 file= stack=\",\"A-reject rejection object inst=1 file= stack=@user-script:109:21:29\\n@\",\"A-click wrapped object inst=1 file= stack=@user-script:109:20:104\\n@user-script:109:13:46\\ncli\",\"Script error. error object inst=0 file= stack=\",\"Script error. error object inst=0 file= stack=\",\"B-reject rejection object inst=0 file= stack=@user-script:110:21:29\\n@\",\"A-click wrapped object inst=1 file= stack=@user-script:109:20:104\\n@user-script:109:13:46\\ncli\",\"Script error. error object inst=0 file= stack=\",\"Script error. error object inst=0 file= stack=\",\"Error: PAGE-click error object inst=1 file=undefined stack=@\\nclick@[native code]\\n@\",\"PAGE-reject rejection object inst=0 file= stack=@\",\"A-timer wrapped object inst=1 file= stack=@user-script:109:19:45\\n@user-script:109:13:46\",\"Script error. error object inst=0 file= stack=\",\"Script error. error object inst=0 file= stack=\",\"Error: PAGE-timer error object inst=1 file=undefined stack=@\"]",
+    "outcome" : "info",
+    "question" : "Q4 Errors",
+    "variant" : "strict-dynamic (meta)"
+  },
+  {
+    "check" : "small value set on load 1 is read synchronously at document start on load 2, before any page script",
+    "detail" : "load 1 read {\"docEl\":true,\"pageScriptRanBefore\":false,\"readyState\":\"loading\",\"value\":null}; load 2 read {\"docEl\":true,\"pageScriptRanBefore\":false,\"readyState\":\"loading\",\"value\":\"v1\"}; stored 2 chars",
+    "outcome" : "yes",
+    "question" : "Q5 Document start",
+    "variant" : "no CSP"
+  },
+  {
+    "check" : "256 KB value set on load 1 is read synchronously at document start on load 2, before any page script",
+    "detail" : "load 1 read {\"docEl\":true,\"pageScriptRanBefore\":false,\"readyState\":\"loading\",\"value\":null}; load 2 read {\"docEl\":true,\"pageScriptRanBefore\":false,\"readyState\":\"loading\",\"value\":262144}; stored 262144 chars",
+    "outcome" : "yes",
+    "question" : "Q5 Document start",
+    "variant" : "no CSP"
+  },
+  {
+    "check" : "small value set on load 1 is read synchronously at document start on load 2, before any page script",
+    "detail" : "load 1 read {\"docEl\":true,\"pageScriptRanBefore\":false,\"readyState\":\"loading\",\"value\":null}; load 2 read {\"docEl\":true,\"pageScriptRanBefore\":false,\"readyState\":\"loading\",\"value\":\"v1\"}; stored 2 chars",
+    "outcome" : "yes",
+    "question" : "Q5 Document start",
+    "variant" : "self (header)"
+  },
+  {
+    "check" : "256 KB value set on load 1 is read synchronously at document start on load 2, before any page script",
+    "detail" : "load 1 read {\"docEl\":true,\"pageScriptRanBefore\":false,\"readyState\":\"loading\",\"value\":null}; load 2 read {\"docEl\":true,\"pageScriptRanBefore\":false,\"readyState\":\"loading\",\"value\":262144}; stored 262144 chars",
+    "outcome" : "yes",
+    "question" : "Q5 Document start",
+    "variant" : "self (header)"
+  },
+  {
+    "check" : "small value set on load 1 is read synchronously at document start on load 2, before any page script",
+    "detail" : "load 1 read {\"docEl\":true,\"pageScriptRanBefore\":false,\"readyState\":\"loading\",\"value\":null}; load 2 read {\"docEl\":true,\"pageScriptRanBefore\":false,\"readyState\":\"loading\",\"value\":\"v1\"}; stored 2 chars",
+    "outcome" : "yes",
+    "question" : "Q5 Document start",
+    "variant" : "self (meta)"
+  },
+  {
+    "check" : "256 KB value set on load 1 is read synchronously at document start on load 2, before any page script",
+    "detail" : "load 1 read {\"docEl\":true,\"pageScriptRanBefore\":false,\"readyState\":\"loading\",\"value\":null}; load 2 read {\"docEl\":true,\"pageScriptRanBefore\":false,\"readyState\":\"loading\",\"value\":262144}; stored 262144 chars",
+    "outcome" : "yes",
+    "question" : "Q5 Document start",
+    "variant" : "self (meta)"
+  },
+  {
+    "check" : "small value set on load 1 is read synchronously at document start on load 2, before any page script",
+    "detail" : "load 1 read {\"docEl\":true,\"pageScriptRanBefore\":false,\"readyState\":\"loading\",\"value\":null}; load 2 read {\"docEl\":true,\"pageScriptRanBefore\":false,\"readyState\":\"loading\",\"value\":\"v1\"}; stored 2 chars",
+    "outcome" : "yes",
+    "question" : "Q5 Document start",
+    "variant" : "nonce (header)"
+  },
+  {
+    "check" : "256 KB value set on load 1 is read synchronously at document start on load 2, before any page script",
+    "detail" : "load 1 read {\"docEl\":true,\"pageScriptRanBefore\":false,\"readyState\":\"loading\",\"value\":null}; load 2 read {\"docEl\":true,\"pageScriptRanBefore\":false,\"readyState\":\"loading\",\"value\":262144}; stored 262144 chars",
+    "outcome" : "yes",
+    "question" : "Q5 Document start",
+    "variant" : "nonce (header)"
+  },
+  {
+    "check" : "small value set on load 1 is read synchronously at document start on load 2, before any page script",
+    "detail" : "load 1 read {\"docEl\":true,\"pageScriptRanBefore\":false,\"readyState\":\"loading\",\"value\":null}; load 2 read {\"docEl\":true,\"pageScriptRanBefore\":false,\"readyState\":\"loading\",\"value\":\"v1\"}; stored 2 chars",
+    "outcome" : "yes",
+    "question" : "Q5 Document start",
+    "variant" : "nonce (meta)"
+  },
+  {
+    "check" : "256 KB value set on load 1 is read synchronously at document start on load 2, before any page script",
+    "detail" : "load 1 read {\"docEl\":true,\"pageScriptRanBefore\":false,\"readyState\":\"loading\",\"value\":null}; load 2 read {\"docEl\":true,\"pageScriptRanBefore\":false,\"readyState\":\"loading\",\"value\":262144}; stored 262144 chars",
+    "outcome" : "yes",
+    "question" : "Q5 Document start",
+    "variant" : "nonce (meta)"
+  },
+  {
+    "check" : "small value set on load 1 is read synchronously at document start on load 2, before any page script",
+    "detail" : "load 1 read {\"docEl\":true,\"pageScriptRanBefore\":false,\"readyState\":\"loading\",\"value\":null}; load 2 read {\"docEl\":true,\"pageScriptRanBefore\":false,\"readyState\":\"loading\",\"value\":\"v1\"}; stored 2 chars",
+    "outcome" : "yes",
+    "question" : "Q5 Document start",
+    "variant" : "strict-dynamic (header)"
+  },
+  {
+    "check" : "256 KB value set on load 1 is read synchronously at document start on load 2, before any page script",
+    "detail" : "load 1 read {\"docEl\":true,\"pageScriptRanBefore\":false,\"readyState\":\"loading\",\"value\":null}; load 2 read {\"docEl\":true,\"pageScriptRanBefore\":false,\"readyState\":\"loading\",\"value\":262144}; stored 262144 chars",
+    "outcome" : "yes",
+    "question" : "Q5 Document start",
+    "variant" : "strict-dynamic (header)"
+  },
+  {
+    "check" : "small value set on load 1 is read synchronously at document start on load 2, before any page script",
+    "detail" : "load 1 read {\"docEl\":true,\"pageScriptRanBefore\":false,\"readyState\":\"loading\",\"value\":null}; load 2 read {\"docEl\":true,\"pageScriptRanBefore\":false,\"readyState\":\"loading\",\"value\":\"v1\"}; stored 2 chars",
+    "outcome" : "yes",
+    "question" : "Q5 Document start",
+    "variant" : "strict-dynamic (meta)"
+  },
+  {
+    "check" : "256 KB value set on load 1 is read synchronously at document start on load 2, before any page script",
+    "detail" : "load 1 read {\"docEl\":true,\"pageScriptRanBefore\":false,\"readyState\":\"loading\",\"value\":null}; load 2 read {\"docEl\":true,\"pageScriptRanBefore\":false,\"readyState\":\"loading\",\"value\":262144}; stored 262144 chars",
+    "outcome" : "yes",
+    "question" : "Q5 Document start",
+    "variant" : "strict-dynamic (meta)"
+  },
+  {
+    "check" : "callAsyncJavaScript runs a candidate in script A's world on the loaded page, sees the world's state, and the style applies",
+    "detail" : "candidate {\"sawBaseState\":true}; page outline {\"o\":\"solid\"}",
+    "outcome" : "yes",
+    "question" : "Q6 Live apply",
+    "variant" : "no CSP"
+  },
+  {
+    "check" : "Undo, a second call in the same world, removes it",
+    "detail" : "undo call {}; page outline {\"o\":\"none\"}",
+    "outcome" : "yes",
+    "question" : "Q6 Live apply",
+    "variant" : "no CSP"
+  },
+  {
+    "check" : "a synchronous throw in a candidate comes back to Swift (verify before saving)",
+    "detail" : "[\"threw\": Error: candidate-sync]; [\"threw\": Error: candidate-sync-2]",
+    "outcome" : "yes",
+    "question" : "Q6 Live apply",
+    "variant" : "no CSP"
+  },
+  {
+    "check" : "a late throw in a candidate reaches the world's error listener",
+    "detail" : "handler received [\"Error: candidate-late\"]",
+    "outcome" : "yes",
+    "question" : "Q6 Live apply",
+    "variant" : "no CSP"
+  },
+  {
+    "check" : "script B's world does not see A's state",
+    "detail" : "{\"s\":\"undefined\"}",
+    "outcome" : "yes",
+    "question" : "Q6 Live apply",
+    "variant" : "no CSP"
+  },
+  {
+    "check" : "callAsyncJavaScript runs a candidate in script A's world on the loaded page, sees the world's state, and the style applies",
+    "detail" : "candidate {\"sawBaseState\":true}; page outline {\"o\":\"solid\"}",
+    "outcome" : "yes",
+    "question" : "Q6 Live apply",
+    "variant" : "self (header)"
+  },
+  {
+    "check" : "Undo, a second call in the same world, removes it",
+    "detail" : "undo call {}; page outline {\"o\":\"none\"}",
+    "outcome" : "yes",
+    "question" : "Q6 Live apply",
+    "variant" : "self (header)"
+  },
+  {
+    "check" : "a synchronous throw in a candidate comes back to Swift (verify before saving)",
+    "detail" : "[\"threw\": Error: candidate-sync]; [\"threw\": Error: candidate-sync-2]",
+    "outcome" : "yes",
+    "question" : "Q6 Live apply",
+    "variant" : "self (header)"
+  },
+  {
+    "check" : "a late throw in a candidate reaches the world's error listener",
+    "detail" : "handler received [\"Error: candidate-late\"]",
+    "outcome" : "yes",
+    "question" : "Q6 Live apply",
+    "variant" : "self (header)"
+  },
+  {
+    "check" : "script B's world does not see A's state",
+    "detail" : "{\"s\":\"undefined\"}",
+    "outcome" : "yes",
+    "question" : "Q6 Live apply",
+    "variant" : "self (header)"
+  },
+  {
+    "check" : "callAsyncJavaScript runs a candidate in script A's world on the loaded page, sees the world's state, and the style applies",
+    "detail" : "candidate {\"sawBaseState\":true}; page outline {\"o\":\"solid\"}",
+    "outcome" : "yes",
+    "question" : "Q6 Live apply",
+    "variant" : "self (meta)"
+  },
+  {
+    "check" : "Undo, a second call in the same world, removes it",
+    "detail" : "undo call {}; page outline {\"o\":\"none\"}",
+    "outcome" : "yes",
+    "question" : "Q6 Live apply",
+    "variant" : "self (meta)"
+  },
+  {
+    "check" : "a synchronous throw in a candidate comes back to Swift (verify before saving)",
+    "detail" : "[\"threw\": Error: candidate-sync]; [\"threw\": Error: candidate-sync-2]",
+    "outcome" : "yes",
+    "question" : "Q6 Live apply",
+    "variant" : "self (meta)"
+  },
+  {
+    "check" : "a late throw in a candidate reaches the world's error listener",
+    "detail" : "handler received [\"Error: candidate-late\"]",
+    "outcome" : "yes",
+    "question" : "Q6 Live apply",
+    "variant" : "self (meta)"
+  },
+  {
+    "check" : "script B's world does not see A's state",
+    "detail" : "{\"s\":\"undefined\"}",
+    "outcome" : "yes",
+    "question" : "Q6 Live apply",
+    "variant" : "self (meta)"
+  },
+  {
+    "check" : "callAsyncJavaScript runs a candidate in script A's world on the loaded page, sees the world's state, and the style applies",
+    "detail" : "candidate {\"sawBaseState\":true}; page outline {\"o\":\"solid\"}",
+    "outcome" : "yes",
+    "question" : "Q6 Live apply",
+    "variant" : "nonce (header)"
+  },
+  {
+    "check" : "Undo, a second call in the same world, removes it",
+    "detail" : "undo call {}; page outline {\"o\":\"none\"}",
+    "outcome" : "yes",
+    "question" : "Q6 Live apply",
+    "variant" : "nonce (header)"
+  },
+  {
+    "check" : "a synchronous throw in a candidate comes back to Swift (verify before saving)",
+    "detail" : "[\"threw\": Error: candidate-sync]; [\"threw\": Error: candidate-sync-2]",
+    "outcome" : "yes",
+    "question" : "Q6 Live apply",
+    "variant" : "nonce (header)"
+  },
+  {
+    "check" : "a late throw in a candidate reaches the world's error listener",
+    "detail" : "handler received [\"Error: candidate-late\"]",
+    "outcome" : "yes",
+    "question" : "Q6 Live apply",
+    "variant" : "nonce (header)"
+  },
+  {
+    "check" : "script B's world does not see A's state",
+    "detail" : "{\"s\":\"undefined\"}",
+    "outcome" : "yes",
+    "question" : "Q6 Live apply",
+    "variant" : "nonce (header)"
+  },
+  {
+    "check" : "callAsyncJavaScript runs a candidate in script A's world on the loaded page, sees the world's state, and the style applies",
+    "detail" : "candidate {\"sawBaseState\":true}; page outline {\"o\":\"solid\"}",
+    "outcome" : "yes",
+    "question" : "Q6 Live apply",
+    "variant" : "nonce (meta)"
+  },
+  {
+    "check" : "Undo, a second call in the same world, removes it",
+    "detail" : "undo call {}; page outline {\"o\":\"none\"}",
+    "outcome" : "yes",
+    "question" : "Q6 Live apply",
+    "variant" : "nonce (meta)"
+  },
+  {
+    "check" : "a synchronous throw in a candidate comes back to Swift (verify before saving)",
+    "detail" : "[\"threw\": Error: candidate-sync]; [\"threw\": Error: candidate-sync-2]",
+    "outcome" : "yes",
+    "question" : "Q6 Live apply",
+    "variant" : "nonce (meta)"
+  },
+  {
+    "check" : "a late throw in a candidate reaches the world's error listener",
+    "detail" : "handler received [\"Error: candidate-late\"]",
+    "outcome" : "yes",
+    "question" : "Q6 Live apply",
+    "variant" : "nonce (meta)"
+  },
+  {
+    "check" : "script B's world does not see A's state",
+    "detail" : "{\"s\":\"undefined\"}",
+    "outcome" : "yes",
+    "question" : "Q6 Live apply",
+    "variant" : "nonce (meta)"
+  },
+  {
+    "check" : "callAsyncJavaScript runs a candidate in script A's world on the loaded page, sees the world's state, and the style applies",
+    "detail" : "candidate {\"sawBaseState\":true}; page outline {\"o\":\"solid\"}",
+    "outcome" : "yes",
+    "question" : "Q6 Live apply",
+    "variant" : "strict-dynamic (header)"
+  },
+  {
+    "check" : "Undo, a second call in the same world, removes it",
+    "detail" : "undo call {}; page outline {\"o\":\"none\"}",
+    "outcome" : "yes",
+    "question" : "Q6 Live apply",
+    "variant" : "strict-dynamic (header)"
+  },
+  {
+    "check" : "a synchronous throw in a candidate comes back to Swift (verify before saving)",
+    "detail" : "[\"threw\": Error: candidate-sync]; [\"threw\": Error: candidate-sync-2]",
+    "outcome" : "yes",
+    "question" : "Q6 Live apply",
+    "variant" : "strict-dynamic (header)"
+  },
+  {
+    "check" : "a late throw in a candidate reaches the world's error listener",
+    "detail" : "handler received [\"Error: candidate-late\"]",
+    "outcome" : "yes",
+    "question" : "Q6 Live apply",
+    "variant" : "strict-dynamic (header)"
+  },
+  {
+    "check" : "script B's world does not see A's state",
+    "detail" : "{\"s\":\"undefined\"}",
+    "outcome" : "yes",
+    "question" : "Q6 Live apply",
+    "variant" : "strict-dynamic (header)"
+  },
+  {
+    "check" : "callAsyncJavaScript runs a candidate in script A's world on the loaded page, sees the world's state, and the style applies",
+    "detail" : "candidate {\"sawBaseState\":true}; page outline {\"o\":\"solid\"}",
+    "outcome" : "yes",
+    "question" : "Q6 Live apply",
+    "variant" : "strict-dynamic (meta)"
+  },
+  {
+    "check" : "Undo, a second call in the same world, removes it",
+    "detail" : "undo call {}; page outline {\"o\":\"none\"}",
+    "outcome" : "yes",
+    "question" : "Q6 Live apply",
+    "variant" : "strict-dynamic (meta)"
+  },
+  {
+    "check" : "a synchronous throw in a candidate comes back to Swift (verify before saving)",
+    "detail" : "[\"threw\": Error: candidate-sync]; [\"threw\": Error: candidate-sync-2]",
+    "outcome" : "yes",
+    "question" : "Q6 Live apply",
+    "variant" : "strict-dynamic (meta)"
+  },
+  {
+    "check" : "a late throw in a candidate reaches the world's error listener",
+    "detail" : "handler received [\"Error: candidate-late\"]",
+    "outcome" : "yes",
+    "question" : "Q6 Live apply",
+    "variant" : "strict-dynamic (meta)"
+  },
+  {
+    "check" : "script B's world does not see A's state",
+    "detail" : "{\"s\":\"undefined\"}",
+    "outcome" : "yes",
+    "question" : "Q6 Live apply",
+    "variant" : "strict-dynamic (meta)"
+  },
+  {
+    "check" : "a script in WukongAgent can wrap the instance's postMessage and catch the run_js call token",
+    "detail" : "run_js reply {\"reply\":{\"id\":\"agent\",\"world\":\"WukongAgent\",\"worldMatches\":true}}; caught {\"caught\":[{\"op\":\"fetch\",\"token\":\"SECRET-CALL-TOKEN\"}]}; native handler got 1 message(s)",
+    "outcome" : "yes",
+    "question" : "Q7 Shared world",
+    "variant" : "no CSP"
+  },
+  {
+    "check" : "a script in WukongAgent can wrap the instance's postMessage and catch the run_js call token",
+    "detail" : "run_js reply {\"reply\":{\"id\":\"agent\",\"world\":\"WukongAgent\",\"worldMatches\":true}}; caught {\"caught\":[{\"op\":\"fetch\",\"token\":\"SECRET-CALL-TOKEN\"}]}; native handler got 1 message(s)",
+    "outcome" : "yes",
+    "question" : "Q7 Shared world",
+    "variant" : "self (header)"
+  },
+  {
+    "check" : "a script in WukongAgent can wrap the instance's postMessage and catch the run_js call token",
+    "detail" : "run_js reply {\"reply\":{\"id\":\"agent\",\"world\":\"WukongAgent\",\"worldMatches\":true}}; caught {\"caught\":[{\"op\":\"fetch\",\"token\":\"SECRET-CALL-TOKEN\"}]}; native handler got 1 message(s)",
+    "outcome" : "yes",
+    "question" : "Q7 Shared world",
+    "variant" : "nonce (header)"
+  },
+  {
+    "check" : "a script in WukongAgent can wrap the prototype's postMessage and catch the run_js call token",
+    "detail" : "run_js reply {\"reply\":{\"id\":\"agent\",\"world\":\"WukongAgent\",\"worldMatches\":true}}; caught {\"caught\":[{\"op\":\"fetch\",\"token\":\"SECRET-CALL-TOKEN\"}]}; native handler got 1 message(s)",
+    "outcome" : "yes",
+    "question" : "Q7 Shared world",
+    "variant" : "no CSP"
+  },
+  {
+    "check" : "a script in WukongAgent can wrap the prototype's postMessage and catch the run_js call token",
+    "detail" : "run_js reply {\"reply\":{\"id\":\"agent\",\"world\":\"WukongAgent\",\"worldMatches\":true}}; caught {\"caught\":[{\"op\":\"fetch\",\"token\":\"SECRET-CALL-TOKEN\"}]}; native handler got 1 message(s)",
+    "outcome" : "yes",
+    "question" : "Q7 Shared world",
+    "variant" : "self (header)"
+  },
+  {
+    "check" : "a script in WukongAgent can wrap the prototype's postMessage and catch the run_js call token",
+    "detail" : "run_js reply {\"reply\":{\"id\":\"agent\",\"world\":\"WukongAgent\",\"worldMatches\":true}}; caught {\"caught\":[{\"op\":\"fetch\",\"token\":\"SECRET-CALL-TOKEN\"}]}; native handler got 1 message(s)",
+    "outcome" : "yes",
+    "question" : "Q7 Shared world",
+    "variant" : "nonce (header)"
+  },
+  {
+    "check" : "a script in WukongAgent can replace messageHandlers.wukongAgent and catch the run_js call token",
+    "detail" : "run_js reply {\"reply\":{\"id\":\"agent\",\"world\":\"WukongAgent\",\"worldMatches\":true}}; caught {\"caught\":[{\"op\":\"fetch\",\"token\":\"SECRET-CALL-TOKEN\"}]}; native handler got 1 message(s)",
+    "outcome" : "yes",
+    "question" : "Q7 Shared world",
+    "variant" : "no CSP"
+  },
+  {
+    "check" : "a script in WukongAgent can replace messageHandlers.wukongAgent and catch the run_js call token",
+    "detail" : "run_js reply {\"reply\":{\"id\":\"agent\",\"world\":\"WukongAgent\",\"worldMatches\":true}}; caught {\"caught\":[{\"op\":\"fetch\",\"token\":\"SECRET-CALL-TOKEN\"}]}; native handler got 1 message(s)",
+    "outcome" : "yes",
+    "question" : "Q7 Shared world",
+    "variant" : "self (header)"
+  },
+  {
+    "check" : "a script in WukongAgent can replace messageHandlers.wukongAgent and catch the run_js call token",
+    "detail" : "run_js reply {\"reply\":{\"id\":\"agent\",\"world\":\"WukongAgent\",\"worldMatches\":true}}; caught {\"caught\":[{\"op\":\"fetch\",\"token\":\"SECRET-CALL-TOKEN\"}]}; native handler got 1 message(s)",
+    "outcome" : "yes",
+    "question" : "Q7 Shared world",
+    "variant" : "nonce (header)"
+  },
+  {
+    "check" : "a script in WukongAgent can keep a reference to window.webkit and wrap later and catch the run_js call token",
+    "detail" : "run_js reply {\"reply\":{\"id\":\"agent\",\"world\":\"WukongAgent\",\"worldMatches\":true}}; caught {\"caught\":[{\"op\":\"fetch\",\"token\":\"SECRET-CALL-TOKEN\"}]}; native handler got 1 message(s)",
+    "outcome" : "yes",
+    "question" : "Q7 Shared world",
+    "variant" : "no CSP"
+  },
+  {
+    "check" : "a script in WukongAgent can keep a reference to window.webkit and wrap later and catch the run_js call token",
+    "detail" : "run_js reply {\"reply\":{\"id\":\"agent\",\"world\":\"WukongAgent\",\"worldMatches\":true}}; caught {\"caught\":[{\"op\":\"fetch\",\"token\":\"SECRET-CALL-TOKEN\"}]}; native handler got 1 message(s)",
+    "outcome" : "yes",
+    "question" : "Q7 Shared world",
+    "variant" : "self (header)"
+  },
+  {
+    "check" : "a script in WukongAgent can keep a reference to window.webkit and wrap later and catch the run_js call token",
+    "detail" : "run_js reply {\"reply\":{\"id\":\"agent\",\"world\":\"WukongAgent\",\"worldMatches\":true}}; caught {\"caught\":[{\"op\":\"fetch\",\"token\":\"SECRET-CALL-TOKEN\"}]}; native handler got 1 message(s)",
+    "outcome" : "yes",
+    "question" : "Q7 Shared world",
+    "variant" : "nonce (header)"
+  }
+]
