@@ -118,12 +118,15 @@ final class ModelSwitchingTests: XCTestCase {
 
     @MainActor
     func testThereAreTwoModelRolesAndEachIsSetOnItsOwn() {
-        XCTAssertEqual(ModelRole.allCases, [.assistant, .browserAgent])
+        XCTAssertEqual(ModelRole.allCases, [.assistant, .browserAgent, .scripts])
         XCTAssertEqual(ModelRole.uiRoles, [.browserAgent, .assistant])
+        XCTAssertEqual(ModelRole.settingsRoles, [.browserAgent, .assistant, .scripts])
         XCTAssertEqual(ModelRole.assistant.other, .browserAgent)
         XCTAssertEqual(ModelRole.browserAgent.other, .assistant)
+        XCTAssertEqual(ModelRole.scripts.other, .assistant)
         XCTAssertEqual(ModelRole.browserAgent.title, "Agent")
         XCTAssertEqual(ModelRole.assistant.title, "Summaries")
+        XCTAssertEqual(ModelRole.scripts.title, "Scripts")
 
         let app = makeApp()
         // Selecting Summaries never sets the Agent model.

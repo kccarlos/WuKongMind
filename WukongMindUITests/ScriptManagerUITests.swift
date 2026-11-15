@@ -272,4 +272,70 @@ final class ScriptManagerUITests: DCUITestCase {
             }
         }
     }
+
+    func testM4GMAiSettingsManagerAndDetailViews() throws {
+        let base = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
+        for (suffix, style) in [("light", "Light"), ("dark", "Dark")] {
+            let styleArgs = base + ["-AppleInterfaceStyle", style]
+
+            // 1. Settings › Models & Settings › Models › Scripts
+            let modelsApp = launch(styleArgs + ["-dc-sample", "-dc-show-settings", "provider"])
+            let scriptsRoleRow = any(modelsApp, "modelRole-scripts")
+            XCTAssertTrue(waitOrDump(scriptsRoleRow, timeout: 15, in: modelsApp), "Scripts model role row missing.")
+            XCTAssertTrue(scriptsRoleRow.label.contains("Same as Summaries"), "Unexpected Scripts role label: \(scriptsRoleRow.label)")
+            RunLoop.current.run(until: Date().addingTimeInterval(0.6))
+            capture("m4-models-\(suffix)")
+
+            scriptsRoleRow.tap()
+            let sameToggle = modelsApp.switches["scriptsSameAsSummariesToggle"].firstMatch
+            XCTAssertTrue(waitOrDump(sameToggle, timeout: 8, in: modelsApp), "Same as Summaries toggle missing on Scripts model page.")
+            RunLoop.current.run(until: Date().addingTimeInterval(0.6))
+            capture("m4-models-scripts-\(suffix)")
+
+            // 2. Settings › Scripts (AI in scripts switch + Uses AI subtitle)
+            let mgrApp = launch(styleArgs + ["-dc-sample", "-dc-show-settings", "scripts", "-dc-scripts-sample", "m4-ai"])
+            XCTAssertTrue(waitOrDump(any(mgrApp, "scriptManager"), timeout: 15, in: mgrApp))
+            let aiSwitch = mgrApp.switches["scriptsAIEnabledToggle"].firstMatch
+            XCTAssertTrue(waitOrDump(aiSwitch, timeout: 5, in: mgrApp), "AI in scripts toggle missing.")
+            let foldRow = mgrApp.buttons["scriptRow-fold-empty-replies"].firstMatch
+            XCTAssertTrue(reveal(foldRow, in: mgrApp, swipes: 3), "Fold empty replies row missing.")
+            XCTAssertTrue(foldRow.label.contains("Uses AI"), "Expected Uses AI in row label, got: \(foldRow.label)")
+            RunLoop.current.run(until: Date().addingTimeInterval(0.6))
+            capture("m4-scripts-manager-\(suffix)")
+
+            // 3. Script detail (Can use + AI use today + Clear AI cache)
+            let detailApp = launch(styleArgs + ["-dc-sample", "-dc-show-settings", "scripts", "-dc-scripts-sample", "m4-ai-detail"])
+            XCTAssertTrue(waitOrDump(any(detailApp, "scriptDetail"), timeout: 15, in: detailApp))
+            let canUseRow = any(detailApp, "scriptCanUseAI")
+            XCTAssertTrue(waitOrDump(canUseRow, timeout: 5, in: detailApp), "Can use Uses AI row missing in Script detail.")
+            XCTAssertTrue(canUseRow.label.contains("Uses AI: sends page text to"), "Unexpected Can use label: \(canUseRow.label)")
+            let clearBtn = detailApp.buttons["scriptClearAICacheButton"].firstMatch
+            XCTAssertTrue(reveal(clearBtn, in: detailApp, swipes: 5), "Clear AI cache button missing in Script detail.")
+            let aiUseRow = any(detailApp, "scriptAIUseTodayRow")
+            XCTAssertTrue(aiUseRow.exists)
+            XCTAssertTrue(aiUseRow.label.contains("3 calls") && aiUseRow.label.contains("41 from cache"), "Unexpected AI use label: \(aiUseRow.label)")
+            RunLoop.current.run(until: Date().addingTimeInterval(0.6))
+            capture("m4-script-detail-\(suffix)")
+
+            if suffix == "light" {
+                clearBtn.tap()
+                RunLoop.current.run(until: Date().addingTimeInterval(0.3))
+                XCTAssertTrue(clearBtn.exists)
+            }
+
+            // 4. This page popover (uses AI subtitle)
+            let popApp = launch(styleArgs + [
+                "-dc-browser-agent-demo", "empty",
+                "-dc-scripts-sample", "m4-ai",
+                "-dc-drawer-detent", "large",
+                "-dc-scripts-open-popover"
+            ])
+            XCTAssertTrue(waitOrDump(any(popApp, "pageScriptsPopover"), timeout: 15, in: popApp))
+            let popRow = any(popApp, "pageScriptRow-fold-empty-replies")
+            XCTAssertTrue(waitOrDump(popRow, timeout: 5, in: popApp))
+            XCTAssertTrue(popRow.label.contains("Uses AI"), "Expected Uses AI in popover row label, got: \(popRow.label)")
+            RunLoop.current.run(until: Date().addingTimeInterval(0.6))
+            capture("m4-this-page-\(suffix)")
+        }
+    }
 }

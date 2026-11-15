@@ -154,9 +154,12 @@ struct ProviderConfiguration: Codable, Equatable, Sendable {
 enum ModelRole: String, Codable, CaseIterable, Identifiable, Sendable {
     case assistant
     case browserAgent
+    case scripts
 
-    /// The two roles shown in Settings › Models (One panel): Agent and Summaries.
+    /// The two roles shown in the Assistant panel: Agent and Summaries.
     static let uiRoles: [ModelRole] = [.browserAgent, .assistant]
+    /// All roles shown in Settings › Models: Agent, Summaries and Scripts.
+    static let settingsRoles: [ModelRole] = [.browserAgent, .assistant, .scripts]
 
     var id: String { rawValue }
 }

@@ -88,10 +88,14 @@ struct AppSettings: Codable, Equatable {
     var assistantModel = ModelSelection(provider: .openRouter, model: AIProvider.openRouter.defaultModel)
     /// Browser agent model (`nil`: no preset model; user chooses a tool-calling model).
     var browserAgentModel: ModelSelection? = nil
+    /// Optional model for `GM_ai` calls in userscripts (`nil`: follows `assistantModel`).
+    var scriptsModel: ModelSelection? = nil
     var browserAgentMaxSteps = BrowserAgentLimits.defaultMaxSteps
     var browserAgentTruncationLimit = BrowserAgentLimits.defaultTruncationLimit
     /// Global switch for browser userscripts (`ScriptStore.isGlobalEnabled`).
     var browserScriptsEnabled = true
+    /// Switch for `GM_ai` in userscripts (`Settings › Scripts`). On by default.
+    var browserScriptsAIEnabled = true
     var configurations: [String: ProviderConfiguration] = Dictionary(
         uniqueKeysWithValues: AIProvider.allCases.map {
             ($0.rawValue, ProviderConfiguration(provider: $0))
@@ -171,9 +175,11 @@ struct AppSettings: Codable, Equatable {
     private enum CodingKeys: String, CodingKey {
         case assistantModel
         case browserAgentModel
+        case scriptsModel
         case browserAgentMaxSteps
         case browserAgentTruncationLimit
         case browserScriptsEnabled
+        case browserScriptsAIEnabled
         case configurations
         case favoriteModels
         case systemPrompt
@@ -237,6 +243,7 @@ struct AppSettings: Codable, Equatable {
         let stock = AppSettings()
         assistantModel = try container.decodeIfPresent(ModelSelection.self, forKey: .assistantModel) ?? stock.assistantModel
         browserAgentModel = try container.decodeIfPresent(ModelSelection.self, forKey: .browserAgentModel)
+        scriptsModel = try container.decodeIfPresent(ModelSelection.self, forKey: .scriptsModel)
         browserAgentMaxSteps = BrowserAgentLimits.clampSteps(
             try container.decodeIfPresent(Int.self, forKey: .browserAgentMaxSteps)
                 ?? BrowserAgentLimits.defaultMaxSteps
@@ -246,6 +253,7 @@ struct AppSettings: Codable, Equatable {
                 ?? BrowserAgentLimits.defaultTruncationLimit
         )
         browserScriptsEnabled = try container.decodeIfPresent(Bool.self, forKey: .browserScriptsEnabled) ?? true
+        browserScriptsAIEnabled = try container.decodeIfPresent(Bool.self, forKey: .browserScriptsAIEnabled) ?? true
         systemPrompt = try container.decodeIfPresent(String.self, forKey: .systemPrompt) ?? ""
         forumContextLimit = try container.decodeIfPresent(Int.self, forKey: .forumContextLimit)
             ?? 30_000

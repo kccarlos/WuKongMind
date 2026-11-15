@@ -678,6 +678,27 @@ extension AppModel {
             requestedScriptID = "op-only"
         } else if variant == "detail-error" {
             requestedScriptID = "quote-fold"
+        } else if variant == "m4-ai" || variant == "m4-ai-detail" {
+            if let aiScript = try? scriptStore.create(
+                id: "fold-empty-replies",
+                name: "Fold empty replies",
+                matchRules: ["*://news.example.org/*", "https://talk.example.org/*"],
+                js: "const verdicts = await GM_ai.map([], 'Has substance?', { type: 'boolean' });",
+                css: "[data-wk-judged='false'] { max-height: 2.2em; overflow: hidden; }",
+                injectionTime: .documentEnd,
+                environment: .isolated,
+                isEnabled: true,
+                source: .agent(userPrompt: "Fold replies that don't add anything"),
+                grants: ["GM_ai"],
+                now: now.addingTimeInterval(-3600)
+            ) {
+                scriptStore.noteExecuted(scriptID: aiScript.id, at: now.addingTimeInterval(-45))
+                scriptStore.aiCache.store(entries: [(ScriptAICache.hashKey(["sample"]), .bool(false))], scriptID: aiScript.id, now: now)
+                scriptStore.aiCache.recordUsage(scriptID: aiScript.id, calls: 3, cacheHits: 41, now: now)
+                if variant == "m4-ai-detail" {
+                    requestedScriptID = aiScript.id
+                }
+            }
         }
 
         if AssistantDebug.has("-dc-scripts-sheet") {
