@@ -1,3 +1,6 @@
+import SwiftUI
+import UIKit
+import Vision
 import XCTest
 @testable import WukongMind
 
@@ -256,6 +259,95 @@ final class DictationTests: XCTestCase {
             XCTAssertEqual(controller.phase, .idle)
         }
         XCTAssertEqual(backend.startCount, 2)
+    }
+
+    @MainActor
+    func testComposerPlaceholderDoesNotOverlapAfterRunFinishes() async throws {
+        let model = ComposerHarnessModel()
+        let rect = CGRect(x: 0, y: 0, width: 390, height: 180)
+        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: rect)
+        let host = UIHostingController(rootView: ComposerHarnessView(model: model).environment(\.colorScheme, .light))
+        host.overrideUserInterfaceStyle = .light
+        window.overrideUserInterfaceStyle = .light
+        window.rootViewController = host
+        window.frame = rect
+        window.makeKeyAndVisible()
+        host.beginAppearanceTransition(true, animated: false)
+        host.endAppearanceTransition()
+        defer {
+            host.beginAppearanceTransition(false, animated: false)
+            host.endAppearanceTransition()
+            window.isHidden = true
+            window.rootViewController = nil
+            window.windowScene = nil
+        }
+
+        func snapshot(_ name: String) -> [String] {
+            host.view.frame = window.bounds
+            window.layoutIfNeeded()
+            let format = UIGraphicsImageRendererFormat()
+            format.scale = 2
+            let image = UIGraphicsImageRenderer(bounds: host.view.bounds, format: format).image { ctx in
+                if !window.drawHierarchy(in: window.bounds, afterScreenUpdates: true) {
+                    host.view.layer.render(in: ctx.cgContext)
+                }
+            }
+            let attachment = XCTAttachment(image: image)
+            attachment.name = name
+            attachment.lifetime = .keepAlways
+            add(attachment)
+            guard let cg = image.cgImage else { return [] }
+            let req = VNRecognizeTextRequest()
+            req.recognitionLevel = .accurate
+            req.usesLanguageCorrection = false
+            try? VNImageRequestHandler(cgImage: cg, options: [:]).perform([req])
+            return (req.results ?? []).compactMap { $0.topCandidates(1).first?.string }
+        }
+
+        try await Task.sleep(for: .milliseconds(250))
+        _ = snapshot("composer-0-idle")
+
+        model.isRunning = true
+        try await Task.sleep(for: .milliseconds(300))
+        let runningOCR = snapshot("composer-1-running")
+        XCTAssertEqual(runningOCR.filter { $0.contains("Write your next message") }.count, 1, "\(runningOCR)")
+
+        model.isRunning = false
+        try await Task.sleep(for: .milliseconds(40))
+        let midOCR = snapshot("composer-2-just-finished-40ms")
+        XCTAssertEqual(midOCR.filter { $0.contains("Ask the Agent") }.count, 1, "Placeholder overlapped right after run finished: \(midOCR)")
+        XCTAssertFalse(midOCR.joined(separator: " ").localizedCaseInsensitiveContains("message"), "Running placeholder overlapped idle placeholder: \(midOCR)")
+
+        try await Task.sleep(for: .milliseconds(350))
+        let afterOCR = snapshot("composer-3-settled")
+        XCTAssertEqual(afterOCR.filter { $0.contains("Ask the Agent") }.count, 1, "\(afterOCR)")
+    }
+}
+
+@MainActor
+private final class ComposerHarnessModel: ObservableObject {
+    @Published var draft = ""
+    @Published var isRunning = false
+}
+
+private struct ComposerHarnessView: View {
+    @ObservedObject var model: ComposerHarnessModel
+    @FocusState private var focused: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: DCTheme.space2) {
+            if model.isRunning {
+                Text(verbatim: "Step 1").transition(.opacity)
+            } else {
+                Text(verbatim: "Summarize this page").transition(.opacity)
+            }
+            AssistantComposer(draft: $model.draft, focused: $focused, isRunning: model.isRunning, onSend: {}, onStop: {})
+        }
+        .padding(14)
+        .frame(width: 390)
+        .background(DCTheme.ground)
+        .animation(DCMotion.quick, value: model.isRunning)
     }
 }
 
