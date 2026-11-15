@@ -2342,7 +2342,7 @@ extension ToolRegistry {
         tools += captureTools(context: context)
         tools += navigationTools(context: context)
         tools += networkTools(context: context)
-        tools += forumTools(context: context)
+        tools += forumTools(context: context, surface: surface)
         tools += capabilityTools(context: context)
         tools += browseTools(context: context)
         var registry = ToolRegistry(

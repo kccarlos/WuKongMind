@@ -27,7 +27,22 @@ struct FixturePageDriver: AgentPageDriving {
     }
 
     static let defaultStructureMaxChars = 12_000
-    let page: SavedPage
+    /// The page shown now; `show(_:)` swaps it (a page change between turns, WUKO-73).
+    private final class Holder: @unchecked Sendable {
+        private let lock = NSLock()
+        private var value: SavedPage
+        init(_ value: SavedPage) { self.value = value }
+        var page: SavedPage {
+            get { lock.withLock { value } }
+            set { lock.withLock { value = newValue } }
+        }
+    }
+    private let holder: Holder
+    var page: SavedPage { holder.page }
+
+    init(page: SavedPage) { holder = Holder(page) }
+
+    func show(_ page: SavedPage) { holder.page = page }
 
     func currentPageMetadata() async -> AgentPageMetadata {
         AgentPageMetadata(url: page.url, title: page.title)

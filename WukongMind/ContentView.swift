@@ -284,6 +284,14 @@ struct BrowserContent: View {
                     .transition(DCMotion.slide(.top, reduceMotion: reduceMotion))
             }
         }
+        .overlay(alignment: .top) {
+            if let prompt = browser.appOpenPrompt, !showsHome {
+                AppOpenBanner(prompt: prompt, onOpen: browser.confirmAppOpen, onDismiss: browser.dismissAppOpenPrompt)
+                    .padding(.top, DCTheme.spacingS)
+                    .padding(.horizontal, DCTheme.spacingM)
+                    .transition(DCMotion.slide(.top, reduceMotion: reduceMotion))
+            }
+        }
         .overlay(alignment: .bottom) {
             // Cards, then the Dock or a row (Dock.swift); the Dock stays over
             // the Forums home (a session can start there).
@@ -318,6 +326,43 @@ struct BrowserContent: View {
         }
         #endif
         .animation(DCMotion.respecting(reduceMotion, DCMotion.spring), value: browser.showsCrashNotice)
+        .animation(DCMotion.respecting(reduceMotion, DCMotion.spring), value: browser.appOpenPrompt)
+    }
+}
+
+/// "This page wants to open <app>": small, non-modal, with Open.
+private struct AppOpenBanner: View {
+    let prompt: AppOpenPrompt
+    let onOpen: () -> Void
+    let onDismiss: () -> Void
+
+    var body: some View {
+        HStack(spacing: DCTheme.spacingM) {
+            Image(systemName: "arrow.up.forward.app.fill")
+                .foregroundStyle(DCTheme.ink)
+                .accessibilityHidden(true)
+            Text(prompt.message ?? String(localized: "This page wants to open \(prompt.appName)"))
+                .font(.subheadline.weight(.semibold))
+                .frame(maxWidth: .infinity, alignment: .leading)
+            if prompt.url != nil {
+                Button("Open", action: onOpen)
+                    .buttonStyle(DCActionButtonStyle(prominent: true))
+                    .accessibilityIdentifier("appOpenBannerOpen")
+            }
+            Button(action: onDismiss) {
+                Image(systemName: "xmark").font(.caption.weight(.bold))
+            }
+            .buttonStyle(DCIconButtonStyle())
+            .accessibilityLabel("Dismiss")
+        }
+        .padding(.leading, DCTheme.spacingM)
+        .padding(.trailing, DCTheme.spacingXS)
+        .padding(.vertical, DCTheme.spacingXS)
+        .frame(maxWidth: 520)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: DCTheme.cardCornerRadius, style: .continuous))
+        .shadow(color: .black.opacity(0.12), radius: 10, y: 4)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("appOpenBanner")
     }
 }
 

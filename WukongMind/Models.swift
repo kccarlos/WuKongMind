@@ -123,6 +123,11 @@ struct AppSettings: Codable, Equatable {
     var blockTrackers = false
     /// Hosts (lowercased, no "www.") where blocking is off; subdomains match.
     var adBlockAllowedSites: [String] = []
+    /// Built-in browser: let tapped links open the site's app (Universal
+    /// Links, app schemes). Off by default: pages stay in the browser.
+    var openLinksInApps = false
+    /// Per-site override of `openLinksInApps` (normalized host → on/off).
+    var appLinkSiteOverrides: [String: Bool] = [:]
     /// API keys are stored as iCloud Keychain (synchronizable) items. On by
     /// default. Turning it off keeps a local copy and leaves the synced item
     /// in place for the user's other devices.
@@ -184,6 +189,8 @@ struct AppSettings: Codable, Equatable {
         case contentBlockingEnabled
         case blockTrackers
         case adBlockAllowedSites
+        case openLinksInApps
+        case appLinkSiteOverrides
         case syncAPIKeys
         case forumRateLimitingEnabled
         case forumRequestPace
@@ -271,6 +278,8 @@ struct AppSettings: Codable, Equatable {
         blockTrackers = try container.decodeIfPresent(Bool.self, forKey: .blockTrackers) ?? false
         adBlockAllowedSites = (try container.decodeIfPresent([String].self, forKey: .adBlockAllowedSites) ?? [])
             .compactMap(ContentBlockingRules.normalizedHost)
+        openLinksInApps = try container.decodeIfPresent(Bool.self, forKey: .openLinksInApps) ?? false
+        appLinkSiteOverrides = try container.decodeIfPresent([String: Bool].self, forKey: .appLinkSiteOverrides) ?? [:]
         syncAPIKeys = try container.decodeIfPresent(Bool.self, forKey: .syncAPIKeys) ?? true
         forumRateLimitingEnabled = try container.decodeIfPresent(Bool.self, forKey: .forumRateLimitingEnabled) ?? true
         forumRequestPace = try container.decodeIfPresent(ForumRequestPace.self, forKey: .forumRequestPace) ?? .default

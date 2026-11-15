@@ -72,7 +72,7 @@ final class SuggestionRoutingTests: XCTestCase {
             let tapped = try await firstRequest(sending: suggestion.text)
             let typed = try await firstRequest(sending: "  \(suggestion.text)\n")
             XCTAssertEqual(tapped, typed, "\(suggestion)")
-            XCTAssertEqual(tapped.messages.last, .user(suggestion.text), "\(suggestion)")
+            XCTAssertTrue(Self.userText(tapped.messages.last).hasSuffix("</page_context>\n\nThe user's message:\n\(suggestion.text)"), "\(suggestion)")
         }
     }
 
@@ -80,7 +80,12 @@ final class SuggestionRoutingTests: XCTestCase {
         XCTAssertEqual(PageSuggestions.route(for: .searchForum), .fill)
         let completed = PageSuggestion.searchForum.composerText + "dark mode bugs"
         let request = try await firstRequest(sending: completed)
-        XCTAssertEqual(request.messages.last, .user("Search this forum dark mode bugs"))
+        XCTAssertTrue(Self.userText(request.messages.last).hasSuffix("\n\nThe user's message:\nSearch this forum dark mode bugs"))
+    }
+
+    private static func userText(_ turn: AgentModelTurn?) -> String {
+        if case .user(let text)? = turn { return text }
+        return ""
     }
 
     /// What the model is sent for one turn: the system prompt, the tools, the messages.

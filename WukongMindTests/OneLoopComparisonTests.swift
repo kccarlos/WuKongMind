@@ -208,7 +208,7 @@ final class OneLoopComparisonTests: XCTestCase {
     func testInThreadQueryPointsToAForumSearch() async throws {
         let read = try await toolResult("H3", tool: "read_topic", arguments: ["topic_id": .string("44809166"), "query": .string("funnel")])
         Self.assertNoteBeforeWrapper(read.result.content, .queryInTopic(topic: "story"))
-        XCTAssertTrue(read.system.contains("search the site for it (`search_forum`) beyond that story before answering"))
+        XCTAssertTrue(read.system.contains("search the site for it (`search_forum`) beyond that thread before answering"))
     }
 
     /// H4: the latest list says it is titles only and asks for a read before recommending.
