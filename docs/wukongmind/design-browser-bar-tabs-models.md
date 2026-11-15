@@ -205,10 +205,12 @@ How it behaves:
 
 ## For the owner to confirm
 
-1. **Glass capsule, not radius-lg.** The bar and the pill are capsules (radius = height ÷ 2), as the iOS 26 system toolbar already ships in the app (`PhoneBarStyle.usesGlass`). The design system reserves radius-full for the ring, and the BrowserBar component says radius-lg. The brief asks for Safari's pill, so the boards draw the capsule. The alternative is radius-lg (14) expanded and radius-md (10) collapsed; flipping to it changes only the radius values.
+On 2026-11-14 the Assistant chose items 1, 3 and 4 on the owner's behalf, each as recommended. Item 2 is still open, and the owner can overrule any of them on acceptance.
+
+1. **Glass capsule, not radius-lg** (chosen: capsule). The bar and the pill are capsules (radius = height ÷ 2), as the iOS 26 system toolbar already ships in the app (`PhoneBarStyle.usesGlass`). The design system reserves radius-full for the ring, and the BrowserBar component says radius-lg. The brief asks for Safari's pill, so the boards draw the capsule. The alternative is radius-lg (14) expanded and radius-md (10) collapsed; flipping to it changes only the radius values.
 2. **A third functional transition** beside the two on the Motion board (the bar morph, 0.24 s, no bounce).
-3. **The page menu moves inside the address field** to give the domain room on iPhone. Forward moves to the page menu and back's long press.
-4. **The iPad bar now collapses too**; today it never does.
+3. **The page menu moves inside the address field** (chosen) to give the domain room on iPhone. Forward moves to the page menu and back's long press.
+4. **The iPad bar now collapses too** (chosen); today it never does.
 
 ## Proposed implementation tasks
 
