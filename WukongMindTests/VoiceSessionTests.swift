@@ -981,11 +981,12 @@ final class VoiceSessionTests: XCTestCase {
         XCTAssertFalse((ordinaryReplies.last ?? "").isEmpty)
         ordinarySession.stop()
 
-        // 3. Ordinary page navigation, scroll, and link following (Tasks 3 & 4).
+        // 3. Ordinary page navigation, scroll, link following, summarize, and read_aloud (Tasks 3, 4 & 5).
         let fake = FakeVoiceNavigator()
         fake.holdsHandOff = true
         fake.pageContext = PageContext(url: ordinaryURL, state: .notForum)
         fake.explicitPageTitle = "Markets steady as tariff talks resume"
+        fake.readableText = "Markets steady as tariff talks resume\n\nNegotiators met in Geneva on Thursday and agreed to pause new port levies for ninety days while technical teams review customs rules."
         fake.links = [
             PageLink(text: "Top stories", url: URL(string: "https://heraldexample.com/top")!, host: "heraldexample.com"),
             PageLink(text: "Opinion: why tariffs miss the point", url: URL(string: "https://heraldexample.com/tariffs?src=home#lead")!, host: "heraldexample.com"),
@@ -1025,7 +1026,24 @@ final class VoiceSessionTests: XCTestCase {
         try await waitUntil(timeout: 20) { navSession.tick(); return navReplies.count > beforeWords && navSession.state == .listening }
         print("[LIVE-VOICE] ordinary open_link_words calls=\(fake.calls) reply=\(navReplies.last ?? "")")
         XCTAssertTrue(fake.calls.contains("followLink Opinion: why tariffs miss the point @ heraldexample.com"), "Expected open_link tariffs, got \(fake.calls)")
+
+        let beforeSummarize = navReplies.count
+        let readsBeforeSum = fake.calls.filter { $0 == "pageReadableText" }.count
+        navSession.sendText("Summarize this.")
+        try await waitUntil(timeout: 20) { navSession.tick(); return navReplies.count > beforeSummarize && navSession.state == .listening }
+        let readsAfterSum = fake.calls.filter { $0 == "pageReadableText" }.count
+        print("[LIVE-VOICE] ordinary summarize_topic pageReadableText=\(readsAfterSum - readsBeforeSum) reply=\(navReplies.last ?? "")")
+        XCTAssertGreaterThan(readsAfterSum, readsBeforeSum, "Expected summarize_topic({}) to read pageReadableText, got \(fake.calls)")
+
+        let beforeListen = navReplies.count
+        navSession.sendText("Read it to me.")
+        try await waitUntil(timeout: 20) { navSession.tick(); return navReplies.count > beforeListen && navSession.state == .listening }
+        let readsAfterListen = fake.calls.filter { $0 == "pageReadableText" }.count
+        print("[LIVE-VOICE] ordinary read_aloud pageReadableText=\(readsAfterListen - readsAfterSum) reply=\(navReplies.last ?? "")")
+        XCTAssertGreaterThan(readsAfterListen, readsAfterSum, "Expected read_aloud({}) to read pageReadableText, got \(fake.calls)")
+        XCTAssertEqual(app.podcast.player.playlist?.title, "Markets steady as tariff talks resume")
         navSession.stop()
+        app.podcast.cancelReadAloud()
     }
 
     private func makeStubbedApp() -> AppModel {
@@ -1039,12 +1057,19 @@ final class VoiceSessionTests: XCTestCase {
         let configuration = URLSessionConfiguration.ephemeral
         configuration.protocolClasses = [PostLevelURLStub.self]
         let urlSession = URLSession(configuration: configuration)
+        let ai = StateAIStub()
+        ai.gated = false
         let app = AppModel(
             store: PersistentStore(fileURL: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true).appendingPathComponent("state.json")),
             forumService: ForumService(session: urlSession, pacer: ForumRequestPacer(clock: InstantPacingClock())),
-            aiService: AIService(session: urlSession)
+            aiService: ai
         )
         app.usesDirectForumRequests = true
+        app.settings.assistantModel = ModelSelection(provider: .ollama, model: "summary-model")
+        var ollama = app.settings.configuration(for: .ollama); ollama.model = "summary-model"
+        app.setConfiguration(ollama, for: .ollama)
+        app.settings.podcast.engine = .onDevice
+        app.podcast.makeEngine = { _, _, _ in InstantSpeechStub() }
         app.settings.voiceEnabled = true
         var gemini = app.settings.configuration(for: .gemini)
         gemini.apiKey = "test-key"

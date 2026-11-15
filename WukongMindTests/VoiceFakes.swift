@@ -134,6 +134,15 @@ final class FakeVoiceAudio: VoiceAudioIO {
 }
 
 @MainActor
+final class InstantSpeechStub: PodcastSpeechEngine {
+    var fileExtension: String { "wav" }
+    func synthesize(_ turns: [PodcastTurn], to url: URL) async throws -> TimeInterval {
+        try WAVFile.data(PCMAudio(samples: Data(count: 8_000 * 2 * 2), sampleRate: 8_000)).write(to: url)
+        return 2.0
+    }
+}
+
+@MainActor
 final class ManualVoiceClock: VoiceClock {
     var now = Date(timeIntervalSince1970: 1_800_000_000)
 
@@ -166,6 +175,7 @@ final class FakeVoiceNavigator: VoiceNavigator {
     var openResults: [String: VoiceOpenResult] = [:]
     var links: [PageLink] = []
     var followLinkResults: [String: VoiceOpenResult] = [:]
+    var readableText: String?
     var brief: VoiceTopicBrief?
     var visible: [VisiblePost] = []
     var summary: String?
@@ -193,6 +203,11 @@ final class FakeVoiceNavigator: VoiceNavigator {
     func pageLinks() async -> [PageLink] {
         calls.append("pageLinks")
         return links
+    }
+
+    func pageReadableText() async -> String? {
+        calls.append("pageReadableText")
+        return readableText
     }
 
     func followLink(_ link: PageLink) async -> VoiceOpenResult {

@@ -16,6 +16,9 @@ protocol VoiceNavigator: AnyObject {
     func openPage(_ target: String) async -> VoiceOpenResult
     func pageLinks() async -> [PageLink]
     func followLink(_ link: PageLink) async -> VoiceOpenResult
+    var openTopicID: String? { get }
+    var hasOpenPage: Bool { get }
+    func pageReadableText() async -> String?
     var linkPageIdentity: String { get }
     func openTopic(_ target: BrowseTarget, at landing: BrowseLanding, includeContent: Bool) async -> BrowseResult
     func openCard(_ index: Int, includeContent: Bool) async -> BrowseResult
@@ -63,6 +66,16 @@ extension VoiceNavigator {
     var linkPageIdentity: String {
         VoiceLinkState.pageKey(url: nil, page: pageContext)
     }
+
+    var openTopicID: String? {
+        pageContext.state == .topic ? pageContext.topic?.topicID : nil
+    }
+
+    var hasOpenPage: Bool {
+        pageContext.url != nil
+    }
+
+    func pageReadableText() async -> String? { nil }
 }
 
 /// Where `browse_move` scrolls on an ordinary page (or a forum page without an open topic).
@@ -315,9 +328,22 @@ final class VoiceToolBridge {
             return refusal(Self.notForumMessage)
         }
         var args = Self.lenient(args, for: tool.definition)
-        // "Summarize this", "follow this thread": voice names no thread, so the open topic it is.
-        if let topicID = navigator?.pageContext.topic?.topicID {
-            args = Self.defaultingToOpenTopic(args, topicID: topicID, for: tool.definition)
+        // "Summarize this", "read it to me", "follow this thread": with no input,
+        // use the open topic on a thread, else the page's readable text off a topic.
+        if !Self.hasContentInput(args) {
+            if let topicID = navigator?.openTopicID {
+                args = Self.defaultingToOpenTopic(args, topicID: topicID, for: tool.definition)
+            } else if Self.defaultsToPageText(tool.definition) {
+                guard let text = await navigator?.pageReadableText()?
+                    .trimmingCharacters(in: .whitespacesAndNewlines),
+                    !text.isEmpty else {
+                    let reason = (navigator?.hasOpenPage == true)
+                        ? "There is no readable text on this page."
+                        : "No page is open to read."
+                    return refusal(reason)
+                }
+                args = Self.defaultingToPageText(args, text: text)
+            }
         }
         guard let result = try? await registry.dispatch(toolName: name, arguments: args) else {
             return refusal("The tool was stopped.")
@@ -326,16 +352,34 @@ final class VoiceToolBridge {
         return VoiceToolOutcome(response: registry.spokenResult(result, eyesFree: eyesFree), scheduling: tool.voiceScheduling)
     }
 
-    /// A thread tool called with no input (`{}`) gets the open topic.
-    static func defaultingToOpenTopic(_ args: [String: JSONValue], topicID: String, for definition: AgentToolDefinition) -> [String: JSONValue] {
-        guard definition.parameters.contains(where: { $0.name == "topic_id" }) else { return args }
-        let given = ["topic_id", "url", "path", "text"].contains { key in
+    private static let contentInputKeys = ["topic_id", "url", "path", "text"]
+
+    static func hasContentInput(_ args: [String: JSONValue]) -> Bool {
+        contentInputKeys.contains { key in
             !(args[key]?.textValue ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         }
-        guard !given else { return args }
+    }
+
+    static func defaultsToPageText(_ definition: AgentToolDefinition) -> Bool {
+        definition.parameters.contains(where: { $0.name == "topic_id" })
+            && definition.parameters.contains(where: { $0.name == "text" })
+    }
+
+    /// A thread tool called with no input (`{}`) gets the open topic.
+    static func defaultingToOpenTopic(_ args: [String: JSONValue], topicID: String, for definition: AgentToolDefinition) -> [String: JSONValue] {
+        guard definition.parameters.contains(where: { $0.name == "topic_id" }), !hasContentInput(args) else { return args }
         var args = args
-        for key in ["topic_id", "url", "path", "text"] { args[key] = nil }
+        for key in contentInputKeys { args[key] = nil }
         args["topic_id"] = .string(topicID)
+        return args
+    }
+
+    /// Off a topic, `summarize_topic` and `read_aloud` called with no input (`{}`) get the page's readable text.
+    static func defaultingToPageText(_ args: [String: JSONValue], text: String) -> [String: JSONValue] {
+        guard !hasContentInput(args) else { return args }
+        var args = args
+        for key in contentInputKeys { args[key] = nil }
+        args["text"] = .string(text)
         return args
     }
 

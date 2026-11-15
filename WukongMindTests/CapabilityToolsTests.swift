@@ -98,6 +98,61 @@ final class CapabilityToolsTests: XCTestCase {
         XCTAssertTrue(h.app.sessions.isEmpty, "Text and path summaries are not cached as forum sessions")
     }
 
+    func testVoiceSurfaceDescribesAnyPageDefaultsWhileTextAgentStaysUnchangedAndCapped() async throws {
+        let h = makeHarness(gatedAI: false)
+        h.ai.inner.echoContentInSummary = true
+        let speech = RecordingGatedSpeech(); speech.gated = false
+        h.app.podcast.makeEngine = { _, _, _ in speech }
+        h.app.settings.podcast.engine = .onDevice
+        let context = AgentToolContext(
+            bridge: FixturePageDriver(page: .init(url: site, title: "Stub")),
+            workspace: h.app.agentWorkspace, scriptStore: h.app.scriptStore, capabilities: h.app.capabilityToolContext
+        )
+        let textRegistry = ToolRegistry.m3(context: context, surface: .text)
+        let voiceRegistry = ToolRegistry.m3(context: context, surface: .voice)
+
+        let textSummarize = try XCTUnwrap(textRegistry.tool(named: "summarize_topic")?.definition)
+        let textReadAloud = try XCTUnwrap(textRegistry.tool(named: "read_aloud")?.definition)
+        XCTAssertEqual(
+            textSummarize.description,
+            "Summarize a forum thread ('topic_id' on the open forum or 'url' on any supported Discourse, Hacker News, or WordPress thread), a workspace file ('path'), or plain 'text'."
+        )
+        XCTAssertEqual(
+            textReadAloud.description,
+            "Start reading a forum thread summary ('topic_id' or 'url', summarizing first if needed), a workspace file ('path'), or plain 'text' aloud in the audio player and return immediately."
+        )
+        for name in ["summarize_topic", "read_aloud"] {
+            let empty = try await textRegistry.dispatch(toolName: name, arguments: [:])
+            XCTAssertTrue(empty.isError, "\(name) on text surface must still require an explicit input")
+            XCTAssertTrue(empty.output.contains("provide exactly one of"), empty.output)
+        }
+
+        let voiceSummarize = try XCTUnwrap(voiceRegistry.tool(named: "summarize_topic")?.definition)
+        let voiceReadAloud = try XCTUnwrap(voiceRegistry.tool(named: "read_aloud")?.definition)
+        for def in [voiceSummarize, voiceReadAloud] {
+            XCTAssertTrue(def.description.contains("With no input"), def.description)
+            XCTAssertTrue(def.description.contains("open thread") && def.description.contains("page"), def.description)
+            XCTAssertFalse(def.description.contains("\n"), def.description)
+            for siteWord in ["Discourse", "Hacker News", "WordPress"] {
+                XCTAssertFalse(def.description.contains(siteWord), "\(def.name) leaked \(siteWord)")
+            }
+        }
+
+        let longArticle = "Long Article Headline\n\n" + String(repeating: "Detailed paragraph of readable prose on the page. ", count: 240)
+        let sumResult = try await voiceRegistry.dispatch(toolName: "summarize_topic", arguments: ["text": .string(longArticle)])
+        XCTAssertFalse(sumResult.isError, sumResult.output)
+        XCTAssertGreaterThan(sumResult.output.count, ToolRegistry.spokenResultLimit)
+        let sumSpoken = voiceRegistry.spokenResult(sumResult, eyesFree: false)
+        XCTAssertLessThanOrEqual(JSONValue.encodeCompactJSON(sumSpoken).count, ToolRegistry.spokenResultLimit)
+        XCTAssertEqual(sumSpoken["status"], "done")
+
+        let readResult = try await voiceRegistry.dispatch(toolName: "read_aloud", arguments: ["text": .string(longArticle)])
+        XCTAssertFalse(readResult.isError, readResult.output)
+        let readSpoken = voiceRegistry.spokenResult(readResult, eyesFree: false)
+        XCTAssertLessThanOrEqual(JSONValue.encodeCompactJSON(readSpoken).count, ToolRegistry.spokenResultLimit)
+        XCTAssertEqual(readSpoken["status"], "started")
+    }
+
     func testReadAloudStartsPlayerAndReturnsAtOnce() async throws {
         let h = makeHarness(gatedAI: false)
         selectTopic(h.app, id: "1")

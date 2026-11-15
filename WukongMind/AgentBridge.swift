@@ -789,6 +789,21 @@ final class AgentBridge: NSObject, AgentPageDriving {
         return collapsed.count > 140 ? String(collapsed.prefix(139)) + "…" : collapsed
     }
 
+    // MARK: - readablePageText (voice listen / summarize on any page)
+
+    nonisolated static let maxReadablePageChars = 120_000
+
+    func readablePageText(maxLength: Int = AgentBridge.maxReadablePageChars) async throws -> String {
+        try Task.checkCancellation()
+        let raw = try await callAsyncJS(
+            script: Self.readablePageTextScript,
+            arguments: ["maxLength": max(1, maxLength)],
+            world: Self.isolatedWorld,
+            timeout: Self.defaultJSTimeout
+        )
+        return (raw as? String)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    }
+
     // MARK: - wait_for
 
     func waitFor(selector: String? = nil, milliseconds: Int? = nil) async throws -> WaitForResult {
@@ -1581,5 +1596,85 @@ extension AgentBridge {
       merged.push(entry);
     }
     return merged.slice(0, maxLinks).map(({ text, href, inViewport }) => ({ text, href, inViewport }));
+    """#
+
+    private static let readablePageTextScript = #"""
+    const limit = (typeof maxLength === "number" && maxLength > 0) ? maxLength : 120000;
+    if (!document.body) return "";
+    const IGNORED = new Set(["SCRIPT", "STYLE", "NOSCRIPT", "TEMPLATE", "HEAD", "SVG", "CANVAS", "IFRAME", "AUDIO", "VIDEO", "OBJECT", "EMBED", "BUTTON", "INPUT", "SELECT", "TEXTAREA"]);
+    const BLOCKS = new Set(["ADDRESS", "ARTICLE", "ASIDE", "BLOCKQUOTE", "DD", "DETAILS", "DIALOG", "DIV", "DL", "DT", "FIELDSET", "FIGCAPTION", "FIGURE", "FOOTER", "FORM", "H1", "H2", "H3", "H4", "H5", "H6", "HEADER", "HR", "LI", "MAIN", "NAV", "OL", "P", "PRE", "SECTION", "SUMMARY", "TABLE", "TBODY", "THEAD", "TFOOT", "TR", "UL"]);
+    const PARAS = new Set(["ARTICLE", "BLOCKQUOTE", "FIGCAPTION", "H1", "H2", "H3", "H4", "H5", "H6", "LI", "P", "PRE", "SECTION"]);
+    const CHROME_ROLES = new Set(["navigation", "complementary", "contentinfo", "search", "dialog", "alertdialog"]);
+    const isShown = (el) => {
+      if (!el || el.nodeType !== 1 || IGNORED.has(el.tagName)) return false;
+      if (el.hidden || el.hasAttribute("inert") || el.getAttribute("aria-hidden") === "true") return false;
+      const st = window.getComputedStyle(el);
+      if (!st) return true;
+      return st.display !== "none" && st.visibility !== "hidden" && st.visibility !== "collapse" && parseFloat(st.opacity || "1") !== 0;
+    };
+    const isVisibleTree = (el) => {
+      for (let cur = el; cur && cur.nodeType === 1; cur = cur.parentElement) {
+        if (!isShown(cur)) return false;
+        if (cur.tagName === "DETAILS" && !cur.open && cur !== el && !(cur.querySelector(":scope > summary") || { contains: () => false }).contains(el)) return false;
+      }
+      return true;
+    };
+    const isChrome = (el, root) => {
+      if (el === root || el.querySelector("main, article")) return false;
+      const tag = el.tagName, role = (el.getAttribute("role") || "").toLowerCase();
+      if (tag === "NAV" || tag === "ASIDE" || tag === "DIALOG" || CHROME_ROLES.has(role)) return true;
+      const inArticle = Boolean(el.parentElement && el.parentElement.closest("article"));
+      if (tag === "FOOTER" && !inArticle) return true;
+      if ((tag === "HEADER" || role === "banner") && !inArticle && !el.querySelector("h1")) return true;
+      return false;
+    };
+    const extract = (root, skipChrome) => {
+      if (!root || !isVisibleTree(root)) return "";
+      let out = "";
+      const pushBreak = (double) => {
+        if (!out) return;
+        if (double) { if (!out.endsWith("\n\n")) out += out.endsWith("\n") ? "\n" : "\n\n"; }
+        else if (!out.endsWith("\n")) out += "\n";
+      };
+      const walk = (node) => {
+        if (out.length >= limit + 4096) return;
+        if (node.nodeType === 3) {
+          const t = node.nodeValue.replace(/[\t\r\n ]+/g, " ");
+          if (t.trim() || (t === " " && out && !/[\s]$/.test(out))) out += t;
+          return;
+        }
+        if (node.nodeType !== 1 || !isShown(node) || (skipChrome && isChrome(node, root))) return;
+        const tag = node.tagName;
+        if (tag === "BR") { pushBreak(false); return; }
+        const disp = window.getComputedStyle(node)?.display || "";
+        const isBlock = BLOCKS.has(tag) || disp === "block" || disp === "flex" || disp === "grid" || disp === "list-item" || disp === "table" || disp === "table-row";
+        const isPara = PARAS.has(tag);
+        if (isBlock) pushBreak(isPara);
+        if (tag === "DETAILS" && !node.open) {
+          const sum = node.querySelector(":scope > summary");
+          if (sum) walk(sum);
+        } else {
+          for (const child of node.childNodes) walk(child);
+        }
+        if (tag === "TD" || tag === "TH") { if (out && !/[\s]$/.test(out)) out += " "; }
+        else if (isBlock) pushBreak(isPara);
+      };
+      walk(root);
+      const cleaned = out.split("\n").map((l) => l.replace(/\s+/g, " ").trim()).join("\n").replace(/\n{3,}/g, "\n\n").trim();
+      return cleaned.length > limit ? cleaned.slice(0, limit) : cleaned;
+    };
+    const bodyText = extract(document.body, true);
+    const mains = Array.from(document.querySelectorAll("main, [role='main']")).filter((el) => isVisibleTree(el) && !el.parentElement?.closest("main, [role='main']"));
+    const mainRoot = mains.length === 1 ? mains[0] : document.body;
+    const mainText = mainRoot === document.body ? bodyText : extract(mainRoot, true);
+    const useMain = mainRoot !== document.body && (mainText.length >= 120 || mainText.length >= bodyText.length * 0.4);
+    const scope = useMain ? mainRoot : document.body;
+    const scopeText = useMain ? mainText : bodyText;
+    const articles = Array.from(scope.querySelectorAll("article")).filter((el) => isVisibleTree(el) && !el.parentElement?.closest("article") && !el.closest("nav, aside, footer, dialog"));
+    if (articles.length === 1) {
+      const artText = extract(articles[0], true);
+      if (artText && (artText.length >= 80 || artText.length >= scopeText.length * 0.25)) return artText;
+    }
+    return scopeText || extract(document.body, false);
     """#
 }

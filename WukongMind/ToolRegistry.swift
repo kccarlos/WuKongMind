@@ -2428,7 +2428,7 @@ extension ToolRegistry {
         tools += navigationTools(context: context)
         tools += networkTools(context: context)
         tools += forumTools(context: context, surface: surface)
-        tools += capabilityTools(context: context)
+        tools += capabilityTools(context: context, surface: surface)
         tools += browseTools(context: context)
         var registry = ToolRegistry(
             tools: tools.filter { $0.surfaces.contains(surface) },

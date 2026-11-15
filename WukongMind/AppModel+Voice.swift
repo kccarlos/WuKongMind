@@ -105,6 +105,36 @@ extension AppModel: VoiceNavigator {
         return (try? await browser.agentBridge.pageLinks()) ?? []
     }
 
+    var openTopicID: String? {
+        guard !browser.isForumsHomeRequested, pageContext.state == .topic else { return nil }
+        return pageContext.topic?.topicID
+    }
+
+    var hasOpenPage: Bool {
+        !browser.showsForumsHome && (browser.webView.url != nil || browser.currentURL != nil)
+    }
+
+    func pageReadableText() async -> String? {
+        guard hasOpenPage,
+              let body = (try? await browser.agentBridge.readablePageText())?
+                  .trimmingCharacters(in: .whitespacesAndNewlines),
+              !body.isEmpty else { return nil }
+        guard let rawTitle = pageTitle?
+            .replacingOccurrences(of: #"https?://\S+"#, with: "", options: .regularExpression)
+            .replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+            !rawTitle.isEmpty else {
+            return body
+        }
+        let firstLine = body.components(separatedBy: .newlines)
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .first { !$0.isEmpty } ?? ""
+        let titleAlreadyLeads = firstLine.caseInsensitiveCompare(rawTitle) == .orderedSame
+            || firstLine.localizedCaseInsensitiveContains(rawTitle)
+            || (firstLine.count >= max(8, rawTitle.count / 2) && rawTitle.localizedCaseInsensitiveContains(firstLine))
+        return titleAlreadyLeads ? body : "\(rawTitle)\n\n\(body)"
+    }
+
     var linkPageIdentity: String {
         if browser.showsForumsHome { return "home" }
         return VoiceLinkState.pageKey(url: browser.webView.url ?? browser.currentURL, page: pageContext)
