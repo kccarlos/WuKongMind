@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>M4 Settings Scripts and Models</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.lt{--ground:#f7f3ea;--bg:#fffdf8;--page:#f7f3ea;--surface:#fffdf8;--raised:#efe9dc;--label:#1a1612;--sec:#5f574c;--ter:#756c5f;--border:rgba(26,22,18,.14);--strong:#8c8375;--blue:#8a6200;--gold:#b07f0c;--ongold:#1a1612;--goldwash:#f6ecd0;--jade:#1f6f66;--jadewash:#dcefeb;--danger:#b3321f;--cin:#b3321f;--oncin:#ffffff;--cinwash:#f9e1da;--success:#356f1b;--warning:#a34a08;--pop:#fffdf8;--toggleoff:#fffdf8;--scrim:rgba(20,17,14,.4);--canvas:#e8e1d2;--web:#FFFFFF;--webtext:#1E1E1E}
+.dk{--ground:#14110e;--bg:#1f1b16;--page:#14110e;--surface:#1f1b16;--raised:#2a251e;--label:#f4eee2;--sec:#b3a998;--ter:#8f8676;--border:rgba(244,238,226,.16);--strong:#7d7567;--blue:#e8bd55;--gold:#e0b040;--ongold:#1a1612;--goldwash:#3a2f14;--jade:#6fd0c2;--jadewash:#12302c;--danger:#ff7a5c;--cin:#ff7a5c;--oncin:#1a1612;--cinwash:#3d1a12;--success:#8fd66b;--warning:#ffb070;--pop:#2a251e;--toggleoff:#1f1b16;--scrim:rgba(0,0,0,.55);--canvas:#0c0a08;--web:#16171A;--webtext:#E6E6E8}
+.sf{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,"Helvetica Neue",sans-serif;color:var(--label);-webkit-font-smoothing:antialiased}
+.mono{font-family:ui-monospace,"SF Mono",Menlo,monospace}
+.ph{width:390px;height:844px;position:relative;overflow:hidden;background:var(--web);border-radius:44px;flex-shrink:0}
+.pad{width:1194px;height:834px;position:relative;overflow:hidden;background:var(--web);border-radius:24px;flex-shrink:0}
+.pgbg{background:var(--page)}
+.webt{padding:58px 16px 0;color:var(--webtext);font-size:22px;font-weight:700;line-height:1.25}
+.scrim{position:absolute;left:0;top:0;right:0;bottom:0;background:var(--scrim)}
+.sheet{position:absolute;left:0;right:0;bottom:0;top:54px;background:var(--page);border-radius:14px 14px 0 0;display:flex;flex-direction:column;overflow:hidden}
+.fsheet{position:absolute;left:287px;top:37px;width:620px;height:760px;background:var(--page);border-radius:18px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.grab{display:flex;justify-content:center;padding-top:6px}
+.grab span{width:36px;height:5px;border-radius:3px;background:var(--ter);opacity:.5}
+.nav{display:flex;align-items:center;min-height:48px;padding:0 8px}
+.nav .tt{flex:1;text-align:center;font-size:17px;font-weight:600}
+.nb{border:0;background:none;color:var(--blue);font-family:inherit;font-size:17px;min-height:44px;min-width:76px;padding:0 8px;display:inline-flex;align-items:center;gap:2px;text-decoration:none}
+.nb.r{justify-content:flex-end}
+.nb svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.bd{flex:1;overflow:hidden;padding:4px 16px 16px;display:flex;flex-direction:column;gap:20px}
+.bd>*{flex-shrink:0}
+.sh{font-size:13px;color:var(--sec);padding:0 16px 6px;text-transform:uppercase;letter-spacing:.02em;display:flex}
+.sh span{margin-left:auto;text-transform:none}
+.ft{font-size:13px;line-height:18px;color:var(--sec);padding:6px 16px 0}
+.sec{background:var(--surface);border-radius:14px;overflow:hidden}
+.li{display:flex;gap:12px;align-items:flex-start;padding:11px 14px;font-size:15px;line-height:20px;min-height:22px}
+.li+.li{border-top:1px solid var(--border)}
+.li .m{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.li .s{font-size:13px;line-height:18px;color:var(--sec)}
+.li .v{font-size:15px;color:var(--sec);white-space:nowrap}
+.ico{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;margin-top:0}
+.row{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 14px;font-size:17px}
+.row+.row,.li+.row,.row+.li{border-top:1px solid var(--border)}
+.row .m{flex:1;min-width:0;display:flex;flex-direction:column;padding:6px 0}
+.row .m .s{font-size:13px;color:var(--sec)}
+.row .v{margin-left:auto;color:var(--sec);font-size:17px}
+.ch{width:8px;height:13px;color:var(--ter);flex-shrink:0}
+.lk{color:var(--blue)}
+.dg{color:var(--danger)}
+.wn{color:var(--warning)}
+.ok{color:var(--success)}
+.mu{color:var(--sec)}
+.hd{display:flex;align-items:center;gap:12px}
+.tile{width:48px;height:48px;border-radius:10px;background:var(--label);color:var(--ground);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tile svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.hd .m{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.hd .n{font-size:20px;font-weight:700;line-height:24px}
+.hd .s{font-size:13px;color:var(--sec)}
+.seal{display:inline-flex;align-items:center;gap:4px;min-height:24px;padding:0 8px;border-radius:6px;font-size:12px;font-weight:600;border:0;font-family:inherit;white-space:nowrap;box-sizing:border-box;align-self:flex-start}
+.seal.out{border:1px solid var(--strong);color:var(--label);background:none}
+.seal.gw{background:var(--goldwash);color:var(--blue)}
+.seal.st{padding:0;min-height:20px}
+.seal svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.ban{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:14px;font-size:15px;line-height:20px}
+.ban.d{background:var(--cinwash);color:var(--danger);font-weight:600}
+.ban.n{background:var(--surface);color:var(--label)}
+.ban .ico{margin-top:0}
+.code{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12px;line-height:18px;background:var(--surface);border-radius:14px;padding:12px 14px;color:var(--label);white-space:pre;overflow:hidden}
+.code .ln{color:var(--ter)}
+.code .add{color:var(--success)}
+.foot{padding:12px 16px 30px;border-top:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;gap:8px;flex-shrink:0}
+.foot.pd{flex-direction:row;justify-content:flex-end;padding:12px 20px 16px}
+.btn{white-space:nowrap;min-height:44px;padding:0 16px;border-radius:10px;font-family:inherit;font-size:15px;font-weight:600;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn.pri{background:var(--gold);color:var(--ongold);border:0}
+.btn.sec{background:none;color:var(--label);border:1px solid var(--strong)}
+.btn.qt{background:none;color:var(--blue);border:0;padding:0 8px}
+.btn svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.btn.ag{background:none;color:var(--label);border:2px solid var(--gold)}
+.tg{width:51px;height:31px;border-radius:16px;position:relative;flex-shrink:0;border:0;padding:0;background:var(--gold)}
+.tg span{position:absolute;top:2px;right:2px;width:27px;height:27px;border-radius:14px;background:var(--ongold)}
+.tg.off{background:var(--toggleoff);box-shadow:inset 0 0 0 1px var(--strong)}
+.tg.off span{left:2px;right:auto;background:var(--sec)}
+.pop{position:absolute;background:var(--pop);border-radius:14px;box-shadow:0 12px 40px rgba(20,17,14,.28);overflow:hidden;display:flex;flex-direction:column}
+.psh{font-size:12px;font-weight:600;color:var(--sec);padding:12px 14px 6px;letter-spacing:.02em}
+.prow{display:flex;align-items:center;gap:10px;min-height:44px;padding:0 14px;border-top:1px solid var(--border)}
+.prow .m{flex:1;min-width:0;display:flex;flex-direction:column;padding:6px 0}
+.prow .m b{font-size:15px;font-weight:400}
+.prow .m span{font-size:12px;color:var(--sec)}
+.cmd{display:flex;align-items:center;gap:10px;min-height:44px;padding:0 14px 0 30px;color:var(--blue);font-size:15px;border:0;background:none;font-family:inherit;width:100%;box-sizing:border-box;text-align:left}
+.cmd svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.grey{display:flex;align-items:flex-start;gap:8px;padding:0 14px 10px 14px;font-size:12px;line-height:16px;color:var(--sec)}
+.grey svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.panel{position:absolute;left:0;right:0;bottom:0;top:54px;background:var(--surface);border-radius:28px 28px 0 0;box-shadow:0 -8px 30px rgba(20,17,14,.16);display:flex;flex-direction:column}
+.phd{display:flex;align-items:center;gap:8px;padding:2px 4px 0 20px;min-height:44px}
+.phd h2{margin:0;font-size:17px;font-weight:600}
+.ink{background:var(--label);color:var(--ground)}
+.conv{flex:1;overflow:hidden;padding:4px 16px 8px;display:flex;flex-direction:column;justify-content:flex-end;gap:10px}
+.conv>*{flex-shrink:0}
+.ub{align-self:flex-end;max-width:82%;background:var(--raised);color:var(--label);padding:9px 14px;border-radius:14px 14px 6px 14px;font-size:15px;line-height:20px}
+.at{font-size:15px;line-height:21px;color:var(--label)}
+.fold{display:flex;align-items:center;gap:10px;background:var(--raised);border-radius:10px;padding:10px 12px;font-size:15px;font-weight:600;color:var(--label)}
+.fold svg{width:14px;height:14px;color:var(--ter);fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.pin{padding:8px 0 30px;display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--border)}
+.strow{display:flex;align-items:center;gap:8px;padding:0 16px;min-height:40px;font-size:12px;font-weight:600;color:var(--sec)}
+.strow svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.inrow{display:flex;align-items:center;gap:8px;padding:0 16px}
+.fld{flex:1;display:flex;align-items:center;min-height:44px;padding:0 12px;border-radius:10px;background:var(--surface);border:1px solid var(--strong);font-size:15px;color:var(--ter);box-sizing:border-box}
+.mic{width:44px;height:44px;border-radius:999px;background:none;border:2px solid var(--gold);color:var(--blue);display:flex;align-items:center;justify-content:center;box-sizing:border-box;padding:0}
+.mic svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.card .hd .n{font-size:17px;font-weight:600;line-height:22px}
+.card .tile{width:36px;height:36px;border-radius:6px;background:var(--goldwash);color:var(--blue)}
+.card .tile svg{width:18px;height:18px}
+.cbs{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.alert{position:absolute;left:60px;top:300px;width:270px;background:var(--pop);border-radius:14px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.3);text-align:center}
+.alert h3{margin:18px 16px 4px;font-size:17px;font-weight:600}
+.alert p{margin:0 16px 12px;font-size:13px;line-height:18px}
+.alert .in{margin:0 16px 16px;min-height:36px;border-radius:8px;border:1px solid var(--strong);background:var(--surface);font-size:13px;display:flex;align-items:center;padding:0 8px;text-align:left;overflow:hidden;white-space:nowrap}
+.alert .ab{display:flex;border-top:1px solid var(--border)}
+.alert .ab button{flex:1;min-height:44px;border:0;background:none;color:var(--blue);font-family:inherit;font-size:17px}
+.alert .ab button+button{border-left:1px solid var(--border);font-weight:600}
+.menu{position:absolute;right:12px;top:100px;width:250px;background:var(--pop);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.28);overflow:hidden}
+.menu button{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:0 16px;border:0;background:none;color:var(--label);font-family:inherit;font-size:17px;text-align:left}
+.menu button svg{margin-left:auto;width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.errc{background:var(--surface);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;box-shadow:inset 0 0 0 1px var(--cinwash)}
+.errc .tt{display:flex;gap:6px;align-items:center;font-size:15px;font-weight:600}
+.errc .code{background:var(--raised);border-radius:12px;padding:10px;white-space:pre-wrap;word-break:break-word}
+</style>
+</helmet>
+<div class="sf {{theme}}" style="width: 1680px; height: 844px; display: flex; gap: 40px; background: var(--canvas);"><div class="ph pgbg"><div class="nav" style="padding-top: 50px;"><a class="nb" href="#"><svg class="" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>Settings</a><span class="tt">Scripts</span><button class="nb r" aria-label="More: import from link"><svg class="" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><circle cx="8" cy="12" r=".6" fill="currentColor"/><circle cx="12" cy="12" r=".6" fill="currentColor"/><circle cx="16" cy="12" r=".6" fill="currentColor"/></svg></button></div><div class="bd" style="gap: 18px;"><div><div class="sh"></div><div class="sec"><div class="row"><span class="tile" style="width: 29px; height: 29px; border-radius: 6px;"><svg class="" viewBox="0 0 24 24" aria-hidden="true" style="width: 17px; height: 17px;"><path d="M9 4c-2 0-2 1.5-2 3v2c0 1.5-1 2-2 2 1 0 2 .5 2 2v3c0 1.5 0 3 2 3M15 4c2 0 2 1.5 2 3v2c0 1.5 1 2 2 2-1 0-2 .5-2 2v3c0 1.5 0 3-2 3"/></svg></span><span style="flex: 1;">Run scripts</span><button class="tg" role="switch" aria-checked="true" aria-label="Run scripts"><span></span></button></div></div><div class="ft">Turns every script off at once. 4 scripts, 3 on.</div></div><div><div class="sh"></div><div class="sec"><div class="row"><span style="flex: 1;">Check for updates</span><button class="tg" role="switch" aria-checked="true" aria-label="Check for updates"><span></span></button></div><div class="row"><span style="flex: 1;">AI in scripts</span><button class="tg" role="switch" aria-checked="true" aria-label="AI in scripts"><span></span></button></div></div><div class="ft">Updates: once a day for imported scripts that are on; sends no cookies. AI: scripts with the GM_ai grant send page text to Claude Haiku 5.5. Off, they get no answer.</div></div><div><div class="sh">talk.example.org<span>2</span></div><div class="sec"><div class="row"><div class="m"><span>Tidy Threads</span><span class="seal gw" style="margin-top: 3px;"><svg class="" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Update available</span></div><button class="tg" role="switch" aria-checked="true" aria-label="Tidy Threads"><span></span></button><svg class="ch" viewBox="0 0 8 13" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M1 1l5.5 5.5L1 12"/></svg></div><div class="row"><div class="m"><span>Fold empty replies</span><span class="s">Uses AI · Claude Haiku 5.5</span></div><button class="tg" role="switch" aria-checked="true" aria-label="Fold empty replies"><span></span></button><svg class="ch" viewBox="0 0 8 13" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M1 1l5.5 5.5L1 12"/></svg></div></div></div><div><div class="sh">All sites<span>1</span></div><div class="sec"><div class="row"><div class="m"><span>Wider reading column</span><span class="s" style="color: var(--danger);">Error · TypeError: null is not an object · line 12</span></div><button class="tg off" role="switch" aria-checked="false" aria-label="Wider reading column"><span></span></button><svg class="ch" viewBox="0 0 8 13" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M1 1l5.5 5.5L1 12"/></svg></div></div></div></div><div class="menu" role="menu" aria-label="Scripts menu"><button role="menuitem">Import from link…<svg class="" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></button></div></div><div class="ph pgbg"><div class="nav" style="padding-top: 50px;"><a class="nb" href="#"><svg class="" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>Settings</a><span class="tt">Scripts</span><button class="nb r" aria-label="More: import from link"><svg class="" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><circle cx="8" cy="12" r=".6" fill="currentColor"/><circle cx="12" cy="12" r=".6" fill="currentColor"/><circle cx="16" cy="12" r=".6" fill="currentColor"/></svg></button></div><div class="bd" style="gap: 18px;"><div><div class="sh"></div><div class="sec"><div class="row"><span class="tile" style="width: 29px; height: 29px; border-radius: 6px;"><svg class="" viewBox="0 0 24 24" aria-hidden="true" style="width: 17px; height: 17px;"><path d="M9 4c-2 0-2 1.5-2 3v2c0 1.5-1 2-2 2 1 0 2 .5 2 2v3c0 1.5 0 3 2 3M15 4c2 0 2 1.5 2 3v2c0 1.5 1 2 2 2-1 0-2 .5-2 2v3c0 1.5 0 3-2 3"/></svg></span><span style="flex: 1;">Run scripts</span><button class="tg" role="switch" aria-checked="true" aria-label="Run scripts"><span></span></button></div></div><div class="ft">Turns every script off at once. 4 scripts, 3 on.</div></div><div><div class="sh"></div><div class="sec"><div class="row"><span style="flex: 1;">Check for updates</span><button class="tg" role="switch" aria-checked="true" aria-label="Check for updates"><span></span></button></div><div class="row"><span style="flex: 1;">AI in scripts</span><button class="tg" role="switch" aria-checked="true" aria-label="AI in scripts"><span></span></button></div></div><div class="ft">Updates: once a day for imported scripts that are on; sends no cookies. AI: scripts with the GM_ai grant send page text to Claude Haiku 5.5. Off, they get no answer.</div></div><div><div class="sh">talk.example.org<span>2</span></div><div class="sec"><div class="row"><div class="m"><span>Tidy Threads</span><span class="seal gw" style="margin-top: 3px;"><svg class="" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Update available</span></div><button class="tg" role="switch" aria-checked="true" aria-label="Tidy Threads"><span></span></button><svg class="ch" viewBox="0 0 8 13" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M1 1l5.5 5.5L1 12"/></svg></div><div class="row"><div class="m"><span>Fold empty replies</span><span class="s">Uses AI · Claude Haiku 5.5</span></div><button class="tg" role="switch" aria-checked="true" aria-label="Fold empty replies"><span></span></button><svg class="ch" viewBox="0 0 8 13" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M1 1l5.5 5.5L1 12"/></svg></div></div></div><div><div class="sh">All sites<span>1</span></div><div class="sec"><div class="row"><div class="m"><span>Wider reading column</span><span class="s" style="color: var(--danger);">Error · TypeError: null is not an object · line 12</span></div><button class="tg off" role="switch" aria-checked="false" aria-label="Wider reading column"><span></span></button><svg class="ch" viewBox="0 0 8 13" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M1 1l5.5 5.5L1 12"/></svg></div></div></div></div><div class="scrim"></div><div class="alert" role="alertdialog" aria-label="Import from link"><h3>Import from link</h3><p>Paste the link to a .user.js file. You’ll see what it does before anything runs.</p><div class="in mono" aria-label="Link">https://greasyfork.example.org/scripts/4821/tidy-threads.user.js</div><div class="ab"><button>Cancel</button><button>Continue</button></div></div></div><div class="ph pgbg"><div class="nav" style="padding-top: 50px;"><a class="nb" href="#"><svg class="" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>Settings</a><span class="tt">Models</span><span style="min-width: 76px;"></span></div><div class="bd"><div><div class="sh">Default models</div><div class="sec"><div class="row"><span class="tile" style="width: 29px; height: 29px; border-radius: 6px; background: var(--gold); color: var(--ongold);"><svg class="" viewBox="0 0 24 24" aria-hidden="true" style="width: 17px; height: 17px;"><circle cx="12" cy="12" r="8"/></svg></span><div class="m"><span>Agent</span><span class="s">Claude Sonnet 5.5 · Anthropic</span></div><svg class="ch" viewBox="0 0 8 13" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M1 1l5.5 5.5L1 12"/></svg></div><div class="row"><span class="tile" style="width: 29px; height: 29px; border-radius: 6px;"><svg class="" viewBox="0 0 24 24" aria-hidden="true" style="width: 17px; height: 17px;"><path d="M4 6h16M4 10h10M4 14h16M4 18h10"/></svg></span><div class="m"><span>Summaries</span><span class="s">Claude Sonnet 5.5 · Anthropic</span></div><svg class="ch" viewBox="0 0 8 13" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M1 1l5.5 5.5L1 12"/></svg></div><div class="row"><span class="tile" style="width: 29px; height: 29px; border-radius: 6px;"><svg class="" viewBox="0 0 24 24" aria-hidden="true" style="width: 17px; height: 17px;"><path d="M9 4c-2 0-2 1.5-2 3v2c0 1.5-1 2-2 2 1 0 2 .5 2 2v3c0 1.5 0 3 2 3M15 4c2 0 2 1.5 2 3v2c0 1.5 1 2 2 2-1 0-2 .5-2 2v3c0 1.5 0 3-2 3"/></svg></span><div class="m"><span>Scripts</span><span class="s">Claude Haiku 5.5 · Anthropic</span></div><svg class="ch" viewBox="0 0 8 13" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M1 1l5.5 5.5L1 12"/></svg></div></div><div class="ft">Scripts is the model a script asks while it runs (GM_ai). Unset, it is the same as Summaries.</div></div><div><div class="sh">Summaries</div><div class="sec"><div class="row"><span style="flex: 1;">Context per batch</span><span class="v">55k characters</span></div><div class="row"><span style="flex: 1;">Instructions</span><span class="v">Built-in</span><svg class="ch" viewBox="0 0 8 13" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M1 1l5.5 5.5L1 12"/></svg></div></div></div><div><div class="sh">Providers &amp; keys</div><div class="sec"><div class="row"><div class="m"><span>Anthropic</span><span class="s">Key in Keychain</span></div><span class="ok" style="font-size: 13px; font-weight: 600;">Ready</span><svg class="ch" viewBox="0 0 8 13" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M1 1l5.5 5.5L1 12"/></svg></div><div class="row"><div class="m"><span>Vertex AI</span><span class="s">No key</span></div><svg class="ch" viewBox="0 0 8 13" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M1 1l5.5 5.5L1 12"/></svg></div></div></div></div></div><div class="ph pgbg"><div class="nav" style="padding-top: 50px;"><a class="nb" href="#"><svg class="" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>Models</a><span class="tt">Scripts</span><span style="min-width: 76px;"></span></div><div class="bd"><div class="ft" style="padding: 0 16px; font-size: 15px; line-height: 20px;">Scripts that ask a model while they run use this. They run on every matching page, so a small, fast model works best.</div><div><div class="sh"></div><div class="sec"><div class="row"><span style="flex: 1;">Same as Summaries</span><button class="tg off" role="switch" aria-checked="false" aria-label="Same as Summaries"><span></span></button></div></div><div class="ft">On: follows the Summaries model, Claude Sonnet 5.5.</div></div><div><div class="sh">Provider</div><div class="sec"><div class="row"><span style="flex: 1;">Provider</span><span class="v">Anthropic</span><svg class="ch" viewBox="0 0 8 13" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M1 1l5.5 5.5L1 12"/></svg></div></div><div class="ft">Page text from these scripts goes to Anthropic with your key.</div></div><div><div class="sh">Model</div><div class="sec"><div class="row"><span class="mono" style="flex: 1; font-size: 15px;">claude-haiku-5-5</span><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--blue);"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg></div><div class="row lk"><span style="flex: 1;">Test &amp; save</span></div></div></div></div></div></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["lt","dk"],"default":"lt"},"$preview":{"width":1680,"height":844}}'>
+class Component extends DCLogic {
+renderVals() { return { theme: this.props.theme ?? 'lt' }; }
+}
+</script>
+</body>
+</html>
