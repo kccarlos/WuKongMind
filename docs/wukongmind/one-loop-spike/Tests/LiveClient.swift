@@ -6,6 +6,14 @@ import Foundation
 final class LiveClient {
     struct Event: Codable { var t: Double; var kind: String; var text: String }
 
+    /// AI Studio, or Vertex express when SPIKE_VERTEX_PROJECT is set (the key is then a Vertex key).
+    static var endpoint: GeminiLive.Endpoint {
+        if let project = ProcessInfo.processInfo.environment["SPIKE_VERTEX_PROJECT"], !project.isEmpty {
+            return .vertex(project: project, location: GeminiLive.Endpoint.vertexLocation)
+        }
+        return .aiStudio
+    }
+
     static var apiKey: String { ProcessInfo.processInfo.environment["SPIKE_GEMINI_KEY"] ?? "" }
 
     let transport = WebSocketLiveTransport()
@@ -28,7 +36,7 @@ final class LiveClient {
 
     /// The setup frame: the app's `Setup` encoding, with the declarations replaced by `declarations`.
     static func setupFrame(instructions: String, declarations: [JSONValue], handle: String? = nil) throws -> String {
-        let setup = GeminiLive.Setup(endpoint: .aiStudio, voice: nil, instructions: instructions, functions: [], resumptionHandle: handle)
+        let setup = GeminiLive.Setup(endpoint: endpoint, voice: nil, instructions: instructions, functions: [], resumptionHandle: handle)
         let text = try GeminiLive.encode(.setup(setup))
         guard case .object(var root) = try JSONDecoder().decode(JSONValue.self, from: Data(text.utf8)),
               case .object(var body)? = root["setup"] else { return text }
@@ -42,7 +50,7 @@ final class LiveClient {
     /// Connects and sends the setup; true once `setupComplete` arrives, false on a close or timeout.
     func connect(setup: String, timeout: Double = 20) async -> Bool {
         do {
-            try await transport.connect(GeminiLive.Endpoint.aiStudio.request(apiKey: Self.apiKey))
+            try await transport.connect(Self.endpoint.request(apiKey: Self.apiKey))
         } catch {
             log("connect-failed", error.localizedDescription)
             return false

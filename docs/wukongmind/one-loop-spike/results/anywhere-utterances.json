@@ -1,0 +1,4273 @@
+{
+  "date" : "2026-11-15T09:46:22Z",
+  "model" : "gemini-3.8-live",
+  "question" : "anywhere-utterances",
+  "rows" : [
+    {
+      "args" : [
+        "open_page {\"target\":\"bbc.com\"}"
+      ],
+      "calls" : [
+        "open_page"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.169,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.169,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.536,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.559,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.559,
+          "text" : "Open bbc.com."
+        },
+        {
+          "kind" : "call",
+          "t" : 1.106,
+          "text" : "open_page {\"target\":\"bbc.com\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 1.109,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 1.109,
+          "text" : "prompt 4546 response 14"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.11,
+          "text" : "open_page WHEN_IDLE 270 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.844,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.844,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 4.201,
+          "text" : "I've opened the BBC website for you."
+        },
+        {
+          "kind" : "usage",
+          "t" : 4.201,
+          "text" : "prompt 4616 response 66"
+        }
+      ],
+      "expected" : [
+        "open_page"
+      ],
+      "first" : "open_page",
+      "page" : "ordinary",
+      "rep" : 0,
+      "secondsToFirstCall" : 0.55,
+      "spoken" : " I've opened the BBC website for you.",
+      "utterance" : "Open bbc.com."
+    },
+    {
+      "args" : [
+        "open_page {\"target\":\"Hacker News\"}"
+      ],
+      "calls" : [
+        "open_page"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.163,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.163,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.464,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.496,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.497,
+          "text" : "Open Hacker News."
+        },
+        {
+          "kind" : "call",
+          "t" : 1.03,
+          "text" : "open_page {\"target\":\"Hacker News\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 1.042,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 1.042,
+          "text" : "prompt 4544 response 14"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.074,
+          "text" : "open_page WHEN_IDLE 299 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.732,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.748,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 4.18,
+          "text" : "Hacker News is now open on your screen."
+        },
+        {
+          "kind" : "usage",
+          "t" : 4.18,
+          "text" : "prompt 4622 response 60"
+        }
+      ],
+      "expected" : [
+        "open_page"
+      ],
+      "first" : "open_page",
+      "page" : "ordinary",
+      "rep" : 0,
+      "secondsToFirstCall" : 0.53,
+      "spoken" : " Hacker News is now open on your screen.",
+      "utterance" : "Open Hacker News."
+    },
+    {
+      "args" : [
+        "open_page {\"target\":\"the best espresso machines\"}"
+      ],
+      "calls" : [
+        "open_page"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.544,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.544,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.778,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.82,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.82,
+          "text" : "Search the web for the best espresso machines."
+        },
+        {
+          "kind" : "call",
+          "t" : 1.325,
+          "text" : "open_page {\"target\":\"the best espresso machines\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 1.348,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 1.348,
+          "text" : "prompt 4549 response 15"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.375,
+          "text" : "open_page WHEN_IDLE 322 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 2.008,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 2.038,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 7.1,
+          "text" : "I've searched the web for the best espresso machines, and the top-rated models are now on your screen."
+        },
+        {
+          "kind" : "usage",
+          "t" : 7.1,
+          "text" : "prompt 4633 response 134"
+        }
+      ],
+      "expected" : [
+        "open_page"
+      ],
+      "first" : "open_page",
+      "page" : "ordinary",
+      "rep" : 0,
+      "secondsToFirstCall" : 0.51,
+      "spoken" : " I've searched the web for the best espresso machines, and the top-rated models are now on your screen.",
+      "utterance" : "Search the web for the best espresso machines."
+    },
+    {
+      "args" : [
+        "browse_move {\"action\":\"back\"}"
+      ],
+      "calls" : [
+        "browse_move"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.225,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.225,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.487,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.51,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.51,
+          "text" : "Go back."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.875,
+          "text" : "browse_move {\"action\":\"back\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.895,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.895,
+          "text" : "prompt 4543 response 12"
+        },
+        {
+          "kind" : "response",
+          "t" : 0.903,
+          "text" : "browse_move WHEN_IDLE 243 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.529,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.55,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 3.933,
+          "text" : "I have moved back to the previous page."
+        },
+        {
+          "kind" : "usage",
+          "t" : 3.933,
+          "text" : "prompt 4601 response 66"
+        }
+      ],
+      "expected" : [
+        "browse_move"
+      ],
+      "first" : "browse_move",
+      "page" : "ordinary",
+      "rep" : 0,
+      "secondsToFirstCall" : 0.36,
+      "spoken" : " I have moved back to the previous page.",
+      "utterance" : "Go back."
+    },
+    {
+      "args" : [
+        "browse_move {\"action\":\"down\"}"
+      ],
+      "calls" : [
+        "browse_move"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.152,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.152,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.433,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.487,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.487,
+          "text" : "Scroll down."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.98,
+          "text" : "browse_move {\"action\":\"down\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 1.002,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 1.002,
+          "text" : "prompt 4543 response 12"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.045,
+          "text" : "browse_move WHEN_IDLE 242 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.631,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.631,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 3.901,
+          "text" : "I have scrolled down the page for you."
+        },
+        {
+          "kind" : "usage",
+          "t" : 3.901,
+          "text" : "prompt 4601 response 57"
+        }
+      ],
+      "expected" : [
+        "browse_move"
+      ],
+      "first" : "browse_move",
+      "page" : "ordinary",
+      "rep" : 0,
+      "secondsToFirstCall" : 0.49,
+      "spoken" : " I have scrolled down the page for you.",
+      "utterance" : "Scroll down."
+    },
+    {
+      "args" : [
+        "summarize_topic {}"
+      ],
+      "calls" : [
+        "summarize_topic"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.122,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.122,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.383,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.395,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.395,
+          "text" : "What's this page about?"
+        },
+        {
+          "kind" : "call",
+          "t" : 0.937,
+          "text" : "summarize_topic {}"
+        },
+        {
+          "kind" : "response",
+          "t" : 0.976,
+          "text" : "summarize_topic WHEN_IDLE 415 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.984,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.984,
+          "text" : "prompt 4581 response 7"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.656,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.957,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 7.942,
+          "text" : "This page reports that stocks remain steady ahead of upcoming tariff talks and the central bank's interest rate decision."
+        },
+        {
+          "kind" : "usage",
+          "t" : 7.942,
+          "text" : "prompt 4669 response 163"
+        }
+      ],
+      "expected" : [
+        "read_page",
+        "summarize_topic"
+      ],
+      "first" : "summarize_topic",
+      "page" : "ordinary",
+      "rep" : 0,
+      "secondsToFirstCall" : 0.54,
+      "spoken" : " This page reports that stocks remain steady ahead of upcoming tariff talks and the central bank's interest rate decision.",
+      "utterance" : "What's this page about?"
+    },
+    {
+      "args" : [
+        "read_aloud {}"
+      ],
+      "calls" : [
+        "read_aloud"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.12,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.12,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.392,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.392,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.393,
+          "text" : "Read it to me."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.862,
+          "text" : "read_aloud {}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.88,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.88,
+          "text" : "prompt 4545 response 7"
+        },
+        {
+          "kind" : "response",
+          "t" : 0.888,
+          "text" : "read_aloud WHEN_IDLE 286 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.57,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.637,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 3.704,
+          "text" : "I'm reading the page aloud for you now."
+        },
+        {
+          "kind" : "usage",
+          "t" : 3.704,
+          "text" : "prompt 4611 response 59"
+        }
+      ],
+      "expected" : [
+        "read_aloud"
+      ],
+      "first" : "read_aloud",
+      "page" : "ordinary",
+      "rep" : 0,
+      "secondsToFirstCall" : 0.47,
+      "spoken" : " I'm reading the page aloud for you now.",
+      "utterance" : "Read it to me."
+    },
+    {
+      "args" : [
+        "hand_off_to_agent {\"request\":\"Make it dark.\"}"
+      ],
+      "calls" : [
+        "hand_off_to_agent"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.239,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.239,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.543,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.579,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.579,
+          "text" : "Make it dark."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.468,
+          "text" : ""
+        },
+        {
+          "kind" : "call",
+          "t" : 1.671,
+          "text" : "hand_off_to_agent {\"request\":\"Make it dark.\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.712,
+          "text" : "hand_off_to_agent SILENT 388 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 3.221,
+          "text" : "I'll adjust the display for you."
+        },
+        {
+          "kind" : "usage",
+          "t" : 3.221,
+          "text" : "prompt 4544 response 68"
+        }
+      ],
+      "expected" : [
+        "hand_off_to_agent"
+      ],
+      "first" : "hand_off_to_agent",
+      "page" : "ordinary",
+      "rep" : 0,
+      "secondsToFirstCall" : 1.09,
+      "spoken" : "I'll adjust the display for you.",
+      "utterance" : "Make it dark."
+    },
+    {
+      "args" : [
+        "open_page {\"target\":\"bbc.com\"}"
+      ],
+      "calls" : [
+        "open_page"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.245,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.245,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.489,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.534,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.534,
+          "text" : "Open bbc.com."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.997,
+          "text" : "open_page {\"target\":\"bbc.com\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.997,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.997,
+          "text" : "prompt 4546 response 14"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.057,
+          "text" : "open_page WHEN_IDLE 268 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.78,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.78,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 4.163,
+          "text" : "I've opened the BBC website for you."
+        },
+        {
+          "kind" : "usage",
+          "t" : 4.163,
+          "text" : "prompt 4616 response 64"
+        }
+      ],
+      "expected" : [
+        "open_page"
+      ],
+      "first" : "open_page",
+      "page" : "forum",
+      "rep" : 0,
+      "secondsToFirstCall" : 0.46,
+      "spoken" : " I've opened the BBC website for you.",
+      "utterance" : "Open bbc.com."
+    },
+    {
+      "args" : [
+        "open_page {\"target\":\"Hacker News\"}"
+      ],
+      "calls" : [
+        "open_page"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.146,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.146,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.521,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.549,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.549,
+          "text" : "Open Hacker News."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.979,
+          "text" : "open_page {\"target\":\"Hacker News\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.983,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.983,
+          "text" : "prompt 4544 response 14"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.021,
+          "text" : "open_page WHEN_IDLE 300 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.589,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.604,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 3.452,
+          "text" : "I've opened Hacker News for you."
+        },
+        {
+          "kind" : "usage",
+          "t" : 3.452,
+          "text" : "prompt 4622 response 52"
+        }
+      ],
+      "expected" : [
+        "open_page"
+      ],
+      "first" : "open_page",
+      "page" : "forum",
+      "rep" : 0,
+      "secondsToFirstCall" : 0.43,
+      "spoken" : " I've opened Hacker News for you.",
+      "utterance" : "Open Hacker News."
+    },
+    {
+      "args" : [
+        "open_page {\"target\":\"best espresso machines\"}"
+      ],
+      "calls" : [
+        "open_page"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.116,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.116,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.321,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.33,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.33,
+          "text" : "Search the web for the best espresso machines."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.919,
+          "text" : "open_page {\"target\":\"best espresso machines\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 0.924,
+          "text" : "open_page WHEN_IDLE 318 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.933,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.933,
+          "text" : "prompt 4549 response 14"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.599,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.604,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 6.473,
+          "text" : "I've searched the web for the best espresso machines, and the top results are now on your screen."
+        },
+        {
+          "kind" : "usage",
+          "t" : 6.473,
+          "text" : "prompt 4631 response 122"
+        }
+      ],
+      "expected" : [
+        "open_page"
+      ],
+      "first" : "open_page",
+      "page" : "forum",
+      "rep" : 0,
+      "secondsToFirstCall" : 0.59,
+      "spoken" : " I've searched the web for the best espresso machines, and the top results are now on your screen.",
+      "utterance" : "Search the web for the best espresso machines."
+    },
+    {
+      "args" : [
+        "search_forum {\"scope\":\"topic\",\"query\":\"firmware rollback\"}"
+      ],
+      "calls" : [
+        "search_forum"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.143,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.143,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.401,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.411,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.411,
+          "text" : "Find firmware rollback."
+        },
+        {
+          "kind" : "call",
+          "t" : 1.312,
+          "text" : "search_forum {\"scope\":\"topic\",\"query\":\"firmware rollback\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 1.322,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 1.322,
+          "text" : "prompt 4648 response 20"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.359,
+          "text" : "search_forum WHEN_IDLE 374 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 2.289,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 2.326,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 10.486,
+          "text" : "I found a few discussions about the rollback. The top results are the guide by Bob, a chat about fan curve resets, and the changelog discussion."
+        },
+        {
+          "kind" : "usage",
+          "t" : 10.486,
+          "text" : "prompt 4759 response 211"
+        }
+      ],
+      "expected" : [
+        "search_forum"
+      ],
+      "first" : "search_forum",
+      "page" : "forum",
+      "rep" : 0,
+      "secondsToFirstCall" : 0.9,
+      "spoken" : " I found a few discussions about the rollback. The top results are the guide by Bob, a chat about fan curve resets, and the changelog discussion.",
+      "utterance" : "Find firmware rollback."
+    },
+    {
+      "args" : [
+        "browse_move {\"action\":\"back\"}"
+      ],
+      "calls" : [
+        "browse_move"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.257,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.257,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.512,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.521,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.521,
+          "text" : "Go back."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.916,
+          "text" : "browse_move {\"action\":\"back\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.935,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.935,
+          "text" : "prompt 4543 response 12"
+        },
+        {
+          "kind" : "response",
+          "t" : 0.946,
+          "text" : "browse_move WHEN_IDLE 242 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.632,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.64,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 3.956,
+          "text" : "We have returned to the previous page."
+        },
+        {
+          "kind" : "usage",
+          "t" : 3.956,
+          "text" : "prompt 4601 response 62"
+        }
+      ],
+      "expected" : [
+        "browse_move"
+      ],
+      "first" : "browse_move",
+      "page" : "forum",
+      "rep" : 0,
+      "secondsToFirstCall" : 0.4,
+      "spoken" : " We have returned to the previous page.",
+      "utterance" : "Go back."
+    },
+    {
+      "args" : [
+        "browse_move {\"action\":\"down\"}"
+      ],
+      "calls" : [
+        "browse_move"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.358,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.358,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.656,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.683,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.683,
+          "text" : "Scroll down."
+        },
+        {
+          "kind" : "call",
+          "t" : 1.089,
+          "text" : "browse_move {\"action\":\"down\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 1.107,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 1.107,
+          "text" : "prompt 4647 response 12"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.117,
+          "text" : "browse_move WHEN_IDLE 242 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.7,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.703,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 3.318,
+          "text" : "I've scrolled down one screen."
+        },
+        {
+          "kind" : "usage",
+          "t" : 3.318,
+          "text" : "prompt 4705 response 46"
+        }
+      ],
+      "expected" : [
+        "browse_move"
+      ],
+      "first" : "browse_move",
+      "page" : "forum",
+      "rep" : 0,
+      "secondsToFirstCall" : 0.41,
+      "spoken" : " I've scrolled down one screen.",
+      "utterance" : "Scroll down."
+    },
+    {
+      "args" : [
+        "summarize_topic {}"
+      ],
+      "calls" : [
+        "summarize_topic"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.124,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.124,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.369,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.385,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.385,
+          "text" : "What's this thread about?"
+        },
+        {
+          "kind" : "call",
+          "t" : 0.883,
+          "text" : "summarize_topic {}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.902,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.902,
+          "text" : "prompt 4547 response 7"
+        },
+        {
+          "kind" : "response",
+          "t" : 0.909,
+          "text" : "summarize_topic WHEN_IDLE 510 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.645,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.667,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 15.701,
+          "text" : "This thread is about how firmware five point two resets the fan curve to performance, causing increased noise. Users have found that rolling back or changing the setting to silent resolves the issue until the vendor releases a fix in version five point three."
+        },
+        {
+          "kind" : "usage",
+          "t" : 15.701,
+          "text" : "prompt 4686 response 356"
+        }
+      ],
+      "expected" : [
+        "read_page",
+        "read_topic",
+        "summarize_topic"
+      ],
+      "first" : "summarize_topic",
+      "page" : "forum",
+      "rep" : 0,
+      "secondsToFirstCall" : 0.5,
+      "spoken" : " This thread is about how firmware five point two resets the fan curve to performance, causing increased noise. Users have found that rolling back or changing the setting to silent resolves the issue until the vendor releases a fix in version five point three.",
+      "utterance" : "What's this thread about?"
+    },
+    {
+      "args" : [
+        "read_aloud {}"
+      ],
+      "calls" : [
+        "read_aloud"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.165,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.165,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.426,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.432,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.433,
+          "text" : "Read it to me."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.969,
+          "text" : "read_aloud {}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.969,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.969,
+          "text" : "prompt 4545 response 7"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.016,
+          "text" : "read_aloud WHEN_IDLE 308 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.765,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.8,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 4.046,
+          "text" : "Playing the discussion for you now."
+        },
+        {
+          "kind" : "usage",
+          "t" : 4.046,
+          "text" : "prompt 4617 response 61"
+        }
+      ],
+      "expected" : [
+        "read_aloud"
+      ],
+      "first" : "read_aloud",
+      "page" : "forum",
+      "rep" : 0,
+      "secondsToFirstCall" : 0.54,
+      "spoken" : " Playing the discussion for you now.",
+      "utterance" : "Read it to me."
+    },
+    {
+      "args" : [
+        "hand_off_to_agent {\"request\":\"Make it dark.\"}"
+      ],
+      "calls" : [
+        "hand_off_to_agent"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.133,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.133,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.489,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.515,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.515,
+          "text" : "Make it dark."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.224,
+          "text" : ""
+        },
+        {
+          "kind" : "call",
+          "t" : 1.564,
+          "text" : "hand_off_to_agent {\"request\":\"Make it dark.\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.596,
+          "text" : "hand_off_to_agent SILENT 388 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 3.567,
+          "text" : "Setting the screen to a darker theme now."
+        },
+        {
+          "kind" : "usage",
+          "t" : 3.567,
+          "text" : "prompt 4544 response 83"
+        }
+      ],
+      "expected" : [
+        "hand_off_to_agent"
+      ],
+      "first" : "hand_off_to_agent",
+      "page" : "forum",
+      "rep" : 0,
+      "secondsToFirstCall" : 1.05,
+      "spoken" : "Setting the screen to a darker theme now.",
+      "utterance" : "Make it dark."
+    },
+    {
+      "args" : [
+        "open_page {\"target\":\"bbc.com\"}"
+      ],
+      "calls" : [
+        "open_page"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.188,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.189,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.489,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.504,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.504,
+          "text" : "Open bbc.com."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.891,
+          "text" : "open_page {\"target\":\"bbc.com\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.907,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.907,
+          "text" : "prompt 4546 response 14"
+        },
+        {
+          "kind" : "response",
+          "t" : 0.927,
+          "text" : "open_page WHEN_IDLE 270 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.485,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.522,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 3.62,
+          "text" : "I've opened the BBC website for you."
+        },
+        {
+          "kind" : "usage",
+          "t" : 3.62,
+          "text" : "prompt 4616 response 59"
+        }
+      ],
+      "expected" : [
+        "open_page"
+      ],
+      "first" : "open_page",
+      "page" : "ordinary",
+      "rep" : 1,
+      "secondsToFirstCall" : 0.39,
+      "spoken" : " I've opened the BBC website for you.",
+      "utterance" : "Open bbc.com."
+    },
+    {
+      "args" : [
+        "open_page {\"target\":\"Hacker News\"}"
+      ],
+      "calls" : [
+        "open_page"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.15,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.15,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.372,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.422,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.422,
+          "text" : "Open Hacker News."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.822,
+          "text" : "open_page {\"target\":\"Hacker News\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.841,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.841,
+          "text" : "prompt 4544 response 14"
+        },
+        {
+          "kind" : "response",
+          "t" : 0.853,
+          "text" : "open_page WHEN_IDLE 300 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.45,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.463,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 3.789,
+          "text" : "Hacker News is opening on your screen now."
+        },
+        {
+          "kind" : "usage",
+          "t" : 3.789,
+          "text" : "prompt 4622 response 63"
+        }
+      ],
+      "expected" : [
+        "open_page"
+      ],
+      "first" : "open_page",
+      "page" : "ordinary",
+      "rep" : 1,
+      "secondsToFirstCall" : 0.4,
+      "spoken" : " Hacker News is opening on your screen now.",
+      "utterance" : "Open Hacker News."
+    },
+    {
+      "args" : [
+        "open_page {\"target\":\"the best espresso machines\"}"
+      ],
+      "calls" : [
+        "open_page"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.13,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.13,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.65,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.65,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.65,
+          "text" : "Search the web for the best espresso machines."
+        },
+        {
+          "kind" : "call",
+          "t" : 1.114,
+          "text" : "open_page {\"target\":\"the best espresso machines\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.125,
+          "text" : "open_page WHEN_IDLE 321 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 1.132,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 1.132,
+          "text" : "prompt 4549 response 15"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.723,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.735,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 6.27,
+          "text" : "I've searched the web for the best espresso machines, and the results are now on your screen."
+        },
+        {
+          "kind" : "usage",
+          "t" : 6.27,
+          "text" : "prompt 4633 response 117"
+        }
+      ],
+      "expected" : [
+        "open_page"
+      ],
+      "first" : "open_page",
+      "page" : "ordinary",
+      "rep" : 1,
+      "secondsToFirstCall" : 0.46,
+      "spoken" : " I've searched the web for the best espresso machines, and the results are now on your screen.",
+      "utterance" : "Search the web for the best espresso machines."
+    },
+    {
+      "args" : [
+        "browse_move {\"action\":\"back\"}"
+      ],
+      "calls" : [
+        "browse_move"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.141,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.141,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.403,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.403,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.403,
+          "text" : "Go back."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.793,
+          "text" : "browse_move {\"action\":\"back\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.811,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.811,
+          "text" : "prompt 4543 response 12"
+        },
+        {
+          "kind" : "response",
+          "t" : 0.83,
+          "text" : "browse_move WHEN_IDLE 243 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.372,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.385,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 3.837,
+          "text" : "I've moved back to the previous page for you."
+        },
+        {
+          "kind" : "usage",
+          "t" : 3.837,
+          "text" : "prompt 4601 response 66"
+        }
+      ],
+      "expected" : [
+        "browse_move"
+      ],
+      "first" : "browse_move",
+      "page" : "ordinary",
+      "rep" : 1,
+      "secondsToFirstCall" : 0.39,
+      "spoken" : " I've moved back to the previous page for you.",
+      "utterance" : "Go back."
+    },
+    {
+      "args" : [
+        "browse_move {\"action\":\"down\"}"
+      ],
+      "calls" : [
+        "browse_move"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.141,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.141,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.374,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.413,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.413,
+          "text" : "Scroll down."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.807,
+          "text" : "browse_move {\"action\":\"down\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.826,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.826,
+          "text" : "prompt 4543 response 12"
+        },
+        {
+          "kind" : "response",
+          "t" : 0.84,
+          "text" : "browse_move WHEN_IDLE 242 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.504,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.505,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 3.447,
+          "text" : "I've scrolled down the page for you."
+        },
+        {
+          "kind" : "usage",
+          "t" : 3.447,
+          "text" : "prompt 4601 response 54"
+        }
+      ],
+      "expected" : [
+        "browse_move"
+      ],
+      "first" : "browse_move",
+      "page" : "ordinary",
+      "rep" : 1,
+      "secondsToFirstCall" : 0.39,
+      "spoken" : " I've scrolled down the page for you.",
+      "utterance" : "Scroll down."
+    },
+    {
+      "args" : [
+        "summarize_topic {}"
+      ],
+      "calls" : [
+        "summarize_topic"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.149,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.149,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.391,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.413,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.413,
+          "text" : "What's this page about?"
+        },
+        {
+          "kind" : "call",
+          "t" : 0.959,
+          "text" : "summarize_topic {}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.977,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.977,
+          "text" : "prompt 4547 response 7"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.009,
+          "text" : "summarize_topic WHEN_IDLE 415 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.729,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.747,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 10.572,
+          "text" : "This page highlights that stocks remained stable as upcoming tariff discussions are planned, while anticipation grows regarding the central bank's decision to keep rates steady."
+        },
+        {
+          "kind" : "usage",
+          "t" : 10.572,
+          "text" : "prompt 4635 response 227"
+        }
+      ],
+      "expected" : [
+        "read_page",
+        "summarize_topic"
+      ],
+      "first" : "summarize_topic",
+      "page" : "ordinary",
+      "rep" : 1,
+      "secondsToFirstCall" : 0.55,
+      "spoken" : " This page highlights that stocks remained stable as upcoming tariff discussions are planned, while anticipation grows regarding the central bank's decision to keep rates steady.",
+      "utterance" : "What's this page about?"
+    },
+    {
+      "args" : [
+        "read_aloud {}"
+      ],
+      "calls" : [
+        "read_aloud"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.122,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.122,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.332,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.333,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.333,
+          "text" : "Read it to me."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.7,
+          "text" : "read_aloud {}"
+        },
+        {
+          "kind" : "response",
+          "t" : 0.713,
+          "text" : "read_aloud WHEN_IDLE 285 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.72,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.72,
+          "text" : "prompt 4545 response 7"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.266,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.314,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 3.451,
+          "text" : "I'm reading the page aloud for you now."
+        },
+        {
+          "kind" : "usage",
+          "t" : 3.451,
+          "text" : "prompt 4611 response 61"
+        }
+      ],
+      "expected" : [
+        "read_aloud"
+      ],
+      "first" : "read_aloud",
+      "page" : "ordinary",
+      "rep" : 1,
+      "secondsToFirstCall" : 0.37,
+      "spoken" : " I'm reading the page aloud for you now.",
+      "utterance" : "Read it to me."
+    },
+    {
+      "args" : [
+        "hand_off_to_agent {\"request\":\"Make it dark.\"}"
+      ],
+      "calls" : [
+        "hand_off_to_agent"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.114,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.114,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.363,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.385,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.385,
+          "text" : "Make it dark."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.42,
+          "text" : ""
+        },
+        {
+          "kind" : "call",
+          "t" : 1.778,
+          "text" : "hand_off_to_agent {\"request\":\"Make it dark.\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.787,
+          "text" : "hand_off_to_agent SILENT 388 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 4.114,
+          "text" : "I can certainly adjust that for you right now."
+        },
+        {
+          "kind" : "usage",
+          "t" : 4.114,
+          "text" : "prompt 4544 response 92"
+        }
+      ],
+      "expected" : [
+        "hand_off_to_agent"
+      ],
+      "first" : "hand_off_to_agent",
+      "page" : "ordinary",
+      "rep" : 1,
+      "secondsToFirstCall" : 1.39,
+      "spoken" : "I can certainly adjust that for you right now.",
+      "utterance" : "Make it dark."
+    },
+    {
+      "args" : [
+        "open_page {\"target\":\"bbc.com\"}"
+      ],
+      "calls" : [
+        "open_page"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.163,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.163,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.364,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.376,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.376,
+          "text" : "Open bbc.com."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.875,
+          "text" : "open_page {\"target\":\"bbc.com\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.876,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.876,
+          "text" : "prompt 4546 response 14"
+        },
+        {
+          "kind" : "response",
+          "t" : 0.913,
+          "text" : "open_page WHEN_IDLE 269 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.625,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.684,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 3.951,
+          "text" : "I've opened the BBC website for you."
+        },
+        {
+          "kind" : "usage",
+          "t" : 3.951,
+          "text" : "prompt 4616 response 63"
+        }
+      ],
+      "expected" : [
+        "open_page"
+      ],
+      "first" : "open_page",
+      "page" : "forum",
+      "rep" : 1,
+      "secondsToFirstCall" : 0.5,
+      "spoken" : " I've opened the BBC website for you.",
+      "utterance" : "Open bbc.com."
+    },
+    {
+      "args" : [
+        "open_page {\"target\":\"Hacker News\"}"
+      ],
+      "calls" : [
+        "open_page"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.117,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.117,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.339,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.383,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.384,
+          "text" : "Open Hacker News."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.912,
+          "text" : "open_page {\"target\":\"Hacker News\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 0.923,
+          "text" : "open_page WHEN_IDLE 300 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.93,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.93,
+          "text" : "prompt 4544 response 14"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.669,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.706,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 3.498,
+          "text" : "Hacker News is now on your screen."
+        },
+        {
+          "kind" : "usage",
+          "t" : 3.498,
+          "text" : "prompt 4622 response 51"
+        }
+      ],
+      "expected" : [
+        "open_page"
+      ],
+      "first" : "open_page",
+      "page" : "forum",
+      "rep" : 1,
+      "secondsToFirstCall" : 0.53,
+      "spoken" : " Hacker News is now on your screen.",
+      "utterance" : "Open Hacker News."
+    },
+    {
+      "args" : [
+        "open_page {\"target\":\"best espresso machines\"}"
+      ],
+      "calls" : [
+        "open_page"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.113,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.113,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.383,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.383,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.383,
+          "text" : "Search the web for the best espresso machines."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.938,
+          "text" : "open_page {\"target\":\"best espresso machines\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.957,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.957,
+          "text" : "prompt 4549 response 14"
+        },
+        {
+          "kind" : "response",
+          "t" : 0.98,
+          "text" : "open_page WHEN_IDLE 318 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.615,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.623,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 6.348,
+          "text" : "I've searched the web for the best espresso machines, and the results are now on your screen."
+        },
+        {
+          "kind" : "usage",
+          "t" : 6.348,
+          "text" : "prompt 4631 response 124"
+        }
+      ],
+      "expected" : [
+        "open_page"
+      ],
+      "first" : "open_page",
+      "page" : "forum",
+      "rep" : 1,
+      "secondsToFirstCall" : 0.56,
+      "spoken" : " I've searched the web for the best espresso machines, and the results are now on your screen.",
+      "utterance" : "Search the web for the best espresso machines."
+    },
+    {
+      "args" : [
+        "search_forum {\"query\":\"firmware rollback\"}",
+        "browse_open {\"card\":1,\"at\":\"post\"}"
+      ],
+      "calls" : [
+        "search_forum",
+        "browse_open"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.155,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.155,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.395,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.418,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.418,
+          "text" : "Find firmware rollback."
+        },
+        {
+          "kind" : "call",
+          "t" : 1.205,
+          "text" : "search_forum {\"query\":\"firmware rollback\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 1.223,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 1.223,
+          "text" : "prompt 4544 response 14"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.223,
+          "text" : "search_forum WHEN_IDLE 374 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 2.018,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 2.035,
+          "text" : ""
+        },
+        {
+          "kind" : "call",
+          "t" : 2.804,
+          "text" : "browse_open {\"card\":1,\"at\":\"post\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 2.817,
+          "text" : "browse_open WHEN_IDLE 412 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 7.797,
+          "text" : "I found a few guides on the forum. The most relevant one is the firmware five point two rollback guide."
+        },
+        {
+          "kind" : "usage",
+          "t" : 7.797,
+          "text" : "prompt 4649 response 166"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 16.302,
+          "text" : "I've opened the rollback guide. The consensus is that rolling back to version five point one point four resolves the issues caused by the update."
+        },
+        {
+          "kind" : "usage",
+          "t" : 16.302,
+          "text" : "prompt 4951 response 198"
+        }
+      ],
+      "expected" : [
+        "search_forum"
+      ],
+      "first" : "search_forum",
+      "page" : "forum",
+      "rep" : 1,
+      "secondsToFirstCall" : 0.79,
+      "spoken" : " I found a few guides on the forum. The most relevant one is the firmware five point two rollback guide. I've opened the rollback guide. The consensus is that rolling back to version five point one point four resolves the issues caused by the update.",
+      "utterance" : "Find firmware rollback."
+    },
+    {
+      "args" : [
+        "browse_move {\"action\":\"back\"}"
+      ],
+      "calls" : [
+        "browse_move"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.133,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.133,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.363,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.394,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.394,
+          "text" : "Go back."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.85,
+          "text" : "browse_move {\"action\":\"back\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.851,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.851,
+          "text" : "prompt 4543 response 12"
+        },
+        {
+          "kind" : "response",
+          "t" : 0.871,
+          "text" : "browse_move WHEN_IDLE 243 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.379,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.405,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 3.676,
+          "text" : "I've moved back to the previous page for you."
+        },
+        {
+          "kind" : "usage",
+          "t" : 3.677,
+          "text" : "prompt 4601 response 58"
+        }
+      ],
+      "expected" : [
+        "browse_move"
+      ],
+      "first" : "browse_move",
+      "page" : "forum",
+      "rep" : 1,
+      "secondsToFirstCall" : 0.46,
+      "spoken" : " I've moved back to the previous page for you.",
+      "utterance" : "Go back."
+    },
+    {
+      "args" : [
+        "browse_move {\"action\":\"down\"}"
+      ],
+      "calls" : [
+        "browse_move"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.132,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.132,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.408,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.456,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.456,
+          "text" : "Scroll down."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.999,
+          "text" : "browse_move {\"action\":\"down\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 1.019,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 1.019,
+          "text" : "prompt 4543 response 12"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.038,
+          "text" : "browse_move WHEN_IDLE 243 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.71,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.721,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 3.424,
+          "text" : "I've scrolled down the page."
+        },
+        {
+          "kind" : "usage",
+          "t" : 3.424,
+          "text" : "prompt 4601 response 48"
+        }
+      ],
+      "expected" : [
+        "browse_move"
+      ],
+      "first" : "browse_move",
+      "page" : "forum",
+      "rep" : 1,
+      "secondsToFirstCall" : 0.54,
+      "spoken" : " I've scrolled down the page.",
+      "utterance" : "Scroll down."
+    },
+    {
+      "args" : [
+        "summarize_topic {}"
+      ],
+      "calls" : [
+        "summarize_topic"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.151,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.151,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.52,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.536,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.536,
+          "text" : "What's this thread about?"
+        },
+        {
+          "kind" : "call",
+          "t" : 1.147,
+          "text" : "summarize_topic {}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 1.167,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 1.167,
+          "text" : "prompt 4651 response 7"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.18,
+          "text" : "summarize_topic WHEN_IDLE 510 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.825,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.837,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 11.976,
+          "text" : "This thread is about how firmware five point two resets the fan curve making them run loudly. You can fix it by rolling back to five point one point four or setting the fan curve to silent."
+        },
+        {
+          "kind" : "usage",
+          "t" : 11.976,
+          "text" : "prompt 4790 response 260"
+        }
+      ],
+      "expected" : [
+        "read_page",
+        "read_topic",
+        "summarize_topic"
+      ],
+      "first" : "summarize_topic",
+      "page" : "forum",
+      "rep" : 1,
+      "secondsToFirstCall" : 0.61,
+      "spoken" : " This thread is about how firmware five point two resets the fan curve making them run loudly. You can fix it by rolling back to five point one point four or setting the fan curve to silent.",
+      "utterance" : "What's this thread about?"
+    },
+    {
+      "args" : [
+        "read_aloud {}"
+      ],
+      "calls" : [
+        "read_aloud"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.11,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.11,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.33,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.381,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.381,
+          "text" : "Read it to me."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.879,
+          "text" : "read_aloud {}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.88,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.88,
+          "text" : "prompt 4649 response 7"
+        },
+        {
+          "kind" : "response",
+          "t" : 0.913,
+          "text" : "read_aloud WHEN_IDLE 307 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.456,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.496,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 4.214,
+          "text" : "I'm playing the summary of this topic for you now."
+        },
+        {
+          "kind" : "usage",
+          "t" : 4.214,
+          "text" : "prompt 4721 response 74"
+        }
+      ],
+      "expected" : [
+        "read_aloud"
+      ],
+      "first" : "read_aloud",
+      "page" : "forum",
+      "rep" : 1,
+      "secondsToFirstCall" : 0.5,
+      "spoken" : " I'm playing the summary of this topic for you now.",
+      "utterance" : "Read it to me."
+    },
+    {
+      "args" : [
+        "hand_off_to_agent {\"request\":\"Make the page dark-themed.\"}"
+      ],
+      "calls" : [
+        "hand_off_to_agent"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.129,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.129,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.334,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.354,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.354,
+          "text" : "Make it dark."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.102,
+          "text" : ""
+        },
+        {
+          "kind" : "call",
+          "t" : 1.418,
+          "text" : "hand_off_to_agent {\"request\":\"Make the page dark-themed.\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.435,
+          "text" : "hand_off_to_agent SILENT 388 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 3.197,
+          "text" : "Let me adjust the appearance for you."
+        },
+        {
+          "kind" : "usage",
+          "t" : 3.197,
+          "text" : "prompt 4544 response 81"
+        }
+      ],
+      "expected" : [
+        "hand_off_to_agent"
+      ],
+      "first" : "hand_off_to_agent",
+      "page" : "forum",
+      "rep" : 1,
+      "secondsToFirstCall" : 1.06,
+      "spoken" : "Let me adjust the appearance for you.",
+      "utterance" : "Make it dark."
+    },
+    {
+      "args" : [
+        "open_page {\"target\":\"bbc.com\"}"
+      ],
+      "calls" : [
+        "open_page"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.114,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.114,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.338,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.338,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.338,
+          "text" : "Open bbc.com."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.827,
+          "text" : "open_page {\"target\":\"bbc.com\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.847,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.847,
+          "text" : "prompt 4546 response 14"
+        },
+        {
+          "kind" : "response",
+          "t" : 0.868,
+          "text" : "open_page WHEN_IDLE 270 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.552,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.575,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 3.907,
+          "text" : "I've opened the BBC website for you."
+        },
+        {
+          "kind" : "usage",
+          "t" : 3.907,
+          "text" : "prompt 4616 response 59"
+        }
+      ],
+      "expected" : [
+        "open_page"
+      ],
+      "first" : "open_page",
+      "page" : "ordinary",
+      "rep" : 2,
+      "secondsToFirstCall" : 0.49,
+      "spoken" : " I've opened the BBC website for you.",
+      "utterance" : "Open bbc.com."
+    },
+    {
+      "args" : [
+        "open_page {\"target\":\"Hacker News\"}"
+      ],
+      "calls" : [
+        "open_page"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.246,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.246,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.63,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.64,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.64,
+          "text" : "Open Hacker News."
+        },
+        {
+          "kind" : "call",
+          "t" : 1.171,
+          "text" : "open_page {\"target\":\"Hacker News\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 1.19,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 1.19,
+          "text" : "prompt 4544 response 14"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.19,
+          "text" : "open_page WHEN_IDLE 299 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.891,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.921,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 4.323,
+          "text" : "I am opening Hacker News for you now."
+        },
+        {
+          "kind" : "usage",
+          "t" : 4.323,
+          "text" : "prompt 4622 response 66"
+        }
+      ],
+      "expected" : [
+        "open_page"
+      ],
+      "first" : "open_page",
+      "page" : "ordinary",
+      "rep" : 2,
+      "secondsToFirstCall" : 0.53,
+      "spoken" : " I am opening Hacker News for you now.",
+      "utterance" : "Open Hacker News."
+    },
+    {
+      "args" : [
+        "open_page {\"target\":\"best espresso machines\"}"
+      ],
+      "calls" : [
+        "open_page"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.131,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.131,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.377,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.416,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.416,
+          "text" : "Search the web for the best espresso machines."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.962,
+          "text" : "open_page {\"target\":\"best espresso machines\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.979,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.979,
+          "text" : "prompt 4549 response 14"
+        },
+        {
+          "kind" : "response",
+          "t" : 0.994,
+          "text" : "open_page WHEN_IDLE 317 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.632,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.669,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 6.99,
+          "text" : "I've searched the web for the best espresso machines, and the top-rated options are now on your screen."
+        },
+        {
+          "kind" : "usage",
+          "t" : 6.99,
+          "text" : "prompt 4631 response 139"
+        }
+      ],
+      "expected" : [
+        "open_page"
+      ],
+      "first" : "open_page",
+      "page" : "ordinary",
+      "rep" : 2,
+      "secondsToFirstCall" : 0.55,
+      "spoken" : " I've searched the web for the best espresso machines, and the top-rated options are now on your screen.",
+      "utterance" : "Search the web for the best espresso machines."
+    },
+    {
+      "args" : [
+        "browse_move {\"action\":\"back\"}"
+      ],
+      "calls" : [
+        "browse_move"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.138,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.138,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.41,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.422,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.422,
+          "text" : "Go back."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.786,
+          "text" : "browse_move {\"action\":\"back\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.806,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.806,
+          "text" : "prompt 4543 response 12"
+        },
+        {
+          "kind" : "response",
+          "t" : 0.808,
+          "text" : "browse_move WHEN_IDLE 243 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.492,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.499,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 3.946,
+          "text" : "I have moved back to the previous page for you."
+        },
+        {
+          "kind" : "usage",
+          "t" : 3.946,
+          "text" : "prompt 4601 response 67"
+        }
+      ],
+      "expected" : [
+        "browse_move"
+      ],
+      "first" : "browse_move",
+      "page" : "ordinary",
+      "rep" : 2,
+      "secondsToFirstCall" : 0.36,
+      "spoken" : " I have moved back to the previous page for you.",
+      "utterance" : "Go back."
+    },
+    {
+      "args" : [
+        "browse_move {\"action\":\"down\"}"
+      ],
+      "calls" : [
+        "browse_move"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.152,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.152,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.444,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.483,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.483,
+          "text" : "Scroll down."
+        },
+        {
+          "kind" : "call",
+          "t" : 1.11,
+          "text" : "browse_move {\"action\":\"down\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 1.13,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 1.13,
+          "text" : "prompt 4543 response 12"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.152,
+          "text" : "browse_move WHEN_IDLE 243 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.83,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.849,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 3.705,
+          "text" : "I've scrolled down the page for you."
+        },
+        {
+          "kind" : "usage",
+          "t" : 3.705,
+          "text" : "prompt 4601 response 52"
+        }
+      ],
+      "expected" : [
+        "browse_move"
+      ],
+      "first" : "browse_move",
+      "page" : "ordinary",
+      "rep" : 2,
+      "secondsToFirstCall" : 0.63,
+      "spoken" : " I've scrolled down the page for you.",
+      "utterance" : "Scroll down."
+    },
+    {
+      "args" : [
+        "summarize_topic {}"
+      ],
+      "calls" : [
+        "summarize_topic"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.122,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.122,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.382,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.4,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.4,
+          "text" : "What's this page about?"
+        },
+        {
+          "kind" : "call",
+          "t" : 0.9,
+          "text" : "summarize_topic {}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.918,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.918,
+          "text" : "prompt 4547 response 7"
+        },
+        {
+          "kind" : "response",
+          "t" : 0.953,
+          "text" : "summarize_topic WHEN_IDLE 415 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.564,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.598,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 11.115,
+          "text" : "This page covers the latest on the stock market, noting that values changed very little ahead of upcoming tariff discussions and the central bank's expected interest rate decision."
+        },
+        {
+          "kind" : "usage",
+          "t" : 11.115,
+          "text" : "prompt 4635 response 242"
+        }
+      ],
+      "expected" : [
+        "read_page",
+        "summarize_topic"
+      ],
+      "first" : "summarize_topic",
+      "page" : "ordinary",
+      "rep" : 2,
+      "secondsToFirstCall" : 0.5,
+      "spoken" : " This page covers the latest on the stock market, noting that values changed very little ahead of upcoming tariff discussions and the central bank's expected interest rate decision.",
+      "utterance" : "What's this page about?"
+    },
+    {
+      "args" : [
+        "read_aloud {}"
+      ],
+      "calls" : [
+        "read_aloud"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.126,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.126,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.344,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.344,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.344,
+          "text" : "Read it to me."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.827,
+          "text" : "read_aloud {}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.846,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.846,
+          "text" : "prompt 4545 response 7"
+        },
+        {
+          "kind" : "response",
+          "t" : 0.869,
+          "text" : "read_aloud WHEN_IDLE 286 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.387,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.392,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 3.584,
+          "text" : "I'm reading the page aloud for you now."
+        },
+        {
+          "kind" : "usage",
+          "t" : 3.584,
+          "text" : "prompt 4611 response 61"
+        }
+      ],
+      "expected" : [
+        "read_aloud"
+      ],
+      "first" : "read_aloud",
+      "page" : "ordinary",
+      "rep" : 2,
+      "secondsToFirstCall" : 0.48,
+      "spoken" : " I'm reading the page aloud for you now.",
+      "utterance" : "Read it to me."
+    },
+    {
+      "args" : [
+        "hand_off_to_agent {\"request\":\"Make it dark.\"}"
+      ],
+      "calls" : [
+        "hand_off_to_agent"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.148,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.148,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.503,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.556,
+          "text" : "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.556,
+          "text" : "Make it dark."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.282,
+          "text" : ""
+        },
+        {
+          "kind" : "call",
+          "t" : 1.702,
+          "text" : "hand_off_to_agent {\"request\":\"Make it dark.\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.747,
+          "text" : "hand_off_to_agent SILENT 389 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 4.199,
+          "text" : "Sure thing, let me adjust the appearance for you."
+        },
+        {
+          "kind" : "usage",
+          "t" : 4.199,
+          "text" : "prompt 4544 response 97"
+        }
+      ],
+      "expected" : [
+        "hand_off_to_agent"
+      ],
+      "first" : "hand_off_to_agent",
+      "page" : "ordinary",
+      "rep" : 2,
+      "secondsToFirstCall" : 1.15,
+      "spoken" : "Sure thing, let me adjust the appearance for you.",
+      "utterance" : "Make it dark."
+    },
+    {
+      "args" : [
+        "open_page {\"target\":\"bbc.com\"}"
+      ],
+      "calls" : [
+        "open_page"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.131,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.131,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.399,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.411,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.411,
+          "text" : "Open bbc.com."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.885,
+          "text" : "open_page {\"target\":\"bbc.com\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.901,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.901,
+          "text" : "prompt 4546 response 14"
+        },
+        {
+          "kind" : "response",
+          "t" : 0.926,
+          "text" : "open_page WHEN_IDLE 269 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.507,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.527,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 4.027,
+          "text" : "Opening bbc.com for you now."
+        },
+        {
+          "kind" : "usage",
+          "t" : 4.027,
+          "text" : "prompt 4616 response 69"
+        }
+      ],
+      "expected" : [
+        "open_page"
+      ],
+      "first" : "open_page",
+      "page" : "forum",
+      "rep" : 2,
+      "secondsToFirstCall" : 0.47,
+      "spoken" : " Opening bbc.com for you now.",
+      "utterance" : "Open bbc.com."
+    },
+    {
+      "args" : [
+        "open_page {\"target\":\"Hacker News\"}"
+      ],
+      "calls" : [
+        "open_page"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.118,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.118,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.337,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.337,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.337,
+          "text" : "Open Hacker News."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.842,
+          "text" : "open_page {\"target\":\"Hacker News\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.843,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.843,
+          "text" : "prompt 4544 response 14"
+        },
+        {
+          "kind" : "response",
+          "t" : 0.843,
+          "text" : "open_page WHEN_IDLE 300 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.461,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.461,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 3.402,
+          "text" : "I've opened Hacker News for you."
+        },
+        {
+          "kind" : "usage",
+          "t" : 3.402,
+          "text" : "prompt 4622 response 54"
+        }
+      ],
+      "expected" : [
+        "open_page"
+      ],
+      "first" : "open_page",
+      "page" : "forum",
+      "rep" : 2,
+      "secondsToFirstCall" : 0.51,
+      "spoken" : " I've opened Hacker News for you.",
+      "utterance" : "Open Hacker News."
+    },
+    {
+      "args" : [
+        "open_page {\"target\":\"best espresso machines\"}"
+      ],
+      "calls" : [
+        "open_page"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.129,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.129,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.381,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.421,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.421,
+          "text" : "Search the web for the best espresso machines."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.862,
+          "text" : "open_page {\"target\":\"best espresso machines\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.881,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.881,
+          "text" : "prompt 4549 response 14"
+        },
+        {
+          "kind" : "response",
+          "t" : 0.914,
+          "text" : "open_page WHEN_IDLE 317 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.482,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.49,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 6.271,
+          "text" : "I've searched the web for the best espresso machines, and the results are now on your screen."
+        },
+        {
+          "kind" : "usage",
+          "t" : 6.271,
+          "text" : "prompt 4631 response 125"
+        }
+      ],
+      "expected" : [
+        "open_page"
+      ],
+      "first" : "open_page",
+      "page" : "forum",
+      "rep" : 2,
+      "secondsToFirstCall" : 0.44,
+      "spoken" : " I've searched the web for the best espresso machines, and the results are now on your screen.",
+      "utterance" : "Search the web for the best espresso machines."
+    },
+    {
+      "args" : [
+        "search_forum {\"query\":\"firmware rollback\"}"
+      ],
+      "calls" : [
+        "search_forum"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.111,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.111,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.3,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.34,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.34,
+          "text" : "Find firmware rollback."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.867,
+          "text" : "search_forum {\"query\":\"firmware rollback\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.885,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.885,
+          "text" : "prompt 4544 response 14"
+        },
+        {
+          "kind" : "response",
+          "t" : 0.926,
+          "text" : "search_forum WHEN_IDLE 374 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.705,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.735,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 8.395,
+          "text" : "I found a few discussions about that. Would you like to check the guide for firmware five point two or one of the other topics?"
+        },
+        {
+          "kind" : "usage",
+          "t" : 8.395,
+          "text" : "prompt 4649 response 173"
+        }
+      ],
+      "expected" : [
+        "search_forum"
+      ],
+      "first" : "search_forum",
+      "page" : "forum",
+      "rep" : 2,
+      "secondsToFirstCall" : 0.53,
+      "spoken" : " I found a few discussions about that. Would you like to check the guide for firmware five point two or one of the other topics?",
+      "utterance" : "Find firmware rollback."
+    },
+    {
+      "args" : [
+        "browse_move {\"action\":\"back\"}"
+      ],
+      "calls" : [
+        "browse_move"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.118,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.118,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.353,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.384,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.384,
+          "text" : "Go back."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.936,
+          "text" : "browse_move {\"action\":\"back\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.961,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.961,
+          "text" : "prompt 4543 response 12"
+        },
+        {
+          "kind" : "response",
+          "t" : 0.996,
+          "text" : "browse_move WHEN_IDLE 243 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.634,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.656,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 3.952,
+          "text" : "I have moved back to the previous page."
+        },
+        {
+          "kind" : "usage",
+          "t" : 3.952,
+          "text" : "prompt 4601 response 63"
+        }
+      ],
+      "expected" : [
+        "browse_move"
+      ],
+      "first" : "browse_move",
+      "page" : "forum",
+      "rep" : 2,
+      "secondsToFirstCall" : 0.55,
+      "spoken" : " I have moved back to the previous page.",
+      "utterance" : "Go back."
+    },
+    {
+      "args" : [
+        "browse_move {\"action\":\"down\"}"
+      ],
+      "calls" : [
+        "browse_move"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.139,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.139,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.411,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.465,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.466,
+          "text" : "Scroll down."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.978,
+          "text" : "browse_move {\"action\":\"down\"}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.994,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.994,
+          "text" : "prompt 4543 response 12"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.032,
+          "text" : "browse_move WHEN_IDLE 243 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.7,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.72,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 3.835,
+          "text" : "I've scrolled down one screen for you."
+        },
+        {
+          "kind" : "usage",
+          "t" : 3.835,
+          "text" : "prompt 4601 response 59"
+        }
+      ],
+      "expected" : [
+        "browse_move"
+      ],
+      "first" : "browse_move",
+      "page" : "forum",
+      "rep" : 2,
+      "secondsToFirstCall" : 0.51,
+      "spoken" : " I've scrolled down one screen for you.",
+      "utterance" : "Scroll down."
+    },
+    {
+      "args" : [
+        "summarize_topic {}"
+      ],
+      "calls" : [
+        "summarize_topic"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.138,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.138,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.37,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.408,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.408,
+          "text" : "What's this thread about?"
+        },
+        {
+          "kind" : "call",
+          "t" : 1.06,
+          "text" : "summarize_topic {}"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.068,
+          "text" : "summarize_topic WHEN_IDLE 509 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 1.077,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 1.077,
+          "text" : "prompt 4547 response 7"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.983,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.983,
+          "text" : ""
+        }
+      ],
+      "expected" : [
+        "read_page",
+        "read_topic",
+        "summarize_topic"
+      ],
+      "first" : "summarize_topic",
+      "page" : "forum",
+      "rep" : 2,
+      "secondsToFirstCall" : 0.65,
+      "spoken" : "This thread discusses how firmware version five point two resets your fan curve to performance mode. You can fix it by rolling back to five point one point four or changing the curve to silent, and the vendor has promised a fix in the next update.",
+      "utterance" : "What's this thread about?"
+    },
+    {
+      "args" : [
+        "read_aloud {}"
+      ],
+      "calls" : [
+        "read_aloud"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.148,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.148,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.423,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.423,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.423,
+          "text" : "Read it to me."
+        },
+        {
+          "kind" : "call",
+          "t" : 0.866,
+          "text" : "read_aloud {}"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 0.872,
+          "text" : ""
+        },
+        {
+          "kind" : "usage",
+          "t" : 0.872,
+          "text" : "prompt 4545 response 7"
+        },
+        {
+          "kind" : "response",
+          "t" : 0.876,
+          "text" : "read_aloud WHEN_IDLE 307 bytes"
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.493,
+          "text" : ""
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.506,
+          "text" : ""
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 5.657,
+          "text" : "Alright, I'm playing the post about the fan noise after the firmware update."
+        },
+        {
+          "kind" : "usage",
+          "t" : 5.657,
+          "text" : "prompt 4617 response 104"
+        }
+      ],
+      "expected" : [
+        "read_aloud"
+      ],
+      "first" : "read_aloud",
+      "page" : "forum",
+      "rep" : 2,
+      "secondsToFirstCall" : 0.44,
+      "spoken" : " Alright, I'm playing the post about the fan noise after the firmware update.",
+      "utterance" : "Read it to me."
+    },
+    {
+      "args" : [
+        "hand_off_to_agent {\"request\":\"Make it dark.\"}"
+      ],
+      "calls" : [
+        "hand_off_to_agent"
+      ],
+      "correct" : true,
+      "events" : [
+        {
+          "kind" : "open",
+          "t" : 0.145,
+          "text" : ""
+        },
+        {
+          "kind" : "setup-sent",
+          "t" : 0.145,
+          "text" : "16468 bytes"
+        },
+        {
+          "kind" : "setupComplete",
+          "t" : 0.396,
+          "text" : ""
+        },
+        {
+          "kind" : "note",
+          "t" : 0.418,
+          "text" : "[Screen: the user is on the forum Home Lab Talk (Discourse). Forum tools work here. Search matches words, so search in the forum's language. The user opened the topic “Fan noise after firmware 5.2” (topic id 4821), 84 posts, with an accepted solution at post 37. At post 12 by alice: \"Same here, the fan ramps to full speed every few minutes since 5.2.\" Cards: none.]"
+        },
+        {
+          "kind" : "user",
+          "t" : 0.418,
+          "text" : "Make it dark."
+        },
+        {
+          "kind" : "audio-start",
+          "t" : 1.323,
+          "text" : ""
+        },
+        {
+          "kind" : "call",
+          "t" : 1.514,
+          "text" : "hand_off_to_agent {\"request\":\"Make it dark.\"}"
+        },
+        {
+          "kind" : "response",
+          "t" : 1.545,
+          "text" : "hand_off_to_agent SILENT 389 bytes"
+        },
+        {
+          "kind" : "turnComplete",
+          "t" : 3.028,
+          "text" : "I'll take care of the lighting for you."
+        },
+        {
+          "kind" : "usage",
+          "t" : 3.028,
+          "text" : "prompt 4544 response 66"
+        }
+      ],
+      "expected" : [
+        "hand_off_to_agent"
+      ],
+      "first" : "hand_off_to_agent",
+      "page" : "forum",
+      "rep" : 2,
+      "secondsToFirstCall" : 1.1,
+      "spoken" : "I'll take care of the lighting for you.",
+      "utterance" : "Make it dark."
+    }
+  ]
+}
