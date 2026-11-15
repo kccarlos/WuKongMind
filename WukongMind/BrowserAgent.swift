@@ -232,7 +232,8 @@ enum BrowserAgentPrompt {
         customInstructions: String = "",
         includesWorkspace: Bool = false,
         includesForumTools: Bool = false,
-        offersSummary: Bool = false
+        offersSummary: Bool = false,
+        isFixingScript: Bool = false
     ) -> String {
         var rules = """
         You are WukongMind's browser agent for iOS and iPadOS. You help the user inspect, \
@@ -288,6 +289,10 @@ enum BrowserAgentPrompt {
             sections.append(workspaceSection)
         }
 
+        if isFixingScript {
+            sections.append(fixingScriptSection)
+        }
+
         let trimmedCustom = customInstructions.trimmingCharacters(in: .whitespacesAndNewlines)
         if !trimmedCustom.isEmpty {
             sections.append("User preferences:\n\(trimmedCustom)")
@@ -295,6 +300,16 @@ enum BrowserAgentPrompt {
 
         return sections.joined(separator: "\n\n")
     }
+
+    static let fixingScriptSection = """
+    Fixing a script:
+    1. If the current page doesn't match the script, open the page the error happened on with `navigate`.
+    2. Reproduce first: read the page, and run the failing part with `run_js`.
+    3. Save the fix with `script_update` and `enabled: true`. Verify before saving checks it on the real page.
+    4. Don't widen match rules, grants or `@connect` to make an error go away; `script_update` refuses it. \
+    If the fix needs a new grant, match rule or host, say so in your answer and let the user decide.
+    5. Say what was wrong in one or two sentences.
+    """
 
     /// The Research rules as prompt text (`design-one-loop.md` "Research rules in
     /// the prompt"), for every page: the page context names the forum, if any.
@@ -596,6 +611,8 @@ struct BrowserAgentRun: Identifiable, Equatable, Sendable {
     var finalTurn: AgentTurnInfo?
     /// `.voice` for a run voice handed off; its request already shows as a voice bubble.
     var origin: AgentRunOrigin = .typed
+    /// Present when this run was started by a script repair request (`ScriptRepair`).
+    var repairTarget: ScriptRepairTarget? = nil
 
     var stepCount: Int { toolCalls.count }
     var errorCount: Int { toolCalls.filter(\.isError).count }
@@ -1093,6 +1110,10 @@ final class BrowserAgentSession {
     /// The task ID of the latest run (the run's UUID string).
     private(set) var currentTaskID: String?
     private(set) var lastUserPrompt: String?
+    private var lastDisplayPrompt: String?
+    private var lastModelPrompt: String?
+    private var lastRepairTarget: ScriptRepairTarget?
+    private var activeRepairState: ScriptRepairRunState?
     /// The page as it was before this run's first page change (page
     /// feedback's baseline; verify before saving compares against it).
     private(set) var pageBaseline: PageStateSnapshot?
@@ -1130,29 +1151,45 @@ final class BrowserAgentSession {
     /// and/or `attachedBlock` (page snapshot / script diagnostics) put before
     /// the question in the model's turn only; the bubble and the run show the
     /// bare question.
-    func send(_ prompt: String, context: String?, attachedBlock: String? = nil, origin: AgentRunOrigin = .typed) {
+    func send(
+        _ prompt: String,
+        context: String?,
+        attachedBlock: String? = nil,
+        displayPrompt: String? = nil,
+        origin: AgentRunOrigin = .typed,
+        repairTarget: ScriptRepairTarget? = nil
+    ) {
         let trimmed = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, !isRunning else { return }
         startTurn(
             userPrompt: trimmed,
+            displayPrompt: displayPrompt,
             appendUserMessage: true,
             modelPrompt: Self.modelPrompt(trimmed, context: context, attachedBlock: attachedBlock),
-            origin: origin
+            origin: origin,
+            repairTarget: repairTarget
         )
     }
 
     /// Awaits a full agent turn from start to completion; convenient for tests
     /// and programmatic callers.
     func sendAndWait(
-        _ prompt: String, context: String? = nil, attachedBlock: String? = nil, origin: AgentRunOrigin = .typed
+        _ prompt: String,
+        context: String? = nil,
+        attachedBlock: String? = nil,
+        displayPrompt: String? = nil,
+        origin: AgentRunOrigin = .typed,
+        repairTarget: ScriptRepairTarget? = nil
     ) async {
         let trimmed = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, !isRunning else { return }
         startTurn(
             userPrompt: trimmed,
+            displayPrompt: displayPrompt,
             appendUserMessage: true,
             modelPrompt: Self.modelPrompt(trimmed, context: context, attachedBlock: attachedBlock),
-            origin: origin
+            origin: origin,
+            repairTarget: repairTarget
         )
         await activeTask?.value
     }
@@ -1210,7 +1247,8 @@ final class BrowserAgentSession {
         guard !isRunning, case .stepLimitReached = runState else { return }
         startTurn(
             userPrompt: "Continue from where you stopped and finish the task.",
-            appendUserMessage: false
+            appendUserMessage: false,
+            repairTarget: lastRepairTarget
         )
     }
 
@@ -1218,7 +1256,8 @@ final class BrowserAgentSession {
         guard !isRunning, case .stepLimitReached = runState else { return }
         startTurn(
             userPrompt: "Continue from where you stopped and finish the task.",
-            appendUserMessage: false
+            appendUserMessage: false,
+            repairTarget: lastRepairTarget
         )
         await activeTask?.value
     }
@@ -1233,9 +1272,17 @@ final class BrowserAgentSession {
         }()
         startTurn(
             userPrompt: lastUserPrompt,
+            displayPrompt: lastDisplayPrompt,
             appendUserMessage: false,
-            appendToHistory: needsUserTurnInHistory
+            appendToHistory: needsUserTurnInHistory,
+            modelPrompt: needsUserTurnInHistory ? lastModelPrompt : nil,
+            repairTarget: lastRepairTarget
         )
+    }
+
+    func retryLastTurnAndWait() async {
+        retryLastTurn()
+        await activeTask?.value
     }
 
     /// Cancels the active run immediately.
@@ -1280,6 +1327,10 @@ final class BrowserAgentSession {
         currentStep = 0
         tokenUsage = .zero
         lastUserPrompt = nil
+        lastDisplayPrompt = nil
+        lastModelPrompt = nil
+        lastRepairTarget = nil
+        activeRepairState = nil
         pageBaseline = nil
         lastContextURL = nil
         wireSizes = [:]
@@ -1291,22 +1342,34 @@ final class BrowserAgentSession {
 
     private func startTurn(
         userPrompt: String,
+        displayPrompt: String? = nil,
         appendUserMessage: Bool,
         appendToHistory: Bool = true,
         modelPrompt: String? = nil,
-        origin: AgentRunOrigin = .typed
+        origin: AgentRunOrigin = .typed,
+        repairTarget: ScriptRepairTarget? = nil
     ) {
         let runtime = configProvider()
         maxSteps = BrowserAgentLimits.clampSteps(runtime.maxSteps)
         currentStep = 0
         pageBaseline = nil
         pageBaselineImage = nil
+        let trimmedDisplay = displayPrompt?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let visiblePrompt = trimmedDisplay.isEmpty ? userPrompt : trimmedDisplay
         if appendUserMessage || lastUserPrompt == nil {
             lastUserPrompt = userPrompt
         }
+        if appendUserMessage {
+            lastDisplayPrompt = visiblePrompt
+            lastModelPrompt = modelPrompt
+            lastRepairTarget = repairTarget
+            activeRepairState = repairTarget.map { ScriptRepairRunState(target: $0) }
+        } else if activeRepairState == nil, let repairTarget {
+            activeRepairState = ScriptRepairRunState(target: repairTarget)
+        }
 
         if appendUserMessage {
-            messages.append(BrowserAgentMessage(role: .user, text: userPrompt))
+            messages.append(BrowserAgentMessage(role: .user, text: visiblePrompt))
         }
 
         guard let selection = runtime.selection,
@@ -1336,7 +1399,7 @@ final class BrowserAgentSession {
         currentTaskID = taskID
         var runRecord = BrowserAgentRun(
             id: runID,
-            prompt: userPrompt,
+            prompt: visiblePrompt,
             toolCalls: [],
             assistantText: "",
             state: .running(step: 0, maxSteps: maxSteps),
@@ -1345,6 +1408,7 @@ final class BrowserAgentSession {
             duration: nil
         )
         runRecord.origin = origin
+        runRecord.repairTarget = repairTarget
         runs.append(runRecord)
         runState = .running(step: 0, maxSteps: maxSteps)
 
@@ -1358,6 +1422,7 @@ final class BrowserAgentSession {
         // Names this run's folder for saved results, `results/<task-id>/`, which
         // task-record retention deletes with the record of the same ID.
         registry.taskID = taskID
+        registry.repairState = activeRepairState
         let includesWorkspace = registry.tool(named: "file_read") != nil
         // The Research rules, only where the forum tools are; the forum itself, in the page context.
         let includesForumTools = registry.tool(named: ForumToolName.searchForum) != nil
@@ -1367,7 +1432,8 @@ final class BrowserAgentSession {
             customInstructions: runtime.customInstructions,
             includesWorkspace: includesWorkspace,
             includesForumTools: includesForumTools,
-            offersSummary: offersSummary
+            offersSummary: offersSummary,
+            isFixingScript: repairTarget != nil
         )
         // Raw capture runs whenever a record is written, whatever developer mode says.
         let wireRecorder = taskRecords.map { store in

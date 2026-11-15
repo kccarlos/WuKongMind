@@ -486,12 +486,55 @@ struct ToolExecutionOutput: Equatable, Sendable {
     }
 }
 
+@MainActor
+final class ScriptRepairRunState: Sendable {
+    nonisolated static let maxRefusalsPerScript = 3
+    nonisolated static let wideningRefusalMessage =
+        "Not saved: a repair can't add match rules, grants or hosts. Say what the fix needs and let the user decide."
+    nonisolated static let threeRefusalsStopMessage =
+        "Stop: three fixes failed. Leave the script off and tell the user what you found."
+
+    let target: ScriptRepairTarget
+    private(set) var refusalCounts: [String: Int] = [:]
+
+    init(target: ScriptRepairTarget) {
+        self.target = target
+    }
+
+    func hasReachedRefusalLimit(for scriptID: String) -> Bool {
+        refusalCounts[scriptID, default: 0] >= Self.maxRefusalsPerScript
+    }
+
+    @discardableResult
+    func noteRefusal(for scriptID: String) -> Int {
+        let next = refusalCounts[scriptID, default: 0] + 1
+        refusalCounts[scriptID] = next
+        return next
+    }
+
+    nonisolated static func widensPermissions(previous: UserScript, candidate: UserScript) -> Bool {
+        if !Set(candidate.matchRules).isSubset(of: Set(previous.matchRules)) {
+            return true
+        }
+        if !Set(candidate.metadata.grants).isSubset(of: Set(previous.metadata.grants)) {
+            return true
+        }
+        let prevHosts = Set(previous.metadata.connectHosts.map { $0.lowercased() })
+        let nextHosts = Set(candidate.metadata.connectHosts.map { $0.lowercased() })
+        if !nextHosts.isSubset(of: prevHosts) {
+            return true
+        }
+        return false
+    }
+}
+
 struct ToolCallContext: Sendable {
     var workspace: AgentWorkspace?
     var taskID: String?
     var step: Int?
     var truncationLimit: Int
     var redactedSecrets: [String]
+    var repairState: ScriptRepairRunState? = nil
 }
 
 /// Who may call a tool (`design-one-loop.md` "Voice"): the text Agent, the
@@ -554,6 +597,7 @@ struct ToolRegistry: Sendable {
     /// workspace or a task ID, output is truncated and marked instead.
     var workspace: AgentWorkspace?
     var taskID: String?
+    var repairState: ScriptRepairRunState?
     /// The run's forum, for the prompt's "Forum tools" section; set by the
     /// builder next to the forum tools.
     var forumPrompt: ForumPromptContext?
@@ -845,7 +889,8 @@ struct ToolRegistry: Sendable {
                     taskID: taskID,
                     step: step,
                     truncationLimit: truncationLimit,
-                    redactedSecrets: redactedSecrets
+                    redactedSecrets: redactedSecrets,
+                    repairState: repairState
                 )
                 execution = try await executeWithContext(arguments, callContext)
             } else {
@@ -1857,8 +1902,25 @@ extension ToolRegistry {
                 if changed.isEmpty { return id }
                 return "\(id) (\(changed.joined(separator: ", ")))"
             },
-            execute: { args in
+            execute: { _ in
+                ToolExecutionOutput(content: "Internal error: script_update requires call context.", isError: true)
+            },
+            executeWithContext: { args, callContext in
                 let id = args["script_id"]?.stringValue?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                let repairState = callContext.repairState
+                let isTargetRepair = repairState?.target.scriptID == id
+
+                if let repairState {
+                    let alreadyStopped = await MainActor.run { repairState.hasReachedRefusalLimit(for: id) }
+                    if alreadyStopped {
+                        return ToolExecutionOutput(
+                            content: ScriptRepairRunState.threeRefusalsStopMessage,
+                            summary: "Stopped · 3 failed fixes",
+                            isError: true
+                        )
+                    }
+                }
+
                 let confirmChange = args["confirm_change"]?.strictBoolValue ?? false
                 let matchRules: [String]?
                 if let rulesVal = args["match_rules"] {
@@ -1874,7 +1936,7 @@ extension ToolRegistry {
                     css: args["css"]?.stringValue,
                     injectionTime: args["injection_time"]?.stringValue.flatMap(ScriptInjectionTime.init(rawValue:)),
                     environment: args["environment"]?.stringValue.flatMap(AgentExecutionEnvironment.init(rawValue:)),
-                    isEnabled: args["enabled"]?.strictBoolValue,
+                    isEnabled: args["enabled"]?.strictBoolValue ?? (isTargetRepair ? true : nil),
                     grants: try extractValidatedGrants(from: args["grants"], toolName: "script_update"),
                     connectHosts: try extractValidatedConnectHosts(from: args["connect"], toolName: "script_update")
                 )
@@ -1888,7 +1950,19 @@ extension ToolRegistry {
                     )
                 }
 
-                let verification = try await verifyCandidateBeforeSaving(
+                if let repairState,
+                   ScriptRepairRunState.widensPermissions(previous: prospective.previous, candidate: prospective.updated) {
+                    let refusalCount = await MainActor.run { repairState.noteRefusal(for: id) }
+                    let message = refusalCount >= ScriptRepairRunState.maxRefusalsPerScript
+                        ? "\(ScriptRepairRunState.wideningRefusalMessage)\n\(ScriptRepairRunState.threeRefusalsStopMessage)"
+                        : ScriptRepairRunState.wideningRefusalMessage
+                    let summary = refusalCount >= ScriptRepairRunState.maxRefusalsPerScript
+                        ? "Stopped · 3 failed fixes"
+                        : "Not saved · repair cannot widen permissions"
+                    return ToolExecutionOutput(content: message, summary: summary, isError: true)
+                }
+
+                var verification = try await verifyCandidateBeforeSaving(
                     candidate: prospective.updated,
                     replacingScriptID: prospective.previous.id,
                     confirmChange: confirmChange,
@@ -1901,12 +1975,58 @@ extension ToolRegistry {
                 )
 
                 if case .refused(let message, let summary, let images) = verification {
+                    if let repairState {
+                        let refusalCount = await MainActor.run { repairState.noteRefusal(for: id) }
+                        if refusalCount >= ScriptRepairRunState.maxRefusalsPerScript {
+                            return ToolExecutionOutput(
+                                content: ScriptRepairRunState.threeRefusalsStopMessage,
+                                summary: "Stopped · 3 failed fixes",
+                                isError: true,
+                                images: images
+                            )
+                        }
+                    }
                     return ToolExecutionOutput(content: message, summary: summary, isError: true, images: images)
                 }
 
                 let wasEnabled = prospective.previous.isEnabled
+                var prospectiveToCommit = prospective
+                var isVerifiedRepair = false
+                if isTargetRepair {
+                    if case .verifiedOnCurrentPage = verification {
+                        isVerifiedRepair = true
+                        var enabledUpdated = prospective.updated
+                        enabledUpdated.isEnabled = true
+                        enabledUpdated.disabledReason = nil
+                        prospectiveToCommit = ScriptStore.ProspectiveUpdate(
+                            previous: prospective.previous,
+                            updated: enabledUpdated,
+                            touchesVersionedFields: prospective.touchesVersionedFields
+                        )
+                    } else {
+                        var keptOff = prospective.updated
+                        keptOff.isEnabled = false
+                        keptOff.disabledReason = prospective.previous.disabledReason
+                        prospectiveToCommit = ScriptStore.ProspectiveUpdate(
+                            previous: prospective.previous,
+                            updated: keptOff,
+                            touchesVersionedFields: prospective.touchesVersionedFields
+                        )
+                        let ruleHint = keptOff.matchRules.first ?? "a matching page"
+                        verification = .unverified(
+                            note: "Saved unverified with enabled: false because the current page does not match this script. Check it on a page matching \(ruleHint)."
+                        )
+                    }
+                }
+
                 let updated: UserScript = try await MainActor.run {
-                    let committed = try scriptStore.commitUpdated(prospective)
+                    let committed = try scriptStore.commitUpdated(
+                        prospectiveToCommit,
+                        clearErrors: !isTargetRepair || isVerifiedRepair
+                    )
+                    if isVerifiedRepair {
+                        scriptStore.clearError(for: committed.id)
+                    }
                     if case .verifiedOnCurrentPage = verification {
                         scriptStore.noteExecuted(scriptID: committed.id)
                     }
@@ -1915,22 +2035,35 @@ extension ToolRegistry {
 
                 var payload: [String: JSONValue] = [
                     "script_id": .string(updated.id),
+                    "name": .string(updated.name),
+                    "match_rules": .array(updated.matchRules.map(JSONValue.string)),
                     "version": .int(Int64(updated.version)),
                     "enabled": .bool(updated.isEnabled),
                     "grants": .array(updated.metadata.grants.map(JSONValue.string)),
                     "connect": .array(updated.metadata.connectHosts.map(JSONValue.string))
                 ]
+                if isTargetRepair {
+                    payload["repaired"] = .bool(isVerifiedRepair)
+                    if case .unverified(let note) = verification {
+                        payload["verification_note"] = .string(note)
+                    }
+                }
 
                 let shouldRunJS = updated.hasJS && (
                     patch.js != nil || patch.environment != nil || patch.matchRules != nil
                     || patch.grants != nil || patch.connectHosts != nil
                     || (patch.isEnabled == true && !wasEnabled)
                 )
+                let baseSummary = isVerifiedRepair
+                    ? "Fixed '\(updated.name)' (v\(updated.version))"
+                    : (isTargetRepair
+                        ? "Saved unverified '\(updated.name)' (off)"
+                        : "Updated '\(updated.name)' to v\(updated.version)")
                 return try await finishVerifiedScriptWrite(
                     script: updated,
                     verification: verification,
                     payload: payload,
-                    baseSummary: "Updated '\(updated.name)' to v\(updated.version)",
+                    baseSummary: baseSummary,
                     fallbackRunJS: shouldRunJS,
                     bridge: bridge,
                     scriptStore: scriptStore,

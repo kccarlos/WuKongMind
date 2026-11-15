@@ -214,7 +214,9 @@ final class GMBridge {
             return false
         }
         if let err = res["error"] as? String, !err.isEmpty {
-            onScriptError?(scriptID, ["message": err, "url": webView.url?.absoluteString ?? ""])
+            if (res["reported"] as? Bool) != true {
+                onScriptError?(scriptID, ["message": err, "afterLoad": true, "url": webView.url?.absoluteString ?? ""])
+            }
             return false
         }
         return (res["ok"] as? Bool) == true
@@ -330,7 +332,7 @@ final class GMBridge {
         }
         guard accepted.contains(where: { script.metadata.grants.contains($0) }) else {
             let msg = GMBridgeError.ungranted(reportName).errorDescription ?? "Missing grant"
-            onScriptError?(scriptID, ["message": msg])
+            onScriptError?(scriptID, ["message": msg, "kind": "api"])
             replyHandler(nil, msg)
             return nil
         }
@@ -508,7 +510,13 @@ final class GMBridge {
                 if scriptErr.kind != .limit {
                     recordAudit(target, nil, true, scriptErr.message)
                 }
-                replyHandler(["ok": false, "kind": scriptErr.kind == .timeout ? "timeout" : "error", "error": scriptErr.message, "finalUrl": target], nil)
+                replyHandler([
+                    "ok": false,
+                    "kind": scriptErr.kind == .timeout ? "timeout" : "error",
+                    "errorKind": scriptErr.kind == .blocked ? "api" : "script",
+                    "error": scriptErr.message,
+                    "finalUrl": target,
+                ], nil)
             } catch {
                 recordAudit(target, nil, true, error.localizedDescription)
                 replyHandler(["ok": false, "kind": "error", "error": error.localizedDescription, "finalUrl": target], nil)
@@ -589,10 +597,14 @@ final class GMBridge {
             const fn = resolvePostFn() || cachedPostFn;
             return fn ? fn(payload) : Promise.reject(new Error("GM bridge unavailable"));
           };
+          const origSetTimeout = window.setTimeout.bind(window), origSetInterval = window.setInterval.bind(window);
+          const origRAF = typeof window.requestAnimationFrame === "function" ? window.requestAnimationFrame.bind(window) : null;
+          const origAddEL = EventTarget.prototype.addEventListener, origRemEL = EventTarget.prototype.removeEventListener;
           const values = new Map(), sheets = new Set(), menuCallbacks = new Map();
           const origLog = console.log.bind(console), enc = new TextEncoder();
+          const reportedErrors = new WeakSet(), listenerMap = new WeakMap();
           let seeded = false, grants = new Set(), currentInfo = Object.freeze({}), logPrefix = "";
-          let nextMenuCmdId = 0, nextReqId = 0;
+          let nextMenuCmdId = 0, nextReqId = 0, currentLoadId = "", mainLoadDepth = 0;
 
           const freezeInfo = (raw) => {
             if (raw && raw.script) {
@@ -658,15 +670,103 @@ final class GMBridge {
               if (out && typeof out.then === "function") out.then(null, reportAsyncErr);
               return { ok: true };
             } catch (err) {
-              const msg = err && (err.message || err.stack) ? String(err.message || err.stack) : String(err);
-              return { ok: false, error: msg };
+              const msg = reportCaught(err, undefined, true);
+              return { ok: false, reported: true, error: msg };
             }
           };
           window.__wukongPostGM = (msg) => postMsg(msg);
-          const reportAsyncErr = (err) => {
-            const msg = err && (err.message || err.stack) ? String(err.message || err.stack) : String(err);
-            postMsg({ action: "scriptError", message: msg, url: String(window.location.href || "") }).catch(() => {});
+          window.__wukongEnterMainLoad = (lid) => { if (lid) currentLoadId = String(lid); mainLoadDepth++; };
+          window.__wukongLeaveMainLoad = () => { if (mainLoadDepth > 0) mainLoadDepth--; };
+          const serviceCodes = new Set(["provider_error", "no_model", "rate_limited", "disabled", "cancelled"]);
+          const formatErr = (err) => {
+            let kind = "script", message = "Unknown userscript error", line = 0, stack = "";
+            if (err && typeof err === "object") {
+              if (err.__wukongErrorKind === "service" || err.name === "GMAiError" || (typeof err.code === "string" && serviceCodes.has(err.code))) kind = "service";
+              else if (err.__wukongErrorKind === "api") kind = "api";
+              const rawMsg = err.message != null ? String(err.message) : "";
+              const errName = typeof err.name === "string" ? err.name : "";
+              if (errName && errName !== "Error" && errName !== "GMAiError" && rawMsg && !rawMsg.startsWith(errName + ":")) message = errName + ": " + rawMsg;
+              else message = rawMsg || String(err);
+              if (typeof err.line === "number" && err.line > 0) line = err.line;
+              if (typeof err.stack === "string") stack = err.stack.trim().slice(0, 2000);
+            } else if (err !== undefined && err !== null) {
+              message = String(err);
+            }
+            if (kind === "script" && (message.startsWith("`GM_") || message.startsWith("`window.") || message.includes("is not in @connect"))) kind = "api";
+            return { kind, message, line, stack };
           };
+          const reportCaught = (err, loadIdOverride, forceAfterLoad) => {
+            const info = formatErr(err);
+            if (err && typeof err === "object") {
+              if (reportedErrors.has(err)) return info.message;
+              reportedErrors.add(err);
+            }
+            const afterLoad = forceAfterLoad !== undefined ? Boolean(forceAfterLoad) : (mainLoadDepth === 0);
+            const lid = loadIdOverride !== undefined ? String(loadIdOverride || "") : currentLoadId;
+            postMsg({
+              action: "scriptError", message: info.message, line: info.line, stack: info.stack,
+              kind: info.kind, afterLoad, url: String(window.location.href || ""), loadId: lid
+            }).catch(() => {});
+            return info.message;
+          };
+          window.__wukongReportScriptError = reportCaught;
+          const wrapFn = (fn) => {
+            if (typeof fn !== "function") return fn;
+            if (fn.__wukongWrapped) return fn.__wukongWrapped;
+            const wrapped = function(...args) {
+              try { return fn.apply(this, args); }
+              catch (err) { reportCaught(err, undefined, true); throw err; }
+            };
+            Object.defineProperty(fn, "__wukongWrapped", { value: wrapped, configurable: true });
+            return wrapped;
+          };
+          window.__wukongWrapGMCallback = wrapFn;
+          const gmCbKeys = ["onload", "onerror", "ontimeout", "onabort", "onreadystatechange", "onprogress"];
+          const wrapGMArg = (v) => {
+            if (typeof v === "function") return wrapFn(v);
+            if (v && typeof v === "object" && Object.getPrototypeOf(v) === Object.prototype) {
+              let copy = null;
+              for (const k of gmCbKeys) {
+                if (typeof v[k] === "function") { if (!copy) copy = Object.assign({}, v); copy[k] = wrapFn(v[k]); }
+              }
+              return copy || v;
+            }
+            return v;
+          };
+          const defineGM = (name, impl) => {
+            window[name] = function(...args) { return impl.apply(this, args.map(wrapGMArg)); };
+          };
+          window.__wukongDefineGM = defineGM;
+          window.setTimeout = (cb, ms, ...args) => origSetTimeout(typeof cb === "function" ? wrapFn(cb) : cb, ms, ...args);
+          window.setInterval = (cb, ms, ...args) => origSetInterval(typeof cb === "function" ? wrapFn(cb) : cb, ms, ...args);
+          if (origRAF) window.requestAnimationFrame = (cb) => origRAF(typeof cb === "function" ? wrapFn(cb) : cb);
+          const wrapListener = (l) => {
+            if (!l || (typeof l !== "function" && typeof l !== "object")) return l;
+            let w = listenerMap.get(l);
+            if (w) return w;
+            w = typeof l === "function"
+              ? function(...args) { try { return l.apply(this, args); } catch (err) { reportCaught(err, undefined, true); throw err; } }
+              : function(ev) { if (typeof l.handleEvent === "function") { try { return l.handleEvent.call(l, ev); } catch (err) { reportCaught(err, undefined, true); throw err; } } };
+            listenerMap.set(l, w);
+            return w;
+          };
+          EventTarget.prototype.addEventListener = function(type, l, opts) { return origAddEL.call(this, type, wrapListener(l), opts); };
+          EventTarget.prototype.removeEventListener = function(type, l, opts) { return origRemEL.call(this, type, (l && listenerMap.get(l)) || l, opts); };
+          for (const obsName of ["MutationObserver", "IntersectionObserver", "ResizeObserver"]) {
+            const OrigObs = window[obsName];
+            if (typeof OrigObs !== "function") continue;
+            const WrappedObs = function(cb, ...rest) {
+              if (!new.target) throw new TypeError("Constructor " + obsName + " requires 'new'");
+              return new OrigObs(typeof cb === "function" ? wrapFn(cb) : cb, ...rest);
+            };
+            WrappedObs.prototype = OrigObs.prototype;
+            Object.setPrototypeOf(WrappedObs, OrigObs);
+            window[obsName] = WrappedObs;
+          }
+          origAddEL.call(window, "unhandledrejection", (e) => {
+            if (e && e.promise instanceof Promise) reportCaught(e.reason, undefined, true);
+          });
+          const reportAsyncErr = (err) => { reportCaught(err, undefined, true); };
           const addStyleImpl = (css) => {
             const sheet = new CSSStyleSheet();
             sheet.replaceSync(String(css == null ? "" : css));
@@ -679,11 +779,12 @@ final class GMBridge {
               }
             };
             apply();
-            if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", apply, { once: true });
+            if (document.readyState === "loading") origAddEL.call(document, "DOMContentLoaded", apply, { once: true });
             return sheet;
           };
-          const needGrant = (fn) => { throw new Error("`" + fn + "` needs `@grant " + fn + "`"); };
-          const notSupported = (fn) => { throw new Error("`" + fn + "` is not supported in WukongMind"); };
+          const apiErr = (msg) => { const e = new Error(msg); e.__wukongErrorKind = "api"; throw e; };
+          const needGrant = (fn) => apiErr("`" + fn + "` needs `@grant " + fn + "`");
+          const notSupported = (fn) => apiErr("`" + fn + "` is not supported in WukongMind");
           const req = (fn) => { if (!grants.has(fn)) needGrant(fn); };
           const reqEither = (g1, g2, called) => { if (!grants.has(g1) && (!g2 || !grants.has(g2))) needGrant(called); };
           const uLen = (s) => enc.encode(s).length;
@@ -720,12 +821,12 @@ final class GMBridge {
             const rawUrl = details.url == null ? "" : String(details.url).trim();
             const unsupported = checkXhrUnsupported(details);
             if (unsupported) {
-              if (!promiseHooks && typeof details.onerror !== "function") throw new Error(unsupported);
+              if (!promiseHooks && typeof details.onerror !== "function") apiErr(unsupported);
               let cancelled = false;
               queueMicrotask(() => {
                 if (cancelled) return;
                 fireCb(details.onerror, makeErrResp(rawUrl, unsupported));
-                if (promiseHooks) promiseHooks.reject(new Error(unsupported));
+                if (promiseHooks) { const e = new Error(unsupported); e.__wukongErrorKind = "api"; promiseHooks.reject(e); }
               });
               return { abort() { cancelled = true; } };
             }
@@ -766,7 +867,11 @@ final class GMBridge {
               const errObj = makeErrResp(String((res && res.finalUrl) || resolvedUrl), errMsg);
               const kind = res && res.kind;
               fireCb(kind === "timeout" ? details.ontimeout : (kind === "abort" ? details.onabort : details.onerror), errObj);
-              if (promiseHooks) promiseHooks.reject(new Error(errMsg));
+              if (promiseHooks) {
+                const rejErr = new Error(errMsg);
+                if (res && res.errorKind === "api") rejErr.__wukongErrorKind = "api";
+                promiseHooks.reject(rejErr);
+              }
             }, (err) => {
               if (settled) return;
               settled = true;
@@ -785,14 +890,14 @@ final class GMBridge {
             };
           };
 
-          window.GM_log = (...args) => { origLog(logPrefix, ...args); };
-          window.GM_addStyle = (css) => addStyleImpl(css);
-          window.GM_getValue = (key, def) => {
+          defineGM("GM_log", (...args) => { origLog(logPrefix, ...args); });
+          defineGM("GM_addStyle", (css) => addStyleImpl(css));
+          defineGM("GM_getValue", (key, def) => {
             reqEither("GM_getValue", "GM.getValue", "GM_getValue");
             const k = String(key);
             return values.has(k) ? JSON.parse(values.get(k)) : def;
-          };
-          window.GM_setValue = (key, value) => {
+          });
+          defineGM("GM_setValue", (key, value) => {
             reqEither("GM_setValue", "GM.setValue", "GM_setValue");
             const [k, ser] = prepareSet(key, value), had = values.has(k), prev = values.get(k);
             values.set(k, ser);
@@ -800,15 +905,15 @@ final class GMBridge {
               if (had) values.set(k, prev); else values.delete(k);
               reportAsyncErr(e);
             });
-          };
-          window.GM_deleteValue = (key) => {
+          });
+          defineGM("GM_deleteValue", (key) => {
             reqEither("GM_deleteValue", "GM.deleteValue", "GM_deleteValue");
             const k = String(key); values.delete(k);
             postMsg({ action: "deleteValue", key: k }).catch(reportAsyncErr);
-          };
-          window.GM_listValues = () => { reqEither("GM_listValues", "GM.listValues", "GM_listValues"); return Array.from(values.keys()); };
-          window.GM_xmlhttpRequest = (details) => startXhr(details, "GM_xmlhttpRequest", null);
-          window.GM_registerMenuCommand = (title, fn) => {
+          });
+          defineGM("GM_listValues", () => { reqEither("GM_listValues", "GM.listValues", "GM_listValues"); return Array.from(values.keys()); });
+          defineGM("GM_xmlhttpRequest", (details) => startXhr(details, "GM_xmlhttpRequest", null));
+          defineGM("GM_registerMenuCommand", (title, fn) => {
             req("GM_registerMenuCommand");
             if (typeof fn !== "function") throw new TypeError("GM_registerMenuCommand requires a callback function");
             const cleanTitle = String(title == null ? "" : title).trim();
@@ -817,13 +922,13 @@ final class GMBridge {
             menuCallbacks.set(id, fn);
             postMsg({ action: "registerMenuCommand", id, title: cleanTitle, docToken }).catch(reportAsyncErr);
             return id;
-          };
-          window.GM_unregisterMenuCommand = (id) => {
+          });
+          defineGM("GM_unregisterMenuCommand", (id) => {
             reqEither("GM_registerMenuCommand", "GM_unregisterMenuCommand", "GM_unregisterMenuCommand");
             const key = String(id == null ? "" : id);
             menuCallbacks.delete(key);
             if (key) postMsg({ action: "unregisterMenuCommand", id: key, docToken }).catch(reportAsyncErr);
-          };
+          });
           const gmDot = Object.freeze({
             get info() { return currentInfo; },
             addStyle: async (css) => addStyleImpl(css),
@@ -854,15 +959,18 @@ final class GMBridge {
               return Array.from(values.keys());
             },
             xmlHttpRequest: (details) => {
+              const wrappedDetails = wrapGMArg(details);
               if (!grants.has("GM_xmlhttpRequest") && !grants.has("GM.xmlHttpRequest")) {
-                const rejected = Promise.reject(new Error("`GM.xmlHttpRequest` needs `@grant GM.xmlHttpRequest`"));
+                const ungrantedErr = new Error("`GM.xmlHttpRequest` needs `@grant GM.xmlHttpRequest`");
+                ungrantedErr.__wukongErrorKind = "api";
+                const rejected = Promise.reject(ungrantedErr);
                 rejected.abort = () => {};
                 return rejected;
               }
               let abortFn = () => {};
               const promise = new Promise((resolve, reject) => {
                 try {
-                  const handle = startXhr(details, "GM.xmlHttpRequest", { resolve, reject });
+                  const handle = startXhr(wrappedDetails, "GM.xmlHttpRequest", { resolve, reject });
                   abortFn = () => handle.abort();
                 } catch (err) {
                   reject(err);
@@ -873,8 +981,8 @@ final class GMBridge {
             }
           });
           Object.defineProperty(window, "GM", { value: gmDot, configurable: false, writable: false });
-          for (const fn of \(jsonArray(futureM4GrantFunctions))) window[fn] = () => { req(fn); notSupported(fn); };
-          for (const fn of \(jsonArray(unsupportedGMFunctions))) window[fn] = () => notSupported(fn);
+          for (const fn of \(jsonArray(futureM4GrantFunctions))) defineGM(fn, () => { req(fn); notSupported(fn); });
+          for (const fn of \(jsonArray(unsupportedGMFunctions))) defineGM(fn, () => notSupported(fn));
           window.close = () => notSupported("window.close");
           window.focus = () => notSupported("window.focus");
         })();

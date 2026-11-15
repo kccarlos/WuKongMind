@@ -190,7 +190,7 @@ struct BrowserAgentRunsView: View {
                 }
             }
 
-            let savedEntries = savedScriptEntries(in: run)
+            let savedEntries = Self.savedScriptEntries(in: run)
             if !savedEntries.isEmpty {
                 ForEach(savedEntries) { entry in
                     AgentScriptCardView(app: app, entry: entry)
@@ -250,14 +250,19 @@ struct BrowserAgentRunsView: View {
         return (sources, siteURL, parse)
     }
 
-    private func savedScriptEntries(in run: BrowserAgentRun) -> [SavedScriptCardEntry] {
-        var seen: Set<String> = []
+    static func savedScriptEntries(in run: BrowserAgentRun) -> [SavedScriptCardEntry] {
+        var indexByScriptID: [String: Int] = [:]
         var entries: [SavedScriptCardEntry] = []
-        for row in run.toolCalls where row.toolName == "script_save" && !row.isRunning {
-            guard let obj = try? JSONValue.parseObjectJSON(row.resultText),
+        for row in run.toolCalls where !row.isRunning && !row.isError {
+            let isSave = row.toolName == "script_save"
+            let isUpdate = row.toolName == "script_update"
+            guard isSave || isUpdate,
+                  let obj = try? JSONValue.parseObjectJSON(row.resultText),
                   let scriptID = obj["script_id"]?.stringValue,
-                  !scriptID.isEmpty,
-                  seen.insert(scriptID).inserted else {
+                  !scriptID.isEmpty else {
+                continue
+            }
+            if isUpdate && obj["repaired"]?.strictBoolValue != true {
                 continue
             }
             let argsObj = try? JSONValue.parseObjectJSON(row.argumentsJSON)
@@ -267,13 +272,21 @@ struct BrowserAgentRunsView: View {
             let fallbackRule = obj["match_rules"]?.arrayValue?.first?.stringValue
                 ?? argsObj?["match_rules"]?.arrayValue?.first?.stringValue
                 ?? ""
-            entries.append(
-                SavedScriptCardEntry(
-                    scriptID: scriptID,
-                    fallbackName: fallbackName,
-                    fallbackFirstRule: fallbackRule
-                )
+            let repairTarget: ScriptRepairTarget? = isUpdate
+                ? (run.repairTarget?.scriptID == scriptID ? run.repairTarget : nil)
+                : nil
+            let entry = SavedScriptCardEntry(
+                scriptID: scriptID,
+                fallbackName: fallbackName,
+                fallbackFirstRule: fallbackRule,
+                repairTarget: repairTarget
             )
+            if let idx = indexByScriptID[scriptID] {
+                entries[idx] = entry
+            } else {
+                indexByScriptID[scriptID] = entries.count
+                entries.append(entry)
+            }
         }
         return entries
     }
