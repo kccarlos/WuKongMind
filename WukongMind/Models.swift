@@ -108,6 +108,8 @@ struct AppSettings: Codable, Equatable {
     var launchDestination: LaunchDestination = .automatic
     /// Optional confirmation before write actions (`Settings › Agent`). Off by default.
     var agentConfirmBeforeWrites = false
+    /// Page tools (`Settings › Agent`): WebMCP shim, learned site readers and page-tool calls. On by default.
+    var agentPageToolsEnabled = true
     /// Developer mode, the one switch (`Settings › Agent › Developer`): raw requests, tokens per step,
     /// tool code names and durations, and task export. Off by default; per device.
     var agentDeveloperMode = false
@@ -181,6 +183,7 @@ struct AppSettings: Codable, Equatable {
         case searchEngine
         case launchDestination
         case agentConfirmBeforeWrites
+        case agentPageToolsEnabled
         case agentDeveloperMode
         case agentMaxTopicReads
         case agentReadLimit
@@ -254,6 +257,7 @@ struct AppSettings: Codable, Equatable {
         searchEngine = try container.decodeIfPresent(SearchEngine.self, forKey: .searchEngine) ?? stock.searchEngine
         launchDestination = try container.decodeIfPresent(LaunchDestination.self, forKey: .launchDestination) ?? stock.launchDestination
         agentConfirmBeforeWrites = try container.decodeIfPresent(Bool.self, forKey: .agentConfirmBeforeWrites) ?? stock.agentConfirmBeforeWrites
+        agentPageToolsEnabled = try container.decodeIfPresent(Bool.self, forKey: .agentPageToolsEnabled) ?? stock.agentPageToolsEnabled
         agentDeveloperMode = try container.decodeIfPresent(Bool.self, forKey: .agentDeveloperMode) ?? stock.agentDeveloperMode
         agentMaxTopicReads = AgentLimits.clampTopicReads(
             try container.decodeIfPresent(Int.self, forKey: .agentMaxTopicReads)

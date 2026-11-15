@@ -241,6 +241,18 @@ struct SettingsAgentPage: View {
             }
 
             Section {
+                Toggle(isOn: $app.settings.agentPageToolsEnabled) {
+                    Text("Page tools", comment: "Settings › Agent switch enabling learned site readers and tools pages register")
+                }
+                .accessibilityIdentifier("agentPageToolsEnabled")
+            } footer: {
+                Text(
+                    "Let the Agent learn to read unfamiliar forums and use tools a page or script offers. A site's own tools always ask first.",
+                    comment: "Settings › Agent footer explaining the Page tools switch"
+                )
+            }
+
+            Section {
                 NavigationLink {
                     SettingsAuditLogPage(app: app)
                 } label: {
@@ -332,6 +344,7 @@ struct SettingsAgentPage: View {
             auditStepCount = await Task.detached { log.stepCount }.value
         }
         .onChange(of: app.settings.agentConfirmBeforeWrites) { app.saveSettings() }
+        .onChange(of: app.settings.agentPageToolsEnabled) { app.saveSettings() }
         .onChange(of: app.settings.agentDeveloperMode) { app.saveSettings() }
         .onChange(of: app.settings.agentMaxTopicReads) { app.saveSettings() }
         .onChange(of: app.settings.agentReadLimit) { app.saveSettings() }

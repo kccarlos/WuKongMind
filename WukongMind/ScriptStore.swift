@@ -1654,7 +1654,7 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
         return out
     }
 
-    static func encodeSingleLineJSONString(_ value: String) -> String {
+    nonisolated static func encodeSingleLineJSONString(_ value: String) -> String {
         guard let data = try? JSONEncoder().encode(value),
               let encoded = String(data: data, encoding: .utf8) else {
             return "\"\""
@@ -2756,6 +2756,7 @@ final class ScriptWebController: ScriptLiveApplying {
     let store: ScriptStore
     weak var agentBridge: AgentBridge?
     let gmBridge: GMBridge
+    weak var pageToolBridge: PageToolBridge?
 
     private struct CandidateVerification {
         var candidate: UserScript
@@ -2783,11 +2784,18 @@ final class ScriptWebController: ScriptLiveApplying {
     private var isDetached = false
     private var activeVerification: CandidateVerification?
 
-    init(webView: WKWebView, store: ScriptStore, agentBridge: AgentBridge) {
+    init(webView: WKWebView, store: ScriptStore, agentBridge: AgentBridge, pageToolBridge: PageToolBridge? = nil) {
         self.webView = webView
         self.store = store
         self.agentBridge = agentBridge
         self.gmBridge = GMBridge(valuesStore: store.valuesStore)
+        self.pageToolBridge = pageToolBridge
+
+        pageToolBridge?.onEnabledChanged = { [weak self] _ in
+            guard let self else { return }
+            self.markUserScriptsStale()
+            self.syncUserScripts()
+        }
 
         gmBridge.resolveScript = { [weak self] id in
             self?.resolveActiveScript(id: id)
@@ -2866,6 +2874,8 @@ final class ScriptWebController: ScriptLiveApplying {
         pageErrorTokenToScriptID.removeAll()
         pageCleanTokenToScriptID.removeAll()
         activeScriptWorlds.removeAll()
+        pageToolBridge?.detach()
+        pageToolBridge = nil
         webView = nil
         agentBridge = nil
     }
@@ -3001,6 +3011,7 @@ final class ScriptWebController: ScriptLiveApplying {
                 activeScriptWorlds.removeValue(forKey: staleID)
             }
         }
+        pageToolBridge?.setOwnedScriptWorlds(activeScriptWorlds)
         pageErrorTokenToScriptID.removeAll()
         pageCleanTokenToScriptID.removeAll()
 
@@ -3047,7 +3058,13 @@ final class ScriptWebController: ScriptLiveApplying {
             let tokens = issueOneTimePageTokens(for: script.id)
             addManagedUserScript(
                 WKUserScript(
-                    source: Self.buildJSUserScriptSource(for: script, pageTokens: tokens, initialValuesJSON: "{}"),
+                    source: Self.buildJSUserScriptSource(
+                        for: script,
+                        pageTokens: tokens,
+                        initialValuesJSON: "{}",
+                        pageToolShimJS: "",
+                        pageToolBind: nil
+                    ),
                     injectionTime: .atDocumentStart,
                     forMainFrameOnly: true,
                     in: .page
@@ -3075,7 +3092,13 @@ final class ScriptWebController: ScriptLiveApplying {
                     : "{}"
                 addManagedUserScript(
                     WKUserScript(
-                        source: Self.buildJSUserScriptSource(for: script, pageTokens: nil, initialValuesJSON: valuesJSON),
+                        source: Self.buildJSUserScriptSource(
+                            for: script,
+                            pageTokens: nil,
+                            initialValuesJSON: valuesJSON,
+                            pageToolShimJS: pageToolBridge?.scriptWorldShimJS(forScriptID: script.id) ?? "",
+                            pageToolBind: pageToolBridge?.enabledBindDescriptor
+                        ),
                         injectionTime: script.injectionTime.wkInjectionTime,
                         forMainFrameOnly: true,
                         in: retainedScriptWorld(for: script.id)
@@ -3150,6 +3173,7 @@ final class ScriptWebController: ScriptLiveApplying {
             } else {
                 await cleanupPageWorldScript(id: script.id)
                 let scriptWorld = retainedScriptWorld(for: script.id)
+                pageToolBridge?.setOwnedScriptWorlds(activeScriptWorlds)
                 if let controller = webView?.configuration.userContentController {
                     gmBridge.ensureHandlerRegistered(for: script.id, world: scriptWorld, on: controller)
                 }
@@ -3162,6 +3186,8 @@ final class ScriptWebController: ScriptLiveApplying {
                 for: script,
                 isPage: isPage,
                 initialValuesJSON: valuesJSON,
+                pageToolShimJS: isPage ? "" : (pageToolBridge?.scriptWorldShimJS(forScriptID: script.id) ?? ""),
+                pageToolBind: isPage ? nil : pageToolBridge?.enabledBindDescriptor,
                 executeImmediately: runJS
             )
             if let dict = (try? await evalAsync(script: liveRunner, arguments: [:], world: world)) as? [String: Any],
@@ -3185,6 +3211,7 @@ final class ScriptWebController: ScriptLiveApplying {
 
     func removeLiveScript(id: String) async {
         guard !isDetached, webView != nil else { return }
+        await pageToolBridge?.clearScriptTools(scriptID: id)
         _ = try? await evalAsync(
             script: """
             if (!window.__wukongDisabledScriptIDs) window.__wukongDisabledScriptIDs = {};
@@ -3204,6 +3231,7 @@ final class ScriptWebController: ScriptLiveApplying {
     func syncLiveGlobalState(isEnabled: Bool) async {
         guard !isDetached, webView != nil else { return }
         if !isEnabled {
+            await pageToolBridge?.clearAllScriptTools()
             _ = try? await evalAsync(
                 script: "window.__wukongScriptsGlobalEnabled = false; if (typeof window.__wukongRemoveAllUserScriptCSS === \"function\") window.__wukongRemoveAllUserScriptCSS(); return true;",
                 arguments: [:], world: AgentBridge.isolatedWorld
@@ -3278,6 +3306,7 @@ final class ScriptWebController: ScriptLiveApplying {
             return
         }
         activeScriptWorlds.removeValue(forKey: id)
+        pageToolBridge?.setOwnedScriptWorlds(activeScriptWorlds)
     }
 
     private func addManagedUserScript(_ script: WKUserScript, to controller: WKUserContentController) {
@@ -3780,9 +3809,12 @@ final class ScriptWebController: ScriptLiveApplying {
 
     private static func scriptWorldPreambleAndMain(
         for script: UserScript,
-        initialValuesJSON: String
+        initialValuesJSON: String,
+        pageToolShimJS: String,
+        pageToolBind: PageToolBindDescriptor?
     ) -> (worldSetup: String, reporter: String, mainDecl: String) {
-        let setup = "\(sharedMatcherAndSpaHookJS)\n\(GMBridge.scriptWorldBootstrapJS(for: script, initialValuesJSON: initialValuesJSON))"
+        let setupPrefix = pageToolShimJS.isEmpty ? "" : "\(pageToolShimJS)\n"
+        let setup = "\(setupPrefix)\(sharedMatcherAndSpaHookJS)\n\(GMBridge.scriptWorldBootstrapJS(for: script, initialValuesJSON: initialValuesJSON))"
         let reporter = """
         const LOAD_ID = Math.random().toString(36).slice(2) + "-" + Date.now();
         const __wukongReadHref = () => String(window.location.href || "");
@@ -3805,10 +3837,17 @@ final class ScriptWebController: ScriptLiveApplying {
         };
         """
         let codeJSON = UserScript.encodeSingleLineJSONString(script.js)
+        let slotJSON = UserScript.encodeSingleLineJSONString(pageToolBind?.bridgeSlot ?? "")
+        let bindJSON = UserScript.encodeSingleLineJSONString(pageToolBind?.bindToken ?? "")
         let mainDecl = """
         const USER_CODE = \(codeJSON);
+        const __wukongNoopCtx = Object.freeze({ registerTool: () => Promise.resolve(undefined), getTools: () => Promise.resolve([]) });
+        const __wukongResolveCtx = () => {
+          const fn = \(slotJSON) ? window[\(slotJSON)] : null;
+          return (typeof fn === "function" ? fn(\(bindJSON), "bind", SCRIPT_ID) : null) || __wukongNoopCtx;
+        };
         const AsyncFn = Object.getPrototypeOf(async function(){}).constructor;
-        const __wukongUserMain = () => (new AsyncFn(USER_CODE))();
+        const __wukongUserMain = () => (new AsyncFn("modelContext", USER_CODE))(__wukongResolveCtx());
         """
         return (setup, reporter, mainDecl)
     }
@@ -3816,7 +3855,9 @@ final class ScriptWebController: ScriptLiveApplying {
     private static func buildJSUserScriptSource(
         for script: UserScript,
         pageTokens: PageRelayTokens?,
-        initialValuesJSON: String
+        initialValuesJSON: String,
+        pageToolShimJS: String,
+        pageToolBind: PageToolBindDescriptor?
     ) -> String {
         let idJSON = UserScript.encodeSingleLineJSONString(script.id)
         let rulesJSON = compiledRulesJSONLiteral(for: script)
@@ -3871,6 +3912,8 @@ final class ScriptWebController: ScriptLiveApplying {
                 } catch (err) { reportError(err, loadId); }
               };
               \(gmLexical)
+              const __wukongNoopCtx = Object.freeze({ registerTool: () => Promise.resolve(undefined), getTools: () => Promise.resolve([]) });
+              const modelContext = (__wukongDoc && __wukongDoc.modelContext) ? __wukongDoc.modelContext : __wukongNoopCtx;
               async function __wukongUserMain() {
             \(script.js)
               }
@@ -3892,7 +3935,12 @@ final class ScriptWebController: ScriptLiveApplying {
             })();
             """
         }
-        let parts = scriptWorldPreambleAndMain(for: script, initialValuesJSON: initialValuesJSON)
+        let parts = scriptWorldPreambleAndMain(
+            for: script,
+            initialValuesJSON: initialValuesJSON,
+            pageToolShimJS: pageToolShimJS,
+            pageToolBind: pageToolBind
+        )
         return """
         (() => {
           \(parts.worldSetup)
@@ -3919,6 +3967,8 @@ final class ScriptWebController: ScriptLiveApplying {
         for script: UserScript,
         isPage: Bool,
         initialValuesJSON: String,
+        pageToolShimJS: String,
+        pageToolBind: PageToolBindDescriptor?,
         executeImmediately: Bool
     ) -> String {
         let idJSON = UserScript.encodeSingleLineJSONString(script.id)
@@ -3939,6 +3989,8 @@ final class ScriptWebController: ScriptLiveApplying {
             if (__wukongState) delete __wukongState.disabled[SCRIPT_ID];
             const __wukongReadHref = () => { try { return "" + (__wukongLoc.href || ""); } catch (_) { return ""; } };
             \(gmLexical)
+            const __wukongNoopCtx = Object.freeze({ registerTool: () => Promise.resolve(undefined), getTools: () => Promise.resolve([]) });
+            const modelContext = (typeof document !== "undefined" && document.modelContext) ? document.modelContext : __wukongNoopCtx;
             async function __wukongUserMain() {
             \(script.js)
             }
@@ -3965,7 +4017,12 @@ final class ScriptWebController: ScriptLiveApplying {
             return { ok: true };
             """
         }
-        let parts = scriptWorldPreambleAndMain(for: script, initialValuesJSON: initialValuesJSON)
+        let parts = scriptWorldPreambleAndMain(
+            for: script,
+            initialValuesJSON: initialValuesJSON,
+            pageToolShimJS: pageToolShimJS,
+            pageToolBind: pageToolBind
+        )
         let clearStyles = executeImmediately ? "if (typeof window.__wukongClearGMStyles === \"function\") window.__wukongClearGMStyles();" : ""
         return """
         \(parts.worldSetup)
