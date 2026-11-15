@@ -702,7 +702,7 @@ extension AppModel {
             h1{font-size:22px;line-height:1.25}</style></head>
             <body><h1>Which home server for a quiet closet? Fanless builds compared</h1></body></html>
             """,
-            baseURL: URL(string: "https://talk.example.org/t/fanless-home-server/42")
+            baseURL: URL(string: "https://talk.example.org/threads/fanless-home-server/42")
         )
 
         for existing in scriptStore.scripts {
@@ -716,7 +716,7 @@ extension AppModel {
         // @version     2.4.1
         // @author      mira
         // @match       *://*/*
-        // @match       https://talk.example.org/t/*
+        // @match       https://talk.example.org/threads/*
         // @include     /forum/
         // @run-at      context-menu
         // @grant       GM_getValue
@@ -774,7 +774,7 @@ extension AppModel {
         case "settings", "detail":
             var specificV1 = parsedV1.script
             if mode == "settings" {
-                specificV1.matchRules = ["https://talk.example.org/t/*"]
+                specificV1.matchRules = ["https://talk.example.org/threads/*"]
             }
             guard let saved = try? scriptStore.saveImportedScript(
                 specificV1,
