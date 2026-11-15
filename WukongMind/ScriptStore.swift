@@ -2789,6 +2789,7 @@ final class ScriptWebController: ScriptLiveApplying {
         self.store = store
         self.agentBridge = agentBridge
         self.gmBridge = GMBridge(valuesStore: store.valuesStore)
+        self.gmBridge.webView = webView
         self.pageToolBridge = pageToolBridge
 
         pageToolBridge?.onEnabledChanged = { [weak self] _ in
@@ -2834,8 +2835,10 @@ final class ScriptWebController: ScriptLiveApplying {
             notifyNavigationChange()
         }
 
-        loadingObservation = webView.observe(\.isLoading, options: [.new]) { _, change in
+        loadingObservation = webView.observe(\.isLoading, options: [.new]) { [weak self] _, change in
             guard change.newValue == true else { return }
+            if Thread.isMainThread { MainActor.assumeIsolated { self?.gmBridge.clearAllMenuCommands() } }
+            else { Task { @MainActor [weak self] in self?.gmBridge.clearAllMenuCommands() } }
             notifyNavigationChange()
         }
 
@@ -3172,6 +3175,7 @@ final class ScriptWebController: ScriptLiveApplying {
                 world = .page
             } else {
                 await cleanupPageWorldScript(id: script.id)
+                if runJS { gmBridge.clearMenuCommands(for: script.id) }
                 let scriptWorld = retainedScriptWorld(for: script.id)
                 pageToolBridge?.setOwnedScriptWorlds(activeScriptWorlds)
                 if let controller = webView?.configuration.userContentController {
@@ -3210,6 +3214,7 @@ final class ScriptWebController: ScriptLiveApplying {
     }
 
     func removeLiveScript(id: String) async {
+        gmBridge.clearMenuCommands(for: id)
         guard !isDetached, webView != nil else { return }
         await pageToolBridge?.clearScriptTools(scriptID: id)
         _ = try? await evalAsync(
@@ -3229,6 +3234,7 @@ final class ScriptWebController: ScriptLiveApplying {
     }
 
     func syncLiveGlobalState(isEnabled: Bool) async {
+        if !isEnabled { gmBridge.clearAllMenuCommands() }
         guard !isDetached, webView != nil else { return }
         if !isEnabled {
             await pageToolBridge?.clearAllScriptTools()
@@ -3243,7 +3249,7 @@ final class ScriptWebController: ScriptLiveApplying {
             for world in activeScriptWorlds.values {
                 guard !isDetached else { return }
                 _ = try? await evalAsync(
-                    script: "window.__wukongScriptsGlobalEnabled = false; if (typeof window.__wukongClearGMStyles === \"function\") window.__wukongClearGMStyles(); return true;",
+                    script: "window.__wukongScriptsGlobalEnabled = false; if (typeof window.__wukongClearGMStyles === \"function\") window.__wukongClearGMStyles(); if (typeof window.__wukongClearGMMenuCommands === \"function\") window.__wukongClearGMMenuCommands(); return true;",
                     arguments: [:], world: world
                 )
             }
@@ -3290,6 +3296,7 @@ final class ScriptWebController: ScriptLiveApplying {
     }
 
     private func cleanupScriptWorldIfActive(id: String) async {
+        gmBridge.clearMenuCommands(for: id)
         guard let world = activeScriptWorlds[id] else { return }
         _ = try? await evalAsync(
             script: """
@@ -3297,6 +3304,7 @@ final class ScriptWebController: ScriptLiveApplying {
             window.__wukongDisabledScriptIDs[scriptId] = true;
             if (window.__wukongLiveJSRouteHandlers) window.__wukongLiveJSRouteHandlers.delete(scriptId);
             if (typeof window.__wukongClearGMStyles === "function") window.__wukongClearGMStyles();
+            if (typeof window.__wukongClearGMMenuCommands === "function") window.__wukongClearGMMenuCommands();
             return true;
             """,
             arguments: ["scriptId": id],
@@ -3952,8 +3960,9 @@ final class ScriptWebController: ScriptLiveApplying {
             if (!window.__wukongScriptsGlobalEnabled) return;
             if (window.__wukongDisabledScriptIDs && window.__wukongDisabledScriptIDs[SCRIPT_ID]) return;
             const href = __wukongReadHref();
-            if (!window.__wukongMatchesRules(RULES, href)) { lastExecutedHref = null; return; }
+            if (!window.__wukongMatchesRules(RULES, href)) { if (lastExecutedHref !== null && typeof window.__wukongClearGMMenuCommands === "function") window.__wukongClearGMMenuCommands(true); lastExecutedHref = null; return; }
             if (href === lastExecutedHref) return;
+            if (lastExecutedHref !== null && typeof window.__wukongClearGMMenuCommands === "function") window.__wukongClearGMMenuCommands(true);
             lastExecutedHref = href;
             __wukongRunMain(__wukongUserMain, LOAD_ID, isInitialLoad);
           };
@@ -4023,7 +4032,7 @@ final class ScriptWebController: ScriptLiveApplying {
             pageToolShimJS: pageToolShimJS,
             pageToolBind: pageToolBind
         )
-        let clearStyles = executeImmediately ? "if (typeof window.__wukongClearGMStyles === \"function\") window.__wukongClearGMStyles();" : ""
+        let clearStyles = executeImmediately ? "if (typeof window.__wukongClearGMStyles === \"function\") window.__wukongClearGMStyles(); if (typeof window.__wukongClearGMMenuCommands === \"function\") window.__wukongClearGMMenuCommands();" : ""
         return """
         \(parts.worldSetup)
         window.__wukongScriptsGlobalEnabled = true;
@@ -4037,8 +4046,9 @@ final class ScriptWebController: ScriptLiveApplying {
           if (!window.__wukongScriptsGlobalEnabled) return;
           if (window.__wukongDisabledScriptIDs && window.__wukongDisabledScriptIDs[SCRIPT_ID]) return;
           const href = __wukongReadHref();
-          if (!window.__wukongMatchesRules(RULES, href)) { lastExecutedHref = null; return; }
+          if (!window.__wukongMatchesRules(RULES, href)) { if (lastExecutedHref !== null && typeof window.__wukongClearGMMenuCommands === "function") window.__wukongClearGMMenuCommands(true); lastExecutedHref = null; return; }
           if (href === lastExecutedHref) return;
+          if (lastExecutedHref !== null && typeof window.__wukongClearGMMenuCommands === "function") window.__wukongClearGMMenuCommands(true);
           lastExecutedHref = href;
           __wukongRunMain(__wukongUserMain, "", false);
         };

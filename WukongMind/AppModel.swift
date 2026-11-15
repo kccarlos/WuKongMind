@@ -409,6 +409,7 @@ final class AppModel: ObservableObject {
         }
         let httpClient = AgentHTTPClient(
             pacer: forumService.pacer,
+            scriptLimiter: scriptStore.valuesStore.requestLimiter,
             environment: AgentNetworkEnvironment(
                 cookies: { [weak tabBrowser] in
                     guard let tabBrowser else { return [] }
@@ -437,6 +438,8 @@ final class AppModel: ObservableObject {
             guard let httpClient else { throw CancellationError() }
             return try await httpClient.scriptFetch(url)
         }
+        scriptWebController.gmBridge.httpClient = httpClient
+        scriptWebController.gmBridge.auditLog = auditLog
 
         let agentSession = BrowserAgentSession(
             pageDriver: tabBrowser.agentBridge,

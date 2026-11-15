@@ -471,10 +471,11 @@ struct AuditTaskPage: View {
         ScrollViewReader { proxy in
             Form {
                 Section {
-                    ForEach(task.steps) { step in
+                    ForEach(Array(task.steps.enumerated()), id: \.element.id) { index, step in
+                        let rowNumber = step.step ?? (index + 1)
                         stepRow(step)
-                            .id(step.step ?? 0)
-                            .accessibilityIdentifier("auditStepRow-\(step.step ?? 0)")
+                            .id(rowNumber)
+                            .accessibilityIdentifier("auditStepRow-\(rowNumber)")
                     }
                 } header: {
                     Text(verbatim: task.start.formatted(date: .abbreviated, time: .shortened))
@@ -494,7 +495,7 @@ struct AuditTaskPage: View {
         .navigationTitle(Text(verbatim: task.prompt.split(separator: "\n").first.map(String.init) ?? ""))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            if app.settings.agentDeveloperMode {
+            if app.settings.agentDeveloperMode, !task.id.hasPrefix("script:") {
                 ToolbarItem(placement: .primaryAction) {
                     Button(String(localized: "Export", comment: "Audit log task page: export this task as a file (developer mode)")) {
                         exportTaskID = task.id
@@ -514,6 +515,8 @@ struct AuditTaskPage: View {
                 Spacer()
                 if step.isError == true {
                     DCSeal(text: String(localized: "Error", comment: "Audit log badge for a failed tool call"), variant: .state(.error))
+                } else if let status = step.status {
+                    DCSeal(text: "\(status)", variant: .outline)
                 } else {
                     DCSeal(text: "#\(step.step ?? 0)", variant: .outline)
                 }
@@ -522,12 +525,17 @@ struct AuditTaskPage: View {
                 Text(verbatim: "\(step.method ?? "GET") \(url)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                    .lineLimit(3)
+                    .lineLimit(step.kind == .scriptRequest ? nil : 3)
             } else if let arguments = step.arguments, !arguments.isEmpty, arguments != "{}" {
                 Text(verbatim: AuditLine.clip(arguments, 120))
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
+            }
+            if step.kind == .scriptRequest, let pageURL = step.pageURL {
+                Text(verbatim: pageURL)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
             }
             if let summary = step.resultSummary {
                 Text(verbatim: summary)

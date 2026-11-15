@@ -945,6 +945,7 @@ struct PageCapabilitiesView: View {
 
     private func popoverScriptRow(_ script: UserScript) -> some View {
         let error = (script.isEnabled && isGlobalOn) ? app.scriptStore.error(for: script.id) : nil
+        let commands = (script.isEnabled && isGlobalOn) ? app.scriptWebController.gmBridge.menuCommands(for: script.id) : []
         let autoDisabledReason: String? = (!script.isEnabled && !(script.disabledReason ?? "").isEmpty)
             ? script.disabledReason
             : nil
@@ -1001,6 +1002,41 @@ struct PageCapabilitiesView: View {
             .padding(.horizontal, 14)
             .padding(.vertical, 6)
             .frame(minHeight: 56)
+
+            if !commands.isEmpty {
+                VStack(alignment: .leading, spacing: 0) {
+                    ForEach(Array(commands.enumerated()), id: \.element.id) { cmdIndex, command in
+                        if cmdIndex > 0 {
+                            Divider()
+                        }
+                        Button {
+                            DCHaptics.tap()
+                            isPresented = false
+                            app.scriptWebController.gmBridge.invokeMenuCommand(scriptID: script.id, commandID: command.id)
+                        } label: {
+                            HStack(spacing: 10) {
+                                Image(systemName: "command")
+                                    .font(.subheadline.weight(.medium))
+                                    .foregroundStyle(DCTheme.goldInk)
+                                    .accessibilityHidden(true)
+                                Text(verbatim: command.title)
+                                    .font(.subheadline)
+                                    .foregroundStyle(DCTheme.goldInk)
+                                    .multilineTextAlignment(.leading)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                Spacer(minLength: 0)
+                            }
+                            .padding(.leading, 30)
+                            .padding(.trailing, 14)
+                            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(Text(verbatim: command.title))
+                        .accessibilityIdentifier("pageScriptCommand-\(script.id)-\(command.id)")
+                    }
+                }
+            }
 
             if let autoDisabledReason {
                 Text(verbatim: autoDisabledReason)

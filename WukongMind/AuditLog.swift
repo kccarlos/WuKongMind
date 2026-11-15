@@ -7,7 +7,7 @@ import Foundation
 /// Full tool results are not here; they live in the task record (`TaskRecord.swift`).
 struct AuditLine: Codable, Hashable, Sendable, Identifiable {
     enum Kind: String, Codable, Sendable {
-        case task, step, fetch, confirm, end
+        case task, step, fetch, confirm, end, scriptRequest
     }
 
     static let maxArgumentCharacters = 4_000
@@ -27,7 +27,7 @@ struct AuditLine: Codable, Hashable, Sendable, Identifiable {
     var savedPath: String?
     var warning: String?
     var pageURL: String?
-    /// Full target URL of `http_request` and `wukong.fetch`, never shortened.
+    /// Full target URL of `http_request`, `wukong.fetch`, and `GM_xmlhttpRequest`, never shortened.
     var url: String?
     var method: String?
     var question: String?
@@ -38,8 +38,16 @@ struct AuditLine: Codable, Hashable, Sendable, Identifiable {
     var outcome: String?
     var steps: Int?
     var tokens: Int?
+    var scriptID: String?
+    var scriptName: String?
+    var status: Int?
 
-    var id: String { "\(kind.rawValue)-\(taskID)-\(step ?? -1)-\(time.timeIntervalSince1970)-\(tool ?? "")" }
+    var id: String {
+        if kind == .scriptRequest {
+            return "\(kind.rawValue)-\(taskID)-\(time.timeIntervalSince1970)-\(method ?? "")-\(url ?? "")-\(status ?? -1)"
+        }
+        return "\(kind.rawValue)-\(taskID)-\(step ?? -1)-\(time.timeIntervalSince1970)-\(tool ?? "")"
+    }
 
     static func clip(_ text: String, _ limit: Int) -> String {
         text.count <= limit ? text : String(text.prefix(limit))
@@ -97,6 +105,37 @@ struct AuditLine: Codable, Hashable, Sendable, Identifiable {
             question: clip(question, maxSummaryCharacters), answer: answer
         )
     }
+
+    static func scriptRequest(
+        scriptID: String,
+        scriptName: String,
+        time: Date,
+        method: String,
+        url: String,
+        status: Int?,
+        pageURL: String?,
+        durationMs: Int? = nil,
+        isError: Bool = false,
+        summary: String? = nil
+    ) -> AuditLine {
+        let fallback = status.map { "HTTP \($0)" } ?? (isError ? "Failed" : "")
+        let resolvedSummary = summary.map { clip($0, maxSummaryCharacters) } ?? fallback
+        return AuditLine(
+            kind: .scriptRequest,
+            time: time,
+            taskID: "script:\(AuditLog.dayKey(time)):\(scriptID)",
+            tool: "GM_xmlhttpRequest",
+            durationMs: durationMs,
+            resultSummary: resolvedSummary.isEmpty ? nil : resolvedSummary,
+            isError: isError,
+            pageURL: pageURL,
+            url: url,
+            method: method.uppercased(),
+            scriptID: scriptID,
+            scriptName: clip(scriptName, maxPromptCharacters),
+            status: status
+        )
+    }
 }
 
 /// A task as the audit page shows it.
@@ -110,7 +149,7 @@ struct AuditTask: Identifiable, Hashable, Sendable {
     var outcome: String?
     var lines: [AuditLine]
 
-    var steps: [AuditLine] { lines.filter { $0.kind == .step } }
+    var steps: [AuditLine] { lines.filter { $0.kind == .step || $0.kind == .scriptRequest } }
     var hasError: Bool { steps.contains { $0.isError == true } }
     var host: String? { pageURL.flatMap { URL(string: $0)?.host } }
 }
@@ -216,7 +255,7 @@ final class AuditLog: @unchecked Sendable {
         }
     }
 
-    var stepCount: Int { allLines().filter { $0.kind == .step }.count }
+    var stepCount: Int { allLines().filter { $0.kind == .step || $0.kind == .scriptRequest }.count }
 
     /// Days newest first; inside a day, tasks newest first. A task sits on the day it started.
     func days() -> [AuditDay] {
@@ -238,7 +277,7 @@ final class AuditLog: @unchecked Sendable {
             tasks.append(AuditTask(
                 id: id,
                 start: head?.time ?? taskLines[0].time,
-                prompt: head?.prompt ?? "",
+                prompt: head?.prompt ?? taskLines.compactMap(\.scriptName).first ?? taskLines.compactMap(\.scriptID).first ?? "",
                 model: head?.model,
                 provider: head?.provider,
                 pageURL: head?.pageURL ?? taskLines.compactMap(\.pageURL).first,
