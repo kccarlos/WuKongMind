@@ -980,6 +980,27 @@ final class VoiceSessionTests: XCTestCase {
         XCTAssertTrue(PostLevelURLStub.requests.isEmpty, "No forum network call ran on an ordinary page")
         XCTAssertFalse((ordinaryReplies.last ?? "").isEmpty)
         ordinarySession.stop()
+
+        // 3. Ordinary page navigation before Task 3/4: "Open bbc.com." hands off instead of calling an undeclared open_page.
+        let fake = FakeVoiceNavigator()
+        fake.holdsHandOff = true
+        fake.pageContext = PageContext(url: ordinaryURL, state: .notForum)
+        fake.explicitPageTitle = "Markets steady as tariff talks resume"
+        var handOffReplies: [String] = []
+        let handOffSession = VoiceSession(
+            configuration: .init(endpoint: endpoint, apiKey: chosenKey, settings: settings),
+            audio: FakeVoiceAudio(), navigator: fake, usage: nil, runsLoop: false
+        )
+        handOffSession.tools.registryBuilder = { browse in app.voiceToolRegistry(browse: browse) }
+        handOffSession.onTranscript = { role, text, _ in if role == .voiceReply { handOffReplies.append(text) } }
+        await handOffSession.start()
+        try await waitUntil(timeout: 12) { handOffSession.state == .listening }
+        try await Task.sleep(for: .milliseconds(250))
+        handOffSession.sendText("Open bbc.com.")
+        try await waitUntil(timeout: 20) { handOffSession.tick(); return fake.calls.contains { $0.hasPrefix("hand off ") } }
+        print("[LIVE-VOICE] ordinary open_site calls=\(fake.calls) reply=\(handOffReplies.last ?? "")")
+        XCTAssertTrue(fake.calls.contains { $0.hasPrefix("hand off ") }, "Expected hand_off_to_agent for 'Open bbc.com.', got \(fake.calls)")
+        handOffSession.stop()
     }
 
     private func makeStubbedApp() -> AppModel {

@@ -102,13 +102,15 @@ enum VoiceTool: String, CaseIterable {
         switch self {
         case .handOffToAgent:
             return """
-            Hand a request to WukongMind's Agent, which looks at the page, clicks and types, reads across several threads or \
+            Hand a request to WukongMind's Agent, which opens sites and links, clicks and types, reads across several threads or \
             pages, changes the page (dark mode, hiding things, bigger text) and answers with sources in the conversation. Use it \
-            for every change to a page, for clicking buttons, typing and forms, and for questions that need reasoning across \
-            many posts or pages; never for something another tool can do in one call (opening a page or a link, moving, \
-            searching a forum, reading). Before calling it, say one short acknowledgement in your own words, once. It answers \
-            "started" at once and runs in the background; one hand-off runs at a time, and a new request replaces the running \
-            one. The answer arrives later as a briefing: open with the answer. action "cancel" stops it when the user says never mind.
+            for opening another site or a link on the page, for every change to a page, for clicking buttons, typing and forms, \
+            and for questions that need reasoning across many posts or pages; never for something another tool can do in one call \
+            (going back or forward with browse_move, reading with read_page, summarizing or listening with summarize_topic or \
+            read_aloud, or on a forum search_forum, browse_open, browse_move, browse_focus and read_post). Before calling it, say \
+            one short acknowledgement in your own words, once. It answers "started" at once and runs in the background; one \
+            hand-off runs at a time, and a new request replaces the running one. The answer arrives later as a briefing: open \
+            with the answer. action "cancel" stops it when the user says never mind.
             """
         case .end:
             return """
