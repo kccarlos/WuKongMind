@@ -39,19 +39,18 @@ final class LearnedSiteToolsTests: XCTestCase {
     private func makeTempDir() throws -> URL {
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent("learned-site-\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        tempDirs.append(dir)
-        return dir
+        tempDirs.append(dir); return dir
     }
 
     private func startFixtureForum() async throws -> URL {
         let params = NWParameters.tcp
-        params.requiredLocalEndpoint = NWEndpoint.hostPort(host: "127.0.0.1", port: .any)
-        params.allowLocalEndpointReuse = true
+        params.requiredLocalEndpoint = NWEndpoint.hostPort(host: "127.0.0.1", port: .any); params.allowLocalEndpointReuse = true
         let listener = try NWListener(using: params)
         let queue = DispatchQueue(label: "dev.wukongmind.learnedsitetools")
         listeners.append(listener)
+        final class Once: @unchecked Sendable { var done = false }
+        let once = Once()
         let port: UInt16 = try await withCheckedThrowingContinuation { cont in
-            var resumed = false
             listener.newConnectionHandler = { conn in
                 conn.start(queue: queue)
                 conn.receive(minimumIncompleteLength: 1, maximumLength: 16_384) { data, _, _, _ in
@@ -63,9 +62,9 @@ final class LearnedSiteToolsTests: XCTestCase {
                 }
             }
             listener.stateUpdateHandler = { [weak listener] state in
-                guard !resumed else { return }
-                if case .ready = state, let p = listener?.port?.rawValue, p > 0 { resumed = true; cont.resume(returning: p) }
-                else if case .failed(let err) = state { resumed = true; cont.resume(throwing: err) }
+                guard !once.done else { return }
+                if case .ready = state, let p = listener?.port?.rawValue, p > 0 { once.done = true; cont.resume(returning: p) }
+                else if case .failed(let err) = state { once.done = true; cont.resume(throwing: err) }
             }
             listener.start(queue: queue)
         }
@@ -73,67 +72,42 @@ final class LearnedSiteToolsTests: XCTestCase {
     }
 
     private func makeWebHarness() throws -> (URL, WKWebView, NavigationWaiter, AgentBridge, ScriptStore, PageToolBridge, ScriptWebController, SiteToolStateStore) {
-        let dir = try makeTempDir()
-        let cfg = WKWebViewConfiguration()
-        cfg.websiteDataStore = Self.sharedDataStore
-        cfg.defaultWebpagePreferences.allowsContentJavaScript = true
+        let dir = try makeTempDir(), cfg = WKWebViewConfiguration(), frame = CGRect(x: 0, y: 0, width: 390, height: 844)
+        cfg.websiteDataStore = Self.sharedDataStore; cfg.defaultWebpagePreferences.allowsContentJavaScript = true
         ForumBrowserModel.disableWebKitScreenTimeForTesting(in: cfg)
-        let frame = CGRect(x: 0, y: 0, width: 390, height: 844)
-        let webView = WKWebView(frame: frame, configuration: cfg)
-        let waiter = NavigationWaiter(); webView.navigationDelegate = waiter
+        let webView = WKWebView(frame: frame, configuration: cfg), waiter = NavigationWaiter()
+        webView.navigationDelegate = waiter
         let win = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }).first.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: frame)
         win.frame = frame
         let vc = UIViewController(); vc.view.frame = frame; vc.view.addSubview(webView)
-        win.rootViewController = vc; win.makeKeyAndVisible(); win.layoutIfNeeded()
-        windows.append(win)
+        win.rootViewController = vc; win.makeKeyAndVisible(); win.layoutIfNeeded(); windows.append(win)
         let scriptStore = ScriptStore(directoryURL: dir.appendingPathComponent("Scripts", isDirectory: true))
         let stateStore = SiteToolStateStore(directoryURL: dir.appendingPathComponent("SiteTools", isDirectory: true))
-        let agentBridge = AgentBridge(webView: webView)
-        let pageToolBridge = PageToolBridge(webView: webView, isEnabled: true)
+        let agentBridge = AgentBridge(webView: webView), pageToolBridge = PageToolBridge(webView: webView, isEnabled: true)
         let controller = ScriptWebController(webView: webView, store: scriptStore, agentBridge: agentBridge, pageToolBridge: pageToolBridge)
         return (dir, webView, waiter, agentBridge, scriptStore, pageToolBridge, controller, stateStore)
     }
 
     private static let fixtureReaderJS = """
     "use strict";
-    const record = (entry) => {
-      const list = JSON.parse(document.documentElement.dataset.calls || "[]");
-      list.push(entry);
-      document.documentElement.dataset.calls = JSON.stringify(list);
-    };
-    await modelContext.registerTool({
-      name: "read_topic", annotations: { readOnlyHint: true },
-      execute: async (input) => {
-        record({ tool: "read_topic", keys: Object.keys(input).sort(), input });
-        const u = new URL(input.url), page = input.page ?? 1;
-        if (u.pathname === "/current-only") {
-          return { shape: { title: "DOM-Only Thread", url: input.url, total_posts: 1, posts: [{ number: 1, author: "cara", body: "Open document post.", date: "2026-11-15T09:00:00Z" }] }, current_page_only: true };
-        }
-        if (u.pathname === "/thread-long") {
-          const posts = Array.from({ length: 30 }, (_, i) => ({ number: i + 1, author: "user" + (i + 1), body: "Post #" + (i + 1) + " " + "detail ".repeat(45), date: "2026-11-15T10:00:00Z" }));
-          return { shape: { title: "Long Architecture Thread", url: input.url, total_posts: 30, posts } };
-        }
-        if (u.pathname === "/thread-paged") {
-          return { shape: { title: "Paged Thread", url: input.url, total_posts: 4, posts: [{ number: (page - 1) * 2 + 1, author: "alice", body: "Page " + page + " first post", date: "2026-11-15T10:00:00Z" }, { number: (page - 1) * 2 + 2, author: "", body: "Deleted user mentions thermal paste", date: "2026-11-15T10:05:00Z" }] }, page, total_pages: 2, next_page: page < 2 ? page + 1 : null };
-        }
-        return { shape: { title: "Cooling Fan Noise", url: input.url, total_posts: 3, posts: [{ number: 1, author: "alice", body: "My laptop fan spins up on idle.", date: "2026-11-15T10:00:00Z" }, { number: 2, author: "", body: "Check the BIOS curve first.", date: "2026-11-15T10:05:00Z" }, { number: 3, author: "bob", body: "Replacing thermal paste dropped 12C.", date: "2026-11-15T10:10:00Z" }] } };
-      }
-    });
-    await modelContext.registerTool({
-      name: "list_latest", annotations: { readOnlyHint: true },
-      execute: async (input) => {
-        record({ tool: "list_latest", keys: Object.keys(input).sort() });
-        return { shape: { items: [{ id: "101", title: "Cooling Fan Noise", url: location.origin + "/thread-1", posts_count: 3, last_activity: "2026-11-15", excerpt: "Fan spins up" }, { title: "Kernel 6.12 Notes", url: location.origin + "/thread-2", posts_count: 8 }] } };
-      }
-    });
-    await modelContext.registerTool({
-      name: "search_forum", annotations: { readOnlyHint: true },
-      execute: async (input) => {
-        record({ tool: "search_forum", keys: Object.keys(input).sort() });
-        if (input.query === "nomatch") return { shape: { items: [] }, page: 1, total_pages: 1 };
-        return { shape: { items: [{ title: "Cooling Fan Noise", url: location.origin + "/thread-1", hits: [{ number: 3, author: "bob", blurb: "thermal paste dropped 12C" }] }] }, page: input.page ?? 1, total_pages: 2 };
-      }
-    });
+    const record = (e) => { const l = JSON.parse(document.documentElement.dataset.calls || "[]"); l.push(e); document.documentElement.dataset.calls = JSON.stringify(l); };
+    await modelContext.registerTool({ name: "read_topic", annotations: { readOnlyHint: true }, execute: async (input) => {
+      record({ tool: "read_topic", keys: Object.keys(input).sort(), input });
+      const u = new URL(input.url), page = input.page ?? 1;
+      if (u.pathname === "/current-only") return { shape: { title: "DOM-Only Thread", url: input.url, total_posts: 1, posts: [{ number: 1, author: "cara", body: "Open document post.", date: "2026-11-15T09:00:00Z" }] }, current_page_only: true };
+      if (u.pathname === "/thread-long") return { shape: { title: "Long Architecture Thread", url: input.url, total_posts: 30, posts: Array.from({ length: 30 }, (_, i) => ({ number: i + 1, author: "user" + (i + 1), body: "Post #" + (i + 1) + " " + "detail ".repeat(45), date: "2026-11-15T10:00:00Z" })) } };
+      if (u.pathname === "/thread-paged") return { shape: { title: "Paged Thread", url: input.url, total_posts: 4, posts: [{ number: (page - 1) * 2 + 1, author: "alice", body: "Page " + page + " first post", date: "2026-11-15T10:00:00Z" }, { number: (page - 1) * 2 + 2, author: "", body: "Deleted user mentions thermal paste", date: "2026-11-15T10:05:00Z" }] }, page, total_pages: 2, next_page: page < 2 ? page + 1 : null };
+      return { shape: { title: "Cooling Fan Noise", url: input.url, total_posts: 3, posts: [{ number: 1, author: "alice", body: "My laptop fan spins up on idle.", date: "2026-11-15T10:00:00Z" }, { number: 2, author: "", body: "Check the BIOS curve first.", date: "2026-11-15T10:05:00Z" }, { number: 3, author: "bob", body: "Replacing thermal paste dropped 12C.", date: "2026-11-15T10:10:00Z" }] } };
+    }});
+    await modelContext.registerTool({ name: "list_latest", annotations: { readOnlyHint: true }, execute: async (input) => {
+      record({ tool: "list_latest", keys: Object.keys(input).sort() });
+      return { shape: { items: [{ id: "101", title: "Cooling Fan Noise", url: location.origin + "/thread-1", posts_count: 3, last_activity: "2026-11-15", excerpt: "Fan spins up" }, { title: "Kernel 6.12 Notes", url: location.origin + "/thread-2", posts_count: 8 }] } };
+    }});
+    await modelContext.registerTool({ name: "search_forum", annotations: { readOnlyHint: true }, execute: async (input) => {
+      record({ tool: "search_forum", keys: Object.keys(input).sort() });
+      if (input.query === "nomatch") return { shape: { items: [] }, page: 1, total_pages: 1 };
+      return { shape: { items: [{ title: "Cooling Fan Noise", url: location.origin + "/thread-1", hits: [{ number: 3, author: "bob", blurb: "thermal paste dropped 12C" }] }] }, page: input.page ?? 1, total_pages: 2 };
+    }});
     """
 
     private func recordedCalls(in bridge: AgentBridge) async throws -> [[String: JSONValue]] {
@@ -211,13 +185,29 @@ final class LearnedSiteToolsTests: XCTestCase {
         )
         XCTAssertTrue(offCtx.contains("- The reading tool for this site is turned off in This page. Don't learn it again or turn it on; use `read_page`."), offCtx)
 
+        var sameSlotOffAndFailed = SiteToolState(host: "example.org")
+        sameSlotOffAndFailed.setSlot(SiteSlotState(status: .failed, scriptID: "reader.off", failure: SiteSlotFailure(code: .threw, date: failDate)), for: .readTopic)
+        XCTAssertEqual(SiteToolState.readingPromptState(state: sameSlotOffAndFailed, scripts: [userDisabledScript]), .turnedOff)
+
         var failedAndLearned = learnedState
         failedAndLearned.setSlot(SiteSlotState(status: .failed, failure: SiteSlotFailure(code: .noPosts, date: failDate)), for: .listLatest)
-        XCTAssertEqual(SiteToolState.readingPromptState(state: failedAndLearned, scripts: [enabledScript]), .failed(date: failDate, code: .noPosts))
+        let failedAndLearnedPrompt = SiteToolState.readingPromptState(state: failedAndLearned, scripts: [enabledScript])
+        XCTAssertEqual(failedAndLearnedPrompt.entries, [
+            .failed(date: failDate, code: .noPosts),
+            .learned(slots: [.readTopic], listUntried: false, threadUntried: false)
+        ])
+        let twoLineCtx = BrowserAgentPrompt.pageContext(page: page, pageChanged: false, forum: nil, includesForumTools: true, siteReading: failedAndLearnedPrompt)
+        let expectedTwoLines = "- Learning to read this site failed on 2026-11-20 (the tool returned no posts). Don't try again unless the user asks; use `read_page`.\n"
+            + "- Reading learned here: `read_topic`, `summarize_topic` and `read_aloud` take a thread URL of this site."
+        XCTAssertTrue(twoLineCtx.contains(expectedTwoLines), twoLineCtx)
 
-        var offAndFailed = failedAndLearned
-        offAndFailed.setSlot(SiteSlotState(status: .failed, scriptID: "reader.off", failure: SiteSlotFailure(code: .threw, date: failDate)), for: .searchForum)
-        XCTAssertEqual(SiteToolState.readingPromptState(state: offAndFailed, scripts: [enabledScript, userDisabledScript]), .turnedOff)
+        var allThree = failedAndLearned
+        allThree.setSlot(SiteSlotState(status: .failed, scriptID: "reader.off", failure: SiteSlotFailure(code: .threw, date: failDate)), for: .searchForum)
+        XCTAssertEqual(SiteToolState.readingPromptState(state: allThree, scripts: [enabledScript, userDisabledScript]).entries, [
+            .turnedOff,
+            .failed(date: failDate, code: .noPosts),
+            .learned(slots: [.readTopic], listUntried: false, threadUntried: false)
+        ])
 
         let adapter = try XCTUnwrap(SiteRegistry.standard.adapter(for: .discourse))
         let builtIn = ForumPromptContext(forumName: "Meta", siteURL: "https://meta.discourse.org", adapter: adapter, maxTopicReads: 5)
@@ -334,6 +324,18 @@ final class LearnedSiteToolsTests: XCTestCase {
         _ = try scriptStore.setEnabled(id: script.id, isEnabled: false)
         let userOffRefusal = try await registry.dispatch(toolName: "read_topic", arguments: ["url": .string(threadURL)])
         XCTAssertTrue(userOffRefusal.isError && userOffRefusal.output.contains("turned off in This page"))
+        _ = try scriptStore.setEnabled(id: script.id, isEnabled: true)
+
+        scriptStore.disableForLibraryFailure(id: script.id, reason: "repair_3")
+        var failedSlotState = state
+        failedSlotState.setSlot(SiteSlotState(status: .failed, scriptID: script.id, failure: SiteSlotFailure(code: .repair3)), for: .listLatest)
+        failedSlotState.setSlot(SiteSlotState(status: .failed, failure: SiteSlotFailure(code: .gaveUp)), for: .searchForum)
+        let failedLearned = LearnedSiteContext(host: "127.0.0.1", state: failedSlotState, pageToolBridge: pageToolBridge, scriptStore: scriptStore, scope: scope)
+        let failedReg = ToolRegistry.m3(context: AgentToolContext(bridge: agentBridge, workspace: workspace, scriptStore: scriptStore, learnedSite: failedLearned))
+        for (tool, args) in [("list_latest", [String: JSONValue]()), ("search_forum", ["query": .string("fan")])] {
+            let out = try await failedReg.dispatch(toolName: tool, arguments: args)
+            XCTAssertTrue(out.isError && out.output.contains("Learning to read this site failed") && out.output.contains("Don't try again unless the user asks") && !out.output.contains("learn the site"), out.output)
+        }
         _ = try scriptStore.setEnabled(id: script.id, isEnabled: true)
 
         pageToolBridge.isEnabled = false

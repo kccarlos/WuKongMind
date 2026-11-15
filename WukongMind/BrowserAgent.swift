@@ -372,7 +372,7 @@ enum BrowserAgentPrompt {
         if let forum {
             lines += forum.lines
         } else if includesForumTools {
-            lines.append(siteReading.pageContextLine)
+            lines += siteReading.lines
         }
         if !matchingScripts.isEmpty {
             lines.append("- Saved userscripts matching this page:")

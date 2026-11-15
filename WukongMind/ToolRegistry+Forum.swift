@@ -275,20 +275,31 @@ extension ToolRegistry {
                 return (ToolExecutionOutput(content: forumToolRefusal(slot.rawValue, forum: nil), summary: "Not a forum", isError: true), nil)
             }
             let slotState = learned.state.slot(slot)
-            guard let scriptID = slotState.scriptID, let script = context.scriptStore.script(id: scriptID) else {
+            let script = slotState.scriptID.flatMap { context.scriptStore.script(id: $0) }
+            if slotState.scriptID != nil && script == nil {
                 return (ToolExecutionOutput(content: forumToolRefusal(slot.rawValue, forum: nil), summary: "Not a forum", isError: true), nil)
             }
-            if !script.isEnabled && (script.disabledReason ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            if let script, !script.isEnabled, (script.disabledReason ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 return (ToolExecutionOutput(
                     content: "Error: The reading tool for this site is turned off in This page; use `read_page`.",
                     summary: "Turned off in This page", isError: true
                 ), nil)
             }
+            if slotState.status == .failed || (script.map { !$0.isEnabled } ?? false) {
+                let code = slotState.failure?.code ?? SiteFailureCode.fromDisabledReason(script?.disabledReason)
+                return (ToolExecutionOutput(
+                    content: "Error: Learning to read this site failed (\(code.appSentence)). Don't try again unless the user asks; use `read_page`.",
+                    summary: "Reading tool failed", isError: true
+                ), nil)
+            }
+            if slotState.status == .notApplicable {
+                return (ToolExecutionOutput(content: "Error: `\(slot.rawValue)` isn't available on this site; use `read_page`.", summary: "Not available", isError: true), nil)
+            }
+            guard let scriptID = slotState.scriptID, script != nil, slotState.status == .learned || slotState.status == .broken else {
+                return (ToolExecutionOutput(content: forumToolRefusal(slot.rawValue, forum: nil), summary: "Not a forum", isError: true), nil)
+            }
             guard context.scriptStore.isGlobalEnabled else {
                 return (ToolExecutionOutput(content: "Error: Userscripts are turned off in Settings; use `read_page`.", summary: "Userscripts off", isError: true), nil)
-            }
-            guard (slotState.status == .learned || slotState.status == .broken), script.isEnabled else {
-                return (ToolExecutionOutput(content: forumToolRefusal(slot.rawValue, forum: nil), summary: "Not a forum", isError: true), nil)
             }
             return (nil, scriptID)
         }

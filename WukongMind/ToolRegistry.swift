@@ -2493,20 +2493,10 @@ struct LearnedSiteContext: Sendable {
     var promptState: SiteReadingPromptState
 
     @MainActor
-    init(
-        host: String,
-        state: SiteToolState,
-        pageToolBridge: PageToolBridge,
-        scriptStore: ScriptStore,
-        scope: LearnedRunScope? = nil
-    ) {
+    init(host: String, state: SiteToolState, pageToolBridge: PageToolBridge, scriptStore: ScriptStore, scope: LearnedRunScope? = nil) {
         self.host = SiteToolState.normalizedHost(host) ?? host.lowercased()
-        self.state = state
-        self.pageToolBridge = pageToolBridge
-        self.scope = scope ?? LearnedRunScope()
-        self.promptState = SiteToolState.readingPromptState(
-            state: state, scripts: scriptStore.scripts, pageToolsEnabled: pageToolBridge.isEnabled
-        )
+        self.state = state; self.pageToolBridge = pageToolBridge; self.scope = scope ?? LearnedRunScope()
+        self.promptState = SiteToolState.readingPromptState(state: state, scripts: scriptStore.scripts, pageToolsEnabled: pageToolBridge.isEnabled)
     }
 }
 

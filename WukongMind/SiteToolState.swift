@@ -13,6 +13,13 @@ enum SiteFailureCode: String, Codable, Equatable, Sendable {
     case noPosts = "no_posts", shape, threw, timeout
     case refused3 = "refused_3", repair3 = "repair_3", loadErrors3 = "load_errors_3", gaveUp = "gave_up"
 
+    static func fromDisabledReason(_ raw: String?) -> SiteFailureCode {
+        guard let key = raw?.trimmingCharacters(in: .whitespacesAndNewlines), !key.isEmpty else { return .gaveUp }
+        if let code = SiteFailureCode(rawValue: key) { return code }
+        if key.hasPrefix("Turned off after errors on ") { return .loadErrors3 }
+        return key.lowercased().contains("repair") ? .repair3 : .gaveUp
+    }
+
     var appSentence: String {
         switch self {
         case .noPosts: "the tool returned no posts"
@@ -81,19 +88,19 @@ struct LearnedToolResult<Shape: Codable & Equatable & Sendable>: Codable, Equata
     }
 }
 
-/// App-text-only site reading state rendered into `<page_context>`.
-enum SiteReadingPromptState: Equatable, Sendable {
-    case none, turnedOff
-    case learned(slots: Set<SiteToolSlot>, listNotApplicable: Bool = false)
+/// One app-text-only `<page_context>` line for learned reading state on a site without an adapter.
+enum SiteReadingPromptLine: Equatable, Sendable {
+    case noTool, turnedOff
     case failed(date: Date, code: SiteFailureCode)
+    case learned(slots: Set<SiteToolSlot>, listUntried: Bool = true, threadUntried: Bool = true)
 
     private static let utcCalendar: Calendar = {
         var cal = Calendar(identifier: .gregorian); cal.timeZone = TimeZone(secondsFromGMT: 0)!; return cal
     }()
 
-    var pageContextLine: String {
+    var text: String {
         switch self {
-        case .none:
+        case .noTool:
             return "- No reading tool for this site yet."
         case .turnedOff:
             return "- The reading tool for this site is turned off in This page. Don't learn it again or turn it on; use `read_page`."
@@ -101,46 +108,53 @@ enum SiteReadingPromptState: Equatable, Sendable {
             let p = Self.utcCalendar.dateComponents([.year, .month, .day], from: date)
             let day = String(format: "%04d-%02d-%02d", p.year ?? 1970, p.month ?? 1, p.day ?? 1)
             return "- Learning to read this site failed on \(day) (\(code.appSentence)). Don't try again unless the user asks; use `read_page`."
-        case .learned(let slots, let listNotApplicable):
+        case .learned(let slots, let listUntried, let threadUntried):
             let hasThread = slots.contains(.readTopic), hasList = slots.contains(.listLatest), hasSearch = slots.contains(.searchForum)
             guard hasThread || hasList || hasSearch else { return "- No reading tool for this site yet." }
             if hasThread {
                 let base = "- Reading learned here: `read_topic`, `summarize_topic` and `read_aloud` take a thread URL of this site"
                 if hasList && hasSearch { return base + "; `list_latest` and `search_forum` are available." }
                 if hasList { return base + "; `list_latest` is available." }
-                let tail = listNotApplicable ? "" : " `list_latest`: not learned yet."
+                let tail = listUntried ? " `list_latest`: not learned yet." : ""
                 return hasSearch ? base + "; `search_forum` is available." + tail : base + "." + tail
             }
             let avail = (hasList && hasSearch) ? "`list_latest` and `search_forum` are" : (hasList ? "`list_latest` is" : "`search_forum` is")
-            return "- Reading learned here: \(avail) available. `read_topic`: not learned yet."
+            return "- Reading learned here: \(avail) available." + (threadUntried ? " `read_topic`: not learned yet." : "")
         }
     }
+}
+
+/// Ordered `<page_context>` lines (at most three: `turned off > failed > learned`, else `no tool`).
+struct SiteReadingPromptState: Equatable, Sendable {
+    static let none = SiteReadingPromptState(entries: [.noTool])
+    static let turnedOff = SiteReadingPromptState(entries: [.turnedOff])
+    static func failed(date: Date, code: SiteFailureCode) -> Self { .init(entries: [.failed(date: date, code: code)]) }
+    static func learned(slots: Set<SiteToolSlot>, listUntried: Bool = true, threadUntried: Bool = true) -> Self {
+        .init(entries: [.learned(slots: slots, listUntried: listUntried, threadUntried: threadUntried)])
+    }
+
+    var entries: [SiteReadingPromptLine]
+    init(entries: [SiteReadingPromptLine] = [.noTool]) { self.entries = entries.isEmpty ? [.noTool] : entries }
+    var lines: [String] { entries.map(\.text) }
+    var pageContextLine: String { lines.joined(separator: "\n") }
 }
 
 /// Device-local learned reading state for one normalized host (`Application Support/WukongMind/SiteTools/<host>.json`).
 struct SiteToolState: Codable, Equatable, Sendable {
     static let maxLogEntries = 20
-
     var host: String
     var slots: [SiteToolSlot: SiteSlotState] = [:]
-    var threadMatch: [String] = []
-    var listMatch: [String] = []
+    var threadMatch: [String] = [], listMatch: [String] = []
     var log: [SiteLogEntry] = []
 
-    init(
-        host: String, slots: [SiteToolSlot: SiteSlotState] = [:],
-        threadMatch: [String] = [], listMatch: [String] = [], log: [SiteLogEntry] = []
-    ) {
+    init(host: String, slots: [SiteToolSlot: SiteSlotState] = [:], threadMatch: [String] = [], listMatch: [String] = [], log: [SiteLogEntry] = []) {
         self.host = Self.normalizedHost(host) ?? host.lowercased()
-        self.slots = slots
-        self.threadMatch = threadMatch
-        self.listMatch = listMatch
+        self.slots = slots; self.threadMatch = threadMatch; self.listMatch = listMatch
         self.log = Array(log.prefix(Self.maxLogEntries))
     }
 
     func slot(_ slot: SiteToolSlot) -> SiteSlotState { slots[slot] ?? SiteSlotState() }
     mutating func setSlot(_ state: SiteSlotState, for slot: SiteToolSlot) { slots[slot] = state }
-
     mutating func appendLog(_ entry: SiteLogEntry) {
         log.insert(entry, at: 0)
         if log.count > Self.maxLogEntries { log.removeSubrange(Self.maxLogEntries...) }
@@ -151,8 +165,7 @@ struct SiteToolState: Codable, Equatable, Sendable {
         if host.hasPrefix("["), host.hasSuffix("]") { host = String(host.dropFirst().dropLast()) }
         if host.hasPrefix("www."), host.count > 4 { host.removeFirst(4) }
         guard !host.isEmpty, host != ".", host != "..", !host.contains(".."),
-              !host.contains("/"), !host.contains("\\"), !host.contains("\0"),
-              !host.contains(where: \.isWhitespace) else { return nil }
+              !host.contains("/"), !host.contains("\\"), !host.contains("\0"), !host.contains(where: \.isWhitespace) else { return nil }
         return host
     }
 
@@ -164,8 +177,7 @@ struct SiteToolState: Codable, Equatable, Sendable {
     }
 
     static func sameSiteURL(_ rawURL: String, host: String) -> URL? {
-        let trimmed = rawURL.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard let expected = normalizedHost(host), let url = URL(string: trimmed),
+        guard let expected = normalizedHost(host), let url = URL(string: rawURL.trimmingCharacters(in: .whitespacesAndNewlines)),
               normalizedHost(from: url) == expected else { return nil }
         return url
     }
@@ -179,8 +191,7 @@ struct SiteToolState: Codable, Equatable, Sendable {
     }
 
     static func isSameDocument(_ requested: URL, openURLString: String) -> Bool {
-        let trimmed = openURLString.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard let openURL = URL(string: trimmed), normalizedHost(from: openURL) != nil else { return false }
+        guard let openURL = URL(string: openURLString.trimmingCharacters(in: .whitespacesAndNewlines)), normalizedHost(from: openURL) != nil else { return false }
         return canonicalThreadKey(for: requested) == canonicalThreadKey(for: openURL)
     }
 
@@ -189,24 +200,42 @@ struct SiteToolState: Codable, Equatable, Sendable {
         return !script.isEnabled && (script.disabledReason ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
+    private enum SlotOutcome: Equatable {
+        case untried, notApplicable, learned, failed(Date, SiteFailureCode), turnedOff
+    }
+
     static func readingPromptState(
         state: SiteToolState?, scripts: [UserScript] = [], pageToolsEnabled: Bool = true
     ) -> SiteReadingPromptState {
         guard pageToolsEnabled, let state else { return .none }
         let scriptsByID = Dictionary(uniqueKeysWithValues: scripts.map { ($0.id, $0) })
-        func isDeleted(_ s: SiteSlotState) -> Bool { s.scriptID.map { scriptsByID[$0] == nil } ?? false }
-        if SiteToolSlot.allCases.contains(where: { isTurnedOffByPerson(state.slot($0), scriptsByID: scriptsByID) }) {
-            return .turnedOff
+        var outcomes: [SiteToolSlot: SlotOutcome] = [:]
+        for slot in SiteToolSlot.allCases {
+            let s = state.slot(slot)
+            if let id = s.scriptID, scriptsByID[id] == nil { outcomes[slot] = .untried; continue }
+            let script = s.scriptID.flatMap { scriptsByID[$0] }
+            if isTurnedOffByPerson(s, scriptsByID: scriptsByID) {
+                outcomes[slot] = .turnedOff
+            } else if s.status == .failed || (script.map { !$0.isEnabled } ?? false) {
+                let date = s.failure?.date ?? script?.updatedAt ?? Date(timeIntervalSince1970: 0)
+                outcomes[slot] = .failed(date, s.failure?.code ?? SiteFailureCode.fromDisabledReason(script?.disabledReason))
+            } else if s.status == .learned {
+                outcomes[slot] = .learned
+            } else {
+                outcomes[slot] = s.status == .notApplicable ? .notApplicable : .untried
+            }
         }
-        let failed = SiteToolSlot.allCases.map { state.slot($0) }.filter { !isDeleted($0) && $0.status == .failed }
-        if let chosen = failed.max(by: { ($0.failure?.date ?? .distantPast) < ($1.failure?.date ?? .distantPast) }) {
-            return .failed(date: chosen.failure?.date ?? Date(timeIntervalSince1970: 0), code: chosen.failure?.code ?? .gaveUp)
+        var entries: [SiteReadingPromptLine] = []
+        if SiteToolSlot.allCases.contains(where: { outcomes[$0] == .turnedOff }) { entries.append(.turnedOff) }
+        let failures: [(Date, SiteFailureCode)] = SiteToolSlot.allCases.compactMap {
+            if case .failed(let d, let c)? = outcomes[$0] { return (d, c) }; return nil
         }
-        let learned = SiteToolSlot.allCases.filter { let st = state.slot($0); return !isDeleted(st) && st.status == .learned }
+        if let latest = failures.max(by: { $0.0 < $1.0 }) { entries.append(.failed(date: latest.0, code: latest.1)) }
+        let learned = Set(SiteToolSlot.allCases.filter { outcomes[$0] == .learned })
         if !learned.isEmpty {
-            return .learned(slots: Set(learned), listNotApplicable: state.slot(.listLatest).status == .notApplicable)
+            entries.append(.learned(slots: learned, listUntried: outcomes[.listLatest] == .untried, threadUntried: outcomes[.readTopic] == .untried))
         }
-        return .none
+        return entries.isEmpty ? .none : SiteReadingPromptState(entries: entries)
     }
 }
 
