@@ -1,4 +1,4 @@
-<!-- @dsCard group="Navigation" height=150 -->
+<!-- @dsCard group="Navigation" height=230 -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -9,23 +9,35 @@ body{margin:0;padding:16px;background:var(--ground);color:var(--ink);font-family
 *{box-sizing:border-box}
 .r{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
 .c{display:flex;flex-direction:column;gap:12px;max-width:390px}
-.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
 button{font-family:inherit}
 .mono{font-family:var(--font-mono)}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.l{font-size:12px;font-weight:600;color:var(--ink-muted)}
 
-.bar{display:flex;align-items:center;gap:6px;height:56px;padding:0 6px;border-radius:var(--radius-lg);background:var(--surface);box-shadow:var(--shadow-pop);max-width:390px}
-.ib{width:44px;height:44px;border:0;background:none;color:var(--ink);display:flex;align-items:center;justify-content:center;border-radius:var(--radius-md)}
-.ad{flex:1;height:38px;border-radius:var(--radius-md);background:var(--surface-raised);display:flex;align-items:center;justify-content:center;gap:6px;font-size:15px;color:var(--ink);min-width:0}
-.ring{width:44px;height:44px;border-radius:var(--radius-full);border:3px solid var(--gold);background:none;color:var(--gold-ink);display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0}
-.cnt{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;border-radius:var(--radius-sm);background:var(--ink);color:var(--ground);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px}
-
+.glass{display:flex;align-items:center;background:color-mix(in srgb,var(--surface) 68%,transparent);-webkit-backdrop-filter:blur(18px) saturate(1.7);backdrop-filter:blur(18px) saturate(1.7);border:var(--hairline-width) solid var(--hairline);box-shadow:var(--shadow-pop);border-radius:var(--radius-full)}
+.bar{height:56px;padding:0 6px;gap:2px;width:100%;max-width:366px}
+.ib{width:44px;height:44px;border:0;background:none;color:var(--ink);display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0}
+.ad{flex:1;height:42px;border-radius:var(--radius-full);background:color-mix(in srgb,var(--ink) 7%,transparent);display:flex;align-items:center;gap:2px;padding:0 2px 0 8px;font-size:15px;font-weight:600;color:var(--ink);min-width:0}
+.ad .dom{flex:1 1 auto;min-width:0;border:0;background:none;padding:0;color:inherit;font:inherit;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:text}
+.ab{width:30px;height:36px;border:0;background:none;color:var(--ink);display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0}
+.ring{width:44px;height:44px;border-radius:var(--radius-full);border:3px solid var(--gold);background:none;color:var(--gold-ink);display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;padding:0}
+.cnt{position:absolute;top:-5px;right:-6px;min-width:18px;height:18px;border-radius:var(--radius-sm);background:var(--ink);color:var(--ground);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px}
+.pill{height:34px;padding:0 14px;gap:6px;font-size:13px;font-weight:600;color:var(--ink);border:var(--hairline-width) solid var(--hairline);cursor:pointer}
+.lk{width:13px;height:13px;color:var(--ink-muted);fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.mr{width:16px;height:16px;border-radius:var(--radius-full);border:2.5px solid var(--gold);border-right-color:transparent;flex-shrink:0}
+.ps{min-width:18px;height:18px;border-radius:5px;background:var(--ink);color:var(--ground);font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;padding:0 5px}
 </style>
 </head>
 <body>
-<div class="c" style="gap:20px">
-<div class="bar"><button class="ib" aria-label="Back"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><div class="ad"><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">talk.example.org</span></div><button class="ring" aria-label="Agent, 2 scripts on this page"><span class="cnt" aria-hidden="true">2</span></button></div>
-<div class="bar"><button class="ib" aria-label="Back" style="color:var(--ink-faint)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><div class="ad" style="color:var(--ink-faint)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6"/><path d="M20 20l-5-5"/></svg>Search or enter address</div><button class="ring" aria-label="Agent"></button></div>
+<div class="c">
+<div class="l">Expanded (p = 0): glass capsule with page menu, domain, reload, tabs and the ring</div>
+<nav class="glass bar" aria-label="Browser bar"><button class="ib" aria-label="Back"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button><div class="ad"><button class="ab" aria-label="Page menu" style="margin-left:-4px"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width:19px;height:19px"><circle cx="12" cy="12" r="9.5"/><circle cx="8" cy="12" r=".7" fill="currentColor"/><circle cx="12" cy="12" r=".7" fill="currentColor"/><circle cx="16" cy="12" r=".7" fill="currentColor"/></svg></button><button class="dom" aria-label="Address field: news.example.com">news.example.com</button><button class="ab" aria-label="Reload" style="width:32px"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width:17px;height:17px"><path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3"/><path d="M19.5 4.5v4.2h-4.2"/></svg></button></div><button class="ib" aria-label="Tabs"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="8.5" y="8.5" width="12" height="12" rx="2.5"/><path d="M15.5 8.5V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7.5a2 2 0 0 0 2 2h2.5"/></svg></button><button class="ring" aria-label="Agent, 2 scripts on this page"><span class="cnt" aria-hidden="true">2</span></button></nav>
+<div class="l">Collapsed pill (p = 1): idle, and while the Agent works</div>
+<div class="r">
+<button class="glass pill" aria-label="Show browser bar, news.example.com"><svg class="lk" viewBox="0 0 24 24" aria-hidden="true"><rect x="5.5" y="11" width="13" height="9" rx="2"/><path d="M8.5 11V8a3.5 3.5 0 0 1 7 0v3"/></svg><span>news.example.com</span></button>
+<button class="glass pill" aria-label="Show browser bar, news.example.com, Agent working"><span class="mr" aria-hidden="true"></span><span>news.example.com</span><span class="ps" aria-hidden="true">2</span></button>
+</div>
 </div>
 </body>
 </html>

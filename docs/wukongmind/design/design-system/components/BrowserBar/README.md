@@ -1,11 +1,16 @@
 # BrowserBar
 
-The floating bar of the browser: back, the address field and the ring that opens the Agent.
+The floating browser bar and its collapsed pill: one glass capsule that morphs with the user's scroll. Full geometry, scroll integration, web-view insets and accessibility rules are in [design-browser-bar-tabs-models.md](../../../../design-browser-bar-tabs-models.md).
 
-- The bar is `surface` with `radius-lg` corners and `shadow-pop`. It floats over the page with `space-3` side margins.
-- The address field is `surface-raised` with `radius-md` corners, centred `subheadline` text. Empty, it shows a search glyph and "Search or enter address" in `ink-faint`.
-- **The ring** is the Agent's entry point and the app's mark: a 44pt circle with a 3pt `gold` stroke and an empty centre. It carries no icon. It replaces Forumind's gradient sparkle button.
-- When scripts run on the page, a small `ink` seal with a `ground` number sits on the ring's top-trailing corner.
-- Back and other bar buttons are `ink` glyphs on 44pt targets; unavailable ones are `ink-faint`.
+- **One glass capsule.** Both the expanded bar and the collapsed pill are the same element with `radius = height ÷ 2` (`.glassEffect(.regular, in: .capsule)` on iOS 26+, `.bar` material below) and `shadow-pop`. It is the one capsule exception in the design system. With Reduce Transparency or Increase Contrast on, the glass becomes solid `surface` with a `border-strong` hairline edge.
+- **Expanded (`p = 0`).**
+  - **iPhone:** `56pt` high (`48pt` in landscape, capped at `520pt` wide), `screen − 24pt` wide (`space-3` side margins), bottom edge at `bottom safe area − 4pt` (never less than `8pt`; or `top safe area + 4pt` when anchored at the top). Holds `back | address field | tabs | Agent ring`.
+  - **iPad:** `52pt` high across the page column (`page-column width − 24pt`, top edge at `top safe area + 6pt`). Holds `back, forward | address field | tabs, mic, Agent ring` (the ring shows and hides the side panel, filled `gold-wash` while open).
+  - **Home:** never collapses; Home has its own address field, so the bar omits the address field and replaces the ring with the mic button when no page is loaded underneath.
+- **Address field.** Capsule fill (`6%` ink in light, `8%` in dark, gone by `p = 0.5`) holding the **page menu** at its leading edge (forum avatar on forums, `⋯` elsewhere), the **domain** in `subheadline` semibold (`15pt`, `ink`), and **reload** at its trailing edge. On iPhone, forward lives in the page menu and in back's long-press history.
+- **Collapsed pill (`p = 1`).** A centred `34pt` glass capsule (`44pt` hit target extended upward): `120–240pt` wide on iPhone (fitting the domain, bottom edge at `bottom safe area − 14pt`, at least `8pt`, or `top safe area + 0pt` at the top) and `200 × 34pt` on iPad (centred over the page column at `top safe area + 2pt`). Holds the **lock** (`ink-muted`) and **domain** in `footnote` semibold (`13pt`, `ink`). Tapping or VoiceOver-activating the pill expands the bar first; it never opens the Agent directly.
+- **Motion (`p = 0…1`).** Only the person's own scrolling (`isTracking` or `isDecelerating`) integrates `p = clamp(p_prev + δy ÷ 64pt, 0, 1)`. Buttons, page menu and reload fade and shrink (`opacity = max(0, 1 − 2p)`, scale `1 → 0.7`) over the first half so they leave layout by `p = 0.5`. Settling and discrete expand triggers (pill tap, page end, page load, address editing, or the Agent finishing or asking while the panel is closed) use `.spring(response: 0.24, dampingFraction: 1.0)` (no bounce, under `250ms`). With Reduce Motion on, the bar keeps its two end states and cross-fades in `0.2s` at `p > 0.6` / `p < 0.4`.
+- **The ring** is the Agent's entry point and the app's mark: a `44pt` circle with a `3pt` `gold` stroke and an empty centre (no icon; hold to talk on iPhone). When scripts run on the page, an `ink` seal (`radius-sm`, `ground` count) sits on its top-trailing corner. While the Agent works with the bar collapsed, the pill's lock becomes a `16pt` turning `gold` ring and the `ink` scripts seal sits after the domain; under Reduce Motion the ring stands still.
+- Back, tabs and other bar buttons are `ink` glyphs on `44pt` targets; unavailable ones are `ink-faint`.
 
-The consumer provides the page host, navigation state and the script count.
+The consumer provides the scroll progress `p`, page host, navigation and tab state, Agent running state and script count.
