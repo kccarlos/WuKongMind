@@ -619,6 +619,7 @@ final class VoiceToolTests: XCTestCase {
         window.isHidden = false
         window.layoutIfNeeded()
         addTeardownBlock { app.browser.webView.removeFromSuperview(); window.isHidden = true }
+        _ = try? await app.browser.agentLoad(URL(string: "http://127.0.0.1:\(server.port)/warm")!, wait: true, timeout: 20)
 
         let bridge = VoiceToolBridge(navigator: app)
         bridge.registryBuilder = app.voiceToolRegistry
@@ -743,7 +744,7 @@ final class VoiceToolTests: XCTestCase {
         let bridge = VoiceToolBridge(navigator: navigator)
         _ = bridge.declare()
 
-        // 1. Single match opens immediately (plural/filler stripped, "news" doesn't stem to "new", CJK works).
+        // 1. Single match opens immediately; with no kept list, `number` counts screen links from the top.
         let one = await bridge.handle(.init(id: "1", name: "open_link", args: ["words": "the one about tariffs"]), eyesFree: false)
         XCTAssertEqual(one.response["status"], "opened")
         XCTAssertEqual(navigator.calls.last, "followLink Opinion: why tariffs miss the point @ heraldexample.com")
@@ -753,36 +754,31 @@ final class VoiceToolTests: XCTestCase {
         let cjk = await bridge.handle(.init(id: "3", name: "open_link", args: ["words": "关于气候的那篇"]), eyesFree: false)
         XCTAssertEqual(cjk.response["status"], "opened")
         XCTAssertEqual(navigator.calls.last, "followLink 气候峰会下周召开 @ cn.example")
-
-        // 2. With no kept list, `number` counts screen links from the top.
         let third = await bridge.handle(.init(id: "4", name: "open_link", args: ["number": "3"]), eyesFree: false)
         XCTAssertEqual(third.response["status"], "opened")
         XCTAssertEqual(navigator.calls.last, "followLink Apple unveils new iPad lineup @ heraldexample.com")
 
-        // 3. Multiple matches keep a candidate list ("Top stories" not matched by generic "story"); `number` picks from it.
+        // 2. Multiple matches keep a candidate list ("Top stories" not matched by generic "story"); `number` picks from it.
         let apple = await bridge.handle(.init(id: "5", name: "open_link", args: ["words": "the Apple story"]), eyesFree: false)
         XCTAssertEqual(apple.response["status"], "choices")
-        XCTAssertEqual(apple.response["candidates"], [
-            "1. Apple unveils new iPad lineup (heraldexample.com)",
-            "2. Apple shareholders back buyback plan (ft-example.com)"
-        ])
+        XCTAssertEqual(apple.response["candidates"], ["1. Apple unveils new iPad lineup (heraldexample.com)", "2. Apple shareholders back buyback plan (ft-example.com)"])
         let outOfList = await bridge.handle(.init(id: "6", name: "open_link", args: ["number": 4]), eyesFree: false)
         XCTAssertEqual(outOfList.response["status"], "notFound", "Does not fall through to screen link 4")
         let picked = await bridge.handle(.init(id: "7", name: "open_link", args: ["number": 2]), eyesFree: false)
         XCTAssertEqual(picked.response["status"], "opened")
         XCTAssertEqual(navigator.calls.last, "followLink Apple shareholders back buyback plan @ ft-example.com")
 
-        // 4. Partial matches never open silently: 1-of-3 shared word is notFound; 2-of-3 returns choices for confirmation.
+        // 3. Partial matches never open silently: 1-of-3 shared word is notFound; 2-of-3 returns choices for confirmation.
         let beforeFollows = navigator.calls.filter { $0.hasPrefix("followLink") }.count
         let weak = await bridge.handle(.init(id: "8", name: "open_link", args: ["words": "the new iPhone review"]), eyesFree: false)
         XCTAssertEqual(weak.response["status"], "notFound")
-        XCTAssertEqual(navigator.calls.filter { $0.hasPrefix("followLink") }.count, beforeFollows, "Never opens on a single incidental word")
+        XCTAssertEqual(navigator.calls.filter { $0.hasPrefix("followLink") }.count, beforeFollows)
         let partial = await bridge.handle(.init(id: "9", name: "open_link", args: ["words": "Apple iPad review"]), eyesFree: false)
         XCTAssertEqual(partial.response["status"], "choices")
         XCTAssertEqual(partial.response["candidates"], ["1. Apple unveils new iPad lineup (heraldexample.com)"])
-        XCTAssertEqual(navigator.calls.filter { $0.hasPrefix("followLink") }.count, beforeFollows, "Asks instead of opening a partial match")
+        XCTAssertEqual(navigator.calls.filter { $0.hasPrefix("followLink") }.count, beforeFollows)
 
-        // 5. A candidate list from the previous page refuses once on the new page, then clears so screen numbers work.
+        // 4. A candidate list from the previous page refuses once on the new page, then clears so screen numbers work.
         navigator.pageContext = page2
         bridge.pageChanged(page2)
         let stale = await bridge.handle(.init(id: "10", name: "open_link", args: ["number": 1]), eyesFree: false)
@@ -799,17 +795,18 @@ final class VoiceToolTests: XCTestCase {
         addTeardownBlock { server.stop() }
 
         let app = makeApp()
-        attachWebView(app)
-
+        await attachWebView(app, port: server.port)
         let bridge = VoiceToolBridge(navigator: app)
         bridge.registryBuilder = app.voiceToolRegistry
         _ = bridge.declare()
 
-        _ = await app.openPage("127.0.0.1:\(server.port)/links")
+        let loaded = await app.openPage("127.0.0.1:\(server.port)/links", timeout: 20)
+        XCTAssertEqual(loaded, .opened(kind: .address, title: "Links Hub", host: "127.0.0.1"))
         app.browser.setPageContext(PageContext(url: app.browser.webView.url, state: .notForum))
 
         let links = await app.pageLinks()
         XCTAssertEqual(links.count, 40, "Merged duplicates, excluded bad links, capped at 40")
+        guard links.count == 40 else { return }
         XCTAssertEqual(links[0].text, "Banner Lead", "Higher on screen (top=30) comes before earlier DOM link at top=180")
         XCTAssertEqual(links[1].text, "Tariff talks resume Thursday", "Duplicate URL merged and upgraded from aria-label to visible text")
         XCTAssertEqual(links[2].text, "Icon Search", "Rendered aria-label link kept")
@@ -829,7 +826,7 @@ final class VoiceToolTests: XCTestCase {
         XCTAssertFalse(encoded.contains("http://") || encoded.contains("id=42") || encoded.contains("#lead"), encoded)
 
         _ = app.back()
-        await app.browser.waitUntilSettled(timeout: .seconds(5))
+        await app.browser.waitUntilSettled(timeout: .seconds(10))
         app.browser.setPageContext(PageContext(url: app.browser.webView.url, state: .notForum))
         let first = await bridge.handle(.init(id: "l2", name: "open_link", args: ["number": 1]), eyesFree: false)
         XCTAssertEqual(first.response["status"], "opened")
@@ -866,7 +863,7 @@ final class VoiceToolTests: XCTestCase {
         return app
     }
 
-    private func attachWebView(_ app: AppModel) {
+    private func attachWebView(_ app: AppModel, port: UInt16) async {
         app.browser.onPageContextChanged = nil
         let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
         let hostVC = UIViewController()
@@ -877,6 +874,7 @@ final class VoiceToolTests: XCTestCase {
         window.isHidden = false
         window.layoutIfNeeded()
         addTeardownBlock { app.browser.webView.removeFromSuperview(); window.isHidden = true }
+        _ = try? await app.browser.agentLoad(URL(string: "http://127.0.0.1:\(port)/warm")!, wait: true, timeout: 20)
     }
 }
 
