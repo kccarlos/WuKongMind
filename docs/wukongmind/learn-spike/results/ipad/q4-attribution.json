@@ -1,0 +1,11 @@
+{
+  "latestRouteReturned" : "{\"route\":\"\/thread-101?v=2\",\"runs\":3}",
+  "ownersSeen" : [
+    "nil:unowned_tool",
+    "other-script:helper",
+    "spa-reader-id:read_topic"
+  ],
+  "spaRunsExecuted" : 3,
+  "toolsCountAfterThreeRoutes" : 1,
+  "unownedCannotPassSlotCheck" : true
+}

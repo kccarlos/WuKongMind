@@ -1,0 +1,86 @@
+[
+  {
+    "csp" : "no-csp",
+    "registerReturnedPromise" : true,
+    "sawShimAtParse" : true,
+    "toolNames" : [
+      "delayed_quote",
+      "echo_order",
+      "hang_forever",
+      "large_catalog"
+    ],
+    "transientRemovedBySignal" : true
+  },
+  {
+    "csp" : "self-only",
+    "registerReturnedPromise" : true,
+    "sawShimAtParse" : true,
+    "toolNames" : [
+      "delayed_quote",
+      "echo_order",
+      "hang_forever",
+      "large_catalog"
+    ],
+    "transientRemovedBySignal" : true
+  },
+  {
+    "csp" : "nonce",
+    "registerReturnedPromise" : true,
+    "sawShimAtParse" : true,
+    "toolNames" : [
+      "delayed_quote",
+      "echo_order",
+      "hang_forever",
+      "large_catalog"
+    ],
+    "transientRemovedBySignal" : true
+  },
+  {
+    "csp" : "hash",
+    "registerReturnedPromise" : true,
+    "sawShimAtParse" : true,
+    "toolNames" : [
+      "delayed_quote",
+      "echo_order",
+      "hang_forever",
+      "large_catalog"
+    ],
+    "transientRemovedBySignal" : true
+  },
+  {
+    "csp" : "strict-dynamic",
+    "registerReturnedPromise" : true,
+    "sawShimAtParse" : true,
+    "toolNames" : [
+      "delayed_quote",
+      "echo_order",
+      "hang_forever",
+      "large_catalog"
+    ],
+    "transientRemovedBySignal" : true
+  },
+  {
+    "csp" : "style-src-none",
+    "registerReturnedPromise" : true,
+    "sawShimAtParse" : true,
+    "toolNames" : [
+      "delayed_quote",
+      "echo_order",
+      "hang_forever",
+      "large_catalog"
+    ],
+    "transientRemovedBySignal" : true
+  },
+  {
+    "csp" : "trusted-types",
+    "registerReturnedPromise" : true,
+    "sawShimAtParse" : true,
+    "toolNames" : [
+      "delayed_quote",
+      "echo_order",
+      "hang_forever",
+      "large_catalog"
+    ],
+    "transientRemovedBySignal" : true
+  }
+]

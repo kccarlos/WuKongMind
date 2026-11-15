@@ -1,0 +1,35 @@
+{
+  "abortSignalFiredOnTimeout" : true,
+  "asyncPromiseCall" : {
+    "bytes" : 26,
+    "durationMs" : 31.402945518493652,
+    "json" : "{\"item\":\"gear\",\"price\":42}",
+    "ok" : true
+  },
+  "oneMBCall" : {
+    "bytes" : 1048587,
+    "durationMs" : 0.8909702301025391,
+    "json" : "<1MB payload omitted: 1048587 bytes>",
+    "ok" : true
+  },
+  "overTwoMBCall" : {
+    "bytes" : 2200011,
+    "code" : "response_too_large",
+    "durationMs" : 0.8100271224975586,
+    "error" : "2200011 > 2097152",
+    "ok" : false
+  },
+  "syncCall" : {
+    "bytes" : 26,
+    "durationMs" : 0.9829998016357422,
+    "json" : "{\"total\":45,\"note\":\"rush\"}",
+    "ok" : true
+  },
+  "timeoutCall" : {
+    "bytes" : 0,
+    "code" : "timeout",
+    "durationMs" : 350.95906257629395,
+    "error" : "__TIMEOUT__",
+    "ok" : false
+  }
+}

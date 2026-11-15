@@ -1,0 +1,38 @@
+[
+  {
+    "report" : {
+      "callDurationsMs" : [
+        206.64095878601074,
+        207.8338861465454,
+        205.93500137329102
+      ],
+      "maxBytes" : 25099,
+      "passed" : true,
+      "thread1Page2Posts" : 25,
+      "thread1Posts" : 25,
+      "thread2Posts" : 25
+    },
+    "siteHost" : "bbs.archlinux.org",
+    "software" : "FluxBB",
+    "thread1" : "https:\/\/bbs.archlinux.org\/viewtopic.php?id=95007",
+    "thread2" : "https:\/\/bbs.archlinux.org\/viewtopic.php?id=314636"
+  },
+  {
+    "report" : {
+      "callDurationsMs" : [
+        1108.3070039749146,
+        1156.8830013275146,
+        866.4549589157104
+      ],
+      "maxBytes" : 15190,
+      "passed" : true,
+      "thread1Page2Posts" : 6,
+      "thread1Posts" : 19,
+      "thread2Posts" : 19
+    },
+    "siteHost" : "discuss.flarum.org",
+    "software" : "Flarum",
+    "thread1" : "https:\/\/discuss.flarum.org\/d\/31150-prominent-post-numbers",
+    "thread2" : "https:\/\/discuss.flarum.org\/d\/39415-introducing-the-official-extension-discovery-beta"
+  }
+]

@@ -1,0 +1,82 @@
+{
+  "legacyNavigatorSameObject" : true,
+  "legacyToolCallJSON" : "{\"found\":true,\"code\":\"A9\"}",
+  "publicSites" : [
+    {
+      "loaded" : true,
+      "nativeWebKitModelContext" : false,
+      "registeredCount" : 0,
+      "toolNames" : [
+
+      ],
+      "url" : "https:\/\/news.ycombinator.com\/"
+    },
+    {
+      "loaded" : true,
+      "nativeWebKitModelContext" : false,
+      "registeredCount" : 0,
+      "toolNames" : [
+
+      ],
+      "url" : "https:\/\/bbs.archlinux.org\/"
+    },
+    {
+      "loaded" : true,
+      "nativeWebKitModelContext" : false,
+      "registeredCount" : 0,
+      "toolNames" : [
+
+      ],
+      "url" : "https:\/\/discuss.flarum.org\/"
+    },
+    {
+      "loaded" : true,
+      "nativeWebKitModelContext" : false,
+      "registeredCount" : 0,
+      "toolNames" : [
+
+      ],
+      "url" : "https:\/\/webkit.org\/"
+    },
+    {
+      "loaded" : true,
+      "nativeWebKitModelContext" : false,
+      "registeredCount" : 2,
+      "toolNames" : [
+        "site.scan_website_agent_readiness",
+        "site.list_verified_agent_ready_sites"
+      ],
+      "url" : "https:\/\/sitepassport.org\/"
+    },
+    {
+      "loaded" : true,
+      "nativeWebKitModelContext" : false,
+      "registeredCount" : 5,
+      "toolNames" : [
+        "site.get_booking_state",
+        "site.list_accommodations",
+        "site.find_providers",
+        "site.select_provider",
+        "site.explain_capability"
+      ],
+      "url" : "https:\/\/parity-webmcp.vercel.app\/"
+    },
+    {
+      "loaded" : true,
+      "nativeWebKitModelContext" : false,
+      "registeredCount" : 9,
+      "toolNames" : [
+        "site.search_directory",
+        "site.get_site_tools",
+        "site.open_site_page",
+        "site.initiate_site_check",
+        "site.get_check_result",
+        "site.initiate_webmcp_build",
+        "site.search_webmcp_guides",
+        "site.get_benchmark_results",
+        "site.record_unsupported_request"
+      ],
+      "url" : "https:\/\/webmcp.com\/"
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+LearnSpike.xcodeproj/
+Host/Info.plist
+**/xcodebuild*.log
+results/.staging/
