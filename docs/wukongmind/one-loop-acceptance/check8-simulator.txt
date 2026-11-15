@@ -10,4 +10,5 @@ long reply characters: 338
 rows: 2
 In three short paragraphs, explain what this article argues and who it is for. Do not change the page. · Answer · 10 seconds ago · Open
 Make it dark · Answer · 23 seconds ago · Open
-# An earlier run of the same test (before the row-text fix) had a 174-character reply, and History held only the long answer (rows: 1).
+# With the shipped prompt, "Make it dark" was saved every time (432, 436 and 444 characters, plus one earlier run whose length wasn't logged).
+# A 174-character reply that stayed out came only while a brevity sentence was briefly in the prompt; that sentence was removed.

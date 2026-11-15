@@ -52,6 +52,13 @@ final class OneLoopAcceptanceTests: XCTestCase {
         try await OneLoopComparisonTests.assertReplays(saved, question: question, set: Self.set, folder: try temporaryFolder())
     }
 
+    /// Operating rule 7 is in every Agent prompt: only the final message is shown and saved.
+    func testThePromptPutsTheWholeAnswerInTheFinalMessage() {
+        let system = BrowserAgentPrompt.system(page: AgentPageMetadata(url: "https://example.org", title: "Example"))
+        XCTAssertTrue(system.contains("7. Your final message is the answer"))
+        XCTAssertTrue(system.contains("after any `read_aloud` call"))
+    }
+
     func testRecordMultiStepRun() async throws {
         let env = ProcessInfo.processInfo.environment
         guard env["ONE_LOOP_ACCEPT_RECORD"] == "1" else { throw XCTSkip("Record mode only: ONE_LOOP_ACCEPT_RECORD=1.") }
