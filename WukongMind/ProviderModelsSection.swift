@@ -19,6 +19,8 @@ struct ProviderModelsSection: View {
     @State private var showAll = false
     @State private var searchQuery = ""
     @State private var loadTask: Task<Void, Never>?
+    @State private var loadID = UUID()
+    @State private var accessibilityActionModel: DiscoveredModel?
 
     private var configuration: ProviderConfiguration {
         app.settings.configuration(for: provider)
@@ -26,10 +28,6 @@ struct ProviderModelsSection: View {
 
     private var trimmedAPIKey: String {
         configuration.apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
-    private var trimmedBaseURL: String {
-        configuration.baseURL.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     private var isFixedList: Bool {
@@ -114,16 +112,116 @@ struct ProviderModelsSection: View {
                 triggerLoad(debounced: false)
             }
         }
-        .onChange(of: trimmedAPIKey) {
+        .onChange(of: configuration.apiKey) {
             handleConfigurationChange()
         }
-        .onChange(of: trimmedBaseURL) {
+        .onChange(of: configuration.baseURL) {
             handleConfigurationChange()
+        }
+        .onChange(of: hasCachedResult) { _, hasCached in
+            if hasCached {
+                errorMessage = nil
+                if loadTask == nil {
+                    isLoading = false
+                }
+            } else if !isFixedList && !needsKeyBeforeFetch && loadTask == nil {
+                triggerLoad(debounced: false)
+            }
         }
         .onDisappear {
             loadTask?.cancel()
             loadTask = nil
+            loadID = UUID()
             isLoading = false
+        }
+        .confirmationDialog(
+            Text(verbatim: dialogTitle(for: accessibilityActionModel)),
+            isPresented: Binding(
+                get: { accessibilityActionModel != nil },
+                set: { if !$0 { accessibilityActionModel = nil } }
+            ),
+            presenting: accessibilityActionModel,
+            actions: { model in
+                accessibilityDialogItems(for: model)
+            }
+        )
+    }
+
+    private func dialogTitle(for model: DiscoveredModel?) -> String {
+        guard let model else { return "" }
+        if provider.isAppleIntelligence {
+            return String(
+                localized: "Foundation Model",
+                comment: "Settings › Models › Apple Intelligence: the single built-in model row title"
+            )
+        }
+        return model.id
+    }
+
+    @ViewBuilder
+    private func accessibilityDialogItems(for model: DiscoveredModel) -> some View {
+        let selection = ModelSelection(provider: provider, model: model.id)
+        let isStarred = app.isFavorite(selection)
+        let canToggleFavorite = app.isProviderSelectable(provider) || isStarred
+        let activeRoles = ModelRole.uiRoles.filter { role in
+            guard app.hasConfiguredModel(for: role) else { return false }
+            let roleSelection = app.selection(for: role)
+            return provider.isAppleIntelligence ? roleSelection.provider.isAppleIntelligence : roleSelection == selection
+        }
+        let copyableName = provider.isAppleIntelligence ? dialogTitle(for: model) : model.id
+
+        let agentTitle = String(localized: "Use for Agent", comment: "Provider model menu: sets this model as the Agent model")
+        if selection.supportsToolCalling {
+            Button {
+                DCHaptics.tap()
+                app.selectModel(selection, for: .role(.browserAgent))
+            } label: {
+                if activeRoles.contains(.browserAgent) {
+                    Label(agentTitle, systemImage: "checkmark")
+                } else {
+                    Text(verbatim: agentTitle)
+                }
+            }
+        } else {
+            let reason = String(localized: "Needs a tool-calling model", comment: "Provider model menu: subtitle explaining why Use for Agent is disabled")
+            Button {} label: {
+                Text(verbatim: "\(agentTitle) — \(reason)")
+            }
+            .disabled(true)
+        }
+
+        let summariesTitle = String(localized: "Use for Summaries", comment: "Provider model menu: sets this model as the Summaries model")
+        Button {
+            DCHaptics.tap()
+            app.selectModel(selection, for: .role(.assistant))
+        } label: {
+            if activeRoles.contains(.assistant) {
+                Label(summariesTitle, systemImage: "checkmark")
+            } else {
+                Text(verbatim: summariesTitle)
+            }
+        }
+        .disabled(!app.isProviderSelectable(provider))
+
+        Button {
+            DCHaptics.tap()
+            app.toggleFavorite(selection)
+        } label: {
+            Label(
+                isStarred ? String(localized: "Remove from favorites") : String(localized: "Add to favorites"),
+                systemImage: isStarred ? "star.slash" : "star"
+            )
+        }
+        .disabled(!canToggleFavorite)
+
+        Button {
+            DCHaptics.tap()
+            UIPasteboard.general.string = copyableName
+        } label: {
+            Label(
+                String(localized: "Copy model name", comment: "Provider model menu: copies the model identifier to the clipboard"),
+                systemImage: "doc.on.doc"
+            )
         }
     }
 
@@ -288,7 +386,12 @@ struct ProviderModelsSection: View {
             let visible = shouldCollapse ? Array(filtered.prefix(Self.initialVisibleCount)) : filtered
 
             ForEach(visible) { model in
-                ProviderModelRow(app: app, provider: provider, model: model)
+                ProviderModelRow(
+                    app: app,
+                    provider: provider,
+                    model: model,
+                    onShowAccessibilityActions: { accessibilityActionModel = model }
+                )
             }
 
             if shouldCollapse {
@@ -360,6 +463,7 @@ struct ProviderModelsSection: View {
         if needsKeyBeforeFetch {
             loadTask?.cancel()
             loadTask = nil
+            loadID = UUID()
             isLoading = false
             return
         }
@@ -368,15 +472,18 @@ struct ProviderModelsSection: View {
 
     private func triggerLoad(debounced: Bool) {
         loadTask?.cancel()
+        let currentID = UUID()
+        loadID = currentID
         isLoading = true
         errorMessage = nil
         loadTask = Task { @MainActor in
             if debounced {
                 try? await Task.sleep(for: .milliseconds(350))
-                guard !Task.isCancelled else { return }
+                guard !Task.isCancelled, loadID == currentID else { return }
             }
             let outcome = await app.discoverModels(provider: provider)
-            guard !Task.isCancelled else { return }
+            guard !Task.isCancelled, loadID == currentID else { return }
+            loadTask = nil
             switch outcome {
             case .success:
                 errorMessage = nil
@@ -385,7 +492,11 @@ struct ProviderModelsSection: View {
                 errorMessage = message
                 isLoading = false
             case .stale:
-                break
+                if !needsKeyBeforeFetch && app.discoveredModels[provider] == nil {
+                    triggerLoad(debounced: true)
+                } else {
+                    isLoading = false
+                }
             }
         }
     }
@@ -397,6 +508,7 @@ struct ProviderModelRow: View {
     @ObservedObject var app: AppModel
     let provider: AIProvider
     let model: DiscoveredModel
+    let onShowAccessibilityActions: () -> Void
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
@@ -485,7 +597,7 @@ struct ProviderModelRow: View {
         .frame(minHeight: DCTheme.controlHeight)
         .listRowInsets(EdgeInsets(top: 0, leading: 2, bottom: 0, trailing: 4))
         .listRowBackground(DCTheme.surface)
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(voiceOverLabel))
         .accessibilityAction(
             named: Text("Toggle favorite", comment: "VoiceOver custom action on a provider model row to star or unstar the model")
@@ -494,23 +606,27 @@ struct ProviderModelRow: View {
             DCHaptics.tap()
             app.toggleFavorite(selection)
         }
+        .accessibilityAction(
+            named: Text("Actions", comment: "VoiceOver action name for a model row's more menu")
+        ) {
+            DCHaptics.tap()
+            onShowAccessibilityActions()
+        }
         .accessibilityIdentifier("modelRow-\(rowKey)")
     }
 
     private var starButton: some View {
-        Button {
-            DCHaptics.tap()
-            app.toggleFavorite(selection)
-        } label: {
-            Image(systemName: isStarred ? "star.fill" : "star")
-                .font(.system(size: 18, weight: .regular))
-                .foregroundStyle(isStarred ? DCTheme.gold : DCTheme.inkFaint)
-                .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .disabled(!canToggleFavorite)
-        .accessibilityHidden(true)
+        Image(systemName: isStarred ? "star.fill" : "star")
+            .font(.system(size: 18, weight: .regular))
+            .foregroundStyle(isStarred ? DCTheme.gold : DCTheme.inkFaint)
+            .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                guard canToggleFavorite else { return }
+                DCHaptics.tap()
+                app.toggleFavorite(selection)
+            }
+            .accessibilityHidden(true)
     }
 
     @ViewBuilder
@@ -570,95 +686,156 @@ struct ProviderModelRow: View {
     }
 
     private var moreMenu: some View {
-        Menu {
-            Section {
-                useForAgentItem
-                useForSummariesItem
-            } header: {
-                if !provider.isAppleIntelligence {
-                    Text(verbatim: model.id)
-                }
+        ProviderModelMoreMenuButton(
+            headerTitle: provider.isAppleIntelligence ? "" : model.id,
+            supportsToolCalling: selection.supportsToolCalling,
+            isProviderSelectable: app.isProviderSelectable(provider),
+            isUsedForAgent: activeRoles.contains(.browserAgent),
+            isUsedForSummaries: activeRoles.contains(.assistant),
+            isStarred: isStarred,
+            canToggleFavorite: canToggleFavorite,
+            onSelectRole: { role in
+                app.selectModel(selection, for: .role(role))
+            },
+            onToggleFavorite: {
+                app.toggleFavorite(selection)
+            },
+            onCopyModelName: {
+                UIPasteboard.general.string = copyableModelName
             }
+        )
+        .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
+        .accessibilityHidden(true)
+    }
+}
 
-            Section {
-                Button {
-                    DCHaptics.tap()
-                    app.toggleFavorite(selection)
-                } label: {
-                    Label(
-                        isStarred ? String(localized: "Remove from favorites") : String(localized: "Add to favorites"),
-                        systemImage: isStarred ? "star.slash" : "star"
-                    )
-                }
-                .disabled(!canToggleFavorite)
+/// Native `UIMenu` button hidden from VoiceOver (`accessibilityElementsHidden = true`)
+/// so `ProviderModelRow` stays a single VoiceOver focus stop (whose `Actions`
+/// custom action opens the same items) without SwiftUI `Form` splitting the row.
+private struct ProviderModelMoreMenuButton: UIViewRepresentable {
+    let headerTitle: String
+    let supportsToolCalling: Bool
+    let isProviderSelectable: Bool
+    let isUsedForAgent: Bool
+    let isUsedForSummaries: Bool
+    let isStarred: Bool
+    let canToggleFavorite: Bool
+    let onSelectRole: @MainActor (ModelRole) -> Void
+    let onToggleFavorite: @MainActor () -> Void
+    let onCopyModelName: @MainActor () -> Void
 
-                Button {
-                    DCHaptics.tap()
-                    UIPasteboard.general.string = copyableModelName
-                } label: {
-                    Label(
-                        String(localized: "Copy model name", comment: "Provider model menu: copies the model identifier to the clipboard"),
-                        systemImage: "doc.on.doc"
-                    )
-                }
-            }
-        } label: {
-            Image(systemName: "ellipsis.circle")
-                .font(.system(size: 20, weight: .regular))
-                .foregroundStyle(DCTheme.goldInk)
-                .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.borderless)
-        .accessibilityLabel(Text("Actions", comment: "VoiceOver action name for a model row's more menu"))
-        .accessibilityIdentifier("modelMore-\(rowKey)")
+    func makeUIView(context: Context) -> AccessibilityHiddenMenuContainer {
+        AccessibilityHiddenMenuContainer()
     }
 
-    @ViewBuilder
-    private var useForAgentItem: some View {
-        let isUsedForAgent = activeRoles.contains(.browserAgent)
-        if selection.supportsToolCalling {
-            Button {
-                DCHaptics.tap()
-                app.selectModel(selection, for: .role(.browserAgent))
-            } label: {
-                if isUsedForAgent {
-                    Label(
-                        String(localized: "Use for Agent", comment: "Provider model menu: sets this model as the Agent model"),
-                        systemImage: "checkmark"
-                    )
-                } else {
-                    Text("Use for Agent", comment: "Provider model menu: sets this model as the Agent model")
+    func updateUIView(_ uiView: AccessibilityHiddenMenuContainer, context: Context) {
+        uiView.button.tintColor = UIColor(DCTheme.goldInk)
+        uiView.button.menu = makeMenu()
+    }
+
+    private func makeMenu() -> UIMenu {
+        let selectRole = onSelectRole
+        let toggleFavorite = onToggleFavorite
+        let copyModelName = onCopyModelName
+
+        let agentTitle = String(localized: "Use for Agent", comment: "Provider model menu: sets this model as the Agent model")
+        let agentAction: UIAction
+        if supportsToolCalling {
+            agentAction = UIAction(
+                title: agentTitle,
+                state: isUsedForAgent ? .on : .off
+            ) { _ in
+                Task { @MainActor in
+                    DCHaptics.tap()
+                    selectRole(.browserAgent)
                 }
             }
         } else {
-            Button {} label: {
-                Text("Use for Agent", comment: "Provider model menu: sets this model as the Agent model")
-                Text(
-                    "Needs a tool-calling model",
-                    comment: "Provider model menu: subtitle explaining why Use for Agent is disabled"
-                )
-            }
-            .disabled(true)
+            let reason = String(
+                localized: "Needs a tool-calling model",
+                comment: "Provider model menu: subtitle explaining why Use for Agent is disabled"
+            )
+            let disabled = UIAction(title: agentTitle, attributes: .disabled) { _ in }
+            disabled.subtitle = reason
+            agentAction = disabled
         }
+
+        let summariesTitle = String(localized: "Use for Summaries", comment: "Provider model menu: sets this model as the Summaries model")
+        let summariesAction = UIAction(
+            title: summariesTitle,
+            attributes: isProviderSelectable ? [] : .disabled,
+            state: isUsedForSummaries ? .on : .off
+        ) { _ in
+            Task { @MainActor in
+                DCHaptics.tap()
+                selectRole(.assistant)
+            }
+        }
+
+        let favoriteAction = UIAction(
+            title: isStarred
+                ? String(localized: "Remove from favorites")
+                : String(localized: "Add to favorites"),
+            image: UIImage(systemName: isStarred ? "star.slash" : "star"),
+            attributes: canToggleFavorite ? [] : .disabled
+        ) { _ in
+            Task { @MainActor in
+                DCHaptics.tap()
+                toggleFavorite()
+            }
+        }
+
+        let copyAction = UIAction(
+            title: String(localized: "Copy model name", comment: "Provider model menu: copies the model identifier to the clipboard"),
+            image: UIImage(systemName: "doc.on.doc")
+        ) { _ in
+            Task { @MainActor in
+                DCHaptics.tap()
+                copyModelName()
+            }
+        }
+
+        let roleSection = UIMenu(title: "", options: .displayInline, children: [agentAction, summariesAction])
+        let utilitySection = UIMenu(title: "", options: .displayInline, children: [favoriteAction, copyAction])
+        return UIMenu(title: headerTitle, children: [roleSection, utilitySection])
+    }
+}
+
+private final class NonAccessibleMenuButton: UIButton {
+    override var isAccessibilityElement: Bool {
+        get { false }
+        set {}
+    }
+}
+
+private final class AccessibilityHiddenMenuContainer: UIView {
+    let button = NonAccessibleMenuButton(type: .system)
+
+    override var isAccessibilityElement: Bool {
+        get { false }
+        set {}
     }
 
-    @ViewBuilder
-    private var useForSummariesItem: some View {
-        let isUsedForSummaries = activeRoles.contains(.assistant)
-        Button {
-            DCHaptics.tap()
-            app.selectModel(selection, for: .role(.assistant))
-        } label: {
-            if isUsedForSummaries {
-                Label(
-                    String(localized: "Use for Summaries", comment: "Provider model menu: sets this model as the Summaries model"),
-                    systemImage: "checkmark"
-                )
-            } else {
-                Text("Use for Summaries", comment: "Provider model menu: sets this model as the Summaries model")
-            }
-        }
-        .disabled(!app.isProviderSelectable(provider))
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        accessibilityElementsHidden = true
+        button.accessibilityElementsHidden = true
+        button.showsMenuAsPrimaryAction = true
+        let symbolConfig = UIImage.SymbolConfiguration(pointSize: 20, weight: .regular)
+        button.setImage(UIImage(systemName: "ellipsis.circle", withConfiguration: symbolConfig), for: .normal)
+        button.imageView?.isAccessibilityElement = false
+        button.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(button)
+        NSLayoutConstraint.activate([
+            button.leadingAnchor.constraint(equalTo: leadingAnchor),
+            button.trailingAnchor.constraint(equalTo: trailingAnchor),
+            button.topAnchor.constraint(equalTo: topAnchor),
+            button.bottomAnchor.constraint(equalTo: bottomAnchor)
+        ])
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
 }

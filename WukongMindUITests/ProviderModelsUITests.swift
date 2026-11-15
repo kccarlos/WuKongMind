@@ -13,14 +13,9 @@ final class ProviderModelsUITests: DCUITestCase {
         super.tearDown()
     }
 
-    private func tapTrailingMore(on row: XCUIElement, key: String, in app: XCUIApplication) {
-        let button = app.buttons["modelMore-\(key)"]
-        if button.exists && button.isHittable {
-            button.tap()
-            return
-        }
+    private func tapTrailingMore(on row: XCUIElement) {
         row.coordinate(withNormalizedOffset: CGVector(dx: 1, dy: 0.5))
-            .withOffset(CGVector(dx: -24, dy: 0))
+            .withOffset(CGVector(dx: -22, dy: 0))
             .tap()
     }
 
@@ -80,6 +75,7 @@ final class ProviderModelsUITests: DCUITestCase {
         XCTAssertTrue(sonnetRow.label.contains("used for Agent"), "Got “\(sonnetRow.label)”.")
         XCTAssertTrue(sonnetRow.label.contains("favorite"), "Got “\(sonnetRow.label)”.")
         XCTAssertFalse(haikuRow.label.contains("used for Agent"), "Got “\(haikuRow.label)”.")
+        XCTAssertFalse(any(app, "modelMore-claude-haiku-5-5").exists, "⋯ must not create a separate VoiceOver focus stop.")
 
         capture(isPhone ? "p1-iphone-anthropic-initial-light" : "p1-ipad-anthropic-initial-light")
 
@@ -90,7 +86,7 @@ final class ProviderModelsUITests: DCUITestCase {
         XCTAssertLessThan(fableRow.frame.minY, haikuRow.frame.minY, "Starred models must stay in place.")
 
         // Open ⋯ on Claude Haiku 5.5 and move the Agent seal to it.
-        tapTrailingMore(on: haikuRow, key: "claude-haiku-5-5", in: app)
+        tapTrailingMore(on: haikuRow)
         let useForAgent = app.buttons.matching(label(contains: "Use for Agent")).firstMatch
         XCTAssertTrue(waitOrDump(useForAgent, timeout: 5, in: app))
         XCTAssertTrue(useForAgent.isEnabled)
@@ -135,8 +131,9 @@ final class ProviderModelsUITests: DCUITestCase {
         XCTAssertTrue(foundationRow.label.contains("Foundation Model"), "Got “\(foundationRow.label)”.")
         XCTAssertTrue(foundationRow.label.contains("Private Cloud Compute when available"), "Got “\(foundationRow.label)”.")
         XCTAssertTrue(foundationRow.label.contains("used for Summaries"), "Got “\(foundationRow.label)”.")
+        XCTAssertFalse(any(app, "modelMore-appleIntelligence").exists)
 
-        tapTrailingMore(on: foundationRow, key: "appleIntelligence", in: app)
+        tapTrailingMore(on: foundationRow)
 
         let useForAgent = app.buttons.matching(NSPredicate(format: "label CONTAINS 'Use for Agent'")).firstMatch
         XCTAssertTrue(waitOrDump(useForAgent, timeout: 5, in: app))
@@ -204,7 +201,7 @@ final class ProviderModelsUITests: DCUITestCase {
         let apiKeyField = app.secureTextFields["apiKeyField"]
         XCTAssertTrue(reveal(apiKeyField, in: app, swipes: 3))
         apiKeyField.tap()
-        apiKeyField.typeText("bad-test-key\n")
+        apiKeyField.typeText("key-with-trailing-space \n")
 
         let errorState = any(app, "modelsState-error")
         XCTAssertTrue(waitOrDump(errorState, timeout: 10, in: app))
@@ -240,6 +237,22 @@ final class ProviderModelsUITests: DCUITestCase {
         let searchField = app.textFields["searchProviderModels"]
         XCTAssertTrue(waitOrDump(searchField, timeout: 10, in: app))
         XCTAssertTrue(any(app, "modelRow-gpt-custom-22").exists, "Newest model by created timestamp should appear first.")
+
+        // 6. Tapping Test & Save trims the trailing space on the raw API key, invalidating
+        //    discoveredModels[.openAI]; ProviderModelsSection must reload rather than stay on Loading.
+        let requestsBeforeSave = server.requestCount
+        let testAndSave = app.buttons["testProvider"]
+        XCTAssertTrue(reveal(testAndSave, in: app, swipes: 6))
+        testAndSave.tap()
+        XCTAssertTrue(
+            wait(timeout: 10) { server.requestCount >= requestsBeforeSave + 2 },
+            "Expected both connection test and model list reload after trimming the raw API key; got \(server.requestCount - requestsBeforeSave) requests."
+        )
+        for _ in 0..<4 where !any(app, "modelRow-gpt-custom-22").exists {
+            app.swipeDown()
+        }
+        XCTAssertTrue(waitOrDump(any(app, "modelRow-gpt-custom-22"), timeout: 10, in: app))
+        XCTAssertFalse(any(app, "modelsState-loading").exists, "Models section must not stay stuck in Loading after Test & Save trims whitespace.")
     }
 
     func testDarkAndAccessibilitySizeAnthropicRowsWrapCleanly() throws {
@@ -318,10 +331,9 @@ final class ProviderModelsUITests: DCUITestCase {
             reveal(haikuRow, in: app, swipes: 6),
             "Live Anthropic /v1/models should list claude-haiku-5-5."
         )
-        let haikuID = String(haikuRow.identifier.dropFirst("modelRow-".count))
         capture("p1-live-anthropic-before-select")
 
-        tapTrailingMore(on: haikuRow, key: haikuID, in: app)
+        tapTrailingMore(on: haikuRow)
         let useForAgent = app.buttons.matching(label(contains: "Use for Agent")).firstMatch
         XCTAssertTrue(waitOrDump(useForAgent, timeout: 5, in: app))
         useForAgent.tap()

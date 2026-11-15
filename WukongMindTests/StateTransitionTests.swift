@@ -243,6 +243,116 @@ final class StateTransitionTests: XCTestCase {
         XCTAssertEqual(refused, .failure("The key was refused (401). Check it above."))
     }
 
+    func testTrimmingKeyOnTestAndSaveInvalidatesInFlightDiscoveryAndAllowsReload() async throws {
+        let harness = makeHarness()
+        let app = harness.app
+        var configuration = app.settings.configuration(for: .openAI)
+        configuration.apiKey = "  sk-test-key \n"
+        configuration.baseURL = "  https://api.openai.com/v1  "
+        configuration.model = "gpt-test"
+        app.setConfiguration(configuration, for: .openAI)
+
+        // Start a discovery call with the untrimmed configuration, then trim via Test & Save.
+        async let inFlight = app.discoverModels(provider: .openAI)
+        try await waitUntil { harness.ai.waiting == 1 }
+
+        let saveTask = Task { await app.testAndSaveProvider(.openAI) }
+        try await waitUntil { harness.ai.waiting == 2 }
+        XCTAssertEqual(app.settings.configuration(for: .openAI).apiKey, "sk-test-key")
+        XCTAssertEqual(app.settings.configuration(for: .openAI).baseURL, "https://api.openai.com/v1")
+        XCTAssertNil(app.discoveredModels[.openAI])
+
+        harness.ai.gated = false
+        harness.ai.releaseAll()
+        let firstOutcome = await inFlight
+        let saveState = await saveTask.value
+        XCTAssertEqual(firstOutcome, .stale)
+        XCTAssertEqual(saveState, .success)
+
+        // Reloading after the trim succeeds and populates the provider's model cache.
+        let reloaded = await app.discoverModels(provider: .openAI)
+        XCTAssertEqual(reloaded, .success)
+        XCTAssertEqual(app.discoveredModels[.openAI], [DiscoveredModel(id: "openai-model")])
+    }
+
+    func testProviderModelRowKeepsSubcontrolsHiddenFromVoiceOver() {
+        let harness = makeHarness()
+        let app = harness.app
+        select(app, .anthropic, model: "claude-sonnet-5-5", key: "sk-ant-test")
+        app.selectModel(ModelSelection(provider: .anthropic, model: "claude-sonnet-5-5"), for: .role(.browserAgent))
+        app.discoveredModels[.anthropic] = [
+            DiscoveredModel(id: "claude-sonnet-5-5", displayName: "Claude Sonnet 5.5"),
+            DiscoveredModel(id: "claude-haiku-5-5", displayName: "Claude Haiku 5.5")
+        ]
+
+        let host = UIHostingController(
+            rootView: NavigationStack {
+                Form {
+                    ProviderModelsSection(app: app, provider: .anthropic)
+                }
+            }
+        )
+        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(x: 0, y: 0, width: 393, height: 852))
+        window.frame = CGRect(x: 0, y: 0, width: 393, height: 852)
+        window.rootViewController = host
+        window.makeKeyAndVisible()
+        defer {
+            window.isHidden = true
+            window.rootViewController = nil
+        }
+        host.view.layoutIfNeeded()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+        host.view.layoutIfNeeded()
+
+        var menuButtons: [UIButton] = []
+        func findMenuButtons(in view: UIView) {
+            if let button = view as? UIButton, button.showsMenuAsPrimaryAction {
+                menuButtons.append(button)
+            }
+            for subview in view.subviews {
+                findMenuButtons(in: subview)
+            }
+        }
+        findMenuButtons(in: host.view)
+        XCTAssertEqual(menuButtons.count, 2, "Expected one native UIMenu button per rendered provider model row")
+
+        let titles = Set(menuButtons.compactMap { $0.menu?.title })
+        XCTAssertEqual(titles, ["claude-sonnet-5-5", "claude-haiku-5-5"])
+
+        for button in menuButtons {
+            XCTAssertFalse(button.isAccessibilityElement, "Trailing ⋯ UIMenu button must not be a separate VoiceOver focus stop")
+            XCTAssertTrue(button.accessibilityElementsHidden)
+            XCTAssertEqual(button.superview?.isAccessibilityElement, false)
+            XCTAssertEqual(button.superview?.accessibilityElementsHidden, true)
+
+            var enclosingCell: UICollectionViewCell?
+            var cursor = button.superview
+            while let current = cursor {
+                if let cell = current as? UICollectionViewCell {
+                    enclosingCell = cell
+                    break
+                }
+                cursor = current.superview
+            }
+            XCTAssertNotNil(enclosingCell)
+            if let cell = enclosingCell {
+                var controls: [UIControl] = []
+                func collectControls(in view: UIView) {
+                    if let control = view as? UIControl {
+                        controls.append(control)
+                    }
+                    for subview in view.subviews {
+                        collectControls(in: subview)
+                    }
+                }
+                collectControls(in: cell)
+                XCTAssertEqual(controls.count, 1, "Leading favorite star must not create an extra UIControl inside the row cell")
+                XCTAssertTrue(controls.allSatisfy { !$0.isAccessibilityElement })
+            }
+        }
+    }
+
     // MARK: 4. Limits and instructions
 
     func testLimitsAndInstructionsAreTakenWhenWorkStarts() async throws {
