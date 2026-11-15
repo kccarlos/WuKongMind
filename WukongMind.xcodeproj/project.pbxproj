@@ -535,6 +535,7 @@
 		C063605DC8ECB0D89F63FE4D47D4090D /* GMBridgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D83AD552802594136E0191D5C7021ACB /* GMBridgeTests.swift */; };
 		C10EC538D209795633FD327FCE98FCFC /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-d31745609986.json in Resources */ = {isa = PBXBuildFile; fileRef = 4A225F6DDB05B2F6D3B93F1E7A431405 /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-d31745609986.json */; };
 		C11BCE709DC494518CC69CA046245F45 /* OneLoopLiveAcceptanceUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B955D21957DA673EDADDD9C700BE403 /* OneLoopLiveAcceptanceUITests.swift */; };
+		C12B892A1D4B729772A22F96EBA5AFB4 /* GMRequestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2393A13350D6599ECF5D7F6AA0F14FB /* GMRequestTests.swift */; };
 		C173A2D8AE250646B53FA262852C85C9 /* TaskExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5632CF2CC3890AFFB6970E9CACDE047 /* TaskExport.swift */; };
 		C1D131C0D48BEC6E7AB32DBF1E7A3612 /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-51eff870a0cc.json in Resources */ = {isa = PBXBuildFile; fileRef = 89A57081916C1AD1246248D2B5F1E4AA /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-51eff870a0cc.json */; };
 		C26C86708491CCABB0452CC83CA4A2BC /* VoiceDebug.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62FBA0B25EEE7BD656B87D3522AE88F6 /* VoiceDebug.swift */; };
@@ -1392,6 +1393,7 @@
 		F100891CAFFDE64AD2C47B781D0FE96A /* HackerNewsAdapter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HackerNewsAdapter.swift; path = Sites/HackerNews/HackerNewsAdapter.swift; sourceTree = "<group>"; };
 		F1C654A619F6FAD7D879E7D57150A85D /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-ca88601e7353.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "wordpress-www-doctorofcredit-com-wp-json-wp-v2-ca88601e7353.json"; path = "Fixtures/Comparison/wordpress/wordpress-www-doctorofcredit-com-wp-json-wp-v2-ca88601e7353.json"; sourceTree = "<group>"; };
 		F1D46EE34621EEEC1B1FA5A3556CA80D /* ResultCards.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ResultCards.swift; sourceTree = "<group>"; };
+		F2393A13350D6599ECF5D7F6AA0F14FB /* GMRequestTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GMRequestTests.swift; sourceTree = "<group>"; };
 		F2762D65E5CAFC8252641937B0EF1D6B /* TimeStretchTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TimeStretchTests.swift; sourceTree = "<group>"; };
 		F29DD93ECE0A31AA8F8ED6BA0DFC891D /* ToolRegistry+Capture.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "ToolRegistry+Capture.swift"; sourceTree = "<group>"; };
 		F2BABF2BED7FBB813A94B3E757AD7145 /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-40c01af7094b.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "wordpress-www-doctorofcredit-com-wp-json-wp-v2-40c01af7094b.json"; path = "Fixtures/Comparison/wordpress/wordpress-www-doctorofcredit-com-wp-json-wp-v2-40c01af7094b.json"; sourceTree = "<group>"; };
@@ -1810,6 +1812,7 @@
 				6CB8D0081FB29D0C0B5B535953B6C26E /* ForumToolsTests.swift */,
 				FADC5982425C8F528B82C256F7B400B8 /* ForumTransportTests.swift */,
 				D83AD552802594136E0191D5C7021ACB /* GMBridgeTests.swift */,
+				F2393A13350D6599ECF5D7F6AA0F14FB /* GMRequestTests.swift */,
 				86CCFF833B924FC450400E3FD57BF0E3 /* HistoryTests.swift */,
 				E7DA7F02CEF4E15B83224E12636BCF7C /* HomeTests.swift */,
 				4BDA17EE0B24B071D63CA3AA13B40C08 /* IPadLayoutTests.swift */,
@@ -2859,6 +2862,7 @@
 				5B8B919E3CF631E9C034350FA2D3225D /* ForumToolsTests.swift in Sources */,
 				4EBF9497C78D5B5A95003CC88EE7985B /* ForumTransportTests.swift in Sources */,
 				C063605DC8ECB0D89F63FE4D47D4090D /* GMBridgeTests.swift in Sources */,
+				C12B892A1D4B729772A22F96EBA5AFB4 /* GMRequestTests.swift in Sources */,
 				222A063D31DF1B858C5A61F881D5C47F /* HistoryTests.swift in Sources */,
 				227792419E8FEFA4323650A6D570D08E /* HomeTests.swift in Sources */,
 				FF675C257CFBE930D866393A83D509CB /* IPadLayoutTests.swift in Sources */,

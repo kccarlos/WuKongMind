@@ -1708,6 +1708,8 @@ final class ScriptStore {
     let valuesDirectoryURL: URL
     @ObservationIgnored
     let valuesStore: ScriptValuesStore
+    @ObservationIgnored
+    let requestLimiter = ScriptRequestLimiter()
     private(set) var scripts: [UserScript] = [] {
         didSet { onStoreChanged?() }
     }
@@ -1720,6 +1722,7 @@ final class ScriptStore {
     private(set) var lastExecutedAt: [String: Date] = [:] {
         didSet { onStoreChanged?() }
     }
+    private(set) var menuCommandsRevision: Int = 0
 
     @ObservationIgnored
     private var lastErrorLoadIDs: [String: String] = [:]
@@ -1743,6 +1746,9 @@ final class ScriptStore {
 
     @ObservationIgnored
     private var attachedControllers: [WeakScriptWebController] = []
+
+    @ObservationIgnored
+    private var liveSyncTask: Task<Void, Never>?
 
     private struct WeakScriptWebController {
         weak var controller: ScriptWebController?
@@ -1921,6 +1927,10 @@ final class ScriptStore {
 
     func noteExecuted(scriptID: String, at date: Date = Date()) {
         lastExecutedAt[scriptID] = date
+    }
+
+    func noteMenuCommandsChanged() {
+        menuCommandsRevision &+= 1
     }
 
     func error(for scriptID: String) -> ScriptRuntimeError? {
@@ -2209,9 +2219,8 @@ final class ScriptStore {
         }
         guard changedEnabled else { return current }
         syncAttachedUserScripts()
-        for entry in attachedControllers {
-            guard let controller = entry.controller else { continue }
-            Task { @MainActor in
+        enqueueLiveControllerSync { controllers in
+            for controller in controllers {
                 if isEnabled {
                     _ = await controller.applyLiveScript(current, runJS: runLiveJS)
                 } else {
@@ -2294,9 +2303,8 @@ final class ScriptStore {
         consecutiveErrorLoads.removeValue(forKey: id)
         lastErrorLoadIDs.removeValue(forKey: id)
         syncAttachedUserScripts()
-        for entry in attachedControllers {
-            guard let controller = entry.controller else { continue }
-            Task { @MainActor in
+        enqueueLiveControllerSync { controllers in
+            for controller in controllers {
                 if restored.isEnabled {
                     _ = await controller.applyLiveScript(restored, runJS: false)
                 } else {
@@ -2320,9 +2328,8 @@ final class ScriptStore {
         valuesStore.removeValuesForDeletedScript(id: id)
         try removeScriptFilesFromDisk(id: id)
         syncAttachedUserScripts()
-        for entry in attachedControllers {
-            guard let controller = entry.controller else { continue }
-            Task { @MainActor in
+        enqueueLiveControllerSync { controllers in
+            for controller in controllers {
                 await controller.removeLiveScript(id: id)
             }
         }
@@ -2375,9 +2382,8 @@ final class ScriptStore {
         sortScriptsInPlace()
         valuesStore.restoreValuesForUndoneDelete(id: script.id)
         syncAttachedUserScripts()
-        for entry in attachedControllers {
-            guard let controller = entry.controller else { continue }
-            Task { @MainActor in
+        enqueueLiveControllerSync { controllers in
+            for controller in controllers {
                 if script.isEnabled {
                     _ = await controller.applyLiveScript(script, runJS: false)
                 } else {
@@ -2460,9 +2466,8 @@ final class ScriptStore {
         scripts[idx] = disabled
         consecutiveErrorLoads[scriptID] = 0
         syncAttachedUserScripts()
-        for entry in attachedControllers {
-            guard let controller = entry.controller else { continue }
-            Task { @MainActor in
+        enqueueLiveControllerSync { controllers in
+            for controller in controllers {
                 await controller.removeLiveScript(id: scriptID)
             }
         }
@@ -2704,13 +2709,27 @@ final class ScriptStore {
         }
     }
 
+    private func enqueueLiveControllerSync(
+        _ operation: @escaping @MainActor ([ScriptWebController]) async -> Void
+    ) {
+        attachedControllers.removeAll { $0.controller == nil }
+        let controllers = attachedControllers.compactMap(\.controller)
+        guard !controllers.isEmpty else { return }
+        let previous = liveSyncTask
+        liveSyncTask = Task { @MainActor in
+            _ = await previous?.value
+            await operation(controllers)
+        }
+    }
+
     private func syncAttachedWebControllersForGlobalToggle() {
         attachedControllers.removeAll { $0.controller == nil }
         let enabled = isGlobalEnabled
         for entry in attachedControllers {
-            guard let controller = entry.controller else { continue }
-            controller.syncUserScripts()
-            Task { @MainActor in
+            entry.controller?.syncUserScripts()
+        }
+        enqueueLiveControllerSync { controllers in
+            for controller in controllers {
                 await controller.syncLiveGlobalState(isEnabled: enabled)
             }
         }
@@ -2803,6 +2822,9 @@ final class ScriptWebController: ScriptLiveApplying {
         gmBridge.onValuesMutated = { [weak store] _ in
             store?.markAttachedUserScriptsStale()
         }
+        gmBridge.onMenuCommandsChanged = { [weak store] in
+            store?.noteMenuCommandsChanged()
+        }
         gmBridge.onScriptError = { [weak self] scriptID, payload in
             self?.handleReportedScriptError(scriptID: scriptID, payload: payload)
         }
@@ -2834,8 +2856,13 @@ final class ScriptWebController: ScriptLiveApplying {
             notifyNavigationChange()
         }
 
-        loadingObservation = webView.observe(\.isLoading, options: [.new]) { _, change in
+        loadingObservation = webView.observe(\.isLoading, options: [.new]) { [weak self] _, change in
             guard change.newValue == true else { return }
+            if Thread.isMainThread {
+                MainActor.assumeIsolated { self?.gmBridge.clearAllMenuCommands() }
+            } else {
+                Task { @MainActor [weak self] in self?.gmBridge.clearAllMenuCommands() }
+            }
             notifyNavigationChange()
         }
 
@@ -3172,6 +3199,9 @@ final class ScriptWebController: ScriptLiveApplying {
                 world = .page
             } else {
                 await cleanupPageWorldScript(id: script.id)
+                if runJS {
+                    gmBridge.clearMenuCommands(for: script.id)
+                }
                 let scriptWorld = retainedScriptWorld(for: script.id)
                 pageToolBridge?.setOwnedScriptWorlds(activeScriptWorlds)
                 if let controller = webView?.configuration.userContentController {
@@ -3209,7 +3239,51 @@ final class ScriptWebController: ScriptLiveApplying {
         return ScriptLiveApplicationOutcome(applied: true, runtimeError: capturedError)
     }
 
+    func menuCommands(for scriptID: String) -> [ScriptMenuCommand] {
+        _ = store.menuCommandsRevision
+        guard !isDetached, store.isGlobalEnabled else { return [] }
+        return gmBridge.menuCommands(for: scriptID)
+    }
+
+    func invokeMenuCommand(scriptID: String, commandID: String) {
+        Task { @MainActor [weak self] in
+            _ = await self?.invokeMenuCommandAsync(scriptID: scriptID, commandID: commandID)
+        }
+    }
+
+    @discardableResult
+    func invokeMenuCommandAsync(scriptID: String, commandID: String) async -> Bool {
+        guard !isDetached,
+              let script = resolveActiveScript(id: scriptID),
+              !script.runsInPageWorld,
+              let world = activeScriptWorlds[scriptID] else {
+            return false
+        }
+        do {
+            let result = try await evalAsync(
+                script: """
+                if (typeof window.__wukongInvokeMenuCommand !== "function") return { ok: false };
+                return await window.__wukongInvokeMenuCommand(commandId);
+                """,
+                arguments: ["commandId": commandID],
+                world: world
+            ) as? [String: Any]
+            if let err = result?["error"] as? String, !err.isEmpty {
+                let currentURL = await currentLoadedURL()
+                handleReportedScriptError(
+                    scriptID: scriptID,
+                    payload: ["message": err, "url": currentURL?.absoluteString ?? ""]
+                )
+                return false
+            }
+            return (result?["ok"] as? Bool) == true
+        } catch {
+            return false
+        }
+    }
+
     func removeLiveScript(id: String) async {
+        gmBridge.clearMenuCommands(for: id)
         guard !isDetached, webView != nil else { return }
         await pageToolBridge?.clearScriptTools(scriptID: id)
         _ = try? await evalAsync(
@@ -3229,6 +3303,9 @@ final class ScriptWebController: ScriptLiveApplying {
     }
 
     func syncLiveGlobalState(isEnabled: Bool) async {
+        if !isEnabled {
+            gmBridge.clearAllMenuCommands()
+        }
         guard !isDetached, webView != nil else { return }
         if !isEnabled {
             await pageToolBridge?.clearAllScriptTools()
@@ -3243,7 +3320,7 @@ final class ScriptWebController: ScriptLiveApplying {
             for world in activeScriptWorlds.values {
                 guard !isDetached else { return }
                 _ = try? await evalAsync(
-                    script: "window.__wukongScriptsGlobalEnabled = false; if (typeof window.__wukongClearGMStyles === \"function\") window.__wukongClearGMStyles(); return true;",
+                    script: "window.__wukongScriptsGlobalEnabled = false; if (typeof window.__wukongClearGMStyles === \"function\") window.__wukongClearGMStyles(); if (typeof window.__wukongClearGMMenuCommands === \"function\") window.__wukongClearGMMenuCommands(); return true;",
                     arguments: [:], world: world
                 )
             }
@@ -3290,6 +3367,7 @@ final class ScriptWebController: ScriptLiveApplying {
     }
 
     private func cleanupScriptWorldIfActive(id: String) async {
+        gmBridge.clearMenuCommands(for: id)
         guard let world = activeScriptWorlds[id] else { return }
         _ = try? await evalAsync(
             script: """
@@ -3297,6 +3375,7 @@ final class ScriptWebController: ScriptLiveApplying {
             window.__wukongDisabledScriptIDs[scriptId] = true;
             if (window.__wukongLiveJSRouteHandlers) window.__wukongLiveJSRouteHandlers.delete(scriptId);
             if (typeof window.__wukongClearGMStyles === "function") window.__wukongClearGMStyles();
+            if (typeof window.__wukongClearGMMenuCommands === "function") window.__wukongClearGMMenuCommands();
             return true;
             """,
             arguments: ["scriptId": id],
@@ -3952,8 +4031,13 @@ final class ScriptWebController: ScriptLiveApplying {
             if (!window.__wukongScriptsGlobalEnabled) return;
             if (window.__wukongDisabledScriptIDs && window.__wukongDisabledScriptIDs[SCRIPT_ID]) return;
             const href = __wukongReadHref();
-            if (!window.__wukongMatchesRules(RULES, href)) { lastExecutedHref = null; return; }
+            if (!window.__wukongMatchesRules(RULES, href)) {
+              if (lastExecutedHref !== null && typeof window.__wukongClearGMMenuCommands === "function") window.__wukongClearGMMenuCommands(true);
+              lastExecutedHref = null;
+              return;
+            }
             if (href === lastExecutedHref) return;
+            if (lastExecutedHref !== null && typeof window.__wukongClearGMMenuCommands === "function") window.__wukongClearGMMenuCommands(true);
             lastExecutedHref = href;
             __wukongRunMain(__wukongUserMain, LOAD_ID, isInitialLoad);
           };
@@ -4023,7 +4107,7 @@ final class ScriptWebController: ScriptLiveApplying {
             pageToolShimJS: pageToolShimJS,
             pageToolBind: pageToolBind
         )
-        let clearStyles = executeImmediately ? "if (typeof window.__wukongClearGMStyles === \"function\") window.__wukongClearGMStyles();" : ""
+        let clearStyles = executeImmediately ? "if (typeof window.__wukongClearGMStyles === \"function\") window.__wukongClearGMStyles(); if (typeof window.__wukongClearGMMenuCommands === \"function\") window.__wukongClearGMMenuCommands();" : ""
         return """
         \(parts.worldSetup)
         window.__wukongScriptsGlobalEnabled = true;
@@ -4037,8 +4121,13 @@ final class ScriptWebController: ScriptLiveApplying {
           if (!window.__wukongScriptsGlobalEnabled) return;
           if (window.__wukongDisabledScriptIDs && window.__wukongDisabledScriptIDs[SCRIPT_ID]) return;
           const href = __wukongReadHref();
-          if (!window.__wukongMatchesRules(RULES, href)) { lastExecutedHref = null; return; }
+          if (!window.__wukongMatchesRules(RULES, href)) {
+            if (lastExecutedHref !== null && typeof window.__wukongClearGMMenuCommands === "function") window.__wukongClearGMMenuCommands(true);
+            lastExecutedHref = null;
+            return;
+          }
           if (href === lastExecutedHref) return;
+          if (lastExecutedHref !== null && typeof window.__wukongClearGMMenuCommands === "function") window.__wukongClearGMMenuCommands(true);
           lastExecutedHref = href;
           __wukongRunMain(__wukongUserMain, "", false);
         };

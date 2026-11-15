@@ -628,7 +628,7 @@ final class GMBridgeTests: XCTestCase {
         XCTAssertEqual(p1["overTotal"], .bool(true))
         XCTAssertEqual(p1["keys"], .array([.string("fill1"), .string("fill2"), .string("persisted")]))
         XCTAssertEqual(p1["handler"], .string("WukongMind"))
-        XCTAssertEqual(p1["gmDotType"], .string("undefined"))
+        XCTAssertEqual(p1["gmDotType"], .string("object"))
 
         XCTAssertTrue(FileManager.default.fileExists(atPath: valuesFile.path))
         XCTAssertFalse(try XCTUnwrap(store.script(id: "gm-values")).toUserScriptFileContent().contains(String(repeating: "a", count: 1024)))

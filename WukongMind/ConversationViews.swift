@@ -46,7 +46,7 @@ enum DCToolLabel {
         case "network_log": running ? String(localized: "Reading network log") : String(localized: "Read network log")
         case "navigate": running ? String(localized: "Opening page") : String(localized: "Opened page")
         case "reload_page": running ? String(localized: "Reloading page") : String(localized: "Reloaded page")
-        case "http_request": running ? String(localized: "Sending request") : String(localized: "Sent request")
+        case "http_request", "GM_xmlhttpRequest": running ? String(localized: "Sending request") : String(localized: "Sent request")
         case "cookies_get": running ? String(localized: "Reading cookies") : String(localized: "Read cookies")
         case "file_read": running ? String(localized: "Reading file") : String(localized: "Read file")
         case "file_write": running ? String(localized: "Writing file") : String(localized: "Wrote file")
