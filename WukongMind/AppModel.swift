@@ -4,6 +4,7 @@ import Foundation
 import SwiftUI
 import UIKit
 import UserNotifications
+import WebKit
 
 // MARK: - AppModel API for the UI (multi-forum)
 //
@@ -268,7 +269,12 @@ final class AppModel: ObservableObject {
         return SiteRegistry.standard.adapters.flatMap(\.suggestedForums.general)
     }
 
-    let browser: ForumBrowserModel
+    /// Open browser tabs (`BrowserTabs.swift`); `browser`, `browserAgent`,
+    /// `scriptWebController`, `agentConfirmations`, and `agentHTTPClient` reflect
+    /// the currently active tab while background tabs keep their own instances.
+    let tabs: BrowserTabs
+    var browser: ForumBrowserModel { tabs.currentTab.browser }
+    private let appBox = WeakBox<AppModel>()
     /// Root sheets, covers and alerts, and the iPhone AI drawer
     /// (PresentationRouter.swift).
     let router = PresentationRouter()
@@ -340,8 +346,8 @@ final class AppModel: ObservableObject {
     /// Topic overviews (title, slug, facts) by topic key, fetched once per
     /// topic for navigation (AppModel+Navigation.swift).
     var topicOverviews: [String: ForumTopicOverview] = [:]
-    /// Voice's hand-off to the Agent (`hand_off_to_agent`).
-    private(set) lazy var agentHandOff = AgentHandOff(agent: browserAgent)
+    /// Voice's hand-off to the Agent (`hand_off_to_agent`), targeting the active tab's session.
+    private(set) lazy var agentHandOff = AgentHandOff(sessionProvider: { [unowned self] in self.browserAgent })
     /// Feeds the voice session's silent context (AppModel+Voice.swift).
     var voicePageSubscription: AnyCancellable?
     /// Starts voice sessions for the UI (Voice/VoiceController.swift).
@@ -361,106 +367,157 @@ final class AppModel: ObservableObject {
     let taskRecordStore: TaskRecordStore
     /// Set to open the audit log (optionally at one task and step) from the panel.
     @Published var auditLogRequest: AuditLogRequest?
-    let scriptWebController: ScriptWebController
-    /// Where the Agent's confirmation cards wait for Allow or Don't allow.
-    private(set) lazy var agentConfirmations: AgentConfirmationGate = {
-        let gate = AgentConfirmationGate()
-        gate.onAnswer = { [weak self] tool, question, answer in
-            self?.browserAgent.recordConfirmation(tool: tool, question: question, answer: answer)
-        }
-        return gate
-    }()
 
-    /// The HTTP client behind `http_request` and `wukong.fetch`: its own ephemeral session, the
-    /// forum pacer, and settings read at call time.
-    private(set) lazy var agentHTTPClient: AgentHTTPClient = {
-        let client = AgentHTTPClient(
+    /// Live userscript applier for the active tab.
+    var scriptWebController: ScriptWebController { tabs.currentTab.scriptWebController }
+    /// Where the active tab's Agent confirmation cards wait for Allow or Don't allow.
+    var agentConfirmations: AgentConfirmationGate { tabs.currentTab.confirmations }
+    /// The HTTP client behind `http_request` and `wukong.fetch` for the active tab.
+    var agentHTTPClient: AgentHTTPClient { tabs.currentTab.httpClient }
+    /// Observable browser agent session (`BrowserAgent.swift`) for the active tab.
+    var browserAgent: BrowserAgentSession { tabs.currentTab.agentSession }
+
+    private static func makeBrowserTab(
+        id: String,
+        tabBrowser: ForumBrowserModel,
+        appBox: WeakBox<AppModel>,
+        agentWorkspace: AgentWorkspace,
+        scriptStore: ScriptStore,
+        forumService: ForumService,
+        aiService: AIService,
+        auditLog: AuditLog,
+        taskRecordStore: TaskRecordStore
+    ) -> BrowserTab {
+        tabBrowser.agentBridge.workspace = agentWorkspace
+        let scriptWebController = ScriptWebController(
+            webView: tabBrowser.webView,
+            store: scriptStore,
+            agentBridge: tabBrowser.agentBridge
+        )
+        let sessionBox = WeakBox<BrowserAgentSession>()
+        let confirmations = AgentConfirmationGate()
+        confirmations.onAnswer = { [weak sessionBox] tool, question, answer in
+            sessionBox?.value?.recordConfirmation(tool: tool, question: question, answer: answer)
+        }
+        let httpClient = AgentHTTPClient(
             pacer: forumService.pacer,
             environment: AgentNetworkEnvironment(
-                cookies: { [weak self] in
-                    guard let self else { return [] }
-                    return await self.browser.webView.configuration.websiteDataStore.httpCookieStore.allCookies()
+                cookies: { [weak tabBrowser] in
+                    guard let tabBrowser else { return [] }
+                    return await tabBrowser.webView.configuration.websiteDataStore.httpCookieStore.allCookies()
                 },
-                currentPageURL: { [weak self] in
-                    guard let self else { return nil }
-                    return await self.browser.webView.url
+                currentPageURL: { [weak tabBrowser] in
+                    guard let tabBrowser else { return nil }
+                    return await tabBrowser.webView.url
                 },
-                confirmBeforeWrites: { [weak self] in
-                    await self?.settings.agentConfirmBeforeWrites ?? false
+                confirmBeforeWrites: { [weak appBox] in
+                    await appBox?.value?.settings.agentConfirmBeforeWrites ?? false
                 },
-                pacing: { [weak self] in
-                    guard let self else { return (true, .gentle) }
-                    return await (self.settings.forumRateLimitingEnabled, self.settings.forumRequestPace)
+                pacing: { [weak appBox] in
+                    guard let app = await appBox?.value else { return (true, .gentle) }
+                    return await (app.settings.forumRateLimitingEnabled, app.settings.forumRequestPace)
                 },
-                isForumHost: { [weak self] url in
-                    await self?.directory.forum(containing: url) != nil
+                isForumHost: { [weak appBox] url in
+                    await appBox?.value?.directory.forum(containing: url) != nil
                 },
-                onFetch: { [weak self] url, pageURL in
-                    await self?.browserAgent.recordFetch(url: url, pageURL: pageURL)
+                onFetch: { [weak sessionBox] url, pageURL in
+                    await sessionBox?.value?.recordFetch(url: url, pageURL: pageURL)
                 }
             )
         )
-        browser.agentBridge.fetchHandler = { url in try await client.scriptFetch(url) }
-        return client
-    }()
+        tabBrowser.agentBridge.fetchHandler = { [weak httpClient] url in
+            guard let httpClient else { throw CancellationError() }
+            return try await httpClient.scriptFetch(url)
+        }
 
-    /// Observable browser agent session (`BrowserAgent.swift`) for page inspection,
-    /// JavaScript execution, CSS injection, userscript persistence, and multi-step
-    /// tool calling on any page.
-    private(set) lazy var browserAgent: BrowserAgentSession = makeBrowserAgent()
-
-    private func makeBrowserAgent() -> BrowserAgentSession {
-        let session = BrowserAgentSession(
-        pageDriver: browser.agentBridge,
-        modelClient: aiService,
-        configProvider: { [weak self] in
-            guard let self else {
-                return BrowserAgentRuntimeConfig(
-                    selection: nil,
-                    configuration: nil,
-                    maxSteps: BrowserAgentLimits.defaultMaxSteps,
-                    truncationLimit: BrowserAgentLimits.defaultTruncationLimit,
-                    customInstructions: "",
-                    redactedSecrets: []
-                )
-            }
-            return self.browserAgentRuntimeConfig
-        },
-        registryBuilder: { [weak self] bridge, limit, secrets in
-            guard let self else {
-                return ToolRegistry.m1(bridge: bridge, truncationLimit: limit, redactedSecrets: secrets)
-            }
-            return ToolRegistry.m3(context: AgentToolContext(
-                bridge: bridge,
-                workspace: self.agentWorkspace,
-                scriptStore: self.scriptStore,
-                liveApplier: self.scriptWebController,
-                currentUserPrompt: { [weak self] in
-                    self?.browserAgent.lastUserPrompt
-                },
-                pageBaseline: { [weak self] in
-                    self?.browserAgent.pageBaseline
-                },
-                pageBaselineImage: { [weak self] in
-                    self?.browserAgent.pageBaselineImage
-                },
-                settings: AgentToolSettings(
-                    truncationLimit: limit,
-                    redactedSecrets: secrets,
-                    supportsImageInput: self.settings.browserAgentModel?.supportsImageInput ?? false,
-                    confirmBeforeWrites: self.settings.agentConfirmBeforeWrites
-                ),
-                network: self.agentHTTPClient,
-                confirmations: self.agentConfirmations,
-                forum: self.makeForumToolContext(),
-                capabilities: self.capabilityToolContext
-            ))
-        },
-        auditLog: auditLog,
-        taskRecords: taskRecordStore
+        let agentSession = BrowserAgentSession(
+            pageDriver: tabBrowser.agentBridge,
+            modelClient: aiService,
+            configProvider: { [weak appBox] in
+                guard let app = appBox?.value else {
+                    return BrowserAgentRuntimeConfig(
+                        selection: nil,
+                        configuration: nil,
+                        maxSteps: BrowserAgentLimits.defaultMaxSteps,
+                        truncationLimit: BrowserAgentLimits.defaultTruncationLimit,
+                        customInstructions: "",
+                        redactedSecrets: []
+                    )
+                }
+                return app.browserAgentRuntimeConfig
+            },
+            registryBuilder: { [weak appBox, weak tabBrowser, weak scriptWebController, weak confirmations, weak httpClient, weak sessionBox] bridge, limit, secrets in
+                guard let app = appBox?.value else {
+                    return ToolRegistry.m1(bridge: bridge, truncationLimit: limit, redactedSecrets: secrets)
+                }
+                return ToolRegistry.m3(context: AgentToolContext(
+                    bridge: bridge,
+                    workspace: app.agentWorkspace,
+                    scriptStore: app.scriptStore,
+                    liveApplier: scriptWebController,
+                    currentUserPrompt: { [weak sessionBox] in
+                        sessionBox?.value?.lastUserPrompt
+                    },
+                    pageBaseline: { [weak sessionBox] in
+                        sessionBox?.value?.pageBaseline
+                    },
+                    pageBaselineImage: { [weak sessionBox] in
+                        sessionBox?.value?.pageBaselineImage
+                    },
+                    settings: AgentToolSettings(
+                        truncationLimit: limit,
+                        redactedSecrets: secrets,
+                        supportsImageInput: app.settings.browserAgentModel?.supportsImageInput ?? false,
+                        confirmBeforeWrites: app.settings.agentConfirmBeforeWrites
+                    ),
+                    network: httpClient,
+                    confirmations: confirmations,
+                    forum: tabBrowser.flatMap { app.makeForumToolContext(for: $0) },
+                    capabilities: tabBrowser.map { app.capabilityToolContext(for: $0) }
+                ))
+            },
+            auditLog: auditLog,
+            taskRecords: taskRecordStore
         )
-        session.onAnswer = { [weak self] answer in self?.saveAgentAnswer(answer) }
-        return session
+        sessionBox.value = agentSession
+        agentSession.onAnswer = { [weak appBox] answer in
+            _ = appBox?.value?.saveAgentAnswer(answer)
+        }
+
+        tabBrowser.knownForumLookup = { [weak appBox] url in
+            guard let forum = appBox?.value?.directory.forum(containing: url) else { return nil }
+            return KnownForumSite(siteURL: forum.siteURL, name: forum.name, iconURL: forum.iconURL, kind: forum.kind)
+        }
+        tabBrowser.onPageContextChanged = { [weak appBox, weak tabBrowser] context in
+            guard let app = appBox?.value, let tabBrowser else { return }
+            app.handlePageContext(context, from: tabBrowser)
+        }
+        tabBrowser.onNavigationFailed = { [weak appBox, weak tabBrowser] error in
+            guard let app = appBox?.value, let tabBrowser, tabBrowser.onPageContextChanged != nil else { return }
+            app.handleNavigationFailed(error, from: tabBrowser)
+        }
+        tabBrowser.onPagePositionChanged = { [weak appBox, weak tabBrowser] context in
+            guard let app = appBox?.value, let tabBrowser else { return }
+            app.handlePagePosition(context, from: tabBrowser)
+        }
+        tabBrowser.topicFactsLookup = { [weak appBox] topic in
+            appBox?.value?.topicOverviews[topic.topicKey]?.facts
+        }
+        if let app = appBox.value {
+            tabBrowser.homeSiteURL = app.currentSiteURL
+            tabBrowser.applyContentBlocking(app.effectiveContentBlockingPolicy)
+            tabBrowser.linkSettings = app.linkSettings
+        }
+
+        return BrowserTab(
+            id: id,
+            browser: tabBrowser,
+            scriptWebController: scriptWebController,
+            confirmations: confirmations,
+            httpClient: httpClient,
+            agentSession: agentSession,
+            sessionBox: sessionBox
+        )
     }
     /// Where podcast audio is cached (`Caches/Podcasts`; tests pass their own).
     let podcastDirectory: URL
@@ -486,8 +543,14 @@ final class AppModel: ObservableObject {
 
     /// Loader that runs forum requests in the authenticated web view context.
     var webViewResourceLoader: (@MainActor (URL) async throws -> ForumResourceResponse)? {
+        webViewResourceLoader(for: browser)
+    }
+
+    func webViewResourceLoader(
+        for targetBrowser: ForumBrowserModel
+    ) -> (@MainActor (URL) async throws -> ForumResourceResponse)? {
         guard !usesDirectForumRequests else { return nil }
-        return { [browser] url in try await browser.fetchForumResource(url) }
+        return { [targetBrowser] url in try await targetBrowser.fetchForumResource(url) }
     }
 
     init(
@@ -496,6 +559,7 @@ final class AppModel: ObservableObject {
         sites: SiteRegistry = .standard,
         aiService: AIService = AIService(),
         browser: ForumBrowserModel? = nil,
+        websiteDataStore: WKWebsiteDataStore? = nil,
         notifier: WatchNotifier = .shared,
         cloudSync: CloudSyncController? = nil,
         backgroundScheduler: BackgroundTaskScheduling = BGTaskScheduler.shared,
@@ -531,8 +595,6 @@ final class AppModel: ObservableObject {
         self.forumService = forumService
         self.sites = sites
         self.aiService = aiService
-        let resolvedBrowser = browser ?? ForumBrowserModel(sites: sites)
-        self.browser = resolvedBrowser
         self.notifier = notifier
 
         let snapshot = store.load()
@@ -606,12 +668,25 @@ final class AppModel: ObservableObject {
             )
         }
         self.scriptStore = resolvedScriptStore
-        resolvedBrowser.agentBridge.workspace = agentWorkspace
-        self.scriptWebController = ScriptWebController(
-            webView: resolvedBrowser.webView,
-            store: resolvedScriptStore,
-            agentBridge: resolvedBrowser.agentBridge
-        )
+        let box = self.appBox
+        let workspace = self.agentWorkspace
+        self.tabs = BrowserTabs(
+            initialBrowser: browser,
+            sites: sites,
+            websiteDataStore: websiteDataStore
+        ) { tabID, tabBrowser in
+            Self.makeBrowserTab(
+                id: tabID,
+                tabBrowser: tabBrowser,
+                appBox: box,
+                agentWorkspace: workspace,
+                scriptStore: resolvedScriptStore,
+                forumService: forumService,
+                aiService: aiService,
+                auditLog: auditLog,
+                taskRecordStore: taskRecordStore
+            )
+        }
 
         let now = Date()
         sessions = Dictionary(
@@ -665,29 +740,16 @@ final class AppModel: ObservableObject {
             return updated
         }
 
+        self.appBox.value = self
+        self.tabs.onActiveTabChanged = { [weak self] newTab, oldTab in
+            self?.handleActiveTabChanged(to: newTab, from: oldTab)
+        }
         self.scriptStore.onGlobalEnabledChanged = { [weak self] isEnabled in
             guard let self, self.settings.browserScriptsEnabled != isEnabled else { return }
             self.settings.browserScriptsEnabled = isEnabled
         }
         self.scriptStore.onStoreChanged = { [weak self] in
             self?.objectWillChange.send()
-        }
-        self.browser.knownForumLookup = { [weak self] url in
-            guard let forum = self?.directory.forum(containing: url) else { return nil }
-            return KnownForumSite(siteURL: forum.siteURL, name: forum.name, iconURL: forum.iconURL, kind: forum.kind)
-        }
-        self.browser.onPageContextChanged = { [weak self] context in
-            self?.handlePageContext(context)
-        }
-        self.browser.onNavigationFailed = { [weak self] error in
-            guard let self, self.browser.onPageContextChanged != nil else { return }
-            self.presentError(error.localizedDescription)
-        }
-        self.browser.onPagePositionChanged = { [weak self] context in
-            self?.handlePagePosition(context)
-        }
-        self.browser.topicFactsLookup = { [weak self] topic in
-            self?.topicOverviews[topic.topicKey]?.facts
         }
         // Start on the most recently visited forum (or the first pinned one);
         // with none, the browser stays empty and the UI shows the Forums home.
@@ -948,15 +1010,38 @@ final class AppModel: ObservableObject {
     private(set) var seededPageContext: PageContext?
     #endif
 
-    private func handlePageContext(_ context: PageContext) {
+    private func handleActiveTabChanged(to newTab: BrowserTab, from oldTab: BrowserTab?) {
+        #if DEBUG
+        seededPageContext = nil
+        #endif
+        let context = newTab.browser.pageContext
+        if let siteURL = context.siteURL ?? newTab.browser.homeSiteURL {
+            if currentSiteURL != siteURL { currentSiteURL = siteURL }
+        } else if let currentSiteURL {
+            newTab.browser.homeSiteURL = currentSiteURL
+        }
+        select(topic: newTab.browser.showsForumsHome ? nil : context.topic)
+        pageUpdates.send(context)
+        homeVisibilityChanged()
         objectWillChange.send()
-        if let suppressed = suppressedAutoAddSiteURL {
-            // A forum removed while its page is open stays removed until the
-            // browser settles on another forum or a non-forum page.
-            if let siteURL = context.siteURL, siteURL != suppressed {
-                suppressedAutoAddSiteURL = nil
-            } else if context.state == .notForum {
-                suppressedAutoAddSiteURL = nil
+        if prefetchesTopicFacts || barShowsTopicFacts, let topic = context.topic, context.state == .topic,
+           topicOverviews[topic.topicKey] == nil {
+            Task { [weak self] in _ = await self?.topicOverview(siteURL: topic.siteURL, topicID: topic.topicID) }
+        }
+    }
+
+    private func handlePageContext(_ context: PageContext, from tabBrowser: ForumBrowserModel) {
+        let isCurrent = tabs.isCurrent(tabBrowser)
+        if isCurrent {
+            objectWillChange.send()
+            if let suppressed = suppressedAutoAddSiteURL {
+                // A forum removed while its page is open stays removed until the
+                // browser settles on another forum or a non-forum page.
+                if let siteURL = context.siteURL, siteURL != suppressed {
+                    suppressedAutoAddSiteURL = nil
+                } else if context.state == .notForum {
+                    suppressedAutoAddSiteURL = nil
+                }
             }
         }
         if let kind = context.site, let siteURL = context.siteURL, siteURL != suppressedAutoAddSiteURL {
@@ -965,6 +1050,7 @@ final class AppModel: ObservableObject {
         } else if context.state == .notForum, let origin = HomeSites.originOf(context.url) {
             siteVisits.noteVisit(siteURL: origin, name: HomeSites.displayName(forOrigin: origin), isForum: false)
         }
+        guard isCurrent else { return }
         select(topic: context.topic)
         completePendingShare(with: context)
         pageUpdates.send(context)
@@ -976,11 +1062,17 @@ final class AppModel: ObservableObject {
 
     /// Only the page's position changed (posts on screen, highlights, the
     /// topic's facts): no topic selection or save.
-    func handlePagePosition(_ context: PageContext) {
+    func handlePagePosition(_ context: PageContext, from tabBrowser: ForumBrowserModel? = nil) {
+        if let tabBrowser, !tabs.isCurrent(tabBrowser) { return }
         #if DEBUG
         seededPageContext = nil
         #endif
         pageUpdates.send(context)
+    }
+
+    private func handleNavigationFailed(_ error: Error, from tabBrowser: ForumBrowserModel) {
+        guard tabs.isCurrent(tabBrowser) else { return }
+        presentError(error.localizedDescription)
     }
 
     /// How a link on `siteURL` is read: the site's adapter, with the forum's base
@@ -1239,19 +1331,29 @@ final class AppModel: ObservableObject {
         if let forum = forum(for: siteURL) { return sites.adapter(for: forum.kind) }
         let normalized = ForumSite.normalizeSiteURL(siteURL) ?? siteURL
         if pageContext.siteURL == normalized, let kind = pageContext.site { return sites.adapter(for: kind) }
+        for tab in tabs.tabs where tab.browser.pageContext.siteURL == normalized {
+            if let kind = tab.browser.pageContext.site { return sites.adapter(for: kind) }
+        }
         return nil
     }
 
     /// The transport for one job on `siteURL`: the forum's cookies, the pace the
     /// job started with and (unless `inPage` is false) the in-page loader.
-    func network(for siteURL: String, pace: ForumRequestPace, isPaced: Bool? = nil, inPage: Bool = true) async -> SiteNetwork {
-        let cookieHeader = usesDirectForumRequests ? nil : await browser.cookieHeader(forSite: siteURL)
+    func network(
+        for siteURL: String,
+        pace: ForumRequestPace,
+        isPaced: Bool? = nil,
+        inPage: Bool = true,
+        browser targetBrowser: ForumBrowserModel? = nil
+    ) async -> SiteNetwork {
+        let resolvedBrowser = targetBrowser ?? browser
+        let cookieHeader = usesDirectForumRequests ? nil : await resolvedBrowser.cookieHeader(forSite: siteURL)
         var context = SiteRequestContext(
             cookieHeader: cookieHeader,
             pace: pace,
             isPaced: isPaced ?? settings.forumRateLimitingEnabled
         )
-        if inPage, let loader = webViewResourceLoader {
+        if inPage, let loader = webViewResourceLoader(for: resolvedBrowser) {
             context.resourceLoader = { url in try await loader(url) }
         }
         return SiteNetwork(service: forumService, siteURL: siteURL, context: context)
@@ -2116,7 +2218,10 @@ final class AppModel: ObservableObject {
         }
         if let role = needsProviderSetup, isProviderReady(for: role) { needsProviderSetup = nil }
         contentBlockingSettingsDidChange(from: old)
-        browser.linkSettings = linkSettings
+        let currentLinkSettings = linkSettings
+        for tab in tabs.tabs {
+            tab.browser.linkSettings = currentLinkSettings
+        }
         digestSettingsDidChange(from: old)
         systemSettingsDidChange(from: old)
         let hadVoiceKey = !old.configuration(for: .gemini).apiKey.isEmpty || !old.configuration(for: .vertexAI).apiKey.isEmpty
@@ -2832,12 +2937,16 @@ final class AppModel: ObservableObject {
     }
 
     var forumToolService: ForumToolService {
+        forumToolService(for: nil)
+    }
+
+    func forumToolService(for targetBrowser: ForumBrowserModel?) -> ForumToolService {
         ForumToolService(
             sessionLookup: { [unowned self] key in self.sessions[key] },
             sessionWrite: { [unowned self] key, session in self.sessions[key] = session },
             persist: { [unowned self] in self.save() },
-            makeNetwork: { [unowned self] siteURL, pace, isPaced in
-                await self.network(for: siteURL, pace: pace, isPaced: isPaced)
+            makeNetwork: { [unowned self, weak targetBrowser] siteURL, pace, isPaced in
+                await self.network(for: siteURL, pace: pace, isPaced: isPaced, browser: targetBrowser)
             },
             watchTopic: { [unowned self] siteURL, topicID, url, title, count in
                 await self.watch(siteURL: siteURL, topicID: topicID, url: url, title: title, knownPostCount: count)
@@ -2847,8 +2956,8 @@ final class AppModel: ObservableObject {
 
     /// Builds per-run forum tool context when the browser is on a recognized
     /// forum home or topic page (`.maybe`, `.notForum`, and `.loading` do not count).
-    func makeForumToolContext() -> ForumToolContext? {
-        let page = pageContext
+    func makeForumToolContext(for targetBrowser: ForumBrowserModel? = nil) -> ForumToolContext? {
+        let page = targetBrowser?.pageContext ?? pageContext
         guard page.isForum,
               let kind = page.site,
               let siteURL = page.siteURL, !siteURL.isEmpty,
@@ -2867,7 +2976,7 @@ final class AppModel: ObservableObject {
             pace: settings.forumRequestPace,
             isPaced: settings.forumRateLimitingEnabled
         )
-        return ForumToolContext(service: forumToolService, scope: scope, forumName: forumName)
+        return ForumToolContext(service: forumToolService(for: targetBrowser), scope: scope, forumName: forumName)
     }
 
     /// Reads a job's topic, cached pages reused. Every new page goes into
@@ -3129,9 +3238,19 @@ final class AppModel: ObservableObject {
     }
 
     var capabilityToolContext: CapabilityToolContext {
+        capabilityToolContext(for: nil)
+    }
+
+    func capabilityToolContext(for targetBrowser: ForumBrowserModel?) -> CapabilityToolContext {
         CapabilityToolContext(
-            resolveTopicID: { [weak self] id in guard let self else { throw CancellationError() }; return try await self.resolveCapabilityTopic(topicID: id) },
-            resolveTopicURL: { [weak self] url in guard let self else { throw CancellationError() }; return try await self.resolveCapabilityTopic(urlString: url) },
+            resolveTopicID: { [weak self, weak targetBrowser] id in
+                guard let self else { throw CancellationError() }
+                return try await self.resolveCapabilityTopic(topicID: id, for: targetBrowser)
+            },
+            resolveTopicURL: { [weak self, weak targetBrowser] url in
+                guard let self else { throw CancellationError() }
+                return try await self.resolveCapabilityTopic(urlString: url, for: targetBrowser)
+            },
             summarizeThread: { [weak self] topic in guard let self else { throw CancellationError() }; return try await self.summarizeForTool(topic) },
             summarizeText: { [weak self] text in guard let self else { throw CancellationError() }; return try await self.summarizePlainText(text) },
             existingThreadSummary: { [weak self] key in
@@ -3179,15 +3298,17 @@ final class AppModel: ObservableObject {
         return CapabilityReadAloud.estimatedMinutes(for: stripped)
     }
 
-    private func resolveCapabilityTopic(topicID rawID: String) async throws -> CapabilityResolvedThread {
+    private func resolveCapabilityTopic(topicID rawID: String, for targetBrowser: ForumBrowserModel? = nil) async throws -> CapabilityResolvedThread {
         let id = try ForumToolService.requiredTopicID(["topic_id": rawID])
-        guard let siteURL = pageContext.siteURL ?? currentTopic?.siteURL, let adapter = adapter(for: siteURL) else {
+        let page = targetBrowser?.pageContext ?? pageContext
+        let fallbackTopicSite = targetBrowser == nil ? currentTopic?.siteURL : page.topic?.siteURL
+        guard let siteURL = page.siteURL ?? fallbackTopicSite, let adapter = adapter(for: siteURL) else {
             throw CapabilityToolError("No forum is open right now; pass a thread 'url' instead of 'topic_id'.")
         }
-        return try await buildCapabilityThread(siteURL: siteURL, topicID: id, adapter: adapter)
+        return try await buildCapabilityThread(siteURL: siteURL, topicID: id, adapter: adapter, browser: targetBrowser)
     }
 
-    private func resolveCapabilityTopic(urlString rawURL: String) async throws -> CapabilityResolvedThread {
+    private func resolveCapabilityTopic(urlString rawURL: String, for targetBrowser: ForumBrowserModel? = nil) async throws -> CapabilityResolvedThread {
         let trimmed = rawURL.trimmingCharacters(in: .whitespacesAndNewlines)
         guard let url = URL(string: trimmed), ForumSite.origin(of: url) != nil else {
             throw CapabilityToolError("Invalid or unsupported thread URL '\(trimmed)'.")
@@ -3196,9 +3317,10 @@ final class AppModel: ObservableObject {
             guard let id = claimed.adapter.recognizer.looseTopicID(in: url) else {
                 throw CapabilityToolError("'\(trimmed)' is not a thread URL on \(claimed.adapter.recognizer.platformName).")
             }
-            return try await buildCapabilityThread(siteURL: claimed.siteURL, topicID: id, adapter: claimed.adapter)
+            return try await buildCapabilityThread(siteURL: claimed.siteURL, topicID: id, adapter: claimed.adapter, browser: targetBrowser)
         }
-        let knownSites = Array(Set(forums.map(\.siteURL) + [pageContext.siteURL].compactMap { $0 })).sorted { $0.count > $1.count }
+        let pageSiteURL = targetBrowser?.pageContext.siteURL ?? pageContext.siteURL
+        let knownSites = Array(Set(forums.map(\.siteURL) + [pageSiteURL].compactMap { $0 })).sorted { $0.count > $1.count }
         for knownSite in knownSites {
             guard let parsed = ForumSite.parse(siteURL: knownSite),
                   ForumSite.siteURL(fromPage: url, basePath: parsed.basePath) == parsed.siteURL,
@@ -3206,25 +3328,30 @@ final class AppModel: ObservableObject {
             guard let id = matched.recognizer.topicID(fromURL: url, basePath: parsed.basePath) ?? matched.recognizer.looseTopicID(in: url) else {
                 throw CapabilityToolError("'\(trimmed)' is not a thread URL.")
             }
-            return try await buildCapabilityThread(siteURL: parsed.siteURL, topicID: id, adapter: matched)
+            return try await buildCapabilityThread(siteURL: parsed.siteURL, topicID: id, adapter: matched, browser: targetBrowser)
         }
         for candidateAdapter in sites.adapters {
             for candidate in candidateAdapter.siteURLCandidates(fromAddress: trimmed) {
                 guard let parsed = ForumSite.parse(siteURL: candidate),
                       let id = candidateAdapter.recognizer.topicID(fromURL: url, basePath: parsed.basePath) ?? candidateAdapter.recognizer.looseTopicID(in: url) else { continue }
-                let net = await network(for: parsed.siteURL, pace: settings.forumRequestPace, inPage: false)
+                let net = await network(for: parsed.siteURL, pace: settings.forumRequestPace, inPage: false, browser: targetBrowser)
                 guard let info = try? await candidateAdapter.siteInfo(siteURL: parsed.siteURL, net: net) else { continue }
                 var dir = self.directory
                 if dir.upsert(siteURL: parsed.siteURL, kind: candidateAdapter.kind, name: info.name, iconURL: info.iconURL, visitedAt: nil) != nil {
                     self.directory = dir; save()
                 }
-                return try await buildCapabilityThread(siteURL: parsed.siteURL, topicID: id, adapter: candidateAdapter)
+                return try await buildCapabilityThread(siteURL: parsed.siteURL, topicID: id, adapter: candidateAdapter, browser: targetBrowser)
             }
         }
         throw CapabilityToolError("Could not recognize a supported forum thread at '\(trimmed)'.")
     }
 
-    private func buildCapabilityThread(siteURL: String, topicID: String, adapter: any SiteAdapter) async throws -> CapabilityResolvedThread {
+    private func buildCapabilityThread(
+        siteURL: String,
+        topicID: String,
+        adapter: any SiteAdapter,
+        browser targetBrowser: ForumBrowserModel? = nil
+    ) async throws -> CapabilityResolvedThread {
         let topicKey = TopicIdentity.key(siteURL: siteURL, topicID: topicID)
         if let active = activities.first(where: { $0.topicKey == topicKey && $0.type == .summary && !$0.status.isTerminal }) {
             return CapabilityResolvedThread(topic: ForumTopic(siteURL: siteURL, topicID: topicID, url: active.url, title: active.title), knownPostCount: sessions[topicKey]?.totalPosts ?? 0)
@@ -3232,7 +3359,10 @@ final class AppModel: ObservableObject {
         if let cached = sessions[topicKey] {
             return CapabilityResolvedThread(topic: ForumTopic(siteURL: siteURL, topicID: topicID, url: cached.url, title: cached.title), knownPostCount: cached.totalPosts ?? 0)
         }
-        let info = try await adapter.overview(TopicRef(siteURL: siteURL, topicID: topicID), net: await network(for: siteURL, pace: settings.forumRequestPace))
+        let info = try await adapter.overview(
+            TopicRef(siteURL: siteURL, topicID: topicID),
+            net: await network(for: siteURL, pace: settings.forumRequestPace, browser: targetBrowser)
+        )
         let fallbackName = ForumSite.displayName(siteURL: siteURL, name: forum(for: siteURL)?.name)
         let title = info.title.trimmingCharacters(in: .whitespacesAndNewlines)
         return CapabilityResolvedThread(

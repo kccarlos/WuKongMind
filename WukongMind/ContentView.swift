@@ -266,6 +266,7 @@ struct BrowserContent: View {
         let showsHome = browser.showsForumsHome
         ZStack {
             ForumWebView(browser: browser)
+                .id(ObjectIdentifier(browser))
                 .background(Color(uiColor: .systemBackground))
                 .ignoresSafeArea(.container, edges: webViewIgnoresBottomSafeArea ? .bottom : [])
                 .opacity(showsHome ? 0 : 1)
@@ -519,7 +520,7 @@ struct LoadingLine: View {
 
 struct LoginReadinessView: View {
     @Environment(\.dismiss) private var dismiss
-    let app: AppModel
+    @ObservedObject var app: AppModel
     @ObservedObject private var browser: ForumBrowserModel
 
     init(app: AppModel) {

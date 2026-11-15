@@ -50,6 +50,12 @@ final class AgentConfirmationGate {
         finish(id, result: .success(allow))
     }
 
+    func cancelAll() {
+        for item in pending {
+            finish(item.id, result: .failure(CancellationError()))
+        }
+    }
+
     private func finish(_ id: UUID, result: Result<Bool, Error>) {
         guard let continuation = continuations.removeValue(forKey: id),
               let index = pending.firstIndex(where: { $0.id == id })

@@ -57,6 +57,7 @@ struct AssistantPanel: View {
     @State private var showsPageCapabilitiesPopover = false
     @State private var showsCompletedStatus = false
     @State private var completedStatusTask: Task<Void, Never>?
+    @State private var observedAgentID: ObjectIdentifier?
     @State private var expandedToolRowIDs: Set<UUID> = []
     @State private var requestedProviderSetup = false
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -146,6 +147,7 @@ struct AssistantPanel: View {
                     drawerHeader
                     Divider()
                     drawerThread
+                        .id(ObjectIdentifier(browserAgent))
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                     assistantFooter
                 }
@@ -182,10 +184,19 @@ struct AssistantPanel: View {
         .onChange(of: app.askFocusRequest) {
             composerFocused = true
         }
+        .onChange(of: ObjectIdentifier(browserAgent)) { _, newID in
+            observedAgentID = newID
+            showsPageCapabilitiesPopover = false
+            updateCompletedStatusVisibility(for: browserAgent.runState, isInitialAppear: true)
+        }
         .onChange(of: browserAgent.runState) { _, newState in
-            updateCompletedStatusVisibility(for: newState, isInitialAppear: false)
+            let currentID = ObjectIdentifier(browserAgent)
+            let sameSession = observedAgentID == currentID
+            observedAgentID = currentID
+            updateCompletedStatusVisibility(for: newState, isInitialAppear: !sameSession)
         }
         .onAppear {
+            observedAgentID = ObjectIdentifier(browserAgent)
             updateCompletedStatusVisibility(for: browserAgent.runState, isInitialAppear: true)
             #if DEBUG
             if AssistantDebug.has("-dc-scripts-open-popover") {

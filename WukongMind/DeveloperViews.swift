@@ -238,7 +238,7 @@ struct DevPageLogSheet: View {
             }
         }
         .presentationDetents([.medium, .large])
-        .task { lines = await Self.load(kind, from: app.browser.agentBridge) }
+        .task(id: app.tabs.currentTabID) { lines = await Self.load(kind, from: app.browser.agentBridge) }
     }
 }
 
@@ -262,7 +262,7 @@ struct DevPageLogRows: View {
                 detail: counts[.network].map { String(localized: "\($0) requests", comment: "This page › Network row: number of captured requests") },
                 id: "thisPageNetwork")
         }
-        .task {
+        .task(id: app.tabs.currentTabID) {
             for kind in [DevPageLogSheet.Kind.console, .network] {
                 counts[kind] = await DevPageLogSheet.load(kind, from: app.browser.agentBridge).count
             }

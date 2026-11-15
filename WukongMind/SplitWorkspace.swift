@@ -93,6 +93,7 @@ struct SplitPanelToggle: View {
     let isShown: Bool
     let action: () -> Void
     @State private var completedBrowserAgentBounce = 0
+    @State private var observedAgentID: ObjectIdentifier?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     init(app: AppModel, isShown: Bool, action: @escaping () -> Void) {
@@ -164,8 +165,12 @@ struct SplitPanelToggle: View {
                 NewRepliesDot()
             }
         }
+        .onAppear { observedAgentID = ObjectIdentifier(browserAgent) }
+        .onChange(of: ObjectIdentifier(browserAgent)) { _, newID in observedAgentID = newID }
         .onChange(of: browserAgent.isRunning) { wasRunning, isRunning in
-            if wasRunning, !isRunning, !isShown, browserAgent.runs.last != nil {
+            let currentID = ObjectIdentifier(browserAgent)
+            defer { observedAgentID = currentID }
+            if observedAgentID == currentID, wasRunning, !isRunning, !isShown, browserAgent.runs.last != nil {
                 completedBrowserAgentBounce &+= 1
             }
         }
