@@ -1,0 +1,31 @@
+{
+  "body" : {
+    "posts" : [
+      {
+        "blurb" : "Q 为什么安卓手机没有一款类似windows上的hips产品，即使是eset之类在pc端支持hips的AV，其手机端也没有控制应用权限和行为拦截的功能。 手机app的权限调用和行为对于用户而言完全是黑箱，即使系统有权限行为记录或者授权通知弹窗，但也没提供对应的限制功能。 市面上一些权限管理工具，都需要手机进行root。或者需要shizuku这类软件进行授权，但这增加了后台运行的软件，且授权软件需要在调试状态运行，手机不可能一直处于调试状态。 就像之前\"拼多多\"曝出的问题，除了植入后门，还能越过系统给自己授权。现在十分担心很多应用在后台做类似于pc扫盘的操作，读取手机状态，获取其他应用数据...",
+        "id" : 266000,
+        "post_number" : 1,
+        "topic_id" : 71804,
+        "username" : "NullPointer"
+      }
+    ],
+    "topics" : [
+      {
+        "bumped_at" : "2025-05-29T11:19:43.175Z",
+        "fancy_title" : "无聊问了ai一个话题，有点难绷",
+        "has_accepted_answer" : false,
+        "id" : 71804,
+        "last_posted_at" : "2025-05-29T11:19:43.175Z",
+        "pinned" : false,
+        "posts_count" : 3,
+        "slug" : "topic",
+        "title" : "无聊问了ai一个话题，有点难绷"
+      }
+    ]
+  },
+  "headers" : {
+    "content-type" : "application/json; charset=utf-8"
+  },
+  "status" : 200,
+  "url" : "https://meta.appinn.net/search.json?q=%E5%AE%89%E5%8D%93%20%E5%89%AA%E8%B4%B4%E6%9D%BF%20%E5%90%8E%E5%8F%B0%20%E6%97%A0%E6%B3%95%E8%AF%BB%E5%8F%96"
+}

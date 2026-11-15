@@ -666,7 +666,10 @@ extension AppModel {
         var sampleSettings = settings
         sampleSettings.setModel(ModelSelection(provider: sampleProvider, model: sampleModel), for: .assistant)
         if !AssistantDebug.has("-dc-no-provider") {
-            if sampleProvider.supportsToolCalling {
+            // `-dc-agent-model` names the Agent's model since the old Ask the forum role went (One loop 14).
+            if AssistantDebug.value("-dc-agent-model") != nil, sampleAgent.supportsToolCalling {
+                sampleSettings.setModel(sampleAgent, for: .browserAgent)
+            } else if sampleProvider.supportsToolCalling {
                 sampleSettings.setModel(ModelSelection(provider: sampleProvider, model: sampleModel), for: .browserAgent)
             } else if sampleAgent.supportsToolCalling {
                 sampleSettings.setModel(sampleAgent, for: .browserAgent)

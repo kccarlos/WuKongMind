@@ -271,6 +271,9 @@ enum BrowserAgentPrompt {
             `read_page`, then fix the change or undo it (`reload_page` drops this conversation's unsaved \
             changes); never report done straight away. If the change is exactly what the user asked for \
             (for example "keep only the article"), say so to the user and carry on.
+            7. Your final message is the answer: the user sees it, with its citations, and History saves it, \
+            while text written beside a tool call is replaced by later messages. Write the whole answer in \
+            your final message, after any `read_aloud` call.
 
             Current page:
             - Title: \(titleLine)

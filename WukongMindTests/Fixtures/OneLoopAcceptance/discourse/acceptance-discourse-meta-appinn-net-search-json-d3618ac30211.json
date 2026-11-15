@@ -1,0 +1,247 @@
+{
+  "body" : {
+    "posts" : [
+      {
+        "blurb" : "https://meta.appinn.net/t/topic/18527 全平台剪贴板推送与同步方案合集 /c/app/yellow-pages/46 “网络黄页”分区的新帖默认为维基帖，任何人均可编辑，任何修改均会产生历史记录。 网络黄页 本帖为wiki帖，任何注册用户都可以公共编辑 【概念定义】 推送：主动发送文本，移动端不需打开客户端就能收到消息（iOS受限于权限需要手动复制） 同步：无需主动发送文本，Android常驻后台会增加电量消耗，iOS必须打开App才能复制 获取：需要主动发送文本，且不支持后台推送 1. 剪贴板推送工具 https://github.com/Finb/...",
+        "id" : 136907,
+        "post_number" : 2,
+        "topic_id" : 39419,
+        "username" : "sertwen"
+      },
+      {
+        "blurb" : "那可以试试tasker+join，买断制够低了吧，或者join换成免费的push lite https://meta.appinn.net/t/topic/18527 全平台剪贴板推送与同步方案合集 /c/app/yellow-pages/46 “网络黄页”分区的新帖默认为维基帖，任何人均可编辑，任何修改均会产生历史记录。 网络黄页 本帖为wiki帖，任何注册用户都可以公共编辑 【概念定义】 推送：主动发送文本，移动端不需打开客户端就能收到消息（iOS受限于权限需要手动复制） 同步：无需主动发送文本，Android常驻后台会增加电量消耗，iOS必须打开App才能复制 获取：需要主动发送文...",
+        "id" : 69863,
+        "post_number" : 6,
+        "topic_id" : 23102,
+        "username" : "feeshy"
+      },
+      {
+        "blurb" : "还真的有： https://meta.appinn.net/t/topic/58960 【搬运】跨平台剪切板管理工具汇总 /c/discuss-and-share/6 发布你想要讨论的内容，话题不限，请遵守法律，以及在公共场合的必要礼仪。 speech_balloon 讨论分享 原帖地址： https://zhuanlan.zhihu.com/p/709780970 跨平台剪切板管理工具汇总 跨平台的推送和同步方案可移步站内的这个帖子查看： https://meta.appinn.net/t/topic/18527 全平台剪贴板推送与同步方案合集 汇总一下跨平台的剪贴板工具。 客户端类 ...",
+        "id" : 218648,
+        "post_number" : 71,
+        "topic_id" : 59314,
+        "username" : "VictoryRoad"
+      },
+      {
+        "blurb" : "码上来 手机收到的短信和验证码，无需拿出手机将会立刻出现在电脑上。 局域网直连 · AES-256-GCM 加密 · 不经过任何服务器 · 不收集任何数据 · 免费 网页版： https://dingyaoyao.github.io/sms-to-pc/ 码上来 · 手机短信和验证码自动同步到电脑 仓库地址： https://github.com/DingYaoYao/sms-to-pc GitHub - DingYaoYao/sms-to-pc: 手机短信和验证码自动同步到电脑（局域网加密直连，不经过服务器） · GitHub 邮箱： mailto:dog8520963@163.com...",
+        "id" : 347385,
+        "post_number" : 1,
+        "topic_id" : 92406,
+        "username" : "dog8520963"
+      },
+      {
+        "blurb" : "本帖为wiki帖，任何注册用户都可以公共编辑 【概念定义】 推送：主动发送文本，移动端不需打开客户端就能收到消息（iOS受限于权限需要手动复制） 同步：无需主动发送文本，Android常驻后台会增加电量消耗，iOS必须打开App才能复制 获取：需要主动发送文本，且不支持后台推送 1. 剪贴板推送工具 https://github.com/Finb/Bark Bark 01:36PM - 19 February 2019 https://www.appinn.com/bark-for-iphone/ 小众软件 – 19 Feb 19 https://www.appinn.com/bark-...",
+        "id" : 54229,
+        "post_number" : 1,
+        "topic_id" : 18527,
+        "username" : "feeshy"
+      },
+      {
+        "blurb" : "我个人是登陆了Exchange账户拿Microsoft TODO和便签当剪贴板……但是延迟很玄学，所以还是让我们看看论坛的陈年老帖~ https://meta.appinn.net/t/topic/26220 [自荐][剪贴板工具]开源跨平台剪贴板同步工具 /c/faxian/10 感谢推荐，所有内容均由人工审核，请耐心等待。 right_arrow 发现频道 软件名称 ClipBroad 应用平台 Windows MacOS Linux Android 推荐类型 【开发者自荐】 一句简介 开源跨平台剪贴板同步工具，同时支持文本、图片、视频、音频、普通文件的多端同步 应用简介 此工具利用...",
+        "id" : 91534,
+        "post_number" : 3,
+        "topic_id" : 28607,
+        "username" : "Randir"
+      },
+      {
+        "blurb" : "原始链接在： https://www.appinn.com/11-github-261025/ 11 个有意思的 GitHub 项目：把截图晾起来、关广告、破甲，还有一本黑话词典 - 小众软件 这次带来 10 个 GitHub 项目。 有给服务器任务装上操作界面的，有把截图挂到了屏幕上方的「晾衣绳」上的，还有帮安卓手机关广告，以及看看闲鱼卖家到底在说什么的。最后一个项目面向成年人。 目录 #semaphore-ui：给服务器上的部署、脚本任务加个操作界面 Semaphore UI：给命令行添加图形界面 #uu-远程接入指南：从自己的-app-发起远控，还能开画中画小窗 UU 远程接入指南...",
+        "id" : 354601,
+        "post_number" : 1,
+        "topic_id" : 94448,
+        "username" : "Qingwa"
+      },
+      {
+        "blurb" : "JarkViewer v2.0 更新 · 2026/11/02 从 v1.34 到 v2.0，JarkViewer 对图像解码、画布渲染、界面、缓存和媒体播放进行了大规模重构，并新增编辑标注、批量处理和独立音视频播放器。 1. 界面与日常浏览全面升级 重做工具界面 ：设置、打印、编辑、批处理与重命名窗口统一使用 Dear ImGui，适配 DPI、深浅主题与小尺寸窗口；增强浅色控件轮廓，重新整理设置、帮助速查与关于页。 六种界面语言 ：支持简体中文、繁體中文、English、日本語、한국어、Русский，可跟随系统或手动选择；完善字体回退与中文输入，修复重复上屏和部分消息框乱码。 底部...",
+        "id" : 358559,
+        "post_number" : 87,
+        "topic_id" : 60968,
+        "username" : "jark006"
+      },
+      {
+        "blurb" : "简单分享一个 scrcpy 的 web 端，是目前个人体验最好的远程控制方案。配合回家代理或内网穿透，基本可以实现市面上类似云手机的效果，而且不需要安装额外客户端，也不挑平台，有浏览器就行。 名称： ws scrcpy 项目地址： https://github.com/NetrisTV/ws-scrcpy GitHub - NetrisTV/ws-scrcpy: Web client prototype for scrcpy. 首先复读一下官方的 需求说明 ： 浏览器需要支持： WebSockets Media Source Extensions and h264 decoding; W...",
+        "id" : 113819,
+        "post_number" : 1,
+        "topic_id" : 33828,
+        "username" : "yjin"
+      },
+      {
+        "blurb" : "我在标题处加了日期，因为如果时间太久了的话，模块会有可能失效，或者改名字了。 MIUI 相关模块 解锁MIUI键盘优化 推荐理由： 因为第三方键盘是不能用下图红框处的功能，用了这个模块就可以用了。点击左边按钮就是选择键盘，右边按钮就是剪贴板，手指在中间滑动可以控制光标移动。（P.S. 左右按钮均可在系统设置中自定义） image MiPush Enhance 推荐理由： 因为我会冻结应用的习惯，一来是为了减少耗电（很多应用有保活服务或者相互唤醒），二来可以减少RAM占用（虽然我是12GB RAM）。如果冻结了应用，你就不能及时获得通知了。有了这个模块，你就可以在应用冻结时也能获得通知。但...",
+        "id" : 107879,
+        "post_number" : 1,
+        "topic_id" : 32459,
+        "username" : "kimpvp"
+      },
+      {
+        "blurb" : "鉴于很多人无法访问 googleblog，我来转载并机器翻译 https://android-developers.googleblog.com/ Android Developers Blog 昨天发布的最新文章： https://android-developers.googleblog.com/2021/02/android-12-dp1.html First preview of Android 12 ，全文使用 DeepL 翻译。 由于链接众多，想要了解详情的同学请前往原文。 https://android-developers.googleblog.com/2021/02/a...",
+        "id" : 65619,
+        "post_number" : 1,
+        "topic_id" : 21929,
+        "username" : "Qingwa"
+      },
+      {
+        "blurb" : "F-Droid 的 https://f-droid.org/zh_Hans/packages/ 应用 专栏就把各个应用分门别类展示出来，方便大家探索。 以下仅供参考。 https://f-droid.org/zh_Hans/packages/com.farmerbb.notepad/ Notepad 快速创建保存纯文本便笺 创建 Markdown 或 HTML 格式的富文本笔记（Android 5.0+） 使用 Material Design 元素的美观、易用界面 用于平板的两栏视图 分享笔记并从其他应用接收文本 自动保存草稿 阅读模式笔记可以点击链接 按名称或日期排序 各种快捷键 整合...",
+        "id" : 42884,
+        "post_number" : 4,
+        "topic_id" : 15095,
+        "username" : "Dalieba"
+      },
+      {
+        "blurb" : "Q 为什么安卓手机没有一款类似windows上的hips产品，即使是eset之类在pc端支持hips的AV，其手机端也没有控制应用权限和行为拦截的功能。 手机app的权限调用和行为对于用户而言完全是黑箱，即使系统有权限行为记录或者授权通知弹窗，但也没提供对应的限制功能。 市面上一些权限管理工具，都需要手机进行root。或者需要shizuku这类软件进行授权，但这增加了后台运行的软件，且授权软件需要在调试状态运行，手机不可能一直处于调试状态。 就像之前\"拼多多\"曝出的问题，除了植入后门，还能越过系统给自己授权。现在十分担心很多应用在后台做类似于pc扫盘的操作，读取手机状态，获取其他应用数据...",
+        "id" : 266000,
+        "post_number" : 1,
+        "topic_id" : 71804,
+        "username" : "NullPointer"
+      }
+    ],
+    "topics" : [
+      {
+        "bumped_at" : "2023-11-14T08:05:09.219Z",
+        "fancy_title" : "有哪些输入法支持不同设备同步剪贴板？",
+        "has_accepted_answer" : false,
+        "id" : 39419,
+        "last_posted_at" : "2023-11-14T08:05:09.219Z",
+        "pinned" : false,
+        "posts_count" : 14,
+        "slug" : "topic",
+        "title" : "有哪些输入法支持不同设备同步剪贴板？"
+      },
+      {
+        "bumped_at" : "2021-04-24T14:24:15.922Z",
+        "fancy_title" : "双机同步消息推送",
+        "has_accepted_answer" : false,
+        "id" : 23102,
+        "last_posted_at" : "2021-04-24T14:24:15.922Z",
+        "pinned" : false,
+        "posts_count" : 7,
+        "slug" : "topic",
+        "title" : "双机同步消息推送"
+      },
+      {
+        "bumped_at" : "2025-08-23T06:54:27.034Z",
+        "fancy_title" : "EcoPaste - 免费开源剪贴板神器，斩获 3k Star！",
+        "has_accepted_answer" : false,
+        "id" : 59314,
+        "last_posted_at" : "2025-08-23T06:54:27.034Z",
+        "pinned" : false,
+        "posts_count" : 91,
+        "slug" : "topic",
+        "title" : "EcoPaste - 免费开源剪贴板神器，斩获 3k Star！"
+      },
+      {
+        "bumped_at" : "2026-10-13T00:49:58.602Z",
+        "fancy_title" : "【开发者自荐】手机收到的短信和验证码，无需拿出手机将会立刻出现在电脑上",
+        "has_accepted_answer" : false,
+        "id" : 92406,
+        "last_posted_at" : "2026-10-13T00:49:58.602Z",
+        "pinned" : false,
+        "posts_count" : 6,
+        "slug" : "topic",
+        "title" : "【开发者自荐】手机收到的短信和验证码，无需拿出手机将会立刻出现在电脑上"
+      },
+      {
+        "bumped_at" : "2026-11-14T12:11:10.476Z",
+        "fancy_title" : "全平台剪贴板推送与同步方案合集",
+        "has_accepted_answer" : false,
+        "id" : 18527,
+        "last_posted_at" : "2024-10-06T10:55:24.460Z",
+        "pinned" : false,
+        "posts_count" : 40,
+        "slug" : "topic",
+        "title" : "全平台剪贴板推送与同步方案合集"
+      },
+      {
+        "bumped_at" : "2022-01-20T07:33:45.675Z",
+        "fancy_title" : "有什么方便的iOS和windows双向同步的剪贴板工具？",
+        "has_accepted_answer" : false,
+        "id" : 28607,
+        "last_posted_at" : "2022-01-20T07:33:45.675Z",
+        "pinned" : false,
+        "posts_count" : 10,
+        "slug" : "topic",
+        "title" : "有什么方便的iOS和windows双向同步的剪贴板工具？"
+      },
+      {
+        "bumped_at" : "2026-10-27T08:29:19.071Z",
+        "fancy_title" : "11 个有意思的 GitHub 项目：把截图晾起来、关广告、破甲，还有一本黑话词典",
+        "has_accepted_answer" : false,
+        "id" : 94448,
+        "last_posted_at" : "2026-10-27T08:29:19.071Z",
+        "pinned" : false,
+        "posts_count" : 8,
+        "slug" : "topic",
+        "title" : "11 个有意思的 GitHub 项目：把截图晾起来、关广告、破甲，还有一本黑话词典"
+      },
+      {
+        "bumped_at" : "2026-11-12T08:32:54.159Z",
+        "fancy_title" : "jarkViewer - 开源看图软件",
+        "has_accepted_answer" : false,
+        "id" : 60968,
+        "last_posted_at" : "2026-11-12T08:32:54.159Z",
+        "pinned" : false,
+        "posts_count" : 88,
+        "slug" : "topic",
+        "title" : "jarkViewer - 开源看图软件"
+      },
+      {
+        "bumped_at" : "2024-11-29T09:31:31.132Z",
+        "fancy_title" : "Ws scrcpy：scrcpy 网页端应用，实现云手机效果",
+        "has_accepted_answer" : false,
+        "id" : 33828,
+        "last_posted_at" : "2024-11-29T09:31:31.132Z",
+        "pinned" : false,
+        "posts_count" : 42,
+        "slug" : "topic",
+        "title" : "Ws scrcpy：scrcpy 网页端应用，实现云手机效果"
+      },
+      {
+        "bumped_at" : "2022-06-29T03:09:54.343Z",
+        "fancy_title" : "自用Xposed模块推荐分享-2022-5-14",
+        "has_accepted_answer" : false,
+        "id" : 32459,
+        "last_posted_at" : "2022-06-29T03:09:54.343Z",
+        "pinned" : false,
+        "posts_count" : 33,
+        "slug" : "topic",
+        "title" : "自用Xposed模块推荐分享-2022-5-14"
+      },
+      {
+        "bumped_at" : "2021-02-19T05:20:52.778Z",
+        "fancy_title" : "Android 12 DP1 开放下载，第一个开发者预览版详情【机器翻译】",
+        "has_accepted_answer" : false,
+        "id" : 21929,
+        "last_posted_at" : "2021-02-19T05:20:52.778Z",
+        "pinned" : false,
+        "posts_count" : 1,
+        "slug" : "topic",
+        "title" : "Android 12 DP1 开放下载，第一个开发者预览版详情【机器翻译】"
+      },
+      {
+        "bumped_at" : "2024-05-06T15:10:26.362Z",
+        "fancy_title" : "大家有什么 F-Droid 里的 app 推荐吗？",
+        "has_accepted_answer" : false,
+        "id" : 15095,
+        "last_posted_at" : "2024-05-06T15:10:26.362Z",
+        "pinned" : false,
+        "posts_count" : 31,
+        "slug" : "topic",
+        "title" : "大家有什么 F-Droid 里的 app 推荐吗？"
+      },
+      {
+        "bumped_at" : "2025-05-29T11:19:43.175Z",
+        "fancy_title" : "无聊问了ai一个话题，有点难绷",
+        "has_accepted_answer" : false,
+        "id" : 71804,
+        "last_posted_at" : "2025-05-29T11:19:43.175Z",
+        "pinned" : false,
+        "posts_count" : 3,
+        "slug" : "topic",
+        "title" : "无聊问了ai一个话题，有点难绷"
+      }
+    ]
+  },
+  "headers" : {
+    "content-type" : "application/json; charset=utf-8"
+  },
+  "status" : 200,
+  "url" : "https://meta.appinn.net/search.json?q=Android%20%E5%90%8E%E5%8F%B0%20%E5%89%AA%E8%B4%B4%E6%9D%BF%20%E8%87%AA%E5%8A%A8%E5%A4%8D%E5%88%B6"
+}
