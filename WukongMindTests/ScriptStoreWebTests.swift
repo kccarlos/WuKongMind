@@ -766,6 +766,59 @@ final class ScriptStoreWebTests: XCTestCase {
         XCTAssertEqual(runsCheck.valueJSON, #"["/t/1","/t/2","/t/3","/t/3"]"#)
     }
 
+    func testExcludedPagesNeverRunTheScriptOrKeepItsCSS() async throws {
+        let baseURL = try await sharedFixtureBaseURL()
+        let store = ScriptStore(directoryURL: tempDirectory)
+        let candidate = UserScript(
+            id: "excluding-stamp",
+            name: "Excluding Stamp",
+            matchRules: ["*://127.0.0.1/t/*"],
+            js: "document.querySelector('article.op')?.setAttribute('data-script-stamped', location.pathname);",
+            css: "article.reply { display: none !important; }",
+            metadata: ScriptMetadata(lines: [.init(key: "@exclude", value: "*://127.0.0.1/t/2")])
+        )
+        _ = try store.importUserScript(candidate.toUserScriptFileContent())
+
+        let harness = makeHarness(store: store)
+        let stateCode = """
+        return {
+          stamped: document.querySelector('article.op')?.getAttribute('data-script-stamped') ?? null,
+          sheets: document.adoptedStyleSheets.length
+        };
+        """
+
+        try await harness.waiter.waitForLoad {
+            _ = harness.webView.load(URLRequest(url: baseURL.appendingPathComponent("t/1")))
+        }
+        let included = try await harness.bridge.runJS(code: stateCode, environment: .isolated)
+        let includedObj = try JSONValue.parseObjectJSON(try XCTUnwrap(included.valueJSON))
+        XCTAssertEqual(includedObj["stamped"], .string("/t/1"))
+        XCTAssertEqual(includedObj["sheets"], .int(1))
+
+        try await harness.waiter.waitForLoad {
+            _ = harness.webView.load(URLRequest(url: baseURL.appendingPathComponent("t/2")))
+        }
+        let excluded = try await harness.bridge.runJS(code: stateCode, environment: .isolated)
+        let excludedObj = try JSONValue.parseObjectJSON(try XCTUnwrap(excluded.valueJSON))
+        XCTAssertEqual(excludedObj["stamped"], .null)
+        XCTAssertEqual(excludedObj["sheets"], .int(0))
+
+        // A route change inside the page into an excluded address removes CSS and doesn't run JS.
+        try await harness.waiter.waitForLoad {
+            _ = harness.webView.load(URLRequest(url: baseURL.appendingPathComponent("t/3")))
+        }
+        _ = try await harness.bridge.runJS(code: "window.spaPush('/t/2');", environment: .page)
+        try await waitUntil {
+            let res = try await harness.bridge.runJS(code: stateCode, environment: .isolated)
+            guard let json = res.valueJSON, let obj = try? JSONValue.parseObjectJSON(json) else { return false }
+            return obj["sheets"] == .int(0)
+        }
+        let afterPush = try await harness.bridge.runJS(code: stateCode, environment: .isolated)
+        let afterPushObj = try JSONValue.parseObjectJSON(try XCTUnwrap(afterPush.valueJSON))
+        XCTAssertNotEqual(afterPushObj["stamped"], .string("/t/2"))
+        XCTAssertEqual(afterPushObj["sheets"], .int(0))
+    }
+
     // MARK: - 3. Disabled Script & Global Kill Switch
 
     func testDisabledScriptAndGlobalSwitchPreventInjectionAndRemoveInjectedCSS() async throws {

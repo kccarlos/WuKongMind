@@ -1417,6 +1417,20 @@ extension ToolRegistry {
         description: "Set true to save even when page-feedback rules warn that the script removed major page content (for example when the user asked to keep only the article). Never overrides runtime errors."
     )
 
+    private static let grantsParameter = ToolParameterSchema(
+        name: "grants",
+        type: .array,
+        description: "Optional @grant list: the GM_* functions the script may call, e.g. ['GM_getValue', 'GM_setValue']. A script that needs none omits this. On update, the list replaces the current one.",
+        itemsType: .string
+    )
+
+    private static let connectParameter = ToolParameterSchema(
+        name: "connect",
+        type: .array,
+        description: "Optional @connect list: hosts GM_xmlhttpRequest may reach, e.g. ['api.example.org'] (a host covers its subdomains; 'self' is the page's own site; '*' is any public host). On update, the list replaces the current one.",
+        itemsType: .string
+    )
+
     private static func makeScriptSaveTool(
         bridge: AgentPageDriving,
         scriptStore: ScriptStore,
@@ -1472,6 +1486,8 @@ extension ToolRegistry {
                         AgentExecutionEnvironment.page.rawValue
                     ]
                 ),
+                grantsParameter,
+                connectParameter,
                 confirmChangeParameter
             ],
             required: ["name", "match_rules"]
@@ -1494,6 +1510,8 @@ extension ToolRegistry {
                    css.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                     throw ToolValidationError("Invalid arguments for 'script_save': provide non-empty 'js', 'css', or both.")
                 }
+                _ = try extractValidatedGrants(from: args["grants"], toolName: "script_save")
+                _ = try extractValidatedConnectHosts(from: args["connect"], toolName: "script_save")
             },
             summarizeArguments: { args in
                 let name = condenseInline(args["name"]?.stringValue ?? "", maxChars: 36)
@@ -1512,6 +1530,8 @@ extension ToolRegistry {
                 let injectionTime = ScriptInjectionTime(rawValue: injectionRaw) ?? .defaultTime
                 let envRaw = args["environment"]?.stringValue ?? AgentExecutionEnvironment.defaultEnvironment.rawValue
                 let environment = AgentExecutionEnvironment(rawValue: envRaw) ?? .defaultEnvironment
+                let grants = try extractValidatedGrants(from: args["grants"], toolName: "script_save") ?? []
+                let connectHosts = try extractValidatedConnectHosts(from: args["connect"], toolName: "script_save") ?? []
                 let confirmChange = args["confirm_change"]?.strictBoolValue ?? false
 
                 let candidate: UserScript = try await MainActor.run {
@@ -1524,7 +1544,9 @@ extension ToolRegistry {
                         injectionTime: injectionTime,
                         environment: environment,
                         isEnabled: true,
-                        source: .agent(userPrompt: prompt)
+                        source: .agent(userPrompt: prompt),
+                        grants: grants,
+                        connectHosts: connectHosts
                     )
                 }
 
@@ -1558,7 +1580,9 @@ extension ToolRegistry {
                     "version": .int(Int64(saved.version)),
                     "match_rules": .array(saved.matchRules.map(JSONValue.string)),
                     "injection_time": .string(saved.injectionTime.rawValue),
-                    "environment": .string(saved.environment.rawValue)
+                    "environment": .string(saved.environment.rawValue),
+                    "grants": .array(saved.metadata.grants.map(JSONValue.string)),
+                    "connect": .array(saved.metadata.connectHosts.map(JSONValue.string))
                 ]
 
                 return try await finishVerifiedScriptWrite(
@@ -1694,6 +1718,8 @@ extension ToolRegistry {
                     "environment": .string(script.environment.rawValue),
                     "enabled": .bool(script.isEnabled),
                     "version": .int(Int64(script.version)),
+                    "grants": .array(script.metadata.grants.map(JSONValue.string)),
+                    "connect": .array(script.metadata.connectHosts.map(JSONValue.string)),
                     "source": .string(script.source.kindIdentifier),
                     "versions": .array(script.versions.map { .int(Int64($0.version)) }),
                     "user_script": .string(script.toUserScriptFileContent())
@@ -1781,6 +1807,8 @@ extension ToolRegistry {
                     type: .boolean,
                     description: "Optional enabled state for the script."
                 ),
+                grantsParameter,
+                connectParameter,
                 confirmChangeParameter
             ],
             required: ["script_id"]
@@ -1794,12 +1822,14 @@ extension ToolRegistry {
                     throw ToolValidationError("Invalid arguments for 'script_update': 'script_id' must not be empty.")
                 }
 
-                let mutableKeys = ["name", "match_rules", "js", "css", "injection_time", "environment", "enabled"]
+                let mutableKeys = ["name", "match_rules", "js", "css", "injection_time", "environment", "enabled", "grants", "connect"]
                 guard mutableKeys.contains(where: { args[$0] != nil }) else {
                     throw ToolValidationError(
-                        "Invalid arguments for 'script_update': provide at least one field to update (name, match_rules, js, css, injection_time, environment, or enabled)."
+                        "Invalid arguments for 'script_update': provide at least one field to update (name, match_rules, js, css, injection_time, environment, enabled, grants, or connect)."
                     )
                 }
+                _ = try extractValidatedGrants(from: args["grants"], toolName: "script_update")
+                _ = try extractValidatedConnectHosts(from: args["connect"], toolName: "script_update")
 
                 if let rawName = args["name"]?.stringValue,
                    rawName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -1819,7 +1849,7 @@ extension ToolRegistry {
             },
             summarizeArguments: { args in
                 let id = condenseInline(args["script_id"]?.stringValue ?? "", maxChars: 36)
-                var changed = ["name", "match_rules", "js", "css", "injection_time", "environment", "enabled"]
+                var changed = ["name", "match_rules", "js", "css", "injection_time", "environment", "enabled", "grants", "connect"]
                     .filter { args[$0] != nil }
                 if args["confirm_change"]?.strictBoolValue == true {
                     changed.append("confirm_change")
@@ -1844,7 +1874,9 @@ extension ToolRegistry {
                     css: args["css"]?.stringValue,
                     injectionTime: args["injection_time"]?.stringValue.flatMap(ScriptInjectionTime.init(rawValue:)),
                     environment: args["environment"]?.stringValue.flatMap(AgentExecutionEnvironment.init(rawValue:)),
-                    isEnabled: args["enabled"]?.strictBoolValue
+                    isEnabled: args["enabled"]?.strictBoolValue,
+                    grants: try extractValidatedGrants(from: args["grants"], toolName: "script_update"),
+                    connectHosts: try extractValidatedConnectHosts(from: args["connect"], toolName: "script_update")
                 )
 
                 let prospective: ScriptStore.ProspectiveUpdate = try await MainActor.run {
@@ -1884,11 +1916,14 @@ extension ToolRegistry {
                 var payload: [String: JSONValue] = [
                     "script_id": .string(updated.id),
                     "version": .int(Int64(updated.version)),
-                    "enabled": .bool(updated.isEnabled)
+                    "enabled": .bool(updated.isEnabled),
+                    "grants": .array(updated.metadata.grants.map(JSONValue.string)),
+                    "connect": .array(updated.metadata.connectHosts.map(JSONValue.string))
                 ]
 
                 let shouldRunJS = updated.hasJS && (
                     patch.js != nil || patch.environment != nil || patch.matchRules != nil
+                    || patch.grants != nil || patch.connectHosts != nil
                     || (patch.isEnabled == true && !wasEnabled)
                 )
                 return try await finishVerifiedScriptWrite(
@@ -2004,6 +2039,56 @@ extension ToolRegistry {
                 )
             }
             cleaned.append(trimmed)
+        }
+        return cleaned
+    }
+
+    /// `grants`: each entry must be a `GM_*` (or `GM.*`) function the app implements, or `"none"`.
+    /// Returns `nil` when the argument is absent; an empty array (or `["none"]`) means no grants.
+    private static func extractValidatedGrants(from rawValue: JSONValue?, toolName: String) throws -> [String]? {
+        try extractValidatedStrings(
+            from: rawValue,
+            toolName: toolName,
+            argument: "grants",
+            validate: ScriptMetadata.validatedGrant,
+            hint: "must be one of: \(ScriptMetadata.supportedGrants.joined(separator: ", "))."
+        )?.filter { $0 != "none" }
+    }
+
+    /// `connect`: host names (a host also covers its subdomains), IPv4/IPv6 addresses,
+    /// `localhost`, `self` or `*`.
+    private static func extractValidatedConnectHosts(from rawValue: JSONValue?, toolName: String) throws -> [String]? {
+        try extractValidatedStrings(
+            from: rawValue,
+            toolName: toolName,
+            argument: "connect",
+            validate: ScriptMetadata.validatedConnectHost,
+            hint: "must be a bare host name such as 'api.example.org' (covers subdomains), an IP address, 'localhost', 'self', or '*' (no scheme, port, path, or '*.' prefix)."
+        )
+    }
+
+    private static func extractValidatedStrings(
+        from rawValue: JSONValue?,
+        toolName: String,
+        argument: String,
+        validate: (String) -> String?,
+        hint: String
+    ) throws -> [String]? {
+        guard let rawValue else { return nil }
+        guard let elements = rawValue.strictArrayValue else {
+            throw ToolValidationError("Invalid arguments for '\(toolName)': '\(argument)' must be an array of strings.")
+        }
+        var cleaned: [String] = []
+        for element in elements {
+            guard let text = element.stringValue else {
+                throw ToolValidationError("Invalid arguments for '\(toolName)': every entry in '\(argument)' must be a string.")
+            }
+            guard let valid = validate(text) else {
+                throw ToolValidationError(
+                    "Invalid arguments for '\(toolName)': '\(argument)' entry '\(condenseInline(text, maxChars: 60))' \(hint)"
+                )
+            }
+            if !cleaned.contains(valid) { cleaned.append(valid) }
         }
         return cleaned
     }

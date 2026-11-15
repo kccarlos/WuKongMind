@@ -1,3 +1,4 @@
+import Darwin
 import Foundation
 import Observation
 import OSLog
@@ -140,6 +141,7 @@ struct UserScriptVersion: Identifiable, Codable, Equatable, Sendable {
     var environment: AgentExecutionEnvironment
     var savedAt: Date
     var origin: ScriptVersionOrigin?
+    var metadata: ScriptMetadata
 
     init(
         version: Int,
@@ -150,7 +152,8 @@ struct UserScriptVersion: Identifiable, Codable, Equatable, Sendable {
         injectionTime: ScriptInjectionTime,
         environment: AgentExecutionEnvironment,
         savedAt: Date,
-        origin: ScriptVersionOrigin? = nil
+        origin: ScriptVersionOrigin? = nil,
+        metadata: ScriptMetadata = ScriptMetadata()
     ) {
         self.version = version
         self.name = name
@@ -161,6 +164,21 @@ struct UserScriptVersion: Identifiable, Codable, Equatable, Sendable {
         self.environment = environment
         self.savedAt = savedAt
         self.origin = origin
+        self.metadata = metadata
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        version = try container.decode(Int.self, forKey: .version)
+        name = try container.decode(String.self, forKey: .name)
+        matchRules = try container.decode([String].self, forKey: .matchRules)
+        js = try container.decode(String.self, forKey: .js)
+        css = try container.decode(String.self, forKey: .css)
+        injectionTime = try container.decode(ScriptInjectionTime.self, forKey: .injectionTime)
+        environment = try container.decode(AgentExecutionEnvironment.self, forKey: .environment)
+        savedAt = try container.decode(Date.self, forKey: .savedAt)
+        origin = try container.decodeIfPresent(ScriptVersionOrigin.self, forKey: .origin)
+        metadata = try container.decodeIfPresent(ScriptMetadata.self, forKey: .metadata) ?? ScriptMetadata()
     }
 
     func toUserScript(from parent: UserScript) -> UserScript {
@@ -178,7 +196,8 @@ struct UserScriptVersion: Identifiable, Codable, Equatable, Sendable {
             createdAt: parent.createdAt,
             updatedAt: savedAt,
             versions: [],
-            versionOrigin: origin
+            versionOrigin: origin,
+            metadata: metadata
         )
     }
 }
@@ -191,6 +210,8 @@ struct ScriptUpdatePatch: Equatable, Sendable {
     var injectionTime: ScriptInjectionTime?
     var environment: AgentExecutionEnvironment?
     var isEnabled: Bool?
+    var grants: [String]?
+    var connectHosts: [String]?
 
     init(
         name: String? = nil,
@@ -199,7 +220,9 @@ struct ScriptUpdatePatch: Equatable, Sendable {
         css: String? = nil,
         injectionTime: ScriptInjectionTime? = nil,
         environment: AgentExecutionEnvironment? = nil,
-        isEnabled: Bool? = nil
+        isEnabled: Bool? = nil,
+        grants: [String]? = nil,
+        connectHosts: [String]? = nil
     ) {
         self.name = name
         self.matchRules = matchRules
@@ -208,6 +231,8 @@ struct ScriptUpdatePatch: Equatable, Sendable {
         self.injectionTime = injectionTime
         self.environment = environment
         self.isEnabled = isEnabled
+        self.grants = grants
+        self.connectHosts = connectHosts
     }
 
     var hasChanges: Bool {
@@ -218,6 +243,8 @@ struct ScriptUpdatePatch: Equatable, Sendable {
             || injectionTime != nil
             || environment != nil
             || isEnabled != nil
+            || grants != nil
+            || connectHosts != nil
     }
 
     var touchesVersionedFields: Bool {
@@ -227,6 +254,8 @@ struct ScriptUpdatePatch: Equatable, Sendable {
             || css != nil
             || injectionTime != nil
             || environment != nil
+            || grants != nil
+            || connectHosts != nil
     }
 }
 
@@ -496,6 +525,14 @@ struct MatchPattern: Equatable, Sendable {
         }
     }
 
+    /// Whether this pattern (used as `@exclude`) rules out every URL `include` could match on `rawDomain`.
+    func vetoesDomain(_ rawDomain: String, for include: MatchPattern) -> Bool {
+        guard matchesDomain(rawDomain) else { return false }
+        let coversAllPaths = isAllURLs || (pathPattern.count >= 2 && pathPattern.hasPrefix("/") && pathPattern.dropFirst().allSatisfy { $0 == "*" })
+        let coversPort = (portRule == .ignore || portRule == .any || portRule == include.portRule)
+        return coversAllPaths && coversPort && include.allowedSchemes.isSubset(of: allowedSchemes)
+    }
+
     static func validationError(_ raw: String) -> MatchPatternError? {
         do {
             _ = try parse(raw)
@@ -747,6 +784,154 @@ private extension Character {
     }
 }
 
+// MARK: - Script Metadata
+
+/// What a `.user.js` header says beyond the fields `UserScript` models itself.
+///
+/// The header lines the app does not own (`@grant`, `@connect`, `@exclude`,
+/// `@require`, `@namespace`, anything unknown...) are kept verbatim and in order,
+/// so a script exports with the lines it was imported with. The typed accessors
+/// below read the same lines: there is one source of truth.
+struct ScriptMetadata: Codable, Equatable, Sendable {
+    struct Line: Codable, Equatable, Sendable {
+        /// The key as written, including the `@` (`@downloadURL` keeps its case).
+        var key: String
+        /// The value as written in the file, not header-decoded.
+        var value: String
+    }
+
+    /// Header lines kept as written, in file order.
+    var lines: [Line]
+    /// The author's `@version` text. `nil` means the script has none of its own and
+    /// `@version` follows the revision (every script made here, and 1.3 files).
+    var authorVersion: String?
+    /// `@run-at` as written, when it isn't one of the two values the app writes.
+    var runAtText: String?
+    /// `@wukong-install-url`: where an imported script came from.
+    var installURL: String?
+    /// `@wukong-upstream-hash`: SHA-256 of the text that was imported.
+    var upstreamHash: String?
+    /// `@wukong-locally-changed`: edited here since it was imported or last updated.
+    var locallyChanged: Bool
+
+    init(
+        lines: [Line] = [],
+        authorVersion: String? = nil,
+        runAtText: String? = nil,
+        installURL: String? = nil,
+        upstreamHash: String? = nil,
+        locallyChanged: Bool = false
+    ) {
+        self.lines = lines
+        self.authorVersion = authorVersion
+        self.runAtText = runAtText
+        self.installURL = installURL
+        self.upstreamHash = upstreamHash
+        self.locallyChanged = locallyChanged
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        lines = try container.decodeIfPresent([Line].self, forKey: .lines) ?? []
+        authorVersion = try container.decodeIfPresent(String.self, forKey: .authorVersion)
+        runAtText = try container.decodeIfPresent(String.self, forKey: .runAtText)
+        installURL = try container.decodeIfPresent(String.self, forKey: .installURL)
+        upstreamHash = try container.decodeIfPresent(String.self, forKey: .upstreamHash)
+        locallyChanged = try container.decodeIfPresent(Bool.self, forKey: .locallyChanged) ?? false
+    }
+
+    // MARK: Typed views
+
+    static let grantKey = "@grant"
+    static let connectKey = "@connect"
+
+    /// The grant names the app implements (`GM_*` and their `GM.` spellings).
+    static let supportedGrants: [String] = [
+        "GM_addStyle", "GM_getValue", "GM_setValue", "GM_deleteValue", "GM_listValues",
+        "GM_xmlhttpRequest", "GM_registerMenuCommand", "GM_unregisterMenuCommand",
+        "GM_ai", "GM_info", "GM_log",
+        "GM.addStyle", "GM.getValue", "GM.setValue", "GM.deleteValue", "GM.listValues",
+        "GM.xmlHttpRequest", "GM.info"
+    ]
+
+    func values(for key: String) -> [String] {
+        lines.filter { $0.key.caseInsensitiveCompare(key) == .orderedSame }.map(\.value)
+    }
+
+    private func nonEmptyValues(for key: String) -> [String] {
+        values(for: key).filter { !$0.isEmpty }
+    }
+
+    /// Declared grants, in order; `none` is the absence of grants and is left out.
+    var grants: [String] {
+        nonEmptyValues(for: Self.grantKey).filter { $0.caseInsensitiveCompare("none") != .orderedSame }
+    }
+
+    var connectHosts: [String] { nonEmptyValues(for: Self.connectKey) }
+
+    var requireURLs: [String] { nonEmptyValues(for: "@require") }
+
+    /// `page`, `content` or `auto` as written, lowercased; `nil` when absent.
+    var injectInto: String? { nonEmptyValues(for: "@inject-into").first?.lowercased() }
+
+    /// `@exclude` and `@exclude-match` values, in file order.
+    var excludePatterns: [String] {
+        lines.compactMap { line in
+            let k = line.key.lowercased()
+            guard (k == "@exclude" || k == "@exclude-match"), !line.value.isEmpty else { return nil }
+            return line.value
+        }
+    }
+
+    /// Excludes that aren't valid match patterns. They can't be applied, so the
+    /// review sheet has to say that the script is not excluded from those pages.
+    var unusableExcludePatterns: [String] {
+        excludePatterns.filter { !MatchPattern.isValid($0) }
+    }
+
+    /// Replaces every line with `key` by one line per value, at the first old
+    /// line's place (or at the end when there was none).
+    mutating func setValues(_ values: [String], for key: String) {
+        let insertAt = lines.firstIndex { $0.key.caseInsensitiveCompare(key) == .orderedSame }
+        lines.removeAll { $0.key.caseInsensitiveCompare(key) == .orderedSame }
+        let newLines = values.map { Line(key: key, value: $0) }
+        lines.insert(contentsOf: newLines, at: min(insertAt ?? lines.count, lines.count))
+    }
+
+    mutating func setGrants(_ grants: [String]) { setValues(grants, for: Self.grantKey) }
+
+    mutating func setConnectHosts(_ hosts: [String]) { setValues(hosts, for: Self.connectKey) }
+
+    // MARK: Validation for values the Agent declares
+
+    /// The grant when it is one the app implements (exact spelling) or `"none"`, else `nil`.
+    static func validatedGrant(_ raw: String) -> String? {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.caseInsensitiveCompare("none") == .orderedSame { return "none" }
+        return supportedGrants.contains(trimmed) ? trimmed : nil
+    }
+
+    /// A lowercase host name, IPv4/IPv6 address, `localhost`, `self` or `*`; `nil` for
+    /// anything else (a URL, a port, a path, or a wildcard subdomain such as `*.example.org`).
+    static func validatedConnectHost(_ raw: String) -> String? {
+        let host = raw.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        if host == "self" || host == "*" { return host }
+        let ipv6Candidate: String? = {
+            if host.hasPrefix("["), host.hasSuffix("]") {
+                return String(host.dropFirst().dropLast())
+            }
+            return host.contains(":") ? host : nil
+        }()
+        if let ipv6Candidate, !ipv6Candidate.isEmpty {
+            var addr = in6_addr()
+            return ipv6Candidate.withCString { inet_pton(AF_INET6, $0, &addr) == 1 } ? ipv6Candidate : nil
+        }
+        let label = "[a-z0-9]([a-z0-9-]*[a-z0-9])?"
+        let hostName = "^\(label)(\\.\(label))*$"
+        return host.range(of: hostName, options: .regularExpression) != nil ? host : nil
+    }
+}
+
 // MARK: - UserScript Model & .user.js Serialization
 
 struct UserScript: Identifiable, Codable, Equatable, Sendable {
@@ -765,6 +950,7 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
     var versions: [UserScriptVersion]
     var versionOrigin: ScriptVersionOrigin?
     var disabledReason: String?
+    var metadata: ScriptMetadata
 
     init(
         id: String,
@@ -781,7 +967,8 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
         updatedAt: Date = Date(),
         versions: [UserScriptVersion] = [],
         versionOrigin: ScriptVersionOrigin? = nil,
-        disabledReason: String? = nil
+        disabledReason: String? = nil,
+        metadata: ScriptMetadata = ScriptMetadata()
     ) {
         self.id = id
         self.name = name
@@ -798,6 +985,28 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
         self.versions = versions.sorted { $0.version < $1.version }
         self.versionOrigin = versionOrigin
         self.disabledReason = disabledReason
+        self.metadata = metadata
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        matchRules = try container.decode([String].self, forKey: .matchRules)
+        js = try container.decode(String.self, forKey: .js)
+        css = try container.decode(String.self, forKey: .css)
+        injectionTime = try container.decode(ScriptInjectionTime.self, forKey: .injectionTime)
+        environment = try container.decode(AgentExecutionEnvironment.self, forKey: .environment)
+        isEnabled = try container.decode(Bool.self, forKey: .isEnabled)
+        source = try container.decode(ScriptSource.self, forKey: .source)
+        version = max(1, try container.decode(Int.self, forKey: .version))
+        createdAt = try container.decode(Date.self, forKey: .createdAt)
+        updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+        versions = (try container.decodeIfPresent([UserScriptVersion].self, forKey: .versions) ?? [])
+            .sorted { $0.version < $1.version }
+        versionOrigin = try container.decodeIfPresent(ScriptVersionOrigin.self, forKey: .versionOrigin)
+        disabledReason = try container.decodeIfPresent(String.self, forKey: .disabledReason)
+        metadata = try container.decodeIfPresent(ScriptMetadata.self, forKey: .metadata) ?? ScriptMetadata()
     }
 
     var hasJS: Bool {
@@ -894,27 +1103,31 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
         return fields
     }
 
+    /// Excludes that are valid match patterns (`@exclude`, `@exclude-match`).
+    var excludePatterns: [MatchPattern] {
+        metadata.excludePatterns.compactMap { try? MatchPattern.parse($0) }
+    }
+
     func matches(url: URL) -> Bool {
-        for rule in matchRules {
-            if let pattern = try? MatchPattern.parse(rule), pattern.matches(url: url) {
-                return true
-            }
+        let included = matchRules.contains { rule in
+            (try? MatchPattern.parse(rule))?.matches(url: url) == true
         }
-        return false
+        return included && !excludePatterns.contains { $0.matches(url: url) }
     }
 
     func matches(urlString: String) -> Bool {
-        for rule in matchRules {
-            if let pattern = try? MatchPattern.parse(rule), pattern.matches(urlString: urlString) {
-                return true
-            }
+        let included = matchRules.contains { rule in
+            (try? MatchPattern.parse(rule))?.matches(urlString: urlString) == true
         }
-        return false
+        return included && !excludePatterns.contains { $0.matches(urlString: urlString) }
     }
 
     func matchesDomain(_ domain: String) -> Bool {
+        let excludes = excludePatterns
         for rule in matchRules {
-            if let pattern = try? MatchPattern.parse(rule), pattern.matchesDomain(domain) {
+            if let pattern = try? MatchPattern.parse(rule),
+               pattern.matchesDomain(domain),
+               !excludes.contains(where: { $0.vetoesDomain(domain, for: pattern) }) {
                 return true
             }
         }
@@ -931,7 +1144,8 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
             injectionTime: injectionTime,
             environment: environment,
             savedAt: savedAt ?? updatedAt,
-            origin: versionOrigin
+            origin: versionOrigin,
+            metadata: metadata
         )
     }
 
@@ -944,6 +1158,30 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
     private static let cssDeclarationPrefix = "  const css = "
     private static let cssDeclarationSuffix = ";"
 
+    /// `@run-at` as written when it still means the script's injection time
+    /// (`document-idle` stays `document-idle`), else the time's own value.
+    private var runAtHeaderValue: String {
+        if let text = metadata.runAtText, Self.injectionTime(forRunAt: text) == injectionTime {
+            return Self.encodeHeaderValue(text)
+        }
+        return injectionTime.rawValue
+    }
+
+    /// Maps an `@run-at` value to an injection time. `document-start` runs early;
+    /// every other value, known or not, runs at document end.
+    static func injectionTime(forRunAt value: String) -> ScriptInjectionTime {
+        value.lowercased() == "document-start" ? .documentStart : .documentEnd
+    }
+
+    private static func singleLineHeaderFragment(_ text: String) -> String {
+        text
+            .replacingOccurrences(of: "\r\n", with: " ")
+            .replacingOccurrences(of: "\n", with: " ")
+            .replacingOccurrences(of: "\r", with: " ")
+            .replacingOccurrences(of: "\u{2028}", with: " ")
+            .replacingOccurrences(of: "\u{2029}", with: " ")
+    }
+
     /// Serializes the script as a standalone, Tampermonkey-compatible `.user.js` file
     /// with a `// ==UserScript==` metadata block and lossless round-tripping of both
     /// CSS and JavaScript bodies.
@@ -954,8 +1192,14 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
         for rule in matchRules {
             lines.append("// @match \(Self.encodeHeaderValue(rule))")
         }
-        lines.append("// @run-at \(injectionTime.rawValue)")
-        lines.append("// @version \(version)")
+        for line in metadata.lines {
+            let key = Self.singleLineHeaderFragment(line.key)
+            let val = Self.singleLineHeaderFragment(line.value)
+            lines.append(val.isEmpty ? "// \(key)" : "// \(key) \(val)")
+        }
+        lines.append("// @run-at \(runAtHeaderValue)")
+        lines.append("// @version \(Self.encodeHeaderValue(metadata.authorVersion ?? String(version)))")
+        lines.append("// @wukong-revision \(version)")
         lines.append("// @wukong-id \(Self.encodeHeaderValue(id))")
         lines.append("// @wukong-environment \(environment.rawValue)")
         lines.append("// @wukong-enabled \(isEnabled ? "true" : "false")")
@@ -974,6 +1218,15 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
         }
         lines.append("// @wukong-created-at \(Self.formatISO8601(createdAt))")
         lines.append("// @wukong-updated-at \(Self.formatISO8601(updatedAt))")
+        if let installURL = metadata.installURL, !installURL.isEmpty {
+            lines.append("// @wukong-install-url \(Self.encodeHeaderValue(installURL))")
+        }
+        if let upstreamHash = metadata.upstreamHash, !upstreamHash.isEmpty {
+            lines.append("// @wukong-upstream-hash \(Self.encodeHeaderValue(upstreamHash))")
+        }
+        if metadata.locallyChanged {
+            lines.append("// @wukong-locally-changed true")
+        }
         lines.append(Self.headerEndMarker)
 
         var output = lines.joined(separator: "\n") + "\n"
@@ -1015,6 +1268,7 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
         }
 
         let headerText = String(afterHeaderStart[..<endMarkerRange.lowerBound])
+            .replacingOccurrences(of: "\r", with: "\n")
         var remainder = String(afterHeaderStart[endMarkerRange.upperBound...])
         if remainder.hasPrefix("\n") {
             remainder.removeFirst()
@@ -1031,7 +1285,13 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
         var userPrompt = ""
         var versionOriginKind: String?
         var versionOriginPrompt = ""
-        var version = 1
+        var revision: Int?
+        var versionText: String?
+        var runAtText: String?
+        var installURL: String?
+        var upstreamHash: String?
+        var locallyChanged = false
+        var keptLines: [ScriptMetadata.Line] = []
         var explicitID: String?
         var createdAt: Date?
         var updatedAt: Date?
@@ -1043,20 +1303,24 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
             guard afterComment.hasPrefix("@") else { continue }
 
             let key: String
+            let writtenKey: String
             let rawValue: String
             if let splitIdx = afterComment.firstIndex(where: { $0 == " " || $0 == "\t" }) {
-                key = String(afterComment[..<splitIdx]).lowercased()
+                writtenKey = String(afterComment[..<splitIdx])
                 rawValue = String(afterComment[splitIdx...]).trimmingCharacters(in: .whitespaces)
             } else {
-                key = afterComment.lowercased()
+                writtenKey = afterComment
                 rawValue = ""
             }
+            key = writtenKey.lowercased()
             let value = decodeHeaderValue(rawValue)
 
             switch key {
             case "@name":
                 if parsedName == nil, !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                     parsedName = value
+                } else {
+                    keptLines.append(.init(key: writtenKey, value: rawValue))
                 }
             case "@match":
                 if !value.isEmpty {
@@ -1066,20 +1330,15 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
                 if !value.isEmpty {
                     includeFallbacks.append(value)
                 }
+                keptLines.append(.init(key: writtenKey, value: rawValue))
             case "@run-at":
-                switch value.lowercased() {
-                case "document-start":
-                    injectionTime = .documentStart
-                case "document-end", "document-idle", "document-body":
-                    injectionTime = .documentEnd
-                default:
-                    throw ScriptStoreError.malformedUserScript("Unsupported @run-at value '\(value)'.")
-                }
+                injectionTime = Self.injectionTime(forRunAt: value)
+                runAtText = (!value.isEmpty && value != injectionTime.rawValue) ? value : nil
             case "@version":
-                if let exactInt = Int(value), exactInt >= 1 {
-                    version = exactInt
-                } else if let major = value.split(separator: ".").first.flatMap({ Int($0) }), major >= 1 {
-                    version = major
+                versionText = value
+            case "@wukong-revision":
+                if let parsed = Int(value), parsed >= 1 {
+                    revision = parsed
                 }
             case "@wukong-id":
                 if !value.isEmpty {
@@ -1115,10 +1374,36 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
                 createdAt = parseISO8601(value)
             case "@wukong-updated-at":
                 updatedAt = parseISO8601(value)
+            case "@wukong-install-url":
+                installURL = value.isEmpty ? nil : value
+            case "@wukong-upstream-hash":
+                upstreamHash = value.isEmpty ? nil : value
+            case "@wukong-locally-changed":
+                locallyChanged = ["true", "1", "yes"].contains(value.lowercased())
             default:
-                break
+                keptLines.append(.init(key: writtenKey, value: rawValue))
             }
         }
+
+        // The store's revision counter. Files from before `@wukong-revision` kept it in
+        // `@version`: a whole number is the revision, a dotted one counts by its major.
+        let resolvedRevision: Int
+        if let revision {
+            resolvedRevision = revision
+        } else if let text = versionText, let whole = Int(text), whole >= 1 {
+            resolvedRevision = whole
+        } else if let text = versionText, let major = text.split(separator: ".").first.flatMap({ Int($0) }), major >= 1 {
+            resolvedRevision = major
+        } else {
+            resolvedRevision = 1
+        }
+        // `@version` only follows the revision for scripts that have no version of
+        // their own; an imported script keeps the author's number as written.
+        let authorVersion: String? = {
+            guard let text = versionText, !text.isEmpty else { return nil }
+            if text == String(resolvedRevision), installURL == nil { return nil }
+            return text
+        }()
 
         if matchRules.isEmpty, !includeFallbacks.isEmpty {
             matchRules = includeFallbacks.filter { MatchPattern.isValid($0) }
@@ -1174,12 +1459,20 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
             environment: environment,
             isEnabled: isEnabled,
             source: resolvedSource,
-            version: version,
+            version: resolvedRevision,
             createdAt: created,
             updatedAt: updated,
             versions: [],
             versionOrigin: parsedVersionOrigin,
-            disabledReason: isEnabled ? nil : disabledReason
+            disabledReason: isEnabled ? nil : disabledReason,
+            metadata: ScriptMetadata(
+                lines: keptLines,
+                authorVersion: authorVersion,
+                runAtText: runAtText,
+                installURL: installURL,
+                upstreamHash: upstreamHash,
+                locallyChanged: locallyChanged
+            )
         )
     }
 
@@ -1627,6 +1920,8 @@ final class ScriptStore {
         environment: AgentExecutionEnvironment = .defaultEnvironment,
         isEnabled: Bool = true,
         source: ScriptSource = .imported,
+        grants: [String] = [],
+        connectHosts: [String] = [],
         now: Date = Date()
     ) throws -> UserScript {
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -1636,6 +1931,9 @@ final class ScriptStore {
 
         let cleanedRules = try Self.validateMatchRules(matchRules)
         try Self.validateBody(js: js, css: css)
+        var metadata = ScriptMetadata()
+        metadata.setGrants(grants)
+        metadata.setConnectHosts(connectHosts)
 
         let existingIDs = Set(scripts.map(\.id))
         let resolvedID: String
@@ -1664,7 +1962,8 @@ final class ScriptStore {
             version: 1,
             createdAt: now,
             updatedAt: now,
-            versions: []
+            versions: [],
+            metadata: metadata
         )
     }
 
@@ -1691,6 +1990,8 @@ final class ScriptStore {
         environment: AgentExecutionEnvironment = .defaultEnvironment,
         isEnabled: Bool = true,
         source: ScriptSource = .imported,
+        grants: [String] = [],
+        connectHosts: [String] = [],
         now: Date = Date()
     ) throws -> UserScript {
         let created = try makeCandidateForCreate(
@@ -1703,6 +2004,8 @@ final class ScriptStore {
             environment: environment,
             isEnabled: isEnabled,
             source: source,
+            grants: grants,
+            connectHosts: connectHosts,
             now: now
         )
         return try commitCreated(created)
@@ -1776,6 +2079,11 @@ final class ScriptStore {
         let nextEnvironment = patch.environment ?? existing.environment
         let nextEnabled = patch.isEnabled ?? existing.isEnabled
 
+        var nextMetadata = existing.metadata
+        if let grants = patch.grants { nextMetadata.setGrants(grants) }
+        if let hosts = patch.connectHosts { nextMetadata.setConnectHosts(hosts) }
+        if nextMetadata.installURL != nil { nextMetadata.locallyChanged = true }
+
         let archivedSnapshot = existing.snapshotVersion()
         var updatedVersions = existing.versions.filter { $0.version != archivedSnapshot.version }
         updatedVersions.append(archivedSnapshot)
@@ -1799,7 +2107,8 @@ final class ScriptStore {
             updatedAt: now,
             versions: updatedVersions,
             versionOrigin: origin,
-            disabledReason: nil
+            disabledReason: nil,
+            metadata: nextMetadata
         )
         return ProspectiveUpdate(previous: existing, updated: updated, touchesVersionedFields: true)
     }
@@ -1905,6 +2214,16 @@ final class ScriptStore {
             target = current.versions[current.versions.count - 1]
         }
 
+        var rolledBackMetadata = target.metadata
+        if let installURL = current.metadata.installURL ?? target.metadata.installURL {
+            rolledBackMetadata.installURL = installURL
+            let latestHash = current.metadata.upstreamHash ?? target.metadata.upstreamHash
+            rolledBackMetadata.upstreamHash = latestHash
+            if latestHash == nil || latestHash != target.metadata.upstreamHash {
+                rolledBackMetadata.locallyChanged = true
+            }
+        }
+
         let outgoingSnapshot = current.snapshotVersion()
         var updatedVersions = current.versions.filter { $0.version != outgoingSnapshot.version }
         updatedVersions.append(outgoingSnapshot)
@@ -1928,7 +2247,8 @@ final class ScriptStore {
             updatedAt: now,
             versions: updatedVersions,
             versionOrigin: .restored(fromVersion: target.version),
-            disabledReason: nil
+            disabledReason: nil,
+            metadata: rolledBackMetadata
         )
 
         try writeVersionArchive(for: current)
@@ -2005,7 +2325,8 @@ final class ScriptStore {
                 createdAt: script.createdAt,
                 updatedAt: historical.savedAt,
                 versions: [],
-                versionOrigin: historical.origin
+                versionOrigin: historical.origin,
+                metadata: historical.metadata
             )
             try writeVersionArchive(for: historicalScript)
         }
@@ -2230,7 +2551,8 @@ final class ScriptStore {
                         injectionTime: parsed.injectionTime,
                         environment: parsed.environment,
                         savedAt: parsed.updatedAt,
-                        origin: parsed.versionOrigin
+                        origin: parsed.versionOrigin,
+                        metadata: parsed.metadata
                     )
                 )
             }
@@ -2844,8 +3166,14 @@ final class ScriptWebController: ScriptLiveApplying {
 
     // MARK: - Injected JavaScript Templates
 
-    private static func compiledRulesArray(for script: UserScript) -> [[String: Any]] {
-        script.matchRules.compactMap { try? MatchPattern.parse($0).toJSDescriptor() }
+    static func compiledRulesArray(for script: UserScript) -> [[String: Any]] {
+        let included = script.matchRules.compactMap { try? MatchPattern.parse($0).toJSDescriptor() }
+        let excluded = script.excludePatterns.map { pattern -> [String: Any] in
+            var descriptor = pattern.toJSDescriptor()
+            descriptor["exclude"] = true
+            return descriptor
+        }
+        return included + excluded
     }
 
     private static func compiledRulesJSONLiteral(for script: UserScript) -> String {
@@ -2887,34 +3215,44 @@ final class ScriptWebController: ScriptLiveApplying {
         const pathname = parsed.pathname || "/";
         const pathAndQuery = pathname + (parsed.search || "");
 
-        for (let i = 0; i < rules.length; i++) {
-          const rule = rules[i];
-          if (!rule) continue;
+        const ruleMatches = (rule) => {
           if (!Array.isArray(rule.schemes) || rule.schemes.indexOf(scheme) === -1) {
-            continue;
+            return false;
           }
           if (!rule.allUrls) {
             if (rule.hostMode === "any") {
-              if (scheme !== "file" && !host) continue;
+              if (scheme !== "file" && !host) return false;
             } else if (rule.hostMode === "fileAny") {
               // Matches any file host
             } else if (rule.hostMode === "exact") {
-              if (host !== rule.hostValue) continue;
+              if (host !== rule.hostValue) return false;
             } else if (rule.hostMode === "subdomain") {
-              if (host !== rule.hostValue && !host.endsWith("." + rule.hostValue)) continue;
+              if (host !== rule.hostValue && !host.endsWith("." + rule.hostValue)) return false;
             }
             if (rule.portMode === "exact") {
-              if (effectivePort !== rule.portValue) continue;
+              if (effectivePort !== rule.portValue) return false;
             }
           }
           try {
             const re = rule._compiledRegex || (rule._compiledRegex = new RegExp(rule.pathRegex));
-            if (re.test(pathAndQuery)) {
-              return true;
-            }
-          } catch (_) {}
+            return re.test(pathAndQuery);
+          } catch (_) {
+            return false;
+          }
+        };
+
+        // A rule with `exclude: true` (from @exclude / @exclude-match) vetoes the page.
+        let included = false;
+        for (let i = 0; i < rules.length; i++) {
+          const rule = rules[i];
+          if (!rule) continue;
+          if (rule.exclude) {
+            if (ruleMatches(rule)) return false;
+          } else if (!included && ruleMatches(rule)) {
+            included = true;
+          }
         }
-        return false;
+        return included;
       };
     }
     if (!window.__wukongSpaHookInstalled) {

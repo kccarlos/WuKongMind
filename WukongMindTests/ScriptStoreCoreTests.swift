@@ -892,3 +892,367 @@ final class ScriptStoreCoreTests: XCTestCase {
         XCTAssertNil(afterUndo.disabledReason)
     }
 }
+
+// MARK: - M4 Script Metadata & The File Format
+
+@MainActor
+extension ScriptStoreCoreTests {
+    /// The `// @key value` lines between the markers, whitespace normalized.
+    private func headerLines(of fileContent: String) -> [String] {
+        var lines: [String] = []
+        var inside = false
+        for raw in fileContent.components(separatedBy: "\n") {
+            let line = raw.trimmingCharacters(in: .whitespaces)
+            if line == "// ==UserScript==" { inside = true; continue }
+            if line == "// ==/UserScript==" { break }
+            guard inside, line.hasPrefix("//") else { continue }
+            let body = line.dropFirst(2).trimmingCharacters(in: .whitespaces)
+            guard body.hasPrefix("@") else { continue }
+            let parts = body.split(maxSplits: 1, whereSeparator: { $0 == " " || $0 == "\t" })
+            lines.append(parts.map { $0.trimmingCharacters(in: .whitespaces) }.joined(separator: " "))
+        }
+        return lines
+    }
+
+    /// A header with every key in design-m4's Metadata table, as a published script writes it.
+    private var publishedHeader: String {
+        """
+        // ==UserScript==
+        // @name         Reader Width
+        // @name:de      Leserbreite
+        // @namespace    https://greasyfork.org/users/1234
+        // @version      2.4.1
+        // @description  Widens the article column
+        // @author       Some Author
+        // @homepage     https://example.org/reader-width
+        // @match        *://*.example.org/wiki/*
+        // @match        https://news.example.net/*
+        // @include      /^https:\\/\\/old\\.example\\.org\\/.*$/
+        // @exclude      *://*.example.org/wiki/Special:*
+        // @exclude-match https://news.example.net/live/*
+        // @run-at       document-idle
+        // @grant        GM_getValue
+        // @grant        GM_setValue
+        // @grant        GM_xmlhttpRequest
+        // @grant        GM_notification
+        // @connect      api.example.org
+        // @connect      cdn.example.net
+        // @require      https://cdn.example.net/lib.js#sha256=abc
+        // @inject-into  content
+        // @noframes
+        // @resource     logo https://example.org/logo.png
+        // @antifeature  ads
+        // @downloadURL  https://example.org/reader-width.user.js
+        // @updateURL    https://example.org/reader-width.meta.js
+        // @supportURL   https://example.org/support
+        // @icon         https://example.org/icon.png
+        // @x-vendor-key some value
+        // @wukong-install-url https://example.org/reader-width.user.js
+        // @wukong-upstream-hash 0123abcd
+        // @wukong-locally-changed true
+        // ==/UserScript==
+
+        (function () { 'use strict'; document.title += '!'; })();
+        """
+    }
+
+    func testPublishedHeaderExportsWithEveryHeaderLine() throws {
+        let fixedTime = Date(timeIntervalSince1970: 1_700_000_000)
+        let parsed = try UserScript.parseUserScriptFile(publishedHeader, defaultTimestamp: fixedTime)
+        let exported = parsed.toUserScriptFileContent()
+
+        let original = headerLines(of: publishedHeader)
+        let written = headerLines(of: exported)
+        for line in original {
+            XCTAssertTrue(written.contains(line), "Missing from export: \(line)")
+        }
+        // Everything else in the export is the app's own bookkeeping.
+        let extra = written.filter { !original.contains($0) }
+        XCTAssertTrue(extra.allSatisfy { $0.hasPrefix("@wukong-") }, "\(extra)")
+        XCTAssertTrue(extra.contains("@wukong-revision 2"))
+
+        // The typed views read the same lines.
+        XCTAssertEqual(parsed.metadata.grants, ["GM_getValue", "GM_setValue", "GM_xmlhttpRequest", "GM_notification"])
+        XCTAssertEqual(parsed.metadata.connectHosts, ["api.example.org", "cdn.example.net"])
+        XCTAssertEqual(parsed.metadata.requireURLs, ["https://cdn.example.net/lib.js#sha256=abc"])
+        XCTAssertEqual(parsed.metadata.injectInto, "content")
+        XCTAssertEqual(parsed.metadata.authorVersion, "2.4.1")
+        XCTAssertEqual(parsed.metadata.installURL, "https://example.org/reader-width.user.js")
+        XCTAssertEqual(parsed.metadata.upstreamHash, "0123abcd")
+        XCTAssertTrue(parsed.metadata.locallyChanged)
+        XCTAssertEqual(parsed.injectionTime, .documentEnd)
+
+        // A second round trip changes nothing.
+        let again = try UserScript.parseUserScriptFile(exported, defaultTimestamp: fixedTime)
+        XCTAssertEqual(again, parsed)
+        XCTAssertEqual(again.toUserScriptFileContent(), exported)
+    }
+
+    func testFilesWrittenBy13DecodeWithTheSameRevisionAndExportOneNewLine() throws {
+        let oldFile = """
+        // ==UserScript==
+        // @name Hide replies
+        // @match *://*.example.com/*
+        // @run-at document-start
+        // @version 7
+        // @wukong-id hide-replies
+        // @wukong-environment isolated
+        // @wukong-enabled true
+        // @wukong-source agent
+        // @wukong-prompt Hide the replies
+        // @wukong-version-origin changed-by-agent
+        // @wukong-version-prompt Hide the replies
+        // @wukong-created-at 2026-10-01T10:00:00.000Z
+        // @wukong-updated-at 2026-10-02T11:30:00.000Z
+        // ==/UserScript==
+        document.body.dataset.x = '1';
+        """
+        let script = try UserScript.parseUserScriptFile(oldFile)
+        XCTAssertEqual(script.version, 7)
+        XCTAssertEqual(script.metadata, ScriptMetadata())
+        XCTAssertEqual(script.injectionTime, .documentStart)
+
+        let expected = oldFile.replacingOccurrences(
+            of: "// @version 7\n",
+            with: "// @version 7\n// @wukong-revision 7\n"
+        )
+        XCTAssertEqual(script.toUserScriptFileContent(), expected)
+
+        // The version line keeps following the revision for a script with no version of its own.
+        let store = ScriptStore(directoryURL: tempDirectory)
+        let imported = try store.importUserScript(oldFile, now: Date(timeIntervalSince1970: 1_759_404_600))
+        let update = try store.makeCandidateForUpdate(
+            id: imported.id,
+            patch: ScriptUpdatePatch(js: "document.body.dataset.x = '2';"),
+            now: Date(timeIntervalSince1970: 1_760_000_000)
+        )
+        let committed = try store.commitUpdated(update)
+        XCTAssertEqual(committed.version, 8)
+        let lines = headerLines(of: committed.toUserScriptFileContent())
+        XCTAssertTrue(lines.contains("@version 8"))
+        XCTAssertTrue(lines.contains("@wukong-revision 8"))
+        var expectedFromFile = committed
+        expectedFromFile.versions = []
+        XCTAssertEqual(try UserScript.parseUserScriptFile(committed.toUserScriptFileContent()), expectedFromFile)
+        XCTAssertEqual(ScriptStore(directoryURL: tempDirectory).script(id: imported.id), committed)
+    }
+
+    func testAuthorVersionIsKeptAsWrittenAndRevisionCountsSeparately() throws {
+        let file = """
+        // ==UserScript==
+        // @name Versioned
+        // @match https://example.org/*
+        // @version 3.0.0
+        // @wukong-revision 5
+        // ==/UserScript==
+        console.log(1);
+        """
+        let store = ScriptStore(directoryURL: tempDirectory)
+        let imported = try store.importUserScript(file)
+        XCTAssertEqual(imported.version, 5)
+        XCTAssertEqual(imported.metadata.authorVersion, "3.0.0")
+
+        let update = try store.makeCandidateForUpdate(id: imported.id, patch: ScriptUpdatePatch(js: "console.log(2);"))
+        let committed = try store.commitUpdated(update)
+        XCTAssertEqual(committed.version, 6)
+        let lines = headerLines(of: committed.toUserScriptFileContent())
+        XCTAssertTrue(lines.contains("@version 3.0.0"))
+        XCTAssertTrue(lines.contains("@wukong-revision 6"))
+
+        // A whole-number author version from an install link is not mistaken for the revision.
+        let installed = try UserScript.parseUserScriptFile("""
+        // ==UserScript==
+        // @name Installed
+        // @match https://example.org/*
+        // @version 1
+        // @wukong-revision 1
+        // @wukong-install-url https://example.org/a.user.js
+        // ==/UserScript==
+        console.log(1);
+        """)
+        XCTAssertEqual(installed.metadata.authorVersion, "1")
+        var next = installed
+        next.version = 2
+        XCTAssertTrue(headerLines(of: next.toUserScriptFileContent()).contains("@version 1"))
+    }
+
+    func testRunAtIsLenientAndWrittenBackAsWrittenWhileItStillMeansTheSame() throws {
+        func parse(_ runAt: String) throws -> UserScript {
+            try UserScript.parseUserScriptFile("""
+            // ==UserScript==
+            // @name RunAt
+            // @match https://example.org/*
+            // @run-at \(runAt)
+            // ==/UserScript==
+            console.log(1);
+            """)
+        }
+        let idle = try parse("document-idle")
+        XCTAssertEqual(idle.injectionTime, .documentEnd)
+        XCTAssertTrue(headerLines(of: idle.toUserScriptFileContent()).contains("@run-at document-idle"))
+
+        let unknown = try parse("context-menu")
+        XCTAssertEqual(unknown.injectionTime, .documentEnd)
+        XCTAssertEqual(unknown.metadata.runAtText, "context-menu")
+        XCTAssertTrue(headerLines(of: unknown.toUserScriptFileContent()).contains("@run-at context-menu"))
+
+        // Once the time is changed here, the text no longer applies.
+        var moved = unknown
+        moved.injectionTime = .documentStart
+        XCTAssertTrue(headerLines(of: moved.toUserScriptFileContent()).contains("@run-at document-start"))
+        XCTAssertNil(try parse("document-start").metadata.runAtText)
+    }
+
+    func testExcludedURLsDoNotMatchAndUnusableExcludesAreReported() throws {
+        let script = try UserScript.parseUserScriptFile("""
+        // ==UserScript==
+        // @name Excluding
+        // @match *://*.example.org/*
+        // @exclude *://*.example.org/admin/*
+        // @exclude-match https://private.example.org/*
+        // @exclude *://blocked.example.org/*
+        // @exclude /regex-not-a-pattern/
+        // ==/UserScript==
+        console.log(1);
+        """)
+        XCTAssertTrue(script.matches(urlString: "https://www.example.org/wiki/A"))
+        XCTAssertFalse(script.matches(urlString: "https://www.example.org/admin/users"))
+        XCTAssertFalse(script.matches(url: URL(string: "https://private.example.org/x")!))
+        XCTAssertTrue(script.matches(url: URL(string: "http://private.example.org/x")!))
+        XCTAssertTrue(script.matchesDomain("www.example.org"))
+        XCTAssertTrue(script.matchesDomain("private.example.org"))
+        XCTAssertFalse(script.matchesDomain("blocked.example.org"))
+        XCTAssertEqual(script.metadata.unusableExcludePatterns, ["/regex-not-a-pattern/"])
+        XCTAssertTrue(headerLines(of: script.toUserScriptFileContent()).contains("@exclude /regex-not-a-pattern/"))
+
+        // The injected matcher gets the excludes as vetoing rules.
+        let descriptors = ScriptWebController.compiledRulesArray(for: script)
+        XCTAssertEqual(descriptors.filter { $0["exclude"] as? Bool == true }.count, 3)
+        XCTAssertEqual(descriptors.filter { $0["exclude"] == nil }.count, 1)
+    }
+
+    @MainActor
+    func testMetadataSurvivesUpdateReloadHistoryAndRollback() throws {
+        let store = ScriptStore(directoryURL: tempDirectory)
+        let imported = try store.importUserScript(publishedHeader)
+        XCTAssertEqual(imported.metadata.grants.count, 4)
+
+        // A text-only update keeps every header line and marks the imported script as changed here.
+        let first = try store.commitUpdated(
+            try store.makeCandidateForUpdate(id: imported.id, patch: ScriptUpdatePatch(js: "document.title = 'x';"))
+        )
+        XCTAssertEqual(first.metadata.lines, imported.metadata.lines)
+        XCTAssertTrue(first.metadata.locallyChanged)
+
+        // New grants and connect hosts replace the old ones, while archived v1 keeps its own metadata.
+        let second = try store.commitUpdated(
+            try store.makeCandidateForUpdate(
+                id: imported.id,
+                patch: ScriptUpdatePatch(grants: ["GM_getValue"], connectHosts: ["api.example.org", "extra.example.org"])
+            )
+        )
+        XCTAssertEqual(second.metadata.grants, ["GM_getValue"])
+        XCTAssertEqual(second.metadata.connectHosts, ["api.example.org", "extra.example.org"])
+        XCTAssertEqual(second.metadata.excludePatterns, imported.metadata.excludePatterns)
+
+        let v1Archive = try XCTUnwrap(second.versions.first { $0.version == imported.version })
+        XCTAssertEqual(v1Archive.toUserScript(from: second).metadata.connectHosts, ["api.example.org", "cdn.example.net"])
+
+        // Rolling back to v1 restores v1's grants, connect hosts and code (dropping extra.example.org).
+        let rolledBack = try store.rollback(id: imported.id, toVersion: imported.version)
+        XCTAssertEqual(rolledBack.metadata.grants, imported.metadata.grants)
+        XCTAssertEqual(rolledBack.metadata.connectHosts, ["api.example.org", "cdn.example.net"])
+        XCTAssertEqual(rolledBack.metadata.authorVersion, "2.4.1")
+
+        let reloaded = ScriptStore(directoryURL: tempDirectory)
+        let loaded = try XCTUnwrap(reloaded.script(id: imported.id))
+        XCTAssertEqual(loaded.metadata, rolledBack.metadata)
+        XCTAssertEqual(loaded.version, rolledBack.version)
+        let v3Archive = try XCTUnwrap(loaded.versions.first { $0.version == second.version })
+        XCTAssertEqual(v3Archive.metadata.connectHosts, ["api.example.org", "extra.example.org"])
+    }
+
+    func testNewHeaderValuesDecodeFromOlderJSON() throws {
+        let decoded = try JSONDecoder().decode(ScriptMetadata.self, from: Data("{}".utf8))
+        XCTAssertEqual(decoded, ScriptMetadata())
+        let parsed = try UserScript.parseUserScriptFile(publishedHeader)
+        let metaData = try JSONEncoder().encode(parsed.metadata)
+        XCTAssertEqual(try JSONDecoder().decode(ScriptMetadata.self, from: metaData).grants.count, 4)
+
+        // A 1.3 UserScript JSON object without a "metadata" key still decodes cleanly.
+        let fullData = try JSONEncoder().encode(parsed)
+        var jsonObject = try XCTUnwrap(JSONSerialization.jsonObject(with: fullData) as? [String: Any])
+        jsonObject.removeValue(forKey: "metadata")
+        let legacyData = try JSONSerialization.data(withJSONObject: jsonObject)
+        let legacyDecoded = try JSONDecoder().decode(UserScript.self, from: legacyData)
+        XCTAssertEqual(legacyDecoded.id, parsed.id)
+        XCTAssertEqual(legacyDecoded.metadata, ScriptMetadata())
+    }
+
+    @MainActor
+    func testScriptToolsAcceptValidateAndReturnGrantsAndHosts() async throws {
+        let store = ScriptStore(directoryURL: tempDirectory)
+        let registry = ToolRegistry.m2(bridge: StubDriver(), scriptStore: store)
+
+        let saved = try await registry.dispatch(
+            toolName: "script_save",
+            arguments: [
+                "name": .string("Fetcher"),
+                "match_rules": .array([.string("https://example.org/*")]),
+                "js": .string("GM_getValue('a');"),
+                "grants": .array([.string("GM_getValue"), .string("GM_xmlhttpRequest"), .string("GM_getValue")]),
+                "connect": .array([.string("API.Example.org"), .string("self"), .string("[::1]"), .string("*")])
+            ]
+        )
+        XCTAssertFalse(saved.isError, saved.output)
+        let savedObject = try JSONValue.parseObjectJSON(saved.output)
+        let id = try XCTUnwrap(savedObject["script_id"]?.stringValue)
+        XCTAssertEqual(savedObject["grants"], .array([.string("GM_getValue"), .string("GM_xmlhttpRequest")]))
+        XCTAssertEqual(savedObject["connect"], .array([.string("api.example.org"), .string("self"), .string("::1"), .string("*")]))
+        XCTAssertEqual(store.script(id: id)?.metadata.grants, ["GM_getValue", "GM_xmlhttpRequest"])
+        XCTAssertEqual(store.script(id: id)?.metadata.connectHosts, ["api.example.org", "self", "::1", "*"])
+
+        let read = try await registry.dispatch(toolName: "script_read", arguments: ["script_id": .string(id)])
+        let readObject = try JSONValue.parseObjectJSON(read.output)
+        XCTAssertEqual(readObject["grants"], .array([.string("GM_getValue"), .string("GM_xmlhttpRequest")]))
+        XCTAssertEqual(readObject["connect"], .array([.string("api.example.org"), .string("self"), .string("::1"), .string("*")]))
+        XCTAssertEqual(readObject["version"], .int(1))
+
+        // Update replaces; "none" or an empty list clears grants.
+        let updated = try await registry.dispatch(
+            toolName: "script_update",
+            arguments: ["script_id": .string(id), "grants": .array([.string("none")]), "connect": .array([.string("cdn.example.net")])]
+        )
+        XCTAssertFalse(updated.isError, updated.output)
+        let updatedObject = try JSONValue.parseObjectJSON(updated.output)
+        XCTAssertEqual(updatedObject["grants"], .array([]))
+        XCTAssertEqual(updatedObject["connect"], .array([.string("cdn.example.net")]))
+        XCTAssertEqual(store.script(id: id)?.metadata.grants, [])
+        XCTAssertEqual(store.script(id: id)?.metadata.connectHosts, ["cdn.example.net"])
+        XCTAssertEqual(store.script(id: id)?.version, 2)
+
+        // Anything the app doesn't implement or can't read is refused, and nothing is saved.
+        let badArguments: [(String, [String: JSONValue])] = [
+            ("grants", ["grants": .array([.string("GM_notification")])]),
+            ("grants", ["grants": .array([.string("unsafeWindow")])]),
+            ("grants", ["grants": .string("GM_getValue")]),
+            ("connect", ["connect": .array([.string("*.example.org")])]),
+            ("connect", ["connect": .array([.string("https://example.org/path")])]),
+            ("connect", ["connect": .array([.string("example.org:8080")])]),
+            ("connect", ["connect": .array([.string("[:::]")])]),
+            ("connect", ["connect": .array([.string("exa mple.org")])])
+        ]
+        for (name, extra) in badArguments {
+            var arguments: [String: JSONValue] = [
+                "name": .string("Bad"),
+                "match_rules": .array([.string("https://example.org/*")]),
+                "js": .string("1;")
+            ]
+            arguments.merge(extra) { $1 }
+            let result = try await registry.dispatch(toolName: "script_save", arguments: arguments)
+            XCTAssertTrue(result.isError, "\(extra)")
+            XCTAssertTrue(result.output.contains("'\(name)'"), result.output)
+        }
+        XCTAssertEqual(store.scripts.count, 1)
+    }
+}
