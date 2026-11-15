@@ -368,6 +368,8 @@ final class AppModel: ObservableObject {
     /// Set to open the audit log (optionally at one task and step) from the panel.
     @Published var auditLogRequest: AuditLogRequest?
 
+    /// WebMCP page-tool bridge (`PageToolBridge.swift`) for the active tab.
+    var pageToolBridge: PageToolBridge { tabs.currentTab.pageToolBridge }
     /// Live userscript applier for the active tab.
     var scriptWebController: ScriptWebController { tabs.currentTab.scriptWebController }
     /// Where the active tab's Agent confirmation cards wait for Allow or Don't allow.
@@ -383,16 +385,22 @@ final class AppModel: ObservableObject {
         appBox: WeakBox<AppModel>,
         agentWorkspace: AgentWorkspace,
         scriptStore: ScriptStore,
+        initialPageToolsEnabled: Bool,
         forumService: ForumService,
         aiService: AIService,
         auditLog: AuditLog,
         taskRecordStore: TaskRecordStore
     ) -> BrowserTab {
         tabBrowser.agentBridge.workspace = agentWorkspace
+        let pageToolBridge = PageToolBridge(
+            webView: tabBrowser.webView,
+            isEnabled: appBox.value?.settings.agentPageToolsEnabled ?? initialPageToolsEnabled
+        )
         let scriptWebController = ScriptWebController(
             webView: tabBrowser.webView,
             store: scriptStore,
-            agentBridge: tabBrowser.agentBridge
+            agentBridge: tabBrowser.agentBridge,
+            pageToolBridge: pageToolBridge
         )
         let sessionBox = WeakBox<BrowserAgentSession>()
         let confirmations = AgentConfirmationGate()
@@ -512,6 +520,7 @@ final class AppModel: ObservableObject {
         return BrowserTab(
             id: id,
             browser: tabBrowser,
+            pageToolBridge: pageToolBridge,
             scriptWebController: scriptWebController,
             confirmations: confirmations,
             httpClient: httpClient,
@@ -670,6 +679,7 @@ final class AppModel: ObservableObject {
         self.scriptStore = resolvedScriptStore
         let box = self.appBox
         let workspace = self.agentWorkspace
+        let initialPageToolsEnabled = loadedSettings.agentPageToolsEnabled
         self.tabs = BrowserTabs(
             initialBrowser: browser,
             sites: sites,
@@ -681,6 +691,7 @@ final class AppModel: ObservableObject {
                 appBox: box,
                 agentWorkspace: workspace,
                 scriptStore: resolvedScriptStore,
+                initialPageToolsEnabled: initialPageToolsEnabled,
                 forumService: forumService,
                 aiService: aiService,
                 auditLog: auditLog,
@@ -2235,6 +2246,11 @@ final class AppModel: ObservableObject {
         if old.browserScriptsEnabled != settings.browserScriptsEnabled,
            scriptStore.isGlobalEnabled != settings.browserScriptsEnabled {
             scriptStore.isGlobalEnabled = settings.browserScriptsEnabled
+        }
+        if old.agentPageToolsEnabled != settings.agentPageToolsEnabled {
+            for tab in tabs.tabs where tab.pageToolBridge.isEnabled != settings.agentPageToolsEnabled {
+                tab.pageToolBridge.isEnabled = settings.agentPageToolsEnabled
+            }
         }
         saveSettings()
     }

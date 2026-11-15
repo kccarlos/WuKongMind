@@ -217,6 +217,11 @@ final class SettingsNavigationUITests: DCUITestCase {
         XCTAssertTrue(reveal(confirmSwitch, in: app))
         XCTAssertEqual(confirmSwitch.value as? String, "0", "Confirm before writes defaults to off.")
 
+        let pageToolsSwitch = app.switches["agentPageToolsEnabled"]
+        XCTAssertTrue(reveal(pageToolsSwitch, in: app))
+        XCTAssertEqual(pageToolsSwitch.value as? String, "1", "Page tools defaults to on.")
+        capture("settings-agent-page-tools")
+
         let devSwitch = app.switches["agentDeveloperMode"]
         XCTAssertTrue(reveal(devSwitch, in: app))
         XCTAssertEqual(devSwitch.value as? String, "0", "Developer mode defaults to off.")

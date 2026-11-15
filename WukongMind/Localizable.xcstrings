@@ -9569,6 +9569,23 @@
         }
       }
     },
+    "Let the Agent learn to read unfamiliar forums and use tools a page or script offers. A site's own tools always ask first." : {
+      "comment" : "Settings › Agent footer explaining the Page tools switch",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "允许代理学习读取陌生的论坛，并使用页面或脚本提供的工具。网站自身的工具一律会先询问。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "允許代理學習讀取陌生的論壇，並使用頁面或指令碼提供的工具。網站自身的工具一律會先詢問。"
+          }
+        }
+      }
+    },
     "Let the agent fix" : {
       "comment" : "Disabled M2 button in Script detail error card for future agent auto-fix",
       "localizations" : {
@@ -12449,6 +12466,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "頁面快照"
+          }
+        }
+      }
+    },
+    "Page tools" : {
+      "comment" : "Settings › Agent toggle enabling WebMCP page and script tools",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "页面工具"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "頁面工具"
           }
         }
       }

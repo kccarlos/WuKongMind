@@ -20,6 +20,7 @@ final class BrowserTab: Identifiable {
     /// Short stable identifier (`"t1"`, `"t2"`, …).
     let id: String
     let browser: ForumBrowserModel
+    let pageToolBridge: PageToolBridge
     let scriptWebController: ScriptWebController
     let confirmations: AgentConfirmationGate
     let httpClient: AgentHTTPClient
@@ -31,6 +32,7 @@ final class BrowserTab: Identifiable {
     init(
         id: String,
         browser: ForumBrowserModel,
+        pageToolBridge: PageToolBridge,
         scriptWebController: ScriptWebController,
         confirmations: AgentConfirmationGate,
         httpClient: AgentHTTPClient,
@@ -39,6 +41,7 @@ final class BrowserTab: Identifiable {
     ) {
         self.id = id
         self.browser = browser
+        self.pageToolBridge = pageToolBridge
         self.scriptWebController = scriptWebController
         self.confirmations = confirmations
         self.httpClient = httpClient
@@ -239,5 +242,6 @@ final class BrowserTabs: ObservableObject {
         tab.browser.stopLoading()
         tab.browser.detachCallbacks()
         tab.scriptWebController.detach()
+        tab.pageToolBridge.detach()
     }
 }
