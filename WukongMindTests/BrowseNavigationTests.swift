@@ -310,6 +310,18 @@ final class BrowseNavigationTests: XCTestCase {
     }
 
     @MainActor
+    func testMenuHeaderDropsTheLastForumOnAnOrdinaryPage() throws {
+        let app = makeApp()
+        app.openForum(try XCTUnwrap(app.forums.first { $0.siteURL == site }))
+        // barForum still falls back to the last forum; the page is not a forum.
+        XCTAssertEqual(app.barForum?.siteURL, site)
+        XCTAssertFalse(app.browser.pageContext.isForum)
+        XCTAssertNil(ForumMenuHeader.forum(
+            barForum: app.barForum, pageIsForum: app.browser.pageContext.isForum, showsHome: false
+        ))
+    }
+
+    @MainActor
     private func makeApp() -> AppModel {
         PostLevelURLStub.requests = []
         PostLevelURLStub.cookies = []
