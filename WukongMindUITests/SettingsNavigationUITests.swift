@@ -138,6 +138,9 @@ final class SettingsNavigationUITests: DCUITestCase {
         let toggle = app.switches["syncAPIKeys"]
         XCTAssertTrue(reveal(toggle, in: app))
         XCTAssertEqual(toggle.value as? String, "1", "Sync API keys is on by default.")
+        let whatSyncs = app.staticTexts.matching(NSPredicate(format: "label CONTAINS 'scripts'")).firstMatch
+        XCTAssertTrue(reveal(whatSyncs, in: app, swipes: 3), "What syncs lists scripts.")
+        capture("sync-page-what-syncs-light")
         let delete = app.buttons["syncDeleteCloudData"]
         XCTAssertTrue(reveal(delete, in: app, swipes: 4))
         delete.tap()
@@ -149,6 +152,14 @@ final class SettingsNavigationUITests: DCUITestCase {
         let cancel = app.buttons["Cancel"]
         if cancel.exists { cancel.tap() } else { app.tap() }
         XCTAssertTrue(waitForGone(app.staticTexts["Delete iCloud data?"], timeout: 5))
+
+        // Unsigned / CloudKit-off build reports "Sync needs a signed build".
+        let unsignedApp = launch(["-AppleInterfaceStyle", "Dark", "-dc-skip-onboarding", "-dc-show-settings", "sync"])
+        XCTAssertTrue(unsignedApp.navigationBars["iCloud Sync"].waitForExistence(timeout: 20))
+        let unsignedStatus = any(unsignedApp, "syncStatus")
+        XCTAssertTrue(unsignedStatus.waitForExistence(timeout: 5))
+        XCTAssertTrue(unsignedStatus.label.contains("Sync needs a signed build"), "Got “\(unsignedStatus.label)”.")
+        capture("sync-page-unsigned-dark")
     }
 
     func testSyncPageShowsAccountFix() throws {

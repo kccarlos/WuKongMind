@@ -4908,6 +4908,23 @@
         }
       }
     },
+    "Changed on another device" : {
+      "comment" : "Version history row title when updated from another device via iCloud sync",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已在其他设备上修改"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已在其他裝置上修改"
+          }
+        }
+      }
+    },
     "Chapter %lld of %lld" : {
       "comment" : "Podcast: the current chapter, then the number of chapters",
       "localizations" : {
@@ -8649,18 +8666,18 @@
         }
       }
     },
-    "Forums and pins · summaries and kept chats · Ask the forum answers · watched topics · most settings" : {
+    "Forums and pins · summaries and kept chats · Ask the forum answers · watched topics · scripts · most settings" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "论坛和置顶 · 摘要和保留的聊天 · “问论坛”的回答 · 关注的话题 · 大部分设置"
+            "value" : "论坛和置顶 · 摘要和保留的聊天 · “问论坛”的回答 · 关注的话题 · 脚本 · 大部分设置"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "論壇和釘選 · 摘要和保留的聊天 · 「問論壇」的回答 · 追蹤的話題 · 大部分設定"
+            "value" : "論壇和釘選 · 摘要和保留的聊天 · 「問論壇」的回答 · 追蹤的話題 · 指令碼 · 大部分設定"
           }
         }
       }
@@ -13371,6 +13388,23 @@
         }
       }
     },
+    "Over 512 KB — stays on this device and isn’t synced to iCloud." : {
+      "comment" : "Footer in Script detail when a script exceeds the 512 KB iCloud sync limit",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "超过 512 KB — 留在本设备，不会同步到 iCloud。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "超過 512 KB — 留在此裝置，不會同步到 iCloud。"
+          }
+        }
+      }
+    },
     "Page" : {
       "comment" : "Userscript execution world option: page main world",
       "localizations" : {
@@ -15734,6 +15768,23 @@
         }
       }
     },
+    "Replaced by a change from another device" : {
+      "comment" : "Version history row title for a local edit superseded by a newer edit from another device",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已被其他设备上的修改替换"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已被其他裝置上的修改取代"
+          }
+        }
+      }
+    },
     "Request" : {
       "comment" : "Developer mode row: the raw model request\nDeveloper mode sheet title",
       "localizations" : {
@@ -15798,6 +15849,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "來自 %@ 的相依程式庫不是有效的 UTF-8 文字。"
+          }
+        }
+      }
+    },
+    "Required library hash changed for %@." : {
+      "comment" : "Disabled reason when a synced userscript’s @require library no longer matches the sender’s SHA-256 hash",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 的依赖库校验值已更改。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 的相依程式庫雜湊值已變更。"
           }
         }
       }

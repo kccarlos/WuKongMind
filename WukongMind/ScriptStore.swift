@@ -93,6 +93,8 @@ enum ScriptVersionOrigin: Codable, Equatable, Sendable {
     case editedByUser
     case restored(fromVersion: Int)
     case imported
+    case changedOnAnotherDevice
+    case replacedByAnotherDevice
 
     var headerKind: String {
         switch self {
@@ -101,6 +103,8 @@ enum ScriptVersionOrigin: Codable, Equatable, Sendable {
         case .editedByUser: "edited-by-user"
         case .restored(let v): "restored:\(v)"
         case .imported: "imported"
+        case .changedOnAnotherDevice: "changed-on-another-device"
+        case .replacedByAnotherDevice: "replaced-by-another-device"
         }
     }
 
@@ -109,7 +113,7 @@ enum ScriptVersionOrigin: Codable, Equatable, Sendable {
         case .savedByAgent(let p), .changedByAgent(let p):
             let trimmed = p.trimmingCharacters(in: .whitespacesAndNewlines)
             return trimmed.isEmpty ? nil : trimmed
-        case .editedByUser, .restored, .imported:
+        case .editedByUser, .restored, .imported, .changedOnAnotherDevice, .replacedByAnotherDevice:
             return nil
         }
     }
@@ -125,6 +129,10 @@ enum ScriptVersionOrigin: Codable, Equatable, Sendable {
             return .editedByUser
         case "imported":
             return .imported
+        case "changed-on-another-device":
+            return .changedOnAnotherDevice
+        case "replaced-by-another-device":
+            return .replacedByAnotherDevice
         default:
             if normalized.hasPrefix("restored:"),
                let v = Int(normalized.dropFirst("restored:".count)),
@@ -1226,13 +1234,18 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
             .replacingOccurrences(of: "\u{2029}", with: " ")
     }
 
-    /// Serializes the script as a standalone, Tampermonkey-compatible `.user.js` file
-    /// with a `// ==UserScript==` metadata block and lossless round-tripping of both
-    /// CSS and JavaScript bodies.
+    static let maxSyncBytes = 512 * 1024
+
     func toUserScriptFileContent() -> String {
-        var lines: [String] = []
-        lines.append(Self.headerStartMarker)
-        lines.append("// @name \(Self.encodeHeaderValue(name))")
+        serialize(forSync: false, requiredLibraries: [])
+    }
+
+    func toSyncedContent(requiredLibraries: [ScriptRequiredLibrary] = []) -> String {
+        serialize(forSync: true, requiredLibraries: requiredLibraries)
+    }
+
+    private func serialize(forSync: Bool, requiredLibraries: [ScriptRequiredLibrary]) -> String {
+        var lines: [String] = [Self.headerStartMarker, "// @name \(Self.encodeHeaderValue(name))"]
         for rule in matchRules {
             lines.append("// @match \(Self.encodeHeaderValue(rule))")
         }
@@ -1242,26 +1255,37 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
             lines.append(val.isEmpty ? "// \(key)" : "// \(key) \(val)")
         }
         lines.append("// @run-at \(runAtHeaderValue)")
-        lines.append("// @version \(Self.encodeHeaderValue(metadata.authorVersion ?? String(version)))")
-        lines.append("// @wukong-revision \(version)")
+        if forSync {
+            if let authorVersion = metadata.authorVersion, !authorVersion.isEmpty {
+                lines.append("// @version \(Self.encodeHeaderValue(authorVersion))")
+            }
+        } else {
+            lines.append("// @version \(Self.encodeHeaderValue(metadata.authorVersion ?? String(version)))")
+            lines.append("// @wukong-revision \(version)")
+        }
         lines.append("// @wukong-id \(Self.encodeHeaderValue(id))")
         lines.append("// @wukong-environment \(environment.rawValue)")
-        lines.append("// @wukong-enabled \(isEnabled ? "true" : "false")")
-        if let disabledReason, !disabledReason.isEmpty {
-            lines.append("// @wukong-disabled-reason \(Self.encodeHeaderValue(disabledReason))")
+        if !forSync {
+            lines.append("// @wukong-enabled \(isEnabled ? "true" : "false")")
+            if let disabledReason, !disabledReason.isEmpty {
+                lines.append("// @wukong-disabled-reason \(Self.encodeHeaderValue(disabledReason))")
+            }
         }
         lines.append("// @wukong-source \(source.kindIdentifier)")
         if case .agent(let prompt) = source, !prompt.isEmpty {
             lines.append("// @wukong-prompt \(Self.encodeHeaderValue(prompt))")
         }
-        if let versionOrigin {
+        if !forSync, let versionOrigin {
             lines.append("// @wukong-version-origin \(Self.encodeHeaderValue(versionOrigin.headerKind))")
             if let prompt = versionOrigin.promptText {
                 lines.append("// @wukong-version-prompt \(Self.encodeHeaderValue(prompt))")
             }
         }
-        lines.append("// @wukong-created-at \(Self.formatISO8601(createdAt))")
-        lines.append("// @wukong-updated-at \(Self.formatISO8601(updatedAt))")
+        let createdStamp = forSync ? (Self.parseISO8601(Self.formatISO8601(createdAt)) ?? createdAt) : createdAt
+        lines.append("// @wukong-created-at \(Self.formatISO8601(createdStamp))")
+        if !forSync {
+            lines.append("// @wukong-updated-at \(Self.formatISO8601(updatedAt))")
+        }
         if let installURL = metadata.installURL, !installURL.isEmpty {
             lines.append("// @wukong-install-url \(Self.encodeHeaderValue(installURL))")
         }
@@ -1273,6 +1297,11 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
         }
         if metadata.locallyChanged {
             lines.append("// @wukong-locally-changed true")
+        }
+        if forSync {
+            for lib in requiredLibraries {
+                lines.append("// @wukong-require-pin \(lib.sha256.lowercased()) \(lib.sizeBytes) \(Self.encodeHeaderValue(lib.url))")
+            }
         }
         lines.append(Self.headerEndMarker)
 
@@ -1300,11 +1329,37 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
         return output
     }
 
+    static func parseSyncedContent(
+        _ content: String,
+        fallbackID: String? = nil
+    ) throws -> (script: UserScript, requiredLibraries: [ScriptRequiredLibrary]) {
+        try parseUserScriptFileInternal(
+            content,
+            fallbackID: fallbackID,
+            defaultTimestamp: Date(timeIntervalSince1970: 0),
+            isSyncedPayload: true
+        )
+    }
+
     static func parseUserScriptFile(
         _ content: String,
         fallbackID: String? = nil,
         defaultTimestamp: Date = Date()
     ) throws -> UserScript {
+        try parseUserScriptFileInternal(
+            content,
+            fallbackID: fallbackID,
+            defaultTimestamp: defaultTimestamp,
+            isSyncedPayload: false
+        ).script
+    }
+
+    private static func parseUserScriptFileInternal(
+        _ content: String,
+        fallbackID: String?,
+        defaultTimestamp: Date,
+        isSyncedPayload: Bool
+    ) throws -> (script: UserScript, requiredLibraries: [ScriptRequiredLibrary]) {
         let normalized = content.replacingOccurrences(of: "\r\n", with: "\n")
         guard let startRange = normalized.range(of: headerStartMarker) else {
             throw ScriptStoreError.malformedUserScript("Missing '// ==UserScript==' header.")
@@ -1340,6 +1395,7 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
         var upstreamHash: String?
         var locallyChanged = false
         var keptLines: [ScriptMetadata.Line] = []
+        var requiredLibraries: [ScriptRequiredLibrary] = []
         var explicitID: String?
         var createdAt: Date?
         var updatedAt: Date?
@@ -1430,6 +1486,16 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
                 upstreamHash = value.isEmpty ? nil : value
             case "@wukong-locally-changed":
                 locallyChanged = ["true", "1", "yes"].contains(value.lowercased())
+            case "@wukong-require-pin":
+                let parts = rawValue.split(separator: " ", maxSplits: 2, omittingEmptySubsequences: true)
+                if parts.count == 3, let size = Int(parts[1]), size >= 0 {
+                    let url = decodeHeaderValue(String(parts[2]))
+                    if !url.isEmpty {
+                        requiredLibraries.append(ScriptRequiredLibrary(
+                            url: url, sha256: String(parts[0]).lowercased(), sizeBytes: size
+                        ))
+                    }
+                }
             default:
                 keptLines.append(.init(key: writtenKey, value: rawValue))
             }
@@ -1438,7 +1504,9 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
         // The store's revision counter. Files from before `@wukong-revision` kept it in
         // `@version`: a whole number is the revision, a dotted one counts by its major.
         let resolvedRevision: Int
-        if let revision {
+        if isSyncedPayload {
+            resolvedRevision = 1
+        } else if let revision {
             resolvedRevision = revision
         } else if let text = versionText, let whole = Int(text), whole >= 1 {
             resolvedRevision = whole
@@ -1451,7 +1519,7 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
         // their own; an imported script keeps the author's number as written.
         let authorVersion: String? = {
             guard let text = versionText, !text.isEmpty else { return nil }
-            if text == String(resolvedRevision), installURL == nil { return nil }
+            if !isSyncedPayload, text == String(resolvedRevision), installURL == nil { return nil }
             return text
         }()
 
@@ -1499,7 +1567,7 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
             ScriptVersionOrigin.parse(headerKind: $0, prompt: versionOriginPrompt)
         }
 
-        return UserScript(
+        let script = UserScript(
             id: resolvedID,
             name: finalName,
             matchRules: matchRules,
@@ -1525,6 +1593,7 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
                 locallyChanged: locallyChanged
             )
         )
+        return (script, requiredLibraries)
     }
 
     private static func findHeaderEndRange(in substring: Substring) -> Range<Substring.Index>? {
@@ -1789,6 +1858,30 @@ final class ScriptStore {
 
     @ObservationIgnored
     var onStoreChanged: (@MainActor () -> Void)?
+
+    @ObservationIgnored
+    var onSyncedScriptsChanged: (@MainActor () -> Void)?
+
+    @ObservationIgnored
+    private var isApplyingRemoteSync = false
+
+    @ObservationIgnored
+    private var pendingLibrarySyncTasks: [String: Task<Void, Never>] = [:]
+
+    func notifySyncedScriptsChanged() {
+        guard !isApplyingRemoteSync else { return }
+        onSyncedScriptsChanged?()
+    }
+
+    var verifyingScriptIDs: Set<String> {
+        var ids: Set<String> = []
+        for entry in attachedControllers {
+            if let controller = entry.controller {
+                ids.formUnion(controller.verifyingScriptIDs)
+            }
+        }
+        return ids
+    }
 
     @ObservationIgnored
     private var attachedControllers: [WeakScriptWebController] = []
@@ -2066,6 +2159,7 @@ final class ScriptStore {
         sortScriptsInPlace()
         clearError(for: created.id)
         syncAttachedUserScripts()
+        notifySyncedScriptsChanged()
         return created
     }
 
@@ -2110,6 +2204,7 @@ final class ScriptStore {
         if script.isEnabled {
             applyLiveToAttachedControllers(script, runJS: true)
         }
+        notifySyncedScriptsChanged()
         return script
     }
 
@@ -2173,6 +2268,7 @@ final class ScriptStore {
         sortScriptsInPlace()
         clearError(for: parsed.id)
         syncAttachedUserScripts()
+        notifySyncedScriptsChanged()
         return parsed
     }
 
@@ -2191,7 +2287,6 @@ final class ScriptStore {
             if let enabled = patch.isEnabled, enabled != existing.isEnabled {
                 next.isEnabled = enabled
                 next.disabledReason = nil
-                next.updatedAt = now
             }
             return ProspectiveUpdate(previous: existing, updated: next, touchesVersionedFields: false)
         }
@@ -2282,6 +2377,7 @@ final class ScriptStore {
             clearError(for: id)
         }
         syncAttachedUserScripts()
+        notifySyncedScriptsChanged()
         return prospective.updated
     }
 
@@ -2310,7 +2406,6 @@ final class ScriptStore {
         if isEnabled, case .failure(let reason) = loadVerifiedRequiredCode(for: current) {
             current.isEnabled = false
             current.disabledReason = reason
-            current.updatedAt = now
             try writeScriptFile(current)
             scripts[idx] = current
             syncAttachedUserScripts()
@@ -2322,7 +2417,6 @@ final class ScriptStore {
         let changedEnabled = current.isEnabled != isEnabled
         current.isEnabled = isEnabled
         current.disabledReason = nil
-        current.updatedAt = now
         try writeScriptFile(current)
         scripts[idx] = current
         consecutiveErrorLoads.removeValue(forKey: id)
@@ -2431,6 +2525,7 @@ final class ScriptStore {
                 }
             }
         }
+        notifySyncedScriptsChanged()
         return restored
     }
 
@@ -2439,6 +2534,8 @@ final class ScriptStore {
         guard let idx = scripts.firstIndex(where: { $0.id == id }) else {
             throw ScriptStoreError.scriptNotFound(id)
         }
+        pendingLibrarySyncTasks[id]?.cancel()
+        pendingLibrarySyncTasks.removeValue(forKey: id)
         let removed = scripts.remove(at: idx)
         clearError(for: id)
         valuesStore.removeValuesForDeletedScript(id: id)
@@ -2451,6 +2548,7 @@ final class ScriptStore {
                 await controller.removeLiveScript(id: id)
             }
         }
+        notifySyncedScriptsChanged()
         return removed
     }
 
@@ -2513,6 +2611,7 @@ final class ScriptStore {
                 }
             }
         }
+        notifySyncedScriptsChanged()
     }
 
     // MARK: Runtime Error State
@@ -2588,7 +2687,6 @@ final class ScriptStore {
         var disabled = scripts[idx]
         disabled.isEnabled = false
         disabled.disabledReason = "Turned off after errors on \(Self.autoDisableErrorLoadLimit) page loads in a row: \(cleanMessage)"
-        disabled.updatedAt = occurredAt
         try? writeScriptFile(disabled)
         scripts[idx] = disabled
         consecutiveErrorLoads[scriptID] = 0
@@ -2752,9 +2850,266 @@ final class ScriptStore {
         var updated = scripts[idx]
         updated.isEnabled = false
         updated.disabledReason = reason
-        updated.updatedAt = now
         try? writeScriptFile(updated)
         scripts[idx] = updated
+    }
+
+    // MARK: iCloud Sync Support
+
+    struct PendingLibrarySync: Equatable, Sendable {
+        var scriptID: String
+        var pins: [ScriptRequiredLibrary]
+        var enableOnSuccess: Bool
+    }
+
+    enum RemoteSyncOutcome: Equatable, Sendable {
+        case applied(pendingLibrarySync: PendingLibrarySync?)
+        case skipped
+    }
+
+    func readRequiredLibraryManifest(for id: String) -> [ScriptRequiredLibrary] {
+        let manifestURL = requireDirectoryURL(for: id).appendingPathComponent("manifest.json", isDirectory: false)
+        guard let data = try? Data(contentsOf: manifestURL),
+              let manifest = try? JSONDecoder().decode([ScriptRequiredLibrary].self, from: data) else {
+            return []
+        }
+        return manifest
+    }
+
+    func writeRequiredLibraryManifest(_ manifest: [ScriptRequiredLibrary], for id: String) throws {
+        let fm = FileManager.default
+        let dir = requireDirectoryURL(for: id)
+        if fm.fileExists(atPath: dir.path) {
+            try fm.removeItem(at: dir)
+        }
+        guard !manifest.isEmpty else { return }
+        try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        let data = try JSONEncoder().encode(manifest)
+        try data.write(to: dir.appendingPathComponent("manifest.json", isDirectory: false), options: .atomic)
+    }
+
+    private func hasVerifiedLibrariesOnDisk(for id: String, matching pins: [ScriptRequiredLibrary]) -> Bool {
+        let dir = requireDirectoryURL(for: id)
+        guard readRequiredLibraryManifest(for: id) == pins else { return false }
+        for (index, pin) in pins.enumerated() {
+            let fileURL = dir.appendingPathComponent("\(index).js", isDirectory: false)
+            guard let data = try? Data(contentsOf: fileURL),
+                  String(data: data, encoding: .utf8) != nil,
+                  Self.sha256Hex(data).lowercased() == pin.sha256.lowercased() else {
+                return false
+            }
+        }
+        return true
+    }
+
+    func syncedContent(for script: UserScript) -> String {
+        let requiredURLs = script.metadata.requireURLs
+        guard !requiredURLs.isEmpty else {
+            return script.toSyncedContent()
+        }
+        let manifest = readRequiredLibraryManifest(for: script.id)
+        let matchingPins = (manifest.count == requiredURLs.count
+            && zip(manifest, requiredURLs).allSatisfy { $0.url == $1 }) ? manifest : []
+        return script.toSyncedContent(requiredLibraries: matchingPins)
+    }
+
+    func isOverSyncSizeLimit(_ script: UserScript) -> Bool {
+        Data(syncedContent(for: script).utf8).count > UserScript.maxSyncBytes
+    }
+
+    func applySyncedScript(
+        id: String,
+        expectedContent: String?,
+        content: String?,
+        enabledSeed: Bool,
+        modifiedAt: Date?,
+        replacedLocalEdit: Bool,
+        now: Date = Date()
+    ) -> RemoteSyncOutcome {
+        if verifyingScriptIDs.contains(id) {
+            return .skipped
+        }
+        let existingIndex = scripts.firstIndex(where: { $0.id == id })
+        if let idx = existingIndex {
+            let currentContent = syncedContent(for: scripts[idx])
+            if expectedContent != currentContent {
+                return .skipped
+            }
+        } else if expectedContent != nil {
+            return .skipped
+        }
+
+        isApplyingRemoteSync = true
+        defer { isApplyingRemoteSync = false }
+
+        guard let content else {
+            if existingIndex != nil {
+                _ = deleteIfPresent(id: id)
+            }
+            return .applied(pendingLibrarySync: nil)
+        }
+
+        guard let (parsed, pins) = try? UserScript.parseSyncedContent(content, fallbackID: id) else {
+            return .applied(pendingLibrarySync: nil)
+        }
+
+        pendingLibrarySyncTasks[id]?.cancel()
+        pendingLibrarySyncTasks.removeValue(forKey: id)
+
+        if let idx = existingIndex {
+            let existing = scripts[idx]
+            var toArchive = existing
+            if replacedLocalEdit {
+                toArchive.versionOrigin = .replacedByAnotherDevice
+            }
+            let archivedSnapshot = toArchive.snapshotVersion()
+            var updatedVersions = existing.versions.filter { $0.version != archivedSnapshot.version }
+            updatedVersions.append(archivedSnapshot)
+            updatedVersions.sort { $0.version < $1.version }
+            let nextVersion = max(existing.version, updatedVersions.map(\.version).max() ?? 0) + 1
+            try? writeVersionArchive(for: toArchive)
+
+            var updated = parsed
+            updated.id = id
+            updated.version = nextVersion
+            updated.versions = updatedVersions
+            updated.versionOrigin = .changedOnAnotherDevice
+            updated.updatedAt = modifiedAt ?? now
+            let pending = prepareSyncedRequiredLibraries(
+                for: &updated,
+                pins: pins,
+                desiredEnabled: existing.isEnabled,
+                fallbackDisabledReason: existing.disabledReason
+            )
+            try? writeScriptFile(updated)
+            scripts[idx] = updated
+            sortScriptsInPlace()
+            clearError(for: id)
+            syncAttachedUserScripts()
+            for entry in attachedControllers {
+                guard let controller = entry.controller else { continue }
+                Task { @MainActor in
+                    if updated.isEnabled {
+                        _ = await controller.applyLiveScript(updated, runJS: false)
+                    } else {
+                        await controller.removeLiveScript(id: id)
+                    }
+                }
+            }
+            return .applied(pendingLibrarySync: pending)
+        } else {
+            var incoming = parsed
+            incoming.id = id
+            incoming.version = 1
+            incoming.versions = []
+            incoming.versionOrigin = incoming.source == .imported ? .imported : nil
+            incoming.updatedAt = modifiedAt ?? incoming.createdAt
+            valuesStore.discardDeletedSnapshot(id: id)
+            deletedRequireSnapshots.removeValue(forKey: id)
+            let pending = prepareSyncedRequiredLibraries(
+                for: &incoming,
+                pins: pins,
+                desiredEnabled: enabledSeed,
+                fallbackDisabledReason: nil
+            )
+            try? writeScriptFile(incoming)
+            scripts.append(incoming)
+            sortScriptsInPlace()
+            clearError(for: id)
+            syncAttachedUserScripts()
+            if incoming.isEnabled {
+                applyLiveToAttachedControllers(incoming, runJS: false)
+            }
+            return .applied(pendingLibrarySync: pending)
+        }
+    }
+
+    private func prepareSyncedRequiredLibraries(
+        for script: inout UserScript,
+        pins: [ScriptRequiredLibrary],
+        desiredEnabled: Bool,
+        fallbackDisabledReason: String?
+    ) -> PendingLibrarySync? {
+        let requiredURLs = script.metadata.requireURLs
+        if requiredURLs.isEmpty {
+            let reqDir = requireDirectoryURL(for: script.id)
+            if FileManager.default.fileExists(atPath: reqDir.path) {
+                try? FileManager.default.removeItem(at: reqDir)
+            }
+            script.isEnabled = desiredEnabled
+            script.disabledReason = desiredEnabled ? nil : fallbackDisabledReason
+            return nil
+        }
+        let pinsMatchURLs = pins.count == requiredURLs.count
+            && zip(pins, requiredURLs).allSatisfy { $0.url == $1 }
+        guard pinsMatchURLs else {
+            try? writeRequiredLibraryManifest(pins, for: script.id)
+            script.isEnabled = false
+            script.disabledReason = "A required library is missing on this device."
+            return nil
+        }
+        if hasVerifiedLibrariesOnDisk(for: script.id, matching: pins) {
+            script.isEnabled = desiredEnabled
+            script.disabledReason = desiredEnabled ? nil : fallbackDisabledReason
+            return nil
+        }
+        try? writeRequiredLibraryManifest(pins, for: script.id)
+        script.isEnabled = false
+        script.disabledReason = desiredEnabled ? nil : fallbackDisabledReason
+        return PendingLibrarySync(scriptID: script.id, pins: pins, enableOnSuccess: desiredEnabled)
+    }
+
+    func schedulePendingLibrarySync(_ id: String, operation: @escaping @MainActor () async -> Void) {
+        pendingLibrarySyncTasks[id]?.cancel()
+        let task = Task { @MainActor [weak self] in
+            await operation()
+            self?.pendingLibrarySyncTasks.removeValue(forKey: id)
+        }
+        pendingLibrarySyncTasks[id] = task
+    }
+
+    func waitForPendingLibrarySyncs() async {
+        while let (_, task) = pendingLibrarySyncTasks.first {
+            await task.value
+        }
+    }
+
+    func completeSyncedRequiredLibraries(
+        for id: String,
+        pins: [ScriptRequiredLibrary],
+        bodies: [String],
+        enableOnSuccess: Bool
+    ) {
+        guard !Task.isCancelled,
+              let idx = scripts.firstIndex(where: { $0.id == id }),
+              readRequiredLibraryManifest(for: id) == pins else { return }
+        let loaded = zip(pins, bodies).map { ScriptLoadedLibrary(meta: $0, code: $1) }
+        try? writeRequiredLibraries(loaded, for: id)
+        guard enableOnSuccess else { return }
+        var current = scripts[idx]
+        guard case .success = loadVerifiedRequiredCode(for: current) else { return }
+        current.isEnabled = true
+        current.disabledReason = nil
+        try? writeScriptFile(current)
+        scripts[idx] = current
+        syncAttachedUserScripts()
+        applyLiveToAttachedControllers(current, runJS: false)
+    }
+
+    func failSyncedRequiredLibraries(
+        for id: String,
+        pins: [ScriptRequiredLibrary],
+        reason: String
+    ) {
+        guard !Task.isCancelled,
+              let idx = scripts.firstIndex(where: { $0.id == id }),
+              readRequiredLibraryManifest(for: id) == pins else { return }
+        var current = scripts[idx]
+        current.isEnabled = false
+        current.disabledReason = reason
+        try? writeScriptFile(current)
+        scripts[idx] = current
+        syncAttachedUserScripts()
     }
 
     func reloadFromDisk() {
@@ -3169,6 +3524,15 @@ final class ScriptWebController: ScriptLiveApplying {
         return host.isEmpty ? nil : host
     }
 
+    var verifyingScriptIDs: Set<String> {
+        guard let verification = activeVerification else { return [] }
+        var ids: Set<String> = [verification.candidate.id]
+        if let replacing = verification.replacingScriptID {
+            ids.insert(replacing)
+        }
+        return ids
+    }
+
     func beginCandidateVerification(_ candidate: UserScript, replacingScriptID: String?) {
         activeVerification = CandidateVerification(
             candidate: candidate,
@@ -3179,9 +3543,13 @@ final class ScriptWebController: ScriptLiveApplying {
     }
 
     func endCandidateVerification() -> ScriptRuntimeError? {
+        let hadVerification = activeVerification != nil
         let captured = activeVerification?.capturedError
         activeVerification = nil
         syncUserScripts()
+        if hadVerification {
+            store.notifySyncedScriptsChanged()
+        }
         return captured
     }
 

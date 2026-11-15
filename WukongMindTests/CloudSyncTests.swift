@@ -1251,4 +1251,24 @@ final class CloudSyncTests: XCTestCase {
         XCTAssertEqual(try SyncPayload.decode(big).record, bigRecord)
         XCTAssertThrowsError(try SyncPayload.decode(Data("?".utf8)))
     }
+
+    func testScriptKindRecordNameAndMerge() {
+        let recordName = SyncRecord.recordName(kind: .script, id: "tidy-hn")
+        XCTAssertEqual(recordName.count, 40)
+        XCTAssertFalse(recordName.contains("tidy-hn"))
+
+        let t1 = Date(timeIntervalSince1970: 1_000), t2 = Date(timeIntervalSince1970: 2_000)
+        let older = SyncRecord(
+            kind: .script, id: "tidy-hn",
+            fields: ["content": .string("v1"), "enabledSeed": .bool(true)],
+            stamps: ["content": t1, "enabledSeed": t1]
+        )
+        let newer = SyncRecord(
+            kind: .script, id: "tidy-hn",
+            fields: ["content": .string("v2"), "enabledSeed": .bool(true)],
+            stamps: ["content": t2, "enabledSeed": t1]
+        )
+        XCTAssertEqual(SyncMerge.merge(older, newer), SyncMerge.merge(newer, older))
+        XCTAssertEqual(SyncMerge.merge(older, newer).fields?["content"], .string("v2"))
+    }
 }

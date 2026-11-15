@@ -79,6 +79,15 @@ struct SyncBaseline: Codable, Equatable {
 
 // MARK: - Local state and changes
 
+/// One local userscript snapshot captured for sync planning.
+struct SyncLocalScript: Equatable {
+    var id: String
+    var content: String
+    var isEnabled: Bool
+    var updatedAt: Date
+    var isOverSizeLimit = false
+}
+
 /// The synced part of the app's state, captured on the main actor.
 struct SyncLocalState {
     var settings: AppSettings
@@ -86,9 +95,12 @@ struct SyncLocalState {
     var runs: [AgentRun]
     var watched: [WatchedTopic]
     var forums: [Forum]
+    var scripts: [SyncLocalScript] = []
     /// Topics with work queued or running here: a remote delete of their
     /// session waits (like a local delete, which the app refuses meanwhile).
     var busyTopicKeys: Set<String> = []
+    /// Scripts being verified right now: held until verification finishes.
+    var verifyingScriptIDs: Set<String> = []
     /// Records deleted on this device, with the time of the delete
     /// (`CloudSyncController`'s deletion log), by record key.
     var deletions: [String: Date] = [:]
@@ -104,6 +116,18 @@ struct SyncRecordChange<Value> {
     var value: Value?
 }
 
+struct SyncScriptChange: Equatable {
+    var id: String
+    /// Local synced `content` the merge was computed from (`nil` if absent locally).
+    var expectedContent: String?
+    /// Merged `content` to apply (`nil` deletes the script).
+    var content: String?
+    var enabledSeed = true
+    var modifiedAt: Date?
+    /// True when this device had un-synced local `content` edits that lost to a newer remote edit.
+    var replacedLocalEdit = false
+}
+
 struct SyncSettingsChange {
     /// `settings.persistable` the merge was computed from.
     var expected: AppSettings
@@ -117,9 +141,15 @@ struct SyncChanges {
     var runs: [SyncRecordChange<AgentRun>] = []
     var watched: [SyncRecordChange<WatchedTopic>] = []
     var forums: [SyncRecordChange<Forum>] = []
+    var scripts: [SyncScriptChange] = []
 
     var isEmpty: Bool {
-        settings == nil && sessions.isEmpty && runs.isEmpty && watched.isEmpty && forums.isEmpty
+        settings == nil
+            && sessions.isEmpty
+            && runs.isEmpty
+            && watched.isEmpty
+            && forums.isEmpty
+            && scripts.isEmpty
     }
 }
 
@@ -487,7 +517,7 @@ actor CloudSyncEngine {
 
     // MARK: Plan
 
-    private func localItems(_ local: SyncLocalState, now: Date) -> [String: LocalItem] {
+    private func localItems(_ local: SyncLocalState, remote: Remote, fresh: Bool, now: Date) -> [String: LocalItem] {
         var items: [String: LocalItem] = [:]
         func add(
             _ kind: SyncKind, _ id: String, _ units: [String: JSONValue]?,
@@ -517,6 +547,24 @@ actor CloudSyncEngine {
             add(
                 .forum, forum.siteURL, Self.units(.forum, forum),
                 time: nil, touched: max(forum.addedAt, forum.lastVisitedAt ?? forum.addedAt)
+            )
+        }
+        let trueHash = SyncCoding.hash(.bool(true))
+        for script in local.scripts {
+            let key = SyncRecord.recordKey(kind: .script, id: script.id)
+            let seed: Bool
+            if !fresh, let knownHash = baseline.records[key]?.units?["enabledSeed"]?.h {
+                seed = knownHash == trueHash
+            } else if !fresh, case .bool(let remoteSeed) = remote.records[key]?.record.fields?["enabledSeed"] {
+                seed = remoteSeed
+            } else {
+                seed = script.isEnabled
+            }
+            let held = script.isOverSizeLimit || local.verifyingScriptIDs.contains(script.id)
+            add(
+                .script, script.id,
+                Self.units(.script, SyncedScript(content: script.content, enabledSeed: seed)),
+                time: script.updatedAt, held: held
             )
         }
         return items
@@ -593,13 +641,14 @@ actor CloudSyncEngine {
     /// purge) stamps this device's records as new so they win.
     func plan(local: SyncLocalState, remote: Remote, now: Date, fresh: Bool = false) -> Plan {
         let now = SyncCoding.stamp(now)
-        let items = localItems(local, now: now)
+        let items = localItems(local, remote: remote, fresh: fresh, now: now)
         var plan = Plan(now: now, generation: remote.generation)
         var keys = Set(items.keys).union(remote.records.keys)
         for key in baseline.records.keys where !fresh { keys.insert(key) }
         for (key, date) in local.deletions {
             guard let (kind, id) = Self.parse(key),
-                  !remote.heldNames.contains(SyncRecord.recordName(kind: kind, id: id))
+                  !remote.heldNames.contains(SyncRecord.recordName(kind: kind, id: id)),
+                  !(kind == .script && local.verifyingScriptIDs.contains(id))
             else { continue }
             plan.handledDeletions[key] = date
         }
@@ -615,11 +664,13 @@ actor CloudSyncEngine {
         let runsByID = Dictionary(local.runs.map { ($0.id.uuidString, $0) }, uniquingKeysWith: { a, _ in a })
         let watchedByKey = Dictionary(local.watched.map { ($0.topicKey, $0) }, uniquingKeysWith: { a, _ in a })
         let forumsByURL = Dictionary(local.forums.map { ($0.siteURL, $0) }, uniquingKeysWith: { a, _ in a })
+        let scriptsByID = Dictionary(local.scripts.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
 
         for key in keys.sorted() {
             guard let (kind, id) = Self.parse(key) else { continue }
             let name = SyncRecord.recordName(kind: kind, id: id)
             if remote.heldNames.contains(name) { continue }
+            if kind == .script, local.verifyingScriptIDs.contains(id) { continue }
             let item = items[key]
             if item?.held == true { continue }
             let entry = fresh ? nil : baseline.records[key]
@@ -726,6 +777,30 @@ actor CloudSyncEngine {
                        Self.units(.forum, value) != item?.units {
                         plan.changes.forums.append(.init(id: id, expected: forumsByURL[id], value: value))
                     }
+                case .script:
+                    if let value = decode(SyncedScript.self, kind: kind, units: fields),
+                       Data(value.content.utf8).count <= SyncedScript.maxContentBytes,
+                       value.content != scriptsByID[id]?.content {
+                        let expected = scriptsByID[id]?.content
+                        let localEdited: Bool
+                        if let expected {
+                            if let knownHash = entry?.units?["content"]?.h {
+                                localEdited = SyncCoding.hash(.string(expected)) != knownHash
+                            } else {
+                                localEdited = true
+                            }
+                        } else {
+                            localEdited = false
+                        }
+                        plan.changes.scripts.append(SyncScriptChange(
+                            id: id,
+                            expectedContent: expected,
+                            content: value.content,
+                            enabledSeed: value.enabledSeed,
+                            modifiedAt: merged.stamps?["content"],
+                            replacedLocalEdit: localEdited
+                        ))
+                    }
                 }
             }
 
@@ -765,6 +840,12 @@ actor CloudSyncEngine {
             plan.changes.watched.append(.init(id: id, expected: local.watched.first { $0.topicKey == id }, value: nil))
         case .forum:
             plan.changes.forums.append(.init(id: id, expected: local.forums.first { $0.siteURL == id }, value: nil))
+        case .script:
+            plan.changes.scripts.append(SyncScriptChange(
+                id: id,
+                expectedContent: local.scripts.first { $0.id == id }?.content,
+                content: nil
+            ))
         }
     }
 

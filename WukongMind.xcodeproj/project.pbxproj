@@ -692,6 +692,7 @@
 		EC38F6F1050419376D0B9B4701C9A410 /* XComLiveUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D95F7452EC6E66D9F6DB33B1136C7620 /* XComLiveUITests.swift */; };
 		EC789CB341786EA97EE41FD3E895354F /* VoiceProtocolTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A30F9D46F1D1DE9CDE69CC3D8270F13 /* VoiceProtocolTests.swift */; };
 		ED1B80E0EF378258E2F0B0C2769F0D26 /* AppleIntelligence.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC712D56C1863EC82177F5BD7BC78812 /* AppleIntelligence.swift */; };
+		ED45B40260E1FCF94FC35E3BA3A8BBDC /* ScriptSyncTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE5D7B8CCFCCA238EFD76C8898D2169C /* ScriptSyncTests.swift */; };
 		ED85A5F640B339A0B74EF9DF1F6B77FE /* hackernews-hn-algolia-com-api-v1-search-1a5853dc6640.json in Resources */ = {isa = PBXBuildFile; fileRef = 23EB1B16F9CB0046F381BFC13EFCECF8 /* hackernews-hn-algolia-com-api-v1-search-1a5853dc6640.json */; };
 		EDA4B435880DB6F9BDD275EE4EC6E467 /* VoiceAudioFormatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45C4BB3AF8DA2076FAB867891CD63987 /* VoiceAudioFormatTests.swift */; };
 		EEA4B7DD1082AF8F2290F1BB0A89C573 /* HTMLText.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4226105A7BB9437B52AEA43F89B7D0F /* HTMLText.swift */; };
@@ -1353,6 +1354,7 @@
 		DCE2A074243A1907287C7A6BBA0E7E68 /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-4766945e9ade.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "wordpress-www-doctorofcredit-com-wp-json-wp-v2-4766945e9ade.json"; path = "Fixtures/Comparison/wordpress/wordpress-www-doctorofcredit-com-wp-json-wp-v2-4766945e9ade.json"; sourceTree = "<group>"; };
 		DDB1ECDB28823EDC3E961DDB5DC57C0D /* MultiForumTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MultiForumTests.swift; sourceTree = "<group>"; };
 		DE0720615DDAD5D99FCB30C65304AB39 /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-dbac8d2794c2.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "wordpress-www-doctorofcredit-com-wp-json-wp-v2-dbac8d2794c2.json"; path = "Fixtures/Comparison/wordpress/wordpress-www-doctorofcredit-com-wp-json-wp-v2-dbac8d2794c2.json"; sourceTree = "<group>"; };
+		DE5D7B8CCFCCA238EFD76C8898D2169C /* ScriptSyncTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScriptSyncTests.swift; sourceTree = "<group>"; };
 		DE71ED8B9C98AAD87DAAE1495ED8A779 /* WukongMindAgentCoreTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WukongMindAgentCoreTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DECF51CC4B7AB6738CC762DD739A9714 /* VoiceAudio.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VoiceAudio.swift; path = Voice/VoiceAudio.swift; sourceTree = "<group>"; };
 		DF0E825BEDB50BEEE33F2C0B92B94CF9 /* ScriptImportViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScriptImportViews.swift; sourceTree = "<group>"; };
@@ -1852,6 +1854,7 @@
 				BD34B37FA1A455F120E609BC67380ACC /* ScriptRepairTests.swift */,
 				42E7F87CC093D2F7EFD1ADA1611E4BB2 /* ScriptStoreCoreTests.swift */,
 				50EB265697F82AF4AEF5D348A0C73F37 /* ScriptStoreWebTests.swift */,
+				DE5D7B8CCFCCA238EFD76C8898D2169C /* ScriptSyncTests.swift */,
 				2DACAEAF9391D3320C22267D0D791454 /* SessionRetentionTests.swift */,
 				0C63F649FF661F8D5C3735A7FE6171DC /* SiteGoldenTests.swift */,
 				9414D5FC2997B6CC259F0A5970B7CB05 /* SiteRequestSequenceTests.swift */,
@@ -2904,6 +2907,7 @@
 				94B43D709CF87FEBBC895DD4B1833BA1 /* ScriptRepairTests.swift in Sources */,
 				D45578DB5749C264BE1F8A2CDE319589 /* ScriptStoreCoreTests.swift in Sources */,
 				F95DFDFF9870DE809B7AEC95A392D741 /* ScriptStoreWebTests.swift in Sources */,
+				ED45B40260E1FCF94FC35E3BA3A8BBDC /* ScriptSyncTests.swift in Sources */,
 				0D2110B6230AE5D82698B211EC261149 /* SessionRetentionTests.swift in Sources */,
 				8F86D88D3E2B92FEB804F5A71EDFC84F /* SiteGoldenTests.swift in Sources */,
 				779BF1F8E7DC408C79AAF9647F8A859C /* SiteRequestSequenceTests.swift in Sources */,
