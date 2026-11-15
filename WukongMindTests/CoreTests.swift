@@ -1366,7 +1366,7 @@ final class CoreTests: XCTestCase {
 
         let models = try await service.discoverModels(configuration: configuration, provider: .nvidia)
         XCTAssertFalse(models.isEmpty)
-        XCTAssertTrue(models.contains(configuration.model), "Default model is not offered: \(models.prefix(5))")
+        XCTAssertTrue(models.map(\.id).contains(configuration.model), "Default model is not offered: \(models.prefix(5))")
 
         try await service.testConnection(configuration: configuration, provider: .nvidia)
 
@@ -1399,7 +1399,159 @@ final class CoreTests: XCTestCase {
             throw URLError(.badServerResponse)
         }
         let models = try await AIService(session: session).discoverModels(configuration: configuration, provider: .vertexAI)
-        XCTAssertEqual(models, AIProvider.vertexAIModels)
+        XCTAssertEqual(models, AIProvider.vertexAIModels.map { DiscoveredModel(id: $0) })
+    }
+
+    func testAnthropicModelDiscoveryPreservesRecordedOrderDisplayNamesAndDates() async throws {
+        // Recorded GET https://api.anthropic.com/v1/models payload (15 models, newest first).
+        let recordedBody = #"""
+        {
+          "data": [
+            {"id": "claude-fable-5-2", "display_name": "Claude Fable 5.2", "created_at": "2026-11-09T18:30:00Z"},
+            {"id": "claude-haiku-5-5", "display_name": "Claude Haiku 5.5", "created_at": "2026-10-07T18:00:00Z"},
+            {"id": "claude-sonnet-5-5", "display_name": "Claude Sonnet 5.5", "created_at": "2026-09-28T00:00:00Z"},
+            {"id": "claude-opus-5-5", "display_name": "Claude Opus 5.5", "created_at": "2026-09-21T16:24:00Z"},
+            {"id": "claude-fable-5-1", "display_name": "Claude Fable 5.1", "created_at": "2026-08-28T00:00:00Z"},
+            {"id": "claude-opus-5", "display_name": "Claude Opus 5", "created_at": "2026-07-24T00:00:00Z"},
+            {"id": "claude-sonnet-5", "display_name": "Claude Sonnet 5", "created_at": "2026-06-29T00:00:00Z"},
+            {"id": "claude-fable-5", "display_name": "Claude Fable 5", "created_at": "2026-06-07T00:00:00Z"},
+            {"id": "claude-opus-4-8", "display_name": "Claude Opus 4.8", "created_at": "2026-05-28T00:00:00Z"},
+            {"id": "claude-opus-4-7", "display_name": "Claude Opus 4.7", "created_at": "2026-04-14T00:00:00Z"},
+            {"id": "claude-sonnet-4-6", "display_name": "Claude Sonnet 4.6", "created_at": "2026-02-17T00:00:00Z"},
+            {"id": "claude-opus-4-6", "display_name": "Claude Opus 4.6", "created_at": "2026-02-04T00:00:00Z"},
+            {"id": "claude-opus-4-5-20251101", "display_name": "Claude Opus 4.5", "created_at": "2025-11-24T00:00:00Z"},
+            {"id": "claude-haiku-4-5-20251001", "display_name": "Claude Haiku 4.5", "created_at": "2025-10-15T00:00:00Z"},
+            {"id": "claude-sonnet-4-5-20250929", "display_name": "Claude Sonnet 4.5", "created_at": "2025-09-29T00:00:00Z"}
+          ],
+          "has_more": false,
+          "first_id": "claude-fable-5-2",
+          "last_id": "claude-sonnet-4-5-20250929"
+        }
+        """#
+
+        var configuration = ProviderConfiguration(provider: .anthropic)
+        configuration.apiKey = "anthropic-test-key"
+        var seen: URLRequest?
+        let session = stubbedSession { request in
+            seen = request
+            return Self.response(request, status: 200, body: recordedBody)
+        }
+
+        let models = try await AIService(session: session).discoverModels(
+            configuration: configuration,
+            provider: .anthropic
+        )
+        let request = try XCTUnwrap(seen)
+        XCTAssertEqual(request.url?.absoluteString, "https://api.anthropic.com/v1/models")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "x-api-key"), "anthropic-test-key")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "anthropic-version"), "2023-06-01")
+
+        XCTAssertEqual(models.count, 15)
+        XCTAssertEqual(models.map(\.id), [
+            "claude-fable-5-2",
+            "claude-haiku-5-5",
+            "claude-sonnet-5-5",
+            "claude-opus-5-5",
+            "claude-fable-5-1",
+            "claude-opus-5",
+            "claude-sonnet-5",
+            "claude-fable-5",
+            "claude-opus-4-8",
+            "claude-opus-4-7",
+            "claude-sonnet-4-6",
+            "claude-opus-4-6",
+            "claude-opus-4-5-20251101",
+            "claude-haiku-4-5-20251001",
+            "claude-sonnet-4-5-20250929"
+        ])
+        XCTAssertEqual(models.first?.displayName, "Claude Fable 5.2")
+        XCTAssertEqual(models.first?.title, "Claude Fable 5.2")
+        XCTAssertEqual(
+            models.first?.createdAt,
+            try Date.ISO8601FormatStyle(includingFractionalSeconds: false).parse("2026-11-09T18:30:00Z")
+        )
+        XCTAssertEqual(models[1].displayName, "Claude Haiku 5.5")
+        XCTAssertEqual(models[2].displayName, "Claude Sonnet 5.5")
+        XCTAssertEqual(models.last?.displayName, "Claude Sonnet 4.5")
+    }
+
+    func testOpenAIStyleModelDiscoveryUsesCreatedNewestFirstAndIDFallback() async throws {
+        var configuration = ProviderConfiguration(provider: .openAI)
+        configuration.apiKey = "openai-test-key"
+
+        let datedPayload = #"""
+        {
+          "object": "list",
+          "data": [
+            {"id": "gpt-4o-mini", "object": "model", "created": 1721172741},
+            {"id": "gpt-5-2", "object": "model", "created": 1762000000, "display_name": "GPT-5.2"},
+            {"id": "gpt-5-mini-a", "object": "model", "created": 1750000000},
+            {"id": "gpt-5-mini-b", "object": "model", "created": 1750000000}
+          ]
+        }
+        """#
+
+        let datedSession = stubbedSession { request in
+            Self.response(request, status: 200, body: datedPayload)
+        }
+        let datedModels = try await AIService(session: datedSession).discoverModels(
+            configuration: configuration,
+            provider: .openAI
+        )
+        XCTAssertEqual(datedModels.map(\.id), ["gpt-5-2", "gpt-5-mini-a", "gpt-5-mini-b", "gpt-4o-mini"])
+        XCTAssertEqual(datedModels.first?.displayName, "GPT-5.2")
+        XCTAssertEqual(datedModels.first?.createdAt, Date(timeIntervalSince1970: 1_762_000_000))
+        XCTAssertNil(datedModels.last?.displayName)
+        XCTAssertEqual(datedModels.last?.title, "gpt-4o-mini")
+
+        let undatedPayload = #"""
+        {
+          "object": "list",
+          "data": [
+            {"id": "zeta-model", "created": 0},
+            {"id": "alpha-model"},
+            {"id": "middle-model"}
+          ]
+        }
+        """#
+        let undatedSession = stubbedSession { request in
+            Self.response(request, status: 200, body: undatedPayload)
+        }
+        let undatedModels = try await AIService(session: undatedSession).discoverModels(
+            configuration: configuration,
+            provider: .openAI
+        )
+        XCTAssertEqual(undatedModels.map(\.id), ["alpha-model", "middle-model", "zeta-model"])
+        XCTAssertTrue(undatedModels.allSatisfy { $0.createdAt == nil })
+    }
+
+    func testOllamaModelDiscoveryUsesApiTagsWithoutKeyAndKeepsProviderOrder() async throws {
+        let configuration = ProviderConfiguration(provider: .ollama)
+        XCTAssertTrue(configuration.apiKey.isEmpty)
+
+        var seen: URLRequest?
+        let payload = #"""
+        {
+          "models": [
+            {"name": "qwen2.5:14b", "modified_at": "2026-10-01T10:00:00Z"},
+            {"name": "llama3.2:latest", "modified_at": "2026-09-15T10:00:00Z"},
+            {"name": "deepseek-r1:8b", "modified_at": "2026-11-01T10:00:00Z"}
+          ]
+        }
+        """#
+        let session = stubbedSession { request in
+            seen = request
+            return Self.response(request, status: 200, body: payload)
+        }
+        let models = try await AIService(session: session).discoverModels(
+            configuration: configuration,
+            provider: .ollama
+        )
+        let request = try XCTUnwrap(seen)
+        XCTAssertEqual(request.url?.absoluteString, "http://localhost:11434/api/tags")
+        XCTAssertNil(request.value(forHTTPHeaderField: "Authorization"))
+        XCTAssertNil(request.value(forHTTPHeaderField: "x-api-key"))
+        XCTAssertEqual(models.map(\.id), ["qwen2.5:14b", "llama3.2:latest", "deepseek-r1:8b"])
     }
 
     func testVertexAIStreamsGeminiEventsWithHeaderKey() async throws {

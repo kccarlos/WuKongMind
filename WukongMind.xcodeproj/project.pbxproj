@@ -256,6 +256,7 @@
 		5AA38DB3398E70622C5A2C0D769FE792 /* run-W3.summaries.json in Resources */ = {isa = PBXBuildFile; fileRef = F2E3133B842A6560BF31BC4B4F7FA9DC /* run-W3.summaries.json */; };
 		5AA9C9273153BACF3569B77221415E27 /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-7b9f6260e936.json in Resources */ = {isa = PBXBuildFile; fileRef = B2CFFCF5C35F57D628C48EDEFF0E879E /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-7b9f6260e936.json */; };
 		5AC7A68E08ED5337BBF2DFE8A7FDFC66 /* discourse-meta-appinn-net-search-json-56e985cd31c8.json in Resources */ = {isa = PBXBuildFile; fileRef = 7426FAC4F157DE80205D7005724311A1 /* discourse-meta-appinn-net-search-json-56e985cd31c8.json */; };
+		5B130CDEA7E9249397FAFC81E80F8389 /* ProviderModelsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4B393A684DF7008EBFB750DE141BE89 /* ProviderModelsSection.swift */; };
 		5B2908D5E93E8057AFBC414AE9AD0BA8 /* discourse-meta-appinn-net-t-21714-json-5c199da9bc83.json in Resources */ = {isa = PBXBuildFile; fileRef = F03AA41BE6B756B2AA52E733D8946DA5 /* discourse-meta-appinn-net-t-21714-json-5c199da9bc83.json */; };
 		5B8B919E3CF631E9C034350FA2D3225D /* ForumToolsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CB8D0081FB29D0C0B5B535953B6C26E /* ForumToolsTests.swift */; };
 		5BCA0771B7C3BB369EEE6E4E1308FDC2 /* WordPressRecognitionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BB8A53AB3208A8C49BB119D017F7FCF /* WordPressRecognitionTests.swift */; };
@@ -709,6 +710,7 @@
 		FD9DC200999F053A24029E382C176744 /* page-21.html in Resources */ = {isa = PBXBuildFile; fileRef = F65F2714C12D8BADCE36454491616612 /* page-21.html */; };
 		FDE1108AC744F30A311DE369CDBEC255 /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-8a2a6f296bb2.json in Resources */ = {isa = PBXBuildFile; fileRef = 782F21C17D5AFA585EB16D989A0D581A /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-8a2a6f296bb2.json */; };
 		FF675C257CFBE930D866393A83D509CB /* IPadLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BDA17EE0B24B071D63CA3AA13B40C08 /* IPadLayoutTests.swift */; };
+		FFA5547E7216B243545D8947696BD508 /* ProviderModelsUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AA56C4EDD2605A29836F30E7ECA3405 /* ProviderModelsUITests.swift */; };
 		FFC8FD8814E5869A4AB3EBC7231B273A /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-e0952ae2b0e7.json in Resources */ = {isa = PBXBuildFile; fileRef = DB17A745D57043A5DDF4526431E0F0E7 /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-e0952ae2b0e7.json */; };
 /* End PBXBuildFile section */
 
@@ -935,6 +937,7 @@
 		49ACBEF5C3F23731890FB5D8A695896A /* WordPressUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WordPressUITests.swift; sourceTree = "<group>"; };
 		4A225F6DDB05B2F6D3B93F1E7A431405 /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-d31745609986.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "wordpress-www-doctorofcredit-com-wp-json-wp-v2-d31745609986.json"; path = "Fixtures/Comparison/wordpress/wordpress-www-doctorofcredit-com-wp-json-wp-v2-d31745609986.json"; sourceTree = "<group>"; };
 		4A4C96E203468389187AB2FEF5BB4599 /* AppModel+Digest.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "AppModel+Digest.swift"; sourceTree = "<group>"; };
+		4AA56C4EDD2605A29836F30E7ECA3405 /* ProviderModelsUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProviderModelsUITests.swift; sourceTree = "<group>"; };
 		4B5362C15E340E1FBD323AC043235437 /* CapabilityGatingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CapabilityGatingTests.swift; path = Sites/CapabilityGatingTests.swift; sourceTree = "<group>"; };
 		4BA45C9CD9F48A70C177FD937969229B /* discourse-meta-appinn-net-t-88526-json-7f099a083f33.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "discourse-meta-appinn-net-t-88526-json-7f099a083f33.json"; path = "Fixtures/Comparison/discourse/discourse-meta-appinn-net-t-88526-json-7f099a083f33.json"; sourceTree = "<group>"; };
 		4BD86B4903B9F17599ABCD036133D871 /* WordPressActiveTopics.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WordPressActiveTopics.swift; path = Sites/WordPress/WordPressActiveTopics.swift; sourceTree = "<group>"; };
@@ -1337,6 +1340,7 @@
 		E33A48EEE5CEB1A68D1C9E4982EEFDA9 /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-fcae25521e5d.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "wordpress-www-doctorofcredit-com-wp-json-wp-v2-fcae25521e5d.json"; path = "Fixtures/Comparison/wordpress/wordpress-www-doctorofcredit-com-wp-json-wp-v2-fcae25521e5d.json"; sourceTree = "<group>"; };
 		E3F24BEE4FE0F3DED2FB06D98AA02C43 /* AgentNetworkToolsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AgentNetworkToolsTests.swift; sourceTree = "<group>"; };
 		E470AB2EE099691029D79635A9C8E248 /* hackernews-hn-algolia-com-api-v1-search-19256493e15f.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "hackernews-hn-algolia-com-api-v1-search-19256493e15f.json"; path = "Fixtures/Comparison/hackernews/hackernews-hn-algolia-com-api-v1-search-19256493e15f.json"; sourceTree = "<group>"; };
+		E4B393A684DF7008EBFB750DE141BE89 /* ProviderModelsSection.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProviderModelsSection.swift; sourceTree = "<group>"; };
 		E5294967BFFD9197450DD5FDA36D6076 /* VoiceToolTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VoiceToolTests.swift; sourceTree = "<group>"; };
 		E5D2B68C99F7DC46ABE554F3FA5EF973 /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-4dab23780800.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "wordpress-www-doctorofcredit-com-wp-json-wp-v2-4dab23780800.json"; path = "Fixtures/Comparison/wordpress/wordpress-www-doctorofcredit-com-wp-json-wp-v2-4dab23780800.json"; sourceTree = "<group>"; };
 		E76ED8E1D7048E57F4EF1F90DE614E8D /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-718c42b204f1.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "wordpress-www-doctorofcredit-com-wp-json-wp-v2-718c42b204f1.json"; path = "Fixtures/Comparison/wordpress/wordpress-www-doctorofcredit-com-wp-json-wp-v2-718c42b204f1.json"; sourceTree = "<group>"; };
@@ -1507,6 +1511,7 @@
 				DA494D499CB5DB4AB685A785B5075921 /* OnboardingUITests.swift */,
 				1B955D21957DA673EDADDD9C700BE403 /* OneLoopLiveAcceptanceUITests.swift */,
 				527DA8FED3478F1F4C7649330DD9A967 /* PhysicalDeviceSmokeTests.swift */,
+				4AA56C4EDD2605A29836F30E7ECA3405 /* ProviderModelsUITests.swift */,
 				663B3C44910C1E58D7135AB30D03EBB3 /* ScreenshotThumbnailUITests.swift */,
 				1529C84C46C81C78A95198E48682016D /* ScriptManagerUITests.swift */,
 				81842126D2EC90F86D6D3295EEF89CE5 /* SettingsNavigationUITests.swift */,
@@ -1612,6 +1617,7 @@
 				CCBFCC0E2BF6B1315F382EC616FB0DFB /* PresentationRouter.swift */,
 				804E6ABAD39405362E4AFD6556C28028 /* PromptBuilder.swift */,
 				F6E11F3BB41B93049BC23C2097EAEAE1 /* ProviderModels.swift */,
+				E4B393A684DF7008EBFB750DE141BE89 /* ProviderModelsSection.swift */,
 				F1D46EE34621EEEC1B1FA5A3556CA80D /* ResultCards.swift */,
 				2453A0B2299A88E53950D83402E5AF0C /* SampleContent.swift */,
 				60A39199D0ABA40943E8AC5C0CEDB0AB /* SavedAnswerView.swift */,
@@ -2987,6 +2993,7 @@
 				713DFBE085A873383361B6FAB2759894 /* PresentationRouter.swift in Sources */,
 				9A49A4E4599F5C4EF8D6E545AF043D50 /* PromptBuilder.swift in Sources */,
 				CEF4EE088A49192D151BEC217AEA19ED /* ProviderModels.swift in Sources */,
+				5B130CDEA7E9249397FAFC81E80F8389 /* ProviderModelsSection.swift in Sources */,
 				9072AE5F66BE894B192531852B900887 /* ResultCards.swift in Sources */,
 				2FC9D1538FAF520B2BC922E225BD2DFB /* SampleContent.swift in Sources */,
 				A41854DADD8B80C88E3C7DA4FC6302CE /* SavedAnswerView.swift in Sources */,
@@ -3105,6 +3112,7 @@
 				BC92CE11BB3041522ADF62345084D4CE /* OnboardingUITests.swift in Sources */,
 				C11BCE709DC494518CC69CA046245F45 /* OneLoopLiveAcceptanceUITests.swift in Sources */,
 				67B1B32B469282F9641117E6D7318A9A /* PhysicalDeviceSmokeTests.swift in Sources */,
+				FFA5547E7216B243545D8947696BD508 /* ProviderModelsUITests.swift in Sources */,
 				0D465CFC38D6AC344CC12DE7B2C6C894 /* ScreenshotThumbnailUITests.swift in Sources */,
 				D46E5283E576C5ED98AE43AEAAF88D10 /* ScriptManagerUITests.swift in Sources */,
 				59DE5BBB1595AEA7CF8080740685FBD7 /* SettingsNavigationUITests.swift in Sources */,

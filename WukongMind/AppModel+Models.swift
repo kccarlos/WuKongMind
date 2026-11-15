@@ -308,6 +308,20 @@ extension AppModel {
         settings.favoriteModels.contains { $0.matches(selection) }
     }
 
+    /// Stars or unstars `selection` in place (up to 30 favorites).
+    func toggleFavorite(_ selection: ModelSelection) {
+        if isFavorite(selection) {
+            removeFavorite(matching: selection)
+            return
+        }
+        guard isProviderSelectable(selection.provider),
+              let favorite = FavoriteModel(selection: selection),
+              let starred = ModelFavorites.adding(favorite, to: settings.favoriteModels)
+        else { return }
+        settings.favoriteModels = starred
+        saveSettings()
+    }
+
     /// Stars the role's current model (up to 30 favorites). Apple
     /// Intelligence is starred like any other provider.
     func addCurrentFavorite(for role: ModelRole) {

@@ -443,7 +443,7 @@ final class AppleIntelligenceTests: XCTestCase {
         fake.status = .available(.privateCloudCompute)
         try await service.testConnection(configuration: configuration, provider: .appleIntelligence)
         let models = try await service.discoverModels(configuration: configuration, provider: .appleIntelligence)
-        XCTAssertEqual(models, ["Private Cloud Compute"])
+        XCTAssertEqual(models, [DiscoveredModel(id: "Private Cloud Compute")])
     }
 
     // MARK: Prompts and streaming

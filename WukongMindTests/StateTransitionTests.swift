@@ -194,11 +194,14 @@ final class StateTransitionTests: XCTestCase {
         let harness = makeHarness()
         let app = harness.app
         select(app, .openAI, model: "gpt-test", key: "key-1")
-        app.discoveredModels = [.openAI: ["kept-until-its-address-changes"], .groq: ["groq-old"]]
+        app.discoveredModels = [
+            .openAI: [DiscoveredModel(id: "kept-until-its-address-changes")],
+            .groq: [DiscoveredModel(id: "groq-old")]
+        ]
 
         // Lists are per provider: switching a role's provider keeps them.
         app.settings.assistantModel = ModelSelection(provider: .groq, model: (.groq as AIProvider).defaultModel)
-        XCTAssertEqual(app.discoveredModels[.openAI], ["kept-until-its-address-changes"])
+        XCTAssertEqual(app.discoveredModels[.openAI], [DiscoveredModel(id: "kept-until-its-address-changes")])
 
         async let result = app.discoverModels(provider: .openAI)
         try await waitUntil { harness.ai.waiting == 1 }
@@ -206,7 +209,7 @@ final class StateTransitionTests: XCTestCase {
         configuration.baseURL = "https://proxy.example.com/v1"
         app.setConfiguration(configuration, for: .openAI)
         XCTAssertNil(app.discoveredModels[.openAI], "an address change clears that provider's list")
-        XCTAssertEqual(app.discoveredModels[.groq], ["groq-old"], "other providers keep theirs")
+        XCTAssertEqual(app.discoveredModels[.groq], [DiscoveredModel(id: "groq-old")], "other providers keep theirs")
         harness.ai.releaseAll()
         let outcome = await result
         XCTAssertEqual(outcome, .stale)
@@ -215,7 +218,29 @@ final class StateTransitionTests: XCTestCase {
         harness.ai.gated = false
         let fresh = await app.discoverModels(provider: .groq)
         XCTAssertEqual(fresh, .success)
-        XCTAssertEqual(app.discoveredModels[.groq], ["groq-model"])
+        XCTAssertEqual(app.discoveredModels[.groq], [DiscoveredModel(id: "groq-model")])
+
+        // Changing a provider's API key also invalidates its cached model list.
+        var groqConfig = app.settings.configuration(for: .groq)
+        groqConfig.apiKey = "new-groq-key"
+        app.setConfiguration(groqConfig, for: .groq)
+        XCTAssertNil(app.discoveredModels[.groq], "an API key change clears that provider's list")
+    }
+
+    func testModelDiscoveryTreatsHTTP404AsEmptyAndFormatsRefusedKey() async {
+        let harness = makeHarness()
+        let app = harness.app
+        harness.ai.gated = false
+        select(app, .openAI, model: "gpt-test", key: "key-1")
+
+        harness.ai.discoverError = AssistantError.http(404, "Not Found")
+        let notListed = await app.discoverModels(provider: .openAI)
+        XCTAssertEqual(notListed, .success)
+        XCTAssertEqual(app.discoveredModels[.openAI], [])
+
+        harness.ai.discoverError = AssistantError.http(401, #"{"error":{"message":"invalid_api_key"}}"#)
+        let refused = await app.discoverModels(provider: .openAI)
+        XCTAssertEqual(refused, .failure("The key was refused (401). Check it above."))
     }
 
     // MARK: 4. Limits and instructions
@@ -519,7 +544,7 @@ final class StateTransitionTests: XCTestCase {
         XCTAssertEqual(harness.keys.value(for: .openAI), "key-1")
         for id in ["1", "2", "3"] { XCTAssertTrue(app.enqueueSummary(for: topic(id))) }
         try await waitUntil { harness.ai.waiting == 2 }
-        app.discoveredModels = [.openAI: ["gpt-test"]]
+        app.discoveredModels = [.openAI: [DiscoveredModel(id: "gpt-test")]]
 
         app.resetSettings()
         XCTAssertEqual(app.settings.assistantModel.provider, AppSettings().assistantModel.provider)
@@ -1920,6 +1945,7 @@ final class StateAIStub: AIService, @unchecked Sendable {
     @MainActor var failConnection = false
     @MainActor var echoContentInSummary = false
     @MainActor var summaryError: Error?
+    @MainActor var discoverError: Error?
     @MainActor private var waiters: [CheckedContinuation<Void, Never>] = []
     @MainActor private var activeSummaryProgress: (@MainActor (SummaryProgressEvent) -> Void)?
     @MainActor private var activeSummaryDelta: (@MainActor (String) -> Void)?
@@ -2001,9 +2027,10 @@ final class StateAIStub: AIService, @unchecked Sendable {
         if await failConnection { throw AssistantError.http(401, "Bad key") }
     }
 
-    override func discoverModels(configuration: ProviderConfiguration, provider: AIProvider) async throws -> [String] {
+    override func discoverModels(configuration: ProviderConfiguration, provider: AIProvider) async throws -> [DiscoveredModel] {
         await arrive(Call(kind: "models", provider: provider, configuration: configuration))
-        return ["\(provider.rawValue)-model"]
+        if let error = await discoverError { throw error }
+        return [DiscoveredModel(id: "\(provider.rawValue)-model")]
     }
 
     override func complete(
