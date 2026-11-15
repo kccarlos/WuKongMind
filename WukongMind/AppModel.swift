@@ -457,7 +457,7 @@ final class AppModel: ObservableObject {
                 }
                 return app.browserAgentRuntimeConfig
             },
-            registryBuilder: { [weak appBox, weak tabBrowser, weak scriptWebController, weak confirmations, weak httpClient, weak sessionBox] bridge, limit, secrets in
+            registryBuilder: { [weak appBox, weak tabBrowser, weak scriptWebController, weak pageToolBridge, weak confirmations, weak httpClient, weak sessionBox] bridge, limit, secrets in
                 guard let app = appBox?.value else {
                     return ToolRegistry.m1(bridge: bridge, truncationLimit: limit, redactedSecrets: secrets)
                 }
@@ -484,7 +484,16 @@ final class AppModel: ObservableObject {
                     network: httpClient,
                     confirmations: confirmations,
                     forum: tabBrowser.flatMap { app.makeForumToolContext(for: $0) },
-                    capabilities: tabBrowser.map { app.capabilityToolContext(for: $0) }
+                    capabilities: tabBrowser.map { app.capabilityToolContext(for: $0) },
+                    pageTools: app.settings.agentPageToolsEnabled ? pageToolBridge.map {
+                        PageToolContext(
+                            bridge: $0,
+                            scriptStore: app.scriptStore,
+                            confirmBeforeWrites: { [weak appBox] in
+                                await appBox?.value?.settings.agentConfirmBeforeWrites ?? false
+                            }
+                        )
+                    } : nil
                 ))
             },
             auditLog: auditLog,
