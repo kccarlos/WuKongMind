@@ -891,15 +891,18 @@ struct AssistantPanel: View {
     }
 
     private func sendFixScriptRequest(for script: UserScript) {
-        let prompt = String(
-            localized: "Fix the script \(script.name)",
-            comment: "User message sent to the Agent when tapping Let the Agent fix it on an auto-disabled script"
-        )
-        let block = PageFeedbackContext.fixScriptBlock(
-            script: script,
-            latestError: scriptStore.error(for: script.id)
-        )
-        sendAgentPrompt(prompt, attachedBlock: block)
+        guard !browserAgent.isRunning else { return }
+        stopDictation(keepingText: false)
+        guard app.isProviderReady(for: .browserAgent) else {
+            requestedProviderSetup = true
+            composerFocused = false
+            return
+        }
+        requestedProviderSetup = false
+        DCHaptics.tap()
+        agentDraft = ""
+        composerFocused = false
+        app.startScriptRepair(script)
     }
 
     private func sendAgentPrompt() {

@@ -2172,6 +2172,23 @@
         }
       }
     },
+    "after load" : {
+      "comment" : "Metadata tag when a userscript error occurred after initial page load",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "加载后"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "載入後"
+          }
+        }
+      }
+    },
     "AI models…" : {
       "localizations" : {
         "zh-Hans" : {
@@ -4453,6 +4470,23 @@
         }
       }
     },
+    "Couldn’t reach the model: %@" : {
+      "comment" : "Grey status line in This page and Script detail when a script's AI model call fails with a service error",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法连接模型：%@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法連線至模型：%@"
+          }
+        }
+      }
+    },
     "CSS" : {
       "comment" : "Code language label for CSS\nScript card badge when a script contains CSS",
       "shouldTranslate" : false
@@ -5473,23 +5507,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在合併…"
-          }
-        }
-      }
-    },
-    "Coming in a later update" : {
-      "comment" : "Accessibility hint on the disabled Let the agent fix button",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "将在后续更新中推出"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "將於後續更新推出"
           }
         }
       }
@@ -7024,6 +7041,23 @@
         }
       }
     },
+    "Earlier errors" : {
+      "comment" : "Section header in Script detail listing recent runtime and service errors",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "较早的错误"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "先前的錯誤"
+          }
+        }
+      }
+    },
     "EasyList website" : {
       "localizations" : {
         "zh-Hans" : {
@@ -7915,6 +7949,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "修復指令碼 %@"
+          }
+        }
+      }
+    },
+    "Fixed · on again, errors cleared" : {
+      "comment" : "Status seal on a script card after the Agent repairs a broken script",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已修复 · 已重新开启，错误已清除"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已修復 · 已重新開啟，錯誤已清除"
           }
         }
       }
@@ -9739,23 +9790,6 @@
         }
       }
     },
-    "Let the agent fix" : {
-      "comment" : "Disabled M2 button in Script detail error card for future agent auto-fix",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "让代理修复"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "讓代理修復"
-          }
-        }
-      }
-    },
     "Lets Siri suggest topics you read" : {
       "localizations" : {
         "zh-Hans" : {
@@ -11538,6 +11572,23 @@
         }
       }
     },
+    "Not the script’s fault · doesn’t count" : {
+      "comment" : "Subtitle under a service error in Script detail explaining it does not count toward auto-disable",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "非脚本本身故障 · 不计入自动停用"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "非指令碼本身故障 · 不計入自動停用"
+          }
+        }
+      }
+    },
     "Not used by either model" : {
       "comment" : "Provider settings: neither the Summaries & chat nor the Ask the forum model uses this provider",
       "localizations" : {
@@ -11732,6 +11783,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "可以產生時通知我"
+          }
+        }
+      }
+    },
+    "Off · 3 errors in a row" : {
+      "comment" : "State pill in Script detail when a script was turned off after errors on 3 loads in a row",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已停用 · 连续 3 次出错"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已停用 · 連續 3 次出錯"
           }
         }
       }
@@ -18741,23 +18809,6 @@
         }
       }
     },
-    "The agent fix comes in a later update" : {
-      "comment" : "Note beneath the disabled Let the agent fix button in Script detail",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "代理解析修复功能将在后续更新中推出"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "代理自動修復功能將於後續更新推出"
-          }
-        }
-      }
-    },
     "The agent run no longer exists." : {
       "localizations" : {
         "zh-Hans" : {
@@ -18967,6 +19018,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "最近 7 份摘要儲存在這台裝置上。向左滑動即可刪除。"
+          }
+        }
+      }
+    },
+    "The last five errors are kept until the app quits." : {
+      "comment" : "Footer in Script detail explaining in-memory retention of the last five script errors",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最近五条错误会保留至应用退出。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最近五筆錯誤會保留至應用程式結束。"
           }
         }
       }

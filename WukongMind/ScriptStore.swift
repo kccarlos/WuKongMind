@@ -45,31 +45,44 @@ enum ScriptSource: Codable, Equatable, Sendable {
     }
 }
 
+enum ScriptErrorKind: String, Codable, Equatable, Sendable {
+    case script, api, service
+}
+
 struct ScriptRuntimeError: Codable, Equatable, Sendable {
+    static let maxStackCharacters = 2_000
+
     var scriptID: String
     var scriptName: String
+    var kind: ScriptErrorKind
     var message: String
     var line: Int?
+    var stack: String?
+    var afterLoad: Bool
     var url: String?
     var occurredAt: Date
     var count: Int
 
     init(
-        scriptID: String,
-        scriptName: String,
-        message: String,
-        line: Int? = nil,
-        url: String? = nil,
-        occurredAt: Date = Date(),
-        count: Int = 1
+        scriptID: String, scriptName: String, kind: ScriptErrorKind = .script, message: String,
+        line: Int? = nil, stack: String? = nil, afterLoad: Bool = false, url: String? = nil,
+        occurredAt: Date = Date(), count: Int = 1
     ) {
         self.scriptID = scriptID
         self.scriptName = scriptName
+        self.kind = kind
         self.message = message
         self.line = line
+        self.stack = Self.clampStack(stack)
+        self.afterLoad = afterLoad
         self.url = url
         self.occurredAt = occurredAt
         self.count = max(1, count)
+    }
+
+    nonisolated static func clampStack(_ raw: String?) -> String? {
+        guard let trimmed = raw?.trimmingCharacters(in: .whitespacesAndNewlines), !trimmed.isEmpty else { return nil }
+        return trimmed.count <= maxStackCharacters ? trimmed : String(trimmed.prefix(maxStackCharacters))
     }
 }
 
@@ -1707,11 +1720,19 @@ final class ScriptStore {
     let directoryURL: URL
     let valuesDirectoryURL: URL
     @ObservationIgnored
+    nonisolated static let maxStoredErrorsPerScript = 5
+
     let valuesStore: ScriptValuesStore
     private(set) var scripts: [UserScript] = [] {
         didSet { onStoreChanged?() }
     }
     private(set) var scriptErrors: [String: ScriptRuntimeError] = [:] {
+        didSet { onStoreChanged?() }
+    }
+    private(set) var scriptErrorHistory: [String: [ScriptRuntimeError]] = [:] {
+        didSet { onStoreChanged?() }
+    }
+    private(set) var activeServiceErrors: [String: ScriptRuntimeError] = [:] {
         didSet { onStoreChanged?() }
     }
     private(set) var consecutiveErrorLoads: [String: Int] = [:] {
@@ -1723,6 +1744,8 @@ final class ScriptStore {
 
     @ObservationIgnored
     private var lastErrorLoadIDs: [String: String] = [:]
+    @ObservationIgnored
+    private var lastServiceErrorLoadIDs: [String: String] = [:]
     @ObservationIgnored
     private var pendingErrorWithoutLoadID: Set<String> = []
 
@@ -1927,6 +1950,14 @@ final class ScriptStore {
         scriptErrors[scriptID]
     }
 
+    func errors(for scriptID: String) -> [ScriptRuntimeError] {
+        scriptErrorHistory[scriptID] ?? []
+    }
+
+    func latestServiceError(for scriptID: String) -> ScriptRuntimeError? {
+        activeServiceErrors[scriptID]
+    }
+
     var errorCount: Int {
         scriptErrors.count
     }
@@ -2006,9 +2037,7 @@ final class ScriptStore {
         try writeScriptFile(created)
         scripts.append(created)
         sortScriptsInPlace()
-        scriptErrors.removeValue(forKey: created.id)
-        consecutiveErrorLoads.removeValue(forKey: created.id)
-        lastErrorLoadIDs.removeValue(forKey: created.id)
+        clearError(for: created.id)
         syncAttachedUserScripts()
         return created
     }
@@ -2064,7 +2093,7 @@ final class ScriptStore {
         try writeScriptFile(parsed)
         scripts.append(parsed)
         sortScriptsInPlace()
-        scriptErrors.removeValue(forKey: parsed.id)
+        clearError(for: parsed.id)
         syncAttachedUserScripts()
         return parsed
     }
@@ -2148,7 +2177,7 @@ final class ScriptStore {
     }
 
     @discardableResult
-    func commitUpdated(_ prospective: ProspectiveUpdate) throws -> UserScript {
+    func commitUpdated(_ prospective: ProspectiveUpdate, clearErrors: Bool = true) throws -> UserScript {
         let id = prospective.previous.id
         if !prospective.touchesVersionedFields {
             if prospective.updated.isEnabled != prospective.previous.isEnabled {
@@ -2164,9 +2193,9 @@ final class ScriptStore {
 
         scripts[idx] = prospective.updated
         sortScriptsInPlace()
-        scriptErrors.removeValue(forKey: id)
-        consecutiveErrorLoads.removeValue(forKey: id)
-        lastErrorLoadIDs.removeValue(forKey: id)
+        if clearErrors {
+            clearError(for: id)
+        }
         syncAttachedUserScripts()
         return prospective.updated
     }
@@ -2204,8 +2233,9 @@ final class ScriptStore {
         scripts[idx] = current
         consecutiveErrorLoads.removeValue(forKey: id)
         lastErrorLoadIDs.removeValue(forKey: id)
+        lastServiceErrorLoadIDs.removeValue(forKey: id)
         if !isEnabled {
-            scriptErrors.removeValue(forKey: id)
+            clearError(for: id)
         }
         guard changedEnabled else { return current }
         syncAttachedUserScripts()
@@ -2290,9 +2320,7 @@ final class ScriptStore {
 
         scripts[idx] = restored
         sortScriptsInPlace()
-        scriptErrors.removeValue(forKey: id)
-        consecutiveErrorLoads.removeValue(forKey: id)
-        lastErrorLoadIDs.removeValue(forKey: id)
+        clearError(for: id)
         syncAttachedUserScripts()
         for entry in attachedControllers {
             guard let controller = entry.controller else { continue }
@@ -2313,10 +2341,7 @@ final class ScriptStore {
             throw ScriptStoreError.scriptNotFound(id)
         }
         let removed = scripts.remove(at: idx)
-        scriptErrors.removeValue(forKey: id)
-        consecutiveErrorLoads.removeValue(forKey: id)
-        lastErrorLoadIDs.removeValue(forKey: id)
-        pendingErrorWithoutLoadID.remove(id)
+        clearError(for: id)
         valuesStore.removeValuesForDeletedScript(id: id)
         try removeScriptFilesFromDisk(id: id)
         syncAttachedUserScripts()
@@ -2390,29 +2415,36 @@ final class ScriptStore {
     // MARK: Runtime Error State
 
     func recordError(
-        scriptID: String,
-        message: String,
-        line: Int? = nil,
-        url: String? = nil,
-        occurredAt: Date = Date()
+        scriptID: String, message: String, line: Int? = nil, stack: String? = nil,
+        kind: ScriptErrorKind = .script, afterLoad: Bool = false, url: String? = nil, occurredAt: Date = Date()
     ) {
         let name = script(id: scriptID)?.name ?? scriptID
-        let cleanMessage = message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            ? "Unknown userscript error"
-            : message
-        let nextCount = (scriptErrors[scriptID]?.count ?? 0) + 1
-        let runtimeError = ScriptRuntimeError(
-            scriptID: scriptID,
-            scriptName: name,
-            message: cleanMessage,
-            line: line,
-            url: url,
-            occurredAt: occurredAt,
-            count: nextCount
-        )
-        scriptErrors[scriptID] = runtimeError
+        let cleanMessage = message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Unknown userscript error" : message
+        let clampedStack = ScriptRuntimeError.clampStack(stack)
+        var history = scriptErrorHistory[scriptID] ?? []
+        let activeSameKind = kind == .service ? (activeServiceErrors[scriptID] != nil) : (scriptErrors[scriptID] != nil)
+        let runtimeError: ScriptRuntimeError
+        if activeSameKind, let head = history.first, head.kind == kind, head.message == cleanMessage, head.line == line {
+            runtimeError = ScriptRuntimeError(
+                scriptID: scriptID, scriptName: name, kind: kind, message: cleanMessage, line: line,
+                stack: clampedStack ?? head.stack, afterLoad: afterLoad, url: url ?? head.url,
+                occurredAt: occurredAt, count: head.count + 1
+            )
+            history[0] = runtimeError
+        } else {
+            runtimeError = ScriptRuntimeError(
+                scriptID: scriptID, scriptName: name, kind: kind, message: cleanMessage, line: line,
+                stack: clampedStack, afterLoad: afterLoad, url: url, occurredAt: occurredAt, count: 1
+            )
+            history.insert(runtimeError, at: 0)
+            if history.count > Self.maxStoredErrorsPerScript {
+                history.removeLast(history.count - Self.maxStoredErrorsPerScript)
+            }
+        }
+        scriptErrorHistory[scriptID] = history
+        if kind == .service { activeServiceErrors[scriptID] = runtimeError } else { scriptErrors[scriptID] = runtimeError }
         Self.log.error(
-            "Userscript error [\(scriptID, privacy: .public)] (\(name, privacy: .public)): \(cleanMessage, privacy: .public)"
+            "Userscript error [\(scriptID, privacy: .public)] (\(name, privacy: .public), \(kind.rawValue, privacy: .public)): \(cleanMessage, privacy: .public)"
         )
     }
 
@@ -2421,20 +2453,18 @@ final class ScriptStore {
     /// `autoDisableErrorLoadLimit` (3) disables the script with `disabledReason`
     /// while preserving `scriptErrors[scriptID]` for "Let the Agent fix it".
     func recordPageLoadError(
-        scriptID: String,
-        message: String,
-        line: Int? = nil,
-        url: String? = nil,
-        loadID: String? = nil,
-        occurredAt: Date = Date()
+        scriptID: String, message: String, line: Int? = nil, stack: String? = nil,
+        kind: ScriptErrorKind = .script, afterLoad: Bool = false, url: String? = nil,
+        loadID: String? = nil, occurredAt: Date = Date()
     ) {
         recordError(
-            scriptID: scriptID,
-            message: message,
-            line: line,
-            url: url,
-            occurredAt: occurredAt
+            scriptID: scriptID, message: message, line: line, stack: stack,
+            kind: kind, afterLoad: afterLoad, url: url, occurredAt: occurredAt
         )
+        if kind == .service {
+            if let loadID, !loadID.isEmpty { lastServiceErrorLoadIDs[scriptID] = loadID }
+            return
+        }
         guard let idx = scripts.firstIndex(where: { $0.id == scriptID }), scripts[idx].isEnabled else {
             return
         }
@@ -2470,7 +2500,7 @@ final class ScriptStore {
 
     /// Fed once per page load by the userscript runner when a script finishes a
     /// load without error. Resets `consecutiveErrorLoads` and clears any prior
-    /// runtime error for that script.
+    /// active runtime error for that script (while keeping earlier errors in history).
     func recordPageLoadClean(scriptID: String, loadID: String? = nil) {
         if pendingErrorWithoutLoadID.remove(scriptID) != nil {
             if let loadID, !loadID.isEmpty { lastErrorLoadIDs[scriptID] = loadID }
@@ -2482,20 +2512,32 @@ final class ScriptStore {
         consecutiveErrorLoads[scriptID] = 0
         lastErrorLoadIDs.removeValue(forKey: scriptID)
         scriptErrors.removeValue(forKey: scriptID)
+        if let loadID, !loadID.isEmpty, lastServiceErrorLoadIDs[scriptID] == loadID {
+            // Keep a service error that fired on this same load visible in This page.
+        } else {
+            activeServiceErrors.removeValue(forKey: scriptID)
+            lastServiceErrorLoadIDs.removeValue(forKey: scriptID)
+        }
         noteExecuted(scriptID: scriptID)
     }
 
     func clearError(for scriptID: String) {
         scriptErrors.removeValue(forKey: scriptID)
+        scriptErrorHistory.removeValue(forKey: scriptID)
+        activeServiceErrors.removeValue(forKey: scriptID)
         consecutiveErrorLoads.removeValue(forKey: scriptID)
         lastErrorLoadIDs.removeValue(forKey: scriptID)
+        lastServiceErrorLoadIDs.removeValue(forKey: scriptID)
         pendingErrorWithoutLoadID.remove(scriptID)
     }
 
     func clearAllErrors() {
         scriptErrors.removeAll()
+        scriptErrorHistory.removeAll()
+        activeServiceErrors.removeAll()
         consecutiveErrorLoads.removeAll()
         lastErrorLoadIDs.removeAll()
+        lastServiceErrorLoadIDs.removeAll()
         pendingErrorWithoutLoadID.removeAll()
     }
 
@@ -3371,10 +3413,17 @@ final class ScriptWebController: ScriptLiveApplying {
             if let numLine = payload["line"] as? NSNumber, numLine.intValue > 0 { return numLine.intValue }
             return nil
         }()
+        let stack = ScriptRuntimeError.clampStack(payload["stack"] as? String)
+        let kind = (payload["kind"] as? String).flatMap(ScriptErrorKind.init(rawValue:)) ?? .script
+        let afterLoad = (payload["afterLoad"] as? Bool)
+            ?? ((payload["afterLoad"] as? NSNumber)?.boolValue ?? false)
         let url = (payload["url"] as? String).flatMap { $0.isEmpty ? nil : $0 }
         let loadID = (payload["loadId"] as? String).flatMap { $0.isEmpty ? nil : $0 }
 
         if var verification = activeVerification, verification.candidate.id == scriptID {
+            if kind == .service {
+                return
+            }
             let cleanMessage = message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                 ? "Unknown userscript error"
                 : message
@@ -3382,8 +3431,11 @@ final class ScriptWebController: ScriptLiveApplying {
             verification.capturedError = ScriptRuntimeError(
                 scriptID: scriptID,
                 scriptName: verification.candidate.name,
+                kind: kind,
                 message: cleanMessage,
                 line: line,
+                stack: stack,
+                afterLoad: afterLoad,
                 url: url,
                 occurredAt: Date(),
                 count: nextCount
@@ -3396,6 +3448,9 @@ final class ScriptWebController: ScriptLiveApplying {
             scriptID: scriptID,
             message: message,
             line: line,
+            stack: stack,
+            kind: kind,
+            afterLoad: afterLoad,
             url: url,
             loadID: loadID
         )
@@ -3827,10 +3882,13 @@ final class ScriptWebController: ScriptLiveApplying {
         const LOAD_ID = Math.random().toString(36).slice(2) + "-" + Date.now();
         const __wukongReadHref = () => String(window.location.href || "");
         const reportError = (err, loadId) => {
+          if (typeof window.__wukongReportScriptError === "function") {
+            return window.__wukongReportScriptError(err, loadId, false);
+          }
           const msg = err && (err.stack || err.message) ? String(err.message || err.stack) : String(err);
           const line = err && typeof err.line === "number" ? err.line : 0;
           if (typeof window.__wukongPostGM === "function") {
-            window.__wukongPostGM({ action: "scriptError", message: msg, line, url: __wukongReadHref(), loadId: String(loadId || "") }).catch(() => {});
+            window.__wukongPostGM({ action: "scriptError", message: msg, line, url: __wukongReadHref(), loadId: String(loadId || ""), afterLoad: false }).catch(() => {});
           }
           return msg;
         };
@@ -3838,10 +3896,15 @@ final class ScriptWebController: ScriptLiveApplying {
           if (typeof window.__wukongPostGM === "function") window.__wukongPostGM({ action: "scriptLoadClean", loadId: String(loadId || "") }).catch(() => {});
         };
         const __wukongRunMain = async (fn, loadId, reportClean) => {
+          if (typeof window.__wukongEnterMainLoad === "function") window.__wukongEnterMainLoad(loadId);
           try {
             await fn();
             if (reportClean) reportCleanLoad(loadId);
-          } catch (err) { reportError(err, loadId); }
+          } catch (err) {
+            reportError(err, loadId);
+          } finally {
+            if (typeof window.__wukongLeaveMainLoad === "function") window.__wukongLeaveMainLoad();
+          }
         };
         """
         let codeJSON = UserScript.encodeSingleLineJSONString(script.js)
@@ -4054,11 +4117,14 @@ final class ScriptWebController: ScriptLiveApplying {
         };
         if (window.__wukongLiveJSRouteHandlers) window.__wukongLiveJSRouteHandlers.set(SCRIPT_ID, runOnSpaRoute);
         if (\(executeImmediately ? "true" : "false")) {
+          if (typeof window.__wukongEnterMainLoad === "function") window.__wukongEnterMainLoad(LOAD_ID);
           try {
             await __wukongUserMain();
             return { ok: true };
           } catch (err) {
-            return { ok: false, error: reportError(err) };
+            return { ok: false, error: reportError(err, LOAD_ID) };
+          } finally {
+            if (typeof window.__wukongLeaveMainLoad === "function") window.__wukongLeaveMainLoad();
           }
         }
         return { ok: true };

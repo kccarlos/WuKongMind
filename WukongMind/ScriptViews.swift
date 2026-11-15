@@ -48,6 +48,58 @@ extension AppModel {
         }
         return String(localized: "\(summary.count) scripts on this page", comment: "Browser agent context bar: number of saved scripts matching this page")
     }
+
+    @MainActor
+    func startScriptRepair(_ script: UserScript) {
+        guard !browserAgent.isRunning else { return }
+        let latest = scriptStore.script(id: script.id) ?? script
+        let recentErrors = scriptStore.errors(for: latest.id)
+        let hadSheet = rootPresentation != nil
+        requestedSettingsPage = nil
+        requestedScriptID = nil
+        if case .expanded(.settings) = router.item { router.item = nil }
+        if case .settings = router.item { router.item = nil }
+        if browser.showsForumsHome {
+            if browser.currentURL != nil {
+                browser.hideForumsHome()
+            } else if let u = recentErrors.compactMap(\.url).first.flatMap(URL.init(string:)), ForumBrowserModel.isBrowsableURL(u) {
+                browser.load(u)
+            }
+        }
+        assistantMode = .browserAgent
+        panelRoute = .topic
+        showAIView()
+        guard isProviderReady(for: .browserAgent) else { needsProviderSetup = .browserAgent; return }
+        let pageURL: URL? = browser.showsForumsHome ? nil : (browser.currentURL ?? pageContext.url)
+        let req = ScriptRepair.request(
+            for: latest, in: scriptStore, currentPageURL: pageURL, secrets: browserAgentRuntimeConfig.redactedSecrets
+        )
+        if router.drawerPhase == .shown, router.drawerDetent == .large { router.drawerDetent = .medium }
+        if hadSheet && router.usesDrawer {
+            Task { @MainActor [weak self] in
+                try? await Task.sleep(for: .milliseconds(400))
+                self?.showAIView()
+                self?.syncDrawer()
+            }
+        }
+        browserAgent.send(req.prompt, context: nil, attachedBlock: req.attachedBlock, repairTarget: req.target)
+    }
+}
+
+private struct DCAgentFixButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+    func makeBody(configuration: Configuration) -> some View {
+        let shape = RoundedRectangle(cornerRadius: DCTheme.radiusMd, style: .continuous)
+        configuration.label
+            .labelStyle(.titleAndIcon)
+            .font(.footnote.weight(.semibold))
+            .foregroundStyle(isEnabled ? DCTheme.ink : DCTheme.inkFaint)
+            .padding(.horizontal, 12).padding(.vertical, 7)
+            .frame(minHeight: 36)
+            .overlay { shape.strokeBorder(isEnabled ? DCTheme.gold : DCTheme.border, lineWidth: 2) }
+            .contentShape(shape)
+            .opacity(configuration.isPressed ? 0.8 : 1)
+    }
 }
 
 /// Capsule count badge at the top-trailing corner of `PhoneAIButton` and
@@ -162,6 +214,23 @@ enum ScriptUIFormatting {
             return String(localized: "Line \(line): \(error.message)", comment: "Userscript runtime error with a line number; first placeholder is line number, second is error message")
         }
         return error.message
+    }
+
+    static func errorCodeWithStack(_ error: ScriptRuntimeError) -> String {
+        let head = errorInlineSummary(error)
+        guard let stack = error.stack?.trimmingCharacters(in: .whitespacesAndNewlines), !stack.isEmpty else { return head }
+        let lines = stack.components(separatedBy: "\n")
+        if let first = lines.first, first.contains(error.message) {
+            let tail = lines.dropFirst().joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
+            return tail.isEmpty ? head : "\(head)\n\(tail)"
+        }
+        return "\(head)\n\(stack)"
+    }
+
+    static func serviceErrorLine(_ message: String) -> String {
+        let trimmed = message.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.hasPrefix("Couldn’t reach the model") || trimmed.hasPrefix("Couldn't reach the model") { return trimmed }
+        return String(localized: "Couldn’t reach the model: \(trimmed)", comment: "Grey status line in This page and Script detail when a script's AI model call fails with a service error")
     }
 
     static func relativeDate(_ date: Date, relativeTo now: Date = Date()) -> String {
@@ -346,6 +415,7 @@ struct SavedScriptCardEntry: Identifiable, Equatable {
     var scriptID: String
     var fallbackName: String
     var fallbackFirstRule: String
+    var repairTarget: ScriptRepairTarget? = nil
 
     var id: String { scriptID }
 }
@@ -430,15 +500,39 @@ struct AgentScriptCardView: View {
                             .fixedSize(horizontal: false, vertical: true)
                     }
 
-                    Text(ScriptUIFormatting.cardMetadataLine(for: script))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
+                    if entry.repairTarget == nil {
+                        Text(ScriptUIFormatting.cardMetadataLine(for: script))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
 
                 Spacer(minLength: 6)
 
-                statePill(isEffectivelyOn: isEffectivelyOn, hasError: error != nil)
+                if entry.repairTarget != nil {
+                    Toggle(
+                        script.name,
+                        isOn: Binding(
+                            get: { script.isEnabled },
+                            set: { v in DCHaptics.tap(); _ = try? app.scriptStore.setEnabled(id: script.id, isEnabled: v, runLiveJS: v) }
+                        )
+                    )
+                    .labelsHidden()
+                    .tint(DCTheme.gold)
+                    .disabled(!app.scriptStore.isGlobalEnabled)
+                    .accessibilityIdentifier("agentScriptSwitch")
+                } else {
+                    statePill(isEffectivelyOn: isEffectivelyOn, hasError: error != nil)
+                }
+            }
+
+            if entry.repairTarget != nil, isEffectivelyOn && error == nil {
+                DCSeal(
+                    text: String(localized: "Fixed · on again, errors cleared", comment: "Status seal on a script card after the Agent repairs a broken script"),
+                    variant: .state(.ready)
+                )
+                .accessibilityIdentifier("agentScriptFixedSeal")
             }
 
             HStack(spacing: 8) {
@@ -451,54 +545,70 @@ struct AgentScriptCardView: View {
                 .buttonStyle(DCActionButtonStyle(prominent: false))
                 .accessibilityIdentifier("agentScriptViewCode")
 
-                Button {
-                    DCHaptics.tap()
-                    let targetEnabled = !script.isEnabled
-                    _ = try? app.scriptStore.setEnabled(
-                        id: script.id,
-                        isEnabled: targetEnabled,
-                        runLiveJS: targetEnabled
-                    )
-                } label: {
-                    if script.isEnabled {
-                        Text("Disable", comment: "Script card button to turn off this saved userscript")
-                    } else {
-                        Text("Enable", comment: "Script card button to turn on this saved userscript")
+                if let target = entry.repairTarget {
+                    let isRestored = script.versionOrigin == .restored(fromVersion: target.preRepairVersion)
+                        && script.isEnabled == target.preRepairIsEnabled
+                    if !isRestored {
+                        Button {
+                            DCHaptics.tap()
+                            Self.undoRepairedScript(target: target, in: app)
+                        } label: {
+                            Text("Undo", comment: "Undo button after deleting or restoring a userscript")
+                        }
+                        .buttonStyle(DCButtonStyle(role: .quiet))
+                        .accessibilityIdentifier("agentScriptUndo")
                     }
-                }
-                .buttonStyle(DCActionButtonStyle(prominent: false))
-                .accessibilityIdentifier("agentScriptToggleButton")
-
-                if script.isEnabled {
+                    Spacer(minLength: 0)
+                } else {
                     Button {
                         DCHaptics.tap()
-                        Self.undoSavedScript(id: script.id, in: app)
+                        let targetEnabled = !script.isEnabled
+                        _ = try? app.scriptStore.setEnabled(
+                            id: script.id,
+                            isEnabled: targetEnabled,
+                            runLiveJS: targetEnabled
+                        )
                     } label: {
-                        Text("Undo", comment: "Undo button after deleting or restoring a userscript")
+                        if script.isEnabled {
+                            Text("Disable", comment: "Script card button to turn off this saved userscript")
+                        } else {
+                            Text("Enable", comment: "Script card button to turn on this saved userscript")
+                        }
                     }
-                    .buttonStyle(DCButtonStyle(role: .quiet))
-                    .accessibilityIdentifier("agentScriptUndo")
-                }
+                    .buttonStyle(DCActionButtonStyle(prominent: false))
+                    .accessibilityIdentifier("agentScriptToggleButton")
 
-                Spacer(minLength: 0)
+                    if script.isEnabled {
+                        Button {
+                            DCHaptics.tap()
+                            Self.undoSavedScript(id: script.id, in: app)
+                        } label: {
+                            Text("Undo", comment: "Undo button after deleting or restoring a userscript")
+                        }
+                        .buttonStyle(DCButtonStyle(role: .quiet))
+                        .accessibilityIdentifier("agentScriptUndo")
+                    }
 
-                Button(role: .destructive) {
-                    DCHaptics.tap()
-                    deletedSnapshot = script
-                    _ = app.scriptStore.deleteIfPresent(id: script.id)
-                    ScriptUIFormatting.announce(
-                        String(localized: "‘\(script.name)’ deleted", comment: "Toast and accessibility announcement when a userscript is deleted")
-                    )
-                } label: {
-                    Image(systemName: "trash")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(DCTheme.danger)
-                        .frame(minWidth: DCTheme.controlHeight, minHeight: DCTheme.controlHeight)
-                        .contentShape(Rectangle())
+                    Spacer(minLength: 0)
+
+                    Button(role: .destructive) {
+                        DCHaptics.tap()
+                        deletedSnapshot = script
+                        _ = app.scriptStore.deleteIfPresent(id: script.id)
+                        ScriptUIFormatting.announce(
+                            String(localized: "‘\(script.name)’ deleted", comment: "Toast and accessibility announcement when a userscript is deleted")
+                        )
+                    } label: {
+                        Image(systemName: "trash")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(DCTheme.danger)
+                            .frame(minWidth: DCTheme.controlHeight, minHeight: DCTheme.controlHeight)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(Text("Delete script", comment: "Accessibility label for the trash button on a script card, or the destructive button in script detail"))
+                    .accessibilityIdentifier("agentScriptDeleteButton")
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel(Text("Delete script", comment: "Accessibility label for the trash button on a script card, or the destructive button in script detail"))
-                .accessibilityIdentifier("agentScriptDeleteButton")
             }
         }
         .padding(14)
@@ -557,6 +667,13 @@ struct AgentScriptCardView: View {
     @MainActor
     static func undoSavedScript(id: String, in app: AppModel) {
         _ = try? app.scriptStore.setEnabled(id: id, isEnabled: false, runLiveJS: false)
+        app.browser.reload()
+    }
+
+    @MainActor
+    static func undoRepairedScript(target: ScriptRepairTarget, in app: AppModel) {
+        _ = try? app.scriptStore.rollback(id: target.scriptID, toVersion: target.preRepairVersion)
+        _ = try? app.scriptStore.setEnabled(id: target.scriptID, isEnabled: target.preRepairIsEnabled, runLiveJS: target.preRepairIsEnabled)
         app.browser.reload()
     }
 
@@ -944,13 +1061,14 @@ struct PageCapabilitiesView: View {
     }
 
     private func popoverScriptRow(_ script: UserScript) -> some View {
-        let error = (script.isEnabled && isGlobalOn) ? app.scriptStore.error(for: script.id) : nil
+        let error = isGlobalOn ? app.scriptStore.error(for: script.id) : nil
+        let serviceError = (script.isEnabled && isGlobalOn && error == nil) ? app.scriptStore.latestServiceError(for: script.id) : nil
         let commands = (script.isEnabled && isGlobalOn) ? app.scriptWebController.gmBridge.menuCommands(for: script.id) : []
         let autoDisabledReason: String? = (!script.isEnabled && !(script.disabledReason ?? "").isEmpty)
             ? script.disabledReason
             : nil
 
-        return VStack(alignment: .leading, spacing: 2) {
+        return VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 10) {
                 Button {
                     DCHaptics.tap()
@@ -1038,6 +1156,15 @@ struct PageCapabilitiesView: View {
                 }
             }
 
+            if let error, let stack = error.stack, !stack.isEmpty {
+                Text(verbatim: stack)
+                    .font(.caption2.monospaced())
+                    .foregroundStyle(.secondary)
+                    .lineLimit(3)
+                    .padding(.horizontal, 14)
+                    .accessibilityIdentifier("thisPageErrorStack-\(script.id)")
+            }
+
             if let autoDisabledReason {
                 Text(verbatim: autoDisabledReason)
                     .font(.caption)
@@ -1045,18 +1172,28 @@ struct PageCapabilitiesView: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, 14)
                     .accessibilityIdentifier("thisPageDisabledReason-\(script.id)")
+            }
 
+            if error != nil || autoDisabledReason != nil {
                 Button {
                     DCHaptics.tap()
                     isPresented = false
                     onFixScript?(script)
                 } label: {
-                    Text("Let the Agent fix it", comment: "Quiet button under an auto-disabled script in This page that asks the Agent to fix the broken script")
+                    Label(String(localized: "Let the Agent fix it", comment: "Button under a script with an error in This page or Script detail that asks the Agent to repair it"), systemImage: "sparkles")
                 }
-                .buttonStyle(DCButtonStyle(role: .quiet))
-                .padding(.horizontal, 2)
-                .padding(.bottom, 4)
+                .buttonStyle(DCAgentFixButtonStyle())
+                .padding(.horizontal, 14)
+                .padding(.bottom, 6)
                 .accessibilityIdentifier("thisPageLetAgentFix-\(script.id)")
+            } else if let serviceError {
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Image(systemName: "icloud.slash").font(.caption).foregroundStyle(DCTheme.inkMuted).accessibilityHidden(true)
+                    Text(ScriptUIFormatting.serviceErrorLine(serviceError.message))
+                        .font(.caption).foregroundStyle(DCTheme.inkMuted).fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(.horizontal, 14).padding(.bottom, 6)
+                .accessibilityIdentifier("thisPageServiceError-\(script.id)")
             }
         }
         .opacity(isGlobalOn ? 1 : 0.45)
@@ -1735,9 +1872,22 @@ struct ScriptDetailView: View {
             // 2. Error card (when lastError exists)
             if let runtimeError {
                 Section {
-                    errorCard(for: runtimeError)
+                    errorCard(for: runtimeError, script: script)
                         .listRowInsets(EdgeInsets(top: 2, leading: 0, bottom: 6, trailing: 0))
                         .listRowBackground(Color.clear)
+                }
+            }
+
+            let earlier = earlierErrors(for: script, currentError: runtimeError)
+            if !earlier.isEmpty {
+                Section {
+                    ForEach(Array(earlier.enumerated()), id: \.offset) { idx, err in
+                        earlierErrorRow(err).accessibilityIdentifier("scriptEarlierError-\(idx)")
+                    }
+                } header: {
+                    Text("Earlier errors", comment: "Section header in Script detail listing recent runtime and service errors")
+                } footer: {
+                    Text("The last five errors are kept until the app quits.", comment: "Footer in Script detail explaining in-memory retention of the last five script errors")
                 }
             }
 
@@ -2097,12 +2247,14 @@ struct ScriptDetailView: View {
             ? script.name
             : draft.name.trimmingCharacters(in: .whitespacesAndNewlines)
         let iconTint: Color = {
-            if hasError { return DCTheme.danger }
+            if hasError || (!script.isEnabled && !(script.disabledReason ?? "").isEmpty) {
+                return DCTheme.danger
+            }
             if !isEffectivelyOn { return .secondary }
             return DCTheme.agentTint
         }()
         let stateLabel: String = {
-            if hasError {
+            if hasError || (!script.isEnabled && !(script.disabledReason ?? "").isEmpty) {
                 return String(localized: "error", comment: "Lowercase state word in Script detail combined header accessibility label")
             }
             return isEffectivelyOn
@@ -2110,7 +2262,7 @@ struct ScriptDetailView: View {
                 : String(localized: "off", comment: "Lowercase state word in Script detail combined header accessibility label")
         }()
 
-        return HStack(alignment: .center, spacing: 12) {
+        return HStack(alignment: .top, spacing: 12) {
             RoundedRectangle(cornerRadius: 11, style: .continuous)
                 .fill(iconTint.opacity(0.14))
                 .frame(width: 44, height: 44)
@@ -2135,27 +2287,36 @@ struct ScriptDetailView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
-            }
 
-            Spacer(minLength: 8)
-
-            if hasError {
-                DCPill(
-                    text: String(localized: "Error", comment: "State pill on a script card or detail view when the script threw an error"),
-                    systemImage: "exclamationmark.triangle.fill",
-                    tint: DCTheme.danger
-                )
-            } else if isEffectivelyOn {
-                DCPill(
-                    text: String(localized: "On", comment: "State pill when a feature or script is enabled"),
-                    tint: DCTheme.success
-                )
-            } else {
-                DCPill(
-                    text: String(localized: "Off", comment: "State pill when a feature or script is disabled"),
-                    tint: .secondary
-                )
+                if !script.isEnabled && !(script.disabledReason ?? "").isEmpty {
+                    HStack(spacing: 5) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                        Text("Off · 3 errors in a row", comment: "State pill in Script detail when a script was turned off after errors on 3 loads in a row")
+                    }
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(DCTheme.danger)
+                    .fixedSize(horizontal: false, vertical: true)
+                } else if hasError {
+                    HStack(spacing: 5) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                        Text("Error", comment: "State pill on a script card or detail view when the script threw an error")
+                    }
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(DCTheme.danger)
+                } else if isEffectivelyOn {
+                    HStack(spacing: 5) {
+                        Image(systemName: "checkmark")
+                        Text("On", comment: "State pill when a feature or script is enabled")
+                    }
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(DCTheme.success)
+                } else {
+                    Text("Off", comment: "State pill when a feature or script is disabled")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                }
             }
+            Spacer(minLength: 0)
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(
@@ -2164,19 +2325,49 @@ struct ScriptDetailView: View {
         .accessibilityAddTraits(.isHeader)
     }
 
-    private func errorCard(for error: ScriptRuntimeError) -> some View {
-        let formattedCode = ScriptUIFormatting.errorInlineSummary(error)
-        let metadataParts: [String] = {
-            var parts: [String] = []
-            if let url = error.url, !url.isEmpty {
-                parts.append(BrowserAddress.display(URL(string: url)))
+    private func earlierErrors(for script: UserScript, currentError: ScriptRuntimeError?) -> [ScriptRuntimeError] {
+        let all = store.errors(for: script.id)
+        guard let currentError else { return all }
+        var skipped = false
+        return all.filter { entry in
+            if !skipped && entry == currentError { skipped = true; return false }
+            return true
+        }
+    }
+
+    @ViewBuilder
+    private func earlierErrorRow(_ error: ScriptRuntimeError) -> some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: error.kind == .service ? "icloud.slash" : "exclamationmark.triangle")
+                .font(.subheadline).foregroundStyle(DCTheme.inkMuted).padding(.top, 2).accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 3) {
+                if error.kind == .service {
+                    Text(ScriptUIFormatting.serviceErrorLine(error.message)).font(.footnote.weight(.medium)).fixedSize(horizontal: false, vertical: true)
+                    Text("Not the script’s fault · doesn’t count", comment: "Subtitle under a service error in Script detail explaining it does not count toward auto-disable")
+                        .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                } else {
+                    Text(verbatim: ScriptUIFormatting.errorInlineSummary(error)).font(.footnote.weight(.medium)).fixedSize(horizontal: false, vertical: true)
+                    Text(verbatim: errorMetadataLine(error)).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                }
             }
-            parts.append(ScriptUIFormatting.relativeDate(error.occurredAt))
-            parts.append(
-                String(localized: "\(error.count) times", comment: "Number of times a userscript runtime error occurred")
-            )
-            return parts
-        }()
+        }
+        .padding(.vertical, 2)
+    }
+
+    private func errorMetadataLine(_ error: ScriptRuntimeError) -> String {
+        var parts: [String] = []
+        if let url = error.url, !url.isEmpty { parts.append(BrowserAddress.display(URL(string: url))) }
+        parts.append(ScriptUIFormatting.relativeDate(error.occurredAt))
+        parts.append(String(localized: "\(error.count) times", comment: "Number of times a userscript runtime error occurred"))
+        if error.afterLoad {
+            parts.append(String(localized: "after load", comment: "Metadata tag when a userscript error occurred after initial page load"))
+        }
+        return parts.joined(separator: " · ")
+    }
+
+    private func errorCard(for error: ScriptRuntimeError, script: UserScript) -> some View {
+        let formattedCode = ScriptUIFormatting.errorCodeWithStack(error)
+        let metadataLine = errorMetadataLine(error)
 
         return VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 6) {
@@ -2201,12 +2392,21 @@ struct ScriptDetailView: View {
                         .stroke(DCTheme.border)
                 }
 
-            Text(verbatim: metadataParts.joined(separator: " · "))
+            Text(verbatim: metadataLine)
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
-            HStack(spacing: 8) {
+            VStack(alignment: .leading, spacing: 8) {
+                Button {
+                    DCHaptics.tap()
+                    app.startScriptRepair(script)
+                } label: {
+                    Label(String(localized: "Let the Agent fix it", comment: "Button under a script with an error in This page or Script detail that asks the Agent to repair it"), systemImage: "sparkles")
+                }
+                .buttonStyle(DCAgentFixButtonStyle())
+                .accessibilityIdentifier("scriptFixWithAgent")
+
                 Button {
                     var copyLines = [formattedCode]
                     if let url = error.url, !url.isEmpty {
@@ -2225,23 +2425,8 @@ struct ScriptDetailView: View {
                 }
                 .buttonStyle(DCActionButtonStyle(prominent: false))
                 .accessibilityIdentifier("scriptCopyError")
-
-                Button {} label: {
-                    Label(
-                        String(localized: "Let the agent fix", comment: "Disabled M2 button in Script detail error card for future agent auto-fix"),
-                        systemImage: "sparkles"
-                    )
-                }
-                .buttonStyle(DCActionButtonStyle(prominent: false))
-                .disabled(true)
-                .opacity(0.45)
-                .accessibilityHint(Text("Coming in a later update", comment: "Accessibility hint on the disabled Let the agent fix button"))
-                .accessibilityIdentifier("scriptFixWithAgent")
             }
-
-            Text("The agent fix comes in a later update", comment: "Note beneath the disabled Let the agent fix button in Script detail")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            .labelStyle(.titleAndIcon)
         }
         .dcCard(tint: DCTheme.danger)
         .accessibilityElement(children: .contain)
