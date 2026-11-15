@@ -25,6 +25,7 @@ extension ModelRole {
         switch self {
         case .assistant: .browserAgent
         case .browserAgent: .assistant
+        case .scripts: .assistant
         }
     }
 
@@ -33,6 +34,7 @@ extension ModelRole {
         switch self {
         case .assistant: String(localized: "Summaries", comment: "AI model role: the model used for summaries, digests and reply checks")
         case .browserAgent: String(localized: "Agent", comment: "AI model role: the tool-calling model used by the Agent")
+        case .scripts: String(localized: "Scripts", comment: "AI model role: the model userscripts ask via GM_ai")
         }
     }
 
@@ -41,6 +43,7 @@ extension ModelRole {
         switch self {
         case .assistant: String(localized: "Summaries model", comment: "Assistant menu: switches the model used for summaries")
         case .browserAgent: String(localized: "Agent model", comment: "Assistant menu: switches the model used by the Agent")
+        case .scripts: String(localized: "Scripts model", comment: "Settings › Models: switches the model used by userscripts")
         }
     }
 
@@ -49,6 +52,7 @@ extension ModelRole {
         switch self {
         case .assistant: String(localized: "Used for summaries, digests and reply checks.", comment: "Model menu (Summaries): what this model is used for")
         case .browserAgent: String(localized: "Inspects pages, runs tools and answers questions.", comment: "Model menu (Agent): what this model is used for")
+        case .scripts: String(localized: "Used when a script calls GM_ai on a page.", comment: "Model menu (Scripts): what this model is used for")
         }
     }
 
@@ -57,6 +61,7 @@ extension ModelRole {
         switch self {
         case .assistant: String(localized: "Thread summaries, daily digests and reply checks. Apple Intelligence or a fast, low-cost model works well.", comment: "Settings › Models: what the Summaries model is used for")
         case .browserAgent: String(localized: "Reads the current page, runs JavaScript, injects CSS and calls tools. Choose a model that supports tool calling.", comment: "Settings › Models: what the Agent model is used for")
+        case .scripts: String(localized: "Scripts that ask a model while they run use this. They run on every matching page, so a small, fast model works best.", comment: "Settings › Models: what the Scripts model is used for")
         }
     }
 
@@ -64,6 +69,7 @@ extension ModelRole {
         switch self {
         case .assistant: "text.alignleft"
         case .browserAgent: "sparkles"
+        case .scripts: "curlybraces"
         }
     }
 }
@@ -106,6 +112,7 @@ extension AppSettings {
         switch role {
         case .assistant: assistantModel
         case .browserAgent: browserAgentModel ?? Self.unsetBrowserAgentSelection
+        case .scripts: scriptsModel ?? assistantModel
         }
     }
 
@@ -114,16 +121,18 @@ extension AppSettings {
         switch role {
         case .assistant: assistantModel
         case .browserAgent: browserAgentModel ?? Self.unsetBrowserAgentSelection
+        case .scripts: scriptsModel ?? assistantModel
         }
     }
 
-    /// The UI roles (`Agent`, `Summaries`) that run on `provider`.
+    /// The roles (`Agent`, `Summaries`, `Scripts`) explicitly running on `provider`.
     func roles(using provider: AIProvider) -> [ModelRole] {
-        ModelRole.uiRoles.filter { role in
-            if role == .browserAgent {
-                return configuredBrowserAgentModel?.provider == provider
+        ModelRole.settingsRoles.filter { role in
+            switch role {
+            case .assistant: assistantModel.provider == provider
+            case .browserAgent: configuredBrowserAgentModel?.provider == provider
+            case .scripts: scriptsModel?.provider == provider
             }
-            return effectiveModel(for: role).provider == provider
         }
     }
 
@@ -142,6 +151,8 @@ extension AppSettings {
         case .browserAgent:
             guard selection.provider.supportsToolCalling else { return }
             browserAgentModel = selection
+        case .scripts:
+            scriptsModel = selection
         }
     }
 }
@@ -151,7 +162,11 @@ extension AppModel {
     var currentRole: ModelRole { ModelRole(mode: assistantMode) }
 
     func hasConfiguredModel(for role: ModelRole) -> Bool {
-        role != .browserAgent || settings.configuredBrowserAgentModel != nil
+        switch role {
+        case .assistant: true
+        case .browserAgent: settings.configuredBrowserAgentModel != nil
+        case .scripts: settings.scriptsModel != nil
+        }
     }
 
     func selection(for role: ModelRole) -> ModelSelection {
@@ -220,6 +235,31 @@ extension AppModel {
         saveSettings()
     }
 
+    /// Short model name shown on script rows, cards and footers (names the Apple Intelligence backend in use).
+    func roleModelDisplayName(for role: ModelRole = .scripts) -> String {
+        let sel = selection(for: role)
+        if sel.provider.isAppleIntelligence {
+            let backend = appleIntelligenceStatus.backend?.displayName ?? ""
+            return backend.isEmpty ? sel.provider.displayName : "\(sel.provider.displayName) (\(backend))"
+        }
+        let trimmed = sel.model.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? sel.provider.displayName : trimmed
+    }
+
+    func clearScriptsModel() {
+        guard settings.scriptsModel != nil else { return }
+        settings.scriptsModel = nil
+        saveSettings()
+    }
+
+    func gmAiRuntimeSnapshot() -> GMAiRuntimeSnapshot {
+        GMAiRuntimeSnapshot(
+            isGlobalScriptsEnabled: scriptStore.isGlobalEnabled, isScriptsAIEnabled: settings.browserScriptsAIEnabled,
+            selection: selection(for: .scripts), configuration: settings.configuration(for: .scripts),
+            readiness: readiness(for: .scripts), appleIntelligenceBackend: appleIntelligenceStatus.backend
+        )
+    }
+
     /// Clears the Agent model.
     func clearBrowserAgentModel() {
         var updated = settings
@@ -277,7 +317,7 @@ extension AppModel {
         if scope == .role(.browserAgent), !provider.supportsToolCalling { return }
         // With `.both`, a role still on another provider moves too.
         guard scope.roles.contains(where: { role in
-            if role == .browserAgent, settings.browserAgentModel == nil { return true }
+            if !hasConfiguredModel(for: role) { return true }
             return selection(for: role).provider != provider
         }) else { return }
         selectModel(

@@ -532,7 +532,7 @@ struct AuditTaskPage: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
             }
-            if step.kind == .scriptRequest, let pageURL = step.pageURL {
+            if (step.kind == .scriptRequest || step.kind == .scriptAI), let pageURL = step.pageURL {
                 Text(verbatim: pageURL)
                     .font(.caption2)
                     .foregroundStyle(.secondary)

@@ -168,11 +168,10 @@ final class GMBridge {
         "GM_getResourceURL", "GM_download", "GM_cookie", "GM_addElement",
         "GM_addValueChangeListener", "GM_removeValueChangeListener", "GM_getTab", "GM_saveTab", "GM_getTabs",
     ]
-    static let futureM4GrantFunctions = ["GM_ai"]
     private static let pageWorldPowerFunctions = [
         "GM_getValue", "GM_setValue", "GM_deleteValue", "GM_listValues",
-        "GM_xmlhttpRequest", "GM_registerMenuCommand", "GM_unregisterMenuCommand",
-    ] + futureM4GrantFunctions
+        "GM_xmlhttpRequest", "GM_registerMenuCommand", "GM_unregisterMenuCommand", "GM_ai",
+    ]
 
     static func hasAnyValueReadGrant(_ grants: [String]) -> Bool {
         grants.contains("GM_getValue") || grants.contains("GM_listValues")
@@ -182,6 +181,7 @@ final class GMBridge {
     @ObservationIgnored let valuesStore: ScriptValuesStore
     @ObservationIgnored weak var webView: WKWebView?
     @ObservationIgnored var httpClient: AgentHTTPClient = AgentHTTPClient()
+    @ObservationIgnored var aiService: GMAiService?
     @ObservationIgnored var auditLog: AuditLog?
     @ObservationIgnored var resolveScript: ((String) -> UserScript?)?
     @ObservationIgnored var onValuesMutated: ((String) -> Void)?
@@ -432,8 +432,55 @@ final class GMBridge {
             replyHandler(["ok": true], nil)
         case "xmlhttpRequest":
             handleXMLHTTPRequest(scriptID: scriptID, payload: payload, pageURL: pageURL, replyHandler: replyHandler)
+        case "gmAi", "gmAiMap":
+            handleGMAi(scriptID: scriptID, isMap: action == "gmAiMap", payload: payload, pageURL: pageURL, replyHandler: replyHandler)
         default:
             replyHandler(nil, GMBridgeError.unsupported(action).errorDescription)
+        }
+    }
+
+    private func handleGMAi(
+        scriptID: String, isMap: Bool, payload: [String: Any], pageURL: URL?,
+        replyHandler: @escaping (Any?, String?) -> Void
+    ) {
+        guard let script = requireActiveGrantedScript(scriptID, grants: ["GM_ai"], reportName: "GM_ai", replyHandler: replyHandler) else { return }
+        guard let service = aiService else {
+            replyHandler(["ok": false, "code": GMAiError.Code.noModel.rawValue, "message": "Script AI service is unavailable."], nil)
+            return
+        }
+        let requestID = (payload["requestId"] as? String) ?? UUID().uuidString
+        let docToken = (payload["docToken"] as? String) ?? ""
+        let pageKey = "\(UInt(bitPattern: ObjectIdentifier(self)))|\(docToken)"
+        let pageURLString = pageURL?.absoluteString, taskKey = "\(scriptID):\(requestID)"
+        let formatMode = payload["formatMode"] as? String, schemaJSON = payload["schemaJSON"] as? String
+        let prompt = (payload["prompt"] as? String) ?? "", instruction = (payload["instruction"] as? String) ?? ""
+        let rawItems = payload["items"] as? [[String: Any]]
+
+        inFlightRequests[taskKey] = Task { @MainActor [weak self] in
+            defer { self?.inFlightRequests.removeValue(forKey: taskKey) }
+            do {
+                let format = try GMAiFormat.parse(mode: formatMode, schemaJSON: schemaJSON)
+                let value: JSONValue
+                if isMap {
+                    guard let rawItems else { throw GMAiError(.invalidOutput, "GM_ai.map items must be an array of {id, text} objects.") }
+                    let items = try rawItems.map { raw -> GMAiMapItem in
+                        guard let id = raw["id"] as? String, !id.isEmpty else {
+                            throw GMAiError(.invalidOutput, "Each GM_ai.map item must have a non-empty id.")
+                        }
+                        return GMAiMapItem(id: id, text: (raw["text"] as? String) ?? "")
+                    }
+                    value = .object(try await service.map(script: script, pageKey: pageKey, pageURL: pageURLString, items: items, instruction: instruction, format: format))
+                } else {
+                    value = try await service.call(script: script, pageKey: pageKey, pageURL: pageURLString, prompt: prompt, format: format)
+                }
+                replyHandler(["ok": true, "rawJSON": GMAiFormat.encodeJSON(value)], nil)
+            } catch let aiErr as GMAiError {
+                replyHandler(["ok": false, "code": aiErr.code.rawValue, "message": aiErr.message], nil)
+            } catch is CancellationError {
+                replyHandler(["ok": false, "code": GMAiError.Code.provider.rawValue, "message": "Cancelled."], nil)
+            } catch {
+                replyHandler(["ok": false, "code": GMAiError.Code.provider.rawValue, "message": error.localizedDescription], nil)
+            }
         }
     }
 
@@ -981,7 +1028,52 @@ final class GMBridge {
             }
           });
           Object.defineProperty(window, "GM", { value: gmDot, configurable: false, writable: false });
-          for (const fn of \(jsonArray(futureM4GrantFunctions))) defineGM(fn, () => { req(fn); notSupported(fn); });
+          const makeAiError = (code, message) => {
+            const err = new Error(String(message || "GM_ai failed"));
+            Object.defineProperty(err, "name", { value: "GMAiError", enumerable: true, configurable: true, writable: true });
+            err.code = String(code || "provider");
+            err.__wukongErrorKind = "service";
+            Object.defineProperty(err, "message", { value: err.message, enumerable: true, configurable: true, writable: true });
+            return err;
+          };
+          const parseAiFormat = (format) => {
+            if (format === undefined || format === null || format === "text") return { formatMode: "text", schemaJSON: null };
+            if (format === "json") return { formatMode: "json", schemaJSON: null };
+            if (typeof format === "object" && !Array.isArray(format)) return { formatMode: "schema", schemaJSON: JSON.stringify(format) };
+            throw makeAiError("invalid_output", 'GM_ai format must be undefined, "text", "json", or a JSON Schema object.');
+          };
+          const sendAi = async (payload) => {
+            const res = await postMsg(payload);
+            if (res && res.ok && typeof res.rawJSON === "string") return JSON.parse(res.rawJSON);
+            throw makeAiError((res && res.code) || "provider", (res && res.message) || "GM_ai failed");
+          };
+          const gmAiFn = (prompt, format) => {
+            req("GM_ai");
+            let fmt;
+            try { fmt = parseAiFormat(format); } catch (e) { return Promise.reject(e); }
+            const reqId = "ai-" + (++nextReqId) + "-" + docToken;
+            return sendAi({ action: "gmAi", requestId: reqId, docToken, prompt: String(prompt == null ? "" : prompt), ...fmt });
+          };
+          Object.defineProperty(gmAiFn, "map", {
+            value: (items, instruction, format) => {
+              req("GM_ai");
+              let fmt;
+              try { fmt = parseAiFormat(format); } catch (e) { return Promise.reject(e); }
+              if (!Array.isArray(items)) return Promise.reject(makeAiError("invalid_output", "GM_ai.map items must be an array."));
+              const cleanItems = [];
+              for (const raw of items) {
+                if (!raw || typeof raw !== "object" || raw.id === undefined || raw.id === null || String(raw.id) === "") {
+                  return Promise.reject(makeAiError("invalid_output", "Each GM_ai.map item must have a non-empty id."));
+                }
+                cleanItems.push({ id: String(raw.id), text: String(raw.text == null ? "" : raw.text) });
+              }
+              const reqId = "ai-" + (++nextReqId) + "-" + docToken;
+              return sendAi({ action: "gmAiMap", requestId: reqId, docToken, items: cleanItems, instruction: String(instruction == null ? "" : instruction), ...fmt });
+            },
+            writable: false,
+            configurable: false
+          });
+          window.GM_ai = gmAiFn;
           for (const fn of \(jsonArray(unsupportedGMFunctions))) defineGM(fn, () => notSupported(fn));
           window.close = () => notSupported("window.close");
           window.focus = () => notSupported("window.focus");
@@ -999,6 +1091,7 @@ final class GMBridge {
         const GM_log = (...args) => __wukongLog("[" + \(nameJSON) + "]", ...args);
         const GM_addStyle = (css) => __wukongAddStyle(\(scriptIDJSON), css);
         \(ungranted)
+        GM_ai.map = GM_ai;
         \(unsupported)
         """
     }

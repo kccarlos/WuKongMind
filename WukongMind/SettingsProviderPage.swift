@@ -26,7 +26,7 @@ struct SettingsProviderPage: View {
     var body: some View {
         Form {
             Section {
-                ForEach(ModelRole.uiRoles) { role in
+                ForEach(ModelRole.settingsRoles) { role in
                     NavigationLink {
                         ModelRolePage(app: app, role: role)
                     } label: {
@@ -34,7 +34,6 @@ struct SettingsProviderPage: View {
                     }
                     .accessibilityIdentifier("modelRole-\(role.rawValue)")
                 }
-                ScriptsModelPlaceholderRow()
                 ForEach(shareableRoles) { role in
                     Button {
                         DCHaptics.tap()
@@ -53,7 +52,7 @@ struct SettingsProviderPage: View {
             } header: {
                 Text("Default models", comment: "Settings › Models section header for the Agent, Summaries and Scripts roles")
             } footer: {
-                Text("Agent requires a tool-calling model. Summaries can use Apple Intelligence or any fast, low-cost model.")
+                Text("Agent requires a tool-calling model. Summaries can use Apple Intelligence or any fast, low-cost model. Scripts is the model a script asks while it runs (GM_ai). Unset, it is the same as Summaries.", comment: "Settings › Models: footer under Default models explaining Agent, Summaries and Scripts")
             }
 
             Section {
@@ -148,8 +147,8 @@ struct SettingsProviderPage: View {
             NavigationStack {
                 Form {
                     Section {
-                        ForEach(ModelRole.uiRoles.filter { $0 != .browserAgent || favorite.provider.supportsToolCalling }) { role in
-                            Button(String(localized: "Use for \(role.title)", comment: "Favorite model menu: use it for a role. The placeholder is Agent or Summaries.")) {
+                        ForEach(ModelRole.settingsRoles.filter { $0 != .browserAgent || favorite.provider.supportsToolCalling }) { role in
+                            Button(String(localized: "Use for \(role.title)", comment: "Favorite model menu: use it for a role. The placeholder is Agent, Summaries or Scripts.")) {
                                 DCHaptics.tap()
                                 app.activateUIRoleFavorite(favorite, for: role)
                                 choosing = nil
@@ -190,27 +189,6 @@ struct SettingsProviderPage: View {
     private var providers: [AIProvider] {
         let used = AIProvider.allCases.filter { !app.settings.roles(using: $0).isEmpty }
         return used + AIProvider.allCases.filter { !used.contains($0) }
-    }
-}
-
-/// M4 placeholder row in Settings › Models › Default models (`PhoneModels.dc.html`).
-private struct ScriptsModelPlaceholderRow: View {
-    var body: some View {
-        SettingsIconRow {
-            SettingsIcon(symbol: "curlybraces", tint: DCTheme.ink)
-        } title: {
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Scripts", comment: "Settings › Models: placeholder row for M4's optional script generation model")
-                Text("Same as Summaries", comment: "Settings › Models: subtitle for the M4 Scripts model placeholder")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-        } trailing: {
-            DCSeal(text: "M4", variant: .outline)
-        }
-        .opacity(0.55)
-        .accessibilityElement(children: .combine)
-        .accessibilityIdentifier("modelRole-scriptsPlaceholder")
     }
 }
 
@@ -274,13 +252,20 @@ struct ModelRoleRow: View {
     @ObservedObject var app: AppModel
     let role: ModelRole
 
+    private var subtitle: String {
+        if role == .scripts, !app.hasConfiguredModel(for: .scripts) {
+            return String(localized: "Same as Summaries", comment: "Settings › Models: subtitle when Scripts uses the Summaries model")
+        }
+        return app.providerSummary(for: role)
+    }
+
     var body: some View {
         SettingsIconRow {
             SettingsIcon(symbol: role.systemImage, tint: DCTheme.ink, isAgent: role == .browserAgent)
         } title: {
             VStack(alignment: .leading, spacing: 2) {
                 Text(role.title)
-                Text(app.providerSummary(for: role))
+                Text(subtitle)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
@@ -349,7 +334,7 @@ private struct FavoriteModelsSection: View {
     /// Roles whose model isn't starred yet, one button per distinct model.
     private var unstarred: [ModelRole] {
         var seen: [ModelSelection] = []
-        return ModelRole.uiRoles.filter { role in
+        return ModelRole.settingsRoles.filter { role in
             guard app.hasConfiguredModel(for: role) else { return false }
             let selection = app.selection(for: role)
             guard app.isProviderSelectable(selection.provider),
@@ -428,7 +413,7 @@ private struct FavoriteModelRow: View {
     var hidden = false
 
     private var roles: [ModelRole] {
-        ModelRole.uiRoles.filter { app.hasConfiguredModel(for: $0) && favorite.matches(app.selection(for: $0)) }
+        ModelRole.settingsRoles.filter { app.hasConfiguredModel(for: $0) && favorite.matches(app.selection(for: $0)) }
     }
 
     private var readiness: ModelReadiness { app.readiness(of: favorite.selection) }
@@ -482,6 +467,52 @@ struct ModelRolePage: View {
     private var provider: AIProvider { selection.provider }
     private var guide: ProviderGuide { ProviderGuide.guide(for: provider) }
 
+    private var sameAsSummariesBinding: Binding<Bool> {
+        Binding(
+            get: { !app.hasConfiguredModel(for: .scripts) },
+            set: { followsSummaries in
+                DCHaptics.tap()
+                if followsSummaries {
+                    app.clearScriptsModel()
+                } else {
+                    app.selectModel(app.selection(for: .assistant), for: .role(.scripts))
+                }
+            }
+        )
+    }
+
+    private var scriptsFollowSummariesSection: some View {
+        Section {
+            Toggle(
+                String(localized: "Same as Summaries", comment: "Settings › Models › Scripts: toggle to follow the Summaries model"),
+                isOn: sameAsSummariesBinding
+            )
+            .accessibilityIdentifier("scriptsSameAsSummariesToggle")
+        } footer: {
+            Text(
+                "On: follows the Summaries model, \(app.roleModelDisplayName(for: .assistant)).",
+                comment: "Settings › Models › Scripts: footer explaining Same as Summaries; placeholder is the Summaries model name"
+            )
+        }
+    }
+
+    @ViewBuilder
+    private var providerFooter: some View {
+        if role == .scripts {
+            if provider.isAppleIntelligence {
+                if app.appleIntelligenceStatus.backend == .privateCloudCompute {
+                    Text("Page text from these scripts goes to Apple’s Private Cloud Compute.", comment: "Settings › Models › Scripts: provider footer when Apple Intelligence uses Private Cloud Compute")
+                } else {
+                    Text("Page text from these scripts stays on this device.", comment: "Settings › Models › Scripts: provider footer when Apple Intelligence runs on-device")
+                }
+            } else {
+                Text("Page text from these scripts goes to \(provider.displayName) with your key.", comment: "Settings › Models › Scripts: provider footer explaining where page text is sent; placeholder is the provider name")
+            }
+        } else {
+            Text(guide.blurb)
+        }
+    }
+
     var body: some View {
         Form {
             Section {
@@ -490,6 +521,26 @@ struct ModelRolePage: View {
                 Text(role.hint)
             }
 
+            if role == .scripts {
+                scriptsFollowSummariesSection
+            }
+
+            if role != .scripts || app.hasConfiguredModel(for: .scripts) {
+                configuredSections
+            }
+        }
+        .formStyle(.grouped)
+        .dcGroupedBackground()
+        .tint(DCTheme.goldInk)
+        .animation(DCMotion.quick, value: testState)
+        .navigationTitle(role.title)
+        .navigationBarTitleDisplayMode(.inline)
+        .onChange(of: selection) { testState = .idle }
+        .onDisappear { app.saveSettings() }
+    }
+
+    @ViewBuilder
+    private var configuredSections: some View {
             Section {
                 ProviderMenu(app: app, scope: scope, identifier: "providerPicker") {
                     HStack {
@@ -518,7 +569,7 @@ struct ModelRolePage: View {
             } header: {
                 Text("Provider")
             } footer: {
-                Text(guide.blurb)
+                providerFooter
             }
 
             if provider.requiresAPIKey, app.settings.configuration(for: provider).apiKey.isEmpty {
@@ -626,15 +677,6 @@ struct ModelRolePage: View {
                     .accessibilityIdentifier("clearBrowserAgentModel")
                 }
             }
-        }
-        .formStyle(.grouped)
-        .dcGroupedBackground()
-        .tint(DCTheme.goldInk)
-        .animation(DCMotion.quick, value: testState)
-        .navigationTitle(role.title)
-        .navigationBarTitleDisplayMode(.inline)
-        .onChange(of: selection) { testState = .idle }
-        .onDisappear { app.saveSettings() }
     }
 
     private var header: some View {

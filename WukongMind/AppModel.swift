@@ -444,6 +444,12 @@ final class AppModel: ObservableObject {
         }
         scriptWebController.gmBridge.httpClient = httpClient
         scriptWebController.gmBridge.auditLog = auditLog
+        scriptWebController.gmBridge.aiService = GMAiService(
+            cache: scriptStore.aiCache, limiter: scriptStore.aiLimiter, aiService: aiService, auditLog: auditLog,
+            runtimeProvider: { [weak appBox, weak scriptStore] in
+                appBox?.value?.gmAiRuntimeSnapshot() ?? .unavailable(isGlobalScriptsEnabled: scriptStore?.isGlobalEnabled ?? false)
+            }
+        )
 
         let agentSession = BrowserAgentSession(
             pageDriver: tabBrowser.agentBridge,
@@ -983,10 +989,9 @@ final class AppModel: ObservableObject {
         }
     }
 
-    /// Display name of the model used for userscript capabilities (`Summaries` fallback until M4 `GM_ai`).
+    /// Display name of the model used for userscript capabilities (`GM_ai`).
     var scriptsModelDisplayName: String {
-        let label = modelLabel(for: .assistant)
-        return label.isEmpty ? selection(for: .assistant).provider.displayName : label
+        roleModelDisplayName(for: .scripts)
     }
 
     /// Opens the userscript import review sheet when a `.user.js` navigation is intercepted.
