@@ -85,6 +85,9 @@ final class VoiceAudioEngine: ObservableObject, VoiceAudioIO {
     private static let steerInterval: TimeInterval = 0.02
     private var lastHealthAt: TimeInterval = 0
     private var observers: [NSObjectProtocol] = []
+    #if DEBUG
+    private(set) var debugBytesPlayed = 0
+    #endif
 
     init() {}
 
@@ -106,7 +109,15 @@ final class VoiceAudioEngine: ObservableObject, VoiceAudioIO {
         interrupted = false
         setNeedsResume(false)
         startSteering()
+        #if DEBUG
+        if VoiceDebug.speaksTypedInput {
+            watchdog.disarm()
+        } else {
+            watchdog.arm(at: Self.now)
+        }
+        #else
         watchdog.arm(at: Self.now)
+        #endif
         restartedForSignal = false
         refreshHealth(force: true)
     }
@@ -138,6 +149,9 @@ final class VoiceAudioEngine: ObservableObject, VoiceAudioIO {
     func play(_ pcm: Data) {
         let samples = [Int16](pcm16LE: pcm)
         guard !samples.isEmpty else { return }
+        #if DEBUG
+        debugBytesPlayed += pcm.count
+        #endif
         levels.setOutput(Float(PCMLevel.peak(of: samples)) / 32_768, at: Date.timeIntervalSinceReferenceDate)
         schedule(queue.push(samples, now: Self.now))
         updateSpeaking()
@@ -310,7 +324,15 @@ final class VoiceAudioEngine: ObservableObject, VoiceAudioIO {
         player.play()
         interrupted = false
         setNeedsResume(false)
+        #if DEBUG
+        if VoiceDebug.speaksTypedInput {
+            watchdog.disarm()
+        } else {
+            watchdog.arm(at: Self.now)
+        }
+        #else
         watchdog.arm(at: Self.now)
+        #endif
         restartedForSignal = false
     }
 
@@ -350,6 +372,9 @@ final class VoiceAudioEngine: ObservableObject, VoiceAudioIO {
     }
 
     private func process(_ buffer: AVAudioPCMBuffer) {
+        #if DEBUG
+        if VoiceDebug.speaksTypedInput { return }
+        #endif
         guard isRunning, let converter, buffer.format == converter.inputFormat else { return }
         guard let samples = try? converter.convert(buffer), !samples.isEmpty else { return }
         if let change = watchdog.observe(peak: PCMLevel.peak(of: samples), at: Self.now) {
@@ -370,6 +395,21 @@ final class VoiceAudioEngine: ObservableObject, VoiceAudioIO {
         reportedGateOpen = open
         onGate?(open)
     }
+
+    #if DEBUG
+    /// Feeds synthesized speech samples (`-dc-voice-speak-typed`) through the
+    /// engine's real chunker and capture gate.
+    func injectCapturedSamples(_ samples: [Int16]) {
+        guard isRunning, !isMuted, !samples.isEmpty else { return }
+        levels.setInput(Float(PCMLevel.peak(of: samples)) / 32_768)
+        for frame in chunker.push(samples) {
+            let out = gate.push(frame)
+            if let transition = out.transition { reportGate(open: transition == .opened) }
+            for send in out.send { onFrame?(send.pcm16LEData) }
+        }
+        refreshHealth(force: false)
+    }
+    #endif
 
     private func signalChanged(_ noSignal: Bool) {
         health.noMicrophoneSignal = noSignal

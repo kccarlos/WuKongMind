@@ -27,7 +27,7 @@ struct ResultCardsOverlay: View {
 
     var body: some View {
         Group {
-            if cursor.cards == .hidden || cursor.isEmpty {
+            if cursor.cards == .hidden || !cursor.matches(app.pageContext) {
                 EmptyView()
             } else if showsChip {
                 chip

@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import UIKit
 
 /// Starts and ends voice sessions for the UI: the browser bar's microphone
 /// and the voice bar. AppModel owns one; the session itself is in `VoiceSession`.
@@ -16,6 +17,9 @@ final class VoiceController: ObservableObject {
     #if DEBUG
     /// Unit tests: uses `SilentVoiceAudio` and `ScriptedLiveTransport`.
     var useScriptedSession = false
+    private(set) var debugSessionCount = 0
+    let debugSpeechInjector = SpeechFrameInjector()
+    let debugAcceptanceProbe = VoiceAcceptanceProbe()
     #endif
 
     private weak var app: AppModel?
@@ -48,7 +52,12 @@ final class VoiceController: ObservableObject {
     }
 
     /// The audio engine, when it is the real one (for the Health row).
-    var audioEngine: VoiceAudioEngine? { engine as? VoiceAudioEngine }
+    var audioEngine: VoiceAudioEngine? {
+        #if DEBUG
+        if let injectable = engine as? DebugInjectableVoiceAudio { return injectable.hardwareEngine }
+        #endif
+        return engine as? VoiceAudioEngine
+    }
 
     // MARK: Actions
 
@@ -90,6 +99,9 @@ final class VoiceController: ObservableObject {
         case .failure(let failure):
             show(failure)
         case .success(let session):
+            #if DEBUG
+            debugSessionCount += 1
+            #endif
             self.session = session
             lastStartedAt = ContinuousClock.now
             stateSubscription = session.$state.sink { [weak self] state in
@@ -118,13 +130,58 @@ final class VoiceController: ObservableObject {
         if let engine { return engine }
         let audio: VoiceAudioIO
         #if DEBUG
-        audio = (VoiceDebug.isFake || useScriptedSession) ? SilentVoiceAudio() : VoiceAudioEngine()
+        if VoiceDebug.isFake || useScriptedSession {
+            audio = SilentVoiceAudio()
+        } else if VoiceDebug.speaksTypedInput {
+            audio = DebugInjectableVoiceAudio()
+        } else {
+            audio = VoiceAudioEngine()
+        }
         #else
         audio = VoiceAudioEngine()
         #endif
         engine = audio
         return audio
     }
+
+    #if DEBUG
+    var debugAudioBackendName: String {
+        if let injectable = engine as? DebugInjectableVoiceAudio { return injectable.backendName }
+        if engine is VoiceAudioEngine { return "VoiceAudioEngine" }
+        return engine == nil ? "none" : "other"
+    }
+
+    var debugAudioBytesPlayed: Int {
+        if let injectable = engine as? DebugInjectableVoiceAudio { return injectable.debugBytesPlayed }
+        return (engine as? VoiceAudioEngine)?.debugBytesPlayed ?? 0
+    }
+
+    func handleDebugTypedInput(_ raw: String) {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        if trimmed == "__pause_podcast__" {
+            app?.podcast.cancelReadAloud()
+            app?.podcast.player.pause()
+            return
+        }
+        if trimmed == "__refresh_probe__" {
+            guard let app else { return }
+            Task { @MainActor [weak self, weak app] in
+                guard let self, let app else { return }
+                await self.debugAcceptanceProbe.refresh(app: app)
+            }
+            return
+        }
+        guard let injectable = engine as? DebugInjectableVoiceAudio else {
+            session?.sendText(trimmed)
+            return
+        }
+        debugSpeechInjector.speak(trimmed) { [weak injectable] frame in
+            injectable?.injectSamples(frame)
+        }
+    }
+    #endif
 
     private func show(_ failure: VoiceSession.Failure) {
         session = nil

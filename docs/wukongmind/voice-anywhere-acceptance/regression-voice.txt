@@ -1,0 +1,56 @@
+=== Static & Release Version Checks (2026-11-15) ===
+== project.pbxproj (object graph, UUIDs ignored)
+OK: project.pbxproj matches generator output
+== xcshareddata/xcschemes/WukongMind.xcscheme
+OK: xcshareddata/xcschemes/WukongMind.xcscheme matches generator output
+== xcshareddata/xcschemes/WukongMindAgentCoreTests.xcscheme
+OK: xcshareddata/xcschemes/WukongMindAgentCoreTests.xcscheme matches generator output
+OK: 11 allowlisted occurrences, none new, none stale
+WukongMind/Info.plist: OK
+WukongMind/PrivacyInfo.xcprivacy: OK
+WukongMind/WukongMind.entitlements: OK
+WukongMindShare/Info.plist: OK
+WukongMindShare/PrivacyInfo.xcprivacy: OK
+WukongMindShare/WukongMindShare.entitlements: OK
+WukongMind/Localizable.xcstrings: 1325 keys, 1315 translatable, 0 problems
+WukongMind/InfoPlist.xcstrings: 7 keys, 5 translatable, 0 problems
+WukongMind/AppShortcuts.xcstrings: 10 keys, 10 translatable, 0 problems
+WukongMindShare/Localizable.xcstrings: 22 keys, 21 translatable, 0 problems
+WukongMindShare/InfoPlist.xcstrings: 2 keys, 0 translatable, 0 problems
+Marketing version: 1.3.2 (app MARKETING_VERSION=1.3.2)
+
+=== Mac mini Simulator Suites (scripts/remote-test.sh, exit 0) ===
+Test Suite 'BrowseNavigationTests' passed at 2026-11-15 15:20:53.585.
+	 Executed 10 tests, with 0 failures (0 unexpected) in 1.233 (1.235) seconds
+Test Suite 'PodcastTests' passed at 2026-11-15 15:20:55.331.
+	 Executed 32 tests, with 0 failures (0 unexpected) in 1.732 (1.746) seconds
+Test Suite 'SiteGoldenTests' passed at 2026-11-15 15:20:55.343.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.010 (0.012) seconds
+Test Suite 'VoiceActivityDetectorTests' passed at 2026-11-15 15:21:12.595.
+	 Executed 13 tests, with 0 failures (0 unexpected) in 17.250 (17.252) seconds
+Test Suite 'VoiceProtocolTests' passed at 2026-11-15 15:21:12.606.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.009 (0.010) seconds
+Test Suite 'VoiceSessionTests' passed at 2026-11-15 15:21:13.231.
+	 Executed 40 tests, with 0 failures (0 unexpected) in 0.619 (0.625) seconds
+Test Suite 'VoiceToolTests' passed at 2026-11-15 15:21:14.966.
+	 Executed 26 tests, with 0 failures (0 unexpected) in 1.730 (1.735) seconds
+Test Suite 'WukongMindTests.xctest' passed at 2026-11-15 15:21:14.966.
+	 Executed 136 tests, with 0 failures (0 unexpected) in 22.584 (22.616) seconds
+Test Suite 'Selected tests' passed at 2026-11-15 15:21:14.966.
+	 Executed 136 tests, with 0 failures (0 unexpected) in 22.584 (22.617) seconds
+Test Suite 'VoiceAnywhereLiveAcceptanceUITests' passed at 2026-11-15 15:25:51.684.
+	 Executed 1 test, with 0 failures (0 unexpected) in 273.687 (273.689) seconds
+Test Suite 'VoiceUITests' passed at 2026-11-15 15:26:42.437.
+	 Executed 3 tests, with 1 test skipped and 0 failures (0 unexpected) in 50.751 (50.753) seconds
+Test Suite 'WukongMindUITests.xctest' passed at 2026-11-15 15:26:42.437.
+	 Executed 4 tests, with 1 test skipped and 0 failures (0 unexpected) in 324.438 (324.442) seconds
+Test Suite 'Selected tests' passed at 2026-11-15 15:26:42.438.
+	 Executed 4 tests, with 1 test skipped and 0 failures (0 unexpected) in 324.438 (324.443) seconds
+
+=== Owner iPhone 13 Device Check (scripts/device-check.sh, exit 0) ===
+Test Suite 'VoiceAnywhereLiveAcceptanceUITests' passed at 2026-11-15 15:18:56.240.
+	 Executed 1 test, with 0 failures (0 unexpected) in 376.766 (376.769) seconds
+Test Suite 'WukongMindUITests.xctest' passed at 2026-11-15 15:18:56.241.
+	 Executed 1 test, with 0 failures (0 unexpected) in 376.766 (376.770) seconds
+Test Suite 'Selected tests' passed at 2026-11-15 15:18:56.242.
+	 Executed 1 test, with 0 failures (0 unexpected) in 376.766 (376.772) seconds

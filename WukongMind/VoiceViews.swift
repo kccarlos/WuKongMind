@@ -181,6 +181,8 @@ struct VoiceSessionBar: View {
                 Text(verbatim: "Type instead of speaking")
             }
             .textFieldStyle(.roundedBorder)
+            .textInputAutocapitalization(.never)
+            .autocorrectionDisabled()
             .submitLabel(.send)
             .onSubmit(send)
             .accessibilityIdentifier("voiceTextField")
@@ -197,6 +199,13 @@ struct VoiceSessionBar: View {
     }
 
     private func send() {
+        #if DEBUG
+        if VoiceDebug.speaksTypedInput {
+            voice.handleDebugTypedInput(draft)
+            draft = ""
+            return
+        }
+        #endif
         session.sendText(draft)
         draft = ""
     }

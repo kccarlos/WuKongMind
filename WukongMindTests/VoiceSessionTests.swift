@@ -900,21 +900,19 @@ final class VoiceSessionTests: XCTestCase {
         if !vertexKey.isEmpty {
             let project = GeminiLive.Endpoint.vertexProject(fromBaseURL: env["VERTEX_BASE_URL"] ?? "")
                 ?? (env["VERTEX_PROJECT"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-            if !project.isEmpty {
-                let candidate = GeminiLive.Endpoint.vertex(project: project, location: GeminiLive.Endpoint.vertexLocation)
-                let probe = VoiceSession(configuration: .init(endpoint: candidate, apiKey: vertexKey), audio: FakeVoiceAudio(), navigator: nil, usage: nil, runsLoop: false)
-                await probe.start()
-                let deadline = Date().addingTimeInterval(10)
-                while Date() < deadline, probe.state == .connecting { try await Task.sleep(for: .milliseconds(50)) }
-                if probe.state == .listening {
-                    chosenEndpoint = candidate; chosenKey = vertexKey; endpointNote = "vertex (\(project))"
-                } else {
-                    endpointNote = "vertex failed (\(probe.state)); "
-                }
-                probe.stop()
+            let candidate = GeminiLive.Endpoint.vertex(project: project, location: GeminiLive.Endpoint.vertexLocation)
+            let probe = VoiceSession(configuration: .init(endpoint: candidate, apiKey: vertexKey), audio: FakeVoiceAudio(), navigator: nil, usage: nil, runsLoop: false)
+            await probe.start()
+            let deadline = Date().addingTimeInterval(10)
+            while Date() < deadline, probe.state == .connecting { try await Task.sleep(for: .milliseconds(50)) }
+            if probe.state == .listening {
+                chosenEndpoint = candidate
+                chosenKey = vertexKey
+                endpointNote = project.isEmpty ? "vertex express (us-central1)" : "vertex (\(project))"
             } else {
-                endpointNote = "vertex skipped (no VERTEX_PROJECT/VERTEX_BASE_URL; Express mode has no Live project path); "
+                endpointNote = "vertex failed (\(probe.state)); "
             }
+            probe.stop()
         }
         if chosenEndpoint == nil {
             guard !studioKey.isEmpty else { throw XCTSkip("Vertex Live could not connect (\(endpointNote)) and GEMINI_LIVE_KEY is not set.") }
@@ -1044,6 +1042,48 @@ final class VoiceSessionTests: XCTestCase {
         XCTAssertEqual(app.podcast.player.playlist?.title, "Markets steady as tariff talks resume")
         navSession.stop()
         app.podcast.cancelReadAloud()
+    }
+
+    func testPendingPageNoteFlushesBeforeImmediateNextUserSpeech() async throws {
+        navigator.pageContext = PageContext(url: URL(string: "https://www.bbc.com/news")!, state: .notForum)
+        navigator.explicitPageTitle = "BBC News"
+        let session = try await started()
+        await settle()
+        XCTAssertEqual(sent().compactMap(\.noteText).count, 1)
+
+        // User says "go back", server transcribes and finishes its turn, leaving
+        // `lastUserSpeechAt` < 1s ago so `isQuiet` has not opened yet.
+        session.captureGate(open: true)
+        session.microphoneFrame(Data(repeating: 1, count: 1280))
+        session.receive(frame(#"{"serverContent":{"inputTranscription":{"text":"go back"}}}"#))
+        session.captureGate(open: false)
+        clock.advance(0.45)
+        session.tick()
+        session.receive(frame(#"{"serverContent":{"outputTranscription":{"text":"Went back."},"turnComplete":true}}"#))
+        XCTAssertEqual(session.state, .listening)
+
+        // The browser finishes settling back onto the forum within that 1s window.
+        navigator.voiceSite = VoiceSite(adapter: DiscourseAdapter())
+        navigator.explicitPageTitle = "Discourse Meta"
+        navigator.pageContext = PageContext(
+            url: URL(string: "https://meta.discourse.org/latest")!,
+            site: .discourse,
+            siteURL: "https://meta.discourse.org",
+            forumName: "Discourse Meta",
+            state: .forumHome
+        )
+        session.pageChanged(navigator.pageContext)
+        XCTAssertEqual(sent().compactMap(\.noteText).count, 1, "Held while within 1s of prior speech")
+
+        // User immediately starts speaking ("Search for plugins."): the queued
+        // forum `[Screen: …]` note must go out before the new audio frames.
+        let countBeforeGate = sent().count
+        session.captureGate(open: true)
+        session.microphoneFrame(Data(repeating: 2, count: 1280))
+        let tail = Array(sent().dropFirst(countBeforeGate))
+        XCTAssertEqual(tail.count, 2, "Expected note then audio, got \(tail)")
+        XCTAssertTrue(tail[0].noteText?.contains("Forum tools work here.") == true, "Got \(tail)")
+        XCTAssertEqual(tail[1], .audio(1280))
     }
 
     private func makeStubbedApp() -> AppModel {

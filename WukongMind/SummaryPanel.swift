@@ -2129,7 +2129,7 @@ struct DrawerStatusRow: View {
                 }
             }
             // The strip over the page is hidden while the AI view is up.
-            if !voiceOnly, app.isAIViewShown, app.browseCursor.showsInDrawer {
+            if !voiceOnly, app.isAIViewShown, app.browseCursor.showsInDrawer, app.browseCursor.matches(app.pageContext) {
                 DrawerCardsChip(app: app, router: router)
             }
         }

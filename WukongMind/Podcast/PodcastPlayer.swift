@@ -584,7 +584,16 @@ final class SystemPodcastAudioSession: PodcastAudioSessioning {
         for observer in observers { NotificationCenter.default.removeObserver(observer) }
     }
 
+    /// Live voice owns `.playAndRecord` / `.voiceChat` while running; changing
+    /// the category or deactivating the session under `VoiceAudioEngine`
+    /// triggers a route-change rebuild that cuts off spoken replies.
+    private var isVoiceChatSessionActive: Bool {
+        let session = AVAudioSession.sharedInstance()
+        return session.category == .playAndRecord && session.mode == .voiceChat
+    }
+
     func activateForPlayback() throws {
+        guard !isVoiceChatSessionActive else { return }
         let session = AVAudioSession.sharedInstance()
         if session.category != .playback || session.mode != .spokenAudio {
             try session.setCategory(.playback, mode: .spokenAudio, options: [])
@@ -593,6 +602,7 @@ final class SystemPodcastAudioSession: PodcastAudioSessioning {
     }
 
     func deactivate() {
+        guard !isVoiceChatSessionActive else { return }
         try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
     }
 

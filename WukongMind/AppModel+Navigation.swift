@@ -572,18 +572,41 @@ extension AppModel {
         if browser.isForumsHomeRequested, browser.currentURL != nil {
             browser.hideForumsHome()
             homeVisibilityChanged()
-            return BrowseResult(status: .moved, shown: "Went back.")
+            return BrowseResult(status: .moved, shown: historyMoveDescription(verb: "Went back", url: browser.currentURL, title: browser.pageTitle))
         }
         guard browser.canGoBack else { return BrowseResult(status: .endOfList, shown: "There is nothing to go back to.") }
+        let item = browser.webView.backForwardList.backItem
         browser.goBack()
-        return BrowseResult(status: .moved, shown: "Went back.")
+        return BrowseResult(status: .moved, shown: historyMoveDescription(verb: "Went back", url: item?.url, title: item?.title))
     }
 
     @discardableResult
     func forward() -> BrowseResult {
         guard browser.canGoForward else { return BrowseResult(status: .endOfList, shown: "There is nothing to go forward to.") }
+        let item = browser.webView.backForwardList.forwardItem
         browser.goForward()
-        return BrowseResult(status: .moved, shown: "Went forward.")
+        return BrowseResult(status: .moved, shown: historyMoveDescription(verb: "Went forward", url: item?.url, title: item?.title))
+    }
+
+    /// Host-and-title summary for back/forward (never full URL, path, query or fragment).
+    private func historyMoveDescription(verb: String, url: URL?, title: String?) -> String {
+        guard let url, let host = url.host?.lowercased(), !host.isEmpty else { return "\(verb)." }
+        let strippedTitle = (title ?? "")
+            .replacingOccurrences(of: #"https?://\S+"#, with: "", options: .regularExpression)
+            .replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let cleanTitle = (strippedTitle.isEmpty || strippedTitle == ForumBrowserModel.defaultPageTitle) ? nil : strippedTitle
+        if let forum = browser.knownForumLookup?(url) {
+            let name = ForumSite.displayName(siteURL: forum.siteURL, name: forum.name)
+            if let cleanTitle {
+                return "\(verb) to the forum \(name) (“\(cleanTitle)” at \(host)). Forum tools work here."
+            }
+            return "\(verb) to the forum \(name) at \(host). Forum tools work here."
+        }
+        if let cleanTitle {
+            return "\(verb) to “\(cleanTitle)” at \(host)."
+        }
+        return "\(verb) to \(host)."
     }
 
     // MARK: Any-page voice navigation (`open_page` and page scroll)

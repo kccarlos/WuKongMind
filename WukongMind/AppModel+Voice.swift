@@ -196,7 +196,6 @@ extension AppModel: VoiceNavigator {
         case .vertex:
             let project = GeminiLive.Endpoint.vertexProject(fromBaseURL: configuration.baseURL)
                 ?? settings.voice.vertexProject.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !project.isEmpty else { return .failure(.noVertexProject) }
             endpoint = .vertex(project: project, location: GeminiLive.Endpoint.vertexLocation)
         }
         return .success(VoiceSession.Configuration(
@@ -213,7 +212,18 @@ extension AppModel: VoiceNavigator {
         transport: @escaping LiveTransportFactory = { WebSocketLiveTransport() }
     ) -> Result<VoiceSession, VoiceSession.Failure> {
         voiceConfiguration().map { configuration in
-            let session = VoiceSession(configuration: configuration, transport: transport, audio: audio, navigator: self)
+            #if DEBUG
+            let usageStore: VoiceUsageStore? = suppressesPersistence ? nil : VoiceUsageStore()
+            #else
+            let usageStore: VoiceUsageStore? = VoiceUsageStore()
+            #endif
+            let session = VoiceSession(
+                configuration: configuration,
+                transport: transport,
+                audio: audio,
+                navigator: self,
+                usage: usageStore
+            )
             session.tools.registryBuilder = { [weak self] browse in
                 self?.voiceToolRegistry(browse: browse) ?? ToolRegistry(tools: ToolRegistry.browseTools(browse: browse))
             }

@@ -172,6 +172,7 @@
 		3711852AFB2DB8F879DB70CA52CD9E09 /* run-W3.json in Resources */ = {isa = PBXBuildFile; fileRef = 7069B70BA232C8444FC87D97AE4D4E08 /* run-W3.json */; };
 		371E2DFBED29A91AA1DC7AB603EF8A18 /* LiveProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82F80EAB843FF0C9CC6FC5285E87EED9 /* LiveProtocol.swift */; };
 		37C93F810128017584A98F16D1C19444 /* PodcastSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56646D128952DD033CF775FC6AE91EB2 /* PodcastSettings.swift */; };
+		37DA6E012411A50F24405BA02EE116A9 /* VoiceAnywhereLiveAcceptanceUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B873E4988025E1EA827C4524CEF6154B /* VoiceAnywhereLiveAcceptanceUITests.swift */; };
 		382244CE78684865ADA8D92D457357E8 /* WordPressLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = A88498FBF765751CCE32B8497C1E032D /* WordPressLinks.swift */; };
 		38DD3F514A1623D7A3ABE81EF43095AB /* ReadingLanguage.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED58D90CA04439105E0F52D10E777312 /* ReadingLanguage.swift */; };
 		397889ED41D11F2B002355CD9C8E5AF1 /* BrandMark.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ED1AAAF513023410772C0B62F46BD93 /* BrandMark.swift */; };
@@ -1221,6 +1222,7 @@
 		B8565E1F931445D7D7B98146BE2BF6C7 /* DictationSpeech.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DictationSpeech.swift; sourceTree = "<group>"; };
 		B85F75EE0BC6E3D3F6AB975A49181CED /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-d41fd5448525.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "wordpress-www-doctorofcredit-com-wp-json-wp-v2-d41fd5448525.json"; path = "Fixtures/Comparison/wordpress/wordpress-www-doctorofcredit-com-wp-json-wp-v2-d41fd5448525.json"; sourceTree = "<group>"; };
 		B870A37925CE8404FEEDECD6A666B8A5 /* SharedPage.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SharedPage.swift; sourceTree = "<group>"; };
+		B873E4988025E1EA827C4524CEF6154B /* VoiceAnywhereLiveAcceptanceUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VoiceAnywhereLiveAcceptanceUITests.swift; sourceTree = "<group>"; };
 		B94B0522985BC56F7F8A6B6B67E949E8 /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-3f4088eb205f.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "wordpress-www-doctorofcredit-com-wp-json-wp-v2-3f4088eb205f.json"; path = "Fixtures/Comparison/wordpress/wordpress-www-doctorofcredit-com-wp-json-wp-v2-3f4088eb205f.json"; sourceTree = "<group>"; };
 		B9B5AD7594E116CDC772BE422FC0A71F /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-41d897069e8c.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "wordpress-www-doctorofcredit-com-wp-json-wp-v2-41d897069e8c.json"; path = "Fixtures/Comparison/wordpress/wordpress-www-doctorofcredit-com-wp-json-wp-v2-41d897069e8c.json"; sourceTree = "<group>"; };
 		BA1C5EDB1D24C460CD6FF2964C6F82CD /* hackernews-hn-algolia-com-api-v1-items-47637353-0ffbe4abd7c0.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "hackernews-hn-algolia-com-api-v1-items-47637353-0ffbe4abd7c0.json"; path = "Fixtures/Comparison/hackernews/hackernews-hn-algolia-com-api-v1-items-47637353-0ffbe4abd7c0.json"; sourceTree = "<group>"; };
@@ -1538,6 +1540,7 @@
 				61AFF5CC06D315E2ED1CCC3D0A0EE629 /* SuggestionRowUITests.swift */,
 				161A46B5355DDD0B106C777621940C10 /* TodayUITests.swift */,
 				1F4B3792BA75FC60588AF7ECFF560D22 /* UITestSupport.swift */,
+				B873E4988025E1EA827C4524CEF6154B /* VoiceAnywhereLiveAcceptanceUITests.swift */,
 				765E77039D9CA26DBA1EF6CF5CFF6919 /* VoiceUITests.swift */,
 				49ACBEF5C3F23731890FB5D8A695896A /* WordPressUITests.swift */,
 				D95F7452EC6E66D9F6DB33B1136C7620 /* XComLiveUITests.swift */,
@@ -3155,6 +3158,7 @@
 				4C968F738A2F7E3D35CC4B1A1844970C /* SuggestionRowUITests.swift in Sources */,
 				1E8C8E8257063BEE277564FE0E64408B /* TodayUITests.swift in Sources */,
 				DACA4C9A0469CF27F9E019AD01E031D8 /* UITestSupport.swift in Sources */,
+				37DA6E012411A50F24405BA02EE116A9 /* VoiceAnywhereLiveAcceptanceUITests.swift in Sources */,
 				E04C526253B02A016598469B4082E454 /* VoiceUITests.swift in Sources */,
 				FB761578986498DC36111BA83E611E55 /* WordPressUITests.swift in Sources */,
 				EC38F6F1050419376D0B9B4701C9A410 /* XComLiveUITests.swift in Sources */,
@@ -3179,36 +3183,6 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		0A31DA393DC04482D28B2D810286CDD4 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				APPLICATION_EXTENSION_API_ONLY = YES;
-				CLANG_ENABLE_OBJC_WEAK = NO;
-				CODE_SIGN_ENTITLEMENTS = WukongMindShare/WukongMindShare.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DC_APP_GROUP = group.io.github.kccarlos.wukongmind;
-				DC_IDENTIFIER_PREFIX = io.github.kccarlos.wukongmind;
-				DEVELOPMENT_TEAM = GV776BZVA8;
-				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = WukongMindShare/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
-				MARKETING_VERSION = 1.3.1;
-				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind.share;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_STRICT_CONCURRENCY = minimal;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				VALIDATE_PRODUCT = YES;
-			};
-			name = Release;
-		};
 		31BEAC3830519414D4289724B97DFB66 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -3361,38 +3335,7 @@
 			};
 			name = Release;
 		};
-		A381CF6AAC48584C9163503B0DAD77B5 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CLANG_ENABLE_OBJC_WEAK = NO;
-				CODE_SIGN_ENTITLEMENTS = WukongMind/WukongMind.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DC_APP_GROUP = group.io.github.kccarlos.wukongmind;
-				DC_IDENTIFIER_PREFIX = io.github.kccarlos.wukongmind;
-				DEVELOPMENT_TEAM = GV776BZVA8;
-				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = WukongMind/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 1.3.1;
-				OTHER_SWIFT_FLAGS = "$(inherited)";
-				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_STRICT_CONCURRENCY = minimal;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				VALIDATE_PRODUCT = YES;
-			};
-			name = Release;
-		};
-		A9B9CA8932E638163B92B8FDDF89798B /* Debug */ = {
+		A20410FAA392A70808C22FAB6EAA06F9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
@@ -3407,7 +3350,7 @@
 				INFOPLIST_FILE = WukongMindShare/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
-				MARKETING_VERSION = 1.3.1;
+				MARKETING_VERSION = 1.3.2;
 				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind.share;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -3457,6 +3400,36 @@
 			};
 			name = Debug;
 		};
+		C12936594EE8EA40C86748FBAD2F59EF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = WukongMind/WukongMind.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DC_APP_GROUP = group.io.github.kccarlos.wukongmind;
+				DC_IDENTIFIER_PREFIX = io.github.kccarlos.wukongmind;
+				DEVELOPMENT_TEAM = GV776BZVA8;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = WukongMind/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 1.3.2;
+				OTHER_SWIFT_FLAGS = "$(inherited)";
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
 		CE45AAF706AD2D3DF7D7F241BF21C72E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -3477,35 +3450,35 @@
 			};
 			name = Debug;
 		};
-		D47DB327970345B1CBDFF724455CFB7E /* Debug */ = {
+		D755090CE63606A4E01A6AE9301AC781 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ENABLE_OBJC_WEAK = NO;
-				CODE_SIGN_ENTITLEMENTS = WukongMind/WukongMind.entitlements;
+				CODE_SIGN_ENTITLEMENTS = WukongMindShare/WukongMindShare.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DC_APP_GROUP = group.io.github.kccarlos.wukongmind;
 				DC_IDENTIFIER_PREFIX = io.github.kccarlos.wukongmind;
 				DEVELOPMENT_TEAM = GV776BZVA8;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = WukongMind/Info.plist;
+				INFOPLIST_FILE = WukongMindShare/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 1.3.1;
-				OTHER_SWIFT_FLAGS = "$(inherited)";
-				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				MARKETING_VERSION = 1.3.2;
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind.share;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = minimal;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
 			};
-			name = Debug;
+			name = Release;
 		};
 		DFD049BD11BDD9BB89B04782B450CF0C /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -3528,6 +3501,37 @@
 			};
 			name = Release;
 		};
+		F8619789A4DD044250417AB2FFC718C0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = WukongMind/WukongMind.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DC_APP_GROUP = group.io.github.kccarlos.wukongmind;
+				DC_IDENTIFIER_PREFIX = io.github.kccarlos.wukongmind;
+				DEVELOPMENT_TEAM = GV776BZVA8;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = WukongMind/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 1.3.2;
+				OTHER_SWIFT_FLAGS = "$(inherited)";
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -3543,8 +3547,8 @@
 		7F47FA70E98716F0343E66C51BF1D32A /* Build configuration list for PBXNativeTarget "WukongMind" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				A381CF6AAC48584C9163503B0DAD77B5 /* Release */,
-				D47DB327970345B1CBDFF724455CFB7E /* Debug */,
+				F8619789A4DD044250417AB2FFC718C0 /* Release */,
+				C12936594EE8EA40C86748FBAD2F59EF /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -3579,8 +3583,8 @@
 		E4F9F055622E051509E620676B2CAF91 /* Build configuration list for PBXNativeTarget "WukongMindShare" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				0A31DA393DC04482D28B2D810286CDD4 /* Release */,
-				A9B9CA8932E638163B92B8FDDF89798B /* Debug */,
+				D755090CE63606A4E01A6AE9301AC781 /* Release */,
+				A20410FAA392A70808C22FAB6EAA06F9 /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
