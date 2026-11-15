@@ -7,7 +7,6 @@ final class ShareHandoffUITests: DCUITestCase {
     func testSummaryLinkOpensTopicAndAsksForAProvider() throws {
         let topic = try liveTopic()
         let app = launchForHandoff()
-        try skipIfProviderConfigured(in: app)
 
         app.open(deepLink(topic.url, action: "summary"))
 
@@ -44,7 +43,6 @@ final class ShareHandoffUITests: DCUITestCase {
     func testChatLinkOpensTheChatMode() throws {
         let topic = try liveTopic()
         let app = launchForHandoff()
-        try skipIfProviderConfigured(in: app)
 
         app.open(deepLink(topic.url, action: "chat"))
 
@@ -86,7 +84,7 @@ final class ShareHandoffUITests: DCUITestCase {
     /// show the Forums home later (`-dc-forums-home`): either would replace
     /// the shared page.
     private func launchForHandoff() -> XCUIApplication {
-        let app = launch()
+        let app = launch(["-dc-no-provider"])
         XCTAssertTrue(app.buttons["forumSwitcher"].waitForExistence(timeout: 20))
         return app
     }
@@ -100,19 +98,5 @@ final class ShareHandoffUITests: DCUITestCase {
             URLQueryItem(name: "action", value: action)
         ]
         return components.url!
-    }
-
-    /// These tests must never start real AI work: skip when a key is saved.
-    private func skipIfProviderConfigured(in app: XCUIApplication) throws {
-        openSettings(in: app)
-        let providerRow = app.buttons["settingsRow-provider"]
-        XCTAssertTrue(providerRow.waitForExistence(timeout: 10))
-        let ready = app.descendants(matching: .any)
-            .matching(label(contains: "Provider ready")).firstMatch
-        let configured = ready.exists || providerRow.label.contains("Provider ready")
-        closeSettings(in: app)
-        if configured {
-            throw XCTSkip("An AI provider is configured on this simulator; skipping to avoid real AI calls.")
-        }
     }
 }

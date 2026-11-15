@@ -293,6 +293,55 @@ final class KeychainSyncTests: XCTestCase {
         XCTAssertEqual(SecItemCopyMatching(query as CFDictionary, nil), errSecItemNotFound)
         XCTAssertTrue(result.passed, result.summary)
     }
+
+    @MainActor
+    func testDebugProviderFlagsNeverOverwriteSavedKeysOrSettings() throws {
+        XCTAssertTrue(AppModel.loadsOnlySamplePage(arguments: ["-dc-skip-onboarding", "-dc-no-provider"]))
+        XCTAssertTrue(AppModel.loadsOnlySamplePage(arguments: ["-dc-fixture-model", "http://127.0.0.1:8080"]))
+
+        for launchArgs in [
+            ["-dc-skip-onboarding", "-dc-no-provider"],
+            ["-dc-fixture-model", "http://127.0.0.1:8080"]
+        ] {
+            let backend = FakeKeychainBackend()
+            backend.put("openai", "sk-synced", synchronizable: true)
+            let directory = FileManager.default.temporaryDirectory
+                .appendingPathComponent("KeychainSyncTests-\(UUID().uuidString)", isDirectory: true)
+            defer { try? FileManager.default.removeItem(at: directory) }
+            let fileURL = directory.appendingPathComponent("state.json")
+
+            let savedSelection = ModelSelection(provider: .openAI, model: "gpt-5.4-mini")
+            var snapshot = AppSnapshot()
+            snapshot.settings.hasCompletedOnboarding = true
+            snapshot.settings.setModel(savedSelection, for: .assistant)
+            snapshot.settings.setModel(savedSelection, for: .browserAgent)
+            try PersistentStore(fileURL: fileURL, keys: InMemoryProviderKeyStore()).save(snapshot)
+
+            let keys = makeStore(backend, synchronizes: true)
+            let app = AppModel(store: PersistentStore(fileURL: fileURL, keys: keys))
+            XCTAssertEqual(app.settings.configuration(for: .openAI).apiKey, "sk-synced")
+
+            app.applyDebugLaunchArguments(arguments: launchArgs)
+            let sharedTopic = ForumTopic(
+                siteURL: "https://meta.discourse.org",
+                topicID: "999",
+                url: URL(string: "https://meta.discourse.org/t/shared-topic/999")!,
+                title: "Shared topic"
+            )
+            app.select(topic: sharedTopic)
+            app.save()
+            app.flushPendingSaves()
+
+            XCTAssertEqual(
+                backend.item("openai", synchronizable: true),
+                "sk-synced",
+                "Synced Keychain item must survive \(launchArgs)."
+            )
+            let reloaded = PersistentStore(fileURL: fileURL, keys: InMemoryProviderKeyStore()).load()
+            XCTAssertEqual(reloaded.settings.model(for: .assistant), savedSelection)
+            XCTAssertEqual(reloaded.settings.model(for: .browserAgent), savedSelection)
+        }
+    }
     #endif
 }
 

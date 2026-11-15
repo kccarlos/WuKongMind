@@ -188,6 +188,11 @@ final class DrawerUITests: DCUITestCase {
         let app = launch(sample)
         XCTAssertTrue(waitOrDump(any(app, "askBox"), timeout: 20, in: app))
         dragDrawer(in: app, to: 0.08)
+        let field = app.textFields["agentPromptInput"].firstMatch
+        field.tap()
+        field.typeText("Follow up")
+        app.buttons["agentSendButton"].tap()
+        XCTAssertTrue(any(app, "agentUserMessage").waitForExistence(timeout: 10))
         let scroll = any(app, "agentScroll")
         XCTAssertTrue(scroll.waitForExistence(timeout: 5))
         let jump = app.buttons["chatScrollToBottom"]
@@ -394,7 +399,7 @@ final class DrawerUITests: DCUITestCase {
 
         let citation = app.buttons["citation-12"].firstMatch
         XCTAssertTrue(waitOrDump(citation, timeout: 30, in: app), "The summary has no #12 citation.")
-        XCTAssertTrue(wait(timeout: 10) { app.buttons["retrySummary"].exists },
+        XCTAssertTrue(any(app, "capabilityThreadSummaryCard").waitForExistence(timeout: 15),
                       "The summary did not finish.")
 
         dragDrawer(in: app, to: 0.08)

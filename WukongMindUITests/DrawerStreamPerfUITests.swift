@@ -44,11 +44,11 @@ final class DrawerStreamPerfUITests: DCUITestCase {
         }
     }
 
-    private func openSummary(streaming: Bool) -> XCUIApplication {
-        server.streamedSummary = streaming ? (Self.longAnswer, 0.04) : nil
-        // Clears the summary an earlier run saved.
-        let app = launch(["-dc-open", server.postURL, "-dc-fixture-model", server.baseURL, "-dc-script", "clear-all-after:1"])
-        let summarize = app.buttons["dockHintAction"].firstMatch
+    private func openSummary(streamed: (chunks: [String], interval: TimeInterval)?) -> XCUIApplication {
+        server.streamedSummary = streamed
+        let app = launch(["-dc-open", server.postURL, "-dc-fixture-model", server.baseURL])
+        showAssistant(in: app)
+        let summarize = app.buttons["suggestion-summarizeThread"].firstMatch
         XCTAssertTrue(waitOrDump(summarize, timeout: 40, in: app), "No summary offered.")
         XCTAssertTrue(waitForHittable(summarize))
         summarize.tap()
@@ -57,7 +57,7 @@ final class DrawerStreamPerfUITests: DCUITestCase {
     }
 
     func testDragWhileStreaming() {
-        let app = openSummary(streaming: true)
+        let app = openSummary(streamed: (Self.longAnswer, 0.04))
         print("PERF-START")
         sleep(6) // xctrace attaches
         dragDrawer(in: app, seconds: 30)
@@ -67,13 +67,7 @@ final class DrawerStreamPerfUITests: DCUITestCase {
     /// The same long text, finished: separates the cost of laying out long text
     /// from the cost of updating it.
     func testDragLongTextIdle() {
-        server.streamedSummary = (Self.longAnswer, 0.002)
-        let app = launch(["-dc-open", server.postURL, "-dc-fixture-model", server.baseURL, "-dc-script", "clear-all-after:1"])
-        let summarize = app.buttons["dockHintAction"].firstMatch
-        XCTAssertTrue(waitOrDump(summarize, timeout: 40, in: app), "No summary offered.")
-        XCTAssertTrue(waitForHittable(summarize))
-        summarize.tap()
-        XCTAssertTrue(waitOrDump(any(app, "summaryContent"), timeout: 60, in: app), "The summary did not appear.")
+        let app = openSummary(streamed: (Self.longAnswer, 0.002))
         sleep(12) // the whole answer arrives and the run ends
         print("PERF-START")
         sleep(6)
@@ -82,7 +76,7 @@ final class DrawerStreamPerfUITests: DCUITestCase {
     }
 
     func testDragIdle() {
-        let app = openSummary(streaming: false)
+        let app = openSummary(streamed: nil)
         sleep(3) // the short answer finishes
         print("PERF-START")
         sleep(6)

@@ -61,16 +61,22 @@ struct AssistantComposer: View {
         .padding(.vertical, 11)
         .frame(maxWidth: .infinity, minHeight: DCTheme.controlHeight, alignment: .leading)
         .background(alignment: .topLeading) {
-            if draft.isEmpty {
-                Text(verbatim: placeholder)
-                    .font(.subheadline)
-                    .foregroundStyle(DCTheme.inkFaint)
-                    .lineLimit(1)
-                    .padding(.horizontal, DCTheme.space3)
-                    .padding(.vertical, 11)
-                    .allowsHitTesting(false)
-                    .accessibilityHidden(true)
+            // Footer transitions (suggestions/status appearing when a run ends)
+            // animate the parent VStack; switch the placeholder without cross-fading
+            // the running prompt over the idle one.
+            Group {
+                if draft.isEmpty {
+                    Text(verbatim: placeholder)
+                        .font(.subheadline)
+                        .foregroundStyle(DCTheme.inkFaint)
+                        .lineLimit(1)
+                        .padding(.horizontal, DCTheme.space3)
+                        .padding(.vertical, 11)
+                        .allowsHitTesting(false)
+                        .accessibilityHidden(true)
+                }
             }
+            .transaction { $0.animation = nil }
         }
         .background(
             DCTheme.surface,

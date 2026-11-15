@@ -208,9 +208,11 @@ extension AppModel {
     /// - `-dc-show-switcher` opens the forum switcher after launch (ContentView)
     /// - `-dc-browse-post`, `-dc-browse-find`, `-dc-browse-debug` post-level
     ///                       browsing (AppModel+Navigation.swift)
-    func applyDebugLaunchArguments() {
+    func applyDebugLaunchArguments(arguments: [String] = ProcessInfo.processInfo.arguments) {
+        if Self.loadsOnlySamplePage(arguments: arguments) {
+            suppressesPersistence = true
+        }
         applyBrowseDebugArguments()
-        let arguments = ProcessInfo.processInfo.arguments
         if arguments.contains("-dc-seed-forums"), forums.isEmpty {
             // The sample's real public forums (SampleContent.swift) and
             // Hacker News, which the app reads as a forum too.
@@ -231,8 +233,23 @@ extension AppModel {
             configuration.baseURL = arguments[index + 1]
             configuration.model = "fixture-model"
             configuration.apiKey = ""
-            settings.setConfiguration(configuration, for: .ollama)
-            selectModel(ModelSelection(provider: .ollama, model: configuration.model), for: .role(.assistant))
+            let selection = ModelSelection(provider: .ollama, model: configuration.model)
+            var inMemory = settings
+            inMemory.setConfiguration(configuration, for: .ollama)
+            inMemory.setModel(selection, for: .assistant)
+            inMemory.setModel(selection, for: .browserAgent)
+            settings = inMemory
+        } else if arguments.contains("-dc-no-provider"), !arguments.contains("-dc-sample") {
+            let unconfigured = ModelSelection(provider: .anthropic, model: "claude-haiku-5-5")
+            var inMemory = settings
+            inMemory.setModel(unconfigured, for: .assistant)
+            inMemory.setModel(unconfigured, for: .browserAgent)
+            for provider in AIProvider.allCases where provider.requiresAPIKey {
+                var configuration = inMemory.configuration(for: provider)
+                configuration.apiKey = ""
+                inMemory.setConfiguration(configuration, for: provider)
+            }
+            settings = inMemory
         }
         if let index = arguments.firstIndex(of: "-dc-open"), index + 1 < arguments.count,
            let url = URL(string: arguments[index + 1]) {

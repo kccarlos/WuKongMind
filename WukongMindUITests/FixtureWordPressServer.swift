@@ -90,7 +90,8 @@ final class FixtureWordPressServer: @unchecked Sendable {
             if let data { buffer.append(data) }
             if let request = Self.parse(buffer) {
                 self.lock.withLock { self.log.append(request) }
-                if request.path == "/api/chat", let streamed = self.streamedSummary {
+                let requestBody = (try? JSONSerialization.jsonObject(with: request.body)) as? [String: Any]
+                if request.path == "/api/chat", requestBody?["tools"] == nil, let streamed = self.streamedSummary {
                     self.stream(streamed.chunks, every: streamed.interval, over: connection)
                     return
                 }
@@ -253,6 +254,13 @@ final class FixtureWordPressServer: @unchecked Sendable {
     private func chat(_ request: Request) -> Answer {
         let body = (try? JSONSerialization.jsonObject(with: request.body)) as? [String: Any]
         let messages = body?["messages"] as? [[String: Any]] ?? []
+        if body?["tools"] != nil {
+            if messages.contains(where: { ($0["role"] as? String) == "tool" }) {
+                return json(["message": ["role": "assistant", "content": "Summarized above."], "done": true, "done_reason": "stop"])
+            }
+            let call: [String: Any] = ["id": "call_wp_1", "function": ["name": "summarize_topic", "arguments": ["topic_id": String(Self.postID)]]]
+            return json(["message": ["role": "assistant", "content": "", "tool_calls": [call]], "done": true, "done_reason": "stop"])
+        }
         let lastUser = messages.last { ($0["role"] as? String) == "user" }?["content"] as? String ?? ""
         let reply = lastUser.contains(Self.chatQuestion) ? Self.chatMarker : Self.summaryMarker
         let lines = [

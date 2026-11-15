@@ -66,19 +66,20 @@ final class SuggestionRowUITests: DCUITestCase {
         XCTAssertTrue(waitForHittable(broken), "suggestionPageBroken must sit first and hittable without scrolling when scripts have errors.")
     }
 
-    /// Summarize runs the summary engine; Read it to me then reads it aloud.
+    /// Summarize runs `summarize_topic` (summary card under its row); Read it to me then runs `read_aloud`.
     func testSummarizeThenReadAloudUseTheExistingEngines() {
         let app = launch(thread + ["-dc-no-summary", "-dc-fake-summary"])
         showAssistant(in: app)
-        let summarize = scrollToChip(app, "summarizeThread")
-        summarize.tap()
-        XCTAssertTrue(wait(timeout: 30) { app.buttons["retrySummary"].exists }, "The summary did not finish.")
+        scrollToChip(app, "summarizeThread").tap()
+        XCTAssertTrue(any(app, "capabilityThreadSummaryCard").waitForExistence(timeout: 30), "Missing summary card under summarize_topic.")
         capture("suggestion-summary-done")
 
         let read = scrollToChip(app, "readAloud")
         read.tap()
+        let listenRow = any(app, "capabilityListenRow")
+        XCTAssertTrue(listenRow.waitForExistence(timeout: 15), "Missing listen card under read_aloud.")
         XCTAssertTrue(
-            wait(timeout: 15) { app.buttons.matching(label(contains: "Pause")).firstMatch.exists },
+            wait(timeout: 15) { (listenRow.value as? String) == "Pause" },
             "Read it to me did not start reading the summary aloud."
         )
         capture("suggestion-read-aloud")
@@ -89,27 +90,31 @@ final class SuggestionRowUITests: DCUITestCase {
         let app = launch(thread + ["-dc-no-summary", "-dc-fake-summary"])
         showAssistant(in: app)
         scrollToChip(app, "readAloud").tap()
-        XCTAssertTrue(wait(timeout: 30) { app.buttons["retrySummary"].exists }, "Read it to me did not write the summary.")
+        let listenRow = any(app, "capabilityListenRow")
+        XCTAssertTrue(listenRow.waitForExistence(timeout: 30), "Read it to me did not summarize and start listen row.")
         XCTAssertTrue(
-            wait(timeout: 15) { app.buttons.matching(label(contains: "Pause")).firstMatch.exists },
+            wait(timeout: 15) { (listenRow.value as? String) == "Pause" },
             "The summary was not read aloud once written."
         )
+        if usesDrawerLayout(app) { dragDrawer(in: app, to: 0.08) }
+        any(app, "agentScroll").swipeDown()
+        XCTAssertTrue(any(app, "summaryContent").waitForExistence(timeout: 5), "Read it to me did not write the summary.")
     }
 
-    /// Notify me follows the thread: the Agent says "Following", the switch
+    /// Notify me follows the thread: the Agent says "Following.", the switch
     /// in This page is on, and the suggestion is gone.
     func testNotifyMeFollowsTheThread() {
         let app = launch(thread)
         showAssistant(in: app)
         let follow = scrollToChip(app, "followReplies")
         follow.tap()
-        let reply = app.staticTexts.matching(label(contains: "Following.")).firstMatch
-        XCTAssertTrue(waitOrDump(reply, timeout: 10, in: app), "No Following confirmation.")
-        XCTAssertTrue(waitForGone(follow, timeout: 5), "Notify me stays after following.")
-        // The existing follow asks for notification permission.
         let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
         let allow = springboard.buttons["Allow"]
-        if allow.waitForExistence(timeout: 5) { allow.tap() }
+        if allow.waitForExistence(timeout: 3) { allow.tap() }
+        let reply = app.staticTexts.matching(label(contains: "Following.")).firstMatch
+        XCTAssertTrue(waitOrDump(reply, timeout: 15, in: app), "No Following confirmation.")
+        if allow.exists { allow.tap() }
+        XCTAssertTrue(waitForGone(follow, timeout: 5), "Notify me stays after following.")
         capture("suggestion-following")
 
         app.buttons["pageCapabilitiesSeal"].firstMatch.tap()
@@ -118,25 +123,19 @@ final class SuggestionRowUITests: DCUITestCase {
         XCTAssertEqual(toggle.value as? String, "1", "The Following switch is off after Notify me.")
     }
 
-    /// Search this forum… fills the box; the completed search starts the
-    /// old Research loop (its run shows in the conversation).
-    func testSearchThisForumFillsTheBoxThenRunsResearch() {
+    /// Search this forum… fills the box; sending routes the completed query to the one Agent conversation.
+    func testSearchThisForumFillsTheBoxThenSendsToAgent() {
         let app = launch(thread)
         showAssistant(in: app)
-        let search = scrollToChip(app, "searchForum")
-        search.tap()
+        scrollToChip(app, "searchForum").tap()
         let input = app.textViews["agentPromptInput"].exists ? app.textViews["agentPromptInput"] : app.textFields["agentPromptInput"]
         XCTAssertTrue(wait(timeout: 5) { (input.value as? String) == "Search this forum " }, "Got \(String(describing: input.value)).")
         XCTAssertFalse(chip(app, "summarizeThread").exists, "The row hides once the box has text.")
         input.typeText("for streaming bugs")
         app.buttons["agentSendButton"].tap()
-        let run = app.staticTexts.matching(label(contains: "Search this forum for streaming bugs")).firstMatch
-        XCTAssertTrue(waitOrDump(run, timeout: 15, in: app), "The search did not start a Research run.")
-        XCTAssertFalse(app.descendants(matching: .any)["agentUserMessage"].exists, "The search went to the Agent instead.")
-        // The sample's placeholder key makes the real Research call fail.
-        let alert = app.alerts.firstMatch
-        if alert.waitForExistence(timeout: 10) { alert.buttons.firstMatch.tap() }
-        if !run.isHittable { app.swipeUp() }
-        capture("suggestion-research")
+        let userTurn = any(app, "agentUserMessage")
+        XCTAssertTrue(waitOrDump(userTurn, timeout: 15, in: app), "The search did not send to the Agent.")
+        XCTAssertTrue(app.staticTexts.matching(label(contains: "Search this forum for streaming bugs")).firstMatch.exists)
+        capture("suggestion-search-agent")
     }
 }

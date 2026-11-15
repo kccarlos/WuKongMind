@@ -151,7 +151,7 @@ final class CloudSyncController: ObservableObject, CloudSyncTransportDelegate {
         let files = CloudSyncFiles(store: store)
         #if DEBUG
         let arguments = ProcessInfo.processInfo.arguments
-        if AssistantDebug.isActive || arguments.contains(where: { $0.hasPrefix("-ui-test-") }) {
+        if AppModel.loadsOnlySamplePage || arguments.contains(where: { $0.hasPrefix("-ui-test-") }) {
             return CloudSyncController(
                 transport: nil, unavailableReason: String(localized: "Sync is off for sample data"),
                 files: nil, defaults: nil, schedulesAutomatically: false

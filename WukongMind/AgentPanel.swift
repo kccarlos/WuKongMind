@@ -674,6 +674,7 @@ private struct CapabilityListenCard: View {
             DCListenRow(title: title, detail: detail, progress: progress, isPlaying: matches && player.isActive)
         }
         .buttonStyle(.plain)
+        .accessibilityValue(matches && player.isActive ? Text("Pause") : Text("Listen"))
         .accessibilityIdentifier("capabilityListenRow")
     }
 }
