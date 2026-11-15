@@ -1555,7 +1555,7 @@ private struct ChatThread<Leading: View>: View {
                 }
                 if !atBottom, hasConversationEntries {
                     Button {
-                        jumpToBottom(proxy: proxy)
+                        jumpToBottom(proxy: proxy, explicit: true)
                     } label: {
                         Image(systemName: "arrow.down")
                             .font(.system(size: 16, weight: .bold))
@@ -1600,13 +1600,15 @@ private struct ChatThread<Leading: View>: View {
         withTransaction(transaction) { proxy.scrollTo(id, anchor: anchor) }
     }
 
-    private func jumpToBottom(proxy: ScrollViewProxy) {
+    private func jumpToBottom(proxy: ScrollViewProxy, explicit: Bool = false) {
         scrollTask?.cancel()
-        userScrolling = false
+        if explicit {
+            userScrolling = false
+            // An immediate scroll interrupts any momentum before the settling animation.
+            scrollUnanimated(proxy: proxy)
+        }
         metricsBox.scrolledUp = false
         atBottom = true
-        // An immediate scroll interrupts any momentum before the settling animation.
-        scrollUnanimated(proxy: proxy)
         #if DEBUG
         let probeToken = UUID()
         ChatScrollProbe.begin(probeToken)
