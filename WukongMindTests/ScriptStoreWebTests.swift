@@ -759,11 +759,12 @@ final class ScriptStoreWebTests: XCTestCase {
             return obj["stamped"] == .string("/t/3") && obj["replyDisplay"] == .string("none")
         }
 
-        let runsCheck = try await harness.bridge.runJS(
-            code: "return window.__scriptObservedPaths;",
-            environment: .isolated
-        )
-        XCTAssertEqual(runsCheck.valueJSON, #"["/t/1","/t/2","/t/3","/t/3"]"#)
+        let observedPaths = try await harness.webView.evaluateJavaScript(
+            "window.__scriptObservedPaths",
+            in: nil,
+            contentWorld: GMBridge.world(for: "spa-op-marker")
+        ) as? [String]
+        XCTAssertEqual(observedPaths, ["/t/1", "/t/2", "/t/3", "/t/3"])
     }
 
     func testExcludedPagesNeverRunTheScriptOrKeepItsCSS() async throws {
