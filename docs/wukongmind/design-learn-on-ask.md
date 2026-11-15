@@ -53,8 +53,8 @@ A is rejected on the cache and on injection. B alone is rejected because the com
 
 ### The registration interface
 
-- The app injects a small implementation of `document.modelContext` at document start, in the page world and in the isolated world, when the page has none. The older `navigator.modelContext` name points at the same object.
-- It implements what the draft of 13 November 2026 defines and no more: `registerTool(tool, {signal})`, `getTools()`, and the tool fields `name`, `title`, `description`, `inputSchema`, `outputSchema`, `execute(input, {signal})` and `annotations` (`readOnlyHint`, `untrustedContentHint`, `consequentialHint`). `exposedTo` is accepted and ignored. A tool is removed by its abort signal.
+- The app injects a small implementation of `document.modelContext` at document start, in the page world and in the isolated world, when the page has none. The older `navigator.modelContext` name points at the same object. Both properties are defined on `Document.prototype` and `Navigator.prototype` with `configurable: false` getters, and the `.atDocumentStart` closure captures its own intrinsics (`Promise`, `setTimeout`, `clearTimeout`, `AbortController`, `JSON.stringify`, `JSON.parse`) so a page cannot replace the shim or hang pulls and timeouts by mutating globals ([learn-page-tools-spike.md](learn-page-tools-spike.md) §1, §3, §7; `@mcp-b/webmcp-polyfill` on live sites detects the shim and registers into it).
+- It implements what the draft of 13 November 2026 defines and no more: `registerTool(tool, {signal})` and `getTools()` (both returning `Promise`s per the WebIDL, which live sites chain `.catch(...)` on), and the tool fields `name`, `title`, `description`, `inputSchema`, `outputSchema`, `execute(input, {signal})` and `annotations` (`readOnlyHint`, `untrustedContentHint`, `consequentialHint`). `exposedTo` is accepted and ignored. A tool is removed by its abort signal.
 - If WebKit ships the interface itself one day, the shim does nothing and the bridge is not known to work: that is what the switch is for.
 
 ### Collecting from both worlds
@@ -176,12 +176,12 @@ modelContext.registerTool({
 
 ### The steps
 
-"Learning a site" is a section of the system prompt, present whenever the switch is on, about 16 lines. It is fixed text, so it is part of the cached prefix. In order:
+"Learning a site" is a section of the system prompt, present whenever the switch is on, about 16 lines of plain prose (no inline JS code blocks: code punctuation pushed the prefix delta over 1,200 tokens in [learn-page-tools-spike.md](learn-page-tools-spike.md) §9). It is fixed text, so it is part of the cached prefix. Rule 4 (`BrowserAgent.swift:248`), `script_save`'s description (`ToolRegistry.swift:1434`), and `forumRules` (`BrowserAgent.swift:306`) are updated beside it so saving a `provides` reader on the first ask is an explicit exception to "only when the user asks to always apply" and unknown sites point here instead of saying "Elsewhere they refuse: use `read_page`". In order:
 
 1. Say first, in one line, that you are working out how to read this site.
 2. Read `sites/<host>/notes.md` if the page context names it.
-3. Find the data source, in this order: the site's JSON API (`network_log` filtered to JSON, and links such as `rel="alternate"`), then data the page preloads (JSON-LD, `<script type="application/json">`, framework state in the page world), then the DOM.
-4. Write a reader that takes a URL and returns the shape, and handles paging. Try it with `run_js` on this thread and on one other thread before saving.
+3. Find the data source, in this order: the site's JSON API (`network_log` filtered to JSON, and links such as `rel="alternate"`), then data the page preloads (JSON-LD, `<script type="application/json">`, framework state in the page world), then the DOM. When inspecting the DOM, dump one post container's `outerHTML`, author/date/number selectors and pagination links together in one `run_js` call rather than probing one selector per turn; keep pre-save exploration to at most 4 calls, else call `site_learning_report` and answer from `read_page`.
+4. Write a reader using standard `fetch(url)` (saved scripts have no `wukong` object) that takes a URL, handles paging, and returns the `{ shape, page, total_pages }` envelope (keeping the outer `shape` key). Try `execute` on this thread (including page 2) and one other thread in a single `run_js` call before saving.
 5. Save it with `script_save`, with `provides`, `thread_match` or `list_match`, and its `test_urls`: two threads for `read_topic`, the list page for the other two.
 6. If the save is refused, fix what the refusal names. After three refusals stop, call `site_learning_report`, and answer from `read_page`.
 7. Write what you found to `sites/<host>/notes.md`.
@@ -331,7 +331,7 @@ Both are in This page › Developer, the group that holds Console and Network to
 
 - **What leaves the device.** A learned reader's output goes to the Agent's model provider, as `read_page`'s does. Nothing new is sent on page open. The state file and the notes stay on the device.
 - **The person's session.** A reader fetches the site from inside the site's page, so it sees what the signed-in user sees. That is the point: it reads the thread the user is looking at.
-- **What can't be enforced.** A script in the isolated world can make requests the page's policy doesn't limit ([m0-csp-and-worlds.md](m0-csp-and-worlds.md)). A learned script has no grants, and the verifier's host scan refuses the obvious case, but a scan is not a sandbox. This is the same trust as every Agent-made script since M2; the script's code is readable in This page.
+- **What can't be enforced.** A script in the isolated world can make requests the page's policy doesn't limit ([m0-csp-and-worlds.md](m0-csp-and-worlds.md), [learn-page-tools-spike.md](learn-page-tools-spike.md) §5: same-site `fetch` carries `HttpOnly` cookies even under `connect-src 'none'`, while cross-site `fetch` sends no same-site cookie and is still gated by WebKit's CORS check after the request reaches the server). A learned script has no grants, and the verifier's host scan refuses the obvious case, but a scan is not a sandbox. This is the same trust as every Agent-made script since M2; the script's code is readable in This page.
 - **A website's tool** runs the site's own function on the site's own page. It can do nothing the page couldn't. The risk is the Agent being talked into calling it. The wrapper and rule 5 answer that, and the card before every `site.*` call is the backstop: nothing a page writes can remove it.
 - **Cost limits, in code:**
 
@@ -345,23 +345,21 @@ Both are in This page › Developer, the group that holds Console and Network to
   | The failure checks (the app's own fetch, and the reader on a saved test URL) | only after a call has failed the light check; a call that succeeds adds none. The starting point is at most 2 fetches and 1 reader call, and task 7 keeps it within that |
   | Tools listed per page | 30 |
 
-- **Cost targets, to be measured** (spike question 9, then acceptance): a first learning in at most 15 tool calls; three new tool definitions and the "Learning a site" section together under 1,200 tokens of cached prefix (the tool list is 25 tools and 6,626 tokens today, [one-loop-comparison.md](one-loop-comparison.md)); a second visit's summary in one tool call. Each live check reports input, output and cache-read tokens (`AgentTokenUsage`, `BrowserAgent.swift:6`).
+- **Cost targets, settled in [learn-page-tools-spike.md](learn-page-tools-spike.md) §6 and §9** (checked again at acceptance): shim load cost under 1 ms (`+0.80 ms` iPhone / `-0.20 ms` iPad median navigation delta); a first learning in **at most 15 tool calls on `claude-haiku-5-5`** (`9–13` measured across 6 runs on the fixture and `bbs.archlinux.org`) and **at most 20 tool calls on `gemini-3.8-flash`** once Task 4 wires the slot and Task 6 adds the single-call DOM-inspection + 4-probe cap (`22–27` measured on the JSON fixture pre-Task-4); three new tool definitions, Rule 5's sentence and the "Learning a site" prose together **under 1,200 tokens of cached prefix** (`+1,109` Anthropic tokens on `25 -> 28` tools, `+630` Vertex tokens); a second visit's summary in **one tool call** (`1` measured). Each live check reports input, output and cache-read tokens (`AgentTokenUsage`, `BrowserAgent.swift:6`; Task 10 wires `usageMetadata.cachedContentTokenCount` at `AIService.swift:1187` so Gemini/Vertex cache reads are reported too).
 
 ## The spike comes first
 
-Task 1 is a spike in the [M0 pattern](m0-csp-and-worlds.md): a throwaway harness under `docs/wukongmind/learn-spike/`, real `WKWebView` runs, results in `docs/wukongmind/learn-page-tools-spike.md`, no app code. It must answer, with measurements:
+Task 1 ran in the [M0 pattern](m0-csp-and-worlds.md): a throwaway harness under [`docs/wukongmind/learn-spike/`](learn-spike/), real `WKWebView` runs on iPhone 18 Pro and iPad Air 11-inch (M4) plus live `claude-haiku-5-5` and Vertex `gemini-3.8-flash` runs, results in [`docs/wukongmind/learn-page-tools-spike.md`](learn-page-tools-spike.md), no app code. All nine questions are answered with checked-in raw JSON (`learn-spike/results/`):
 
-1. **Shim first.** Is `document.modelContext`, injected at document start in the page world, in place before the page's own scripts under every policy of the M0 matrix? Are registrations made while parsing and on load both seen?
-2. **Pull and call.** Can the app read the page-world registry and call `execute` with JSON arguments, with a promise result, a timeout and a 1 MB return?
-3. **A hostile page.** What can a page that replaces the shim, forges tools or never answers reach? The answer must be: nothing in the isolated world and no handler.
-4. **Attribution.** Does a `modelContext` handed to a script's main function attribute its tools to that script, and does a route change replace rather than duplicate them?
-5. **Fetch from the isolated world.** Does a same-site `fetch` there carry the session and return the page under every policy? What happens to a cross-site one?
-6. **Cost.** What does the shim add to a page load?
-7. **The older name and a real site.** Does a page written against `navigator.modelContext` work? Does any public site ship tools today?
-8. **The contract.** Do hand-written readers for two public forums of different software (proposed by the task) return a valid Thread shape for two threads each, with paging?
-9. **The model.** With today's app and the drafted "Learning a site" text as custom instructions, how many steps and tokens does `claude-haiku-5-5` need to write a working reader for the fixture forum and one public forum, three runs each? The same with a Gemini model on Vertex.
-
-If 1 or 3 fails, the design goes back to the owner. If 9 shows learning needs more than about 25 steps, the steps are changed before any prompt task starts.
+1. **Shim first.** Passed (`7/7` CSP variants on iPhone and iPad; parse-time and `load` registrations kept, `AbortSignal` removes tools, `registerTool`/`getTools` return `Promise`s).
+2. **Pull and call.** Passed (`1.0 ms` sync, `31.4 ms` async, `351 ms` timeout with abort signal, `0.9 ms` for `1 MB`, `>2 MB` refused in `0.8 ms`).
+3. **A hostile page.** Passed (`Document.prototype`/`Navigator.prototype` non-configurable getters + captured intrinsics keep `.page` isolated from `WukongAgent` and handlers, even when `Promise.resolve` and `setTimeout` are poisoned).
+4. **Attribution.** Passed (wrapper-bound `modelContext` attributes per script ID; unowned registrations fail Step 1; SPA route changes replace in place).
+5. **Fetch from the isolated world.** Passed (`7/7` same-site with `HttpOnly` session cookie; cross-site sends no cookie and enforces CORS).
+6. **Cost.** Passed (`4.4–4.5 KB` shim, `<1 ms` init, `+0.80 ms` iPhone / `-0.20 ms` iPad median load delta).
+7. **The older name and a real site.** Passed (`navigator.modelContext === document.modelContext`; 3 public early-adopter sites — `sitepassport.org`, `parity-webmcp.vercel.app`, `webmcp.com` — registered 2, 5 and 9 live tools into the shim).
+8. **The contract.** Passed (`9/9` verifier steps on two proposed public forums: `bbs.archlinux.org` on FluxBB and `discuss.flarum.org` on Flarum).
+9. **The model.** Settled (`+1,109` Anthropic / `+630` Vertex prefix tokens; `9–13` calls on `claude-haiku-5-5`; Step 3–4 batching and Rule 4 alignment folded into [The steps](#the-steps) above after `gemini-3.8-flash` hit `22–27` calls on JSON and `30` on unguided HTML).
 
 ## Acceptance checks
 
@@ -601,7 +599,7 @@ One design task, one spike, nine implementation tasks and one acceptance task. S
 
 All five are decided, on 2026-11-15, under the owner's delegation: the Fable design review agreed with the first four as recommended, and the Assistant decided the fifth. Each is folded into the body; this list keeps the record. The trial notes may reopen any of them.
 
-1. **The acceptance forum.** Decided (as recommended): a local fixture forum for the replays, plus one public forum the owner names. If the owner names none, task 1 proposes two public forums of different software and the owner confirms one. Roadmap §11's default (the owner picks at the end of the trial) can't apply before the trial.
+1. **The acceptance forum.** Decided (as recommended): a local fixture forum for the replays, plus one public forum the owner names. If the owner names none, task 1 proposes two public forums of different software and the owner confirms one — task 1 verified **`https://bbs.archlinux.org` (FluxBB, server-rendered HTML)** and **`https://discuss.flarum.org` (Flarum, SPA + JSON:API)** ([learn-page-tools-spike.md](learn-page-tools-spike.md) §8), awaiting owner confirmation of one before task 10. Roadmap §11's default (the owner picks at the end of the trial) can't apply before the trial.
 2. **When the Agent learns.** Decided (as recommended): on the first request that needs a whole thread or a list, and only for the slot that request needs. A question one `read_page` answers never starts learning.
 3. **Suggestions from a website's own tools.** Decided (as recommended): none in 1.5.0. A chip made from a site's text would let the page put words on the app's own buttons. The tools are usable by asking, and visible in the inspector.
 4. **Voice on a learned site.** Decided (as recommended): hand-off only, as voice-review decided. Letting voice's fixed tools read a learned thread is cheap to add later, because the slots are fixed names.

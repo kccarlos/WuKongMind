@@ -1,0 +1,239 @@
+[
+  {
+    "answerPreview" : "Thread 102 is short (four posts, one page), so I summarized from the page text directly.\n\nThe question was whether btrfs scrub throttles itself on NVMe during heavy compiles. Nobody says it does automatically. The suggested fix is to run th",
+    "cacheReadTokens" : 84297,
+    "durationSeconds" : 26.530457019805908,
+    "forum" : "fixture",
+    "geminiRawCachedTokens" : 0,
+    "inputTokens" : 101686,
+    "modelID" : "claude-haiku-5-5",
+    "notesWritten" : true,
+    "outputTokens" : 5686,
+    "provider" : "anthropic",
+    "runIndex" : 1,
+    "savedScriptCount" : 1,
+    "secondVisitCacheReadTokens" : 17923,
+    "secondVisitToolCalls" : 1,
+    "steps" : 9,
+    "toolCallCount" : 9,
+    "toolNames" : [
+      "file_read",
+      "read_page",
+      "network_log",
+      "run_js",
+      "run_js",
+      "script_save",
+      "file_write",
+      "run_js",
+      "run_js"
+    ],
+    "verifierReport" : {
+      "callDurationsMs" : [
+        18.046021461486816,
+        4.938960075378418,
+        5.5190324783325195
+      ],
+      "maxBytes" : 2617,
+      "passed" : true,
+      "thread1Page2Posts" : 5,
+      "thread1Posts" : 15,
+      "thread2Posts" : 4
+    }
+  },
+  {
+    "answerPreview" : "**Summary: Framework 13 AMD suspend blink on kernel 6.14 (20 posts, 2 pages)**\n\n- **Problem:** After upgrading to kernel 6.14, suspend breaks on the Framework 13 AMD board. The power LED blinks amber and the battery drains overnight (#1). S",
+    "cacheReadTokens" : 90211,
+    "durationSeconds" : 20.69349992275238,
+    "forum" : "fixture",
+    "geminiRawCachedTokens" : 0,
+    "inputTokens" : 97908,
+    "modelID" : "claude-haiku-5-5",
+    "notesWritten" : true,
+    "outputTokens" : 4499,
+    "provider" : "anthropic",
+    "runIndex" : 2,
+    "savedScriptCount" : 1,
+    "steps" : 9,
+    "toolCallCount" : 9,
+    "toolNames" : [
+      "file_read",
+      "network_log",
+      "run_js",
+      "run_js",
+      "script_save",
+      "run_js",
+      "file_write",
+      "run_js",
+      "run_js"
+    ],
+    "verifierReport" : {
+      "callDurationsMs" : [
+        11.157989501953125,
+        6.350994110107422,
+        4.933953285217285
+      ],
+      "maxBytes" : 2617,
+      "passed" : true,
+      "thread1Page2Posts" : 5,
+      "thread1Posts" : 15,
+      "thread2Posts" : 4
+    }
+  },
+  {
+    "answerPreview" : "**Framework 13 AMD suspend blink on kernel 6.14** (20 posts, 2 pages, by linus_m, sara_k, dev_r, kai_w, nora_b, omar_h, and one anonymized user)\n\nThe thread started when a kernel 6.14 upgrade broke suspend on a Framework 13 AMD. The power L",
+    "cacheReadTokens" : 131733,
+    "durationSeconds" : 29.52315902709961,
+    "forum" : "fixture",
+    "geminiRawCachedTokens" : 0,
+    "inputTokens" : 138149,
+    "modelID" : "claude-haiku-5-5",
+    "notesWritten" : true,
+    "outputTokens" : 5905,
+    "provider" : "anthropic",
+    "runIndex" : 3,
+    "savedScriptCount" : 0,
+    "steps" : 12,
+    "toolCallCount" : 12,
+    "toolNames" : [
+      "file_read",
+      "run_js",
+      "network_log",
+      "run_js",
+      "run_js",
+      "run_js",
+      "script_save",
+      "run_js",
+      "run_js",
+      "run_js",
+      "file_write",
+      "script_delete"
+    ]
+  },
+  {
+    "answerPreview" : "**Summary: [How to reinstall pacman when pacman is broken](https:\/\/bbs.archlinux.org\/viewtopic.php?id=95007)** (50 posts, 2010–2016)\n\n- **The problem (#1):** In April 2010, openssl moved into the main repos. Users who upgraded against mirro",
+    "cacheReadTokens" : 134841,
+    "durationSeconds" : 46.287968039512634,
+    "forum" : "bbs.archlinux.org",
+    "geminiRawCachedTokens" : 0,
+    "inputTokens" : 150912,
+    "modelID" : "claude-haiku-5-5",
+    "notesWritten" : true,
+    "outputTokens" : 9732,
+    "provider" : "anthropic",
+    "runIndex" : 1,
+    "savedScriptCount" : 1,
+    "steps" : 12,
+    "toolCallCount" : 12,
+    "toolNames" : [
+      "file_read",
+      "run_js",
+      "network_log",
+      "run_js",
+      "run_js",
+      "run_js",
+      "script_save",
+      "run_js",
+      "file_write",
+      "run_js",
+      "run_js",
+      "file_read"
+    ],
+    "verifierReport" : {
+      "callDurationsMs" : [
+        285.30097007751465,
+        308.3139657974243
+      ],
+      "failedStep" : 3,
+      "maxBytes" : 25621,
+      "passed" : false,
+      "reason" : "shape decode failed",
+      "thread1Page2Posts" : 0,
+      "thread1Posts" : 0,
+      "thread2Posts" : 0
+    }
+  },
+  {
+    "answerPreview" : "**Takeaway:** The thread is a 2010–2011 workaround for a broken pacman after the openssl rebuilds moved to the main repos. It is dated, so don't use its exact package versions or mirrors today.\n\n**Thread summary** ([How to reinstall pacman ",
+    "cacheReadTokens" : 129733,
+    "durationSeconds" : 35.09191703796387,
+    "forum" : "bbs.archlinux.org",
+    "geminiRawCachedTokens" : 0,
+    "inputTokens" : 140382,
+    "modelID" : "claude-haiku-5-5",
+    "notesWritten" : true,
+    "outputTokens" : 6666,
+    "provider" : "anthropic",
+    "runIndex" : 2,
+    "savedScriptCount" : 1,
+    "steps" : 11,
+    "toolCallCount" : 11,
+    "toolNames" : [
+      "file_read",
+      "run_js",
+      "network_log",
+      "run_js",
+      "run_js",
+      "script_save",
+      "run_js",
+      "run_js",
+      "run_js",
+      "file_read",
+      "file_write"
+    ],
+    "verifierReport" : {
+      "callDurationsMs" : [
+        284.324049949646,
+        305.73999881744385,
+        301.09596252441406
+      ],
+      "maxBytes" : 26565,
+      "passed" : true,
+      "thread1Page2Posts" : 25,
+      "thread1Posts" : 25,
+      "thread2Posts" : 25
+    }
+  },
+  {
+    "answerPreview" : "**Summary: How to reinstall pacman when pacman is broken** ([How to reinstall pacman when pacman is broken](https:\/\/bbs.archlinux.org\/viewtopic.php?id=95007))\n\nThe thread is a 2010 guide, started by Profjim, for users whose pacman broke dur",
+    "cacheReadTokens" : 154347,
+    "durationSeconds" : 44.72431993484497,
+    "forum" : "bbs.archlinux.org",
+    "geminiRawCachedTokens" : 0,
+    "inputTokens" : 167005,
+    "modelID" : "claude-haiku-5-5",
+    "notesWritten" : true,
+    "outputTokens" : 8875,
+    "provider" : "anthropic",
+    "runIndex" : 3,
+    "savedScriptCount" : 1,
+    "steps" : 13,
+    "toolCallCount" : 13,
+    "toolNames" : [
+      "file_read",
+      "run_js",
+      "network_log",
+      "run_js",
+      "run_js",
+      "run_js",
+      "script_save",
+      "file_write",
+      "run_js",
+      "run_js",
+      "run_js",
+      "run_js",
+      "run_js"
+    ],
+    "verifierReport" : {
+      "callDurationsMs" : [
+        205.31904697418213,
+        284.9869728088379,
+        300.5540370941162
+      ],
+      "maxBytes" : 26519,
+      "passed" : true,
+      "thread1Page2Posts" : 25,
+      "thread1Posts" : 25,
+      "thread2Posts" : 25
+    }
+  }
+]

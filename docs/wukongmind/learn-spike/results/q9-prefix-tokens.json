@@ -1,0 +1,11 @@
+{
+  "anthropicBaselineTokens" : 8728,
+  "anthropicCandidateTokens" : 9837,
+  "anthropicDeltaTokens" : 1109,
+  "baselineToolCount" : 25,
+  "candidateToolCount" : 28,
+  "geminiCountProvider" : "vertexai",
+  "vertexBaselineTokens" : 3918,
+  "vertexCandidateTokens" : 4548,
+  "vertexDeltaTokens" : 630
+}

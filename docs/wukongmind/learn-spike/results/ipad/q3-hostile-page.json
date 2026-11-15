@@ -1,0 +1,14 @@
+{
+  "forgedPrefixesRejected" : true,
+  "forgedReadTopicPrefixedAs" : "site.read_topic",
+  "hangingPageTimedOutCleanly" : true,
+  "isolatedStillWorkedDuringHang" : true,
+  "isolatedToolUntouched" : true,
+  "oversizedDescLen" : 500,
+  "oversizedSchemaStatus" : "no schema",
+  "pageReplacedDocShim" : false,
+  "pageSawIsolatedBinder" : false,
+  "pageSawWukongHandler" : false,
+  "siteDroppedCount" : 10,
+  "sitePulledCount" : 30
+}

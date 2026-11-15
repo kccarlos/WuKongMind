@@ -1,0 +1,58 @@
+[
+  {
+    "crossSiteLeakedCookie" : false,
+    "crossSiteNoCorsBlocked" : true,
+    "crossSiteWithCorsOK" : true,
+    "csp" : "no-csp",
+    "sameSiteCarriedCookie" : true,
+    "sameSiteOK" : true
+  },
+  {
+    "crossSiteLeakedCookie" : false,
+    "crossSiteNoCorsBlocked" : true,
+    "crossSiteWithCorsOK" : true,
+    "csp" : "self-only",
+    "sameSiteCarriedCookie" : true,
+    "sameSiteOK" : true
+  },
+  {
+    "crossSiteLeakedCookie" : false,
+    "crossSiteNoCorsBlocked" : true,
+    "crossSiteWithCorsOK" : true,
+    "csp" : "nonce",
+    "sameSiteCarriedCookie" : true,
+    "sameSiteOK" : true
+  },
+  {
+    "crossSiteLeakedCookie" : false,
+    "crossSiteNoCorsBlocked" : true,
+    "crossSiteWithCorsOK" : true,
+    "csp" : "hash",
+    "sameSiteCarriedCookie" : true,
+    "sameSiteOK" : true
+  },
+  {
+    "crossSiteLeakedCookie" : false,
+    "crossSiteNoCorsBlocked" : true,
+    "crossSiteWithCorsOK" : true,
+    "csp" : "strict-dynamic",
+    "sameSiteCarriedCookie" : true,
+    "sameSiteOK" : true
+  },
+  {
+    "crossSiteLeakedCookie" : false,
+    "crossSiteNoCorsBlocked" : true,
+    "crossSiteWithCorsOK" : true,
+    "csp" : "style-src-none",
+    "sameSiteCarriedCookie" : true,
+    "sameSiteOK" : true
+  },
+  {
+    "crossSiteLeakedCookie" : false,
+    "crossSiteNoCorsBlocked" : true,
+    "crossSiteWithCorsOK" : true,
+    "csp" : "trusted-types",
+    "sameSiteCarriedCookie" : true,
+    "sameSiteOK" : true
+  }
+]

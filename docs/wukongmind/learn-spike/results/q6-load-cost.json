@@ -1,0 +1,17 @@
+{
+  "baselineMedianMs" : 6.790518760681152,
+  "baselineRangeMs" : [
+    5.7010650634765625,
+    16.70205593109131
+  ],
+  "deltaMedianMs" : 0.802457332611084,
+  "isolatedInitMedianUs" : 0,
+  "isolatedShimBytes" : 4488,
+  "pageInitMedianUs" : 0,
+  "pageShimBytes" : 4364,
+  "withShimMedianMs" : 7.592976093292236,
+  "withShimRangeMs" : [
+    6.023049354553223,
+    13.692021369934082
+  ]
+}
