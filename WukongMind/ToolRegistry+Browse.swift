@@ -7,6 +7,7 @@ import Foundation
 // (`VoiceToolBridge.response`), carried as JSON in the tool output.
 
 enum BrowseToolName {
+    static let openPage = "open_page"
     static let open = "browse_open"
     static let move = "browse_move"
     static let focus = "browse_focus"
@@ -44,6 +45,17 @@ final class BrowseToolContext {
         JSONValue.encodeCompactJSON(VoiceToolBridge.response(result, eyesFree: eyesFree))
     }
 
+    func runOpen(_ target: String) async -> String {
+        guard let navigator else {
+            return JSONValue.encodeCompactJSON(VoiceToolBridge.response(.refused("The browser isn't available."), eyesFree: eyesFree))
+        }
+        if navigator.isHandingOff {
+            return JSONValue.encodeCompactJSON(VoiceToolBridge.response(.refused(VoiceToolBridge.handOffBusyMessage), eyesFree: eyesFree))
+        }
+        let outcome = await navigator.openPage(target)
+        return JSONValue.encodeCompactJSON(VoiceToolBridge.response(outcome, eyesFree: eyesFree))
+    }
+
     // MARK: Navigation
 
     func open(_ args: [String: JSONValue], navigator: VoiceNavigator) async -> BrowseResult {
@@ -79,22 +91,28 @@ final class BrowseToolContext {
         switch action {
         case "back": return navigator.back()
         case "forward": return navigator.forward()
-        case "next", "previous", "post", "top", "bottom":
+        case "down": return await navigator.scrollPage(.down)
+        case "up": return await navigator.scrollPage(.up)
+        case "top":
+            if isOnForum, navigator.pageContext.topic != nil {
+                return await navigator.goToPost(1)
+            }
+            return await navigator.scrollPage(.top)
+        case "bottom":
+            if isOnForum, let topic = navigator.pageContext.topic {
+                return await navigator.openTopic(.topic(topic.topicID), at: .last, includeContent: true)
+            }
+            return await navigator.scrollPage(.bottom)
+        case "next", "previous", "post":
             guard isOnForum else {
                 return BrowseResult(status: .unavailable, shown: VoiceToolBridge.notForumMessage)
             }
             switch action {
             case "next": return await navigator.next()
             case "previous": return await navigator.previous()
-            case "post":
+            default:
                 guard let post else { return BrowseResult(status: .notFound, shown: "No post number was given.") }
                 return await navigator.goToPost(post)
-            case "top": return await navigator.goToPost(1)
-            default:
-                guard let topic = navigator.pageContext.topic else {
-                    return BrowseResult(status: .unavailable, shown: "No topic is open.")
-                }
-                return await navigator.openTopic(.topic(topic.topicID), at: .last, includeContent: true)
             }
         default:
             return BrowseResult(status: .unavailable, shown: "Unknown move \"\(action)\".")
@@ -131,6 +149,7 @@ extension ToolRegistry {
     /// app gives it no builder).
     static func browseTools(browse: BrowseToolContext) -> [AgentTool] {
         [
+            openPageTool(browse: browse),
             searchCardsTool(browse: browse),
             browseTool(BrowseToolName.open, browse: browse, forumOnly: true) { args, navigator in await browse.open(args, navigator: navigator) },
             browseTool(BrowseToolName.move, browse: browse, forumOnly: false) { args, navigator in
@@ -141,6 +160,37 @@ extension ToolRegistry {
                 args["scope"]?.stringValue == "visible" ? await navigator.readVisible() : await navigator.read(post: args["post"]?.intValue)
             }
         ]
+    }
+
+    private static func openPageTool(browse: BrowseToolContext) -> AgentTool {
+        AgentTool(
+            definition: AgentToolDefinition(
+                name: BrowseToolName.openPage,
+                description: """
+                Open a page for the user: an address they said ("bbc.com"), the name of a site they use ("BBC News", "GitHub"), \
+                or plain words, which become a web search. Pass the user's words as they said them; never add an address of your \
+                own. Not for a link that is on the page now (use hand_off_to_agent) and not for a forum search. It works on any \
+                page, and it is how "open X", "go to X" and "search the web for X" are done. It returns once the page has started \
+                to load, and says whether it opened a site or ran a search: tell the user which, and the title and host once \
+                known. If several sites match, it returns a short list: ask which one.
+                """,
+                parameters: [
+                    ToolParameterSchema(
+                        name: "target",
+                        type: .string,
+                        description: "What the user said to open: an address, a site name or search words.",
+                        minLength: 1
+                    )
+                ],
+                required: ["target"]
+            ),
+            summarizeArguments: { $0["target"]?.stringValue ?? "" },
+            execute: { args in
+                ToolExecutionOutput(content: await browse.runOpen(args["target"]?.textValue ?? ""))
+            },
+            surfaces: [.voice],
+            spokenResult: browseSpokenResult
+        )
     }
 
     /// A browse result's facts: the response the tool encoded.
@@ -249,14 +299,20 @@ extension ToolRegistry {
             return AgentToolDefinition(
                 name: name,
                 description: """
-                Move along the current list (the cards from the last search or focus), around the open topic, or in browser history. \
-                action: "back" or "forward" in the browser's history (works on any page); on a forum, "next" or "previous" along the \
-                list, "post" with post to go to post N of the open topic, "top" for the first post, "bottom" for the last. Call it \
-                right away for "next", "go back", "post 37" or "the first post". The result carries the post now on screen: say in a \
-                few words where you are and what it says, without reading it out. At the end of the list, say so.
+                Move around: "back" and "forward" in browser history, or scroll to the "top" or "bottom", or "down" or "up" one \
+                screen. These work on any page (on an open forum topic, "top" and "bottom" jump to the first and last post). On a \
+                forum, "next" and "previous" move along the current list (the cards from the last search or focus), and "post" \
+                with post goes to post N of the open topic. Call it right away for "next", "go back", "scroll down", "to the \
+                top", "post 37" or "the first post". Say in a few words where you are now, without reading posts out. At the end \
+                of a list or page, say so.
                 """,
                 parameters: [
-                    ToolParameterSchema(name: "action", type: .string, description: "Where to move.", enumValues: ["next", "previous", "back", "forward", "post", "top", "bottom"]),
+                    ToolParameterSchema(
+                        name: "action",
+                        type: .string,
+                        description: "Where to move.",
+                        enumValues: ["next", "previous", "back", "forward", "post", "top", "bottom", "down", "up"]
+                    ),
                     ToolParameterSchema(name: "post", type: .integer, description: "The post number, with action \"post\".", minimum: 1)
                 ],
                 required: ["action"]

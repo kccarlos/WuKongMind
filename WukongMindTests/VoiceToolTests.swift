@@ -1,3 +1,6 @@
+import Network
+import UIKit
+import WebKit
 import XCTest
 @testable import WukongMind
 
@@ -20,6 +23,7 @@ final class VoiceToolTests: XCTestCase {
         let cases: [(String, [String: JSONValue], String)] = [
             ("search_forum", ["query": "fan noise"], "find fan noise forum"),
             ("search_forum", ["query": "firmware", "scope": "topic"], "find firmware topic"),
+            ("open_page", ["target": "bbc.com"], "openPage bbc.com"),
             ("browse_open", ["card": 2], "card 1"),
             ("browse_open", ["card": "2", "at": "solution"], "open item 8/5 at solution"),
             ("browse_open", ["topic_id": "123", "at": "post", "post": 37], "open topic 123 at post(37)"),
@@ -30,6 +34,8 @@ final class VoiceToolTests: XCTestCase {
             ("browse_move", ["action": "previous"], "previous"),
             ("browse_move", ["action": "back"], "back"),
             ("browse_move", ["action": "forward"], "forward"),
+            ("browse_move", ["action": "down"], "scroll down"),
+            ("browse_move", ["action": "up"], "scroll up"),
             ("browse_move", ["action": "post", "post": "37"], "post 37"),
             ("browse_move", ["action": "top"], "post 1"),
             ("browse_move", ["action": "bottom"], "open topic 42 at last"),
@@ -51,13 +57,18 @@ final class VoiceToolTests: XCTestCase {
         XCTAssertEqual(end.scheduling, .silent)
         let unknown = await bridge.handle(.init(id: "u", name: "reply", args: [:]), eyesFree: false)
         XCTAssertEqual(unknown.response["status"], "unavailable")
-        // Off a forum: back/forward work; forum-only moves refuse with the helping sentence.
+        // Off a forum: back/forward and page scrolls work; forum-only moves refuse with the helping sentence.
         navigator.pageContext = .empty
         let offForum = await bridge.handle(.init(id: "m", name: "browse_move", args: ["action": "next"]), eyesFree: false)
         XCTAssertEqual(offForum.response["shown"], .string(VoiceToolBridge.notForumMessage))
         let backOffForum = await bridge.handle(.init(id: "b", name: "browse_move", args: ["action": "back"]), eyesFree: false)
         XCTAssertEqual(navigator.calls.last, "back")
         XCTAssertEqual(backOffForum.response["status"], "opened")
+        for scroll in ["top", "bottom", "down", "up"] {
+            let moved = await bridge.handle(.init(id: "s", name: "browse_move", args: ["action": .string(scroll)]), eyesFree: false)
+            XCTAssertEqual(navigator.calls.last, "scroll \(scroll)")
+            XCTAssertEqual(moved.response["status"], "moved")
+        }
     }
 
     func testResultsBecomeFunctionResponsesThatSayWhatToSay() {
@@ -204,9 +215,9 @@ final class VoiceToolTests: XCTestCase {
             registry: app.voiceToolRegistry(browse: BrowseToolContext(navigator: app, site: app.voiceSite))
         ).map(\.name))
         let promptCorpus = text + "\n" + VoiceTool.allCases.map(\.description).joined(separator: "\n")
-        for undeclared in ["open_page", "open_link", "scroll down", "scroll up"] {
-            XCTAssertFalse(promptCorpus.contains(undeclared), "Undeclared capability in voice prompt: \(undeclared)")
-        }
+        XCTAssertTrue(promptCorpus.contains("open_page"))
+        XCTAssertTrue(promptCorpus.contains("scroll down"))
+        XCTAssertFalse(promptCorpus.contains("open_link"), "open_link is declared in Task 4")
         let snakeCase = try! NSRegularExpression(pattern: "\\b[a-z]+_[a-z_]+\\b")
         let range = NSRange(promptCorpus.startIndex..<promptCorpus.endIndex, in: promptCorpus)
         let mentioned = Set(snakeCase.matches(in: promptCorpus, range: range).compactMap {
@@ -406,9 +417,10 @@ final class VoiceToolTests: XCTestCase {
         let voice = app.voiceToolRegistry(browse: BrowseToolContext(navigator: app, site: app.voiceSite))
         XCTAssertEqual(fromForum.map(\.name), voice.definitions.map(\.name) + ["end", "hand_off_to_agent"])
         XCTAssertEqual(Set(voice.definitions.map(\.name)), [
-            "read_page", "search_forum", "read_topic", "summarize_topic", "read_aloud", "watch_topic",
+            "read_page", "open_page", "search_forum", "read_topic", "summarize_topic", "read_aloud", "watch_topic",
             "browse_open", "browse_move", "browse_focus", "read_post"
-        ], "12 with end and the hand-off; heavy tools, notify and inject_css stay text-only")
+        ], "13 with end and the hand-off; navigate, heavy tools, notify and inject_css stay text-only")
+        XCTAssertNil(voice.tool(named: "navigate"), "navigate stays text-only")
         XCTAssertNil(voice.tool(named: "read_page")?.definition.parameters.first { $0.name == "mode" }, "structure only")
 
         Self.openForumHome(app)
@@ -418,8 +430,8 @@ final class VoiceToolTests: XCTestCase {
             browse: BrowseToolContext(navigator: app, site: app.voiceSite, isOnForum: true)
         )
         let text = Set(ToolRegistry.m3(context: context).definitions.map(\.name))
-        XCTAssertTrue(text.isDisjoint(with: ["browse_open", "browse_move", "browse_focus", "read_post"]), "\(text)")
-        XCTAssertTrue(text.isSuperset(of: ["search_forum", "read_topic", "read_page", "inject_css", "notify"]))
+        XCTAssertTrue(text.isDisjoint(with: ["open_page", "browse_open", "browse_move", "browse_focus", "read_post"]), "\(text)")
+        XCTAssertTrue(text.isSuperset(of: ["navigate", "reload_page", "search_forum", "read_topic", "read_page", "inject_css", "notify"]))
         XCTAssertNotNil(ToolRegistry.m3(context: context).tool(named: "read_page")?.definition.parameters.first { $0.name == "mode" })
     }
 
@@ -442,9 +454,7 @@ final class VoiceToolTests: XCTestCase {
             ("watch_topic", [:]),
             ("browse_move", ["action": "next"]),
             ("browse_move", ["action": "previous"]),
-            ("browse_move", ["action": "post", "post": 3]),
-            ("browse_move", ["action": "top"]),
-            ("browse_move", ["action": "bottom"])
+            ("browse_move", ["action": "post", "post": 3])
         ]
         for (name, args) in calls {
             let outcome = await bridge.handle(.init(id: "c", name: name, args: args), eyesFree: false)
@@ -518,6 +528,154 @@ final class VoiceToolTests: XCTestCase {
         )
     }
 
+    // MARK: Voice anywhere 3: open_page and any-page moves
+
+    func testOpenPageResolvesAddressesHomeSitesAndWebSearches() {
+        let stamp = Date(timeIntervalSince1970: 1_800_000_000)
+        let forums = [
+            Forum(siteURL: "https://news.ycombinator.com", kind: .hackerNews, name: "Hacker News", isPinned: true, pinOrder: 0),
+            Forum(siteURL: "https://meta.appinn.net", kind: .discourse, name: "小众软件", isPinned: true, pinOrder: 1)
+        ]
+        let visits = (1...16).map { SiteVisit(siteURL: "https://site\($0).example.org", name: "Site \($0)", isForum: false, visitCount: 20 - $0, lastVisitedAt: stamp) }
+            + [SiteVisit(siteURL: "https://www.bbc.co.uk", name: "BBC News", isForum: false, visitCount: 1, lastVisitedAt: stamp)]
+
+        func resolve(_ target: String, engine: SearchEngine = .google) -> VoicePageNavigation.Resolution {
+            VoicePageNavigation.resolve(target, forums: forums, visits: visits, webSearchURL: { engine.searchURL(for: $0) })
+        }
+        func siteURL(_ resolution: VoicePageNavigation.Resolution) -> String? {
+            if case .site(let site) = resolution { return site.siteURL }
+            return nil
+        }
+
+        XCTAssertEqual(resolve("bbc.com"), .address(URL(string: "https://bbc.com")!))
+        XCTAssertEqual(resolve("github.com/kccarlos"), .address(URL(string: "https://github.com/kccarlos")!))
+        XCTAssertEqual(siteURL(resolve("Hacker News")), "https://news.ycombinator.com")
+        XCTAssertEqual(siteURL(resolve("appinn")), "https://meta.appinn.net", "Matched by host")
+        XCTAssertEqual(siteURL(resolve("Site 15")), "https://site15.example.org", "Matches past Home's 11-tile limit")
+        XCTAssertEqual(resolve("news"), .multipleSites([
+            .init(name: "Hacker News", host: "news.ycombinator.com"),
+            .init(name: "BBC News", host: "www.bbc.co.uk")
+        ]))
+        XCTAssertEqual(
+            resolve("best sourdough starter", engine: .duckDuckGo),
+            .search(URL(string: "https://duckduckgo.com/?q=best%20sourdough%20starter")!, query: "best sourdough starter")
+        )
+        XCTAssertEqual(resolve("t/123"), .search(URL(string: "https://www.google.com/search?q=t/123")!, query: "t/123"))
+    }
+
+    func testOpenPageStripsQueryAndFragmentAndRefusesOtherSchemes() {
+        func resolve(_ target: String) -> VoicePageNavigation.Resolution {
+            VoicePageNavigation.resolve(target, forums: [], visits: [], webSearchURL: { SearchEngine.google.searchURL(for: $0) })
+        }
+        XCTAssertEqual(resolve("bbc.com/news?utm_source=voice&x=1#top"), .address(URL(string: "https://bbc.com/news")!))
+        XCTAssertEqual(resolve("https://bbc.com/news?token=secret#section"), .address(URL(string: "https://bbc.com/news")!))
+        XCTAssertEqual(resolve("127.0.0.1:8080/page?session=abc#frag"), .address(URL(string: "http://127.0.0.1:8080/page")!))
+        for bad in ["javascript:alert(1)", "javascript: alert(1)", "mailto:user@example.com", "file:///etc/hosts", "ftp://files.example.com/a", "data:text/html,hi", "about:blank", "wukongmind://open"] {
+            XCTAssertEqual(resolve(bad), .refused(VoicePageNavigation.nonWebSchemeMessage), bad)
+        }
+    }
+
+    func testOpenPageRefusesDuringRunningHandOff() async {
+        let navigator = FakeVoiceNavigator()
+        navigator.holdsHandOff = true
+        let bridge = VoiceToolBridge(navigator: navigator)
+        _ = bridge.declare()
+
+        let started = await bridge.handle(.init(id: "h", name: "hand_off_to_agent", args: ["request": "Turn this page dark"]), eyesFree: false)
+        XCTAssertEqual(started.effect, .handOffStarted)
+        let refused = await bridge.handle(.init(id: "o1", name: "open_page", args: ["target": "bbc.com"]), eyesFree: false)
+        XCTAssertEqual(refused.response["status"], "unavailable")
+        XCTAssertEqual(refused.response["shown"], .string(VoiceToolBridge.handOffBusyMessage))
+        XCTAssertFalse(navigator.calls.contains("openPage bbc.com"))
+
+        _ = await bridge.handle(.init(id: "c", name: "hand_off_to_agent", args: ["action": "cancel"]), eyesFree: false)
+        let allowed = await bridge.handle(.init(id: "o2", name: "open_page", args: ["target": "bbc.com"]), eyesFree: false)
+        XCTAssertEqual(allowed.response["status"], "opened")
+        XCTAssertTrue(navigator.calls.contains("openPage bbc.com"))
+    }
+
+    func testOrdinaryPageOpenAndMovesWorkInWebKit() async throws {
+        let server = try LocalPageServer()
+        try await server.start()
+        addTeardownBlock { server.stop() }
+
+        let savedVisits = UserDefaults.standard.data(forKey: SiteVisitStore.defaultsKey)
+        UserDefaults.standard.removeObject(forKey: SiteVisitStore.defaultsKey)
+        addTeardownBlock {
+            if let savedVisits { UserDefaults.standard.set(savedVisits, forKey: SiteVisitStore.defaultsKey) }
+            else { UserDefaults.standard.removeObject(forKey: SiteVisitStore.defaultsKey) }
+        }
+
+        let app = makeApp()
+        app.browser.onPageContextChanged = nil
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let hostVC = UIViewController()
+        hostVC.view.frame = window.bounds
+        app.browser.webView.frame = window.bounds
+        hostVC.view.addSubview(app.browser.webView)
+        window.rootViewController = hostVC
+        window.isHidden = false
+        window.layoutIfNeeded()
+        addTeardownBlock { app.browser.webView.removeFromSuperview(); window.isHidden = true }
+
+        let bridge = VoiceToolBridge(navigator: app)
+        bridge.registryBuilder = app.voiceToolRegistry
+        _ = bridge.declare()
+
+        let openedOne = await bridge.handle(.init(id: "p1", name: "open_page", args: ["target": .string("127.0.0.1:\(server.port)/one?secret=drop#section")]), eyesFree: false)
+        XCTAssertEqual(openedOne.response["status"], "opened")
+        XCTAssertEqual(openedOne.response["title"], "First Article")
+        XCTAssertEqual(openedOne.response["host"], "127.0.0.1")
+        XCTAssertEqual(app.browser.webView.url?.absoluteString, "http://127.0.0.1:\(server.port)/one")
+        app.browser.setPageContext(PageContext(url: app.browser.webView.url, state: .notForum))
+
+        func scrollY() async throws -> Double { ((try await app.browser.webView.evaluateJavaScript("window.scrollY")) as? NSNumber)?.doubleValue ?? 0 }
+        func move(_ action: String) async -> VoiceToolOutcome { await bridge.handle(.init(id: action, name: "browse_move", args: ["action": .string(action)]), eyesFree: false) }
+
+        let initialY = try await scrollY()
+        XCTAssertEqual(initialY, 0, accuracy: 2)
+        let down = await move("down")
+        XCTAssertEqual(down.response["status"], "moved")
+        let afterDown = try await scrollY()
+        XCTAssertGreaterThan(afterDown, 400)
+        let up = await move("up")
+        XCTAssertEqual(up.response["status"], "moved")
+        let afterUp = try await scrollY()
+        XCTAssertEqual(afterUp, 0, accuracy: 2)
+        let bottom = await move("bottom")
+        XCTAssertEqual(bottom.response["status"], "moved")
+        let afterBottom = try await scrollY()
+        XCTAssertGreaterThan(afterBottom, 2_000)
+        let top = await move("top")
+        XCTAssertEqual(top.response["status"], "moved")
+        let afterTop = try await scrollY()
+        XCTAssertEqual(afterTop, 0, accuracy: 2)
+
+        let openedTwo = await bridge.handle(.init(id: "p2", name: "open_page", args: ["target": .string("127.0.0.1:\(server.port)/two")]), eyesFree: false)
+        XCTAssertEqual(openedTwo.response["title"], "Second Article")
+        app.browser.setPageContext(PageContext(url: app.browser.webView.url, state: .notForum))
+
+        let back = await move("back")
+        XCTAssertEqual(back.response["status"], "moved")
+        await app.browser.waitUntilSettled(timeout: .seconds(5))
+        XCTAssertEqual(app.browser.webView.url?.path, "/one")
+        let forward = await move("forward")
+        XCTAssertEqual(forward.response["status"], "moved")
+        await app.browser.waitUntilSettled(timeout: .seconds(5))
+        XCTAssertEqual(app.browser.webView.url?.path, "/two")
+
+        let slow = await app.openPage("127.0.0.1:\(server.port)/slow", timeout: 0.15)
+        XCTAssertEqual(slow, .opened(kind: .address, title: nil, host: "127.0.0.1", loading: true))
+
+        let closed = try LocalPageServer()
+        try await closed.start()
+        let closedPort = closed.port
+        closed.stop()
+        let failed = await bridge.handle(.init(id: "fl", name: "open_page", args: ["target": .string("127.0.0.1:\(closedPort)/one")]), eyesFree: false)
+        XCTAssertEqual(failed.response["status"], "failed")
+        XCTAssertTrue(failed.response["shown"]?.stringValue?.contains("Couldn't open 127.0.0.1:") == true)
+    }
+
     private static func openForumHome(_ app: AppModel) {
         app.browser.onPageContextChanged = nil
         app.browser.setPageContext(PageContext(
@@ -552,5 +710,54 @@ private extension Result {
     var failureValue: Failure? {
         if case .failure(let error) = self { return error }
         return nil
+    }
+}
+
+private final class LocalPageServer: @unchecked Sendable {
+    private let listener: NWListener
+    private let queue = DispatchQueue(label: "VoiceToolTests.LocalPageServer")
+    private var held: [NWConnection] = []
+    private(set) var port: UInt16 = 0
+
+    init() throws {
+        let parameters = NWParameters.tcp
+        parameters.requiredLocalEndpoint = NWEndpoint.hostPort(host: "127.0.0.1", port: .any)
+        listener = try NWListener(using: parameters)
+    }
+
+    func start() async throws {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            nonisolated(unsafe) var resumed = false
+            listener.stateUpdateHandler = { [weak self] state in
+                guard !resumed, let self else { return }
+                if case .ready = state { resumed = true; self.port = self.listener.port?.rawValue ?? 0; continuation.resume() }
+                else if case .failed(let error) = state { resumed = true; continuation.resume(throwing: error) }
+            }
+            listener.newConnectionHandler = { [weak self] connection in self?.handle(connection) }
+            listener.start(queue: queue)
+        }
+    }
+
+    func stop() {
+        listener.cancel()
+        queue.sync { held.forEach { $0.cancel() }; held.removeAll() }
+    }
+
+    private func handle(_ connection: NWConnection) {
+        connection.start(queue: queue)
+        connection.receive(minimumIncompleteLength: 1, maximumLength: 16_384) { [weak self] data, _, _, _ in
+            guard let self, let data, let request = String(data: data, encoding: .utf8) else { connection.cancel(); return }
+            let parts = (request.split(separator: "\r\n").first ?? "").split(separator: " ")
+            let path = parts.count > 1 ? String(parts[1]) : "/"
+            if path.hasPrefix("/slow") { self.held.append(connection); return }
+            let title = path.hasPrefix("/two") ? "Second Article" : "First Article"
+            let body = "<!doctype html><html><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>\(title)</title></head><body style=\"margin:0\"><div style=\"height:3600px;padding:24px\"><h1>\(title)</h1></div></body></html>"
+            let bodyData = Data(body.utf8)
+            let header = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: \(bodyData.count)\r\nCache-Control: no-store\r\nConnection: close\r\n\r\n"
+            let closeQueue = self.queue
+            connection.send(content: Data(header.utf8) + bodyData, contentContext: .finalMessage, isComplete: true, completion: .contentProcessed { _ in
+                closeQueue.asyncAfter(deadline: .now() + .milliseconds(150)) { connection.cancel() }
+            })
+        }
     }
 }

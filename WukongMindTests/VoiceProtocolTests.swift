@@ -25,9 +25,11 @@ final class VoiceProtocolTests: XCTestCase {
         XCTAssertEqual(((body["systemInstruction"] as? [String: Any])?["parts"] as? [[String: Any]])?.first?["text"] as? String, "Be brief.")
 
         let declarations = try XCTUnwrap((body["tools"] as? [[String: Any]])?.first?["functionDeclarations"] as? [[String: Any]])
-        XCTAssertEqual(declarations.map { $0["name"] as? String }, ["search_forum", "browse_open", "browse_move", "browse_focus", "read_post", "end", "hand_off_to_agent"])
+        XCTAssertEqual(declarations.map { $0["name"] as? String }, ["open_page", "search_forum", "browse_open", "browse_move", "browse_focus", "read_post", "end", "hand_off_to_agent"])
         XCTAssertTrue(declarations.allSatisfy { $0["behavior"] as? String == "NON_BLOCKING" })
-        let find = try XCTUnwrap(declarations.first)
+        let openPage = try XCTUnwrap(declarations.first { $0["name"] as? String == "open_page" })
+        XCTAssertEqual((openPage["parameters"] as? [String: Any])?["required"] as? [String], ["target"])
+        let find = try XCTUnwrap(declarations.first { $0["name"] as? String == "search_forum" })
         XCTAssertEqual((find["parameters"] as? [String: Any])?["type"] as? String, "OBJECT")
         XCTAssertEqual((find["parameters"] as? [String: Any])?["required"] as? [String], ["query"])
         XCTAssertNil(declarations.first { $0["name"] as? String == "end" }?["parameters"], "end takes no arguments")

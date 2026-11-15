@@ -163,6 +163,7 @@ final class FakeVoiceNavigator: VoiceNavigator {
     var agentHandOff: AgentHandOff?
     private(set) var calls: [String] = []
     var results: [String: BrowseResult] = [:]
+    var openResults: [String: VoiceOpenResult] = [:]
     var brief: VoiceTopicBrief?
     var visible: [VisiblePost] = []
     var summary: String?
@@ -180,6 +181,11 @@ final class FakeVoiceNavigator: VoiceNavigator {
 
     func find(_ query: String, scope: BrowseSearchScope) async -> BrowseResult {
         answer("find \(query) \(scope.rawValue)", key: "find")
+    }
+
+    func openPage(_ target: String) async -> VoiceOpenResult {
+        calls.append("openPage \(target)")
+        return openResults[target] ?? .opened(kind: .address, title: nil, host: target, loading: true)
     }
 
     func openTopic(_ target: BrowseTarget, at landing: BrowseLanding, includeContent: Bool) async -> BrowseResult {
@@ -201,6 +207,10 @@ final class FakeVoiceNavigator: VoiceNavigator {
     func previous() async -> BrowseResult { answer("previous", key: "previous") }
     func back() -> BrowseResult { answer("back", key: "back") }
     func forward() -> BrowseResult { answer("forward", key: "forward") }
+    func scrollPage(_ direction: VoicePageScroll) async -> BrowseResult {
+        calls.append("scroll \(direction.rawValue)")
+        return results["scroll"] ?? BrowseResult(status: .moved, shown: "Scrolled \(direction.rawValue).")
+    }
 
     func focus(_ focus: BrowseFocus) async -> BrowseResult {
         answer("focus \(focus)", key: "focus")

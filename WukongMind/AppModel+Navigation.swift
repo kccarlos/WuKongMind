@@ -1,6 +1,7 @@
 import Combine
 import Foundation
 import SwiftUI
+import WebKit
 
 // MARK: - Post-level browsing (the navigation layer)
 //
@@ -100,6 +101,70 @@ enum BrowseNavigation {
             }
             return Plan(url: topic, postNumber: nil)
         }
+    }
+}
+
+/// Pure target resolution for `open_page` (voice-review.md "Navigation"):
+/// address (query/fragment stripped, non-http(s) refused), Home site, else web search.
+enum VoicePageNavigation {
+    enum Resolution: Equatable {
+        case address(URL)
+        case site(HomeSite)
+        case multipleSites([VoiceOpenResult.Candidate])
+        case search(URL, query: String)
+        case refused(String)
+    }
+
+    static let nonWebSchemeMessage = "Only http and https addresses can be opened."
+    private static let refusedPrefixes = [
+        "javascript:", "data:", "vbscript:", "mailto:", "about:", "file:", "blob:", "tel:", "sms:", "wukongmind:"
+    ]
+
+    static func resolve(_ target: String, forums: [Forum], visits: [SiteVisit], webSearchURL: (String) -> URL?) -> Resolution {
+        let text = target.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return .refused("No page was named.") }
+        if let classified = classifyAddress(text) { return classified }
+
+        let matches = HomeSites.matches(HomeSites.tiles(forums: forums, visits: visits, limit: .max), for: text, limit: .max)
+        if matches.count == 1 { return .site(matches[0]) }
+        if matches.count > 1 {
+            let needle = text.lowercased()
+            let exact = matches.filter { $0.name.lowercased() == needle || $0.host.lowercased() == needle }
+            if exact.count == 1 { return .site(exact[0]) }
+            return .multipleSites(matches.prefix(5).map { .init(name: $0.name, host: $0.host) })
+        }
+        guard let url = webSearchURL(text) else { return .refused("Couldn't build a search address.") }
+        return .search(url, query: text)
+    }
+
+    private static func classifyAddress(_ text: String) -> Resolution? {
+        let lower = text.lowercased()
+        if let range = lower.range(of: "^[a-z][a-z0-9+.-]*://", options: .regularExpression) {
+            let scheme = String(lower[range].dropLast(3))
+            guard scheme == "http" || scheme == "https" else { return .refused(nonWebSchemeMessage) }
+            guard let resolved = ForumBrowserModel.resolveAddress(text, currentSiteURL: nil),
+                  let cleaned = strippedWebURL(resolved) else { return .refused("That address isn't valid.") }
+            return .address(cleaned)
+        }
+        if refusedPrefixes.contains(where: { lower.hasPrefix($0) }) { return .refused(nonWebSchemeMessage) }
+        guard !text.contains(where: \.isWhitespace) else { return nil }
+        if lower.range(of: "^[a-z][a-z0-9+.-]*:[^0-9]", options: .regularExpression) != nil
+            || lower.range(of: "^[a-z][a-z0-9+.-]*:$", options: .regularExpression) != nil {
+            return (lower.hasPrefix("http:") || lower.hasPrefix("https:"))
+                ? .refused("That address isn't valid.") : .refused(nonWebSchemeMessage)
+        }
+        guard let resolved = ForumBrowserModel.resolveAddress(text, currentSiteURL: nil) else { return nil }
+        return strippedWebURL(resolved).map(Resolution.address) ?? .refused("That address isn't valid.")
+    }
+
+    static func strippedWebURL(_ url: URL) -> URL? {
+        guard var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return nil }
+        components.query = nil
+        components.fragment = nil
+        components.user = nil
+        components.password = nil
+        guard let cleaned = components.url, ForumBrowserModel.isBrowsableURL(cleaned) else { return nil }
+        return cleaned
     }
 }
 
@@ -504,6 +569,11 @@ extension AppModel {
     /// The browser's back and forward.
     @discardableResult
     func back() -> BrowseResult {
+        if browser.isForumsHomeRequested, browser.currentURL != nil {
+            browser.hideForumsHome()
+            homeVisibilityChanged()
+            return BrowseResult(status: .moved, shown: "Went back.")
+        }
         guard browser.canGoBack else { return BrowseResult(status: .endOfList, shown: "There is nothing to go back to.") }
         browser.goBack()
         return BrowseResult(status: .moved, shown: "Went back.")
@@ -514,6 +584,112 @@ extension AppModel {
         guard browser.canGoForward else { return BrowseResult(status: .endOfList, shown: "There is nothing to go forward to.") }
         browser.goForward()
         return BrowseResult(status: .moved, shown: "Went forward.")
+    }
+
+    // MARK: Any-page voice navigation (`open_page` and page scroll)
+
+    static let openPageLoadWait: TimeInterval = 1.5
+
+    func openPage(_ target: String) async -> VoiceOpenResult {
+        await openPage(target, timeout: Self.openPageLoadWait)
+    }
+
+    func openPage(_ target: String, timeout: TimeInterval) async -> VoiceOpenResult {
+        if isHandingOff { return .refused(VoiceToolBridge.handOffBusyMessage) }
+        if browserAgent.isRunning { return .refused("The Agent is busy with another request. Try again when it's done.") }
+        switch VoicePageNavigation.resolve(target, forums: forums, visits: siteVisits.shownVisits, webSearchURL: webSearchURL(query:)) {
+        case .refused(let reason):
+            return .refused(reason)
+        case .multipleSites(let candidates):
+            return .choices(target: target.trimmingCharacters(in: .whitespacesAndNewlines), candidates: candidates)
+        case .address(let url):
+            return await loadVoicePage(url, kind: .address, timeout: timeout)
+        case .site(let site):
+            if let forum = site.forum {
+                guard let adapter = sites.adapter(for: forum.kind),
+                      let homeURL = adapter.links.homeURL(siteURL: forum.siteURL) else { return .failed("That site can't be opened.") }
+                recordVisit(siteURL: forum.siteURL, kind: forum.kind, name: forum.name, iconURL: forum.iconURL)
+                browser.homeSiteURL = forum.siteURL
+                panelRoute = .topic
+                return await loadVoicePage(homeURL, kind: .site, siteName: site.name, timeout: timeout)
+            }
+            guard let url = site.url else { return .failed("That site can't be opened.") }
+            siteVisits.noteVisit(siteURL: site.siteURL, name: site.name, isForum: false)
+            return await loadVoicePage(url, kind: .site, siteName: site.name, timeout: timeout)
+        case .search(let url, let query):
+            return await loadVoicePage(url, kind: .search, query: query, timeout: timeout)
+        }
+    }
+
+    private func loadVoicePage(
+        _ url: URL, kind: VoiceOpenResult.Kind, siteName: String? = nil, query: String? = nil, timeout: TimeInterval
+    ) async -> VoiceOpenResult {
+        let previousURL = browser.webView.url
+        let previousTitle = browser.webView.title?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let fallbackHost = url.host?.lowercased() ?? ForumSite.host(of: url.absoluteString)
+        guard let outcome = try? await browser.agentLoad(url, wait: true, timeout: timeout) else {
+            return .failed("The load was cancelled.")
+        }
+        homeVisibilityChanged()
+        if let failure = outcome.failure {
+            let verb = kind == .search ? "Couldn't search the web (\(fallbackHost))" : "Couldn't open \(fallbackHost)"
+            return .failed("\(verb): \(failure)")
+        }
+        let committed = outcome.timedOut ? (browser.webView.url != previousURL ? browser.webView.url : nil) : (URL(string: outcome.url) ?? url)
+        let host = (committed ?? url).host?.lowercased() ?? fallbackHost
+        let rawTitle = (outcome.timedOut && committed == nil) ? "" : outcome.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let title = (rawTitle.isEmpty || rawTitle == ForumBrowserModel.defaultPageTitle || (outcome.timedOut && rawTitle == previousTitle)) ? nil : rawTitle
+        return .opened(kind: kind, title: title, host: host, siteName: siteName, query: query, loading: outcome.timedOut)
+    }
+
+    @discardableResult
+    func scrollPage(_ direction: VoicePageScroll) async -> BrowseResult {
+        guard !browser.showsForumsHome, browser.webView.url != nil || browser.currentURL != nil else {
+            return BrowseResult(status: .unavailable, shown: "No page is open to scroll.")
+        }
+        let scrollView = browser.webView.scrollView
+        let topInset = scrollView.adjustedContentInset.top
+        let fallbackViewport = max(0, scrollView.bounds.height - topInset - scrollView.adjustedContentInset.bottom)
+        var currentY = max(0, scrollView.contentOffset.y + topInset)
+        var viewport = fallbackViewport > 0 ? fallbackViewport : 600
+        var docHeight = max(scrollView.contentSize.height, viewport)
+
+        if let metrics = (try? await browser.webView.callAsyncJavaScript(
+            "const d=document.documentElement,b=document.body;return{y:window.scrollY||0,vh:window.innerHeight||0,h:Math.max(d?d.scrollHeight:0,d?d.offsetHeight:0,b?b.scrollHeight:0,b?b.offsetHeight:0)};",
+            arguments: [:], in: nil, contentWorld: .defaultClient
+        )) as? [String: Any] {
+            if let y = (metrics["y"] as? NSNumber)?.doubleValue, y.isFinite { currentY = max(0, CGFloat(y)) }
+            if let vh = (metrics["vh"] as? NSNumber)?.doubleValue, vh.isFinite, vh > 0 { viewport = CGFloat(vh) }
+            if let h = (metrics["h"] as? NSNumber)?.doubleValue, h.isFinite, h > 0 { docHeight = max(CGFloat(h), viewport) }
+        }
+
+        let maxY = max(0, docHeight - viewport)
+        let step = max(120, (viewport * 0.9).rounded())
+        let targetY: CGFloat
+        switch direction {
+        case .top: targetY = 0
+        case .bottom: targetY = maxY
+        case .down:
+            guard currentY < maxY - 1 else { return BrowseResult(status: .endOfList, shown: "Already at the bottom of the page.") }
+            targetY = min(maxY, currentY + step)
+        case .up:
+            guard currentY > 1 else { return BrowseResult(status: .endOfList, shown: "Already at the top of the page.") }
+            targetY = max(0, currentY - step)
+        }
+
+        scrollView.setContentOffset(CGPoint(x: scrollView.contentOffset.x, y: targetY - topInset), animated: false)
+        browser.webView.layoutIfNeeded()
+        _ = try? await browser.webView.callAsyncJavaScript(
+            "window.scrollTo({top:y,behavior:'instant'});return window.scrollY;",
+            arguments: ["y": Double(targetY.rounded())], in: nil, contentWorld: .defaultClient
+        )
+        let shown: String = switch direction {
+        case .top: currentY <= 1 ? "At the top of the page." : "Scrolled to the top."
+        case .bottom: currentY >= maxY - 1 ? "At the bottom of the page." : "Scrolled to the bottom."
+        case .down: targetY >= maxY - 1 ? "Scrolled down to the bottom." : "Scrolled down."
+        case .up: targetY <= 1 ? "Scrolled up to the top." : "Scrolled up."
+        }
+        return BrowseResult(status: .moved, shown: shown)
     }
 
     // MARK: Read
