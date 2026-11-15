@@ -209,7 +209,8 @@ final class OneLoopLiveAcceptanceUITests: DCUITestCase {
         if picked == nil {
             // No thread given: open the first topic on the latest list, as a person would.
             showBrowser(in: app)
-            let topic = app.webViews.links.matching(NSPredicate(format: "label MATCHES %@", ".{12,}")).element(boundBy: 3)
+            // Each row's reply count links to the topic ("44 条回复，跳转到第一个帖子"); the first row is pinned.
+            let topic = app.webViews.links.matching(NSPredicate(format: "label CONTAINS %@", "条回复")).element(boundBy: 1)
             XCTAssertTrue(waitOrDump(topic, timeout: 90, in: app), "No topic on uscardforum's latest list.")
             capture("page-change-0-latest")
             topic.tap()
