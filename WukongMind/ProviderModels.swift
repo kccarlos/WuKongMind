@@ -184,6 +184,30 @@ struct FavoriteModel: Codable, Hashable, Identifiable, Sendable {
     var id: String { "\(provider.rawValue):\(model)" }
 }
 
+/// One model from a provider's model list (or its built-in list), in the
+/// provider's order with its display name and creation timestamp when given.
+struct DiscoveredModel: Codable, Hashable, Identifiable, Sendable {
+    var id: String
+    var displayName: String?
+    var createdAt: Date?
+
+    init(id: String, displayName: String? = nil, createdAt: Date? = nil) {
+        self.id = id
+        let trimmed = displayName?.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.displayName = if let trimmed, !trimmed.isEmpty { trimmed } else { nil }
+        self.createdAt = createdAt
+    }
+
+    /// Display name when present and distinct from `id`.
+    var distinctDisplayName: String? {
+        guard let displayName, displayName != id else { return nil }
+        return displayName
+    }
+
+    /// Primary row title: `displayName` when distinct, otherwise `id`.
+    var title: String { distinctDisplayName ?? id }
+}
+
 /// Budget and output truncation defaults for the page browser agent (`WukongMind` M1).
 enum BrowserAgentLimits {
     static let defaultMaxSteps = 30

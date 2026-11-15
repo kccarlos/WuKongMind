@@ -269,14 +269,14 @@ class AIService: @unchecked Sendable {
     func discoverModels(
         configuration: ProviderConfiguration,
         provider: AIProvider
-    ) async throws -> [String] {
+    ) async throws -> [DiscoveredModel] {
         if provider == .appleIntelligence {
             // No model list: the system picks the backend.
             let backend = try appleIntelligence.requireBackend()
-            return [backend.label]
+            return [DiscoveredModel(id: backend.label)]
         }
         if provider == .vertexAI {
-            return AIProvider.vertexAIModels
+            return AIProvider.vertexAIModels.map { DiscoveredModel(id: $0) }
         }
         let base = normalizedBaseURL(configuration.baseURL)
         var request: URLRequest
@@ -313,18 +313,97 @@ class AIService: @unchecked Sendable {
             throw AssistantError.invalidResponse
         }
 
-        let models: [String]
-        if provider == .gemini {
-            models = (json["models"] as? [[String: Any]] ?? [])
-                .compactMap { ($0["name"] as? String)?.replacingOccurrences(of: "models/", with: "") }
-        } else if provider == .ollama {
-            models = (json["models"] as? [[String: Any]] ?? [])
-                .compactMap { $0["name"] as? String }
-        } else {
-            models = (json["data"] as? [[String: Any]] ?? [])
-                .compactMap { $0["id"] as? String }
+        return Self.parseDiscoveredModels(json: json, provider: provider)
+    }
+
+    static func parseDiscoveredModels(json: [String: Any], provider: AIProvider) -> [DiscoveredModel] {
+        switch provider {
+        case .gemini:
+            let entries = json["models"] as? [[String: Any]] ?? []
+            return deduplicatedModels(entries.compactMap { item in
+                guard let rawName = item["name"] as? String else { return nil }
+                let id = rawName.hasPrefix("models/")
+                    ? String(rawName.dropFirst("models/".count))
+                    : rawName
+                let trimmedID = id.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !trimmedID.isEmpty else { return nil }
+                let displayName = (item["displayName"] as? String) ?? (item["display_name"] as? String)
+                return DiscoveredModel(id: trimmedID, displayName: displayName)
+            })
+
+        case .ollama:
+            let entries = json["models"] as? [[String: Any]] ?? []
+            return deduplicatedModels(entries.compactMap { item in
+                guard let rawName = item["name"] as? String else { return nil }
+                let trimmedID = rawName.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !trimmedID.isEmpty else { return nil }
+                return DiscoveredModel(id: trimmedID)
+            })
+
+        case .anthropic:
+            let entries = json["data"] as? [[String: Any]] ?? []
+            return deduplicatedModels(entries.compactMap { item in
+                guard let rawID = item["id"] as? String else { return nil }
+                let trimmedID = rawID.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !trimmedID.isEmpty else { return nil }
+                let displayName = item["display_name"] as? String
+                let createdAt = parseModelTimestamp(item["created_at"]) ?? parseModelTimestamp(item["created"])
+                return DiscoveredModel(id: trimmedID, displayName: displayName, createdAt: createdAt)
+            })
+
+        default:
+            let entries = json["data"] as? [[String: Any]] ?? []
+            let unique = deduplicatedModels(entries.compactMap { item in
+                guard let rawID = item["id"] as? String else { return nil }
+                let trimmedID = rawID.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !trimmedID.isEmpty else { return nil }
+                let displayName = (item["display_name"] as? String) ?? (item["name"] as? String)
+                let createdAt = parseModelTimestamp(item["created"]) ?? parseModelTimestamp(item["created_at"])
+                return DiscoveredModel(id: trimmedID, displayName: displayName, createdAt: createdAt)
+            })
+            return unique.enumerated()
+                .sorted { lhs, rhs in
+                    switch (lhs.element.createdAt, rhs.element.createdAt) {
+                    case let (leftDate?, rightDate?):
+                        if leftDate != rightDate { return leftDate > rightDate }
+                        return lhs.offset < rhs.offset
+                    case (_?, nil):
+                        return true
+                    case (nil, _?):
+                        return false
+                    case (nil, nil):
+                        return lhs.element.id < rhs.element.id
+                    }
+                }
+                .map(\.element)
         }
-        return Array(Set(models)).sorted()
+    }
+
+    private static func deduplicatedModels(_ models: [DiscoveredModel]) -> [DiscoveredModel] {
+        var seen = Set<String>()
+        return models.filter { seen.insert($0.id).inserted }
+    }
+
+    private static func parseModelTimestamp(_ raw: Any?) -> Date? {
+        if let number = raw as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID() {
+            let seconds = number.doubleValue
+            guard seconds > 0 else { return nil }
+            return Date(timeIntervalSince1970: seconds)
+        }
+        if let text = raw as? String {
+            let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty else { return nil }
+            if let date = try? Date.ISO8601FormatStyle(includingFractionalSeconds: true).parse(trimmed) {
+                return date
+            }
+            if let date = try? Date.ISO8601FormatStyle(includingFractionalSeconds: false).parse(trimmed) {
+                return date
+            }
+            if let seconds = Double(trimmed), seconds > 0 {
+                return Date(timeIntervalSince1970: seconds)
+            }
+        }
+        return nil
     }
 
     func testConnection(
@@ -349,7 +428,7 @@ class AIService: @unchecked Sendable {
             try validate(response: response, data: data)
             return
         }
-        let models = try await discoverModels(configuration: configuration, provider: provider)
+        let models = try await discoverModels(configuration: configuration, provider: provider).map(\.id)
         let chosen = configuration.model.trimmingCharacters(in: .whitespacesAndNewlines)
         if provider != .appleIntelligence, !chosen.isEmpty, !models.isEmpty {
             let matches = models.contains(chosen)

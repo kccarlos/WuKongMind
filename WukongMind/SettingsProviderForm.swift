@@ -249,14 +249,14 @@ struct ModelListSheet: View {
     @State private var error: String?
 
     private var bindings: ModelScopeBindings { ModelScopeBindings(app: app, scope: scope) }
-    private var discovered: [String] { app.discoveredModels[bindings.provider] ?? [] }
+    private var discovered: [DiscoveredModel] { app.discoveredModels[bindings.provider] ?? [] }
 
     private func isCompatibleModel(_ model: String) -> Bool {
         guard scope == .role(.browserAgent) else { return true }
         return ModelSelection(provider: bindings.provider, model: model).supportsToolCalling
     }
 
-    private var suggestions: [String] {
+    private var suggestions: [DiscoveredModel] {
         let provider = bindings.provider
         var models = [provider.defaultModel]
         for role in ModelRole.allCases where app.selection(for: role).provider == provider {
@@ -265,22 +265,28 @@ struct ModelListSheet: View {
         for favorite in app.settings.favoriteModels where favorite.provider == provider {
             models.append(favorite.model)
         }
+        let byID = Dictionary(uniqueKeysWithValues: discovered.map { ($0.id, $0) })
         var seen = Set<String>()
-        return models.filter { !$0.isEmpty && isCompatibleModel($0) && seen.insert($0).inserted }
+        return models
+            .filter { !$0.isEmpty && isCompatibleModel($0) && seen.insert($0).inserted }
+            .map { byID[$0] ?? DiscoveredModel(id: $0) }
     }
 
-    private var filtered: [String] {
-        let compatible = discovered.filter { isCompatibleModel($0) }
+    private var filtered: [DiscoveredModel] {
+        let compatible = discovered.filter { isCompatibleModel($0.id) }
         let trimmed = query.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return compatible }
-        return compatible.filter { $0.localizedCaseInsensitiveContains(trimmed) }
+        return compatible.filter { model in
+            model.id.localizedCaseInsensitiveContains(trimmed)
+                || (model.displayName?.localizedCaseInsensitiveContains(trimmed) ?? false)
+        }
     }
 
     var body: some View {
         NavigationStack {
             List {
                 Section("Suggested") {
-                    ForEach(suggestions, id: \.self) { row($0) }
+                    ForEach(suggestions) { row($0) }
                 }
                 Section {
                     if loading {
@@ -299,7 +305,7 @@ struct ModelListSheet: View {
                         Text(query.isEmpty ? "No models found." : "No models match “\(query)”.")
                             .foregroundStyle(.secondary)
                     } else {
-                        ForEach(filtered, id: \.self) { row($0) }
+                        ForEach(filtered) { row($0) }
                     }
                 } header: {
                     Text("Available from \(bindings.provider.displayName)")
@@ -319,25 +325,33 @@ struct ModelListSheet: View {
                 }
             }
             .task {
-                if discovered.isEmpty { await load() }
+                if app.discoveredModels[bindings.provider] == nil { await load() }
             }
         }
         .presentationDetents([.medium, .large])
         .dcFormSheet()
     }
 
-    private func row(_ model: String) -> some View {
+    private func row(_ model: DiscoveredModel) -> some View {
         Button {
             DCHaptics.tap()
-            bindings.model.wrappedValue = model
+            bindings.model.wrappedValue = model.id
             dismiss()
         } label: {
             HStack {
-                Text(model)
-                    .foregroundStyle(.primary)
-                    .lineLimit(2)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(verbatim: model.title)
+                        .foregroundStyle(.primary)
+                        .lineLimit(2)
+                    if model.distinctDisplayName != nil {
+                        Text(verbatim: model.id)
+                            .font(DCType.code)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+                }
                 Spacer()
-                if model == bindings.selection.model {
+                if model.id == bindings.selection.model {
                     Image(systemName: "checkmark").foregroundStyle(DCTheme.goldInk)
                 }
             }

@@ -320,6 +320,35 @@ enum AssistantDebug {
         guard let index = arguments.firstIndex(of: flag), index + 1 < arguments.count else { return nil }
         return arguments[index + 1]
     }
+
+    static let sampleAnthropicModels: [DiscoveredModel] = [
+        DiscoveredModel(id: "claude-fable-5-2", displayName: "Claude Fable 5.2"),
+        DiscoveredModel(id: "claude-haiku-5-5", displayName: "Claude Haiku 5.5"),
+        DiscoveredModel(id: "claude-sonnet-5-5", displayName: "Claude Sonnet 5.5"),
+        DiscoveredModel(id: "claude-opus-5-5", displayName: "Claude Opus 5.5"),
+        DiscoveredModel(id: "claude-fable-5-1", displayName: "Claude Fable 5.1"),
+        DiscoveredModel(id: "claude-opus-5", displayName: "Claude Opus 5"),
+        DiscoveredModel(id: "claude-sonnet-5", displayName: "Claude Sonnet 5"),
+        DiscoveredModel(id: "claude-fable-5", displayName: "Claude Fable 5"),
+        DiscoveredModel(id: "claude-opus-4-8", displayName: "Claude Opus 4.8"),
+        DiscoveredModel(id: "claude-opus-4-7", displayName: "Claude Opus 4.7"),
+        DiscoveredModel(id: "claude-sonnet-4-6", displayName: "Claude Sonnet 4.6"),
+        DiscoveredModel(id: "claude-opus-4-6", displayName: "Claude Opus 4.6"),
+        DiscoveredModel(id: "claude-opus-4-5-20251101", displayName: "Claude Opus 4.5"),
+        DiscoveredModel(id: "claude-haiku-4-5-20251001", displayName: "Claude Haiku 4.5"),
+        DiscoveredModel(id: "claude-sonnet-4-5-20250929", displayName: "Claude Sonnet 4.5")
+    ]
+
+    static func sampleModels(for provider: AIProvider) -> [DiscoveredModel] {
+        switch provider {
+        case .anthropic:
+            sampleAnthropicModels
+        case .vertexAI:
+            AIProvider.vertexAIModels.map { DiscoveredModel(id: $0) }
+        default:
+            [DiscoveredModel(id: provider.defaultModel)]
+        }
+    }
 }
 
 extension AppModel {
@@ -701,6 +730,16 @@ extension AppModel {
                 .compactMap(FavoriteModel.init(selection:))
         }
         settings = sampleSettings
+        if !AssistantDebug.has("-dc-no-provider") {
+            if sampleProvider == .anthropic {
+                discoveredModels[.anthropic] = AssistantDebug.sampleAnthropicModels
+            }
+            if sampleAgent.provider != sampleProvider,
+               !AssistantDebug.has("-dc-no-agent-key"),
+               sampleAgent.provider.requiresAPIKey {
+                discoveredModels[sampleAgent.provider] = AssistantDebug.sampleModels(for: sampleAgent.provider)
+            }
+        }
         if !AssistantDebug.has("-dc-no-provider"),
            !AssistantDebug.has("-dc-no-agent-key"),
            AssistantDebug.value("-dc-browser-agent-demo") == nil,

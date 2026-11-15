@@ -718,6 +718,7 @@ struct ProviderSettingsPage: View {
                 Section {
                     AppleIntelligenceStatusView(app: app)
                 }
+                ProviderModelsSection(app: app, provider: provider)
             }
 
             if provider.requiresAPIKey {
@@ -731,6 +732,8 @@ struct ProviderSettingsPage: View {
                         ? "Sent only to \(provider.displayName). Stored in iCloud Keychain, so your other devices have it too; deleting it here deletes it there as well."
                         : "Sent only to \(provider.displayName). Stored in the Keychain on this device.")
                 }
+
+                ProviderModelsSection(app: app, provider: provider)
             }
 
             if !provider.isAppleIntelligence {
@@ -750,6 +753,10 @@ struct ProviderSettingsPage: View {
                     Text(provider.requiresAPIKey ? "Advanced" : "Server address")
                 } footer: {
                     Text(guide.note ?? String(localized: "Leave this as is unless you use a proxy or a compatible gateway."))
+                }
+
+                if !provider.requiresAPIKey {
+                    ProviderModelsSection(app: app, provider: provider)
                 }
 
                 Section {

@@ -168,7 +168,7 @@ final class AppModel: ObservableObject {
     @Published private(set) var errorQueue: [PresentedError] = []
     @Published var settingsStatus = ""
     /// Models each provider offers, from the last successful load.
-    @Published var discoveredModels: [AIProvider: [String]] = [:]
+    @Published var discoveredModels: [AIProvider: [DiscoveredModel]] = [:]
     /// The saved Agent answer History shows (`SavedAnswerView`); nil shows the list.
     @Published var savedAnswerRunID: UUID?
     @Published private(set) var agentRuns: [AgentRun]
@@ -2225,7 +2225,7 @@ final class AppModel: ObservableObject {
             connectionTestGeneration[provider, default: 0] &+= 1
             modelDiscoveryGeneration[provider, default: 0] &+= 1
             settingsStatus = ""
-            if endpointChanged, discoveredModels[provider] != nil { discoveredModels[provider] = nil }
+            if discoveredModels[provider] != nil { discoveredModels[provider] = nil }
         }
         if let role = needsProviderSetup, isProviderReady(for: role) { needsProviderSetup = nil }
         contentBlockingSettingsDidChange(from: old)
@@ -2292,17 +2292,63 @@ final class AppModel: ObservableObject {
         let generation = modelDiscoveryGeneration[provider]
         let configuration = settings.configuration(for: provider)
         settingsStatus = String(localized: "Loading models…")
+        #if DEBUG
+        if AssistantDebug.isActive,
+           configuration.apiKey == "sample-key",
+           configuration.baseURL == provider.defaultBaseURL {
+            let models = AssistantDebug.sampleModels(for: provider)
+            discoveredModels[provider] = models
+            settingsStatus = String(localized: "Loaded \(models.count) models", comment: "AI provider settings: number of models found")
+            return .success
+        }
+        #endif
         do {
             let models = try await aiService.discoverModels(configuration: configuration, provider: provider)
             guard generation == modelDiscoveryGeneration[provider] else { return .stale }
             discoveredModels[provider] = models
             settingsStatus = String(localized: "Loaded \(models.count) models", comment: "AI provider settings: number of models found")
             return .success
+        } catch AssistantError.http(404, _) {
+            guard generation == modelDiscoveryGeneration[provider] else { return .stale }
+            discoveredModels[provider] = []
+            settingsStatus = String(localized: "Loaded \(0) models", comment: "AI provider settings: number of models found")
+            return .success
         } catch {
             guard generation == modelDiscoveryGeneration[provider] else { return .stale }
             settingsStatus = String(localized: "Model loading failed")
-            return .failure(error.localizedDescription)
+            return .failure(Self.modelDiscoveryFailureMessage(for: error, provider: provider))
         }
+    }
+
+    private static func modelDiscoveryFailureMessage(for error: Error, provider: AIProvider) -> String {
+        if let assistantError = error as? AssistantError,
+           case .http(let status, let detail) = assistantError {
+            if (status == 401 || status == 403) && provider.requiresAPIKey {
+                return String(
+                    localized: "The key was refused (\(status)). Check it above.",
+                    comment: "Provider settings › Models: API key refused with HTTP 401 or 403; placeholder is the HTTP status code"
+                )
+            }
+            if let extracted = extractedJSONErrorMessage(from: detail) {
+                return AssistantError.http(status, extracted).localizedDescription
+            }
+        }
+        return error.localizedDescription
+    }
+
+    private static func extractedJSONErrorMessage(from raw: String) -> String? {
+        guard let data = raw.data(using: .utf8),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+        else { return nil }
+        if let nested = (json["error"] as? [String: Any])?["message"] as? String {
+            let trimmed = nested.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty { return trimmed }
+        }
+        if let direct = json["message"] as? String {
+            let trimmed = direct.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty { return trimmed }
+        }
+        return nil
     }
 
     /// Tests `provider` with its key and address. A result for a
