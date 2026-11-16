@@ -626,6 +626,7 @@ final class ForumBrowserModel: NSObject, ObservableObject {
         guard let webView = allocatedWebView,
               !showsForumsHome,
               currentURL != nil,
+              webView.alpha > 0.01,
               webView.bounds.width > 1,
               webView.bounds.height > 1 else {
             return nil

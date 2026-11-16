@@ -680,6 +680,8 @@ private struct SplitTopBarHost: View {
                 }
             )
         }
+        BrowserTabsButton(app: app)
+            .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
         if app.showsVoiceButton {
             VoiceBarButton(voice: app.voice)
         }
@@ -1065,6 +1067,8 @@ struct PhoneMorphingBar: View {
         ForumMenuButton(app: app, browser: browser, actions: actions)
             .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
         Spacer(minLength: 0)
+        BrowserTabsButton(app: app)
+            .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
         if app.showsVoiceButton {
             VoiceBarButton(voice: app.voice)
         }
@@ -1169,6 +1173,12 @@ struct PhoneMorphingBar: View {
         .contentShape(Capsule())
 
         if isExpandedHalf {
+            BrowserTabsButton(app: app, isActive: isExpandedHalf && sideButtonsHitTarget)
+                .frame(width: slotWidth, height: DCTheme.controlHeight)
+                .scaleEffect(btnScale)
+                .opacity(btnOpacity)
+                .allowsHitTesting(sideButtonsHitTarget)
+
             PhoneAIButton(
                 app: app,
                 voice: app.voice,

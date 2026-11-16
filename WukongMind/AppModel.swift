@@ -262,6 +262,7 @@ final class AppModel: ObservableObject {
             || arguments.contains("-dc-scripts-sample")
             || value("-dc-m4-import-preview") != nil
             || value("-dc-bar-morph-fixture") != nil
+            || value("-dc-seed-open-tabs") != nil
             || value("-dc-fixture-model") != nil
             || arguments.contains("-dc-no-provider")
     }
@@ -375,6 +376,10 @@ final class AppModel: ObservableObject {
     /// Per-tab conversation and page-thumbnail sidecar store (`TabConversations/`, `TabSnapshots/`).
     let tabStateStore: TabStateStore
     private var lastPersistedTabsState: SavedBrowserTabsState?
+    /// Active 5-second Undo toast after closing a tab (`design-browser-bar-tabs-models.md` §2, T3).
+    @Published private(set) var tabClosedToast: TabClosedToastState?
+    private var lastClosedTabSnapshot: ClosedBrowserTabSnapshot?
+    private var tabClosedToastDismissTask: Task<Void, Never>?
     /// Set to open the audit log (optionally at one task and step) from the panel.
     @Published var auditLogRequest: AuditLogRequest?
 
@@ -587,6 +592,10 @@ final class AppModel: ObservableObject {
         agentSession.onConversationChanged = { [weak appBox, weak tab] in
             guard let app = appBox?.value, let tab else { return }
             app.persistTabConversation(tab)
+        }
+        agentSession.onWillResetConversation = { [weak appBox, weak tab] in
+            guard let app = appBox?.value, let tab else { return }
+            _ = app.archiveTabConversationToHistory(tab)
         }
         agentSession.onConversationReset = { [weak appBox, weak tab] in
             guard let app = appBox?.value, let tab else { return }
@@ -1266,6 +1275,278 @@ final class AppModel: ObservableObject {
         #endif
         tabStateStore.removeConversation(id: oldID)
         saveSettings()
+    }
+
+    // MARK: - Tab Overview & Close-With-Undo (T3)
+
+    func presentTabOverview(reduceMotion: Bool? = nil) {
+        let resolvedReduceMotion = reduceMotion ?? UIAccessibility.isReduceMotionEnabled
+        browser.setEditingAddress(false)
+        let activeTab = tabs.currentTab
+        if activeTab.isWebViewLoaded {
+            activeTab.browser.refreshScrollPositionFromWebView()
+            Task { @MainActor [weak activeTab] in
+                _ = await activeTab?.captureSnapshotIfAvailable()
+            }
+        }
+        guard !router.isTabOverviewPresented else { return }
+        withAnimation(TabOverviewTransitionMetrics.animation(reduceMotion: resolvedReduceMotion)) {
+            router.isTabOverviewPresented = true
+        }
+    }
+
+    func dismissTabOverview(reduceMotion: Bool? = nil) {
+        let resolvedReduceMotion = reduceMotion ?? UIAccessibility.isReduceMotionEnabled
+        guard router.isTabOverviewPresented else { return }
+        withAnimation(TabOverviewTransitionMetrics.animation(reduceMotion: resolvedReduceMotion)) {
+            router.isTabOverviewPresented = false
+        }
+    }
+
+    func selectTabFromOverview(id: String, reduceMotion: Bool? = nil) {
+        let resolvedReduceMotion = reduceMotion ?? UIAccessibility.isReduceMotionEnabled
+        _ = tabs.switchToTab(id: id)
+        withAnimation(TabOverviewTransitionMetrics.animation(reduceMotion: resolvedReduceMotion)) {
+            router.isTabOverviewPresented = false
+        }
+    }
+
+    @discardableResult
+    func openNewTabFromUI(reduceMotion: Bool? = nil) -> BrowserTab? {
+        let resolvedReduceMotion = reduceMotion ?? UIAccessibility.isReduceMotionEnabled
+        guard let opened = tabs.openTab(inFront: true) else { return nil }
+        if router.isTabOverviewPresented {
+            withAnimation(TabOverviewTransitionMetrics.animation(reduceMotion: resolvedReduceMotion)) {
+                router.isTabOverviewPresented = false
+            }
+        }
+        return opened
+    }
+
+    func switchToTabFromUI(id: String, reduceMotion: Bool? = nil) {
+        let resolvedReduceMotion = reduceMotion ?? UIAccessibility.isReduceMotionEnabled
+        _ = tabs.switchToTab(id: id)
+        if router.isTabOverviewPresented {
+            withAnimation(TabOverviewTransitionMetrics.animation(reduceMotion: resolvedReduceMotion)) {
+                router.isTabOverviewPresented = false
+            }
+        }
+    }
+
+    @discardableResult
+    func switchNextTab() -> Bool {
+        tabs.switchToNextTab()
+    }
+
+    @discardableResult
+    func switchPreviousTab() -> Bool {
+        tabs.switchToPreviousTab()
+    }
+
+    /// Closes a tab from a user action (overview button/swipe/VoiceOver, bar long-press menu, or ⌘W):
+    /// stops any active Agent run first, archives the conversation to History, removes the tab,
+    /// and presents a 5-second Undo toast.
+    @discardableResult
+    func closeTabWithUndo(
+        id: String,
+        toastDuration: Duration = .seconds(5)
+    ) -> Bool {
+        guard let closingIndex = tabs.index(of: id) else { return false }
+        let closingTab = tabs.tabs[closingIndex]
+        if closingTab.agentSession.isRunning {
+            closingTab.agentSession.stop()
+        }
+        let hadConversation = closingTab.agentSession.hasConversation
+        let savedTab = closingTab.exportSavedTab()
+        let savedSnapshot = closingTab.snapshot
+        let savedConversation = closingTab.agentSession.exportConversation()
+        let wasCurrent = tabs.isCurrent(closingTab)
+        let wasOnlyTab = tabs.tabs.count == 1
+        let addedHistoryRunIDs = hadConversation ? archiveTabConversationToHistory(closingTab) : []
+
+        guard tabs.closeTab(id: id) else { return false }
+        let replacementHomeID = wasOnlyTab ? tabs.currentTabID : nil
+
+        lastClosedTabSnapshot = ClosedBrowserTabSnapshot(
+            savedTab: savedTab,
+            index: closingIndex,
+            wasCurrent: wasCurrent,
+            snapshot: savedSnapshot,
+            conversation: savedConversation,
+            hadConversation: hadConversation,
+            addedHistoryRunIDs: addedHistoryRunIDs,
+            replacementHomeTabID: replacementHomeID
+        )
+
+        let toastMessage = hadConversation
+            ? String(
+                localized: "Tab closed. Its conversation is in History.",
+                comment: "Toast shown for 5 seconds after closing a tab that had an Agent conversation"
+            )
+            : String(
+                localized: "Tab closed.",
+                comment: "Toast shown for 5 seconds after closing a tab with no Agent conversation"
+            )
+        let toast = TabClosedToastState(message: toastMessage, hadConversation: hadConversation)
+        tabClosedToastDismissTask?.cancel()
+        tabClosedToast = toast
+        UIAccessibility.post(notification: .announcement, argument: toastMessage)
+
+        let toastID = toast.id
+        let effectiveDuration = UIAccessibility.isVoiceOverRunning && toastDuration == .seconds(5)
+            ? Duration.seconds(8)
+            : toastDuration
+        tabClosedToastDismissTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: effectiveDuration)
+            guard !Task.isCancelled, let self, self.tabClosedToast?.id == toastID else { return }
+            self.tabClosedToast = nil
+            self.lastClosedTabSnapshot = nil
+        }
+        return true
+    }
+
+    /// Restores the tab closed by the most recent `closeTabWithUndo`: brings back its order,
+    /// page, snapshot, and conversation, keeping any stopped run stopped without resuming it.
+    @discardableResult
+    func undoCloseTab() -> BrowserTab? {
+        tabClosedToastDismissTask?.cancel()
+        tabClosedToastDismissTask = nil
+        tabClosedToast = nil
+        guard let record = lastClosedTabSnapshot else { return nil }
+        lastClosedTabSnapshot = nil
+
+        guard let restored = tabs.restoreClosedTab(record) else { return nil }
+        persistTabSnapshot(restored)
+        if restored.agentSession.hasConversation {
+            persistTabConversation(restored)
+        }
+        if !record.addedHistoryRunIDs.isEmpty {
+            let removeSet = Set(record.addedHistoryRunIDs)
+            agentRuns.removeAll { removeSet.contains($0.id) }
+            save()
+        }
+        saveSettings()
+        return restored
+    }
+
+    func dismissTabClosedToast() {
+        tabClosedToastDismissTask?.cancel()
+        tabClosedToastDismissTask = nil
+        tabClosedToast = nil
+        lastClosedTabSnapshot = nil
+    }
+
+    /// Saves any unsaved conversation turns in `tab` to `agentRuns` (History), matching
+    /// `New conversation` and tab close (`design-browser-bar-tabs-models.md` §2).
+    @discardableResult
+    func archiveTabConversationToHistory(_ tab: BrowserTab) -> [UUID] {
+        guard tab.agentSession.hasConversation else { return [] }
+        let selection = settings.browserAgentModel
+        let defaultProvider = selection?.provider ?? .anthropic
+        let defaultModel = selection?.model ?? ""
+        let fallbackSiteURL = tab.browser.pageContext.siteURL
+            ?? tab.url.flatMap { Self.origin(ofPage: $0.absoluteString) }
+            ?? tab.agentSession.lastContextURL.flatMap(Self.origin(ofPage:))
+            ?? ""
+
+        var addedIDs: [UUID] = []
+        for run in tab.agentSession.runs {
+            let alreadySaved = agentRuns.contains {
+                abs($0.createdAt.timeIntervalSince(run.startedAt)) < 0.05 && $0.goal == run.prompt
+            }
+            guard !alreadySaved else { continue }
+
+            let shapes = run.toolCalls.compactMap(\.shape)
+            let sample = shapes.lazy.compactMap { shape -> URL? in
+                switch shape {
+                case .thread(let thread): URL(string: thread.url)
+                case .list(let list): list.items.first.flatMap { URL(string: $0.url) }
+                }
+            }.first
+            let forumURL = sample.flatMap { siteURL(containing: $0) }
+            let resolvedSiteURL = forumURL ?? fallbackSiteURL
+            let trimmed = run.assistantText.trimmingCharacters(in: .whitespacesAndNewlines)
+
+            var sources: [SavedSource] = []
+            if !trimmed.isEmpty, forumURL != nil || !shapes.isEmpty {
+                let parse = linkParser(siteURL: resolvedSiteURL, shapes: shapes)
+                sources = AgentSources.extract(from: trimmed, visits: AgentSources.visits(of: shapes), parse: parse)
+                    .prefix(SavedSource.limit).map(SavedSource.init)
+            }
+
+            var archived = AgentRun(
+                siteURL: resolvedSiteURL,
+                goal: run.prompt,
+                provider: defaultProvider,
+                model: run.finalTurn?.model ?? defaultModel,
+                origin: run.origin
+            )
+            archived.loop = .agent
+            archived.createdAt = run.startedAt
+            archived.completedAt = Date()
+            archived.answer = trimmed
+            archived.initialAnswer = trimmed
+            archived.sources = sources
+
+            switch run.state {
+            case .completed:
+                archived.result = .completed
+            case .stopped:
+                archived.result = trimmed.isEmpty ? .cancelled : .completed
+                if trimmed.isEmpty {
+                    archived.error = String(localized: "Stopped", comment: "Agent turn notice when a run was stopped before finishing")
+                }
+            case .failed(let message):
+                archived.result = trimmed.isEmpty ? .failed : .completed
+                if trimmed.isEmpty {
+                    archived.error = message
+                }
+            case .stepLimitReached:
+                archived.result = trimmed.isEmpty ? .cancelled : .completed
+                if trimmed.isEmpty {
+                    archived.error = String(localized: "Step limit reached", comment: "History error summary when a run stopped at the step limit")
+                }
+            case .idle, .running:
+                archived.result = trimmed.isEmpty ? .cancelled : .completed
+            }
+
+            insertAgentRun(archived)
+            addedIDs.append(archived.id)
+        }
+
+        if tab.agentSession.runs.isEmpty,
+           let firstVoice = tab.agentSession.voiceTurns.first(where: { $0.role == .voiceUser }) {
+            let alreadySaved = agentRuns.contains {
+                abs($0.createdAt.timeIntervalSince(firstVoice.createdAt)) < 0.05 && $0.goal == firstVoice.text
+            }
+            if !alreadySaved {
+                let replies = tab.agentSession.voiceTurns
+                    .filter { $0.role == .voiceReply }
+                    .map { $0.text.trimmingCharacters(in: .whitespacesAndNewlines) }
+                    .filter { !$0.isEmpty }
+                    .joined(separator: "\n\n")
+                var archived = AgentRun(
+                    siteURL: fallbackSiteURL,
+                    goal: firstVoice.text,
+                    provider: defaultProvider,
+                    model: defaultModel,
+                    origin: .voice
+                )
+                archived.loop = .agent
+                archived.createdAt = firstVoice.createdAt
+                archived.completedAt = Date()
+                archived.result = .completed
+                archived.answer = replies
+                archived.initialAnswer = replies
+                insertAgentRun(archived)
+                addedIDs.append(archived.id)
+            }
+        }
+
+        if !addedIDs.isEmpty {
+            save()
+        }
+        return addedIDs
     }
 
     private func handleActiveTabChanged(to newTab: BrowserTab, from oldTab: BrowserTab?) {
