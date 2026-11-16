@@ -103,6 +103,10 @@ final class BrowserTab: ObservableObject, Identifiable {
         if !trimmed.isEmpty, trimmed != ForumBrowserModel.defaultPageTitle {
             return trimmed
         }
+        if let liveTitle = browser.existingWebView?.title?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !liveTitle.isEmpty {
+            return liveTitle
+        }
         if let host = browser.currentURL?.host, !host.isEmpty {
             return host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
         }
@@ -181,6 +185,10 @@ final class BrowserTabs: ObservableObject {
     @Published private(set) var currentTabID: String
     /// IDs of tabs whose `agentSession.isRunning` is currently `true`.
     @Published private(set) var runningTabIDs: Set<String> = []
+    /// IDs of background tabs currently being loaded or read by the `tabs` tool so
+    /// `BrowserTabsWebHostView` keeps their `WKWebView` attached to the window (`alpha = 0`).
+    @Published private(set) var agentAttachedTabIDs: Set<String> = []
+    private var agentAttachedRefCounts: [String: Int] = [:]
 
     /// Shared website data store (cookies, storage, sessions) across all tabs.
     let websiteDataStore: WKWebsiteDataStore
@@ -443,6 +451,8 @@ final class BrowserTabs: ObservableObject {
             onTabClosed?(tab)
         }
         runningTabIDs.removeAll()
+        agentAttachedRefCounts.removeAll()
+        agentAttachedTabIDs.removeAll()
         nextTabNumber = 1
         let freshID = allocateTabID()
         let freshTab = makeTab(freshID, UUID(), nil, makeBrowser(nil, false, nil, "", .zero))
@@ -457,8 +467,28 @@ final class BrowserTabs: ObservableObject {
     /// URL, title, snapshot, scroll position, and conversation. Never unloads the
     /// current tab or any tab whose Agent run is active.
     func handleMemoryWarning() {
-        for tab in tabs where tab.id != currentTabID && !tab.agentSession.isRunning && tab.isWebViewLoaded {
+        for tab in tabs where tab.id != currentTabID
+            && !tab.agentSession.isRunning
+            && !agentAttachedTabIDs.contains(tab.id)
+            && tab.isWebViewLoaded
+        {
             tab.unloadWebView()
+        }
+    }
+
+    func beginAgentBackgroundAttachment(tabID: String) {
+        let next = (agentAttachedRefCounts[tabID] ?? 0) + 1
+        agentAttachedRefCounts[tabID] = next
+        agentAttachedTabIDs.insert(tabID)
+    }
+
+    func endAgentBackgroundAttachment(tabID: String) {
+        guard let current = agentAttachedRefCounts[tabID] else { return }
+        if current <= 1 {
+            agentAttachedRefCounts.removeValue(forKey: tabID)
+            agentAttachedTabIDs.remove(tabID)
+        } else {
+            agentAttachedRefCounts[tabID] = current - 1
         }
     }
 
@@ -556,7 +586,8 @@ final class BrowserTabs: ObservableObject {
 
     /// Handles `<a target="_blank">` and user-gesture `window.open`: opens a new
     /// front tab right after the opener tab (`design-browser-bar-tabs-models.md` §2).
-    /// Returns `nil` and opens nothing when 30 tabs are already open.
+    /// When triggered by the Agent's `run_js`, opens in the background instead so the
+    /// tool row can report it with Show. Returns `nil` when 30 tabs are already open.
     private func openPopupTab(
         from sourceTabID: String,
         configuration: WKWebViewConfiguration,
@@ -572,8 +603,17 @@ final class BrowserTabs: ObservableObject {
         if let url = navigationAction.request.url, ForumBrowserModel.isBrowsableURL(url) {
             popupBrowser.prepareForPopupNavigation(to: url)
         }
-        let tab = appendOrInsertTab(browser: popupBrowser, after: sourceTabID)
-        switchToTab(id: tab.id, notifyMutated: false)
+        let sourceTab = tab(id: sourceTabID)
+        let fromAgentJS = sourceTab?.browser.agentBridge.isRunningAgentJS == true
+        let newTab = appendOrInsertTab(browser: popupBrowser, after: sourceTabID)
+        if fromAgentJS {
+            sourceTab?.browser.agentBridge.recordAgentPopupTab(
+                id: newTab.id,
+                url: navigationAction.request.url?.absoluteString ?? ""
+            )
+        } else {
+            switchToTab(id: newTab.id, notifyMutated: false)
+        }
         onTabsMutated?()
         return popupBrowser.webView
     }
@@ -583,6 +623,8 @@ final class BrowserTabs: ObservableObject {
             tab.agentSession.stop()
         }
         runningTabIDs.remove(tab.id)
+        agentAttachedRefCounts.removeValue(forKey: tab.id)
+        agentAttachedTabIDs.remove(tab.id)
         tab.onSnapshotChanged = nil
         tab.agentSession.runStartGate = nil
         tab.agentSession.onRunStateChanged = nil

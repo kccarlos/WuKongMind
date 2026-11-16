@@ -264,6 +264,7 @@ enum BrowserAgentPrompt {
         customInstructions: String = "",
         includesWorkspace: Bool = false,
         includesScriptTools: Bool = false,
+        includesTabsTool: Bool = false,
         includesForumTools: Bool = false,
         offersSummary: Bool = false,
         isFixingScript: Bool = false
@@ -338,6 +339,10 @@ enum BrowserAgentPrompt {
             sections.append(scriptsAskingModelSection)
         }
 
+        if includesTabsTool {
+            sections.append(tabsSection)
+        }
+
         if isFixingScript {
             sections.append(fixingScriptSection)
         }
@@ -373,6 +378,14 @@ enum BrowserAgentPrompt {
     4. Don't widen match rules, grants or `@connect` to make an error go away; `script_update` refuses it. \
     If the fix needs a new grant, match rule or host, say so in your answer and let the user decide.
     5. Say what was wrong in one or two sentences.
+    """
+
+    static let tabsSection = """
+    Tabs (`tabs`):
+    - Your conversation and page tools (`read_page`, `run_js`, `inject_css`, `navigate`, `screenshot`) stay bound to the tab this run started in.
+    - `tabs` with `action: "open"` opens a new tab in the background by default (`background: true`) while keeping this run here; read another open tab with `tabs(action: "read", tab_id: ...)` and list open tabs with `tabs(action: "list")`.
+    - Switch tabs on screen (`action: "switch"`, or `background: false` on `open`) only when the user explicitly asked you to show or switch to a tab; otherwise leave new tabs in the background (the tool row already gives the user a Show button).
+    - At 30 open tabs, `open` returns an error ("Tab limit reached: 30 open"): explain that plainly in your reply so the user can close one.
     """
 
     /// The Research rules as prompt text (`design-one-loop.md` "Research rules in
@@ -583,6 +596,10 @@ struct BrowserAgentToolCallRow: Codable, Identifiable, Equatable, Sendable {
     var shape: ForumShape?
     /// The app's own notes on the result (hints, page feedback), sent before the untrusted wrapper.
     var notes: [ToolNote] = []
+    /// Tab ID opened by `tabs(action: "open")` or a `run_js` popup, enabling the tool row's Show button.
+    var openedTabID: String? = nil
+    /// Extra URLs touched during execution for task-record cookie scrubbing.
+    var touchedURLs: [String] = []
     /// What the tool-call row shows: the notes, then the result text.
     var displayText: String {
         (notes.map(\.text) + (resultText.isEmpty ? [] : [resultText])).joined(separator: "\n\n")
@@ -998,6 +1015,8 @@ struct AgentLoop: Sendable {
                     row.images = dispatchResult.images
                     row.shape = dispatchResult.shape
                     row.notes = dispatchResult.notes
+                    row.openedTabID = dispatchResult.openedTabID
+                    row.touchedURLs = dispatchResult.touchedURLs
                     toolRows[rowIndex] = row
                     await events.onStepFinished(row)
                     await events.onToolResult(call, row, true)
@@ -1645,6 +1664,7 @@ final class BrowserAgentSession {
         registry.repairState = activeRepairState
         let includesWorkspace = registry.tool(named: "file_read") != nil
         let includesScriptTools = registry.tool(named: "script_save") != nil
+        let includesTabsTool = registry.tool(named: "tabs") != nil
         // The Research rules, only where the forum tools are; the forum itself, in the page context.
         let includesForumTools = registry.tool(named: ForumToolName.searchForum) != nil
         let offersSummary = registry.tool(named: "summarize_topic") != nil
@@ -1655,6 +1675,7 @@ final class BrowserAgentSession {
             customInstructions: runtime.customInstructions,
             includesWorkspace: includesWorkspace,
             includesScriptTools: includesScriptTools,
+            includesTabsTool: includesTabsTool,
             includesForumTools: includesForumTools,
             offersSummary: offersSummary,
             isFixingScript: repairTarget != nil
@@ -1802,6 +1823,9 @@ final class BrowserAgentSession {
                     await taskRecords.touch(taskID: taskID, url: pageURL)
                     for case .string(let url)? in [call.arguments["url"]] {
                         await taskRecords.touch(taskID: taskID, url: url)
+                    }
+                    for touched in row.touchedURLs {
+                        await taskRecords.touch(taskID: taskID, url: touched)
                     }
                     if case .string(let domain)? = call.arguments["domain"], call.name == "cookies_get" {
                         await taskRecords.touch(taskID: taskID, url: "https://\(domain)")
@@ -1983,6 +2007,7 @@ actor BrowserAgentDemoClient: AgentModelClient {
         case stepLimit = "step-limit"
         case error
         case screenshot
+        case tabsOpen = "tabs-open"
     }
 
     let mode: Mode
@@ -2169,6 +2194,59 @@ actor BrowserAgentDemoClient: AgentModelClient {
                 )
             }
 
+        case .tabsOpen:
+            switch turn {
+            case 1:
+                return AgentModelTurnResponse(
+                    text: "",
+                    toolCalls: [AgentModelToolCall(id: "call_tabs_read_1", name: "read_page", arguments: ["mode": .string("structure")])],
+                    stopReason: "tool_use",
+                    usage: AgentTokenUsage(inputTokens: 480, outputTokens: 56)
+                )
+            case 2:
+                let companionURL = Self.extractCompanionURL(from: messages)
+                return AgentModelTurnResponse(
+                    text: "",
+                    toolCalls: [
+                        AgentModelToolCall(
+                            id: "call_tabs_open_2",
+                            name: "tabs",
+                            arguments: [
+                                "action": .string("open"),
+                                "url": .string(companionURL)
+                            ]
+                        )
+                    ],
+                    stopReason: "tool_use",
+                    usage: AgentTokenUsage(inputTokens: 610, outputTokens: 74)
+                )
+            case 3:
+                let openedID = Self.extractOpenedTabID(from: messages) ?? "t2"
+                return AgentModelTurnResponse(
+                    text: "",
+                    toolCalls: [
+                        AgentModelToolCall(
+                            id: "call_tabs_read_3",
+                            name: "tabs",
+                            arguments: [
+                                "action": .string("read"),
+                                "tab_id": .string(openedID),
+                                "mode": .string("structure")
+                            ]
+                        )
+                    ],
+                    stopReason: "tool_use",
+                    usage: AgentTokenUsage(inputTokens: 730, outputTokens: 64)
+                )
+            default:
+                return AgentModelTurnResponse(
+                    text: "First boat 06:10, last boat 22:50, with 15-minute peak headway. I left the companion schedule open in a new tab.",
+                    toolCalls: [],
+                    stopReason: "end_turn",
+                    usage: AgentTokenUsage(inputTokens: 890, outputTokens: 44)
+                )
+            }
+
         case .savedScript:
             switch turn {
             case 1:
@@ -2305,6 +2383,45 @@ actor BrowserAgentDemoClient: AgentModelClient {
             }
             return AgentModelTurnResponse(text: "Searched the forum.", stopReason: "end_turn", usage: usage)
         }
+    }
+
+    private static func extractCompanionURL(from messages: [AgentModelTurn]) -> String {
+        for turn in messages.reversed() {
+            guard case .user(let text) = turn else { continue }
+            if let line = text.components(separatedBy: .newlines).first(where: { $0.hasPrefix("- URL: ") }) {
+                let raw = String(line.dropFirst("- URL: ".count)).trimmingCharacters(in: .whitespaces)
+                if let parsed = URL(string: raw),
+                   let scheme = parsed.scheme,
+                   let host = parsed.host {
+                    let portPart = parsed.port.map { ":\($0)" } ?? ""
+                    return "\(scheme)://\(host)\(portPart)/companion"
+                }
+            }
+        }
+        return "https://ferries.example.org/companion"
+    }
+
+    private static func extractOpenedTabID(from messages: [AgentModelTurn]) -> String? {
+        for turn in messages.reversed() {
+            guard case .toolResults(let results) = turn else { continue }
+            for result in results where result.toolName == "tabs" {
+                let lines = result.content.components(separatedBy: .newlines)
+                for line in lines where line.trimmingCharacters(in: .whitespaces).hasPrefix("[") {
+                    guard let data = line.data(using: .utf8),
+                          let rows = (try? JSONSerialization.jsonObject(with: data)) as? [[String: Any]] else {
+                        continue
+                    }
+                    if let opened = rows.first(where: { ($0["opened"] as? Bool) == true }),
+                       let id = opened["tab_id"] as? String {
+                        return id
+                    }
+                    if let last = rows.last?["tab_id"] as? String {
+                        return last
+                    }
+                }
+            }
+        }
+        return nil
     }
 }
 #endif
