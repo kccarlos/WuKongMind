@@ -51,13 +51,13 @@ release=false
 # takes under half of them (job times in docs/CI.md).
 if [[ "$tier" == pr ]]; then
   matrix='{"include":[
-    {"shard":"unit-a","name":"Unit tests (1/2)","timeout":35},
-    {"shard":"unit-b+ui-smoke","name":"Unit tests (2/2) + UI smoke","timeout":35}]}'
+    {"shard":"unit-a","name":"Unit tests (1/2)","timeout":40},
+    {"shard":"unit-b+ui-smoke","name":"Unit tests (2/2) + UI smoke","timeout":40}]}'
 else
   matrix='{"include":[
     {"shard":"unit","name":"Unit tests","timeout":50},
-    {"shard":"ui-1","name":"UI tests (1/2)","timeout":35},
-    {"shard":"ui-2","name":"UI tests (2/2)","timeout":35}]}'
+    {"shard":"ui-1","name":"UI tests (1/2)","timeout":45},
+    {"shard":"ui-2","name":"UI tests (2/2)","timeout":45}]}'
 fi
 matrix="$(tr -d '\n' <<<"$matrix" | tr -s ' ')"
 

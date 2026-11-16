@@ -95,8 +95,14 @@ the last job's end; the proof on the WUKO-128 pull request has every run):
 | --- | --- | --- |
 | Whole run | 33-35 | 23-25 |
 | Building | in every macOS job, 8-10 each | once, 3 |
-| Longest job | UI tests 33-34 (timeout 60) | 15-21 (timeout 35) |
+| Longest job | UI tests 33-34 (timeout 60) | 15-21 (timeout 40) |
 | macOS jobs | 3, plus Release build 5-8 | 3 |
+
+Full tier (run 43973737283, a slow-runner hour): build 2.6, Release build 6.6,
+"Unit tests" 25.3 (timeout 50), "UI tests (1/2)" 30.1 and "UI tests (2/2)" 21.1
+(timeout 45), 35 in all. On a normal runner the UI shards take about 12 each;
+that hour WebKit's first launch took 4 minutes and one long UI test needed a
+retry.
 
 Where the test-job minutes go: about 1.5 to boot the simulator, about 1 for
 xcodebuild to reach the first test, then 1-3 while WebKit launches for the
