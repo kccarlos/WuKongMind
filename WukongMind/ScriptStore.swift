@@ -1847,6 +1847,15 @@ final class ScriptStore {
     private var pendingErrorWithoutLoadID: Set<String> = []
     @ObservationIgnored
     private var deletedRequireSnapshots: [String: [ScriptLoadedLibrary]] = [:]
+    @ObservationIgnored
+    private var pendingCandidateIDs: [String: String] = [:]
+
+    func seedPendingCandidateID(_ id: String, forName name: String) {
+        let key = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !key.isEmpty, Self.isValidScriptID(id) {
+            pendingCandidateIDs[key] = id
+        }
+    }
 
     var isGlobalEnabled: Bool {
         didSet {
@@ -2132,8 +2141,12 @@ final class ScriptStore {
                 throw ScriptStoreError.duplicateScriptID(explicit)
             }
             resolvedID = explicit
+        } else if let pending = pendingCandidateIDs[trimmedName], !existingIDs.contains(pending) {
+            resolvedID = pending
         } else {
-            resolvedID = Self.makeSlugID(from: trimmedName, existingIDs: existingIDs)
+            let fresh = Self.makeSlugID(from: trimmedName, existingIDs: existingIDs)
+            pendingCandidateIDs[trimmedName] = fresh
+            resolvedID = fresh
         }
 
         return UserScript(
@@ -2156,6 +2169,7 @@ final class ScriptStore {
 
     @discardableResult
     func commitCreated(_ created: UserScript) throws -> UserScript {
+        pendingCandidateIDs.removeValue(forKey: created.name)
         valuesStore.discardDeletedSnapshot(id: created.id)
         deletedRequireSnapshots.removeValue(forKey: created.id)
         aiCache.discardDeletedSnapshot(id: created.id)
@@ -3494,17 +3508,31 @@ struct ScriptLiveApplicationOutcome: Equatable, Sendable {
     nonisolated static let notApplied = ScriptLiveApplicationOutcome(applied: false, runtimeError: nil)
 }
 
+struct CandidateVerificationStatus: Equatable, Sendable {
+    var inFlightGMCallCount: Int = 0
+    var startedGMAiCallCount: Int = 0
+    var hasRuntimeError: Bool = false
+}
+
+struct CandidateVerificationReport: Equatable, Sendable {
+    var runtimeError: ScriptRuntimeError?
+    var serviceFailure: String?
+    var unhandledServiceError: ScriptRuntimeError?
+}
+
 protocol ScriptLiveApplying: Sendable {
     @MainActor func applyLiveScript(_ script: UserScript, runJS: Bool) async -> ScriptLiveApplicationOutcome
     @MainActor func removeLiveScript(id: String) async
     @MainActor func syncLiveGlobalState(isEnabled: Bool) async
     @MainActor func beginCandidateVerification(_ candidate: UserScript, replacingScriptID: String?)
-    @MainActor func endCandidateVerification() -> ScriptRuntimeError?
+    @MainActor func candidateVerificationStatus() -> CandidateVerificationStatus
+    @MainActor func endCandidateVerification() -> CandidateVerificationReport
 }
 
 extension ScriptLiveApplying {
     @MainActor func beginCandidateVerification(_ candidate: UserScript, replacingScriptID: String?) {}
-    @MainActor func endCandidateVerification() -> ScriptRuntimeError? { nil }
+    @MainActor func candidateVerificationStatus() -> CandidateVerificationStatus { CandidateVerificationStatus() }
+    @MainActor func endCandidateVerification() -> CandidateVerificationReport { CandidateVerificationReport() }
 }
 
 /// Bridges a `ScriptStore` to a `WKWebView` + `AgentBridge`:
@@ -3530,6 +3558,9 @@ final class ScriptWebController: ScriptLiveApplying {
         var candidate: UserScript
         var replacingScriptID: String?
         var capturedError: ScriptRuntimeError?
+        var serviceFailure: String?
+        var unhandledServiceError: ScriptRuntimeError?
+        var startedGMAiCallCount: Int = 0
     }
 
     struct PageRelayTokens {
@@ -3581,6 +3612,16 @@ final class ScriptWebController: ScriptLiveApplying {
         }
         gmBridge.onScriptLoadClean = { [weak self] scriptID, payload in
             self?.handleReportedCleanLoad(scriptID: scriptID, payload: payload)
+        }
+        gmBridge.onGMAiCallStarted = { [weak self] scriptID in
+            guard let self, self.activeVerification?.candidate.id == scriptID else { return }
+            self.activeVerification?.startedGMAiCallCount += 1
+        }
+        gmBridge.onGMAiServiceFailure = { [weak self] scriptID, message in
+            guard let self, self.activeVerification?.candidate.id == scriptID else { return }
+            if self.activeVerification?.serviceFailure == nil {
+                self.activeVerification?.serviceFailure = message
+            }
         }
         gmBridge.onPageScriptReport = { [weak self] payload in
             guard let action = payload["action"] as? String else { return }
@@ -3686,15 +3727,31 @@ final class ScriptWebController: ScriptLiveApplying {
         syncUserScripts()
     }
 
-    func endCandidateVerification() -> ScriptRuntimeError? {
-        let hadVerification = activeVerification != nil
-        let captured = activeVerification?.capturedError
+    func candidateVerificationStatus() -> CandidateVerificationStatus {
+        guard let verification = activeVerification else { return CandidateVerificationStatus() }
+        return CandidateVerificationStatus(
+            inFlightGMCallCount: gmBridge.inFlightCallCount(for: verification.candidate.id),
+            startedGMAiCallCount: verification.startedGMAiCallCount,
+            hasRuntimeError: verification.capturedError != nil
+        )
+    }
+
+    func endCandidateVerification() -> CandidateVerificationReport {
+        guard var verification = activeVerification else { return CandidateVerificationReport() }
+        if verification.serviceFailure == nil,
+           verification.candidate.metadata.grants.contains("GM_ai"),
+           verification.startedGMAiCallCount > 0,
+           gmBridge.inFlightCallCount(for: verification.candidate.id) > 0 {
+            verification.serviceFailure = "The model took too long to answer during verification."
+        }
         activeVerification = nil
         syncUserScripts()
-        if hadVerification {
-            store.notifySyncedScriptsChanged()
-        }
-        return captured
+        store.notifySyncedScriptsChanged()
+        return CandidateVerificationReport(
+            runtimeError: verification.capturedError,
+            serviceFailure: verification.serviceFailure,
+            unhandledServiceError: verification.unhandledServiceError
+        )
     }
 
     private func resolveActiveScript(id: String) -> UserScript? {
@@ -4186,12 +4243,29 @@ final class ScriptWebController: ScriptLiveApplying {
         let loadID = (payload["loadId"] as? String).flatMap { $0.isEmpty ? nil : $0 }
 
         if var verification = activeVerification, verification.candidate.id == scriptID {
-            if kind == .service {
-                return
-            }
             let cleanMessage = message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                 ? "Unknown userscript error"
                 : message
+            if kind == .service {
+                if verification.serviceFailure == nil {
+                    verification.serviceFailure = cleanMessage
+                }
+                let nextServiceCount = (verification.unhandledServiceError?.count ?? 0) + 1
+                verification.unhandledServiceError = ScriptRuntimeError(
+                    scriptID: scriptID,
+                    scriptName: verification.candidate.name,
+                    kind: .service,
+                    message: cleanMessage,
+                    line: line,
+                    stack: stack,
+                    afterLoad: afterLoad,
+                    url: url,
+                    occurredAt: Date(),
+                    count: nextServiceCount
+                )
+                activeVerification = verification
+                return
+            }
             let nextCount = (verification.capturedError?.count ?? 0) + 1
             verification.capturedError = ScriptRuntimeError(
                 scriptID: scriptID,

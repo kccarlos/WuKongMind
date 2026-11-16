@@ -1617,8 +1617,14 @@ extension ToolRegistry {
 
                 let saved: UserScript = try await MainActor.run {
                     let committed = try scriptStore.commitCreated(candidate)
-                    if case .verifiedOnCurrentPage = verification {
+                    if case .verifiedOnCurrentPage(_, let unhandledService) = verification {
                         scriptStore.noteExecuted(scriptID: committed.id)
+                        if let unhandledService {
+                            scriptStore.recordError(
+                                scriptID: committed.id, message: unhandledService.message, line: unhandledService.line,
+                                stack: unhandledService.stack, kind: .service, afterLoad: unhandledService.afterLoad, url: unhandledService.url
+                            )
+                        }
                     }
                     return committed
                 }
@@ -2031,8 +2037,14 @@ extension ToolRegistry {
                     if isVerifiedRepair {
                         scriptStore.clearError(for: committed.id)
                     }
-                    if case .verifiedOnCurrentPage = verification {
+                    if case .verifiedOnCurrentPage(_, let unhandledService) = verification {
                         scriptStore.noteExecuted(scriptID: committed.id)
+                        if let unhandledService {
+                            scriptStore.recordError(
+                                scriptID: committed.id, message: unhandledService.message, line: unhandledService.line,
+                                stack: unhandledService.stack, kind: .service, afterLoad: unhandledService.afterLoad, url: unhandledService.url
+                            )
+                        }
                     }
                     return committed
                 }
@@ -2273,8 +2285,17 @@ extension ToolRegistry {
         return ScriptLiveApplicationOutcome(applied: true, runtimeError: capturedError)
     }
 
+    struct ScriptVerificationTiming: Equatable, Sendable {
+        var firstGMAiCallTimeout: Duration = .seconds(3)
+        var maxGMCallWait: Duration = .seconds(15)
+        var settleMilliseconds: Int = 100
+        var pollInterval: Duration = .milliseconds(20)
+    }
+
+    nonisolated(unsafe) static var verificationTiming = ScriptVerificationTiming()
+
     private enum CandidateVerificationOutcome: Sendable {
-        case verifiedOnCurrentPage
+        case verifiedOnCurrentPage(serviceFailure: String?, unhandledServiceError: ScriptRuntimeError?)
         case unverified(note: String)
         case fallbackLiveApply
         case refused(message: String, summary: String, images: [AgentImage])
@@ -2292,9 +2313,21 @@ extension ToolRegistry {
     ) async throws -> ToolExecutionOutput {
         var payload = basePayload
         switch verification {
-        case .verifiedOnCurrentPage:
+        case .verifiedOnCurrentPage(let serviceFailure, _):
             payload["applied_to_current_page"] = .bool(true)
             payload["verified"] = .bool(true)
+            if let serviceFailure {
+                let detail = serviceFailure.trimmingCharacters(in: .whitespacesAndNewlines)
+                let note = detail.isEmpty
+                    ? "saved, but the model call couldn't be checked"
+                    : "saved, but the model call couldn't be checked (\(detail))"
+                payload["verification_note"] = .string(note)
+                return ToolExecutionOutput(
+                    content: JSONValue.encodeCompactJSON(payload),
+                    summary: "\(baseSummary) — saved, but the model call couldn't be checked",
+                    isError: false
+                )
+            }
             return ToolExecutionOutput(content: JSONValue.encodeCompactJSON(payload), summary: baseSummary, isError: false)
         case .unverified(let note):
             if !script.isEnabled { await liveApplier?.removeLiveScript(id: script.id) }
@@ -2394,16 +2427,17 @@ extension ToolRegistry {
             )
         }
 
-        if liveApplier != nil {
-            _ = try? await bridge.runJS(
-                code: "await new Promise(r => setTimeout(r, 30)); return true;",
-                environment: .isolated,
-                timeout: 2
-            )
+        if let liveApplier {
+            do {
+                try await awaitCandidateGMCalls(candidate: candidate, bridge: bridge, liveApplier: liveApplier)
+            } catch {
+                _ = await liveApplier.endCandidateVerification()
+                throw error
+            }
         }
 
-        let capturedError = await liveApplier?.endCandidateVerification()
-        if let capturedError {
+        let verificationReport = await liveApplier?.endCandidateVerification() ?? CandidateVerificationReport()
+        if let capturedError = verificationReport.runtimeError {
             let detail: String
             if let line = capturedError.line, line > 0 {
                 detail = "\(capturedError.message) (line \(line))"
@@ -2438,7 +2472,64 @@ extension ToolRegistry {
             }
         }
 
-        return .verifiedOnCurrentPage
+        return .verifiedOnCurrentPage(
+            serviceFailure: verificationReport.serviceFailure,
+            unhandledServiceError: verificationReport.unhandledServiceError
+        )
+    }
+
+    private static func awaitCandidateGMCalls(
+        candidate: UserScript,
+        bridge: AgentPageDriving,
+        liveApplier: ScriptLiveApplying
+    ) async throws {
+        let timing = verificationTiming
+        let clock = ContinuousClock()
+        let overallDeadline = clock.now.advanced(by: timing.maxGMCallWait)
+
+        if candidate.metadata.grants.contains("GM_ai") {
+            let startDeadline = min(clock.now.advanced(by: timing.firstGMAiCallTimeout), overallDeadline)
+            while clock.now < startDeadline {
+                try Task.checkCancellation()
+                let status = await liveApplier.candidateVerificationStatus()
+                if status.startedGMAiCallCount > 0 || status.inFlightGMCallCount > 0 || status.hasRuntimeError {
+                    break
+                }
+                try await Task.sleep(for: timing.pollInterval)
+            }
+        }
+
+        while true {
+            while clock.now < overallDeadline {
+                try Task.checkCancellation()
+                let status = await liveApplier.candidateVerificationStatus()
+                if status.inFlightGMCallCount == 0 {
+                    break
+                }
+                try await Task.sleep(for: timing.pollInterval)
+            }
+            try Task.checkCancellation()
+            await settleWebViewAfterCandidate(bridge: bridge, milliseconds: timing.settleMilliseconds)
+            if clock.now >= overallDeadline {
+                break
+            }
+            let afterSettle = await liveApplier.candidateVerificationStatus()
+            if afterSettle.inFlightGMCallCount == 0 {
+                break
+            }
+        }
+    }
+
+    private static func settleWebViewAfterCandidate(bridge: AgentPageDriving, milliseconds: Int) async {
+        let clampedMs = max(1, milliseconds)
+        let timeoutSec = max(2.0, Double(clampedMs) / 1000.0 + 2.0)
+        if (try? await bridge.runJS(
+            code: "await new Promise(r => setTimeout(r, \(clampedMs))); return true;",
+            environment: .isolated,
+            timeout: timeoutSec
+        )) == nil {
+            try? await Task.sleep(for: .milliseconds(clampedMs))
+        }
     }
 
     /// Reloads the page without the refused candidate so the user never sees a
