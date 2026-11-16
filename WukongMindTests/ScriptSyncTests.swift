@@ -8,6 +8,7 @@ final class ScriptSyncTests: XCTestCase {
     private struct StubHTTPResponse: Sendable {
         var status = 200
         var body = Data()
+        var delay: TimeInterval = 0
     }
 
     private final class LibraryStubProtocol: URLProtocol, @unchecked Sendable {
@@ -26,6 +27,9 @@ final class ScriptSyncTests: XCTestCase {
             guard let url = request.url, let reply else {
                 client?.urlProtocol(self, didFailWithError: URLError(.badServerResponse))
                 return
+            }
+            if reply.delay > 0 {
+                Thread.sleep(forTimeInterval: reply.delay)
             }
             let response = HTTPURLResponse(
                 url: url,
@@ -63,7 +67,12 @@ final class ScriptSyncTests: XCTestCase {
         snapshot.settings.hasCompletedOnboarding = true
         try store.save(snapshot)
         addTeardownBlock { try? FileManager.default.removeItem(at: directory) }
+        return launchDevice(directory: directory, stubHTTP: stubHTTP)
+    }
 
+    private func launchDevice(directory: URL, stubHTTP: Bool = false) -> Device {
+        let keys = InMemoryProviderKeyStore([:])
+        let store = PersistentStore(fileURL: directory.appendingPathComponent("state.json"), keys: keys)
         let transport = FakeCloudTransport(server: server, user: "user-1")
         let sync = CloudSyncController(
             transport: transport,
@@ -347,8 +356,89 @@ final class ScriptSyncTests: XCTestCase {
         XCTAssertTrue(onC.disabledReason?.localizedCaseInsensitiveContains("hash") == true)
         let afterToggleAttempt = try c.app.scriptStore.setEnabled(id: saved.id, isEnabled: true)
         XCTAssertFalse(afterToggleAttempt.isEnabled, "unverified library must never turn on")
+        await c.app.scriptStore.waitForPendingLibrarySyncs()
+        XCTAssertFalse(try XCTUnwrap(c.app.scriptStore.script(id: saved.id)).isEnabled)
         let cSettleWrites = await writes { await self.sync(c) }
         XCTAssertEqual(cSettleWrites, 0)
+    }
+
+    func testRequireLibraryRecoversAfterTransientFetchFailureSyncPassToggleAndMidFetchKill() async throws {
+        let libCode = "window.__retryHelper = 42;"
+        let libData = Data(libCode.utf8)
+        let libSHA = ScriptStore.sha256Hex(libData)
+        let libURL = "https://cdn.example.org/retry-helper.js"
+
+        let a = try makeDevice(stubHTTP: true)
+        let b = try makeDevice(stubHTTP: true)
+        let c = try makeDevice(stubHTTP: true)
+        let d = try makeDevice(stubHTTP: true)
+
+        var candidate = try UserScript.parseUserScriptFile(
+            """
+            // ==UserScript==
+            // @name Retry Helper
+            // @match https://forum.example.com/*
+            // @require \(libURL)
+            // ==/UserScript==
+            window.__ran = window.__retryHelper;
+            """
+        )
+        candidate.id = "retry-helper"
+        let saved = try a.app.scriptStore.saveImportedScript(
+            candidate,
+            installURL: "https://greasyfork.example.org/scripts/retry-helper.user.js",
+            upstreamHash: "upstream-retry-1",
+            libraries: [ScriptLoadedLibrary(
+                meta: ScriptRequiredLibrary(url: libURL, sha256: libSHA, sizeBytes: libData.count),
+                code: libCode
+            )],
+            turnOn: true,
+            now: Date(timeIntervalSince1970: 1_760_035_000)
+        )
+
+        // 1. Transient 500 on first arrival -> off with reason; next sync pass with 200 recovers & enables.
+        LibraryStubProtocol.install { _ in StubHTTPResponse(status: 500, body: Data()) }
+        await sync(a, b, c)
+        await b.app.scriptStore.waitForPendingLibrarySyncs()
+        await c.app.scriptStore.waitForPendingLibrarySyncs()
+
+        let failedOnB = try XCTUnwrap(b.app.scriptStore.script(id: saved.id))
+        XCTAssertFalse(failedOnB.isEnabled)
+        XCTAssertNotNil(failedOnB.disabledReason)
+
+        LibraryStubProtocol.install { _ in StubHTTPResponse(status: 200, body: libData) }
+        let bRetryWrites = await writes { await self.sync(b) }
+        await b.app.scriptStore.waitForPendingLibrarySyncs()
+        XCTAssertEqual(bRetryWrites, 0)
+
+        let recoveredOnB = try XCTUnwrap(b.app.scriptStore.script(id: saved.id))
+        XCTAssertTrue(recoveredOnB.isEnabled, "enabledSeed preserved across transient library fetch failure")
+        XCTAssertNil(recoveredOnB.disabledReason)
+        XCTAssertEqual(b.app.scriptStore.loadVerifiedRequiredCode(for: recoveredOnB), .success([libCode]))
+        _ = try b.app.scriptStore.setEnabled(id: saved.id, isEnabled: false)
+        XCTAssertTrue(try b.app.scriptStore.setEnabled(id: saved.id, isEnabled: true).isEnabled)
+
+        // 2. Manual setEnabled(true) retries without needing another sync pass.
+        _ = try c.app.scriptStore.setEnabled(id: saved.id, isEnabled: true)
+        await c.app.scriptStore.waitForPendingLibrarySyncs()
+        let recoveredOnC = try XCTUnwrap(c.app.scriptStore.script(id: saved.id))
+        XCTAssertTrue(recoveredOnC.isEnabled)
+        XCTAssertNil(recoveredOnC.disabledReason)
+
+        // 3. Killed mid-fetch: leaves explicit disabledReason on disk, then relaunch retries & turns on.
+        LibraryStubProtocol.install { _ in StubHTTPResponse(status: 200, body: libData, delay: 0.4) }
+        await sync(d)
+        d.app.scriptStore.cancelPendingLibrarySyncsForTesting()
+        let interruptedOnD = try XCTUnwrap(d.app.scriptStore.script(id: saved.id))
+        XCTAssertFalse(interruptedOnD.isEnabled)
+        XCTAssertNotNil(interruptedOnD.disabledReason, "interrupted mid-fetch script must not be silently off without a reason")
+
+        LibraryStubProtocol.install { _ in StubHTTPResponse(status: 200, body: libData) }
+        let dRelaunched = launchDevice(directory: d.directory, stubHTTP: true)
+        await dRelaunched.app.scriptStore.waitForPendingLibrarySyncs()
+        let recoveredOnD = try XCTUnwrap(dRelaunched.app.scriptStore.script(id: saved.id))
+        XCTAssertTrue(recoveredOnD.isEnabled)
+        XCTAssertNil(recoveredOnD.disabledReason)
     }
 
     func testOversizedScriptStaysLocalAndVerificationHoldsRemoteChange() async throws {

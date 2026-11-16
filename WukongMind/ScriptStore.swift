@@ -1863,6 +1863,9 @@ final class ScriptStore {
     var onSyncedScriptsChanged: (@MainActor () -> Void)?
 
     @ObservationIgnored
+    var libraryHTTPClientProvider: (@MainActor () -> AgentHTTPClient?)?
+
+    @ObservationIgnored
     private var isApplyingRemoteSync = false
 
     @ObservationIgnored
@@ -2403,7 +2406,36 @@ final class ScriptStore {
             throw ScriptStoreError.scriptNotFound(id)
         }
         var current = scripts[idx]
+        if !isEnabled, var pending = readPendingLibraryState(for: id), pending.enableOnSuccess || pending.runLiveJS {
+            pending.enableOnSuccess = false
+            pending.runLiveJS = false
+            writePendingLibraryState(pending, for: id)
+        }
         if isEnabled, case .failure(let reason) = loadVerifiedRequiredCode(for: current) {
+            if let pins = retryableRequiredPins(for: current), libraryHTTPClientProvider != nil {
+                writePendingLibraryState(
+                    PendingLibraryState(enableOnSuccess: true, runLiveJS: runLiveJS, hashMismatch: false),
+                    for: id
+                )
+                if current.isEnabled || current.disabledReason == nil {
+                    current.isEnabled = false
+                    current.disabledReason = current.disabledReason ?? reason
+                    try writeScriptFile(current)
+                    scripts[idx] = current
+                    syncAttachedUserScripts()
+                }
+                if pendingLibrarySyncTasks[id] == nil {
+                    resolveSyncedRequiredLibraries(
+                        PendingLibrarySync(
+                            scriptID: id,
+                            pins: pins,
+                            enableOnSuccess: true,
+                            runLiveJS: runLiveJS
+                        )
+                    )
+                }
+                return current
+            }
             current.isEnabled = false
             current.disabledReason = reason
             try writeScriptFile(current)
@@ -2860,11 +2892,82 @@ final class ScriptStore {
         var scriptID: String
         var pins: [ScriptRequiredLibrary]
         var enableOnSuccess: Bool
+        var runLiveJS: Bool = false
+    }
+
+    struct PendingLibraryState: Codable, Equatable, Sendable {
+        var enableOnSuccess: Bool
+        var runLiveJS: Bool = false
+        var hashMismatch: Bool = false
     }
 
     enum RemoteSyncOutcome: Equatable, Sendable {
         case applied(pendingLibrarySync: PendingLibrarySync?)
         case skipped
+    }
+
+    private func pendingLibraryStateURL(for id: String) -> URL {
+        requireDirectoryURL(for: id).appendingPathComponent("pending.json", isDirectory: false)
+    }
+
+    func readPendingLibraryState(for id: String) -> PendingLibraryState? {
+        guard let data = try? Data(contentsOf: pendingLibraryStateURL(for: id)) else { return nil }
+        return try? JSONDecoder().decode(PendingLibraryState.self, from: data)
+    }
+
+    func writePendingLibraryState(_ state: PendingLibraryState, for id: String) {
+        let dir = requireDirectoryURL(for: id)
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        if let data = try? JSONEncoder().encode(state) {
+            try? data.write(to: pendingLibraryStateURL(for: id), options: .atomic)
+        }
+    }
+
+    private func removePendingLibraryState(for id: String) {
+        try? FileManager.default.removeItem(at: pendingLibraryStateURL(for: id))
+    }
+
+    func retryableRequiredPins(for script: UserScript) -> [ScriptRequiredLibrary]? {
+        let requiredURLs = script.metadata.requireURLs
+        guard !requiredURLs.isEmpty else { return nil }
+        let manifest = readRequiredLibraryManifest(for: script.id)
+        guard manifest.count == requiredURLs.count,
+              zip(manifest, requiredURLs).allSatisfy({ $0.url == $1 }),
+              !hasVerifiedLibrariesOnDisk(for: script.id, matching: manifest) else {
+            return nil
+        }
+        if readPendingLibraryState(for: script.id) != nil {
+            return manifest
+        }
+        let dir = requireDirectoryURL(for: script.id)
+        let hasMissingBody = manifest.indices.contains { index in
+            !FileManager.default.fileExists(atPath: dir.appendingPathComponent("\(index).js", isDirectory: false).path)
+        }
+        return hasMissingBody ? manifest : nil
+    }
+
+    func retryUnresolvedSyncedLibraries() {
+        guard libraryHTTPClientProvider != nil else { return }
+        let verifying = verifyingScriptIDs
+        for script in scripts {
+            guard !verifying.contains(script.id),
+                  pendingLibrarySyncTasks[script.id] == nil,
+                  let pins = retryableRequiredPins(for: script) else {
+                continue
+            }
+            let pendingState = readPendingLibraryState(for: script.id)
+            if pendingState?.hashMismatch == true {
+                continue
+            }
+            resolveSyncedRequiredLibraries(
+                PendingLibrarySync(
+                    scriptID: script.id,
+                    pins: pins,
+                    enableOnSuccess: pendingState?.enableOnSuccess ?? false,
+                    runLiveJS: pendingState?.runLiveJS ?? false
+                )
+            )
+        }
     }
 
     func readRequiredLibraryManifest(for id: String) -> [ScriptRequiredLibrary] {
@@ -3049,13 +3152,21 @@ final class ScriptStore {
             return nil
         }
         if hasVerifiedLibrariesOnDisk(for: script.id, matching: pins) {
+            removePendingLibraryState(for: script.id)
             script.isEnabled = desiredEnabled
             script.disabledReason = desiredEnabled ? nil : fallbackDisabledReason
             return nil
         }
         try? writeRequiredLibraryManifest(pins, for: script.id)
+        writePendingLibraryState(
+            PendingLibraryState(enableOnSuccess: desiredEnabled, runLiveJS: false, hashMismatch: false),
+            for: script.id
+        )
+        let firstHost = pins.first.flatMap { URL(string: $0.url)?.host } ?? pins.first?.url ?? script.id
         script.isEnabled = false
-        script.disabledReason = desiredEnabled ? nil : fallbackDisabledReason
+        script.disabledReason = desiredEnabled
+            ? (fallbackDisabledReason ?? "Missing required library from \(firstHost).")
+            : fallbackDisabledReason
         return PendingLibrarySync(scriptID: script.id, pins: pins, enableOnSuccess: desiredEnabled)
     }
 
@@ -3068,6 +3179,13 @@ final class ScriptStore {
         pendingLibrarySyncTasks[id] = task
     }
 
+    func cancelPendingLibrarySyncsForTesting() {
+        for (_, task) in pendingLibrarySyncTasks {
+            task.cancel()
+        }
+        pendingLibrarySyncTasks.removeAll()
+    }
+
     func waitForPendingLibrarySyncs() async {
         while let (_, task) = pendingLibrarySyncTasks.first {
             await task.value
@@ -3078,32 +3196,49 @@ final class ScriptStore {
         for id: String,
         pins: [ScriptRequiredLibrary],
         bodies: [String],
-        enableOnSuccess: Bool
+        enableOnSuccess: Bool,
+        runLiveJS: Bool = false
     ) {
         guard !Task.isCancelled,
               let idx = scripts.firstIndex(where: { $0.id == id }),
               readRequiredLibraryManifest(for: id) == pins else { return }
+        let pendingState = readPendingLibraryState(for: id)
+        let shouldEnable = pendingState?.enableOnSuccess ?? enableOnSuccess
+        let shouldRunLiveJS = pendingState?.runLiveJS ?? runLiveJS
         let loaded = zip(pins, bodies).map { ScriptLoadedLibrary(meta: $0, code: $1) }
         try? writeRequiredLibraries(loaded, for: id)
-        guard enableOnSuccess else { return }
         var current = scripts[idx]
+        guard shouldEnable else {
+            if current.disabledReason != nil {
+                current.disabledReason = nil
+                try? writeScriptFile(current)
+                scripts[idx] = current
+                syncAttachedUserScripts()
+            }
+            return
+        }
         guard case .success = loadVerifiedRequiredCode(for: current) else { return }
         current.isEnabled = true
         current.disabledReason = nil
         try? writeScriptFile(current)
         scripts[idx] = current
         syncAttachedUserScripts()
-        applyLiveToAttachedControllers(current, runJS: false)
+        applyLiveToAttachedControllers(current, runJS: shouldRunLiveJS)
     }
 
     func failSyncedRequiredLibraries(
         for id: String,
         pins: [ScriptRequiredLibrary],
-        reason: String
+        reason: String,
+        hashMismatch: Bool = false
     ) {
         guard !Task.isCancelled,
               let idx = scripts.firstIndex(where: { $0.id == id }),
               readRequiredLibraryManifest(for: id) == pins else { return }
+        if var pendingState = readPendingLibraryState(for: id), pendingState.hashMismatch != hashMismatch {
+            pendingState.hashMismatch = hashMismatch
+            writePendingLibraryState(pendingState, for: id)
+        }
         var current = scripts[idx]
         current.isEnabled = false
         current.disabledReason = reason

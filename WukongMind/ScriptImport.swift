@@ -517,13 +517,13 @@ final class ScriptImporter: ObservableObject {
 }
 
 extension ScriptStore {
-    func resolveSyncedRequiredLibraries(_ pending: PendingLibrarySync, httpClient: AgentHTTPClient) {
+    func resolveSyncedRequiredLibraries(_ pending: PendingLibrarySync, httpClient: AgentHTTPClient? = nil) {
         schedulePendingLibrarySync(pending.scriptID) { [weak self] in
-            guard let self else { return }
+            guard let self, let resolvedClient = httpClient ?? self.libraryHTTPClientProvider?() else { return }
             do {
                 let loaded = try await ScriptImporter.fetchLibraries(
                     urls: pending.pins.map(\.url),
-                    httpClient: httpClient
+                    httpClient: resolvedClient
                 )
                 for (item, pin) in zip(loaded, pending.pins) {
                     if item.meta.sha256.lowercased() != pin.sha256.lowercased() {
@@ -532,7 +532,12 @@ extension ScriptStore {
                             localized: "Required library hash changed for \(host).",
                             comment: "Disabled reason when a synced userscript's @require library no longer matches the sender's SHA-256 hash"
                         )
-                        self.failSyncedRequiredLibraries(for: pending.scriptID, pins: pending.pins, reason: reason)
+                        self.failSyncedRequiredLibraries(
+                            for: pending.scriptID,
+                            pins: pending.pins,
+                            reason: reason,
+                            hashMismatch: true
+                        )
                         return
                     }
                 }
@@ -540,12 +545,23 @@ extension ScriptStore {
                     for: pending.scriptID,
                     pins: pending.pins,
                     bodies: loaded.map(\.code),
-                    enableOnSuccess: pending.enableOnSuccess
+                    enableOnSuccess: pending.enableOnSuccess,
+                    runLiveJS: pending.runLiveJS
                 )
             } catch let failure as ScriptImportFailure {
-                self.failSyncedRequiredLibraries(for: pending.scriptID, pins: pending.pins, reason: failure.reason)
+                self.failSyncedRequiredLibraries(
+                    for: pending.scriptID,
+                    pins: pending.pins,
+                    reason: failure.reason,
+                    hashMismatch: false
+                )
             } catch {
-                self.failSyncedRequiredLibraries(for: pending.scriptID, pins: pending.pins, reason: error.localizedDescription)
+                self.failSyncedRequiredLibraries(
+                    for: pending.scriptID,
+                    pins: pending.pins,
+                    reason: error.localizedDescription,
+                    hashMismatch: false
+                )
             }
         }
     }

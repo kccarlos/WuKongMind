@@ -783,6 +783,9 @@ final class AppModel: ObservableObject {
             guard let self, !self.suppressesPersistence else { return }
             self.cloudSync.localDataDidChange()
         }
+        self.scriptStore.libraryHTTPClientProvider = { [weak resolvedImporter] in
+            resolvedImporter?.httpClientProvider()
+        }
         self.scriptImporterCancellable = resolvedImporter.objectWillChange.sink { [weak self] _ in
             self?.objectWillChange.send()
         }
@@ -869,6 +872,9 @@ final class AppModel: ObservableObject {
         // sessions were pruned at all) goes before anything reads it.
         pruneSessions()
         self.cloudSync.attach(self)
+        if !Self.loadsOnlySamplePage {
+            self.scriptStore.retryUnresolvedSyncedLibraries()
+        }
         // Launch: bring Spotlight up to date (only the difference, or
         // everything once after a new index version).
         spotlightDataDidChange()

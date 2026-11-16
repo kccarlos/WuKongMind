@@ -102,10 +102,7 @@ extension AppModel {
                 skipped.insert(SyncRecord.recordKey(kind: .script, id: change.id))
             case .applied(let pendingLibrarySync):
                 if let pendingLibrarySync {
-                    scriptStore.resolveSyncedRequiredLibraries(
-                        pendingLibrarySync,
-                        httpClient: scriptImporter.httpClientProvider()
-                    )
+                    scriptStore.resolveSyncedRequiredLibraries(pendingLibrarySync)
                 }
             }
         }
