@@ -647,6 +647,22 @@ extension AppModel {
         )
         scriptStore.noteExecuted(scriptID: "dark-thread", at: now.addingTimeInterval(-95))
 
+        // A learned reader (Learn on ask 8): This page reads "Reads this site" under it.
+        if AssistantDebug.has("-dc-reads-site") {
+            _ = try? scriptStore.create(
+                id: "thread-reader",
+                name: "Thread reader",
+                matchRules: ["*://news.example.org/*"],
+                js: "1;",
+                injectionTime: .documentEnd,
+                environment: .isolated,
+                isEnabled: true,
+                source: .agent(userPrompt: "Learn how to read this forum"),
+                provides: ["read_topic"],
+                now: now.addingTimeInterval(-600)
+            )
+        }
+
         if variant == "page-error" {
             scriptStore.recordError(
                 scriptID: "dark-thread",

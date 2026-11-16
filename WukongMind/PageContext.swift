@@ -53,6 +53,8 @@ struct PageContext: Equatable {
     /// From the topic's facts (`TopicFacts`), when AppModel has them.
     var postsCount: Int?
     var acceptedAnswerPost: Int?
+    /// On a `.notForum` page: the probe's fixed check found thread markup. Suggestions only.
+    var looksLikeThread = false
 
     static let empty = PageContext()
 
@@ -147,8 +149,8 @@ struct PageContext: Equatable {
             )
         }
 
-        if matchingFacts != nil {
-            return PageContext(url: url, state: .notForum)
+        if let matchingFacts {
+            return PageContext(url: url, state: .notForum, looksLikeThread: matchingFacts.looksLikeThread)
         }
         if registry.looseTopicID(in: url) != nil {
             return PageContext(url: url, state: .maybe)

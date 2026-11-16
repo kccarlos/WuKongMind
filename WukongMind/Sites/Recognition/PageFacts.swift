@@ -59,6 +59,8 @@ struct PageFacts: Equatable, Sendable {
     var htmlClass: String
     var bodyClass: String
     var iconURL: URL?
+    /// The fixed "looks like a thread" check (`PageFactsProbe.looksLikeThreadFunction`).
+    var looksLikeThread: Bool
 
     init(
         url: URL,
@@ -69,7 +71,8 @@ struct PageFacts: Equatable, Sendable {
         matches: Set<String> = [],
         htmlClass: String = "",
         bodyClass: String = "",
-        iconURL: URL? = nil
+        iconURL: URL? = nil,
+        looksLikeThread: Bool = false
     ) {
         self.url = url
         self.title = title
@@ -80,6 +83,7 @@ struct PageFacts: Equatable, Sendable {
         self.htmlClass = htmlClass
         self.bodyClass = bodyClass
         self.iconURL = iconURL
+        self.looksLikeThread = looksLikeThread
     }
 
     /// From the probe's dictionary (a `WKWebView` value, or the share
@@ -99,7 +103,8 @@ struct PageFacts: Equatable, Sendable {
             matches: Set((probe["matches"] as? [Any] ?? []).compactMap { $0 as? String }),
             htmlClass: probe["htmlClass"] as? String ?? "",
             bodyClass: probe["bodyClass"] as? String ?? "",
-            iconURL: icon.flatMap { $0.scheme == "https" || $0.scheme == "http" ? $0 : nil }
+            iconURL: icon.flatMap { $0.scheme == "https" || $0.scheme == "http" ? $0 : nil },
+            looksLikeThread: probe["looksLikeThread"] as? Bool ?? false
         )
     }
 

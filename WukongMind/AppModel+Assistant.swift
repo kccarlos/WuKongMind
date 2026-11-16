@@ -637,7 +637,8 @@ extension AppModel {
             context = PageContext(url: sampleHome(openForum), site: kind, siteURL: openForum.siteURL,
                                   forumName: openForum.name, state: .forumHome)
         case .notForum:
-            context = PageContext(url: URL(string: "https://www.apple.com/newsroom/"), state: .notForum)
+            context = PageContext(url: URL(string: "https://www.apple.com/newsroom/"), state: .notForum,
+                                  looksLikeThread: AssistantDebug.has("-dc-looks-like-thread"))
         case .maybe:
             context = PageContext(url: URL(string: "https://forum.example.org/t/welcome-to-our-community/1234"), state: .maybe)
         case .loading:
