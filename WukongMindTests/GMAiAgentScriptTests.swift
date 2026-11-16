@@ -462,4 +462,52 @@ final class GMAiAgentScriptTests: XCTestCase {
             add(attachment)
         }
     }
+
+    /// Check 1, second live run: the Scripts model is a Vertex Gemini model. The saved script comes from the
+    /// recorded Haiku run (the Agent is replayed), so this run proves only that `GM_ai` works on Gemini.
+    func testLiveVertexGeminiGMAiScriptFolding() async throws {
+        let env = ProcessInfo.processInfo.environment
+        let key = (env["VERTEX_API_KEY"] ?? env["TEST_RUNNER_VERTEX_API_KEY"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !key.isEmpty else { throw XCTSkip("Set TEST_RUNNER_VERTEX_API_KEY to run the live Vertex Gemini check.") }
+        guard FileManager.default.fileExists(atPath: Self.recordingURL.path) else { throw XCTSkip("Recorded fixture missing.") }
+        let saved = try JSONDecoder().decode(GMAiAcceptanceRecording.self, from: Data(contentsOf: Self.recordingURL))
+        let modelID = (env["TEST_RUNNER_VERTEX_MODEL"] ?? "gemini-3.8-flash")
+
+        try await withTestApp(dirName: "live-vertex-fold") { app in
+            var vertex = app.settings.configuration(for: .vertexAI)
+            vertex.apiKey = key
+            vertex.model = modelID
+            app.settings.setConfiguration(vertex, for: .vertexAI)
+            app.settings.setModel(ModelSelection(provider: .vertexAI, model: modelID), for: .scripts)
+            configureHaikuModel(on: app, apiKey: "recorded-replay-key")
+            app.settings.setModel(ModelSelection(provider: .vertexAI, model: modelID), for: .scripts)
+            app.browserAgent.configureDebugModelClient(RecordedModelClient(saved.agentResponses.map { .success($0) }))
+            let allCalls = saved.agentResponses.flatMap(\.toolCalls)
+            if let saveName = allCalls.last(where: { $0.name == "script_save" && $0.arguments["js"]?.stringValue != nil })?.arguments["name"]?.stringValue,
+               let updateID = allCalls.first(where: { $0.name == "script_update" })?.arguments["script_id"]?.stringValue {
+                app.scriptStore.seedPendingCandidateID(updateID, forName: saveName)
+            }
+
+            var geminiCalls = 0
+            let baseRunner = try XCTUnwrap(app.scriptWebController.gmBridge.aiService?.completionRunner)
+            app.scriptWebController.gmBridge.aiService?.completionRunner = { system, messages, config, provider, maxTokens in
+                XCTAssertEqual(provider, .vertexAI)
+                geminiCalls += 1
+                return try await baseRunner(system, messages, config, provider, maxTokens)
+            }
+
+            app.browser.loadSamplePage(Self.discourseFixtureHTML, at: Self.fixturePageURL)
+            await app.browser.waitUntilSettled(timeout: .seconds(15))
+            await app.browserAgent.sendAndWait(Self.acceptancePrompt)
+            XCTAssertGreaterThan(geminiCalls, 0)
+            try await assertFoldStateAndShowControl(in: app)
+            try await assertShowControlRevealsFoldedPost(in: app, postID: "102", expectedSnippet: Self.emptySnippets["102"]!)
+
+            let callsBeforeReload = geminiCalls
+            _ = try await app.browser.agentBridge.reload(timeout: 15)
+            try await assertFoldStateAndShowControl(in: app)
+            XCTAssertEqual(geminiCalls, callsBeforeReload, "Second load must make no model call")
+            print("GMAI_VERTEX_LIVE model=\(modelID) calls=\(geminiCalls)")
+        }
+    }
 }
