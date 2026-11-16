@@ -55,3 +55,11 @@ Part B (the app changes) is proposed as its own task. It will add the "after" ro
 - comfort noise of 1 s → shorter, after checking live that `audioStreamEnd` still ends turns;
 - idle timeout 60 s → shorter, with resumption on the next tap;
 - a lower compression trigger for long sessions.
+
+## Notes for Part B
+
+- **Measure after with the same script.** Run `VoiceLiveCostTests` again (1 Vertex session, through the budget). It prints `[LIVE-COST]` and the recording, so the "after" row compares like with like. Typed turns don't measure microphone cost. For that, count gated frames offline through `CaptureGate` (the `VoiceActivityDetectorTests` speech and noise mixes) before and after the comfort-noise change.
+- **Check routing after trimming descriptions.** `LiveReplayTests` fails if a recorded call's tool is no longer declared or no longer answers. It can't tell whether the model would still pick that tool, so spend one live session on the spike Q3 cases that are at risk.
+- **Vertex usage fields.** Reply tokens are `candidatesTokenCount` (handled now). Prompt and reply are split by modality in `promptTokensDetails` and `candidatesTokensDetails`, and `thoughtsTokenCount` is separate. Earlier model speech comes back as prompt `AUDIO` tokens.
+- **Resume on tap has two traps in the code.** On Vertex, a handle from a resumed connection is dropped (`resumptionUpdated`), so only a generation-0 handle can carry over. `setupCompleted` sends the first page note only for a fresh session (`freshAt` is nil when resumed), so a resumed session must send the current page note itself. A dead handle already falls back to a fresh session (`connectionEnded`).
+- **Comfort noise** (about 1 s at real-time pace, then `audioStreamEnd`) is a field lesson from earlier apps. Shorten it only after a live check that turns still end.
