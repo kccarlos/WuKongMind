@@ -199,7 +199,7 @@ struct SettingsSyncPage: View {
             }
 
             Section("What syncs") {
-                Text("Forums and pins · summaries and kept chats · Ask the forum answers · watched topics · most settings")
+                Text("Forums and pins · summaries and kept chats · Ask the forum answers · watched topics · scripts · most settings")
                     .font(.subheadline)
             }
             Section("Stays on this device") {

@@ -75,10 +75,21 @@ enum SyncKind: String, Codable, CaseIterable, Comparable {
     case session
     case run
     case watched
+    case script
 
     static func < (lhs: SyncKind, rhs: SyncKind) -> Bool {
         lhs.rawValue < rhs.rawValue
     }
+}
+
+/// Synced payload of one userscript (`SyncKind.script`).
+/// `content` holds only what is identical across devices; `enabledSeed`
+/// seeds the on/off switch on first arrival and stays fixed afterwards.
+struct SyncedScript: Codable, Equatable {
+    static let maxContentBytes = 512 * 1024
+
+    var content: String
+    var enabledSeed: Bool
 }
 
 /// The plaintext of one record (the encrypted payload of a CloudKit record).
@@ -86,7 +97,7 @@ enum SyncKind: String, Codable, CaseIterable, Comparable {
 struct SyncRecord: Codable, Equatable {
     var format = 1
     var kind: SyncKind
-    /// The record key (topic key, run UUID, forum site URL, "settings").
+    /// The record key (topic key, run UUID, forum site URL, script id, "settings").
     var id: String
     var fields: [String: JSONValue]?
     var stamps: [String: Date]?

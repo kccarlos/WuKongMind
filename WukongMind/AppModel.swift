@@ -820,6 +820,16 @@ final class AppModel: ObservableObject {
         self.scriptStore.onStoreChanged = { [weak self] in
             self?.objectWillChange.send()
         }
+        self.scriptStore.onSyncedScriptsChanged = { [weak self] in
+            guard let self else { return }
+            #if DEBUG
+            if self.suppressesPersistence { return }
+            #endif
+            self.cloudSync.localDataDidChange()
+        }
+        self.scriptStore.libraryHTTPClientProvider = { [weak resolvedImporter] in
+            resolvedImporter?.httpClientProvider()
+        }
         self.scriptImporterCancellable = resolvedImporter.objectWillChange.sink { [weak self] _ in
             self?.objectWillChange.send()
         }
@@ -907,6 +917,9 @@ final class AppModel: ObservableObject {
         // sessions were pruned at all) goes before anything reads it.
         pruneSessions()
         self.cloudSync.attach(self)
+        if !Self.loadsOnlySamplePage {
+            self.scriptStore.retryUnresolvedSyncedLibraries()
+        }
         // Launch: bring Spotlight up to date (only the difference, or
         // everything once after a new index version).
         spotlightDataDidChange()
@@ -3368,11 +3381,15 @@ final class AppModel: ObservableObject {
 
     /// Every synced record the app holds, as "kind/id" (to notice deletes).
     func syncRecordKeys() -> Set<String> {
-        var keys = Set<String>(minimumCapacity: sessions.count + agentRuns.count + watchedTopics.count + forums.count + 1)
+        var keys = Set<String>(
+            minimumCapacity: sessions.count + agentRuns.count + watchedTopics.count
+                + forums.count + scriptStore.scripts.count + 1
+        )
         for key in sessions.keys { keys.insert(SyncRecord.recordKey(kind: .session, id: key)) }
         for run in agentRuns { keys.insert(SyncRecord.recordKey(kind: .run, id: run.id.uuidString)) }
         for watched in watchedTopics { keys.insert(SyncRecord.recordKey(kind: .watched, id: watched.topicKey)) }
         for forum in forums { keys.insert(SyncRecord.recordKey(kind: .forum, id: forum.siteURL)) }
+        for script in scriptStore.scripts { keys.insert(SyncRecord.recordKey(kind: .script, id: script.id)) }
         return keys
     }
 

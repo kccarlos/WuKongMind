@@ -2288,6 +2288,14 @@ struct ScriptDetailView: View {
                 }
             } header: {
                 Text("Code", comment: "Section header in Script detail for JavaScript and CSS editors")
+            } footer: {
+                if store.isOverSyncSizeLimit(script)
+                    || Data((activeDraft.js + activeDraft.css).utf8).count > UserScript.maxSyncBytes {
+                    Text(
+                        "Over 512 KB — stays on this device and isn’t synced to iCloud.",
+                        comment: "Footer in Script detail when a script exceeds the 512 KB iCloud sync limit"
+                    )
+                }
             }
 
             if script.metadata.grants.contains("GM_ai") {
@@ -3286,6 +3294,16 @@ struct ScriptHistoryView: View {
             case .imported:
                 return (
                     String(localized: "Imported", comment: "Version history row title for an imported userscript"),
+                    nil
+                )
+            case .changedOnAnotherDevice:
+                return (
+                    String(localized: "Changed on another device", comment: "Version history row title when updated from another device via iCloud sync"),
+                    nil
+                )
+            case .replacedByAnotherDevice:
+                return (
+                    String(localized: "Replaced by a change from another device", comment: "Version history row title for a local edit superseded by a newer edit from another device"),
                     nil
                 )
             }

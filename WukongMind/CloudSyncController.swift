@@ -500,6 +500,7 @@ final class CloudSyncController: ObservableObject, CloudSyncTransportDelegate {
         guard activation == self.activation else { return }
         isApplying = true
         let skipped = plan.changes.isEmpty ? [] : model.applyRemote(plan.changes)
+        model.scriptStore.retryUnresolvedSyncedLibraries()
         isApplying = false
         // Remote deletes just applied aren't local deletes.
         knownRecordKeys = model.syncRecordKeys()

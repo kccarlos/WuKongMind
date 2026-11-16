@@ -7,13 +7,25 @@ import Foundation
 extension AppModel {
     /// The synced part of the state (API keys stripped).
     func syncLocalState() -> SyncLocalState {
-        SyncLocalState(
+        let localScripts = scriptStore.scripts.map { script -> SyncLocalScript in
+            let content = scriptStore.syncedContent(for: script)
+            return SyncLocalScript(
+                id: script.id,
+                content: content,
+                isEnabled: script.isEnabled,
+                updatedAt: script.updatedAt,
+                isOverSizeLimit: Data(content.utf8).count > SyncedScript.maxContentBytes
+            )
+        }
+        return SyncLocalState(
             settings: settings.persistable,
             sessions: sessions,
             runs: agentRuns,
             watched: watchedTopics,
             forums: forums,
-            busyTopicKeys: Set(activities.filter { !$0.status.isTerminal }.map(\.topicKey))
+            scripts: localScripts,
+            busyTopicKeys: Set(activities.filter { !$0.status.isTerminal }.map(\.topicKey)),
+            verifyingScriptIDs: scriptStore.verifyingScriptIDs
         )
     }
 
@@ -75,6 +87,25 @@ extension AppModel {
 
         let newWatched = Self.applying(changes.watched, to: watchedTopics, kind: .watched, id: \.topicKey, skipped: &skipped)
         let newForums = Self.applying(changes.forums, to: forums, kind: .forum, id: \.siteURL, skipped: &skipped)
+
+        for change in changes.scripts {
+            let outcome = scriptStore.applySyncedScript(
+                id: change.id,
+                expectedContent: change.expectedContent,
+                content: change.content,
+                enabledSeed: change.enabledSeed,
+                modifiedAt: change.modifiedAt,
+                replacedLocalEdit: change.replacedLocalEdit
+            )
+            switch outcome {
+            case .skipped:
+                skipped.insert(SyncRecord.recordKey(kind: .script, id: change.id))
+            case .applied(let pendingLibrarySync):
+                if let pendingLibrarySync {
+                    scriptStore.resolveSyncedRequiredLibraries(pendingLibrarySync)
+                }
+            }
+        }
 
         if newSettings != settings { settings = newSettings }
         if newSessions != sessions || newRuns != agentRuns || newWatched != watchedTopics

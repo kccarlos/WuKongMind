@@ -3,7 +3,7 @@
 WukongMind syncs between a person's iPhone and iPad in two ways:
 
 - **CloudKit** carries forums, summaries, chats, Ask the forum runs, watched
-  topics, and settings, in the app's private database in the user's own
+  topics, scripts, and settings, in the app's private database in the user's own
   iCloud account. It is **on by default** whenever the device is signed in to
   iCloud; there is nothing to set up.
 - **iCloud Keychain** carries API keys (**Sync API keys**, on by default).
@@ -40,6 +40,7 @@ unit this device didn't touch can't beat a remote edit.
 | Topic sessions: summary, chat, instructions, kept flag, counts | `session`, one per topic | newest wins per unit; the chat history is one unit (never merged message by message, so a cleared or edited chat can't come back), and the summary travels with its post count, time, provider, and model; `createdAt` min, `updatedAt` / `openedByUserAt` max |
 | Ask the forum runs, including the transcript | `run`, one per run | the run as a whole, newest wins |
 | Watched topics | `watched`, one per topic | newest wins; `knownPostCount` takes the maximum |
+| Scripts | `script`, one per script | `content` (the `.user.js` file without device-local lines, plus `@require` library hashes) and `enabledSeed` (initial on/off state on first arrival), newest wins; a losing concurrent edit stays in local version history, and `@require` libraries are fetched and hash-checked on arrival |
 
 An unkept chat that expired (24 hours idle) counts as cleared on every
 device.
@@ -63,6 +64,9 @@ setup card in that mode); the other role keeps working.
 **Stays on each device:** API keys (they sync only through iCloud Keychain),
 **Sync API keys**, whether sync is on, the work queue and activity log,
 fetched topic text and cached forum pages, each device's last watch check,
+each script's per-device on/off switch and auto-disable state, script version
+history, script stored values (`GM_getValue`), script `GM_ai` caches, scripts
+over 512 KB,
 the browser bar position, whether the walkthrough was completed, panel width,
 browser state, and the daily digest's on/off switch and notification (each
 device spends AI credits and schedules its background fetch on its own),
@@ -211,7 +215,7 @@ modify field … in production schema".
 
 | Record type | Field | Type | Notes |
 |---|---|---|---|
-| `SyncRecord` | `kind` | String | `settings`, `forum`, `session`, `run`, `watched` |
+| `SyncRecord` | `kind` | String | `settings`, `forum`, `session`, `run`, `watched`, `script` |
 | | `formatVersion` | Int(64) | payload format (1) |
 | | `deletedAt` | Date/Time | set on deleted items; written (as empty) on every save, so it must exist |
 | | `payload` | Bytes, **encrypted** | the record's JSON (id, units, stamps) |
