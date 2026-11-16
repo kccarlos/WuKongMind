@@ -395,13 +395,21 @@ final class ToolRegistryTests: XCTestCase {
         let first = try await reader.dispatch(toolName: "file_read", arguments: ["path": .string("notes/a.md")], step: 3)
         XCTAssertNil(first.savedPath)
         XCTAssertFalse(first.wasTruncated)
-        XCTAssertEqual(first.output, "notes/a.md · characters 0–10 of 20\n0123456789\nmore: call again with offset 10")
-        XCTAssertEqual(first.resultSummary, "10 of 20")
+        XCTAssertEqual(first.output, "notes/a.md · partial: 10 of 20 · characters 0–10 of 20\n0123456789\npartial: 10 of 20 · more: call again with offset 10")
+        XCTAssertEqual(first.resultSummary, "partial: 10 of 20")
         XCTAssertTrue(first.modelContent.hasPrefix(#"<untrusted_web_content tool="file_read">"#))
         let second = try await reader.dispatch(toolName: "file_read", arguments: [
             "path": .string("notes/a.md"), "offset": .int(10), "length": .int(5)
         ])
-        XCTAssertEqual(second.output, "notes/a.md · characters 10–15 of 20\nABCDE\nmore: call again with offset 15")
+        XCTAssertEqual(second.output, "notes/a.md · partial: 5 of 20 · characters 10–15 of 20\nABCDE\npartial: 5 of 20 · more: call again with offset 15")
+        let tail = try await reader.dispatch(toolName: "file_read", arguments: [
+            "path": .string("notes/a.md"), "offset": .int(15), "length": .int(5)
+        ])
+        XCTAssertEqual(tail.output, "notes/a.md · partial: 5 of 20 · characters 15–20 of 20\nFGHIJ")
+        XCTAssertEqual(tail.resultSummary, "partial: 5 of 20")
+        let whole = try await registry.dispatch(toolName: "file_read", arguments: ["path": .string("notes/a.md")])
+        XCTAssertEqual(whole.output, "notes/a.md · characters 0–20 of 20\n0123456789ABCDEFGHIJ")
+        XCTAssertEqual(whole.resultSummary, "20 of 20")
         let tooLong = try await reader.dispatch(toolName: "file_read", arguments: [
             "path": .string("notes/a.md"), "length": .int(11)
         ])
@@ -449,7 +457,7 @@ final class ToolRegistryTests: XCTestCase {
         let back = try await registry.dispatch(toolName: "file_read", arguments: [
             "path": .string("results/task-abc/07-read_page.txt"), "offset": .int(2_500), "length": .int(18)
         ])
-        XCTAssertTrue(back.output.hasSuffix("[REDACTED_API_KEY]\nmore: call again with offset 2518"), back.output)
+        XCTAssertTrue(back.output.hasSuffix("[REDACTED_API_KEY]\npartial: 18 of \(expectedTotal.formatted(.number.locale(Locale(identifier: "en_US")))) · more: call again with offset 2518"), back.output)
 
         // Without a task ID (no run to file it under), it falls back to the truncation marker.
         registry.taskID = nil

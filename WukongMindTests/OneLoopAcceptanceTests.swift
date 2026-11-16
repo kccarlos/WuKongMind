@@ -113,19 +113,21 @@ final class OneLoopAcceptanceTests: XCTestCase {
         XCTAssertTrue(run.session.runs.allSatisfy { if case .completed = $0.state { true } else { false } })
     }
 
-    /// (c) The cached prefix holds across a page change (including to a page with WebMCP tools):
-    /// the same tools and system prompt, byte for byte, and each turn's messages a prefix of the next.
+    /// (c) The cached prefix holds across the 4-page sequence: supported forum thread → ordinary page
+    /// (bbc.com) → unsupported forum (with WebMCP tools) → back to the supported thread.
+    /// Tools, system prompt and earlier turns stay byte-identical across all four, with breakpoints intact.
     func testRequestPrefixIsIdenticalAcrossAPageChange() async throws {
         let client = RecordedModelClient([
             .success(AgentModelTurnResponse(text: "Done on the forum.")),
             .success(AgentModelTurnResponse(text: "Done on the news page.")),
-            .success(AgentModelTurnResponse(text: "Done on the shop page."))
+            .success(AgentModelTurnResponse(text: "Done on the unsupported forum.")),
+            .success(AgentModelTurnResponse(text: "Done back on the forum."))
         ])
         _ = try await PageChangeRun.run(
             client: client, ai: ComparisonAIService(), models: .offline, folder: try temporaryFolder(),
-            includePageToolsTurn: true
+            includeFourPageSequence: true
         )
-        XCTAssertEqual(client.recordedRequests.count, 3)
+        XCTAssertEqual(client.recordedRequests.count, 4)
         let configuration = ProviderConfiguration(model: "claude-haiku-5-5", baseURL: AIProvider.anthropic.defaultBaseURL, apiKey: "k")
         let bodies = try client.recordedRequests.map { request -> [String: Any] in
             let wire = try AIService().makeToolRequest(
@@ -135,16 +137,18 @@ final class OneLoopAcceptanceTests: XCTestCase {
             return try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(wire.httpBody)) as? [String: Any])
         }
         func bytes(_ value: Any) throws -> Data { try JSONSerialization.data(withJSONObject: value, options: [.sortedKeys]) }
-        XCTAssertEqual(try bytes(XCTUnwrap(bodies[0]["tools"])), try bytes(XCTUnwrap(bodies[1]["tools"])), "tools changed with the page")
-        XCTAssertEqual(try bytes(XCTUnwrap(bodies[0]["tools"])), try bytes(XCTUnwrap(bodies[2]["tools"])), "tools changed on a page with page tools")
-        XCTAssertEqual(try bytes(XCTUnwrap(bodies[0]["system"])), try bytes(XCTUnwrap(bodies[1]["system"])), "system changed with the page")
-        XCTAssertEqual(try bytes(XCTUnwrap(bodies[0]["system"])), try bytes(XCTUnwrap(bodies[2]["system"])), "system changed on a page with page tools")
+        for index in 1..<bodies.count {
+            XCTAssertEqual(try bytes(XCTUnwrap(bodies[0]["tools"])), try bytes(XCTUnwrap(bodies[index]["tools"])), "tools changed at turn \(index)")
+            XCTAssertEqual(try bytes(XCTUnwrap(bodies[0]["system"])), try bytes(XCTUnwrap(bodies[index]["system"])), "system changed at turn \(index)")
+            let systemBlocks = try XCTUnwrap(bodies[index]["system"] as? [[String: Any]])
+            XCTAssertEqual((systemBlocks.last?["cache_control"] as? [String: String])?["type"], "ephemeral")
+        }
         let declaredNames = client.recordedRequests[2].tools.map(\.name)
-        XCTAssertTrue(declaredNames.contains("search_forum"))
+        XCTAssertTrue(declaredNames.contains("search_forum") && declaredNames.contains("summarize_topic"))
         XCTAssertTrue(declaredNames.contains("page_tools_list") && declaredNames.contains("page_tool_call"))
         XCTAssertFalse(declaredNames.contains { $0.hasPrefix("site.") || $0.hasPrefix("script.") })
 
-        // The breakpoint moves to the newest turn; everything before it is unchanged.
+        // The breakpoint moves to the newest turn; everything before it is unchanged across all four.
         func stripped(_ messages: Any?) throws -> [Data] {
             try XCTUnwrap(messages as? [[String: Any]]).map { message in
                 var message = message
@@ -152,27 +156,45 @@ final class OneLoopAcceptanceTests: XCTestCase {
                 return try bytes(message)
             }
         }
-        let first = try stripped(bodies[0]["messages"]), second = try stripped(bodies[1]["messages"]), third = try stripped(bodies[2]["messages"])
-        XCTAssertEqual(second.count, first.count + 2)
-        XCTAssertEqual(Array(second.prefix(first.count)), first)
-        XCTAssertEqual(third.count, second.count + 2)
-        XCTAssertEqual(Array(third.prefix(second.count)), second)
-        let lastBlock = try XCTUnwrap((bodies[2]["messages"] as? [[String: Any]])?.last?["content"] as? [[String: Any]]).last
-        XCTAssertNotNil(lastBlock?["cache_control"])
+        let encodedMessages = try bodies.map { try stripped($0["messages"]) }
+        for index in 1..<encodedMessages.count {
+            XCTAssertEqual(encodedMessages[index].count, encodedMessages[index - 1].count + 2)
+            XCTAssertEqual(Array(encodedMessages[index].prefix(encodedMessages[index - 1].count)), encodedMessages[index - 1])
+        }
+        for body in bodies {
+            let msgs = try XCTUnwrap(body["messages"] as? [[String: Any]])
+            for earlier in msgs.dropLast() {
+                let blocks = try XCTUnwrap(earlier["content"] as? [[String: Any]])
+                XCTAssertTrue(blocks.allSatisfy { $0["cache_control"] == nil }, "breakpoint leaked onto an earlier turn")
+            }
+            let lastBlocks = try XCTUnwrap(msgs.last?["content"] as? [[String: Any]])
+            XCTAssertTrue(lastBlocks.dropLast().allSatisfy { $0["cache_control"] == nil })
+            XCTAssertEqual((lastBlocks.last?["cache_control"] as? [String: String])?["type"], "ephemeral")
+        }
 
         // The page itself lives in each turn's page context; page tools appear only as app counts.
-        guard case .user(let forumTurn) = client.recordedRequests[2].messages[0],
-              case .user(let newsTurn) = client.recordedRequests[2].messages[2],
-              case .user(let shopTurn)? = client.recordedRequests[2].messages.last else { return XCTFail("turns") }
+        guard case .user(let forumTurn) = client.recordedRequests[3].messages[0],
+              case .user(let newsTurn) = client.recordedRequests[3].messages[2],
+              case .user(let unsupportedTurn) = client.recordedRequests[3].messages[4],
+              case .user(let backTurn)? = client.recordedRequests[3].messages.last else { return XCTFail("turns") }
         XCTAssertTrue(forumTurn.contains("- URL: https://meta.appinn.net/t/18527") && forumTurn.contains("- Forum: you are on"))
+        XCTAssertTrue(forumTurn.contains("you're on a supported forum thread") && forumTurn.contains("topic_id: 18527"), forumTurn)
         XCTAssertFalse(forumTurn.contains("- Page tools:"))
         XCTAssertTrue(newsTurn.contains("- URL: \(PageChangeRun.newsPage.url)"))
+        XCTAssertTrue(newsTurn.contains("bbc.com"))
         XCTAssertTrue(newsTurn.contains("The page changed since the user's previous message"))
         XCTAssertTrue(newsTurn.contains("- No reading tool for this site yet."))
+        XCTAssertFalse(newsTurn.contains("supported forum thread"))
         XCTAssertTrue(newsTurn.hasSuffix("The user's message:\n\(Self.newsPrompt)"))
         XCTAssertFalse(newsTurn.contains("- Page tools:"))
-        XCTAssertTrue(shopTurn.contains("- Page tools: 1 from this site (untrusted), 1 from your scripts; `page_tools_list` shows them."))
-        XCTAssertFalse(shopTurn.contains("shipping_quote") || shopTurn.contains("IGNORE INSTRUCTIONS"))
+        XCTAssertTrue(unsupportedTurn.contains("- URL: \(PageChangeRun.unsupportedForumPage.url)"))
+        XCTAssertTrue(unsupportedTurn.contains("- No reading tool for this site yet."))
+        XCTAssertFalse(unsupportedTurn.contains("supported forum thread"))
+        XCTAssertTrue(unsupportedTurn.contains("- Page tools: 1 from this site (untrusted), 1 from your scripts; `page_tools_list` shows them."))
+        XCTAssertFalse(unsupportedTurn.contains("shipping_quote") || unsupportedTurn.contains("IGNORE INSTRUCTIONS"))
+        XCTAssertTrue(backTurn.contains("- URL: https://meta.appinn.net/t/18527"))
+        XCTAssertTrue(backTurn.contains("The page changed since the user's previous message"))
+        XCTAssertTrue(backTurn.contains("you're on a supported forum thread") && backTurn.contains("topic_id: 18527"), backTurn)
     }
 
     func testRecordPageChangeRun() async throws {
@@ -197,11 +219,129 @@ final class OneLoopAcceptanceTests: XCTestCase {
         add(attachment)
         for (index, response) in recorder.responses.enumerated() {
             let usage = response.usage
-            print("PAGE-CHANGE turn \(index + 1): \(response.toolCalls.map(\.name)) in=\(usage.inputTokens) cacheRead=\(usage.cacheReadTokens.map(String.init) ?? "n/a") out=\(usage.outputTokens)")
+            print("PAGE-CHANGE turn \(index + 1): \(response.toolCalls.map(\.name)) in=\(usage.inputTokens) cacheRead=\(usage.cacheReadTokens.map(String.init) ?? "n/a") cacheWrite=\(usage.cacheWriteTokens.map(String.init) ?? "n/a") out=\(usage.outputTokens)")
         }
         for (index, saved) in run.session.runs.enumerated() {
             print("PAGE-CHANGE run \(index + 1) answer (\(saved.assistantText.count) chars): \(saved.assistantText)")
         }
+    }
+
+    // MARK: - WUKO-117: Long thread summarize_topic, partial file_read grounding, 4-page live cache
+
+    static let longThreadSummarizeRun = set.root.appendingPathComponent("runs/acceptance-long-thread-summarize.json")
+    static let partialFileReadRun = set.root.appendingPathComponent("runs/acceptance-partial-file-read.json")
+
+    /// (a) Tapping "Summarize this thread and replies" on a 338-post Discourse thread calls
+    /// `summarize_topic` (never `read_topic` or `file_read`), renders the summary card, and replies briefly.
+    func testLongDiscourseThreadSummarizeSuggestionCallsSummarizeTopicAndShowsCard() async throws {
+        guard FileManager.default.fileExists(atPath: Self.longThreadSummarizeRun.path) else {
+            throw XCTSkip("Not recorded yet: run testLiveWUKO117RecordAndFourPageCacheCheck with ANTHROPIC_API_KEY.")
+        }
+        let saved = try JSONDecoder().decode(PageChangeRecording.self, from: Data(contentsOf: Self.longThreadSummarizeRun))
+        XCTAssertEqual(saved.model, ModelAudit.allowedModel)
+        let client = RecordedModelClient(saved.responses.map { .success($0) })
+        let result = try await PageChangeRun.runLongThreadSummarize(
+            client: client, ai: ComparisonAIService(replaySummaries: saved.summaries), models: .offline, folder: try temporaryFolder()
+        )
+        XCTAssertEqual(client.recordedRequests.count, saved.responses.count)
+        let run = try XCTUnwrap(result.session.runs.first)
+        XCTAssertEqual(run.toolCalls.map(\.toolName), ["summarize_topic"], "\(run.toolCalls.map(\.toolName))")
+        let entries = BrowserAgentRunsView.capabilityEntries(in: run.toolCalls)
+        guard entries.count == 1, case .threadSummary(_, let thread, _) = entries[0] else {
+            return XCTFail("Expected one threadSummary card entry, got \(entries)")
+        }
+        XCTAssertEqual(thread.id, "87128")
+        XCTAssertEqual(thread.totalPosts, 352)
+        XCTAssertEqual(result.app.session(forThreadShape: thread)?.hasSummary, true)
+        XCTAssertFalse(run.assistantText.isEmpty)
+        XCTAssertLessThanOrEqual(run.assistantText.count, 500, "the reply restates the summary card: \(run.assistantText)")
+    }
+
+    /// (b) A partial `file_read` (20,000 of 38,123 characters) states "partial: 20,000 of 38,123" and
+    /// the model's answer discloses the partial read instead of claiming it read the full thread.
+    func testPartialFileReadStatesPartialAndAnswerDoesNotClaimFullRead() async throws {
+        guard FileManager.default.fileExists(atPath: Self.partialFileReadRun.path) else {
+            throw XCTSkip("Not recorded yet: run testLiveWUKO117RecordAndFourPageCacheCheck with ANTHROPIC_API_KEY.")
+        }
+        let saved = try JSONDecoder().decode(PageChangeRecording.self, from: Data(contentsOf: Self.partialFileReadRun))
+        XCTAssertEqual(saved.model, ModelAudit.allowedModel)
+        let client = RecordedModelClient(saved.responses.map { .success($0) })
+        let result = try await PageChangeRun.runPartialFileRead(
+            client: client, ai: ComparisonAIService(), models: .offline, folder: try temporaryFolder()
+        )
+        XCTAssertEqual(client.recordedRequests.count, saved.responses.count)
+        let run = try XCTUnwrap(result.session.runs.first)
+        XCTAssertEqual(run.toolCalls.map(\.toolName), ["file_read"])
+        XCTAssertEqual(run.toolCalls[0].resultSummary, "partial: 20,000 of 38,123")
+        XCTAssertTrue(run.toolCalls[0].resultText.contains("partial: 20,000 of 38,123"))
+        let lower = run.assistantText.lowercased()
+        for falseClaim in ["read the full", "read the entire", "read the whole", "read it all", "all 381"] {
+            XCTAssertFalse(lower.contains(falseClaim), "false full-read claim '\(falseClaim)' in: \(run.assistantText)")
+        }
+        XCTAssertTrue(
+            lower.contains("20,000") || lower.contains("partial") || lower.contains("first") || lower.contains("38,123"),
+            "answer must note the partial read: \(run.assistantText)"
+        )
+    }
+
+    /// Live Haiku 5.5 check: records missing WUKO-117 fixtures and verifies prompt-cache reads > 0
+    /// across supported forum thread → ordinary page (bbc.com) → unsupported forum → back to thread.
+    func testLiveWUKO117RecordAndFourPageCacheCheck() async throws {
+        let models = try ComparisonModels.fromEnvironment(ProcessInfo.processInfo.environment)
+        ModelAudit.shared.reset()
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+
+        if !FileManager.default.fileExists(atPath: Self.longThreadSummarizeRun.path) {
+            let ai = ComparisonAIService(session: ModelAudit.session())
+            let rec = RecordingModelClient(base: ai)
+            let res = try await PageChangeRun.runLongThreadSummarize(client: rec, ai: ai, models: models, folder: try temporaryFolder())
+            XCTAssertEqual(res.session.runs.first?.toolCalls.map(\.toolName), ["summarize_topic"])
+            let data = try encoder.encode(PageChangeRecording(model: models.agent.selection.model, responses: rec.responses, summaries: ai.recordedSummaries))
+            try data.write(to: Self.longThreadSummarizeRun)
+            let att = XCTAttachment(data: data, uniformTypeIdentifier: "public.json")
+            att.name = Self.longThreadSummarizeRun.lastPathComponent; att.lifetime = .keepAlways; add(att)
+        }
+
+        if !FileManager.default.fileExists(atPath: Self.partialFileReadRun.path) {
+            let ai = ComparisonAIService(session: ModelAudit.session())
+            let rec = RecordingModelClient(base: ai)
+            let res = try await PageChangeRun.runPartialFileRead(client: rec, ai: ai, models: models, folder: try temporaryFolder())
+            XCTAssertEqual(res.session.runs.first?.toolCalls.map(\.toolName), ["file_read"])
+            let data = try encoder.encode(PageChangeRecording(model: models.agent.selection.model, responses: rec.responses, summaries: []))
+            try data.write(to: Self.partialFileReadRun)
+            let att = XCTAttachment(data: data, uniformTypeIdentifier: "public.json")
+            att.name = Self.partialFileReadRun.lastPathComponent; att.lifetime = .keepAlways; add(att)
+        }
+
+        let ai = ComparisonAIService(session: ModelAudit.session())
+        let recorder = RecordingModelClient(base: ai)
+        let fourPage = try await PageChangeRun.run(
+            client: recorder, ai: ai, models: models, folder: try temporaryFolder(), includeFourPageSequence: true
+        )
+        XCTAssertTrue(ModelAudit.shared.recorded.allSatisfy { $0.model == ModelAudit.allowedModel })
+        var lines = ["model: \(models.agent.selection.model)"]
+        for (idx, resp) in recorder.responses.enumerated() {
+            let u = resp.usage
+            let line = "turn \(idx + 1): tools=\(resp.toolCalls.map(\.name)) in=\(u.inputTokens) cacheRead=\(u.cacheReadTokens ?? -1) cacheWrite=\(u.cacheWriteTokens ?? -1) out=\(u.outputTokens)"
+            lines.append(line); print("FOUR-PAGE " + line)
+            if idx > 0 {
+                XCTAssertGreaterThan(u.cacheReadTokens ?? 0, 0, "expected cache read > 0 on turn \(idx + 1): \(line)")
+            }
+        }
+        for (idx, run) in fourPage.session.runs.enumerated() {
+            lines.append("run \(idx + 1) (\(run.toolCalls.map(\.toolName))): \(run.assistantText.count) chars")
+        }
+        XCTAssertEqual(fourPage.session.runs[0].toolCalls.map(\.toolName), ["summarize_topic"])
+        for idx in [1, 2] {
+            let names = fourPage.session.runs[idx].toolCalls.map(\.toolName)
+            XCTAssertEqual(names.first, "read_page", "run \(idx + 1): \(names)")
+            XCTAssertTrue(names.allSatisfy { ["read_page", "summarize_topic"].contains($0) }, "run \(idx + 1): \(names)")
+            XCTAssertFalse(fourPage.session.runs[idx].toolCalls.contains { $0.argumentsJSON.contains("18527") })
+        }
+        let report = lines.joined(separator: "\n")
+        let reportAtt = XCTAttachment(string: report)
+        reportAtt.name = "four-page-cache-tokens.txt"; reportAtt.lifetime = .keepAlways; add(reportAtt)
     }
 }
 
@@ -236,11 +376,11 @@ final class RecordingModelClient: AgentModelClient, @unchecked Sendable {
 enum PageChangeRun {
     static let thread = OneLoopAcceptanceTests.multiStep
     static let newsPage = FixturePageDriver.SavedPage(
-        url: "https://news.example.org/science/2026/11/14/pacific-coral-reefs-recover",
-        title: "Pacific coral reefs recover faster than expected, survey finds",
+        url: "https://www.bbc.com/news/articles/pacific-coral-reefs-recover",
+        title: "Pacific coral reefs recover faster than expected, survey finds - BBC News",
         structure: """
-        Page: Pacific coral reefs recover faster than expected, survey finds
-        URL: https://news.example.org/science/2026/11/14/pacific-coral-reefs-recover
+        Page: Pacific coral reefs recover faster than expected, survey finds - BBC News
+        URL: https://www.bbc.com/news/articles/pacific-coral-reefs-recover
         main > article
           h1: Pacific coral reefs recover faster than expected, survey finds
           p (byline): By the Science desk, 14 November 2026
@@ -264,11 +404,17 @@ enum PageChangeRun {
         """
     )
 
-    static let shopPage = FixturePageDriver.SavedPage(
-        url: "https://shop.example.org/checkout",
-        title: "Harbor Outfitters Checkout",
-        structure: "Page: Harbor Outfitters Checkout\nURL: https://shop.example.org/checkout",
-        text: "Harbor Outfitters Checkout"
+    static let unsupportedForumPage = FixturePageDriver.SavedPage(
+        url: "https://forum.unsupported.example/threads/991",
+        title: "IndieBoard · Best mechanical keyboard switches",
+        structure: """
+        Page: IndieBoard · Best mechanical keyboard switches
+        URL: https://forum.unsupported.example/threads/991
+        main > section.thread
+          article#p1: Alice — Tactile switches feel sharpest for long typing sessions.
+          article#p2: Bob — Silent linears are better in shared offices.
+        """,
+        text: "IndieBoard · Best mechanical keyboard switches\nAlice: Tactile switches feel sharpest.\nBob: Silent linears are better in shared offices."
     )
 
     @MainActor
@@ -285,48 +431,98 @@ enum PageChangeRun {
 
     struct Result {
         var session: BrowserAgentSession
+        var app: AppModel
     }
 
-    /// Two turns in one conversation: the thread summary on the forum page, then "Summarize this page"
-    /// after the browser moved to the news page (plus an optional third turn on a page with WebMCP tools).
-    static func run(
-        client: AgentModelClient, ai: ComparisonAIService, models: ComparisonModels, folder: URL,
-        includePageToolsTurn: Bool = false
-    ) async throws -> Result {
-        let snapshot = try OneLoopAcceptanceTests.set.snapshot(thread.siteKind, mode: .replay)
-        let app = try ComparisonApp.make(thread, snapshot: snapshot, ai: ai, models: models, folder: folder)
-        let forumName = ForumSite.displayName(siteURL: thread.siteURL, name: nil)
-        app.browser.setPageContext(PageContext(
-            url: URL(string: thread.startURL), site: thread.siteKind, siteURL: thread.siteURL, forumName: forumName, state: .topic
-        ))
-        let driver = FixturePageDriver(page: .init(
-            url: thread.startURL, title: forumName,
-            structure: "Page: \(forumName)\nURL: \(thread.startURL)", text: "\(forumName)\n\(thread.startURL)"
-        ))
-        let pageToolDriver = FixturePageToolDriver()
+    static let longDiscourseThread = ComparisonQuestion(
+        id: "D2", kind: "discourse", siteURL: "https://meta.appinn.net",
+        startURL: "https://meta.appinn.net/t/87128",
+        prompt: PageSuggestion.summarizeThread.text
+    )
+
+    private static func makeSession(
+        app: AppModel, driver: FixturePageDriver, client: AgentModelClient, pageToolDriver: FixturePageToolDriver? = nil
+    ) -> BrowserAgentSession {
         weak var box: BrowserAgentSession?
         let session = BrowserAgentSession(
-            pageDriver: driver,
-            modelClient: client,
+            pageDriver: driver, modelClient: client,
             configProvider: { [unowned app] in app.browserAgentRuntimeConfig },
             registryBuilder: { [unowned app] bridge, limit, secrets in
                 ToolRegistry.m3(context: AgentToolContext(
                     bridge: bridge, workspace: app.agentWorkspace, scriptStore: app.scriptStore, liveApplier: app.scriptWebController,
-                    currentUserPrompt: { box?.lastUserPrompt },
-                    settings: AgentToolSettings(truncationLimit: limit, redactedSecrets: secrets),
+                    currentUserPrompt: { box?.lastUserPrompt }, settings: AgentToolSettings(truncationLimit: limit, redactedSecrets: secrets),
                     network: app.agentHTTPClient, confirmations: app.agentConfirmations,
                     forum: app.makeForumToolContext(), capabilities: app.capabilityToolContext,
-                    pageTools: includePageToolsTurn ? PageToolContext(bridge: pageToolDriver, scriptStore: app.scriptStore) : nil
+                    pageTools: pageToolDriver.map { PageToolContext(bridge: $0, scriptStore: app.scriptStore) }
                 ))
             }
         )
         box = session
+        return session
+    }
+
+    static func runLongThreadSummarize(
+        client: AgentModelClient, ai: ComparisonAIService, models: ComparisonModels, folder: URL
+    ) async throws -> Result {
+        let snapshot = try ComparisonSet.main.snapshot(.discourse, mode: .replay)
+        let app = try ComparisonApp.make(longDiscourseThread, snapshot: snapshot, ai: ai, models: models, folder: folder)
+        let forumName = ForumSite.displayName(siteURL: longDiscourseThread.siteURL, name: nil)
+        app.browser.setPageContext(PageContext(
+            url: URL(string: longDiscourseThread.startURL), site: .discourse, siteURL: longDiscourseThread.siteURL, forumName: forumName, state: .topic
+        ))
+        let driver = FixturePageDriver(page: .init(
+            url: longDiscourseThread.startURL, title: forumName,
+            structure: "Page: \(forumName)\nURL: \(longDiscourseThread.startURL)", text: "\(forumName)\n\(longDiscourseThread.startURL)"
+        ))
+        let session = makeSession(app: app, driver: driver, client: client)
+        await session.sendAndWait(PageSuggestion.summarizeThread.text)
+        XCTAssertEqual(snapshot.unmatchedURLs, [])
+        return Result(session: session, app: app)
+    }
+
+    static func runPartialFileRead(
+        client: AgentModelClient, ai: ComparisonAIService, models: ComparisonModels, folder: URL
+    ) async throws -> Result {
+        let snapshot = try OneLoopAcceptanceTests.set.snapshot(thread.siteKind, mode: .replay)
+        let app = try ComparisonApp.make(thread, snapshot: snapshot, ai: ai, models: models, folder: folder)
+        app.browser.setPageContext(PageContext(url: URL(string: unsupportedForumPage.url), state: .notForum))
+        let switches = ["Boba U4T tactile", "Cherry MX Silent Red", "Gateron Oil King linear", "Topre 45g electro-capacitive"]
+        let body = (1...381).map { n in
+            let pick = switches[(n - 1) % switches.count]
+            return "member\(n) | 2026-11-10 | #\(n)\nFor daily office coding I switched to \(pick) (\(55 + (n % 15))g springs) — quieter bottom-out and less finger fatigue."
+        }.joined(separator: "\n\n")
+        let padded = body.count >= 38_123 ? String(body.prefix(38_123)) : body + String(repeating: ".", count: 38_123 - body.count)
+        _ = try await app.agentWorkspace.write(path: "crawls/forum/thread.md", content: padded)
+        let session = makeSession(app: app, driver: FixturePageDriver(page: unsupportedForumPage), client: client)
+        await session.sendAndWait("Call file_read once at offset 0 on crawls/forum/thread.md (stop after one file_read call) and summarize what the thread covers.")
+        return Result(session: session, app: app)
+    }
+
+    /// Runs on the supported forum thread, switches to an ordinary page (bbc.com), and optionally
+    /// continues to an unsupported forum (with WebMCP tools) and back to the supported thread.
+    static func run(
+        client: AgentModelClient, ai: ComparisonAIService, models: ComparisonModels, folder: URL,
+        includeFourPageSequence: Bool = false
+    ) async throws -> Result {
+        let snapshot = try OneLoopAcceptanceTests.set.snapshot(thread.siteKind, mode: .replay)
+        let app = try ComparisonApp.make(thread, snapshot: snapshot, ai: ai, models: models, folder: folder)
+        let forumName = ForumSite.displayName(siteURL: thread.siteURL, name: nil)
+        let forumPage = FixturePageDriver.SavedPage(
+            url: thread.startURL, title: forumName,
+            structure: "Page: \(forumName)\nURL: \(thread.startURL)", text: "\(forumName)\n\(thread.startURL)"
+        )
+        app.browser.setPageContext(PageContext(
+            url: URL(string: thread.startURL), site: thread.siteKind, siteURL: thread.siteURL, forumName: forumName, state: .topic
+        ))
+        let driver = FixturePageDriver(page: forumPage)
+        let pageToolDriver = FixturePageToolDriver()
+        let session = makeSession(app: app, driver: driver, client: client, pageToolDriver: includeFourPageSequence ? pageToolDriver : nil)
         await session.sendAndWait(OneLoopAcceptanceTests.forumPrompt)
         driver.show(newsPage)
         app.browser.setPageContext(PageContext(url: URL(string: newsPage.url), state: .notForum))
         await session.sendAndWait(OneLoopAcceptanceTests.newsPrompt)
-        if includePageToolsTurn {
-            driver.show(shopPage)
+        if includeFourPageSequence {
+            driver.show(unsupportedForumPage)
             pageToolDriver.tools = [
                 PageTool(
                     source: .site, ownerID: nil, name: "shipping_quote", prefixedName: "site.shipping_quote",
@@ -340,10 +536,17 @@ enum PageChangeRun {
                     annotations: PageToolAnnotations(readOnlyHint: true)
                 )
             ]
-            app.browser.setPageContext(PageContext(url: URL(string: shopPage.url), state: .notForum))
-            await session.sendAndWait("What tools are on this page?")
+            app.browser.setPageContext(PageContext(url: URL(string: unsupportedForumPage.url), state: .notForum))
+            await session.sendAndWait(OneLoopAcceptanceTests.newsPrompt)
+
+            pageToolDriver.tools = []
+            driver.show(forumPage)
+            app.browser.setPageContext(PageContext(
+                url: URL(string: thread.startURL), site: thread.siteKind, siteURL: thread.siteURL, forumName: forumName, state: .topic
+            ))
+            await session.sendAndWait("What is point 2 in this thread?")
         }
         XCTAssertEqual(snapshot.unmatchedURLs, [], "the run asked for a URL the snapshot lacks")
-        return Result(session: session)
+        return Result(session: session, app: app)
     }
 }

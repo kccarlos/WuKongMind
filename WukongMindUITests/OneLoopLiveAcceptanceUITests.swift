@@ -256,6 +256,72 @@ final class OneLoopLiveAcceptanceUITests: DCUITestCase {
                  + "tools (both runs):\n" + allRows.joined(separator: "\n") + "\nreply: \(newsReply)")
         XCTAssertTrue(second.contains("Done"), second)
         XCTAssertFalse(newsReply.isEmpty, "No reply to \"Summarize this page\".")
-        XCTAssertEqual(allRows.filter { $0.contains("Summarized thread") }.count, 1, "The thread was summarized again: \(allRows)")
+        let secondRows = Array(allRows.dropFirst(firstRows.count))
+        XCTAssertTrue(secondRows.contains { $0.contains("Read page") }, "Did not read the new page: \(secondRows)")
+        if let forumSummaryRow = firstRows.first(where: { $0.contains("Summarized thread") }) {
+            XCTAssertEqual(allRows.filter { $0 == forumSummaryRow }.count, 1, "The forum thread was summarized again: \(allRows)")
+        }
+    }
+
+    /// WUKO-117: the owner's flow on a long uscardforum thread (250+ replies), tapping the
+    /// "Summarize this thread and replies" suggestion across 3 fresh runs on claude-haiku-5-5.
+    /// Every run must call `summarize_topic` (never `read_topic` or `file_read`) and show the summary card.
+    func testLiveLongUSCardForumSummarizeUsesSummarizeTopicThreeTimes() throws {
+        guard !apiKey.isEmpty else { throw XCTSkip("Set TEST_RUNNER_ANTHROPIC_API_KEY.") }
+        try requireNetwork()
+        var targetURL = ProcessInfo.processInfo.environment["ONE_LOOP_LONG_THREAD"].flatMap { $0.isEmpty ? nil : $0 }
+        var reportLines = ["model: \(Self.model)"]
+
+        for runIndex in 1...3 {
+            let openURL = targetURL ?? "https://www.uscardforum.com/top?period=monthly"
+            let app = launchLive(["-dc-open", openURL, "-dc-browser-agent-live-key"])
+            if targetURL == nil {
+                showBrowser(in: app)
+                let links = app.webViews.links.matching(NSPredicate(format: "label CONTAINS %@", "条回复"))
+                XCTAssertTrue(waitOrDump(links.firstMatch, timeout: 90, in: app), "No topics on uscardforum /top?period=monthly.")
+                var pickedReplies = 0
+                var chosen = links.element(boundBy: 0)
+                for attempt in 0..<4 {
+                    if let match = links.allElementsBoundByIndex.first(where: { link in
+                        let digits = link.label.prefix { $0.isNumber }
+                        guard !link.label.dropFirst(digits.count).hasPrefix("."),
+                              let n = Int(digits), n >= 200 && n <= 800 else { return false }
+                        pickedReplies = n; return true
+                    }) {
+                        chosen = match; break
+                    }
+                    if attempt < 3 { app.swipeUp(); sleep(1) }
+                }
+                reportLines.append("picked link: \(chosen.label) (replies=\(pickedReplies))")
+                XCTAssertGreaterThanOrEqual(pickedReplies, 200, "Expected a long thread (>=200 replies), got \(chosen.label)")
+                _ = reveal(chosen, in: app)
+                chosen.tap()
+                sleep(5)
+                let titleLabel = app.buttons["browserTitle"].firstMatch.label
+                if let tail = titleLabel.components(separatedBy: ", ").last, tail.contains("uscardforum.com/t/") {
+                    targetURL = tail.hasPrefix("http") ? tail : "https://www.\(tail)"
+                }
+            }
+            showAssistant(in: app)
+            let suggestion = app.buttons["suggestion-summarizeThread"].firstMatch
+            XCTAssertTrue(suggestion.waitForExistence(timeout: 90), "Run \(runIndex) not recognized as a thread.")
+            let threadTitle = app.buttons["browserTitle"].firstMatch.label
+            capture("wuko117-run\(runIndex)-before-tap")
+            suggestion.tap()
+            let status = waitForTurn(app, timeout: 420)
+            let hasCard = any(app, "capabilityThreadSummaryCard").waitForExistence(timeout: 10)
+            capture("wuko117-run\(runIndex)-summary-card")
+            let replyText = app.descendants(matching: .any).matching(identifier: "agentAssistantReply")
+                .allElementsBoundByIndex.map(\.label).joined(separator: "\n")
+            let rows = toolRows(app)
+            capture("wuko117-run\(runIndex)-steps")
+            reportLines.append("run \(runIndex): thread=\(threadTitle) | url=\(targetURL ?? openURL) | status=\(status) | card=\(hasCard) | tools=\(rows) | replyChars=\(replyText.count) | reply=\(replyText)")
+            XCTAssertTrue(status.contains("Done"), "Run \(runIndex): \(status)")
+            XCTAssertTrue(hasCard, "Run \(runIndex): summary card missing; tools=\(rows)")
+            XCTAssertTrue(rows.contains { $0.contains("Summarized thread") }, "Run \(runIndex): missing summarize_topic: \(rows)")
+            XCTAssertFalse(rows.contains { $0.contains("Read thread") || $0.contains("Read file") }, "Run \(runIndex): called read_topic/file_read: \(rows)")
+            app.terminate()
+        }
+        evidence("wuko117-uscardforum-3runs", reportLines.joined(separator: "\n"))
     }
 }

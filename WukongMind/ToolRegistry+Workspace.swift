@@ -108,13 +108,21 @@ extension ToolRegistry {
                 if let binary = read.binaryDescription {
                     return ToolExecutionOutput(content: binary, summary: binary, isRanged: true)
                 }
-                var content = "\(read.path) · characters \(read.start)–\(read.end) of \(read.totalCharacters)\n\(read.text)"
+                let returned = read.end - read.start
+                let isPartial = returned < read.totalCharacters
+                let status = isPartial
+                    ? "partial: \(grouped(returned)) of \(grouped(read.totalCharacters))"
+                    : "\(grouped(returned)) of \(grouped(read.totalCharacters))"
+                let header = isPartial
+                    ? "\(read.path) · \(status) · characters \(read.start)–\(read.end) of \(read.totalCharacters)"
+                    : "\(read.path) · characters \(read.start)–\(read.end) of \(read.totalCharacters)"
+                var content = "\(header)\n\(read.text)"
                 if read.end < read.totalCharacters {
-                    content += "\nmore: call again with offset \(read.end)"
+                    content += "\n\(status) · more: call again with offset \(read.end)"
                 }
                 return ToolExecutionOutput(
                     content: content,
-                    summary: "\(grouped(read.end - read.start)) of \(grouped(read.totalCharacters))",
+                    summary: status,
                     isRanged: true
                 )
             }

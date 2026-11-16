@@ -3177,7 +3177,18 @@ final class AppModel: ObservableObject {
             pace: settings.forumRequestPace,
             isPaced: settings.forumRateLimitingEnabled
         )
-        return ForumToolContext(service: forumToolService(for: targetBrowser), scope: scope, forumName: forumName)
+        let basePath = page.basePath.isEmpty ? (ForumSite.parse(siteURL: siteURL)?.basePath ?? "") : page.basePath
+        let openTopicID = page.state == .topic
+            ? (page.topic?.topicID ?? page.url.flatMap { adapter.recognizer.topicID(fromURL: $0, basePath: basePath) ?? adapter.recognizer.looseTopicID(in: $0) })
+            : nil
+        let openTopicURL = page.state == .topic ? (page.topic?.url ?? page.url)?.absoluteString : nil
+        return ForumToolContext(
+            service: forumToolService(for: targetBrowser),
+            scope: scope,
+            forumName: forumName,
+            openTopicID: openTopicID,
+            openTopicURL: openTopicURL
+        )
     }
 
     /// Builds per-run learned-site context when Page tools is enabled and the open page has no built-in adapter.
