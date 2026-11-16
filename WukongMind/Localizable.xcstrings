@@ -1696,7 +1696,7 @@
       }
     },
     "%lld tabs" : {
-      "comment" : "Tool row summary showing the number of open browser tabs",
+      "comment" : "Count of open browser tabs in the tab overview bar and tabs tool row",
       "localizations" : {
         "en" : {
           "variations" : {
@@ -3373,6 +3373,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "代理需要支援工具呼叫的模型。摘要可使用 Apple Intelligence 或任何快速、低成本的模型。指令碼是指令碼在執行時詢問的模型（GM_ai）。未設定時與摘要相同。"
+          }
+        }
+      }
+    },
+    "Agent working" : {
+      "comment" : "VoiceOver segment and badge on a tab card while its Agent is working",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "代理运行中"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "代理執行中"
           }
         }
       }
@@ -6144,6 +6161,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "關閉"
+          }
+        }
+      }
+    },
+    "Close Tab" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关闭标签页"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "關閉分頁"
+          }
+        }
+      }
+    },
+    "Close This Tab" : {
+      "comment" : "Tabs button long-press menu action to close the current tab",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关闭此标签页"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "關閉此分頁"
           }
         }
       }
@@ -11958,6 +12008,40 @@
         }
       }
     },
+    "Move earlier" : {
+      "comment" : "VoiceOver custom action on a tab card to move it one position earlier",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "前移"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "往前移"
+          }
+        }
+      }
+    },
+    "Move later" : {
+      "comment" : "VoiceOver custom action on a tab card to move it one position later",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "后移"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "往後移"
+          }
+        }
+      }
+    },
     "Mute" : {
       "localizations" : {
         "zh-Hans" : {
@@ -12092,6 +12176,23 @@
         }
       }
     },
+    "New Tab" : {
+      "comment" : "Tabs button long-press menu action to open a new tab",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新建标签页"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新增分頁"
+          }
+        }
+      }
+    },
     "New conversation" : {
       "comment" : "Browser agent menu action: clear the conversation and start fresh",
       "localizations" : {
@@ -12138,6 +12239,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "有新回覆"
+          }
+        }
+      }
+    },
+    "New tab" : {
+      "comment" : "Tab overview bar button that opens a new tab on Home",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新建标签页"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新增分頁"
           }
         }
       }
@@ -16191,6 +16309,23 @@
         }
       }
     },
+    "Reads this site" : {
+      "comment" : "Subtitle under a script the Agent learned that reads this site's threads, in This page and Settings › Scripts",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "读取此站点"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "讀取此網站"
+          }
+        }
+      }
+    },
     "Ready" : {
       "comment" : "AI provider status pill",
       "localizations" : {
@@ -18782,6 +18917,40 @@
         }
       }
     },
+    "Show Next Tab" : {
+      "comment" : "Keyboard shortcut command to switch to the next open tab",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示下一个标签页"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "顯示下一個分頁"
+          }
+        }
+      }
+    },
+    "Show Previous Tab" : {
+      "comment" : "Keyboard shortcut command to switch to the previous open tab",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示上一个标签页"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "顯示上一個分頁"
+          }
+        }
+      }
+    },
     "Show all %lld" : {
       "comment" : "Provider settings › Models: expands the truncated model list; placeholder is the total model count",
       "localizations" : {
@@ -19590,6 +19759,23 @@
         }
       }
     },
+    "Step limit reached" : {
+      "comment" : "History error summary when a run stopped at the step limit",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已达到步数上限"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已達到步數上限"
+          }
+        }
+      }
+    },
     "Step limit: %lld" : {
       "localizations" : {
         "zh-Hans" : {
@@ -19702,6 +19888,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "停止載入"
+          }
+        }
+      }
+    },
+    "Stopped" : {
+      "comment" : "Agent turn notice when a run was stopped before finishing",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已停止"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已停止"
           }
         }
       }
@@ -20683,6 +20886,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在同步…"
+          }
+        }
+      }
+    },
+    "Tab closed." : {
+      "comment" : "Toast shown for 5 seconds after closing a tab with no Agent conversation",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "标签页已关闭。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分頁已關閉。"
+          }
+        }
+      }
+    },
+    "Tab closed. Its conversation is in History." : {
+      "comment" : "Toast shown for 5 seconds after closing a tab that had an Agent conversation",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "标签页已关闭。其对话已保存在历史记录中。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分頁已關閉。其對話已儲存在歷史記錄中。"
+          }
+        }
+      }
+    },
+    "Tabs" : {
+      "comment" : "Browser bar button opening the tab overview",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "标签页"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分頁"
           }
         }
       }
@@ -25596,6 +25850,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@檢查過"
+          }
+        }
+      }
+    },
+    "current tab" : {
+      "comment" : "VoiceOver segment on the active tab card in the tab overview",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前标签页"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目前分頁"
           }
         }
       }

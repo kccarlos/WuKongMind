@@ -261,6 +261,16 @@ extension AppModel {
             // Kept over the restored forum's first load.
             browser.showForumsHome(overPendingLoad: true)
         }
+        if let index = arguments.firstIndex(of: "-dc-seed-open-tabs"),
+           index + 1 < arguments.count,
+           let targetCount = Int(arguments[index + 1]),
+           targetCount > tabs.tabs.count {
+            settings.hasCompletedOnboarding = true
+            let capped = min(BrowserTabs.maxTabs, targetCount)
+            while tabs.tabs.count < capped {
+                if tabs.openTab(inFront: false) == nil { break }
+            }
+        }
     }
 
     private static let browserAgentFixtureURL = URL(string: "https://news.example.org/story/user-agency")!
@@ -371,19 +381,38 @@ extension AppModel {
                 settings.setModel(ModelSelection(provider: .anthropic, model: ""), for: .browserAgent)
             } else if demoMode == "run-limit" {
                 settings.setModel(ModelSelection(provider: .anthropic, model: "claude-haiku-5-5"), for: .browserAgent)
+                let customOpenURL = usesCustomOpenPage
+                    ? AssistantDebug.value("-dc-open").flatMap(URL.init(string:))
+                    : nil
                 let tab1 = tabs.currentTab
+                if let customOpenURL {
+                    tab1.browser.ignoresNavigationFailures = true
+                    tab1.browser.load(customOpenURL)
+                } else {
+                    tab1.browser.loadSamplePage(Self.browserAgentFixtureHTML, at: Self.browserAgentFixtureURL)
+                }
                 tab1.agentSession.configureDebugModelClient(BrowserAgentDemoClient(mode: .running))
                 tab1.agentSession.send("Summarize this page")
                 for index in 2...3 {
                     if let bgTab = tabs.openTab(inFront: false) {
-                        bgTab.browser.loadSamplePage(Self.browserAgentFixtureHTML, at: Self.browserAgentFixtureURL)
+                        if let customOpenURL {
+                            bgTab.browser.ignoresNavigationFailures = true
+                            bgTab.browser.load(customOpenURL)
+                        } else {
+                            bgTab.browser.loadSamplePage(Self.browserAgentFixtureHTML, at: Self.browserAgentFixtureURL)
+                        }
                         bgTab.agentSession.configureDebugModelClient(BrowserAgentDemoClient(mode: .running))
                         bgTab.agentSession.send("Inspect tab \(index)")
                     }
                 }
                 if let fourthTab = tabs.openTab(inFront: true) {
                     fourthTab.agentSession.configureDebugModelClient(BrowserAgentDemoClient(mode: .recorded))
-                    loadBrowserAgentFixturePage()
+                    if let customOpenURL {
+                        fourthTab.browser.ignoresNavigationFailures = true
+                        fourthTab.browser.load(customOpenURL)
+                    } else {
+                        loadBrowserAgentFixturePage()
+                    }
                 }
             } else {
                 settings.setModel(ModelSelection(provider: .anthropic, model: "claude-haiku-5-5"), for: .browserAgent)
@@ -646,6 +675,22 @@ extension AppModel {
             now: now.addingTimeInterval(-7200)
         )
         scriptStore.noteExecuted(scriptID: "dark-thread", at: now.addingTimeInterval(-95))
+
+        // A learned reader (Learn on ask 8): This page reads "Reads this site" under it.
+        if AssistantDebug.has("-dc-reads-site") {
+            _ = try? scriptStore.create(
+                id: "thread-reader",
+                name: "Thread reader",
+                matchRules: ["*://news.example.org/*"],
+                js: "1;",
+                injectionTime: .documentEnd,
+                environment: .isolated,
+                isEnabled: true,
+                source: .agent(userPrompt: "Learn how to read this forum"),
+                provides: ["read_topic"],
+                now: now.addingTimeInterval(-600)
+            )
+        }
 
         if variant == "page-error" {
             scriptStore.recordError(

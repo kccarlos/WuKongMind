@@ -871,7 +871,11 @@ struct HistoryView: View {
     private func runDetail(_ run: AgentRun) -> String {
         var parts: [String] = []
         if run.loop == .agent {
-            parts.append(String(localized: "Answer", comment: "History: a saved Agent answer"))
+            if run.result == .completed || run.result == nil {
+                parts.append(String(localized: "Answer", comment: "History: a saved Agent answer"))
+            } else {
+                parts.append(statusTitle(app.status(of: run)))
+            }
             if !run.sources.isEmpty {
                 parts.append(String(localized: "\(run.sources.count) sources", comment: "History: how many sources a saved answer lists"))
             }
