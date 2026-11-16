@@ -56,6 +56,7 @@ Seen on WUKO-54's CI run of `dc36f20`; covered by retries until fixed.
 | --- | --- | --- |
 | `ForumPacingTests.testBackgroundCheckCancelledMidRequestLeavesThatTopicDue` | `WukongMindTests/ForumPacingTests.swift` | Timing-sensitive cancellation on loaded runners. |
 | `ForumPacingTests.testBackgroundChecksStopAtTheBudgetAndResumeWithTheRest` | `WukongMindTests/ForumPacingTests.swift` | Timing-sensitive background-check budget on loaded runners. |
+| `AIViewIntentTests.testAnswerReadyOpensTheFinishedRunsSavedAnswerAndMarksItSeen` | `WukongMindTests/DockTests.swift` | Fails its first attempt on most CI runs (expected value nil, answer not yet seen); failed twice on WUKO-125, so the unit job keeps 3 iterations. |
 
 ## Tests Deleted with the Cleanup (`docs/wukongmind/next-phase.md` §9)
 

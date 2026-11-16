@@ -5,7 +5,7 @@ in `scripts/ci/` also run locally.
 
 | Workflow | When | What |
 | --- | --- | --- |
-| `ci.yml` | Every pull request and push to `main` | Lint, project drift, unit tests, unsigned Release build |
+| `ci.yml` | Every pull request and push to `main` | Lint, project drift, unit tests, UI tests (two suites), unsigned Release build |
 | `release.yml` | Tags `v*`, or manual (`workflow_dispatch`) | TestFlight upload, unsigned simulator build, and (for tags) GitHub Release |
 | `update-filter-lists.yml` | Mondays, or manual | Refreshes the ad-blocking rules and opens a PR ([AD_BLOCKING.md](AD_BLOCKING.md)) |
 
@@ -15,17 +15,20 @@ in `scripts/ci/` also run locally.
 | --- | --- | --- |
 | `lint` | `ubuntu-latest` | Validates tracked `.plist`, `.entitlements`, and `.xcprivacy` files (`lint-plists.sh`); ShellChecks `scripts/ci` and `scripts/adblock`; checks `fastlane/Fastfile` syntax; runs the ad-blocking converter tests; runs `actionlint`. |
 | `project-drift` | `ubuntu-latest` | Runs `scripts/generate_project.rb` in a temporary copy and fails if the committed `WukongMind.xcodeproj` differs (`check-project-drift.sh`); checks the site-adapter layering boundary (`check-site-layering.sh`). |
-| `build-test` | `xcode-27` | Picks an iPhone simulator and runs the `WukongMindTests` unit tests, unsigned. Uploads the `.xcresult` bundle on failure. |
+| `build-test` ("Build & unit tests") | `xcode-27` | Picks an iPhone simulator and runs the `WukongMindTests` unit tests, unsigned. 3 iterations, 45 min timeout. Uploads the `.xcresult` bundle on failure. |
+| `ui-tests` ("UI tests") | `xcode-27` | Runs in parallel with `build-test`, on its own runner. Picks its own simulator (UDIDs differ per runner), boots it, then runs `SuggestionRowUITests` and `ScriptManagerUITests` (3 iterations, 600 s per-test cap; the step reruns once if xcodebuild reports "Lost pending connection to the test runner"). Prints the raw xcodebuild tail and uploads the `.xcresult` on failure. 60 min timeout. |
 | `release-build` | `xcode-27` | Builds the **Release** configuration for a generic iOS device, unsigned, to catch errors that only show up in Release (for example, code that is only compiled in DEBUG). |
 
 A newer push to the same branch or pull request cancels the run in progress.
-UI tests don't run in CI; run them locally
-([DEVELOPMENT.md](DEVELOPMENT.md#ui-tests)).
+Only the two fast offline UI suites run in CI; the longer multi-launch, perf
+and live suites stay local ([DEVELOPMENT.md](DEVELOPMENT.md#ui-tests)).
+`build-test` keeps its name as the required check; **add `ui-tests` ("UI tests")
+as a required check** in branch protection too.
 
-**Test retries.** `build-test` runs `xcodebuild test` with
+**Test retries.** `build-test` and `ui-tests` run `xcodebuild test` with
 `-retry-tests-on-failure -test-iterations 3`: a test passes if any of up to 3
 attempts passes, so timing flakes in the inherited suite don't block pull
-requests. Nothing is hidden: an always-run step (`scripts/ci/flaky-summary.sh`)
+requests. Nothing is hidden: an always-run step in each job (`scripts/ci/flaky-summary.sh`)
 reads `TestResults.xcresult` and lists every test that failed an attempt but
 passed on retry under "Flaky tests (passed on retry)" in the job summary. It
 never fails the job. Fix what shows up there; known cases are in
@@ -231,8 +234,8 @@ default with a warning.
 repositories. While the repository is private, Actions minutes are billed
 (macOS minutes count about 10x Linux minutes against the included quota), and
 runs fail to start if billing is blocked. To keep macOS time low anyway, lint
-and drift checks run on Linux, UI tests stay local, and superseded runs are
-cancelled.
+and drift checks run on Linux, only two fast UI suites run in CI, and
+superseded runs are cancelled.
 
 ## Running the checks locally
 
