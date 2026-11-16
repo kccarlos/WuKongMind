@@ -155,8 +155,16 @@ jobs:
       - uses: actions/checkout@v7
       - name: Select Xcode
         run: scripts/ci/select-xcode.sh
-      # Download before booting: a booting simulator slowed the download step
-      # to minutes in WUKO-125's attempt.
+      - name: Pick simulator and start booting it
+        id: sim
+        env:
+          SIM_PREFER: iPhone 17 Pro,iPhone 18 Pro,iPhone 17,iPhone Air
+        # The first boot and settle take minutes; start it now so it overlaps
+        # the download. Boot errors surface in the bootstatus step below.
+        run: |
+          scripts/ci/pick-simulator.sh
+          udid="$(grep '^udid=' "$GITHUB_OUTPUT" | tail -n 1 | cut -d= -f2)"
+          xcrun simctl boot "$udid" || true
       - name: Download test products
         uses: actions/download-artifact@v7
         with:
@@ -166,12 +174,7 @@ jobs:
           mkdir -p DerivedData/Build/Products
           unzip -q test-products.zip -d DerivedData/Build/Products
           rm test-products.zip
-      - name: Pick simulator
-        id: sim
-        env:
-          SIM_PREFER: iPhone 17 Pro,iPhone 18 Pro,iPhone 17,iPhone Air
-        run: scripts/ci/pick-simulator.sh
-      - name: Boot simulator
+      - name: Wait for the simulator
         # A cold simulator made the UI runner fail to launch ("Lost pending
         # connection to the test runner before launch").
         run: xcrun simctl bootstatus "${{ steps.sim.outputs.udid }}" -b
@@ -187,6 +190,12 @@ jobs:
         # The beautifier hides why xcodebuild exited early; show the raw end.
         if: failure()
         run: tail -n 60 tests.log || true
+      - name: Test start-up timeline
+        # Where the minutes before the first test went (timestamped raw log).
+        if: always()
+        run: |
+          grep -vE '^[0-9:]+ ((Details|Object|Method|Thread|Please file|\)).*|.*DVTAssertions.*|\s*)$' tests.log | head -n 40 || true
+          grep -m 2 "Test Suite" tests.log || true
       - name: Flaky tests (passed on retry)
         # Never fails the job: a missing or unreadable result only gets a note.
         if: always()

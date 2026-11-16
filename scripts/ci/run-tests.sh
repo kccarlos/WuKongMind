@@ -24,7 +24,9 @@ shard="${1:?usage: run-tests.sh <shard> [--print]}"
 print_only=false
 [[ "${2:-}" == --print ]] && print_only=true
 
-# Unit suites that take about half of the serial unit time (~600 of ~1,100 s).
+# Unit suites that take about half of the serial unit time (~600 of ~1,100 s;
+# the PR shard unit-b also carries the UI smoke set, ~2.5 min). Each job's first
+# suite also pays 1-2 min of warm-up.
 UNIT_A=(
   BrowserTabsTests          # ~129 s
   AIViewIntentTests         # ~114 s
@@ -34,6 +36,8 @@ UNIT_A=(
   StateTransitionTests      # ~39 s
   OneLoopComparisonTests    # ~38 s
   PageFeedbackTests         # ~38 s
+  AgentPageCaptureTests     # ~30-86 s
+  LiveReplayTests           # ~30 s
 )
 
 UI_SUITES=(SuggestionRowUITests ScriptManagerUITests)
@@ -121,6 +125,10 @@ fi
 formatter=(cat)
 if command -v xcbeautify >/dev/null; then formatter=(xcbeautify --renderer github-actions); fi
 
+# Raw log lines get a wall-clock prefix (the beautified output arrives in
+# bursts, so its GitHub timestamps say little about where time went).
+stamp() { perl -MPOSIX -ne '$|=1; print strftime("%H:%M:%S ", localtime), $_'; }
+
 run_tests() {
   set -o pipefail
   # A test passes if any of 3 attempts passes; flaky-summary.sh lists every
@@ -135,7 +143,7 @@ run_tests() {
     -test-timeouts-enabled YES \
     -maximum-test-execution-time-allowance "$allowance" \
     -resultBundlePath "$result" \
-    2>&1 | tee "$log" | "${formatter[@]}"
+    2>&1 | stamp | tee "$log" | "${formatter[@]}"
 }
 
 # Retry the whole run once, only when the test runner never launched.
