@@ -386,7 +386,8 @@ enum GeminiLive {
         if let usage = root["usageMetadata"]?.objectValue {
             message.usage = Usage(
                 promptTokens: usage["promptTokenCount"]?.intValue ?? 0,
-                responseTokens: usage["responseTokenCount"]?.intValue ?? 0,
+                // Vertex names it `candidatesTokenCount` (seen live 2026-11-15).
+                responseTokens: (usage["responseTokenCount"] ?? usage["candidatesTokenCount"])?.intValue ?? 0,
                 totalTokens: usage["totalTokenCount"]?.intValue ?? 0
             )
         }

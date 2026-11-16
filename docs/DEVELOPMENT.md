@@ -270,6 +270,50 @@ scripts/remote-test.sh --help
   the system Ruby 2.6 needed `gem install --user-install xcodeproj` (user-local
   gem for `scripts/generate_project.rb`). Everything lives under `~/remote-test`.
 
+### Live Gemini Live budget
+
+Gemini Live is billed per second of audio in and out plus tokens, and the
+owner found our test use too high (2026-11-15). The rules:
+
+- **Recorded replays everywhere else.** Routing and tool-flow tests replay
+  recorded sessions through `ReplayLiveTransport` (`Voice/LiveReplay.swift`)
+  with no network: `WukongMindTests/LiveReplayTests.swift` runs every
+  voice-anywhere case of the One loop spike
+  (`WukongMindTests/Fixtures/LiveReplay/`, rebuilt from the spike's event logs by
+  `scripts/live-replay-from-spike.py`, so marked `reconstructed`). A replay sends
+  a step's server frames when the session sends that step's trigger (setup,
+  user turn, or the response to a recorded call), so it follows the session's
+  own timing. It proves the app's side of each call (declared, dispatched,
+  answered, reply committed), not the model's routing.
+- **Live Gemini Live only in acceptance tasks and spikes**, and always behind
+  the budget. To record a new fixture, run a live test through
+  `RecordingLiveTransport` (it stubs the audio); `VoiceLiveCostTests` does this
+  for one short scripted session and prints the recording between
+  `[LIVE-RECORDING-BEGIN]` and `[LIVE-RECORDING-END]` (also attached to the
+  xcresult).
+- **The budget** (`Voice/LiveBudget.swift`): every `WebSocketLiveTransport` asks
+  it before opening, so unit tests, the spike (`one-loop-spike/run.sh`) and the
+  app launched by `VoiceAnywhereLiveAcceptanceUITests` all go through it. In a
+  test process the default cap is **3 sessions and 120 s per run** (per test
+  process); past it a connection is refused at once (close 1008, so the voice
+  session fails instead of retrying) and an open one is closed when the seconds
+  run out. Each connection logs a `[LIVE-BUDGET]` line with the seconds it used.
+  An acceptance task or spike that needs more sets
+  `GEMINI_LIVE_BUDGET="sessions,seconds"` for the test runner. Through
+  remote-test that is `GEMINI_LIVE_BUDGET=2,600 herdr-secret run VERTEX_API_KEY --
+  scripts/remote-test.sh --secret VERTEX_API_KEY=TEST_RUNNER_VERTEX_API_KEY
+  --secret GEMINI_LIVE_BUDGET=TEST_RUNNER_GEMINI_LIVE_BUDGET ...` (remote-test
+  forwards only `--secret` variables; the leak check then also searches the
+  results for that value, so pick one that doesn't occur in logs). The app in
+  normal use has no cap here; its guard is the voice minutes in Settings.
+
+```sh
+# The one scripted live session (Vertex first): recording + cost numbers
+herdr-secret run VERTEX_API_KEY -- scripts/remote-test.sh \
+  --secret VERTEX_API_KEY=TEST_RUNNER_VERTEX_API_KEY \
+  -only-testing:WukongMindTests/VoiceLiveCostTests
+```
+
 ### The shared test iPhone
 
 KC's iPhone 13 (`00008110-001614E8368A601E`) stays plugged into the build Mac

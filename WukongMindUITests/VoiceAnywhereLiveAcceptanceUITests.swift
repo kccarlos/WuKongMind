@@ -517,9 +517,41 @@ final class VoiceAnywhereLiveAcceptanceUITests: DCUITestCase {
 
     // MARK: - Helpers
 
+    // The live Gemini Live budget (docs/DEVELOPMENT.md "Live Gemini Live
+    // budget"): each launch gets what is left of this run's cap in
+    // GEMINI_LIVE_BUDGET, and the app's transport enforces it. A launch counts
+    // as one session here, and its seconds run from launch to the next one.
+    private static var budgetSessionsUsed = 0
+    private static var budgetSecondsUsed: TimeInterval = 0
+    private static var budgetLaunchedAt: Date?
+
+    private static var budgetCap: (sessions: Int, seconds: Double) {
+        let parts = (ProcessInfo.processInfo.environment["GEMINI_LIVE_BUDGET"] ?? "").split(separator: ",")
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+        if parts.count == 2, let sessions = Int(parts[0]), let seconds = Double(parts[1]) { return (sessions, seconds) }
+        return (3, 120)
+    }
+
+    /// What is left for the next launch, as "sessions,seconds".
+    private func nextLaunchBudget() -> String {
+        if let launched = Self.budgetLaunchedAt { Self.budgetSecondsUsed += Date().timeIntervalSince(launched) }
+        let cap = Self.budgetCap
+        let sessions = max(0, cap.sessions - Self.budgetSessionsUsed)
+        let seconds = max(0, cap.seconds - Self.budgetSecondsUsed)
+        if sessions == 0 || seconds <= 0 {
+            XCTFail("Live test budget used up: \(Self.budgetSessionsUsed) of \(cap.sessions) sessions, "
+                + "\(Int(Self.budgetSecondsUsed)) of \(Int(cap.seconds)) s (set GEMINI_LIVE_BUDGET to raise it)")
+        }
+        Self.budgetSessionsUsed += 1
+        Self.budgetLaunchedAt = Date()
+        print("[LIVE-BUDGET] launch \(Self.budgetSessionsUsed)/\(cap.sessions), \(Int(seconds)) s left")
+        return "\(sessions),\(Int(seconds))"
+    }
+
     private func launchVoiceApp(provider: String, includeVertex: Bool, includeGemini: Bool) -> XCUIApplication {
         XCUIDevice.shared.orientation = .portrait
         let app = XCUIApplication()
+        app.launchEnvironment["GEMINI_LIVE_BUDGET"] = nextLaunchBudget()
         app.launchEnvironment["ANTHROPIC_API_KEY"] = anthropicKey
         if includeVertex, !vertexKey.isEmpty {
             app.launchEnvironment["VERTEX_API_KEY"] = vertexKey
