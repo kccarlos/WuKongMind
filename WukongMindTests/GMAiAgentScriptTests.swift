@@ -427,9 +427,14 @@ final class GMAiAgentScriptTests: XCTestCase {
             var recordedGMAi: [RecordedGMAiTurn] = []
             let baseRunner = try XCTUnwrap(app.scriptWebController.gmBridge.aiService?.completionRunner)
             app.scriptWebController.gmBridge.aiService?.completionRunner = { system, messages, config, provider, maxTokens in
-                let result = try await baseRunner(system, messages, config, provider, maxTokens)
-                recordedGMAi.append(RecordedGMAiTurn(text: result.text, usage: result.usage))
-                return result
+                do {
+                    let result = try await baseRunner(system, messages, config, provider, maxTokens)
+                    recordedGMAi.append(RecordedGMAiTurn(text: result.text, usage: result.usage))
+                    return result
+                } catch {
+                    print("GMAI_LIVE_ERROR provider=\(provider.rawValue) model=\(config.model) error=\(error)")
+                    throw error
+                }
             }
 
             app.browser.loadSamplePage(Self.discourseFixtureHTML, at: Self.fixturePageURL)
