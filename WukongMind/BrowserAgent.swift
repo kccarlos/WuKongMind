@@ -395,6 +395,7 @@ enum BrowserAgentPrompt {
     6. If the save is refused, fix what the refusal names. After three refusals, call `site_learning_report` and answer from `read_page`.
     7. Write what you found to `sites/<host>/notes.md`, where `<host>` is the page's host in lower case without `www.` or a port.
     8. Answer with the new tool and end with one line saying the reader is saved and will be faster next time.
+    Where the page context says the saved reading tool for this site is broken, call the tool the request needs. The failing result carries the script, its errors and its source: fix it with `script_update` (keep `provides` and the match patterns, and pass `enabled: true`), try it on the page the error came from, and then answer. Never save a second reader for a tool that already has one. If you can't fix it, say so and use `read_page`. Where the page context says learning failed a while ago and its script is saved but off, change that script with `script_update` instead of saving a new one.
     Where the page context says reading is learned here, `read_topic`, `summarize_topic` and `read_aloud` take a thread URL of this site, so use `summarize_topic` for a summary.
     """
 
@@ -1227,6 +1228,8 @@ final class BrowserAgentSession {
             guard oldValue.isRunning else { return }
             switch runState {
             case .completed, .stepLimitReached, .failed:
+                learnedRunFinish?()
+                learnedRunFinish = nil
                 onRunFinished?()
             case .idle, .running, .stopped:
                 break
@@ -1281,6 +1284,8 @@ final class BrowserAgentSession {
     private var lastModelPrompt: String?
     private var lastRepairTarget: ScriptRepairTarget?
     private var activeRepairState: ScriptRepairRunState?
+    /// Counts a failed repair for each learned slot the run left `broken`; set per run, called once at its end.
+    private var learnedRunFinish: (@MainActor () -> Void)?
     /// The page as it was before this run's first page change (page
     /// feedback's baseline; verify before saving compares against it).
     private(set) var pageBaseline: PageStateSnapshot?
@@ -1695,6 +1700,7 @@ final class BrowserAgentSession {
         // task-record retention deletes with the record of the same ID.
         registry.taskID = taskID
         registry.repairState = activeRepairState
+        learnedRunFinish = registry.learnedRunFinished.map { finish in { finish(taskID) } }
         let includesWorkspace = registry.tool(named: "file_read") != nil
         let includesScriptTools = registry.tool(named: "script_save") != nil
         let includesTabsTool = registry.tool(named: "tabs") != nil

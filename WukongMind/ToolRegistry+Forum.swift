@@ -290,6 +290,7 @@ extension ToolRegistry {
             }
             if slotState.status == .failed || (script.map { !$0.isEnabled } ?? false) {
                 let code = slotState.failure?.code ?? SiteFailureCode.fromDisabledReason(script?.disabledReason)
+                if slotState.status != .failed, let script { LearnedSiteRepair.markFailedByApp(slot, script: script, learned: learned, taskID: nil) }
                 return (ToolExecutionOutput(
                     content: "Error: Learning to read this site failed (\(code.appSentence)). Don't try again unless the user asks; use `read_page`.",
                     summary: "Reading tool failed", isError: true
@@ -315,6 +316,16 @@ extension ToolRegistry {
         let gate = await learnedSlotGate(slot: slot, learned: learned, scriptStore: context.scriptStore)
         if let refusal = gate.refusal { return refusal }
         let scriptID = gate.scriptID!
+        if let failure = await learnedFullCheck(slot: slot, scriptID: scriptID, learned: learned, context: context, callContext: callContext) {
+            return failure
+        }
+        func fail(_ call: (error: ToolExecutionOutput?, thrownCode: String?), requested: URL? = nil, message: String? = nil) async -> ToolExecutionOutput {
+            let text = message ?? call.error.map { String($0.content.dropFirst("Error: ".count)) } ?? "The reading tool failed."
+            return await learnedFailure(
+                slot: slot, message: text, scriptID: scriptID, requested: requested, readerSaidService: call.thrownCode == "service",
+                learned: learned, context: context, callContext: callContext
+            )
+        }
 
         switch slot {
         case .readTopic:
@@ -334,7 +345,7 @@ extension ToolRegistry {
             var payload: [String: JSONValue] = ["url": .string(validURL.absoluteString)]
             if let requestedPage { payload["page"] = .int(Int64(requestedPage)) }
             let call = await callLearnedReader(slot: slot, scriptID: scriptID, payload: payload, learned: learned, shapeNoun: "thread", as: ThreadShape.self)
-            if let errorOutput = call.error { return errorOutput }
+            if call.error != nil { return await fail((call.error, call.thrownCode), requested: validURL) }
             let envelope = call.envelope!
             if envelope.currentPageOnly == true {
                 let openURL = await context.bridge.currentPageMetadata().url
@@ -344,7 +355,7 @@ extension ToolRegistry {
             }
             guard !envelope.shape.posts.isEmpty,
                   envelope.shape.posts.allSatisfy({ !$0.body.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) else {
-                return ToolExecutionOutput(content: "Error: The reading tool returned no posts.", isError: true)
+                return await fail((nil, nil), requested: validURL, message: "The reading tool returned no posts.")
             }
             let rawSource = ForumRendering.rawTopicText(from: envelope.shape)
             let query = (arguments["query"]?.stringValue ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
@@ -365,10 +376,10 @@ extension ToolRegistry {
 
         case .listLatest:
             let call = await callLearnedReader(slot: slot, scriptID: scriptID, learned: learned, shapeNoun: "list", as: ListShape.self)
-            if let errorOutput = call.error { return errorOutput }
+            if call.error != nil { return await fail((call.error, call.thrownCode)) }
             let envelope = call.envelope!
             guard !envelope.shape.items.isEmpty else {
-                return ToolExecutionOutput(content: "Error: The reading tool returned no items.", isError: true)
+                return await fail((nil, nil), message: "The reading tool returned no items.")
             }
             let parts = ForumRendering.formatParts(list: envelope.shape, limit: 30)
             return ToolExecutionOutput(
@@ -390,7 +401,7 @@ extension ToolRegistry {
             var payload: [String: JSONValue] = ["query": .string(query)]
             if let requestedPage { payload["page"] = .int(Int64(requestedPage)) }
             let call = await callLearnedReader(slot: slot, scriptID: scriptID, payload: payload, learned: learned, shapeNoun: "list", as: ListShape.self)
-            if let errorOutput = call.error { return errorOutput }
+            if call.error != nil { return await fail((call.error, call.thrownCode)) }
             let envelope = call.envelope!
             if let requestedPage, let total = envelope.totalPages, total >= 1, requestedPage > total {
                 throw AgentError.invalidArgument("page", reason: "no such page \(requestedPage) (use 1 to \(total)).")
@@ -417,20 +428,20 @@ extension ToolRegistry {
     static func callLearnedReader<Shape: Codable & Equatable & Sendable>(
         slot: SiteToolSlot, scriptID: String, payload: [String: JSONValue] = [:],
         learned: LearnedSiteContext, shapeNoun: String, as _: Shape.Type
-    ) async -> (envelope: LearnedToolResult<Shape>?, error: ToolExecutionOutput?) {
+    ) async -> (envelope: LearnedToolResult<Shape>?, error: ToolExecutionOutput?, thrownCode: String?) {
         let outcome = await learned.pageToolBridge.callScriptTool(
             scriptID: scriptID, name: slot.rawValue, argumentsJSON: JSONValue.encodeCompactJSON(payload)
         )
         guard case .success(let callResult) = outcome else {
             if case .failure(let failure) = outcome {
-                return (nil, ToolExecutionOutput(content: "Error: \(failure.message)", isError: true))
+                return (nil, ToolExecutionOutput(content: "Error: \(failure.message)", isError: true), failure.thrownCode)
             }
-            return (nil, ToolExecutionOutput(content: "Error: Tool call failed.", isError: true))
+            return (nil, ToolExecutionOutput(content: "Error: Tool call failed.", isError: true), nil)
         }
         guard let envelope = try? JSONDecoder().decode(LearnedToolResult<Shape>.self, from: Data(callResult.json.utf8)) else {
-            return (nil, ToolExecutionOutput(content: "Error: The reading tool returned an invalid \(shapeNoun) shape.", isError: true))
+            return (nil, ToolExecutionOutput(content: "Error: The reading tool returned an invalid \(shapeNoun) shape.", isError: true), nil)
         }
-        return (envelope, nil)
+        return (envelope, nil, nil)
     }
 
     private static func stringArguments(from arguments: [String: JSONValue]) -> [String: String] {
