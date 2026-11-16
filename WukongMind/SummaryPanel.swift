@@ -846,9 +846,19 @@ struct AssistantPanel: View {
     // MARK: Suggestions
 
     private var suggestionKind: SuggestionPageKind? {
-        PageSuggestions.pageKind(
+        let page = app.pageContext
+        let learned = app.settings.agentPageToolsEnabled
+            ? page.url.flatMap { url in
+                SiteToolState.learnedSuggestionKind(
+                    state: app.siteToolStateStore.state(forURL: url), url: url, scripts: scriptStore.scripts
+                )
+            }
+            : nil
+        return PageSuggestions.pageKind(
             state: app.assistantPageState,
-            hasPage: currentScriptPageURL != nil || app.currentTopic != nil
+            hasPage: currentScriptPageURL != nil || app.currentTopic != nil,
+            learned: learned,
+            looksLikeThread: page.looksLikeThread
         )
     }
 

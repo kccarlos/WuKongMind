@@ -16191,6 +16191,23 @@
         }
       }
     },
+    "Reads this site" : {
+      "comment" : "Subtitle under a script the Agent learned that reads this site's threads, in This page and Settings › Scripts",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "读取此站点"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "讀取此網站"
+          }
+        }
+      }
+    },
     "Ready" : {
       "comment" : "AI provider status pill",
       "localizations" : {

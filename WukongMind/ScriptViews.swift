@@ -1247,6 +1247,14 @@ struct PageCapabilitiesView: View {
             Text("Off", comment: "State pill when a feature or script is disabled")
                 .font(.caption)
                 .foregroundStyle(.secondary)
+        } else if script.readsSite {
+            Label {
+                Text("Reads this site", comment: "Subtitle under a script the Agent learned that reads this site's threads, in This page and Settings › Scripts")
+            } icon: {
+                Image(systemName: "doc.text")
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
         } else if script.isAllSitesRule && !script.hasJS && script.hasCSS {
             Text("All sites · CSS only", comment: "Popover subtitle for an all-sites stylesheet script")
                 .font(.caption)
@@ -1273,6 +1281,9 @@ struct PageCapabilitiesView: View {
     }
 
     private func scriptRowVoiceOverLabel(for script: UserScript) -> String {
+        if script.readsSite {
+            return "\(script.name), \(String(localized: "Reads this site", comment: "Subtitle under a script the Agent learned that reads this site's threads, in This page and Settings › Scripts"))"
+        }
         guard script.metadata.grants.contains("GM_ai") else { return script.name }
         let usesAI = String(localized: "Uses AI · \(app.scriptsModelDisplayName)", comment: "Script row subtitle in Settings › Scripts when the script has the GM_ai grant; placeholder is the active Scripts model name")
         return "\(script.name), \(usesAI)"
