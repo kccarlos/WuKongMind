@@ -58,6 +58,8 @@ struct SiteSlotFailure: Codable, Equatable, Sendable {
 struct SiteSlotCheck: Codable, Equatable, Sendable {
     var date: Date, url: String, result: String
     var counts: [Int] = [], durationMs: Double? = nil
+    /// The verification steps of that check; absent in state files saved before the inspector.
+    var steps: [SiteVerificationStepResult]? = nil
 }
 
 struct SiteSlotState: Codable, Equatable, Sendable {

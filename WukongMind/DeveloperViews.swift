@@ -247,6 +247,7 @@ struct DevPageLogRows: View {
     @ObservedObject var app: AppModel
     @State private var counts: [DevPageLogSheet.Kind: Int] = [:]
     @State private var shown: DevPageLogSheet.Kind?
+    @State private var showsSiteInspector = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -261,6 +262,18 @@ struct DevPageLogRows: View {
             row(.network, title: String(localized: "Network", comment: "This page developer row"),
                 detail: counts[.network].map { String(localized: "\($0) requests", comment: "This page › Network row: number of captured requests") },
                 id: "thisPageNetwork")
+            Button { showsSiteInspector = true } label: {
+                HStack {
+                    Text("Site inspector", comment: "This page developer row").font(.subheadline.weight(.medium)).foregroundStyle(DCTheme.ink)
+                    Spacer(minLength: 8)
+                    Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(.tertiary)
+                }
+                .padding(.horizontal, 14)
+                .frame(minHeight: 44)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("thisPageSiteInspector")
         }
         .task(id: app.tabs.currentTabID) {
             for kind in [DevPageLogSheet.Kind.console, .network] {
@@ -268,6 +281,7 @@ struct DevPageLogRows: View {
             }
         }
         .sheet(item: $shown) { DevPageLogSheet(app: app, kind: $0) }
+        .sheet(isPresented: $showsSiteInspector) { SiteInspectorView(app: app) }
     }
 
     private func row(_ kind: DevPageLogSheet.Kind, title: String, detail: String?, id: String) -> some View {

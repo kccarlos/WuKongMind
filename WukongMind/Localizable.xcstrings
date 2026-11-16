@@ -3394,6 +3394,23 @@
         }
       }
     },
+    "Agent: \"%@\"" : {
+      "comment" : "Site inspector: the Agent's own words about a failure",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "智能体：“%@”"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "智慧代理：「%@」"
+          }
+        }
+      }
+    },
     "Agent: none" : {
       "comment" : "Settings root, Models row: no Agent model chosen yet",
       "localizations" : {
@@ -4266,6 +4283,40 @@
         }
       }
     },
+    "Arguments · JSON" : {
+      "comment" : "Trial run section title",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "参数 · JSON"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "參數 · JSON"
+          }
+        }
+      }
+    },
+    "Arguments, JSON" : {
+      "comment" : "Trial run: the arguments editor",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "参数（JSON）"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "參數（JSON）"
+          }
+        }
+      }
+    },
     "Ask" : {
       "comment" : "Short form of the “Ask the forum” assistant mode, for narrow switchers",
       "localizations" : {
@@ -4958,6 +5009,57 @@
         }
       }
     },
+    "Bounded" : {
+      "comment" : "Verification step 8",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有时间与大小上限"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有時間與大小上限"
+          }
+        }
+      }
+    },
+    "Broken" : {
+      "comment" : "Learning log event",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已损坏"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已損壞"
+          }
+        }
+      }
+    },
+    "Broken: %@" : {
+      "comment" : "Site inspector slot status; the reason follows",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已损坏：%@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已損壞：%@"
+          }
+        }
+      }
+    },
     "Browser" : {
       "localizations" : {
         "zh-Hans" : {
@@ -5553,6 +5655,23 @@
         }
       }
     },
+    "Check against the shape" : {
+      "comment" : "Trial run button / section title",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按结构检查"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "依結構檢查"
+          }
+        }
+      }
+    },
     "Check for new replies" : {
       "comment" : "Settings › Sites › Following row subtitle",
       "localizations" : {
@@ -6144,6 +6263,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "清除會刪除該論壇已儲存的摘要、聊天、回答和追蹤的話題。論壇仍會保留在你的列表中。"
+          }
+        }
+      }
+    },
+    "Clears what it learned to read here, its checks and the wait before it tries again. Saved scripts stay; delete them in Scripts." : {
+      "comment" : "Site inspector: what Forget this site does",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清除在此学到的读取方式、检查记录和再次尝试前的等待。已保存的脚本会保留；请在“脚本”中删除。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清除在此學到的讀取方式、檢查記錄和再次嘗試前的等待。已儲存的腳本會保留；請在「腳本」中刪除。"
           }
         }
       }
@@ -8682,6 +8818,23 @@
         }
       }
     },
+    "Failed at step %lld" : {
+      "comment" : "Trial run: the shape check failed at a step",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在第 %lld 步失败"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在第 %lld 步失敗"
+          }
+        }
+      }
+    },
     "Failed · %@" : {
       "comment" : "Run status; the placeholder is “3 steps · 1 topics read”",
       "localizations" : {
@@ -8695,6 +8848,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "失敗 · %@"
+          }
+        }
+      }
+    },
+    "Failed: %@" : {
+      "comment" : "Site inspector slot status; the reason follows",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "失败：%@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "失敗：%@"
+          }
+        }
+      }
+    },
+    "Faithful" : {
+      "comment" : "Verification step 7",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "与页面一致"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "與頁面一致"
           }
         }
       }
@@ -9000,6 +9187,23 @@
         }
       }
     },
+    "Follows Confirm before writes" : {
+      "comment" : "Site inspector: a script's tool asks as the setting says",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "遵循“写入前确认”"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "遵循「寫入前確認」"
+          }
+        }
+      }
+    },
     "For example: Answer in English. Keep summaries under 200 words." : {
       "comment" : "Placeholder for custom AI instructions. Translations may name their own language instead of English.",
       "localizations" : {
@@ -9013,6 +9217,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "例如：用繁體中文回答。摘要不超過 300 字。"
+          }
+        }
+      }
+    },
+    "Forget this site" : {
+      "comment" : "Site inspector button",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "忘记此网站"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "忘記此網站"
+          }
+        }
+      }
+    },
+    "Forget this site?" : {
+      "comment" : "Site inspector: confirmation title",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "忘记此网站？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "忘記此網站？"
+          }
+        }
+      }
+    },
+    "Forgotten" : {
+      "comment" : "Learning log event",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已忘记"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已忘記"
           }
         }
       }
@@ -10690,6 +10945,23 @@
         }
       }
     },
+    "Last check" : {
+      "comment" : "Site inspector section title",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上次检查"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上次檢查"
+          }
+        }
+      }
+    },
     "Last forum" : {
       "comment" : "When WukongMind opens: always on the forum read last",
       "localizations" : {
@@ -10752,6 +11024,74 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "稍後"
+          }
+        }
+      }
+    },
+    "Latest list" : {
+      "comment" : "Site inspector: the latest-list slot",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最新列表"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最新列表"
+          }
+        }
+      }
+    },
+    "Learned" : {
+      "comment" : "Learning log event",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已学会"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已學會"
+          }
+        }
+      }
+    },
+    "Learned script · %@" : {
+      "comment" : "Site inspector: a learned reader's script",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已学脚本 · %@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已學腳本 · %@"
+          }
+        }
+      }
+    },
+    "Learning log" : {
+      "comment" : "Site inspector section title",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "学习日志"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "學習日誌"
           }
         }
       }
@@ -11005,6 +11345,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "連結"
+          }
+        }
+      }
+    },
+    "List sanity" : {
+      "comment" : "Verification step 5",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "列表合理性"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "列表合理性"
           }
         }
       }
@@ -11679,6 +12036,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "管理指令碼"
+          }
+        }
+      }
+    },
+    "Marked read-only" : {
+      "comment" : "Site inspector: a script's tool marked as only reading",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "标记为只读"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "標記為唯讀"
           }
         }
       }
@@ -12408,6 +12782,23 @@
         }
       }
     },
+    "No check yet." : {
+      "comment" : "Site inspector: the slot was never verified",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尚未检查。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尚未檢查。"
+          }
+        }
+      }
+    },
     "No code changes" : {
       "comment" : "Version history subtitle when a version has identical fields to the prior snapshot",
       "localizations" : {
@@ -12609,6 +13000,23 @@
         }
       }
     },
+    "No notes yet" : {
+      "comment" : "Site inspector: the Agent has not written notes for this site",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "还没有笔记"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "還沒有筆記"
+          }
+        }
+      }
+    },
     "No page open" : {
       "comment" : "Browser agent context bar when no web page is loaded",
       "localizations" : {
@@ -12742,6 +13150,23 @@
         }
       }
     },
+    "No tools on this page." : {
+      "comment" : "Site inspector: nothing registered",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此页面没有工具。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此頁面沒有工具。"
+          }
+        }
+      }
+    },
     "No watched topic has new replies, and your pinned forums have no top topics yet. Watch topics or pin forums to fill the digest." : {
       "localizations" : {
         "zh-Hans" : {
@@ -12770,6 +13195,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "目前沒有正在執行的任務。"
+          }
+        }
+      }
+    },
+    "Nobody checked this code. It runs on %@ with your login there. The page says it only reads; that is its own claim." : {
+      "comment" : "Trial run warning message",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有人检查过这段代码。它会以你在 %@ 的登录身份运行。页面称它只读取，这只是它自己的说法。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "沒有人檢查過這段程式碼。它會以你在 %@ 的登入身分執行。頁面稱它只讀取，這只是它自己的說法。"
           }
         }
       }
@@ -12824,6 +13266,23 @@
         }
       }
     },
+    "Not applicable" : {
+      "comment" : "Site inspector slot status",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不适用"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不適用"
+          }
+        }
+      }
+    },
     "Not available" : {
       "comment" : "Settings › AI models header: Apple Intelligence can’t be used on this device",
       "localizations" : {
@@ -12854,6 +13313,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在你的地區或語言中無法使用"
+          }
+        }
+      }
+    },
+    "Not constant" : {
+      "comment" : "Verification step 6",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "并非固定内容"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "並非固定內容"
           }
         }
       }
@@ -13024,6 +13500,23 @@
         }
       }
     },
+    "Not tried" : {
+      "comment" : "Site inspector slot status",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尚未尝试"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尚未嘗試"
+          }
+        }
+      }
+    },
     "Not used by either model" : {
       "comment" : "Provider settings: neither the Summaries & chat nor the Ask the forum model uses this provider",
       "localizations" : {
@@ -13103,6 +13596,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "此頁面尚未擷取任何內容。"
+          }
+        }
+      }
+    },
+    "Nothing learned here yet." : {
+      "comment" : "Site inspector: empty learning log",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这里还没有学到任何内容。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這裡還沒有學到任何內容。"
           }
         }
       }
@@ -14456,6 +14966,23 @@
         }
       }
     },
+    "Passed %lld · %lld skipped" : {
+      "comment" : "Trial run: the shape check passed, with counts",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "通过 %lld · 跳过 %lld"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "通過 %lld · 略過 %lld"
+          }
+        }
+      }
+    },
     "Paste any page of a site, or type its address." : {
       "localizations" : {
         "zh-Hans" : {
@@ -15706,6 +16233,23 @@
         }
       }
     },
+    "Read a thread" : {
+      "comment" : "Site inspector: the thread-reading slot",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "读取帖子"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "讀取貼文"
+          }
+        }
+      }
+    },
     "Read aloud" : {
       "comment" : "Button: reads the summary aloud",
       "localizations" : {
@@ -15961,6 +16505,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已閱讀，未引用 · %@"
+          }
+        }
+      }
+    },
+    "Reading" : {
+      "comment" : "Site inspector section title",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "读取"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "讀取"
           }
         }
       }
@@ -16377,6 +16938,23 @@
         }
       }
     },
+    "Real arguments" : {
+      "comment" : "Verification step 2",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "真实参数"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "真實參數"
+          }
+        }
+      }
+    },
     "Recent" : {
       "localizations" : {
         "zh-Hans" : {
@@ -16523,6 +17101,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "重新整理它們的摘要"
+          }
+        }
+      }
+    },
+    "Registered" : {
+      "comment" : "Verification step 1",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已注册"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已註冊"
           }
         }
       }
@@ -16814,6 +17409,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "移除…"
+          }
+        }
+      }
+    },
+    "Repair failed %lld of 3 times." : {
+      "comment" : "Site inspector: repairs tried on a broken reader",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已修复失败 %lld 次（共 3 次）。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "修復已失敗 %lld 次（共 3 次）。"
+          }
+        }
+      }
+    },
+    "Repaired" : {
+      "comment" : "Learning log event",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已修复"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已修復"
           }
         }
       }
@@ -17235,6 +17864,23 @@
         }
       }
     },
+    "Returned" : {
+      "comment" : "Trial run section title",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "返回"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "傳回"
+          }
+        }
+      }
+    },
     "Review" : {
       "comment" : "Button in Script detail Update section that opens the update review sheet",
       "localizations" : {
@@ -17302,6 +17948,23 @@
         }
       }
     },
+    "Run" : {
+      "comment" : "Trial run button",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "运行"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "執行"
+          }
+        }
+      }
+    },
     "Run script tool “%@” on %@?" : {
       "comment" : "Confirmation card: Confirm before writes is on and the Agent wants to call a userscript tool not marked read-only. First placeholder is the tool name, second is the site host.",
       "localizations" : {
@@ -17355,6 +18018,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "執行設定"
+          }
+        }
+      }
+    },
+    "Run this site's own tool?" : {
+      "comment" : "Trial run warning title",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "运行此网站自己的工具？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "執行此網站自己的工具？"
           }
         }
       }
@@ -17945,6 +18625,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "找不到指令碼"
+          }
+        }
+      }
+    },
+    "Script · %@" : {
+      "comment" : "Site inspector: a tool from a saved script",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "脚本 · %@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "腳本 · %@"
           }
         }
       }
@@ -19361,6 +20058,40 @@
         }
       }
     },
+    "Site inspector" : {
+      "comment" : "Developer mode sheet title / This page developer row",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "站点检查器"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "網站檢查器"
+          }
+        }
+      }
+    },
+    "Site notes" : {
+      "comment" : "Site inspector section title",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "站点笔记"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "網站筆記"
+          }
+        }
+      }
+    },
     "Site settings" : {
       "comment" : "This page popover button opening site settings",
       "localizations" : {
@@ -19440,6 +20171,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "略過"
+          }
+        }
+      }
+    },
+    "Slot" : {
+      "comment" : "Site inspector: picks which slot's last check to show",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "项目"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "項目"
           }
         }
       }
@@ -19664,6 +20412,23 @@
         }
       }
     },
+    "Stays home" : {
+      "comment" : "Verification step 9",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不访问其他站点"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不存取其他網站"
+          }
+        }
+      }
+    },
     "Stays in WukongMind" : {
       "localizations" : {
         "zh-Hans" : {
@@ -19805,6 +20570,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "步數上限…"
+          }
+        }
+      }
+    },
+    "Steps" : {
+      "comment" : "Trial run: shows the check's steps",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "步骤"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "步驟"
           }
         }
       }
@@ -20035,6 +20817,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "安全儲存在 iOS 鑰匙圈中"
+          }
+        }
+      }
+    },
+    "Strict shape" : {
+      "comment" : "Verification step 3",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "严格结构"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "嚴格結構"
           }
         }
       }
@@ -21254,6 +22053,23 @@
         }
       }
     },
+    "The arguments are not a JSON object." : {
+      "comment" : "Trial run: the arguments did not parse",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "参数不是 JSON 对象。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "參數不是 JSON 物件。"
+          }
+        }
+      }
+    },
     "The audio engine wouldn't start (%@)." : {
       "comment" : "Voice error; the placeholder is the system's reason, in English",
       "localizations" : {
@@ -22441,6 +23257,23 @@
         }
       }
     },
+    "Thread sanity" : {
+      "comment" : "Verification step 4",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "帖子合理性"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "貼文合理性"
+          }
+        }
+      }
+    },
     "Thread summaries, daily digests and reply checks. Apple Intelligence or a fast, low-cost model works well." : {
       "comment" : "Settings › Models: what the Summaries model is used for",
       "localizations" : {
@@ -22731,6 +23564,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已截圖"
+          }
+        }
+      }
+    },
+    "Tools on this page" : {
+      "comment" : "Site inspector section title",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此页面的工具"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此頁面的工具"
           }
         }
       }
@@ -23146,6 +23996,23 @@
         }
       }
     },
+    "Try tool" : {
+      "comment" : "Trial run title",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "试用工具"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "試用工具"
+          }
+        }
+      }
+    },
     "Turn %lld · %@ · %@ in · %@ out" : {
       "comment" : "Developer mode: one model turn, its model and token counts",
       "localizations" : {
@@ -23283,6 +24150,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在 LM Studio 中開啟「Serve on Local Network」，並使用你電腦的網路位址（例如 http://192.168.1.20:1234/v1）。"
+          }
+        }
+      }
+    },
+    "Turned off by you" : {
+      "comment" : "Learning log event",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已被你关闭"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已被你關閉"
           }
         }
       }
@@ -23548,6 +24432,40 @@
         }
       }
     },
+    "Untrusted · always asks" : {
+      "comment" : "Site inspector: a site's own tool",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不受信任 · 每次都询问"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不受信任 · 每次都詢問"
+          }
+        }
+      }
+    },
+    "Untrusted · always asks · claims read-only" : {
+      "comment" : "Site inspector: a site's own tool that says it only reads",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不受信任 · 每次都询问 · 自称只读"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不受信任 · 每次都詢問 · 自稱唯讀"
+          }
+        }
+      }
+    },
     "Unwatch" : {
       "localizations" : {
         "zh-Hans" : {
@@ -23724,6 +24642,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已更新"
+          }
+        }
+      }
+    },
+    "Updated %@ · opens in Files" : {
+      "comment" : "Site inspector: the notes file",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新于 %@ · 在“文件”中打开"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新於 %@ · 在「檔案」中開啟"
           }
         }
       }
@@ -24329,6 +25264,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在使用工具"
+          }
+        }
+      }
+    },
+    "Verified, reads only" : {
+      "comment" : "Site inspector: a learned reader the app checked",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已验证，只读"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已驗證，唯讀"
           }
         }
       }
@@ -26183,6 +27135,23 @@
         }
       }
     },
+    "newest %lld" : {
+      "comment" : "Site inspector: the log keeps this many events",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最新 %lld 条"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最新 %lld 筆"
+          }
+        }
+      }
+    },
     "no" : {
       "comment" : "Short boolean value on a page-tool confirmation card.",
       "localizations" : {
@@ -26281,6 +27250,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "頁面環境"
+          }
+        }
+      }
+    },
+    "task record" : {
+      "comment" : "Site inspector: the log row opens its task record",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "任务记录"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "任務記錄"
           }
         }
       }

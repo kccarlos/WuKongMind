@@ -374,6 +374,45 @@ final class SiteToolVerifierTests: XCTestCase {
         XCTAssertTrue(!zeroHitSearch.isError && zeroHitSearch.output == "No topics found.", zeroHitSearch.output)
     }
 
+    /// Acceptance check 12: the inspector's shape check and a trial run on the fixture site.
+    func testInspectorShapeCheckAndTrialRunOnTheFixtureSite() async throws {
+        let base = try await startFixtureServer(), h = try makeHarness()
+        defer { h.controller.detach(); h.pageToolBridge.detach() }
+        let u1 = base.appendingPathComponent("thread-101").absoluteString, u2 = base.appendingPathComponent("thread-102").absoluteString
+        try await h.waiter.load(h.webView, url: URL(string: u1)!)
+        let saved = try await h.makeRegistry().dispatch(toolName: "script_save", arguments: [
+            "name": .string("Reader"), "match_rules": .array([.string("*://127.0.0.1/*")]), "js": .string(Self.passingReadTopicJS),
+            "provides": .array([.string("read_topic")]), "thread_match": .string("*://127.0.0.1/thread-*"),
+            "test_urls": .array([.string(u1), .string(u2)])
+        ])
+        XCTAssertFalse(saved.isError, saved.output)
+        let state = try XCTUnwrap(h.stateStore.state(forHost: "127.0.0.1"))
+        XCTAssertEqual(state.slot(.readTopic).lastCheck?.steps?.count, 9, "the learning save keeps each step for the inspector")
+        let script = try XCTUnwrap(h.scriptStore.script(id: XCTUnwrap(state.slot(.readTopic).scriptID)))
+
+        let report = await SiteShapeCheck.run(
+            slot: .readTopic, script: script, state: state, openPageURL: u1, bridge: h.bridge,
+            pageToolBridge: h.pageToolBridge, scriptStore: h.scriptStore
+        )
+        XCTAssertTrue(report.passed, report.reason ?? "")
+        XCTAssertEqual(report.steps.count, 9)
+        XCTAssertEqual(report.steps.first { $0.step == 5 }?.status, .skipped)
+        XCTAssertEqual(h.stateStore.state(forHost: "127.0.0.1"), state, "the check changes no state, log or count")
+
+        let rows = SiteInspectorTool.rows(snapshot: await h.pageToolBridge.collectTools(), state: state, scripts: h.scriptStore.scripts)
+        let tool = try XCTUnwrap(rows.first { $0.learnedSlot == .readTopic })
+        XCTAssertFalse(tool.warnsBeforeTrial)
+        let audit = AuditLog(directory: try makeTempDir().appendingPathComponent("Audit"))
+        let outcome = await ToolTrialRunner.run(
+            tool, arguments: ["url": .string(u2)], host: "127.0.0.1", pageURL: u1,
+            bridge: h.pageToolBridge, auditLog: audit, secrets: []
+        )
+        XCTAssertFalse(outcome.isError, outcome.text)
+        XCTAssertTrue(outcome.text.contains("Btrfs Scrub Priority on NVMe"))
+        audit.flush()
+        XCTAssertEqual(audit.allLines().filter { $0.kind == .toolTrial }.count, 1)
+    }
+
     func testThreeRefusalsBoundUncountedPrechecksAndSiteLearningReport() async throws {
         let base = try await startFixtureServer(), h = try makeHarness()
         defer { h.controller.detach(); h.pageToolBridge.detach() }
