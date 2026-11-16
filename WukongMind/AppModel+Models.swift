@@ -413,6 +413,69 @@ extension AppModel {
         guard isProviderSelectable(chosen.provider) else { return }
         selectModel(chosen, for: .role(role.other))
     }
+
+    /// Configured roles (`Agent`, `Summaries`, `Scripts`) currently using `selection`.
+    func activeRoles(using selection: ModelSelection) -> [ModelRole] {
+        ModelRole.settingsRoles.filter { role in
+            guard hasConfiguredModel(for: role) else { return false }
+            let roleSelection = self.selection(for: role)
+            if selection.provider.isAppleIntelligence {
+                return roleSelection.provider.isAppleIntelligence
+            }
+            return roleSelection == selection
+        }
+    }
+
+    /// Models explicitly added by name for `provider` (newest first).
+    func addedModels(for provider: AIProvider) -> [String] {
+        settings.addedModels(for: provider)
+    }
+
+    /// Adds `model` (trimmed) to the top of `provider`'s added-by-name list.
+    func addCustomModel(_ model: String, for provider: AIProvider) {
+        var updated = settings
+        updated.addModelByName(model, for: provider)
+        guard updated != settings else { return }
+        settings = updated
+        saveSettings()
+    }
+
+    /// Removes an added-by-name `model` from `provider`, unless a role currently uses it.
+    func removeCustomModel(_ model: String, for provider: AIProvider) {
+        let trimmed = model.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        guard activeRoles(using: ModelSelection(provider: provider, model: trimmed)).isEmpty else { return }
+        var updated = settings
+        updated.removeAddedModel(trimmed, for: provider)
+        guard updated != settings else { return }
+        settings = updated
+        saveSettings()
+    }
+
+    /// Model IDs pinned at the top of `provider`'s `Models` section and marked
+    /// "added by name": models explicitly added by name, plus (once `fetchedIDs`
+    /// is known) any model an active role uses on `provider` that the list lacks.
+    func pinnedAddedModelIDs(for provider: AIProvider, fetchedIDs: Set<String>?) -> [String] {
+        guard !provider.isAppleIntelligence else { return [] }
+        var seen = Set<String>()
+        var result: [String] = []
+        for id in settings.addedModels(for: provider) where seen.insert(id).inserted {
+            result.append(id)
+        }
+        if let fetchedIDs {
+            for role in ModelRole.settingsRoles where hasConfiguredModel(for: role) {
+                let sel = selection(for: role)
+                guard sel.provider == provider else { continue }
+                let trimmed = sel.model.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !trimmed.isEmpty,
+                      !fetchedIDs.contains(trimmed),
+                      seen.insert(trimmed).inserted
+                else { continue }
+                result.append(trimmed)
+            }
+        }
+        return result
+    }
 }
 
 // MARK: - Readiness

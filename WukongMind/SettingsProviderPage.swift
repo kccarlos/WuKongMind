@@ -586,7 +586,12 @@ struct ModelRolePage: View {
                 if provider.isAppleIntelligence {
                     AppleIntelligenceStatusView(app: app)
                 } else {
-                    ModelField(app: app, scope: scope)
+                    NavigationLink {
+                        ProviderSettingsPage(app: app, provider: provider, scrollToModels: true)
+                    } label: {
+                        roleModelRowLabel
+                    }
+                    .accessibilityIdentifier("providerModelsLink")
                 }
                 // Apple Intelligence is starred like any other provider when supported.
                 if app.isProviderSelectable(provider) || app.isFavorite(selection) {
@@ -608,8 +613,6 @@ struct ModelRolePage: View {
             } footer: {
                 if provider.isAppleIntelligence {
                     Text("Uses Private Cloud Compute when this build and device support it, otherwise the on-device model. \(guide.note ?? "")")
-                } else {
-                    Text("Default: \(provider.defaultModel). Tap the list button to load every model \(provider.displayName) offers.")
                 }
             }
 
@@ -706,6 +709,51 @@ struct ModelRolePage: View {
         }
         return selection.model.isEmpty ? String(localized: "No model chosen") : selection.model
     }
+
+    @ViewBuilder
+    private var roleModelRowLabel: some View {
+        let trimmedModel = selection.model.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmedModel.isEmpty {
+            HStack(spacing: DCTheme.space2) {
+                Text("Choose a model", comment: "Placeholder for browser agent model field when no model is chosen")
+                    .foregroundStyle(DCTheme.goldInk)
+                Spacer(minLength: 8)
+                Text(provider.displayName)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+        } else {
+            let distinctDisplayName = app.discoveredModels[provider]?
+                .first(where: { $0.id == trimmedModel })?
+                .distinctDisplayName
+            HStack(spacing: DCTheme.space2) {
+                VStack(alignment: .leading, spacing: 2) {
+                    if let distinctDisplayName {
+                        Text(verbatim: distinctDisplayName)
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                        Text(verbatim: trimmedModel)
+                            .font(DCType.code)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                    } else {
+                        Text(verbatim: trimmedModel)
+                            .font(DCType.subheadline.monospaced())
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                    }
+                }
+                Spacer(minLength: 8)
+                Text("Models")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
 }
 
 // MARK: - One provider
@@ -715,10 +763,16 @@ struct ModelRolePage: View {
 struct ProviderSettingsPage: View {
     @ObservedObject var app: AppModel
     let provider: AIProvider
+    var scrollToModels = false
     @State private var testState: ProviderTestState = .idle
+    @State private var didScheduleInitialScroll = false
+    @State private var awaitsInitialModelScroll = false
 
     private var bindings: ProviderBindings { ProviderBindings(app: app, provider: provider) }
     private var guide: ProviderGuide { ProviderGuide.guide(for: provider) }
+    private var hasCachedModels: Bool {
+        provider.isAppleIntelligence || provider == .vertexAI || app.discoveredModels[provider] != nil
+    }
     private var usage: String {
         let roles = app.settings.roles(using: provider)
         guard !roles.isEmpty else {
@@ -734,101 +788,129 @@ struct ProviderSettingsPage: View {
         }
     }
 
+    private func scrollToModelsTop(using proxy: ScrollViewProxy) {
+        let targetID = ProviderModelsSection.scrollTargetID(for: provider, in: app)
+        proxy.scrollTo(targetID, anchor: .top)
+    }
+
     var body: some View {
-        Form {
-            Section {
-                HStack(spacing: DCTheme.spacingM) {
-                    ProviderBadge(provider: provider, size: 48)
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text(provider.displayName).font(.headline)
-                        Text(usage)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .padding(.vertical, DCTheme.spacingXS)
-                .accessibilityElement(children: .combine)
-                // Providers with a key link to it under the key field.
-                if !provider.requiresAPIKey {
-                    guideLink
-                }
-            } footer: {
-                Text(guide.blurb)
-            }
-
-            if provider.isAppleIntelligence {
+        ScrollViewReader { proxy in
+            Form {
                 Section {
-                    AppleIntelligenceStatusView(app: app)
-                }
-                ProviderModelsSection(app: app, provider: provider)
-            }
-
-            if provider.requiresAPIKey {
-                Section {
-                    APIKeyField(app: app, provider: provider)
-                    guideLink
-                } header: {
-                    Text("API key")
-                } footer: {
-                    Text(app.settings.syncAPIKeys
-                        ? "Sent only to \(provider.displayName). Stored in iCloud Keychain, so your other devices have it too; deleting it here deletes it there as well."
-                        : "Sent only to \(provider.displayName). Stored in the Keychain on this device.")
-                }
-
-                ProviderModelsSection(app: app, provider: provider)
-            }
-
-            if !provider.isAppleIntelligence {
-                Section {
-                    TextField(provider.defaultBaseURL, text: bindings.binding(\.baseURL))
-                        .textContentType(.URL)
-                        .keyboardType(.URL)
-                        .autocorrectionDisabled()
-                        .textInputAutocapitalization(.never)
-                        .accessibilityIdentifier("baseURLField")
-                    if bindings.configuration.baseURL != provider.defaultBaseURL {
-                        Button("Use default address") {
-                            bindings.binding(\.baseURL).wrappedValue = provider.defaultBaseURL
+                    HStack(spacing: DCTheme.spacingM) {
+                        ProviderBadge(provider: provider, size: 48)
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(provider.displayName).font(.headline)
+                            Text(usage)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
                         }
                     }
-                } header: {
-                    Text(provider.requiresAPIKey ? "Advanced" : "Server address")
+                    .padding(.vertical, DCTheme.spacingXS)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("providerHeaderRow")
+                    // Providers with a key link to it under the key field.
+                    if !provider.requiresAPIKey {
+                        guideLink
+                    }
                 } footer: {
-                    Text(guide.note ?? String(localized: "Leave this as is unless you use a proxy or a compatible gateway."))
+                    Text(guide.blurb)
                 }
 
-                if !provider.requiresAPIKey {
+                if provider.isAppleIntelligence {
+                    Section {
+                        AppleIntelligenceStatusView(app: app)
+                    }
                     ProviderModelsSection(app: app, provider: provider)
                 }
 
-                Section {
-                    Button {
-                        Task {
-                            testState = .testing
-                            testState = await app.testAndSaveProvider(provider)
-                        }
-                    } label: {
-                        HStack(spacing: DCTheme.spacingS) {
-                            if testState == .testing { ProgressView().tint(DCTheme.onGold) }
-                            Text("Test & Save")
-                        }
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(DCTheme.onGold)
-                        .frame(maxWidth: .infinity, minHeight: 52)
-                        .contentShape(Rectangle())
+                if provider.requiresAPIKey {
+                    Section {
+                        APIKeyField(app: app, provider: provider)
+                        guideLink
+                    } header: {
+                        Text("API key")
+                    } footer: {
+                        Text(app.settings.syncAPIKeys
+                            ? "Sent only to \(provider.displayName). Stored in iCloud Keychain, so your other devices have it too; deleting it here deletes it there as well."
+                            : "Sent only to \(provider.displayName). Stored in the Keychain on this device.")
                     }
-                    .buttonStyle(.plain)
-                    .disabled(testState == .testing)
-                    .accessibilityIdentifier("testProvider")
-                    .listRowInsets(EdgeInsets())
-                    .listRowBackground(DCTheme.gold.opacity(testState == .testing ? 0.7 : 1))
-                } footer: {
-                    if testState != .idle && testState != .testing {
-                        ProviderTestStatusView(state: testState)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.top, DCTheme.spacingXS)
+
+                    ProviderModelsSection(app: app, provider: provider)
+                }
+
+                if !provider.isAppleIntelligence {
+                    Section {
+                        TextField(provider.defaultBaseURL, text: bindings.binding(\.baseURL))
+                            .textContentType(.URL)
+                            .keyboardType(.URL)
+                            .autocorrectionDisabled()
+                            .textInputAutocapitalization(.never)
+                            .accessibilityIdentifier("baseURLField")
+                        if bindings.configuration.baseURL != provider.defaultBaseURL {
+                            Button("Use default address") {
+                                bindings.binding(\.baseURL).wrappedValue = provider.defaultBaseURL
+                            }
+                        }
+                    } header: {
+                        Text(provider.requiresAPIKey ? "Advanced" : "Server address")
+                    } footer: {
+                        Text(guide.note ?? String(localized: "Leave this as is unless you use a proxy or a compatible gateway."))
+                    }
+
+                    if !provider.requiresAPIKey {
+                        ProviderModelsSection(app: app, provider: provider)
+                    }
+
+                    Section {
+                        Button {
+                            Task {
+                                testState = .testing
+                                testState = await app.testAndSaveProvider(provider)
+                            }
+                        } label: {
+                            HStack(spacing: DCTheme.spacingS) {
+                                if testState == .testing { ProgressView().tint(DCTheme.onGold) }
+                                Text("Test & Save")
+                            }
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(DCTheme.onGold)
+                            .frame(maxWidth: .infinity, minHeight: 52)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(testState == .testing)
+                        .accessibilityIdentifier("testProvider")
+                        .listRowInsets(EdgeInsets())
+                        .listRowBackground(DCTheme.gold.opacity(testState == .testing ? 0.7 : 1))
+                    } footer: {
+                        if testState != .idle && testState != .testing {
+                            ProviderTestStatusView(state: testState)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.top, DCTheme.spacingXS)
+                        }
                     }
                 }
+            }
+            .task {
+                guard scrollToModels, !didScheduleInitialScroll else { return }
+                didScheduleInitialScroll = true
+                awaitsInitialModelScroll = !hasCachedModels
+                scrollToModelsTop(using: proxy)
+                for delayMs in [120, 420] {
+                    try? await Task.sleep(for: .milliseconds(delayMs))
+                    guard !Task.isCancelled else { return }
+                    scrollToModelsTop(using: proxy)
+                }
+                if awaitsInitialModelScroll {
+                    try? await Task.sleep(for: .milliseconds(1_200))
+                    awaitsInitialModelScroll = false
+                }
+            }
+            .onChange(of: hasCachedModels) { _, cached in
+                guard cached, awaitsInitialModelScroll else { return }
+                awaitsInitialModelScroll = false
+                scrollToModelsTop(using: proxy)
             }
         }
         .formStyle(.grouped)

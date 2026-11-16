@@ -102,6 +102,8 @@ struct AppSettings: Codable, Equatable {
         }
     )
     var favoriteModels: [FavoriteModel] = []
+    /// Model IDs explicitly added by name per provider (`AIProvider.rawValue` → newest-first IDs).
+    var addedModels: [String: [String]] = [:]
     var systemPrompt = ""
     var forumContextLimit = 30_000
     var summaryBatchLimit = SummaryBatchLimit.default
@@ -182,6 +184,7 @@ struct AppSettings: Codable, Equatable {
         case browserScriptsAIEnabled
         case configurations
         case favoriteModels
+        case addedModels
         case systemPrompt
         case forumContextLimit
         case summaryBatchLimit
@@ -240,6 +243,8 @@ struct AppSettings: Codable, Equatable {
         )
         favoriteModels = try container.decodeIfPresent([FavoriteModel].self, forKey: .favoriteModels)
             ?? []
+        let decodedAddedModels = try container.decodeIfPresent([String: [String]].self, forKey: .addedModels) ?? [:]
+        addedModels = Self.normalizedAddedModels(decodedAddedModels)
         let stock = AppSettings()
         assistantModel = try container.decodeIfPresent(ModelSelection.self, forKey: .assistantModel) ?? stock.assistantModel
         browserAgentModel = try container.decodeIfPresent(ModelSelection.self, forKey: .browserAgentModel)
@@ -324,6 +329,48 @@ struct AppSettings: Codable, Equatable {
         var stored = configuration
         stored.model = provider.defaultModel
         configurations[provider.rawValue] = stored
+    }
+
+    static func normalizedAddedModels(_ raw: [String: [String]]) -> [String: [String]] {
+        var result: [String: [String]] = [:]
+        for (key, ids) in raw {
+            guard let provider = AIProvider(rawValue: key), !provider.isAppleIntelligence else { continue }
+            var seen = Set<String>()
+            var cleaned: [String] = []
+            for id in ids {
+                let trimmed = id.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !trimmed.isEmpty, seen.insert(trimmed).inserted else { continue }
+                cleaned.append(trimmed)
+            }
+            if !cleaned.isEmpty {
+                result[provider.rawValue] = cleaned
+            }
+        }
+        return result
+    }
+
+    func addedModels(for provider: AIProvider) -> [String] {
+        guard !provider.isAppleIntelligence else { return [] }
+        return addedModels[provider.rawValue] ?? []
+    }
+
+    mutating func addModelByName(_ model: String, for provider: AIProvider) {
+        guard !provider.isAppleIntelligence else { return }
+        let trimmed = model.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        let existing = addedModels[provider.rawValue] ?? []
+        addedModels[provider.rawValue] = [trimmed] + existing.filter { $0 != trimmed }
+    }
+
+    mutating func removeAddedModel(_ model: String, for provider: AIProvider) {
+        let trimmed = model.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, var existing = addedModels[provider.rawValue] else { return }
+        existing.removeAll { $0 == trimmed }
+        if existing.isEmpty {
+            addedModels.removeValue(forKey: provider.rawValue)
+        } else {
+            addedModels[provider.rawValue] = existing
+        }
     }
 
     var persistable: AppSettings {
