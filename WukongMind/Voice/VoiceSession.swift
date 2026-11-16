@@ -374,7 +374,9 @@ final class VoiceSession: ObservableObject {
             try await transport.connect(configuration.endpoint.request(apiKey: configuration.apiKey))
         } catch {
             guard serial == connectionSerial else { return }
-            await connectionEnded(LiveClose(code: nil, reason: error.localizedDescription), serial: serial, handleUsed: handle)
+            // A refusal before opening (the live test budget) keeps its close code.
+            let close = error as? LiveClose ?? LiveClose(code: nil, reason: error.localizedDescription)
+            await connectionEnded(close, serial: serial, handleUsed: handle)
             return
         }
         guard serial == connectionSerial, !state.isOver else {

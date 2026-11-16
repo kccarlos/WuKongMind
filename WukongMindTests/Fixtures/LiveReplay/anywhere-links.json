@@ -1,0 +1,194 @@
+{
+ "recordings": [
+  {
+   "audioSeconds": 4.56,
+   "calls": [
+    "open_link"
+   ],
+   "model": "gemini-3.8-live",
+   "name": "ordinary: Open the third link.",
+   "notes": [
+    "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+   ],
+   "page": "ordinary",
+   "reconstructed": true,
+   "source": "reconstructed from docs/wukongmind/one-loop-spike/results/anywhere-links.json (rep 0, gemini-3.8-live); audioSeconds estimated from response tokens",
+   "steps": [
+    {
+     "frames": [
+      "{\"setupComplete\":{}}"
+     ],
+     "on": "setup"
+    },
+    {
+     "frames": [
+      "{\"toolCall\":{\"functionCalls\":[{\"args\":{\"number\":3},\"id\":\"call-1\",\"name\":\"open_link\"}]}}",
+      "{\"serverContent\":{\"generationComplete\":true,\"turnComplete\":true}}",
+      "{\"usageMetadata\":{\"promptTokenCount\":4545,\"responseTokenCount\":10,\"totalTokenCount\":4555}}"
+     ],
+     "on": "turn"
+    },
+    {
+     "frames": [
+      "{\"serverContent\":{\"modelTurn\":{\"parts\":[{\"inlineData\":{\"data\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"mimeType\":\"audio/pcm;rate=24000\"}}]}}}",
+      "{\"serverContent\":{\"modelTurn\":{\"parts\":[{\"inlineData\":{\"data\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"mimeType\":\"audio/pcm;rate=24000\"}}]}}}",
+      "{\"serverContent\":{\"outputTranscription\":{\"text\":\"I've opened the article about the new iPad lineup on herald example dot com.\"}}}",
+      "{\"serverContent\":{\"generationComplete\":true,\"turnComplete\":true}}",
+      "{\"usageMetadata\":{\"promptTokenCount\":4614,\"responseTokenCount\":114,\"totalTokenCount\":4728}}"
+     ],
+     "on": "toolResponse:call-1"
+    }
+   ],
+   "utterances": [
+    "Open the third link."
+   ]
+  },
+  {
+   "audioSeconds": 4.44,
+   "calls": [
+    "open_link"
+   ],
+   "model": "gemini-3.8-live",
+   "name": "ordinary: Open the one about tariffs.",
+   "notes": [
+    "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+   ],
+   "page": "ordinary",
+   "reconstructed": true,
+   "source": "reconstructed from docs/wukongmind/one-loop-spike/results/anywhere-links.json (rep 0, gemini-3.8-live); audioSeconds estimated from response tokens",
+   "steps": [
+    {
+     "frames": [
+      "{\"setupComplete\":{}}"
+     ],
+     "on": "setup"
+    },
+    {
+     "frames": [
+      "{\"toolCall\":{\"functionCalls\":[{\"args\":{\"words\":\"tariffs\"},\"id\":\"call-1\",\"name\":\"open_link\"}]}}",
+      "{\"serverContent\":{\"generationComplete\":true,\"turnComplete\":true}}",
+      "{\"usageMetadata\":{\"promptTokenCount\":4546,\"responseTokenCount\":13,\"totalTokenCount\":4559}}"
+     ],
+     "on": "turn"
+    },
+    {
+     "frames": [
+      "{\"serverContent\":{\"modelTurn\":{\"parts\":[{\"inlineData\":{\"data\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"mimeType\":\"audio/pcm;rate=24000\"}}]}}}",
+      "{\"serverContent\":{\"modelTurn\":{\"parts\":[{\"inlineData\":{\"data\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"mimeType\":\"audio/pcm;rate=24000\"}}]}}}",
+      "{\"serverContent\":{\"outputTranscription\":{\"text\":\"I've opened the opinion piece on why tariffs miss the point on Herald Example.\"}}}",
+      "{\"serverContent\":{\"generationComplete\":true,\"turnComplete\":true}}",
+      "{\"usageMetadata\":{\"promptTokenCount\":4620,\"responseTokenCount\":111,\"totalTokenCount\":4731}}"
+     ],
+     "on": "toolResponse:call-1"
+    }
+   ],
+   "utterances": [
+    "Open the one about tariffs."
+   ]
+  },
+  {
+   "audioSeconds": 3.12,
+   "calls": [
+    "hand_off_to_agent"
+   ],
+   "model": "gemini-3.8-live",
+   "name": "ordinary: Click the buy button.",
+   "notes": [
+    "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+   ],
+   "page": "ordinary",
+   "reconstructed": true,
+   "source": "reconstructed from docs/wukongmind/one-loop-spike/results/anywhere-links.json (rep 0, gemini-3.8-live); audioSeconds estimated from response tokens",
+   "steps": [
+    {
+     "frames": [
+      "{\"setupComplete\":{}}"
+     ],
+     "on": "setup"
+    },
+    {
+     "frames": [
+      "{\"serverContent\":{\"modelTurn\":{\"parts\":[{\"inlineData\":{\"data\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"mimeType\":\"audio/pcm;rate=24000\"}}]}}}",
+      "{\"toolCall\":{\"functionCalls\":[{\"args\":{\"action\":\"start\",\"request\":\"Click the buy button.\"},\"id\":\"call-1\",\"name\":\"hand_off_to_agent\"}]}}"
+     ],
+     "on": "turn"
+    },
+    {
+     "frames": [
+      "{\"serverContent\":{\"outputTranscription\":{\"text\":\"I can help you with that purchase.\"}}}",
+      "{\"serverContent\":{\"generationComplete\":true,\"turnComplete\":true}}",
+      "{\"usageMetadata\":{\"promptTokenCount\":4545,\"responseTokenCount\":78,\"totalTokenCount\":4623}}"
+     ],
+     "on": "toolResponse:call-1"
+    }
+   ],
+   "utterances": [
+    "Click the buy button."
+   ]
+  },
+  {
+   "audioSeconds": 6.4,
+   "calls": [
+    "open_link",
+    "open_link"
+   ],
+   "model": "gemini-3.8-live",
+   "name": "ordinary: Open the Apple story. / The second one.",
+   "notes": [
+    "[Screen: the user is on \"Markets steady as tariff talks resume\" at heraldexample.com, an ordinary web page. Forum tools don't work here.]"
+   ],
+   "page": "ordinary",
+   "reconstructed": true,
+   "source": "reconstructed from docs/wukongmind/one-loop-spike/results/anywhere-links.json (rep 0, gemini-3.8-live); audioSeconds estimated from response tokens",
+   "steps": [
+    {
+     "frames": [
+      "{\"setupComplete\":{}}"
+     ],
+     "on": "setup"
+    },
+    {
+     "frames": [
+      "{\"toolCall\":{\"functionCalls\":[{\"args\":{\"words\":\"Apple story\"},\"id\":\"call-1\",\"name\":\"open_link\"}]}}",
+      "{\"serverContent\":{\"generationComplete\":true,\"turnComplete\":true}}",
+      "{\"usageMetadata\":{\"promptTokenCount\":4545,\"responseTokenCount\":13,\"totalTokenCount\":4558}}"
+     ],
+     "on": "turn"
+    },
+    {
+     "frames": [
+      "{\"serverContent\":{\"modelTurn\":{\"parts\":[{\"inlineData\":{\"data\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"mimeType\":\"audio/pcm;rate=24000\"}}]}}}",
+      "{\"serverContent\":{\"modelTurn\":{\"parts\":[{\"inlineData\":{\"data\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"mimeType\":\"audio/pcm;rate=24000\"}}]}}}",
+      "{\"serverContent\":{\"outputTranscription\":{\"text\":\"I found two stories about Apple. Would you like to read about the new iPad lineup or the shareholder buyback plan?\"}}}",
+      "{\"serverContent\":{\"generationComplete\":true,\"turnComplete\":true}}",
+      "{\"usageMetadata\":{\"promptTokenCount\":4645,\"responseTokenCount\":160,\"totalTokenCount\":4805}}"
+     ],
+     "on": "toolResponse:call-1"
+    },
+    {
+     "frames": [
+      "{\"toolCall\":{\"functionCalls\":[{\"args\":{\"number\":4},\"id\":\"call-2\",\"name\":\"open_link\"}]}}"
+     ],
+     "on": "turn"
+    },
+    {
+     "frames": [
+      "{\"serverContent\":{\"generationComplete\":true,\"turnComplete\":true}}",
+      "{\"usageMetadata\":{\"promptTokenCount\":4889,\"responseTokenCount\":10,\"totalTokenCount\":4899}}",
+      "{\"serverContent\":{\"outputTranscription\":{\"text\":\"I've opened the article about Apple shareholders backing the buyback plan on your screen.\"}}}",
+      "{\"serverContent\":{\"generationComplete\":true,\"turnComplete\":true}}",
+      "{\"usageMetadata\":{\"promptTokenCount\":4960,\"responseTokenCount\":117,\"totalTokenCount\":5077}}"
+     ],
+     "on": "toolResponse:call-2"
+    }
+   ],
+   "utterances": [
+    "Open the Apple story.",
+    "The second one."
+   ]
+  }
+ ],
+ "skipped": [
+  "forum: Search for firmware rollback. / Open the second one."
+ ]
+}

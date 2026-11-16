@@ -71,6 +71,9 @@ final class WebSocketLiveTransport: NSObject, LiveTransport {
     private var pingTask: Task<Void, Never>?
     private var receiveTask: Task<Void, Never>?
     private let delegateProxy = WebSocketDelegateProxy()
+    /// The live test budget's charge for this connection (tests and spikes only).
+    private var budgetLease: LiveBudget.Lease?
+    private var budgetTask: Task<Void, Never>?
 
     static let pingInterval: Duration = .seconds(20)
 
@@ -83,15 +86,32 @@ final class WebSocketLiveTransport: NSObject, LiveTransport {
     }
 
     func connect(_ request: URLRequest) async throws {
+        if let budget = LiveBudget.shared {
+            budgetLease = try budget.begin(request.url?.host ?? "live")
+            let seconds = budget.remainingSeconds()
+            budgetTask = Task { @MainActor [weak self] in
+                try? await Task.sleep(for: .seconds(seconds))
+                guard !Task.isCancelled, let self, self.closeReason == nil else { return }
+                let reason = "\(LiveBudget.refusalPrefix): the run's seconds are used up"
+                print("[LIVE-BUDGET] closing: \(reason)")
+                self.task?.cancel(with: .policyViolation, reason: nil)
+                self.finish(LiveClose(code: LiveClose.policyViolation, reason: reason))
+            }
+        }
         let task = session.webSocketTask(with: request)
         // Audio frames from the model are up to ~35 KB; allow headroom.
         task.maximumMessageSize = 16 * 1024 * 1024
         self.task = task
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            delegateProxy.setOpening { error in
-                if let error { continuation.resume(throwing: error) } else { continuation.resume() }
+        do {
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                delegateProxy.setOpening { error in
+                    if let error { continuation.resume(throwing: error) } else { continuation.resume() }
+                }
+                task.resume()
             }
-            task.resume()
+        } catch {
+            finish(LiveClose(code: nil, reason: error.localizedDescription))
+            throw error
         }
         delegateProxy.onClose = { [weak self] code, reason in
             Task { @MainActor in self?.finish(LiveClose(code: code, reason: reason)) }
@@ -146,6 +166,9 @@ final class WebSocketLiveTransport: NSObject, LiveTransport {
     private func finish(_ close: LiveClose) {
         guard closeReason == nil else { return }
         closeReason = close
+        budgetTask?.cancel()
+        if let budgetLease { LiveBudget.shared?.end(budgetLease) }
+        budgetLease = nil
         pingTask?.cancel()
         receiveTask?.cancel()
         task = nil

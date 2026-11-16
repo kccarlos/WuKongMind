@@ -27,6 +27,7 @@ targets:
       - ../../../WukongMind/JSONValue.swift
       - ../../../WukongMind/Voice/LiveProtocol.swift
       - ../../../WukongMind/Voice/LiveTransport.swift
+      - ../../../WukongMind/Voice/LiveBudget.swift
       - ../../../WukongMind/Voice/VoiceAudioFormat.swift
       - ../../../WukongMind/Voice/VoiceInstructions.swift
     dependencies:

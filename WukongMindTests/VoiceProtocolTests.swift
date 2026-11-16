@@ -146,6 +146,9 @@ final class VoiceProtocolTests: XCTestCase {
         XCTAssertTrue(end.generationComplete)
         XCTAssertTrue(end.turnComplete)
         XCTAssertEqual(end.usage, .init(promptTokens: 583, responseTokens: 49, totalTokens: 632))
+        // Vertex names the reply's tokens `candidatesTokenCount`.
+        let vertex = try decode(#"{"usageMetadata":{"promptTokenCount":3653,"candidatesTokenCount":221,"totalTokenCount":3927}}"#)
+        XCTAssertEqual(vertex.usage, .init(promptTokens: 3653, responseTokens: 221, totalTokens: 3927))
 
         XCTAssertTrue(try decode(#"{"serverContent":{"interrupted":true}}"#).interrupted)
 
