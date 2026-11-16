@@ -80,9 +80,9 @@ struct AIDrawerModifier: ViewModifier {
 }
 
 extension AppModel {
-    /// The drawer shows on web pages, not on the Forums home.
+    /// The drawer shows on web pages, not on the Forums home or over the tab overview.
     var isDrawerAvailable: Bool {
-        router.usesDrawer && !browser.showsForumsHome
+        router.usesDrawer && !browser.showsForumsHome && !router.isTabOverviewPresented
     }
 
     /// Whether the split layout's AI panel has content to show: always on a web
@@ -144,7 +144,8 @@ extension AppModel {
     /// so `AIDrawerContent` and `AssistantPanel` are never mounted at once.
     func showsSplitPanel(forWidth width: CGFloat? = nil) -> Bool {
         let isSplit = router.splitLayout ?? width.map { ContentView.usesSplitLayout(width: $0) } ?? false
-        return isSplit
+        return !router.isTabOverviewPresented
+            && isSplit
             && router.drawerPhase == .closed
             && isSplitPanelAvailable
             && router.splitPanelMode.isVisible(onHome: browser.showsForumsHome)
@@ -158,8 +159,9 @@ extension AppModel {
     /// The AI view went away (the drawer closed, the panel hid, the window
     /// changed layout): the next time it opens on the topic, not on the
     /// History or Settings it last showed. Not while a dropped drawer is
-    /// tried again (still wanted).
+    /// tried again (still wanted) or while the tab overview temporarily hides the panel.
     func aiViewVisibilityChanged() {
+        guard !router.isTabOverviewPresented else { return }
         if !isAIViewShown, !router.wantsDrawer, !voice.isActive {
             voice.dismiss()
         }
@@ -195,6 +197,7 @@ extension AppModel {
 /// presentations, and resets the mode for a new topic. On the root view.
 struct AIDrawerCoordinator: ViewModifier {
     @ObservedObject var app: AppModel
+    @ObservedObject var tabs: BrowserTabs
     @ObservedObject var router: PresentationRouter
     /// What the last Home check saw. `onReceive` replays when `body` rebuilds
     /// its publisher, which must not reset a panel the reader just hid.
@@ -202,6 +205,7 @@ struct AIDrawerCoordinator: ViewModifier {
 
     init(app: AppModel) {
         self.app = app
+        tabs = app.tabs
         router = app.router
     }
 
@@ -210,32 +214,40 @@ struct AIDrawerCoordinator: ViewModifier {
             // A citation or solved-hint jump landed (§4.5).
             .sensoryFeedback(.selection, trigger: app.citationJump)
             .onChange(of: router.wantsDrawer) { app.syncDrawer() }
+            .onChange(of: router.isTabOverviewPresented) { app.syncDrawer() }
             .onChange(of: app.isAIViewShown) { app.aiViewVisibilityChanged() }
             // Closed again by the watchdog (a dropped presentation): retry.
             .onChange(of: router.drawerPhase) { app.syncDrawer() }
             .onChange(of: app.rootPresentation?.id) { app.syncDrawer() }
+            .onChange(of: tabs.currentTabID) {
+                syncHomeVisibility()
+            }
             // The browser's and the controllers' changes don't re-render the
             // root, and arrive before the value lands: look once it has.
             .onReceive(
-                app.browser.$isForumsHomeRequested
-                    .combineLatest(app.browser.$currentURL.map { $0 == nil })
+                tabs.currentTab.browser.$isForumsHomeRequested
+                    .combineLatest(tabs.currentTab.browser.$currentURL.map { $0 == nil })
                     .map { $0 || $1 }
                     .removeDuplicates()
             ) { _ in
                 Task { @MainActor in
-                    guard app.browser.showsForumsHome != lastOnHome else { return }
-                    lastOnHome = app.browser.showsForumsHome
-                    // Leaving for Home closes the drawer; leaving Home pops
-                    // the pages pushed over it. The split panel goes back to
-                    // collapsed on Home, shown on pages (a hide or show by
-                    // the reader holds until Home comes or goes).
-                    if app.browser.showsForumsHome { router.closeDrawer() }
-                    router.splitPanelMode = .auto
-                    app.aiViewVisibilityChanged()
-                    app.homeVisibilityChanged()
-                    app.syncDrawer()
+                    syncHomeVisibility()
                 }
             }
+    }
+
+    private func syncHomeVisibility() {
+        guard app.browser.showsForumsHome != lastOnHome else { return }
+        lastOnHome = app.browser.showsForumsHome
+        // Leaving for Home closes the drawer; leaving Home pops
+        // the pages pushed over it. The split panel goes back to
+        // collapsed on Home, shown on pages (a hide or show by
+        // the reader holds until Home comes or goes).
+        if app.browser.showsForumsHome { router.closeDrawer() }
+        router.splitPanelMode = .auto
+        app.aiViewVisibilityChanged()
+        app.homeVisibilityChanged()
+        app.syncDrawer()
     }
 }
 

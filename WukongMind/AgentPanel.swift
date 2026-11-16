@@ -242,6 +242,12 @@ struct BrowserAgentRunsView: View {
             }
 
             switch run.state {
+            case .stopped:
+                Text("Stopped", comment: "Agent turn notice when a run was stopped before finishing")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(DCTheme.inkMuted)
+                    .padding(.vertical, 2)
+                    .accessibilityIdentifier("agentRunStoppedNotice")
             case .stepLimitReached(let limit):
                 stepLimitCard(limit: limit)
             case .failed(let message) where isProviderReady:

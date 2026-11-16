@@ -348,6 +348,7 @@
 		741A9C92A6DBBEC976BEE775A7C80E81 /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-bc4235578e53.json in Resources */ = {isa = PBXBuildFile; fileRef = EF958806A7770B0A9BEFB5356253D149 /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-bc4235578e53.json */; };
 		74F63BBAA2C4613DAAC7AB6DA48D2906 /* run-D5.summaries.json in Resources */ = {isa = PBXBuildFile; fileRef = 3C90D68035402677E4A4CB487C4D6663 /* run-D5.summaries.json */; };
 		7504C2400117E20DD6158641AFD5EF15 /* AppIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77153C07F2634A24DB09AA5C32E2EECE /* AppIntents.swift */; };
+		754D418C1E1410819E6CEC50E2672D6B /* BrowserTabsOverview.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE44B43B8223BC1EA8C2F6071902D7D5 /* BrowserTabsOverview.swift */; };
 		75A97053D00BF695E107863CBCBA7B19 /* plain-github-repo.html in Resources */ = {isa = PBXBuildFile; fileRef = B340E41D8269ADB973E14FE1BC69E711 /* plain-github-repo.html */; };
 		76312B6CBFDE3E075784E84117011908 /* VoiceSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B36630B4C78CDC352CF516FA1F9F6CD9 /* VoiceSessionTests.swift */; };
 		7664E47CB8164FC746B7F07357C39CBC /* WordPressActiveTopics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BD86B4903B9F17599ABCD036133D871 /* WordPressActiveTopics.swift */; };
@@ -1259,6 +1260,7 @@
 		AC714EEA571654539F7CB9C460125A7A /* page-19.html */ = {isa = PBXFileReference; includeInIndex = 1; name = "page-19.html"; path = "Fixtures/CrawlForum/page-19.html"; sourceTree = "<group>"; };
 		ACAC28C3B187B699EBA94DEC3FC400E6 /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-7ac401943a64.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "wordpress-www-doctorofcredit-com-wp-json-wp-v2-7ac401943a64.json"; path = "Fixtures/Comparison/wordpress/wordpress-www-doctorofcredit-com-wp-json-wp-v2-7ac401943a64.json"; sourceTree = "<group>"; };
 		ACE3A3C63E9C3D10AE85AD285E9A04BE /* gate2-hackernews-hn-algolia-com-api-v1-items-50498135-68d5d7661e3d.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "gate2-hackernews-hn-algolia-com-api-v1-items-50498135-68d5d7661e3d.json"; path = "Fixtures/Comparison/gate2/hackernews/gate2-hackernews-hn-algolia-com-api-v1-items-50498135-68d5d7661e3d.json"; sourceTree = "<group>"; };
+		AE44B43B8223BC1EA8C2F6071902D7D5 /* BrowserTabsOverview.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BrowserTabsOverview.swift; sourceTree = "<group>"; };
 		AE6E4D8DB3FEBE4EFD9E8C4EE3CC3F53 /* gate2-run-H4.summaries.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "gate2-run-H4.summaries.json"; path = "Fixtures/Comparison/gate2/runs/gate2-run-H4.summaries.json"; sourceTree = "<group>"; };
 		AE6EAF3560FE703DE5311479D5049E5D /* acceptance-discourse-meta-appinn-net-t-18527-json-a8b812d68008.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "acceptance-discourse-meta-appinn-net-t-18527-json-a8b812d68008.json"; path = "Fixtures/OneLoopAcceptance/discourse/acceptance-discourse-meta-appinn-net-t-18527-json-a8b812d68008.json"; sourceTree = "<group>"; };
 		AEAE2FC55A78267EC9E009AADC24230F /* AppShortcuts.xcstrings */ = {isa = PBXFileReference; includeInIndex = 1; path = AppShortcuts.xcstrings; sourceTree = "<group>"; };
@@ -1673,6 +1675,7 @@
 				3C31DD017E2B791002E7AF4F33020DC5 /* BrowserAgent.swift */,
 				9E5CF8863877C8A393BCBF3D5427096C /* BrowserBarMorph.swift */,
 				7987766F9975AA89F001B475881A17E3 /* BrowserTabs.swift */,
+				AE44B43B8223BC1EA8C2F6071902D7D5 /* BrowserTabsOverview.swift */,
 				C28FD63B417435C8C45EEE2761CF1B9E /* CloudKitTransport.swift */,
 				66421541FD3A96CCE4B1EF025F18E7A0 /* CloudSyncController.swift */,
 				FB2759631A71C867AD0687BA24E19024 /* CloudSyncEngine.swift */,
@@ -3125,6 +3128,7 @@
 				C967EB1C3D674B3E5F73D24A283A31C0 /* BrowserAgent.swift in Sources */,
 				0561B1B025AE6A53273206793657C5D0 /* BrowserBarMorph.swift in Sources */,
 				DF67AB4D21AA0EBD20520837B3036C16 /* BrowserTabs.swift in Sources */,
+				754D418C1E1410819E6CEC50E2672D6B /* BrowserTabsOverview.swift in Sources */,
 				36543B576AACAFBF5C7B696F788AAE0F /* CloudKitTransport.swift in Sources */,
 				0BAE6CD147D12F4D6ABC8217820AF45F /* CloudSyncController.swift in Sources */,
 				7FBB415C09A5B75B689962A80061A6E4 /* CloudSyncEngine.swift in Sources */,

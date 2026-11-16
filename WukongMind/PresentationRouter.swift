@@ -179,6 +179,8 @@ enum DrawerDetent: String, CaseIterable {
 final class PresentationRouter: ObservableObject {
     /// Routes the app asks for explicitly (the others follow app state).
     @Published var item: RootPresentation?
+    /// Whether the multi-tab card grid overview (`TabOverviewView`) is currently open.
+    @Published var isTabOverviewPresented = false
     /// Settings › Help › replay the walkthrough.
     @Published var onboardingReplay: OnboardingReplay = .none
     var replayingOnboarding: Bool { onboardingReplay != .none }
