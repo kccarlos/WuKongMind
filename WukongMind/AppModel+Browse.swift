@@ -370,6 +370,9 @@ extension AppModel {
         }
         assistantMode = .browserAgent
         panelRoute = .topic
+        if AssistantDebug.has("-dc-site-inspector-seed"), let host = SiteToolState.normalizedHost(from: Self.browserAgentFixtureURL) {
+            try? siteToolStateStore.save(.inspectorSeed(host: host))
+        }
 
         if let demoMode {
             var config = settings.configuration(for: .anthropic)

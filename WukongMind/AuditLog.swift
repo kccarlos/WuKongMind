@@ -7,7 +7,10 @@ import Foundation
 /// Full tool results are not here; they live in the task record (`TaskRecord.swift`).
 struct AuditLine: Codable, Hashable, Sendable, Identifiable {
     enum Kind: String, Codable, Sendable {
-        case task, step, fetch, confirm, end, scriptRequest, scriptAI
+        case task, step, fetch, confirm, end, scriptRequest, scriptAI, toolTrial
+
+        /// A line that counts as one tool call in the audit log's step lists.
+        var isToolCall: Bool { self == .step || self == .scriptRequest || self == .scriptAI || self == .toolTrial }
     }
 
     static let maxArgumentCharacters = 4_000
@@ -144,6 +147,23 @@ struct AuditLine: Codable, Hashable, Sendable, Identifiable {
         )
     }
 
+    /// One run from the site inspector's Try tool sheet, for success and failure alike. It keeps the
+    /// tool, the (redacted, clipped) arguments and the size of the result, never the result.
+    static func toolTrial(
+        host: String, tool: String, argumentsJSON: String, time: Date, pageURL: String?,
+        durationMs: Int, resultBytes: Int?, errorMessage: String?, secrets: [String] = [], summary: String? = nil
+    ) -> AuditLine {
+        let args = UntrustedWebContent.redactSecrets(in: argumentsJSON, secrets: secrets)
+        let summary = errorMessage.map { clip(UntrustedWebContent.redactSecrets(in: $0, secrets: secrets), maxSummaryCharacters) }
+            ?? summary ?? "trial run · \(resultBytes ?? 0) bytes"
+        return AuditLine(
+            kind: .toolTrial, time: time, taskID: "trial:\(AuditLog.dayKey(time)):\(host)",
+            tool: tool, durationMs: durationMs, arguments: clip(args, maxArgumentCharacters),
+            resultSummary: summary, isError: errorMessage != nil, pageURL: pageURL,
+            scriptName: "Trial run · \(host)"
+        )
+    }
+
     static func scriptAI(
         scriptID: String, scriptName: String, isMap: Bool, time: Date, pageURL: String?,
         provider: String?, model: String?, itemsAsked: Int, itemsFromCache: Int,
@@ -176,7 +196,7 @@ struct AuditTask: Identifiable, Hashable, Sendable {
     var outcome: String?
     var lines: [AuditLine]
 
-    var steps: [AuditLine] { lines.filter { $0.kind == .step || $0.kind == .scriptRequest || $0.kind == .scriptAI } }
+    var steps: [AuditLine] { lines.filter { $0.kind.isToolCall } }
     var hasError: Bool { steps.contains { $0.isError == true } }
     var host: String? { pageURL.flatMap { URL(string: $0)?.host } }
 }
@@ -282,7 +302,7 @@ final class AuditLog: @unchecked Sendable {
         }
     }
 
-    var stepCount: Int { allLines().filter { $0.kind == .step || $0.kind == .scriptRequest || $0.kind == .scriptAI }.count }
+    var stepCount: Int { allLines().filter { $0.kind.isToolCall }.count }
 
     /// Days newest first; inside a day, tasks newest first. A task sits on the day it started.
     func days() -> [AuditDay] {

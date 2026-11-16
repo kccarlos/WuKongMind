@@ -495,7 +495,7 @@ struct AuditTaskPage: View {
         .navigationTitle(Text(verbatim: task.prompt.split(separator: "\n").first.map(String.init) ?? ""))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            if app.settings.agentDeveloperMode, !task.id.hasPrefix("script:") {
+            if app.settings.agentDeveloperMode, !task.id.hasPrefix("script:"), !task.id.hasPrefix("trial:") {
                 ToolbarItem(placement: .primaryAction) {
                     Button(String(localized: "Export", comment: "Audit log task page: export this task as a file (developer mode)")) {
                         exportTaskID = task.id

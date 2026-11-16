@@ -144,9 +144,10 @@ enum SiteToolVerifier {
             steps.append(.init(step: step, name: stepNames[step] ?? "Step \(step)", status: .failed, detail: reason))
             return SiteToolVerificationReport(passed: false, failedStep: step, failedSlot: slot, failureCode: code, reason: reason, steps: steps)
         }
-        func mark(_ step: Int, _ status: SiteVerificationStepStatus) {
-            steps.append(.init(step: step, name: stepNames[step] ?? "Step \(step)", status: status))
+        func mark(_ step: Int, _ status: SiteVerificationStepStatus, _ detail: String? = nil) {
+            steps.append(.init(step: step, name: stepNames[step] ?? "Step \(step)", status: status, detail: detail))
         }
+        var callStats: [(durationMs: Double, bytes: Int)] = []
 
         let scriptsByID = await MainActor.run { Dictionary(uniqueKeysWithValues: scriptStore.scripts.map { ($0.id, $0) }) }
         let snapshot = await pageToolBridge.collectTools()
@@ -208,6 +209,7 @@ enum SiteToolVerifier {
                 switch await callBounded(pageToolBridge: pageToolBridge, scriptID: candidate.id, slot: .readTopic, argsJSON: argsJSON, label: u.absoluteString, limits: limits) {
                 case .stepFailed(let s, let c, let msg): return fail(s, slot: .readTopic, code: c, msg)
                 case .ok(let res):
+                    callStats.append((res.durationMs, res.byteCount))
                     if let err = validateStrictEnvelope(res.value, slot: .readTopic) { return fail(3, slot: .readTopic, code: .shape, err) }
                     guard let env = try? JSONDecoder().decode(LearnedToolResult<ThreadShape>.self, from: Data(res.json.utf8)) else {
                         return fail(3, slot: .readTopic, code: .shape, "invalid ThreadShape envelope for '\(u.absoluteString)'")
@@ -235,6 +237,7 @@ enum SiteToolVerifier {
             switch await callBounded(pageToolBridge: pageToolBridge, scriptID: candidate.id, slot: .listLatest, argsJSON: "{}", label: listURL, limits: limits) {
             case .stepFailed(let s, let c, let msg): return fail(s, slot: .listLatest, code: c, msg)
             case .ok(let res):
+                callStats.append((res.durationMs, res.byteCount))
                 if let err = validateStrictEnvelope(res.value, slot: .listLatest) { return fail(3, slot: .listLatest, code: .shape, err) }
                 guard let env = try? JSONDecoder().decode(LearnedToolResult<ListShape>.self, from: Data(res.json.utf8)) else {
                     return fail(3, slot: .listLatest, code: .shape, "invalid ListShape envelope")
@@ -268,6 +271,7 @@ enum SiteToolVerifier {
             switch await callBounded(pageToolBridge: pageToolBridge, scriptID: candidate.id, slot: .searchForum, argsJSON: argsJSON, label: "\(listURL) (query '\(word)')", limits: limits) {
             case .stepFailed(let s, let c, let msg): return fail(s, slot: .searchForum, code: c, msg)
             case .ok(let res):
+                callStats.append((res.durationMs, res.byteCount))
                 if let err = validateStrictEnvelope(res.value, slot: .searchForum) { return fail(3, slot: .searchForum, code: .shape, err) }
                 guard let env = try? JSONDecoder().decode(LearnedToolResult<ListShape>.self, from: Data(res.json.utf8)) else {
                     return fail(3, slot: .searchForum, code: .shape, "invalid ListShape envelope")
@@ -275,7 +279,7 @@ enum SiteToolVerifier {
                 decodedSearch = (listURL, word, env, res.durationMs)
             }
         }
-        mark(2, .passed); mark(3, .passed)
+        mark(2, .passed, decodedThreads.isEmpty ? nil : "\(decodedThreads.count) threads"); mark(3, .passed)
 
         if !decodedThreads.isEmpty {
             for entry in decodedThreads {
@@ -299,8 +303,8 @@ enum SiteToolVerifier {
             if decodedThreads.count >= 2, decodedThreads.allSatisfy({ $0.envelope.shape.posts.count < 2 }) {
                 return fail(4, slot: .readTopic, code: .shape, "post #\(decodedThreads[0].envelope.shape.posts.first?.number ?? 1): neither thread returned at least 2 posts")
             }
-            mark(4, .passed)
-        } else { mark(4, .skipped) }
+            mark(4, .passed, decodedThreads.map { "\($0.envelope.shape.posts.count)" }.joined(separator: ", ") + " posts")
+        } else { mark(4, .skipped, "no thread reader") }
 
         let existingReadLearned = existingState?.slot(.readTopic).status == .learned
             && (existingState?.slot(.readTopic).scriptID).flatMap({ scriptsByID[$0] }) != nil
@@ -313,7 +317,7 @@ enum SiteToolVerifier {
                 return fail(5, slot: .searchForum, code: search.envelope.shape.items.isEmpty ? .noPosts : .shape, err)
             }
             mark(5, .passed)
-        } else { mark(5, .skipped) }
+        } else { mark(5, .skipped, "thread only") }
 
         if decodedThreads.count >= 2 {
             let t1 = decodedThreads[0].envelope.shape, t2 = decodedThreads[1].envelope.shape
@@ -321,28 +325,29 @@ enum SiteToolVerifier {
                 return fail(6, slot: .readTopic, code: .shape, "both URLs returned the same thread")
             }
             mark(6, .passed)
-        } else { mark(6, .skipped) }
+        } else { mark(6, .skipped, "one thread") }
 
         if let openEntry = decodedThreads.first(where: { SiteToolState.isSameDocument($0.url, openURLString: openPageURL) }) {
             let pageFolded = foldWhitespace((try? await bridge.readPage(mode: .text, selector: nil, maxLength: nil)) ?? "")
             let posts = openEntry.envelope.shape.posts
-            var matched = 0, firstMissing: Int?
+            var matched = 0, firstMissing: Int?, matchedNumbers: [Int] = []
             for post in posts {
                 let pfx = postStart(post.body)
-                if !pfx.isEmpty, pageFolded.contains(pfx) { matched += 1 }
+                if !pfx.isEmpty, pageFolded.contains(pfx) { matched += 1; matchedNumbers.append(post.number) }
                 else if firstMissing == nil { firstMissing = post.number }
             }
             if matched < min(2, posts.count) {
                 return fail(7, slot: .readTopic, code: .shape, "post #\(firstMissing ?? posts.first?.number ?? 1) is not on the page")
             }
-            mark(7, .passed)
-        } else { mark(7, .skipped) }
+            mark(7, .passed, "#" + matchedNumbers.prefix(2).map(String.init).joined(separator: ", #") + " on page")
+        } else { mark(7, .skipped, "not the open page") }
 
-        mark(8, .passed)
+        let slowest = callStats.map(\.durationMs).max() ?? 0, biggest = callStats.map(\.bytes).max() ?? 0
+        mark(8, .passed, String(format: "%.1f s, %d KB", slowest / 1_000, (biggest + 1_023) / 1_024))
         if let ext = firstExternalHost(in: candidate.js + "\n" + candidate.css, siteHost: siteHost) {
             return fail(9, slot: providedSlots.first, code: .shape, "source names external host '\(ext)'")
         }
-        mark(9, .passed)
+        mark(9, .passed, "no other host")
 
         var slotReports: [SiteToolSlot: SiteSlotVerification] = [:], headerURLs: [String] = []
         func addHeader(_ u: String) { if !headerURLs.contains(u) { headerURLs.append(u) } }

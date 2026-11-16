@@ -2670,7 +2670,7 @@ extension ToolRegistry {
                 state.setSlot(SiteSlotState(
                     status: .learned, scriptID: script.id, scriptHash: hash, testURLs: v.testURLs,
                     verifiedAt: now, postStarts: v.postStarts, repairFailures: 0, failure: nil,
-                    lastCheck: SiteSlotCheck(date: now, url: v.primaryURL, result: v.summary, counts: v.counts, durationMs: v.durationMs)
+                    lastCheck: SiteSlotCheck(date: now, url: v.primaryURL, result: v.summary, counts: v.counts, durationMs: v.durationMs, steps: report.steps)
                 ), for: slot)
                 state.appendLog(SiteLogEntry(kind: repaired ? .repaired : .learned, slot: slot, date: now, taskID: taskID))
             }
