@@ -142,6 +142,7 @@ final class AgentHandOff {
         let before = target.runs.last?.id
         target.send(request, origin: .voice)
         guard target.isRunning, let run = target.runs.last, run.id != before else {
+            if let notice = target.runLimitNotice { return notice }
             if case .failed(let message) = target.runState { return message }
             return "The Agent couldn't start."
         }

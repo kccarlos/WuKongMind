@@ -3552,12 +3552,11 @@ final class ScriptWebController: ScriptLiveApplying {
     private var isDetached = false
     private var activeVerification: CandidateVerification?
 
-    init(webView: WKWebView, store: ScriptStore, agentBridge: AgentBridge, pageToolBridge: PageToolBridge? = nil) {
-        self.webView = webView
+    init(webView: WKWebView?, store: ScriptStore, agentBridge: AgentBridge, pageToolBridge: PageToolBridge? = nil) {
+        self.webView = nil
         self.store = store
         self.agentBridge = agentBridge
         self.gmBridge = GMBridge(valuesStore: store.valuesStore)
-        self.gmBridge.webView = webView
         self.gmBridge.aiService = GMAiService(
             cache: store.aiCache, limiter: store.aiLimiter,
             runtimeProvider: { [weak store] in .unavailable(isGlobalScriptsEnabled: store?.isGlobalEnabled ?? false) }
@@ -3591,6 +3590,21 @@ final class ScriptWebController: ScriptLiveApplying {
             }
         }
 
+        store.registerWebController(self)
+        if let webView {
+            attach(to: webView)
+        }
+    }
+
+    func attach(to webView: WKWebView) {
+        guard !isDetached else { return }
+        if self.webView !== webView {
+            detachWebView()
+        }
+        self.webView = webView
+        self.gmBridge.webView = webView
+        self.pageToolBridge?.attach(to: webView)
+
         let controller = webView.configuration.userContentController
         gmBridge.ensurePageHandlerRegistered(on: controller)
         installBasePageBootstrapOnly(on: controller)
@@ -3614,10 +3628,33 @@ final class ScriptWebController: ScriptLiveApplying {
             notifyNavigationChange()
         }
 
-        store.registerWebController(self)
+        isUserScriptListStale = true
+        syncedDomainKey = nil
+        hasSyncedForCurrentTarget = false
         if webView.url != nil {
             syncUserScripts()
         }
+    }
+
+    func detachWebView() {
+        urlObservation?.invalidate()
+        urlObservation = nil
+        loadingObservation?.invalidate()
+        loadingObservation = nil
+        activeVerification = nil
+        gmBridge.clearAllMenuCommands()
+        gmBridge.removeAllHandlers(from: webView?.configuration.userContentController)
+        removeAllManagedUserScripts()
+        hasOnlyPageBootstrapInstalled = false
+        pageErrorTokenToScriptID.removeAll()
+        pageCleanTokenToScriptID.removeAll()
+        activeScriptWorlds.removeAll()
+        syncedDomainKey = nil
+        hasSyncedForCurrentTarget = false
+        isUserScriptListStale = true
+        pageToolBridge?.detachWebView()
+        gmBridge.webView = nil
+        webView = nil
     }
 
     deinit {
@@ -3637,21 +3674,10 @@ final class ScriptWebController: ScriptLiveApplying {
     func detach() {
         guard !isDetached else { return }
         isDetached = true
-        urlObservation?.invalidate()
-        urlObservation = nil
-        loadingObservation?.invalidate()
-        loadingObservation = nil
-        activeVerification = nil
         store.unregisterWebController(self)
-        gmBridge.removeAllHandlers(from: webView?.configuration.userContentController)
-        removeAllManagedUserScripts()
-        hasOnlyPageBootstrapInstalled = false
-        pageErrorTokenToScriptID.removeAll()
-        pageCleanTokenToScriptID.removeAll()
-        activeScriptWorlds.removeAll()
+        detachWebView()
         pageToolBridge?.detach()
         pageToolBridge = nil
-        webView = nil
         agentBridge = nil
     }
 

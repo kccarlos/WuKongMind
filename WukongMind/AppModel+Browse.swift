@@ -369,6 +369,22 @@ extension AppModel {
             settings.setModel(ModelSelection(provider: .anthropic, model: "claude-haiku-5-5"), for: .assistant)
             if demoMode == "no-model" {
                 settings.setModel(ModelSelection(provider: .anthropic, model: ""), for: .browserAgent)
+            } else if demoMode == "run-limit" {
+                settings.setModel(ModelSelection(provider: .anthropic, model: "claude-haiku-5-5"), for: .browserAgent)
+                let tab1 = tabs.currentTab
+                tab1.agentSession.configureDebugModelClient(BrowserAgentDemoClient(mode: .running))
+                tab1.agentSession.send("Summarize this page")
+                for index in 2...3 {
+                    if let bgTab = tabs.openTab(inFront: false) {
+                        bgTab.browser.loadSamplePage(Self.browserAgentFixtureHTML, at: Self.browserAgentFixtureURL)
+                        bgTab.agentSession.configureDebugModelClient(BrowserAgentDemoClient(mode: .running))
+                        bgTab.agentSession.send("Inspect tab \(index)")
+                    }
+                }
+                if let fourthTab = tabs.openTab(inFront: true) {
+                    fourthTab.agentSession.configureDebugModelClient(BrowserAgentDemoClient(mode: .recorded))
+                    loadBrowserAgentFixturePage()
+                }
             } else {
                 settings.setModel(ModelSelection(provider: .anthropic, model: "claude-haiku-5-5"), for: .browserAgent)
                 if demoMode == "step-limit" {
@@ -389,7 +405,7 @@ extension AppModel {
                         self.router.drawerDetent = detent
                     }
                 }
-                guard let self, demoMode != "no-model", demoMode != "empty" else { return }
+                guard let self, demoMode != "no-model", demoMode != "empty", demoMode != "run-limit" else { return }
                 let demoPrompt = demoMode == "saved-script"
                     ? "Keep only the original poster's posts and hide the sidebar on every visit"
                     : "Make this page dark and hide the sidebar"

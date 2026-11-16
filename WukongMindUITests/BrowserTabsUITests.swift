@@ -160,6 +160,58 @@ final class BrowserTabsUITests: DCUITestCase {
         )
         capture("t1-live-\(tag)-4-tab2-fresh-session")
     }
+
+    func testFourthConcurrentRunShowsNoticeUnderComposerLightAndDark() throws {
+        let orientation: UIDeviceOrientation = isPhone ? .portrait : .landscapeLeft
+        for style in ["Light", "Dark"] {
+            let app = launch(
+                [
+                    "-dc-browser-agent-demo", "run-limit",
+                    "-dc-drawer-detent", "medium",
+                    "-AppleInterfaceStyle", style
+                ],
+                orientation: orientation
+            )
+            showAssistant(in: app)
+
+            let textField = app.textFields["agentPromptInput"].firstMatch
+            let input = textField.waitForExistence(timeout: 15)
+                ? textField
+                : app.textViews["agentPromptInput"].firstMatch
+            XCTAssertTrue(waitOrDump(input, timeout: 5, in: app), "Agent composer input missing (\(style)).")
+            input.tap()
+            input.typeText("Summarize the main points")
+
+            let sendButton = app.buttons["agentSendButton"].firstMatch
+            XCTAssertTrue(waitForHittable(sendButton, timeout: 10), "Send button not hittable (\(style)).")
+            sendButton.tap()
+
+            let notice = any(app, "agentRunLimitNotice")
+            XCTAssertTrue(
+                waitOrDump(notice, timeout: 10, in: app),
+                "4th-run refusal notice did not appear under the composer (\(style))."
+            )
+            XCTAssertEqual(notice.label, "3 runs are going. Wait for one or stop it")
+            XCTAssertGreaterThanOrEqual(
+                notice.frame.minY,
+                input.frame.maxY - 6,
+                "Refusal notice must sit below the composer input box (\(style))."
+            )
+            let draftValue = (input.value as? String) ?? ""
+            XCTAssertTrue(
+                draftValue.contains("Summarize the main points"),
+                "Refusing a 4th run must keep the user's draft in the composer (\(style)): \(draftValue)"
+            )
+            XCTAssertFalse(
+                app.buttons["agentStopButton"].exists,
+                "4th run must not have started (\(style))."
+            )
+
+            let tag = "\(isPhone ? "iphone" : "ipad")-\(style.lowercased())"
+            capture("t2-run-limit-\(tag)")
+            app.terminate()
+        }
+    }
 }
 
 private final class LocalTabsUIFixture: @unchecked Sendable {

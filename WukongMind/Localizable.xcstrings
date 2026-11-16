@@ -2136,6 +2136,40 @@
         }
       }
     },
+    "3 runs are going. Wait for one or stop it" : {
+      "comment" : "Shown under the Agent input box when 3 concurrent runs are already going across tabs",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已有 3 个运行正在进行。请等待其中一个完成或将其停止"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已有 3 個執行正在進行。請等待其中一個完成或將其停止"
+          }
+        }
+      }
+    },
+    "30 tabs open. Close one to open another" : {
+      "comment" : "Shown when 30 tabs are open and the user tries to open another tab",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已打开 30 个标签页。请先关闭一个再打开新标签页"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已打開 30 個分頁。請先關閉一個再打開新分頁"
+          }
+        }
+      }
+    },
     "A 2,000-post topic takes about 10 seconds." : {
       "comment" : "Forum requests footer for the Standard pace",
       "localizations" : {

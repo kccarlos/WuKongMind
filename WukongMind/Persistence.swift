@@ -1,5 +1,47 @@
 import Foundation
 import Security
+import UIKit
+
+struct SavedBrowserTab: Codable, Equatable, Sendable {
+    var id: String
+    /// `nil` when the tab is on Home.
+    var url: URL?
+    var title: String
+    var scrollX: Double
+    var scrollY: Double
+    var conversationID: UUID
+
+    var scrollPosition: CGPoint {
+        CGPoint(x: scrollX, y: scrollY)
+    }
+
+    init(
+        id: String,
+        url: URL?,
+        title: String,
+        scrollPosition: CGPoint = .zero,
+        conversationID: UUID
+    ) {
+        self.id = id
+        self.url = url
+        self.title = title
+        self.scrollX = Double(max(0, scrollPosition.x))
+        self.scrollY = Double(max(0, scrollPosition.y))
+        self.conversationID = conversationID
+    }
+}
+
+struct SavedBrowserTabsState: Codable, Equatable, Sendable {
+    var tabs: [SavedBrowserTab]
+    var currentTabID: String
+    var nextTabNumber: Int
+
+    init(tabs: [SavedBrowserTab], currentTabID: String, nextTabNumber: Int = 2) {
+        self.tabs = tabs
+        self.currentTabID = currentTabID
+        self.nextTabNumber = nextTabNumber
+    }
+}
 
 struct AppSnapshot: Codable {
     var settings = AppSettings()
@@ -8,6 +50,7 @@ struct AppSnapshot: Codable {
     var agentRuns: [AgentRun] = []
     var watchedTopics: [WatchedTopic] = []
     var forums: [Forum] = []
+    var browserTabs: SavedBrowserTabsState?
 
     init(
         settings: AppSettings = AppSettings(),
@@ -15,7 +58,8 @@ struct AppSnapshot: Codable {
         activities: [WorkRecord] = [],
         agentRuns: [AgentRun] = [],
         watchedTopics: [WatchedTopic] = [],
-        forums: [Forum] = []
+        forums: [Forum] = [],
+        browserTabs: SavedBrowserTabsState? = nil
     ) {
         self.settings = settings
         self.sessions = sessions
@@ -23,10 +67,11 @@ struct AppSnapshot: Codable {
         self.agentRuns = agentRuns
         self.watchedTopics = watchedTopics
         self.forums = forums
+        self.browserTabs = browserTabs
     }
 
     private enum CodingKeys: String, CodingKey {
-        case settings, sessions, activities, agentRuns, watchedTopics, forums
+        case settings, sessions, activities, agentRuns, watchedTopics, forums, browserTabs
     }
 
     // Missing collections (older or partial snapshots) decode as empty.
@@ -39,6 +84,7 @@ struct AppSnapshot: Codable {
         watchedTopics = try container.decodeIfPresent([WatchedTopic].self, forKey: .watchedTopics)
             ?? []
         forums = try container.decodeIfPresent([Forum].self, forKey: .forums) ?? []
+        browserTabs = try container.decodeIfPresent(SavedBrowserTabsState.self, forKey: .browserTabs)
     }
 }
 
@@ -494,5 +540,130 @@ actor TaskLimiter {
 
     func state() -> (activeTopics: Set<String>, waitingTopics: [String]) {
         (activeTopics, waiters.map(\.topicID))
+    }
+}
+
+/// Sidecar storage under `<store.directoryURL>` for per-tab Agent conversations
+/// (`TabConversations/<conversationID>.json`) and page thumbnails (`TabSnapshots/<tabID>.jpg`).
+final class TabStateStore: @unchecked Sendable {
+    private let conversationsDirectory: URL
+    private let snapshotsDirectory: URL
+    private let writeQueue = DispatchQueue(label: "WukongMind.tab-state-writer", qos: .utility)
+    private let encoder: JSONEncoder
+    private let decoder: JSONDecoder
+
+    init(baseDirectory: URL) {
+        self.conversationsDirectory = baseDirectory.appendingPathComponent("TabConversations", isDirectory: true)
+        self.snapshotsDirectory = baseDirectory.appendingPathComponent("TabSnapshots", isDirectory: true)
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        self.encoder = encoder
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        self.decoder = decoder
+    }
+
+    func saveConversation(_ conversation: SavedAgentConversation, id: UUID) {
+        let fileURL = conversationFileURL(for: id)
+        let directory = conversationsDirectory
+        let isEmpty = conversation.isEmpty
+        let encoder = self.encoder
+        writeQueue.async {
+            if isEmpty {
+                try? FileManager.default.removeItem(at: fileURL)
+                return
+            }
+            guard let data = try? encoder.encode(conversation) else { return }
+            try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            try? data.write(to: fileURL, options: .atomic)
+        }
+    }
+
+    func loadConversation(id: UUID) -> SavedAgentConversation? {
+        flush()
+        let fileURL = conversationFileURL(for: id)
+        guard let data = try? Data(contentsOf: fileURL) else { return nil }
+        return try? decoder.decode(SavedAgentConversation.self, from: data)
+    }
+
+    func removeConversation(id: UUID) {
+        let fileURL = conversationFileURL(for: id)
+        writeQueue.async {
+            try? FileManager.default.removeItem(at: fileURL)
+        }
+    }
+
+    func saveSnapshot(_ image: UIImage?, tabID: String) {
+        let fileURL = snapshotFileURL(for: tabID)
+        let directory = snapshotsDirectory
+        let jpegData = image?.jpegData(compressionQuality: 0.7)
+        writeQueue.async {
+            guard let jpegData else {
+                try? FileManager.default.removeItem(at: fileURL)
+                return
+            }
+            try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            try? jpegData.write(to: fileURL, options: .atomic)
+        }
+    }
+
+    func loadSnapshot(tabID: String) -> UIImage? {
+        flush()
+        let fileURL = snapshotFileURL(for: tabID)
+        guard let data = try? Data(contentsOf: fileURL) else { return nil }
+        return UIImage(data: data)
+    }
+
+    func removeSnapshot(tabID: String) {
+        let fileURL = snapshotFileURL(for: tabID)
+        writeQueue.async {
+            try? FileManager.default.removeItem(at: fileURL)
+        }
+    }
+
+    func pruneOrphans(keepingTabIDs: Set<String>, keepingConversationIDs: Set<UUID>) {
+        let convDir = conversationsDirectory
+        let snapDir = snapshotsDirectory
+        let keptConvNames = Set(keepingConversationIDs.map { "\($0.uuidString).json" })
+        let keptSnapNames = Set(keepingTabIDs.map { "\(Self.safeFilename($0)).jpg" })
+        writeQueue.async {
+            if let files = try? FileManager.default.contentsOfDirectory(at: convDir, includingPropertiesForKeys: nil) {
+                for file in files where !keptConvNames.contains(file.lastPathComponent) {
+                    try? FileManager.default.removeItem(at: file)
+                }
+            }
+            if let files = try? FileManager.default.contentsOfDirectory(at: snapDir, includingPropertiesForKeys: nil) {
+                for file in files where !keptSnapNames.contains(file.lastPathComponent) {
+                    try? FileManager.default.removeItem(at: file)
+                }
+            }
+        }
+    }
+
+    func removeAll() {
+        let convDir = conversationsDirectory
+        let snapDir = snapshotsDirectory
+        writeQueue.sync {
+            try? FileManager.default.removeItem(at: convDir)
+            try? FileManager.default.removeItem(at: snapDir)
+        }
+    }
+
+    func flush() {
+        writeQueue.sync {}
+    }
+
+    private func conversationFileURL(for id: UUID) -> URL {
+        conversationsDirectory.appendingPathComponent("\(id.uuidString).json")
+    }
+
+    private func snapshotFileURL(for tabID: String) -> URL {
+        snapshotsDirectory.appendingPathComponent("\(Self.safeFilename(tabID)).jpg")
+    }
+
+    private static func safeFilename(_ raw: String) -> String {
+        let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-_"))
+        let cleaned = String(raw.unicodeScalars.map { allowed.contains($0) ? Character($0) : "_" })
+        return cleaned.isEmpty ? "tab" : cleaned
     }
 }
