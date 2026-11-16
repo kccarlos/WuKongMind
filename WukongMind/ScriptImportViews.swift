@@ -16,6 +16,17 @@ struct ScriptImportSheet: View {
         (horizontalSizeClass == .regular || UIDevice.current.userInterfaceIdiom == .pad) && !dynamicTypeSize.isAccessibilitySize
     }
 
+    private var navigationTitleText: String {
+        let isUpdate: Bool = switch importer.phase {
+        case .loading(_, let u), .failed(_, let u): u
+        case .ready(let r): r.isUpdate
+        case nil: false
+        }
+        return isUpdate
+            ? String(localized: "Update script", comment: "Navigation title of the userscript update review sheet")
+            : String(localized: "Add script", comment: "Navigation title of the userscript import review sheet")
+    }
+
     private var isFailedPhase: Bool {
         if case .failed = importer.phase { true } else { false }
     }
@@ -24,14 +35,14 @@ struct ScriptImportSheet: View {
         NavigationStack {
             Group {
                 switch importer.phase {
-                case .loading(let linkURL): loadingBody(linkURL: linkURL)
-                case .failed(let failure): failedBody(failure: failure)
+                case .loading(let linkURL, _): loadingBody(linkURL: linkURL)
+                case .failed(let failure, let isUpdate): failedBody(failure: failure, isUpdate: isUpdate)
                 case .ready(let review): readyBody(review: review)
                 case nil: Color.clear
                 }
             }
             .background(DCTheme.ground.ignoresSafeArea())
-            .navigationTitle(Text("Add script", comment: "Navigation title of the userscript import review sheet"))
+            .navigationTitle(navigationTitleText)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -42,7 +53,7 @@ struct ScriptImportSheet: View {
                         if isFailedPhase {
                             Text("Close", comment: "Closes the failed script import sheet")
                         } else {
-                            Text("Cancel", comment: "Cancels importing a userscript")
+                            Text("Cancel", comment: "Cancels importing or updating a userscript")
                         }
                     }
                     .accessibilityIdentifier("scriptImportDismiss")
@@ -69,7 +80,7 @@ struct ScriptImportSheet: View {
         .accessibilityIdentifier("scriptImportLoading")
     }
 
-    private func failedBody(failure: ScriptImportFailure) -> some View {
+    private func failedBody(failure: ScriptImportFailure, isUpdate: Bool) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 HStack(alignment: .center, spacing: 12) {
@@ -78,7 +89,9 @@ struct ScriptImportSheet: View {
                         .overlay { Image(systemName: "exclamationmark.triangle").font(.title3.weight(.semibold)).foregroundStyle(DCTheme.danger) }
                         .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: 3) {
-                        Text("Can’t add this script", comment: "Header title when fetching or validating an imported userscript fails")
+                        Text(isUpdate
+                             ? String(localized: "Can’t update this script", comment: "Header title when fetching or validating a userscript update fails")
+                             : String(localized: "Can’t add this script", comment: "Header title when fetching or validating an imported userscript fails"))
                             .font(.title3.weight(.bold)).foregroundStyle(DCTheme.ink)
                         Text("Nothing was installed.", comment: "Subtitle reassuring the user that a failed userscript import changed nothing")
                             .font(.footnote).foregroundStyle(DCTheme.inkMuted)
@@ -87,7 +100,7 @@ struct ScriptImportSheet: View {
                 .accessibilityElement(children: .combine)
                 .accessibilityAddTraits(.isHeader)
 
-                bannerView(symbol: "exclamationmark.triangle", symbolColor: DCTheme.danger, text: failure.reason)
+                bannerView(symbol: "exclamationmark.triangle", symbolColor: DCTheme.danger, text: failure.reason, isDangerFill: false)
                     .accessibilityIdentifier("scriptImportErrorReason")
 
                 if !failure.linkURL.isEmpty {
@@ -109,24 +122,41 @@ struct ScriptImportSheet: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 reviewHeader(review)
-                if let duplicateHost = review.duplicateNameHost {
-                    bannerView(
-                        symbol: "info.circle",
-                        symbolColor: DCTheme.inkMuted,
-                        text: String(localized: "You already have a script with this name from \(duplicateHost). This one is added separately.", comment: "Import review notice when another script already shares the same name")
-                    )
-                    .accessibilityIdentifier("scriptImportDuplicateBanner")
+                switch review.mode {
+                case .create(let duplicateHost):
+                    if let duplicateHost {
+                        bannerView(
+                            symbol: "info.circle", symbolColor: DCTheme.inkMuted,
+                            text: String(localized: "You already have a script with this name from \(duplicateHost). This one is added separately.", comment: "Import review notice when another script already shares the same name"),
+                            isDangerFill: false
+                        ).accessibilityIdentifier("scriptImportDuplicateBanner")
+                    }
+                    runsOnSection(rules: review.candidate.matchRules)
+                    let caps = ScriptImporter.capabilitySummaries(for: review.candidate, scriptsModelName: app.scriptsModelDisplayName, forImportSheet: true)
+                    if !caps.isEmpty { canUseSection(capabilities: caps) }
+                    if !review.unsupportedItems.isEmpty { unsupportedSection(items: review.unsupportedItems) }
+                    if !review.libraries.isEmpty { librariesSection(libraries: review.libraries) }
+                    codeSection(source: review.rawSource, lineCount: review.lineCount, addedLines: [])
+
+                case .update(_, let diff):
+                    if let ch = diff.changedHost {
+                        bannerView(
+                            symbol: "exclamationmark.triangle", symbolColor: DCTheme.danger,
+                            text: String(localized: "Now comes from \(ch.newHost), was \(ch.oldHost)", comment: "Danger warning in Update script when the update comes from a different host than the original install URL"),
+                            isDangerFill: true
+                        ).accessibilityIdentifier("scriptImportChangedHostBanner")
+                    }
+                    if diff.locallyChanged {
+                        bannerView(
+                            symbol: "info.circle", symbolColor: DCTheme.warning,
+                            text: String(localized: "This replaces your changes. They stay in History.", comment: "Notice in Update script when the local copy was edited by the user or agent"),
+                            isDangerFill: false
+                        ).accessibilityIdentifier("scriptImportLocalChangesBanner")
+                    }
+                    whatChangedSection(diff: diff)
+                    if !review.unsupportedItems.isEmpty { unsupportedSection(items: review.unsupportedItems) }
+                    codeSection(source: review.rawSource, lineCount: review.lineCount, addedLines: diff.addedCodeLines)
                 }
-                runsOnSection(rules: review.candidate.matchRules)
-                let caps = ScriptImporter.capabilitySummaries(
-                    for: review.candidate,
-                    scriptsModelName: app.scriptsModelDisplayName,
-                    forImportSheet: true
-                )
-                if !caps.isEmpty { canUseSection(capabilities: caps) }
-                if !review.unsupportedItems.isEmpty { unsupportedSection(items: review.unsupportedItems) }
-                if !review.libraries.isEmpty { librariesSection(libraries: review.libraries) }
-                codeSection(source: review.rawSource, lineCount: review.lineCount)
                 if !isRegularLayout { askAgentButton(for: review) }
             }
             .padding(.horizontal, isRegularLayout ? 24 : 16).padding(.top, 8).padding(.bottom, 20)
@@ -158,7 +188,14 @@ struct ScriptImportSheet: View {
 
     private func versionAuthorSubtitle(for review: ScriptImportReview) -> String? {
         var parts: [String] = []
-        if let v = review.candidate.metadata.authorVersion, !v.isEmpty { parts.append(v) }
+        switch review.mode {
+        case .create:
+            if let v = review.candidate.metadata.authorVersion, !v.isEmpty { parts.append(v) }
+        case .update(_, let diff):
+            let oldV = diff.oldVersion ?? "v1"
+            let newV = diff.newVersion ?? String(localized: "new", comment: "Fallback label when an updated script has no @version")
+            parts.append("\(oldV) → \(newV)")
+        }
         if let author = review.author, !author.isEmpty {
             parts.append(String(localized: "by \(author)", comment: "Script author attribution in the import review header"))
         }
@@ -236,7 +273,74 @@ struct ScriptImportSheet: View {
         }
     }
 
-    private func codeSection(source: String, lineCount: Int) -> some View {
+    private func whatChangedSection(diff: ScriptUpdateDiff) -> some View {
+        struct ChangeRow: Identifiable {
+            var id: String; var symbol: String; var title: String
+            var monoInline: String? = nil; var monoSubtitle: String? = nil; var subtitle: String? = nil
+            var isNew = false; var isDanger = false
+        }
+        var rows: [ChangeRow] = []
+        for host in diff.addedConnects {
+            let wild = host == "*"
+            let title = wild
+                ? String(localized: "Sends requests to any site", comment: "Capability row when @connect * allows requests to any domain")
+                : String(localized: "Sends requests to \(host)", comment: "Capability row showing which hosts GM_xmlhttpRequest can reach")
+            rows.append(.init(id: "ac-\(host)", symbol: "arrow.up.right", title: title, isNew: true, isDanger: wild))
+        }
+        for host in diff.removedConnects {
+            rows.append(.init(id: "rc-\(host)", symbol: "minus", title: String(localized: "No longer sends requests to \(host)", comment: "Update diff row when a @connect host was removed")))
+        }
+        for m in diff.addedMatches {
+            rows.append(.init(id: "am-\(m)", symbol: "plus", title: String(localized: "Runs on", comment: "Section header in Script detail for @match URL patterns"), monoInline: m, isNew: true, isDanger: ScriptImporter.isBroadEverySiteRule(m)))
+        }
+        for m in diff.removedMatches {
+            rows.append(.init(id: "rm-\(m)", symbol: "minus", title: String(localized: "Stopped running on", comment: "Update diff row prefix when a @match pattern was removed"), monoInline: m))
+        }
+        for g in diff.addedGrants {
+            rows.append(.init(id: "ag-\(g)", symbol: "plus", title: String(localized: "Uses \(g)", comment: "Update diff row when a new @grant capability was added"), isNew: true, isDanger: g == "GM_ai"))
+        }
+        for g in diff.removedGrants {
+            rows.append(.init(id: "rg-\(g)", symbol: "minus", title: String(localized: "No longer uses \(g)", comment: "Update diff row when a @grant capability was removed")))
+        }
+        for lib in diff.addedLibraries {
+            rows.append(.init(id: "al-\(lib)", symbol: "book.closed", title: String(localized: "Library added", comment: "Update diff row when a new @require library was added"), monoSubtitle: Self.compactLibraryDisplay(lib), isNew: true))
+        }
+        for lib in diff.removedLibraries {
+            rows.append(.init(id: "rl-\(lib)", symbol: "minus", title: String(localized: "Library removed", comment: "Update diff row when a @require library was removed"), monoSubtitle: Self.compactLibraryDisplay(lib)))
+        }
+        let grantNote = diff.grantsUnchanged ? String(localized: "Grants are the same.", comment: "Update diff note when no @grant or @connect permissions changed") : nil
+        rows.append(.init(id: "lines", symbol: "info.circle", title: String(localized: "\(diff.changedLineCount) lines changed", comment: "Update diff summary counting modified lines in the userscript"), subtitle: grantNote))
+
+        return sectionBlock(title: String(localized: "What changed", comment: "Section header in Update script summarizing permission, match, library and line changes")) {
+            ForEach(Array(rows.enumerated()), id: \.element.id) { idx, row in
+                if idx > 0 { rowDivider }
+                sectionRow(symbol: row.symbol, symbolColor: row.isDanger ? DCTheme.danger : DCTheme.ink) {
+                    HStack(alignment: .center, spacing: 10) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            let labelFont: Font = row.isDanger ? .subheadline.weight(.bold) : .subheadline
+                            if let mono = row.monoInline {
+                                (Text(row.title + " ").font(labelFont) + Text(verbatim: mono).font(.subheadline.monospaced()))
+                                    .foregroundStyle(row.isDanger ? DCTheme.danger : DCTheme.ink).fixedSize(horizontal: false, vertical: true)
+                            } else {
+                                Text(row.title).font(labelFont).foregroundStyle(row.isDanger ? DCTheme.danger : DCTheme.ink).fixedSize(horizontal: false, vertical: true)
+                            }
+                            if let ms = row.monoSubtitle {
+                                Text(verbatim: ms).font(.footnote.monospaced()).foregroundStyle(DCTheme.inkMuted).fixedSize(horizontal: false, vertical: true)
+                            } else if let s = row.subtitle {
+                                Text(s).font(.footnote).foregroundStyle(DCTheme.inkMuted).fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
+                        Spacer(minLength: 0)
+                        if row.isNew {
+                            DCSeal(text: String(localized: "New", comment: "Gold badge next to newly added hosts, rules or grants in Update script"), variant: .gold)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func codeSection(source: String, lineCount: Int, addedLines: Set<String>) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
                 Text("Code", comment: "Section header in Script detail for JavaScript and CSS editors")
@@ -248,7 +352,7 @@ struct ScriptImportSheet: View {
             .padding(.horizontal, 16).accessibilityElement(children: .combine).accessibilityAddTraits(.isHeader)
 
             ScrollView(.horizontal, showsIndicators: true) {
-                Text(Self.attributedCode(source: source))
+                Text(Self.attributedCode(source: source, addedLines: addedLines))
                     .font(.caption.monospaced()).textSelection(.enabled)
                     .padding(.horizontal, 14).padding(.vertical, 12).frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -290,14 +394,10 @@ struct ScriptImportSheet: View {
                     HStack(spacing: 8) {
                         askAgentButton(for: review)
                         Spacer(minLength: 8)
-                        addKeepOffButton(for: review, sessionID: sessionID, fullWidth: false).fixedSize(horizontal: true, vertical: false)
-                        addTurnOnButton(for: review, sessionID: sessionID, fullWidth: false).fixedSize(horizontal: true, vertical: false)
+                        actionButtons(for: review, sessionID: sessionID, fullWidth: false)
                     }
                 } else {
-                    VStack(spacing: 8) {
-                        addTurnOnButton(for: review, sessionID: sessionID, fullWidth: true)
-                        addKeepOffButton(for: review, sessionID: sessionID, fullWidth: true)
-                    }
+                    VStack(spacing: 8) { actionButtons(for: review, sessionID: sessionID, fullWidth: true) }
                 }
             }
         case .failed:
@@ -315,6 +415,27 @@ struct ScriptImportSheet: View {
             }
         case .loading, nil:
             EmptyView()
+        }
+    }
+
+    @ViewBuilder
+    private func actionButtons(for review: ScriptImportReview, sessionID: UUID?, fullWidth: Bool) -> some View {
+        switch review.mode {
+        case .create:
+            if fullWidth {
+                addTurnOnButton(for: review, sessionID: sessionID, fullWidth: true)
+                addKeepOffButton(for: review, sessionID: sessionID, fullWidth: true)
+            } else {
+                addKeepOffButton(for: review, sessionID: sessionID, fullWidth: false).fixedSize(horizontal: true, vertical: false)
+                addTurnOnButton(for: review, sessionID: sessionID, fullWidth: false).fixedSize(horizontal: true, vertical: false)
+            }
+        case .update:
+            Button { confirmImport(review: review, sessionID: sessionID, turnOn: true) } label: {
+                Text("Update", comment: "Primary button in Update script sheet that applies the reviewed update")
+            }
+            .buttonStyle(DCButtonStyle(role: .primary, fullWidth: fullWidth))
+            .fixedSize(horizontal: !fullWidth, vertical: false)
+            .accessibilityIdentifier("scriptImportConfirmUpdate")
         }
     }
 
@@ -350,14 +471,15 @@ struct ScriptImportSheet: View {
         catch { app.presentError(error.localizedDescription) }
     }
 
-    private func bannerView(symbol: String, symbolColor: Color, text: String) -> some View {
+    private func bannerView(symbol: String, symbolColor: Color, text: String, isDangerFill: Bool) -> some View {
         HStack(alignment: .top, spacing: 10) {
             Image(systemName: symbol).font(.subheadline.weight(.semibold)).foregroundStyle(symbolColor).padding(.top, 1).accessibilityHidden(true)
-            Text(text).font(.subheadline).foregroundStyle(DCTheme.ink).fixedSize(horizontal: false, vertical: true)
+            Text(text).font(isDangerFill ? .subheadline.weight(.semibold) : .subheadline)
+                .foregroundStyle(isDangerFill ? DCTheme.danger : DCTheme.ink).fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)
         }
         .padding(.horizontal, 14).padding(.vertical, 12)
-        .background(DCTheme.surface, in: RoundedRectangle(cornerRadius: DCTheme.radiusLg, style: .continuous))
+        .background(isDangerFill ? DCTheme.cinnabarWash : DCTheme.surface, in: RoundedRectangle(cornerRadius: DCTheme.radiusLg, style: .continuous))
         .accessibilityElement(children: .combine)
     }
 
@@ -394,7 +516,7 @@ struct ScriptImportSheet: View {
         return kb < 1024 ? "\(max(1, kb)) KB" : String(format: "%.1f MB", Double(bytes) / (1024.0 * 1024.0))
     }
 
-    private static func attributedCode(source: String) -> AttributedString {
+    private static func attributedCode(source: String, addedLines: Set<String>) -> AttributedString {
         let lines = source.replacingOccurrences(of: "\r\n", with: "\n").components(separatedBy: "\n")
         let maxDigits = max(2, String(lines.count).count)
         var output = AttributedString()
@@ -404,7 +526,8 @@ struct ScriptImportSheet: View {
             numAttr.foregroundColor = DCTheme.inkFaint
             output.append(numAttr)
             var codeAttr = AttributedString(line + (idx < lines.count - 1 ? "\n" : ""))
-            codeAttr.foregroundColor = DCTheme.ink
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            codeAttr.foregroundColor = (!addedLines.isEmpty && !trimmed.isEmpty && addedLines.contains(trimmed)) ? DCTheme.success : DCTheme.ink
             output.append(codeAttr)
         }
         return output

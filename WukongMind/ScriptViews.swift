@@ -1384,6 +1384,17 @@ struct ScriptManagerView: View {
                 Text("Scripts with the GM_ai grant send page text to \(app.scriptsModelDisplayName). Off, they get no answer.", comment: "Settings › Scripts footer explaining the AI in scripts switch; placeholder is the active Scripts model name")
             }
 
+            Section {
+                Toggle(
+                    isOn: $app.settings.checkScriptUpdatesEnabled
+                ) {
+                    Text("Check for updates", comment: "Settings › Scripts toggle enabling daily foreground update checks for imported scripts")
+                }
+                .accessibilityIdentifier("scriptsCheckUpdatesToggle")
+            } footer: {
+                Text("Updates: once a day for imported scripts that are on; sends no cookies.", comment: "Settings › Scripts footer explaining daily cookie-free update checks")
+            }
+
             if groups.isEmpty {
                 Section {
                     emptyStateCard
@@ -1620,6 +1631,7 @@ struct ScriptManagerView: View {
 
     @ViewBuilder
     private func managerRowTextStack(for script: UserScript, error: ScriptRuntimeError?) -> some View {
+        let hasUpdate = app.scriptImporter.availableUpdate(for: script.id) != nil
         VStack(alignment: .leading, spacing: 3) {
             Text(script.name)
                 .font(.body)
@@ -1636,6 +1648,14 @@ struct ScriptManagerView: View {
                         .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 2)
                 }
                 .foregroundStyle(DCTheme.danger)
+            } else if hasUpdate {
+                DCSeal(
+                    text: String(localized: "Update available", comment: "Gold badge on an imported script when a newer upstream @version was found"),
+                    variant: .gold,
+                    systemImage: "arrow.down.to.line"
+                )
+                .padding(.top, 1)
+                .accessibilityIdentifier("scriptUpdateBadge-\(script.id)")
             } else if let firstRule = script.matchRules.first {
                 let extra = script.matchRules.count - 1
                 let subtitle = extra > 0
@@ -1665,9 +1685,13 @@ struct ScriptManagerView: View {
         if let error {
             return String(localized: "Error: \(error.message)", comment: "Accessibility value on a script row when the script has a runtime error")
         }
-        return script.isEnabled
+        let state = script.isEnabled
             ? String(localized: "On", comment: "State pill when a feature or script is enabled")
             : String(localized: "Off", comment: "State pill when a feature or script is disabled")
+        if app.scriptImporter.availableUpdate(for: script.id) != nil {
+            return "\(state), " + String(localized: "Update available", comment: "Gold badge on an imported script when a newer upstream @version was found")
+        }
+        return state
     }
 
     private var emptyStateCard: some View {
@@ -1926,6 +1950,7 @@ struct ScriptDetailView: View {
     @State private var showsDiscardConfirmation = false
     @State private var didCopyError = false
     @State private var announcedErrorSignature: String?
+    @State private var updateCheckStatus: String?
     #if DEBUG
     @State private var debugSubpage: String?
     #endif
@@ -2036,7 +2061,16 @@ struct ScriptDetailView: View {
                 }
             }
 
-            // 2b. Can use (M4)
+            // 2b. Update available (M4)
+            if let available = app.scriptImporter.availableUpdate(for: script.id) {
+                Section {
+                    updateAvailableRow(for: script, available: available)
+                } header: {
+                    Text("Update", comment: "Section header in Script detail when a newer upstream userscript version is available")
+                }
+            }
+
+            // 2c. Can use (M4)
             let capabilities = detailCapabilities(for: script)
             let unsupportedGrants = detailUnsupportedGrants(for: script)
             if !capabilities.isEmpty || !unsupportedGrants.isEmpty {
@@ -2337,8 +2371,15 @@ struct ScriptDetailView: View {
             // 7. Source
             Section {
                 sourceRow(for: script)
+                if script.source == .imported, ScriptImporter.preferredCheckURL(for: script) != nil {
+                    checkForUpdatesRow(for: script)
+                }
             } header: {
                 Text("Source", comment: "Section header in Script detail showing how the script was created")
+            } footer: {
+                if let updateCheckStatus {
+                    Text(updateCheckStatus)
+                }
             }
 
             // 8. History & Export
@@ -2760,6 +2801,89 @@ struct ScriptDetailView: View {
         .padding(.vertical, 2)
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("scriptSource")
+    }
+
+    private func updateAvailableRow(for script: UserScript, available: ScriptAvailableUpdate) -> some View {
+        let versionText = available.newVersion ?? String(localized: "New version", comment: "Fallback label when an available script update has no @version")
+        return HStack(alignment: .center, spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                DCSeal(
+                    text: String(localized: "Update available", comment: "Gold badge on an imported script when a newer upstream @version was found"),
+                    variant: .gold,
+                    systemImage: "arrow.down.to.line"
+                )
+                Text(
+                    "\(versionText) · checked \(ScriptUIFormatting.relativeDate(available.checkedAt))",
+                    comment: "Subtitle under Update available in Script detail showing new version and when it was checked"
+                )
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 8)
+            Button {
+                DCHaptics.tap()
+                if let url = URL(string: available.fetchURL) {
+                    app.scriptImporter.openImport(from: url, targetScriptID: script.id, inSettings: true)
+                }
+            } label: {
+                Text("Review", comment: "Button in Script detail Update section that opens the update review sheet")
+            }
+            .buttonStyle(DCActionButtonStyle(prominent: false, minHeight: 36))
+            .accessibilityIdentifier("scriptReviewUpdateButton")
+        }
+        .padding(.vertical, 2)
+        .accessibilityIdentifier("scriptUpdateAvailableRow")
+    }
+
+    private func checkForUpdatesRow(for script: UserScript) -> some View {
+        let isChecking = app.scriptImporter.checkingScriptIDs.contains(script.id)
+        return HStack(spacing: 12) {
+            Text("Check for updates", comment: "Settings › Scripts toggle enabling daily foreground update checks for imported scripts")
+                .foregroundStyle(.primary)
+            Spacer()
+            Button {
+                DCHaptics.tap()
+                updateCheckStatus = nil
+                Task { @MainActor in
+                    let outcome = await app.scriptImporter.checkForUpdate(script: script)
+                    switch outcome {
+                    case .updateAvailable(let available):
+                        updateCheckStatus = nil
+                        ScriptUIFormatting.announce(
+                            String(localized: "Update available", comment: "Gold badge on an imported script when a newer upstream @version was found")
+                        )
+                        if let url = URL(string: available.fetchURL) {
+                            app.scriptImporter.openImport(from: url, targetScriptID: script.id, inSettings: true)
+                        }
+                    case .upToDate:
+                        let msg = String(localized: "Up to date.", comment: "Status message after checking for a userscript update and finding no newer version")
+                        updateCheckStatus = msg
+                        ScriptUIFormatting.announce(msg)
+                    case .failed(let reason):
+                        updateCheckStatus = reason
+                        ScriptUIFormatting.announce(reason)
+                    }
+                }
+            } label: {
+                if isChecking {
+                    ProgressView()
+                        .controlSize(.small)
+                } else {
+                    HStack(spacing: 5) {
+                        Image(systemName: "arrow.clockwise")
+                            .font(.subheadline.weight(.semibold))
+                        Text("Check now", comment: "Button in Script detail Source section to check immediately for a newer upstream version")
+                            .font(.subheadline.weight(.semibold))
+                    }
+                    .foregroundStyle(DCTheme.goldInk)
+                }
+            }
+            .buttonStyle(.plain)
+            .disabled(isChecking)
+            .frame(minHeight: 36)
+            .accessibilityIdentifier("scriptCheckUpdatesNowButton")
+        }
     }
 
     private func detailCapabilities(for script: UserScript) -> [ScriptCapabilitySummary] {
@@ -3304,6 +3428,11 @@ struct ScriptHistoryView: View {
             case .replacedByAnotherDevice:
                 return (
                     String(localized: "Replaced by a change from another device", comment: "Version history row title for a local edit superseded by a newer edit from another device"),
+                    nil
+                )
+            case .updated:
+                return (
+                    String(localized: "Updated", comment: "Version history row title when updated from its upstream link"),
                     nil
                 )
             }

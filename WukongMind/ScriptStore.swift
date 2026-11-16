@@ -95,6 +95,7 @@ enum ScriptVersionOrigin: Codable, Equatable, Sendable {
     case imported
     case changedOnAnotherDevice
     case replacedByAnotherDevice
+    case updated
 
     var headerKind: String {
         switch self {
@@ -105,6 +106,7 @@ enum ScriptVersionOrigin: Codable, Equatable, Sendable {
         case .imported: "imported"
         case .changedOnAnotherDevice: "changed-on-another-device"
         case .replacedByAnotherDevice: "replaced-by-another-device"
+        case .updated: "updated"
         }
     }
 
@@ -113,7 +115,7 @@ enum ScriptVersionOrigin: Codable, Equatable, Sendable {
         case .savedByAgent(let p), .changedByAgent(let p):
             let trimmed = p.trimmingCharacters(in: .whitespacesAndNewlines)
             return trimmed.isEmpty ? nil : trimmed
-        case .editedByUser, .restored, .imported, .changedOnAnotherDevice, .replacedByAnotherDevice:
+        case .editedByUser, .restored, .imported, .updated, .changedOnAnotherDevice, .replacedByAnotherDevice:
             return nil
         }
     }
@@ -133,6 +135,8 @@ enum ScriptVersionOrigin: Codable, Equatable, Sendable {
             return .changedOnAnotherDevice
         case "replaced-by-another-device":
             return .replacedByAnotherDevice
+        case "updated":
+            return .updated
         default:
             if normalized.hasPrefix("restored:"),
                let v = Int(normalized.dropFirst("restored:".count)),
@@ -2226,6 +2230,73 @@ final class ScriptStore {
         }
         notifySyncedScriptsChanged()
         return script
+    }
+
+    @discardableResult
+    func applyImportedUpdate(
+        id: String,
+        candidate: UserScript,
+        sourceHost: String? = nil,
+        upstreamHash: String,
+        libraries: [ScriptLoadedLibrary],
+        now: Date = Date()
+    ) throws -> UserScript {
+        guard let idx = scripts.firstIndex(where: { $0.id == id }) else {
+            throw ScriptStoreError.scriptNotFound(id)
+        }
+        let existing = scripts[idx]
+        let archivedSnapshot = existing.snapshotVersion()
+        var updatedVersions = existing.versions.filter { $0.version != archivedSnapshot.version }
+        updatedVersions.append(archivedSnapshot)
+        updatedVersions.sort { $0.version < $1.version }
+        let nextVersion = max(existing.version, updatedVersions.map(\.version).max() ?? 0) + 1
+
+        var nextMetadata = candidate.metadata
+        nextMetadata.installURL = existing.metadata.installURL ?? candidate.metadata.installURL
+        nextMetadata.sourceHost = sourceHost?.lowercased() ?? existing.metadata.sourceHost
+        nextMetadata.upstreamHash = upstreamHash
+        nextMetadata.locallyChanged = false
+
+        var updated = UserScript(
+            id: existing.id,
+            name: candidate.name,
+            matchRules: candidate.matchRules,
+            js: candidate.js,
+            css: candidate.css,
+            injectionTime: candidate.injectionTime,
+            environment: candidate.environment,
+            isEnabled: existing.isEnabled,
+            source: .imported,
+            version: nextVersion,
+            createdAt: existing.createdAt,
+            updatedAt: now,
+            versions: updatedVersions,
+            versionOrigin: .updated,
+            disabledReason: existing.isEnabled ? nil : existing.disabledReason,
+            metadata: nextMetadata
+        )
+
+        try writeVersionArchive(for: existing)
+        try writeRequiredLibraries(libraries, for: existing.id)
+        if updated.isEnabled, case .failure(let reason) = loadVerifiedRequiredCode(for: updated) {
+            updated.isEnabled = false
+            updated.disabledReason = reason
+        }
+        try writeScriptFile(updated)
+
+        scripts[idx] = updated
+        sortScriptsInPlace()
+        clearError(for: id)
+        syncAttachedUserScripts()
+        if updated.isEnabled {
+            applyLiveToAttachedControllers(updated, runJS: true)
+        } else {
+            for entry in attachedControllers {
+                guard let controller = entry.controller else { continue }
+                Task { @MainActor in await controller.removeLiveScript(id: id) }
+            }
+        }
+        return updated
     }
 
     private func applyLiveToAttachedControllers(_ script: UserScript, runJS: Bool) {

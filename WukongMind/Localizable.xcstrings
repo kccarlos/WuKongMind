@@ -354,6 +354,29 @@
         }
       }
     },
+    "%@ · checked %@" : {
+      "comment" : "Subtitle under Update available in Script detail showing new version and when it was checked",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · checked %2$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · 检查于 %2$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · 檢查於 %2$@"
+          }
+        }
+      }
+    },
     "%@ · edited %@" : {
       "comment" : "Script detail header subtitle showing imported @version and relative edit time",
       "localizations" : {
@@ -662,6 +685,53 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%lld 行"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld lines changed" : {
+      "comment" : "Update diff summary counting modified lines in the userscript",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld line changed"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld lines changed"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "已修改 %lld 行"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "已修改 %lld 行"
                 }
               }
             }
@@ -5125,6 +5195,23 @@
         }
       }
     },
+    "Can’t update this script" : {
+      "comment" : "Header title when fetching or validating a userscript update fails",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法更新此脚本"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法更新此指令碼"
+          }
+        }
+      }
+    },
     "Change" : {
       "comment" : "Settings › Agent header link to change the Agent model",
       "localizations" : {
@@ -5364,6 +5451,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "檢查新回覆"
+          }
+        }
+      }
+    },
+    "Check for updates" : {
+      "comment" : "Settings › Scripts toggle enabling daily foreground update checks for imported scripts",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "检查更新"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "檢查更新"
           }
         }
       }
@@ -6446,6 +6550,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無法錄製"
+          }
+        }
+      }
+    },
+    "Couldn’t check for updates (HTTP %lld)." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法检查更新（HTTP %lld）。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法檢查更新（HTTP %lld）。"
           }
         }
       }
@@ -9410,6 +9530,23 @@
         }
       }
     },
+    "Grants are the same." : {
+      "comment" : "Update diff note when no @grant or @connect permissions changed",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "权限未变。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "權限未變。"
+          }
+        }
+      }
+    },
     "Grok models from xAI." : {
       "localizations" : {
         "zh-Hans" : {
@@ -10601,6 +10738,40 @@
         }
       }
     },
+    "Library added" : {
+      "comment" : "Update diff row when a new @require library was added",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已添加依赖库"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已加入程式庫"
+          }
+        }
+      }
+    },
+    "Library removed" : {
+      "comment" : "Update diff row when a @require library was removed",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已移除依赖库"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已移除程式庫"
+          }
+        }
+      }
+    },
     "Licences" : {
       "localizations" : {
         "zh-Hans" : {
@@ -11738,6 +11909,23 @@
         }
       }
     },
+    "New" : {
+      "comment" : "Gold badge next to newly added hosts, rules or grants in Update script",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新增"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新增"
+          }
+        }
+      }
+    },
     "New conversation" : {
       "comment" : "Browser agent menu action: clear the conversation and start fresh",
       "localizations" : {
@@ -11784,6 +11972,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "有新回覆"
+          }
+        }
+      }
+    },
+    "New version" : {
+      "comment" : "Fallback label when an available script update has no @version",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新版本"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新版本"
           }
         }
       }
@@ -12033,6 +12238,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "不限制"
+          }
+        }
+      }
+    },
+    "No longer sends requests to %@" : {
+      "comment" : "Update diff row when a @connect host was removed",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不再向 %@ 发送请求"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不再向 %@ 發送請求"
+          }
+        }
+      }
+    },
+    "No longer uses %@" : {
+      "comment" : "Update diff row when a @grant capability was removed",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不再使用 %@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不再使用 %@"
           }
         }
       }
@@ -12729,6 +12968,29 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "可以產生時通知我"
+          }
+        }
+      }
+    },
+    "Now comes from %@, was %@" : {
+      "comment" : "Danger warning in Update script when the update comes from a different host than the original install URL",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Now comes from %1$@, was %2$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "现在来自 %1$@（原为 %2$@）"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "現在來自 %1$@（原為 %2$@）"
           }
         }
       }
@@ -16638,6 +16900,23 @@
         }
       }
     },
+    "Review" : {
+      "comment" : "Button in Script detail Update section that opens the update review sheet",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "查看"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "檢視"
+          }
+        }
+      }
+    },
     "Review this script before I turn it on" : {
       "comment" : "User prompt sent to the Browser Agent when tapping Ask the Agent to review it in the script import sheet",
       "localizations" : {
@@ -19291,6 +19570,23 @@
         }
       }
     },
+    "Stopped running on" : {
+      "comment" : "Update diff row prefix when a @match pattern was removed",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不再运行于"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不再執行於"
+          }
+        }
+      }
+    },
     "Stored securely in iCloud Keychain" : {
       "localizations" : {
         "zh-Hans" : {
@@ -21122,6 +21418,22 @@
         }
       }
     },
+    "The update link didn’t return a valid userscript header." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新链接未返回有效的用户脚本头部。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新連結未回傳有效的使用者指令碼標頭。"
+          }
+        }
+      }
+    },
     "The voice connection was lost." : {
       "comment" : "Voice session error",
       "localizations" : {
@@ -21451,6 +21763,23 @@
         }
       }
     },
+    "This replaces your changes. They stay in History." : {
+      "comment" : "Notice in Update script when the local copy was edited by the user or agent",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这将替换你的修改。原有修改仍保存在历史记录中。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這將取代你的修改。原有修改仍保存在歷史記錄中。"
+          }
+        }
+      }
+    },
     "This screenshot is no longer available." : {
       "comment" : "Shown in the full-size screenshot sheet when the image is gone",
       "localizations" : {
@@ -21464,6 +21793,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "此截圖已無法使用。"
+          }
+        }
+      }
+    },
+    "This script has no HTTPS update link." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此脚本没有 HTTPS 更新链接。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此指令碼沒有 HTTPS 更新連結。"
           }
         }
       }
@@ -22793,6 +23138,91 @@
         }
       }
     },
+    "Up to date." : {
+      "comment" : "Status message after checking for a userscript update and finding no newer version",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已是最新版本。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已是最新版本。"
+          }
+        }
+      }
+    },
+    "Update" : {
+      "comment" : "Primary button in Update script sheet that applies the reviewed update\nSection header in Script detail when a newer upstream userscript version is available",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新"
+          }
+        }
+      }
+    },
+    "Update available" : {
+      "comment" : "Gold badge on an imported script when a newer upstream @version was found",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有可用更新"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有可用更新"
+          }
+        }
+      }
+    },
+    "Update script" : {
+      "comment" : "Navigation title of the userscript update review sheet",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新脚本"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新指令碼"
+          }
+        }
+      }
+    },
+    "Updated" : {
+      "comment" : "Version history row title when updated from its upstream link",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已更新"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已更新"
+          }
+        }
+      }
+    },
     "Updated script" : {
       "localizations" : {
         "zh-Hans" : {
@@ -22805,6 +23235,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已更新腳本"
+          }
+        }
+      }
+    },
+    "Updates: once a day for imported scripts that are on; sends no cookies." : {
+      "comment" : "Settings › Scripts footer explaining daily cookie-free update checks",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新：每天为已开启的导入脚本检查一次，不发送任何 Cookie。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新：每天為已開啟的匯入指令碼檢查一次，不傳送任何 Cookie。"
           }
         }
       }
@@ -23295,6 +23742,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用 AI · %@"
+          }
+        }
+      }
+    },
+    "Uses %@" : {
+      "comment" : "Update diff row when a new @grant capability was added",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用 %@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用 %@"
           }
         }
       }
@@ -24110,6 +24574,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "這週大家都在討論什麼？"
+          }
+        }
+      }
+    },
+    "What changed" : {
+      "comment" : "Section header in Update script summarizing permission, match, library and line changes",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新内容"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "變更內容"
           }
         }
       }
@@ -25176,6 +25657,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "剛剛"
+          }
+        }
+      }
+    },
+    "new" : {
+      "comment" : "Fallback label when an updated script has no @version",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新版本"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新版本"
           }
         }
       }

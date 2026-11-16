@@ -96,6 +96,8 @@ struct AppSettings: Codable, Equatable {
     var browserScriptsEnabled = true
     /// Switch for `GM_ai` in userscripts (`Settings › Scripts`). On by default.
     var browserScriptsAIEnabled = true
+    /// Daily foreground update check for enabled imported userscripts (`Settings › Scripts`).
+    var checkScriptUpdatesEnabled = true
     var configurations: [String: ProviderConfiguration] = Dictionary(
         uniqueKeysWithValues: AIProvider.allCases.map {
             ($0.rawValue, ProviderConfiguration(provider: $0))
@@ -182,6 +184,7 @@ struct AppSettings: Codable, Equatable {
         case browserAgentTruncationLimit
         case browserScriptsEnabled
         case browserScriptsAIEnabled
+        case checkScriptUpdatesEnabled
         case configurations
         case favoriteModels
         case addedModels
@@ -259,6 +262,7 @@ struct AppSettings: Codable, Equatable {
         )
         browserScriptsEnabled = try container.decodeIfPresent(Bool.self, forKey: .browserScriptsEnabled) ?? true
         browserScriptsAIEnabled = try container.decodeIfPresent(Bool.self, forKey: .browserScriptsAIEnabled) ?? true
+        checkScriptUpdatesEnabled = try container.decodeIfPresent(Bool.self, forKey: .checkScriptUpdatesEnabled) ?? true
         systemPrompt = try container.decodeIfPresent(String.self, forKey: .systemPrompt) ?? ""
         forumContextLimit = try container.decodeIfPresent(Int.self, forKey: .forumContextLimit)
             ?? 30_000
