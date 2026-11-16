@@ -353,6 +353,78 @@ final class StateTransitionTests: XCTestCase {
         }
     }
 
+    func testAddedByNameRowExposesDestructiveRemoveMenuAndDisablesWhileUsed() throws {
+        let harness = makeHarness()
+        let app = harness.app
+        select(app, .anthropic, model: "claude-haiku-5-5", key: "sk-ant-test")
+        app.selectModel(ModelSelection(provider: .anthropic, model: "my-gateway/claude-x"), for: .role(.browserAgent))
+        app.addCustomModel("my-gateway/claude-x", for: .anthropic)
+        app.discoveredModels[.anthropic] = [
+            DiscoveredModel(id: "claude-haiku-5-5", displayName: "Claude Haiku 5.5")
+        ]
+
+        let host = UIHostingController(
+            rootView: NavigationStack {
+                Form {
+                    ProviderModelsSection(app: app, provider: .anthropic)
+                }
+            }
+        )
+        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(x: 0, y: 0, width: 393, height: 852))
+        window.frame = CGRect(x: 0, y: 0, width: 393, height: 852)
+        window.rootViewController = host
+        window.makeKeyAndVisible()
+        defer {
+            window.isHidden = true
+            window.rootViewController = nil
+        }
+
+        func allActions(in menu: UIMenu) -> [UIAction] {
+            menu.children.flatMap { element -> [UIAction] in
+                if let action = element as? UIAction { return [action] }
+                if let submenu = element as? UIMenu { return allActions(in: submenu) }
+                return []
+            }
+        }
+
+        func menuByTitle() -> [String: UIMenu] {
+            host.view.layoutIfNeeded()
+            RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+            host.view.layoutIfNeeded()
+            var result: [String: UIMenu] = [:]
+            func walk(_ view: UIView) {
+                if let button = view as? UIButton, button.showsMenuAsPrimaryAction, let menu = button.menu {
+                    result[menu.title] = menu
+                }
+                for subview in view.subviews { walk(subview) }
+            }
+            walk(host.view)
+            return result
+        }
+
+        var menus = menuByTitle()
+        let listedMenu = try XCTUnwrap(menus["claude-haiku-5-5"])
+        XCTAssertNil(
+            allActions(in: listedMenu).first { $0.title == "Remove" },
+            "Fetched model rows must not offer destructive Remove"
+        )
+
+        let addedMenuWhileUsed = try XCTUnwrap(menus["my-gateway/claude-x"])
+        let disabledRemove = try XCTUnwrap(allActions(in: addedMenuWhileUsed).first { $0.title == "Remove" })
+        XCTAssertTrue(disabledRemove.attributes.contains(.destructive))
+        XCTAssertTrue(disabledRemove.attributes.contains(.disabled))
+        XCTAssertEqual(disabledRemove.subtitle, "Used for Agent")
+
+        app.selectModel(ModelSelection(provider: .anthropic, model: "claude-haiku-5-5"), for: .role(.browserAgent))
+        menus = menuByTitle()
+        let addedMenuWhenUnused = try XCTUnwrap(menus["my-gateway/claude-x"])
+        let enabledRemove = try XCTUnwrap(allActions(in: addedMenuWhenUnused).first { $0.title == "Remove" })
+        XCTAssertTrue(enabledRemove.attributes.contains(.destructive))
+        XCTAssertFalse(enabledRemove.attributes.contains(.disabled))
+        XCTAssertNil(enabledRemove.subtitle)
+    }
+
     // MARK: 4. Limits and instructions
 
     func testLimitsAndInstructionsAreTakenWhenWorkStarts() async throws {

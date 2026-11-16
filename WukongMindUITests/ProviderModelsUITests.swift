@@ -51,12 +51,30 @@ final class ProviderModelsUITests: DCUITestCase {
         XCTAssertTrue(app.navigationBars["Anthropic"].waitForExistence(timeout: 10))
         XCTAssertTrue(any(app, "refreshModels").waitForExistence(timeout: 5))
 
+        // `-dc-sample` configures Summaries on `claude-sonnet-4-5`, which is not in the
+        // 15-model `/v1/models` list (`claude-sonnet-4-5-20250929`), so P2 pins it at the top
+        // marked `added by name` with Remove disabled while Summaries uses it.
+        let unlistedSummariesRow = any(app, "modelRow-claude-sonnet-4-5")
         let fableRow = any(app, "modelRow-claude-fable-5-2")
         let haikuRow = any(app, "modelRow-claude-haiku-5-5")
         let sonnetRow = any(app, "modelRow-claude-sonnet-5-5")
         let sixthRow = any(app, "modelRow-claude-opus-5")
         let seventhRow = any(app, "modelRow-claude-sonnet-5")
         let showAll = any(app, "showAllModels")
+
+        XCTAssertTrue(waitOrDump(unlistedSummariesRow, timeout: 5, in: app))
+        XCTAssertTrue(unlistedSummariesRow.label.contains("added by name"), "Got “\(unlistedSummariesRow.label)”.")
+        XCTAssertTrue(unlistedSummariesRow.label.contains("used for Summaries"), "Got “\(unlistedSummariesRow.label)”.")
+        XCTAssertTrue(fableRow.exists)
+        XCTAssertLessThan(unlistedSummariesRow.frame.minY, fableRow.frame.minY)
+
+        // Move Summaries to Claude Haiku 5.5 so the list shows the 15 fetched models.
+        XCTAssertTrue(reveal(haikuRow, in: app, swipes: 3))
+        tapTrailingMore(on: haikuRow)
+        let useForSummaries = app.buttons.matching(label(contains: "Use for Summaries")).firstMatch
+        XCTAssertTrue(waitOrDump(useForSummaries, timeout: 5, in: app))
+        useForSummaries.tap()
+        XCTAssertTrue(waitForGone(unlistedSummariesRow, timeout: 5))
 
         XCTAssertTrue(waitOrDump(fableRow, timeout: 5, in: app))
         XCTAssertTrue(haikuRow.exists)
@@ -75,6 +93,7 @@ final class ProviderModelsUITests: DCUITestCase {
         XCTAssertTrue(sonnetRow.label.contains("used for Agent"), "Got “\(sonnetRow.label)”.")
         XCTAssertTrue(sonnetRow.label.contains("favorite"), "Got “\(sonnetRow.label)”.")
         XCTAssertFalse(haikuRow.label.contains("used for Agent"), "Got “\(haikuRow.label)”.")
+        XCTAssertTrue(haikuRow.label.contains("used for Summaries"), "Got “\(haikuRow.label)”.")
         XCTAssertFalse(any(app, "modelMore-claude-haiku-5-5").exists, "⋯ must not create a separate VoiceOver focus stop.")
 
         capture(isPhone ? "p1-iphone-anthropic-initial-light" : "p1-ipad-anthropic-initial-light")
@@ -91,8 +110,8 @@ final class ProviderModelsUITests: DCUITestCase {
         XCTAssertTrue(waitOrDump(useForAgent, timeout: 5, in: app))
         XCTAssertTrue(useForAgent.isEnabled)
         XCTAssertTrue(app.buttons.matching(label(contains: "Use for Summaries")).firstMatch.exists)
+        XCTAssertTrue(app.buttons.matching(label(contains: "Use for Scripts")).firstMatch.exists)
         XCTAssertTrue(app.buttons.matching(label(contains: "Copy model name")).firstMatch.exists)
-        XCTAssertFalse(app.buttons.matching(label(contains: "Use for Scripts")).firstMatch.exists, "Scripts must not join the menu before M4.")
         capture(isPhone ? "p1-iphone-anthropic-menu-light" : "p1-ipad-anthropic-menu-light")
 
         useForAgent.tap()
@@ -125,6 +144,7 @@ final class ProviderModelsUITests: DCUITestCase {
 
         XCTAssertTrue(app.navigationBars["Apple Intelligence"].waitForExistence(timeout: 10))
         XCTAssertFalse(any(app, "refreshModels").exists, "Apple Intelligence has no Refresh button.")
+        XCTAssertFalse(any(app, "addModelByNameButton").exists, "Apple Intelligence has no Add a model by name row.")
 
         let foundationRow = any(app, "modelRow-appleIntelligence")
         XCTAssertTrue(reveal(foundationRow, in: app, swipes: 3))
@@ -282,9 +302,135 @@ final class ProviderModelsUITests: DCUITestCase {
         capture("p1-iphone-anthropic-ax-dark")
     }
 
-    /// Opt-in live check with `TEST_RUNNER_ANTHROPIC_API_KEY`: fetches real
-    /// `GET https://api.anthropic.com/v1/models` and selects `claude-haiku-5-5`
-    /// for Agent via `⋯ › Use for Agent`.
+    /// P2 Done-when UI test:
+    /// - `ModelRolePage`'s model row opens the chosen provider's page scrolled to `Models`;
+    /// - adding `my-gateway/claude-x` puts it at the top marked `added by name`;
+    /// - `Remove` is disabled while a role uses it (with reason `Used for Agent`) and removes it otherwise.
+    func testAddModelByNamePinsAtTopDisablesRemoveWhileUsedAndRolePageOpensModels() throws {
+        let app = launch([
+            "-AppleLanguages", "(en)", "-AppleLocale", "en_US",
+            "-dc-sample",
+            "-dc-forums-home",
+            "-dc-show-settings", "provider",
+            "-dc-agent-model", "anthropic:claude-sonnet-5-5"
+        ])
+
+        XCTAssertTrue(app.navigationBars["Models"].waitForExistence(timeout: 20))
+
+        // 1. Role page's Model row opens the provider page scrolled to Models.
+        let agentRoleRow = any(app, "modelRole-browserAgent")
+        XCTAssertTrue(waitOrDump(agentRoleRow, timeout: 5, in: app))
+        agentRoleRow.tap()
+
+        XCTAssertTrue(app.navigationBars["Agent"].waitForExistence(timeout: 10))
+        XCTAssertFalse(app.textFields["modelField"].exists, "Per-role model text field is replaced by the provider Models link.")
+        let modelsLink = app.buttons["providerModelsLink"]
+        XCTAssertTrue(reveal(modelsLink, in: app, swipes: 3))
+        XCTAssertTrue(modelsLink.label.contains("claude-sonnet-5-5"), "Got “\(modelsLink.label)”.")
+        capture(isPhone ? "p2-iphone-role-page-link-light" : "p2-ipad-role-page-link-light")
+
+        modelsLink.tap()
+        XCTAssertTrue(app.navigationBars["Anthropic"].waitForExistence(timeout: 10))
+
+        // Verify the page scrolled directly to Models without manual swiping:
+        // the top provider header row is scrolled out of the upper viewport while
+        // the first model row sits in the upper half of the window.
+        let firstInitialRow = any(app, "modelRow-claude-sonnet-4-5")
+        XCTAssertTrue(waitOrDump(firstInitialRow, timeout: 5, in: app))
+        let windowFrame = app.windows.firstMatch.frame
+        XCTAssertTrue(
+            wait(timeout: 5) { firstInitialRow.frame.minY < windowFrame.midY },
+            "Expected Anthropic page to open scrolled to Models; first row minY=\(firstInitialRow.frame.minY), window midY=\(windowFrame.midY)."
+        )
+        capture(isPhone ? "p2-iphone-scrolled-to-models-light" : "p2-ipad-scrolled-to-models-light")
+
+        // Move Summaries onto Claude Haiku 5.5 so only explicitly added models sit above Claude Fable 5.2.
+        let haikuRow = any(app, "modelRow-claude-haiku-5-5")
+        XCTAssertTrue(reveal(haikuRow, in: app, swipes: 3))
+        tapTrailingMore(on: haikuRow)
+        let useForSummaries = app.buttons.matching(label(contains: "Use for Summaries")).firstMatch
+        XCTAssertTrue(waitOrDump(useForSummaries, timeout: 5, in: app))
+        useForSummaries.tap()
+        XCTAssertTrue(waitForGone(firstInitialRow, timeout: 5))
+
+        // 2. Tap "Add a model by name…", type `my-gateway/claude-x`, and tap Add.
+        let addButton = any(app, "addModelByNameButton")
+        XCTAssertTrue(reveal(addButton, in: app, swipes: 4))
+        addButton.tap()
+
+        let field = app.textFields["addModelByNameField"]
+        let confirmAdd = app.buttons["confirmAddModelByName"]
+        XCTAssertTrue(waitOrDump(field, timeout: 5, in: app))
+        XCTAssertTrue(confirmAdd.exists)
+        XCTAssertFalse(confirmAdd.isEnabled, "Add button must be disabled while the model ID field is empty.")
+        XCTAssertTrue(
+            app.staticTexts.matching(label(contains: "Type the exact model ID your provider uses.")).firstMatch.exists
+        )
+
+        field.typeText("my-gateway/claude-x")
+        XCTAssertTrue(wait(timeout: 3) { confirmAdd.isEnabled })
+        capture(isPhone ? "p2-iphone-typing-model-light" : "p2-ipad-typing-model-light")
+
+        confirmAdd.tap()
+
+        let addedRow = any(app, "modelRow-my-gateway/claude-x")
+        let fableRow = any(app, "modelRow-claude-fable-5-2")
+        for _ in 0..<4 where !addedRow.exists {
+            app.swipeDown()
+        }
+        XCTAssertTrue(waitOrDump(addedRow, timeout: 5, in: app))
+        XCTAssertTrue(reveal(addedRow, in: app, swipes: 4))
+        XCTAssertTrue(addedRow.label.contains("my-gateway/claude-x"), "Got “\(addedRow.label)”.")
+        XCTAssertTrue(addedRow.label.contains("added by name"), "Got “\(addedRow.label)”.")
+        XCTAssertTrue(fableRow.exists)
+        XCTAssertLessThan(addedRow.frame.minY, fableRow.frame.minY, "Added model must be pinned at the top of the list.")
+        capture(isPhone ? "p2-iphone-added-top-light" : "p2-ipad-added-top-light")
+
+        // 3. Assign Agent to `my-gateway/claude-x`; Remove must then be disabled with "Used for Agent".
+        tapTrailingMore(on: addedRow)
+        let useForAgent = app.buttons.matching(label(contains: "Use for Agent")).firstMatch
+        XCTAssertTrue(waitOrDump(useForAgent, timeout: 5, in: app))
+        useForAgent.tap()
+        XCTAssertTrue(wait(timeout: 5) { addedRow.label.contains("used for Agent") }, "Got “\(addedRow.label)”.")
+
+        tapTrailingMore(on: addedRow)
+        let removePredicate = NSPredicate(format: "label CONTAINS 'Remove' AND NOT label CONTAINS 'favorites'")
+        let disabledRemove = app.buttons.matching(removePredicate).firstMatch
+        XCTAssertTrue(waitOrDump(disabledRemove, timeout: 5, in: app))
+        XCTAssertFalse(disabledRemove.isEnabled, "Remove must be disabled while Agent uses the model.")
+        XCTAssertTrue(
+            disabledRemove.label.contains("Used for Agent"),
+            "Disabled Remove item should expose its subtitle reason; got “\(disabledRemove.label)”."
+        )
+        capture(isPhone ? "p2-iphone-remove-disabled-light" : "p2-ipad-remove-disabled-light")
+        dismissMenu(in: app)
+
+        // 4. Move Agent back to Claude Sonnet 5.5; Remove becomes enabled and deletes `my-gateway/claude-x`.
+        let sonnetRow = any(app, "modelRow-claude-sonnet-5-5")
+        XCTAssertTrue(reveal(sonnetRow, in: app, swipes: 3))
+        tapTrailingMore(on: sonnetRow)
+        let sonnetUseForAgent = app.buttons.matching(label(contains: "Use for Agent")).firstMatch
+        XCTAssertTrue(waitOrDump(sonnetUseForAgent, timeout: 5, in: app))
+        sonnetUseForAgent.tap()
+        XCTAssertTrue(wait(timeout: 5) { !addedRow.label.contains("used for Agent") }, "Got “\(addedRow.label)”.")
+        XCTAssertTrue(addedRow.exists, "Explicitly added model stays pinned after role moves off it until Removed.")
+
+        XCUIDevice.shared.appearance = .dark
+        XCTAssertTrue(reveal(addedRow, in: app, swipes: 3))
+        tapTrailingMore(on: addedRow)
+        let enabledRemove = app.buttons.matching(removePredicate).firstMatch
+        XCTAssertTrue(waitOrDump(enabledRemove, timeout: 5, in: app))
+        XCTAssertTrue(enabledRemove.isEnabled, "Remove must be enabled once no role uses the model.")
+        capture(isPhone ? "p2-iphone-remove-enabled-dark" : "p2-ipad-remove-enabled-dark")
+
+        enabledRemove.tap()
+        XCTAssertTrue(waitForGone(addedRow, timeout: 5), "Remove should delete the added-by-name model row.")
+        XCUIDevice.shared.appearance = .light
+    }
+
+    /// Opt-in live check with `TEST_RUNNER_ANTHROPIC_API_KEY`: opens `Agent` role page,
+    /// follows `providerModelsLink` to live `Anthropic › Models` (`GET https://api.anthropic.com/v1/models`),
+    /// verifies `claude-haiku-5-5` is listed and active, and exercises adding/removing an unlisted ID.
     func testLiveAnthropicModelsAndSelectHaikuForAgent() throws {
         let apiKey = (ProcessInfo.processInfo.environment["ANTHROPIC_API_KEY"] ?? "")
             .trimmingCharacters(in: .whitespacesAndNewlines)
@@ -299,15 +445,21 @@ final class ProviderModelsUITests: DCUITestCase {
             "-AppleLanguages", "(en)", "-AppleLocale", "en_US",
             "-dc-skip-onboarding",
             "-dc-browser-agent-live-key",
-            "-dc-browser-agent-live-model", "claude-sonnet-4-5-20250929",
+            "-dc-browser-agent-live-model", "claude-haiku-5-5",
             "-dc-show-settings", "provider"
         ]
         app.launch()
 
         XCTAssertTrue(app.navigationBars["Models"].waitForExistence(timeout: 20))
-        let anthropicRow = app.buttons["providerRow-anthropic"]
-        XCTAssertTrue(reveal(anthropicRow, in: app, swipes: 6))
-        anthropicRow.tap()
+        let agentRoleRow = any(app, "modelRole-browserAgent")
+        XCTAssertTrue(waitOrDump(agentRoleRow, timeout: 5, in: app))
+        agentRoleRow.tap()
+
+        XCTAssertTrue(app.navigationBars["Agent"].waitForExistence(timeout: 10))
+        let modelsLink = app.buttons["providerModelsLink"]
+        XCTAssertTrue(reveal(modelsLink, in: app, swipes: 3))
+        XCTAssertTrue(modelsLink.label.contains("claude-haiku-5-5"), "Got “\(modelsLink.label)”.")
+        modelsLink.tap()
 
         XCTAssertTrue(app.navigationBars["Anthropic"].waitForExistence(timeout: 10))
         let firstModelRow = app.descendants(matching: .any)
@@ -331,17 +483,11 @@ final class ProviderModelsUITests: DCUITestCase {
             reveal(haikuRow, in: app, swipes: 6),
             "Live Anthropic /v1/models should list claude-haiku-5-5."
         )
-        capture("p1-live-anthropic-before-select")
-
-        tapTrailingMore(on: haikuRow)
-        let useForAgent = app.buttons.matching(label(contains: "Use for Agent")).firstMatch
-        XCTAssertTrue(waitOrDump(useForAgent, timeout: 5, in: app))
-        useForAgent.tap()
-
-        XCTAssertTrue(wait(timeout: 5) {
-            haikuRow.label.contains("used for Agent")
-        }, "Selecting Use for Agent on claude-haiku-5-5 should move the Agent seal; got “\(haikuRow.label)”.")
-        capture("p1-live-anthropic-haiku-selected")
+        XCTAssertTrue(
+            haikuRow.label.contains("used for Agent"),
+            "claude-haiku-5-5 should carry the Agent seal; got “\(haikuRow.label)”."
+        )
+        capture("p2-live-anthropic-haiku")
         app.terminate()
     }
 }

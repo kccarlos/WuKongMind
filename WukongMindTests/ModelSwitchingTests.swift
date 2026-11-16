@@ -174,6 +174,68 @@ final class ModelSwitchingTests: XCTestCase {
         XCTAssertNil(ModelRole(rawValue: "agent"))
     }
 
+    // MARK: Added-by-name models (P2)
+
+    @MainActor
+    func testAddAndRemoveCustomModelsGuardActiveRolesAndPinUnlistedRoleModels() throws {
+        let app = makeApp()
+        app.selectModel(ModelSelection(provider: .anthropic, model: "claude-haiku-5-5"), for: .role(.assistant))
+        app.selectModel(ModelSelection(provider: .anthropic, model: "legacy-gateway-sonnet"), for: .role(.browserAgent))
+
+        // Before the provider's list is fetched (fetchedIDs == nil), only explicitly added models pin.
+        XCTAssertEqual(app.pinnedAddedModelIDs(for: .anthropic, fetchedIDs: nil), [])
+
+        app.addCustomModel("  my-gateway/claude-x \n", for: .anthropic)
+        app.addCustomModel("my-gateway/claude-y", for: .anthropic)
+        // Re-adding an existing model moves it to the top without duplicating.
+        app.addCustomModel("my-gateway/claude-x", for: .anthropic)
+        XCTAssertEqual(app.addedModels(for: .anthropic), ["my-gateway/claude-x", "my-gateway/claude-y"])
+        XCTAssertEqual(
+            app.pinnedAddedModelIDs(for: .anthropic, fetchedIDs: nil),
+            ["my-gateway/claude-x", "my-gateway/claude-y"]
+        )
+
+        // Apple Intelligence has one fixed model and ignores add-by-name.
+        app.addCustomModel("custom-apple", for: .appleIntelligence)
+        XCTAssertEqual(app.addedModels(for: .appleIntelligence), [])
+        XCTAssertEqual(app.pinnedAddedModelIDs(for: .appleIntelligence, fetchedIDs: ["Automatic"]), [])
+
+        // Once fetchedIDs is known, unlisted active-role models follow explicitly added models; listed ones do not.
+        let fetched: Set<String> = ["claude-haiku-5-5", "claude-sonnet-5-5"]
+        XCTAssertEqual(
+            app.pinnedAddedModelIDs(for: .anthropic, fetchedIDs: fetched),
+            ["my-gateway/claude-x", "my-gateway/claude-y", "legacy-gateway-sonnet"]
+        )
+
+        // Remove is refused while Agent, Summaries, or Scripts uses the model.
+        app.selectModel(ModelSelection(provider: .anthropic, model: "my-gateway/claude-x"), for: .role(.browserAgent))
+        XCTAssertEqual(
+            app.activeRoles(using: ModelSelection(provider: .anthropic, model: "my-gateway/claude-x")),
+            [.browserAgent]
+        )
+        app.removeCustomModel("my-gateway/claude-x", for: .anthropic)
+        XCTAssertTrue(app.addedModels(for: .anthropic).contains("my-gateway/claude-x"))
+
+        // Moving Agent away and configuring Scripts on it still blocks removal.
+        app.selectModel(ModelSelection(provider: .anthropic, model: "claude-sonnet-5-5"), for: .role(.browserAgent))
+        app.selectModel(ModelSelection(provider: .anthropic, model: "my-gateway/claude-x"), for: .role(.scripts))
+        app.removeCustomModel("my-gateway/claude-x", for: .anthropic)
+        XCTAssertTrue(app.addedModels(for: .anthropic).contains("my-gateway/claude-x"))
+
+        // Clearing Scripts ("Same as Summaries") leaves no role on my-gateway/claude-x, allowing removal.
+        app.clearScriptsModel()
+        app.removeCustomModel("my-gateway/claude-x", for: .anthropic)
+        XCTAssertEqual(app.addedModels(for: .anthropic), ["my-gateway/claude-y"])
+        app.removeCustomModel("my-gateway/claude-y", for: .anthropic)
+        XCTAssertEqual(app.settings.addedModels, [:])
+
+        // Codable + SyncSchema round-trip preserves addedModels.
+        app.addCustomModel("my-gateway/claude-z", for: .anthropic)
+        let units = try SyncSchema.settingsUnits(app.settings)
+        let merged = try SyncSchema.applying(settingsUnits: units, to: AppSettings())
+        XCTAssertEqual(merged.addedModels(for: .anthropic), ["my-gateway/claude-z"])
+    }
+
     @MainActor
     private func makeApp() -> AppModel {
         let directory = FileManager.default.temporaryDirectory

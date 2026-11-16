@@ -2675,6 +2675,23 @@
         }
       }
     },
+    "Add a model by name…" : {
+      "comment" : "Provider settings › Models: row button that turns into an inline text field to add a model ID",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按名称添加模型…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按名稱新增模型…"
+          }
+        }
+      }
+    },
     "Add a name" : {
       "comment" : "Inline validation error when the script name field is empty",
       "localizations" : {
@@ -6795,28 +6812,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "預設模型"
-          }
-        }
-      }
-    },
-    "Default: %@. Tap the list button to load every model %@ offers." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Default: %1$@. Tap the list button to load every model %2$@ offers."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "默认：%1$@。轻点列表按钮以载入 %2$@ 提供的所有模型。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "預設：%1$@。點一下列表按鈕以載入 %2$@ 提供的所有模型。"
           }
         }
       }
@@ -11309,6 +11304,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "模型"
+          }
+        }
+      }
+    },
+    "Model ID" : {
+      "comment" : "Provider settings › Models: placeholder in the inline add-model-by-name text field",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模型 ID"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模型 ID"
           }
         }
       }
@@ -22161,6 +22173,23 @@
         }
       }
     },
+    "Type the exact model ID your provider uses." : {
+      "comment" : "Provider settings › Models: footer shown while typing an unlisted model ID by name",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请输入提供方使用的完整模型 ID。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請輸入供應商使用的完整模型 ID。"
+          }
+        }
+      }
+    },
     "Unable to save app data: %@" : {
       "comment" : "Error; the placeholder is the system's reason",
       "localizations" : {
@@ -22635,6 +22664,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "用於代理"
+          }
+        }
+      }
+    },
+    "Use for Scripts" : {
+      "comment" : "Provider model menu: sets this model as the Scripts model",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用于脚本"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用於指令碼"
           }
         }
       }
@@ -24406,6 +24452,23 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "added by name" : {
+      "comment" : "Provider settings › Models: subtitle under a model pinned because it was added by name",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按名称添加"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按名稱新增"
           }
         }
       }
