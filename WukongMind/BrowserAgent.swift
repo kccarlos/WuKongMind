@@ -9,11 +9,15 @@ struct AgentTokenUsage: Codable, Equatable, Sendable {
     /// Of `inputTokens`, how many the provider read from its prompt cache (Anthropic
     /// `cache_read_input_tokens`); nil when it didn't say.
     var cacheReadTokens: Int?
+    /// Of `inputTokens`, how many wrote a new prompt-cache entry (Anthropic
+    /// `cache_creation_input_tokens`); nil when it didn't say.
+    var cacheWriteTokens: Int?
 
-    init(inputTokens: Int, outputTokens: Int, cacheReadTokens: Int? = nil) {
+    init(inputTokens: Int, outputTokens: Int, cacheReadTokens: Int? = nil, cacheWriteTokens: Int? = nil) {
         self.inputTokens = inputTokens
         self.outputTokens = outputTokens
         self.cacheReadTokens = cacheReadTokens
+        self.cacheWriteTokens = cacheWriteTokens
     }
 
     var totalTokens: Int { inputTokens + outputTokens }
@@ -24,6 +28,7 @@ struct AgentTokenUsage: Codable, Equatable, Sendable {
         inputTokens += other.inputTokens
         outputTokens += other.outputTokens
         if let read = other.cacheReadTokens { cacheReadTokens = (cacheReadTokens ?? 0) + read }
+        if let write = other.cacheWriteTokens { cacheWriteTokens = (cacheWriteTokens ?? 0) + write }
     }
 }
 
@@ -186,9 +191,19 @@ struct ForumPromptContext: Equatable, Sendable {
     var signals: String
     /// The site's own words on each tool it supports, `name: description`.
     var toolNotes: [String]
+    /// The currently open thread when the page is a forum topic (`page.state == .topic`).
+    var openTopicID: String?
+    var openTopicURL: String?
 
     /// The words of the adapter's profiles around one run's forum.
-    init(forumName: String, siteURL: String, adapter: any SiteAdapter, maxTopicReads: Int) {
+    init(
+        forumName: String,
+        siteURL: String,
+        adapter: any SiteAdapter,
+        maxTopicReads: Int,
+        openTopicID: String? = nil,
+        openTopicURL: String? = nil
+    ) {
         let profile = adapter.agent
         self.forumName = forumName
         self.siteURL = siteURL
@@ -203,23 +218,40 @@ struct ForumPromptContext: Equatable, Sendable {
         blocks = adapter.discussion.blocks
         signals = adapter.discussion.signals
         toolNotes = profile.siteTools.map { "`\($0.name)`: \($0.description)" } + ["`\(ForumToolName.readTopic)`"]
+        self.openTopicID = openTopicID
+        self.openTopicURL = openTopicURL
     }
 
     private func oneLine(_ text: String) -> String {
         text.split(whereSeparator: \.isWhitespace).joined(separator: " ")
     }
 
+    private func cleanField(_ text: String, limit: Int) -> String {
+        let flat = oneLine(text).replacingOccurrences(of: "<", with: "‹").replacingOccurrences(of: ">", with: "›")
+        return flat.count > limit ? String(flat.prefix(limit)) + "…" : flat
+    }
+
     /// The page context's forum lines.
     var lines: [String] {
-        [
-            "- Forum: you are on \(forumName) (\(siteURL)), \(siteDescription). The forum tools work on this \(siteNoun) only; "
-                + "its threads are \(topicNoun)s.",
+        var result = [
+            "- Forum: you are on \(forumName) (\(siteURL)), \(siteDescription). This is a supported forum: "
+                + "the forum tools work on this \(siteNoun) only, and its threads are \(topicNoun)s."
+        ]
+        let ref = [
+            openTopicID.flatMap { $0.isEmpty ? nil : "topic_id: \(cleanField($0, limit: 64))" },
+            openTopicURL.flatMap { $0.isEmpty ? nil : "url: \(cleanField($0, limit: 500))" }
+        ].compactMap { $0 }.joined(separator: ", ")
+        if !ref.isEmpty {
+            result.append("- Open thread: you're on a supported forum thread (\(ref)); call `summarize_topic` to summarize it.")
+        }
+        result += [
             "- Budget: read or summarize at most \(maxTopicReads) \(topicNoun)s per request.",
             "- Forum tools here: " + toolNotes.joined(separator: " "),
             "- Search language: \(languageHint)",
             "- Posts: \(oneLine(postNumbering)) \(oneLine(postCitation))",
             "- The material is \(material). \(blocks) \(signals)"
         ]
+        return result
     }
 }
 
@@ -272,13 +304,24 @@ enum BrowserAgentPrompt {
         "this thread" and the like mean the page in the newest page context. When it says the page changed, look \
         at the new page first (`read_page`) and never reuse a `topic_id` or `url` from earlier turns unless the \
         user names that thread.
+        9. Grounding: never claim to have read or checked more than the tool results show. When a read is \
+        partial, trimmed or truncated (for example `partial: X of Y` or `[truncated, …]`), say plainly which \
+        part you read or read the remaining ranges first; never say you read the full thread, file or page.
         """
         if offersSummary {
             rules += """
 
-            9. `summarize_topic`'s result is already shown to the user as a summary card, so don't restate it. \
-            For a plain summary request, reply in one or two lines: the key takeaway or a next step. For a follow-up \
-            question, answer that and cite the card's post numbers.
+            10. Summarizing (`summarize_topic`): when the page context says you're on a supported forum thread \
+            (or the user names a thread on a supported forum) and asks to summarize it (including "Summarize this \
+            thread and replies" or "Summarize this page"), always call `summarize_topic` with that thread's \
+            `topic_id` or `url` (the open thread in `<page_context>` by default) — never summarize a supported \
+            forum thread yourself from `read_topic` or `file_read`; use `read_topic` only for questions that need \
+            exact posts. On an unsupported forum or an ordinary page, "Summarize this page" always goes to \
+            `read_page` plus `summarize_topic` with `text` (so the summary card is shown), never to an old thread \
+            from history or a plain-text summary without `summarize_topic`. `summarize_topic`'s result is already \
+            shown to the user as a summary card, so don't restate it: for a plain summary request, reply in one \
+            or two lines (the key takeaway or a next step); for a follow-up question, answer that and cite the \
+            card's post numbers.
             """
         }
         var sections = [rules]
@@ -345,7 +388,9 @@ enum BrowserAgentPrompt {
         ]
         if offersSummary {
             lines.append(
-                "For a long thread, prefer `summarize_topic` to reading every page. "
+                "When asked to summarize the open thread or a named thread on a supported forum, always call "
+                    + "`summarize_topic` (`topic_id` or `url`, the open thread by default), never `read_topic` + `file_read`; "
+                    + "use `read_topic` only for questions that need exact posts. "
                     + "A `read_topic` result saved to a file is read with `file_read` ranges."
             )
         } else {

@@ -1225,7 +1225,8 @@ class AIService: @unchecked Sendable {
                 stopReason: json["stop_reason"] as? String,
                 usage: AgentTokenUsage(
                     inputTokens: inputTokens, outputTokens: outputTokens,
-                    cacheReadTokens: usageDict?["cache_read_input_tokens"] as? Int
+                    cacheReadTokens: usageDict?["cache_read_input_tokens"] as? Int,
+                    cacheWriteTokens: usageDict?["cache_creation_input_tokens"] as? Int
                 )
             )
 

@@ -2567,13 +2567,24 @@ struct ForumToolContext: Sendable {
     var forumName: String
     /// The topic-read budget when the run starts, for the prompt.
     var maxTopicReads: Int
+    /// Open thread when the browser is on a topic page (`page.state == .topic`).
+    var openTopicID: String?
+    var openTopicURL: String?
 
     @MainActor
-    init(service: ForumToolService, scope: ForumRunScope, forumName: String) {
+    init(
+        service: ForumToolService,
+        scope: ForumRunScope,
+        forumName: String,
+        openTopicID: String? = nil,
+        openTopicURL: String? = nil
+    ) {
         self.service = service
         self.scope = scope
         self.forumName = forumName
         maxTopicReads = scope.readBudget()
+        self.openTopicID = openTopicID
+        self.openTopicURL = openTopicURL
     }
 }
 
@@ -2692,7 +2703,7 @@ extension ToolRegistry {
         registry.forumPrompt = context.forum.map {
             ForumPromptContext(
                 forumName: $0.forumName, siteURL: $0.scope.siteURL, adapter: $0.scope.adapter,
-                maxTopicReads: $0.maxTopicReads
+                maxTopicReads: $0.maxTopicReads, openTopicID: $0.openTopicID, openTopicURL: $0.openTopicURL
             )
         }
         registry.siteReadingPrompt = context.forum == nil ? (context.learnedSite?.promptState ?? .none) : .none
