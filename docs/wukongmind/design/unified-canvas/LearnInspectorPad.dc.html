@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Learn on ask site inspector on iPad</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.lt{--ground:#f7f3ea;--page:#f7f3ea;--surface:#fffdf8;--raised:#efe9dc;--label:#1a1612;--sec:#5f574c;--ter:#756c5f;--border:rgba(26,22,18,.14);--strong:#8c8375;--blue:#8a6200;--gold:#b07f0c;--ongold:#1a1612;--goldwash:#f6ecd0;--jade:#1f6f66;--jadewash:#dcefeb;--danger:#b3321f;--cin:#b3321f;--oncin:#ffffff;--cinwash:#f9e1da;--success:#356f1b;--warning:#a34a08;--warnwash:#fbe9d8;--pop:#fffdf8;--toggleoff:#fffdf8;--scrim:rgba(20,17,14,.4);--canvas:#e8e1d2;--web:#FFFFFF;--webtext:#1E1E1E;--websec:#6B6B70;--webline:#E5E5EA}
+.dk{--ground:#14110e;--page:#14110e;--surface:#1f1b16;--raised:#2a251e;--label:#f4eee2;--sec:#b3a998;--ter:#8f8676;--border:rgba(244,238,226,.16);--strong:#7d7567;--blue:#e8bd55;--gold:#e0b040;--ongold:#1a1612;--goldwash:#3a2f14;--jade:#6fd0c2;--jadewash:#12302c;--danger:#ff7a5c;--cin:#ff7a5c;--oncin:#1a1612;--cinwash:#3d1a12;--success:#8fd66b;--warning:#ffb070;--warnwash:#3a2410;--pop:#2a251e;--toggleoff:#1f1b16;--scrim:rgba(0,0,0,.55);--canvas:#0c0a08;--web:#16171A;--webtext:#E6E6E8;--websec:#A1A1A6;--webline:#2C2C30}
+.sf{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,"Helvetica Neue",sans-serif;color:var(--label);-webkit-font-smoothing:antialiased}
+.mono{font-family:ui-monospace,"SF Mono",Menlo,monospace}
+.col{display:flex;flex-direction:column;gap:20px}
+.ph{width:390px;height:844px;position:relative;overflow:hidden;background:var(--web);border-radius:44px;flex-shrink:0}
+.pad{width:1194px;height:834px;position:relative;overflow:hidden;background:var(--web);border-radius:24px;flex-shrink:0}
+.cap{width:390px;font-size:15px;line-height:21px;color:var(--label)}
+.cap b{display:block;font-size:17px;margin-bottom:4px}
+.cap .k{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12px;color:var(--sec);margin-top:4px}
+.home-ind{position:absolute;left:50%;bottom:8px;width:134px;height:5px;margin-left:-67px;border-radius:3px;background:var(--label);opacity:.85}
+.web{padding:58px 16px 0;display:flex;flex-direction:column;gap:10px;color:var(--webtext)}
+.web .crumb{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--websec)}
+.web .fav{width:22px;height:22px;border-radius:6px;background:#5B6B8C;flex-shrink:0}
+.web h1{margin:0;font-size:22px;line-height:1.25;font-weight:700}
+.web .meta{font-size:13px;color:var(--websec)}
+.web .hr{height:1px;background:var(--webline)}
+.web .post{display:flex;gap:10px;font-size:15px;line-height:1.45}
+.av{width:32px;height:32px;border-radius:16px;flex-shrink:0}
+.web .li{display:flex;flex-direction:column;gap:2px;padding:8px 0;border-top:1px solid var(--webline);font-size:15px}
+.web .li span{font-size:12px;color:var(--websec)}
+.scrim{position:absolute;left:0;top:0;right:0;bottom:0;background:var(--scrim)}
+.panel{position:absolute;left:0;right:0;bottom:0;background:var(--surface);border-radius:28px 28px 0 0;box-shadow:0 -8px 30px rgba(20,17,14,.16);display:flex;flex-direction:column}
+.grab{display:flex;justify-content:center;padding-top:6px}
+.grab span{width:36px;height:5px;border-radius:3px;background:var(--ter);opacity:.5}
+.phd{display:flex;align-items:center;gap:8px;padding:2px 4px 0 20px;min-height:44px}
+.phd h2{margin:0;font-size:17px;font-weight:600;flex-shrink:0}
+.seal{display:inline-flex;align-items:center;gap:4px;min-height:24px;padding:0 8px;border-radius:6px;font-size:12px;font-weight:600;border:0;font-family:inherit;white-space:nowrap;box-sizing:border-box}
+.seal.ink{background:var(--label);color:var(--ground);min-height:28px}
+.seal.out{border:1px solid var(--strong);color:var(--label);background:none}
+.seal.gw{background:var(--goldwash);color:var(--blue)}
+.seal.jw{background:var(--jadewash);color:var(--jade)}
+.seal.ww{background:var(--warnwash);color:var(--warning)}
+.seal svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.ib{width:44px;height:44px;border:0;background:none;color:var(--label);display:flex;align-items:center;justify-content:center;padding:0}
+.ib svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.conv{flex:1;overflow:hidden;padding:4px 16px 8px;display:flex;flex-direction:column;justify-content:flex-end;gap:10px}
+.conv>*{flex-shrink:0}
+.ub{align-self:flex-end;max-width:82%;background:var(--raised);color:var(--label);padding:9px 14px;border-radius:14px 14px 6px 14px;font-size:15px;line-height:20px}
+.at{font-size:15px;line-height:21px;color:var(--label)}
+.fold{display:flex;align-items:center;gap:10px;background:var(--raised);border-radius:10px;padding:10px 12px;font-size:15px;font-weight:600;color:var(--label)}
+.fold svg{width:14px;height:14px;color:var(--ter);fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.note{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;background:var(--goldwash);color:var(--blue);font-size:12px;font-weight:600;padding:5px 10px;border-radius:6px}
+.note svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.rc{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.rc .chd{display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--jadewash);color:var(--jade);font-size:12px;font-weight:600}
+.rc .chd svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.rc .cbd{padding:10px 12px;font-size:15px;line-height:21px}
+.rc .cbd ol{margin:0;padding-left:20px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.hd{display:flex;align-items:center;gap:12px}
+.hd .m{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.hd .n{font-size:17px;font-weight:600;line-height:22px}
+.hd .s{font-size:13px;color:var(--sec)}
+.tile{width:36px;height:36px;border-radius:6px;background:var(--goldwash);color:var(--blue);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tile svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.cbs{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.tl{display:flex;flex-direction:column}
+.t{display:flex;gap:10px;align-items:center;padding:6px 0;border-top:1px solid var(--border)}
+.t:first-child{border-top:0}
+.gd{width:28px;height:28px;border-radius:999px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--sec);background:var(--raised);box-sizing:border-box}
+.gd svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.gd.run{background:none;border:2px solid var(--gold);border-right-color:var(--border)}
+.t .m{flex:1;min-width:0;display:flex;flex-direction:column}
+.t .lb{font-size:15px;font-weight:600;color:var(--label)}
+.t .ar{font-size:12px;color:var(--sec);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t .cv{width:14px;height:14px;color:var(--ter);fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.cc{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.cc .q{font-size:15px;line-height:21px;color:var(--label)}
+.cc .u{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:13px;line-height:18px;color:var(--sec);word-break:break-all;background:var(--raised);border-radius:10px;padding:8px 10px}
+.cc .cl{display:flex;gap:6px;align-items:flex-start;font-size:13px;line-height:18px;color:var(--sec)}
+.cc .cl svg{width:14px;height:14px;margin-top:2px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.cc .bs{display:flex;gap:8px}
+.pin{padding:8px 0 30px;display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--border)}
+.strow{display:flex;align-items:center;gap:8px;padding:0 16px;min-height:40px;font-size:12px;font-weight:600;color:var(--sec);white-space:nowrap}
+.strow svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.masc{width:40px;height:40px;flex-shrink:0;object-fit:contain}
+.sgrow{display:flex;gap:8px;padding:0 16px;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}
+.sgrow.fit{-webkit-mask-image:none;mask-image:none}
+.sg{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border-radius:10px;border:1px solid var(--strong);background:var(--surface);color:var(--label);font-family:inherit;font-size:15px;white-space:nowrap;flex-shrink:0;box-sizing:border-box}
+.sg svg{width:16px;height:16px;color:var(--blue);fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.inrow{display:flex;align-items:center;gap:8px;padding:0 16px}
+.fld{flex:1;display:flex;align-items:center;min-height:44px;padding:0 12px;border-radius:10px;background:var(--surface);border:1px solid var(--strong);font-size:15px;color:var(--ter);box-sizing:border-box}
+.ringb{width:44px;height:44px;border-radius:999px;border:0;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-sizing:border-box;padding:0}
+.ringb svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ringb.mic{background:none;border:2px solid var(--gold);color:var(--blue)}
+.ringb.stop{background:var(--cin);color:var(--oncin)}
+.btn{white-space:nowrap;min-height:44px;padding:0 16px;border-radius:10px;font-family:inherit;font-size:15px;font-weight:600;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn.pri{background:var(--gold);color:var(--ongold);border:0}
+.btn.sec{background:none;color:var(--label);border:1px solid var(--strong)}
+.btn.qt{background:none;color:var(--blue);border:0;padding:0 8px}
+.btn.dgo{background:none;color:var(--danger);border:1px solid var(--strong)}
+.btn svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tg{width:51px;height:31px;border-radius:16px;position:relative;flex-shrink:0;border:0;padding:0;background:var(--gold)}
+.tg span{position:absolute;top:2px;right:2px;width:27px;height:27px;border-radius:14px;background:var(--ongold)}
+.tg.off{background:var(--toggleoff);box-shadow:inset 0 0 0 1px var(--strong)}
+.tg.off span{left:2px;right:auto;background:var(--sec)}
+.pop{position:absolute;background:var(--pop);border-radius:14px;box-shadow:0 12px 40px rgba(20,17,14,.28);overflow:hidden;display:flex;flex-direction:column}
+.psh{font-size:12px;font-weight:600;color:var(--sec);padding:12px 14px 6px;letter-spacing:.02em}
+.prow{display:flex;align-items:center;gap:10px;min-height:44px;padding:0 14px;border-top:1px solid var(--border);color:var(--label);text-decoration:none}
+.prow .m{flex:1;min-width:0;display:flex;flex-direction:column;padding:6px 0;gap:1px}
+.prow .m b{font-size:15px;font-weight:400}
+.prow .m span{font-size:12px;color:var(--sec)}
+.prow .v{font-size:13px;color:var(--sec);white-space:nowrap}
+.reads{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--sec)}
+.reads svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.ch{width:14px;height:14px;color:var(--ter);flex-shrink:0;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sheet{position:absolute;left:0;right:0;bottom:0;top:54px;background:var(--page);border-radius:14px 14px 0 0;display:flex;flex-direction:column;overflow:hidden}
+.fsheet{position:absolute;left:267px;top:84px;width:660px;height:730px;background:var(--page);border-radius:18px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.nav{display:flex;align-items:center;min-height:48px;padding:0 8px;flex-shrink:0}
+.nav .tt{flex:1;text-align:center;display:flex;flex-direction:column;align-items:center}
+.nav .tt b{font-size:17px;font-weight:600}
+.nav .tt span{font-size:12px;color:var(--sec)}
+.nb{border:0;background:none;color:var(--blue);font-family:inherit;font-size:17px;min-height:44px;min-width:76px;padding:0 8px;display:inline-flex;align-items:center;gap:2px;text-decoration:none}
+.nb.r{justify-content:flex-end;font-weight:600}
+.nb svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.bd{flex:1;overflow:hidden;padding:4px 16px 16px;display:flex;flex-direction:column;gap:18px}
+.bd>*{flex-shrink:0}
+.sh{font-size:13px;color:var(--sec);padding:0 16px 6px;text-transform:uppercase;letter-spacing:.02em;display:flex}
+.sh span{margin-left:auto;text-transform:none}
+.ft{font-size:13px;line-height:18px;color:var(--sec);padding:6px 16px 0}
+.sec{background:var(--surface);border-radius:14px;overflow:hidden}
+.r{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 14px;font-size:17px}
+.r+.r{border-top:1px solid var(--border)}
+.r .m{flex:1;min-width:0;display:flex;flex-direction:column;padding:8px 0;gap:2px}
+.r .m b{font-size:15px;font-weight:600}
+.r .m .s{font-size:13px;line-height:18px;color:var(--sec)}
+.r .v{margin-left:auto;color:var(--sec);font-size:15px;white-space:nowrap}
+.tn{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:13px;font-weight:600;color:var(--label);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tr{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.st{display:inline-flex;align-items:center;gap:4px;font-size:13px;font-weight:600}
+.st svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.ok{color:var(--success)}
+.wn{color:var(--warning)}
+.dg{color:var(--danger)}
+.mu{color:var(--sec)}
+.lk{color:var(--blue)}
+.ico{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.steps{display:flex;flex-direction:column}
+.sp{display:flex;align-items:flex-start;gap:10px;padding:7px 14px;font-size:15px;line-height:20px}
+.sp+.sp{border-top:1px solid var(--border)}
+.sp .no{width:18px;font-size:13px;color:var(--sec);font-variant-numeric:tabular-nums;padding-top:1px}
+.sp .m{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.sp .m span{font-size:12px;line-height:16px;color:var(--sec)}
+.sp svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;margin-top:2px}
+.code{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12px;line-height:18px;background:var(--surface);border-radius:14px;padding:12px 14px;color:var(--label);white-space:pre;overflow:hidden}
+.code .k{color:var(--blue)}
+.code .c{color:var(--ter)}
+.edit{box-shadow:inset 0 0 0 1px var(--strong)}
+.ban{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:14px;font-size:15px;line-height:20px;background:var(--warnwash);color:var(--label)}
+.ban svg{color:var(--warning);margin-top:0}
+.alert{position:absolute;width:270px;background:var(--pop);border-radius:14px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.3);text-align:center}
+.alert .ai{display:flex;justify-content:center;padding-top:18px;color:var(--warning)}
+.alert .ai svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.alert h3{margin:8px 16px 4px;font-size:17px;font-weight:600}
+.alert p{margin:0 16px 10px;font-size:13px;line-height:18px}
+.alert .ac{margin:0 16px 14px;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12px;line-height:16px;color:var(--sec);text-align:left;background:var(--raised);border-radius:8px;padding:6px 8px;word-break:break-all}
+.alert .ab{display:flex;border-top:1px solid var(--border)}
+.alert .ab button{flex:1;min-height:44px;border:0;background:none;color:var(--blue);font-family:inherit;font-size:17px}
+.alert .ab button+button{border-left:1px solid var(--border);font-weight:600}
+.bar{height:64px;padding:14px 12px 6px;box-sizing:border-box;display:flex;align-items:center;gap:4px;background:var(--surface);border-bottom:1px solid var(--border)}
+.addr{flex:1;display:flex;justify-content:center}
+.addr div{width:420px;height:36px;border-radius:18px;background:var(--raised);display:flex;align-items:center;justify-content:center;gap:6px;font-size:15px}
+.ring{width:44px;height:44px;border-radius:999px;border:2px solid var(--gold);background:none;padding:0;box-sizing:border-box;flex-shrink:0}
+.twocol{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+.cp .sp{padding:6px 12px;font-size:14px}
+.cp .sp .m{flex-direction:row;gap:6px;align-items:baseline;white-space:nowrap;overflow:hidden}
+.cp .sp .m span{overflow:hidden;text-overflow:ellipsis}
+
+</style>
+</helmet>
+<div class="sf {{theme}}" style="width: 3662px; height: 834px; display: flex; gap: 40px; background: var(--canvas);"><div class="pad"><div class="bar"><button class="ib" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><div class="addr"><div><span style="width: 16px; height: 16px; border-radius: 4px; background: #5B6B8C;"></span>bbs.example.net</div></div><button class="ib" aria-label="Tabs"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="7" width="12" height="12" rx="2"/><path d="M8 4h10a2 2 0 0 1 2 2v10"/></svg></button><button class="ring" aria-label="Agent"></button></div><div style="padding: 28px 40px; color: var(--webtext); display: flex; flex-direction: column; gap: 14px;"><div style="font-size: 13px; color: var(--websec);">Storage</div><div style="font-size: 28px; line-height: 1.2; font-weight: 700;">Fanless NAS: which case takes four drives and stays cool?</div><div style="font-size: 13px; color: var(--websec);">46 replies · 3.4k views</div></div><div class="scrim"></div><div class="fsheet"><div class="nav" style="padding: 6px 12px 0;"><span style="min-width: 76px;"></span><span class="tt"><b>Site inspector</b><span class="mono">bbs.example.net</span></span><button class="nb r">Done</button></div><div class="bd" style="padding: 8px 20px 20px;"><div><div class="sh">Tools on this page<span>5</span></div><div class="sec"><a href="#" class="r" style="text-decoration: none; color: var(--label);"><div class="m"><span class="tn">read_topic</span><span class="tr"><span class="seal out">Learned · Thread reader</span><span class="st ok"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L19 7"/></svg>Verified, reads only</span></span></div><svg class="ch" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a><a href="#" class="r" style="text-decoration: none; color: var(--label);"><div class="m"><span class="tn">list_latest</span><span class="tr"><span class="seal out">Learned · Thread reader</span><span class="st wn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4l9 16H3zM12 10v4M12 17h.01"/></svg>Broken</span></span></div><svg class="ch" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a><a href="#" class="r" style="text-decoration: none; color: var(--label);"><div class="m"><span class="tn">site.bookmark_topic</span><span class="tr"><span class="seal ww">This site</span><span class="st wn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg>Untrusted · always asks</span></span></div><svg class="ch" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a><a href="#" class="r" style="text-decoration: none; color: var(--label);"><div class="m"><span class="tn">site.search_posts</span><span class="tr"><span class="seal ww">This site</span><span class="st wn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg>Always asks · claims read-only</span></span></div><svg class="ch" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a><a href="#" class="r" style="text-decoration: none; color: var(--label);"><div class="m"><span class="tn">script.tidy-threads.export_md</span><span class="tr"><span class="seal out">Script · Tidy Threads</span><span class="st mu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4c-2 0-2 1.5-2 3v2c0 1.5-1 2-2 2 1 0 2 .5 2 2v3c0 1.5 0 3 2 3M15 4c2 0 2 1.5 2 3v2c0 1.5 1 2 2 2-1 0-2 .5-2 2v3c0 1.5 0 3-2 3"/></svg>Follows Confirm before writes</span></span></div><svg class="ch" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></div><div class="ft">Tap a tool to try it. Names and sources are the app's; a site's descriptions are its own claims.</div></div><div><div class="sh">Reading</div><div class="sec"><div class="r"><div class="m"><b>Read a thread</b><span class="st ok"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L19 7"/></svg>Learned</span><span class="s">Thread reader · verified 20 Nov, 14:02</span></div></div><div class="r"><div class="m"><b>Latest list</b><span class="st wn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4l9 16H3zM12 10v4M12 17h.01"/></svg>Broken · waits for repair</span><span class="s">Thread reader · shape: items[3].url is missing. Repaired in the next run that needs it (1 of 3 failed).</span></div></div><div class="r"><div class="m"><b>Search</b><span class="st dg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>Failed · gave_up</span><span class="s">Search needs you to sign in · 18 Nov. Retried after 2 Dec, an update, or when asked.</span><span class="s" style="font-style: italic;">Agent: "The search form posts to /search.php and returns the login page for guests."</span></div></div></div></div></div></div></div><div class="pad"><div class="bar"><button class="ib" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><div class="addr"><div><span style="width: 16px; height: 16px; border-radius: 4px; background: #5B6B8C;"></span>bbs.example.net</div></div><button class="ib" aria-label="Tabs"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="7" width="12" height="12" rx="2"/><path d="M8 4h10a2 2 0 0 1 2 2v10"/></svg></button><button class="ring" aria-label="Agent"></button></div><div style="padding: 28px 40px; color: var(--webtext); display: flex; flex-direction: column; gap: 14px;"><div style="font-size: 13px; color: var(--websec);">Storage</div><div style="font-size: 28px; line-height: 1.2; font-weight: 700;">Fanless NAS: which case takes four drives and stays cool?</div><div style="font-size: 13px; color: var(--websec);">46 replies · 3.4k views</div></div><div class="scrim"></div><div class="fsheet"><div class="nav" style="padding: 6px 12px 0;"><a href="#" class="nb"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>Inspector</a><span class="tt"><b>Try read_topic</b></span><button class="nb r">Done</button></div><div class="bd" style="padding: 8px 20px 20px; gap: 14px;"><div style="display: flex; gap: 8px; align-items: center; padding: 0 4px;"><span class="seal out">Learned script · Thread reader</span><span class="st ok"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L19 7"/></svg>Verified, reads only</span></div><div><div class="sh">Arguments · JSON</div><div class="code edit" role="textbox" aria-label="Arguments, JSON" style="white-space: pre;">{
+  <span class="k">"url"</span>: "https://bbs.example.net/thread-47930-1.html"
+}</div></div><div style="display: flex; gap: 8px;"><button class="btn pri"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5l12 7-12 7z"/></svg>Run</button><button class="btn sec">Check against the shape</button></div><div class="twocol"><div><div class="sh">Returned<span>1.8 s · 38 KB</span></div><div class="code" aria-label="Raw return">{
+  <span class="k">"shape"</span>: "thread",
+  <span class="k">"title"</span>: "ZFS scrub every week or every month?",
+  <span class="k">"url"</span>: "https://bbs.example.net/thread-47930-1.html",
+  <span class="k">"posts"</span>: [
+    { <span class="k">"number"</span>: 1, <span class="k">"author"</span>: "[member]",
+      <span class="k">"body"</span>: "Monthly is plenty for a home pool if…" },
+    <span class="c">… 11 more</span>
+  ],
+  <span class="k">"next_page"</span>: null
+}</div></div><div><div class="sh">Check against the shape</div><div class="sec cp"><div class="steps"><div class="sp"><span class="no">1</span><div class="m">Registered</div><span class="ok" role="img" aria-label="passed"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L19 7"/></svg></span></div><div class="sp"><span class="no">2</span><div class="m">Real arguments<span>1 URL</span></div><span class="ok" role="img" aria-label="passed"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L19 7"/></svg></span></div><div class="sp"><span class="no">3</span><div class="m">Strict shape</div><span class="ok" role="img" aria-label="passed"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L19 7"/></svg></span></div><div class="sp"><span class="no">4</span><div class="m">Thread sanity<span>12 posts</span></div><span class="ok" role="img" aria-label="passed"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L19 7"/></svg></span></div><div class="sp"><span class="no">5</span><div class="m">List sanity<span>thread only</span></div><span class="mu" role="img" aria-label="skipped"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12"/></svg></span></div><div class="sp"><span class="no">6</span><div class="m">Not constant<span>needs 2</span></div><span class="mu" role="img" aria-label="skipped"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12"/></svg></span></div><div class="sp"><span class="no">7</span><div class="m">Faithful<span>#2, #5</span></div><span class="ok" role="img" aria-label="passed"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L19 7"/></svg></span></div><div class="sp"><span class="no">8</span><div class="m">Bounded<span>1.8 s</span></div><span class="ok" role="img" aria-label="passed"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L19 7"/></svg></span></div><div class="sp"><span class="no">9</span><div class="m">Stays home</div><span class="ok" role="img" aria-label="passed"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L19 7"/></svg></span></div></div></div></div></div></div></div></div><div class="pad"><div class="bar"><button class="ib" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><div class="addr"><div><span style="width: 16px; height: 16px; border-radius: 4px; background: #5B6B8C;"></span>bbs.example.net</div></div><button class="ib" aria-label="Tabs"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="7" width="12" height="12" rx="2"/><path d="M8 4h10a2 2 0 0 1 2 2v10"/></svg></button><button class="ring" aria-label="Agent"></button></div><div style="padding: 28px 40px; color: var(--webtext); display: flex; flex-direction: column; gap: 14px;"><div style="font-size: 13px; color: var(--websec);">Storage</div><div style="font-size: 28px; line-height: 1.2; font-weight: 700;">Fanless NAS: which case takes four drives and stays cool?</div><div style="font-size: 13px; color: var(--websec);">46 replies · 3.4k views</div></div><div class="scrim"></div><div class="fsheet"><div class="nav" style="padding: 6px 12px 0;"><a href="#" class="nb"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>Inspector</a><span class="tt"><b>Try site.bookmark_topic</b></span><button class="nb r">Done</button></div><div class="bd" style="padding: 8px 20px 20px; gap: 14px;"><div style="display: flex; gap: 8px; align-items: center; padding: 0 4px;"><span class="seal ww">This site</span><span class="st wn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg>Untrusted · always warns</span></div><div><div class="sh">Arguments · JSON</div><div class="code edit" role="textbox" aria-label="Arguments, JSON">{
+  <span class="k">"topic_id"</span>: "48211"
+}</div></div><div style="display: flex; gap: 8px;"><button class="btn pri"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5l12 7-12 7z"/></svg>Run</button></div><div class="ft" style="padding: 0 4px;">Page claims (unverified): readOnlyHint=no, consequentialHint=yes</div></div></div><div class="scrim"></div><div class="alert" role="alertdialog" aria-label="Run the site's own tool?" style="left: 462px; top: 270px;"><div class="ai"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4l9 16H3zM12 10v4M12 17h.01"/></svg></div><h3>Run this site's own tool?</h3><p>Nobody checked this code. It runs on bbs.example.net with your login there, and the page says it changes something.</p><div class="ac">site.bookmark_topic({"topic_id": "48211"})</div><div class="ab"><button>Cancel</button><button>Run</button></div></div></div></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["lt","dk"],"default":"lt"},"$preview":{"width":3662,"height":834}}'>
+class Component extends DCLogic {
+renderVals() { return { theme: this.props.theme ?? 'lt' }; }
+}
+</script>
+</body>
+</html>
