@@ -2444,6 +2444,29 @@
         }
       }
     },
+    "Allow %@ to run its page tool “%@”?" : {
+      "comment" : "Confirmation card: the Agent wants to call an unverified WebMCP tool registered by the website. First placeholder is the site host, second is the tool name.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Allow %1$@ to run its page tool “%2$@”?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "允许 %1$@ 运行其页面工具“%2$@”？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "允許 %1$@ 執行其頁面工具「%2$@」？"
+          }
+        }
+      }
+    },
     "API key" : {
       "localizations" : {
         "zh-Hans" : {
@@ -10253,6 +10276,38 @@
         }
       }
     },
+    "Listed page tools" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已列出页面工具"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已列出頁面工具"
+          }
+        }
+      }
+    },
+    "Listing page tools" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在列出页面工具"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在列出頁面工具"
+          }
+        }
+      }
+    },
     "LM Studio (Local)" : {
       "comment" : "AI provider name: LM Studio running on the user's own computer. Keep \"LM Studio\".",
       "localizations" : {
@@ -11749,6 +11804,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "接下來是「%@」。"
+          }
+        }
+      }
+    },
+    "no" : {
+      "comment" : "Short boolean value on a page-tool confirmation card.",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "否"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "否"
           }
         }
       }
@@ -13616,6 +13688,29 @@
         }
       }
     },
+    "Page claims (unverified): readOnlyHint=%@, consequentialHint=%@" : {
+      "comment" : "Confirmation card detail: shows the website's own unverified readOnlyHint and consequentialHint claims.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Page claims (unverified): readOnlyHint=%1$@, consequentialHint=%2$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "页面声明（未验证）：readOnlyHint=%1$@，consequentialHint=%2$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "頁面聲明（未驗證）：readOnlyHint=%1$@，consequentialHint=%2$@"
+          }
+        }
+      }
+    },
     "Page snapshots" : {
       "comment" : "Developer mode section title in an expanded tool row",
       "localizations" : {
@@ -14676,6 +14771,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "執行於 %@ · 使用 AI"
+          }
+        }
+      }
+    },
+    "Ran page tool" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已运行页面工具"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已執行頁面工具"
           }
         }
       }
@@ -16463,6 +16574,29 @@
         }
       }
     },
+    "Run script tool “%@” on %@?" : {
+      "comment" : "Confirmation card: Confirm before writes is on and the Agent wants to call a userscript tool not marked read-only. First placeholder is the tool name, second is the site host.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Run script tool “%1$@” on %2$@?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 %2$@ 上运行脚本工具“%1$@”？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 %2$@ 上執行腳本工具「%1$@」？"
+          }
+        }
+      }
+    },
     "Run scripts" : {
       "comment" : "Settings › Scripts: master switch that enables or pauses all userscripts",
       "localizations" : {
@@ -16510,6 +16644,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "執行中"
+          }
+        }
+      }
+    },
+    "Running page tool" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在运行页面工具"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在執行頁面工具"
           }
         }
       }
@@ -21042,6 +21192,23 @@
         }
       }
     },
+    "this page" : {
+      "comment" : "Fallback site label on a page-tool confirmation card when the URL has no host.",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此页面"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此頁面"
+          }
+        }
+      }
+    },
     "This page looks broken" : {
       "comment" : "Suggestion above the Agent composer when active scripts run on the current page",
       "localizations" : {
@@ -24213,6 +24380,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "WukongMind 適用於 %@ 網站。它是一款獨立 App，與 Civilized Discourse Construction Kit, Inc. 無關聯，也未獲其認可。Discourse 是其各自所有者的商標。"
+          }
+        }
+      }
+    },
+    "yes" : {
+      "comment" : "Short boolean value on a page-tool confirmation card.",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "是"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "是"
           }
         }
       }

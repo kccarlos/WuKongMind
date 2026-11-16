@@ -503,7 +503,16 @@ final class AppModel: ObservableObject {
                     confirmations: confirmations,
                     forum: forum,
                     learnedSite: forum == nil ? app.makeLearnedSiteContext(for: tabBrowser, pageToolBridge: pageToolBridge) : nil,
-                    capabilities: tabBrowser.map { app.capabilityToolContext(for: $0) }
+                    capabilities: tabBrowser.map { app.capabilityToolContext(for: $0) },
+                    pageTools: app.settings.agentPageToolsEnabled ? pageToolBridge.map {
+                        PageToolContext(
+                            bridge: $0,
+                            scriptStore: app.scriptStore,
+                            confirmBeforeWrites: { [weak appBox] in
+                                await appBox?.value?.settings.agentConfirmBeforeWrites ?? false
+                            }
+                        )
+                    } : nil
                 ))
             },
             auditLog: auditLog,

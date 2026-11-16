@@ -60,6 +60,8 @@ enum DCToolLabel {
         case "read_aloud": running ? String(localized: "Starting reading aloud") : String(localized: "Reading aloud")
         case "watch_topic": String(localized: "Following thread")
         case "notify": running ? String(localized: "Sending notification") : String(localized: "Sent notification")
+        case "page_tools_list": running ? String(localized: "Listing page tools") : String(localized: "Listed page tools")
+        case "page_tool_call": running ? String(localized: "Running page tool") : String(localized: "Ran page tool")
         default: running ? String(localized: "Using a tool") : String(localized: "Used a tool")
         }
     }

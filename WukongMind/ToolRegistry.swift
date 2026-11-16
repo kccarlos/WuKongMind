@@ -603,6 +603,8 @@ struct ToolRegistry: Sendable {
     var forumPrompt: ForumPromptContext?
     /// Site reading state for `<page_context>` on non-adapter sites.
     var siteReadingPrompt: SiteReadingPromptState = .none
+    /// WebMCP page-tool dispatcher context, for the page context's count line.
+    var pageTools: PageToolContext?
 
     init(
         tools: [AgentTool] = [],
@@ -2524,6 +2526,8 @@ struct AgentToolContext: Sendable {
     var capabilities: CapabilityToolContext?
     /// The voice session's navigator, behind the voice-only browse tools.
     var browse: BrowseToolContext?
+    /// WebMCP page tools (`page_tools_list`, `page_tool_call`) when the switch is on.
+    var pageTools: PageToolContext?
 
     init(
         bridge: AgentPageDriving,
@@ -2539,7 +2543,8 @@ struct AgentToolContext: Sendable {
         forum: ForumToolContext? = nil,
         learnedSite: LearnedSiteContext? = nil,
         capabilities: CapabilityToolContext? = nil,
-        browse: BrowseToolContext? = nil
+        browse: BrowseToolContext? = nil,
+        pageTools: PageToolContext? = nil
     ) {
         self.bridge = bridge
         self.workspace = workspace
@@ -2555,6 +2560,7 @@ struct AgentToolContext: Sendable {
         self.learnedSite = learnedSite
         self.capabilities = capabilities
         self.browse = browse
+        self.pageTools = pageTools
     }
 }
 
@@ -2585,6 +2591,7 @@ extension ToolRegistry {
         tools += forumTools(context: context, surface: surface)
         tools += capabilityTools(context: context, surface: surface)
         tools += browseTools(context: context)
+        tools += pageDispatcherTools(context: context)
         var registry = ToolRegistry(
             tools: tools.filter { $0.surfaces.contains(surface) },
             truncationLimit: context.settings.truncationLimit,
@@ -2598,6 +2605,9 @@ extension ToolRegistry {
             )
         }
         registry.siteReadingPrompt = context.forum == nil ? (context.learnedSite?.promptState ?? .none) : .none
+        if surface == .text, let pageTools = context.pageTools, pageTools.isEnabled {
+            registry.pageTools = pageTools
+        }
         return registry
     }
 }
