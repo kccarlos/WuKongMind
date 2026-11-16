@@ -1,3 +1,5 @@
+import SwiftUI
+import UIKit
 import XCTest
 @testable import WukongMind
 
@@ -477,5 +479,70 @@ final class BrowserBarMorphTests: XCTestCase {
 
         XCTAssertFalse(browser.isLoading, "stopLoading() must not latch webView.isLoading before WebKit IPC settles.")
         XCTAssertFalse(browser.barMorphState.isLoading, "stopLoading() must leave barMorph's loading guard cleared.")
+    }
+
+    func testExpandedBarControlsExposeVoiceOverMetadataAndLargeContentViewer() {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        addTeardownBlock { try? FileManager.default.removeItem(at: directory) }
+        let store = PersistentStore(fileURL: directory.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore())
+        let app = AppModel(store: store, aiService: StubAgentAIService())
+        app.browser.onPageContextChanged = nil
+        app.settings.browserAgentModel = ModelSelection(provider: .ollama, model: "qwen3")
+
+        let pageURL = URL(string: "https://news.example.org/story/bar-morph")!
+        app.browser.loadSamplePage("<!doctype html><html><title>Night Ferries</title><body><p>Body</p></body></html>", at: pageURL)
+        app.browser.setPageContext(PageContext(url: pageURL, state: .notForum))
+
+        let actions = BrowserActions(
+            showLoginInfo: {},
+            addForum: {},
+            openForum: { _ in },
+            showForumsHome: {}
+        )
+        let barView = PhoneMorphingBar(
+            app: app,
+            browser: app.browser,
+            browserAgent: app.browserAgent,
+            scriptStore: app.scriptStore,
+            voice: app.voice,
+            actions: actions,
+            position: .bottom,
+            containerWidth: 390,
+            safeAreaBottom: 34,
+            isLandscape: false,
+            progress: 0,
+            reduceMotion: false,
+            reduceTransparency: false,
+            increasedContrast: false,
+            onEdit: {}
+        )
+
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let host = UIHostingController(rootView: barView)
+        window.rootViewController = host
+        window.makeKeyAndVisible()
+        host.view.frame = window.bounds
+        host.view.setNeedsLayout()
+        host.view.layoutIfNeeded()
+
+        func allSubviews(in root: UIView) -> [UIView] {
+            [root] + root.subviews.flatMap(allSubviews(in:))
+        }
+        let views = allSubviews(in: host.view)
+
+        let backControl = views.first { $0.accessibilityIdentifier == "browserBack" } as? UIControl
+        XCTAssertNotNil(backControl, "Expected UIControl for browserBack.")
+        XCTAssertEqual(backControl?.accessibilityLabel, "Back")
+        XCTAssertEqual(backControl?.showsLargeContentViewer, true)
+        XCTAssertEqual(backControl?.largeContentTitle, "Back")
+        XCTAssertNotNil(backControl?.largeContentImage)
+        XCTAssertEqual(backControl?.interactions.contains { $0 is UILargeContentViewerInteraction }, true)
+
+        // Expanded font size caps at XXXL so accessibility sizes keep the single-row 44 pt bar geometry.
+        XCTAssertEqual(
+            BrowserBarFontMetrics.expandedFontSize(for: .xxxLarge),
+            BrowserBarFontMetrics.expandedFontSize(for: .accessibility5),
+            accuracy: 0.001
+        )
     }
 }

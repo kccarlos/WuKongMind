@@ -869,13 +869,27 @@ extension AppModel {
         browser.ignoresNavigationFailures = true
         browser.hideForumsHome()
 
-        let url = URL(string: mode == "short"
-            ? "https://news.example.org/story/short-note"
-            : "https://news.example.org/story/bar-morph"
-        )!
+        let url: URL = switch mode {
+        case "short":
+            URL(string: "https://news.example.org/story/short-note")!
+        case "long-domain":
+            URL(string: "https://communities.reader-archive.example.org/story/browser-bar-accessibility")!
+        default:
+            URL(string: "https://news.example.org/story/bar-morph")!
+        }
         let html = mode == "short" ? Self.barMorphShortFixtureHTML : Self.barMorphLongFixtureHTML
+        let context = PageContext(
+            url: url,
+            siteURL: mode == "result-cards" ? "https://news.example.org" : nil,
+            state: mode == "result-cards" ? .forumHome : .notForum
+        )
+        browser.onPageContextChanged = { [weak browser] reported in
+            if mode == "result-cards", !reported.isForum {
+                browser?.setPageContext(context)
+            }
+        }
         browser.loadSamplePage(html, at: url)
-        browser.setPageContext(PageContext(url: url, state: .notForum))
+        browser.setPageContext(context)
 
         if mode == "result-cards" {
             browseCursor.replace(
