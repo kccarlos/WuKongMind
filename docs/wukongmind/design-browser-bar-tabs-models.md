@@ -2,7 +2,7 @@
 
 Status: **proposed**. Visual only, with no app code. The owner asked for three things after 1.3.0, and this page designs all three before any of them is built.
 
-- **Boards:** unified design canvas (https://claude.ai/artifact/Daefr4AsZcSm2EWbTLU9uK), version 63, section "WUKO-77" (with Fable second-review caption and `PhoneProviderModels` updates in `design/unified-canvas/`, synced back to the canvas artifact in follow-up task D1b).
+- **Boards:** unified design canvas (https://claude.ai/artifact/Daefr4AsZcSm2EWbTLU9uK), version 63, section "WUKO-77" (with Fable second-review caption and `PhoneProviderModels` updates in `design/unified-canvas/`, synced back to the canvas artifact in D1b, WUKO-119: canvas version 66; the design system's `BrowserBar` updates are design-system version 11).
 - **Export:** `design/unified-canvas/` holds the boards' `*.dc.html` files and 2x PNGs in `png/` (light and dark).
 
 | Board | What it shows |

@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Learn on ask suggestions</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.lt{--ground:#f7f3ea;--page:#f7f3ea;--surface:#fffdf8;--raised:#efe9dc;--label:#1a1612;--sec:#5f574c;--ter:#756c5f;--border:rgba(26,22,18,.14);--strong:#8c8375;--blue:#8a6200;--gold:#b07f0c;--ongold:#1a1612;--goldwash:#f6ecd0;--jade:#1f6f66;--jadewash:#dcefeb;--danger:#b3321f;--cin:#b3321f;--oncin:#ffffff;--cinwash:#f9e1da;--success:#356f1b;--warning:#a34a08;--pop:#fffdf8;--toggleoff:#fffdf8;--scrim:rgba(20,17,14,.4);--canvas:#e8e1d2;--web:#FFFFFF;--webtext:#1E1E1E;--websec:#6B6B70;--webline:#E5E5EA}
+.dk{--ground:#14110e;--page:#14110e;--surface:#1f1b16;--raised:#2a251e;--label:#f4eee2;--sec:#b3a998;--ter:#8f8676;--border:rgba(244,238,226,.16);--strong:#7d7567;--blue:#e8bd55;--gold:#e0b040;--ongold:#1a1612;--goldwash:#3a2f14;--jade:#6fd0c2;--jadewash:#12302c;--danger:#ff7a5c;--cin:#ff7a5c;--oncin:#1a1612;--cinwash:#3d1a12;--success:#8fd66b;--warning:#ffb070;--pop:#2a251e;--toggleoff:#1f1b16;--scrim:rgba(0,0,0,.55);--canvas:#0c0a08;--web:#16171A;--webtext:#E6E6E8;--websec:#A1A1A6;--webline:#2C2C30}
+.sf{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,"Helvetica Neue",sans-serif;color:var(--label);-webkit-font-smoothing:antialiased}
+.mono{font-family:ui-monospace,"SF Mono",Menlo,monospace}
+.col{display:flex;flex-direction:column;gap:20px}
+.ph{width:390px;height:844px;position:relative;overflow:hidden;background:var(--web);border-radius:44px;flex-shrink:0}
+.pad{width:1194px;height:834px;position:relative;overflow:hidden;background:var(--web);border-radius:24px;flex-shrink:0}
+.cap{width:390px;font-size:15px;line-height:21px;color:var(--label)}
+.cap b{display:block;font-size:17px;margin-bottom:4px}
+.cap .k{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12px;color:var(--sec);margin-top:4px}
+.home-ind{position:absolute;left:50%;bottom:8px;width:134px;height:5px;margin-left:-67px;border-radius:3px;background:var(--label);opacity:.85}
+.web{padding:58px 16px 0;display:flex;flex-direction:column;gap:10px;color:var(--webtext)}
+.web .crumb{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--websec)}
+.web .fav{width:22px;height:22px;border-radius:6px;background:#5B6B8C;flex-shrink:0}
+.web h1{margin:0;font-size:22px;line-height:1.25;font-weight:700}
+.web .meta{font-size:13px;color:var(--websec)}
+.web .hr{height:1px;background:var(--webline)}
+.web .post{display:flex;gap:10px;font-size:15px;line-height:1.45}
+.av{width:32px;height:32px;border-radius:16px;flex-shrink:0}
+.web .li{display:flex;flex-direction:column;gap:2px;padding:8px 0;border-top:1px solid var(--webline);font-size:15px}
+.web .li span{font-size:12px;color:var(--websec)}
+.scrim{position:absolute;left:0;top:0;right:0;bottom:0;background:var(--scrim)}
+.panel{position:absolute;left:0;right:0;bottom:0;background:var(--surface);border-radius:28px 28px 0 0;box-shadow:0 -8px 30px rgba(20,17,14,.16);display:flex;flex-direction:column}
+.grab{display:flex;justify-content:center;padding-top:6px}
+.grab span{width:36px;height:5px;border-radius:3px;background:var(--ter);opacity:.5}
+.phd{display:flex;align-items:center;gap:8px;padding:2px 4px 0 20px;min-height:44px}
+.phd h2{margin:0;font-size:17px;font-weight:600;flex-shrink:0}
+.seal{display:inline-flex;align-items:center;gap:4px;min-height:24px;padding:0 8px;border-radius:6px;font-size:12px;font-weight:600;border:0;font-family:inherit;white-space:nowrap;box-sizing:border-box}
+.seal.ink{background:var(--label);color:var(--ground);min-height:28px}
+.seal.out{border:1px solid var(--strong);color:var(--label);background:none}
+.seal.gw{background:var(--goldwash);color:var(--blue)}
+.seal.jw{background:var(--jadewash);color:var(--jade)}
+.seal.ww{background:var(--jadewash);color:var(--jade)}
+.seal svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.ib{width:44px;height:44px;border:0;background:none;color:var(--label);display:flex;align-items:center;justify-content:center;padding:0}
+.ib svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.conv{flex:1;overflow:hidden;padding:4px 16px 8px;display:flex;flex-direction:column;justify-content:flex-end;gap:10px}
+.conv>*{flex-shrink:0}
+.ub{align-self:flex-end;max-width:82%;background:var(--raised);color:var(--label);padding:9px 14px;border-radius:14px 14px 6px 14px;font-size:15px;line-height:20px}
+.at{font-size:15px;line-height:21px;color:var(--label)}
+.fold{display:flex;align-items:center;gap:10px;background:var(--raised);border-radius:10px;padding:10px 12px;font-size:15px;font-weight:600;color:var(--label)}
+.fold svg{width:14px;height:14px;color:var(--ter);fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.note{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;background:var(--goldwash);color:var(--blue);font-size:12px;font-weight:600;padding:5px 10px;border-radius:6px}
+.note svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.rc{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.rc .chd{display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--jadewash);color:var(--jade);font-size:12px;font-weight:600}
+.rc .chd svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.rc .cbd{padding:10px 12px;font-size:15px;line-height:21px}
+.rc .cbd ol{margin:0;padding-left:20px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.hd{display:flex;align-items:center;gap:12px}
+.hd .m{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.hd .n{font-size:17px;font-weight:600;line-height:22px}
+.hd .s{font-size:13px;color:var(--sec)}
+.tile{width:36px;height:36px;border-radius:6px;background:var(--goldwash);color:var(--blue);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tile svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.cbs{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.tl{display:flex;flex-direction:column}
+.t{display:flex;gap:10px;align-items:center;padding:6px 0;border-top:1px solid var(--border)}
+.t:first-child{border-top:0}
+.gd{width:28px;height:28px;border-radius:999px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--sec);background:var(--raised);box-sizing:border-box}
+.gd svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.gd.run{background:none;border:2px solid var(--gold);border-right-color:var(--border)}
+.t .m{flex:1;min-width:0;display:flex;flex-direction:column}
+.t .lb{font-size:15px;font-weight:600;color:var(--label)}
+.t .ar{font-size:12px;color:var(--sec);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t .cv{width:14px;height:14px;color:var(--ter);fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.cc{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.cc .q{font-size:15px;line-height:21px;color:var(--label)}
+.cc .u{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:13px;line-height:18px;color:var(--sec);word-break:break-all;background:var(--raised);border-radius:10px;padding:8px 10px}
+.cc .cl{display:flex;gap:6px;align-items:flex-start;font-size:13px;line-height:18px;color:var(--sec)}
+.cc .cl svg{width:14px;height:14px;margin-top:2px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.cc .bs{display:flex;gap:8px}
+.pin{padding:8px 0 30px;display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--border)}
+.strow{display:flex;align-items:center;gap:8px;padding:0 16px;min-height:40px;font-size:12px;font-weight:600;color:var(--sec);white-space:nowrap}
+.strow svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.masc{width:40px;height:40px;flex-shrink:0;object-fit:contain}
+.sgrow{display:flex;gap:8px;padding:0 16px;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}
+.sgrow.fit{-webkit-mask-image:none;mask-image:none}
+.sg{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border-radius:10px;border:1px solid var(--strong);background:var(--surface);color:var(--label);font-family:inherit;font-size:15px;white-space:nowrap;flex-shrink:0;box-sizing:border-box}
+.sg svg{width:16px;height:16px;color:var(--blue);fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.inrow{display:flex;align-items:center;gap:8px;padding:0 16px}
+.fld{flex:1;display:flex;align-items:center;min-height:44px;padding:0 12px;border-radius:10px;background:var(--surface);border:1px solid var(--strong);font-size:15px;color:var(--ter);box-sizing:border-box}
+.ringb{width:44px;height:44px;border-radius:999px;border:0;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-sizing:border-box;padding:0}
+.ringb svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ringb.mic{background:none;border:2px solid var(--gold);color:var(--blue)}
+.ringb.stop{background:var(--cin);color:var(--oncin)}
+.btn{white-space:nowrap;min-height:44px;padding:0 16px;border-radius:10px;font-family:inherit;font-size:15px;font-weight:600;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn.pri{background:var(--gold);color:var(--ongold);border:0}
+.btn.sec{background:none;color:var(--label);border:1px solid var(--strong)}
+.btn.qt{background:none;color:var(--blue);border:0;padding:0 8px}
+.btn.dgo{background:none;color:var(--danger);border:1px solid var(--strong)}
+.btn svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tg{width:51px;height:31px;border-radius:16px;position:relative;flex-shrink:0;border:0;padding:0;background:var(--gold)}
+.tg span{position:absolute;top:2px;right:2px;width:27px;height:27px;border-radius:14px;background:var(--ongold)}
+.tg.off{background:var(--toggleoff);box-shadow:inset 0 0 0 1px var(--strong)}
+.tg.off span{left:2px;right:auto;background:var(--sec)}
+.pop{position:absolute;background:var(--pop);border-radius:14px;box-shadow:0 12px 40px rgba(20,17,14,.28);overflow:hidden;display:flex;flex-direction:column}
+.psh{font-size:12px;font-weight:600;color:var(--sec);padding:12px 14px 6px;letter-spacing:.02em}
+.prow{display:flex;align-items:center;gap:10px;min-height:44px;padding:0 14px;border-top:1px solid var(--border);color:var(--label);text-decoration:none}
+.prow .m{flex:1;min-width:0;display:flex;flex-direction:column;padding:6px 0;gap:1px}
+.prow .m b{font-size:15px;font-weight:400}
+.prow .m span{font-size:12px;color:var(--sec)}
+.prow .v{font-size:13px;color:var(--sec);white-space:nowrap}
+.reads{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--sec)}
+.reads svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.ch{width:14px;height:14px;color:var(--ter);flex-shrink:0;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sheet{position:absolute;left:0;right:0;bottom:0;top:54px;background:var(--page);border-radius:14px 14px 0 0;display:flex;flex-direction:column;overflow:hidden}
+.fsheet{position:absolute;left:267px;top:84px;width:660px;height:730px;background:var(--page);border-radius:18px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.nav{display:flex;align-items:center;min-height:48px;padding:0 8px;flex-shrink:0}
+.nav .tt{flex:1;text-align:center;display:flex;flex-direction:column;align-items:center}
+.nav .tt b{font-size:17px;font-weight:600}
+.nav .tt span{font-size:12px;color:var(--sec)}
+.nb{border:0;background:none;color:var(--blue);font-family:inherit;font-size:17px;min-height:44px;min-width:76px;padding:0 8px;display:inline-flex;align-items:center;gap:2px;text-decoration:none}
+.nb.r{justify-content:flex-end;font-weight:600}
+.nb svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.bd{flex:1;overflow:hidden;padding:4px 16px 16px;display:flex;flex-direction:column;gap:18px}
+.bd>*{flex-shrink:0}
+.sh{font-size:13px;color:var(--sec);padding:0 16px 6px;text-transform:uppercase;letter-spacing:.02em;display:flex}
+.sh span{margin-left:auto;text-transform:none}
+.ft{font-size:13px;line-height:18px;color:var(--sec);padding:6px 16px 0}
+.sec{background:var(--surface);border-radius:14px;overflow:hidden}
+.r{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 14px;font-size:17px}
+.r+.r{border-top:1px solid var(--border)}
+.r .m{flex:1;min-width:0;display:flex;flex-direction:column;padding:8px 0;gap:2px}
+.r .m b{font-size:15px;font-weight:600}
+.r .m .s{font-size:13px;line-height:18px;color:var(--sec)}
+.r .v{margin-left:auto;color:var(--sec);font-size:15px;white-space:nowrap}
+.tn{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:13px;font-weight:600;color:var(--label);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tr{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.st{display:inline-flex;align-items:center;gap:4px;font-size:13px;font-weight:600}
+.st svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.ok{color:var(--success)}
+.wn{color:var(--warning)}
+.dg{color:var(--danger)}
+.mu{color:var(--sec)}
+.lk{color:var(--blue)}
+.ico{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.steps{display:flex;flex-direction:column}
+.sp{display:flex;align-items:flex-start;gap:10px;padding:7px 14px;font-size:15px;line-height:20px}
+.sp+.sp{border-top:1px solid var(--border)}
+.sp .no{width:18px;font-size:13px;color:var(--sec);font-variant-numeric:tabular-nums;padding-top:1px}
+.sp .m{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.sp .m span{font-size:12px;line-height:16px;color:var(--sec)}
+.sp svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;margin-top:2px}
+.code{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12px;line-height:18px;background:var(--surface);border-radius:14px;padding:12px 14px;color:var(--label);white-space:pre;overflow:hidden}
+.code .k{color:var(--blue)}
+.code .c{color:var(--ter)}
+.edit{box-shadow:inset 0 0 0 1px var(--strong)}
+.alert{position:absolute;width:270px;background:var(--pop);border-radius:14px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.3);text-align:center}
+.alert .ai{display:flex;justify-content:center;padding-top:18px;color:var(--warning)}
+.alert .ai svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.alert h3{margin:8px 16px 4px;font-size:17px;font-weight:600}
+.alert p{margin:0 16px 10px;font-size:13px;line-height:18px}
+.alert .ac{margin:0 16px 14px;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12px;line-height:16px;color:var(--sec);text-align:left;background:var(--page);border-radius:8px;padding:6px 8px;word-break:break-all}
+.alert .ab{display:flex;border-top:1px solid var(--border)}
+.alert .ab button{flex:1;min-height:44px;border:0;background:none;color:var(--blue);font-family:inherit;font-size:17px}
+.alert .ab button+button{border-left:1px solid var(--border);font-weight:600}
+.bar{height:64px;padding:14px 12px 6px;box-sizing:border-box;display:flex;align-items:center;gap:4px;background:var(--surface);border-bottom:1px solid var(--border)}
+.addr{flex:1;display:flex;justify-content:center}
+.addr div{width:420px;height:36px;border-radius:18px;background:var(--raised);display:flex;align-items:center;justify-content:center;gap:6px;font-size:15px}
+.ring{width:44px;height:44px;border-radius:999px;border:2px solid var(--gold);background:none;padding:0;box-sizing:border-box;flex-shrink:0}
+.strip{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;align-items:center}
+.strip .sg{min-height:32px;font-size:14px;padding:0 10px}
+.sg.opt{border-style:dashed}
+.strip .lbl{font-size:12px;color:var(--sec)}
+.twocol{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+.cp .sp{padding:6px 12px;font-size:14px}
+.cp .sp .m{flex-direction:row;gap:6px;align-items:baseline;white-space:nowrap;overflow:hidden}
+.cp .sp .m span{overflow:hidden;text-overflow:ellipsis}
+
+</style>
+</helmet>
+<div class="sf {{theme}}" style="width: 1680px; height: 1100px; display: flex; gap: 40px; background: var(--canvas);"><div class="col"><div class="ph"><div class="web"><div class="crumb"><span class="fav"></span>bbs.example.net · Storage</div><h1>Fanless NAS: which case takes four drives and stays cool?</h1><div class="meta">46 replies · 3.4k views · last reply 8 min ago</div><div class="hr"></div><div class="post"><span class="av" style="background: #C8A2D8;"></span><div><b>[member]</b><br>Running four 8 TB drives in a passive case for a year now. Summer is the hard part: the top drive sits at 49 °C on warm days…</div></div></div><section class="panel" aria-label="Assistant panel" style="height: 330px;"><div class="grab"><span></span></div><header class="phd"><h2>Agent</h2><button class="seal ink" aria-label="This page: bbs.example.net">bbs.example.net<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><span style="flex: 1;"></span><button class="ib" aria-label="More: model, new conversation, history, settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><circle cx="8" cy="12" r=".6" fill="currentColor"/><circle cx="12" cy="12" r=".6" fill="currentColor"/><circle cx="16" cy="12" r=".6" fill="currentColor"/></svg></button></header><div class="conv"><div class="at" style="color: var(--sec);">Ask anything about this page.</div></div><div class="pin"><div role="group" aria-label="Suggestions" class="sgrow"><button class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 10h10M4 14h16M4 18h10"/></svg>Summarize this thread and replies</button><button class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16v-4a8 8 0 0 1 16 0v4"/><rect x="3" y="15" width="4" height="6" rx="1.5"/><rect x="17" y="15" width="4" height="6" rx="1.5"/></svg>Read it to me</button><button class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/></svg>Make it dark</button></div><div class="inrow"><div class="fld">Ask the Agent…</div><button class="ringb mic" aria-label="Talk"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button></div></div></section><div class="home-ind"></div></div><div class="cap"><b>Unknown forum, looks like a thread</b>Nothing learned yet, but the fixed page check (forum markup, a known generator, or three sibling posts each with a profile link, a time and text) says thread. No model, no network. The row scrolls under its fade.<div class="strip" role="group" aria-label="The whole suggestion row"><span class="lbl">Whole row:</span><button class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 10h10M4 14h16M4 18h10"/></svg>Summarize this thread and replies</button><button class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16v-4a8 8 0 0 1 16 0v4"/><rect x="3" y="15" width="4" height="6" rx="1.5"/><rect x="17" y="15" width="4" height="6" rx="1.5"/></svg>Read it to me</button><button class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/></svg>Make it dark</button></div><div class="k">PageFacts: looksLikeThread</div></div></div><div class="col"><div class="ph"><section class="panel" aria-label="Assistant panel" style="top: 54px;"><div class="grab"><span></span></div><header class="phd"><h2>Agent</h2><button class="seal ink" aria-label="This page: bbs.example.net · 1 script">bbs.example.net · 1 script<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><span style="flex: 1;"></span><button class="ib" aria-label="More: model, new conversation, history, settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><circle cx="8" cy="12" r=".6" fill="currentColor"/><circle cx="12" cy="12" r=".6" fill="currentColor"/><circle cx="16" cy="12" r=".6" fill="currentColor"/></svg></button></header><div class="conv"><div class="ub">Summarize this thread and replies</div><div class="at">I don't know this forum yet. Let me learn how it serves threads first. About half a minute.</div><div class="fold" role="button" aria-label="Steps 8, collapsed"><span>Steps 8</span><span style="flex: 1;"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></div><div class="note"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 8a8.5 8.5 0 1 0 1 4"/></svg>Saved. Faster next time.</div><div class="card" role="group" aria-label="Script Thread reader"><div class="hd"><span class="tile"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4c-2 0-2 1.5-2 3v2c0 1.5-1 2-2 2 1 0 2 .5 2 2v3c0 1.5 0 3 2 3M15 4c2 0 2 1.5 2 3v2c0 1.5 1 2 2 2-1 0-2 .5-2 2v3c0 1.5 0 3-2 3"/></svg></span><div class="m"><span class="n">Thread reader</span><span class="mono s">https://bbs.example.net/*</span></div><button class="tg" role="switch" aria-checked="true" aria-label="Thread reader"><span></span></button></div><div class="cbs"><button class="btn sec">View code</button><button class="btn qt">Manage scripts</button></div></div><div class="rc"><div class="chd"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 10h10M4 14h16M4 18h10"/></svg><span style="flex: 1;">Summary · 46 posts</span><svg viewBox="0 0 24 24" aria-hidden="true" style="width: 14px; height: 14px;"><path d="M9 6l6 6-6 6"/></svg></div><div class="cbd"><ol><li>A passive case holds four drives only with a top vent; the top drive runs hottest.</li><li>Two people moved to a slow 120 mm fan and say it is still silent.</li><li>Check the case's drive cage: some block airflow to the bottom bay.</li></ol></div></div></div><div class="pin"><div class="strow"><img class="masc" src="../design-system/assets/Mascot/cheer.svg" alt=""><span class="ok" style="display: flex;"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L19 7"/></svg></span><span style="flex: 1;">Done · 8 steps · 31 s</span></div><div role="group" aria-label="Suggestions" class="sgrow fit"><button class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16v-4a8 8 0 0 1 16 0v4"/><rect x="3" y="15" width="4" height="6" rx="1.5"/><rect x="17" y="15" width="4" height="6" rx="1.5"/></svg>Read it to me</button></div><div class="inrow"><div class="fld">Ask the Agent…</div><button class="ringb mic" aria-label="Talk"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button></div></div></section><div class="home-ind"></div></div><div class="cap"><b>First time: learn, save, answer</b>Learning starts only from a question that needs the whole thread. The Agent says it is learning, the app checks the reader on two real threads before saving, and the saved note and the usual script card follow. In This page the script then reads Reads this site.<div class="k">read_topic: untried → learned · 6–9 tool calls</div></div></div><div class="col"><div class="ph"><div class="web"><div class="crumb"><span class="fav"></span>bbs.example.net · Storage</div><h1>Which UPS for a NAS that should shut down cleanly?</h1><div class="meta">31 replies · 1.2k views · last reply 1 h ago</div><div class="hr"></div><div class="post"><span class="av" style="background: #C8A2D8;"></span><div><b>[member]</b><br>Running four 8 TB drives in a passive case for a year now. Summer is the hard part: the top drive sits at 49 °C on warm days…</div></div></div><section class="panel" aria-label="Assistant panel" style="height: 560px;"><div class="grab"><span></span></div><header class="phd"><h2>Agent</h2><button class="seal ink" aria-label="This page: bbs.example.net · 1 script">bbs.example.net · 1 script<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><span style="flex: 1;"></span><button class="ib" aria-label="More: model, new conversation, history, settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><circle cx="8" cy="12" r=".6" fill="currentColor"/><circle cx="12" cy="12" r=".6" fill="currentColor"/><circle cx="16" cy="12" r=".6" fill="currentColor"/></svg></button></header><div class="conv"><div class="ub">Summarize this thread and replies</div><div class="fold" role="button" aria-label="Steps 1, collapsed"><span>Steps 1</span><span style="flex: 1;"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></div><div class="rc"><div class="chd"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 10h10M4 14h16M4 18h10"/></svg><span style="flex: 1;">Summary · 31 posts</span><svg viewBox="0 0 24 24" aria-hidden="true" style="width: 14px; height: 14px;"><path d="M9 6l6 6-6 6"/></svg></div><div class="cbd"><ol><li>Pick a UPS with a USB data port; NUT on the NAS reads it.</li><li>Shut down at 50 % battery, not at the low-battery signal.</li><li>Cheap line-interactive units are fine for a 40 W box.</li></ol></div></div></div><div class="pin"><div class="strow"><img class="masc" src="../design-system/assets/Mascot/cheer.svg" alt=""><span class="ok" style="display: flex;"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L19 7"/></svg></span><span style="flex: 1;">Done · 1 step · 4 s</span></div><div role="group" aria-label="Suggestions" class="sgrow fit"><button class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16v-4a8 8 0 0 1 16 0v4"/><rect x="3" y="15" width="4" height="6" rx="1.5"/><rect x="17" y="15" width="4" height="6" rx="1.5"/></svg>Read it to me</button></div><div class="inrow"><div class="fld">Ask the Agent…</div><button class="ringb mic" aria-label="Talk"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button></div></div></section><div class="home-ind"></div></div><div class="cap"><b>A learned thread, next time</b>It matches the reader's thread rule, so it reads like a built-in forum: one tool call, the same summary card. Search this forum… (dashed) shows only when search is learned; here it failed. Notify me never shows on a learned site.<div class="strip" role="group" aria-label="The whole suggestion row"><span class="lbl">Whole row:</span><button class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 10h10M4 14h16M4 18h10"/></svg>Summarize this thread and replies</button><button class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16v-4a8 8 0 0 1 16 0v4"/><rect x="3" y="15" width="4" height="6" rx="1.5"/><rect x="17" y="15" width="4" height="6" rx="1.5"/></svg>Read it to me</button><button class="sg opt"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6"/><path d="M20 20l-5-5"/></svg>Search this forum…</button></div></div></div><div class="col"><div class="ph"><div class="web"><div class="crumb"><span class="fav"></span>bbs.example.net</div><h1>Storage</h1><div class="meta">Latest threads</div><div class="li">Which UPS for a NAS that should shut down cleanly?<span>31 replies · 1 h</span></div><div class="li">Fanless NAS: which case takes four drives and stays cool?<span>46 replies · 8 min</span></div><div class="li">ZFS scrub every week or every month?<span>12 replies · 3 h</span></div><div class="li">Spinning down drives: worth it in 2026?<span>58 replies · 5 h</span></div></div><section class="panel" aria-label="Assistant panel" style="height: 330px;"><div class="grab"><span></span></div><header class="phd"><h2>Agent</h2><button class="seal ink" aria-label="This page: bbs.example.net · 1 script">bbs.example.net · 1 script<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><span style="flex: 1;"></span><button class="ib" aria-label="More: model, new conversation, history, settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><circle cx="8" cy="12" r=".6" fill="currentColor"/><circle cx="12" cy="12" r=".6" fill="currentColor"/><circle cx="16" cy="12" r=".6" fill="currentColor"/></svg></button></header><div class="conv"><div class="at" style="color: var(--sec);">Ask anything about this page.</div></div><div class="pin"><div role="group" aria-label="Suggestions" class="sgrow fit"><button class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg>What's worth reading today</button></div><div class="inrow"><div class="fld">Ask the Agent…</div><button class="ringb mic" aria-label="Talk"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button></div></div></section><div class="home-ind"></div></div><div class="cap"><b>A learned list page</b>It matches the reader's list rule. A list not learned yet learns list_latest on the first tap, then reads at least one thread before recommending. Chips are the app's fixed sentences; no site text becomes a chip.<div class="strip" role="group" aria-label="The whole suggestion row"><span class="lbl">Whole row:</span><button class="sg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg>What's worth reading today</button><button class="sg opt"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6"/><path d="M20 20l-5-5"/></svg>Search this forum…</button></div></div></div></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["lt","dk"],"default":"lt"},"$preview":{"width":1680,"height":1100}}'>
+class Component extends DCLogic {
+renderVals() { return { theme: this.props.theme ?? 'lt' }; }
+}
+</script>
+</body>
+</html>
