@@ -4,7 +4,7 @@ import XCTest
 @testable import WukongMind
 
 /// The fixed "looks like a thread" check (Learn on ask 8) on saved pages: four
-/// forum shapes it must flag and four ordinary pages it must not. It runs in a
+/// engines it must flag and four ordinary pages it must not. It runs in a
 /// `WKWebView` on `loadHTMLString`, so it can only read the page it was given.
 @MainActor
 final class LookLikeThreadProbeTests: XCTestCase {
@@ -45,21 +45,28 @@ final class LookLikeThreadProbeTests: XCTestCase {
     }
 
     func testTrueOnForumPages() async throws {
-        for name in ["forum-jsonld", "forum-generator", "forum-microdata", "forum-sibling-posts"] {
+        for name in ["forum-fluxbb", "forum-xenforo", "forum-discourse", "forum-nodebb"] {
             let result = try await probe(name)
             XCTAssertTrue(result.facts.looksLikeThread, name)
         }
     }
 
     func testFalseOnOrdinaryPages() async throws {
-        for name in ["plain-article", "plain-product", "plain-news-front", "plain-two-comments"] {
+        for name in ["plain-wikipedia", "plain-bbc-news", "plain-python-docs", "plain-github-repo"] {
             let result = try await probe(name)
             XCTAssertFalse(result.facts.looksLikeThread, name)
         }
     }
 
+    func testTrueOnEachMarkupPath() async throws {
+        for name in ["markup-jsonld", "markup-generator", "markup-microdata"] {
+            let result = try await probe(name)
+            XCTAssertTrue(result.facts.looksLikeThread, name)
+        }
+    }
+
     func testTheCheckMakesNoRequest() async throws {
-        for name in ["forum-sibling-posts", "plain-article"] {
+        for name in ["forum-fluxbb", "plain-wikipedia"] {
             let result = try await probe(name)
             // Only the document's own load: the check adds none.
             XCTAssertEqual(result.requests.count, 1, name)

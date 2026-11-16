@@ -1251,7 +1251,7 @@ struct PageCapabilitiesView: View {
             Label {
                 Text("Reads this site", comment: "Subtitle under a script the Agent learned that reads this site's threads, in This page and Settings › Scripts")
             } icon: {
-                Image(systemName: "doc.text")
+                Image(systemName: "book.closed")
             }
             .font(.caption)
             .foregroundStyle(.secondary)
