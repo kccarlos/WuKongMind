@@ -145,6 +145,7 @@ jobs:
           # Fast offline UI suites; 6-11m multi-launch suites, xctrace perf
           # loops and live meta.discourse.org suites stay manual.
           run_ui() {
+            : > ui.log; rm -f ui.stalled
             xcodebuild test \
               -project "$PROJECT" \
               -scheme "$SCHEME" \
@@ -160,10 +161,22 @@ jobs:
               -resultBundlePath TestResults.xcresult \
               CODE_SIGNING_ALLOWED=NO \
               CODE_SIGNING_REQUIRED=NO \
-              2>&1 | tee ui.log | "${formatter[@]}"
+              2>&1 | tee ui.log | "${formatter[@]}" &
+            pid=$!
+            # Watchdog: xcodebuild has hung after the build with no output
+            # (runs 43860157515, 43838760004); kill it after 8 silent minutes.
+            while kill -0 "$pid" 2>/dev/null; do
+              sleep 20
+              if [ $(( $(date +%s) - $(stat -f %m ui.log) )) -gt 480 ]; then
+                echo "::warning::UI tests printed nothing for 8 minutes; killing xcodebuild"
+                echo "STALLED" > ui.stalled
+                pkill -f "xcodebuild test" || true
+              fi
+            done
+            wait "$pid"
           }
-          # Retry the whole step once, only when the runner never launched.
-          run_ui || { grep -q "Lost pending connection to the test runner" ui.log && rm -rf TestResults.xcresult && run_ui; }
+          # Retry the whole step once, only when the runner never launched or hung.
+          run_ui || { { [ -f ui.stalled ] || grep -q "Lost pending connection to the test runner" ui.log; } && rm -rf TestResults.xcresult && run_ui; }
       - name: Flaky tests (passed on retry)
         # Never fails the job: a missing or unreadable result only gets a note.
         if: always()
