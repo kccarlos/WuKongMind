@@ -3609,7 +3609,8 @@ final class AppModel: ObservableObject {
         let candidateURL = page.url ?? targetBrowser?.webView.url ?? browser.webView.url
         guard let url = candidateURL,
               let host = SiteToolState.normalizedHost(from: url) else { return nil }
-        let state = siteToolStateStore.state(forHost: host) ?? SiteToolState(host: host)
+        var state = siteToolStateStore.state(forHost: host) ?? SiteToolState(host: host)
+        if state.adoptSyncedReaders(from: scriptStore.scripts) { try? siteToolStateStore.save(state) }
         let scope = LearnedRunScope(
             readBudget: { [weak self] in self?.settings.agentMaxTopicReads ?? AgentLimits.defaultMaxTopicReads },
             readLimit: settings.agentReadLimit

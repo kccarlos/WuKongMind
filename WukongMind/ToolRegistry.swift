@@ -422,6 +422,10 @@ struct ToolNote: Codable, Equatable, Sendable {
     static let explorationNudge = ToolNote("If you are working out how to read this site, stop exploring: save the reader "
         + "with `script_save` and `provides` now. Otherwise carry on.")
 
+    /// A learned reader failed its call: the slot is `broken`, and the result carries the repair block.
+    static let slotBroken = ToolNote("The saved reading tool for this site no longer works. Repair it before answering: "
+        + "fix its script with `script_update` using the script below, and don't save a second reader.")
+
     /// `run_js` in the page world failed on the page's Content Security Policy.
     static let pageWorldCSP = ToolNote("The page's Content Security Policy restricts eval or cross-origin requests "
         + "in the 'page' world; retry with environment: 'isolated' unless you specifically need page JS globals.")
@@ -672,6 +676,10 @@ struct ToolRegistry: Sendable {
     var pageTools: PageToolContext?
     /// The run's learning state, so the session can tell it what the assistant said.
     var learningRunState: SiteLearningRunState?
+    /// The learned site's per-run state: a broken slot arms the repair rules for `script_update` here.
+    var learnedSite: LearnedSiteContext?
+    /// Called once when the run ends (not stopped): counts the runs that ended with a slot still `broken`.
+    var learnedRunFinished: (@MainActor @Sendable (String?) -> Void)?
 
     init(
         tools: [AgentTool] = [],
@@ -961,7 +969,7 @@ struct ToolRegistry: Sendable {
                     step: step,
                     truncationLimit: truncationLimit,
                     redactedSecrets: redactedSecrets,
-                    repairState: repairState
+                    repairState: await currentRepairState()
                 )
                 execution = try await executeWithContext(arguments, callContext)
             } else {
@@ -2123,6 +2131,15 @@ extension ToolRegistry {
                     )
                 }
 
+                let wantsOn = patch.isEnabled == true && !prospective.previous.isEnabled
+                if wantsOn, !prospective.previous.metadata.provides.isEmpty,
+                   (prospective.previous.disabledReason ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    return ToolExecutionOutput(
+                        content: "Error: Not saved: this reading tool was turned off in This page. Only the person can turn it on.",
+                        summary: "Turned off in This page", isError: true
+                    )
+                }
+
                 if let repairState,
                    ScriptRepairRunState.widensPermissions(previous: prospective.previous, candidate: prospective.updated) {
                     let refusalCount = await MainActor.run { repairState.noteRefusal(for: id) }
@@ -2649,12 +2666,13 @@ extension ToolRegistry {
             if !script.metadata.threadMatches.isEmpty { state.threadMatch = script.metadata.threadMatches }
             if !script.metadata.listMatches.isEmpty { state.listMatch = script.metadata.listMatches }
             for (slot, v) in report.slots {
+                let repaired = state.slot(slot).status == .broken
                 state.setSlot(SiteSlotState(
                     status: .learned, scriptID: script.id, scriptHash: hash, testURLs: v.testURLs,
                     verifiedAt: now, postStarts: v.postStarts, repairFailures: 0, failure: nil,
                     lastCheck: SiteSlotCheck(date: now, url: v.primaryURL, result: v.summary, counts: v.counts, durationMs: v.durationMs)
                 ), for: slot)
-                state.appendLog(SiteLogEntry(kind: .learned, slot: slot, date: now, taskID: taskID))
+                state.appendLog(SiteLogEntry(kind: repaired ? .repaired : .learned, slot: slot, date: now, taskID: taskID))
             }
         }
     }
@@ -3039,6 +3057,8 @@ struct LearnedSiteContext: Sendable {
     var pageToolBridge: PageToolBridge
     var scope: LearnedRunScope
     var promptState: SiteReadingPromptState
+    /// How long one reader call may run; a reader that hangs past it is a `tool` failure.
+    var readerTimeout: TimeInterval = PageToolBridge.defaultTimeout
 
     @MainActor
     init(host: String, state: SiteToolState, pageToolBridge: PageToolBridge, scriptStore: ScriptStore, scope: LearnedRunScope? = nil, stateStore: SiteToolStateStore? = nil) {
@@ -3169,6 +3189,11 @@ extension ToolRegistry {
             )
         }
         registry.learningRunState = context.learningRunState
+        if context.forum == nil, let learned = context.learnedSite {
+            registry.learnedSite = learned
+            let scriptStore = context.scriptStore
+            registry.learnedRunFinished = { taskID in LearnedSiteRepair.finishRun(learned: learned, scriptStore: scriptStore, taskID: taskID) }
+        }
         registry.siteReadingPrompt = context.forum == nil ? (context.learnedSite?.promptState ?? .none) : .none
         if surface == .text, let pageTools = context.pageTools, pageTools.isEnabled {
             registry.pageTools = pageTools
