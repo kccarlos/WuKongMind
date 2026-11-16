@@ -780,7 +780,10 @@ final class AppModel: ObservableObject {
             self?.objectWillChange.send()
         }
         self.scriptStore.onSyncedScriptsChanged = { [weak self] in
-            guard let self, !self.suppressesPersistence else { return }
+            guard let self else { return }
+            #if DEBUG
+            if self.suppressesPersistence { return }
+            #endif
             self.cloudSync.localDataDidChange()
         }
         self.scriptStore.libraryHTTPClientProvider = { [weak resolvedImporter] in
