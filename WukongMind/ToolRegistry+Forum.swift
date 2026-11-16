@@ -266,17 +266,19 @@ extension ToolRegistry {
         )
     }
 
-    private static func executeLearnedSlot(
-        slot: SiteToolSlot, arguments: [String: JSONValue],
-        learned: LearnedSiteContext, context: AgentToolContext, callContext: ToolCallContext
-    ) async throws -> ToolExecutionOutput {
-        let gate: (refusal: ToolExecutionOutput?, scriptID: String?) = await MainActor.run {
+    /// The checks every learned `read_topic`, `list_latest` or `search_forum` call passes before
+    /// the script runs: the switch, the person's off switch, failed state, and userscripts.
+    /// Shared by the slots and the thread capabilities.
+    static func learnedSlotGate(
+        slot: SiteToolSlot, learned: LearnedSiteContext, scriptStore: ScriptStore
+    ) async -> (refusal: ToolExecutionOutput?, scriptID: String?) {
+        await MainActor.run { () -> (refusal: ToolExecutionOutput?, scriptID: String?) in
             guard learned.pageToolBridge.isEnabled else {
                 return (ToolExecutionOutput(content: forumToolRefusal(slot.rawValue, forum: nil), summary: "Not a forum", isError: true), nil)
             }
             let liveState = learned.stateStore?.state(forHost: learned.host) ?? learned.state
             let slotState = liveState.slot(slot)
-            let script = slotState.scriptID.flatMap { context.scriptStore.script(id: $0) }
+            let script = slotState.scriptID.flatMap { scriptStore.script(id: $0) }
             if slotState.scriptID != nil && script == nil {
                 return (ToolExecutionOutput(content: forumToolRefusal(slot.rawValue, forum: nil), summary: "Not a forum", isError: true), nil)
             }
@@ -299,11 +301,18 @@ extension ToolRegistry {
             guard let scriptID = slotState.scriptID, script != nil, slotState.status == .learned || slotState.status == .broken else {
                 return (ToolExecutionOutput(content: forumToolRefusal(slot.rawValue, forum: nil), summary: "Not a forum", isError: true), nil)
             }
-            guard context.scriptStore.isGlobalEnabled else {
+            guard scriptStore.isGlobalEnabled else {
                 return (ToolExecutionOutput(content: "Error: Userscripts are turned off in Settings; use `read_page`.", summary: "Userscripts off", isError: true), nil)
             }
             return (nil, scriptID)
         }
+    }
+
+    private static func executeLearnedSlot(
+        slot: SiteToolSlot, arguments: [String: JSONValue],
+        learned: LearnedSiteContext, context: AgentToolContext, callContext: ToolCallContext
+    ) async throws -> ToolExecutionOutput {
+        let gate = await learnedSlotGate(slot: slot, learned: learned, scriptStore: context.scriptStore)
         if let refusal = gate.refusal { return refusal }
         let scriptID = gate.scriptID!
 
@@ -405,7 +414,7 @@ extension ToolRegistry {
         return page
     }
 
-    private static func callLearnedReader<Shape: Codable & Equatable & Sendable>(
+    static func callLearnedReader<Shape: Codable & Equatable & Sendable>(
         slot: SiteToolSlot, scriptID: String, payload: [String: JSONValue] = [:],
         learned: LearnedSiteContext, shapeNoun: String, as _: Shape.Type
     ) async -> (envelope: LearnedToolResult<Shape>?, error: ToolExecutionOutput?) {

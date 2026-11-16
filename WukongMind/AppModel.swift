@@ -472,6 +472,7 @@ final class AppModel: ObservableObject {
             }
         )
 
+        let learnedSummaries = LearnedSummaryCache()
         let agentSession = BrowserAgentSession(
             pageDriver: tabBrowser.agentBridge,
             modelClient: aiService,
@@ -517,7 +518,7 @@ final class AppModel: ObservableObject {
                     confirmations: confirmations,
                     forum: forum,
                     learnedSite: forum == nil ? app.makeLearnedSiteContext(for: tabBrowser, pageToolBridge: pageToolBridge) : nil,
-                    capabilities: tabBrowser.map { app.capabilityToolContext(for: $0) },
+                    capabilities: tabBrowser.map { app.capabilityToolContext(for: $0, learnedSummaries: learnedSummaries) },
                     pageTools: app.settings.agentPageToolsEnabled ? pageToolBridge.map {
                         PageToolContext(
                             bridge: $0,
@@ -3606,7 +3607,9 @@ final class AppModel: ObservableObject {
         capabilityToolContext(for: nil)
     }
 
-    func capabilityToolContext(for targetBrowser: ForumBrowserModel?) -> CapabilityToolContext {
+    func capabilityToolContext(
+        for targetBrowser: ForumBrowserModel?, learnedSummaries: LearnedSummaryCache = LearnedSummaryCache()
+    ) -> CapabilityToolContext {
         CapabilityToolContext(
             resolveTopicID: { [weak self, weak targetBrowser] id in
                 guard let self else { throw CancellationError() }
@@ -3618,6 +3621,18 @@ final class AppModel: ObservableObject {
             },
             summarizeThread: { [weak self] topic in guard let self else { throw CancellationError() }; return try await self.summarizeForTool(topic) },
             summarizeText: { [weak self] text in guard let self else { throw CancellationError() }; return try await self.summarizePlainText(text) },
+            isLearnedThread: { [weak self, weak targetBrowser] url in
+                await MainActor.run {
+                    guard let self else { return false }
+                    return LearnedThreadReader.isLearnedThread(
+                        url, learned: self.makeLearnedSiteContext(for: targetBrowser), scriptStore: self.scriptStore
+                    )
+                }
+            },
+            summarizeLearnedThread: { [weak self, weak targetBrowser] url in
+                guard let self else { throw CancellationError() }
+                return try await self.summarizeLearnedThread(url: url, for: targetBrowser, cache: learnedSummaries)
+            },
             existingThreadSummary: { [weak self] key in
                 guard let self, let s = self.sessions[key], s.hasSummary, !self.hasActiveWork(topicKey: key, type: .summary) else { return nil }
                 return s
@@ -3636,12 +3651,30 @@ final class AppModel: ObservableObject {
         return sessions.values.first { $0.url.absoluteString == thread.url && (thread.id == nil || $0.topicID == thread.id) }
     }
 
-    private func summarizePlainText(_ text: String) async throws -> String {
+    /// Reads a learned thread through its site's reader and summarizes it as text with the thread profile.
+    /// No disk cache, no "new replies only" and no post chips: those belong to the adapters (design "Capabilities on a learned thread").
+    private func summarizeLearnedThread(
+        url: String, for targetBrowser: ForumBrowserModel?, cache: LearnedSummaryCache
+    ) async throws -> LearnedThreadSummary {
+        guard let learned = makeLearnedSiteContext(for: targetBrowser) else {
+            throw CapabilityToolError("No reading tool for this site yet.")
+        }
+        let openURL = (targetBrowser ?? browser).webView.url?.absoluteString ?? ""
+        let thread = try await LearnedThreadReader.read(url: url, learned: learned, scriptStore: scriptStore, openPageURL: openURL)
+        if let kept = cache.summary(for: thread.cacheKey) {
+            return LearnedThreadSummary(title: thread.title, url: thread.url, postCount: thread.postCount, summary: kept)
+        }
+        let summary = try await summarizePlainText(thread.text, discussion: .learnedThread)
+        cache.store(summary, for: thread.cacheKey)
+        return LearnedThreadSummary(title: thread.title, url: thread.url, postCount: thread.postCount, summary: summary)
+    }
+
+    private func summarizePlainText(_ text: String, discussion: DiscussionProfile = .genericText) async throws -> String {
         let context = runSettings(role: .assistant, topicKey: "")
         try RunSettings.requireReady(provider: context.summarizer.provider, configuration: context.summarizer.configuration)
         return try await aiService.generateSummary(
             content: text, configuration: context.summarizer.configuration, provider: context.summarizer.provider,
-            customPrompt: context.globalInstructions, discussion: .genericText, batchLimit: context.batchLimit, onDelta: { _ in }
+            customPrompt: context.globalInstructions, discussion: discussion, batchLimit: context.batchLimit, onDelta: { _ in }
         )
     }
 

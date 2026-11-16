@@ -533,6 +533,8 @@ final class SiteLearningRunState: @unchecked Sendable {
     nonisolated static let threeAttemptsStopMessage = "Stop: three attempts failed."
     private let lock = NSLock()
     private var refusalCounts: [String: Int] = [:]
+    private var preSaveProbes = 0
+    private var probingClosed = false
     let verifierLimits: SiteToolVerifier.Limits
     init(verifierLimits: SiteToolVerifier.Limits = .default) { self.verifierLimits = verifierLimits }
     private func key(host: String, scriptID: String?, slot: SiteToolSlot) -> String {
@@ -541,6 +543,16 @@ final class SiteLearningRunState: @unchecked Sendable {
     func hasReachedLimit(host: String, scriptID: String?, slots: [SiteToolSlot]) -> Bool {
         lock.withLock { slots.contains { refusalCounts[key(host: host, scriptID: scriptID, slot: $0), default: 0] >= Self.maxRefusals } }
     }
+    /// Counts one data-source probe made before this run's first reader save; nil once saving began.
+    func noteProbe() -> Int? {
+        lock.withLock {
+            guard !probingClosed else { return nil }
+            preSaveProbes += 1
+            return preSaveProbes
+        }
+    }
+    /// A reader save was attempted: fixing a refusal may need more probes, so the cap ends.
+    func closeProbing() { lock.withLock { probingClosed = true } }
     @discardableResult
     func noteRefusal(host: String, scriptID: String?, slots: [SiteToolSlot]) -> Int {
         lock.withLock {
@@ -3074,6 +3086,7 @@ extension ToolRegistry {
         tools += capabilityTools(context: context, surface: surface)
         tools += browseTools(context: context)
         tools += pageDispatcherTools(context: context)
+        tools = capPreSaveExploration(tools, context: context)
         var registry = ToolRegistry(
             tools: tools.filter { $0.surfaces.contains(surface) },
             truncationLimit: context.settings.truncationLimit,
